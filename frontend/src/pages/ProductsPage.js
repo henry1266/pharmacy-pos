@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Grid, Button as MuiButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import DataTable from '../tables/DataTable';
-import Button from '../common/Button';
+import DataTable from '../components/tables/DataTable';
+import Button from '../components/common/Button';
 
 /**
  * 藥品管理頁面組件
