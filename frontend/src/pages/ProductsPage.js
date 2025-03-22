@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid, Button as MuiButton } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  Paper, 
+  Grid, 
+  Button as MuiButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
@@ -17,6 +28,10 @@ const ProductsPage = () => {
     { id: 4, name: '辛伐他汀', category: '降膽固醇', supplier: '健康製藥', stock: 45, price: 420, expiry: '2025-08-10' },
     { id: 5, name: '甲硝唑', category: '抗生素', supplier: '仁愛製藥', stock: 75, price: 180, expiry: '2025-11-30' },
   ]);
+
+  // 編輯對話框狀態
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
 
   // 表格列配置
   const columns = [
@@ -43,7 +58,36 @@ const ProductsPage = () => {
   // 處理編輯藥品
   const handleEdit = (id) => {
     console.log(`編輯藥品 ID: ${id}`);
-    // 實現編輯藥品邏輯
+    const productToEdit = products.find(product => product.id === id);
+    if (productToEdit) {
+      setCurrentProduct(productToEdit);
+      setOpenEditDialog(true);
+    }
+  };
+
+  // 處理編輯對話框關閉
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setCurrentProduct(null);
+  };
+
+  // 處理編輯表單變更
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentProduct({
+      ...currentProduct,
+      [name]: name === 'stock' || name === 'price' ? Number(value) : value
+    });
+  };
+
+  // 處理保存編輯
+  const handleSaveEdit = () => {
+    if (currentProduct) {
+      setProducts(products.map(product => 
+        product.id === currentProduct.id ? currentProduct : product
+      ));
+      handleCloseEditDialog();
+    }
   };
 
   // 處理刪除藥品
@@ -87,6 +131,71 @@ const ProductsPage = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* 編輯藥品對話框 */}
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
+        <DialogTitle>編輯藥品</DialogTitle>
+        <DialogContent>
+          {currentProduct && (
+            <Box sx={{ pt: 2 }}>
+              <TextField
+                fullWidth
+                margin="dense"
+                label="藥品名稱"
+                name="name"
+                value={currentProduct.name}
+                onChange={handleEditFormChange}
+              />
+              <TextField
+                fullWidth
+                margin="dense"
+                label="類別"
+                name="category"
+                value={currentProduct.category}
+                onChange={handleEditFormChange}
+              />
+              <TextField
+                fullWidth
+                margin="dense"
+                label="供應商"
+                name="supplier"
+                value={currentProduct.supplier}
+                onChange={handleEditFormChange}
+              />
+              <TextField
+                fullWidth
+                margin="dense"
+                label="庫存"
+                name="stock"
+                type="number"
+                value={currentProduct.stock}
+                onChange={handleEditFormChange}
+              />
+              <TextField
+                fullWidth
+                margin="dense"
+                label="價格"
+                name="price"
+                type="number"
+                value={currentProduct.price}
+                onChange={handleEditFormChange}
+              />
+              <TextField
+                fullWidth
+                margin="dense"
+                label="有效期限"
+                name="expiry"
+                value={currentProduct.expiry}
+                onChange={handleEditFormChange}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <MuiButton onClick={handleCloseEditDialog}>取消</MuiButton>
+          <MuiButton onClick={handleSaveEdit} color="primary">保存</MuiButton>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
