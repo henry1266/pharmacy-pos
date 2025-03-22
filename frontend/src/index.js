@@ -1,18 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
 import store from './redux/store';
-import './assets/css/index.css';
+import AppRouter from './AppRouter';
+import axios from 'axios';
+import './index.css';
+
+// 檢查本地存儲中是否有令牌
+const token = localStorage.getItem('token');
+
+// 如果有令牌，則設置到axios的默認請求頭中
+if (token) {
+  axios.defaults.headers.common['x-auth-token'] = token;
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AppRouter />
     </Provider>
   </React.StrictMode>
 );
