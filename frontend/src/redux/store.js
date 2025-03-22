@@ -1,6 +1,7 @@
 import { createStore, combineReducers, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
-import { composeWithDevTools } from 'redux-devtools-extension';
+// 使用內建的compose替代redux-devtools-extension
+import { compose } from 'redux';
 import { 
   authReducer, 
   productsReducer, 
@@ -27,7 +28,7 @@ const rootReducer = combineReducers({
 // 創建Redux store
 const store = createStore(
   rootReducer,
-  composeWithDevTools(applyMiddleware(thunk))
+  compose(applyMiddleware(thunk))
 );
 
 export default store;

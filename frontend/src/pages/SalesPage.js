@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid, Button as MuiButton, Divider } from '@mui/material';
+import { Box, Typography, Paper, Grid, Button as MuiButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
