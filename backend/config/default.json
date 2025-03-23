@@ -1,5 +1,5 @@
 {
-  "mongoURI": "mongodb://192.168.68.79:27017/pharmacy-pos",
+  "mongoURI": "mongodb://localhost:27017/pharmacy-pos",
   "jwtSecret": "pharmacy_secret_token",
   "jwtExpire": 360000
 }
