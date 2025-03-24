@@ -46,7 +46,8 @@ router.post(
     // auth,
     [
       check('name', '供應商名稱為必填項').not().isEmpty(),
-      check('code', '供應商編號為必填項').not().isEmpty(),
+      // 移除供應商編號必填驗證，允許自動生成
+      // check('code', '供應商編號為必填項').not().isEmpty(),
       check('phone', '電話號碼為必填項').not().isEmpty()
     ]
   ],
@@ -55,6 +56,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
     const {
       code,
       name,
@@ -66,24 +68,35 @@ router.post(
       paymentTerms,
       notes
     } = req.body;
+
     try {
       // 檢查供應商編號是否已存在
-      let supplier = await Supplier.findOne({ code });
-      if (supplier) {
-        return res.status(400).json({ msg: '供應商編號已存在' });
+      if (code) {
+        let supplier = await Supplier.findOne({ code });
+        if (supplier) {
+          return res.status(400).json({ msg: '供應商編號已存在' });
+        }
       }
+
       // 建立供應商欄位物件
       const supplierFields = {
-        code,
         name,
         phone
       };
+
+      if (code) supplierFields.code = code;
       if (contactPerson) supplierFields.contactPerson = contactPerson;
       if (email) supplierFields.email = email;
       if (address) supplierFields.address = address;
       if (taxId) supplierFields.taxId = taxId;
       if (paymentTerms) supplierFields.paymentTerms = paymentTerms;
       if (notes) supplierFields.notes = notes;
+
+      // 若沒提供供應商編號，系統自動生成
+      if (!code) {
+        const supplierCount = await Supplier.countDocuments();
+        supplierFields.code = `S${String(supplierCount + 1).padStart(5, '0')}`;
+      }
 
       supplier = new Supplier(supplierFields);
       await supplier.save();
@@ -110,6 +123,7 @@ router.put('/:id', async (req, res) => {
     paymentTerms,
     notes
   } = req.body;
+
   // 建立更新欄位物件
   const supplierFields = {};
   if (code) supplierFields.code = code;
@@ -121,11 +135,13 @@ router.put('/:id', async (req, res) => {
   if (taxId) supplierFields.taxId = taxId;
   if (paymentTerms) supplierFields.paymentTerms = paymentTerms;
   if (notes) supplierFields.notes = notes;
+
   try {
     let supplier = await Supplier.findById(req.params.id);
     if (!supplier) {
       return res.status(404).json({ msg: '供應商不存在' });
     }
+
     // 若編號被修改，檢查是否重複
     if (code && code !== supplier.code) {
       const existingSupplier = await Supplier.findOne({ code });
@@ -133,12 +149,14 @@ router.put('/:id', async (req, res) => {
         return res.status(400).json({ msg: '供應商編號已存在' });
       }
     }
+
     // 更新
     supplier = await Supplier.findByIdAndUpdate(
       req.params.id,
       { $set: supplierFields },
       { new: true }
     );
+
     res.json(supplier);
   } catch (err) {
     console.error(err.message);
@@ -158,6 +176,7 @@ router.delete('/:id', async (req, res) => {
     if (!supplier) {
       return res.status(404).json({ msg: '供應商不存在' });
     }
+
     await supplier.remove();
     res.json({ msg: '供應商已刪除' });
   } catch (err) {

@@ -3,14 +3,15 @@ import axios from 'axios';
 import {
   Box,
   Typography,
-  Button,
   Grid,
   Paper,
+  Button,
   TextField,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  IconButton
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -23,7 +24,6 @@ const SuppliersPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const [currentSupplier, setCurrentSupplier] = useState({
     code: '',
     name: '',
@@ -35,59 +35,74 @@ const SuppliersPage = () => {
     paymentTerms: '',
     notes: ''
   });
+  const [editMode, setEditMode] = useState(false);
 
   // 表格列定義
   const columns = [
-    { field: 'code', headerName: '供應商編號', width: 120 },
-    { field: 'name', headerName: '供應商名稱', width: 180 },
-    { field: 'contactPerson', headerName: '聯絡人', width: 120 },
-    { field: 'phone', headerName: '電話', width: 120 },
-    { field: 'email', headerName: '電子郵件', width: 180 },
-    { field: 'address', headerName: '地址', width: 200 },
-    { field: 'taxId', headerName: '統一編號', width: 120 },
+    { field: 'code', headerName: '供應商編號', width: 150 },
+    { field: 'name', headerName: '供應商名稱', width: 200 },
+    { field: 'contactPerson', headerName: '聯絡人', width: 150 },
+    { field: 'phone', headerName: '電話', width: 150 },
+    { field: 'email', headerName: '電子郵件', width: 200 },
+    { field: 'address', headerName: '地址', width: 250 },
+    { field: 'taxId', headerName: '統一編號', width: 150 },
     {
       field: 'actions',
       headerName: '操作',
       width: 120,
       renderCell: (params) => (
         <Box>
-          <Button
+          <IconButton
             color="primary"
-            size="small"
             onClick={() => handleEditSupplier(params.row.id)}
-            sx={{ minWidth: 'auto', p: '4px' }}
-          >
-            <EditIcon fontSize="small" />
-          </Button>
-          <Button
-            color="error"
             size="small"
-            onClick={() => handleDeleteSupplier(params.row.id)}
-            sx={{ minWidth: 'auto', p: '4px' }}
           >
-            <DeleteIcon fontSize="small" />
-          </Button>
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            color="error"
+            onClick={() => handleDeleteSupplier(params.row.id)}
+            size="small"
+          >
+            <DeleteIcon />
+          </IconButton>
         </Box>
-      )
-    }
+      ),
+    },
   ];
 
   // 獲取供應商數據
   const fetchSuppliers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/suppliers');
-      // 轉換數據格式以適應DataTable
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+      
+      const response = await axios.get('/api/suppliers', config);
+      
+      // 格式化數據以適應DataTable組件
       const formattedSuppliers = response.data.map(supplier => ({
         id: supplier._id,
-        ...supplier
+        code: supplier.code,
+        name: supplier.name,
+        contactPerson: supplier.contactPerson || '',
+        phone: supplier.phone,
+        email: supplier.email || '',
+        address: supplier.address || '',
+        taxId: supplier.taxId || '',
+        paymentTerms: supplier.paymentTerms || '',
+        notes: supplier.notes || ''
       }));
+      
       setSuppliers(formattedSuppliers);
-      setError(null);
+      setLoading(false);
     } catch (err) {
       console.error('獲取供應商數據失敗:', err);
       setError('獲取供應商數據失敗');
-    } finally {
       setLoading(false);
     }
   };
@@ -97,7 +112,7 @@ const SuppliersPage = () => {
     fetchSuppliers();
   }, []);
 
-  // 處理輸入變化
+  // 處理輸入變更
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCurrentSupplier({
@@ -108,21 +123,12 @@ const SuppliersPage = () => {
 
   // 處理編輯供應商
   const handleEditSupplier = (id) => {
-    const supplier = suppliers.find(supplier => supplier.id === id);
-    setCurrentSupplier({
-      id: supplier.id,
-      code: supplier.code,
-      name: supplier.name,
-      contactPerson: supplier.contactPerson || '',
-      phone: supplier.phone,
-      email: supplier.email || '',
-      address: supplier.address || '',
-      taxId: supplier.taxId || '',
-      paymentTerms: supplier.paymentTerms || '',
-      notes: supplier.notes || ''
-    });
-    setEditMode(true);
-    setOpenDialog(true);
+    const supplier = suppliers.find(s => s.id === id);
+    if (supplier) {
+      setCurrentSupplier(supplier);
+      setEditMode(true);
+      setOpenDialog(true);
+    }
   };
 
   // 處理刪除供應商
@@ -226,11 +232,13 @@ const SuppliersPage = () => {
           添加供應商
         </Button>
       </Box>
+
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
           {error}
         </Typography>
       )}
+
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper elevation={2} sx={{ p: 0 }}>
@@ -244,6 +252,7 @@ const SuppliersPage = () => {
           </Paper>
         </Grid>
       </Grid>
+
       {/* 供應商表單對話框 */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'}</DialogTitle>
@@ -255,7 +264,7 @@ const SuppliersPage = () => {
               value={currentSupplier.code}
               onChange={handleInputChange}
               fullWidth
-              required
+              helperText="選填，若未填寫將自動生成"
             />
             <TextField
               name="name"
