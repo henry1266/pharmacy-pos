@@ -12,7 +12,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate, useLocation } from 'react-router-dom';
-import '../assets/css/dashui-theme.css';
+import '../../assets/css/dashui-theme.css';
 
 /**
  * 主要佈局組件，包含頂部導航欄和側邊菜單
