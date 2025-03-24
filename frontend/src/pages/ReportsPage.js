@@ -97,7 +97,8 @@ const ReportsPage = () => {
             groupBy: groupBy
           }
         });
-        setSalesData(response.data);
+        // 確保 salesData 始終是一個數組
+        setSalesData(Array.isArray(response.data) ? response.data : []);
       } else if (reportType === 'inventory') {
         const response = await axios.get('/api/reports/inventory');
         setInventoryData(response.data);
@@ -113,6 +114,10 @@ const ReportsPage = () => {
     } catch (err) {
       console.error('獲取報表數據失敗:', err);
       setError('獲取報表數據失敗');
+      // 發生錯誤時設置為空數組
+      if (reportType === 'sales') {
+        setSalesData([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -174,19 +179,23 @@ const ReportsPage = () => {
     
     if (reportType === 'sales') {
       csvContent = 'Date,Orders,Revenue\n';
-      salesData.forEach(item => {
+      // 確保 salesData 是數組
+      const data = Array.isArray(salesData) ? salesData : [];
+      data.forEach(item => {
         csvContent += `${item.date},${item.orders},${item.revenue}\n`;
       });
       filename = `sales_report_${format(dateRange.startDate, 'yyyyMMdd')}_${format(dateRange.endDate, 'yyyyMMdd')}.csv`;
     } else if (reportType === 'inventory') {
       csvContent = 'Product,Category,Stock,Value\n';
-      inventoryData.lowStockItems.forEach(item => {
+      const items = Array.isArray(inventoryData.lowStockItems) ? inventoryData.lowStockItems : [];
+      items.forEach(item => {
         csvContent += `${item.productName},${item.category},${item.currentStock},${item.value}\n`;
       });
       filename = `inventory_report_${format(new Date(), 'yyyyMMdd')}.csv`;
     } else if (reportType === 'customers') {
       csvContent = 'Customer,Orders,Total Spent\n';
-      customerData.topCustomers.forEach(item => {
+      const customers = Array.isArray(customerData.topCustomers) ? customerData.topCustomers : [];
+      customers.forEach(item => {
         csvContent += `${item.name},${item.orders},${item.totalSpent}\n`;
       });
       filename = `customer_report_${format(dateRange.startDate, 'yyyyMMdd')}_${format(dateRange.endDate, 'yyyyMMdd')}.csv`;
@@ -212,6 +221,14 @@ const ReportsPage = () => {
     }).format(amount);
   };
 
+  // 安全的 reduce 函數，確保輸入是數組
+  const safeReduce = (data, callback, initialValue) => {
+    if (!Array.isArray(data)) {
+      return initialValue;
+    }
+    return data.reduce(callback, initialValue);
+  };
+
   // 渲染加載中狀態
   if (loading) {
     return (
@@ -223,6 +240,9 @@ const ReportsPage = () => {
 
   // 渲染銷售報表
   const renderSalesReport = () => {
+    // 確保 salesData 是數組
+    const data = Array.isArray(salesData) ? salesData : [];
+    
     return (
       <>
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -241,7 +261,7 @@ const ReportsPage = () => {
                     總銷售額
                   </Typography>
                   <Typography variant="h4" fontWeight="600" color="var(--text-primary)">
-                    {formatCurrency(salesData.reduce((sum, item) => sum + item.revenue, 0))}
+                    {formatCurrency(safeReduce(data, (sum, item) => sum + item.revenue, 0))}
                   </Typography>
                 </Box>
                 <Box sx={{ mt: 3 }}>
@@ -249,7 +269,7 @@ const ReportsPage = () => {
                     訂單數量
                   </Typography>
                   <Typography variant="h4" fontWeight="600" color="var(--text-primary)">
-                    {salesData.reduce((sum, item) => sum + item.orders, 0)}
+                    {safeReduce(data, (sum, item) => sum + item.orders, 0)}
                   </Typography>
                 </Box>
                 <Box sx={{ mt: 3 }}>
@@ -258,8 +278,8 @@ const ReportsPage = () => {
                   </Typography>
                   <Typography variant="h4" fontWeight="600" color="var(--text-primary)">
                     {formatCurrency(
-                      salesData.reduce((sum, item) => sum + item.revenue, 0) / 
-                      Math.max(1, salesData.reduce((sum, item) => sum + item.orders, 0))
+                      safeReduce(data, (sum, item) => sum + item.revenue, 0) / 
+                      Math.max(1, safeReduce(data, (sum, item) => sum + item.orders, 0))
                     )}
                   </Typography>
                 </Box>
@@ -278,7 +298,7 @@ const ReportsPage = () => {
                 </Typography>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart
-                    data={salesData}
+                    data={data}
                     margin={{
                       top: 5,
                       right: 30,
@@ -318,99 +338,107 @@ const ReportsPage = () => {
             <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
               銷售數據明細
             </Typography>
-            <Box sx={{ overflowX: 'auto' }}>
-              <table style={{ 
-                width: '100%', 
-                borderCollapse: 'collapse',
-                fontSize: '0.875rem'
-              }}>
-                <thead>
-                  <tr>
-                    <th style={{ 
-                      padding: '12px 16px', 
-                      textAlign: 'left', 
-                      borderBottom: '1px solid var(--border-color)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600
-                    }}>
-                      日期
-                    </th>
-                    <th style={{ 
-                      padding: '12px 16px', 
-                      textAlign: 'right', 
-                      borderBottom: '1px solid var(--border-color)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600
-                    }}>
-                      訂單數量
-                    </th>
-                    <th style={{ 
-                      padding: '12px 16px', 
-                      textAlign: 'right', 
-                      borderBottom: '1px solid var(--border-color)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600
-                    }}>
-                      銷售額
-                    </th>
-                    <th style={{ 
-                      padding: '12px 16px', 
-                      textAlign: 'right', 
-                      borderBottom: '1px solid var(--border-color)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600
-                    }}>
-                      平均訂單金額
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {salesData.map((item, index) => (
-                    <tr key={index} style={{ 
-                      backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.02)'
-                    }}>
-                      <td style={{ 
+            {data.length === 0 ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 5 }}>
+                <Typography variant="body1" color="var(--text-secondary)">
+                  暫無銷售數據
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ overflowX: 'auto' }}>
+                <table style={{ 
+                  width: '100%', 
+                  borderCollapse: 'collapse',
+                  fontSize: '0.875rem'
+                }}>
+                  <thead>
+                    <tr>
+                      <th style={{ 
                         padding: '12px 16px', 
+                        textAlign: 'left', 
                         borderBottom: '1px solid var(--border-color)',
-                        color: 'var(--text-primary)',
-                        fontWeight: 500
-                      }}>
-                        {item.date}
-                      </td>
-                      <td style={{ 
-                        padding: '12px 16px', 
-                        textAlign: 'right', 
-                        borderBottom: '1px solid var(--border-color)',
-                        color: 'var(--text-primary)'
-                      }}>
-                        {item.orders}
-                      </td>
-                      <td style={{ 
-                        padding: '12px 16px', 
-                        textAlign: 'right', 
-                        borderBottom: '1px solid var(--border-color)',
-                        color: 'var(--text-primary)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        color: 'var(--text-secondary)',
                         fontWeight: 600
                       }}>
-                        {formatCurrency(item.revenue)}
-                      </td>
-                      <td style={{ 
+                        日期
+                      </th>
+                      <th style={{ 
                         padding: '12px 16px', 
                         textAlign: 'right', 
                         borderBottom: '1px solid var(--border-color)',
-                        color: 'var(--text-primary)'
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        color: 'var(--text-secondary)',
+                        fontWeight: 600
                       }}>
-                        {formatCurrency(item.orders > 0 ? item.revenue / item.orders : 0)}
-                      </td>
+                        訂單數量
+                      </th>
+                      <th style={{ 
+                        padding: '12px 16px', 
+                        textAlign: 'right', 
+                        borderBottom: '1px solid var(--border-color)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        color: 'var(--text-secondary)',
+                        fontWeight: 600
+                      }}>
+                        銷售額
+                      </th>
+                      <th style={{ 
+                        padding: '12px 16px', 
+                        textAlign: 'right', 
+                        borderBottom: '1px solid var(--border-color)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                        color: 'var(--text-secondary)',
+                        fontWeight: 600
+                      }}>
+                        平均訂單金額
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Box>
+                  </thead>
+                  <tbody>
+                    {data.map((item, index) => (
+                      <tr key={index} style={{ 
+                        backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.02)'
+                      }}>
+                        <td style={{ 
+                          padding: '12px 16px', 
+                          borderBottom: '1px solid var(--border-color)',
+                          color: 'var(--text-primary)',
+                          fontWeight: 500
+                        }}>
+                          {item.date}
+                        </td>
+                        <td style={{ 
+                          padding: '12px 16px', 
+                          textAlign: 'right', 
+                          borderBottom: '1px solid var(--border-color)',
+                          color: 'var(--text-primary)'
+                        }}>
+                          {item.orders}
+                        </td>
+                        <td style={{ 
+                          padding: '12px 16px', 
+                          textAlign: 'right', 
+                          borderBottom: '1px solid var(--border-color)',
+                          color: 'var(--text-primary)',
+                          fontWeight: 600
+                        }}>
+                          {formatCurrency(item.revenue)}
+                        </td>
+                        <td style={{ 
+                          padding: '12px 16px', 
+                          textAlign: 'right', 
+                          borderBottom: '1px solid var(--border-color)',
+                          color: 'var(--text-primary)'
+                        }}>
+                          {formatCurrency(item.orders > 0 ? item.revenue / item.orders : 0)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Box>
+            )}
           </CardContent>
         </Card>
       </>
@@ -419,6 +447,15 @@ const ReportsPage = () => {
 
   // 渲染庫存報表
   const renderInventoryReport = () => {
+    // 確保 categoryDistribution 和 lowStockItems 是數組
+    const categoryDistribution = Array.isArray(inventoryData.categoryDistribution) 
+      ? inventoryData.categoryDistribution 
+      : [];
+    
+    const lowStockItems = Array.isArray(inventoryData.lowStockItems) 
+      ? inventoryData.lowStockItems 
+      : [];
+    
     return (
       <>
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -434,7 +471,7 @@ const ReportsPage = () => {
                       庫存總價值
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(inventoryData.totalValue)}
+                      {formatCurrency(inventoryData.totalValue || 0)}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -465,7 +502,7 @@ const ReportsPage = () => {
                       潛在收入
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(inventoryData.potentialRevenue)}
+                      {formatCurrency(inventoryData.potentialRevenue || 0)}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -496,7 +533,7 @@ const ReportsPage = () => {
                       低庫存項目
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {inventoryData.lowStockItems.length}
+                      {lowStockItems.length}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -527,7 +564,7 @@ const ReportsPage = () => {
                       類別數量
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {inventoryData.categoryDistribution.length}
+                      {categoryDistribution.length}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -558,33 +595,41 @@ const ReportsPage = () => {
                 <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
                   類別分布
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={inventoryData.categoryDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="var(--primary-color)"
-                      dataKey="value"
-                      nameKey="category"
-                    >
-                      {inventoryData.categoryDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => formatCurrency(value)}
-                      contentStyle={{
-                        backgroundColor: 'var(--bg-secondary)',
-                        borderColor: 'var(--border-color)',
-                        borderRadius: 'var(--border-radius-sm)'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                {categoryDistribution.length === 0 ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography variant="body1" color="var(--text-secondary)">
+                      暫無類別數據
+                    </Typography>
+                  </Box>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={categoryDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="var(--primary-color)"
+                        dataKey="value"
+                        nameKey="category"
+                      >
+                        {categoryDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value) => formatCurrency(value)}
+                        contentStyle={{
+                          backgroundColor: 'var(--bg-secondary)',
+                          borderColor: 'var(--border-color)',
+                          borderRadius: 'var(--border-radius-sm)'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -598,7 +643,7 @@ const ReportsPage = () => {
                 <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
                   低庫存警告
                 </Typography>
-                {inventoryData.lowStockItems.length === 0 ? (
+                {lowStockItems.length === 0 ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                     <Typography variant="body1" color="var(--text-secondary)">
                       沒有低庫存項目
@@ -606,7 +651,7 @@ const ReportsPage = () => {
                   </Box>
                 ) : (
                   <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                    {inventoryData.lowStockItems.map((item, index) => (
+                    {lowStockItems.map((item, index) => (
                       <Box 
                         key={index} 
                         sx={{ 
@@ -641,6 +686,15 @@ const ReportsPage = () => {
 
   // 渲染客戶報表
   const renderCustomerReport = () => {
+    // 確保 topCustomers 和 customerActivity 是數組
+    const topCustomers = Array.isArray(customerData.topCustomers) 
+      ? customerData.topCustomers 
+      : [];
+    
+    const customerActivity = Array.isArray(customerData.customerActivity) 
+      ? customerData.customerActivity 
+      : [];
+    
     return (
       <>
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -656,7 +710,7 @@ const ReportsPage = () => {
                       總會員數
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {customerData.totalCustomers}
+                      {customerData.totalCustomers || 0}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -687,7 +741,7 @@ const ReportsPage = () => {
                       新會員
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {customerData.newCustomers}
+                      {customerData.newCustomers || 0}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -719,8 +773,8 @@ const ReportsPage = () => {
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
                       {formatCurrency(
-                        customerData.topCustomers.reduce((sum, customer) => sum + customer.totalSpent, 0) / 
-                        Math.max(1, customerData.topCustomers.length)
+                        safeReduce(topCustomers, (sum, customer) => sum + customer.totalSpent, 0) / 
+                        Math.max(1, topCustomers.length)
                       )}
                     </Typography>
                   </Box>
@@ -752,7 +806,7 @@ const ReportsPage = () => {
                       總訂單數
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {customerData.topCustomers.reduce((sum, customer) => sum + customer.orders, 0)}
+                      {safeReduce(topCustomers, (sum, customer) => sum + customer.orders, 0)}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -783,31 +837,39 @@ const ReportsPage = () => {
                 <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
                   會員活躍度
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart
-                    data={customerData.customerActivity}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                    <XAxis dataKey="date" stroke="var(--text-secondary)" />
-                    <YAxis stroke="var(--text-secondary)" />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'var(--bg-secondary)',
-                        borderColor: 'var(--border-color)',
-                        borderRadius: 'var(--border-radius-sm)'
+                {customerActivity.length === 0 ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography variant="body1" color="var(--text-secondary)">
+                      暫無會員活動數據
+                    </Typography>
+                  </Box>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={customerActivity}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
                       }}
-                    />
-                    <Legend />
-                    <Line type="monotone" dataKey="activeCustomers" name="活躍會員" stroke="var(--primary-color)" activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="newCustomers" name="新會員" stroke="var(--success-color)" />
-                  </LineChart>
-                </ResponsiveContainer>
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                      <XAxis dataKey="date" stroke="var(--text-secondary)" />
+                      <YAxis stroke="var(--text-secondary)" />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'var(--bg-secondary)',
+                          borderColor: 'var(--border-color)',
+                          borderRadius: 'var(--border-radius-sm)'
+                        }}
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="activeCustomers" name="活躍會員" stroke="var(--primary-color)" activeDot={{ r: 8 }} />
+                      <Line type="monotone" dataKey="newCustomers" name="新會員" stroke="var(--success-color)" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -821,45 +883,53 @@ const ReportsPage = () => {
                 <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
                   頂級會員
                 </Typography>
-                <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                  {customerData.topCustomers.map((customer, index) => (
-                    <Box 
-                      key={index} 
-                      sx={{ 
-                        p: 2, 
-                        mb: 1, 
-                        borderRadius: 'var(--border-radius)',
-                        border: '1px solid var(--border-color)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Avatar 
-                          sx={{ 
-                            bgcolor: COLORS[index % COLORS.length], 
-                            color: '#fff',
-                            mr: 2
-                          }}
-                        >
-                          {customer.name.charAt(0)}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="body1" fontWeight="500" color="var(--text-primary)">
-                            {customer.name}
-                          </Typography>
-                          <Typography variant="body2" color="var(--text-secondary)">
-                            訂單: {customer.orders}
-                          </Typography>
+                {topCustomers.length === 0 ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography variant="body1" color="var(--text-secondary)">
+                      暫無會員數據
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                    {topCustomers.map((customer, index) => (
+                      <Box 
+                        key={index} 
+                        sx={{ 
+                          p: 2, 
+                          mb: 1, 
+                          borderRadius: 'var(--border-radius)',
+                          border: '1px solid var(--border-color)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar 
+                            sx={{ 
+                              bgcolor: COLORS[index % COLORS.length], 
+                              color: '#fff',
+                              mr: 2
+                            }}
+                          >
+                            {customer.name.charAt(0)}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body1" fontWeight="500" color="var(--text-primary)">
+                              {customer.name}
+                            </Typography>
+                            <Typography variant="body2" color="var(--text-secondary)">
+                              訂單: {customer.orders}
+                            </Typography>
+                          </Box>
                         </Box>
+                        <Typography variant="body1" fontWeight="600" color="var(--text-primary)">
+                          {formatCurrency(customer.totalSpent)}
+                        </Typography>
                       </Box>
-                      <Typography variant="body1" fontWeight="600" color="var(--text-primary)">
-                        {formatCurrency(customer.totalSpent)}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
+                    ))}
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>
