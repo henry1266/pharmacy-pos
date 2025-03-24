@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import MedicationIcon from '@mui/icons-material/Medication';
@@ -8,7 +8,11 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import LogoutIcon from '@mui/icons-material/Logout';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import SettingsIcon from '@mui/icons-material/Settings';
+import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate, useLocation } from 'react-router-dom';
+import '../assets/css/dashui-theme.css';
 
 /**
  * 主要佈局組件，包含頂部導航欄和側邊菜單
@@ -47,7 +51,16 @@ const MainLayout = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed">
+      {/* 頂部導航欄 */}
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'var(--bg-secondary)',
+          color: 'var(--text-primary)',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+        }}
+      >
         <Toolbar>
           <IconButton
             color="inherit"
@@ -58,26 +71,70 @@ const MainLayout = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             藥局POS系統
           </Typography>
+          
+          {/* 搜索圖標 */}
+          <IconButton color="inherit" sx={{ mr: 1 }}>
+            <SearchIcon />
+          </IconButton>
+          
+          {/* 通知圖標 */}
+          <IconButton color="inherit" sx={{ mr: 1 }}>
+            <Badge badgeContent={4} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+          
+          {/* 設置圖標 */}
+          <IconButton color="inherit" sx={{ mr: 2 }}>
+            <SettingsIcon />
+          </IconButton>
+          
+          {/* 用戶頭像 */}
+          <Avatar 
+            sx={{ 
+              width: 36, 
+              height: 36,
+              cursor: 'pointer',
+              bgcolor: 'var(--primary-color)'
+            }}
+          >
+            A
+          </Avatar>
         </Toolbar>
       </AppBar>
+      
+      {/* 側邊欄 */}
       <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={toggleDrawer}
+        variant="permanent"
+        open={true}
+        sx={{
+          width: 260,
+          flexShrink: 0,
+          [`& .MuiDrawer-paper`]: { 
+            width: 260, 
+            boxSizing: 'border-box',
+            backgroundColor: 'var(--bg-sidebar)',
+            color: 'var(--text-light)',
+            borderRight: 'none'
+          },
+          display: { xs: 'none', sm: 'block' }
+        }}
       >
-        <Box
-          sx={{ width: 250 }}
-          role="presentation"
-        >
-          <Box sx={{ p: 2 }}>
-            <Typography variant="h6" component="div">
+        <Toolbar />
+        <Box sx={{ overflow: 'auto', mt: 2 }}>
+          {/* 側邊欄標題 */}
+          <Box sx={{ px: 3, mb: 3 }}>
+            <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
               藥局POS系統
             </Typography>
           </Box>
-          <Divider />
+          
+          <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+          
+          {/* 菜單項目 */}
           <List>
             {menuItems.map((item) => (
               <ListItem 
@@ -85,34 +142,174 @@ const MainLayout = ({ children }) => {
                 key={item.text} 
                 onClick={() => handleNavigation(item.path)}
                 selected={location.pathname === item.path}
+                sx={{
+                  borderLeft: location.pathname === item.path ? '3px solid var(--primary-color)' : '3px solid transparent',
+                  pl: 2.5,
+                  py: 1.5,
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                  },
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                  }
+                }}
               >
-                <ListItemIcon>
+                <ListItemIcon sx={{ 
+                  color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                  minWidth: 40
+                }}>
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText primary={item.text} />
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{ 
+                    sx: { 
+                      color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                      fontWeight: 500
+                    } 
+                  }}
+                />
               </ListItem>
             ))}
           </List>
-          <Divider />
+          
+          <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', my: 2 }} />
+          
+          {/* 登出選項 */}
           <List>
-            <ListItem button onClick={handleLogout}>
-              <ListItemIcon>
+            <ListItem 
+              button 
+              onClick={handleLogout}
+              sx={{
+                pl: 2.5,
+                py: 1.5,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                }
+              }}
+            >
+              <ListItemIcon sx={{ 
+                color: 'rgba(255, 255, 255, 0.7)',
+                minWidth: 40
+              }}>
                 <LogoutIcon />
               </ListItemIcon>
-              <ListItemText primary="登出" />
+              <ListItemText 
+                primary="登出" 
+                primaryTypographyProps={{ 
+                  sx: { 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontWeight: 500
+                  } 
+                }}
+              />
             </ListItem>
           </List>
         </Box>
       </Drawer>
+      
+      {/* 移動設備側邊欄 */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={toggleDrawer}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': { 
+            width: 260,
+            backgroundColor: 'var(--bg-sidebar)',
+            color: 'var(--text-light)'
+          },
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
+            藥局POS系統
+          </Typography>
+        </Box>
+        <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+        <List>
+          {menuItems.map((item) => (
+            <ListItem 
+              button 
+              key={item.text} 
+              onClick={() => handleNavigation(item.path)}
+              selected={location.pathname === item.path}
+              sx={{
+                borderLeft: location.pathname === item.path ? '3px solid var(--primary-color)' : '3px solid transparent',
+                pl: 2.5,
+                py: 1.5,
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                }
+              }}
+            >
+              <ListItemIcon sx={{ 
+                color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                minWidth: 40
+              }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text} 
+                primaryTypographyProps={{ 
+                  sx: { 
+                    color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                    fontWeight: 500
+                  } 
+                }}
+              />
+            </ListItem>
+          ))}
+        </List>
+        <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', my: 2 }} />
+        <List>
+          <ListItem 
+            button 
+            onClick={handleLogout}
+            sx={{
+              pl: 2.5,
+              py: 1.5,
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)'
+              }
+            }}
+          >
+            <ListItemIcon sx={{ 
+              color: 'rgba(255, 255, 255, 0.7)',
+              minWidth: 40
+            }}>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="登出" 
+              primaryTypographyProps={{ 
+                sx: { 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontWeight: 500
+                } 
+              }}
+            />
+          </ListItem>
+        </List>
+      </Drawer>
+      
+      {/* 主內容區域 */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: '100%',
-          mt: 8
+          width: { sm: `calc(100% - 260px)` },
+          ml: { sm: '260px' },
+          backgroundColor: 'var(--bg-primary)',
+          minHeight: '100vh'
         }}
       >
+        <Toolbar />
         {children}
       </Box>
     </Box>
