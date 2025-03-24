@@ -1,17 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
-const auth = require('../middleware/auth');
-
+// const auth = require('../middleware/auth'); // 已移除
 const Inventory = require('../models/Inventory');
 const Product = require('../models/Product');
 
 // @route   GET api/inventory
 // @desc    Get all inventory items
-// @access  Private
-router.get('/', auth, async (req, res) => {
+// @access  Public (已改為公開)
+router.get('/', async (req, res) => {
   try {
-    const inventory = await Inventory.find().populate('product', ['name', 'code', 'specification']);
+    const inventory = await Inventory.find().populate('product');
     res.json(inventory);
   } catch (err) {
     console.error(err.message);
@@ -21,219 +20,175 @@ router.get('/', auth, async (req, res) => {
 
 // @route   GET api/inventory/:id
 // @desc    Get inventory item by ID
-// @access  Private
-router.get('/:id', auth, async (req, res) => {
+// @access  Public (已改為公開)
+router.get('/:id', async (req, res) => {
   try {
-    const inventory = await Inventory.findById(req.params.id).populate('product', ['name', 'code', 'specification']);
-    
+    const inventory = await Inventory.findById(req.params.id).populate('product');
     if (!inventory) {
-      return res.status(404).json({ msg: '庫存項目不存在' });
+      return res.status(404).json({ msg: '庫存記錄不存在' });
     }
-    
     res.json(inventory);
   } catch (err) {
     console.error(err.message);
-    
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '庫存項目不存在' });
+      return res.status(404).json({ msg: '庫存記錄不存在' });
     }
-    
     res.status(500).send('Server Error');
   }
 });
 
 // @route   POST api/inventory
 // @desc    Create an inventory item
-// @access  Private
-router.post('/', [
-  auth,
+// @access  Public (已改為公開)
+router.post(
+  '/',
   [
-    check('product', '產品ID為必填項').not().isEmpty(),
-    check('quantity', '數量為必填項').isNumeric()
-  ]
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    // 移除 auth
+    // auth,
+    [
+      check('product', '藥品ID為必填項').not().isEmpty(),
+      check('quantity', '數量為必填項').isNumeric()
+    ]
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const {
+      product,
+      quantity,
+      batchNumber,
+      expiryDate,
+      location
+    } = req.body;
+    try {
+      // 檢查藥品是否存在
+      const productExists = await Product.findById(product);
+      if (!productExists) {
+        return res.status(404).json({ msg: '藥品不存在' });
+      }
+      
+      // 檢查是否已有該藥品的庫存記錄
+      let existingInventory = null;
+      if (batchNumber) {
+        existingInventory = await Inventory.findOne({ 
+          product, 
+          batchNumber 
+        });
+      } else {
+        existingInventory = await Inventory.findOne({ product });
+      }
+      
+      if (existingInventory) {
+        // 更新現有庫存
+        existingInventory.quantity += parseInt(quantity);
+        existingInventory.lastUpdated = Date.now();
+        if (expiryDate) existingInventory.expiryDate = expiryDate;
+        if (location) existingInventory.location = location;
+        
+        await existingInventory.save();
+        return res.json(existingInventory);
+      }
+      
+      // 建立新庫存記錄
+      const inventoryFields = {
+        product,
+        quantity
+      };
+      if (batchNumber) inventoryFields.batchNumber = batchNumber;
+      if (expiryDate) inventoryFields.expiryDate = expiryDate;
+      if (location) inventoryFields.location = location;
+
+      const inventory = new Inventory(inventoryFields);
+      await inventory.save();
+      res.json(inventory);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
   }
-  
+);
+
+// @route   PUT api/inventory/:id
+// @desc    Update an inventory item
+// @access  Public (已改為公開)
+router.put('/:id', async (req, res) => {
   const {
     product,
     quantity,
     batchNumber,
     expiryDate,
-    location,
-    costPrice
+    location
   } = req.body;
-  
-  try {
-    // 檢查產品是否存在
-    const productExists = await Product.findById(product);
-    if (!productExists) {
-      return res.status(404).json({ msg: '產品不存在' });
-    }
-    
-    // 檢查是否已有相同批號的庫存
-    if (batchNumber) {
-      const existingInventory = await Inventory.findOne({ 
-        product, 
-        batchNumber 
-      });
-      
-      if (existingInventory) {
-        // 更新現有庫存
-        existingInventory.quantity += quantity;
-        existingInventory.lastUpdated = Date.now();
-        
-        await existingInventory.save();
-        return res.json(existingInventory);
-      }
-    }
-    
-    // 創建新庫存項目
-    const inventoryFields = {
-      product,
-      quantity,
-      lastUpdated: Date.now()
-    };
-    
-    if (batchNumber) inventoryFields.batchNumber = batchNumber;
-    if (expiryDate) inventoryFields.expiryDate = expiryDate;
-    if (location) inventoryFields.location = location;
-    if (costPrice) inventoryFields.costPrice = costPrice;
-    
-    const inventory = new Inventory(inventoryFields);
-    await inventory.save();
-    
-    res.json(inventory);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   PUT api/inventory/:id
-// @desc    Update inventory item
-// @access  Private
-router.put('/:id', auth, async (req, res) => {
-  const {
-    quantity,
-    batchNumber,
-    expiryDate,
-    location,
-    costPrice
-  } = req.body;
-  
-  // 建立更新對象
+  // 建立更新欄位物件
   const inventoryFields = {};
+  if (product) inventoryFields.product = product;
   if (quantity !== undefined) inventoryFields.quantity = quantity;
   if (batchNumber) inventoryFields.batchNumber = batchNumber;
   if (expiryDate) inventoryFields.expiryDate = expiryDate;
   if (location) inventoryFields.location = location;
-  if (costPrice) inventoryFields.costPrice = costPrice;
   inventoryFields.lastUpdated = Date.now();
   
   try {
     let inventory = await Inventory.findById(req.params.id);
-    
     if (!inventory) {
-      return res.status(404).json({ msg: '庫存項目不存在' });
+      return res.status(404).json({ msg: '庫存記錄不存在' });
     }
     
-    // 更新庫存
+    // 如果更改了藥品，檢查新藥品是否存在
+    if (product && product !== inventory.product.toString()) {
+      const productExists = await Product.findById(product);
+      if (!productExists) {
+        return res.status(404).json({ msg: '藥品不存在' });
+      }
+    }
+    
+    // 更新
     inventory = await Inventory.findByIdAndUpdate(
       req.params.id,
       { $set: inventoryFields },
       { new: true }
     );
-    
     res.json(inventory);
   } catch (err) {
     console.error(err.message);
-    
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '庫存項目不存在' });
+      return res.status(404).json({ msg: '庫存記錄不存在' });
     }
-    
     res.status(500).send('Server Error');
   }
 });
 
 // @route   DELETE api/inventory/:id
-// @desc    Delete inventory item
-// @access  Private
-router.delete('/:id', auth, async (req, res) => {
+// @desc    Delete an inventory item
+// @access  Public (已改為公開)
+router.delete('/:id', async (req, res) => {
   try {
     const inventory = await Inventory.findById(req.params.id);
-    
     if (!inventory) {
-      return res.status(404).json({ msg: '庫存項目不存在' });
+      return res.status(404).json({ msg: '庫存記錄不存在' });
     }
-    
     await inventory.remove();
-    
-    res.json({ msg: '庫存項目已刪除' });
+    res.json({ msg: '庫存記錄已刪除' });
   } catch (err) {
     console.error(err.message);
-    
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '庫存項目不存在' });
+      return res.status(404).json({ msg: '庫存記錄不存在' });
     }
-    
     res.status(500).send('Server Error');
   }
 });
 
-// @route   PUT api/inventory/adjust/:id
-// @desc    Adjust inventory quantity
-// @access  Private
-router.put('/adjust/:id', [
-  auth,
-  [
-    check('adjustmentQuantity', '調整數量為必填項').isNumeric(),
-    check('adjustmentReason', '調整原因為必填項').not().isEmpty()
-  ]
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-  
-  const { adjustmentQuantity, adjustmentReason } = req.body;
-  
+// @route   GET api/inventory/product/:productId
+// @desc    Get inventory by product ID
+// @access  Public (已改為公開)
+router.get('/product/:productId', async (req, res) => {
   try {
-    let inventory = await Inventory.findById(req.params.id);
-    
-    if (!inventory) {
-      return res.status(404).json({ msg: '庫存項目不存在' });
-    }
-    
-    // 調整庫存數量
-    inventory.quantity += adjustmentQuantity;
-    inventory.lastUpdated = Date.now();
-    
-    // 添加調整記錄
-    if (!inventory.adjustmentHistory) {
-      inventory.adjustmentHistory = [];
-    }
-    
-    inventory.adjustmentHistory.push({
-      date: Date.now(),
-      quantity: adjustmentQuantity,
-      reason: adjustmentReason,
-      user: req.user.id
-    });
-    
-    await inventory.save();
-    
+    const inventory = await Inventory.find({ product: req.params.productId }).populate('product');
     res.json(inventory);
   } catch (err) {
     console.error(err.message);
-    
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '庫存項目不存在' });
-    }
-    
     res.status(500).send('Server Error');
   }
 });

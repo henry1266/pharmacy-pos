@@ -1,61 +1,214 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid, Button as MuiButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import DataTable from '../components/tables/DataTable';
-import Button from '../components/common/Button';
 
-/**
- * 供應商管理頁面組件
- * @returns {React.ReactElement} 供應商管理頁面
- */
 const SuppliersPage = () => {
-  // 模擬供應商數據
-  const [suppliers, setSuppliers] = useState([
-    { id: 1, name: '健康製藥', contact: '張經理', phone: '0912-345-678', email: 'health@example.com', address: '台北市中正區健康路123號' },
-    { id: 2, name: '仁愛製藥', contact: '李經理', phone: '0923-456-789', email: 'renai@example.com', address: '台北市信義區仁愛路456號' },
-    { id: 3, name: '康泰製藥', contact: '王經理', phone: '0934-567-890', email: 'kangtai@example.com', address: '新北市板橋區康泰路789號' },
-    { id: 4, name: '和平藥業', contact: '陳經理', phone: '0945-678-901', email: 'peace@example.com', address: '台中市西區和平路234號' },
-    { id: 5, name: '長青藥品', contact: '林經理', phone: '0956-789-012', email: 'evergreen@example.com', address: '高雄市前鎮區長青路567號' },
-  ]);
+  // 狀態管理
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentSupplier, setCurrentSupplier] = useState({
+    code: '',
+    name: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
+    address: '',
+    taxId: '',
+    paymentTerms: '',
+    notes: ''
+  });
 
-  // 表格列配置
+  // 表格列定義
   const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: '供應商名稱', width: 150 },
-    { field: 'contact', headerName: '聯絡人', width: 120 },
-    { field: 'phone', headerName: '電話', width: 150 },
-    { field: 'email', headerName: '電子郵件', width: 200 },
-    { field: 'address', headerName: '地址', width: 300 },
+    { field: 'code', headerName: '供應商編號', width: 120 },
+    { field: 'name', headerName: '供應商名稱', width: 180 },
+    { field: 'contactPerson', headerName: '聯絡人', width: 120 },
+    { field: 'phone', headerName: '電話', width: 120 },
+    { field: 'email', headerName: '電子郵件', width: 180 },
+    { field: 'address', headerName: '地址', width: 200 },
+    { field: 'taxId', headerName: '統一編號', width: 120 },
     {
       field: 'actions',
       headerName: '操作',
-      width: 150,
+      width: 120,
       renderCell: (params) => (
         <Box>
-          <MuiButton size="small" onClick={() => handleEdit(params.row.id)}>編輯</MuiButton>
-          <MuiButton size="small" color="error" onClick={() => handleDelete(params.row.id)}>刪除</MuiButton>
+          <Button
+            color="primary"
+            size="small"
+            onClick={() => handleEditSupplier(params.row.id)}
+            sx={{ minWidth: 'auto', p: '4px' }}
+          >
+            <EditIcon fontSize="small" />
+          </Button>
+          <Button
+            color="error"
+            size="small"
+            onClick={() => handleDeleteSupplier(params.row.id)}
+            sx={{ minWidth: 'auto', p: '4px' }}
+          >
+            <DeleteIcon fontSize="small" />
+          </Button>
         </Box>
-      ),
-    },
+      )
+    }
   ];
 
+  // 獲取供應商數據
+  const fetchSuppliers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/suppliers');
+      // 轉換數據格式以適應DataTable
+      const formattedSuppliers = response.data.map(supplier => ({
+        id: supplier._id,
+        ...supplier
+      }));
+      setSuppliers(formattedSuppliers);
+      setError(null);
+    } catch (err) {
+      console.error('獲取供應商數據失敗:', err);
+      setError('獲取供應商數據失敗');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始化加載數據
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  // 處理輸入變化
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentSupplier({
+      ...currentSupplier,
+      [name]: value
+    });
+  };
+
   // 處理編輯供應商
-  const handleEdit = (id) => {
-    console.log(`編輯供應商 ID: ${id}`);
-    // 實現編輯供應商邏輯
+  const handleEditSupplier = (id) => {
+    const supplier = suppliers.find(supplier => supplier.id === id);
+    setCurrentSupplier({
+      id: supplier.id,
+      code: supplier.code,
+      name: supplier.name,
+      contactPerson: supplier.contactPerson || '',
+      phone: supplier.phone,
+      email: supplier.email || '',
+      address: supplier.address || '',
+      taxId: supplier.taxId || '',
+      paymentTerms: supplier.paymentTerms || '',
+      notes: supplier.notes || ''
+    });
+    setEditMode(true);
+    setOpenDialog(true);
   };
 
   // 處理刪除供應商
-  const handleDelete = (id) => {
-    console.log(`刪除供應商 ID: ${id}`);
-    // 實現刪除供應商邏輯
-    setSuppliers(suppliers.filter(supplier => supplier.id !== id));
+  const handleDeleteSupplier = async (id) => {
+    if (window.confirm('確定要刪除此供應商嗎？')) {
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            'x-auth-token': token
+          }
+        };
+        
+        await axios.delete(`/api/suppliers/${id}`, config);
+        
+        // 更新本地狀態
+        setSuppliers(suppliers.filter(supplier => supplier.id !== id));
+      } catch (err) {
+        console.error('刪除供應商失敗:', err);
+        setError('刪除供應商失敗');
+      }
+    }
   };
 
   // 處理添加供應商
   const handleAddSupplier = () => {
-    console.log('添加新供應商');
-    // 實現添加供應商邏輯
+    setCurrentSupplier({
+      code: '',
+      name: '',
+      contactPerson: '',
+      phone: '',
+      email: '',
+      address: '',
+      taxId: '',
+      paymentTerms: '',
+      notes: ''
+    });
+    setEditMode(false);
+    setOpenDialog(true);
+  };
+
+  // 處理關閉對話框
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  // 處理保存供應商
+  const handleSaveSupplier = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        }
+      };
+      
+      const supplierData = {
+        code: currentSupplier.code,
+        name: currentSupplier.name,
+        contactPerson: currentSupplier.contactPerson,
+        phone: currentSupplier.phone,
+        email: currentSupplier.email,
+        address: currentSupplier.address,
+        taxId: currentSupplier.taxId,
+        paymentTerms: currentSupplier.paymentTerms,
+        notes: currentSupplier.notes
+      };
+      
+      let response;
+      
+      if (editMode) {
+        // 更新供應商
+        response = await axios.put(`/api/suppliers/${currentSupplier.id}`, supplierData, config);
+      } else {
+        // 創建供應商
+        response = await axios.post('/api/suppliers', supplierData, config);
+      }
+      
+      // 關閉對話框並重新獲取數據
+      setOpenDialog(false);
+      fetchSuppliers();
+    } catch (err) {
+      console.error('保存供應商失敗:', err);
+      setError('保存供應商失敗');
+    }
   };
 
   return (
@@ -73,7 +226,11 @@ const SuppliersPage = () => {
           添加供應商
         </Button>
       </Box>
-
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper elevation={2} sx={{ p: 0 }}>
@@ -82,10 +239,95 @@ const SuppliersPage = () => {
               columns={columns}
               pageSize={10}
               checkboxSelection
+              loading={loading}
             />
           </Paper>
         </Grid>
       </Grid>
+      {/* 供應商表單對話框 */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              name="code"
+              label="供應商編號"
+              value={currentSupplier.code}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="name"
+              label="供應商名稱"
+              value={currentSupplier.name}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="contactPerson"
+              label="聯絡人"
+              value={currentSupplier.contactPerson}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              name="phone"
+              label="電話"
+              value={currentSupplier.phone}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="email"
+              label="電子郵件"
+              value={currentSupplier.email}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              name="address"
+              label="地址"
+              value={currentSupplier.address}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              name="taxId"
+              label="統一編號"
+              value={currentSupplier.taxId}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              name="paymentTerms"
+              label="付款條件"
+              value={currentSupplier.paymentTerms}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              name="notes"
+              label="備註"
+              value={currentSupplier.notes}
+              onChange={handleInputChange}
+              fullWidth
+              multiline
+              rows={3}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="inherit">
+            取消
+          </Button>
+          <Button onClick={handleSaveSupplier} color="primary" variant="contained">
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

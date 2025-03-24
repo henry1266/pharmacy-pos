@@ -1,69 +1,231 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid, Button as MuiButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import DataTable from '../components/tables/DataTable';
-import Button from '../components/common/Button';
 
-/**
- * 庫存管理頁面組件
- * @returns {React.ReactElement} 庫存管理頁面
- */
 const InventoryPage = () => {
-  // 模擬庫存數據
-  const [inventory, setInventory] = useState([
-    { id: 1, productId: 1, productName: '阿斯匹靈', batch: 'ASP20240301', quantity: 120, expiry: '2025-12-31', location: 'A-01-01' },
-    { id: 2, productId: 2, productName: '布洛芬', batch: 'IBU20240215', quantity: 85, expiry: '2025-10-15', location: 'A-01-02' },
-    { id: 3, productId: 3, productName: '氨氯地平', batch: 'AML20240110', quantity: 60, expiry: '2026-05-20', location: 'A-02-01' },
-    { id: 4, productId: 4, productName: '辛伐他汀', batch: 'SIM20240220', quantity: 45, expiry: '2025-08-10', location: 'A-02-02' },
-    { id: 5, productId: 5, productName: '甲硝唑', batch: 'MET20240125', quantity: 75, expiry: '2025-11-30', location: 'A-03-01' },
-  ]);
+  // 狀態管理
+  const [inventory, setInventory] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentInventory, setCurrentInventory] = useState({
+    product: '',
+    quantity: 0,
+    batchNumber: '',
+    expiryDate: '',
+    location: ''
+  });
 
-  // 表格列配置
+  // 表格列定義
   const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'productId', headerName: '藥品ID', width: 100 },
-    { field: 'productName', headerName: '藥品名稱', width: 150 },
-    { field: 'batch', headerName: '批次號', width: 120 },
-    { field: 'quantity', headerName: '數量', width: 100, type: 'number' },
-    { field: 'expiry', headerName: '有效期限', width: 150 },
-    { field: 'location', headerName: '儲位', width: 120 },
+    { 
+      field: 'productCode', 
+      headerName: '藥品編號', 
+      width: 120,
+      valueGetter: (params) => params.row.product ? params.row.product.code : ''
+    },
+    { 
+      field: 'productName', 
+      headerName: '藥品名稱', 
+      width: 180,
+      valueGetter: (params) => params.row.product ? params.row.product.name : ''
+    },
+    { field: 'quantity', headerName: '庫存數量', width: 120, type: 'number' },
+    { field: 'batchNumber', headerName: '批號', width: 120 },
+    { 
+      field: 'expiryDate', 
+      headerName: '有效期限', 
+      width: 150,
+      valueFormatter: (params) => {
+        if (!params.value) return '';
+        return new Date(params.value).toLocaleDateString();
+      }
+    },
+    { field: 'location', headerName: '存放位置', width: 120 },
     {
       field: 'actions',
       headerName: '操作',
-      width: 200,
+      width: 120,
       renderCell: (params) => (
         <Box>
-          <MuiButton size="small" onClick={() => handleEdit(params.row.id)}>編輯</MuiButton>
-          <MuiButton size="small" color="secondary" onClick={() => handleAdjust(params.row.id)}>調整</MuiButton>
-          <MuiButton size="small" color="error" onClick={() => handleDelete(params.row.id)}>刪除</MuiButton>
+          <Button
+            color="primary"
+            size="small"
+            onClick={() => handleEditInventory(params.row.id)}
+            sx={{ minWidth: 'auto', p: '4px' }}
+          >
+            <EditIcon fontSize="small" />
+          </Button>
+          <Button
+            color="error"
+            size="small"
+            onClick={() => handleDeleteInventory(params.row.id)}
+            sx={{ minWidth: 'auto', p: '4px' }}
+          >
+            <DeleteIcon fontSize="small" />
+          </Button>
         </Box>
-      ),
-    },
+      )
+    }
   ];
 
-  // 處理編輯庫存
-  const handleEdit = (id) => {
-    console.log(`編輯庫存 ID: ${id}`);
-    // 實現編輯庫存邏輯
+  // 獲取庫存數據
+  const fetchInventory = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/inventory');
+      // 轉換數據格式以適應DataTable
+      const formattedInventory = response.data.map(item => ({
+        id: item._id,
+        ...item
+      }));
+      setInventory(formattedInventory);
+      setError(null);
+    } catch (err) {
+      console.error('獲取庫存數據失敗:', err);
+      setError('獲取庫存數據失敗');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 處理調整庫存
-  const handleAdjust = (id) => {
-    console.log(`調整庫存 ID: ${id}`);
-    // 實現調整庫存邏輯
+  // 獲取藥品數據
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get('/api/products');
+      setProducts(response.data);
+    } catch (err) {
+      console.error('獲取藥品數據失敗:', err);
+    }
+  };
+
+  // 初始化加載數據
+  useEffect(() => {
+    fetchInventory();
+    fetchProducts();
+  }, []);
+
+  // 處理輸入變化
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentInventory({
+      ...currentInventory,
+      [name]: value
+    });
+  };
+
+  // 處理編輯庫存
+  const handleEditInventory = (id) => {
+    const item = inventory.find(item => item.id === id);
+    setCurrentInventory({
+      id: item.id,
+      product: item.product._id,
+      quantity: item.quantity,
+      batchNumber: item.batchNumber || '',
+      expiryDate: item.expiryDate ? item.expiryDate.substring(0, 10) : '',
+      location: item.location || ''
+    });
+    setEditMode(true);
+    setOpenDialog(true);
   };
 
   // 處理刪除庫存
-  const handleDelete = (id) => {
-    console.log(`刪除庫存 ID: ${id}`);
-    // 實現刪除庫存邏輯
-    setInventory(inventory.filter(item => item.id !== id));
+  const handleDeleteInventory = async (id) => {
+    if (window.confirm('確定要刪除此庫存記錄嗎？')) {
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            'x-auth-token': token
+          }
+        };
+        
+        await axios.delete(`/api/inventory/${id}`, config);
+        
+        // 更新本地狀態
+        setInventory(inventory.filter(item => item.id !== id));
+      } catch (err) {
+        console.error('刪除庫存記錄失敗:', err);
+        setError('刪除庫存記錄失敗');
+      }
+    }
   };
 
   // 處理添加庫存
   const handleAddInventory = () => {
-    console.log('添加新庫存');
-    // 實現添加庫存邏輯
+    setCurrentInventory({
+      product: '',
+      quantity: 0,
+      batchNumber: '',
+      expiryDate: '',
+      location: ''
+    });
+    setEditMode(false);
+    setOpenDialog(true);
+  };
+
+  // 處理關閉對話框
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  // 處理保存庫存
+  const handleSaveInventory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        }
+      };
+      
+      const inventoryData = {
+        product: currentInventory.product,
+        quantity: currentInventory.quantity,
+        batchNumber: currentInventory.batchNumber,
+        expiryDate: currentInventory.expiryDate,
+        location: currentInventory.location
+      };
+      
+      let response;
+      
+      if (editMode) {
+        // 更新庫存
+        response = await axios.put(`/api/inventory/${currentInventory.id}`, inventoryData, config);
+      } else {
+        // 創建庫存
+        response = await axios.post('/api/inventory', inventoryData, config);
+      }
+      
+      // 關閉對話框並重新獲取數據
+      setOpenDialog(false);
+      fetchInventory();
+    } catch (err) {
+      console.error('保存庫存記錄失敗:', err);
+      setError('保存庫存記錄失敗');
+    }
   };
 
   return (
@@ -81,7 +243,11 @@ const InventoryPage = () => {
           添加庫存
         </Button>
       </Box>
-
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper elevation={2} sx={{ p: 0 }}>
@@ -90,10 +256,76 @@ const InventoryPage = () => {
               columns={columns}
               pageSize={10}
               checkboxSelection
+              loading={loading}
             />
           </Paper>
         </Grid>
       </Grid>
+      {/* 庫存表單對話框 */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{editMode ? '編輯庫存' : '添加庫存'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <FormControl fullWidth required>
+              <InputLabel>藥品</InputLabel>
+              <Select
+                name="product"
+                value={currentInventory.product}
+                onChange={handleInputChange}
+                label="藥品"
+              >
+                {products.map((product) => (
+                  <MenuItem key={product._id} value={product._id}>
+                    {product.code} - {product.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              name="quantity"
+              label="數量"
+              type="number"
+              value={currentInventory.quantity}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="batchNumber"
+              label="批號"
+              value={currentInventory.batchNumber}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              name="expiryDate"
+              label="有效期限"
+              type="date"
+              value={currentInventory.expiryDate}
+              onChange={handleInputChange}
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              name="location"
+              label="存放位置"
+              value={currentInventory.location}
+              onChange={handleInputChange}
+              fullWidth
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="inherit">
+            取消
+          </Button>
+          <Button onClick={handleSaveInventory} color="primary" variant="contained">
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

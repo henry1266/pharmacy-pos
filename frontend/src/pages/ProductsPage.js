@@ -1,106 +1,240 @@
-import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Grid, 
-  Button as MuiButton,
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
+  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import DataTable from '../components/tables/DataTable';
-import Button from '../components/common/Button';
 
-/**
- * 藥品管理頁面組件
- * @returns {React.ReactElement} 藥品管理頁面
- */
 const ProductsPage = () => {
-  // 模擬藥品數據
-  const [products, setProducts] = useState([
-    { id: 1, name: '阿斯匹靈', category: '止痛藥', supplier: '健康製藥', stock: 120, price: 150, expiry: '2025-12-31' },
-    { id: 2, name: '布洛芬', category: '消炎藥', supplier: '仁愛製藥', stock: 85, price: 200, expiry: '2025-10-15' },
-    { id: 3, name: '氨氯地平', category: '降壓藥', supplier: '康泰製藥', stock: 60, price: 350, expiry: '2026-05-20' },
-    { id: 4, name: '辛伐他汀', category: '降膽固醇', supplier: '健康製藥', stock: 45, price: 420, expiry: '2025-08-10' },
-    { id: 5, name: '甲硝唑', category: '抗生素', supplier: '仁愛製藥', stock: 75, price: 180, expiry: '2025-11-30' },
-  ]);
+  // 狀態管理
+  const [products, setProducts] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState({
+    code: '',
+    name: '',
+    specification: '',
+    category: '',
+    unit: '',
+    purchasePrice: 0,
+    sellingPrice: 0,
+    description: '',
+    manufacturer: '',
+    supplier: '',
+    minStock: 10
+  });
 
-  // 編輯對話框狀態
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-
-  // 表格列配置
+  // 表格列定義
   const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: '藥品名稱', width: 150 },
-    { field: 'category', headerName: '類別', width: 120 },
-    { field: 'supplier', headerName: '供應商', width: 150 },
-    { field: 'stock', headerName: '庫存', width: 100, type: 'number' },
-    { field: 'price', headerName: '價格', width: 100, type: 'number' },
-    { field: 'expiry', headerName: '有效期限', width: 150 },
+    { field: 'code', headerName: '藥品編號', width: 120 },
+    { field: 'name', headerName: '藥品名稱', width: 180 },
+    { field: 'specification', headerName: '規格', width: 120 },
+    { field: 'category', headerName: '分類', width: 120 },
+    { field: 'unit', headerName: '單位', width: 80 },
+    { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
+    { field: 'sellingPrice', headerName: '售價', width: 100, type: 'number' },
+    { field: 'manufacturer', headerName: '製造商', width: 150 },
+    { field: 'minStock', headerName: '最低庫存', width: 100, type: 'number' },
     {
       field: 'actions',
       headerName: '操作',
-      width: 150,
+      width: 120,
       renderCell: (params) => (
         <Box>
-          <MuiButton size="small" onClick={() => handleEdit(params.row.id)}>編輯</MuiButton>
-          <MuiButton size="small" color="error" onClick={() => handleDelete(params.row.id)}>刪除</MuiButton>
+          <Button
+            color="primary"
+            size="small"
+            onClick={() => handleEditProduct(params.row.id)}
+            sx={{ minWidth: 'auto', p: '4px' }}
+          >
+            <EditIcon fontSize="small" />
+          </Button>
+          <Button
+            color="error"
+            size="small"
+            onClick={() => handleDeleteProduct(params.row.id)}
+            sx={{ minWidth: 'auto', p: '4px' }}
+          >
+            <DeleteIcon fontSize="small" />
+          </Button>
         </Box>
-      ),
-    },
+      )
+    }
   ];
 
-  // 處理編輯藥品
-  const handleEdit = (id) => {
-    console.log(`編輯藥品 ID: ${id}`);
-    const productToEdit = products.find(product => product.id === id);
-    if (productToEdit) {
-      setCurrentProduct(productToEdit);
-      setOpenEditDialog(true);
+  // 獲取藥品數據
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/products');
+      // 轉換數據格式以適應DataTable
+      const formattedProducts = response.data.map(product => ({
+        id: product._id,
+        ...product
+      }));
+      setProducts(formattedProducts);
+      setError(null);
+    } catch (err) {
+      console.error('獲取藥品數據失敗:', err);
+      setError('獲取藥品數據失敗');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 處理編輯對話框關閉
-  const handleCloseEditDialog = () => {
-    setOpenEditDialog(false);
-    setCurrentProduct(null);
+  // 獲取供應商數據
+  const fetchSuppliers = async () => {
+    try {
+      const response = await axios.get('/api/suppliers');
+      setSuppliers(response.data);
+    } catch (err) {
+      console.error('獲取供應商數據失敗:', err);
+    }
   };
 
-  // 處理編輯表單變更
-  const handleEditFormChange = (e) => {
+  // 初始化加載數據
+  useEffect(() => {
+    fetchProducts();
+    fetchSuppliers();
+  }, []);
+
+  // 處理輸入變化
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCurrentProduct({
       ...currentProduct,
-      [name]: name === 'stock' || name === 'price' ? Number(value) : value
+      [name]: value
     });
   };
 
-  // 處理保存編輯
-  const handleSaveEdit = () => {
-    if (currentProduct) {
-      setProducts(products.map(product => 
-        product.id === currentProduct.id ? currentProduct : product
-      ));
-      handleCloseEditDialog();
-    }
+  // 處理編輯藥品
+  const handleEditProduct = (id) => {
+    const product = products.find(product => product.id === id);
+    setCurrentProduct({
+      id: product.id,
+      code: product.code,
+      name: product.name,
+      specification: product.specification || '',
+      category: product.category,
+      unit: product.unit,
+      purchasePrice: product.purchasePrice,
+      sellingPrice: product.sellingPrice,
+      description: product.description || '',
+      manufacturer: product.manufacturer || '',
+      supplier: product.supplier || '',
+      minStock: product.minStock
+    });
+    setEditMode(true);
+    setOpenDialog(true);
   };
 
   // 處理刪除藥品
-  const handleDelete = (id) => {
-    console.log(`刪除藥品 ID: ${id}`);
-    // 實現刪除藥品邏輯
-    setProducts(products.filter(product => product.id !== id));
+  const handleDeleteProduct = async (id) => {
+    if (window.confirm('確定要刪除此藥品嗎？')) {
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            'x-auth-token': token
+          }
+        };
+        
+        await axios.delete(`/api/products/${id}`, config);
+        
+        // 更新本地狀態
+        setProducts(products.filter(product => product.id !== id));
+      } catch (err) {
+        console.error('刪除藥品失敗:', err);
+        setError('刪除藥品失敗');
+      }
+    }
   };
 
   // 處理添加藥品
   const handleAddProduct = () => {
-    console.log('添加新藥品');
-    // 實現添加藥品邏輯
+    setCurrentProduct({
+      code: '',
+      name: '',
+      specification: '',
+      category: '',
+      unit: '',
+      purchasePrice: 0,
+      sellingPrice: 0,
+      description: '',
+      manufacturer: '',
+      supplier: '',
+      minStock: 10
+    });
+    setEditMode(false);
+    setOpenDialog(true);
+  };
+
+  // 處理關閉對話框
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  // 處理保存藥品
+  const handleSaveProduct = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        }
+      };
+      
+      const productData = {
+        code: currentProduct.code,
+        name: currentProduct.name,
+        specification: currentProduct.specification,
+        category: currentProduct.category,
+        unit: currentProduct.unit,
+        purchasePrice: currentProduct.purchasePrice,
+        sellingPrice: currentProduct.sellingPrice,
+        description: currentProduct.description,
+        manufacturer: currentProduct.manufacturer,
+        supplier: currentProduct.supplier,
+        minStock: currentProduct.minStock
+      };
+      
+      let response;
+      
+      if (editMode) {
+        // 更新藥品
+        response = await axios.put(`/api/products/${currentProduct.id}`, productData, config);
+      } else {
+        // 創建藥品
+        response = await axios.post('/api/products', productData, config);
+      }
+      
+      // 關閉對話框並重新獲取數據
+      setOpenDialog(false);
+      fetchProducts();
+    } catch (err) {
+      console.error('保存藥品失敗:', err);
+      setError('保存藥品失敗');
+    }
   };
 
   return (
@@ -118,7 +252,11 @@ const ProductsPage = () => {
           添加藥品
         </Button>
       </Box>
-
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper elevation={2} sx={{ p: 0 }}>
@@ -127,73 +265,124 @@ const ProductsPage = () => {
               columns={columns}
               pageSize={10}
               checkboxSelection
+              loading={loading}
             />
           </Paper>
         </Grid>
       </Grid>
-
-      {/* 編輯藥品對話框 */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
-        <DialogTitle>編輯藥品</DialogTitle>
+      {/* 藥品表單對話框 */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{editMode ? '編輯藥品' : '添加藥品'}</DialogTitle>
         <DialogContent>
-          {currentProduct && (
-            <Box sx={{ pt: 2 }}>
-              <TextField
-                fullWidth
-                margin="dense"
-                label="藥品名稱"
-                name="name"
-                value={currentProduct.name}
-                onChange={handleEditFormChange}
-              />
-              <TextField
-                fullWidth
-                margin="dense"
-                label="類別"
-                name="category"
-                value={currentProduct.category}
-                onChange={handleEditFormChange}
-              />
-              <TextField
-                fullWidth
-                margin="dense"
-                label="供應商"
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              name="code"
+              label="藥品編號"
+              value={currentProduct.code}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="name"
+              label="藥品名稱"
+              value={currentProduct.name}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="specification"
+              label="規格"
+              value={currentProduct.specification}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              name="category"
+              label="分類"
+              value={currentProduct.category}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="unit"
+              label="單位"
+              value={currentProduct.unit}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="purchasePrice"
+              label="進貨價"
+              type="number"
+              value={currentProduct.purchasePrice}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="sellingPrice"
+              label="售價"
+              type="number"
+              value={currentProduct.sellingPrice}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              name="description"
+              label="描述"
+              value={currentProduct.description}
+              onChange={handleInputChange}
+              fullWidth
+              multiline
+              rows={3}
+            />
+            <TextField
+              name="manufacturer"
+              label="製造商"
+              value={currentProduct.manufacturer}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>供應商</InputLabel>
+              <Select
                 name="supplier"
                 value={currentProduct.supplier}
-                onChange={handleEditFormChange}
-              />
-              <TextField
-                fullWidth
-                margin="dense"
-                label="庫存"
-                name="stock"
-                type="number"
-                value={currentProduct.stock}
-                onChange={handleEditFormChange}
-              />
-              <TextField
-                fullWidth
-                margin="dense"
-                label="價格"
-                name="price"
-                type="number"
-                value={currentProduct.price}
-                onChange={handleEditFormChange}
-              />
-              <TextField
-                fullWidth
-                margin="dense"
-                label="有效期限"
-                name="expiry"
-                value={currentProduct.expiry}
-                onChange={handleEditFormChange}
-              />
-            </Box>
-          )}
+                onChange={handleInputChange}
+                label="供應商"
+              >
+                <MenuItem value="">
+                  <em>無</em>
+                </MenuItem>
+                {suppliers.map((supplier) => (
+                  <MenuItem key={supplier._id} value={supplier._id}>
+                    {supplier.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              name="minStock"
+              label="最低庫存"
+              type="number"
+              value={currentProduct.minStock}
+              onChange={handleInputChange}
+              fullWidth
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
-          <MuiButton onClick={handleCloseEditDialog}>取消</MuiButton>
-          <MuiButton onClick={handleSaveEdit} color="primary">保存</MuiButton>
+          <Button onClick={handleCloseDialog} color="inherit">
+            取消
+          </Button>
+          <Button onClick={handleSaveProduct} color="primary" variant="contained">
+            保存
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
