@@ -22,7 +22,18 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { DownloadOutlined, FilterAlt, Refresh } from '@mui/icons-material';
+import { 
+  DownloadOutlined, 
+  FilterAlt, 
+  Refresh, 
+  AttachMoney, 
+  Warning, 
+  Category, 
+  People, 
+  PersonAdd, 
+  ShoppingCart, 
+  Inventory as InventoryIcon 
+} from '@mui/icons-material';
 import { format, subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
 const ReportsPage = () => {
