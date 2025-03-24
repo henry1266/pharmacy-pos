@@ -1,164 +1,113 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-
-const Sale = require('../models/Sale');
 const Product = require('../models/Product');
-const Inventory = require('../models/Inventory');
+const Sale = require('../models/Sale');
 const Customer = require('../models/Customer');
+const Inventory = require('../models/Inventory');
 const Supplier = require('../models/Supplier');
 
 // @route   GET api/dashboard/summary
 // @desc    Get dashboard summary data
-// @access  Private
-router.get('/summary', auth, async (req, res) => {
+// @access  Public
+router.get('/summary', async (req, res) => {
   try {
-    // 獲取今日日期範圍
+    // 獲取總銷售額
+    const sales = await Sale.find();
+    const totalSales = sales.reduce((total, sale) => total + sale.totalAmount, 0);
+    
+    // 獲取今日銷售額
     const today = new Date();
-    const startOfToday = new Date(today);
-    startOfToday.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const todaySales = await Sale.find({ date: { $gte: today } });
+    const todaySalesAmount = todaySales.reduce((total, sale) => total + sale.totalAmount, 0);
     
-    const endOfToday = new Date(today);
-    endOfToday.setHours(23, 59, 59, 999);
+    // 獲取本月銷售額
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthSales = await Sale.find({ date: { $gte: firstDayOfMonth } });
+    const monthSalesAmount = monthSales.reduce((total, sale) => total + sale.totalAmount, 0);
     
-    // 獲取昨日日期範圍
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const startOfYesterday = new Date(yesterday);
-    startOfYesterday.setHours(0, 0, 0, 0);
+    // 獲取庫存警告（低於最低庫存量的產品）
+    const lowStockProducts = await Inventory.find().populate('product');
+    const lowStockWarnings = lowStockProducts.filter(item => {
+      return item.product && item.quantity < item.product.minStock;
+    }).map(item => ({
+      productId: item.product._id,
+      productCode: item.product.code,
+      productName: item.product.name,
+      currentStock: item.quantity,
+      minStock: item.product.minStock
+    }));
     
-    const endOfYesterday = new Date(yesterday);
-    endOfYesterday.setHours(23, 59, 59, 999);
-    
-    // 獲取本月日期範圍
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
-    
-    // 獲取今日銷售數據
-    const todaySales = await Sale.find({
-      date: { $gte: startOfToday, $lte: endOfToday }
-    });
-    
-    // 獲取昨日銷售數據
-    const yesterdaySales = await Sale.find({
-      date: { $gte: startOfYesterday, $lte: endOfYesterday }
-    });
-    
-    // 獲取本月銷售數據
-    const monthSales = await Sale.find({
-      date: { $gte: startOfMonth, $lte: endOfMonth }
-    });
-    
-    // 計算今日銷售總額
-    const todaySalesTotal = todaySales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-    
-    // 計算昨日銷售總額
-    const yesterdaySalesTotal = yesterdaySales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-    
-    // 計算本月銷售總額
-    const monthSalesTotal = monthSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-    
-    // 計算今日訂單數
-    const todayOrderCount = todaySales.length;
-    
-    // 計算昨日訂單數
-    const yesterdayOrderCount = yesterdaySales.length;
-    
-    // 計算本月訂單數
-    const monthOrderCount = monthSales.length;
-    
-    // 獲取庫存數據
-    const inventory = await Inventory.find().populate('product', ['minimumStock']);
-    
-    // 計算庫存總數量
-    const totalInventoryCount = inventory.reduce((sum, item) => sum + item.quantity, 0);
-    
-    // 計算低庫存產品數量
-    const lowStockCount = inventory.filter(item => {
-      const minimumStock = item.product.minimumStock || 0;
-      return item.quantity <= minimumStock;
-    }).length;
-    
-    // 獲取客戶數據
-    const customerCount = await Customer.countDocuments();
-    
-    // 獲取供應商數據
-    const supplierCount = await Supplier.countDocuments();
-    
-    // 獲取產品數據
+    // 獲取各種統計數據
     const productCount = await Product.countDocuments();
+    const customerCount = await Customer.countDocuments();
+    const supplierCount = await Supplier.countDocuments();
+    const orderCount = sales.length;
     
-    // 計算銷售增長率
-    const salesGrowthRate = yesterdaySalesTotal > 0 
-      ? ((todaySalesTotal - yesterdaySalesTotal) / yesterdaySalesTotal * 100).toFixed(2)
-      : 0;
-    
-    // 計算訂單增長率
-    const orderGrowthRate = yesterdayOrderCount > 0
-      ? ((todayOrderCount - yesterdayOrderCount) / yesterdayOrderCount * 100).toFixed(2)
-      : 0;
-    
-    // 獲取熱門產品
+    // 獲取最暢銷產品
     const productSales = {};
-    todaySales.forEach(sale => {
+    sales.forEach(sale => {
       sale.items.forEach(item => {
         const productId = item.product.toString();
-        
         if (!productSales[productId]) {
           productSales[productId] = {
-            productId,
             quantity: 0,
-            amount: 0
+            revenue: 0
           };
         }
-        
         productSales[productId].quantity += item.quantity;
-        productSales[productId].amount += item.quantity * item.price;
+        productSales[productId].revenue += item.subtotal;
       });
     });
     
-    // 獲取產品詳情
-    const productIds = Object.keys(productSales);
-    const products = await Product.find({ _id: { $in: productIds } });
+    const topProductsPromises = Object.keys(productSales)
+      .sort((a, b) => productSales[b].quantity - productSales[a].quantity)
+      .slice(0, 5)
+      .map(async (productId) => {
+        const product = await Product.findById(productId);
+        return {
+          productId,
+          productCode: product ? product.code : 'Unknown',
+          productName: product ? product.name : 'Unknown',
+          quantity: productSales[productId].quantity,
+          revenue: productSales[productId].revenue
+        };
+      });
     
-    // 合併產品詳情
-    products.forEach(product => {
-      const productId = product._id.toString();
-      if (productSales[productId]) {
-        productSales[productId].name = product.name;
-        productSales[productId].code = product.code;
-      }
-    });
+    const topProducts = await Promise.all(topProductsPromises);
     
-    // 按銷售額排序熱門產品
-    const topProducts = Object.values(productSales)
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
+    // 獲取最近的銷售記錄
+    const recentSales = await Sale.find()
+      .populate('customer')
+      .sort({ date: -1 })
+      .limit(5)
+      .select('invoiceNumber customer totalAmount date paymentStatus');
     
+    const formattedRecentSales = recentSales.map(sale => ({
+      id: sale._id,
+      invoiceNumber: sale.invoiceNumber,
+      customerName: sale.customer ? sale.customer.name : '一般客戶',
+      totalAmount: sale.totalAmount,
+      date: sale.date,
+      paymentStatus: sale.paymentStatus
+    }));
+    
+    // 返回儀表板數據
     res.json({
-      date: today,
-      sales: {
-        today: todaySalesTotal,
-        yesterday: yesterdaySalesTotal,
-        month: monthSalesTotal,
-        growth: salesGrowthRate
-      },
-      orders: {
-        today: todayOrderCount,
-        yesterday: yesterdayOrderCount,
-        month: monthOrderCount,
-        growth: orderGrowthRate
-      },
-      inventory: {
-        total: totalInventoryCount,
-        lowStock: lowStockCount
+      salesSummary: {
+        total: totalSales,
+        today: todaySalesAmount,
+        month: monthSalesAmount
       },
       counts: {
+        products: productCount,
         customers: customerCount,
         suppliers: supplierCount,
-        products: productCount
+        orders: orderCount
       },
-      topProducts
+      lowStockWarnings,
+      topProducts,
+      recentSales: formattedRecentSales
     });
   } catch (err) {
     console.error(err.message);
@@ -167,152 +116,72 @@ router.get('/summary', auth, async (req, res) => {
 });
 
 // @route   GET api/dashboard/sales-trend
-// @desc    Get sales trend data for dashboard
-// @access  Private
-router.get('/sales-trend', auth, async (req, res) => {
+// @desc    Get sales trend data for charts
+// @access  Public
+router.get('/sales-trend', async (req, res) => {
   try {
-    const { period } = req.query;
-    const today = new Date();
-    let startDate, endDate, format;
+    // 獲取過去30天的銷售數據
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    // 設置時間範圍和格式
-    if (period === 'week') {
-      // 過去7天
-      startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - 6);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(today);
-      endDate.setHours(23, 59, 59, 999);
-      format = 'day';
-    } else if (period === 'month') {
-      // 過去30天
-      startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - 29);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(today);
-      endDate.setHours(23, 59, 59, 999);
-      format = 'day';
-    } else if (period === 'year') {
-      // 過去12個月
-      startDate = new Date(today);
-      startDate.setMonth(startDate.getMonth() - 11);
-      startDate.setDate(1);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(today);
-      endDate.setDate(0);
-      endDate.setHours(23, 59, 59, 999);
-      format = 'month';
-    } else {
-      // 默認為過去7天
-      startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - 6);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(today);
-      endDate.setHours(23, 59, 59, 999);
-      format = 'day';
-    }
-    
-    // 獲取銷售數據
     const sales = await Sale.find({
-      date: { $gte: startDate, $lte: endDate }
-    });
+      date: { $gte: thirtyDaysAgo }
+    }).sort({ date: 1 });
     
     // 按日期分組
     const salesByDate = {};
+    sales.forEach(sale => {
+      const dateStr = sale.date.toISOString().split('T')[0];
+      if (!salesByDate[dateStr]) {
+        salesByDate[dateStr] = {
+          amount: 0,
+          count: 0
+        };
+      }
+      salesByDate[dateStr].amount += sale.totalAmount;
+      salesByDate[dateStr].count += 1;
+    });
     
-    if (format === 'day') {
-      // 初始化日期範圍內的每一天
-      let currentDate = new Date(startDate);
-      while (currentDate <= endDate) {
-        const dateKey = currentDate.toISOString().split('T')[0];
-        salesByDate[dateKey] = {
-          date: dateKey,
-          totalAmount: 0,
-          orderCount: 0
-        };
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
+    // 填充缺失的日期
+    const salesTrend = [];
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
       
-      // 填充銷售數據
-      sales.forEach(sale => {
-        const saleDate = new Date(sale.date);
-        const dateKey = saleDate.toISOString().split('T')[0];
-        
-        if (salesByDate[dateKey]) {
-          salesByDate[dateKey].totalAmount += sale.totalAmount;
-          salesByDate[dateKey].orderCount += 1;
-        }
-      });
-    } else if (format === 'month') {
-      // 初始化日期範圍內的每個月
-      let currentDate = new Date(startDate);
-      while (currentDate <= endDate) {
-        const yearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-        salesByDate[yearMonth] = {
-          date: yearMonth,
-          totalAmount: 0,
-          orderCount: 0
-        };
-        currentDate.setMonth(currentDate.getMonth() + 1);
-      }
-      
-      // 填充銷售數據
-      sales.forEach(sale => {
-        const saleDate = new Date(sale.date);
-        const yearMonth = `${saleDate.getFullYear()}-${String(saleDate.getMonth() + 1).padStart(2, '0')}`;
-        
-        if (salesByDate[yearMonth]) {
-          salesByDate[yearMonth].totalAmount += sale.totalAmount;
-          salesByDate[yearMonth].orderCount += 1;
-        }
+      salesTrend.unshift({
+        date: dateStr,
+        amount: salesByDate[dateStr] ? salesByDate[dateStr].amount : 0,
+        count: salesByDate[dateStr] ? salesByDate[dateStr].count : 0
       });
     }
     
-    // 轉換為數組並排序
-    const salesTrend = Object.values(salesByDate).sort((a, b) => a.date.localeCompare(b.date));
+    // 獲取按產品類別分組的銷售數據
+    const productIds = [...new Set(sales.flatMap(sale => sale.items.map(item => item.product.toString())))];
+    const products = await Product.find({ _id: { $in: productIds } });
     
-    res.json({
-      period: period || 'week',
-      format,
-      startDate,
-      endDate,
-      salesTrend
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   GET api/dashboard/product-categories
-// @desc    Get product categories distribution for dashboard
-// @access  Private
-router.get('/product-categories', auth, async (req, res) => {
-  try {
-    // 獲取所有產品
-    const products = await Product.find();
-    
-    // 按類別分組
-    const categoryCounts = {};
-    products.forEach(product => {
-      const category = product.category || '未分類';
-      
-      if (!categoryCounts[category]) {
-        categoryCounts[category] = 0;
-      }
-      
-      categoryCounts[category] += 1;
+    const salesByCategory = {};
+    sales.forEach(sale => {
+      sale.items.forEach(item => {
+        const product = products.find(p => p._id.toString() === item.product.toString());
+        if (product) {
+          const category = product.category;
+          if (!salesByCategory[category]) {
+            salesByCategory[category] = 0;
+          }
+          salesByCategory[category] += item.subtotal;
+        }
+      });
     });
     
-    // 轉換為數組
-    const categories = Object.keys(categoryCounts).map(category => ({
-      name: category,
-      count: categoryCounts[category]
-    }));
+    const categorySales = Object.keys(salesByCategory).map(category => ({
+      category,
+      amount: salesByCategory[category]
+    })).sort((a, b) => b.amount - a.amount);
     
     res.json({
-      totalProducts: products.length,
-      categories
+      salesTrend,
+      categorySales
     });
   } catch (err) {
     console.error(err.message);

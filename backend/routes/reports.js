@@ -1,71 +1,176 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-
 const Sale = require('../models/Sale');
 const Product = require('../models/Product');
-const Inventory = require('../models/Inventory');
 const Customer = require('../models/Customer');
-const Supplier = require('../models/Supplier');
+const Inventory = require('../models/Inventory');
 
-// @route   GET api/reports/sales/daily
-// @desc    Get daily sales report
-// @access  Private
-router.get('/sales/daily', auth, async (req, res) => {
+// @route   GET api/reports/sales
+// @desc    Get sales report data
+// @access  Public
+router.get('/sales', async (req, res) => {
   try {
-    const { date } = req.query;
-    let startDate, endDate;
+    // 獲取查詢參數
+    const { startDate, endDate, groupBy } = req.query;
     
-    if (date) {
-      startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      
-      endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-    } else {
-      // 默認為今天
-      startDate = new Date();
-      startDate.setHours(0, 0, 0, 0);
-      
-      endDate = new Date();
-      endDate.setHours(23, 59, 59, 999);
+    // 設置日期範圍
+    const dateFilter = {};
+    if (startDate) {
+      dateFilter.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      dateFilter.$lte = new Date(endDate);
+      // 設置結束日期為當天的最後一毫秒
+      dateFilter.$lte.setHours(23, 59, 59, 999);
     }
     
-    const sales = await Sale.find({
-      date: { $gte: startDate, $lte: endDate }
-    }).populate('items.product', ['name', 'code']);
+    // 構建查詢條件
+    const query = {};
+    if (Object.keys(dateFilter).length > 0) {
+      query.date = dateFilter;
+    }
     
-    // 計算總銷售額和銷售數量
-    const totalSales = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-    const totalItems = sales.reduce((sum, sale) => sum + sale.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
+    // 獲取銷售數據
+    const sales = await Sale.find(query)
+      .populate('customer')
+      .populate('items.product')
+      .populate('cashier')
+      .sort({ date: 1 });
     
-    // 計算各產品銷售情況
-    const productSales = {};
-    sales.forEach(sale => {
-      sale.items.forEach(item => {
-        const productId = item.product._id.toString();
-        const productName = item.product.name;
-        
-        if (!productSales[productId]) {
-          productSales[productId] = {
-            name: productName,
-            code: item.product.code,
-            quantity: 0,
-            amount: 0
+    // 處理分組
+    let groupedData = [];
+    
+    if (groupBy === 'day') {
+      // 按日分組
+      const salesByDay = {};
+      sales.forEach(sale => {
+        const dateStr = sale.date.toISOString().split('T')[0];
+        if (!salesByDay[dateStr]) {
+          salesByDay[dateStr] = {
+            date: dateStr,
+            totalAmount: 0,
+            orderCount: 0,
+            items: []
           };
         }
-        
-        productSales[productId].quantity += item.quantity;
-        productSales[productId].amount += item.quantity * item.price;
+        salesByDay[dateStr].totalAmount += sale.totalAmount;
+        salesByDay[dateStr].orderCount += 1;
+        sale.items.forEach(item => {
+          salesByDay[dateStr].items.push({
+            productId: item.product._id,
+            productName: item.product.name,
+            quantity: item.quantity,
+            price: item.price,
+            subtotal: item.subtotal
+          });
+        });
       });
-    });
+      
+      groupedData = Object.values(salesByDay);
+    } else if (groupBy === 'month') {
+      // 按月分組
+      const salesByMonth = {};
+      sales.forEach(sale => {
+        const date = new Date(sale.date);
+        const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (!salesByMonth[monthStr]) {
+          salesByMonth[monthStr] = {
+            month: monthStr,
+            totalAmount: 0,
+            orderCount: 0,
+            items: []
+          };
+        }
+        salesByMonth[monthStr].totalAmount += sale.totalAmount;
+        salesByMonth[monthStr].orderCount += 1;
+        sale.items.forEach(item => {
+          salesByMonth[monthStr].items.push({
+            productId: item.product._id,
+            productName: item.product.name,
+            quantity: item.quantity,
+            price: item.price,
+            subtotal: item.subtotal
+          });
+        });
+      });
+      
+      groupedData = Object.values(salesByMonth);
+    } else if (groupBy === 'product') {
+      // 按產品分組
+      const salesByProduct = {};
+      sales.forEach(sale => {
+        sale.items.forEach(item => {
+          const productId = item.product._id.toString();
+          if (!salesByProduct[productId]) {
+            salesByProduct[productId] = {
+              productId,
+              productCode: item.product.code,
+              productName: item.product.name,
+              quantity: 0,
+              revenue: 0,
+              orderCount: 0
+            };
+          }
+          salesByProduct[productId].quantity += item.quantity;
+          salesByProduct[productId].revenue += item.subtotal;
+          salesByProduct[productId].orderCount += 1;
+        });
+      });
+      
+      groupedData = Object.values(salesByProduct).sort((a, b) => b.revenue - a.revenue);
+    } else if (groupBy === 'customer') {
+      // 按客戶分組
+      const salesByCustomer = {};
+      sales.forEach(sale => {
+        const customerId = sale.customer ? sale.customer._id.toString() : 'anonymous';
+        const customerName = sale.customer ? sale.customer.name : '一般客戶';
+        
+        if (!salesByCustomer[customerId]) {
+          salesByCustomer[customerId] = {
+            customerId,
+            customerName,
+            totalAmount: 0,
+            orderCount: 0
+          };
+        }
+        salesByCustomer[customerId].totalAmount += sale.totalAmount;
+        salesByCustomer[customerId].orderCount += 1;
+      });
+      
+      groupedData = Object.values(salesByCustomer).sort((a, b) => b.totalAmount - a.totalAmount);
+    } else {
+      // 不分組，返回所有銷售記錄
+      groupedData = sales.map(sale => ({
+        id: sale._id,
+        invoiceNumber: sale.invoiceNumber,
+        date: sale.date,
+        customerName: sale.customer ? sale.customer.name : '一般客戶',
+        totalAmount: sale.totalAmount,
+        discount: sale.discount,
+        tax: sale.tax,
+        paymentMethod: sale.paymentMethod,
+        paymentStatus: sale.paymentStatus,
+        items: sale.items.map(item => ({
+          productId: item.product._id,
+          productName: item.product.name,
+          quantity: item.quantity,
+          price: item.price,
+          discount: item.discount,
+          subtotal: item.subtotal
+        }))
+      }));
+    }
+    
+    // 計算總計
+    const summary = {
+      totalSales: sales.reduce((sum, sale) => sum + sale.totalAmount, 0),
+      orderCount: sales.length,
+      averageOrderValue: sales.length > 0 ? sales.reduce((sum, sale) => sum + sale.totalAmount, 0) / sales.length : 0
+    };
     
     res.json({
-      date: startDate,
-      totalSales,
-      totalItems,
-      salesCount: sales.length,
-      productSales: Object.values(productSales)
+      data: groupedData,
+      summary
     });
   } catch (err) {
     console.error(err.message);
@@ -73,174 +178,79 @@ router.get('/sales/daily', auth, async (req, res) => {
   }
 });
 
-// @route   GET api/reports/sales/monthly
-// @desc    Get monthly sales report
-// @access  Private
-router.get('/sales/monthly', auth, async (req, res) => {
+// @route   GET api/reports/inventory
+// @desc    Get inventory report data
+// @access  Public
+router.get('/inventory', async (req, res) => {
   try {
-    const { year, month } = req.query;
-    let startDate, endDate;
+    // 獲取庫存數據
+    const inventory = await Inventory.find().populate('product');
     
-    if (year && month) {
-      startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-      endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
-    } else {
-      // 默認為當月
-      const now = new Date();
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-    }
-    
-    const sales = await Sale.find({
-      date: { $gte: startDate, $lte: endDate }
-    }).populate('items.product', ['name', 'code']);
-    
-    // 按日期分組
-    const dailySales = {};
-    sales.forEach(sale => {
-      const saleDate = new Date(sale.date);
-      const dateKey = saleDate.toISOString().split('T')[0];
-      
-      if (!dailySales[dateKey]) {
-        dailySales[dateKey] = {
-          date: dateKey,
-          totalAmount: 0,
-          salesCount: 0
-        };
+    // 處理數據
+    const inventoryData = inventory.map(item => {
+      if (!item.product) {
+        return null;
       }
       
-      dailySales[dateKey].totalAmount += sale.totalAmount;
-      dailySales[dateKey].salesCount += 1;
-    });
-    
-    // 計算總銷售額和銷售數量
-    const totalSales = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-    const totalItems = sales.reduce((sum, sale) => sum + sale.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
-    
-    // 計算各產品銷售情況
-    const productSales = {};
-    sales.forEach(sale => {
-      sale.items.forEach(item => {
-        const productId = item.product._id.toString();
-        const productName = item.product.name;
-        
-        if (!productSales[productId]) {
-          productSales[productId] = {
-            name: productName,
-            code: item.product.code,
-            quantity: 0,
-            amount: 0
-          };
-        }
-        
-        productSales[productId].quantity += item.quantity;
-        productSales[productId].amount += item.quantity * item.price;
-      });
-    });
-    
-    // 按銷售額排序產品
-    const topProducts = Object.values(productSales)
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 10);
-    
-    res.json({
-      startDate,
-      endDate,
-      totalSales,
-      totalItems,
-      salesCount: sales.length,
-      dailySales: Object.values(dailySales).sort((a, b) => a.date.localeCompare(b.date)),
-      topProducts
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   GET api/reports/inventory/status
-// @desc    Get inventory status report
-// @access  Private
-router.get('/inventory/status', auth, async (req, res) => {
-  try {
-    const inventory = await Inventory.find()
-      .populate('product', ['name', 'code', 'specification', 'minimumStock']);
-    
-    // 計算庫存狀態
-    const inventoryStatus = inventory.map(item => {
-      const minimumStock = item.product.minimumStock || 0;
-      const status = item.quantity <= minimumStock ? '低於安全庫存' : '正常';
-      
       return {
+        id: item._id,
         productId: item.product._id,
-        productName: item.product.name,
         productCode: item.product.code,
-        specification: item.product.specification,
-        currentStock: item.quantity,
-        minimumStock,
-        status,
-        batchNumber: item.batchNumber,
-        expiryDate: item.expiryDate,
-        location: item.location
-      };
-    });
-    
-    // 計算庫存統計
-    const totalProducts = inventoryStatus.length;
-    const lowStockProducts = inventoryStatus.filter(item => item.status === '低於安全庫存').length;
-    const normalStockProducts = totalProducts - lowStockProducts;
-    
-    res.json({
-      totalProducts,
-      lowStockProducts,
-      normalStockProducts,
-      inventoryStatus
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   GET api/reports/inventory/expiry
-// @desc    Get inventory expiry report
-// @access  Private
-router.get('/inventory/expiry', auth, async (req, res) => {
-  try {
-    const { days } = req.query;
-    const daysToExpiry = parseInt(days) || 90; // 默認90天
-    
-    const today = new Date();
-    const expiryDate = new Date();
-    expiryDate.setDate(today.getDate() + daysToExpiry);
-    
-    const inventory = await Inventory.find({
-      expiryDate: { $ne: null, $lte: expiryDate }
-    }).populate('product', ['name', 'code', 'specification']);
-    
-    // 計算到期天數
-    const expiryItems = inventory.map(item => {
-      const daysLeft = Math.ceil((new Date(item.expiryDate) - today) / (1000 * 60 * 60 * 24));
-      
-      return {
-        productId: item.product._id,
         productName: item.product.name,
-        productCode: item.product.code,
-        specification: item.product.specification,
-        batchNumber: item.batchNumber,
-        expiryDate: item.expiryDate,
-        daysLeft,
+        category: item.product.category,
         quantity: item.quantity,
-        location: item.location
+        unit: item.product.unit,
+        purchasePrice: item.product.purchasePrice,
+        sellingPrice: item.product.sellingPrice,
+        inventoryValue: item.quantity * item.product.purchasePrice,
+        potentialRevenue: item.quantity * item.product.sellingPrice,
+        potentialProfit: item.quantity * (item.product.sellingPrice - item.product.purchasePrice),
+        minStock: item.product.minStock,
+        status: item.quantity <= item.product.minStock ? 'low' : 'normal',
+        batchNumber: item.batchNumber,
+        expiryDate: item.expiryDate,
+        location: item.location,
+        lastUpdated: item.lastUpdated
       };
+    }).filter(Boolean);
+    
+    // 計算總計
+    const totalInventoryValue = inventoryData.reduce((sum, item) => sum + item.inventoryValue, 0);
+    const totalPotentialRevenue = inventoryData.reduce((sum, item) => sum + item.potentialRevenue, 0);
+    const totalPotentialProfit = inventoryData.reduce((sum, item) => sum + item.potentialProfit, 0);
+    const lowStockCount = inventoryData.filter(item => item.status === 'low').length;
+    
+    // 按類別分組
+    const categoryGroups = {};
+    inventoryData.forEach(item => {
+      if (!categoryGroups[item.category]) {
+        categoryGroups[item.category] = {
+          category: item.category,
+          itemCount: 0,
+          totalQuantity: 0,
+          inventoryValue: 0,
+          potentialRevenue: 0,
+          potentialProfit: 0
+        };
+      }
+      
+      categoryGroups[item.category].itemCount += 1;
+      categoryGroups[item.category].totalQuantity += item.quantity;
+      categoryGroups[item.category].inventoryValue += item.inventoryValue;
+      categoryGroups[item.category].potentialRevenue += item.potentialRevenue;
+      categoryGroups[item.category].potentialProfit += item.potentialProfit;
     });
     
-    // 按到期天數排序
-    expiryItems.sort((a, b) => a.daysLeft - b.daysLeft);
-    
     res.json({
-      expiryItems,
-      totalExpiryItems: expiryItems.length
+      data: inventoryData,
+      summary: {
+        totalItems: inventoryData.length,
+        totalInventoryValue,
+        totalPotentialRevenue,
+        totalPotentialProfit,
+        lowStockCount
+      },
+      categoryGroups: Object.values(categoryGroups)
     });
   } catch (err) {
     console.error(err.message);
@@ -248,67 +258,81 @@ router.get('/inventory/expiry', auth, async (req, res) => {
   }
 });
 
-// @route   GET api/reports/customers/top
-// @desc    Get top customers report
-// @access  Private
-router.get('/customers/top', auth, async (req, res) => {
+// @route   GET api/reports/customers
+// @desc    Get customer report data
+// @access  Public
+router.get('/customers', async (req, res) => {
   try {
-    const { limit, period } = req.query;
-    const topLimit = parseInt(limit) || 10; // 默認前10名
+    // 獲取客戶數據
+    const customers = await Customer.find();
     
-    let startDate;
-    const endDate = new Date();
+    // 獲取銷售數據
+    const sales = await Sale.find().populate('customer');
     
-    // 設置時間範圍
-    if (period === 'month') {
-      startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 1);
-    } else if (period === 'quarter') {
-      startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 3);
-    } else if (period === 'year') {
-      startDate = new Date();
-      startDate.setFullYear(startDate.getFullYear() - 1);
-    } else {
-      // 默認為全部時間
-      startDate = new Date(0);
-    }
-    
-    // 獲取所有銷售記錄
-    const sales = await Sale.find({
-      date: { $gte: startDate, $lte: endDate },
-      customer: { $ne: null }
-    }).populate('customer', ['name', 'code', 'phone']);
-    
-    // 按客戶分組計算銷售額
-    const customerSales = {};
+    // 處理客戶購買數據
+    const customerPurchases = {};
     sales.forEach(sale => {
-      const customerId = sale.customer._id.toString();
-      const customerName = sale.customer.name;
-      
-      if (!customerSales[customerId]) {
-        customerSales[customerId] = {
-          customerId,
-          customerName,
-          customerCode: sale.customer.code,
-          customerPhone: sale.customer.phone,
-          totalAmount: 0,
-          salesCount: 0
-        };
+      if (sale.customer) {
+        const customerId = sale.customer._id.toString();
+        if (!customerPurchases[customerId]) {
+          customerPurchases[customerId] = {
+            totalSpent: 0,
+            orderCount: 0,
+            lastPurchase: null
+          };
+        }
+        
+        customerPurchases[customerId].totalSpent += sale.totalAmount;
+        customerPurchases[customerId].orderCount += 1;
+        
+        if (!customerPurchases[customerId].lastPurchase || 
+            new Date(sale.date) > new Date(customerPurchases[customerId].lastPurchase)) {
+          customerPurchases[customerId].lastPurchase = sale.date;
+        }
       }
-      
-      customerSales[customerId].totalAmount += sale.totalAmount;
-      customerSales[customerId].salesCount += 1;
     });
     
-    // 按銷售額排序客戶
-    const topCustomers = Object.values(customerSales)
-      .sort((a, b) => b.totalAmount - a.totalAmount)
-      .slice(0, topLimit);
+    // 合併數據
+    const customerData = customers.map(customer => {
+      const purchases = customerPurchases[customer._id.toString()] || {
+        totalSpent: 0,
+        orderCount: 0,
+        lastPurchase: null
+      };
+      
+      return {
+        id: customer._id,
+        code: customer.code,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        membershipLevel: customer.membershipLevel,
+        points: customer.points,
+        totalSpent: purchases.totalSpent,
+        orderCount: purchases.orderCount,
+        averageOrderValue: purchases.orderCount > 0 ? purchases.totalSpent / purchases.orderCount : 0,
+        lastPurchase: purchases.lastPurchase
+      };
+    });
+    
+    // 按消費金額排序
+    customerData.sort((a, b) => b.totalSpent - a.totalSpent);
+    
+    // 計算總計
+    const totalCustomers = customerData.length;
+    const totalSpent = customerData.reduce((sum, customer) => sum + customer.totalSpent, 0);
+    const totalOrders = customerData.reduce((sum, customer) => sum + customer.orderCount, 0);
+    const averageSpentPerCustomer = totalCustomers > 0 ? totalSpent / totalCustomers : 0;
     
     res.json({
-      period: period || 'all',
-      topCustomers
+      data: customerData,
+      summary: {
+        totalCustomers,
+        totalSpent,
+        totalOrders,
+        averageSpentPerCustomer
+      }
     });
   } catch (err) {
     console.error(err.message);
