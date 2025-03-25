@@ -209,14 +209,18 @@ const CustomersPage = () => {
         }
       };
       
+      // 確保空字符串欄位在API請求中被正確處理
       const customerData = {
         name: currentCustomer.name,
         phone: currentCustomer.phone,
-        email: currentCustomer.email,
-        address: currentCustomer.address,
+        // 明確處理空字符串，確保它們被發送到後端
+        email: currentCustomer.email === '' ? null : currentCustomer.email,
+        address: currentCustomer.address === '' ? null : currentCustomer.address,
         points: currentCustomer.points,
         membershipLevel: currentCustomer.membershipLevel
       };
+      
+      console.log('保存的會員數據:', customerData);
       
       if (editMode) {
         // 更新會員
