@@ -188,7 +188,8 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ msg: '會員不存在' });
     }
 
-    await customer.remove();
+    // 使用 findByIdAndDelete 替代已棄用的 remove() 方法
+    await Customer.findByIdAndDelete(req.params.id);
 
     res.json({ msg: '會員已刪除' });
   } catch (err) {
