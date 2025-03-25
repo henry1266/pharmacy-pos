@@ -27,6 +27,17 @@ const CustomersPage = () => {
     membershipLevel: 'regular'
   });
 
+  // 將後端會員等級映射為前端顯示文本
+  const mapMembershipLevel = useCallback((level) => {
+    const levelMap = {
+      'regular': '一般會員',
+      'silver': '銀卡會員',
+      'gold': '金卡會員',
+      'platinum': '白金會員'
+    };
+    return levelMap[level] || '一般會員';
+  }, []);
+
   // 獲取所有會員數據
   const fetchCustomers = useCallback(async () => {
     try {
@@ -61,17 +72,6 @@ const CustomersPage = () => {
       setLoading(false);
     }
   }, [setCustomers, setLoading, setError, mapMembershipLevel]);
-
-  // 將後端會員等級映射為前端顯示文本
-  const mapMembershipLevel = useCallback((level) => {
-    const levelMap = {
-      'regular': '一般會員',
-      'silver': '銀卡會員',
-      'gold': '金卡會員',
-      'platinum': '白金會員'
-    };
-    return levelMap[level] || '一般會員';
-  }, []);
 
   // 將前端會員等級映射為後端值 (目前未使用，但保留以備將來使用)
   /* const mapLevelToMembershipLevel = (level) => {
