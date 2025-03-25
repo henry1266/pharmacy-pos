@@ -221,7 +221,16 @@ const CustomersPage = () => {
         membershipLevel: currentCustomer.membershipLevel
       };
       
-      console.log('保存的會員數據:', customerData);
+      // 顯示傳送的數據到LOG介面
+      console.log('===== 保存會員數據 =====');
+      console.log('原始數據:');
+      console.log('email:', JSON.stringify(currentCustomer.email));
+      console.log('address:', JSON.stringify(currentCustomer.address));
+      console.log('處理後數據:');
+      console.log('email:', JSON.stringify(customerData.email));
+      console.log('address:', JSON.stringify(customerData.address));
+      console.log('完整數據:', JSON.stringify(customerData, null, 2));
+      console.log('=====================');
       
       if (editMode) {
         // 更新會員
