@@ -210,12 +210,13 @@ const CustomersPage = () => {
       };
       
       // 確保空字符串欄位在API請求中被正確處理
+      // 使用空格字符串代替null或空字符串，因為用戶反饋空格可以生效
       const customerData = {
         name: currentCustomer.name,
         phone: currentCustomer.phone,
-        // 明確處理空字符串，確保它們被發送到後端
-        email: currentCustomer.email === '' ? null : currentCustomer.email,
-        address: currentCustomer.address === '' ? null : currentCustomer.address,
+        // 明確處理空字符串，使用空格代替
+        email: currentCustomer.email === '' ? ' ' : currentCustomer.email,
+        address: currentCustomer.address === '' ? ' ' : currentCustomer.address,
         points: currentCustomer.points,
         membershipLevel: currentCustomer.membershipLevel
       };
