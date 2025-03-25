@@ -209,14 +209,13 @@ const InventoryPage = () => {
         location: currentInventory.location
       };
       
-      let response;
-      
+      // 移除未使用的response變數
       if (editMode) {
         // 更新庫存
-        response = await axios.put(`/api/inventory/${currentInventory.id}`, inventoryData, config);
+        await axios.put(`/api/inventory/${currentInventory.id}`, inventoryData, config);
       } else {
         // 創建庫存
-        response = await axios.post('/api/inventory', inventoryData, config);
+        await axios.post('/api/inventory', inventoryData, config);
       }
       
       // 關閉對話框並重新獲取數據

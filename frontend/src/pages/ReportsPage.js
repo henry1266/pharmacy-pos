@@ -7,7 +7,7 @@ import {
   Card,
   CardContent,
   Button,
-  Chip,
+  // 移除未使用的Chip導入
   Avatar,
   CircularProgress,
   Alert,
@@ -16,16 +16,16 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Paper
+  // 移除未使用的Paper導入
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, /* 移除未使用的BarChart和Bar導入 */ XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
   DownloadOutlined, 
   FilterAlt, 
-  Refresh, 
+  // 移除未使用的Refresh導入
   AttachMoney, 
   Warning, 
   Category, 
@@ -126,7 +126,7 @@ const ReportsPage = () => {
   // 初始化加載數據
   useEffect(() => {
     fetchReportData();
-  }, [reportType]);
+  }, [reportType, fetchReportData]);
 
   // 處理日期範圍變更
   const handleDateRangeChange = (option) => {

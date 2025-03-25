@@ -415,14 +415,13 @@ const SalesPage = () => {
         cashier: '60f1b0b9e6b3f32f8c9f4d1a' // 假設的收銀員ID，實際應該從登錄用戶獲取
       };
       
-      let response;
-      
+      // 移除未使用的response變數
       if (editMode) {
         // 更新銷售
-        response = await axios.put(`/api/sales/${currentSale.id}`, saleData, config);
+        await axios.put(`/api/sales/${currentSale.id}`, saleData, config);
       } else {
         // 創建銷售
-        response = await axios.post('/api/sales', saleData, config);
+        await axios.post('/api/sales', saleData, config);
       }
       
       // 關閉對話框並重新獲取數據

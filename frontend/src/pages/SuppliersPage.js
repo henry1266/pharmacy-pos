@@ -198,14 +198,13 @@ const SuppliersPage = () => {
         notes: currentSupplier.notes
       };
       
-      let response;
-      
+      // 移除未使用的response變數
       if (editMode) {
         // 更新供應商
-        response = await axios.put(`/api/suppliers/${currentSupplier.id}`, supplierData, config);
+        await axios.put(`/api/suppliers/${currentSupplier.id}`, supplierData, config);
       } else {
         // 創建供應商
-        response = await axios.post('/api/suppliers', supplierData, config);
+        await axios.post('/api/suppliers', supplierData, config);
       }
       
       // 關閉對話框並重新獲取數據

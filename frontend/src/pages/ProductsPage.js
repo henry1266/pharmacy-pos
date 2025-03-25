@@ -218,14 +218,13 @@ const ProductsPage = () => {
         minStock: currentProduct.minStock
       };
       
-      let response;
-      
+      // 移除未使用的response變數
       if (editMode) {
         // 更新藥品
-        response = await axios.put(`/api/products/${currentProduct.id}`, productData, config);
+        await axios.put(`/api/products/${currentProduct.id}`, productData, config);
       } else {
         // 創建藥品
-        response = await axios.post('/api/products', productData, config);
+        await axios.post('/api/products', productData, config);
       }
       
       // 關閉對話框並重新獲取數據
