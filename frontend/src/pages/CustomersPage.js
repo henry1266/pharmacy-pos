@@ -73,8 +73,8 @@ const CustomersPage = () => {
     return levelMap[level] || '一般會員';
   };
 
-  // 將前端會員等級映射為後端值
-  const mapLevelToMembershipLevel = (level) => {
+  // 將前端會員等級映射為後端值 (目前未使用，但保留以備將來使用)
+  /* const mapLevelToMembershipLevel = (level) => {
     const levelMap = {
       '一般會員': 'regular',
       '銀卡會員': 'silver',
@@ -82,12 +82,12 @@ const CustomersPage = () => {
       '白金會員': 'platinum'
     };
     return levelMap[level] || 'regular';
-  };
+  }; */
 
   // 組件掛載時獲取數據
   useEffect(() => {
     fetchCustomers();
-  }, []);
+  }, [fetchCustomers]);
 
   // 表格列配置
   const columns = [
@@ -114,9 +114,13 @@ const CustomersPage = () => {
   // 處理表單輸入變化
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    // 確保空值能夠正確清空欄位
+    const processedValue = value === '' && name !== 'points' ? '' : 
+                          name === 'points' ? (value === '' ? 0 : Number(value)) : value;
+    
     setCurrentCustomer({
       ...currentCustomer,
-      [name]: name === 'points' ? Number(value) : value
+      [name]: processedValue
     });
   };
 
@@ -214,14 +218,12 @@ const CustomersPage = () => {
         membershipLevel: currentCustomer.membershipLevel
       };
       
-      let response;
-      
       if (editMode) {
         // 更新會員
-        response = await axios.put(`/api/customers/${currentCustomer.id}`, customerData, config);
+        await axios.put(`/api/customers/${currentCustomer.id}`, customerData, config);
       } else {
         // 創建會員
-        response = await axios.post('/api/customers', customerData, config);
+        await axios.post('/api/customers', customerData, config);
       }
       
       // 關閉對話框並重新獲取數據
