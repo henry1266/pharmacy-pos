@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Paper, Grid, Button as MuiButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DataTable from '../components/tables/DataTable';
@@ -28,7 +28,7 @@ const CustomersPage = () => {
   });
 
   // 獲取所有會員數據
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -60,10 +60,10 @@ const CustomersPage = () => {
       setError('獲取會員數據失敗');
       setLoading(false);
     }
-  };
+  }, [setCustomers, setLoading, setError, mapMembershipLevel]);
 
   // 將後端會員等級映射為前端顯示文本
-  const mapMembershipLevel = (level) => {
+  const mapMembershipLevel = useCallback((level) => {
     const levelMap = {
       'regular': '一般會員',
       'silver': '銀卡會員',
@@ -71,7 +71,7 @@ const CustomersPage = () => {
       'platinum': '白金會員'
     };
     return levelMap[level] || '一般會員';
-  };
+  }, []);
 
   // 將前端會員等級映射為後端值 (目前未使用，但保留以備將來使用)
   /* const mapLevelToMembershipLevel = (level) => {
