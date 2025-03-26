@@ -24,9 +24,6 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EmailIcon from '@mui/icons-material/Email';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DataTable from '../components/tables/DataTable';
 
 const SuppliersPage = () => {
@@ -283,9 +280,13 @@ const SuppliersPage = () => {
               rows={suppliers}
               columns={columns}
               pageSize={10}
-              checkboxSelection
               loading={loading}
               onRowClick={handleRowClick}
+              initialState={{
+                sorting: {
+                  sortModel: [{ field: 'code', sort: 'asc' }],
+                },
+              }}
             />
           </Paper>
         </Grid>
@@ -326,72 +327,37 @@ const SuppliersPage = () => {
               <Divider />
               <CardContent sx={{ py: 1 }}>
                 <List dense sx={{ py: 0 }}>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <ListItemText 
-                      primary="供應商編號" 
-                      secondary={selectedSupplier.code}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>供應商編號:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.code}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <ListItemText 
-                      primary="聯絡人" 
-                      secondary={selectedSupplier.contactPerson || '無'}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>聯絡人:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.contactPerson || '無'}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <PhoneIcon color="action" sx={{ mr: 1, fontSize: '1.1rem' }} />
-                    <ListItemText 
-                      primary="電話" 
-                      secondary={selectedSupplier.phone || '無'}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>電話:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.phone || '無'}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <EmailIcon color="action" sx={{ mr: 1, fontSize: '1.1rem' }} />
-                    <ListItemText 
-                      primary="電子郵件" 
-                      secondary={selectedSupplier.email || '無'}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>電子郵件:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.email || '無'}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <LocationOnIcon color="action" sx={{ mr: 1, fontSize: '1.1rem' }} />
-                    <ListItemText 
-                      primary="地址" 
-                      secondary={selectedSupplier.address || '無'}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>地址:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.address || '無'}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <ListItemText 
-                      primary="統一編號" 
-                      secondary={selectedSupplier.taxId || '無'}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>統一編號:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.taxId || '無'}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <ListItemText 
-                      primary="付款條件" 
-                      secondary={selectedSupplier.paymentTerms || '無'}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>付款條件:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.paymentTerms || '無'}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5 }}>
-                    <ListItemText 
-                      primary="備註" 
-                      secondary={selectedSupplier.notes || '無'}
-                      primaryTypographyProps={{ fontSize: '0.875rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.875rem' }}
-                    />
+                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>備註:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.notes || '無'}</Typography>
                   </ListItem>
                 </List>
               </CardContent>
