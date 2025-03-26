@@ -6,6 +6,10 @@ const SupplierSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  shortCode: {
+    type: String,
+    required: true
+  },
   name: {
     type: String,
     required: true
@@ -14,8 +18,7 @@ const SupplierSchema = new mongoose.Schema({
     type: String
   },
   phone: {
-    type: String,
-    required: true
+    type: String
   },
   email: {
     type: String

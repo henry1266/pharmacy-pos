@@ -48,7 +48,9 @@ router.post(
       check('name', '供應商名稱為必填項').not().isEmpty(),
       // 移除供應商編號必填驗證，允許自動生成
       // check('code', '供應商編號為必填項').not().isEmpty(),
-      check('phone', '電話號碼為必填項').not().isEmpty()
+      // 移除電話必填驗證
+      // check('phone', '電話號碼為必填項').not().isEmpty(),
+      check('shortCode', '簡碼為必填項').not().isEmpty()
     ]
   ],
   async (req, res) => {
@@ -59,6 +61,7 @@ router.post(
 
     const {
       code,
+      shortCode,
       name,
       contactPerson,
       phone,
@@ -81,12 +84,13 @@ router.post(
       // 建立供應商欄位物件
       const supplierFields = {
         name,
-        phone
+        shortCode
       };
 
       // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
       if (code !== undefined) supplierFields.code = code;
       if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson;
+      if (phone !== undefined) supplierFields.phone = phone;
       if (email !== undefined) supplierFields.email = email;
       if (address !== undefined) supplierFields.address = address;
       if (taxId !== undefined) supplierFields.taxId = taxId;
@@ -115,6 +119,7 @@ router.post(
 router.put('/:id', async (req, res) => {
   const {
     code,
+    shortCode,
     name,
     contactPerson,
     phone,
@@ -129,6 +134,7 @@ router.put('/:id', async (req, res) => {
   const supplierFields = {};
   // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
   if (code !== undefined) supplierFields.code = code;
+  if (shortCode !== undefined) supplierFields.shortCode = shortCode;
   if (name !== undefined) supplierFields.name = name;
   if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson;
   if (phone !== undefined) supplierFields.phone = phone;
