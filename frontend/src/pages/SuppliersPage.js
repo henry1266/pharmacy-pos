@@ -115,9 +115,12 @@ const SuppliersPage = () => {
   // 處理輸入變更
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    // 確保空值能夠正確清空欄位
+    const processedValue = value === '' ? '' : value;
+    
     setCurrentSupplier({
       ...currentSupplier,
-      [name]: value
+      [name]: processedValue
     });
   };
 

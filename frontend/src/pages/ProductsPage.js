@@ -120,9 +120,13 @@ const ProductsPage = () => {
   // 處理輸入變化
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    // 確保空值能夠正確清空欄位
+    const processedValue = value === '' && !['purchasePrice', 'sellingPrice', 'minStock'].includes(name) ? '' : 
+                          ['purchasePrice', 'sellingPrice', 'minStock'].includes(name) ? (value === '' ? 0 : Number(value)) : value;
+    
     setCurrentProduct({
       ...currentProduct,
-      [name]: value
+      [name]: processedValue
     });
   };
 

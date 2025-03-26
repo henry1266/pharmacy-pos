@@ -129,9 +129,13 @@ const InventoryPage = () => {
   // 處理輸入變化
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    // 確保空值能夠正確清空欄位
+    const processedValue = value === '' && name !== 'quantity' ? '' : 
+                          name === 'quantity' ? (value === '' ? 0 : Number(value)) : value;
+    
     setCurrentInventory({
       ...currentInventory,
-      [name]: value
+      [name]: processedValue
     });
   };
 
