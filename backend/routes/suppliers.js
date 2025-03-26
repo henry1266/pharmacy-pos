@@ -84,13 +84,14 @@ router.post(
         phone
       };
 
-      if (code) supplierFields.code = code;
-      if (contactPerson) supplierFields.contactPerson = contactPerson;
-      if (email) supplierFields.email = email;
-      if (address) supplierFields.address = address;
-      if (taxId) supplierFields.taxId = taxId;
-      if (paymentTerms) supplierFields.paymentTerms = paymentTerms;
-      if (notes) supplierFields.notes = notes;
+      // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
+      if (code !== undefined) supplierFields.code = code;
+      if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson;
+      if (email !== undefined) supplierFields.email = email;
+      if (address !== undefined) supplierFields.address = address;
+      if (taxId !== undefined) supplierFields.taxId = taxId;
+      if (paymentTerms !== undefined) supplierFields.paymentTerms = paymentTerms;
+      if (notes !== undefined) supplierFields.notes = notes;
 
       // 若沒提供供應商編號，系統自動生成
       if (!code) {
@@ -126,15 +127,16 @@ router.put('/:id', async (req, res) => {
 
   // 建立更新欄位物件
   const supplierFields = {};
-  if (code) supplierFields.code = code;
-  if (name) supplierFields.name = name;
-  if (contactPerson) supplierFields.contactPerson = contactPerson;
-  if (phone) supplierFields.phone = phone;
-  if (email) supplierFields.email = email;
-  if (address) supplierFields.address = address;
-  if (taxId) supplierFields.taxId = taxId;
-  if (paymentTerms) supplierFields.paymentTerms = paymentTerms;
-  if (notes) supplierFields.notes = notes;
+  // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
+  if (code !== undefined) supplierFields.code = code;
+  if (name !== undefined) supplierFields.name = name;
+  if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson;
+  if (phone !== undefined) supplierFields.phone = phone;
+  if (email !== undefined) supplierFields.email = email;
+  if (address !== undefined) supplierFields.address = address;
+  if (taxId !== undefined) supplierFields.taxId = taxId;
+  if (paymentTerms !== undefined) supplierFields.paymentTerms = paymentTerms;
+  if (notes !== undefined) supplierFields.notes = notes;
 
   try {
     let supplier = await Supplier.findById(req.params.id);
@@ -177,7 +179,8 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ msg: '供應商不存在' });
     }
 
-    await supplier.remove();
+    // 修復：使用 findByIdAndDelete 替代 supplier.remove()
+    await Supplier.findByIdAndDelete(req.params.id);
     res.json({ msg: '供應商已刪除' });
   } catch (err) {
     console.error(err.message);
