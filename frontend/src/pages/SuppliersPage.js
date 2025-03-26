@@ -145,13 +145,20 @@ const SuppliersPage = () => {
           }
         };
         
-        await axios.delete(`/api/suppliers/${id}`, config);
+        console.log(`嘗試刪除供應商，ID: ${id}`);
+        const response = await axios.delete(`/api/suppliers/${id}`, config);
+        console.log('刪除供應商成功，響應:', response);
         
         // 更新本地狀態
         setSuppliers(suppliers.filter(supplier => supplier.id !== id));
+        // 顯示成功消息
+        alert('供應商已成功刪除');
       } catch (err) {
         console.error('刪除供應商失敗:', err);
-        setError('刪除供應商失敗');
+        console.error('錯誤詳情:', err.response ? err.response.data : '無響應數據');
+        console.error('錯誤狀態:', err.response ? err.response.status : '無狀態碼');
+        setError(`刪除供應商失敗: ${err.message}`);
+        alert(`刪除供應商失敗: ${err.message}`);
       }
     }
   };
