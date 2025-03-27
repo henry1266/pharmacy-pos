@@ -38,7 +38,6 @@ const SuppliersPage = () => {
     name: '',
     contactPerson: '',
     phone: '',
-    email: '',
     address: '',
     taxId: '',
     paymentTerms: '',
@@ -54,7 +53,6 @@ const SuppliersPage = () => {
     { field: 'name', headerName: '供應商名稱', width: 180 },
     { field: 'contactPerson', headerName: '聯絡人', width: 120 },
     { field: 'phone', headerName: '電話', width: 120 },
-    { field: 'email', headerName: '電子郵件', width: 180 },
     {
       field: 'actions',
       headerName: '操作',
@@ -101,7 +99,6 @@ const SuppliersPage = () => {
         name: supplier.name,
         contactPerson: supplier.contactPerson || '',
         phone: supplier.phone || '',
-        email: supplier.email || '',
         address: supplier.address || '',
         taxId: supplier.taxId || '',
         paymentTerms: supplier.paymentTerms || '',
@@ -181,7 +178,6 @@ const SuppliersPage = () => {
       name: '',
       contactPerson: '',
       phone: '',
-      email: '',
       address: '',
       taxId: '',
       paymentTerms: '',
@@ -226,7 +222,6 @@ const SuppliersPage = () => {
         name: currentSupplier.name,
         contactPerson: currentSupplier.contactPerson,
         phone: currentSupplier.phone,
-        email: currentSupplier.email,
         address: currentSupplier.address,
         taxId: currentSupplier.taxId,
         paymentTerms: currentSupplier.paymentTerms,
@@ -340,10 +335,6 @@ const SuppliersPage = () => {
                     <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.phone || '無'}</Typography>
                   </ListItem>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>電子郵件:</Typography>
-                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.email || '無'}</Typography>
-                  </ListItem>
-                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>地址:</Typography>
                     <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.address || '無'}</Typography>
                   </ListItem>
@@ -363,29 +354,26 @@ const SuppliersPage = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card elevation={3} sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CardContent>
-                <Typography variant="body1" color="text.secondary" align="center">
-                  請從左側列表選擇一個供應商以查看詳細信息
-                </Typography>
-              </CardContent>
-            </Card>
+            <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="body1" color="text.secondary">
+                請選擇一個供應商查看詳情
+              </Typography>
+            </Paper>
           )}
         </Grid>
       </Grid>
 
-      {/* 供應商表單對話框 */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'}</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
               name="code"
               label="供應商編號"
               value={currentSupplier.code}
               onChange={handleInputChange}
               fullWidth
-              helperText="選填，若未填寫將自動生成"
+              required
             />
             <TextField
               name="shortCode"
@@ -393,8 +381,6 @@ const SuppliersPage = () => {
               value={currentSupplier.shortCode}
               onChange={handleInputChange}
               fullWidth
-              required
-              helperText="必填項"
             />
             <TextField
               name="name"
@@ -403,7 +389,6 @@ const SuppliersPage = () => {
               onChange={handleInputChange}
               fullWidth
               required
-              helperText="必填項"
             />
             <TextField
               name="contactPerson"
@@ -416,13 +401,6 @@ const SuppliersPage = () => {
               name="phone"
               label="電話"
               value={currentSupplier.phone}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="email"
-              label="電子郵件"
-              value={currentSupplier.email}
               onChange={handleInputChange}
               fullWidth
             />
@@ -459,10 +437,8 @@ const SuppliersPage = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="inherit">
-            取消
-          </Button>
-          <Button onClick={handleSaveSupplier} color="primary" variant="contained">
+          <Button onClick={handleCloseDialog}>取消</Button>
+          <Button onClick={handleSaveSupplier} variant="contained" color="primary">
             保存
           </Button>
         </DialogActions>
