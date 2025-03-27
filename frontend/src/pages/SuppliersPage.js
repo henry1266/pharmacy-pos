@@ -19,11 +19,18 @@ import {
   Avatar,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Alert,
+  CircularProgress,
+  LinearProgress,
+  Link,
+  Tooltip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DataTable from '../components/tables/DataTable';
 
 const SuppliersPage = () => {
@@ -32,6 +39,7 @@ const SuppliersPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openImportDialog, setOpenImportDialog] = useState(false);
   const [currentSupplier, setCurrentSupplier] = useState({
     code: '',
     shortCode: '',
@@ -45,6 +53,9 @@ const SuppliersPage = () => {
   });
   const [editMode, setEditMode] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [csvFile, setCsvFile] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState(null);
 
   // 表格列定義
   const columns = [
@@ -192,6 +203,13 @@ const SuppliersPage = () => {
     setOpenDialog(false);
   };
 
+  // 處理關閉匯入對話框
+  const handleCloseImportDialog = () => {
+    setOpenImportDialog(false);
+    setCsvFile(null);
+    setImportResult(null);
+  };
+
   // 處理選擇供應商
   const handleSelectSupplier = (id) => {
     const supplier = suppliers.find(s => s.id === id);
@@ -246,20 +264,100 @@ const SuppliersPage = () => {
     }
   };
 
+  // 處理打開匯入對話框
+  const handleOpenImportDialog = () => {
+    setOpenImportDialog(true);
+    setImportResult(null);
+    setCsvFile(null);
+  };
+
+  // 處理CSV文件選擇
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        setCsvFile(file);
+        setImportResult(null);
+      } else {
+        alert('請選擇CSV文件');
+        e.target.value = null;
+      }
+    }
+  };
+
+  // 處理下載CSV模板
+  const handleDownloadTemplate = () => {
+    window.open('/api/suppliers/template/csv', '_blank');
+  };
+
+  // 處理匯入CSV
+  const handleImportCsv = async () => {
+    if (!csvFile) {
+      alert('請先選擇CSV文件');
+      return;
+    }
+
+    try {
+      setImportLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const formData = new FormData();
+      formData.append('file', csvFile);
+      
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'x-auth-token': token
+        }
+      };
+      
+      const response = await axios.post('/api/suppliers/import-csv', formData, config);
+      setImportResult(response.data);
+      
+      // 如果有成功匯入的供應商，重新獲取供應商列表
+      if (response.data.success > 0) {
+        fetchSuppliers();
+      }
+    } catch (err) {
+      console.error('匯入CSV失敗:', err);
+      setError('匯入CSV失敗');
+      setImportResult({
+        total: 0,
+        success: 0,
+        failed: 0,
+        duplicates: 0,
+        errors: [{ error: err.message }]
+      });
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           供應商管理
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddSupplier}
-        >
-          添加供應商
-        </Button>
+        <Box>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<UploadFileIcon />}
+            onClick={handleOpenImportDialog}
+            sx={{ mr: 2 }}
+          >
+            匯入CSV
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddSupplier}
+          >
+            添加供應商
+          </Button>
+        </Box>
       </Box>
 
       {error && (
@@ -339,107 +437,252 @@ const SuppliersPage = () => {
                     <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.address || '無'}</Typography>
                   </ListItem>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>統一編號:</Typography>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>稅號:</Typography>
                     <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.taxId || '無'}</Typography>
                   </ListItem>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>付款條件:</Typography>
                     <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.paymentTerms || '無'}</Typography>
                   </ListItem>
-                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>備註:</Typography>
-                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.notes || '無'}</Typography>
-                  </ListItem>
+                  {selectedSupplier.notes && (
+                    <ListItem sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedSupplier.notes}</Typography>
+                    </ListItem>
+                  )}
                 </List>
               </CardContent>
             </Card>
           ) : (
-            <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
-              <Typography variant="body1" color="text.secondary">
-                請選擇一個供應商查看詳情
-              </Typography>
-            </Paper>
+            <Card elevation={3}>
+              <CardContent sx={{ textAlign: 'center', py: 5 }}>
+                <Typography variant="body1" color="text.secondary">
+                  選擇一個供應商查看詳情
+                </Typography>
+              </CardContent>
+            </Card>
           )}
         </Grid>
       </Grid>
 
+      {/* 添加/編輯供應商對話框 */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'}</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <TextField
-              name="code"
-              label="供應商編號"
-              value={currentSupplier.code}
-              onChange={handleInputChange}
-              fullWidth
-              required
-            />
-            <TextField
-              name="shortCode"
-              label="簡碼"
-              value={currentSupplier.shortCode}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="name"
-              label="供應商名稱"
-              value={currentSupplier.name}
-              onChange={handleInputChange}
-              fullWidth
-              required
-            />
-            <TextField
-              name="contactPerson"
-              label="聯絡人"
-              value={currentSupplier.contactPerson}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="phone"
-              label="電話"
-              value={currentSupplier.phone}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="address"
-              label="地址"
-              value={currentSupplier.address}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="taxId"
-              label="統一編號"
-              value={currentSupplier.taxId}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="paymentTerms"
-              label="付款條件"
-              value={currentSupplier.paymentTerms}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="notes"
-              label="備註"
-              value={currentSupplier.notes}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={3}
-            />
-          </Box>
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="code"
+                label="供應商編號"
+                value={currentSupplier.code}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+                helperText="留空將自動生成"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="shortCode"
+                label="簡碼"
+                value={currentSupplier.shortCode}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="name"
+                label="供應商名稱"
+                value={currentSupplier.name}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="contactPerson"
+                label="聯絡人"
+                value={currentSupplier.contactPerson}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="phone"
+                label="電話"
+                value={currentSupplier.phone}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="address"
+                label="地址"
+                value={currentSupplier.address}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="taxId"
+                label="稅號"
+                value={currentSupplier.taxId}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="paymentTerms"
+                label="付款條件"
+                value={currentSupplier.paymentTerms}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="notes"
+                label="備註"
+                value={currentSupplier.notes}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                size="small"
+                multiline
+                rows={2}
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>取消</Button>
           <Button onClick={handleSaveSupplier} variant="contained" color="primary">
             保存
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* CSV匯入對話框 */}
+      <Dialog open={openImportDialog} onClose={handleCloseImportDialog} maxWidth="md" fullWidth>
+        <DialogTitle>匯入供應商CSV</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 3, mt: 1 }}>
+            <Typography variant="body1" gutterBottom>
+              請上傳包含供應商資料的CSV文件。
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              CSV文件應包含以下欄位：code(供應商編號), shortCode(簡碼), name(供應商名稱), contactPerson(聯絡人), phone(電話), email(電子郵件), address(地址), taxId(稅號), paymentTerms(付款條件), notes(備註)
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              其中，簡碼(shortCode)和供應商名稱(name)為必填欄位。
+            </Typography>
+            <Box sx={{ mt: 2, mb: 2 }}>
+              <Button
+                variant="outlined"
+                startIcon={<FileDownloadIcon />}
+                onClick={handleDownloadTemplate}
+                size="small"
+              >
+                下載CSV模板
+              </Button>
+            </Box>
+          </Box>
+
+          <Divider sx={{ mb: 3 }} />
+
+          <Box sx={{ mb: 3 }}>
+            <input
+              accept=".csv"
+              style={{ display: 'none' }}
+              id="csv-file-upload"
+              type="file"
+              onChange={handleFileChange}
+              disabled={importLoading}
+            />
+            <label htmlFor="csv-file-upload">
+              <Button
+                variant="contained"
+                component="span"
+                disabled={importLoading}
+              >
+                選擇CSV文件
+              </Button>
+            </label>
+            {csvFile && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                已選擇文件: {csvFile.name}
+              </Typography>
+            )}
+          </Box>
+
+          {importLoading && (
+            <Box sx={{ width: '100%', mb: 3 }}>
+              <LinearProgress />
+              <Typography variant="body2" sx={{ mt: 1, textAlign: 'center' }}>
+                正在匯入數據，請稍候...
+              </Typography>
+            </Box>
+          )}
+
+          {importResult && (
+            <Box sx={{ mb: 3 }}>
+              <Alert severity={importResult.success > 0 ? "success" : "error"} sx={{ mb: 2 }}>
+                匯入完成：共{importResult.total}筆資料，成功{importResult.success}筆，失敗{importResult.failed}筆，重複{importResult.duplicates}筆
+              </Alert>
+              
+              {importResult.errors && importResult.errors.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    錯誤詳情：
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 1, maxHeight: 200, overflow: 'auto' }}>
+                    <List dense>
+                      {importResult.errors.map((error, index) => (
+                        <ListItem key={index}>
+                          <ListItemText
+                            primary={error.error}
+                            secondary={error.row ? `行數據: ${JSON.stringify(error.row)}` : ''}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Paper>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseImportDialog}>關閉</Button>
+          <Button
+            onClick={handleImportCsv}
+            variant="contained"
+            color="primary"
+            disabled={!csvFile || importLoading}
+          >
+            {importLoading ? <CircularProgress size={24} /> : '匯入'}
           </Button>
         </DialogActions>
       </Dialog>

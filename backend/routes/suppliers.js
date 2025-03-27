@@ -1,8 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
-// const auth = require('../middleware/auth'); // 已移除
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
 const Supplier = require('../models/Supplier');
+
+// 設置文件上傳
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads');
+    // 確保上傳目錄存在
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `suppliers-${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    // 只接受CSV文件
+    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('只接受CSV文件'), false);
+    }
+  },
+  limits: {
+    fileSize: 1024 * 1024 * 5 // 限制5MB
+  }
+});
 
 // @route   GET api/suppliers
 // @desc    Get all suppliers
@@ -193,6 +226,129 @@ router.delete('/:id', async (req, res) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: '供應商不存在' });
     }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   POST api/suppliers/import-csv
+// @desc    Import suppliers from CSV file
+// @access  Public
+router.post('/import-csv', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: '請上傳CSV文件' });
+    }
+
+    const results = [];
+    const errors = [];
+    const duplicates = [];
+    const filePath = req.file.path;
+
+    // 讀取CSV文件
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        // 處理CSV數據
+        const importResults = {
+          total: results.length,
+          success: 0,
+          failed: 0,
+          duplicates: 0,
+          errors: []
+        };
+
+        for (const row of results) {
+          try {
+            // 檢查必填欄位
+            if (!row.shortCode || !row.name) {
+              errors.push({
+                row,
+                error: '簡碼和供應商名稱為必填項'
+              });
+              importResults.failed++;
+              continue;
+            }
+
+            // 檢查供應商編號是否已存在
+            if (row.code) {
+              const existingSupplier = await Supplier.findOne({ code: row.code });
+              if (existingSupplier) {
+                duplicates.push({
+                  row,
+                  existingId: existingSupplier._id
+                });
+                importResults.duplicates++;
+                continue;
+              }
+            }
+
+            // 建立供應商欄位物件
+            const supplierFields = {
+              name: row.name,
+              shortCode: row.shortCode
+            };
+
+            // 處理可選欄位
+            if (row.code) supplierFields.code = row.code;
+            if (row.contactPerson) supplierFields.contactPerson = row.contactPerson;
+            if (row.phone) supplierFields.phone = row.phone;
+            if (row.email) supplierFields.email = row.email;
+            if (row.address) supplierFields.address = row.address;
+            if (row.taxId) supplierFields.taxId = row.taxId;
+            if (row.paymentTerms) supplierFields.paymentTerms = row.paymentTerms;
+            if (row.notes) supplierFields.notes = row.notes;
+
+            // 若沒提供供應商編號，系統自動生成
+            if (!row.code) {
+              const supplierCount = await Supplier.countDocuments();
+              supplierFields.code = `S${String(supplierCount + 1).padStart(5, '0')}`;
+            }
+
+            // 創建新供應商
+            const supplier = new Supplier(supplierFields);
+            await supplier.save();
+            importResults.success++;
+          } catch (err) {
+            console.error('匯入供應商錯誤:', err.message);
+            errors.push({
+              row,
+              error: err.message
+            });
+            importResults.failed++;
+          }
+        }
+
+        // 刪除上傳的文件
+        fs.unlinkSync(filePath);
+
+        // 返回匯入結果
+        importResults.errors = errors;
+        res.json(importResults);
+      });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/suppliers/template/csv
+// @desc    Get CSV template for supplier import
+// @access  Public
+router.get('/template/csv', (req, res) => {
+  try {
+    // 創建CSV模板內容
+    const csvTemplate = 'code,shortCode,name,contactPerson,phone,email,address,taxId,paymentTerms,notes\n' +
+                        ',ABC,範例供應商,張三,0912345678,example@example.com,台北市信義區,12345678,月結30天,備註說明';
+
+    // 設置響應頭
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=suppliers-template.csv');
+
+    // 發送CSV模板
+    res.send(csvTemplate);
+  } catch (err) {
+    console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
