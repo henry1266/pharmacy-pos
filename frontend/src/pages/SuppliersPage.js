@@ -56,6 +56,7 @@ const SuppliersPage = () => {
   const [csvFile, setCsvFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [templateDownloading, setTemplateDownloading] = useState(false);
 
   // 表格列定義
   const columns = [
@@ -285,9 +286,35 @@ const SuppliersPage = () => {
     }
   };
 
-  // 處理下載CSV模板
-  const handleDownloadTemplate = () => {
-    window.open('/api/suppliers/template/csv', '_blank');
+  // 處理下載CSV模板 - 修改為使用axios直接下載
+  const handleDownloadTemplate = async () => {
+    try {
+      setTemplateDownloading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/suppliers/template/csv', {
+        headers: {
+          'x-auth-token': token
+        },
+        responseType: 'blob' // 重要：設置響應類型為blob
+      });
+      
+      // 創建Blob URL並觸發下載
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'suppliers-template.csv');
+      document.body.appendChild(link);
+      link.click();
+      
+      // 清理
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('下載CSV模板失敗:', err);
+      alert('下載CSV模板失敗，請稍後再試');
+    } finally {
+      setTemplateDownloading(false);
+    }
   };
 
   // 處理匯入CSV
@@ -604,8 +631,9 @@ const SuppliersPage = () => {
                 startIcon={<FileDownloadIcon />}
                 onClick={handleDownloadTemplate}
                 size="small"
+                disabled={templateDownloading}
               >
-                下載CSV模板
+                {templateDownloading ? '下載中...' : '下載CSV模板'}
               </Button>
             </Box>
           </Box>
