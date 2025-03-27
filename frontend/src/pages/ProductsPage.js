@@ -149,10 +149,10 @@ const ProductsPage = () => {
     const product = products.find(product => product.id === id);
     setCurrentProduct({
       id: product.id,
-      code: product.code,
+      code: product.code || '',
       name: product.name,
       specification: product.specification || '',
-      category: product.category,
+      category: product.category || '',
       unit: product.unit,
       purchasePrice: product.purchasePrice,
       sellingPrice: product.sellingPrice,
@@ -190,7 +190,7 @@ const ProductsPage = () => {
   // 處理添加藥品
   const handleAddProduct = () => {
     setCurrentProduct({
-      code: '',
+      code: '', // 允許為空，後端會自動生成
       name: '',
       specification: '',
       category: '',
@@ -214,6 +214,13 @@ const ProductsPage = () => {
   // 處理保存藥品
   const handleSaveProduct = async () => {
     try {
+      // 驗證必填欄位
+      if (!currentProduct.name || !currentProduct.unit || 
+          currentProduct.purchasePrice === undefined || currentProduct.sellingPrice === undefined) {
+        setError('請填寫必填欄位：藥品名稱、單位、進貨價和售價');
+        return;
+      }
+      
       const token = localStorage.getItem('token');
       const config = {
         headers: {
@@ -223,7 +230,7 @@ const ProductsPage = () => {
       };
       
       const productData = {
-        code: currentProduct.code,
+        code: currentProduct.code, // 可以為空，後端會自動生成
         name: currentProduct.name,
         specification: currentProduct.specification,
         category: currentProduct.category,
@@ -249,7 +256,7 @@ const ProductsPage = () => {
       fetchProducts();
     } catch (err) {
       console.error('保存藥品失敗:', err);
-      setError('保存藥品失敗');
+      setError('保存藥品失敗: ' + (err.response?.data?.msg || err.message));
     }
   };
 
@@ -293,15 +300,14 @@ const ProductsPage = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField
               name="code"
-              label="藥品編號"
+              label="藥品編號 (留空將自動生成)"
               value={currentProduct.code}
               onChange={handleInputChange}
               fullWidth
-              required
             />
             <TextField
               name="name"
-              label="藥品名稱"
+              label="藥品名稱 *"
               value={currentProduct.name}
               onChange={handleInputChange}
               fullWidth
@@ -320,11 +326,10 @@ const ProductsPage = () => {
               value={currentProduct.category}
               onChange={handleInputChange}
               fullWidth
-              required
             />
             <TextField
               name="unit"
-              label="單位"
+              label="單位 *"
               value={currentProduct.unit}
               onChange={handleInputChange}
               fullWidth
@@ -332,7 +337,7 @@ const ProductsPage = () => {
             />
             <TextField
               name="purchasePrice"
-              label="進貨價"
+              label="進貨價 *"
               type="number"
               value={currentProduct.purchasePrice}
               onChange={handleInputChange}
@@ -341,7 +346,7 @@ const ProductsPage = () => {
             />
             <TextField
               name="sellingPrice"
-              label="售價"
+              label="售價 *"
               type="number"
               value={currentProduct.sellingPrice}
               onChange={handleInputChange}
