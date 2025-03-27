@@ -1,0 +1,5 @@
+// 創建一個簡單的CSV範例文件，用於測試匯入功能
+code,shortCode,name,contactPerson,phone,email,address,taxId,paymentTerms,notes
+,ABC,測試供應商1,張三,0912345678,test1@example.com,台北市信義區,12345678,月結30天,測試備註1
+,DEF,測試供應商2,李四,0923456789,test2@example.com,台北市大安區,87654321,月結60天,測試備註2
+,GHI,測試供應商3,王五,0934567890,test3@example.com,新北市板橋區,13579246,貨到付款,測試備註3
