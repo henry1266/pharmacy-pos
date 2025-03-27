@@ -85,7 +85,14 @@ const ProductsPage = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/products');
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+      
+      const response = await axios.get('/api/products', config);
       // 轉換數據格式以適應DataTable
       const formattedProducts = response.data.map(product => ({
         id: product._id,
@@ -104,7 +111,14 @@ const ProductsPage = () => {
   // 獲取供應商數據
   const fetchSuppliers = async () => {
     try {
-      const response = await axios.get('/api/suppliers');
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+      
+      const response = await axios.get('/api/suppliers', config);
       setSuppliers(response.data);
     } catch (err) {
       console.error('獲取供應商數據失敗:', err);
@@ -222,7 +236,6 @@ const ProductsPage = () => {
         minStock: currentProduct.minStock
       };
       
-      // 移除未使用的response變數
       if (editMode) {
         // 更新藥品
         await axios.put(`/api/products/${currentProduct.id}`, productData, config);
