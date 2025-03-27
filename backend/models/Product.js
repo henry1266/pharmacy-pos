@@ -6,6 +6,10 @@ const ProductSchema = new mongoose.Schema({
     unique: true,
     sparse: true
   },
+  sku: {
+    type: String,
+    sparse: true
+  },
   name: {
     type: String,
     required: true
@@ -31,9 +35,6 @@ const ProductSchema = new mongoose.Schema({
   description: {
     type: String
   },
-  manufacturer: {
-    type: String
-  },
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'supplier'
@@ -47,5 +48,8 @@ const ProductSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// 移除sku欄位的唯一索引
+ProductSchema.index({ sku: 1 }, { unique: false, sparse: true });
 
 module.exports = mongoose.model('product', ProductSchema);

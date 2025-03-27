@@ -38,7 +38,6 @@ const ProductsPage = () => {
     purchasePrice: 0,
     sellingPrice: 0,
     description: '',
-    manufacturer: '',
     supplier: '',
     minStock: 10
   });
@@ -52,7 +51,6 @@ const ProductsPage = () => {
     { field: 'unit', headerName: '單位', width: 80 },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
     { field: 'sellingPrice', headerName: '售價', width: 100, type: 'number' },
-    { field: 'manufacturer', headerName: '製造商', width: 150 },
     { field: 'minStock', headerName: '最低庫存', width: 100, type: 'number' },
     {
       field: 'actions',
@@ -157,7 +155,6 @@ const ProductsPage = () => {
       purchasePrice: product.purchasePrice,
       sellingPrice: product.sellingPrice,
       description: product.description || '',
-      manufacturer: product.manufacturer || '',
       supplier: product.supplier || '',
       minStock: product.minStock
     });
@@ -198,7 +195,6 @@ const ProductsPage = () => {
       purchasePrice: 0,
       sellingPrice: 0,
       description: '',
-      manufacturer: '',
       supplier: '',
       minStock: 10
     });
@@ -238,7 +234,6 @@ const ProductsPage = () => {
         purchasePrice: currentProduct.purchasePrice,
         sellingPrice: currentProduct.sellingPrice,
         description: currentProduct.description,
-        manufacturer: currentProduct.manufacturer,
         supplier: currentProduct.supplier,
         minStock: currentProduct.minStock
       };
@@ -361,13 +356,6 @@ const ProductsPage = () => {
               fullWidth
               multiline
               rows={3}
-            />
-            <TextField
-              name="manufacturer"
-              label="製造商"
-              value={currentProduct.manufacturer}
-              onChange={handleInputChange}
-              fullWidth
             />
             <FormControl fullWidth>
               <InputLabel>供應商</InputLabel>

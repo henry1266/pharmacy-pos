@@ -83,7 +83,6 @@ router.post(
       purchasePrice,
       sellingPrice,
       description,
-      manufacturer,
       supplier,
       minStock
     } = req.body;
@@ -112,7 +111,6 @@ router.post(
       if (specification) productFields.specification = specification;
       if (category) productFields.category = category;
       if (description) productFields.description = description;
-      if (manufacturer) productFields.manufacturer = manufacturer;
       if (supplier) productFields.supplier = supplier;
       if (minStock) productFields.minStock = minStock;
 
@@ -139,7 +137,6 @@ router.put('/:id', async (req, res) => {
     purchasePrice,
     sellingPrice,
     description,
-    manufacturer,
     supplier,
     minStock
   } = req.body;
@@ -153,7 +150,6 @@ router.put('/:id', async (req, res) => {
   if (purchasePrice) productFields.purchasePrice = purchasePrice;
   if (sellingPrice) productFields.sellingPrice = sellingPrice;
   if (description !== undefined) productFields.description = description;
-  if (manufacturer !== undefined) productFields.manufacturer = manufacturer;
   if (supplier !== undefined) productFields.supplier = supplier;
   if (minStock !== undefined) productFields.minStock = minStock;
   try {
