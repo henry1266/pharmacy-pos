@@ -43,9 +43,8 @@ router.post(
   [
     [
       check('name', '藥品名稱為必填項').not().isEmpty(),
-      check('unit', '單位為必填項').not().isEmpty(),
-      check('purchasePrice', '進貨價為必填項').isNumeric(),
-      check('sellingPrice', '售價為必填項').isNumeric()
+      check('shortCode', '簡碼為必填項').not().isEmpty()
+      // 移除單位、進貨價和售價的必填驗證
     ]
   ],
   async (req, res) => {
@@ -56,8 +55,9 @@ router.post(
 
     const {
       code,
+      shortCode,
       name,
-      specification,
+      healthInsuranceCode,
       category,
       unit,
       purchasePrice,
@@ -71,9 +71,7 @@ router.post(
       // 建立藥品欄位物件
       const productFields = {
         name,
-        unit,
-        purchasePrice,
-        sellingPrice
+        shortCode
       };
 
       // 檢查藥品編號是否已存在
@@ -90,8 +88,11 @@ router.post(
       }
 
       // 處理可選欄位，允許保存空字符串值
-      if (specification !== undefined) productFields.specification = specification;
+      if (healthInsuranceCode !== undefined) productFields.healthInsuranceCode = healthInsuranceCode;
       if (category !== undefined) productFields.category = category;
+      if (unit !== undefined) productFields.unit = unit;
+      if (purchasePrice !== undefined) productFields.purchasePrice = purchasePrice;
+      if (sellingPrice !== undefined) productFields.sellingPrice = sellingPrice;
       if (description !== undefined) productFields.description = description;
       if (supplier !== undefined) productFields.supplier = supplier;
       if (minStock !== undefined) productFields.minStock = minStock;
@@ -112,8 +113,9 @@ router.post(
 router.put('/:id', async (req, res) => {
   const {
     code,
+    shortCode,
     name,
-    specification,
+    healthInsuranceCode,
     category,
     unit,
     purchasePrice,
@@ -127,8 +129,9 @@ router.put('/:id', async (req, res) => {
   const productFields = {};
   // 允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
   if (code !== undefined) productFields.code = code;
+  if (shortCode !== undefined) productFields.shortCode = shortCode;
   if (name !== undefined) productFields.name = name;
-  if (specification !== undefined) productFields.specification = specification;
+  if (healthInsuranceCode !== undefined) productFields.healthInsuranceCode = healthInsuranceCode;
   if (category !== undefined) productFields.category = category;
   if (unit !== undefined) productFields.unit = unit;
   if (purchasePrice !== undefined) productFields.purchasePrice = purchasePrice;

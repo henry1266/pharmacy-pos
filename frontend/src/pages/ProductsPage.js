@@ -38,8 +38,9 @@ const ProductsPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [currentProduct, setCurrentProduct] = useState({
     code: '',
+    shortCode: '',
     name: '',
-    specification: '',
+    healthInsuranceCode: '',
     category: '',
     unit: '',
     purchasePrice: 0,
@@ -54,8 +55,9 @@ const ProductsPage = () => {
   // 表格列定義
   const columns = [
     { field: 'code', headerName: '藥品編號', width: 120 },
+    { field: 'shortCode', headerName: '簡碼', width: 100 },
     { field: 'name', headerName: '藥品名稱', width: 180 },
-    { field: 'specification', headerName: '規格', width: 120 },
+    { field: 'healthInsuranceCode', headerName: '健保碼', width: 120 },
     { field: 'category', headerName: '分類', width: 120 },
     { field: 'unit', headerName: '單位', width: 80 },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
@@ -103,12 +105,13 @@ const ProductsPage = () => {
       const formattedProducts = response.data.map(product => ({
         id: product._id,
         code: product.code,
+        shortCode: product.shortCode || '',
         name: product.name,
-        specification: product.specification || '',
+        healthInsuranceCode: product.healthInsuranceCode || '',
         category: product.category || '',
-        unit: product.unit,
-        purchasePrice: product.purchasePrice,
-        sellingPrice: product.sellingPrice,
+        unit: product.unit || '',
+        purchasePrice: product.purchasePrice || 0,
+        sellingPrice: product.sellingPrice || 0,
         description: product.description || '',
         supplier: product.supplier || '',
         minStock: product.minStock
@@ -206,8 +209,9 @@ const ProductsPage = () => {
   const handleAddProduct = () => {
     setCurrentProduct({
       code: '',
+      shortCode: '',
       name: '',
-      specification: '',
+      healthInsuranceCode: '',
       category: '',
       unit: '',
       purchasePrice: 0,
@@ -241,6 +245,12 @@ const ProductsPage = () => {
   // 處理保存藥品
   const handleSaveProduct = async () => {
     try {
+      // 驗證必填欄位
+      if (!currentProduct.name || !currentProduct.shortCode) {
+        setError('請填寫必填欄位：藥品名稱和簡碼');
+        return;
+      }
+      
       const token = localStorage.getItem('token');
       const config = {
         headers: {
@@ -251,8 +261,9 @@ const ProductsPage = () => {
       
       const productData = {
         code: currentProduct.code,
+        shortCode: currentProduct.shortCode,
         name: currentProduct.name,
-        specification: currentProduct.specification,
+        healthInsuranceCode: currentProduct.healthInsuranceCode,
         category: currentProduct.category,
         unit: currentProduct.unit,
         purchasePrice: currentProduct.purchasePrice,
@@ -330,7 +341,7 @@ const ProductsPage = () => {
               <CardHeader
                 avatar={
                   <Avatar sx={{ bgcolor: 'primary.main' }}>
-                    {selectedProduct.name?.charAt(0) || 'P'}
+                    {selectedProduct.shortCode?.charAt(0) || selectedProduct.name?.charAt(0) || 'P'}
                   </Avatar>
                 }
                 title={
@@ -338,7 +349,7 @@ const ProductsPage = () => {
                     {selectedProduct.name}
                   </Typography>
                 }
-                subheader={`編號: ${selectedProduct.code}`}
+                subheader={`編號: ${selectedProduct.code} | 簡碼: ${selectedProduct.shortCode}`}
                 action={
                   <Box>
                     <IconButton
@@ -362,8 +373,8 @@ const ProductsPage = () => {
               <CardContent sx={{ py: 1 }}>
                 <List dense sx={{ py: 0 }}>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>規格:</Typography>
-                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.specification || '無'}</Typography>
+                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>健保碼:</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.healthInsuranceCode || '無'}</Typography>
                   </ListItem>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>分類:</Typography>
@@ -371,7 +382,7 @@ const ProductsPage = () => {
                   </ListItem>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>單位:</Typography>
-                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.unit}</Typography>
+                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.unit || '無'}</Typography>
                   </ListItem>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>進貨價:</Typography>
@@ -418,6 +429,14 @@ const ProductsPage = () => {
               fullWidth
             />
             <TextField
+              name="shortCode"
+              label="簡碼 *"
+              value={currentProduct.shortCode}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
               name="name"
               label="藥品名稱 *"
               value={currentProduct.name}
@@ -426,9 +445,9 @@ const ProductsPage = () => {
               required
             />
             <TextField
-              name="specification"
-              label="規格"
-              value={currentProduct.specification}
+              name="healthInsuranceCode"
+              label="健保碼"
+              value={currentProduct.healthInsuranceCode}
               onChange={handleInputChange}
               fullWidth
             />
@@ -441,29 +460,26 @@ const ProductsPage = () => {
             />
             <TextField
               name="unit"
-              label="單位 *"
+              label="單位"
               value={currentProduct.unit}
               onChange={handleInputChange}
               fullWidth
-              required
             />
             <TextField
               name="purchasePrice"
-              label="進貨價 *"
+              label="進貨價"
               type="number"
               value={currentProduct.purchasePrice}
               onChange={handleInputChange}
               fullWidth
-              required
             />
             <TextField
               name="sellingPrice"
-              label="售價 *"
+              label="售價"
               type="number"
               value={currentProduct.sellingPrice}
               onChange={handleInputChange}
               fullWidth
-              required
             />
             <TextField
               name="description"

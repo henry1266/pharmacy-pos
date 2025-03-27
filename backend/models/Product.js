@@ -6,27 +6,30 @@ const ProductSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  shortCode: {
+    type: String,
+    required: true
+  },
   name: {
     type: String,
     required: true
   },
-  specification: {
+  healthInsuranceCode: {
     type: String
   },
   category: {
     type: String
   },
   unit: {
-    type: String,
-    required: true
+    type: String
   },
   purchasePrice: {
     type: Number,
-    required: true
+    default: 0
   },
   sellingPrice: {
     type: Number,
-    required: true
+    default: 0
   },
   description: {
     type: String
