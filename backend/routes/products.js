@@ -1,15 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
-const Product = require('../models/Product');
+const { BaseProduct, Product, Medicine } = require('../models/BaseProduct');
 
 // @route   GET api/products
-// @desc    Get all products
+// @desc    Get all products (both types)
 // @access  Public
 router.get('/', async (req, res) => {
   try {
+    const products = await BaseProduct.find().sort({ name: 1 });
+    res.json(products);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/products/products
+// @desc    Get only regular products
+// @access  Public
+router.get('/products', async (req, res) => {
+  try {
     const products = await Product.find().sort({ name: 1 });
     res.json(products);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/products/medicines
+// @desc    Get only medicines
+// @access  Public
+router.get('/medicines', async (req, res) => {
+  try {
+    const medicines = await Medicine.find().sort({ name: 1 });
+    res.json(medicines);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -21,30 +47,51 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await BaseProduct.findById(req.params.id);
     if (!product) {
-      return res.status(404).json({ msg: '藥品不存在' });
+      return res.status(404).json({ msg: '產品不存在' });
     }
     res.json(product);
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '藥品不存在' });
+      return res.status(404).json({ msg: '產品不存在' });
     }
     res.status(500).send('Server Error');
   }
 });
 
-// @route   POST api/products
-// @desc    Create a product
+// 生成唯一產品編號的函數
+const generateProductCode = async (productType) => {
+  // 獲取當前最大編號
+  const prefix = productType === 'medicine' ? 'M' : 'P';
+  const latestProduct = await BaseProduct.findOne({ 
+    code: new RegExp(`^${prefix}\\d+$`) 
+  }).sort({ code: -1 });
+  
+  let newCode = `${prefix}0001`; // 默認起始編號
+  
+  if (latestProduct && latestProduct.code) {
+    // 如果編號格式為 P/M 開頭加數字
+    const match = latestProduct.code.match(/^[PM](\d+)$/);
+    if (match) {
+      const num = parseInt(match[1]) + 1;
+      newCode = `${prefix}${num.toString().padStart(4, '0')}`;
+    }
+  }
+  
+  return newCode;
+};
+
+// @route   POST api/products/product
+// @desc    Create a regular product
 // @access  Public
 router.post(
-  '/',
+  '/product',
   [
     [
-      check('name', '藥品名稱為必填項').not().isEmpty(),
+      check('name', '產品名稱為必填項').not().isEmpty(),
       check('shortCode', '簡碼為必填項').not().isEmpty()
-      // 移除單位、進貨價和售價的必填驗證
     ]
   ],
   async (req, res) => {
@@ -57,7 +104,7 @@ router.post(
       code,
       shortCode,
       name,
-      healthInsuranceCode,
+      barcode,
       category,
       unit,
       purchasePrice,
@@ -68,27 +115,27 @@ router.post(
     } = req.body;
 
     try {
-      // 建立藥品欄位物件
+      // 建立產品欄位物件
       const productFields = {
         name,
-        shortCode
+        shortCode,
+        productType: 'product'
       };
 
-      // 檢查藥品編號是否已存在
+      // 檢查產品編號是否已存在
       if (code) {
-        let product = await Product.findOne({ code });
+        let product = await BaseProduct.findOne({ code });
         if (product) {
-          return res.status(400).json({ msg: '藥品編號已存在' });
+          return res.status(400).json({ msg: '產品編號已存在' });
         }
         productFields.code = code;
       } else {
-        // 若沒提供藥品編號，系統自動生成
-        const productCount = await Product.countDocuments();
-        productFields.code = `P${String(productCount + 1).padStart(5, '0')}`;
+        // 若沒提供產品編號，系統自動生成
+        productFields.code = await generateProductCode('product');
       }
 
       // 處理可選欄位，允許保存空字符串值
-      if (healthInsuranceCode !== undefined) productFields.healthInsuranceCode = healthInsuranceCode;
+      if (barcode !== undefined) productFields.barcode = barcode;
       if (category !== undefined) productFields.category = category;
       if (unit !== undefined) productFields.unit = unit;
       if (purchasePrice !== undefined) productFields.purchasePrice = purchasePrice;
@@ -107,65 +154,148 @@ router.post(
   }
 );
 
+// @route   POST api/products/medicine
+// @desc    Create a medicine
+// @access  Public
+router.post(
+  '/medicine',
+  [
+    [
+      check('name', '藥品名稱為必填項').not().isEmpty(),
+      check('shortCode', '簡碼為必填項').not().isEmpty()
+    ]
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const {
+      code,
+      shortCode,
+      name,
+      healthInsuranceCode,
+      healthInsurancePrice,
+      category,
+      unit,
+      purchasePrice,
+      sellingPrice,
+      description,
+      supplier,
+      minStock
+    } = req.body;
+
+    try {
+      // 建立藥品欄位物件
+      const medicineFields = {
+        name,
+        shortCode,
+        productType: 'medicine'
+      };
+
+      // 檢查藥品編號是否已存在
+      if (code) {
+        let medicine = await BaseProduct.findOne({ code });
+        if (medicine) {
+          return res.status(400).json({ msg: '藥品編號已存在' });
+        }
+        medicineFields.code = code;
+      } else {
+        // 若沒提供藥品編號，系統自動生成
+        medicineFields.code = await generateProductCode('medicine');
+      }
+
+      // 處理可選欄位，允許保存空字符串值
+      if (healthInsuranceCode !== undefined) medicineFields.healthInsuranceCode = healthInsuranceCode;
+      if (healthInsurancePrice !== undefined) medicineFields.healthInsurancePrice = healthInsurancePrice;
+      if (category !== undefined) medicineFields.category = category;
+      if (unit !== undefined) medicineFields.unit = unit;
+      if (purchasePrice !== undefined) medicineFields.purchasePrice = purchasePrice;
+      if (sellingPrice !== undefined) medicineFields.sellingPrice = sellingPrice;
+      if (description !== undefined) medicineFields.description = description;
+      if (supplier !== undefined) medicineFields.supplier = supplier;
+      if (minStock !== undefined) medicineFields.minStock = minStock;
+
+      const medicine = new Medicine(medicineFields);
+      await medicine.save();
+      res.json(medicine);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  }
+);
+
 // @route   PUT api/products/:id
 // @desc    Update a product
 // @access  Public
 router.put('/:id', async (req, res) => {
-  const {
-    code,
-    shortCode,
-    name,
-    healthInsuranceCode,
-    category,
-    unit,
-    purchasePrice,
-    sellingPrice,
-    description,
-    supplier,
-    minStock
-  } = req.body;
-
-  // 建立更新欄位物件
-  const productFields = {};
-  // 允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
-  if (code !== undefined) productFields.code = code;
-  if (shortCode !== undefined) productFields.shortCode = shortCode;
-  if (name !== undefined) productFields.name = name;
-  if (healthInsuranceCode !== undefined) productFields.healthInsuranceCode = healthInsuranceCode;
-  if (category !== undefined) productFields.category = category;
-  if (unit !== undefined) productFields.unit = unit;
-  if (purchasePrice !== undefined) productFields.purchasePrice = purchasePrice;
-  if (sellingPrice !== undefined) productFields.sellingPrice = sellingPrice;
-  if (description !== undefined) productFields.description = description;
-  if (supplier !== undefined) productFields.supplier = supplier;
-  if (minStock !== undefined) productFields.minStock = minStock;
-
   try {
-    let product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ msg: '藥品不存在' });
+    // 先檢查產品是否存在並獲取類型
+    const existingProduct = await BaseProduct.findById(req.params.id);
+    if (!existingProduct) {
+      return res.status(404).json({ msg: '產品不存在' });
+    }
+
+    const productType = existingProduct.productType;
+    const {
+      code,
+      shortCode,
+      name,
+      category,
+      unit,
+      purchasePrice,
+      sellingPrice,
+      description,
+      supplier,
+      minStock
+    } = req.body;
+
+    // 建立基本更新欄位物件
+    const updateFields = {};
+    // 允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
+    if (code !== undefined) updateFields.code = code;
+    if (shortCode !== undefined) updateFields.shortCode = shortCode;
+    if (name !== undefined) updateFields.name = name;
+    if (category !== undefined) updateFields.category = category;
+    if (unit !== undefined) updateFields.unit = unit;
+    if (purchasePrice !== undefined) updateFields.purchasePrice = purchasePrice;
+    if (sellingPrice !== undefined) updateFields.sellingPrice = sellingPrice;
+    if (description !== undefined) updateFields.description = description;
+    if (supplier !== undefined) updateFields.supplier = supplier;
+    if (minStock !== undefined) updateFields.minStock = minStock;
+
+    // 根據產品類型處理特有欄位
+    if (productType === 'product') {
+      const { barcode } = req.body;
+      if (barcode !== undefined) updateFields.barcode = barcode;
+    } else if (productType === 'medicine') {
+      const { healthInsuranceCode, healthInsurancePrice } = req.body;
+      if (healthInsuranceCode !== undefined) updateFields.healthInsuranceCode = healthInsuranceCode;
+      if (healthInsurancePrice !== undefined) updateFields.healthInsurancePrice = healthInsurancePrice;
     }
 
     // 若編號被修改，檢查是否重複
-    if (code && code !== product.code) {
-      const existingProduct = await Product.findOne({ code });
-      if (existingProduct) {
-        return res.status(400).json({ msg: '藥品編號已存在' });
+    if (code && code !== existingProduct.code) {
+      const duplicateProduct = await BaseProduct.findOne({ code });
+      if (duplicateProduct) {
+        return res.status(400).json({ msg: '產品編號已存在' });
       }
     }
 
     // 更新
-    product = await Product.findByIdAndUpdate(
+    const updatedProduct = await BaseProduct.findByIdAndUpdate(
       req.params.id,
-      { $set: productFields },
+      { $set: updateFields },
       { new: true }
     );
 
-    res.json(product);
+    res.json(updatedProduct);
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '藥品不存在' });
+      return res.status(404).json({ msg: '產品不存在' });
     }
     res.status(500).send('Server Error');
   }
@@ -176,18 +306,18 @@ router.put('/:id', async (req, res) => {
 // @access  Public
 router.delete('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await BaseProduct.findById(req.params.id);
     if (!product) {
-      return res.status(404).json({ msg: '藥品不存在' });
+      return res.status(404).json({ msg: '產品不存在' });
     }
 
-    // 使用 findByIdAndDelete 替代 remove()
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ msg: '藥品已刪除' });
+    // 使用 findByIdAndDelete 刪除產品
+    await BaseProduct.findByIdAndDelete(req.params.id);
+    res.json({ msg: '產品已刪除' });
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '藥品不存在' });
+      return res.status(404).json({ msg: '產品不存在' });
     }
     res.status(500).send('Server Error');
   }
