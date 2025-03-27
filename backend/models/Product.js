@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const ProductSchema = new mongoose.Schema({
   code: {
     type: String,
-    required: true,
-    unique: true
+    unique: true,
+    sparse: true
   },
   name: {
     type: String,
@@ -14,8 +14,7 @@ const ProductSchema = new mongoose.Schema({
     type: String
   },
   category: {
-    type: String,
-    required: true
+    type: String
   },
   unit: {
     type: String,
