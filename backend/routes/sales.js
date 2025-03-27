@@ -3,7 +3,7 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 // const auth = require('../middleware/auth'); // 已移除
 const Sale = require('../models/Sale');
-const Product = require('../models/Product');
+const { BaseProduct } = require('../models/BaseProduct');
 const Inventory = require('../models/Inventory');
 const Customer = require('../models/Customer');
 
@@ -95,7 +95,7 @@ router.post(
       
       // 檢查所有產品是否存在並更新庫存
       for (const item of items) {
-        const product = await Product.findById(item.product);
+        const product = await BaseProduct.findById(item.product);
         if (!product) {
           return res.status(404).json({ msg: `產品ID ${item.product} 不存在` });
         }

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/Product');
+const { BaseProduct } = require('../models/BaseProduct');
 const Sale = require('../models/Sale');
 const Customer = require('../models/Customer');
 const Inventory = require('../models/Inventory');
@@ -39,7 +39,7 @@ router.get('/summary', async (req, res) => {
     }));
     
     // 獲取各種統計數據
-    const productCount = await Product.countDocuments();
+    const productCount = await BaseProduct.countDocuments();
     const customerCount = await Customer.countDocuments();
     const supplierCount = await Supplier.countDocuments();
     const orderCount = sales.length;
@@ -64,7 +64,7 @@ router.get('/summary', async (req, res) => {
       .sort((a, b) => productSales[b].quantity - productSales[a].quantity)
       .slice(0, 5)
       .map(async (productId) => {
-        const product = await Product.findById(productId);
+        const product = await BaseProduct.findById(productId);
         return {
           productId,
           productCode: product ? product.code : 'Unknown',
@@ -158,7 +158,7 @@ router.get('/sales-trend', async (req, res) => {
     
     // 獲取按產品類別分組的銷售數據
     const productIds = [...new Set(sales.flatMap(sale => sale.items.map(item => item.product.toString())))];
-    const products = await Product.find({ _id: { $in: productIds } });
+    const products = await BaseProduct.find({ _id: { $in: productIds } });
     
     const salesByCategory = {};
     sales.forEach(sale => {

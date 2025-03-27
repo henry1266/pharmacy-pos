@@ -3,7 +3,7 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 // const auth = require('../middleware/auth'); // 已移除
 const Inventory = require('../models/Inventory');
-const Product = require('../models/Product');
+const { BaseProduct } = require('../models/BaseProduct');
 
 // @route   GET api/inventory
 // @desc    Get all inventory items
@@ -64,7 +64,7 @@ router.post(
     } = req.body;
     try {
       // 檢查藥品是否存在
-      const productExists = await Product.findById(product);
+      const productExists = await BaseProduct.findById(product);
       if (!productExists) {
         return res.status(404).json({ msg: '藥品不存在' });
       }
@@ -138,7 +138,7 @@ router.put('/:id', async (req, res) => {
     
     // 如果更改了藥品，檢查新藥品是否存在
     if (product && product !== inventory.product.toString()) {
-      const productExists = await Product.findById(product);
+      const productExists = await BaseProduct.findById(product);
       if (!productExists) {
         return res.status(404).json({ msg: '藥品不存在' });
       }
