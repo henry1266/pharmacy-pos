@@ -111,10 +111,10 @@ const MainLayout = ({ children }) => {
         variant="permanent"
         open={true}
         sx={{
-          width: 260,
+          width: 200,
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: { 
-            width: 260, 
+            width: 200, 
             boxSizing: 'border-box',
             backgroundColor: 'var(--bg-sidebar)',
             color: 'var(--text-light)',
@@ -216,7 +216,7 @@ const MainLayout = ({ children }) => {
         sx={{
           display: { xs: 'block', sm: 'none' },
           '& .MuiDrawer-paper': { 
-            width: 260,
+            width: 200,
             backgroundColor: 'var(--bg-sidebar)',
             color: 'var(--text-light)'
           },
@@ -303,8 +303,8 @@ const MainLayout = ({ children }) => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - 260px)` },
-          ml: { sm: '260px' },
+          width: { sm: `calc(100% - 200px)` },
+          ml: { sm: '200px' },
           backgroundColor: 'var(--bg-primary)',
           minHeight: '100vh'
         }}
