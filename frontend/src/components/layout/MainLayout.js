@@ -303,8 +303,8 @@ const MainLayout = ({ children }) => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - 200px)` },
-          ml: { sm: '200px' },
+          width: '100%',
+          ml: { sm: '0' },
           backgroundColor: 'var(--bg-primary)',
           minHeight: '100vh'
         }}
