@@ -279,7 +279,7 @@ export const fetchPurchaseOrder = (id) => async (dispatch) => {
 };
 
 // 添加進貨單
-export const addPurchaseOrder = (formData, history) => async (dispatch) => {
+export const addPurchaseOrder = (formData, navigate) => async (dispatch) => {
   try {
     dispatch({ type: ActionTypes.ADD_PURCHASE_ORDER_REQUEST });
     
@@ -297,8 +297,8 @@ export const addPurchaseOrder = (formData, history) => async (dispatch) => {
     });
     
     // 導航到進貨單列表頁面
-    if (history) {
-      history.push('/purchase-orders');
+    if (navigate) {
+      navigate('/purchase-orders');
     }
   } catch (err) {
     dispatch({
@@ -309,7 +309,7 @@ export const addPurchaseOrder = (formData, history) => async (dispatch) => {
 };
 
 // 更新進貨單
-export const updatePurchaseOrder = (id, formData, history) => async (dispatch) => {
+export const updatePurchaseOrder = (id, formData, navigate) => async (dispatch) => {
   try {
     dispatch({ type: ActionTypes.UPDATE_PURCHASE_ORDER_REQUEST });
     
@@ -327,8 +327,8 @@ export const updatePurchaseOrder = (id, formData, history) => async (dispatch) =
     });
     
     // 導航到進貨單列表頁面
-    if (history) {
-      history.push('/purchase-orders');
+    if (navigate) {
+      navigate('/purchase-orders');
     }
   } catch (err) {
     dispatch({
