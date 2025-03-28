@@ -237,11 +237,6 @@ export const fetchReportsData = (reportType, params) => async (dispatch) => {
   }
 };
 
-import { ActionTypes } from './actionTypes';
-import axios from 'axios';
-
-// 現有的 actions.js 內容
-// ...
 
 // 進貨單相關 Actions
 
