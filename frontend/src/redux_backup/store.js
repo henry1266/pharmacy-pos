@@ -10,8 +10,7 @@ import {
   inventoryReducer, 
   salesReducer, 
   dashboardReducer, 
-  reportsReducer,
-  purchaseOrdersReducer
+  reportsReducer 
 } from './reducers';
 
 // 合併所有reducers
@@ -23,8 +22,7 @@ const rootReducer = combineReducers({
   inventory: inventoryReducer,
   sales: salesReducer,
   dashboard: dashboardReducer,
-  reports: reportsReducer,
-  purchaseOrders: purchaseOrdersReducer
+  reports: reportsReducer
 });
 
 // 創建Redux store

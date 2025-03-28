@@ -11,6 +11,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
 
@@ -31,6 +32,7 @@ const MainLayout = ({ children }) => {
     { text: '供應商管理', icon: <PeopleIcon />, path: '/suppliers' },
     { text: '會員管理', icon: <PeopleIcon />, path: '/customers' },
     { text: '庫存管理', icon: <InventoryIcon />, path: '/inventory' },
+    { text: '進貨單管理', icon: <ShoppingCartIcon />, path: '/purchase-orders' },
     { text: '銷售功能', icon: <ReceiptIcon />, path: '/sales' },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports' },
   ];
