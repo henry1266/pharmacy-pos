@@ -357,7 +357,7 @@ const SuppliersPage = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ maxWidth: '100%', pl: 0 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           供應商管理
@@ -389,7 +389,7 @@ const SuppliersPage = () => {
         </Typography>
       )}
 
-      <Grid container spacing={2}>
+      <Grid container spacing={1}>
         <Grid item xs={12} md={9}>
           <Paper elevation={2} sx={{ p: 0 }}>
             <DataTable
