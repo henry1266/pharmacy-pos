@@ -169,7 +169,7 @@ router.delete('/:id', async (req, res) => {
     if (!inventory) {
       return res.status(404).json({ msg: '庫存記錄不存在' });
     }
-    await inventory.remove();
+    await inventory.deleteOne();
     res.json({ msg: '庫存記錄已刪除' });
   } catch (err) {
     console.error(err.message);
