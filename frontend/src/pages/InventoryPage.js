@@ -142,10 +142,16 @@ const InventoryPage = () => {
   // 處理編輯庫存
   const handleEditInventory = (id) => {
     const item = inventory.find(item => item.id === id);
+    if (!item) {
+      console.error('找不到ID為', id, '的庫存項目');
+      setError('找不到庫存項目');
+      return;
+    }
+    
     setCurrentInventory({
       id: item.id,
-      product: item.product._id,
-      quantity: item.quantity,
+      product: item.product && item.product._id ? item.product._id : '',
+      quantity: item.quantity || 0,
       batchNumber: item.batchNumber || '',
       expiryDate: item.expiryDate ? item.expiryDate.substring(0, 10) : '',
       location: item.location || ''
