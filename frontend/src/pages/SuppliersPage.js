@@ -46,7 +46,6 @@ const SuppliersPage = () => {
     name: '',
     contactPerson: '',
     phone: '',
-    address: '',
     taxId: '',
     paymentTerms: '',
     notes: ''
@@ -111,7 +110,6 @@ const SuppliersPage = () => {
         name: supplier.name,
         contactPerson: supplier.contactPerson || '',
         phone: supplier.phone || '',
-        address: supplier.address || '',
         taxId: supplier.taxId || '',
         paymentTerms: supplier.paymentTerms || '',
         notes: supplier.notes || ''
@@ -190,7 +188,6 @@ const SuppliersPage = () => {
       name: '',
       contactPerson: '',
       phone: '',
-      address: '',
       taxId: '',
       paymentTerms: '',
       notes: ''
@@ -241,7 +238,6 @@ const SuppliersPage = () => {
         name: currentSupplier.name,
         contactPerson: currentSupplier.contactPerson,
         phone: currentSupplier.phone,
-        address: currentSupplier.address,
         taxId: currentSupplier.taxId,
         paymentTerms: currentSupplier.paymentTerms,
         notes: currentSupplier.notes
@@ -393,8 +389,8 @@ const SuppliersPage = () => {
         </Typography>
       )}
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={9}>
           <Paper elevation={2} sx={{ p: 0 }}>
             <DataTable
               rows={suppliers}
@@ -410,9 +406,9 @@ const SuppliersPage = () => {
             />
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           {selectedSupplier ? (
-            <Card elevation={3}>
+            <Card elevation={2} sx={{ borderRadius: '0.5rem' }}>
               <CardHeader
                 avatar={
                   <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -420,7 +416,7 @@ const SuppliersPage = () => {
                   </Avatar>
                 }
                 title={
-                  <Typography variant="h6" component="div">
+                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
                     {selectedSupplier.name}
                   </Typography>
                 }
@@ -443,9 +439,11 @@ const SuppliersPage = () => {
                     </IconButton>
                   </Box>
                 }
+                sx={{ pb: 1 }}
               />
               <Divider />
               <CardContent sx={{ py: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>供應商資訊</Typography>
                 <List dense sx={{ py: 0 }}>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>供應商編號:</Typography>
@@ -458,10 +456,6 @@ const SuppliersPage = () => {
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>電話:</Typography>
                     <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.phone || '無'}</Typography>
-                  </ListItem>
-                  <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>地址:</Typography>
-                    <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.address || '無'}</Typography>
                   </ListItem>
                   <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>稅號:</Typography>
@@ -481,8 +475,8 @@ const SuppliersPage = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card elevation={3}>
-              <CardContent sx={{ textAlign: 'center', py: 5 }}>
+            <Card elevation={2} sx={{ borderRadius: '0.5rem' }}>
+              <CardContent sx={{ textAlign: 'center', py: 4 }}>
                 <Typography variant="body1" color="text.secondary">
                   選擇一個供應商查看詳情
                 </Typography>
@@ -555,17 +549,7 @@ const SuppliersPage = () => {
                 size="small"
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="address"
-                label="地址"
-                value={currentSupplier.address}
-                onChange={handleInputChange}
-                fullWidth
-                margin="normal"
-                size="small"
-              />
-            </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 name="taxId"
