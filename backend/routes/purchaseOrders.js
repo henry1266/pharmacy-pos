@@ -270,6 +270,44 @@ router.get('/search/query', async (req, res) => {
   }
 });
 
+// @route   GET api/purchase-orders/product/:productId
+// @desc    獲取特定產品的進貨單
+// @access  Public
+router.get('/product/:productId', async (req, res) => {
+  try {
+    const purchaseOrders = await PurchaseOrder.find({
+      'items.product': req.params.productId,
+      'status': 'completed'
+    })
+      .sort({ pobilldate: -1 })
+      .populate('supplier', 'name code')
+      .populate('items.product', 'name code');
+    
+    res.json(purchaseOrders);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('伺服器錯誤');
+  }
+});
+
+// @route   GET api/purchase-orders/recent
+// @desc    獲取最近的進貨單
+// @access  Public
+router.get('/recent/list', async (req, res) => {
+  try {
+    const purchaseOrders = await PurchaseOrder.find()
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('supplier', 'name code')
+      .populate('items.product', 'name code');
+    
+    res.json(purchaseOrders);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('伺服器錯誤');
+  }
+});
+
 // 更新庫存的輔助函數
 async function updateInventory(purchaseOrder) {
   for (const item of purchaseOrder.items) {
@@ -288,7 +326,10 @@ async function updateInventory(purchaseOrder) {
         // 建立新庫存記錄
         inventory = new Inventory({
           product: item.product,
-          quantity: parseInt(item.dquantity)
+          quantity: parseInt(item.dquantity),
+          batchNumber: purchaseOrder.pobill, // 使用發票號作為批號
+          expiryDate: null, // 可以在未來擴展此功能
+          location: '' // 可以在未來擴展此功能
         });
         await inventory.save();
       }

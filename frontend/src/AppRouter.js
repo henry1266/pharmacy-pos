@@ -4,7 +4,6 @@ import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
 import SuppliersPage from './pages/SuppliersPage';
 import CustomersPage from './pages/CustomersPage';
-import InventoryPage from './pages/InventoryPage';
 import SalesPage from './pages/SalesPage';
 import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
@@ -25,7 +24,7 @@ const AppRouter = () => {
       
       <Route path="/customers" element={<CustomersPage />} />
       
-      <Route path="/inventory" element={<InventoryPage />} />
+      {/* 移除庫存頁面路由 */}
       
       <Route path="/sales" element={<SalesPage />} />
       

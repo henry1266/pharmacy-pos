@@ -24,7 +24,8 @@ import {
   Select,
   MenuItem,
   Tabs,
-  Tab
+  Tab,
+  Chip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -81,6 +82,10 @@ const ProductsPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [productType, setProductType] = useState('product');
+  // 新增庫存相關狀態
+  const [inventory, setInventory] = useState([]);
+  const [productInventory, setProductInventory] = useState([]);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
 
   // 表格列定義 - 商品
   const productColumns = [
@@ -158,6 +163,7 @@ const ProductsPage = () => {
     setTabValue(newValue);
     setProductType(newValue === 0 ? 'product' : 'medicine');
     setSelectedProduct(null);
+    setProductInventory([]);
   };
 
   // 獲取所有產品數據
@@ -240,10 +246,48 @@ const ProductsPage = () => {
     }
   };
 
+  // 獲取庫存數據
+  const fetchInventory = async () => {
+    try {
+      setInventoryLoading(true);
+      const response = await axios.get('/api/inventory');
+      // 轉換數據格式
+      const formattedInventory = response.data.map(item => ({
+        id: item._id,
+        ...item
+      }));
+      setInventory(formattedInventory);
+    } catch (err) {
+      console.error('獲取庫存數據失敗:', err);
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
+
+  // 獲取特定產品的庫存
+  const fetchProductInventory = async (productId) => {
+    if (!productId) {
+      setProductInventory([]);
+      return;
+    }
+    
+    try {
+      setInventoryLoading(true);
+      const response = await axios.get(`/api/inventory/product/${productId}`);
+      setProductInventory(response.data);
+    } catch (err) {
+      console.error('獲取產品庫存數據失敗:', err);
+      setProductInventory([]);
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
+
   // 初始化加載數據
   useEffect(() => {
     fetchProducts();
     fetchSuppliers();
+    fetchInventory();
   }, []);
 
   // 處理輸入變更
@@ -260,20 +304,55 @@ const ProductsPage = () => {
     });
   };
 
-  // 處理編輯產品
-  const handleEditProduct = (id, type) => {
+  // 處理選擇產品
+  const handleSelectProduct = (id, type) => {
     const productList = type === 'product' ? products : medicines;
     const product = productList.find(p => p.id === id);
+    
     if (product) {
-      setCurrentProduct({
-        ...product,
-        productType: type
-      });
-      setProductType(type);
-      setTabValue(type === 'product' ? 0 : 1);
-      setEditMode(true);
-      setOpenDialog(true);
+      setSelectedProduct(product);
+      // 獲取該產品的庫存信息
+      fetchProductInventory(product.id);
     }
+  };
+
+  // 處理編輯產品
+  const handleEditProduct = (id, type) => {
+    // 如果已經選中了該產品，更新選中狀態
+    if (selectedProduct && selectedProduct.id === id) {
+      setSelectedProduct(null);
+      setProductInventory([]);
+    }
+    
+    const productList = type === 'product' ? products : medicines;
+    const product = productList.find(p => p.id === id);
+    
+    if (!product) {
+      console.error('找不到ID為', id, '的產品');
+      return;
+    }
+    
+    setCurrentProduct({
+      id: product.id,
+      code: product.code,
+      shortCode: product.shortCode,
+      name: product.name,
+      category: product.category,
+      unit: product.unit,
+      purchasePrice: product.purchasePrice,
+      sellingPrice: product.sellingPrice,
+      description: product.description,
+      supplier: product.supplier,
+      minStock: product.minStock,
+      barcode: product.barcode || '',
+      healthInsuranceCode: product.healthInsuranceCode || '',
+      healthInsurancePrice: product.healthInsurancePrice || 0
+    });
+    
+    setEditMode(true);
+    setProductType(type);
+    setTabValue(type === 'product' ? 0 : 1);
+    setOpenDialog(true);
   };
 
   // 處理刪除產品
@@ -287,33 +366,29 @@ const ProductsPage = () => {
           }
         };
         
-        console.log(`嘗試刪除產品，ID: ${id}`);
-        const response = await axios.delete(`/api/products/${id}`, config);
-        console.log('刪除產品成功，響應:', response);
+        await axios.delete(`/api/products/${id}`, config);
         
         // 更新本地狀態
-        setProducts(products.filter(product => product.id !== id));
-        setMedicines(medicines.filter(medicine => medicine.id !== id));
+        if (productType === 'product') {
+          setProducts(products.filter(p => p.id !== id));
+        } else {
+          setMedicines(medicines.filter(p => p.id !== id));
+        }
         
         // 如果刪除的是當前選中的產品，清除選中狀態
         if (selectedProduct && selectedProduct.id === id) {
           setSelectedProduct(null);
+          setProductInventory([]);
         }
-        
-        // 顯示成功消息
-        alert('產品已成功刪除');
       } catch (err) {
         console.error('刪除產品失敗:', err);
-        console.error('錯誤詳情:', err.response ? err.response.data : '無響應數據');
-        console.error('錯誤狀態:', err.response ? err.response.status : '無狀態碼');
-        setError(`刪除產品失敗: ${err.message}`);
-        alert(`刪除產品失敗: ${err.message}`);
+        setError('刪除產品失敗');
       }
     }
   };
 
   // 處理添加產品
-  const handleAddProduct = (type) => {
+  const handleAddProduct = () => {
     setCurrentProduct({
       code: '',
       shortCode: '',
@@ -325,15 +400,10 @@ const ProductsPage = () => {
       description: '',
       supplier: '',
       minStock: 10,
-      // 商品特有屬性
       barcode: '',
-      // 藥品特有屬性
       healthInsuranceCode: '',
-      healthInsurancePrice: 0,
-      productType: type
+      healthInsurancePrice: 0
     });
-    setProductType(type);
-    setTabValue(type === 'product' ? 0 : 1);
     setEditMode(false);
     setOpenDialog(true);
   };
@@ -343,32 +413,9 @@ const ProductsPage = () => {
     setOpenDialog(false);
   };
 
-  // 處理選擇產品
-  const handleSelectProduct = (id, type) => {
-    const productList = type === 'product' ? products : medicines;
-    const product = productList.find(p => p.id === id);
-    if (product) {
-      setSelectedProduct({
-        ...product,
-        productType: type
-      });
-    }
-  };
-
-  // 處理表格行點擊
-  const handleRowClick = (params, type) => {
-    handleSelectProduct(params.row.id, type);
-  };
-
   // 處理保存產品
   const handleSaveProduct = async () => {
     try {
-      // 驗證必填欄位
-      if (!currentProduct.name || !currentProduct.shortCode) {
-        setError('請填寫必填欄位：產品名稱和簡碼');
-        return;
-      }
-      
       const token = localStorage.getItem('token');
       const config = {
         headers: {
@@ -377,7 +424,6 @@ const ProductsPage = () => {
         }
       };
       
-      // 根據產品類型準備數據
       const productData = {
         code: currentProduct.code,
         shortCode: currentProduct.shortCode,
@@ -391,90 +437,99 @@ const ProductsPage = () => {
         minStock: currentProduct.minStock
       };
       
-      // 添加特有屬性
-      if (currentProduct.productType === 'product') {
+      // 根據產品類型添加特有屬性
+      if (productType === 'product') {
         productData.barcode = currentProduct.barcode;
+        productData.productType = 'product';
       } else {
         productData.healthInsuranceCode = currentProduct.healthInsuranceCode;
         productData.healthInsurancePrice = currentProduct.healthInsurancePrice;
+        productData.productType = 'medicine';
       }
       
+      let response;
       if (editMode) {
         // 更新產品
-        await axios.put(`/api/products/${currentProduct.id}`, productData, config);
+        response = await axios.put(`/api/products/${currentProduct.id}`, productData, config);
+        
+        // 更新本地狀態
+        if (productType === 'product') {
+          setProducts(products.map(p => 
+            p.id === currentProduct.id ? { ...response.data, id: response.data._id, productType: 'product' } : p
+          ));
+        } else {
+          setMedicines(medicines.map(p => 
+            p.id === currentProduct.id ? { ...response.data, id: response.data._id, productType: 'medicine' } : p
+          ));
+        }
+        
+        // 如果更新的是當前選中的產品，更新選中狀態
+        if (selectedProduct && selectedProduct.id === currentProduct.id) {
+          setSelectedProduct({ ...response.data, id: response.data._id, productType });
+          // 重新獲取該產品的庫存信息
+          fetchProductInventory(response.data._id);
+        }
       } else {
         // 創建產品
-        const endpoint = currentProduct.productType === 'product' 
-          ? '/api/products/product' 
-          : '/api/products/medicine';
-        await axios.post(endpoint, productData, config);
+        response = await axios.post('/api/products', productData, config);
+        
+        // 更新本地狀態
+        const newProduct = { ...response.data, id: response.data._id, productType };
+        if (productType === 'product') {
+          setProducts([...products, newProduct]);
+        } else {
+          setMedicines([...medicines, newProduct]);
+        }
       }
       
-      // 關閉對話框並重新獲取數據
+      // 關閉對話框
       setOpenDialog(false);
-      fetchProducts();
     } catch (err) {
       console.error('保存產品失敗:', err);
-      setError(`保存產品失敗: ${err.response?.data?.msg || err.message}`);
+      setError('保存產品失敗');
     }
   };
 
   // 獲取供應商名稱
   const getSupplierName = (supplierId) => {
+    if (!supplierId) return '無';
     const supplier = suppliers.find(s => s._id === supplierId);
-    return supplier ? supplier.name : '無';
+    return supplier ? supplier.name : '未知供應商';
+  };
+
+  // 計算產品總庫存數量
+  const getTotalInventory = (productId) => {
+    if (!productId || inventoryLoading) return '載入中...';
+    
+    const productInv = inventory.filter(item => 
+      item.product && item.product._id === productId
+    );
+    
+    if (productInv.length === 0) return '0';
+    
+    const total = productInv.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    return total.toString();
   };
 
   return (
     <Box>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        藥品管理
+      </Typography>
+      
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="product type tabs">
           <Tab label="商品" id="product-tab-0" aria-controls="product-tabpanel-0" />
           <Tab label="藥品" id="product-tab-1" aria-controls="product-tabpanel-1" />
         </Tabs>
       </Box>
-
-      {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
-          {error}
-        </Typography>
-      )}
-
-      <TabPanel value={tabValue} index={0}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1">
-            商品管理
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => handleAddProduct('product')}
-          >
-            添加商品
-          </Button>
-        </Box>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Paper elevation={2} sx={{ p: 0 }}>
-              <DataTable
-                rows={products}
-                columns={productColumns}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(params) => handleRowClick(params, 'product')}
-                initialState={{
-                  sorting: {
-                    sortModel: [{ field: 'code', sort: 'asc' }],
-                  },
-                }}
-              />
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
+      
+      <Grid container spacing={3}>
+        {/* 左側 - 產品詳情 */}
+        <Grid item xs={12} md={4}>
+          <TabPanel value={tabValue} index={0}>
             {selectedProduct && selectedProduct.productType === 'product' ? (
-              <Card elevation={3}>
+              <Card elevation={2}>
                 <CardHeader
                   avatar={
                     <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -492,14 +547,12 @@ const ProductsPage = () => {
                       <IconButton
                         color="primary"
                         onClick={() => handleEditProduct(selectedProduct.id, 'product')}
-                        size="small"
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
                         color="error"
                         onClick={() => handleDeleteProduct(selectedProduct.id)}
-                        size="small"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -541,6 +594,57 @@ const ProductsPage = () => {
                       <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>描述:</Typography>
                       <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.description || '無'}</Typography>
                     </ListItem>
+                    
+                    {/* 庫存信息 */}
+                    <Divider sx={{ my: 1 }} />
+                    <ListItem>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>庫存信息</Typography>
+                    </ListItem>
+                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總庫存數量:</Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          width: '60%', 
+                          fontWeight: 500,
+                          color: inventoryLoading ? 'text.secondary' : 
+                                 (getTotalInventory(selectedProduct.id) === '0' ? 'error.main' : 
+                                 (parseInt(getTotalInventory(selectedProduct.id)) < selectedProduct.minStock ? 'warning.main' : 'success.main'))
+                        }}
+                      >
+                        {inventoryLoading ? '載入中...' : getTotalInventory(selectedProduct.id)}
+                      </Typography>
+                    </ListItem>
+                    
+                    {/* 庫存明細 */}
+                    {productInventory.length > 0 && (
+                      <>
+                        <ListItem>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>庫存明細</Typography>
+                        </ListItem>
+                        {productInventory.map((item, index) => (
+                          <ListItem key={index} sx={{ py: 0.5 }}>
+                            <Box sx={{ width: '100%' }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>批號: {item.batchNumber || '無'}</Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>數量: {item.quantity}</Typography>
+                              </Box>
+                              {item.expiryDate && (
+                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                                  有效期限: {new Date(item.expiryDate).toLocaleDateString()}
+                                </Typography>
+                              )}
+                              {item.location && (
+                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                                  存放位置: {item.location}
+                                </Typography>
+                              )}
+                              <Divider sx={{ my: 0.5 }} />
+                            </Box>
+                          </ListItem>
+                        ))}
+                      </>
+                    )}
                   </List>
                 </CardContent>
               </Card>
@@ -551,48 +655,14 @@ const ProductsPage = () => {
                 </Typography>
               </Paper>
             )}
-          </Grid>
-        </Grid>
-      </TabPanel>
-
-      <TabPanel value={tabValue} index={1}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1">
-            藥品管理
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => handleAddProduct('medicine')}
-          >
-            添加藥品
-          </Button>
-        </Box>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Paper elevation={2} sx={{ p: 0 }}>
-              <DataTable
-                rows={medicines}
-                columns={medicineColumns}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(params) => handleRowClick(params, 'medicine')}
-                initialState={{
-                  sorting: {
-                    sortModel: [{ field: 'code', sort: 'asc' }],
-                  },
-                }}
-              />
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </TabPanel>
+          
+          <TabPanel value={tabValue} index={1}>
             {selectedProduct && selectedProduct.productType === 'medicine' ? (
-              <Card elevation={3}>
+              <Card elevation={2}>
                 <CardHeader
                   avatar={
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    <Avatar sx={{ bgcolor: 'secondary.main' }}>
                       {selectedProduct.shortCode?.charAt(0) || selectedProduct.name?.charAt(0) || 'M'}
                     </Avatar>
                   }
@@ -607,14 +677,12 @@ const ProductsPage = () => {
                       <IconButton
                         color="primary"
                         onClick={() => handleEditProduct(selectedProduct.id, 'medicine')}
-                        size="small"
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
                         color="error"
                         onClick={() => handleDeleteProduct(selectedProduct.id)}
-                        size="small"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -660,6 +728,57 @@ const ProductsPage = () => {
                       <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>描述:</Typography>
                       <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.description || '無'}</Typography>
                     </ListItem>
+                    
+                    {/* 庫存信息 */}
+                    <Divider sx={{ my: 1 }} />
+                    <ListItem>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>庫存信息</Typography>
+                    </ListItem>
+                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總庫存數量:</Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          width: '60%', 
+                          fontWeight: 500,
+                          color: inventoryLoading ? 'text.secondary' : 
+                                 (getTotalInventory(selectedProduct.id) === '0' ? 'error.main' : 
+                                 (parseInt(getTotalInventory(selectedProduct.id)) < selectedProduct.minStock ? 'warning.main' : 'success.main'))
+                        }}
+                      >
+                        {inventoryLoading ? '載入中...' : getTotalInventory(selectedProduct.id)}
+                      </Typography>
+                    </ListItem>
+                    
+                    {/* 庫存明細 */}
+                    {productInventory.length > 0 && (
+                      <>
+                        <ListItem>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>庫存明細</Typography>
+                        </ListItem>
+                        {productInventory.map((item, index) => (
+                          <ListItem key={index} sx={{ py: 0.5 }}>
+                            <Box sx={{ width: '100%' }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>批號: {item.batchNumber || '無'}</Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>數量: {item.quantity}</Typography>
+                              </Box>
+                              {item.expiryDate && (
+                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                                  有效期限: {new Date(item.expiryDate).toLocaleDateString()}
+                                </Typography>
+                              )}
+                              {item.location && (
+                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                                  存放位置: {item.location}
+                                </Typography>
+                              )}
+                              <Divider sx={{ my: 0.5 }} />
+                            </Box>
+                          </ListItem>
+                        ))}
+                      </>
+                    )}
                   </List>
                 </CardContent>
               </Card>
@@ -670,134 +789,201 @@ const ProductsPage = () => {
                 </Typography>
               </Paper>
             )}
-          </Grid>
+          </TabPanel>
         </Grid>
-      </TabPanel>
-
+        
+        {/* 右側 - 產品列表 */}
+        <Grid item xs={12} md={8}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddProduct}
+            >
+              添加{productType === 'product' ? '商品' : '藥品'}
+            </Button>
+          </Box>
+          
+          <TabPanel value={tabValue} index={0}>
+            <Paper elevation={2} sx={{ p: 0 }}>
+              <DataTable
+                rows={products}
+                columns={productColumns}
+                pageSize={10}
+                loading={loading}
+                onRowClick={(params) => handleSelectProduct(params.id, 'product')}
+              />
+            </Paper>
+          </TabPanel>
+          
+          <TabPanel value={tabValue} index={1}>
+            <Paper elevation={2} sx={{ p: 0 }}>
+              <DataTable
+                rows={medicines}
+                columns={medicineColumns}
+                pageSize={10}
+                loading={loading}
+                onRowClick={(params) => handleSelectProduct(params.id, 'medicine')}
+              />
+            </Paper>
+          </TabPanel>
+        </Grid>
+      </Grid>
+      
+      {/* 產品表單對話框 */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editMode ? `編輯${productType === 'product' ? '商品' : '藥品'}` : `添加${productType === 'product' ? '商品' : '藥品'}`}</DialogTitle>
+        <DialogTitle>{editMode ? '編輯' : '添加'}{productType === 'product' ? '商品' : '藥品'}</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField
-              name="code"
-              label={`${productType === 'product' ? '商品' : '藥品'}編號 (留空將自動生成)`}
-              value={currentProduct.code}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="shortCode"
-              label="簡碼 *"
-              value={currentProduct.shortCode}
-              onChange={handleInputChange}
-              fullWidth
-              required
-            />
-            <TextField
-              name="name"
-              label={`${productType === 'product' ? '商品' : '藥品'}名稱 *`}
-              value={currentProduct.name}
-              onChange={handleInputChange}
-              fullWidth
-              required
-            />
-            
-            {/* 根據產品類型顯示不同的特有欄位 */}
-            {productType === 'product' ? (
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}>
               <TextField
-                name="barcode"
-                label="國際條碼"
-                value={currentProduct.barcode}
+                name="code"
+                label="編號"
+                value={currentProduct.code}
+                onChange={handleInputChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="shortCode"
+                label="簡碼"
+                value={currentProduct.shortCode}
                 onChange={handleInputChange}
                 fullWidth
               />
-            ) : (
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="name"
+                label="名稱"
+                value={currentProduct.name}
+                onChange={handleInputChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="category"
+                label="分類"
+                value={currentProduct.category}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="unit"
+                label="單位"
+                value={currentProduct.unit}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="purchasePrice"
+                label="進貨價"
+                type="number"
+                value={currentProduct.purchasePrice}
+                onChange={handleInputChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="sellingPrice"
+                label="售價"
+                type="number"
+                value={currentProduct.sellingPrice}
+                onChange={handleInputChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="minStock"
+                label="最低庫存"
+                type="number"
+                value={currentProduct.minStock}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>供應商</InputLabel>
+                <Select
+                  name="supplier"
+                  value={currentProduct.supplier}
+                  onChange={handleInputChange}
+                  label="供應商"
+                >
+                  <MenuItem value="">無</MenuItem>
+                  {suppliers.map((supplier) => (
+                    <MenuItem key={supplier._id} value={supplier._id}>
+                      {supplier.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            {/* 商品特有欄位 */}
+            {productType === 'product' && (
+              <Grid item xs={12}>
+                <TextField
+                  name="barcode"
+                  label="國際條碼"
+                  value={currentProduct.barcode}
+                  onChange={handleInputChange}
+                  fullWidth
+                />
+              </Grid>
+            )}
+            
+            {/* 藥品特有欄位 */}
+            {productType === 'medicine' && (
               <>
-                <TextField
-                  name="healthInsuranceCode"
-                  label="健保碼"
-                  value={currentProduct.healthInsuranceCode}
-                  onChange={handleInputChange}
-                  fullWidth
-                />
-                <TextField
-                  name="healthInsurancePrice"
-                  label="健保價"
-                  type="number"
-                  value={currentProduct.healthInsurancePrice}
-                  onChange={handleInputChange}
-                  fullWidth
-                />
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="healthInsuranceCode"
+                    label="健保碼"
+                    value={currentProduct.healthInsuranceCode}
+                    onChange={handleInputChange}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="healthInsurancePrice"
+                    label="健保價"
+                    type="number"
+                    value={currentProduct.healthInsurancePrice}
+                    onChange={handleInputChange}
+                    fullWidth
+                  />
+                </Grid>
               </>
             )}
             
-            {/* 共同欄位 */}
-            <TextField
-              name="category"
-              label="分類"
-              value={currentProduct.category}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="unit"
-              label="單位"
-              value={currentProduct.unit}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="purchasePrice"
-              label="進貨價"
-              type="number"
-              value={currentProduct.purchasePrice}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="sellingPrice"
-              label="售價"
-              type="number"
-              value={currentProduct.sellingPrice}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="description"
-              label="描述"
-              value={currentProduct.description}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={3}
-            />
-            <FormControl fullWidth>
-              <InputLabel>供應商</InputLabel>
-              <Select
-                name="supplier"
-                value={currentProduct.supplier}
+            <Grid item xs={12}>
+              <TextField
+                name="description"
+                label="描述"
+                value={currentProduct.description}
                 onChange={handleInputChange}
-                label="供應商"
-              >
-                <MenuItem value="">
-                  <em>無</em>
-                </MenuItem>
-                {suppliers.map((supplier) => (
-                  <MenuItem key={supplier._id} value={supplier._id}>
-                    {supplier.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              name="minStock"
-              label="最低庫存"
-              type="number"
-              value={currentProduct.minStock}
-              onChange={handleInputChange}
-              fullWidth
-            />
-          </Box>
+                fullWidth
+                multiline
+                rows={3}
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="inherit">
