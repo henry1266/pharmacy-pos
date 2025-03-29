@@ -73,7 +73,12 @@ export const addProduct = (productData) => async (dispatch) => {
   dispatch({ type: ActionTypes.ADD_PRODUCT_REQUEST });
   
   try {
-    const res = await axios.post(`${API_BASE_URL}/products`, productData);
+    // 根據產品類型選擇正確的API端點
+    const endpoint = productData.productType === 'medicine' 
+      ? `${API_BASE_URL}/products/medicine` 
+      : `${API_BASE_URL}/products/product`;
+    
+    const res = await axios.post(endpoint, productData);
     
     dispatch({
       type: ActionTypes.ADD_PRODUCT_SUCCESS,
