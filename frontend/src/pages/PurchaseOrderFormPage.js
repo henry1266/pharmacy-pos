@@ -66,6 +66,7 @@ const PurchaseOrderFormPage = () => {
     pobilldate: new Date(),
     posupplier: '',
     supplier: '',
+    batchNumber: '', // 添加批號字段
     items: [],
     notes: '',
     status: 'pending'
@@ -310,6 +311,16 @@ const PurchaseOrderFormPage = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="批號"
+                  name="batchNumber"
+                  value={formData.batchNumber}
+                  onChange={handleInputChange}
+                  helperText="選填，用於庫存管理"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
                 <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
                   <DatePicker
                     label="發票日期"
@@ -390,23 +401,15 @@ const PurchaseOrderFormPage = () => {
               <Grid item xs={12} sm={6} md={2}>
                 <TextField
                   fullWidth
-                  label="藥品代碼"
-                  name="did"
-                  value={currentItem.did}
-                  onChange={handleItemInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  fullWidth
                   label="數量"
                   name="dquantity"
                   type="number"
                   value={currentItem.dquantity}
                   onChange={handleItemInputChange}
+                  inputProps={{ min: 1 }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={2}>
+              <Grid item xs={12} sm={6} md={3}>
                 <TextField
                   fullWidth
                   label="總成本"
@@ -414,15 +417,15 @@ const PurchaseOrderFormPage = () => {
                   type="number"
                   value={currentItem.dtotalCost}
                   onChange={handleItemInputChange}
+                  inputProps={{ min: 0 }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={2}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Button
-                  fullWidth
                   variant="contained"
-                  color="primary"
                   startIcon={<AddIcon />}
                   onClick={handleAddItem}
+                  fullWidth
                   sx={{ height: '100%' }}
                 >
                   添加項目
@@ -434,7 +437,7 @@ const PurchaseOrderFormPage = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>藥品代碼</TableCell>
+                    <TableCell>藥品編號</TableCell>
                     <TableCell>藥品名稱</TableCell>
                     <TableCell align="right">數量</TableCell>
                     <TableCell align="right">總成本</TableCell>
@@ -459,7 +462,7 @@ const PurchaseOrderFormPage = () => {
                         </TableCell>
                         <TableCell>
                           <IconButton size="small" onClick={() => handleRemoveItem(index)}>
-                            <DeleteIcon fontSize="small" />
+                            <DeleteIcon />
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -484,7 +487,7 @@ const PurchaseOrderFormPage = () => {
           </CardContent>
         </Card>
         
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
           <Button
             variant="outlined"
             startIcon={<ArrowBackIcon />}
@@ -495,16 +498,14 @@ const PurchaseOrderFormPage = () => {
           <Button
             type="submit"
             variant="contained"
-            color="primary"
             startIcon={<SaveIcon />}
             disabled={loading}
           >
-            {loading ? '處理中...' : '儲存'}
+            儲存
           </Button>
         </Box>
       </form>
       
-      {/* 確認對話框 */}
       <Dialog
         open={confirmDialogOpen}
         onClose={handleCancelComplete}
@@ -512,18 +513,15 @@ const PurchaseOrderFormPage = () => {
         <DialogTitle>確認完成進貨單</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            將進貨單標記為已完成會自動更新庫存數量。確定要繼續嗎？
+            將進貨單標記為已完成將會更新庫存數量。此操作無法撤銷，確定要繼續嗎？
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelComplete}>取消</Button>
-          <Button onClick={handleConfirmComplete} color="primary">
-            確認
-          </Button>
+          <Button onClick={handleConfirmComplete} variant="contained">確認</Button>
         </DialogActions>
       </Dialog>
       
-      {/* 提示訊息 */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
