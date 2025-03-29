@@ -82,10 +82,25 @@ const ProductsPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [productType, setProductType] = useState('product');
-  // 新增庫存相關狀態
+  // 庫存相關狀態
   const [inventory, setInventory] = useState([]);
   const [productInventory, setProductInventory] = useState([]);
   const [inventoryLoading, setInventoryLoading] = useState(false);
+
+  // 計算產品總庫存數量
+  const getTotalInventory = (productId) => {
+    if (!productId || inventoryLoading) return '載入中...';
+    
+    // 直接查找與產品ID匹配的庫存記錄
+    const productInv = inventory.filter(item => 
+      item.product && (item.product._id === productId || item.product === productId)
+    );
+    
+    if (productInv.length === 0) return '0';
+    
+    const total = productInv.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+    return total.toString();
+  };
 
   // 表格列定義 - 商品
   const productColumns = [
@@ -95,6 +110,35 @@ const ProductsPage = () => {
     { field: 'barcode', headerName: '國際條碼', width: 150 },
     { field: 'category', headerName: '分類', width: 120 },
     { field: 'unit', headerName: '單位', width: 80 },
+    { 
+      field: 'inventory', 
+      headerName: '庫存', 
+      width: 80, 
+      valueGetter: (params) => getTotalInventory(params.row.id),
+      renderCell: (params) => {
+        const inventoryValue = getTotalInventory(params.row.id);
+        const minStock = params.row.minStock || 0;
+        let color = 'success.main';
+        
+        if (inventoryValue === '0') {
+          color = 'error.main';
+        } else if (inventoryValue !== '載入中...' && parseInt(inventoryValue) < minStock) {
+          color = 'warning.main';
+        }
+        
+        return (
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              fontWeight: 500,
+              color: color
+            }}
+          >
+            {inventoryValue}
+          </Typography>
+        );
+      }
+    },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
     { field: 'sellingPrice', headerName: '售價', width: 100, type: 'number' },
     {
@@ -131,6 +175,35 @@ const ProductsPage = () => {
     { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },
     { field: 'category', headerName: '分類', width: 120 },
     { field: 'unit', headerName: '單位', width: 80 },
+    { 
+      field: 'inventory', 
+      headerName: '庫存', 
+      width: 80, 
+      valueGetter: (params) => getTotalInventory(params.row.id),
+      renderCell: (params) => {
+        const inventoryValue = getTotalInventory(params.row.id);
+        const minStock = params.row.minStock || 0;
+        let color = 'success.main';
+        
+        if (inventoryValue === '0') {
+          color = 'error.main';
+        } else if (inventoryValue !== '載入中...' && parseInt(inventoryValue) < minStock) {
+          color = 'warning.main';
+        }
+        
+        return (
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              fontWeight: 500,
+              color: color
+            }}
+          >
+            {inventoryValue}
+          </Typography>
+        );
+      }
+    },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
     { field: 'sellingPrice', headerName: '售價', width: 100, type: 'number' },
     {
@@ -251,6 +324,7 @@ const ProductsPage = () => {
     try {
       setInventoryLoading(true);
       const response = await axios.get('/api/inventory');
+      console.log('庫存數據:', response.data);
       // 轉換數據格式
       const formattedInventory = response.data.map(item => ({
         id: item._id,
@@ -274,6 +348,7 @@ const ProductsPage = () => {
     try {
       setInventoryLoading(true);
       const response = await axios.get(`/api/inventory/product/${productId}`);
+      console.log('產品庫存數據:', response.data);
       setProductInventory(response.data);
     } catch (err) {
       console.error('獲取產品庫存數據失敗:', err);
@@ -497,20 +572,6 @@ const ProductsPage = () => {
     return supplier ? supplier.name : '未知供應商';
   };
 
-  // 計算產品總庫存數量
-  const getTotalInventory = (productId) => {
-    if (!productId || inventoryLoading) return '載入中...';
-    
-    const productInv = inventory.filter(item => 
-      item.product && item.product._id === productId
-    );
-    
-    if (productInv.length === 0) return '0';
-    
-    const total = productInv.reduce((sum, item) => sum + (item.quantity || 0), 0);
-    return total.toString();
-  };
-
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -525,7 +586,45 @@ const ProductsPage = () => {
       </Box>
       
       <Grid container spacing={3}>
-        {/* 左側 - 產品詳情 */}
+        {/* 左側 - 產品列表 */}
+        <Grid item xs={12} md={8}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddProduct}
+            >
+              添加{productType === 'product' ? '商品' : '藥品'}
+            </Button>
+          </Box>
+          
+          <TabPanel value={tabValue} index={0}>
+            <Paper elevation={2} sx={{ p: 0 }}>
+              <DataTable
+                rows={products}
+                columns={productColumns}
+                pageSize={10}
+                loading={loading}
+                onRowClick={(params) => handleSelectProduct(params.id, 'product')}
+              />
+            </Paper>
+          </TabPanel>
+          
+          <TabPanel value={tabValue} index={1}>
+            <Paper elevation={2} sx={{ p: 0 }}>
+              <DataTable
+                rows={medicines}
+                columns={medicineColumns}
+                pageSize={10}
+                loading={loading}
+                onRowClick={(params) => handleSelectProduct(params.id, 'medicine')}
+              />
+            </Paper>
+          </TabPanel>
+        </Grid>
+        
+        {/* 右側 - 產品詳情 */}
         <Grid item xs={12} md={4}>
           <TabPanel value={tabValue} index={0}>
             {selectedProduct && selectedProduct.productType === 'product' ? (
@@ -789,44 +888,6 @@ const ProductsPage = () => {
                 </Typography>
               </Paper>
             )}
-          </TabPanel>
-        </Grid>
-        
-        {/* 右側 - 產品列表 */}
-        <Grid item xs={12} md={8}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleAddProduct}
-            >
-              添加{productType === 'product' ? '商品' : '藥品'}
-            </Button>
-          </Box>
-          
-          <TabPanel value={tabValue} index={0}>
-            <Paper elevation={2} sx={{ p: 0 }}>
-              <DataTable
-                rows={products}
-                columns={productColumns}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(params) => handleSelectProduct(params.id, 'product')}
-              />
-            </Paper>
-          </TabPanel>
-          
-          <TabPanel value={tabValue} index={1}>
-            <Paper elevation={2} sx={{ p: 0 }}>
-              <DataTable
-                rows={medicines}
-                columns={medicineColumns}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(params) => handleSelectProduct(params.id, 'medicine')}
-              />
-            </Paper>
           </TabPanel>
         </Grid>
       </Grid>
