@@ -1,12 +1,53 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 const { check, validationResult } = require('express-validator');
-const { BaseProduct, Product, Medicine } = require('../models/BaseProduct');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
+
+// 模型
+const BaseProduct = require('../models/BaseProduct');
+const Product = require('../models/Product');
+const Medicine = require('../models/Medicine');
+
+// 配置multer存儲
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads');
+    // 確保上傳目錄存在
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+// 文件過濾器
+const fileFilter = (req, file, cb) => {
+  // 只接受CSV文件
+  if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+    cb(null, true);
+  } else {
+    cb(new Error('只接受CSV文件'), false);
+  }
+};
+
+// 配置上傳
+const upload = multer({ 
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 1024 * 1024 * 5 } // 限制5MB
+});
 
 // @route   GET api/products
-// @desc    Get all products (both types)
-// @access  Public
-router.get('/', async (req, res) => {
+// @desc    獲取所有產品
+// @access  Private
+router.get('/', auth, async (req, res) => {
   try {
     const products = await BaseProduct.find().sort({ code: 1 });
     res.json(products);
@@ -17,9 +58,9 @@ router.get('/', async (req, res) => {
 });
 
 // @route   GET api/products/products
-// @desc    Get only regular products
-// @access  Public
-router.get('/products', async (req, res) => {
+// @desc    獲取所有商品（非藥品）
+// @access  Private
+router.get('/products', auth, async (req, res) => {
   try {
     const products = await Product.find().sort({ code: 1 });
     res.json(products);
@@ -30,9 +71,9 @@ router.get('/products', async (req, res) => {
 });
 
 // @route   GET api/products/medicines
-// @desc    Get only medicines
-// @access  Public
-router.get('/medicines', async (req, res) => {
+// @desc    獲取所有藥品
+// @access  Private
+router.get('/medicines', auth, async (req, res) => {
   try {
     const medicines = await Medicine.find().sort({ code: 1 });
     res.json(medicines);
@@ -43,14 +84,16 @@ router.get('/medicines', async (req, res) => {
 });
 
 // @route   GET api/products/:id
-// @desc    Get product by ID
-// @access  Public
-router.get('/:id', async (req, res) => {
+// @desc    獲取單個產品
+// @access  Private
+router.get('/:id', auth, async (req, res) => {
   try {
     const product = await BaseProduct.findById(req.params.id);
+    
     if (!product) {
       return res.status(404).json({ msg: '產品不存在' });
     }
+    
     res.json(product);
   } catch (err) {
     console.error(err.message);
@@ -61,37 +104,16 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 生成唯一產品編號的函數
-const generateProductCode = async (productType) => {
-  // 獲取當前最大編號
-  const prefix = productType === 'medicine' ? 'M' : 'P';
-  const latestProduct = await BaseProduct.findOne({ 
-    code: new RegExp(`^${prefix}\\d+$`) 
-  }).sort({ code: -1 });
-  
-  let newCode = `${prefix}0001`; // 默認起始編號
-  
-  if (latestProduct && latestProduct.code) {
-    // 如果編號格式為 P/M 開頭加數字
-    const match = latestProduct.code.match(/^[PM](\d+)$/);
-    if (match) {
-      const num = parseInt(match[1]) + 1;
-      newCode = `${prefix}${num.toString().padStart(4, '0')}`;
-    }
-  }
-  
-  return newCode;
-};
-
 // @route   POST api/products/product
-// @desc    Create a regular product
-// @access  Public
+// @desc    創建商品
+// @access  Private
 router.post(
   '/product',
   [
+    auth,
     [
-      check('name', '產品名稱為必填項').not().isEmpty(),
-      check('shortCode', '簡碼為必填項').not().isEmpty()
+      check('name', '名稱是必填的').not().isEmpty(),
+      check('shortCode', '簡碼是必填的').not().isEmpty()
     ]
   ],
   async (req, res) => {
@@ -99,53 +121,41 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
-    const {
-      code,
-      shortCode,
-      name,
-      barcode,
-      category,
-      unit,
-      purchasePrice,
-      sellingPrice,
-      description,
-      supplier,
-      minStock
-    } = req.body;
-
+    
     try {
-      // 建立產品欄位物件
-      const productFields = {
-        name,
+      const {
+        code,
         shortCode,
-        productType: 'product'
+        name,
+        category,
+        unit,
+        purchasePrice,
+        sellingPrice,
+        description,
+        supplier,
+        minStock,
+        barcode
+      } = req.body;
+      
+      // 創建商品對象
+      const productFields = {
+        code: code || `P${Date.now()}`,
+        shortCode,
+        name,
+        productType: 'product',
+        category,
+        unit,
+        purchasePrice,
+        sellingPrice,
+        description,
+        supplier,
+        minStock,
+        barcode
       };
-
-      // 檢查產品編號是否已存在
-      if (code) {
-        let product = await BaseProduct.findOne({ code });
-        if (product) {
-          return res.status(400).json({ msg: '產品編號已存在' });
-        }
-        productFields.code = code;
-      } else {
-        // 若沒提供產品編號，系統自動生成
-        productFields.code = await generateProductCode('product');
-      }
-
-      // 處理可選欄位，允許保存空字符串值
-      if (barcode !== undefined) productFields.barcode = barcode;
-      if (category !== undefined) productFields.category = category;
-      if (unit !== undefined) productFields.unit = unit;
-      if (purchasePrice !== undefined) productFields.purchasePrice = purchasePrice;
-      if (sellingPrice !== undefined) productFields.sellingPrice = sellingPrice;
-      if (description !== undefined) productFields.description = description;
-      if (supplier !== undefined) productFields.supplier = supplier;
-      if (minStock !== undefined) productFields.minStock = minStock;
-
+      
       const product = new Product(productFields);
       await product.save();
+      
       res.json(product);
     } catch (err) {
       console.error(err.message);
@@ -155,14 +165,15 @@ router.post(
 );
 
 // @route   POST api/products/medicine
-// @desc    Create a medicine
-// @access  Public
+// @desc    創建藥品
+// @access  Private
 router.post(
   '/medicine',
   [
+    auth,
     [
-      check('name', '藥品名稱為必填項').not().isEmpty(),
-      check('shortCode', '簡碼為必填項').not().isEmpty()
+      check('name', '名稱是必填的').not().isEmpty(),
+      check('shortCode', '簡碼是必填的').not().isEmpty()
     ]
   ],
   async (req, res) => {
@@ -170,55 +181,43 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
-    const {
-      code,
-      shortCode,
-      name,
-      healthInsuranceCode,
-      healthInsurancePrice,
-      category,
-      unit,
-      purchasePrice,
-      sellingPrice,
-      description,
-      supplier,
-      minStock
-    } = req.body;
-
+    
     try {
-      // 建立藥品欄位物件
-      const medicineFields = {
-        name,
+      const {
+        code,
         shortCode,
-        productType: 'medicine'
+        name,
+        category,
+        unit,
+        purchasePrice,
+        sellingPrice,
+        description,
+        supplier,
+        minStock,
+        healthInsuranceCode,
+        healthInsurancePrice
+      } = req.body;
+      
+      // 創建藥品對象
+      const medicineFields = {
+        code: code || `M${Date.now()}`,
+        shortCode,
+        name,
+        productType: 'medicine',
+        category,
+        unit,
+        purchasePrice,
+        sellingPrice,
+        description,
+        supplier,
+        minStock,
+        healthInsuranceCode,
+        healthInsurancePrice
       };
-
-      // 檢查藥品編號是否已存在
-      if (code) {
-        let medicine = await BaseProduct.findOne({ code });
-        if (medicine) {
-          return res.status(400).json({ msg: '藥品編號已存在' });
-        }
-        medicineFields.code = code;
-      } else {
-        // 若沒提供藥品編號，系統自動生成
-        medicineFields.code = await generateProductCode('medicine');
-      }
-
-      // 處理可選欄位，允許保存空字符串值
-      if (healthInsuranceCode !== undefined) medicineFields.healthInsuranceCode = healthInsuranceCode;
-      if (healthInsurancePrice !== undefined) medicineFields.healthInsurancePrice = healthInsurancePrice;
-      if (category !== undefined) medicineFields.category = category;
-      if (unit !== undefined) medicineFields.unit = unit;
-      if (purchasePrice !== undefined) medicineFields.purchasePrice = purchasePrice;
-      if (sellingPrice !== undefined) medicineFields.sellingPrice = sellingPrice;
-      if (description !== undefined) medicineFields.description = description;
-      if (supplier !== undefined) medicineFields.supplier = supplier;
-      if (minStock !== undefined) medicineFields.minStock = minStock;
-
+      
       const medicine = new Medicine(medicineFields);
       await medicine.save();
+      
       res.json(medicine);
     } catch (err) {
       console.error(err.message);
@@ -228,17 +227,17 @@ router.post(
 );
 
 // @route   PUT api/products/:id
-// @desc    Update a product
-// @access  Public
-router.put('/:id', async (req, res) => {
+// @desc    更新產品
+// @access  Private
+router.put('/:id', auth, async (req, res) => {
   try {
-    // 先檢查產品是否存在並獲取類型
-    const existingProduct = await BaseProduct.findById(req.params.id);
-    if (!existingProduct) {
+    const product = await BaseProduct.findById(req.params.id);
+    
+    if (!product) {
       return res.status(404).json({ msg: '產品不存在' });
     }
-
-    const productType = existingProduct.productType;
+    
+    // 更新產品
     const {
       code,
       shortCode,
@@ -249,53 +248,60 @@ router.put('/:id', async (req, res) => {
       sellingPrice,
       description,
       supplier,
-      minStock
+      minStock,
+      barcode,
+      healthInsuranceCode,
+      healthInsurancePrice
     } = req.body;
-
-    // 建立基本更新欄位物件
-    const updateFields = {};
-    // 允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
-    if (code !== undefined) updateFields.code = code;
-    if (shortCode !== undefined) updateFields.shortCode = shortCode;
-    if (name !== undefined) updateFields.name = name;
-    if (category !== undefined) updateFields.category = category;
-    if (unit !== undefined) updateFields.unit = unit;
-    if (purchasePrice !== undefined) updateFields.purchasePrice = purchasePrice;
-    if (sellingPrice !== undefined) updateFields.sellingPrice = sellingPrice;
-    if (description !== undefined) updateFields.description = description;
-    if (supplier !== undefined) updateFields.supplier = supplier;
-    if (minStock !== undefined) updateFields.minStock = minStock;
-
-    // 根據產品類型處理特有欄位
-    if (productType === 'product') {
-      const { barcode } = req.body;
-      if (barcode !== undefined) updateFields.barcode = barcode;
+    
+    // 記錄barcode值，用於調試
+    console.log('更新產品，barcode值:', barcode);
+    
+    // 根據產品類型更新
+    if (product.productType === 'product') {
+      const updatedProduct = await Product.findByIdAndUpdate(
+        req.params.id,
+        {
+          code,
+          shortCode,
+          name,
+          category,
+          unit,
+          purchasePrice,
+          sellingPrice,
+          description,
+          supplier,
+          minStock,
+          barcode
+        },
+        { new: true }
+      );
       
-      // 調試日誌
-      console.log('更新商品，barcode值:', barcode);
-      console.log('更新欄位:', updateFields);
-    } else if (productType === 'medicine') {
-      const { healthInsuranceCode, healthInsurancePrice } = req.body;
-      if (healthInsuranceCode !== undefined) updateFields.healthInsuranceCode = healthInsuranceCode;
-      if (healthInsurancePrice !== undefined) updateFields.healthInsurancePrice = healthInsurancePrice;
+      return res.json(updatedProduct);
+    } else if (product.productType === 'medicine') {
+      const updatedMedicine = await Medicine.findByIdAndUpdate(
+        req.params.id,
+        {
+          code,
+          shortCode,
+          name,
+          category,
+          unit,
+          purchasePrice,
+          sellingPrice,
+          description,
+          supplier,
+          minStock,
+          healthInsuranceCode,
+          healthInsurancePrice
+        },
+        { new: true }
+      );
+      
+      return res.json(updatedMedicine);
     }
-
-    // 若編號被修改，檢查是否重複
-    if (code && code !== existingProduct.code) {
-      const duplicateProduct = await BaseProduct.findOne({ code });
-      if (duplicateProduct) {
-        return res.status(400).json({ msg: '產品編號已存在' });
-      }
-    }
-
-    // 更新
-    const updatedProduct = await BaseProduct.findByIdAndUpdate(
-      req.params.id,
-      { $set: updateFields },
-      { new: true }
-    );
-
-    res.json(updatedProduct);
+    
+    res.status(400).json({ msg: '無效的產品類型' });
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
@@ -306,17 +312,18 @@ router.put('/:id', async (req, res) => {
 });
 
 // @route   DELETE api/products/:id
-// @desc    Delete a product
-// @access  Public
-router.delete('/:id', async (req, res) => {
+// @desc    刪除產品
+// @access  Private
+router.delete('/:id', auth, async (req, res) => {
   try {
     const product = await BaseProduct.findById(req.params.id);
+    
     if (!product) {
       return res.status(404).json({ msg: '產品不存在' });
     }
-
-    // 使用 findByIdAndDelete 刪除產品
-    await BaseProduct.findByIdAndDelete(req.params.id);
+    
+    await product.remove();
+    
     res.json({ msg: '產品已刪除' });
   } catch (err) {
     console.error(err.message);
@@ -324,6 +331,104 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ msg: '產品不存在' });
     }
     res.status(500).send('Server Error');
+  }
+});
+
+// @route   POST api/products/import
+// @desc    從CSV匯入產品
+// @access  Private
+router.post('/import', [auth, upload.single('file')], async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: '請上傳CSV文件' });
+    }
+
+    const productType = req.body.productType || 'product';
+    const results = [];
+    const errors = [];
+    
+    // 創建可讀流
+    const readStream = fs.createReadStream(req.file.path);
+    
+    // 解析CSV
+    readStream
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        // 刪除上傳的文件
+        fs.unlinkSync(req.file.path);
+        
+        if (results.length === 0) {
+          return res.status(400).json({ msg: 'CSV文件為空或格式不正確' });
+        }
+        
+        // 驗證必填字段
+        const requiredFields = ['shortCode', 'name'];
+        const missingFields = results.some(item => 
+          requiredFields.some(field => !item[field] || item[field].trim() === '')
+        );
+        
+        if (missingFields) {
+          return res.status(400).json({ 
+            msg: '部分記錄缺少必填字段 (shortCode, name)' 
+          });
+        }
+        
+        // 批量創建產品
+        const createdProducts = [];
+        
+        for (const item of results) {
+          try {
+            // 基本產品字段
+            const productFields = {
+              code: item.code || (productType === 'product' ? `P${Date.now()}-${Math.floor(Math.random() * 1000)}` : `M${Date.now()}-${Math.floor(Math.random() * 1000)}`),
+              shortCode: item.shortCode,
+              name: item.name,
+              productType,
+              category: item.category || '',
+              unit: item.unit || '',
+              purchasePrice: parseFloat(item.purchasePrice) || 0,
+              sellingPrice: parseFloat(item.sellingPrice) || 0,
+              description: item.description || '',
+              supplier: item.supplier || '',
+              minStock: parseInt(item.minStock) || 10
+            };
+            
+            // 根據產品類型添加特有字段
+            if (productType === 'product') {
+              productFields.barcode = item.barcode || '';
+              const product = new Product(productFields);
+              await product.save();
+              createdProducts.push(product);
+            } else {
+              productFields.healthInsuranceCode = item.healthInsuranceCode || '';
+              productFields.healthInsurancePrice = parseFloat(item.healthInsurancePrice) || 0;
+              const medicine = new Medicine(productFields);
+              await medicine.save();
+              createdProducts.push(medicine);
+            }
+          } catch (err) {
+            console.error('創建產品錯誤:', err.message);
+            errors.push({
+              item,
+              error: err.message
+            });
+          }
+        }
+        
+        res.json({ 
+          success: true, 
+          count: createdProducts.length,
+          errors: errors.length > 0 ? errors : undefined
+        });
+      })
+      .on('error', (err) => {
+        console.error('CSV解析錯誤:', err.message);
+        return res.status(500).json({ msg: 'CSV解析錯誤' });
+      });
+  } catch (err) {
+    console.error('CSV匯入錯誤:', err.message);
+    res.status(500).json({ msg: '服務器錯誤' });
   }
 });
 

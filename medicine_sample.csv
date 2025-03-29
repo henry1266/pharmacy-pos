@@ -1,0 +1,5 @@
+// 藥品範例
+shortCode,name,healthInsuranceCode,healthInsurancePrice,category,unit,purchasePrice,sellingPrice,minStock,description
+M001,測試藥品1,HC001,100,藥品分類,錠,50,80,20,這是一個測試藥品
+M002,測試藥品2,HC002,150,藥品分類,盒,150,200,15,這是另一個測試藥品
+M003,測試藥品3,HC003,200,藥品分類,瓶,250,300,10,這是第三個測試藥品
