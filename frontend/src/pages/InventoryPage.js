@@ -43,13 +43,19 @@ const InventoryPage = () => {
       field: 'productCode', 
       headerName: '藥品編號', 
       width: 120,
-      valueGetter: (params) => params.row.product ? params.row.product.code : ''
+      valueGetter: (params) => {
+        // 修復：確保product存在且有code屬性
+        return params.row.product && params.row.product.code ? params.row.product.code : '未指定';
+      }
     },
     { 
       field: 'productName', 
       headerName: '藥品名稱', 
       width: 180,
-      valueGetter: (params) => params.row.product ? params.row.product.name : ''
+      valueGetter: (params) => {
+        // 修復：確保product存在且有name屬性
+        return params.row.product && params.row.product.name ? params.row.product.name : '未指定';
+      }
     },
     { field: 'quantity', headerName: '庫存數量', width: 120, type: 'number' },
     { field: 'batchNumber', headerName: '批號', width: 120 },
@@ -148,9 +154,12 @@ const InventoryPage = () => {
       return;
     }
     
+    // 修復：確保product存在且有_id屬性
+    const productId = item.product && item.product._id ? item.product._id : '';
+    
     setCurrentInventory({
       id: item.id,
-      product: item.product && item.product._id ? item.product._id : '',
+      product: productId,
       quantity: item.quantity || 0,
       batchNumber: item.batchNumber || '',
       expiryDate: item.expiryDate ? item.expiryDate.substring(0, 10) : '',
@@ -219,7 +228,6 @@ const InventoryPage = () => {
         location: currentInventory.location
       };
       
-      // 移除未使用的response變數
       if (editMode) {
         // 更新庫存
         await axios.put(`/api/inventory/${currentInventory.id}`, inventoryData, config);
