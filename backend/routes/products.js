@@ -44,8 +44,8 @@ const upload = multer({
 
 // @route   GET api/products
 // @desc    獲取所有產品
-// @access  Private
-router.get('/', auth, async (req, res) => {
+// @access  Public - 修改為公開訪問
+router.get('/', async (req, res) => {
   try {
     const products = await BaseProduct.find().sort({ code: 1 });
     res.json(products);
@@ -57,8 +57,8 @@ router.get('/', auth, async (req, res) => {
 
 // @route   GET api/products/products
 // @desc    獲取所有商品（非藥品）
-// @access  Private
-router.get('/products', auth, async (req, res) => {
+// @access  Public - 修改為公開訪問
+router.get('/products', async (req, res) => {
   try {
     const products = await Product.find().sort({ code: 1 });
     res.json(products);
@@ -70,8 +70,8 @@ router.get('/products', auth, async (req, res) => {
 
 // @route   GET api/products/medicines
 // @desc    獲取所有藥品
-// @access  Private
-router.get('/medicines', auth, async (req, res) => {
+// @access  Public - 修改為公開訪問
+router.get('/medicines', async (req, res) => {
   try {
     const medicines = await Medicine.find().sort({ code: 1 });
     res.json(medicines);
@@ -83,8 +83,8 @@ router.get('/medicines', auth, async (req, res) => {
 
 // @route   GET api/products/:id
 // @desc    獲取單個產品
-// @access  Private
-router.get('/:id', auth, async (req, res) => {
+// @access  Public - 修改為公開訪問
+router.get('/:id', async (req, res) => {
   try {
     const product = await BaseProduct.findById(req.params.id);
     
