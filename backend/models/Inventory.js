@@ -11,13 +11,11 @@ const InventorySchema = new mongoose.Schema({
     required: true,
     default: 0
   },
-  batchNumber: {
-    type: String
+  purchaseOrderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'purchaseorder'
   },
-  expiryDate: {
-    type: Date
-  },
-  location: {
+  purchaseOrderNumber: {
     type: String
   },
   lastUpdated: {

@@ -62,10 +62,6 @@ const PurchaseOrderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'supplier'
   },
-  batchNumber: {
-    type: String,
-    required: false
-  },
   items: [PurchaseOrderItemSchema],
   totalAmount: {
     type: Number,

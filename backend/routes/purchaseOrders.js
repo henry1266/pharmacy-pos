@@ -84,7 +84,7 @@ router.post('/', [
   }
 
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, batchNumber, items, notes, status } = req.body;
+    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status } = req.body;
 
     // 檢查進貨單號是否已存在
     const existingPO = await PurchaseOrder.findOne({ poid });
@@ -127,7 +127,6 @@ router.post('/', [
       pobilldate,
       posupplier,
       supplier: supplierId,
-      batchNumber, // 添加批號字段
       items,
       notes,
       status: status || 'pending'
@@ -152,7 +151,7 @@ router.post('/', [
 // @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, batchNumber, items, notes, status } = req.body;
+    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status } = req.body;
 
     // 檢查進貨單是否存在
     let purchaseOrder = await PurchaseOrder.findById(req.params.id);
@@ -180,7 +179,6 @@ router.put('/:id', async (req, res) => {
     if (pobilldate) updateData.pobilldate = pobilldate;
     if (posupplier) updateData.posupplier = posupplier;
     if (supplier) updateData.supplier = supplier;
-    if (batchNumber !== undefined) updateData.batchNumber = batchNumber; // 更新批號字段
     if (notes !== undefined) updateData.notes = notes;
     
     // 處理狀態變更
@@ -352,13 +350,12 @@ async function updateInventory(purchaseOrder) {
       const inventory = new Inventory({
         product: item.product,
         quantity: parseInt(item.dquantity),
-        batchNumber: purchaseOrder.batchNumber || purchaseOrder.pobill, // 優先使用用戶輸入的批號，如果沒有則使用發票號
-        expiryDate: null, // 可以在未來擴展此功能
-        location: '' // 可以在未來擴展此功能
+        purchaseOrderId: purchaseOrder._id, // 保存進貨單ID
+        purchaseOrderNumber: purchaseOrder.orderNumber // 保存進貨單號
       });
       
       await inventory.save();
-      console.log(`已為產品 ${item.product} 創建新庫存記錄，批號: ${inventory.batchNumber}, 數量: ${item.dquantity}`);
+      console.log(`已為產品 ${item.product} 創建新庫存記錄，進貨單號: ${purchaseOrder.orderNumber}, 數量: ${item.dquantity}`);
       
       // 更新藥品的採購價格
       await BaseProduct.findByIdAndUpdate(

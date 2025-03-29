@@ -4,13 +4,16 @@ const { check, validationResult } = require('express-validator');
 // const auth = require('../middleware/auth'); // 已移除
 const Inventory = require('../models/Inventory');
 const { BaseProduct } = require('../models/BaseProduct');
+const PurchaseOrder = require('../models/PurchaseOrder');
 
 // @route   GET api/inventory
 // @desc    Get all inventory items
 // @access  Public (已改為公開)
 router.get('/', async (req, res) => {
   try {
-    const inventory = await Inventory.find().populate('product');
+    const inventory = await Inventory.find()
+      .populate('product')
+      .populate('purchaseOrderId', 'poid orderNumber pobill');
     res.json(inventory);
   } catch (err) {
     console.error(err.message);
@@ -23,7 +26,9 @@ router.get('/', async (req, res) => {
 // @access  Public (已改為公開)
 router.get('/:id', async (req, res) => {
   try {
-    const inventory = await Inventory.findById(req.params.id).populate('product');
+    const inventory = await Inventory.findById(req.params.id)
+      .populate('product')
+      .populate('purchaseOrderId', 'poid orderNumber pobill');
     if (!inventory) {
       return res.status(404).json({ msg: '庫存記錄不存在' });
     }
@@ -58,9 +63,8 @@ router.post(
     const {
       product,
       quantity,
-      batchNumber,
-      expiryDate,
-      location
+      purchaseOrderId,
+      purchaseOrderNumber
     } = req.body;
     try {
       // 檢查藥品是否存在
@@ -71,10 +75,10 @@ router.post(
       
       // 檢查是否已有該藥品的庫存記錄
       let existingInventory = null;
-      if (batchNumber) {
+      if (purchaseOrderId) {
         existingInventory = await Inventory.findOne({ 
           product, 
-          batchNumber 
+          purchaseOrderId 
         });
       } else {
         existingInventory = await Inventory.findOne({ product });
@@ -84,8 +88,6 @@ router.post(
         // 更新現有庫存
         existingInventory.quantity += parseInt(quantity);
         existingInventory.lastUpdated = Date.now();
-        if (expiryDate) existingInventory.expiryDate = expiryDate;
-        if (location) existingInventory.location = location;
         
         await existingInventory.save();
         return res.json(existingInventory);
@@ -96,9 +98,8 @@ router.post(
         product,
         quantity
       };
-      if (batchNumber) inventoryFields.batchNumber = batchNumber;
-      if (expiryDate) inventoryFields.expiryDate = expiryDate;
-      if (location) inventoryFields.location = location;
+      if (purchaseOrderId) inventoryFields.purchaseOrderId = purchaseOrderId;
+      if (purchaseOrderNumber) inventoryFields.purchaseOrderNumber = purchaseOrderNumber;
 
       const inventory = new Inventory(inventoryFields);
       await inventory.save();
@@ -117,17 +118,15 @@ router.put('/:id', async (req, res) => {
   const {
     product,
     quantity,
-    batchNumber,
-    expiryDate,
-    location
+    purchaseOrderId,
+    purchaseOrderNumber
   } = req.body;
   // 建立更新欄位物件
   const inventoryFields = {};
   if (product) inventoryFields.product = product;
   if (quantity !== undefined) inventoryFields.quantity = quantity;
-  if (batchNumber) inventoryFields.batchNumber = batchNumber;
-  if (expiryDate) inventoryFields.expiryDate = expiryDate;
-  if (location) inventoryFields.location = location;
+  if (purchaseOrderId) inventoryFields.purchaseOrderId = purchaseOrderId;
+  if (purchaseOrderNumber) inventoryFields.purchaseOrderNumber = purchaseOrderNumber;
   inventoryFields.lastUpdated = Date.now();
   
   try {
@@ -185,7 +184,9 @@ router.delete('/:id', async (req, res) => {
 // @access  Public (已改為公開)
 router.get('/product/:productId', async (req, res) => {
   try {
-    const inventory = await Inventory.find({ product: req.params.productId }).populate('product');
+    const inventory = await Inventory.find({ product: req.params.productId })
+      .populate('product')
+      .populate('purchaseOrderId', 'poid orderNumber pobill');
     res.json(inventory);
   } catch (err) {
     console.error(err.message);
