@@ -66,7 +66,6 @@ const PurchaseOrderFormPage = () => {
     pobilldate: new Date(),
     posupplier: '',
     supplier: '',
-    batchNumber: '', // 添加批號字段
     items: [],
     notes: '',
     status: 'pending'
@@ -310,16 +309,7 @@ const PurchaseOrderFormPage = () => {
                   onChange={handleInputChange}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  label="批號"
-                  name="batchNumber"
-                  value={formData.batchNumber}
-                  onChange={handleInputChange}
-                  helperText="選填，用於庫存管理"
-                />
-              </Grid>
+
               <Grid item xs={12} sm={6} md={3}>
                 <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
                   <DatePicker

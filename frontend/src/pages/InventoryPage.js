@@ -32,9 +32,7 @@ const InventoryPage = () => {
   const [currentInventory, setCurrentInventory] = useState({
     product: '',
     quantity: 0,
-    batchNumber: '',
-    expiryDate: '',
-    location: ''
+    purchaseOrderNumber: ''
   });
 
   // 表格列定義
@@ -58,17 +56,7 @@ const InventoryPage = () => {
       }
     },
     { field: 'quantity', headerName: '庫存數量', width: 120, type: 'number' },
-    { field: 'batchNumber', headerName: '批號', width: 120 },
-    { 
-      field: 'expiryDate', 
-      headerName: '有效期限', 
-      width: 150,
-      valueFormatter: (params) => {
-        if (!params.value) return '';
-        return new Date(params.value).toLocaleDateString();
-      }
-    },
-    { field: 'location', headerName: '存放位置', width: 120 },
+    { field: 'purchaseOrderNumber', headerName: '進貨單號', width: 150 },
     {
       field: 'actions',
       headerName: '操作',
@@ -161,9 +149,7 @@ const InventoryPage = () => {
       id: item.id,
       product: productId,
       quantity: item.quantity || 0,
-      batchNumber: item.batchNumber || '',
-      expiryDate: item.expiryDate ? item.expiryDate.substring(0, 10) : '',
-      location: item.location || ''
+      purchaseOrderNumber: item.purchaseOrderNumber || ''
     });
     setEditMode(true);
     setOpenDialog(true);
@@ -196,9 +182,7 @@ const InventoryPage = () => {
     setCurrentInventory({
       product: '',
       quantity: 0,
-      batchNumber: '',
-      expiryDate: '',
-      location: ''
+      purchaseOrderNumber: ''
     });
     setEditMode(false);
     setOpenDialog(true);
@@ -223,9 +207,7 @@ const InventoryPage = () => {
       const inventoryData = {
         product: currentInventory.product,
         quantity: currentInventory.quantity,
-        batchNumber: currentInventory.batchNumber,
-        expiryDate: currentInventory.expiryDate,
-        location: currentInventory.location
+        purchaseOrderNumber: currentInventory.purchaseOrderNumber
       };
       
       if (editMode) {
@@ -308,27 +290,9 @@ const InventoryPage = () => {
               required
             />
             <TextField
-              name="batchNumber"
-              label="批號"
-              value={currentInventory.batchNumber}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              name="expiryDate"
-              label="有效期限"
-              type="date"
-              value={currentInventory.expiryDate}
-              onChange={handleInputChange}
-              fullWidth
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-            <TextField
-              name="location"
-              label="存放位置"
-              value={currentInventory.location}
+              name="purchaseOrderNumber"
+              label="進貨單號"
+              value={currentInventory.purchaseOrderNumber}
               onChange={handleInputChange}
               fullWidth
             />
