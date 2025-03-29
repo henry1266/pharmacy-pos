@@ -8,7 +8,7 @@ const { BaseProduct, Product, Medicine } = require('../models/BaseProduct');
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const products = await BaseProduct.find().sort({ name: 1 });
+    const products = await BaseProduct.find().sort({ code: 1 });
     res.json(products);
   } catch (err) {
     console.error(err.message);
@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/products', async (req, res) => {
   try {
-    const products = await Product.find().sort({ name: 1 });
+    const products = await Product.find().sort({ code: 1 });
     res.json(products);
   } catch (err) {
     console.error(err.message);
@@ -34,7 +34,7 @@ router.get('/products', async (req, res) => {
 // @access  Public
 router.get('/medicines', async (req, res) => {
   try {
-    const medicines = await Medicine.find().sort({ name: 1 });
+    const medicines = await Medicine.find().sort({ code: 1 });
     res.json(medicines);
   } catch (err) {
     console.error(err.message);
@@ -270,6 +270,10 @@ router.put('/:id', async (req, res) => {
     if (productType === 'product') {
       const { barcode } = req.body;
       if (barcode !== undefined) updateFields.barcode = barcode;
+      
+      // 調試日誌
+      console.log('更新商品，barcode值:', barcode);
+      console.log('更新欄位:', updateFields);
     } else if (productType === 'medicine') {
       const { healthInsuranceCode, healthInsurancePrice } = req.body;
       if (healthInsuranceCode !== undefined) updateFields.healthInsuranceCode = healthInsuranceCode;
