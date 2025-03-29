@@ -38,6 +38,14 @@ const PurchaseOrderSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  orderNumber: {
+    type: String,
+    default: function() {
+      // 使用poid作為orderNumber的默認值
+      return this.poid;
+    },
+    unique: true
+  },
   pobill: {
     type: String,
     required: true
@@ -81,6 +89,12 @@ const PurchaseOrderSchema = new mongoose.Schema({
 PurchaseOrderSchema.pre('save', function(next) {
   this.totalAmount = this.items.reduce((total, item) => total + item.dtotalCost, 0);
   this.updatedAt = Date.now();
+  
+  // 確保orderNumber有值
+  if (!this.orderNumber) {
+    this.orderNumber = this.poid;
+  }
+  
   next();
 });
 

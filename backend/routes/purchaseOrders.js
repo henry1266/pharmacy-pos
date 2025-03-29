@@ -46,6 +46,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// 生成唯一訂單號的輔助函數
+async function generateUniqueOrderNumber(poid) {
+  // 基本訂單號使用poid
+  let orderNumber = poid;
+  let counter = 1;
+  let isUnique = false;
+  
+  // 檢查訂單號是否已存在，如果存在則添加計數器
+  while (!isUnique) {
+    const existingOrder = await PurchaseOrder.findOne({ orderNumber });
+    if (!existingOrder) {
+      isUnique = true;
+    } else {
+      // 如果訂單號已存在，添加計數器後綴
+      orderNumber = `${poid}-${counter}`;
+      counter++;
+    }
+  }
+  
+  return orderNumber;
+}
+
 // @route   POST api/purchase-orders
 // @desc    創建新進貨單
 // @access  Public
@@ -69,6 +91,9 @@ router.post('/', [
     if (existingPO) {
       return res.status(400).json({ msg: '該進貨單號已存在' });
     }
+
+    // 生成唯一訂單號
+    const orderNumber = await generateUniqueOrderNumber(poid);
 
     // 驗證所有藥品ID是否存在
     for (const item of items) {
@@ -97,6 +122,7 @@ router.post('/', [
     // 創建新進貨單
     const purchaseOrder = new PurchaseOrder({
       poid,
+      orderNumber, // 設置唯一訂單號
       pobill,
       pobilldate,
       posupplier,
@@ -115,7 +141,7 @@ router.post('/', [
 
     res.json(purchaseOrder);
   } catch (err) {
-    console.error(err.message);
+    console.error('創建進貨單錯誤:', err.message);
     res.status(500).send('伺服器錯誤');
   }
 });
@@ -139,11 +165,16 @@ router.put('/:id', async (req, res) => {
       if (existingPO && existingPO._id.toString() !== req.params.id) {
         return res.status(400).json({ msg: '該進貨單號已存在' });
       }
+      
+      // 如果進貨單號變更，生成新的唯一訂單號
+      const orderNumber = await generateUniqueOrderNumber(poid);
+      purchaseOrder.orderNumber = orderNumber;
     }
 
     // 準備更新數據
     const updateData = {};
     if (poid) updateData.poid = poid;
+    if (purchaseOrder.orderNumber) updateData.orderNumber = purchaseOrder.orderNumber;
     if (pobill) updateData.pobill = pobill;
     if (pobilldate) updateData.pobilldate = pobilldate;
     if (posupplier) updateData.posupplier = posupplier;
@@ -189,7 +220,7 @@ router.put('/:id', async (req, res) => {
 
     res.json(purchaseOrder);
   } catch (err) {
-    console.error(err.message);
+    console.error('更新進貨單錯誤:', err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: '找不到該進貨單' });
     }
