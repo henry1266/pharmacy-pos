@@ -231,15 +231,7 @@ const ProductsPage = () => {
     },
   ];
 
-  // 處理標籤切換
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-    setProductType(newValue === 0 ? 'product' : 'medicine');
-    setSelectedProduct(null);
-    setProductInventory([]);
-  };
-
-  // 獲取所有產品數據
+  // 獲取所有產品
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -250,59 +242,36 @@ const ProductsPage = () => {
         }
       };
       
-      // 獲取商品
-      const productsResponse = await axios.get('/api/products/products', config);
+      const res = await axios.get('/api/products', config);
       
-      // 格式化商品數據
-      const formattedProducts = productsResponse.data.map(product => ({
-        id: product._id,
-        code: product.code,
-        shortCode: product.shortCode || '',
-        name: product.name,
-        barcode: product.barcode || '',
-        category: product.category || '',
-        unit: product.unit || '',
-        purchasePrice: product.purchasePrice || 0,
-        sellingPrice: product.sellingPrice || 0,
-        description: product.description || '',
-        supplier: product.supplier || '',
-        minStock: product.minStock,
-        productType: 'product'
-      }));
+      // 分離商品和藥品
+      const productsList = [];
+      const medicinesList = [];
       
-      setProducts(formattedProducts);
+      res.data.forEach(item => {
+        // 添加id屬性以便於表格使用
+        const product = { ...item, id: item._id };
+        
+        if (item.healthInsuranceCode) {
+          product.productType = 'medicine';
+          medicinesList.push(product);
+        } else {
+          product.productType = 'product';
+          productsList.push(product);
+        }
+      });
       
-      // 獲取藥品
-      const medicinesResponse = await axios.get('/api/products/medicines', config);
-      
-      // 格式化藥品數據
-      const formattedMedicines = medicinesResponse.data.map(medicine => ({
-        id: medicine._id,
-        code: medicine.code,
-        shortCode: medicine.shortCode || '',
-        name: medicine.name,
-        healthInsuranceCode: medicine.healthInsuranceCode || '',
-        healthInsurancePrice: medicine.healthInsurancePrice || 0,
-        category: medicine.category || '',
-        unit: medicine.unit || '',
-        purchasePrice: medicine.purchasePrice || 0,
-        sellingPrice: medicine.sellingPrice || 0,
-        description: medicine.description || '',
-        supplier: medicine.supplier || '',
-        minStock: medicine.minStock,
-        productType: 'medicine'
-      }));
-      
-      setMedicines(formattedMedicines);
+      setProducts(productsList);
+      setMedicines(medicinesList);
       setLoading(false);
     } catch (err) {
-      console.error('獲取產品數據失敗:', err);
-      setError('獲取產品數據失敗');
+      console.error('獲取產品失敗:', err);
+      setError('獲取產品失敗');
       setLoading(false);
     }
   };
 
-  // 獲取供應商數據
+  // 獲取所有供應商
   const fetchSuppliers = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -312,122 +281,122 @@ const ProductsPage = () => {
         }
       };
       
-      const response = await axios.get('/api/suppliers', config);
-      setSuppliers(response.data);
+      const res = await axios.get('/api/suppliers', config);
+      setSuppliers(res.data);
     } catch (err) {
-      console.error('獲取供應商數據失敗:', err);
+      console.error('獲取供應商失敗:', err);
     }
   };
 
-  // 獲取庫存數據
+  // 獲取所有庫存
   const fetchInventory = async () => {
     try {
       setInventoryLoading(true);
-      const response = await axios.get('/api/inventory');
-      console.log('庫存數據:', response.data);
-      // 轉換數據格式
-      const formattedInventory = response.data.map(item => ({
-        id: item._id,
-        ...item
-      }));
-      setInventory(formattedInventory);
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+      
+      const res = await axios.get('/api/inventory', config);
+      setInventory(res.data);
+      setInventoryLoading(false);
     } catch (err) {
-      console.error('獲取庫存數據失敗:', err);
-    } finally {
+      console.error('獲取庫存失敗:', err);
       setInventoryLoading(false);
     }
   };
 
   // 獲取特定產品的庫存
   const fetchProductInventory = async (productId) => {
-    if (!productId) {
-      setProductInventory([]);
-      return;
-    }
+    if (!productId) return;
     
     try {
-      setInventoryLoading(true);
-      const response = await axios.get(`/api/inventory/product/${productId}`);
-      console.log('產品庫存數據:', response.data);
-      setProductInventory(response.data);
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+      
+      const res = await axios.get(`/api/inventory/product/${productId}`, config);
+      setProductInventory(res.data);
     } catch (err) {
-      console.error('獲取產品庫存數據失敗:', err);
-      setProductInventory([]);
-    } finally {
-      setInventoryLoading(false);
+      console.error('獲取產品庫存失敗:', err);
     }
   };
 
-  // 初始化加載數據
+  // 初始化
   useEffect(() => {
     fetchProducts();
     fetchSuppliers();
     fetchInventory();
   }, []);
 
-  // 處理輸入變更
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    // 確保空值能夠正確清空欄位，數字欄位特殊處理
-    const numericFields = ['purchasePrice', 'sellingPrice', 'minStock', 'healthInsurancePrice'];
-    const processedValue = value === '' && !numericFields.includes(name) ? '' : 
-                          numericFields.includes(name) ? (value === '' ? 0 : Number(value)) : value;
-    
+  // 處理標籤切換
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+    setProductType(newValue === 0 ? 'product' : 'medicine');
+  };
+
+  // 處理表格行點擊
+  const handleRowClick = (params) => {
+    const product = params.row;
+    setSelectedProduct(product);
+    fetchProductInventory(product.id);
+  };
+
+  // 打開添加產品對話框
+  const handleAddProduct = () => {
+    setEditMode(false);
     setCurrentProduct({
-      ...currentProduct,
-      [name]: processedValue
+      code: '',
+      shortCode: '',
+      name: '',
+      category: '',
+      unit: '',
+      purchasePrice: 0,
+      sellingPrice: 0,
+      description: '',
+      supplier: '',
+      minStock: 10,
+      barcode: '',
+      healthInsuranceCode: '',
+      healthInsurancePrice: 0
     });
+    setOpenDialog(true);
   };
 
-  // 處理選擇產品
-  const handleSelectProduct = (id, type) => {
-    const productList = type === 'product' ? products : medicines;
-    const product = productList.find(p => p.id === id);
-    
-    if (product) {
-      setSelectedProduct(product);
-      // 獲取該產品的庫存信息
-      fetchProductInventory(product.id);
-    }
-  };
-
-  // 處理編輯產品
+  // 打開編輯產品對話框
   const handleEditProduct = (id, type) => {
-    // 如果已經選中了該產品，更新選中狀態
-    if (selectedProduct && selectedProduct.id === id) {
-      setSelectedProduct(null);
-      setProductInventory([]);
-    }
-    
-    const productList = type === 'product' ? products : medicines;
-    const product = productList.find(p => p.id === id);
-    
-    if (!product) {
-      console.error('找不到ID為', id, '的產品');
-      return;
-    }
-    
-    setCurrentProduct({
-      id: product.id,
-      code: product.code,
-      shortCode: product.shortCode,
-      name: product.name,
-      category: product.category,
-      unit: product.unit,
-      purchasePrice: product.purchasePrice,
-      sellingPrice: product.sellingPrice,
-      description: product.description,
-      supplier: product.supplier,
-      minStock: product.minStock,
-      barcode: product.barcode || '',
-      healthInsuranceCode: product.healthInsuranceCode || '',
-      healthInsurancePrice: product.healthInsurancePrice || 0
-    });
-    
     setEditMode(true);
     setProductType(type);
-    setTabValue(type === 'product' ? 0 : 1);
-    setOpenDialog(true);
+    
+    // 根據類型獲取產品
+    const product = type === 'product' 
+      ? products.find(p => p.id === id)
+      : medicines.find(p => p.id === id);
+    
+    if (product) {
+      setCurrentProduct({
+        id: product.id,
+        code: product.code || '',
+        shortCode: product.shortCode || '',
+        name: product.name || '',
+        category: product.category || '',
+        unit: product.unit || '',
+        purchasePrice: product.purchasePrice || 0,
+        sellingPrice: product.sellingPrice || 0,
+        description: product.description || '',
+        supplier: product.supplier || '',
+        minStock: product.minStock || 10,
+        barcode: product.barcode || '',
+        healthInsuranceCode: product.healthInsuranceCode || '',
+        healthInsurancePrice: product.healthInsurancePrice || 0
+      });
+      setOpenDialog(true);
+    }
   };
 
   // 處理刪除產品
@@ -444,11 +413,8 @@ const ProductsPage = () => {
         await axios.delete(`/api/products/${id}`, config);
         
         // 更新本地狀態
-        if (productType === 'product') {
-          setProducts(products.filter(p => p.id !== id));
-        } else {
-          setMedicines(medicines.filter(p => p.id !== id));
-        }
+        setProducts(products.filter(p => p.id !== id));
+        setMedicines(medicines.filter(p => p.id !== id));
         
         // 如果刪除的是當前選中的產品，清除選中狀態
         if (selectedProduct && selectedProduct.id === id) {
@@ -462,30 +428,18 @@ const ProductsPage = () => {
     }
   };
 
-  // 處理添加產品
-  const handleAddProduct = () => {
-    setCurrentProduct({
-      code: '',
-      shortCode: '',
-      name: '',
-      category: '',
-      unit: '',
-      purchasePrice: 0,
-      sellingPrice: 0,
-      description: '',
-      supplier: '',
-      minStock: 10,
-      barcode: '',
-      healthInsuranceCode: '',
-      healthInsurancePrice: 0
-    });
-    setEditMode(false);
-    setOpenDialog(true);
-  };
-
   // 處理關閉對話框
   const handleCloseDialog = () => {
     setOpenDialog(false);
+  };
+
+  // 處理輸入變化
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentProduct(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   // 處理保存產品
@@ -545,8 +499,12 @@ const ProductsPage = () => {
           fetchProductInventory(response.data._id);
         }
       } else {
-        // 創建產品
-        response = await axios.post('/api/products', productData, config);
+        // 創建產品 - 根據產品類型選擇正確的API端點
+        const endpoint = productType === 'medicine' 
+          ? '/api/products/medicine' 
+          : '/api/products/product';
+        
+        response = await axios.post(endpoint, productData, config);
         
         // 更新本地狀態
         const newProduct = { ...response.data, id: response.data._id, productType };
@@ -595,306 +553,166 @@ const ProductsPage = () => {
               startIcon={<AddIcon />}
               onClick={handleAddProduct}
             >
-              添加{productType === 'product' ? '商品' : '藥品'}
+              {tabValue === 0 ? '新增商品' : '新增藥品'}
             </Button>
           </Box>
           
           <TabPanel value={tabValue} index={0}>
-            <Paper elevation={2} sx={{ p: 0 }}>
-              <DataTable
-                rows={products}
-                columns={productColumns}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(params) => handleSelectProduct(params.id, 'product')}
-              />
-            </Paper>
+            <DataTable
+              rows={products}
+              columns={productColumns}
+              loading={loading}
+              onRowClick={handleRowClick}
+            />
           </TabPanel>
           
           <TabPanel value={tabValue} index={1}>
-            <Paper elevation={2} sx={{ p: 0 }}>
-              <DataTable
-                rows={medicines}
-                columns={medicineColumns}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(params) => handleSelectProduct(params.id, 'medicine')}
-              />
-            </Paper>
+            <DataTable
+              rows={medicines}
+              columns={medicineColumns}
+              loading={loading}
+              onRowClick={handleRowClick}
+            />
           </TabPanel>
         </Grid>
         
         {/* 右側 - 產品詳情 */}
         <Grid item xs={12} md={4}>
-          <TabPanel value={tabValue} index={0}>
-            {selectedProduct && selectedProduct.productType === 'product' ? (
-              <Card elevation={2}>
-                <CardHeader
-                  avatar={
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
-                      {selectedProduct.shortCode?.charAt(0) || selectedProduct.name?.charAt(0) || 'P'}
-                    </Avatar>
-                  }
-                  title={
-                    <Typography variant="h6" component="div">
-                      {selectedProduct.name}
-                    </Typography>
-                  }
-                  subheader={`編號: ${selectedProduct.code} | 簡碼: ${selectedProduct.shortCode}`}
-                  action={
-                    <Box>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleEditProduct(selectedProduct.id, 'product')}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDeleteProduct(selectedProduct.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  }
-                />
-                <Divider />
-                <CardContent sx={{ py: 1 }}>
-                  <List dense sx={{ py: 0 }}>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>國際條碼:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.barcode || '無'}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>分類:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.category || '無'}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>單位:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.unit || '無'}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>進貨價:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.purchasePrice}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>售價:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.sellingPrice}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>最低庫存:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.minStock}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>供應商:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{getSupplierName(selectedProduct.supplier)}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>描述:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.description || '無'}</Typography>
-                    </ListItem>
-                    
-                    {/* 庫存信息 */}
-                    <Divider sx={{ my: 1 }} />
-                    <ListItem>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>庫存信息</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總庫存數量:</Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          width: '60%', 
-                          fontWeight: 500,
-                          color: inventoryLoading ? 'text.secondary' : 
-                                 (getTotalInventory(selectedProduct.id) === '0' ? 'error.main' : 
-                                 (parseInt(getTotalInventory(selectedProduct.id)) < selectedProduct.minStock ? 'warning.main' : 'success.main'))
-                        }}
-                      >
-                        {inventoryLoading ? '載入中...' : getTotalInventory(selectedProduct.id)}
-                      </Typography>
-                    </ListItem>
-                    
-                    {/* 庫存明細 */}
-                    {productInventory.length > 0 && (
-                      <>
-                        <ListItem>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>庫存明細</Typography>
+          {selectedProduct ? (
+            <Card>
+              <CardHeader
+                avatar={
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    {selectedProduct.name.charAt(0)}
+                  </Avatar>
+                }
+                title={selectedProduct.name}
+                subheader={`${selectedProduct.code} | ${selectedProduct.shortCode || '無簡碼'}`}
+                action={
+                  <Box>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEditProduct(selectedProduct.id, selectedProduct.productType)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteProduct(selectedProduct.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                }
+              />
+              <CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">健保碼:</Typography>
+                    <Typography variant="body2">{selectedProduct.healthInsuranceCode || '無'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">健保價:</Typography>
+                    <Typography variant="body2">{selectedProduct.healthInsurancePrice || '0'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">分類:</Typography>
+                    <Typography variant="body2">{selectedProduct.category || '無'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">單位:</Typography>
+                    <Typography variant="body2">{selectedProduct.unit || '無'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">進貨價:</Typography>
+                    <Typography variant="body2">{selectedProduct.purchasePrice || '0'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">售價:</Typography>
+                    <Typography variant="body2">{selectedProduct.sellingPrice || '0'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">最低庫存:</Typography>
+                    <Typography variant="body2">{selectedProduct.minStock || '10'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">供應商:</Typography>
+                    <Typography variant="body2">{getSupplierName(selectedProduct.supplier)}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2">描述:</Typography>
+                    <Typography variant="body2">{selectedProduct.description || '無'}</Typography>
+                  </Grid>
+                </Grid>
+                
+                <Divider sx={{ my: 2 }} />
+                
+                {/* 庫存信息 */}
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    庫存信息
+                    <Chip 
+                      label={getTotalInventory(selectedProduct.id)} 
+                      color={
+                        getTotalInventory(selectedProduct.id) === '0' ? 'error' : 
+                        (getTotalInventory(selectedProduct.id) !== '載入中...' && 
+                         parseInt(getTotalInventory(selectedProduct.id)) < selectedProduct.minStock) ? 'warning' : 'success'
+                      }
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  </Typography>
+                  
+                  {productInventory.length > 0 ? (
+                    <List>
+                      {productInventory.map((item, index) => (
+                        <ListItem key={index} divider>
+                          <Grid container spacing={1}>
+                            <Grid item xs={6}>
+                              <Typography variant="subtitle2">批號:</Typography>
+                              <Typography variant="body2">{item.batchNumber || '未指定'}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="subtitle2">數量:</Typography>
+                              <Typography variant="body2">{item.quantity}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="subtitle2">有效期限:</Typography>
+                              <Typography variant="body2">
+                                {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '未指定'}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="subtitle2">存放位置:</Typography>
+                              <Typography variant="body2">{item.location || '未指定'}</Typography>
+                            </Grid>
+                          </Grid>
                         </ListItem>
-                        {productInventory.map((item, index) => (
-                          <ListItem key={index} sx={{ py: 0.5 }}>
-                            <Box sx={{ width: '100%' }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>批號: {item.batchNumber || '無'}</Typography>
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>數量: {item.quantity}</Typography>
-                              </Box>
-                              {item.expiryDate && (
-                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-                                  有效期限: {new Date(item.expiryDate).toLocaleDateString()}
-                                </Typography>
-                              )}
-                              {item.location && (
-                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-                                  存放位置: {item.location}
-                                </Typography>
-                              )}
-                              <Divider sx={{ my: 0.5 }} />
-                            </Box>
-                          </ListItem>
-                        ))}
-                      </>
-                    )}
-                  </List>
-                </CardContent>
-              </Card>
-            ) : (
-              <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="body1" color="text.secondary">
-                  請選擇一個商品查看詳情
-                </Typography>
-              </Paper>
-            )}
-          </TabPanel>
-          
-          <TabPanel value={tabValue} index={1}>
-            {selectedProduct && selectedProduct.productType === 'medicine' ? (
-              <Card elevation={2}>
-                <CardHeader
-                  avatar={
-                    <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                      {selectedProduct.shortCode?.charAt(0) || selectedProduct.name?.charAt(0) || 'M'}
-                    </Avatar>
-                  }
-                  title={
-                    <Typography variant="h6" component="div">
-                      {selectedProduct.name}
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      無庫存記錄
                     </Typography>
-                  }
-                  subheader={`編號: ${selectedProduct.code} | 簡碼: ${selectedProduct.shortCode}`}
-                  action={
-                    <Box>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleEditProduct(selectedProduct.id, 'medicine')}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDeleteProduct(selectedProduct.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  }
-                />
-                <Divider />
-                <CardContent sx={{ py: 1 }}>
-                  <List dense sx={{ py: 0 }}>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>健保碼:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.healthInsuranceCode || '無'}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>健保價:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.healthInsurancePrice}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>分類:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.category || '無'}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>單位:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.unit || '無'}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>進貨價:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.purchasePrice}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>售價:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.sellingPrice}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>最低庫存:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.minStock}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>供應商:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{getSupplierName(selectedProduct.supplier)}</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>描述:</Typography>
-                      <Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedProduct.description || '無'}</Typography>
-                    </ListItem>
-                    
-                    {/* 庫存信息 */}
-                    <Divider sx={{ my: 1 }} />
-                    <ListItem>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>庫存信息</Typography>
-                    </ListItem>
-                    <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>總庫存數量:</Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          width: '60%', 
-                          fontWeight: 500,
-                          color: inventoryLoading ? 'text.secondary' : 
-                                 (getTotalInventory(selectedProduct.id) === '0' ? 'error.main' : 
-                                 (parseInt(getTotalInventory(selectedProduct.id)) < selectedProduct.minStock ? 'warning.main' : 'success.main'))
-                        }}
-                      >
-                        {inventoryLoading ? '載入中...' : getTotalInventory(selectedProduct.id)}
-                      </Typography>
-                    </ListItem>
-                    
-                    {/* 庫存明細 */}
-                    {productInventory.length > 0 && (
-                      <>
-                        <ListItem>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>庫存明細</Typography>
-                        </ListItem>
-                        {productInventory.map((item, index) => (
-                          <ListItem key={index} sx={{ py: 0.5 }}>
-                            <Box sx={{ width: '100%' }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>批號: {item.batchNumber || '無'}</Typography>
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>數量: {item.quantity}</Typography>
-                              </Box>
-                              {item.expiryDate && (
-                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-                                  有效期限: {new Date(item.expiryDate).toLocaleDateString()}
-                                </Typography>
-                              )}
-                              {item.location && (
-                                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-                                  存放位置: {item.location}
-                                </Typography>
-                              )}
-                              <Divider sx={{ my: 0.5 }} />
-                            </Box>
-                          </ListItem>
-                        ))}
-                      </>
-                    )}
-                  </List>
-                </CardContent>
-              </Card>
-            ) : (
-              <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="body1" color="text.secondary">
-                  請選擇一個藥品查看詳情
-                </Typography>
-              </Paper>
-            )}
-          </TabPanel>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          ) : (
+            <Paper sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="body1" color="text.secondary">
+                請選擇一個產品查看詳情
+              </Typography>
+            </Paper>
+          )}
         </Grid>
       </Grid>
       
-      {/* 產品表單對話框 */}
+      {/* 添加/編輯產品對話框 */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editMode ? '編輯' : '添加'}{productType === 'product' ? '商品' : '藥品'}</DialogTitle>
+        <DialogTitle>
+          {editMode ? (productType === 'product' ? '編輯商品' : '編輯藥品') : (productType === 'product' ? '新增商品' : '新增藥品')}
+        </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} sm={6}>
