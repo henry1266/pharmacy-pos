@@ -345,25 +345,18 @@ async function updateInventory(purchaseOrder) {
     if (!item.product) continue;
     
     try {
-      // 檢查是否已有該藥品的庫存記錄
-      let inventory = await Inventory.findOne({ product: item.product });
+      // 為每個進貨單項目創建新的庫存記錄，而不是更新現有記錄
+      // 這樣可以保留每個批次的信息
+      const inventory = new Inventory({
+        product: item.product,
+        quantity: parseInt(item.dquantity),
+        batchNumber: purchaseOrder.pobill, // 使用發票號作為批號
+        expiryDate: null, // 可以在未來擴展此功能
+        location: '' // 可以在未來擴展此功能
+      });
       
-      if (inventory) {
-        // 更新現有庫存
-        inventory.quantity += parseInt(item.dquantity);
-        inventory.lastUpdated = Date.now();
-        await inventory.save();
-      } else {
-        // 建立新庫存記錄
-        inventory = new Inventory({
-          product: item.product,
-          quantity: parseInt(item.dquantity),
-          batchNumber: purchaseOrder.pobill, // 使用發票號作為批號
-          expiryDate: null, // 可以在未來擴展此功能
-          location: '' // 可以在未來擴展此功能
-        });
-        await inventory.save();
-      }
+      await inventory.save();
+      console.log(`已為產品 ${item.product} 創建新庫存記錄，批號: ${purchaseOrder.pobill}, 數量: ${item.dquantity}`);
       
       // 更新藥品的採購價格
       await BaseProduct.findByIdAndUpdate(

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const InventorySchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'product',
+    ref: 'baseproduct',  // 修改為正確的引用 'baseproduct'
     required: true
   },
   quantity: {
