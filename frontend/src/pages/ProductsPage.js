@@ -763,22 +763,12 @@ const ProductsPage = () => {
                           <Grid container spacing={1}>
                             <Grid item xs={12}>
                               <Typography variant="body2">
-                                批號: {item.batchNumber || '未指定'}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="body2">
-                                數量: {item.quantity || 0}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="body2">
-                                有效期: {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '未指定'}
+                                進貨單號: {item.purchaseOrderNumber || '未指定'}
                               </Typography>
                             </Grid>
                             <Grid item xs={12}>
                               <Typography variant="body2">
-                                存放位置: {item.location || '未指定'}
+                                數量: {item.quantity || 0}
                               </Typography>
                             </Grid>
                           </Grid>
