@@ -7,10 +7,8 @@ const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
 
-// 模型
-const BaseProduct = require('../models/BaseProduct');
-const Product = require('../models/Product');
-const Medicine = require('../models/Medicine');
+// 模型 - 修正導入方式
+const { BaseProduct, Product, Medicine } = require('../models/BaseProduct');
 
 // 配置multer存儲
 const storage = multer.diskStorage({
