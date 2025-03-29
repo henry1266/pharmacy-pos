@@ -341,6 +341,9 @@ router.post('/import', [auth, upload.single('file')], async (req, res) => {
       return res.status(400).json({ msg: '請上傳CSV文件' });
     }
 
+    // 導入Supplier模型
+    const Supplier = require('../models/Supplier');
+
     const productType = req.body.productType || 'product';
     const results = [];
     const errors = [];
@@ -377,6 +380,27 @@ router.post('/import', [auth, upload.single('file')], async (req, res) => {
         
         for (const item of results) {
           try {
+            // 處理供應商 - 根據名稱查找或創建供應商
+            let supplierId = null;
+            if (item.supplier && item.supplier.trim() !== '') {
+              // 先嘗試根據名稱查找供應商
+              let supplier = await Supplier.findOne({ name: item.supplier });
+              
+              // 如果找不到供應商，則創建新供應商
+              if (!supplier) {
+                const supplierCount = await Supplier.countDocuments();
+                const newSupplier = new Supplier({
+                  code: `S${String(supplierCount + 1).padStart(5, '0')}`,
+                  shortCode: item.supplier.substring(0, 3).toUpperCase(), // 使用供應商名稱前三個字符作為簡碼
+                  name: item.supplier
+                });
+                supplier = await newSupplier.save();
+                console.log(`創建新供應商: ${supplier.name}, ID: ${supplier._id}`);
+              }
+              
+              supplierId = supplier._id;
+            }
+            
             // 基本產品字段
             const productFields = {
               code: item.code || (productType === 'product' ? `P${Date.now()}-${Math.floor(Math.random() * 1000)}` : `M${Date.now()}-${Math.floor(Math.random() * 1000)}`),
@@ -388,7 +412,7 @@ router.post('/import', [auth, upload.single('file')], async (req, res) => {
               purchasePrice: parseFloat(item.purchasePrice) || 0,
               sellingPrice: parseFloat(item.sellingPrice) || 0,
               description: item.description || '',
-              supplier: item.supplier || '',
+              supplier: supplierId, // 使用供應商ID而不是名稱
               minStock: parseInt(item.minStock) || 10
             };
             
