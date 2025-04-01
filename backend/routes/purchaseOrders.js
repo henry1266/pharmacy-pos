@@ -185,6 +185,11 @@ router.put('/:id', async (req, res) => {
     const oldStatus = purchaseOrder.status;
     if (status && status !== oldStatus) {
       updateData.status = status;
+      
+      // 如果狀態從已完成改為其他狀態，刪除相關庫存記錄
+      if (oldStatus === 'completed' && status !== 'completed') {
+        await deleteInventoryRecords(purchaseOrder._id);
+      }
     }
 
     // 處理項目更新
@@ -378,6 +383,18 @@ async function updateInventory(purchaseOrder) {
       console.error(`更新庫存時出錯: ${err.message}`);
       // 繼續處理其他項目
     }
+  }
+}
+
+// 刪除與進貨單相關的庫存記錄
+async function deleteInventoryRecords(purchaseOrderId) {
+  try {
+    const result = await Inventory.deleteMany({ purchaseOrderId });
+    console.log(`已刪除 ${result.deletedCount} 筆與進貨單 ${purchaseOrderId} 相關的庫存記錄`);
+    return result;
+  } catch (err) {
+    console.error(`刪除庫存記錄時出錯: ${err.message}`);
+    throw err;
   }
 }
 
