@@ -458,8 +458,8 @@ const PurchaseOrderFormPage = () => {
                         handleAddItem();
                         // 添加項目後，將焦點移回商品選擇欄位
                         setTimeout(() => {
-                          // 使用ID選擇器直接定位到藥品選擇欄位
-                          const productInput = document.getElementById('product-select-input');
+                          // 使用用戶提供的確切選擇器信息
+                          const productInput = document.getElementById('product-select');
                           if (productInput) {
                             productInput.focus();
                             console.log('ENTER鍵：焦點已設置到商品選擇欄位', productInput);
