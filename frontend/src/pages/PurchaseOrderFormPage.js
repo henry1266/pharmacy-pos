@@ -96,8 +96,19 @@ const PurchaseOrderFormPage = () => {
     }
   }, [dispatch, isEditMode, id]);
   
+  // 確保suppliers數據已加載
+  const [suppliersLoaded, setSuppliersLoaded] = useState(false);
+  
   useEffect(() => {
-    if (isEditMode && currentPurchaseOrder) {
+    if (suppliers.length > 0) {
+      setSuppliersLoaded(true);
+    }
+  }, [suppliers]);
+  
+  // 在編輯模式下載入進貨單數據
+  useEffect(() => {
+    if (isEditMode && currentPurchaseOrder && suppliersLoaded) {
+      console.log('設置編輯模式數據', currentPurchaseOrder);
       setFormData({
         ...currentPurchaseOrder,
         pobilldate: currentPurchaseOrder.pobilldate ? new Date(currentPurchaseOrder.pobilldate) : new Date()
@@ -105,19 +116,14 @@ const PurchaseOrderFormPage = () => {
       
       // 在編輯模式下，載入數據後將焦點直接放在商品選擇欄位上
       setTimeout(() => {
-        const productInputs = document.querySelectorAll('.MuiAutocomplete-input');
-        if (productInputs && productInputs.length > 0) {
-          // 找到藥品選擇的輸入框
-          for (let input of productInputs) {
-            if (input.closest('label')?.textContent.includes('選擇藥品')) {
-              input.focus();
-              return;
-            }
-          }
+        // 直接使用ID選擇器定位藥品選擇欄位
+        const productInput = document.getElementById('product-select-input');
+        if (productInput) {
+          productInput.focus();
         }
-      }, 500); // 稍微延長時間確保DOM已完全載入
+      }, 800); // 延長時間確保DOM已完全載入
     }
-  }, [isEditMode, currentPurchaseOrder]);
+  }, [isEditMode, currentPurchaseOrder, suppliersLoaded]);
   
   useEffect(() => {
     if (error) {
@@ -389,6 +395,7 @@ const PurchaseOrderFormPage = () => {
             <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} sm={6} md={4}>
                 <Autocomplete
+                  id="product-select"
                   options={products}
                   getOptionLabel={(option) => `${option.name} (${option.code})`}
                   value={products.find(p => p._id === currentItem.product) || null}
@@ -415,6 +422,7 @@ const PurchaseOrderFormPage = () => {
                   renderInput={(params) => (
                     <TextField
                       {...params}
+                      id="product-select-input"
                       label="選擇藥品"
                       fullWidth
                     />
@@ -450,21 +458,15 @@ const PurchaseOrderFormPage = () => {
                         handleAddItem();
                         // 添加項目後，將焦點移回商品選擇欄位
                         setTimeout(() => {
-                          // 使用更精確的選擇器，確保選中的是藥品選擇欄位
-                          const productInputs = document.querySelectorAll('.MuiAutocomplete-input');
-                          // 藥品選擇欄位應該是藥品項目區域中的第一個Autocomplete輸入框
-                          if (productInputs && productInputs.length > 0) {
-                            // 找到藥品選擇的輸入框（通常是標籤為"選擇藥品"的輸入框）
-                            for (let input of productInputs) {
-                              if (input.closest('label')?.textContent.includes('選擇藥品')) {
-                                input.focus();
-                                return;
-                              }
-                            }
-                            // 如果沒有找到精確匹配，則使用第一個自動完成輸入框
-                            productInputs[0].focus();
+                          // 使用ID選擇器直接定位到藥品選擇欄位
+                          const productInput = document.getElementById('product-select-input');
+                          if (productInput) {
+                            productInput.focus();
+                            console.log('ENTER鍵：焦點已設置到商品選擇欄位', productInput);
+                          } else {
+                            console.error('找不到商品選擇欄位元素');
                           }
-                        }, 100);
+                        }, 200);
                       } else {
                         // 如果有欄位未填寫，顯示錯誤提示
                         setSnackbar({
