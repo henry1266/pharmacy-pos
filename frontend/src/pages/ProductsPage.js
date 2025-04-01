@@ -778,7 +778,16 @@ const ProductsPage = () => {
                                   size="small"
                                   onClick={() => {
                                     if (item.purchaseOrderId) {
-                                      window.location.href = `/purchase-orders/${item.purchaseOrderId}`;
+                                      // 確保使用字符串ID而不是對象
+                                      let orderId = item.purchaseOrderId;
+                                      if (typeof orderId === 'object') {
+                                        orderId = orderId._id;
+                                      } else if (typeof orderId === 'string' && orderId.includes('[object Object]')) {
+                                        // 如果是字符串但包含[object Object]，則不導航
+                                        console.error('Invalid purchase order ID:', orderId);
+                                        return;
+                                      }
+                                      window.location.href = `/purchase-orders/${orderId}`;
                                     }
                                   }}
                                   sx={{ ml: 1, minWidth: 'auto', p: '0 4px' }}
@@ -788,7 +797,18 @@ const ProductsPage = () => {
                                 {' | '}
                                 數量: {item.quantity || 0}
                                 {' | '}
-                                總庫存量: {getTotalInventory(selectedProduct.id)}
+                                總庫存量: {(() => {
+                                  // 計算當前項目之前（含當前）的累計庫存量
+                                  const currentIndex = productInventory.findIndex(i => 
+                                    i.purchaseOrderNumber === item.purchaseOrderNumber);
+                                  if (currentIndex === -1) return item.quantity || 0;
+                                  
+                                  let cumulativeQuantity = 0;
+                                  for (let i = 0; i <= currentIndex; i++) {
+                                    cumulativeQuantity += parseInt(productInventory[i].quantity || 0);
+                                  }
+                                  return cumulativeQuantity;
+                                })()}
                               </Typography>
                             </Grid>
                           </Grid>
