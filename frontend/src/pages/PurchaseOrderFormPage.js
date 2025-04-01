@@ -379,6 +379,25 @@ const PurchaseOrderFormPage = () => {
                   getOptionLabel={(option) => `${option.name} (${option.code})`}
                   value={products.find(p => p._id === currentItem.product) || null}
                   onChange={handleProductChange}
+                  onKeyDown={(event) => {
+                    // 當按下TAB鍵且有過濾後的選項時
+                    if (event.key === 'Tab') {
+                      const filteredOptions = products.filter(
+                        option => 
+                          option.name.toLowerCase().includes(event.target.value?.toLowerCase() || '') || 
+                          option.code.toLowerCase().includes(event.target.value?.toLowerCase() || '')
+                      );
+                      
+                      // 如果只有一個選項符合，自動選擇該選項
+                      if (filteredOptions.length === 1) {
+                        handleProductChange(event, filteredOptions[0]);
+                        // 防止默認的TAB行為，因為我們已經手動處理了選擇
+                        event.preventDefault();
+                        // 聚焦到數量輸入框
+                        document.querySelector('input[name="dquantity"]').focus();
+                      }
+                    }
+                  }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -408,6 +427,30 @@ const PurchaseOrderFormPage = () => {
                   value={currentItem.dtotalCost}
                   onChange={handleItemInputChange}
                   inputProps={{ min: 0 }}
+                  onKeyDown={(event) => {
+                    // 當按下ENTER鍵時
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      // 如果所有必填欄位都已填寫，則添加項目
+                      if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost) {
+                        handleAddItem();
+                        // 添加項目後，將焦點移回藥品選擇欄位
+                        setTimeout(() => {
+                          const productInput = document.querySelector('.MuiAutocomplete-input');
+                          if (productInput) {
+                            productInput.focus();
+                          }
+                        }, 100);
+                      } else {
+                        // 如果有欄位未填寫，顯示錯誤提示
+                        setSnackbar({
+                          open: true,
+                          message: '請填寫完整的藥品項目資料',
+                          severity: 'error'
+                        });
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
