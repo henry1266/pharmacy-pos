@@ -31,7 +31,7 @@ const DataTable = ({
           </Typography>
         </Box>
       )}
-      <Box sx={{ height: 400, width: '100%' }}>
+      <Box sx={{ width: '100%' }}>
         <DataGrid
           rows={rows}
           columns={columns}
@@ -41,6 +41,7 @@ const DataTable = ({
           checkboxSelection={checkboxSelection}
           disableSelectionOnClick
           autoHeight
+          sx={{ minHeight: 500 }}
           {...rest}
         />
       </Box>
