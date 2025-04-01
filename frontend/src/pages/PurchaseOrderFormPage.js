@@ -230,7 +230,7 @@ const PurchaseOrderFormPage = () => {
     e.preventDefault();
     
     // 驗證表單
-    if (!formData.poid || !formData.pobill || !formData.pobilldate || !formData.posupplier) {
+    if (!formData.poid || !formData.posupplier) {
       setSnackbar({
         open: true,
         message: '請填寫所有必填欄位',
@@ -322,7 +322,6 @@ const PurchaseOrderFormPage = () => {
               <Grid item xs={12} sm={6} md={3}>
                 <TextField
                   fullWidth
-                  required
                   label="發票號碼"
                   name="pobill"
                   value={formData.pobill}
@@ -336,7 +335,7 @@ const PurchaseOrderFormPage = () => {
                     label="發票日期"
                     value={formData.pobilldate}
                     onChange={handleDateChange}
-                    renderInput={(params) => <TextField {...params} fullWidth required />}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
                   />
                 </LocalizationProvider>
               </Grid>
