@@ -110,8 +110,16 @@ const PurchaseOrderFormPage = () => {
   useEffect(() => {
     if (isEditMode && currentPurchaseOrder && suppliersLoaded) {
       console.log('設置編輯模式數據', currentPurchaseOrder);
+      
+      // 確保保留供應商信息
+      const supplierData = {
+        posupplier: currentPurchaseOrder.posupplier || '',
+        supplier: currentPurchaseOrder.supplier || ''
+      };
+      
       setFormData({
         ...currentPurchaseOrder,
+        ...supplierData, // 確保供應商信息被保留
         pobilldate: currentPurchaseOrder.pobilldate ? new Date(currentPurchaseOrder.pobilldate) : new Date()
       });
       

@@ -176,6 +176,27 @@ const PurchaseOrdersPage = () => {
     return <Chip size="small" color={color} label={label} />;
   };
   
+  const getPaymentStatusChip = (status) => {
+    let color = 'default';
+    let label = status || '未付';
+    
+    switch (status) {
+      case '未付':
+        color = 'warning';
+        break;
+      case '已下收':
+        color = 'info';
+        break;
+      case '已匯款':
+        color = 'success';
+        break;
+      default:
+        break;
+    }
+    
+    return <Chip size="small" color={color} label={label} />;
+  };
+  
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -293,6 +314,7 @@ const PurchaseOrdersPage = () => {
                   <TableCell>供應商</TableCell>
                   <TableCell>總金額</TableCell>
                   <TableCell>狀態</TableCell>
+                  <TableCell>付款狀態</TableCell>
                   <TableCell>操作</TableCell>
                 </TableRow>
               </TableHead>
@@ -316,6 +338,7 @@ const PurchaseOrdersPage = () => {
                       <TableCell>{po.posupplier}</TableCell>
                       <TableCell>{po.totalAmount?.toLocaleString()}</TableCell>
                       <TableCell>{getStatusChip(po.status)}</TableCell>
+                      <TableCell>{getPaymentStatusChip(po.paymentStatus)}</TableCell>
                       <TableCell>
                         <IconButton size="small" onClick={() => handleView(po._id)}>
                           <VisibilityIcon fontSize="small" />
