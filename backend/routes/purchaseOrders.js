@@ -207,11 +207,19 @@ router.put('/:id', async (req, res) => {
     }
 
     // 更新進貨單
-    purchaseOrder = await PurchaseOrder.findByIdAndUpdate(
-      req.params.id,
-      { $set: updateData },
-      { new: true }
-    );
+    // 先更新基本字段
+    purchaseOrder = await PurchaseOrder.findById(req.params.id);
+    
+    // 應用更新
+    Object.keys(updateData).forEach(key => {
+      purchaseOrder[key] = updateData[key];
+    });
+    
+    // 手動計算總金額以確保正確
+    purchaseOrder.totalAmount = purchaseOrder.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
+    
+    // 保存更新後的進貨單，這樣會觸發pre-save中間件
+    await purchaseOrder.save();
 
     // 如果狀態從非完成變為完成，則更新庫存
     if (oldStatus !== 'completed' && purchaseOrder.status === 'completed') {

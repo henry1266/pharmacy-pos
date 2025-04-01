@@ -87,7 +87,7 @@ const PurchaseOrderSchema = new mongoose.Schema({
 
 // 計算總金額的中間件
 PurchaseOrderSchema.pre('save', function(next) {
-  this.totalAmount = this.items.reduce((total, item) => total + item.dtotalCost, 0);
+  this.totalAmount = this.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
   this.updatedAt = Date.now();
   
   // 確保orderNumber有值
