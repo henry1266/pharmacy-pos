@@ -717,6 +717,14 @@ const ProductsPage = () => {
                     <Typography variant="subtitle2">最低庫存:</Typography>
                     <Typography variant="body2">{selectedProduct.minStock || '0'}</Typography>
                   </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2">供應商:</Typography>
+                    <Typography variant="body2">
+                      {selectedProduct.supplier ? 
+                        suppliers.find(s => s._id === selectedProduct.supplier)?.name || selectedProduct.supplier 
+                        : '無'}
+                    </Typography>
+                  </Grid>
                 </Grid>
                 
                 <Divider sx={{ my: 2 }} />
@@ -762,13 +770,25 @@ const ProductsPage = () => {
                         <ListItem key={index} divider={index < productInventory.length - 1}>
                           <Grid container spacing={1}>
                             <Grid item xs={12}>
-                              <Typography variant="body2">
-                                進貨單號: {item.purchaseOrderNumber || '未指定'}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                              <Typography variant="body2">
+                              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                                進貨單號: 
+                                <Button 
+                                  variant="text" 
+                                  color="primary" 
+                                  size="small"
+                                  onClick={() => {
+                                    if (item.purchaseOrderId) {
+                                      window.location.href = `/purchase-orders/${item.purchaseOrderId}`;
+                                    }
+                                  }}
+                                  sx={{ ml: 1, minWidth: 'auto', p: '0 4px' }}
+                                >
+                                  {item.purchaseOrderNumber || '未指定'}
+                                </Button>
+                                {' | '}
                                 數量: {item.quantity || 0}
+                                {' | '}
+                                總庫存量: {getTotalInventory(selectedProduct.id)}
                               </Typography>
                             </Grid>
                           </Grid>
