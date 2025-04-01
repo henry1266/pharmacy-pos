@@ -82,7 +82,7 @@ router.post('/', [
   }
 
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status } = req.body;
+    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 檢查進貨單號是否已存在
     const existingPO = await PurchaseOrder.findOne({ poid });
@@ -150,7 +150,7 @@ router.post('/', [
 // @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status } = req.body;
+    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 檢查進貨單是否存在
     let purchaseOrder = await PurchaseOrder.findById(req.params.id);
