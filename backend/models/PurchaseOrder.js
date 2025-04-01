@@ -48,11 +48,11 @@ const PurchaseOrderSchema = new mongoose.Schema({
   },
   pobill: {
     type: String,
-    required: true
+    required: false
   },
   pobilldate: {
     type: Date,
-    required: true
+    required: false
   },
   posupplier: {
     type: String,

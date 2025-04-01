@@ -73,8 +73,6 @@ async function generateUniqueOrderNumber(poid) {
 // @access  Public
 router.post('/', [
   check('poid', '進貨單號為必填項').not().isEmpty(),
-  check('pobill', '發票號為必填項').not().isEmpty(),
-  check('pobilldate', '發票日期為必填項').not().isEmpty(),
   check('posupplier', '供應商為必填項').not().isEmpty(),
   check('items', '至少需要一個藥品項目').isArray().not().isEmpty()
 ], async (req, res) => {
