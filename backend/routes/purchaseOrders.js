@@ -127,7 +127,8 @@ router.post('/', [
       supplier: supplierId,
       items,
       notes,
-      status: status || 'pending'
+      status: status || 'pending',
+      paymentStatus: paymentStatus || '未付'
     });
 
     await purchaseOrder.save();
@@ -178,6 +179,7 @@ router.put('/:id', async (req, res) => {
     if (posupplier) updateData.posupplier = posupplier;
     if (supplier) updateData.supplier = supplier;
     if (notes !== undefined) updateData.notes = notes;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
     
     // 處理狀態變更
     const oldStatus = purchaseOrder.status;

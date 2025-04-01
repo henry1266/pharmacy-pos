@@ -382,7 +382,7 @@ const PurchaseOrderFormPage = () => {
                 <Autocomplete
                   options={suppliers}
                   getOptionLabel={(option) => `${option.name} (${option.code})`}
-                  value={suppliers.find(s => s._id === formData.supplier) || null}
+                  value={suppliers.find(s => s._id === formData.supplier || s.name === formData.posupplier) || null}
                   onChange={handleSupplierChange}
                   renderInput={(params) => (
                     <TextField
