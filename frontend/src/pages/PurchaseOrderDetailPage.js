@@ -188,6 +188,14 @@ const PurchaseOrderDetailPage = () => {
                 {getStatusChip(currentPurchaseOrder.status)}
               </Typography>
             </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" color="text.secondary">
+                付款狀態
+              </Typography>
+              <Typography variant="body1">
+                {currentPurchaseOrder.paymentStatus || '未付'}
+              </Typography>
+            </Grid>
             <Grid item xs={12} sm={6}>
               <Typography variant="subtitle2" color="text.secondary">
                 供應商

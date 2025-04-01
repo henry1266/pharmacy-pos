@@ -68,7 +68,8 @@ const PurchaseOrderFormPage = () => {
     supplier: '',
     items: [],
     notes: '',
-    status: 'pending'
+    status: 'pending',
+    paymentStatus: '未付'
   });
   
   const [currentItem, setCurrentItem] = useState({
@@ -351,6 +352,21 @@ const PurchaseOrderFormPage = () => {
                     <MenuItem value="pending">處理中</MenuItem>
                     <MenuItem value="completed">已完成</MenuItem>
                     <MenuItem value="cancelled">已取消</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>付款狀態</InputLabel>
+                  <Select
+                    name="paymentStatus"
+                    value={formData.paymentStatus || '未付'}
+                    onChange={handleInputChange}
+                    label="付款狀態"
+                  >
+                    <MenuItem value="未付">未付</MenuItem>
+                    <MenuItem value="已下收">已下收</MenuItem>
+                    <MenuItem value="已匯款">已匯款</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

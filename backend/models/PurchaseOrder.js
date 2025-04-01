@@ -72,6 +72,11 @@ const PurchaseOrderSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'cancelled'],
     default: 'pending'
   },
+  paymentStatus: {
+    type: String,
+    enum: ['未付', '已下收', '已匯款'],
+    default: '未付'
+  },
   notes: {
     type: String
   },
