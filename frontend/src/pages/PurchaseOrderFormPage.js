@@ -102,6 +102,20 @@ const PurchaseOrderFormPage = () => {
         ...currentPurchaseOrder,
         pobilldate: currentPurchaseOrder.pobilldate ? new Date(currentPurchaseOrder.pobilldate) : new Date()
       });
+      
+      // 在編輯模式下，載入數據後將焦點直接放在商品選擇欄位上
+      setTimeout(() => {
+        const productInputs = document.querySelectorAll('.MuiAutocomplete-input');
+        if (productInputs && productInputs.length > 0) {
+          // 找到藥品選擇的輸入框
+          for (let input of productInputs) {
+            if (input.closest('label')?.textContent.includes('選擇藥品')) {
+              input.focus();
+              return;
+            }
+          }
+        }
+      }, 500); // 稍微延長時間確保DOM已完全載入
     }
   }, [isEditMode, currentPurchaseOrder]);
   
@@ -434,11 +448,21 @@ const PurchaseOrderFormPage = () => {
                       // 如果所有必填欄位都已填寫，則添加項目
                       if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost) {
                         handleAddItem();
-                        // 添加項目後，將焦點移回藥品選擇欄位
+                        // 添加項目後，將焦點移回商品選擇欄位
                         setTimeout(() => {
-                          const productInput = document.querySelector('.MuiAutocomplete-input');
-                          if (productInput) {
-                            productInput.focus();
+                          // 使用更精確的選擇器，確保選中的是藥品選擇欄位
+                          const productInputs = document.querySelectorAll('.MuiAutocomplete-input');
+                          // 藥品選擇欄位應該是藥品項目區域中的第一個Autocomplete輸入框
+                          if (productInputs && productInputs.length > 0) {
+                            // 找到藥品選擇的輸入框（通常是標籤為"選擇藥品"的輸入框）
+                            for (let input of productInputs) {
+                              if (input.closest('label')?.textContent.includes('選擇藥品')) {
+                                input.focus();
+                                return;
+                              }
+                            }
+                            // 如果沒有找到精確匹配，則使用第一個自動完成輸入框
+                            productInputs[0].focus();
                           }
                         }, 100);
                       } else {
