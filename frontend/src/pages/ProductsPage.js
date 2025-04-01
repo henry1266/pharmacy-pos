@@ -609,7 +609,7 @@ const ProductsPage = () => {
       </Typography>
       
       <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={9}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Tabs value={tabValue} onChange={handleTabChange} aria-label="product tabs">
               <Tab label="商品" id="product-tab-0" aria-controls="product-tabpanel-0" />
@@ -655,7 +655,12 @@ const ProductsPage = () => {
           </TabPanel>
         </Grid>
         
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3} sx={{ 
+          position: 'sticky',
+          top: 16,
+          height: 'fit-content',
+          alignSelf: 'flex-start'
+        }}>
           {selectedProduct ? (
             <Card>
               <CardHeader
