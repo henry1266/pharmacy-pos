@@ -536,6 +536,14 @@ const PurchaseOrderFormPage = () => {
                   value={currentItem.dquantity}
                   onChange={handleItemInputChange}
                   inputProps={{ min: 1 }}
+                  onKeyDown={(event) => {
+                    // 當按下ENTER鍵時
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      // 聚焦到總成本輸入框
+                      document.querySelector('input[name="dtotalCost"]').focus();
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
