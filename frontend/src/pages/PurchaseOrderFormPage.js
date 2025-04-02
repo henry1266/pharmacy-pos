@@ -499,8 +499,8 @@ const PurchaseOrderFormPage = () => {
                   value={products.find(p => p._id === currentItem.product) || null}
                   onChange={handleProductChange}
                   onKeyDown={(event) => {
-                    // 當按下TAB鍵且有過濾後的選項時
-                    if (event.key === 'Tab') {
+                    // 當按下TAB鍵或Enter鍵且有過濾後的選項時
+                    if (event.key === 'Tab' || event.key === 'Enter') {
                       const filteredOptions = products.filter(
                         option => 
                           option.name.toLowerCase().includes(event.target.value?.toLowerCase() || '') || 
@@ -510,7 +510,7 @@ const PurchaseOrderFormPage = () => {
                       // 如果只有一個選項符合，自動選擇該選項
                       if (filteredOptions.length === 1) {
                         handleProductChange(event, filteredOptions[0]);
-                        // 防止默認的TAB行為，因為我們已經手動處理了選擇
+                        // 防止默認的TAB或Enter行為，因為我們已經手動處理了選擇
                         event.preventDefault();
                         // 聚焦到數量輸入框
                         document.querySelector('input[name="dquantity"]').focus();
