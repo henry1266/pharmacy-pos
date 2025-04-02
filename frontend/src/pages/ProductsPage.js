@@ -115,11 +115,8 @@ const ProductsPage = () => {
   // 表格列定義 - 商品
   const productColumns = [
     { field: 'code', headerName: '商品編號', width: 120 },
-    { field: 'shortCode', headerName: '簡碼', width: 100 },
     { field: 'name', headerName: '商品名稱', width: 180 },
     { field: 'barcode', headerName: '國際條碼', width: 150 },
-    { field: 'category', headerName: '分類', width: 120 },
-    { field: 'unit', headerName: '單位', width: 80 },
     { 
       field: 'inventory', 
       headerName: '庫存', 
@@ -149,8 +146,9 @@ const ProductsPage = () => {
         );
       }
     },
+    { field: 'category', headerName: '分類', width: 120 },
+    { field: 'unit', headerName: '單位', width: 80 },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
-    { field: 'sellingPrice', headerName: '售價', width: 100, type: 'number' },
     {
       field: 'actions',
       headerName: '操作',
@@ -179,12 +177,9 @@ const ProductsPage = () => {
   // 表格列定義 - 藥品
   const medicineColumns = [
     { field: 'code', headerName: '藥品編號', width: 120 },
-    { field: 'shortCode', headerName: '簡碼', width: 100 },
     { field: 'name', headerName: '藥品名稱', width: 180 },
     { field: 'healthInsuranceCode', headerName: '健保碼', width: 120 },
     { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },
-    { field: 'category', headerName: '分類', width: 120 },
-    { field: 'unit', headerName: '單位', width: 80 },
     { 
       field: 'inventory', 
       headerName: '庫存', 
@@ -214,8 +209,9 @@ const ProductsPage = () => {
         );
       }
     },
+    { field: 'category', headerName: '分類', width: 120 },
+    { field: 'unit', headerName: '單位', width: 80 },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
-    { field: 'sellingPrice', headerName: '售價', width: 100, type: 'number' },
     {
       field: 'actions',
       headerName: '操作',
@@ -657,7 +653,7 @@ const ProductsPage = () => {
         
         <Grid item xs={12} md={3} sx={{ 
           position: 'sticky',
-          top: 16,
+          top: 80,
           height: 'fit-content',
           alignSelf: 'flex-start'
         }}>
