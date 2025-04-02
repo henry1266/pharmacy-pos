@@ -34,7 +34,12 @@ import {
   Add as AddIcon, 
   Delete as DeleteIcon,
   Save as SaveIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  Check as CheckIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -79,6 +84,10 @@ const PurchaseOrderFormPage = () => {
     dtotalCost: '',
     product: null
   });
+  
+  // 新增：編輯項目狀態
+  const [editingItemIndex, setEditingItemIndex] = useState(-1);
+  const [editingItem, setEditingItem] = useState(null);
   
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -181,6 +190,14 @@ const PurchaseOrderFormPage = () => {
     });
   };
   
+  // 新增：處理編輯項目輸入變更
+  const handleEditingItemChange = (e) => {
+    setEditingItem({
+      ...editingItem,
+      [e.target.name]: e.target.value
+    });
+  };
+  
   const handleProductChange = (event, newValue) => {
     if (newValue) {
       setCurrentItem({
@@ -229,6 +246,64 @@ const PurchaseOrderFormPage = () => {
   const handleRemoveItem = (index) => {
     const newItems = [...formData.items];
     newItems.splice(index, 1);
+    setFormData({
+      ...formData,
+      items: newItems
+    });
+  };
+  
+  // 新增：開始編輯項目
+  const handleEditItem = (index) => {
+    setEditingItemIndex(index);
+    setEditingItem({...formData.items[index]});
+  };
+  
+  // 新增：保存編輯項目
+  const handleSaveEditItem = () => {
+    // 驗證編輯項目
+    if (!editingItem.did || !editingItem.dname || !editingItem.dquantity || !editingItem.dtotalCost) {
+      setSnackbar({
+        open: true,
+        message: '請填寫完整的藥品項目資料',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    // 更新項目
+    const newItems = [...formData.items];
+    newItems[editingItemIndex] = editingItem;
+    setFormData({
+      ...formData,
+      items: newItems
+    });
+    
+    // 退出編輯模式
+    setEditingItemIndex(-1);
+    setEditingItem(null);
+  };
+  
+  // 新增：取消編輯項目
+  const handleCancelEditItem = () => {
+    setEditingItemIndex(-1);
+    setEditingItem(null);
+  };
+  
+  // 新增：移動項目順序
+  const handleMoveItem = (index, direction) => {
+    if (
+      (direction === 'up' && index === 0) || 
+      (direction === 'down' && index === formData.items.length - 1)
+    ) {
+      return; // 如果是第一項要上移或最後一項要下移，則不執行
+    }
+    
+    const newItems = [...formData.items];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    // 交換項目位置
+    [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
+    
     setFormData({
       ...formData,
       items: newItems
@@ -535,18 +610,97 @@ const PurchaseOrderFormPage = () => {
                   ) : (
                     formData.items.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell>{item.did}</TableCell>
-                        <TableCell>{item.dname}</TableCell>
-                        <TableCell align="right">{item.dquantity}</TableCell>
-                        <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
-                        <TableCell align="right">
-                          {(Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          <IconButton size="small" onClick={() => handleRemoveItem(index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
+                        {editingItemIndex === index ? (
+                          // 編輯模式
+                          <>
+                            <TableCell>
+                              <TextField
+                                fullWidth
+                                name="did"
+                                value={editingItem.did}
+                                onChange={handleEditingItemChange}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                fullWidth
+                                name="dname"
+                                value={editingItem.dname}
+                                onChange={handleEditingItemChange}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              <TextField
+                                fullWidth
+                                name="dquantity"
+                                type="number"
+                                value={editingItem.dquantity}
+                                onChange={handleEditingItemChange}
+                                size="small"
+                                inputProps={{ min: 1 }}
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              <TextField
+                                fullWidth
+                                name="dtotalCost"
+                                type="number"
+                                value={editingItem.dtotalCost}
+                                onChange={handleEditingItemChange}
+                                size="small"
+                                inputProps={{ min: 0 }}
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              {(Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <IconButton size="small" onClick={handleSaveEditItem} color="primary">
+                                <CheckIcon />
+                              </IconButton>
+                              <IconButton size="small" onClick={handleCancelEditItem} color="error">
+                                <CloseIcon />
+                              </IconButton>
+                            </TableCell>
+                          </>
+                        ) : (
+                          // 顯示模式
+                          <>
+                            <TableCell>{item.did}</TableCell>
+                            <TableCell>{item.dname}</TableCell>
+                            <TableCell align="right">{item.dquantity}</TableCell>
+                            <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
+                            <TableCell align="right">
+                              {(Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <IconButton size="small" onClick={() => handleEditItem(index)} color="primary">
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton size="small" onClick={() => handleRemoveItem(index)} color="error">
+                                <DeleteIcon />
+                              </IconButton>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleMoveItem(index, 'up')} 
+                                disabled={index === 0}
+                                color="default"
+                              >
+                                <ArrowUpwardIcon />
+                              </IconButton>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleMoveItem(index, 'down')} 
+                                disabled={index === formData.items.length - 1}
+                                color="default"
+                              >
+                                <ArrowDownwardIcon />
+                              </IconButton>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))
                   )}
