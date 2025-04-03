@@ -428,7 +428,27 @@ const SalesPage = () => {
                             <TextField
                               type="number"
                               value={item.price}
-                              onChange={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
+                              onChange={(e) => {
+                                // 只更新當前項目的臨時價格，不立即更新狀態
+                                const newPrice = parseFloat(e.target.value) || 0;
+                                e.target._tempPrice = newPrice;
+                              }}
+                              onKeyDown={(e) => {
+                                // 當按下Enter鍵時才更新價格
+                                if (e.key === 'Enter') {
+                                  const newPrice = e.target._tempPrice !== undefined ? 
+                                    e.target._tempPrice : (parseFloat(e.target.value) || 0);
+                                  handlePriceChange(index, newPrice);
+                                  e.target._tempPrice = undefined;
+                                }
+                              }}
+                              onBlur={(e) => {
+                                // 當失去焦點時也更新價格
+                                const newPrice = e.target._tempPrice !== undefined ? 
+                                  e.target._tempPrice : (parseFloat(e.target.value) || 0);
+                                handlePriceChange(index, newPrice);
+                                e.target._tempPrice = undefined;
+                              }}
                               size="small"
                               inputProps={{ min: 0, style: { textAlign: 'right' } }}
                               sx={{ width: '80px' }}
