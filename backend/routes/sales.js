@@ -87,20 +87,46 @@ router.post(
           return res.status(404).json({ msg: `產品ID ${item.product} 不存在` });
         }
         
-        // 更新庫存
-        const inventory = await Inventory.findOne({ product: item.product });
-        if (inventory) {
-          if (inventory.quantity < item.quantity) {
-            return res.status(400).json({ 
-              msg: `產品 ${product.name} 庫存不足，當前庫存: ${inventory.quantity}，需求: ${item.quantity}` 
-            });
+        // 更新庫存 - 修改查詢方式，確保正確匹配產品ID
+        console.log(`檢查產品ID: ${item.product}, 名稱: ${product.name}`);
+        
+        try {
+          // 使用lean()獲取純JavaScript對象，避免Mongoose文檔轉換問題
+          const inventories = await Inventory.find({}).lean();
+          console.log(`找到 ${inventories.length} 個庫存記錄`);
+          
+          // 手動查找匹配的庫存記錄
+          let inventory = null;
+          for (const inv of inventories) {
+            if (inv.product && inv.product.toString() === item.product.toString()) {
+              inventory = inv;
+              console.log(`找到匹配的庫存記錄: ${inv._id}, 數量: ${inv.quantity}`);
+              break;
+            }
           }
           
-          inventory.quantity -= item.quantity;
-          inventory.lastUpdated = Date.now();
-          await inventory.save();
-        } else {
-          return res.status(400).json({ msg: `產品 ${product.name} 無庫存記錄` });
+          if (inventory) {
+            // 直接從數據庫重新獲取庫存記錄，確保數據最新
+            const freshInventory = await Inventory.findById(inventory._id);
+            console.log(`產品 ${product.name} 當前庫存: ${freshInventory.quantity}`);
+            
+            if (freshInventory.quantity < item.quantity) {
+              return res.status(400).json({ 
+                msg: `產品 ${product.name} 庫存不足，當前庫存: ${freshInventory.quantity}，需求: ${item.quantity}` 
+              });
+            }
+            
+            freshInventory.quantity -= item.quantity;
+            freshInventory.lastUpdated = Date.now();
+            await freshInventory.save();
+            console.log(`更新後庫存: ${freshInventory.quantity}`);
+          } else {
+            console.log(`未找到產品 ${product.name} 的庫存記錄`);
+            return res.status(400).json({ msg: `產品 ${product.name} 無庫存記錄` });
+          }
+        } catch (err) {
+          console.error(`庫存檢查錯誤:`, err);
+          return res.status(500).json({ msg: `庫存檢查錯誤: ${err.message}` });
         }
       }
       
