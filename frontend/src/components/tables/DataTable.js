@@ -1,6 +1,71 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
-import { Paper, Box, Typography } from '@mui/material';
+import { DataGrid, GridColumnMenuProps, GridColumnMenu } from '@mui/x-data-grid';
+import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+
+// 自定義列菜單組件，添加列寬設置選項
+function CustomColumnMenu(props) {
+  const { hideMenu, colDef } = props;
+  const [open, setOpen] = useState(false);
+  const [width, setWidth] = useState(colDef.width || 100);
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleSave = () => {
+    // 使用apiRef更新列寬
+    props.api.setColumnWidth(colDef, width);
+    setOpen(false);
+    hideMenu();
+  };
+
+  return (
+    <>
+      <GridColumnMenu
+        {...props}
+        slots={{
+          // 添加自定義菜單項
+          columnMenuUserItem: () => (
+            <Button
+              onClick={handleOpen}
+              sx={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', pl: 2 }}
+            >
+              設置列寬
+            </Button>
+          ),
+        }}
+        slotProps={{
+          columnMenuUserItem: {
+            displayOrder: 0, // 顯示在最上方
+          },
+        }}
+      />
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>設置列寬</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="列寬 (像素)"
+            type="number"
+            fullWidth
+            value={width}
+            onChange={(e) => setWidth(Number(e.target.value))}
+            inputProps={{ min: 50 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>取消</Button>
+          <Button onClick={handleSave}>確定</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
 
 /**
  * 自定義數據表格組件
@@ -75,6 +140,13 @@ const DataTable = ({
     }
   }, [rows, selectedIndex]);
 
+  // 確保所有列都可調整大小
+  const columnsWithResizing = columns.map(column => ({
+    ...column,
+    resizable: true, // 啟用列寬調整
+    minWidth: 50, // 設置最小寬度
+  }));
+
   return (
     <Paper elevation={2} sx={{ width: '100%', overflow: 'hidden' }}>
       {title && (
@@ -87,7 +159,7 @@ const DataTable = ({
       <Box sx={{ width: '100%' }} ref={gridRef} tabIndex="0">
         <DataGrid
           rows={rows}
-          columns={columns}
+          columns={columnsWithResizing}
           loading={loading}
           pageSize={pageSize}
           rowsPerPageOptions={[5, 10, 25, 50]}
@@ -96,6 +168,9 @@ const DataTable = ({
           autoHeight
           sx={{ minHeight: 500 }}
           onRowClick={handleRowClickInternal}
+          slots={{
+            columnMenu: CustomColumnMenu, // 使用自定義列菜單
+          }}
           {...rest}
         />
       </Box>
