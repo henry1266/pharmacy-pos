@@ -758,7 +758,7 @@ const ProductsPage = () => {
                   <Divider sx={{ my: 1 }} />
                   
                   <Typography variant="subtitle2" gutterBottom>
-                    庫存明細:
+                    庫存明細 (貨單號 | 數量 | 庫存 | 單價):
                   </Typography>
                   
                   {inventoryLoading ? (
@@ -772,7 +772,6 @@ const ProductsPage = () => {
                           <Grid container spacing={1}>
                             <Grid item xs={12}>
                               <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                                進貨單號: 
                                 <Button 
                                   variant="text" 
                                   color="primary" 
@@ -791,14 +790,14 @@ const ProductsPage = () => {
                                       window.location.href = `/purchase-orders/${orderId}`;
                                     }
                                   }}
-                                  sx={{ ml: 1, minWidth: 'auto', p: '0 4px' }}
+                                  sx={{ minWidth: 'auto', p: '0 4px' }}
                                 >
                                   {item.purchaseOrderNumber || '未指定'}
                                 </Button>
                                 {' | '}
-                                數量: {item.quantity || 0}
+                                {item.quantity || 0}
                                 {' | '}
-                                總庫存量: {(() => {
+                                {(() => {
                                   // 計算當前項目之前（含當前）的累計庫存量
                                   const currentIndex = productInventory.findIndex(i => 
                                     i.purchaseOrderNumber === item.purchaseOrderNumber);
@@ -810,6 +809,9 @@ const ProductsPage = () => {
                                   }
                                   return cumulativeQuantity;
                                 })()}
+                                {' | '}
+                                {selectedProduct && selectedProduct.purchasePrice ? 
+                                  Number(selectedProduct.purchasePrice).toFixed(2) : '0.00'}
                               </Typography>
                             </Grid>
                           </Grid>
