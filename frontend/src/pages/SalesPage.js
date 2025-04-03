@@ -1,158 +1,95 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   Box,
   Typography,
   Button,
   Grid,
-  Paper,
+  Card,
+  CardContent,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  IconButton
+  Paper,
+  Snackbar,
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import RemoveIcon from '@mui/icons-material/Remove';
-import DataTable from '../components/tables/DataTable';
+import {
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  ArrowBack as ArrowBackIcon
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const SalesPage = () => {
+  const navigate = useNavigate();
+  const barcodeInputRef = useRef(null);
+  
   // 狀態管理
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  
   const [currentSale, setCurrentSale] = useState({
     customer: '',
     items: [],
     totalAmount: 0,
     discount: 0,
-    tax: 0,
     paymentMethod: 'cash',
     paymentStatus: 'paid',
     note: ''
   });
-  const [currentItem, setCurrentItem] = useState({
-    product: '',
-    quantity: 1,
-    price: 0,
-    discount: 0,
-    subtotal: 0
+  
+  const [barcode, setBarcode] = useState('');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
   });
-  const [openItemDialog, setOpenItemDialog] = useState(false);
 
-  // 表格列定義
-  const columns = [
-    { field: 'invoiceNumber', headerName: '發票號碼', width: 120 },
-    { 
-      field: 'customerName', 
-      headerName: '客戶', 
-      width: 150,
-      valueGetter: (params) => params.row.customer ? params.row.customer.name : '一般客戶'
-    },
-    { 
-      field: 'date', 
-      headerName: '日期', 
-      width: 120,
-      valueFormatter: (params) => {
-        if (!params.value) return '';
-        return new Date(params.value).toLocaleDateString();
-      }
-    },
-    { field: 'totalAmount', headerName: '總金額', width: 120, type: 'number' },
-    { field: 'discount', headerName: '折扣', width: 80, type: 'number' },
-    { field: 'tax', headerName: '稅額', width: 80, type: 'number' },
-    { 
-      field: 'paymentMethod', 
-      headerName: '付款方式', 
-      width: 120,
-      valueFormatter: (params) => {
-        const methods = {
-          cash: '現金',
-          credit_card: '信用卡',
-          debit_card: '金融卡',
-          mobile_payment: '行動支付',
-          other: '其他'
-        };
-        return methods[params.value] || params.value;
-      }
-    },
-    { 
-      field: 'paymentStatus', 
-      headerName: '付款狀態', 
-      width: 120,
-      valueFormatter: (params) => {
-        const statuses = {
-          paid: '已付款',
-          pending: '待付款',
-          partial: '部分付款',
-          cancelled: '已取消'
-        };
-        return statuses[params.value] || params.value;
-      }
-    },
-    {
-      field: 'actions',
-      headerName: '操作',
-      width: 120,
-      renderCell: (params) => (
-        <Box>
-          <Button
-            color="primary"
-            size="small"
-            onClick={() => handleEditSale(params.row.id)}
-            sx={{ minWidth: 'auto', p: '4px' }}
-          >
-            <EditIcon fontSize="small" />
-          </Button>
-          <Button
-            color="error"
-            size="small"
-            onClick={() => handleDeleteSale(params.row.id)}
-            sx={{ minWidth: 'auto', p: '4px' }}
-          >
-            <DeleteIcon fontSize="small" />
-          </Button>
-        </Box>
-      )
+  // 初始化加載數據
+  useEffect(() => {
+    fetchProducts();
+    fetchCustomers();
+    
+    // 自動聚焦到條碼輸入框
+    if (barcodeInputRef.current) {
+      barcodeInputRef.current.focus();
     }
-  ];
+  }, []);
 
-  // 獲取銷售數據
-  const fetchSales = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/api/sales');
-      // 轉換數據格式以適應DataTable
-      const formattedSales = response.data.map(sale => ({
-        id: sale._id,
-        ...sale
-      }));
-      setSales(formattedSales);
-      setError(null);
-    } catch (err) {
-      console.error('獲取銷售數據失敗:', err);
-      setError('獲取銷售數據失敗');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 每次操作後重新聚焦到條碼輸入框
+  useEffect(() => {
+    const focusTimeout = setTimeout(() => {
+      if (barcodeInputRef.current) {
+        barcodeInputRef.current.focus();
+      }
+    }, 100);
+    
+    return () => clearTimeout(focusTimeout);
+  }, [currentSale.items]);
+
+  // 計算總金額
+  useEffect(() => {
+    const total = currentSale.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    setCurrentSale(prev => ({
+      ...prev,
+      totalAmount: total - currentSale.discount
+    }));
+  }, [currentSale.items, currentSale.discount]);
 
   // 獲取藥品數據
   const fetchProducts = async () => {
@@ -161,6 +98,11 @@ const SalesPage = () => {
       setProducts(response.data);
     } catch (err) {
       console.error('獲取藥品數據失敗:', err);
+      setSnackbar({
+        open: true,
+        message: '獲取藥品數據失敗',
+        severity: 'error'
+      });
     }
   };
 
@@ -171,15 +113,13 @@ const SalesPage = () => {
       setCustomers(response.data);
     } catch (err) {
       console.error('獲取客戶數據失敗:', err);
+      setSnackbar({
+        open: true,
+        message: '獲取客戶數據失敗',
+        severity: 'error'
+      });
     }
   };
-
-  // 初始化加載數據
-  useEffect(() => {
-    fetchSales();
-    fetchProducts();
-    fetchCustomers();
-  }, []);
 
   // 處理輸入變化
   const handleInputChange = (e) => {
@@ -190,181 +130,119 @@ const SalesPage = () => {
     });
   };
 
-  // 處理項目輸入變化
-  const handleItemInputChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'product') {
-      const selectedProduct = products.find(p => p._id === value);
-      if (selectedProduct) {
-        const price = selectedProduct.sellingPrice;
-        const quantity = currentItem.quantity;
-        const subtotal = price * quantity;
-        
-        setCurrentItem({
-          ...currentItem,
-          product: value,
-          price: price,
-          subtotal: subtotal
-        });
-      } else {
-        setCurrentItem({
-          ...currentItem,
-          [name]: value
-        });
-      }
-    } else if (name === 'quantity' || name === 'price' || name === 'discount') {
-      const updatedItem = {
-        ...currentItem,
-        [name]: parseFloat(value) || 0
-      };
-      
-      // 重新計算小計
-      const subtotal = (updatedItem.price * updatedItem.quantity) - updatedItem.discount;
-      updatedItem.subtotal = subtotal > 0 ? subtotal : 0;
-      
-      setCurrentItem(updatedItem);
-    } else {
-      setCurrentItem({
-        ...currentItem,
-        [name]: value
-      });
-    }
+  // 處理條碼輸入
+  const handleBarcodeChange = (e) => {
+    setBarcode(e.target.value);
   };
 
-  // 處理編輯銷售
-  const handleEditSale = (id) => {
-    const sale = sales.find(sale => sale.id === id);
-    setCurrentSale({
-      id: sale.id,
-      invoiceNumber: sale.invoiceNumber,
-      customer: sale.customer ? sale.customer._id : '',
-      items: sale.items,
-      totalAmount: sale.totalAmount,
-      discount: sale.discount,
-      tax: sale.tax,
-      paymentMethod: sale.paymentMethod,
-      paymentStatus: sale.paymentStatus,
-      note: sale.note || ''
-    });
-    setEditMode(true);
-    setOpenDialog(true);
-  };
-
-  // 處理刪除銷售
-  const handleDeleteSale = async (id) => {
-    if (window.confirm('確定要刪除此銷售記錄嗎？')) {
+  // 處理條碼輸入提交
+  const handleBarcodeSubmit = async (e) => {
+    if (e.key === 'Enter' && barcode.trim()) {
+      e.preventDefault();
+      
       try {
-        const token = localStorage.getItem('token');
-        const config = {
-          headers: {
-            'x-auth-token': token
+        // 根據條碼查找產品
+        const product = products.find(p => p.code === barcode.trim());
+        
+        if (product) {
+          // 檢查是否已存在該產品
+          const existingItemIndex = currentSale.items.findIndex(item => item.product === product._id);
+          
+          if (existingItemIndex >= 0) {
+            // 如果已存在，增加數量
+            const updatedItems = [...currentSale.items];
+            updatedItems[existingItemIndex].quantity += 1;
+            
+            setCurrentSale({
+              ...currentSale,
+              items: updatedItems
+            });
+            
+            setSnackbar({
+              open: true,
+              message: `已增加 ${product.name} 的數量`,
+              severity: 'success'
+            });
+          } else {
+            // 如果不存在，添加新項目
+            const newItem = {
+              product: product._id,
+              productDetails: product,
+              name: product.name,
+              code: product.code,
+              price: product.sellingPrice,
+              quantity: 1,
+              subtotal: product.sellingPrice
+            };
+            
+            setCurrentSale({
+              ...currentSale,
+              items: [...currentSale.items, newItem]
+            });
+            
+            setSnackbar({
+              open: true,
+              message: `已添加 ${product.name}`,
+              severity: 'success'
+            });
           }
-        };
-        
-        await axios.delete(`/api/sales/${id}`, config);
-        
-        // 更新本地狀態
-        setSales(sales.filter(sale => sale.id !== id));
+        } else {
+          setSnackbar({
+            open: true,
+            message: `找不到條碼 ${barcode} 對應的產品`,
+            severity: 'error'
+          });
+        }
       } catch (err) {
-        console.error('刪除銷售記錄失敗:', err);
-        setError('刪除銷售記錄失敗');
+        console.error('處理條碼失敗:', err);
+        setSnackbar({
+          open: true,
+          message: '處理條碼失敗',
+          severity: 'error'
+        });
       }
+      
+      // 清空條碼輸入框
+      setBarcode('');
     }
   };
 
-  // 處理添加銷售
-  const handleAddSale = () => {
-    setCurrentSale({
-      customer: '',
-      items: [],
-      totalAmount: 0,
-      discount: 0,
-      tax: 0,
-      paymentMethod: 'cash',
-      paymentStatus: 'paid',
-      note: ''
-    });
-    setEditMode(false);
-    setOpenDialog(true);
-  };
-
-  // 處理關閉對話框
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  // 處理添加項目
-  const handleAddItem = () => {
-    setCurrentItem({
-      product: '',
-      quantity: 1,
-      price: 0,
-      discount: 0,
-      subtotal: 0
-    });
-    setOpenItemDialog(true);
-  };
-
-  // 處理關閉項目對話框
-  const handleCloseItemDialog = () => {
-    setOpenItemDialog(false);
-  };
-
-  // 處理保存項目
-  const handleSaveItem = () => {
-    // 檢查是否選擇了產品
-    if (!currentItem.product) {
-      alert('請選擇藥品');
-      return;
-    }
+  // 處理數量變更
+  const handleQuantityChange = (index, newQuantity) => {
+    if (newQuantity < 1) return;
     
-    // 獲取產品詳情
-    const product = products.find(p => p._id === currentItem.product);
+    const updatedItems = [...currentSale.items];
+    updatedItems[index].quantity = newQuantity;
+    updatedItems[index].subtotal = updatedItems[index].price * newQuantity;
     
-    // 創建新項目
-    const newItem = {
-      product: currentItem.product,
-      productDetails: product,
-      quantity: currentItem.quantity,
-      price: currentItem.price,
-      discount: currentItem.discount,
-      subtotal: currentItem.subtotal
-    };
-    
-    // 更新銷售項目
-    const updatedItems = [...currentSale.items, newItem];
-    
-    // 重新計算總金額
-    const totalAmount = updatedItems.reduce((sum, item) => sum + item.subtotal, 0);
-    
-    // 更新銷售狀態
     setCurrentSale({
       ...currentSale,
-      items: updatedItems,
-      totalAmount: totalAmount
+      items: updatedItems
     });
-    
-    // 關閉對話框
-    setOpenItemDialog(false);
   };
 
-  // 處理刪除項目
-  const handleRemoveItem = (index) => {
-    // 創建項目副本
-    const updatedItems = [...currentSale.items];
+  // 處理價格變更
+  const handlePriceChange = (index, newPrice) => {
+    if (newPrice < 0) return;
     
-    // 刪除指定項目
+    const updatedItems = [...currentSale.items];
+    updatedItems[index].price = newPrice;
+    updatedItems[index].subtotal = newPrice * updatedItems[index].quantity;
+    
+    setCurrentSale({
+      ...currentSale,
+      items: updatedItems
+    });
+  };
+
+  // 處理移除項目
+  const handleRemoveItem = (index) => {
+    const updatedItems = [...currentSale.items];
     updatedItems.splice(index, 1);
     
-    // 重新計算總金額
-    const totalAmount = updatedItems.reduce((sum, item) => sum + item.subtotal, 0);
-    
-    // 更新銷售狀態
     setCurrentSale({
       ...currentSale,
-      items: updatedItems,
-      totalAmount: totalAmount
+      items: updatedItems
     });
   };
 
@@ -373,17 +251,13 @@ const SalesPage = () => {
     try {
       // 檢查是否有項目
       if (currentSale.items.length === 0) {
-        alert('請添加至少一個銷售項目');
+        setSnackbar({
+          open: true,
+          message: '請添加至少一個銷售項目',
+          severity: 'error'
+        });
         return;
       }
-      
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token
-        }
-      };
       
       // 準備銷售數據
       const saleData = {
@@ -392,163 +266,148 @@ const SalesPage = () => {
           product: item.product,
           quantity: item.quantity,
           price: item.price,
-          discount: item.discount,
-          subtotal: item.subtotal
+          subtotal: item.price * item.quantity
         })),
         totalAmount: currentSale.totalAmount,
         discount: currentSale.discount,
-        tax: currentSale.tax,
         paymentMethod: currentSale.paymentMethod,
         paymentStatus: currentSale.paymentStatus,
         note: currentSale.note,
         cashier: '60f1b0b9e6b3f32f8c9f4d1a' // 假設的收銀員ID，實際應該從登錄用戶獲取
       };
       
-      // 移除未使用的response變數
-      if (editMode) {
-        // 更新銷售
-        await axios.put(`/api/sales/${currentSale.id}`, saleData, config);
-      } else {
-        // 創建銷售
-        await axios.post('/api/sales', saleData, config);
-      }
+      // 創建銷售
+      await axios.post('/api/sales', saleData);
       
-      // 關閉對話框並重新獲取數據
-      setOpenDialog(false);
-      fetchSales();
+      // 重置表單
+      setCurrentSale({
+        customer: '',
+        items: [],
+        totalAmount: 0,
+        discount: 0,
+        paymentMethod: 'cash',
+        paymentStatus: 'paid',
+        note: ''
+      });
+      
+      setSnackbar({
+        open: true,
+        message: '銷售記錄已保存',
+        severity: 'success'
+      });
+      
+      // 聚焦到條碼輸入框
+      if (barcodeInputRef.current) {
+        barcodeInputRef.current.focus();
+      }
     } catch (err) {
       console.error('保存銷售記錄失敗:', err);
-      setError('保存銷售記錄失敗');
+      setSnackbar({
+        open: true,
+        message: '保存銷售記錄失敗: ' + (err.response?.data?.msg || err.message),
+        severity: 'error'
+      });
     }
   };
 
+  // 處理關閉提示
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      ...snackbar,
+      open: false
+    });
+  };
+
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           銷售管理
         </Typography>
         <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddSale}
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/sales')}
         >
-          新增銷售
+          返回銷售列表
         </Button>
       </Box>
-      {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
-          {error}
-        </Typography>
-      )}
+      
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Paper elevation={2} sx={{ p: 0 }}>
-            <DataTable
-              rows={sales}
-              columns={columns}
-              pageSize={10}
-              checkboxSelection
-              loading={loading}
-            />
-          </Paper>
-        </Grid>
-      </Grid>
-      {/* 銷售表單對話框 */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editMode ? '編輯銷售' : '新增銷售'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>客戶</InputLabel>
-                  <Select
-                    name="customer"
-                    value={currentSale.customer}
-                    onChange={handleInputChange}
-                    label="客戶"
-                  >
-                    <MenuItem value="">
-                      <em>一般客戶</em>
-                    </MenuItem>
-                    {customers.map((customer) => (
-                      <MenuItem key={customer._id} value={customer._id}>
-                        {customer.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-            
-            {/* 銷售項目表格 */}
-            <Box sx={{ mt: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="h6">銷售項目</Typography>
-              </Box>
-              
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
-                    <InputLabel>藥品</InputLabel>
+                    <InputLabel>客戶</InputLabel>
                     <Select
-                      name="product"
-                      value={currentItem.product}
-                      onChange={handleItemInputChange}
-                      label="藥品"
+                      name="customer"
+                      value={currentSale.customer}
+                      onChange={handleInputChange}
+                      label="客戶"
                     >
-                      {products.map((product) => (
-                        <MenuItem key={product._id} value={product._id}>
-                          {product.code} - {product.name}
+                      <MenuItem value="">
+                        <em>一般客戶</em>
+                      </MenuItem>
+                      {customers.map((customer) => (
+                        <MenuItem key={customer._id} value={customer._id}>
+                          {customer.name}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2}>
-                  <TextField
-                    fullWidth
-                    label="數量"
-                    name="quantity"
-                    type="number"
-                    value={currentItem.quantity}
-                    onChange={handleItemInputChange}
-                    inputProps={{ min: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    fullWidth
-                    label="單價"
-                    name="price"
-                    type="number"
-                    value={currentItem.price}
-                    onChange={handleItemInputChange}
-                    inputProps={{ min: 0 }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={handleSaveItem}
-                    fullWidth
-                    sx={{ height: '100%' }}
-                  >
-                    添加項目
-                  </Button>
+                
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>付款方式</InputLabel>
+                    <Select
+                      name="paymentMethod"
+                      value={currentSale.paymentMethod}
+                      onChange={handleInputChange}
+                      label="付款方式"
+                    >
+                      <MenuItem value="cash">現金</MenuItem>
+                      <MenuItem value="credit_card">信用卡</MenuItem>
+                      <MenuItem value="debit_card">金融卡</MenuItem>
+                      <MenuItem value="mobile_payment">行動支付</MenuItem>
+                      <MenuItem value="other">其他</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Grid>
               </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                條碼掃描
+              </Typography>
+              
+              <TextField
+                fullWidth
+                label="掃描條碼"
+                value={barcode}
+                onChange={handleBarcodeChange}
+                onKeyDown={handleBarcodeSubmit}
+                inputRef={barcodeInputRef}
+                placeholder="掃描或輸入條碼後按Enter"
+                autoFocus
+                sx={{ mb: 2 }}
+              />
+              
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow>
+                      <TableCell>條碼</TableCell>
                       <TableCell>藥品</TableCell>
                       <TableCell align="right">單價</TableCell>
-                      <TableCell align="right">數量</TableCell>
-                      <TableCell align="right">折扣</TableCell>
+                      <TableCell align="center">數量</TableCell>
                       <TableCell align="right">小計</TableCell>
                       <TableCell align="center">操作</TableCell>
                     </TableRow>
@@ -561,186 +420,116 @@ const SalesPage = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      currentSale.items.map((item, index) => {
-                        const product = products.find(p => p._id === item.product) || item.productDetails;
-                        return (
-                          <TableRow key={index}>
-                            <TableCell>{product ? product.name : '未知藥品'}</TableCell>
-                            <TableCell align="right">{item.price}</TableCell>
-                            <TableCell align="right">{item.quantity}</TableCell>
-                            <TableCell align="right">{item.discount}</TableCell>
-                            <TableCell align="right">{item.subtotal}</TableCell>
-                            <TableCell align="center">
-                              <IconButton
-                                color="error"
-                                size="small"
-                                onClick={() => handleRemoveItem(index)}
+                      currentSale.items.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.code}</TableCell>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              type="number"
+                              value={item.price}
+                              onChange={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
+                              size="small"
+                              inputProps={{ min: 0, style: { textAlign: 'right' } }}
+                              sx={{ width: '80px' }}
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleQuantityChange(index, item.quantity - 1)}
+                                disabled={item.quantity <= 1}
                               >
                                 <RemoveIcon fontSize="small" />
                               </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
+                              <TextField
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
+                                size="small"
+                                inputProps={{ min: 1, style: { textAlign: 'center' } }}
+                                sx={{ width: '60px', mx: 1 }}
+                              />
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleQuantityChange(index, item.quantity + 1)}
+                              >
+                                <AddIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
+                          <TableCell align="right">
+                            {(item.price * item.quantity).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => handleRemoveItem(index)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
                     )}
+                    <TableRow>
+                      <TableCell colSpan={3} align="right">
+                        <strong>折扣:</strong>
+                      </TableCell>
+                      <TableCell align="center">
+                        <TextField
+                          type="number"
+                          name="discount"
+                          value={currentSale.discount}
+                          onChange={handleInputChange}
+                          size="small"
+                          inputProps={{ min: 0, style: { textAlign: 'center' } }}
+                          sx={{ width: '80px' }}
+                        />
+                      </TableCell>
+                      <TableCell colSpan={2} />
+                    </TableRow>
                     <TableRow>
                       <TableCell colSpan={4} align="right">
                         <strong>總計:</strong>
                       </TableCell>
                       <TableCell align="right">
-                        <strong>{currentSale.totalAmount}</strong>
+                        <strong>{currentSale.totalAmount.toFixed(2)}</strong>
                       </TableCell>
                       <TableCell />
                     </TableRow>
                   </TableBody>
                 </Table>
               </TableContainer>
-            </Box>
-            
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  name="discount"
-                  label="折扣"
-                  type="number"
-                  value={currentSale.discount}
-                  onChange={handleInputChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  name="tax"
-                  label="稅額"
-                  type="number"
-                  value={currentSale.tax}
-                  onChange={handleInputChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>付款方式</InputLabel>
-                  <Select
-                    name="paymentMethod"
-                    value={currentSale.paymentMethod}
-                    onChange={handleInputChange}
-                    label="付款方式"
-                  >
-                    <MenuItem value="cash">現金</MenuItem>
-                    <MenuItem value="credit_card">信用卡</MenuItem>
-                    <MenuItem value="debit_card">金融卡</MenuItem>
-                    <MenuItem value="mobile_payment">行動支付</MenuItem>
-                    <MenuItem value="other">其他</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-            
-            <FormControl fullWidth>
-              <InputLabel>付款狀態</InputLabel>
-              <Select
-                name="paymentStatus"
-                value={currentSale.paymentStatus}
-                onChange={handleInputChange}
-                label="付款狀態"
-              >
-                <MenuItem value="paid">已付款</MenuItem>
-                <MenuItem value="pending">待付款</MenuItem>
-                <MenuItem value="partial">部分付款</MenuItem>
-                <MenuItem value="cancelled">已取消</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <TextField
-              name="note"
-              label="備註"
-              value={currentSale.note}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={2}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="inherit">
-            取消
-          </Button>
-          <Button onClick={handleSaveSale} color="primary" variant="contained">
-            保存
-          </Button>
-        </DialogActions>
-      </Dialog>
+              
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<SaveIcon />}
+                  onClick={handleSaveSale}
+                  disabled={currentSale.items.length === 0}
+                >
+                  保存銷售
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
       
-      {/* 項目表單對話框 */}
-      <Dialog open={openItemDialog} onClose={handleCloseItemDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>添加銷售項目</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <FormControl fullWidth required>
-              <InputLabel>藥品</InputLabel>
-              <Select
-                name="product"
-                value={currentItem.product}
-                onChange={handleItemInputChange}
-                label="藥品"
-              >
-                {products.map((product) => (
-                  <MenuItem key={product._id} value={product._id}>
-                    {product.code} - {product.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              name="quantity"
-              label="數量"
-              type="number"
-              value={currentItem.quantity}
-              onChange={handleItemInputChange}
-              fullWidth
-              required
-              inputProps={{ min: 1 }}
-            />
-            <TextField
-              name="price"
-              label="單價"
-              type="number"
-              value={currentItem.price}
-              onChange={handleItemInputChange}
-              fullWidth
-              required
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              name="discount"
-              label="折扣"
-              type="number"
-              value={currentItem.discount}
-              onChange={handleItemInputChange}
-              fullWidth
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              name="subtotal"
-              label="小計"
-              type="number"
-              value={currentItem.subtotal}
-              fullWidth
-              disabled
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseItemDialog} color="inherit">
-            取消
-          </Button>
-          <Button onClick={handleSaveItem} color="primary" variant="contained">
-            添加
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

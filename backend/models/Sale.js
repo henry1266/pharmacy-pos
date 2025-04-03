@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const SaleSchema = new mongoose.Schema({
-  invoiceNumber: {
-    type: String,
-    unique: true
-  },
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'customer'
@@ -24,10 +20,6 @@ const SaleSchema = new mongoose.Schema({
         type: Number,
         required: true
       },
-      discount: {
-        type: Number,
-        default: 0
-      },
       subtotal: {
         type: Number,
         required: true
@@ -39,10 +31,6 @@ const SaleSchema = new mongoose.Schema({
     required: true
   },
   discount: {
-    type: Number,
-    default: 0
-  },
-  tax: {
     type: Number,
     default: 0
   },

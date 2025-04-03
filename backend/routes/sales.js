@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
-// const auth = require('../middleware/auth'); // 已移除
 const Sale = require('../models/Sale');
 const { BaseProduct } = require('../models/BaseProduct');
 const Inventory = require('../models/Inventory');
@@ -9,7 +8,7 @@ const Customer = require('../models/Customer');
 
 // @route   GET api/sales
 // @desc    Get all sales
-// @access  Public (已改為公開)
+// @access  Public
 router.get('/', async (req, res) => {
   try {
     const sales = await Sale.find()
@@ -26,7 +25,7 @@ router.get('/', async (req, res) => {
 
 // @route   GET api/sales/:id
 // @desc    Get sale by ID
-// @access  Public (已改為公開)
+// @access  Public
 router.get('/:id', async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id)
@@ -48,12 +47,10 @@ router.get('/:id', async (req, res) => {
 
 // @route   POST api/sales
 // @desc    Create a sale
-// @access  Public (已改為公開)
+// @access  Public
 router.post(
   '/',
   [
-    // 移除 auth
-    // auth,
     [
       check('items', '至少需要一個銷售項目').isArray({ min: 1 }),
       check('totalAmount', '總金額為必填項').isNumeric()
@@ -69,15 +66,12 @@ router.post(
       items,
       totalAmount,
       discount,
-      tax,
       paymentMethod,
       paymentStatus,
       note,
       cashier
     } = req.body;
     try {
-      // 移除發票號碼檢查
-      
       // 檢查客戶是否存在
       if (customer) {
         const customerExists = await Customer.findById(customer);
@@ -114,14 +108,13 @@ router.post(
       const saleFields = {
         items,
         totalAmount,
-        cashier
       };
       if (customer) saleFields.customer = customer;
       if (discount) saleFields.discount = discount;
-      if (tax) saleFields.tax = tax;
       if (paymentMethod) saleFields.paymentMethod = paymentMethod;
       if (paymentStatus) saleFields.paymentStatus = paymentStatus;
       if (note) saleFields.note = note;
+      if (cashier) saleFields.cashier = cashier;
 
       const sale = new Sale(saleFields);
       await sale.save();
@@ -145,66 +138,9 @@ router.post(
   }
 );
 
-// @route   PUT api/sales/:id
-// @desc    Update a sale
-// @access  Public (已改為公開)
-router.put('/:id', async (req, res) => {
-  const {
-    invoiceNumber,
-    customer,
-    items,
-    totalAmount,
-    discount,
-    tax,
-    paymentMethod,
-    paymentStatus,
-    note
-  } = req.body;
-  
-  try {
-    let sale = await Sale.findById(req.params.id);
-    if (!sale) {
-      return res.status(404).json({ msg: '銷售記錄不存在' });
-    }
-    
-    // 建立更新欄位物件
-    const saleFields = {};
-    if (invoiceNumber && invoiceNumber !== sale.invoiceNumber) {
-      // 檢查新發票號碼是否已存在
-      const existingSale = await Sale.findOne({ invoiceNumber });
-      if (existingSale) {
-        return res.status(400).json({ msg: '發票號碼已存在' });
-      }
-      saleFields.invoiceNumber = invoiceNumber;
-    }
-    
-    // 只允許更新部分欄位，不允許更新項目和總金額以避免庫存問題
-    if (customer) saleFields.customer = customer;
-    if (discount !== undefined) saleFields.discount = discount;
-    if (tax !== undefined) saleFields.tax = tax;
-    if (paymentMethod) saleFields.paymentMethod = paymentMethod;
-    if (paymentStatus) saleFields.paymentStatus = paymentStatus;
-    if (note !== undefined) saleFields.note = note;
-    
-    // 更新
-    sale = await Sale.findByIdAndUpdate(
-      req.params.id,
-      { $set: saleFields },
-      { new: true }
-    );
-    res.json(sale);
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '銷售記錄不存在' });
-    }
-    res.status(500).send('Server Error');
-  }
-});
-
 // @route   DELETE api/sales/:id
 // @desc    Delete a sale
-// @access  Public (已改為公開)
+// @access  Public
 router.delete('/:id', async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id);
@@ -246,7 +182,7 @@ router.delete('/:id', async (req, res) => {
 
 // @route   GET api/sales/customer/:customerId
 // @desc    Get sales by customer ID
-// @access  Public (已改為公開)
+// @access  Public
 router.get('/customer/:customerId', async (req, res) => {
   try {
     const sales = await Sale.find({ customer: req.params.customerId })
