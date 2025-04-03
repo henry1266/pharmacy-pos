@@ -56,8 +56,7 @@ router.post(
     // auth,
     [
       check('items', '至少需要一個銷售項目').isArray({ min: 1 }),
-      check('totalAmount', '總金額為必填項').isNumeric(),
-      check('cashier', '收銀員ID為必填項').not().isEmpty()
+      check('totalAmount', '總金額為必填項').isNumeric()
     ]
   ],
   async (req, res) => {
