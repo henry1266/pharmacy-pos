@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { DataGrid, GridColumnMenuProps, GridColumnMenu } from '@mui/x-data-grid';
+import { DataGrid, GridColumnMenuProps, GridColumnMenu, useGridApiContext } from '@mui/x-data-grid';
 import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 // 自定義列菜單組件，添加列寬設置選項
@@ -7,6 +7,7 @@ function CustomColumnMenu(props) {
   const { hideMenu, colDef } = props;
   const [open, setOpen] = useState(false);
   const [width, setWidth] = useState(colDef.width || 100);
+  const apiRef = useGridApiContext();
 
   const handleOpen = () => {
     setOpen(true);
@@ -17,8 +18,13 @@ function CustomColumnMenu(props) {
   };
 
   const handleSave = () => {
-    // 使用apiRef更新列寬
-    props.api.setColumnWidth(colDef, width);
+    // 使用apiRef.current更新列寬
+    if (apiRef && apiRef.current) {
+      apiRef.current.setColumnWidth(colDef.field, width);
+      console.log(`Setting column ${colDef.field} width to ${width}px`);
+    } else {
+      console.error('apiRef is not available');
+    }
     setOpen(false);
     hideMenu();
   };
