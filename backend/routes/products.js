@@ -320,7 +320,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ msg: '產品不存在' });
     }
     
-    await product.remove();
+    await BaseProduct.findByIdAndDelete(req.params.id);
     
     res.json({ msg: '產品已刪除' });
   } catch (err) {
