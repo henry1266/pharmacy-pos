@@ -334,10 +334,52 @@ const ProductsPage = () => {
       };
       
       const res = await axios.get(`/api/inventory/product/${productId}`, config);
-      setProductInventory(res.data);
+      
+      // 合併相同進貨單號的記錄
+      const mergedInventory = mergeInventoryByPurchaseOrder(res.data);
+      setProductInventory(mergedInventory);
     } catch (err) {
       console.error(err);
     }
+  };
+  
+  // 合併相同進貨單號的庫存記錄
+  const mergeInventoryByPurchaseOrder = (inventoryData) => {
+    // 使用Map來按進貨單號分組並加總數量
+    const groupedByPO = new Map();
+    
+    // 第一步：按進貨單號分組並加總數量
+    inventoryData.forEach(item => {
+      const poNumber = item.purchaseOrderNumber || '未指定';
+      
+      if (groupedByPO.has(poNumber)) {
+        // 如果已有該進貨單號的記錄，加總數量
+        const existingItem = groupedByPO.get(poNumber);
+        existingItem.quantity = (parseInt(existingItem.quantity) || 0) + (parseInt(item.quantity) || 0);
+      } else {
+        // 如果是新的進貨單號，創建新記錄
+        groupedByPO.set(poNumber, { ...item });
+      }
+    });
+    
+    // 第二步：將Map轉換回數組
+    const mergedInventory = Array.from(groupedByPO.values());
+    
+    // 第三步：按進貨單號排序
+    mergedInventory.sort((a, b) => {
+      const poA = a.purchaseOrderNumber || '';
+      const poB = b.purchaseOrderNumber || '';
+      return poA.localeCompare(poB);
+    });
+    
+    // 第四步：重新計算累計庫存量
+    let cumulativeQuantity = 0;
+    mergedInventory.forEach(item => {
+      cumulativeQuantity += parseInt(item.quantity) || 0;
+      item.cumulativeQuantity = cumulativeQuantity;
+    });
+    
+    return mergedInventory;
   };
 
   // 初始化
@@ -783,55 +825,40 @@ const ProductsPage = () => {
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {productInventory.map((item, index) => {
-                            // 計算當前項目之前（含當前）的累計庫存量
-                            const currentIndex = productInventory.findIndex(i => 
-                              i.purchaseOrderNumber === item.purchaseOrderNumber);
-                            
-                            let cumulativeQuantity = 0;
-                            if (currentIndex !== -1) {
-                              for (let i = 0; i <= currentIndex; i++) {
-                                cumulativeQuantity += parseInt(productInventory[i].quantity || 0);
-                              }
-                            } else {
-                              cumulativeQuantity = item.quantity || 0;
-                            }
-                            
-                            return (
-                              <TableRow key={index}>
-                                <TableCell>
-                                  <Button 
-                                    variant="text" 
-                                    color="primary" 
-                                    size="small"
-                                    onClick={() => {
-                                      if (item.purchaseOrderId) {
-                                        // 確保使用字符串ID而不是對象
-                                        let orderId = item.purchaseOrderId;
-                                        if (typeof orderId === 'object') {
-                                          orderId = orderId._id;
-                                        } else if (typeof orderId === 'string' && orderId.includes('[object Object]')) {
-                                          // 如果是字符串但包含[object Object]，則不導航
-                                          console.error('Invalid purchase order ID:', orderId);
-                                          return;
-                                        }
-                                        window.location.href = `/purchase-orders/${orderId}`;
+                          {productInventory.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <Button 
+                                  variant="text" 
+                                  color="primary" 
+                                  size="small"
+                                  onClick={() => {
+                                    if (item.purchaseOrderId) {
+                                      // 確保使用字符串ID而不是對象
+                                      let orderId = item.purchaseOrderId;
+                                      if (typeof orderId === 'object') {
+                                        orderId = orderId._id;
+                                      } else if (typeof orderId === 'string' && orderId.includes('[object Object]')) {
+                                        // 如果是字符串但包含[object Object]，則不導航
+                                        console.error('Invalid purchase order ID:', orderId);
+                                        return;
                                       }
-                                    }}
-                                    sx={{ minWidth: 'auto', p: '0 4px' }}
-                                  >
-                                    {item.purchaseOrderNumber || '未指定'}
-                                  </Button>
-                                </TableCell>
-                                <TableCell align="right">{item.quantity || 0}</TableCell>
-                                <TableCell align="right">{cumulativeQuantity}</TableCell>
-                                <TableCell align="right">
-                                  {selectedProduct && selectedProduct.purchasePrice ? 
-                                    Number(selectedProduct.purchasePrice).toFixed(2) : '0.00'}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
+                                      window.location.href = `/purchase-orders/${orderId}`;
+                                    }
+                                  }}
+                                  sx={{ minWidth: 'auto', p: '0 4px' }}
+                                >
+                                  {item.purchaseOrderNumber || '未指定'}
+                                </Button>
+                              </TableCell>
+                              <TableCell align="right">{item.quantity || 0}</TableCell>
+                              <TableCell align="right">{item.cumulativeQuantity || item.quantity || 0}</TableCell>
+                              <TableCell align="right">
+                                {selectedProduct && selectedProduct.purchasePrice ? 
+                                  Number(selectedProduct.purchasePrice).toFixed(2) : '0.00'}
+                              </TableCell>
+                            </TableRow>
+                          ))}
                         </TableBody>
                       </Table>
                     </TableContainer>
