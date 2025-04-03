@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { Paper, Box, Typography } from '@mui/material';
 
@@ -20,8 +20,61 @@ const DataTable = ({
   loading = false,
   pageSize = 10,
   checkboxSelection = false,
+  onRowClick,
   ...rest
 }) => {
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const gridRef = useRef(null);
+
+  // 處理鍵盤事件
+  const handleKeyDown = (event) => {
+    if (!rows || rows.length === 0) return;
+    
+    // 只處理上下鍵
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      
+      let newIndex = selectedIndex;
+      
+      if (event.key === 'ArrowUp') {
+        // 上鍵：選擇上一行，如果已經是第一行則不變
+        newIndex = Math.max(0, selectedIndex - 1);
+      } else {
+        // 下鍵：選擇下一行，如果已經是最後一行則不變
+        newIndex = Math.min(rows.length - 1, selectedIndex + 1);
+      }
+      
+      // 如果索引變化了，觸發行點擊事件
+      if (newIndex !== selectedIndex) {
+        setSelectedIndex(newIndex);
+        if (onRowClick && rows[newIndex]) {
+          onRowClick({ row: rows[newIndex] });
+        }
+      }
+    }
+  };
+
+  // 處理行點擊，更新選中索引
+  const handleRowClickInternal = (params) => {
+    const index = rows.findIndex(row => row.id === params.row.id);
+    setSelectedIndex(index);
+    if (onRowClick) {
+      onRowClick(params);
+    }
+  };
+
+  // 添加和移除鍵盤事件監聽
+  useEffect(() => {
+    const gridElement = gridRef.current;
+    if (gridElement) {
+      gridElement.addEventListener('keydown', handleKeyDown);
+      
+      return () => {
+        gridElement.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [rows, selectedIndex]);
+
   return (
     <Paper elevation={2} sx={{ width: '100%', overflow: 'hidden' }}>
       {title && (
@@ -31,7 +84,7 @@ const DataTable = ({
           </Typography>
         </Box>
       )}
-      <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%' }} ref={gridRef} tabIndex="0">
         <DataGrid
           rows={rows}
           columns={columns}
@@ -42,6 +95,7 @@ const DataTable = ({
           disableSelectionOnClick
           autoHeight
           sx={{ minHeight: 500 }}
+          onRowClick={handleRowClickInternal}
           {...rest}
         />
       </Box>
