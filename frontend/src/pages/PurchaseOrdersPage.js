@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { 
   Box, 
   Typography, 
@@ -26,7 +27,13 @@ import {
   DialogTitle,
   Snackbar,
   Alert,
-  Chip
+  Chip,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -35,7 +42,8 @@ import {
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
   FilterList as FilterListIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -66,6 +74,15 @@ const PurchaseOrdersPage = () => {
     message: '',
     severity: 'success'
   });
+  
+  // CSV導入相關狀態
+  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
+  const [csvType, setCsvType] = useState('basic'); // 'basic' 或 'items'
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvImportLoading, setCsvImportLoading] = useState(false);
+  const [csvImportError, setCsvImportError] = useState(null);
+  const [csvImportSuccess, setCsvImportSuccess] = useState(false);
+  const [csvTabValue, setCsvTabValue] = useState(0);
   
   useEffect(() => {
     dispatch(fetchPurchaseOrders());
@@ -152,6 +169,85 @@ const PurchaseOrdersPage = () => {
     });
   };
   
+  // 處理打開CSV導入對話框
+  const handleOpenCsvImport = () => {
+    setCsvFile(null);
+    setCsvImportError(null);
+    setCsvImportSuccess(false);
+    setCsvImportDialogOpen(true);
+  };
+  
+  // 處理CSV標籤頁切換
+  const handleCsvTabChange = (event, newValue) => {
+    setCsvTabValue(newValue);
+    setCsvType(newValue === 0 ? 'basic' : 'items');
+    setCsvFile(null);
+    setCsvImportError(null);
+  };
+  
+  // 處理CSV文件選擇
+  const handleCsvFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setCsvFile(e.target.files[0]);
+      setCsvImportError(null);
+    }
+  };
+  
+  // 處理CSV導入
+  const handleCsvImport = async () => {
+    if (!csvFile) {
+      setCsvImportError('請選擇CSV文件');
+      return;
+    }
+    
+    try {
+      setCsvImportLoading(true);
+      setCsvImportError(null);
+      
+      const formData = new FormData();
+      formData.append('file', csvFile);
+      formData.append('type', csvType);
+      
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token,
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+      
+      // 根據CSV類型選擇不同的API端點
+      const endpoint = csvType === 'basic' 
+        ? '/api/purchase-orders/import/basic'
+        : '/api/purchase-orders/import/items';
+      
+      const response = await axios.post(endpoint, formData, config);
+      
+      // 更新進貨單列表
+      dispatch(fetchPurchaseOrders());
+      
+      setCsvImportSuccess(true);
+      setCsvImportLoading(false);
+      
+      // 顯示成功消息
+      setSnackbar({
+        open: true,
+        message: response.data.msg || 'CSV導入成功',
+        severity: 'success'
+      });
+      
+      // 3秒後關閉對話框
+      setTimeout(() => {
+        setCsvImportDialogOpen(false);
+        setCsvImportSuccess(false);
+      }, 3000);
+    } catch (err) {
+      console.error('CSV導入錯誤:', err);
+      setCsvImportError(err.response?.data?.msg || '導入失敗，請檢查CSV格式');
+      setCsvImportLoading(false);
+    }
+  };
+  
   const getStatusChip = (status) => {
     let color = 'default';
     let label = '未知';
@@ -221,8 +317,17 @@ const PurchaseOrdersPage = () => {
                 color="primary" 
                 startIcon={<AddIcon />} 
                 onClick={handleAddNew}
+                sx={{ mr: 1 }}
               >
                 新增進貨單
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<CloudUploadIcon />}
+                onClick={handleOpenCsvImport}
+              >
+                CSV匯入
               </Button>
             </Box>
           </Box>
@@ -378,6 +483,112 @@ const PurchaseOrdersPage = () => {
           <Button onClick={handleDeleteCancel}>取消</Button>
           <Button onClick={handleDeleteConfirm} color="error">
             刪除
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* CSV導入對話框 */}
+      <Dialog
+        open={csvImportDialogOpen}
+        onClose={() => setCsvImportDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>CSV匯入進貨單</DialogTitle>
+        <DialogContent>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Tabs value={csvTabValue} onChange={handleCsvTabChange}>
+              <Tab label="進貨單基本資訊" />
+              <Tab label="進貨品項" />
+            </Tabs>
+          </Box>
+          
+          {csvTabValue === 0 && (
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                請上傳進貨單基本資訊CSV文件
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                CSV格式要求：進貨單號,發票號,發票日期,廠商,付款狀態<br />
+                範例：20240816001,DA84143639,20240813,嘉鏵,已下收
+              </Typography>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<CloudUploadIcon />}
+                sx={{ mt: 1, mb: 2 }}
+              >
+                選擇文件
+                <input
+                  type="file"
+                  accept=".csv"
+                  hidden
+                  onChange={handleCsvFileChange}
+                />
+              </Button>
+              {csvFile && (
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  已選擇文件: {csvFile.name}
+                </Typography>
+              )}
+            </Box>
+          )}
+          
+          {csvTabValue === 1 && (
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                請上傳進貨品項CSV文件
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                CSV格式要求：進貨單號,藥品代碼,數量,金額<br />
+                範例：20240816001,80002,70,140<br />
+                注意：請確保進貨單號已存在於系統中
+              </Typography>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<CloudUploadIcon />}
+                sx={{ mt: 1, mb: 2 }}
+              >
+                選擇文件
+                <input
+                  type="file"
+                  accept=".csv"
+                  hidden
+                  onChange={handleCsvFileChange}
+                />
+              </Button>
+              {csvFile && (
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  已選擇文件: {csvFile.name}
+                </Typography>
+              )}
+            </Box>
+          )}
+          
+          {csvImportError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {csvImportError}
+            </Alert>
+          )}
+          
+          {csvImportSuccess && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              CSV導入成功！
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCsvImportDialogOpen(false)} color="inherit">
+            取消
+          </Button>
+          <Button 
+            onClick={handleCsvImport} 
+            color="primary" 
+            variant="contained"
+            disabled={!csvFile || csvImportLoading}
+          >
+            {csvImportLoading ? <CircularProgress size={24} /> : '導入'}
           </Button>
         </DialogActions>
       </Dialog>

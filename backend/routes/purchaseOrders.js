@@ -5,6 +5,27 @@ const PurchaseOrder = require('../models/PurchaseOrder');
 const { BaseProduct } = require('../models/BaseProduct');
 const Supplier = require('../models/Supplier');
 const Inventory = require('../models/Inventory');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
+
+// 設置文件上傳
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads');
+    // 確保上傳目錄存在
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // @route   GET api/purchase-orders
 // @desc    獲取所有進貨單
@@ -397,5 +418,188 @@ async function deleteInventoryRecords(purchaseOrderId) {
     throw err;
   }
 }
+
+// @route   POST api/purchase-orders/import/basic
+// @desc    導入進貨單基本資訊CSV
+// @access  Public
+router.post('/import/basic', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: '請上傳CSV文件' });
+    }
+
+    const results = [];
+    const errors = [];
+    let successCount = 0;
+
+    // 讀取並解析CSV文件
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        // 刪除上傳的文件
+        fs.unlinkSync(req.file.path);
+
+        // 處理每一行數據
+        for (const row of results) {
+          try {
+            // 檢查必要字段
+            if (!row['進貨單號'] || !row['廠商']) {
+              errors.push(`行 ${results.indexOf(row) + 1}: 進貨單號和廠商為必填項`);
+              continue;
+            }
+
+            // 檢查進貨單號是否已存在
+            const existingPO = await PurchaseOrder.findOne({ poid: row['進貨單號'] });
+            if (existingPO) {
+              errors.push(`行 ${results.indexOf(row) + 1}: 進貨單號 ${row['進貨單號']} 已存在`);
+              continue;
+            }
+
+            // 準備進貨單數據
+            const purchaseOrderData = {
+              poid: row['進貨單號'],
+              pobill: row['發票號'] || '',
+              pobilldate: row['發票日期'] ? new Date(row['發票日期']) : null,
+              posupplier: row['廠商'],
+              paymentStatus: row['付款狀態'] || '未付',
+              items: [],
+              status: 'pending'
+            };
+
+            // 嘗試查找供應商
+            const supplierDoc = await Supplier.findOne({ name: row['廠商'] });
+            if (supplierDoc) {
+              purchaseOrderData.supplier = supplierDoc._id;
+            }
+
+            // 創建進貨單
+            const purchaseOrder = new PurchaseOrder(purchaseOrderData);
+            await purchaseOrder.save();
+            successCount++;
+          } catch (err) {
+            console.error(`處理行 ${results.indexOf(row) + 1} 時出錯:`, err);
+            errors.push(`行 ${results.indexOf(row) + 1}: ${err.message}`);
+          }
+        }
+
+        // 返回結果
+        res.json({
+          msg: `成功導入 ${successCount} 筆進貨單基本資訊${errors.length > 0 ? '，但有部分錯誤' : ''}`,
+          success: successCount,
+          errors: errors
+        });
+      });
+  } catch (err) {
+    console.error('CSV導入錯誤:', err);
+    res.status(500).json({ msg: '伺服器錯誤' });
+  }
+});
+
+// @route   POST api/purchase-orders/import/items
+// @desc    導入進貨品項CSV
+// @access  Public
+router.post('/import/items', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: '請上傳CSV文件' });
+    }
+
+    const results = [];
+    const errors = [];
+    let successCount = 0;
+    const updatedPOs = new Set();
+
+    // 讀取並解析CSV文件
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        // 刪除上傳的文件
+        fs.unlinkSync(req.file.path);
+
+        // 處理每一行數據
+        for (const row of results) {
+          try {
+            // 檢查必要字段
+            if (!row['進貨單號'] || !row['藥品代碼'] || !row['數量'] || !row['金額']) {
+              errors.push(`行 ${results.indexOf(row) + 1}: 進貨單號、藥品代碼、數量和金額為必填項`);
+              continue;
+            }
+
+            // 檢查進貨單是否存在
+            const purchaseOrder = await PurchaseOrder.findOne({ poid: row['進貨單號'] });
+            if (!purchaseOrder) {
+              errors.push(`行 ${results.indexOf(row) + 1}: 進貨單號 ${row['進貨單號']} 不存在`);
+              continue;
+            }
+
+            // 檢查藥品是否存在
+            const product = await BaseProduct.findOne({ code: row['藥品代碼'] });
+            if (!product) {
+              errors.push(`行 ${results.indexOf(row) + 1}: 藥品代碼 ${row['藥品代碼']} 不存在`);
+              continue;
+            }
+
+            // 準備進貨品項數據
+            const itemData = {
+              product: product._id,
+              did: row['藥品代碼'],
+              dname: product.name,
+              dquantity: parseInt(row['數量']),
+              dtotalCost: parseFloat(row['金額'])
+            };
+
+            // 檢查是否已有相同藥品的項目
+            const existingItemIndex = purchaseOrder.items.findIndex(
+              item => item.did === row['藥品代碼']
+            );
+
+            if (existingItemIndex >= 0) {
+              // 更新現有項目
+              purchaseOrder.items[existingItemIndex] = {
+                ...purchaseOrder.items[existingItemIndex],
+                ...itemData
+              };
+            } else {
+              // 添加新項目
+              purchaseOrder.items.push(itemData);
+            }
+
+            // 標記此進貨單已更新
+            updatedPOs.add(purchaseOrder._id.toString());
+            successCount++;
+          } catch (err) {
+            console.error(`處理行 ${results.indexOf(row) + 1} 時出錯:`, err);
+            errors.push(`行 ${results.indexOf(row) + 1}: ${err.message}`);
+          }
+        }
+
+        // 保存所有更新的進貨單
+        for (const poId of updatedPOs) {
+          try {
+            const po = await PurchaseOrder.findById(poId);
+            // 重新計算總金額
+            po.totalAmount = po.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
+            await po.save();
+          } catch (err) {
+            console.error(`保存進貨單 ${poId} 時出錯:`, err);
+            errors.push(`保存進貨單時出錯: ${err.message}`);
+          }
+        }
+
+        // 返回結果
+        res.json({
+          msg: `成功導入 ${successCount} 筆進貨品項，更新了 ${updatedPOs.size} 個進貨單${errors.length > 0 ? '，但有部分錯誤' : ''}`,
+          success: successCount,
+          updatedPOs: updatedPOs.size,
+          errors: errors
+        });
+      });
+  } catch (err) {
+    console.error('CSV導入錯誤:', err);
+    res.status(500).json({ msg: '伺服器錯誤' });
+  }
+});
 
 module.exports = router;
