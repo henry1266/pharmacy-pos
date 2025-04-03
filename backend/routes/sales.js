@@ -55,7 +55,6 @@ router.post(
     // 移除 auth
     // auth,
     [
-      check('invoiceNumber', '發票號碼為必填項').not().isEmpty(),
       check('items', '至少需要一個銷售項目').isArray({ min: 1 }),
       check('totalAmount', '總金額為必填項').isNumeric(),
       check('cashier', '收銀員ID為必填項').not().isEmpty()
@@ -67,7 +66,6 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const {
-      invoiceNumber,
       customer,
       items,
       totalAmount,
@@ -79,11 +77,7 @@ router.post(
       cashier
     } = req.body;
     try {
-      // 檢查發票號碼是否已存在
-      let existingSale = await Sale.findOne({ invoiceNumber });
-      if (existingSale) {
-        return res.status(400).json({ msg: '發票號碼已存在' });
-      }
+      // 移除發票號碼檢查
       
       // 檢查客戶是否存在
       if (customer) {
@@ -119,7 +113,6 @@ router.post(
       
       // 建立銷售記錄
       const saleFields = {
-        invoiceNumber,
         items,
         totalAmount,
         cashier

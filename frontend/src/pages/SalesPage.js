@@ -39,7 +39,6 @@ const SalesPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentSale, setCurrentSale] = useState({
-    invoiceNumber: '',
     customer: '',
     items: [],
     totalAmount: 0,
@@ -276,16 +275,7 @@ const SalesPage = () => {
 
   // 處理添加銷售
   const handleAddSale = () => {
-    // 生成新的發票號碼
-    const date = new Date();
-    const year = date.getFullYear().toString().substr(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const invoiceNumber = `INV${year}${month}${day}${random}`;
-    
     setCurrentSale({
-      invoiceNumber: invoiceNumber,
       customer: '',
       items: [],
       totalAmount: 0,
@@ -397,7 +387,6 @@ const SalesPage = () => {
       
       // 準備銷售數據
       const saleData = {
-        invoiceNumber: currentSale.invoiceNumber,
         customer: currentSale.customer || null,
         items: currentSale.items.map(item => ({
           product: item.product,
@@ -473,17 +462,6 @@ const SalesPage = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <TextField
-                  name="invoiceNumber"
-                  label="發票號碼"
-                  value={currentSale.invoiceNumber}
-                  onChange={handleInputChange}
-                  fullWidth
-                  required
-                  disabled={editMode}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>客戶</InputLabel>
                   <Select
@@ -509,16 +487,60 @@ const SalesPage = () => {
             <Box sx={{ mt: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="h6">銷售項目</Typography>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddItem}
-                  size="small"
-                >
-                  添加項目
-                </Button>
               </Box>
+              
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={12} sm={6} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>藥品</InputLabel>
+                    <Select
+                      name="product"
+                      value={currentItem.product}
+                      onChange={handleItemInputChange}
+                      label="藥品"
+                    >
+                      {products.map((product) => (
+                        <MenuItem key={product._id} value={product._id}>
+                          {product.code} - {product.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                  <TextField
+                    fullWidth
+                    label="數量"
+                    name="quantity"
+                    type="number"
+                    value={currentItem.quantity}
+                    onChange={handleItemInputChange}
+                    inputProps={{ min: 1 }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    fullWidth
+                    label="單價"
+                    name="price"
+                    type="number"
+                    value={currentItem.price}
+                    onChange={handleItemInputChange}
+                    inputProps={{ min: 0 }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleSaveItem}
+                    fullWidth
+                    sx={{ height: '100%' }}
+                  >
+                    添加項目
+                  </Button>
+                </Grid>
+              </Grid>
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
