@@ -122,7 +122,7 @@ const ProductsPage = () => {
   const productColumns = [
     { field: 'code', headerName: '商品編號', width: 120 },
     { field: 'name', headerName: '商品名稱', width: 180 },
-    { field: 'barcode', headerName: '國際條碼', width: 150 },
+    { field: 'sellingPrice', headerName: '售價', width: 150, type: 'number' },
     { 
       field: 'inventory', 
       headerName: '庫存', 
