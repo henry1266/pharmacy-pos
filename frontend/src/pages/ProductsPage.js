@@ -758,7 +758,7 @@ const ProductsPage = () => {
                   <Divider sx={{ my: 1 }} />
                   
                   <Typography variant="subtitle2" gutterBottom>
-                    庫存明細 (貨單號 | 數量 | 庫存 | 單價):
+                    庫存明細:
                   </Typography>
                   
                   {inventoryLoading ? (
@@ -766,58 +766,69 @@ const ProductsPage = () => {
                       <CircularProgress size={24} />
                     </Box>
                   ) : productInventory.length > 0 ? (
-                    <List dense>
-                      {productInventory.map((item, index) => (
-                        <ListItem key={index} divider={index < productInventory.length - 1}>
-                          <Grid container spacing={1}>
-                            <Grid item xs={12}>
-                              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Button 
-                                  variant="text" 
-                                  color="primary" 
-                                  size="small"
-                                  onClick={() => {
-                                    if (item.purchaseOrderId) {
-                                      // 確保使用字符串ID而不是對象
-                                      let orderId = item.purchaseOrderId;
-                                      if (typeof orderId === 'object') {
-                                        orderId = orderId._id;
-                                      } else if (typeof orderId === 'string' && orderId.includes('[object Object]')) {
-                                        // 如果是字符串但包含[object Object]，則不導航
-                                        console.error('Invalid purchase order ID:', orderId);
-                                        return;
+                    <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
+                      <Table size="small" stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>貨單號</TableCell>
+                            <TableCell align="right">數量</TableCell>
+                            <TableCell align="right">庫存</TableCell>
+                            <TableCell align="right">單價</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {productInventory.map((item, index) => {
+                            // 計算當前項目之前（含當前）的累計庫存量
+                            const currentIndex = productInventory.findIndex(i => 
+                              i.purchaseOrderNumber === item.purchaseOrderNumber);
+                            
+                            let cumulativeQuantity = 0;
+                            if (currentIndex !== -1) {
+                              for (let i = 0; i <= currentIndex; i++) {
+                                cumulativeQuantity += parseInt(productInventory[i].quantity || 0);
+                              }
+                            } else {
+                              cumulativeQuantity = item.quantity || 0;
+                            }
+                            
+                            return (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <Button 
+                                    variant="text" 
+                                    color="primary" 
+                                    size="small"
+                                    onClick={() => {
+                                      if (item.purchaseOrderId) {
+                                        // 確保使用字符串ID而不是對象
+                                        let orderId = item.purchaseOrderId;
+                                        if (typeof orderId === 'object') {
+                                          orderId = orderId._id;
+                                        } else if (typeof orderId === 'string' && orderId.includes('[object Object]')) {
+                                          // 如果是字符串但包含[object Object]，則不導航
+                                          console.error('Invalid purchase order ID:', orderId);
+                                          return;
+                                        }
+                                        window.location.href = `/purchase-orders/${orderId}`;
                                       }
-                                      window.location.href = `/purchase-orders/${orderId}`;
-                                    }
-                                  }}
-                                  sx={{ minWidth: 'auto', p: '0 4px' }}
-                                >
-                                  {item.purchaseOrderNumber || '未指定'}
-                                </Button>
-                                {' | '}
-                                {item.quantity || 0}
-                                {' | '}
-                                {(() => {
-                                  // 計算當前項目之前（含當前）的累計庫存量
-                                  const currentIndex = productInventory.findIndex(i => 
-                                    i.purchaseOrderNumber === item.purchaseOrderNumber);
-                                  if (currentIndex === -1) return item.quantity || 0;
-                                  
-                                  let cumulativeQuantity = 0;
-                                  for (let i = 0; i <= currentIndex; i++) {
-                                    cumulativeQuantity += parseInt(productInventory[i].quantity || 0);
-                                  }
-                                  return cumulativeQuantity;
-                                })()}
-                                {' | '}
-                                {selectedProduct && selectedProduct.purchasePrice ? 
-                                  Number(selectedProduct.purchasePrice).toFixed(2) : '0.00'}
-                              </Typography>
-                            </Grid>
-                          </Grid>
-                        </ListItem>
-                      ))}
-                    </List>
+                                    }}
+                                    sx={{ minWidth: 'auto', p: '0 4px' }}
+                                  >
+                                    {item.purchaseOrderNumber || '未指定'}
+                                  </Button>
+                                </TableCell>
+                                <TableCell align="right">{item.quantity || 0}</TableCell>
+                                <TableCell align="right">{cumulativeQuantity}</TableCell>
+                                <TableCell align="right">
+                                  {selectedProduct && selectedProduct.purchasePrice ? 
+                                    Number(selectedProduct.purchasePrice).toFixed(2) : '0.00'}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
                   ) : (
                     <Typography variant="body2" sx={{ p: 1 }}>
                       無庫存記錄
