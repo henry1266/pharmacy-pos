@@ -115,7 +115,6 @@ router.post(
           return res.status(500).json({ msg: `庫存檢查錯誤: ${err.message}` });
         }
       }
-      }
       
       // 建立銷售記錄
       const saleFields = {
