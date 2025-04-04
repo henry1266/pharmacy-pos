@@ -301,24 +301,39 @@ router.put('/:id', [
 
     // 處理庫存變更
     // 1. 刪除與此銷售相關的所有庫存記錄
-    await Inventory.deleteMany({ 
-      saleId: sale._id,
-      type: 'sale'
-    });
-    console.log(`刪除與銷售 ${sale._id} 相關的所有庫存記錄`);
+    try {
+      const deletedRecords = await Inventory.deleteMany({ 
+        saleId: sale._id,
+        type: 'sale'
+      });
+      console.log(`刪除與銷售 ${sale._id} 相關的所有庫存記錄，刪除數量: ${deletedRecords.deletedCount}`);
+      
+      // 如果沒有刪除任何記錄，記錄警告
+      if (deletedRecords.deletedCount === 0) {
+        console.warn(`警告: 未找到與銷售 ${sale._id} 相關的庫存記錄進行刪除`);
+      }
+    } catch (err) {
+      console.error(`刪除庫存記錄時出錯:`, err);
+      return res.status(500).json({ msg: `刪除庫存記錄時出錯: ${err.message}` });
+    }
 
     // 2. 為每個銷售項目創建新的負數庫存記錄
-    for (const item of items) {
-      const inventoryRecord = new Inventory({
-        product: item.product,
-        quantity: -item.quantity, // 負數表示庫存減少
-        type: 'sale',
-        saleId: sale._id,
-        lastUpdated: Date.now()
-      });
-      
-      await inventoryRecord.save();
-      console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}`);
+    try {
+      for (const item of items) {
+        const inventoryRecord = new Inventory({
+          product: item.product,
+          quantity: -item.quantity, // 負數表示庫存減少
+          type: 'sale',
+          saleId: sale._id,
+          lastUpdated: Date.now()
+        });
+        
+        await inventoryRecord.save();
+        console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}`);
+      }
+    } catch (err) {
+      console.error(`創建新庫存記錄時出錯:`, err);
+      return res.status(500).json({ msg: `創建新庫存記錄時出錯: ${err.message}` });
     }
 
     // 處理客戶積分變更

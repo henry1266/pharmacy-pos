@@ -18,6 +18,15 @@ const InventorySchema = new mongoose.Schema({
   purchaseOrderNumber: {
     type: String
   },
+  type: {
+    type: String,
+    enum: ['purchase', 'sale', 'return', 'adjustment'],
+    default: 'purchase'
+  },
+  saleId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'sale'
+  },
   lastUpdated: {
     type: Date,
     default: Date.now
