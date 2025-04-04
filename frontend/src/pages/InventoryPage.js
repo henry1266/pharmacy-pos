@@ -20,8 +20,11 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DataTable from '../components/tables/DataTable';
+import { useNavigate } from 'react-router-dom';
 
 const InventoryPage = () => {
+  const navigate = useNavigate();
+  
   // 狀態管理
   const [inventory, setInventory] = useState([]);
   const [products, setProducts] = useState([]);
@@ -56,7 +59,20 @@ const InventoryPage = () => {
       }
     },
     { field: 'quantity', headerName: '庫存數量', width: 120, type: 'number' },
-    { field: 'purchaseOrderNumber', headerName: '進貨單號', width: 150 },
+    { 
+      field: 'purchaseOrderNumber', 
+      headerName: '進貨單號', 
+      width: 150,
+      renderCell: (params) => (
+        <Button
+          size="small"
+          color="primary"
+          onClick={() => navigate(`/sales/${params.row.purchaseOrderNumber}`)}
+        >
+          {params.row.purchaseOrderNumber || '無單號'}
+        </Button>
+      )
+    },
     {
       field: 'actions',
       headerName: '操作',
