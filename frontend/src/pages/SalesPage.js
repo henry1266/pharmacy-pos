@@ -44,6 +44,7 @@ const SalesPage = () => {
   const [error, setError] = useState(null);
   
   const [currentSale, setCurrentSale] = useState({
+    saleNumber: '',
     customer: '',
     items: [],
     totalAmount: 0,
@@ -259,8 +260,40 @@ const SalesPage = () => {
         return;
       }
       
+      // 生成銷貨單號（如果未填寫）
+      let finalSaleNumber = currentSale.saleNumber;
+      if (!finalSaleNumber) {
+        const now = new Date();
+        const year = now.getFullYear().toString().substring(2); // 取年份後兩位
+        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 月份補零
+        const day = now.getDate().toString().padStart(2, '0'); // 日期補零
+        
+        // 基本格式：YYMMDD
+        const datePrefix = `${year}${month}${day}`;
+        
+        // 嘗試獲取當天最後一個銷貨單號
+        try {
+          const response = await axios.get(`/api/sales/latest-number/${datePrefix}`);
+          const latestNumber = response.data.latestNumber;
+          
+          if (latestNumber) {
+            // 提取序號部分並加1
+            const sequence = parseInt(latestNumber.substring(6)) + 1;
+            finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
+          } else {
+            // 如果當天沒有銷貨單，從001開始
+            finalSaleNumber = `${datePrefix}001`;
+          }
+        } catch (err) {
+          console.error('獲取最新銷貨單號失敗:', err);
+          // 如果API調用失敗，使用時間戳作為備用方案
+          finalSaleNumber = `${datePrefix}001`;
+        }
+      }
+      
       // 準備銷售數據
       const saleData = {
+        saleNumber: finalSaleNumber,
         customer: currentSale.customer || null,
         items: currentSale.items.map(item => ({
           product: item.product,
@@ -281,6 +314,7 @@ const SalesPage = () => {
       
       // 重置表單
       setCurrentSale({
+        saleNumber: '',
         customer: '',
         items: [],
         totalAmount: 0,
@@ -338,6 +372,19 @@ const SalesPage = () => {
           <Card>
             <CardContent>
               <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="銷貨單號"
+                    name="saleNumber"
+                    value={currentSale.saleNumber}
+                    onChange={handleInputChange}
+                    placeholder="選填，格式如：20240826001"
+                    helperText="若不填寫將自動生成"
+                    sx={{ mb: 2 }}
+                  />
+                </Grid>
+                
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
                     <InputLabel>客戶</InputLabel>

@@ -62,6 +62,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const {
+      saleNumber,
       customer,
       items,
       totalAmount,
@@ -116,8 +117,35 @@ router.post(
         }
       }
       
+      // 生成銷貨單號（如果未提供）
+      let finalSaleNumber = saleNumber;
+      if (!finalSaleNumber) {
+        const now = new Date();
+        const year = now.getFullYear().toString().substring(2); // 取年份後兩位
+        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 月份補零
+        const day = now.getDate().toString().padStart(2, '0'); // 日期補零
+        
+        // 基本格式：YYMMDD
+        const datePrefix = `${year}${month}${day}`;
+        
+        // 查找當天最後一個銷貨單號
+        const latestSale = await Sale.findOne({
+          saleNumber: { $regex: `^${datePrefix}` }
+        }).sort({ saleNumber: -1 });
+        
+        if (latestSale && latestSale.saleNumber) {
+          // 提取序號部分並加1
+          const sequence = parseInt(latestSale.saleNumber.substring(6)) + 1;
+          finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
+        } else {
+          // 如果當天沒有銷貨單，從001開始
+          finalSaleNumber = `${datePrefix}001`;
+        }
+      }
+      
       // 建立銷售記錄
       const saleFields = {
+        saleNumber: finalSaleNumber,
         items,
         totalAmount,
       };
@@ -179,6 +207,7 @@ router.put('/:id', [
   }
 
   const {
+    saleNumber,
     customer,
     items,
     totalAmount,
@@ -252,6 +281,7 @@ router.put('/:id', [
 
     // 更新銷售記錄
     const saleFields = {
+      saleNumber,
       items,
       totalAmount,
     };
@@ -379,6 +409,29 @@ router.delete('/:id', async (req, res) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: '銷售記錄不存在' });
     }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/sales/latest-number/:prefix
+// @desc    Get latest sale number with given prefix
+// @access  Public
+router.get('/latest-number/:prefix', async (req, res) => {
+  try {
+    const { prefix } = req.params;
+    
+    // 查找以指定前綴開頭的最新銷貨單號
+    const latestSale = await Sale.findOne({
+      saleNumber: { $regex: `^${prefix}` }
+    }).sort({ saleNumber: -1 });
+    
+    if (latestSale && latestSale.saleNumber) {
+      return res.json({ latestNumber: latestSale.saleNumber });
+    } else {
+      return res.json({ latestNumber: null });
+    }
+  } catch (err) {
+    console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
