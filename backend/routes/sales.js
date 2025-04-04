@@ -80,74 +80,41 @@ router.post(
         }
       }
       
-      // 檢查所有產品是否存在並更新庫存
+      // 檢查所有產品是否存在並檢查庫存是否足夠
       for (const item of items) {
         const product = await BaseProduct.findById(item.product);
         if (!product) {
           return res.status(404).json({ msg: `產品ID ${item.product} 不存在` });
         }
         
-        // 更新庫存 - 修改查詢方式，確保正確匹配產品ID並合併多個庫存記錄
+        // 檢查庫存是否足夠 - 計算總庫存量
         console.log(`檢查產品ID: ${item.product}, 名稱: ${product.name}`);
         
         try {
-          // 使用lean()獲取純JavaScript對象，避免Mongoose文檔轉換問題
-          const inventories = await Inventory.find({}).lean();
+          // 獲取所有庫存記錄
+          const inventories = await Inventory.find({ product: item.product }).lean();
           console.log(`找到 ${inventories.length} 個庫存記錄`);
           
-          // 查找所有匹配的庫存記錄並合併數量
-          let matchingInventories = [];
+          // 計算總庫存量
           let totalQuantity = 0;
-          
           for (const inv of inventories) {
-            if (inv.product && inv.product.toString() === item.product.toString()) {
-              matchingInventories.push(inv);
-              totalQuantity += inv.quantity;
-              console.log(`找到匹配的庫存記錄: ${inv._id}, 數量: ${inv.quantity}`);
-            }
+            totalQuantity += inv.quantity;
+            console.log(`庫存記錄: ${inv._id}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
           }
           
-          console.log(`產品 ${product.name} 總共找到 ${matchingInventories.length} 個庫存記錄，總數量: ${totalQuantity}`);
+          console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}`);
           
-          if (matchingInventories.length > 0) {
-            // 檢查總庫存是否足夠
-            if (totalQuantity < item.quantity) {
-              return res.status(400).json({ 
-                msg: `產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${item.quantity}` 
-              });
-            }
-            
-            // 從庫存記錄中扣除數量，優先從數量大的記錄開始扣除
-            let remainingToDeduct = item.quantity;
-            
-            // 按庫存數量從大到小排序
-            matchingInventories.sort((a, b) => b.quantity - a.quantity);
-            
-            for (const inv of matchingInventories) {
-              if (remainingToDeduct <= 0) break;
-              
-              // 直接從數據庫重新獲取庫存記錄，確保數據最新
-              const freshInventory = await Inventory.findById(inv._id);
-              console.log(`更新庫存記錄 ${freshInventory._id}, 當前數量: ${freshInventory.quantity}`);
-              
-              const deductAmount = Math.min(freshInventory.quantity, remainingToDeduct);
-              freshInventory.quantity -= deductAmount;
-              freshInventory.lastUpdated = Date.now();
-              await freshInventory.save();
-              
-              remainingToDeduct -= deductAmount;
-              console.log(`從庫存記錄 ${freshInventory._id} 扣除 ${deductAmount}，剩餘數量: ${freshInventory.quantity}，還需扣除: ${remainingToDeduct}`);
-            }
-            
-            console.log(`產品 ${product.name} 庫存更新完成`);
-          } else {
-            console.log(`未找到產品 ${product.name} 的庫存記錄`);
-            return res.status(400).json({ msg: `產品 ${product.name} 無庫存記錄` });
+          // 檢查總庫存是否足夠
+          if (totalQuantity < item.quantity) {
+            return res.status(400).json({ 
+              msg: `產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${item.quantity}` 
+            });
           }
         } catch (err) {
           console.error(`庫存檢查錯誤:`, err);
           return res.status(500).json({ msg: `庫存檢查錯誤: ${err.message}` });
         }
+      }
       }
       
       // 建立銷售記錄
@@ -164,6 +131,20 @@ router.post(
 
       const sale = new Sale(saleFields);
       await sale.save();
+      
+      // 為每個銷售項目創建負數庫存記錄
+      for (const item of items) {
+        const inventoryRecord = new Inventory({
+          product: item.product,
+          quantity: -item.quantity, // 負數表示庫存減少
+          type: 'sale',
+          saleId: sale._id,
+          lastUpdated: Date.now()
+        });
+        
+        await inventoryRecord.save();
+        console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}`);
+      }
       
       // 如果有客戶，更新客戶積分
       if (customer) {
@@ -194,13 +175,31 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ msg: '銷售記錄不存在' });
     }
     
-    // 恢復庫存
+    // 恢復庫存 - 創建新的庫存記錄而不是修改現有記錄
     for (const item of sale.items) {
-      const inventory = await Inventory.findOne({ product: item.product });
-      if (inventory) {
-        inventory.quantity += item.quantity;
-        inventory.lastUpdated = Date.now();
-        await inventory.save();
+      // 查找與此銷售相關的庫存記錄
+      const saleInventory = await Inventory.findOne({ 
+        saleId: sale._id,
+        product: item.product,
+        type: 'sale'
+      });
+      
+      // 如果找到相關的銷售庫存記錄，則刪除它
+      if (saleInventory) {
+        await Inventory.deleteOne({ _id: saleInventory._id });
+        console.log(`刪除產品 ${item.product} 的銷售庫存記錄`);
+      } else {
+        // 如果找不到相關的銷售庫存記錄，則創建一個新的庫存記錄來恢復庫存
+        const inventoryRecord = new Inventory({
+          product: item.product,
+          quantity: item.quantity, // 正數表示庫存增加
+          type: 'return',
+          saleId: sale._id,
+          lastUpdated: Date.now()
+        });
+        
+        await inventoryRecord.save();
+        console.log(`為產品 ${item.product} 創建退貨庫存記錄，數量: ${item.quantity}`);
       }
     }
     
