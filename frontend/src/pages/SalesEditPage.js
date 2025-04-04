@@ -275,6 +275,13 @@ const SalesEditPage = () => {
       ...currentSale,
       items: updatedItems
     });
+    
+    // 重新聚焦到條碼輸入框，以便繼續掃描
+    setTimeout(() => {
+      if (barcodeInputRef.current) {
+        barcodeInputRef.current.focus();
+      }
+    }, 100);
   };
 
   // 處理移除項目
@@ -467,6 +474,17 @@ const SalesEditPage = () => {
                               size="small"
                               value={item.price}
                               onChange={(e) => {
+                                // 允許空字串以便用戶可以清除並重新輸入
+                                if (e.target.value === '') {
+                                  const updatedItems = [...currentSale.items];
+                                  updatedItems[index].price = '';
+                                  setCurrentSale({
+                                    ...currentSale,
+                                    items: updatedItems
+                                  });
+                                  return;
+                                }
+                                
                                 const newPrice = parseFloat(e.target.value);
                                 if (!isNaN(newPrice)) {
                                   handlePriceChange(index, newPrice);
@@ -474,7 +492,17 @@ const SalesEditPage = () => {
                               }}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
+                                  // 如果是空字串或非數字，重置為0
+                                  if (item.price === '' || isNaN(parseFloat(item.price))) {
+                                    handlePriceChange(index, 0);
+                                  }
                                   e.target.blur();
+                                }
+                              }}
+                              onBlur={(e) => {
+                                // 失去焦點時，如果是空字串或非數字，重置為0
+                                if (item.price === '' || isNaN(parseFloat(item.price))) {
+                                  handlePriceChange(index, 0);
                                 }
                               }}
                               InputProps={{
