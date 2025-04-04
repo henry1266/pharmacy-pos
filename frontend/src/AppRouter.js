@@ -5,6 +5,7 @@ import ProductsPage from './pages/ProductsPage';
 import SuppliersPage from './pages/SuppliersPage';
 import CustomersPage from './pages/CustomersPage';
 import SalesPage from './pages/SalesPage';
+import SalesListPage from './pages/SalesListPage';
 import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
@@ -26,7 +27,9 @@ const AppRouter = () => {
       
       {/* 移除庫存頁面路由 */}
       
-      <Route path="/sales" element={<SalesPage />} />
+      {/* 銷售相關路由 */}
+      <Route path="/sales" element={<SalesListPage />} />
+      <Route path="/sales/new" element={<SalesPage />} />
       
       <Route path="/reports" element={<ReportsPage />} />
       
