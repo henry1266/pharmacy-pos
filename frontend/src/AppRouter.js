@@ -6,6 +6,7 @@ import SuppliersPage from './pages/SuppliersPage';
 import CustomersPage from './pages/CustomersPage';
 import SalesPage from './pages/SalesPage';
 import SalesListPage from './pages/SalesListPage';
+import SalesEditPage from './pages/SalesEditPage';
 import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
@@ -30,6 +31,7 @@ const AppRouter = () => {
       {/* 銷售相關路由 */}
       <Route path="/sales" element={<SalesListPage />} />
       <Route path="/sales/new" element={<SalesPage />} />
+      <Route path="/sales/edit/:id" element={<SalesEditPage />} />
       
       <Route path="/reports" element={<ReportsPage />} />
       
