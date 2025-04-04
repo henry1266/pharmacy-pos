@@ -27,6 +27,9 @@ const InventorySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'sale'
   },
+  saleNumber: {
+    type: String
+  },
   lastUpdated: {
     type: Date,
     default: Date.now
