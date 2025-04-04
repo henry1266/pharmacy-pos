@@ -67,9 +67,50 @@ const InventoryPage = () => {
         <Button
           size="small"
           color="primary"
-          onClick={() => navigate(`/sales/${params.row.purchaseOrderNumber}`)}
+          onClick={() => {
+            // 檢查是否有saleId，如果有則直接導航到銷貨單詳情頁面
+            if (params.row.saleId) {
+              navigate(`/sales/${params.row.saleId}`);
+            } 
+            // 如果沒有saleId但有saleNumber，則通過saleNumber查詢對應的銷貨單
+            else if (params.row.saleNumber) {
+              axios.get(`/api/sales`)
+                .then(response => {
+                  const sales = response.data;
+                  const sale = sales.find(s => s.saleNumber === params.row.saleNumber);
+                  if (sale && sale._id) {
+                    navigate(`/sales/${sale._id}`);
+                  } else {
+                    console.error('找不到對應的銷貨單');
+                    alert('找不到對應的銷貨單');
+                  }
+                })
+                .catch(err => {
+                  console.error('獲取銷貨單失敗:', err);
+                  alert('獲取銷貨單失敗');
+                });
+            }
+            // 如果是進貨單號，則導航到進貨單詳情頁面
+            else if (params.row.purchaseOrderNumber) {
+              axios.get(`/api/purchase-orders`)
+                .then(response => {
+                  const purchaseOrders = response.data;
+                  const purchaseOrder = purchaseOrders.find(po => po.poid === params.row.purchaseOrderNumber);
+                  if (purchaseOrder && purchaseOrder._id) {
+                    navigate(`/purchase-orders/${purchaseOrder._id}`);
+                  } else {
+                    console.error('找不到對應的進貨單');
+                    alert('找不到對應的進貨單');
+                  }
+                })
+                .catch(err => {
+                  console.error('獲取進貨單失敗:', err);
+                  alert('獲取進貨單失敗');
+                });
+            }
+          }}
         >
-          {params.row.purchaseOrderNumber || '無單號'}
+          {params.row.purchaseOrderNumber || params.row.saleNumber || '無單號'}
         </Button>
       )
     },
