@@ -95,12 +95,16 @@ const SalesListPage = () => {
     // 搜索銷售ID
     const saleId = sale._id || '';
     
+    // 搜索銷貨單號
+    const saleNumber = sale.saleNumber || '';
+    
     // 搜索日期（格式化為字符串）
     const saleDate = sale.date ? format(new Date(sale.date), 'yyyy-MM-dd') : '';
     
     return customerName.toLowerCase().includes(searchTermLower) ||
            productNames.toLowerCase().includes(searchTermLower) ||
            saleId.toLowerCase().includes(searchTermLower) ||
+           saleNumber.toLowerCase().includes(searchTermLower) ||
            saleDate.includes(searchTermLower);
   });
 
@@ -191,7 +195,7 @@ const SalesListPage = () => {
         <CardContent>
           <TextField
             fullWidth
-            placeholder="搜索銷售記錄（客戶名稱、產品、ID、日期）"
+            placeholder="搜索銷售記錄（銷貨單號、客戶名稱、產品、ID、日期）"
             value={searchTerm}
             onChange={handleSearchChange}
             InputProps={{
@@ -209,6 +213,7 @@ const SalesListPage = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>銷貨單號</TableCell>
               <TableCell>日期</TableCell>
               <TableCell>客戶</TableCell>
               <TableCell>產品</TableCell>
@@ -221,25 +226,34 @@ const SalesListPage = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   載入中...
                 </TableCell>
               </TableRow>
             ) : error ? (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ color: 'error.main' }}>
+                <TableCell colSpan={8} align="center" sx={{ color: 'error.main' }}>
                   {error}
                 </TableCell>
               </TableRow>
             ) : filteredSales.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   {searchTerm ? '沒有符合搜索條件的銷售記錄' : '尚無銷售記錄'}
                 </TableCell>
               </TableRow>
             ) : (
               filteredSales.map((sale) => (
                 <TableRow key={sale._id}>
+                  <TableCell>
+                    <Button
+                      size="small"
+                      color="primary"
+                      onClick={() => navigate(`/sales/${sale._id}`)}
+                    >
+                      {sale.saleNumber || '無單號'}
+                    </Button>
+                  </TableCell>
                   <TableCell>
                     {sale.date ? format(new Date(sale.date), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : ''}
                   </TableCell>
