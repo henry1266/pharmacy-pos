@@ -417,7 +417,8 @@ router.delete('/:id', async (req, res) => {
       }
     }
     
-    await sale.remove();
+    await Sale.deleteOne({ _id: sale._id });
+    console.log(`銷售記錄 ${sale._id} 已刪除`);
     res.json({ msg: '銷售記錄已刪除' });
   } catch (err) {
     console.error(err.message);
