@@ -186,7 +186,8 @@ router.get('/product/:productId', async (req, res) => {
   try {
     const inventory = await Inventory.find({ product: req.params.productId })
       .populate('product')
-      .populate('purchaseOrderId', 'poid orderNumber pobill');
+      .populate('purchaseOrderId', 'poid orderNumber pobill')
+      .populate('saleId', 'saleNumber');
     res.json(inventory);
   } catch (err) {
     console.error(err.message);

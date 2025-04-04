@@ -855,7 +855,7 @@ const ProductsPage = () => {
                                   }}
                                   sx={{ minWidth: 'auto', p: '0 4px' }}
                                 >
-                                  {item.purchaseOrderNumber || (item.saleId ? '銷售單' : '未指定')}
+                                  {item.purchaseOrderNumber || (item.saleId ? (item.saleNumber || '銷售單') : '未指定')}
                                 </Button>
                               </TableCell>
                               <TableCell align="center">
