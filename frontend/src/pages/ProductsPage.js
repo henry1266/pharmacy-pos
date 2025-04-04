@@ -819,6 +819,7 @@ const ProductsPage = () => {
                         <TableHead>
                           <TableRow>
                             <TableCell>貨單號</TableCell>
+                            <TableCell align="center">類型</TableCell>
                             <TableCell align="right">數量</TableCell>
                             <TableCell align="right">庫存</TableCell>
                             <TableCell align="right">單價</TableCell>
@@ -844,12 +845,34 @@ const ProductsPage = () => {
                                         return;
                                       }
                                       window.location.href = `/purchase-orders/${orderId}`;
+                                    } else if (item.saleId) {
+                                      let saleId = item.saleId;
+                                      if (typeof saleId === 'object') {
+                                        saleId = saleId._id;
+                                      }
+                                      window.location.href = `/sales/${saleId}`;
                                     }
                                   }}
                                   sx={{ minWidth: 'auto', p: '0 4px' }}
                                 >
-                                  {item.purchaseOrderNumber || '未指定'}
+                                  {item.purchaseOrderNumber || (item.saleId ? '銷售單' : '未指定')}
                                 </Button>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip 
+                                  label={
+                                    item.type === 'purchase' ? '進貨' : 
+                                    item.type === 'sale' ? '銷售' : 
+                                    item.type === 'return' ? '退貨' : 
+                                    item.quantity < 0 ? '銷售' : '進貨'
+                                  }
+                                  color={
+                                    item.type === 'purchase' || (!item.type && item.quantity > 0) ? 'success' : 
+                                    item.type === 'sale' || (!item.type && item.quantity < 0) ? 'primary' : 
+                                    item.type === 'return' ? 'warning' : 'default'
+                                  }
+                                  size="small"
+                                />
                               </TableCell>
                               <TableCell align="right">{item.quantity || 0}</TableCell>
                               <TableCell align="right">{item.cumulativeQuantity || item.quantity || 0}</TableCell>
