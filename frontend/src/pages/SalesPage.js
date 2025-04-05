@@ -142,8 +142,13 @@ const SalesPage = () => {
       e.preventDefault();
       
       try {
-        // 根據條碼查找產品
-        const product = products.find(p => p.code === barcode.trim());
+        // 先嘗試精確匹配條碼
+        let product = products.find(p => p.code === barcode.trim());
+        
+        // 如果沒有找到，嘗試模糊匹配（條碼的一部分）
+        if (!product) {
+          product = products.find(p => p.code && p.code.includes(barcode.trim()));
+        }
         
         if (product) {
           // 檢查是否已存在該產品
@@ -153,6 +158,7 @@ const SalesPage = () => {
             // 如果已存在，增加數量
             const updatedItems = [...currentSale.items];
             updatedItems[existingItemIndex].quantity += 1;
+            updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
             
             setCurrentSale({
               ...currentSale,
@@ -191,14 +197,14 @@ const SalesPage = () => {
           setSnackbar({
             open: true,
             message: `找不到條碼 ${barcode} 對應的產品`,
-            severity: 'error'
+            severity: 'warning'
           });
         }
       } catch (err) {
         console.error('處理條碼失敗:', err);
         setSnackbar({
           open: true,
-          message: '處理條碼失敗',
+          message: '處理條碼失敗: ' + err.message,
           severity: 'error'
         });
       }
@@ -435,17 +441,43 @@ const SalesPage = () => {
                 條碼掃描
               </Typography>
               
-              <TextField
-                fullWidth
-                label="掃描條碼"
-                value={barcode}
-                onChange={handleBarcodeChange}
-                onKeyDown={handleBarcodeSubmit}
-                inputRef={barcodeInputRef}
-                placeholder="掃描或輸入條碼後按Enter"
-                autoFocus
-                sx={{ mb: 2 }}
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <TextField
+                  fullWidth
+                  label="掃描條碼"
+                  value={barcode}
+                  onChange={handleBarcodeChange}
+                  onKeyDown={handleBarcodeSubmit}
+                  inputRef={barcodeInputRef}
+                  placeholder="掃描或輸入條碼後按Enter"
+                  autoFocus
+                  sx={{ mr: 1 }}
+                  InputProps={{
+                    startAdornment: (
+                      <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 5h2v14H3z"></path>
+                          <path d="M7 5h1v14H7z"></path>
+                          <path d="M11 5h1v14h-1z"></path>
+                          <path d="M15 5h1v14h-1z"></path>
+                          <path d="M19 5h2v14h-2z"></path>
+                        </svg>
+                      </Box>
+                    ),
+                  }}
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={() => {
+                    if (barcode.trim()) {
+                      handleBarcodeSubmit({ key: 'Enter', preventDefault: () => {} });
+                    }
+                  }}
+                  sx={{ ml: 1, height: 56 }}
+                >
+                  新增
+                </Button>
+              </Box>
               
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
