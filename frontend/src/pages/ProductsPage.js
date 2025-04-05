@@ -40,6 +40,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DataTable from '../components/tables/DataTable';
+import InventoryList from '../components/common/InventoryList';
 
 // 產品類型標籤面板
 function TabPanel(props) {
@@ -777,6 +778,9 @@ const ProductsPage = () => {
                 </Grid>
                 
                 <Divider sx={{ my: 2 }} />
+                
+                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>庫存變化記錄:</Typography>
+                <InventoryList productId={selectedProduct.id} />
                 
               </CardContent>
             </Card>
