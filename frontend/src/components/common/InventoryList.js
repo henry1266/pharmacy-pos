@@ -4,10 +4,12 @@ import {
   Box, 
   Typography, 
   Paper, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Link,
   CircularProgress
 } from '@mui/material';
@@ -130,66 +132,88 @@ const InventoryList = ({ productId }) => {
   }
 
   return (
-    <Paper elevation={0} sx={{ maxHeight: 200, overflow: 'auto', mt: 1 }}>
-      <List dense disablePadding>
-        <ListItem>
-          <ListItemText 
-            primary={
-              <Typography variant="subtitle2" color="primary">
-                當前庫存: {currentStock}
-              </Typography>
-            } 
-          />
-        </ListItem>
-        <Divider />
-        {inventories.map((inv, index) => (
-          <ListItem key={index} sx={{ py: 0.5 }}>
-            <ListItemText
-              primary={
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" component="span">
-                    {inv.type === 'sale' ? (
-                      <Link 
-                        component={RouterLink} 
-                        to={`/sales/${inv.saleId && inv.saleId.$oid ? inv.saleId.$oid : inv.saleId}`} 
-                        color="error"
-                      >
-                        銷售 #{inv.saleNumber}
-                      </Link>
-                    ) : (
-                      <Link 
-                        component={RouterLink} 
-                        to={`/purchase-orders/${inv.purchaseOrderId && inv.purchaseOrderId.$oid ? inv.purchaseOrderId.$oid : inv.purchaseOrderId}`} 
-                        color="primary"
-                      >
-                        進貨 #{inv.purchaseOrderNumber}
-                      </Link>
-                    )}
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    component="span" 
-                    color={inv.type === 'sale' ? 'error' : 'primary'}
+    <Box sx={{ mt: 2 }}>
+      <Typography variant="subtitle1" gutterBottom>
+        庫存信息
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+        <Typography variant="body2" sx={{ mr: 1 }}>
+          總庫存數量:
+        </Typography>
+        <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
+          {currentStock}
+        </Typography>
+      </Box>
+      <Typography variant="body2" sx={{ mb: 1 }}>
+        庫存明細:
+      </Typography>
+      <TableContainer component={Paper} sx={{ maxHeight: 200, overflow: 'auto' }}>
+        <Table size="small" stickyHeader>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>貨單號</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>類型</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>數量</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>庫存</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>單價</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {inventories.map((inv, index) => {
+              const orderNumber = inv.type === 'sale' ? inv.saleNumber : inv.purchaseOrderNumber;
+              const orderLink = inv.type === 'sale' 
+                ? `/sales/${inv.saleId && inv.saleId.$oid ? inv.saleId.$oid : inv.saleId}` 
+                : `/purchase-orders/${inv.purchaseOrderId && inv.purchaseOrderId.$oid ? inv.purchaseOrderId.$oid : inv.purchaseOrderId}`;
+              const typeText = inv.type === 'sale' ? '銷售' : '進貨';
+              const typeColor = inv.type === 'sale' ? 'error.main' : 'primary.main';
+              const quantity = inv.type === 'sale' ? -inv.totalQuantity : inv.totalQuantity;
+              const price = inv.product && inv.product.sellingPrice ? inv.product.sellingPrice.toFixed(2) : '0.00';
+              
+              return (
+                <TableRow 
+                  key={index}
+                  sx={{ 
+                    '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+                    '&:hover': { backgroundColor: '#f1f1f1' }
+                  }}
+                >
+                  <TableCell align="center">
+                    <Link 
+                      component={RouterLink} 
+                      to={orderLink}
+                      color={inv.type === 'sale' ? 'error' : 'primary'}
+                      sx={{ textDecoration: 'none' }}
+                    >
+                      {orderNumber}
+                    </Link>
+                  </TableCell>
+                  <TableCell 
+                    align="center" 
+                    sx={{ 
+                      color: typeColor,
+                      fontWeight: 'medium'
+                    }}
                   >
-                    {inv.type === 'sale' ? '' : '+'}{inv.totalQuantity}
-                  </Typography>
-                </Box>
-              }
-              secondary={
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" component="span">
-                    單價: {inv.product && inv.product.sellingPrice ? inv.product.sellingPrice.toFixed(2) : '0.00'}
-                  </Typography>
-                  <Typography variant="caption" component="span">
-                    庫存: {inv.currentStock}
-                  </Typography>
-                </Box>
-              }
-            />
-          </ListItem>
-        ))}
-      </List>
-    </Paper>
+                    {typeText}
+                  </TableCell>
+                  <TableCell 
+                    align="center"
+                    sx={{ 
+                      color: typeColor,
+                      fontWeight: 'medium'
+                    }}
+                  >
+                    {quantity}
+                  </TableCell>
+                  <TableCell align="center">{inv.currentStock}</TableCell>
+                  <TableCell align="center">{price}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 
