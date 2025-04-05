@@ -81,7 +81,7 @@ const InventoryList = ({ productId }) => {
           if (inv.type === 'purchase') {
             stock += quantity;
           } else if (inv.type === 'sale') {
-            stock -= quantity;
+            stock += quantity;
           }
           return {
             ...inv,
@@ -162,8 +162,8 @@ const InventoryList = ({ productId }) => {
             {inventories.map((inv, index) => {
               const orderNumber = inv.type === 'sale' ? inv.saleNumber : inv.purchaseOrderNumber;
               const orderLink = inv.type === 'sale' 
-                ? `/sales/${inv.saleId && inv.saleId.$oid ? inv.saleId.$oid : inv.saleId}` 
-                : `/purchase-orders/${inv.purchaseOrderId && inv.purchaseOrderId.$oid ? inv.purchaseOrderId.$oid : inv.purchaseOrderId}`;
+                ? `/sales/${inv.saleId?._id}` 
+                : `/purchase-orders/${inv.purchaseOrderId?._id}`;
               const typeText = inv.type === 'sale' ? '銷售' : '進貨';
               const typeColor = inv.type === 'sale' ? 'error.main' : 'primary.main';
               const quantity = inv.type === 'sale' ? -inv.totalQuantity : inv.totalQuantity;
