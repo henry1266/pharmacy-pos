@@ -173,9 +173,24 @@ export const fetchInventory = () => async (dispatch) => {
   try {
     const res = await axios.get(`${API_BASE_URL}/inventory`);
     
+    // 過濾庫存記錄：只顯示有saleNumber的記錄（銷售單）
+    const filteredInventory = res.data.filter(item => {
+      const hasSaleNumber = item.saleNumber && item.saleNumber.trim() !== '';
+      return hasSaleNumber;
+    });
+    
+    // 按照銷售單號從小到大排序
+    const sortedInventory = filteredInventory.sort((a, b) => {
+      const saleNumberA = a.saleNumber || '';
+      const saleNumberB = b.saleNumber || '';
+      
+      // 按saleNumber從小到大排序
+      return saleNumberA.localeCompare(saleNumberB);
+    });
+    
     dispatch({
       type: ActionTypes.FETCH_INVENTORY_SUCCESS,
-      payload: res.data
+      payload: sortedInventory
     });
   } catch (err) {
     dispatch({

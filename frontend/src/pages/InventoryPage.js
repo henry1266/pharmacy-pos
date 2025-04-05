@@ -21,14 +21,18 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DataTable from '../components/tables/DataTable';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchInventory } from '../redux/actions';
 
 const InventoryPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
-  // 狀態管理
-  const [inventory, setInventory] = useState([]);
+  // 從Redux獲取庫存數據
+  const { inventory, loading, error: reduxError } = useSelector(state => state.inventory);
+  
+  // 本地狀態管理
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -123,41 +127,12 @@ const InventoryPage = () => {
     }
   ];
 
-  // 獲取庫存數據
-  const fetchInventory = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/api/inventory');
-      // 轉換數據格式以適應DataTable
-      const formattedInventory = response.data.map(item => ({
-        id: item._id,
-        ...item
-      }));
-      
-      // 過濾庫存記錄：只顯示有saleNumber的記錄（銷售單）
-      const filteredInventory = formattedInventory.filter(item => {
-        const hasSaleNumber = item.saleNumber && item.saleNumber.trim() !== '';
-        return hasSaleNumber;
-      });
-      
-      // 按照銷售單號從小到大排序
-      const sortedInventory = filteredInventory.sort((a, b) => {
-        const saleNumberA = a.saleNumber || '';
-        const saleNumberB = b.saleNumber || '';
-        
-        // 按saleNumber從小到大排序
-        return saleNumberA.localeCompare(saleNumberB);
-      });
-      
-      setInventory(sortedInventory);
-      setError(null);
-    } catch (err) {
-      console.error('獲取庫存數據失敗:', err);
-      setError('獲取庫存數據失敗');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 初始化加載數據
+  useEffect(() => {
+    // 使用Redux action獲取庫存數據
+    dispatch(fetchInventory());
+    fetchProducts();
+  }, [dispatch]);
 
   // 獲取藥品數據
   const fetchProducts = async () => {
@@ -168,12 +143,6 @@ const InventoryPage = () => {
       console.error('獲取藥品數據失敗:', err);
     }
   };
-
-  // 初始化加載數據
-  useEffect(() => {
-    fetchInventory();
-    fetchProducts();
-  }, []);
 
   // 處理輸入變化
   const handleInputChange = (e) => {
@@ -223,8 +192,8 @@ const InventoryPage = () => {
         
         await axios.delete(`/api/inventory/${id}`, config);
         
-        // 更新本地狀態
-        setInventory(inventory.filter(item => item.id !== id));
+        // 刪除後重新獲取數據
+        dispatch(fetchInventory());
       } catch (err) {
         console.error('刪除庫存記錄失敗:', err);
         setError('刪除庫存記錄失敗');
@@ -275,7 +244,7 @@ const InventoryPage = () => {
       
       // 關閉對話框並重新獲取數據
       setOpenDialog(false);
-      fetchInventory();
+      dispatch(fetchInventory());
     } catch (err) {
       console.error('保存庫存記錄失敗:', err);
       setError('保存庫存記錄失敗');
@@ -286,7 +255,7 @@ const InventoryPage = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          庫存管理
+          銷售單管理
         </Typography>
         <Button
           variant="contained"
@@ -294,12 +263,12 @@ const InventoryPage = () => {
           startIcon={<AddIcon />}
           onClick={handleAddInventory}
         >
-          添加庫存
+          添加銷售單
         </Button>
       </Box>
-      {error && (
+      {(error || reduxError) && (
         <Typography color="error" sx={{ mb: 2 }}>
-          {error}
+          {error || reduxError}
         </Typography>
       )}
       <Grid container spacing={3}>
@@ -317,7 +286,7 @@ const InventoryPage = () => {
       </Grid>
       {/* 庫存表單對話框 */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editMode ? '編輯庫存' : '添加庫存'}</DialogTitle>
+        <DialogTitle>{editMode ? '編輯銷售單' : '添加銷售單'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <FormControl fullWidth required>
@@ -343,13 +312,6 @@ const InventoryPage = () => {
               onChange={handleInputChange}
               fullWidth
               required
-            />
-            <TextField
-              name="purchaseOrderNumber"
-              label="進貨單號"
-              value={currentInventory.purchaseOrderNumber}
-              onChange={handleInputChange}
-              fullWidth
             />
           </Box>
         </DialogContent>
