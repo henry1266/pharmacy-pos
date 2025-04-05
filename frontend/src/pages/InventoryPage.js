@@ -59,9 +59,10 @@ const InventoryPage = () => {
       }
     },
     { field: 'quantity', headerName: '庫存數量', width: 120, type: 'number' },
+    { field: 'change', headerName: '庫存變化', width: 120, type: 'number' },
     { 
       field: 'purchaseOrderNumber', 
-      headerName: '進貨單號', 
+      headerName: '單號', 
       width: 150,
       renderCell: (params) => (
         <Button
@@ -111,6 +112,7 @@ const InventoryPage = () => {
           }}
         >
           {params.row.purchaseOrderNumber || params.row.saleNumber || '無單號'}
+          {params.row._merged ? ` (已合併${params.row._mergedCount}筆)` : ''}
         </Button>
       )
     },
@@ -151,7 +153,137 @@ const InventoryPage = () => {
         id: item._id,
         ...item
       }));
-      setInventory(formattedInventory);
+      
+      // 過濾庫存記錄：
+      // 1. 只顯示至少有saleNumber或purchaseOrderNumber其中之一有值的記錄
+      // 2. 兩者都有值或兩者都沒值的記錄不列入
+      const filteredInventory = formattedInventory.filter(item => {
+        const hasSaleNumber = item.saleNumber && item.saleNumber.trim() !== '';
+        const hasPurchaseOrderNumber = item.purchaseOrderNumber && item.purchaseOrderNumber.trim() !== '';
+        
+        // 只保留其中一個有值的記錄
+        return (hasSaleNumber && !hasPurchaseOrderNumber) || (!hasSaleNumber && hasPurchaseOrderNumber);
+      });
+      
+      // 按照貨單號排序（saleNumber和purchaseOrderNumber從小到大排序）
+      const sortedInventory = filteredInventory.sort((a, b) => {
+        // 分別獲取purchaseOrderNumber和saleNumber
+        const purchaseOrderNumberA = a.purchaseOrderNumber || '';
+        const purchaseOrderNumberB = b.purchaseOrderNumber || '';
+        const saleNumberA = a.saleNumber || '';
+        const saleNumberB = b.saleNumber || '';
+        
+        // 如果兩者都有purchaseOrderNumber，按purchaseOrderNumber從小到大排序
+        if (purchaseOrderNumberA && purchaseOrderNumberB) {
+          return purchaseOrderNumberA.localeCompare(purchaseOrderNumberB);
+        }
+        
+        // 如果兩者都有saleNumber，按saleNumber從小到大排序
+        if (saleNumberA && saleNumberB) {
+          return saleNumberA.localeCompare(saleNumberB);
+        }
+        
+        // 如果一個有purchaseOrderNumber，一個有saleNumber，purchaseOrderNumber優先
+        if (purchaseOrderNumberA && saleNumberB) return -1;
+        if (saleNumberA && purchaseOrderNumberB) return 1;
+        
+        return 0;
+      });
+      
+      // 合併相同貨單號的記錄：
+      // 1. 只有同樣都是saleNumber且貨單號一樣的記錄才可進行合併
+      // 2. 只有同樣都是purchaseOrderNumber且貨單號一樣的記錄才可進行合併
+      const mergedInventory = [];
+      const processedIds = new Set();
+      
+      for (let i = 0; i < sortedInventory.length; i++) {
+        if (processedIds.has(sortedInventory[i].id)) continue;
+        
+        const currentItem = sortedInventory[i];
+        processedIds.add(currentItem.id);
+        
+        // 如果有saleNumber，查找相同saleNumber的記錄進行合併
+        if (currentItem.saleNumber) {
+          const sameNumberItems = sortedInventory.filter(
+            item => item.id !== currentItem.id && 
+                   item.saleNumber === currentItem.saleNumber && 
+                   !item.purchaseOrderNumber && 
+                   !processedIds.has(item.id)
+          );
+          
+          if (sameNumberItems.length > 0) {
+            // 合併數量
+            let totalQuantity = currentItem.quantity;
+            for (const item of sameNumberItems) {
+              totalQuantity += item.quantity;
+              processedIds.add(item.id);
+            }
+            
+            mergedInventory.push({
+              ...currentItem,
+              quantity: totalQuantity,
+              _merged: true,
+              _mergedCount: sameNumberItems.length + 1
+            });
+          } else {
+            mergedInventory.push(currentItem);
+          }
+        }
+        // 如果有purchaseOrderNumber，查找相同purchaseOrderNumber的記錄進行合併
+        else if (currentItem.purchaseOrderNumber) {
+          const sameNumberItems = sortedInventory.filter(
+            item => item.id !== currentItem.id && 
+                   item.purchaseOrderNumber === currentItem.purchaseOrderNumber && 
+                   !item.saleNumber && 
+                   !processedIds.has(item.id)
+          );
+          
+          if (sameNumberItems.length > 0) {
+            // 合併數量
+            let totalQuantity = currentItem.quantity;
+            for (const item of sameNumberItems) {
+              totalQuantity += item.quantity;
+              processedIds.add(item.id);
+            }
+            
+            mergedInventory.push({
+              ...currentItem,
+              quantity: totalQuantity,
+              _merged: true,
+              _mergedCount: sameNumberItems.length + 1
+            });
+          } else {
+            mergedInventory.push(currentItem);
+          }
+        }
+      }
+      
+      // 計算庫存變化
+      // 根據排序後的結果計算每個產品的庫存變化
+      const inventoryWithChange = mergedInventory.map((item, index, array) => {
+        // 找出同一產品的前一條記錄
+        const prevItems = array.slice(0, index).filter(
+          prevItem => prevItem.product && item.product && 
+                     (prevItem.product._id === item.product._id || 
+                      prevItem.product === item.product._id || 
+                      item.product === prevItem.product._id)
+        );
+        
+        // 計算庫存變化
+        let change = item.quantity;
+        if (prevItems.length > 0) {
+          // 取最近的一條記錄計算變化
+          const prevItem = prevItems[prevItems.length - 1];
+          change = item.quantity - prevItem.quantity;
+        }
+        
+        return {
+          ...item,
+          change
+        };
+      });
+      
+      setInventory(inventoryWithChange);
       setError(null);
     } catch (err) {
       console.error('獲取庫存數據失敗:', err);
