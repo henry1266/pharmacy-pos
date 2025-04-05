@@ -324,6 +324,7 @@ router.put('/:id', [
         const inventoryRecord = new Inventory({
           product: item.product,
           quantity: -item.quantity, // 負數表示庫存減少
+          saleNumber: sale.saleNumber, // 添加銷貨單號
           type: 'sale',
           saleId: sale._id,
           lastUpdated: Date.now()
