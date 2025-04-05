@@ -11,6 +11,10 @@ const InventorySchema = new mongoose.Schema({
     required: true,
     default: 0
   },
+  totalAmount: {
+    type: Number,
+    default: 0
+  },
   purchaseOrderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'purchaseorder'

@@ -164,6 +164,7 @@ router.post(
         const inventoryRecord = new Inventory({
           product: item.product,
           quantity: -item.quantity, // 負數表示庫存減少
+          totalAmount: Number(item.subtotal), // 添加totalAmount字段
           saleNumber: finalSaleNumber, // 添加銷貨單號
           type: 'sale',
           saleId: sale._id,
@@ -171,7 +172,7 @@ router.post(
         });
         
         await inventoryRecord.save();
-        console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}`);
+        console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal}`);
       }
       
       // 如果有客戶，更新客戶積分
@@ -324,6 +325,7 @@ router.put('/:id', [
         const inventoryRecord = new Inventory({
           product: item.product,
           quantity: -item.quantity, // 負數表示庫存減少
+          totalAmount: Number(item.subtotal), // 添加totalAmount字段
           saleNumber: sale.saleNumber, // 添加銷貨單號
           type: 'sale',
           saleId: sale._id,
@@ -331,7 +333,7 @@ router.put('/:id', [
         });
         
         await inventoryRecord.save();
-        console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}`);
+        console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal}`);
       }
     } catch (err) {
       console.error(`創建新庫存記錄時出錯:`, err);

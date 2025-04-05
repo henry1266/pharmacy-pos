@@ -384,12 +384,13 @@ async function updateInventory(purchaseOrder) {
       const inventory = new Inventory({
         product: item.product,
         quantity: parseInt(item.dquantity),
+        totalAmount: Number(item.dtotalCost), // 添加totalAmount字段
         purchaseOrderId: purchaseOrder._id, // 保存進貨單ID
         purchaseOrderNumber: purchaseOrder.orderNumber // 保存進貨單號
       });
       
       await inventory.save();
-      console.log(`已為產品 ${item.product} 創建新庫存記錄，進貨單號: ${purchaseOrder.orderNumber}, 數量: ${item.dquantity}`);
+      console.log(`已為產品 ${item.product} 創建新庫存記錄，進貨單號: ${purchaseOrder.orderNumber}, 數量: ${item.dquantity}, 總金額: ${item.dtotalCost}`);
       
       // 更新藥品的採購價格
       await BaseProduct.findByIdAndUpdate(
