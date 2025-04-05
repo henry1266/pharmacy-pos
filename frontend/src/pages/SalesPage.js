@@ -142,10 +142,20 @@ const SalesPage = () => {
       e.preventDefault();
       
       try {
-        // 先嘗試精確匹配條碼
-        let product = products.find(p => p.code === barcode.trim());
+        // 先嘗試精確匹配barcode字段
+        let product = products.find(p => p.barcode === barcode.trim());
         
-        // 如果沒有找到，嘗試模糊匹配（條碼的一部分）
+        // 如果沒有找到，嘗試精確匹配code字段
+        if (!product) {
+          product = products.find(p => p.code === barcode.trim());
+        }
+        
+        // 如果還沒找到，嘗試模糊匹配barcode字段
+        if (!product) {
+          product = products.find(p => p.barcode && p.barcode.includes(barcode.trim()));
+        }
+        
+        // 如果還沒找到，嘗試模糊匹配code字段
         if (!product) {
           product = products.find(p => p.code && p.code.includes(barcode.trim()));
         }
