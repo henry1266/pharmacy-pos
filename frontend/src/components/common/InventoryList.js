@@ -151,7 +151,7 @@ const InventoryList = ({ productId }) => {
                     {inv.type === 'sale' ? (
                       <Link 
                         component={RouterLink} 
-                        to={`/sales/${inv.saleId}`} 
+                        to={`/sales/${inv.saleId && inv.saleId.$oid ? inv.saleId.$oid : inv.saleId}`} 
                         color="error"
                       >
                         銷售 #{inv.saleNumber}
@@ -159,7 +159,7 @@ const InventoryList = ({ productId }) => {
                     ) : (
                       <Link 
                         component={RouterLink} 
-                        to={`/purchase-orders/${inv.purchaseOrderId}`} 
+                        to={`/purchase-orders/${inv.purchaseOrderId && inv.purchaseOrderId.$oid ? inv.purchaseOrderId.$oid : inv.purchaseOrderId}`} 
                         color="primary"
                       >
                         進貨 #{inv.purchaseOrderNumber}
@@ -171,14 +171,19 @@ const InventoryList = ({ productId }) => {
                     component="span" 
                     color={inv.type === 'sale' ? 'error' : 'primary'}
                   >
-                    {inv.type === 'sale' ? '-' : '+'}{inv.totalQuantity}
+                    {inv.type === 'sale' ? '' : '+'}{inv.totalQuantity}
                   </Typography>
                 </Box>
               }
               secondary={
-                <Typography variant="caption" component="div" align="right">
-                  庫存: {inv.currentStock}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="caption" component="span">
+                    單價: {inv.product && inv.product.sellingPrice ? inv.product.sellingPrice.toFixed(2) : '0.00'}
+                  </Typography>
+                  <Typography variant="caption" component="span">
+                    庫存: {inv.currentStock}
+                  </Typography>
+                </Box>
               }
             />
           </ListItem>
