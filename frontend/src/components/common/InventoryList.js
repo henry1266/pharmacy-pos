@@ -133,7 +133,7 @@ const InventoryList = ({ productId }) => {
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }}>
         <Typography variant="body2" sx={{ mr: 1 }}>
           總庫存數量:
         </Typography>
