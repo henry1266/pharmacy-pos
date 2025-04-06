@@ -33,7 +33,7 @@ const MainLayout = ({ children }) => {
     { text: '會員管理', icon: <PeopleIcon />, path: '/customers' },
     // 移除庫存管理菜單項
     { text: '進貨單管理', icon: <ShoppingCartIcon />, path: '/purchase-orders' },
-    { text: '銷售功能', icon: <ReceiptIcon />, path: '/sales' },
+    { text: '銷售管理', icon: <ReceiptIcon />, path: '/sales' },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports' },
   ];
 

@@ -33,7 +33,7 @@ const upload = multer({ storage: storage });
 router.get('/', async (req, res) => {
   try {
     const purchaseOrders = await PurchaseOrder.find()
-      .sort({ createdAt: -1 })
+      .sort({ poid: -1 })
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     

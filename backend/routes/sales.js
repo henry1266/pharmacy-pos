@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       .populate('customer')
       .populate('items.product')
       .populate('cashier')
-      .sort({ date: -1 });
+      .sort({ saleNumber: -1 });
     res.json(sales);
   } catch (err) {
     console.error(err.message);
