@@ -133,9 +133,6 @@ const InventoryList = ({ productId }) => {
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography variant="subtitle1" gutterBottom>
-        庫存信息
-      </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
         <Typography variant="body2" sx={{ mr: 1 }}>
           總庫存數量:
@@ -144,9 +141,7 @@ const InventoryList = ({ productId }) => {
           {currentStock}
         </Typography>
       </Box>
-      <Typography variant="body2" sx={{ mb: 1 }}>
-        庫存明細:
-      </Typography>
+
       <TableContainer component={Paper} sx={{ maxHeight: 200, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
