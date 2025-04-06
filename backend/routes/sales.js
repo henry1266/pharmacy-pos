@@ -30,7 +30,10 @@ router.get('/:id', async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id)
       .populate('customer')
-      .populate('items.product')
+      .populate({
+        path: 'items.product',
+        model: 'baseproduct'
+      })
       .populate('cashier');
     if (!sale) {
       return res.status(404).json({ msg: '銷售記錄不存在' });
