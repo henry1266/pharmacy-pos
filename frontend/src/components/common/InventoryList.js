@@ -146,11 +146,11 @@ const InventoryList = ({ productId }) => {
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>貨單號</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>類型</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>數量</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>庫存</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>單價</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '120px' }}>貨單號</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '80px' }}>類型</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '60px' }}>數量</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '60px' }}>庫存</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '80px' }}>單價</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
