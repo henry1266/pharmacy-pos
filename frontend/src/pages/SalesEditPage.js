@@ -87,7 +87,8 @@ const SalesEditPage = () => {
         code: item.product.code,
         price: item.price,
         quantity: item.quantity,
-        subtotal: item.price * item.quantity
+        subtotal: item.price * item.quantity,
+        productType: item.product.productType // 保存產品類型信息
       }));
       
       setCurrentSale({
@@ -137,12 +138,13 @@ const SalesEditPage = () => {
   const fetchProducts = async () => {
     try {
       const response = await axios.get('/api/products');
+      console.log('獲取產品數據成功:', response.data);
       setProducts(response.data);
     } catch (err) {
-      console.error('獲取藥品數據失敗:', err);
+      console.error('獲取產品數據失敗:', err);
       setSnackbar({
         open: true,
-        message: '獲取藥品數據失敗',
+        message: '獲取產品數據失敗',
         severity: 'error'
       });
     }
@@ -184,7 +186,15 @@ const SalesEditPage = () => {
       
       try {
         // 根據條碼查找產品
-        const product = products.find(p => p.code === barcode.trim());
+        let product = products.find(p => p.code === barcode.trim());
+        
+        // 如果沒找到，嘗試查找藥品的健保碼
+        if (!product) {
+          product = products.find(p => 
+            p.productType === 'medicine' && 
+            p.healthInsuranceCode === barcode.trim()
+          );
+        }
         
         if (product) {
           // 檢查是否已存在該產品
@@ -194,6 +204,7 @@ const SalesEditPage = () => {
             // 如果已存在，增加數量
             const updatedItems = [...currentSale.items];
             updatedItems[existingItemIndex].quantity += 1;
+            updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
             
             setCurrentSale({
               ...currentSale,
@@ -214,7 +225,8 @@ const SalesEditPage = () => {
               code: product.code,
               price: product.sellingPrice,
               quantity: 1,
-              subtotal: product.sellingPrice
+              subtotal: product.sellingPrice,
+              productType: product.productType // 保存產品類型信息
             };
             
             setCurrentSale({
@@ -231,7 +243,7 @@ const SalesEditPage = () => {
         } else {
           setSnackbar({
             open: true,
-            message: `找不到條碼 ${barcode} 對應的產品`,
+            message: `找不到條碼或健保碼 ${barcode} 對應的產品`,
             severity: 'error'
           });
         }
