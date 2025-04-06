@@ -45,7 +45,8 @@ const ProductsPage = () => {
     suppliers, 
     loading, 
     fetchProducts,
-    handleDeleteProduct
+    handleDeleteProduct,
+    handleSaveProduct: saveProduct
   } = useProductData();
   
   const { inventory, getTotalInventory } = useInventoryData(selectedProduct?.id);
@@ -169,8 +170,8 @@ const ProductsPage = () => {
         productData.id = currentProduct.id;
       }
       
-      // 使用Hook中的方法保存產品
-      const result = await useProductData().handleSaveProduct(productData, editMode, productType);
+      // 使用從Hook中獲取的saveProduct函數
+      const result = await saveProduct(productData, editMode, productType);
       
       if (result) {
         // 重新獲取產品列表
