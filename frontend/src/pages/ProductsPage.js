@@ -174,14 +174,12 @@ const ProductsPage = () => {
 
   // 表格列定義 - 藥品
   const medicineColumns = [
-    { field: 'code', headerName: '藥品編號', width: 120 },
-    { field: 'name', headerName: '藥品名稱', width: 180 },
-    { field: 'healthInsuranceCode', headerName: '健保碼', width: 120 },
-    { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },
-    { 
+    { field: 'code', headerName: '藥品編號', width: 80 },
+    { field: 'name', headerName: '藥品名稱', width: 220 },
+        { 
       field: 'inventory', 
       headerName: '庫存', 
-      width: 80, 
+      width: 70, 
       valueGetter: (params) => getTotalInventory(params.row.id),
       renderCell: (params) => {
         const inventoryValue = getTotalInventory(params.row.id);
@@ -207,9 +205,11 @@ const ProductsPage = () => {
         );
       }
     },
-    { field: 'category', headerName: '分類', width: 120 },
-    { field: 'unit', headerName: '單位', width: 80 },
-    { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
+	{ field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
+	{ field: 'healthInsuranceCode', headerName: '健保碼', width: 100 },
+    { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },
+
+    { field: 'category', headerName: '分類', width: 100 },
     {
       field: 'actions',
       headerName: '操作',
@@ -416,7 +416,7 @@ const ProductsPage = () => {
       sellingPrice: 0,
       description: '',
       supplier: '',
-      minStock: 10,
+      minStock: 0,
       barcode: '',
       healthInsuranceCode: '',
       healthInsurancePrice: 0
@@ -721,45 +721,36 @@ const ProductsPage = () => {
               />
               <CardContent>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">供應商:</Typography>
-                    <Typography variant="body2">
-                      {selectedProduct.supplier ? 
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2">供應商: {selectedProduct.supplier ? 
                         suppliers.find(s => s._id === selectedProduct.supplier)?.name || selectedProduct.supplier 
-                        : '無'}
-                    </Typography>
+                        : '無'}</Typography>
                   </Grid>
-                                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">分類:</Typography>
-                    <Typography variant="body2">{selectedProduct.category || '無'}</Typography>
+                                  <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2">分類: {selectedProduct.category || '無'}</Typography>
                   </Grid>
-                                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">進貨價:</Typography>
-                    <Typography variant="body2">{selectedProduct.purchasePrice || '0'}</Typography>
+                                  <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2">單位: {selectedProduct.unit || '無'}</Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">售價:</Typography>
-                    <Typography variant="body2">{selectedProduct.sellingPrice || '0'}</Typography>
+								  <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2">進貨價: {selectedProduct.purchasePrice || '0'}</Typography>
                   </Grid>
-                                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">最低庫存:</Typography>
-                    <Typography variant="body2">{selectedProduct.minStock || '0'}</Typography>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2">售價: {selectedProduct.sellingPrice || '0'}</Typography>
                   </Grid>
-                                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2">單位:</Typography>
-                    <Typography variant="body2">{selectedProduct.unit || '無'}</Typography>
+                                  <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2">最低庫存: {selectedProduct.minStock || '0'}</Typography>
                   </Grid>
+                                  
                 </Grid>
                 
                                 <Divider sx={{ my: 2 }} />
                                 <Grid container spacing={2}>
-                                        <Grid item xs={12} sm={6}>
-                                                <Typography variant="subtitle2">健保碼:</Typography>
-                                                <Typography variant="body2">{selectedProduct.healthInsuranceCode || '無'}</Typography>
+                                        <Grid item xs={12} sm={5}>
+                                                <Typography variant="subtitle2">健保碼: {selectedProduct.healthInsuranceCode || '無'}</Typography>
                                         </Grid>
-                                        <Grid item xs={12} sm={6}>
-                                                <Typography variant="subtitle2">健保價:</Typography>
-                                                <Typography variant="body2">{selectedProduct.healthInsurancePrice || '0'}</Typography>
+                                        <Grid item xs={12} sm={5}>
+                                                <Typography variant="subtitle2">健保價: {selectedProduct.healthInsurancePrice || '0'}</Typography>
                                         </Grid>
                                 </Grid>
                 
@@ -767,8 +758,7 @@ const ProductsPage = () => {
                                 
                                 <Grid container spacing={2}>
                                         <Grid item xs={12} sm={6}>
-                                        <Typography variant="subtitle2">國際條碼:</Typography>
-                                        <Typography variant="body2">{selectedProduct.barcode || '無'}</Typography>
+                                        <Typography variant="subtitle2">國際條碼: {selectedProduct.barcode || '無'}</Typography>
                                         </Grid>
                                 </Grid>
                                 <Divider sx={{ my: 2 }} />
