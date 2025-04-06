@@ -280,11 +280,11 @@ const SalesPage = () => {
       let finalSaleNumber = currentSale.saleNumber;
       if (!finalSaleNumber) {
         const now = new Date();
-        const year = now.getFullYear().toString().substring(2); // 取年份後兩位
+        const year = now.getFullYear().toString(); // 取完整四位年份
         const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 月份補零
         const day = now.getDate().toString().padStart(2, '0'); // 日期補零
         
-        // 基本格式：YYMMDD
+        // 基本格式：YYYYMMDD
         const datePrefix = `${year}${month}${day}`;
         
         // 嘗試獲取當天最後一個銷貨單號
