@@ -1,9 +1,0 @@
-nohup: ignoring input
-(node:16515) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-伺服器運行在端口 5000
-MongoDB 連接成功...
-[0mPOST /api/customers [33m401[0m 3.137 ms - 37[0m
-[0mPOST /api/auth [33m400[0m 18.903 ms - 25[0m
-[0mPOST /api/users [32m200[0m 154.317 ms - 195[0m
-[0mPOST /api/customers [32m200[0m 13.146 ms - 274[0m

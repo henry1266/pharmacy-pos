@@ -4,7 +4,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import MedicationIcon from '@mui/icons-material/Medication';
 import PeopleIcon from '@mui/icons-material/People';
-import InventoryIcon from '@mui/icons-material/Inventory';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -12,6 +11,8 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
 
@@ -29,9 +30,8 @@ const MainLayout = ({ children }) => {
   const menuItems = [
     { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
     { text: '藥品管理', icon: <MedicationIcon />, path: '/products' },
-    { text: '供應商管理', icon: <PeopleIcon />, path: '/suppliers' },
+    { text: '供應商管理', icon: <LocalShippingIcon />, path: '/suppliers' },
     { text: '會員管理', icon: <PeopleIcon />, path: '/customers' },
-    // 移除庫存管理菜單項
     { text: '進貨單管理', icon: <ShoppingCartIcon />, path: '/purchase-orders' },
     { text: '銷售管理', icon: <ReceiptIcon />, path: '/sales' },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports' },
