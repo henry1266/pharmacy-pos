@@ -41,10 +41,20 @@ const MainLayout = ({ children }) => {
       path: '/dashboard' 
     },
 	{ 
+		text: '銷售管理', 
+		icon: (location.pathname === '/sales') ? <PointOfSaleOutlinedIcon /> : <PointOfSaleIcon />, 
+		path: '/sales' 
+	},
+	{ 
       text: '商品管理', 
       icon: (location.pathname === '/products') ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
       path: '/products' 
     },
+	{ 
+		text: '進貨單管理', 
+		icon: (location.pathname === '/purchase-orders') ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
+		path: '/purchase-orders' 
+	},
     { 
       text: '供應商管理', 
       icon: (location.pathname === '/suppliers') ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
@@ -55,16 +65,7 @@ const MainLayout = ({ children }) => {
       icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, 
       path: '/customers' 
     },
-    { 
-		text: '進貨單管理', 
-		icon: (location.pathname === '/purchase-orders') ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
-		path: '/purchase-orders' 
-	},
-	{ 
-		text: '銷售管理', 
-		icon: (location.pathname === '/sales') ? <PointOfSaleOutlinedIcon /> : <PointOfSaleIcon />, 
-		path: '/sales' 
-	},
+	
 	
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports' },
   ];
@@ -106,7 +107,7 @@ const MainLayout = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            藥局POS系統
+            POS系統
           </Typography>
           
           {/* 搜索圖標 */}
@@ -162,7 +163,7 @@ const MainLayout = ({ children }) => {
           {/* 側邊欄標題 */}
           <Box sx={{ px: 3, mb: 3 }}>
             <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
-              藥局POS系統
+              興安藥局
             </Typography>
           </Box>
           
