@@ -142,7 +142,7 @@ const InventoryList = ({ productId }) => {
         </Typography>
       </Box>
 
-      <TableContainer component={Paper} sx={{ maxHeight: 200, overflow: 'auto' }}>
+      <TableContainer component={Paper} sx={{ maxHeight: 250, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
