@@ -779,7 +779,6 @@ const ProductsPage = () => {
                 
                 <Divider sx={{ my: 2 }} />
                 
-                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>庫存變化記錄:</Typography>
                 <InventoryList productId={selectedProduct.id} />
                 
               </CardContent>
