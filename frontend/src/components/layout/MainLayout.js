@@ -30,7 +30,11 @@ const MainLayout = ({ children }) => {
   const menuItems = [
     { text: '儀表板', icon: <DashboardIcon />, path: '/dashboard' },
     { text: '藥品管理', icon: <MedicationIcon />, path: '/products' },
-    { text: '供應商管理', icon: <LocalShippingIcon />, path: '/suppliers' },
+    { 
+      text: '供應商管理', 
+      icon: (location.pathname === '/suppliers') ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
+      path: '/suppliers' 
+    },
     { text: '會員管理', icon: <PeopleIcon />, path: '/customers' },
     { text: '進貨單管理', icon: <ShoppingCartIcon />, path: '/purchase-orders' },
     { text: '銷售管理', icon: <ReceiptIcon />, path: '/sales' },
