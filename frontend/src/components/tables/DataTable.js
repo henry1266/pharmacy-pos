@@ -1,8 +1,25 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { DataGrid, GridColumnMenuProps, GridColumnMenu, useGridApiContext } from '@mui/x-data-grid';
 import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
 
-// 自定義列菜單組件，添加列寬設置選項
+// 自定義用戶選單項
+function CustomUserItem(props) {
+  const { myCustomHandler, myCustomValue } = props;
+  return (
+    <MenuItem onClick={myCustomHandler}>
+      <ListItemIcon>
+        <SettingsApplicationsIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>{myCustomValue}</ListItemText>
+    </MenuItem>
+  );
+}
+
+// 自定義列菜單組件
 function CustomColumnMenu(props) {
   const { hideMenu, colDef } = props;
   const [open, setOpen] = useState(false);
@@ -29,24 +46,26 @@ function CustomColumnMenu(props) {
     hideMenu();
   };
 
+  const handleCustomAction = () => {
+    alert(`自定義操作：${colDef.field} 列`);
+    hideMenu();
+  };
+
   return (
     <>
       <GridColumnMenu
         {...props}
         slots={{
-          // 添加自定義菜單項
-          columnMenuUserItem: () => (
-            <Button
-              onClick={handleOpen}
-              sx={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', pl: 2 }}
-            >
-              設置列寬
-            </Button>
-          ),
+          // 添加新的自定義選單項
+          columnMenuUserItem: CustomUserItem,
         }}
         slotProps={{
           columnMenuUserItem: {
-            displayOrder: 0, // 顯示在最上方
+            // 設置顯示順序
+            displayOrder: 15,
+            // 傳遞額外的屬性
+            myCustomValue: '執行自定義操作',
+            myCustomHandler: handleCustomAction,
           },
         }}
       />

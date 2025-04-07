@@ -62,7 +62,7 @@
 - [x] 克隆GitHub存儲庫
 - [x] 探索專案結構
 - [x] 查看開發指南
-- [x] 找到PurchaseOrdersPage組件
-- [x] 將PurchaseOrdersPage篩選器的供應商改成下拉選單
+- [x] 找到ProductsPage組件
+- [x] 修改ProductsPage左半邊表格的自定義列選單
 - [ ] 測試修改後的功能
 - [ ] 提交並推送更改
