@@ -28,7 +28,9 @@ import {
   Chip,
   CircularProgress,
   Tabs,
-  Tab
+  Tab,
+  Tooltip,
+  Fab
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -307,23 +309,6 @@ const PurchaseOrdersPage = () => {
               >
                 {showFilters ? '隱藏篩選' : '顯示篩選'}
               </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                startIcon={<AddIcon />} 
-                onClick={handleAddNew}
-                sx={{ mr: 1 }}
-              >
-                新增進貨單
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<CloudUploadIcon />}
-                onClick={handleOpenCsvImport}
-              >
-                CSV匯入
-              </Button>
             </Box>
           </Box>
           
@@ -462,6 +447,41 @@ const PurchaseOrdersPage = () => {
           </TableContainer>
         </CardContent>
       </Card>
+      
+      {/* 固定按鈕區域 */}
+      <Box
+        sx={{
+          position: 'fixed',
+          right: 20,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          zIndex: 1000
+        }}
+      >
+        <Tooltip title="新增進貨單" placement="left" arrow>
+          <Fab
+            color="primary"
+            size="medium"
+            onClick={handleAddNew}
+            aria-label="新增進貨單"
+          >
+            <AddIcon />
+          </Fab>
+        </Tooltip>
+        <Tooltip title="CSV匯入" placement="left" arrow>
+          <Fab
+            color="secondary"
+            size="medium"
+            onClick={handleOpenCsvImport}
+            aria-label="CSV匯入"
+          >
+            <CloudUploadIcon />
+          </Fab>
+        </Tooltip>
+      </Box>
       
       {/* 刪除確認對話框 */}
       <Dialog
