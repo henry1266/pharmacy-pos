@@ -218,7 +218,7 @@ const PurchaseOrderFormPage = () => {
   
   const handleAddItem = () => {
     // 驗證項目
-    if (!currentItem.did || !currentItem.dname || !currentItem.dquantity || !currentItem.dtotalCost) {
+    if (!currentItem.did || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
       setSnackbar({
         open: true,
         message: '請填寫完整的藥品項目資料',
@@ -261,7 +261,7 @@ const PurchaseOrderFormPage = () => {
   // 新增：保存編輯項目
   const handleSaveEditItem = () => {
     // 驗證編輯項目
-    if (!editingItem.did || !editingItem.dname || !editingItem.dquantity || !editingItem.dtotalCost) {
+    if (!editingItem.did || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
       setSnackbar({
         open: true,
         message: '請填寫完整的藥品項目資料',
@@ -400,6 +400,7 @@ const PurchaseOrderFormPage = () => {
                   name="poid"
                   value={formData.poid}
                   onChange={handleInputChange}
+                  variant="outlined"
                   disabled={isEditMode}
                 />
               </Grid>
@@ -410,9 +411,9 @@ const PurchaseOrderFormPage = () => {
                   name="pobill"
                   value={formData.pobill}
                   onChange={handleInputChange}
+                  variant="outlined"
                 />
               </Grid>
-
               <Grid item xs={12} sm={6} md={3}>
                 <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
                   <DatePicker
@@ -424,9 +425,27 @@ const PurchaseOrderFormPage = () => {
                 </LocalizationProvider>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
+                <Autocomplete
+                  id="supplier-select"
+                  options={suppliers}
+                  getOptionLabel={(option) => option.name}
+                  value={suppliers.find(s => s._id === formData.supplier) || null}
+                  onChange={handleSupplierChange}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      label="供應商"
+                      fullWidth
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
-                  <InputLabel>狀態</InputLabel>
+                  <InputLabel id="status-label">狀態</InputLabel>
                   <Select
+                    labelId="status-label"
                     name="status"
                     value={formData.status}
                     onChange={handleInputChange}
@@ -440,10 +459,11 @@ const PurchaseOrderFormPage = () => {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
-                  <InputLabel>付款狀態</InputLabel>
+                  <InputLabel id="payment-status-label">付款狀態</InputLabel>
                   <Select
+                    labelId="payment-status-label"
                     name="paymentStatus"
-                    value={formData.paymentStatus || '未付'}
+                    value={formData.paymentStatus}
                     onChange={handleInputChange}
                     label="付款狀態"
                   >
@@ -453,29 +473,14 @@ const PurchaseOrderFormPage = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <Autocomplete
-                  options={suppliers}
-                  getOptionLabel={(option) => `${option.name} (${option.code})`}
-                  value={suppliers.find(s => s._id === formData.supplier || s.name === formData.posupplier) || null}
-                  onChange={handleSupplierChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="供應商"
-                      required
-                      fullWidth
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={6}>
                 <TextField
                   fullWidth
                   label="備註"
                   name="notes"
                   value={formData.notes}
                   onChange={handleInputChange}
+                  variant="outlined"
                   multiline
                   rows={1}
                 />
@@ -495,9 +500,17 @@ const PurchaseOrderFormPage = () => {
                 <Autocomplete
                   id="product-select"
                   options={products}
-                  getOptionLabel={(option) => `${option.name} (${option.code})`}
+                  getOptionLabel={(option) => `${option.code} - ${option.name}`}
                   value={products.find(p => p._id === currentItem.product) || null}
                   onChange={handleProductChange}
+                  filterOptions={(options, { inputValue }) => {
+                    const filterValue = inputValue.toLowerCase();
+                    return options.filter(
+                      option => 
+                        option.name.toLowerCase().includes(filterValue) || 
+                        option.code.toLowerCase().includes(filterValue)
+                    );
+                  }}
                   onKeyDown={(event) => {
                     // 當按下TAB鍵或Enter鍵且有過濾後的選項時
                     if (event.key === 'Tab' || event.key === 'Enter') {
@@ -560,7 +573,7 @@ const PurchaseOrderFormPage = () => {
                     if (event.key === 'Enter') {
                       event.preventDefault();
                       // 如果所有必填欄位都已填寫，則添加項目
-                      if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost) {
+                      if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost !== '') {
                         handleAddItem();
                         // 添加項目後，將焦點移回商品選擇欄位
                         setTimeout(() => {
@@ -602,126 +615,111 @@ const PurchaseOrderFormPage = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>藥品編號</TableCell>
+                    <TableCell>藥品代碼</TableCell>
                     <TableCell>藥品名稱</TableCell>
                     <TableCell align="right">數量</TableCell>
                     <TableCell align="right">總成本</TableCell>
                     <TableCell align="right">單價</TableCell>
-                    <TableCell>操作</TableCell>
+                    <TableCell align="center">操作</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {formData.items.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} align="center">尚未添加藥品項目</TableCell>
+                  {formData.items.map((item, index) => (
+                    <TableRow key={index}>
+                      {editingItemIndex === index ? (
+                        // 編輯模式
+                        <>
+                          <TableCell>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              value={editingItem.did}
+                              disabled
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              value={editingItem.dname}
+                              disabled
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              fullWidth
+                              size="small"
+                              name="dquantity"
+                              type="number"
+                              value={editingItem.dquantity}
+                              onChange={handleEditingItemChange}
+                              inputProps={{ min: 1 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              fullWidth
+                              size="small"
+                              name="dtotalCost"
+                              type="number"
+                              value={editingItem.dtotalCost}
+                              onChange={handleEditingItemChange}
+                              inputProps={{ min: 0 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            {editingItem.dquantity > 0 ? (editingItem.dtotalCost / editingItem.dquantity).toFixed(2) : '0.00'}
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton color="primary" onClick={handleSaveEditItem}>
+                              <CheckIcon />
+                            </IconButton>
+                            <IconButton color="error" onClick={handleCancelEditItem}>
+                              <CloseIcon />
+                            </IconButton>
+                          </TableCell>
+                        </>
+                      ) : (
+                        // 顯示模式
+                        <>
+                          <TableCell>{item.did}</TableCell>
+                          <TableCell>{item.dname}</TableCell>
+                          <TableCell align="right">{item.dquantity}</TableCell>
+                          <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
+                          <TableCell align="right">
+                            {item.dquantity > 0 ? (item.dtotalCost / item.dquantity).toFixed(2) : '0.00'}
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0}>
+                              <ArrowUpwardIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === formData.items.length - 1}>
+                              <ArrowDownwardIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleEditItem(index)}>
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleRemoveItem(index)}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
-                  ) : (
-                    formData.items.map((item, index) => (
-                      <TableRow key={index}>
-                        {editingItemIndex === index ? (
-                          // 編輯模式
-                          <>
-                            <TableCell>
-                              <TextField
-                                fullWidth
-                                name="did"
-                                value={editingItem.did}
-                                onChange={handleEditingItemChange}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <TextField
-                                fullWidth
-                                name="dname"
-                                value={editingItem.dname}
-                                onChange={handleEditingItemChange}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <TextField
-                                fullWidth
-                                name="dquantity"
-                                type="number"
-                                value={editingItem.dquantity}
-                                onChange={handleEditingItemChange}
-                                size="small"
-                                inputProps={{ min: 1 }}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <TextField
-                                fullWidth
-                                name="dtotalCost"
-                                type="number"
-                                value={editingItem.dtotalCost}
-                                onChange={handleEditingItemChange}
-                                size="small"
-                                inputProps={{ min: 0 }}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              {(Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2)}
-                            </TableCell>
-                            <TableCell>
-                              <IconButton size="small" onClick={handleSaveEditItem} color="primary">
-                                <CheckIcon />
-                              </IconButton>
-                              <IconButton size="small" onClick={handleCancelEditItem} color="error">
-                                <CloseIcon />
-                              </IconButton>
-                            </TableCell>
-                          </>
-                        ) : (
-                          // 顯示模式
-                          <>
-                            <TableCell>{item.did}</TableCell>
-                            <TableCell>{item.dname}</TableCell>
-                            <TableCell align="right">{item.dquantity}</TableCell>
-                            <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
-                            <TableCell align="right">
-                              {(Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2)}
-                            </TableCell>
-                            <TableCell>
-                              <IconButton size="small" onClick={() => handleEditItem(index)} color="primary">
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton size="small" onClick={() => handleRemoveItem(index)} color="error">
-                                <DeleteIcon />
-                              </IconButton>
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleMoveItem(index, 'up')} 
-                                disabled={index === 0}
-                                color="default"
-                              >
-                                <ArrowUpwardIcon />
-                              </IconButton>
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleMoveItem(index, 'down')} 
-                                disabled={index === formData.items.length - 1}
-                                color="default"
-                              >
-                                <ArrowDownwardIcon />
-                              </IconButton>
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    ))
+                  ))}
+                  {formData.items.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        尚未添加藥品項目
+                      </TableCell>
+                    </TableRow>
                   )}
                   <TableRow>
                     <TableCell colSpan={3} align="right">
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        總計:
-                      </Typography>
+                      <Typography variant="subtitle1">總計：</Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {totalAmount.toLocaleString()}
-                      </Typography>
+                      <Typography variant="subtitle1">{totalAmount.toLocaleString()}</Typography>
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
                   </TableRow>
@@ -731,7 +729,7 @@ const PurchaseOrderFormPage = () => {
           </CardContent>
         </Card>
         
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 4 }}>
           <Button
             variant="outlined"
             startIcon={<ArrowBackIcon />}
@@ -745,11 +743,12 @@ const PurchaseOrderFormPage = () => {
             startIcon={<SaveIcon />}
             disabled={loading}
           >
-            儲存
+            {loading ? '儲存中...' : '儲存進貨單'}
           </Button>
         </Box>
       </form>
       
+      {/* 確認對話框 */}
       <Dialog
         open={confirmDialogOpen}
         onClose={handleCancelComplete}
@@ -757,15 +756,18 @@ const PurchaseOrderFormPage = () => {
         <DialogTitle>確認完成進貨單</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            將進貨單標記為已完成將會更新庫存數量。此操作無法撤銷，確定要繼續嗎？
+            將進貨單標記為已完成後，系統將自動更新庫存數量。確定要繼續嗎？
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelComplete}>取消</Button>
-          <Button onClick={handleConfirmComplete} variant="contained">確認</Button>
+          <Button onClick={handleConfirmComplete} color="primary">
+            確認
+          </Button>
         </DialogActions>
       </Dialog>
       
+      {/* 提示訊息 */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
