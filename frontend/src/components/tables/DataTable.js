@@ -89,7 +89,7 @@ const DataTable = ({
   rows,
   title,
   loading = false,
-  pageSize = 10,
+  pageSize = 50,
   checkboxSelection = false,
   onRowClick,
   ...rest
@@ -182,6 +182,9 @@ const DataTable = ({
           }}
           initialState={{
             pinnedColumns: pinnedColumns, // 固定所有列，實現表頭凍結
+            pagination: {
+              pageSize: 50, // 設置初始頁面大小為50
+            },
           }}
           sx={{
             height: '100%',
