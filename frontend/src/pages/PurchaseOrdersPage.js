@@ -452,7 +452,7 @@ const PurchaseOrdersPage = () => {
       <Box
         sx={{
           position: 'fixed',
-          right: 20,
+          right: 10,
           top: '50%',
           transform: 'translateY(-50%)',
           display: 'flex',
