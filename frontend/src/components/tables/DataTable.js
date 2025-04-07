@@ -1,23 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { DataGrid, GridColumnMenuProps, GridColumnMenu, useGridApiContext } from '@mui/x-data-grid';
 import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
-
-// 自定義用戶選單項
-function CustomUserItem(props) {
-  const { myCustomHandler, myCustomValue } = props;
-  return (
-    <MenuItem onClick={myCustomHandler}>
-      <ListItemIcon>
-        <SettingsApplicationsIcon fontSize="small" />
-      </ListItemIcon>
-      <ListItemText>{myCustomValue}</ListItemText>
-    </MenuItem>
-  );
-}
 
 // 自定義列菜單組件
 function CustomColumnMenu(props) {
@@ -46,26 +29,24 @@ function CustomColumnMenu(props) {
     hideMenu();
   };
 
-  const handleCustomAction = () => {
-    alert(`自定義操作：${colDef.field} 列`);
-    hideMenu();
-  };
-
   return (
     <>
       <GridColumnMenu
         {...props}
         slots={{
-          // 添加新的自定義選單項
-          columnMenuUserItem: CustomUserItem,
+          // 添加自定義菜單項
+          columnMenuUserItem: () => (
+            <Button
+              onClick={handleOpen}
+              sx={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', pl: 2 }}
+            >
+              設置列寬
+            </Button>
+          ),
         }}
         slotProps={{
           columnMenuUserItem: {
-            // 設置顯示順序
-            displayOrder: 15,
-            // 傳遞額外的屬性
-            myCustomValue: '執行自定義操作',
-            myCustomHandler: handleCustomAction,
+            displayOrder: 0, // 顯示在最上方
           },
         }}
       />
@@ -172,6 +153,11 @@ const DataTable = ({
     minWidth: 50, // 設置最小寬度
   }));
 
+  // 設置所有列都固定在左側，實現表頭凍結效果
+  const pinnedColumns = {
+    left: columnsWithResizing.map(col => col.field)
+  };
+
   return (
     <Paper elevation={2} sx={{ width: '100%', overflow: 'hidden' }}>
       {title && (
@@ -181,7 +167,7 @@ const DataTable = ({
           </Typography>
         </Box>
       )}
-      <Box sx={{ width: '100%' }} ref={gridRef} tabIndex="0">
+      <Box sx={{ width: '100%', height: 500 }} ref={gridRef} tabIndex="0">
         <DataGrid
           rows={rows}
           columns={columnsWithResizing}
@@ -190,11 +176,26 @@ const DataTable = ({
           rowsPerPageOptions={[5, 10, 25, 50]}
           checkboxSelection={checkboxSelection}
           disableSelectionOnClick
-          autoHeight
-          sx={{ minHeight: 500 }}
           onRowClick={handleRowClickInternal}
           slots={{
             columnMenu: CustomColumnMenu, // 使用自定義列菜單
+          }}
+          initialState={{
+            pinnedColumns: pinnedColumns, // 固定所有列，實現表頭凍結
+          }}
+          sx={{
+            height: '100%',
+            width: '100%',
+            '& .MuiDataGrid-main': { overflow: 'hidden' },
+            '& .MuiDataGrid-virtualScroller': { overflow: 'auto' },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: 'background.paper',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+            }
           }}
           {...rest}
         />
