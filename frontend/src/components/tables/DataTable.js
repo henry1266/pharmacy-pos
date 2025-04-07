@@ -167,7 +167,7 @@ const DataTable = ({
           </Typography>
         </Box>
       )}
-      <Box sx={{ width: '100%', height: 500 }} ref={gridRef} tabIndex="0">
+      <Box sx={{ width: '100%', height: 600 }} ref={gridRef} tabIndex="0">
         <DataGrid
           rows={rows}
           columns={columnsWithResizing}
