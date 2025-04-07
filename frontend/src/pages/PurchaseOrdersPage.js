@@ -24,7 +24,11 @@ import {
   Tabs,
   Tab,
   Tooltip,
-  Fab
+  Fab,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -43,12 +47,13 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchPurchaseOrders, deletePurchaseOrder, searchPurchaseOrders } from '../redux/actions';
+import { fetchPurchaseOrders, deletePurchaseOrder, searchPurchaseOrders, fetchSuppliers } from '../redux/actions';
 
 const PurchaseOrdersPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { purchaseOrders, loading, error } = useSelector(state => state.purchaseOrders);
+  const { suppliers } = useSelector(state => state.suppliers || { suppliers: [] });
   
   const [searchParams, setSearchParams] = useState({
     poid: '',
@@ -84,6 +89,7 @@ const PurchaseOrdersPage = () => {
   
   useEffect(() => {
     dispatch(fetchPurchaseOrders());
+    dispatch(fetchSuppliers());
   }, [dispatch]);
   
   useEffect(() => {
@@ -410,15 +416,26 @@ const PurchaseOrdersPage = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  label="供應商"
-                  name="posupplier"
-                  value={searchParams.posupplier}
-                  onChange={handleInputChange}
-                  variant="outlined"
-                  size="small"
-                />
+                <FormControl fullWidth size="small">
+                  <InputLabel id="supplier-select-label">供應商</InputLabel>
+                  <Select
+                    labelId="supplier-select-label"
+                    id="supplier-select"
+                    name="posupplier"
+                    value={searchParams.posupplier}
+                    onChange={handleInputChange}
+                    label="供應商"
+                  >
+                    <MenuItem value="">
+                      <em>全部</em>
+                    </MenuItem>
+                    {suppliers && suppliers.map((supplier) => (
+                      <MenuItem key={supplier._id} value={supplier.name}>
+                        {supplier.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
