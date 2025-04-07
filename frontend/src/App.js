@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, CssBaseline } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import MainLayout from './components/layout/MainLayout';
 import { BrowserRouter as Router } from 'react-router-dom';
