@@ -37,11 +37,8 @@ const SalesPage = () => {
   const barcodeInputRef = useRef(null);
   
   // 狀態管理
-  const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   
   const [currentSale, setCurrentSale] = useState({
     saleNumber: '',
