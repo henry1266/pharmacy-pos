@@ -463,7 +463,7 @@ const PurchaseOrdersPage = () => {
           )}
           
           {/* DataGrid表格 */}
-          <Box sx={{ height: 400, width: '100%' }}>
+          <Box sx={{ width: '100%', height: 500 }}>
             <DataGrid
               rows={rows}
               columns={columns}
@@ -473,7 +473,6 @@ const PurchaseOrdersPage = () => {
               checkboxSelection={false}
               disableRowSelectionOnClick
               loading={loading}
-              autoHeight
               density="standard"
               getRowId={(row) => row.id}
               localeText={{
