@@ -97,6 +97,9 @@ const PurchaseOrderFormPage = () => {
   
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   
+  // 保存當前選中的供應商對象
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  
   useEffect(() => {
     dispatch(fetchSuppliers());
     dispatch(fetchProducts());
@@ -132,6 +135,17 @@ const PurchaseOrderFormPage = () => {
         pobilldate: currentPurchaseOrder.pobilldate ? new Date(currentPurchaseOrder.pobilldate) : new Date()
       });
       
+      // 找到並設置當前選中的供應商
+      if (currentPurchaseOrder.supplier) {
+        const supplier = suppliers.find(s => 
+          s._id === currentPurchaseOrder.supplier || 
+          s._id === currentPurchaseOrder.supplier._id
+        );
+        if (supplier) {
+          setSelectedSupplier(supplier);
+        }
+      }
+      
       // 在編輯模式下，載入數據後將焦點直接放在商品選擇欄位上
       setTimeout(() => {
         // 直接使用ID選擇器定位藥品選擇欄位
@@ -141,7 +155,7 @@ const PurchaseOrderFormPage = () => {
         }
       }, 800); // 延長時間確保DOM已完全載入
     }
-  }, [isEditMode, currentPurchaseOrder, suppliersLoaded]);
+  }, [isEditMode, currentPurchaseOrder, suppliersLoaded, suppliers]);
   
   useEffect(() => {
     if (error) {
@@ -169,12 +183,14 @@ const PurchaseOrderFormPage = () => {
   
   const handleSupplierChange = (event, newValue) => {
     if (newValue) {
+      setSelectedSupplier(newValue);
       setFormData({
         ...formData,
         posupplier: newValue.name,
         supplier: newValue._id
       });
     } else {
+      setSelectedSupplier(null);
       setFormData({
         ...formData,
         posupplier: '',
@@ -429,7 +445,7 @@ const PurchaseOrderFormPage = () => {
                   id="supplier-select"
                   options={suppliers}
                   getOptionLabel={(option) => option.name}
-                  value={suppliers.find(s => s._id === formData.supplier) || null}
+                  value={selectedSupplier}
                   onChange={handleSupplierChange}
                   renderInput={(params) => (
                     <TextField
