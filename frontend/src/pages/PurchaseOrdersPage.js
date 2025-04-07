@@ -9,12 +9,6 @@ import {
   Grid, 
   Card, 
   CardContent, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
   Paper, 
   TextField,
   IconButton,
@@ -42,6 +36,7 @@ import {
   Clear as ClearIcon,
   CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -80,6 +75,12 @@ const PurchaseOrdersPage = () => {
   const [csvImportError, setCsvImportError] = useState(null);
   const [csvImportSuccess, setCsvImportSuccess] = useState(false);
   const [csvTabValue, setCsvTabValue] = useState(0);
+  
+  // DataGrid 分頁設置
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize: 10,
+    page: 0,
+  });
   
   useEffect(() => {
     dispatch(fetchPurchaseOrders());
@@ -290,6 +291,78 @@ const PurchaseOrdersPage = () => {
     return <Chip size="small" color={color} label={label} />;
   };
   
+  // DataGrid 列定義
+  const columns = [
+    { field: 'poid', headerName: '進貨單號', flex: 1 },
+    { field: 'pobill', headerName: '發票號碼', flex: 1 },
+    { 
+      field: 'pobilldate', 
+      headerName: '發票日期', 
+      flex: 1,
+      valueFormatter: (params) => {
+        return params.value ? format(new Date(params.value), 'yyyy-MM-dd') : '';
+      }
+    },
+    { field: 'posupplier', headerName: '供應商', flex: 1 },
+    { 
+      field: 'totalAmount', 
+      headerName: '總金額', 
+      flex: 1,
+      valueFormatter: (params) => {
+        return params.value ? params.value.toLocaleString() : '';
+      }
+    },
+    { 
+      field: 'status', 
+      headerName: '狀態', 
+      flex: 1,
+      renderCell: (params) => getStatusChip(params.value)
+    },
+    { 
+      field: 'paymentStatus', 
+      headerName: '付款狀態', 
+      flex: 1,
+      renderCell: (params) => getPaymentStatusChip(params.value)
+    },
+    { 
+      field: 'actions', 
+      headerName: '操作', 
+      flex: 1,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Box>
+          <IconButton size="small" onClick={() => handleView(params.row._id)}>
+            <VisibilityIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" onClick={() => handleEdit(params.row._id)}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton 
+            size="small" 
+            onClick={() => handleDeleteClick(params.row)}
+            disabled={params.row.status === 'completed'}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )
+    }
+  ];
+  
+  // 為DataGrid準備行數據
+  const rows = purchaseOrders.map(po => ({
+    id: po._id, // DataGrid需要唯一的id字段
+    _id: po._id, // 保留原始_id用於操作
+    poid: po.poid,
+    pobill: po.pobill,
+    pobilldate: po.pobilldate,
+    posupplier: po.posupplier,
+    totalAmount: po.totalAmount,
+    status: po.status,
+    paymentStatus: po.paymentStatus
+  }));
+  
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -389,62 +462,72 @@ const PurchaseOrdersPage = () => {
             </Grid>
           )}
           
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>進貨單號</TableCell>
-                  <TableCell>發票號碼</TableCell>
-                  <TableCell>發票日期</TableCell>
-                  <TableCell>供應商</TableCell>
-                  <TableCell>總金額</TableCell>
-                  <TableCell>狀態</TableCell>
-                  <TableCell>付款狀態</TableCell>
-                  <TableCell>操作</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">載入中...</TableCell>
-                  </TableRow>
-                ) : purchaseOrders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">沒有進貨單記錄</TableCell>
-                  </TableRow>
-                ) : (
-                  purchaseOrders.map((po) => (
-                    <TableRow key={po._id}>
-                      <TableCell>{po.poid}</TableCell>
-                      <TableCell>{po.pobill}</TableCell>
-                      <TableCell>
-                        {po.pobilldate ? format(new Date(po.pobilldate), 'yyyy-MM-dd') : ''}
-                      </TableCell>
-                      <TableCell>{po.posupplier}</TableCell>
-                      <TableCell>{po.totalAmount?.toLocaleString()}</TableCell>
-                      <TableCell>{getStatusChip(po.status)}</TableCell>
-                      <TableCell>{getPaymentStatusChip(po.paymentStatus)}</TableCell>
-                      <TableCell>
-                        <IconButton size="small" onClick={() => handleView(po._id)}>
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleEdit(po._id)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleDeleteClick(po)}
-                          disabled={po.status === 'completed'}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          {/* DataGrid表格 */}
+          <Box sx={{ height: 400, width: '100%' }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              paginationModel={paginationModel}
+              onPaginationModelChange={setPaginationModel}
+              pageSizeOptions={[5, 10, 25, 50]}
+              checkboxSelection={false}
+              disableRowSelectionOnClick
+              loading={loading}
+              autoHeight
+              density="standard"
+              getRowId={(row) => row.id}
+              localeText={{
+                noRowsLabel: '沒有進貨單記錄',
+                footerRowSelected: (count) => `已選擇 ${count} 個項目`,
+                columnMenuLabel: '選單',
+                columnMenuShowColumns: '顯示欄位',
+                columnMenuFilter: '篩選',
+                columnMenuHideColumn: '隱藏',
+                columnMenuUnsort: '取消排序',
+                columnMenuSortAsc: '升序排列',
+                columnMenuSortDesc: '降序排列',
+                filterPanelAddFilter: '新增篩選',
+                filterPanelDeleteIconLabel: '刪除',
+                filterPanelOperators: '運算子',
+                filterPanelOperatorAnd: '與',
+                filterPanelOperatorOr: '或',
+                filterPanelColumns: '欄位',
+                filterPanelInputLabel: '值',
+                filterPanelInputPlaceholder: '篩選值',
+                columnsPanelTextFieldLabel: '尋找欄位',
+                columnsPanelTextFieldPlaceholder: '欄位名稱',
+                columnsPanelDragIconLabel: '重新排序欄位',
+                columnsPanelShowAllButton: '顯示全部',
+                columnsPanelHideAllButton: '隱藏全部',
+                toolbarDensity: '密度',
+                toolbarDensityLabel: '密度',
+                toolbarDensityCompact: '緊湊',
+                toolbarDensityStandard: '標準',
+                toolbarDensityComfortable: '舒適',
+                toolbarExport: '匯出',
+                toolbarExportLabel: '匯出',
+                toolbarExportCSV: '下載CSV',
+                toolbarExportPrint: '列印',
+                toolbarColumns: '欄位',
+                toolbarColumnsLabel: '選擇欄位',
+                toolbarFilters: '篩選',
+                toolbarFiltersLabel: '顯示篩選',
+                toolbarFiltersTooltipHide: '隱藏篩選',
+                toolbarFiltersTooltipShow: '顯示篩選',
+                toolbarQuickFilterPlaceholder: '搜尋...',
+                toolbarQuickFilterLabel: '搜尋',
+                toolbarQuickFilterDeleteIconLabel: '清除',
+                paginationRowsPerPage: '每頁行數:',
+                paginationPageSize: '頁面大小',
+                paginationLabelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count !== -1 ? count : `超過 ${to}`}`,
+                paginationLabelRowsPerPage: '每頁行數:',
+                MuiTablePagination: {
+                  labelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count}`,
+                  labelRowsPerPage: '每頁行數:'
+                }
+              }}
+            />
+          </Box>
         </CardContent>
       </Card>
       
@@ -452,7 +535,7 @@ const PurchaseOrdersPage = () => {
       <Box
         sx={{
           position: 'fixed',
-          right: 10,
+          right: 20,
           top: '50%',
           transform: 'translateY(-50%)',
           display: 'flex',
