@@ -78,7 +78,7 @@ const PurchaseOrdersPage = () => {
   
   // DataGrid 分頁設置
   const [paginationModel, setPaginationModel] = useState({
-    pageSize: 10,
+    pageSize: 50,
     page: 0,
   });
   
