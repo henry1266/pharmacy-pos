@@ -389,44 +389,59 @@ const PurchaseOrderFormPage = () => {
               藥品項目
             </Typography>
             
-            {/* 藥品項目添加表單 */}
-            <ProductItemForm 
-              currentItem={currentItem}
-              handleItemInputChange={handleItemInputChange}
-              handleProductChange={handleProductChange}
-              handleAddItem={handleAddItem}
-              products={products}
-            />
+            {/* 操作按鈕 - 移到添加項目上方 */}
+            <Box sx={{ mb: 2 }}>
+              <ActionButtons 
+                loading={loading}
+                onCancel={handleCancel}
+              />
+            </Box>
             
-            {/* 藥品項目表格 */}
-            <ProductItemsTable 
-              items={formData.items}
-              editingItemIndex={editingItemIndex}
-              editingItem={editingItem}
-              handleEditItem={handleEditItem}
-              handleSaveEditItem={handleSaveEditItem}
-              handleCancelEditItem={handleCancelEditItem}
-              handleRemoveItem={handleRemoveItem}
-              handleMoveItem={handleMoveItem}
-              handleEditingItemChange={handleEditingItemChange}
-              totalAmount={totalAmount}
-            />
+            {/* 固定的輸入區域 */}
+            <Box 
+              sx={{ 
+                position: 'sticky', 
+                top: 0, 
+                backgroundColor: 'white', 
+                zIndex: 10,
+                pt: 2,
+                pb: 2,
+                borderBottom: '1px solid #e0e0e0'
+              }}
+            >
+              <ProductItemForm 
+                currentItem={currentItem}
+                handleItemInputChange={handleItemInputChange}
+                handleProductChange={handleProductChange}
+                handleAddItem={handleAddItem}
+                products={products}
+              />
+            </Box>
+            
+            {/* 藥品項目表格 - 設置固定高度使總計欄可見 */}
+            <Box sx={{ height: 'calc(100vh - 450px)', minHeight: '300px' }}>
+              <ProductItemsTable 
+                items={formData.items}
+                editingItemIndex={editingItemIndex}
+                editingItem={editingItem}
+                handleEditItem={handleEditItem}
+                handleSaveEditItem={handleSaveEditItem}
+                handleCancelEditItem={handleCancelEditItem}
+                handleRemoveItem={handleRemoveItem}
+                handleMoveItem={handleMoveItem}
+                handleEditingItemChange={handleEditingItemChange}
+                totalAmount={totalAmount}
+              />
+            </Box>
           </CardContent>
         </Card>
         
-        {/* 操作按鈕 */}
-        <ActionButtons 
-          loading={loading}
-          onCancel={handleCancel}
+        {/* 確認對話框 */}
+        <ConfirmDialog 
+          open={confirmDialogOpen}
+          onClose={handleCancelComplete}
+          onConfirm={handleConfirmComplete}
         />
-      </form>
-      
-      {/* 確認對話框 */}
-      <ConfirmDialog 
-        open={confirmDialogOpen}
-        onClose={handleCancelComplete}
-        onConfirm={handleConfirmComplete}
-      />
       
       {/* 提示訊息 */}
       <Snackbar

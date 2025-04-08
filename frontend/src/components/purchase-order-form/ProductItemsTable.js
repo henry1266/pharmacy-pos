@@ -48,7 +48,13 @@ const ProductItemsTable = ({
   totalAmount
 }) => {
   return (
-    <TableContainer component={Paper}>
+    <TableContainer 
+      component={Paper}
+      sx={{ 
+        maxHeight: '400px', 
+        overflow: 'auto' 
+      }}
+    >
       <Table>
         <TableHead>
           <TableRow>
@@ -151,7 +157,17 @@ const ProductItemsTable = ({
               </TableCell>
             </TableRow>
           )}
-          <TableRow>
+          {/* 固定的總計欄 */}
+          <TableRow
+            sx={{
+              position: 'sticky',
+              bottom: 0,
+              backgroundColor: 'white',
+              zIndex: 5,
+              borderTop: '2px solid #e0e0e0',
+              '& > *': { fontWeight: 'bold' }
+            }}
+          >
             <TableCell colSpan={3} align="right">
               <Typography variant="subtitle1">總計：</Typography>
             </TableCell>
