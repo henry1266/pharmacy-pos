@@ -28,7 +28,8 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  Popper
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -48,6 +49,7 @@ import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
 import { fetchPurchaseOrders, deletePurchaseOrder, searchPurchaseOrders, fetchSuppliers } from '../redux/actions';
+import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
 
 const PurchaseOrdersPage = () => {
   const dispatch = useDispatch();
@@ -71,6 +73,13 @@ const PurchaseOrdersPage = () => {
     message: '',
     severity: 'success'
   });
+  
+  // 預覽相關狀態
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewAnchorEl, setPreviewAnchorEl] = useState(null);
+  const [previewPurchaseOrder, setPreviewPurchaseOrder] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
   
   // CSV導入相關狀態
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
@@ -141,6 +150,47 @@ const PurchaseOrdersPage = () => {
   
   const handleView = (id) => {
     navigate(`/purchase-orders/${id}`);
+  };
+  
+  // 處理滑鼠懸停在檢視按鈕上
+  const handlePreviewMouseEnter = async (event, id) => {
+    setPreviewAnchorEl(event.currentTarget);
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewError(null);
+    
+    try {
+      // 從現有的purchaseOrders中查找，如果找到就直接使用
+      const existingPO = purchaseOrders.find(po => po._id === id);
+      if (existingPO && existingPO.items) {
+        setPreviewPurchaseOrder(existingPO);
+        setPreviewLoading(false);
+        return;
+      }
+      
+      // 如果在現有數據中沒有找到完整信息，則從API獲取
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+      
+      const response = await axios.get(`/api/purchase-orders/${id}`, config);
+      setPreviewPurchaseOrder(response.data);
+      setPreviewLoading(false);
+    } catch (err) {
+      console.error('獲取進貨單預覽失敗:', err);
+      setPreviewError('獲取進貨單預覽失敗');
+      setPreviewLoading(false);
+    }
+  };
+  
+  // 處理滑鼠離開檢視按鈕
+  const handlePreviewMouseLeave = () => {
+    setPreviewOpen(false);
+    setPreviewAnchorEl(null);
+    setPreviewPurchaseOrder(null);
   };
   
   const handleDeleteClick = (purchaseOrder) => {
@@ -338,7 +388,12 @@ const PurchaseOrdersPage = () => {
       filterable: false,
       renderCell: (params) => (
         <Box>
-          <IconButton size="small" onClick={() => handleView(params.row._id)}>
+          <IconButton 
+            size="small" 
+            onClick={() => handleView(params.row._id)}
+            onMouseEnter={(e) => handlePreviewMouseEnter(e, params.row._id)}
+            onMouseLeave={handlePreviewMouseLeave}
+          >
             <VisibilityIcon fontSize="small" />
           </IconButton>
           <IconButton size="small" onClick={() => handleEdit(params.row._id)}>
@@ -548,6 +603,20 @@ const PurchaseOrdersPage = () => {
         </CardContent>
       </Card>
       
+      {/* 進貨單預覽彈出窗口 */}
+      <Popper
+        open={previewOpen}
+        anchorEl={previewAnchorEl}
+        placement="right-start"
+        sx={{ zIndex: 1300 }}
+      >
+        <PurchaseOrderPreview
+          purchaseOrder={previewPurchaseOrder}
+          loading={previewLoading}
+          error={previewError}
+        />
+      </Popper>
+      
       {/* 固定按鈕區域 */}
       <Box
         sx={{
@@ -621,65 +690,46 @@ const PurchaseOrdersPage = () => {
           {csvTabValue === 0 && (
             <Box>
               <Typography variant="subtitle1" gutterBottom>
-                請上傳進貨單基本資訊CSV文件
+                匯入進貨單基本資訊
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                CSV格式要求：進貨單號,發票號,發票日期,廠商,付款狀態<br />
-                範例：20240816001,DA84143639,20240813,嘉鏵,已下收
+                請上傳包含進貨單基本資訊的CSV文件。文件應包含以下欄位：進貨單號、發票號碼、發票日期、供應商、狀態、付款狀態等。
               </Typography>
-              <Button
-                variant="contained"
-                component="label"
-                startIcon={<CloudUploadIcon />}
-                sx={{ mt: 1, mb: 2 }}
-              >
-                選擇文件
-                <input
-                  type="file"
-                  accept=".csv"
-                  hidden
-                  onChange={handleCsvFileChange}
-                />
-              </Button>
-              {csvFile && (
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  已選擇文件: {csvFile.name}
-                </Typography>
-              )}
             </Box>
           )}
           
           {csvTabValue === 1 && (
             <Box>
               <Typography variant="subtitle1" gutterBottom>
-                請上傳進貨品項CSV文件
+                匯入進貨品項
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                CSV格式要求：進貨單號,藥品代碼,數量,金額<br />
-                範例：20240816001,80002,70,140<br />
-                注意：請確保進貨單號已存在於系統中
+                請上傳包含進貨品項的CSV文件。文件應包含以下欄位：進貨單號、藥品代碼、藥品名稱、數量、總成本等。
               </Typography>
-              <Button
-                variant="contained"
-                component="label"
-                startIcon={<CloudUploadIcon />}
-                sx={{ mt: 1, mb: 2 }}
-              >
-                選擇文件
-                <input
-                  type="file"
-                  accept=".csv"
-                  hidden
-                  onChange={handleCsvFileChange}
-                />
-              </Button>
-              {csvFile && (
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  已選擇文件: {csvFile.name}
-                </Typography>
-              )}
             </Box>
           )}
+          
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              component="label"
+              startIcon={<CloudUploadIcon />}
+              disabled={csvImportLoading}
+            >
+              選擇CSV文件
+              <input
+                type="file"
+                accept=".csv"
+                hidden
+                onChange={handleCsvFileChange}
+              />
+            </Button>
+            {csvFile && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                已選擇: {csvFile.name}
+              </Typography>
+            )}
+          </Box>
           
           {csvImportError && (
             <Alert severity="error" sx={{ mt: 2 }}>
@@ -692,29 +742,33 @@ const PurchaseOrdersPage = () => {
               CSV導入成功！
             </Alert>
           )}
+          
+          {csvImportLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCsvImportDialogOpen(false)} color="inherit">
-            取消
-          </Button>
+          <Button onClick={() => setCsvImportDialogOpen(false)}>取消</Button>
           <Button 
             onClick={handleCsvImport} 
-            color="primary" 
-            variant="contained"
+            variant="contained" 
             disabled={!csvFile || csvImportLoading}
           >
-            {csvImportLoading ? <CircularProgress size={24} /> : '導入'}
+            匯入
           </Button>
         </DialogActions>
       </Dialog>
       
-      {/* 提示訊息 */}
+      {/* 提示消息 */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
