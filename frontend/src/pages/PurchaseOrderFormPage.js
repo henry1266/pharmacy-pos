@@ -383,9 +383,9 @@ const PurchaseOrderFormPage = () => {
           isEditMode={isEditMode}
         />
         
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
+        <Card sx={{ mb: 2 }}>
+          <CardContent sx={{ pb: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
               藥品項目
             </Typography>
             
@@ -419,7 +419,7 @@ const PurchaseOrderFormPage = () => {
             </Box>
             
             {/* 藥品項目表格 - 設置固定高度使總計欄可見 */}
-            <Box sx={{ height: 'calc(100vh - 450px)', minHeight: '300px' }}>
+            <Box sx={{ height: 'calc(100vh - 550px)', minHeight: '250px' }}>
               <ProductItemsTable 
                 items={formData.items}
                 editingItemIndex={editingItemIndex}

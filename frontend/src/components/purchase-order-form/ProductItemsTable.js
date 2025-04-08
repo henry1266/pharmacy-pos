@@ -51,7 +51,7 @@ const ProductItemsTable = ({
     <TableContainer 
       component={Paper}
       sx={{ 
-        maxHeight: '400px', 
+        maxHeight: '350px', 
         overflow: 'auto' 
       }}
     >
@@ -133,18 +133,20 @@ const ProductItemsTable = ({
                     {item.dquantity > 0 ? (item.dtotalCost / item.dquantity).toFixed(2) : '0.00'}
                   </TableCell>
                   <TableCell align="center">
-                    <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0}>
-                      <ArrowUpwardIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1}>
-                      <ArrowDownwardIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleEditItem(index)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleRemoveItem(index)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0}>
+                        <ArrowUpwardIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1}>
+                        <ArrowDownwardIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleEditItem(index)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleRemoveItem(index)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </>
               )}
