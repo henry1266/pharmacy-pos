@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   Box,
   Table,
@@ -48,6 +48,19 @@ const ProductItemsTable = ({
   handleEditingItemChange,
   totalAmount
 }) => {
+  const tableContainerRef = useRef(null);
+  
+  // 當項目數量變化時，滾動到底部
+  useEffect(() => {
+    if (tableContainerRef.current && items.length > 0) {
+      // 使用setTimeout確保在DOM更新後執行滾動
+      setTimeout(() => {
+        const scrollHeight = tableContainerRef.current.scrollHeight;
+        tableContainerRef.current.scrollTop = scrollHeight;
+      }, 100);
+    }
+  }, [items.length]);
+  
   return (
     <TableContainer 
       component={Paper}
@@ -55,6 +68,7 @@ const ProductItemsTable = ({
         maxHeight: '350px', 
         overflow: 'auto' 
       }}
+      ref={tableContainerRef}
     >
       <Table>
         <TableHead>

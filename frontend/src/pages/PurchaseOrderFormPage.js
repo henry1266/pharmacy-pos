@@ -228,6 +228,14 @@ const PurchaseOrderFormPage = () => {
       dtotalCost: '',
       product: null
     });
+    
+    // 聚焦回藥品選擇欄位，方便繼續添加
+    setTimeout(() => {
+      const productInput = document.getElementById('product-select-input');
+      if (productInput) {
+        productInput.focus();
+      }
+    }, 100);
   };
   
   const handleRemoveItem = (index) => {
