@@ -2,8 +2,7 @@ import React from 'react';
 import { 
   Grid, 
   TextField, 
-  Autocomplete, 
-  Divider, 
+  Autocomplete,  
   FormControl, 
   InputLabel, 
   Select, 
@@ -102,12 +101,7 @@ const BasicInfoForm = ({
               rows={1}
             />
           </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+		<Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
               <InputLabel id="payment-status-label">付款狀態</InputLabel>
               <Select
@@ -123,7 +117,7 @@ const BasicInfoForm = ({
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+		  <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
               <InputLabel id="status-label">狀態</InputLabel>
               <Select
@@ -139,7 +133,8 @@ const BasicInfoForm = ({
               </Select>
             </FormControl>
           </Grid>
-        </Grid>
+		</Grid>
+
       </CardContent>
     </Card>
   );
