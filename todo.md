@@ -24,6 +24,7 @@
   - [x] 新增/編輯進貨單功能
   - [x] 滑鼠懸停預覽功能
   - [x] 表頭供應商勾選篩選功能
+  - [x] 元件拆分重構
 
 ## 前端元件建立
 - [ ] 共用元件
@@ -33,6 +34,7 @@
   - [x] 表格頂部行凍結功能
   - [x] 表格單頁數量預設值修改為50
   - [x] 表頭供應商勾選篩選功能
+  - [x] 進貨單表格元件拆分
 - [ ] 圖表元件
 - [ ] 導航元件
 
@@ -76,9 +78,12 @@
 - [x] 探索專案結構
 - [x] 查看開發指南
 - [x] 找到PurchaseOrdersPage組件
-- [x] 分析MUI DataGrid表頭篩選功能
-- [x] 設計DataGrid表頭中的供應商勾選篩選功能
-- [x] 實現SupplierCheckboxFilter組件
-- [x] 將供應商勾選篩選功能整合到PurchaseOrdersPage
-- [ ] 測試供應商勾選篩選功能
+- [x] 修復ESLint錯誤（未定義的變數'rows'）
+- [x] 將PurchaseOrdersPage拆分為元件
+  - [x] 創建PurchaseOrdersTable元件
+  - [x] 創建PurchaseOrdersFilter元件
+  - [x] 創建CsvImportDialog元件
+  - [x] 創建DeleteConfirmDialog元件
+  - [x] 整合所有元件到PurchaseOrdersPage
+- [ ] 測試修改後的功能
 - [ ] 提交並推送更改

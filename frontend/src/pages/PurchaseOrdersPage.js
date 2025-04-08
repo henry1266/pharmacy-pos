@@ -1,64 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React from 'react';
 import { 
   Box, 
   Typography, 
   Button, 
-  Grid, 
   Card, 
   CardContent, 
-  Paper, 
-  TextField,
-  IconButton,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Snackbar,
-  Alert,
-  Chip,
-  CircularProgress,
-  Tabs,
-  Tab,
   Tooltip,
   Fab,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
+  Snackbar,
+  Alert,
   Popper
 } from '@mui/material';
 import { 
   Add as AddIcon, 
-  Search as SearchIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
   FilterList as FilterListIcon,
-  Clear as ClearIcon,
   CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
-import { DataGrid } from '@mui/x-data-grid';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
 
 import { fetchPurchaseOrders, deletePurchaseOrder, searchPurchaseOrders, fetchSuppliers } from '../redux/actions';
 import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
 import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
+import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTable';
+import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter';
+import CsvImportDialog from '../components/purchase-orders/CsvImportDialog';
+import DeleteConfirmDialog from '../components/purchase-orders/DeleteConfirmDialog';
 
+/**
+ * 進貨單管理頁面
+ * @returns {React.ReactElement} 進貨單管理頁面
+ */
 const PurchaseOrdersPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { purchaseOrders, loading, error } = useSelector(state => state.purchaseOrders);
   const { suppliers } = useSelector(state => state.suppliers || { suppliers: [] });
   
-  const [searchParams, setSearchParams] = useState({
+  const [searchParams, setSearchParams] = React.useState({
     poid: '',
     pobill: '',
     posupplier: '',
@@ -67,46 +47,46 @@ const PurchaseOrdersPage = () => {
   });
   
   // 供應商篩選相關狀態
-  const [selectedSuppliers, setSelectedSuppliers] = useState([]);
-  const [filteredRows, setFilteredRows] = useState([]);
+  const [selectedSuppliers, setSelectedSuppliers] = React.useState([]);
+  const [filteredRows, setFilteredRows] = React.useState([]);
   
-  const [showFilters, setShowFilters] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [purchaseOrderToDelete, setPurchaseOrderToDelete] = useState(null);
-  const [snackbar, setSnackbar] = useState({
+  const [showFilters, setShowFilters] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [purchaseOrderToDelete, setPurchaseOrderToDelete] = React.useState(null);
+  const [snackbar, setSnackbar] = React.useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
   // 預覽相關狀態
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewAnchorEl, setPreviewAnchorEl] = useState(null);
-  const [previewPurchaseOrder, setPreviewPurchaseOrder] = useState(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState(null);
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [previewAnchorEl, setPreviewAnchorEl] = React.useState(null);
+  const [previewPurchaseOrder, setPreviewPurchaseOrder] = React.useState(null);
+  const [previewLoading, setPreviewLoading] = React.useState(false);
+  const [previewError, setPreviewError] = React.useState(null);
   
   // CSV導入相關狀態
-  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
-  const [csvType, setCsvType] = useState('basic'); // 'basic' 或 'items'
-  const [csvFile, setCsvFile] = useState(null);
-  const [csvImportLoading, setCsvImportLoading] = useState(false);
-  const [csvImportError, setCsvImportError] = useState(null);
-  const [csvImportSuccess, setCsvImportSuccess] = useState(false);
-  const [csvTabValue, setCsvTabValue] = useState(0);
+  const [csvImportDialogOpen, setCsvImportDialogOpen] = React.useState(false);
+  const [csvType, setCsvType] = React.useState('basic'); // 'basic' 或 'items'
+  const [csvFile, setCsvFile] = React.useState(null);
+  const [csvImportLoading, setCsvImportLoading] = React.useState(false);
+  const [csvImportError, setCsvImportError] = React.useState(null);
+  const [csvImportSuccess, setCsvImportSuccess] = React.useState(false);
+  const [csvTabValue, setCsvTabValue] = React.useState(0);
   
   // DataGrid 分頁設置
-  const [paginationModel, setPaginationModel] = useState({
+  const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 50,
     page: 0,
   });
   
-  useEffect(() => {
+  React.useEffect(() => {
     dispatch(fetchPurchaseOrders());
     dispatch(fetchSuppliers());
   }, [dispatch]);
   
-  useEffect(() => {
+  React.useEffect(() => {
     if (error) {
       setSnackbar({
         open: true,
@@ -117,7 +97,7 @@ const PurchaseOrdersPage = () => {
   }, [error]);
   
   // 處理供應商篩選變更
-  useEffect(() => {
+  React.useEffect(() => {
     if (purchaseOrders.length > 0) {
       let filtered = [...purchaseOrders];
       
@@ -341,51 +321,6 @@ const PurchaseOrdersPage = () => {
     }
   };
   
-  const getStatusChip = (status) => {
-    let color = 'default';
-    let label = '未知';
-    
-    switch (status) {
-      case 'pending':
-        color = 'warning';
-        label = '處理中';
-        break;
-      case 'completed':
-        color = 'success';
-        label = '已完成';
-        break;
-      case 'cancelled':
-        color = 'error';
-        label = '已取消';
-        break;
-      default:
-        break;
-    }
-    
-    return <Chip size="small" color={color} label={label} />;
-  };
-  
-  const getPaymentStatusChip = (status) => {
-    let color = 'default';
-    let label = status || '未付';
-    
-    switch (status) {
-      case '未付':
-        color = 'warning';
-        break;
-      case '已下收':
-        color = 'info';
-        break;
-      case '已匯款':
-        color = 'success';
-        break;
-      default:
-        break;
-    }
-    
-    return <Chip size="small" color={color} label={label} />;
-  };
-  
   // 自定義供應商列頭渲染函數
   const renderSupplierHeader = () => {
     return (
@@ -396,75 +331,6 @@ const PurchaseOrdersPage = () => {
       />
     );
   };
-  
-  // DataGrid 列定義
-  const columns = [
-    { field: 'poid', headerName: '進貨單號', flex: 1 },
-    { field: 'pobill', headerName: '發票號碼', flex: 1 },
-    { 
-      field: 'pobilldate', 
-      headerName: '發票日期', 
-      flex: 1,
-      valueFormatter: (params) => {
-        return params.value ? format(new Date(params.value), 'yyyy-MM-dd') : '';
-      }
-    },
-    { 
-      field: 'posupplier', 
-      headerName: '供應商', 
-      flex: 1,
-      renderHeader: renderSupplierHeader
-    },
-    { 
-      field: 'totalAmount', 
-      headerName: '總金額', 
-      flex: 1,
-      valueFormatter: (params) => {
-        return params.value ? params.value.toLocaleString() : '';
-      }
-    },
-    { 
-      field: 'status', 
-      headerName: '狀態', 
-      flex: 1,
-      renderCell: (params) => getStatusChip(params.value)
-    },
-    { 
-      field: 'paymentStatus', 
-      headerName: '付款狀態', 
-      flex: 1,
-      renderCell: (params) => getPaymentStatusChip(params.value)
-    },
-    { 
-      field: 'actions', 
-      headerName: '操作', 
-      flex: 1,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <Box>
-          <IconButton 
-            size="small" 
-            onClick={() => handleView(params.row._id)}
-            onMouseEnter={(e) => handlePreviewMouseEnter(e, params.row._id)}
-            onMouseLeave={handlePreviewMouseLeave}
-          >
-            <VisibilityIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" onClick={() => handleEdit(params.row._id)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton 
-            size="small" 
-            onClick={() => handleDeleteClick(params.row)}
-            disabled={params.row.status === 'completed'}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      )
-    }
-  ];
   
   return (
     <Box>
@@ -489,137 +355,30 @@ const PurchaseOrdersPage = () => {
           </Box>
           
           {showFilters && (
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  label="進貨單號"
-                  name="poid"
-                  value={searchParams.poid}
-                  onChange={handleInputChange}
-                  variant="outlined"
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  label="發票號碼"
-                  name="pobill"
-                  value={searchParams.pobill}
-                  onChange={handleInputChange}
-                  variant="outlined"
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-                  <DatePicker
-                    label="開始日期"
-                    value={searchParams.startDate}
-                    onChange={(date) => handleDateChange('startDate', date)}
-                    renderInput={(params) => <TextField {...params} fullWidth size="small" />}
-                  />
-                </LocalizationProvider>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-                  <DatePicker
-                    label="結束日期"
-                    value={searchParams.endDate}
-                    onChange={(date) => handleDateChange('endDate', date)}
-                    renderInput={(params) => <TextField {...params} fullWidth size="small" />}
-                  />
-                </LocalizationProvider>
-              </Grid>
-              <Grid item xs={12} sm={6} md={6}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<SearchIcon />}
-                    onClick={handleSearch}
-                  >
-                    搜尋
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<ClearIcon />}
-                    onClick={handleClearSearch}
-                  >
-                    清除
-                  </Button>
-                </Box>
-              </Grid>
-            </Grid>
+            <PurchaseOrdersFilter
+              searchParams={searchParams}
+              handleInputChange={handleInputChange}
+              handleDateChange={handleDateChange}
+              handleSearch={handleSearch}
+              handleClearSearch={handleClearSearch}
+              suppliers={suppliers}
+            />
           )}
           
           {/* DataGrid表格 */}
-          <Box sx={{ width: '100%' }}>
-            <DataGrid
-              rows={filteredRows.length > 0 ? filteredRows : rows}
-              columns={columns}
-              paginationModel={paginationModel}
-              onPaginationModelChange={setPaginationModel}
-              pageSizeOptions={[5, 10, 25, 50]}
-              checkboxSelection={false}
-              disableRowSelectionOnClick
-              loading={loading}
-              autoHeight
-              density="standard"
-              getRowId={(row) => row.id}
-              localeText={{
-                noRowsLabel: '沒有進貨單記錄',
-                footerRowSelected: (count) => `已選擇 ${count} 個項目`,
-                columnMenuLabel: '選單',
-                columnMenuShowColumns: '顯示欄位',
-                columnMenuFilter: '篩選',
-                columnMenuHideColumn: '隱藏',
-                columnMenuUnsort: '取消排序',
-                columnMenuSortAsc: '升序排列',
-                columnMenuSortDesc: '降序排列',
-                filterPanelAddFilter: '新增篩選',
-                filterPanelDeleteIconLabel: '刪除',
-                filterPanelOperators: '運算子',
-                filterPanelOperatorAnd: '與',
-                filterPanelOperatorOr: '或',
-                filterPanelColumns: '欄位',
-                filterPanelInputLabel: '值',
-                filterPanelInputPlaceholder: '篩選值',
-                columnsPanelTextFieldLabel: '尋找欄位',
-                columnsPanelTextFieldPlaceholder: '欄位名稱',
-                columnsPanelDragIconLabel: '重新排序欄位',
-                columnsPanelShowAllButton: '顯示全部',
-                columnsPanelHideAllButton: '隱藏全部',
-                toolbarDensity: '密度',
-                toolbarDensityLabel: '密度',
-                toolbarDensityCompact: '緊湊',
-                toolbarDensityStandard: '標準',
-                toolbarDensityComfortable: '舒適',
-                toolbarExport: '匯出',
-                toolbarExportLabel: '匯出',
-                toolbarExportCSV: '下載CSV',
-                toolbarExportPrint: '列印',
-                toolbarColumns: '欄位',
-                toolbarColumnsLabel: '選擇欄位',
-                toolbarFilters: '篩選',
-                toolbarFiltersLabel: '顯示篩選',
-                toolbarFiltersTooltipHide: '隱藏篩選',
-                toolbarFiltersTooltipShow: '顯示篩選',
-                toolbarQuickFilterPlaceholder: '搜尋...',
-                toolbarQuickFilterLabel: '搜尋',
-                toolbarQuickFilterDeleteIconLabel: '清除',
-                paginationRowsPerPage: '每頁行數:',
-                paginationPageSize: '頁面大小',
-                paginationLabelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count !== -1 ? count : `超過 ${to}`}`,
-                paginationLabelRowsPerPage: '每頁行數:',
-                MuiTablePagination: {
-                  labelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count}`,
-                  labelRowsPerPage: '每頁行數:'
-                }
-              }}
-            />
-          </Box>
+          <PurchaseOrdersTable
+            purchaseOrders={purchaseOrders}
+            filteredRows={filteredRows}
+            paginationModel={paginationModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            handleView={handleView}
+            handleEdit={handleEdit}
+            handleDeleteClick={handleDeleteClick}
+            handlePreviewMouseEnter={handlePreviewMouseEnter}
+            handlePreviewMouseLeave={handlePreviewMouseLeave}
+            renderSupplierHeader={renderSupplierHeader}
+          />
         </CardContent>
       </Card>
       
@@ -673,113 +432,26 @@ const PurchaseOrdersPage = () => {
       </Box>
       
       {/* 刪除確認對話框 */}
-      <Dialog
+      <DeleteConfirmDialog
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
-      >
-        <DialogTitle>確認刪除</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            您確定要刪除進貨單 "{purchaseOrderToDelete?.poid}" 嗎？此操作無法撤銷。
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel}>取消</Button>
-          <Button onClick={handleDeleteConfirm} color="error">
-            刪除
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDeleteConfirm}
+        purchaseOrder={purchaseOrderToDelete}
+      />
       
       {/* CSV導入對話框 */}
-      <Dialog
+      <CsvImportDialog
         open={csvImportDialogOpen}
         onClose={() => setCsvImportDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>CSV匯入進貨單</DialogTitle>
-        <DialogContent>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tabs value={csvTabValue} onChange={handleCsvTabChange}>
-              <Tab label="進貨單基本資訊" />
-              <Tab label="進貨品項" />
-            </Tabs>
-          </Box>
-          
-          {csvTabValue === 0 && (
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                匯入進貨單基本資訊
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                請上傳包含進貨單基本資訊的CSV文件。文件應包含以下欄位：進貨單號、發票號碼、發票日期、供應商、狀態、付款狀態等。
-              </Typography>
-            </Box>
-          )}
-          
-          {csvTabValue === 1 && (
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                匯入進貨品項
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                請上傳包含進貨品項的CSV文件。文件應包含以下欄位：進貨單號、藥品代碼、藥品名稱、數量、總成本等。
-              </Typography>
-            </Box>
-          )}
-          
-          <Box sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<CloudUploadIcon />}
-              disabled={csvImportLoading}
-            >
-              選擇CSV文件
-              <input
-                type="file"
-                accept=".csv"
-                hidden
-                onChange={handleCsvFileChange}
-              />
-            </Button>
-            {csvFile && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                已選擇: {csvFile.name}
-              </Typography>
-            )}
-          </Box>
-          
-          {csvImportError && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {csvImportError}
-            </Alert>
-          )}
-          
-          {csvImportSuccess && (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              CSV導入成功！
-            </Alert>
-          )}
-          
-          {csvImportLoading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCsvImportDialogOpen(false)}>取消</Button>
-          <Button 
-            onClick={handleCsvImport} 
-            variant="contained" 
-            disabled={!csvFile || csvImportLoading}
-          >
-            匯入
-          </Button>
-        </DialogActions>
-      </Dialog>
+        tabValue={csvTabValue}
+        onTabChange={handleCsvTabChange}
+        csvFile={csvFile}
+        onFileChange={handleCsvFileChange}
+        onImport={handleCsvImport}
+        loading={csvImportLoading}
+        error={csvImportError}
+        success={csvImportSuccess}
+      />
       
       {/* 提示消息 */}
       <Snackbar
