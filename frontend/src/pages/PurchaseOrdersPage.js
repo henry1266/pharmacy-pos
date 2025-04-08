@@ -50,6 +50,7 @@ import { zhTW } from 'date-fns/locale';
 
 import { fetchPurchaseOrders, deletePurchaseOrder, searchPurchaseOrders, fetchSuppliers } from '../redux/actions';
 import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
+import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
 
 const PurchaseOrdersPage = () => {
   const dispatch = useDispatch();
@@ -64,6 +65,10 @@ const PurchaseOrdersPage = () => {
     startDate: null,
     endDate: null
   });
+  
+  // 供應商篩選相關狀態
+  const [selectedSuppliers, setSelectedSuppliers] = useState([]);
+  const [filteredRows, setFilteredRows] = useState([]);
   
   const [showFilters, setShowFilters] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -111,6 +116,35 @@ const PurchaseOrdersPage = () => {
     }
   }, [error]);
   
+  // 處理供應商篩選變更
+  useEffect(() => {
+    if (purchaseOrders.length > 0) {
+      let filtered = [...purchaseOrders];
+      
+      // 如果有選擇供應商，則進行篩選
+      if (selectedSuppliers.length > 0) {
+        filtered = filtered.filter(po => selectedSuppliers.includes(po.posupplier));
+      }
+      
+      // 將篩選後的數據轉換為DataGrid需要的格式
+      const formattedRows = filtered.map(po => ({
+        id: po._id,
+        _id: po._id,
+        poid: po.poid,
+        pobill: po.pobill,
+        pobilldate: po.pobilldate,
+        posupplier: po.posupplier,
+        totalAmount: po.totalAmount,
+        status: po.status,
+        paymentStatus: po.paymentStatus
+      }));
+      
+      setFilteredRows(formattedRows);
+    } else {
+      setFilteredRows([]);
+    }
+  }, [purchaseOrders, selectedSuppliers]);
+  
   const handleSearch = () => {
     dispatch(searchPurchaseOrders(searchParams));
   };
@@ -150,6 +184,11 @@ const PurchaseOrdersPage = () => {
   
   const handleView = (id) => {
     navigate(`/purchase-orders/${id}`);
+  };
+  
+  // 處理供應商篩選變更
+  const handleSupplierFilterChange = (suppliers) => {
+    setSelectedSuppliers(suppliers);
   };
   
   // 處理滑鼠懸停在檢視按鈕上
@@ -347,6 +386,17 @@ const PurchaseOrdersPage = () => {
     return <Chip size="small" color={color} label={label} />;
   };
   
+  // 自定義供應商列頭渲染函數
+  const renderSupplierHeader = () => {
+    return (
+      <SupplierCheckboxFilter
+        suppliers={suppliers}
+        selectedSuppliers={selectedSuppliers}
+        onFilterChange={handleSupplierFilterChange}
+      />
+    );
+  };
+  
   // DataGrid 列定義
   const columns = [
     { field: 'poid', headerName: '進貨單號', flex: 1 },
@@ -359,7 +409,12 @@ const PurchaseOrdersPage = () => {
         return params.value ? format(new Date(params.value), 'yyyy-MM-dd') : '';
       }
     },
-    { field: 'posupplier', headerName: '供應商', flex: 1 },
+    { 
+      field: 'posupplier', 
+      headerName: '供應商', 
+      flex: 1,
+      renderHeader: renderSupplierHeader
+    },
     { 
       field: 'totalAmount', 
       headerName: '總金額', 
@@ -411,19 +466,6 @@ const PurchaseOrdersPage = () => {
     }
   ];
   
-  // 為DataGrid準備行數據
-  const rows = purchaseOrders.map(po => ({
-    id: po._id, // DataGrid需要唯一的id字段
-    _id: po._id, // 保留原始_id用於操作
-    poid: po.poid,
-    pobill: po.pobill,
-    pobilldate: po.pobilldate,
-    posupplier: po.posupplier,
-    totalAmount: po.totalAmount,
-    status: po.status,
-    paymentStatus: po.paymentStatus
-  }));
-  
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -471,28 +513,6 @@ const PurchaseOrdersPage = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth size="small">
-                  <InputLabel id="supplier-select-label">供應商</InputLabel>
-                  <Select
-                    labelId="supplier-select-label"
-                    id="supplier-select"
-                    name="posupplier"
-                    value={searchParams.posupplier}
-                    onChange={handleInputChange}
-                    label="供應商"
-                  >
-                    <MenuItem value="">
-                      <em>全部</em>
-                    </MenuItem>
-                    {suppliers && suppliers.map((supplier) => (
-                      <MenuItem key={supplier._id} value={supplier.name}>
-                        {supplier.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
                 <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
                   <DatePicker
                     label="開始日期"
@@ -537,7 +557,7 @@ const PurchaseOrdersPage = () => {
           {/* DataGrid表格 */}
           <Box sx={{ width: '100%' }}>
             <DataGrid
-              rows={rows}
+              rows={filteredRows.length > 0 ? filteredRows : rows}
               columns={columns}
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
