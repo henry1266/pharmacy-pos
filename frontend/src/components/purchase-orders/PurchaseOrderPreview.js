@@ -80,68 +80,13 @@ const PurchaseOrderPreview = ({ purchaseOrder, loading, error }) => {
   }
   
   return (
-    <Card sx={{ width: 400, maxHeight: 500, overflow: 'auto' }}>
+    <Card sx={{ width: 550, maxHeight: 600, overflow: 'auto' }}>
       <CardContent sx={{ p: 2 }}>
         <Typography variant="h6" gutterBottom>
           進貨單詳情
         </Typography>
-        
-        <Grid container spacing={1} sx={{ mb: 1 }}>
-          <Grid item xs={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              進貨單號
-            </Typography>
-            <Typography variant="body2">
-              {purchaseOrder.poid}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              發票號碼
-            </Typography>
-            <Typography variant="body2">
-              {purchaseOrder.pobill}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              發票日期
-            </Typography>
-            <Typography variant="body2">
-              {purchaseOrder.pobilldate ? format(new Date(purchaseOrder.pobilldate), 'yyyy-MM-dd') : ''}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              狀態
-            </Typography>
-            <Typography variant="body2">
-              {getStatusChip(purchaseOrder.status)}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              付款狀態
-            </Typography>
-            <Typography variant="body2">
-              {purchaseOrder.paymentStatus || '未付'}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              供應商
-            </Typography>
-            <Typography variant="body2">
-              {purchaseOrder.posupplier}
-            </Typography>
-          </Grid>
-        </Grid>
-        
-        <Divider sx={{ my: 1 }} />
-        
-        <Typography variant="subtitle1" gutterBottom>
-          藥品項目
-        </Typography>
+
+
         <TableContainer component={Paper} variant="outlined" sx={{ mb: 1 }}>
           <Table size="small">
             <TableHead>
