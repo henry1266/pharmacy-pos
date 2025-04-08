@@ -442,6 +442,7 @@ const PurchaseOrderFormPage = () => {
           onClose={handleCancelComplete}
           onConfirm={handleConfirmComplete}
         />
+      </form>
       
       {/* 提示訊息 */}
       <Snackbar
