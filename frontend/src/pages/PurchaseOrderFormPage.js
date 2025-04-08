@@ -4,49 +4,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
-  Button, 
-  Grid, 
   Card, 
   CardContent, 
-  TextField,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  MenuItem,
-  Autocomplete,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Snackbar,
-  Alert,
-  FormControl,
-  InputLabel,
-  Divider,
-  Select
+  Alert
 } from '@mui/material';
-import { 
-  Add as AddIcon, 
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  ArrowBack as ArrowBackIcon,
-  Edit as EditIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  Check as CheckIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
 
 import { 
   fetchPurchaseOrder, 
@@ -55,6 +18,13 @@ import {
 } from '../redux/actions';
 import { fetchSuppliers } from '../redux/actions';
 import { fetchProducts } from '../redux/actions';
+
+// 導入拆分後的組件
+import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
+import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
+import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
+import ConfirmDialog from '../components/purchase-order-form/ConfirmDialog';
+import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
 const PurchaseOrderFormPage = () => {
   const dispatch = useDispatch();
@@ -86,7 +56,7 @@ const PurchaseOrderFormPage = () => {
     product: null
   });
   
-  // 新增：編輯項目狀態
+  // 編輯項目狀態
   const [editingItemIndex, setEditingItemIndex] = useState(-1);
   const [editingItem, setEditingItem] = useState(null);
   
@@ -207,7 +177,7 @@ const PurchaseOrderFormPage = () => {
     });
   };
   
-  // 新增：處理編輯項目輸入變更
+  // 處理編輯項目輸入變更
   const handleEditingItemChange = (e) => {
     setEditingItem({
       ...editingItem,
@@ -269,13 +239,13 @@ const PurchaseOrderFormPage = () => {
     });
   };
   
-  // 新增：開始編輯項目
+  // 開始編輯項目
   const handleEditItem = (index) => {
     setEditingItemIndex(index);
     setEditingItem({...formData.items[index]});
   };
   
-  // 新增：保存編輯項目
+  // 保存編輯項目
   const handleSaveEditItem = () => {
     // 驗證編輯項目
     if (!editingItem.did || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
@@ -300,13 +270,13 @@ const PurchaseOrderFormPage = () => {
     setEditingItem(null);
   };
   
-  // 新增：取消編輯項目
+  // 取消編輯項目
   const handleCancelEditItem = () => {
     setEditingItemIndex(-1);
     setEditingItem(null);
   };
   
-  // 新增：移動項目順序
+  // 移動項目順序
   const handleMoveItem = (index, direction) => {
     if (
       (direction === 'up' && index === 0) || 
@@ -402,109 +372,16 @@ const PurchaseOrderFormPage = () => {
       </Typography>
       
       <form onSubmit={handleSubmit}>
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              基本資訊
-            </Typography>
-            
-<Grid container spacing={2}>
-  <Grid item xs={12} sm={6} md={3}>
-    <TextField
-      fullWidth
-      required
-      label="進貨單號"
-      name="poid"
-      value={formData.poid}
-      onChange={handleInputChange}
-      variant="outlined"
-      disabled={isEditMode}
-    />
-  </Grid>
-  <Grid item xs={12} sm={6} md={3}>
-    <TextField
-      fullWidth
-      label="發票號碼"
-      name="pobill"
-      value={formData.pobill}
-      onChange={handleInputChange}
-      variant="outlined"
-    />
-  </Grid>
-  <Grid item xs={12} sm={6} md={3}>
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-      <DatePicker
-        label="發票日期"
-        value={formData.pobilldate}
-        onChange={handleDateChange}
-        renderInput={(params) => <TextField {...params} fullWidth />}
-      />
-    </LocalizationProvider>
-  </Grid>
-  <Grid item xs={12} sm={6} md={3}>
-    <Autocomplete
-      id="supplier-select"
-      options={suppliers}
-      getOptionLabel={(option) => option.name}
-      value={selectedSupplier}
-      onChange={handleSupplierChange}
-      renderInput={(params) => (
-        <TextField {...params} required label="供應商" fullWidth />
-      )}
-    />
-  </Grid>
-  <Grid item xs={12} sm={6} md={6}>
-    <TextField
-      fullWidth
-      label="備註"
-      name="notes"
-      value={formData.notes}
-      onChange={handleInputChange}
-      variant="outlined"
-      multiline
-      rows={1}
-    />
-  </Grid>
-</Grid>
-
-<Divider sx={{ my: 2 }} />
-
-<Grid container spacing={2}>
-  <Grid item xs={12} sm={6} md={3}>
-    <FormControl fullWidth>
-      <InputLabel id="payment-status-label">付款狀態</InputLabel>
-      <Select
-        labelId="payment-status-label"
-        name="paymentStatus"
-        value={formData.paymentStatus}
-        onChange={handleInputChange}
-        label="付款狀態"
-      >
-        <MenuItem value="未付">未付</MenuItem>
-        <MenuItem value="已下收">已下收</MenuItem>
-        <MenuItem value="已匯款">已匯款</MenuItem>
-      </Select>
-    </FormControl>
-  </Grid>
-  <Grid item xs={12} sm={6} md={3}>
-    <FormControl fullWidth>
-      <InputLabel id="status-label">狀態</InputLabel>
-      <Select
-        labelId="status-label"
-        name="status"
-        value={formData.status}
-        onChange={handleInputChange}
-        label="狀態"
-      >
-        <MenuItem value="pending">處理中</MenuItem>
-        <MenuItem value="completed">已完成</MenuItem>
-        <MenuItem value="cancelled">已取消</MenuItem>
-      </Select>
-    </FormControl>
-  </Grid>
-</Grid>
-          </CardContent>
-        </Card>
+        {/* 基本資訊表單 */}
+        <BasicInfoForm 
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleDateChange={handleDateChange}
+          handleSupplierChange={handleSupplierChange}
+          suppliers={suppliers}
+          selectedSupplier={selectedSupplier}
+          isEditMode={isEditMode}
+        />
         
         <Card sx={{ mb: 3 }}>
           <CardContent>
@@ -512,277 +389,44 @@ const PurchaseOrderFormPage = () => {
               藥品項目
             </Typography>
             
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={12} sm={6} md={4}>
-                <Autocomplete
-                  id="product-select"
-                  options={products}
-                  getOptionLabel={(option) => `${option.code} - ${option.name}`}
-                  value={products.find(p => p._id === currentItem.product) || null}
-                  onChange={handleProductChange}
-                  filterOptions={(options, { inputValue }) => {
-                    const filterValue = inputValue.toLowerCase();
-                    return options.filter(
-                      option => 
-                        option.name.toLowerCase().includes(filterValue) || 
-                        option.code.toLowerCase().includes(filterValue)
-                    );
-                  }}
-                  onKeyDown={(event) => {
-                    // 當按下TAB鍵或Enter鍵且有過濾後的選項時
-                    if (event.key === 'Tab' || event.key === 'Enter') {
-                      const filteredOptions = products.filter(
-                        option => 
-                          option.name.toLowerCase().includes(event.target.value?.toLowerCase() || '') || 
-                          option.code.toLowerCase().includes(event.target.value?.toLowerCase() || '')
-                      );
-                      
-                      // 如果只有一個選項符合，自動選擇該選項
-                      if (filteredOptions.length === 1) {
-                        handleProductChange(event, filteredOptions[0]);
-                        // 防止默認的TAB或Enter行為，因為我們已經手動處理了選擇
-                        event.preventDefault();
-                        // 聚焦到數量輸入框
-                        document.querySelector('input[name="dquantity"]').focus();
-                      }
-                    }
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      id="product-select-input"
-                      label="選擇藥品"
-                      fullWidth
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  fullWidth
-                  label="數量"
-                  name="dquantity"
-                  type="number"
-                  value={currentItem.dquantity}
-                  onChange={handleItemInputChange}
-                  inputProps={{ min: 1 }}
-                  onKeyDown={(event) => {
-                    // 當按下ENTER鍵時
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      // 聚焦到總成本輸入框
-                      document.querySelector('input[name="dtotalCost"]').focus();
-                    }
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  label="總成本"
-                  name="dtotalCost"
-                  type="number"
-                  value={currentItem.dtotalCost}
-                  onChange={handleItemInputChange}
-                  inputProps={{ min: 0 }}
-                  onKeyDown={(event) => {
-                    // 當按下ENTER鍵時
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      // 如果所有必填欄位都已填寫，則添加項目
-                      if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost !== '') {
-                        handleAddItem();
-                        // 添加項目後，將焦點移回商品選擇欄位
-                        setTimeout(() => {
-                          // 使用用戶提供的確切選擇器信息
-                          const productInput = document.getElementById('product-select');
-                          if (productInput) {
-                            productInput.focus();
-                            console.log('ENTER鍵：焦點已設置到商品選擇欄位', productInput);
-                          } else {
-                            console.error('找不到商品選擇欄位元素');
-                          }
-                        }, 200);
-                      } else {
-                        // 如果有欄位未填寫，顯示錯誤提示
-                        setSnackbar({
-                          open: true,
-                          message: '請填寫完整的藥品項目資料',
-                          severity: 'error'
-                        });
-                      }
-                    }
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddItem}
-                  fullWidth
-                  sx={{ height: '100%' }}
-                >
-                  添加項目
-                </Button>
-              </Grid>
-            </Grid>
+            {/* 藥品項目添加表單 */}
+            <ProductItemForm 
+              currentItem={currentItem}
+              handleItemInputChange={handleItemInputChange}
+              handleProductChange={handleProductChange}
+              handleAddItem={handleAddItem}
+              products={products}
+            />
             
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>藥品代碼</TableCell>
-                    <TableCell>藥品名稱</TableCell>
-                    <TableCell align="right">數量</TableCell>
-                    <TableCell align="right">總成本</TableCell>
-                    <TableCell align="right">單價</TableCell>
-                    <TableCell align="center">操作</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {formData.items.map((item, index) => (
-                    <TableRow key={index}>
-                      {editingItemIndex === index ? (
-                        // 編輯模式
-                        <>
-                          <TableCell>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              value={editingItem.did}
-                              disabled
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              value={editingItem.dname}
-                              disabled
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            <TextField
-                              fullWidth
-                              size="small"
-                              name="dquantity"
-                              type="number"
-                              value={editingItem.dquantity}
-                              onChange={handleEditingItemChange}
-                              inputProps={{ min: 1 }}
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            <TextField
-                              fullWidth
-                              size="small"
-                              name="dtotalCost"
-                              type="number"
-                              value={editingItem.dtotalCost}
-                              onChange={handleEditingItemChange}
-                              inputProps={{ min: 0 }}
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            {editingItem.dquantity > 0 ? (editingItem.dtotalCost / editingItem.dquantity).toFixed(2) : '0.00'}
-                          </TableCell>
-                          <TableCell align="center">
-                            <IconButton color="primary" onClick={handleSaveEditItem}>
-                              <CheckIcon />
-                            </IconButton>
-                            <IconButton color="error" onClick={handleCancelEditItem}>
-                              <CloseIcon />
-                            </IconButton>
-                          </TableCell>
-                        </>
-                      ) : (
-                        // 顯示模式
-                        <>
-                          <TableCell>{item.did}</TableCell>
-                          <TableCell>{item.dname}</TableCell>
-                          <TableCell align="right">{item.dquantity}</TableCell>
-                          <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
-                          <TableCell align="right">
-                            {item.dquantity > 0 ? (item.dtotalCost / item.dquantity).toFixed(2) : '0.00'}
-                          </TableCell>
-                          <TableCell align="center">
-                            <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0}>
-                              <ArrowUpwardIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === formData.items.length - 1}>
-                              <ArrowDownwardIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" onClick={() => handleEditItem(index)}>
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" onClick={() => handleRemoveItem(index)}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </TableCell>
-                        </>
-                      )}
-                    </TableRow>
-                  ))}
-                  {formData.items.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        尚未添加藥品項目
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  <TableRow>
-                    <TableCell colSpan={3} align="right">
-                      <Typography variant="subtitle1">總計：</Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="subtitle1">{totalAmount.toLocaleString()}</Typography>
-                    </TableCell>
-                    <TableCell colSpan={2}></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
+            {/* 藥品項目表格 */}
+            <ProductItemsTable 
+              items={formData.items}
+              editingItemIndex={editingItemIndex}
+              editingItem={editingItem}
+              handleEditItem={handleEditItem}
+              handleSaveEditItem={handleSaveEditItem}
+              handleCancelEditItem={handleCancelEditItem}
+              handleRemoveItem={handleRemoveItem}
+              handleMoveItem={handleMoveItem}
+              handleEditingItemChange={handleEditingItemChange}
+              totalAmount={totalAmount}
+            />
           </CardContent>
         </Card>
         
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 4 }}>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={handleCancel}
-          >
-            取消
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={<SaveIcon />}
-            disabled={loading}
-          >
-            {loading ? '儲存中...' : '儲存進貨單'}
-          </Button>
-        </Box>
+        {/* 操作按鈕 */}
+        <ActionButtons 
+          loading={loading}
+          onCancel={handleCancel}
+        />
       </form>
       
       {/* 確認對話框 */}
-      <Dialog
+      <ConfirmDialog 
         open={confirmDialogOpen}
         onClose={handleCancelComplete}
-      >
-        <DialogTitle>確認完成進貨單</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            將進貨單標記為已完成後，系統將自動更新庫存數量。確定要繼續嗎？
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelComplete}>取消</Button>
-          <Button onClick={handleConfirmComplete} color="primary">
-            確認
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleConfirmComplete}
+      />
       
       {/* 提示訊息 */}
       <Snackbar
