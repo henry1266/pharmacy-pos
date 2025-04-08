@@ -338,7 +338,7 @@ const PurchaseOrdersPage = () => {
         進貨單管理
       </Typography>
       
-      <Card sx={{ mb: 3 }}>
+      <Card sx={{ mb: 3, px: 2, mx: 1 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6">進貨單列表</Typography>
