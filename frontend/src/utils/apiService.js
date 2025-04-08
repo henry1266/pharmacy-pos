@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 創建API服務實例
 const apiService = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://192.168.68.90:5000/api',
   headers: {
     'Content-Type': 'application/json'
   }

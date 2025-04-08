@@ -20,6 +20,9 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 
+// 導入API基礎URL
+import { API_BASE_URL } from '../redux/actions';
+
 import { fetchPurchaseOrders, deletePurchaseOrder, searchPurchaseOrders, fetchSuppliers } from '../redux/actions';
 import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
 import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
@@ -195,7 +198,7 @@ const PurchaseOrdersPage = () => {
         }
       };
       
-      const response = await axios.get(`/api/purchase-orders/${id}`, config);
+      const response = await axios.get(`${API_BASE_URL}/purchase-orders/${id}`.replace('/api/api', '/api'), config);
       setPreviewPurchaseOrder(response.data);
       setPreviewLoading(false);
     } catch (err) {
@@ -291,8 +294,8 @@ const PurchaseOrdersPage = () => {
       
       // 根據CSV類型選擇不同的API端點
       const endpoint = csvType === 'basic' 
-        ? '/api/purchase-orders/import/basic'
-        : '/api/purchase-orders/import/items';
+        ? `${API_BASE_URL}/purchase-orders/import/basic`.replace('/api/api', '/api')
+        : `${API_BASE_URL}/purchase-orders/import/items`.replace('/api/api', '/api');
       
       const response = await axios.post(endpoint, formData, config);
       

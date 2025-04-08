@@ -2,7 +2,7 @@ import { ActionTypes } from './actionTypes';
 import axios from 'axios';
 
 // API基礎URL
-const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://192.168.68.90:5000/api';
 
 // 設置認證令牌
 const setAuthToken = (token) => {

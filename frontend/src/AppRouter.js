@@ -12,6 +12,7 @@ import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
+import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
 
 const AppRouter = () => {
   return (
@@ -40,7 +41,7 @@ const AppRouter = () => {
       {/* 進貨單相關路由 */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
       <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
-      <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderFormPage />} />
+      <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderEditPage />} />
       <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
       
       {/* 未匹配路由重定向到儀表板 */}
