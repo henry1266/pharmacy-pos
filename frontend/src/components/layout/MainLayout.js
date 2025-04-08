@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -20,6 +20,8 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 
+import SettingsModal from '../settings/SettingsModal';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
 
@@ -30,7 +32,8 @@ import '../../assets/css/dashui-theme.css';
  * @returns {React.ReactElement} 佈局組件
  */
 const MainLayout = ({ children }) => {
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -83,6 +86,16 @@ const MainLayout = ({ children }) => {
     // 實現登出邏輯
     navigate('/login');
   };
+  
+  // 處理設定按鈕點擊
+  const handleSettingsClick = () => {
+    setSettingsOpen(true);
+  };
+  
+  // 處理設定窗口關閉
+  const handleSettingsClose = () => {
+    setSettingsOpen(false);
+  };
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -123,7 +136,7 @@ const MainLayout = ({ children }) => {
           </IconButton>
           
           {/* 設置圖標 */}
-          <IconButton color="inherit" sx={{ mr: 2 }}>
+          <IconButton color="inherit" sx={{ mr: 2 }} onClick={handleSettingsClick}>
             <SettingsIcon />
           </IconButton>
           
@@ -347,6 +360,9 @@ const MainLayout = ({ children }) => {
         <Toolbar />
         {children}
       </Box>
+      
+      {/* 設定彈出窗口 */}
+      <SettingsModal open={settingsOpen} onClose={handleSettingsClose} />
     </Box>
   );
 };
