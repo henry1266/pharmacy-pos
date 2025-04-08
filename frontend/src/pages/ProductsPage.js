@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -9,6 +9,7 @@ import ProductTabs from '../components/products/ProductTabs';
 import ProductFormDialog from '../components/products/ProductFormDialog';
 import CsvImportDialog from '../components/products/CsvImportDialog';
 import ProductDetailCard from '../components/products/ProductDetailCard';
+import ProductSearchBar from '../components/products/ProductSearchBar';
 import useProductData from '../hooks/useProductData';
 import useInventoryData from '../hooks/useInventoryData';
 import useCsvImport from '../hooks/useCsvImport';
@@ -37,6 +38,17 @@ const ProductsPage = () => {
   });
   const [editMode, setEditMode] = useState(false);
   const [productType, setProductType] = useState('product');
+  
+  // 搜尋參數狀態
+  const [searchParams, setSearchParams] = useState({
+    code: '',
+    name: '',
+    healthInsuranceCode: ''
+  });
+  
+  // 過濾後的產品列表
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredMedicines, setFilteredMedicines] = useState([]);
   
   // 使用自定義Hook獲取數據和操作函數
   const { 
@@ -77,6 +89,47 @@ const ProductsPage = () => {
       productType: tabValue === 0 ? 'product' : 'medicine'
     });
   };
+  
+  // 處理搜尋參數變更
+  const handleSearchChange = (newSearchParams) => {
+    setSearchParams(newSearchParams);
+  };
+  
+  // 過濾產品列表
+  useEffect(() => {
+    // 過濾商品
+    const filterProducts = () => {
+      return products.filter(product => {
+        const codeMatch = !searchParams.code || 
+          product.code.toLowerCase().includes(searchParams.code.toLowerCase());
+        
+        const nameMatch = !searchParams.name || 
+          product.name.toLowerCase().includes(searchParams.name.toLowerCase());
+        
+        return codeMatch && nameMatch;
+      });
+    };
+    
+    // 過濾藥品
+    const filterMedicines = () => {
+      return medicines.filter(medicine => {
+        const codeMatch = !searchParams.code || 
+          medicine.code.toLowerCase().includes(searchParams.code.toLowerCase());
+        
+        const nameMatch = !searchParams.name || 
+          medicine.name.toLowerCase().includes(searchParams.name.toLowerCase());
+        
+        const healthInsuranceCodeMatch = !searchParams.healthInsuranceCode || 
+          (medicine.healthInsuranceCode && 
+           medicine.healthInsuranceCode.toLowerCase().includes(searchParams.healthInsuranceCode.toLowerCase()));
+        
+        return codeMatch && nameMatch && healthInsuranceCodeMatch;
+      });
+    };
+    
+    setFilteredProducts(filterProducts());
+    setFilteredMedicines(filterMedicines());
+  }, [products, medicines, searchParams]);
   
   // 打開新增產品對話框
   const handleAddProduct = () => {
@@ -206,6 +259,13 @@ const ProductsPage = () => {
         藥品管理
       </Typography>
       
+      {/* 寬搜尋器 */}
+      <ProductSearchBar 
+        searchParams={searchParams}
+        onSearchChange={handleSearchChange}
+        tabValue={tabValue}
+      />
+      
       <Grid container spacing={3}>
         {/* 左側表格區域 */}
         <Grid item xs={12} md={8}>
@@ -214,8 +274,8 @@ const ProductsPage = () => {
             handleTabChange={handleTabChange}
             handleAddProduct={handleAddProduct}
             handleOpenCsvImport={handleOpenCsvImport}
-            products={products}
-            medicines={medicines}
+            products={filteredProducts}
+            medicines={filteredMedicines}
             loading={loading}
             onRowClick={handleRowClick}
             productColumns={productColumns}
