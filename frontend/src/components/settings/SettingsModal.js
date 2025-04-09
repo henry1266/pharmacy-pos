@@ -9,8 +9,11 @@ import {
   Typography,
   Box,
   Snackbar,
-  Alert
+  Alert,
+  Divider,
+  CircularProgress
 } from '@mui/material';
+import { syncMongoDBConfig } from '../../utils/configSync';
 
 /**
  * 設定彈出窗口組件
@@ -21,7 +24,9 @@ import {
  */
 const SettingsModal = ({ open, onClose }) => {
   // 從localStorage獲取當前IP設定，如果沒有則使用默認值
-  const [ipAddress, setIpAddress] = useState('');
+  const [apiIpAddress, setApiIpAddress] = useState('');
+  const [mongodbIpAddress, setMongodbIpAddress] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -30,48 +35,89 @@ const SettingsModal = ({ open, onClose }) => {
 
   // 初始化時從localStorage讀取IP設定
   useEffect(() => {
-    const savedIp = localStorage.getItem('apiServerIp');
-    if (savedIp) {
-      setIpAddress(savedIp);
+    const savedApiIp = localStorage.getItem('apiServerIp');
+    if (savedApiIp) {
+      setApiIpAddress(savedApiIp);
     } else {
       // 默認值，從當前apiService配置中獲取
-      setIpAddress('192.168.68.90');
+      setApiIpAddress('192.168.68.90');
+    }
+
+    const savedMongodbIp = localStorage.getItem('mongodbServerIp');
+    if (savedMongodbIp) {
+      setMongodbIpAddress(savedMongodbIp);
+    } else {
+      // 默認值，通常與API伺服器相同
+      setMongodbIpAddress('192.168.68.90');
     }
   }, [open]);
 
-  // 處理IP地址輸入變更
-  const handleIpChange = (e) => {
-    setIpAddress(e.target.value);
+  // 處理API IP地址輸入變更
+  const handleApiIpChange = (e) => {
+    setApiIpAddress(e.target.value);
+  };
+
+  // 處理MongoDB IP地址輸入變更
+  const handleMongodbIpChange = (e) => {
+    setMongodbIpAddress(e.target.value);
   };
 
   // 處理保存設定
-  const handleSave = () => {
+  const handleSave = async () => {
     // 驗證IP地址格式
     const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
     
-    if (!ipRegex.test(ipAddress)) {
+    if (!ipRegex.test(apiIpAddress)) {
       setSnackbar({
         open: true,
-        message: 'IP地址格式不正確，請輸入有效的IP地址',
+        message: 'API伺服器IP地址格式不正確，請輸入有效的IP地址',
         severity: 'error'
       });
       return;
     }
 
-    // 保存IP地址到localStorage
-    localStorage.setItem('apiServerIp', ipAddress);
-    
-    // 顯示成功提示
-    setSnackbar({
-      open: true,
-      message: 'IP設定已保存，請重新整理頁面以套用更改',
-      severity: 'success'
-    });
-    
-    // 關閉彈出窗口
-    setTimeout(() => {
-      onClose();
-    }, 1500);
+    if (!ipRegex.test(mongodbIpAddress)) {
+      setSnackbar({
+        open: true,
+        message: 'MongoDB伺服器IP地址格式不正確，請輸入有效的IP地址',
+        severity: 'error'
+      });
+      return;
+    }
+
+    // 設置保存中狀態
+    setIsSaving(true);
+
+    try {
+      // 保存IP地址到localStorage
+      localStorage.setItem('apiServerIp', apiIpAddress);
+      localStorage.setItem('mongodbServerIp', mongodbIpAddress);
+      
+      // 同步MongoDB設定到後端
+      await syncMongoDBConfig(mongodbIpAddress);
+      
+      // 顯示成功提示
+      setSnackbar({
+        open: true,
+        message: 'IP設定已保存並同步到後端，請重新整理頁面以套用更改',
+        severity: 'success'
+      });
+      
+      // 關閉彈出窗口
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error) {
+      // 顯示錯誤提示
+      setSnackbar({
+        open: true,
+        message: `MongoDB設定同步失敗: ${error.message}`,
+        severity: 'error'
+      });
+    } finally {
+      // 取消保存中狀態
+      setIsSaving(false);
+    }
   };
 
   // 處理關閉提示
@@ -98,8 +144,27 @@ const SettingsModal = ({ open, onClose }) => {
               fullWidth
               label="API伺服器IP地址"
               variant="outlined"
-              value={ipAddress}
-              onChange={handleIpChange}
+              value={apiIpAddress}
+              onChange={handleApiIpChange}
+              placeholder="例如：192.168.68.90"
+              helperText="設定後需要重新整理頁面以套用更改"
+              sx={{ mb: 3 }}
+            />
+            
+            <Divider sx={{ my: 2 }} />
+            
+            <Typography variant="subtitle1" gutterBottom>
+              MongoDB伺服器設定
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              請輸入MongoDB資料庫伺服器的IP地址，例如：192.168.68.90
+            </Typography>
+            <TextField
+              fullWidth
+              label="MongoDB伺服器IP地址"
+              variant="outlined"
+              value={mongodbIpAddress}
+              onChange={handleMongodbIpChange}
               placeholder="例如：192.168.68.90"
               helperText="設定後需要重新整理頁面以套用更改"
               sx={{ mb: 2 }}
@@ -107,9 +172,15 @@ const SettingsModal = ({ open, onClose }) => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} color="inherit">取消</Button>
-          <Button onClick={handleSave} color="primary" variant="contained">
-            保存設定
+          <Button onClick={onClose} color="inherit" disabled={isSaving}>取消</Button>
+          <Button 
+            onClick={handleSave} 
+            color="primary" 
+            variant="contained"
+            disabled={isSaving}
+            startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isSaving ? '保存中...' : '保存設定'}
           </Button>
         </DialogActions>
       </Dialog>
