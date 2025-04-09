@@ -82,15 +82,25 @@ const PurchaseOrderEditPage = () => {
   
   // 初始化加載數據
   useEffect(() => {
-    fetchPurchaseOrderData();
-    fetchProducts();
-    fetchSuppliers();
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        await fetchPurchaseOrderData();
+        await fetchProducts();
+        await fetchSuppliers();
+        setLoading(false);
+      } catch (err) {
+        setLoading(false);
+        console.error('加載數據失敗:', err);
+      }
+    };
+    
+    loadData();
   }, [id]);
 
   // 獲取進貨單數據
   const fetchPurchaseOrderData = async () => {
     try {
-      setLoading(true);
       const response = await axios.get(`/api/purchase-orders/${id}`);
       const orderData = response.data;
       
@@ -99,16 +109,16 @@ const PurchaseOrderEditPage = () => {
         pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date()
       });
       
-      setLoading(false);
+      return orderData; // 返回訂單數據以便後續使用
     } catch (err) {
       console.error('獲取進貨單數據失敗:', err);
       setError('獲取進貨單數據失敗');
-      setLoading(false);
       setSnackbar({
         open: true,
         message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message),
         severity: 'error'
       });
+      throw err; // 拋出錯誤以便上層處理
     }
   };
 
@@ -117,6 +127,7 @@ const PurchaseOrderEditPage = () => {
     try {
       const response = await axios.get('/api/products');
       setProducts(response.data);
+      return response.data;
     } catch (err) {
       console.error('獲取產品數據失敗:', err);
       setSnackbar({
@@ -124,6 +135,7 @@ const PurchaseOrderEditPage = () => {
         message: '獲取產品數據失敗',
         severity: 'error'
       });
+      throw err;
     }
   };
 
@@ -131,18 +143,23 @@ const PurchaseOrderEditPage = () => {
   const fetchSuppliers = async () => {
     try {
       const response = await axios.get('/api/suppliers');
-      setSuppliers(response.data);
+      const suppliersData = response.data;
+      setSuppliers(suppliersData);
       
       // 在獲取供應商數據後，設置當前選中的供應商
-      if (formData.supplier) {
-        const supplier = response.data.find(s => 
-          s._id === formData.supplier || 
-          s._id === formData.supplier._id
+      // 使用最新的formData狀態
+      const currentFormData = { ...formData };
+      if (currentFormData.supplier) {
+        const supplier = suppliersData.find(s => 
+          s._id === currentFormData.supplier || 
+          (typeof currentFormData.supplier === 'object' && s._id === currentFormData.supplier._id)
         );
         if (supplier) {
           setSelectedSupplier(supplier);
         }
       }
+      
+      return suppliersData;
     } catch (err) {
       console.error('獲取供應商數據失敗:', err);
       setSnackbar({
@@ -540,6 +557,26 @@ const PurchaseOrderEditPage = () => {
               藥品項目
             </Typography>
             
+            {/* 操作按鈕 - 移到添加項目上方 */}
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="outlined"
+                onClick={handleCancel}
+                sx={{ mr: 2 }}
+              >
+                取消
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                type="submit"
+                startIcon={<SaveIcon />}
+                disabled={loading}
+              >
+                儲存
+              </Button>
+            </Box>
+            
             {/* 藥品項目輸入表單 */}
             <Box sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
               <Grid container spacing={2} alignItems="center">
@@ -766,25 +803,7 @@ const PurchaseOrderEditPage = () => {
               </Table>
             </TableContainer>
             
-            {/* 操作按鈕 */}
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                onClick={handleCancel}
-                sx={{ mr: 2 }}
-              >
-                取消
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                startIcon={<SaveIcon />}
-                disabled={loading}
-              >
-                保存
-              </Button>
-            </Box>
+            {/* 已移動操作按鈕到上方 */}
           </CardContent>
         </Card>
       </form>
