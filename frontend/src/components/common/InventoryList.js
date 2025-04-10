@@ -162,7 +162,16 @@ const InventoryList = ({ productId }) => {
               const typeText = inv.type === 'sale' ? '銷售' : '進貨';
               const typeColor = inv.type === 'sale' ? 'error.main' : 'primary.main';
               const quantity = inv.type === 'sale' ? -inv.totalQuantity : inv.totalQuantity;
-              const price = inv.product && inv.product.sellingPrice ? inv.product.sellingPrice.toFixed(2) : '0.00';
+              // 計算實際交易價格
+              let price = '0.00';
+              if (inv.type === 'purchase' && inv.totalAmount && inv.totalQuantity) {
+                // 進貨記錄：使用實際交易價格（總金額/數量）
+                const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+                price = unitPrice.toFixed(2);
+              } else if (inv.product && inv.product.sellingPrice) {
+                // 其他記錄：使用產品售價
+                price = inv.product.sellingPrice.toFixed(2);
+              }
               
               return (
                 <TableRow 
