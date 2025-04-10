@@ -580,10 +580,10 @@ const PurchaseOrderEditPage = () => {
         <MenuItem value="未付">未付</MenuItem>
         <MenuItem value="已下收">已下收</MenuItem>
         <MenuItem value="已匯款">已匯款</MenuItem>
-      </Select>
-    </FormControl>
-  </Box>
-</Grid>
+                </Select>
+                </FormControl>
+                </Box>
+              </Grid>
               
               <Grid item xs={12}>
                 <TextField
