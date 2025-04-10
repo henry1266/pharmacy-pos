@@ -39,16 +39,27 @@ const ProductItemForm = ({
             return options.filter(
               option => 
                 option.name.toLowerCase().includes(filterValue) || 
-                option.code.toLowerCase().includes(filterValue)
+                option.code.toLowerCase().includes(filterValue) ||
+                // 擴展搜索條件，支持健保碼和國際條碼
+                (option.productType === 'medicine' && option.healthInsuranceCode && 
+                 option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
+                (option.productType === 'product' && option.barcode && 
+                 option.barcode.toLowerCase().includes(filterValue))
             );
           }}
           onKeyDown={(event) => {
             // 當按下TAB鍵或Enter鍵且有過濾後的選項時
             if (event.key === 'Tab' || event.key === 'Enter') {
+              const filterValue = event.target.value?.toLowerCase() || '';
               const filteredOptions = products.filter(
                 option => 
-                  option.name.toLowerCase().includes(event.target.value?.toLowerCase() || '') || 
-                  option.code.toLowerCase().includes(event.target.value?.toLowerCase() || '')
+                  option.name.toLowerCase().includes(filterValue) || 
+                  option.code.toLowerCase().includes(filterValue) ||
+                  // 擴展搜索條件，支持健保碼和國際條碼
+                  (option.productType === 'medicine' && option.healthInsuranceCode && 
+                   option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
+                  (option.productType === 'product' && option.barcode && 
+                   option.barcode.toLowerCase().includes(filterValue))
               );
               
               // 如果只有一個選項符合，自動選擇該選項
