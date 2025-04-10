@@ -31,7 +31,8 @@ import {
   Save as SaveIcon,
   ArrowBack as ArrowBackIcon,
   ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon
+  ArrowDownward as ArrowDownwardIcon,
+  ModeEdit as ModeEditIcon
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -535,37 +536,54 @@ const PurchaseOrderEditPage = () => {
                 />
               </Grid>
               
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>狀態</InputLabel>
-                  <Select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    label="狀態"
-                  >
-                    <MenuItem value="pending">處理中</MenuItem>
-                    <MenuItem value="completed">已完成</MenuItem>
-                    <MenuItem value="cancelled">已取消</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+<Grid item xs={12} md={3}>
+  <Box
+    sx={{
+      backgroundColor:
+        formData.status === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
+        formData.status === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
+    }}
+  >
+    <FormControl fullWidth>
+      <InputLabel>狀態</InputLabel>
+      <Select
+        name="status"
+        value={formData.status}
+        onChange={handleInputChange}
+        label="狀態"
+      >
+        <MenuItem value="pending">處理中</MenuItem>
+        <MenuItem value="completed">已完成</MenuItem>
+      </Select>
+    </FormControl>
+  </Box>
+</Grid>
               
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>付款狀態</InputLabel>
-                  <Select
-                    name="paymentStatus"
-                    value={formData.paymentStatus}
-                    onChange={handleInputChange}
-                    label="付款狀態"
-                  >
-                    <MenuItem value="未付">未付</MenuItem>
-                    <MenuItem value="已下收">已下收</MenuItem>
-                    <MenuItem value="已匯款">已匯款</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+             <Grid item xs={12} md={3}>
+  <Box
+    sx={{
+      backgroundColor:
+        formData.paymentStatus === '未付' ? '#F8D7DA' :     // 紅色（淡）
+        formData.paymentStatus === '已下收' ? '#D4EDDA' :    // 綠色（淡）
+        formData.paymentStatus === '已匯款' ? '#D4EDDA' :    // 綠色（淡）
+        'transparent',
+    }}
+  >
+    <FormControl fullWidth>
+      <InputLabel>付款狀態</InputLabel>
+      <Select
+        name="paymentStatus"
+        value={formData.paymentStatus}
+        onChange={handleInputChange}
+        label="付款狀態"
+      >
+        <MenuItem value="未付">未付</MenuItem>
+        <MenuItem value="已下收">已下收</MenuItem>
+        <MenuItem value="已匯款">已匯款</MenuItem>
+      </Select>
+    </FormControl>
+  </Box>
+</Grid>
               
               <Grid item xs={12}>
                 <TextField
@@ -762,7 +780,7 @@ const PurchaseOrderEditPage = () => {
                                 onClick={handleSaveEditItem}
                                 size="small"
                               >
-                                <SaveIcon />
+								<SaveIcon />
                               </IconButton>
                               <IconButton 
                                 color="default" 
@@ -786,7 +804,7 @@ const PurchaseOrderEditPage = () => {
                                 onClick={() => handleEditItem(index)}
                                 size="small"
                               >
-                                <SaveIcon />
+								<ModeEditIcon />
                               </IconButton>
                               <IconButton 
                                 color="default" 
