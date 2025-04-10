@@ -549,8 +549,8 @@ const PurchaseOrderEditPage = () => {
                     label="付款狀態"
                   >
                     <MenuItem value="未付">未付</MenuItem>
-                    <MenuItem value="部分付款">部分付款</MenuItem>
-                    <MenuItem value="已付">已付</MenuItem>
+                    <MenuItem value="已下收">已下收</MenuItem>
+                    <MenuItem value="已匯款">已匯款</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
