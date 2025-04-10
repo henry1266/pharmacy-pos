@@ -150,12 +150,31 @@ const PurchaseOrderEditPage = () => {
       // 使用最新的formData狀態
       const currentFormData = { ...formData };
       if (currentFormData.supplier) {
-        const supplier = suppliersData.find(s => 
-          s._id === currentFormData.supplier || 
-          (typeof currentFormData.supplier === 'object' && s._id === currentFormData.supplier._id)
-        );
-        if (supplier) {
-          setSelectedSupplier(supplier);
+        console.log('當前供應商數據:', currentFormData.supplier);
+        
+        // 處理不同格式的supplier字段
+        let supplierId;
+        if (typeof currentFormData.supplier === 'string') {
+          supplierId = currentFormData.supplier;
+        } else if (typeof currentFormData.supplier === 'object') {
+          // 處理MongoDB返回的對象格式
+          if (currentFormData.supplier._id) {
+            supplierId = currentFormData.supplier._id;
+          } else if (currentFormData.supplier.$oid) {
+            supplierId = currentFormData.supplier.$oid;
+          }
+        }
+        
+        console.log('尋找供應商ID:', supplierId);
+        
+        if (supplierId) {
+          const supplier = suppliersData.find(s => s._id === supplierId);
+          if (supplier) {
+            console.log('找到匹配的供應商:', supplier);
+            setSelectedSupplier(supplier);
+          } else {
+            console.log('未找到匹配的供應商');
+          }
         }
       }
       
