@@ -1,22 +1,20 @@
 # 開發任務清單
 
 ## 分析階段
-- [x] 從GitHub克隆pharmacy-pos專案
-- [x] 使用GitHub令牌進行認證
-- [x] 檢查專案結構和文件組織
-- [x] 閱讀development_collaboration_guidelines開發指南
-- [x] 分析PurchaseOrder模組的現有實現
-- [x] 檢查BaseProduct模型結構
+- [x] 分析PurchaseOrder模型結構
+- [x] 分析purchaseOrders.js路由文件
+- [x] 分析前端表單實現
+- [x] 確定進貨單號自動生成的實現方案
 
 ## 實現階段
-- [x] 修改ProductItemForm.js，擴展Autocomplete組件的filterOptions函數
-- [x] 確保搜索功能支持健保碼和國際條碼
-- [x] 保持代碼簡潔可讀，遵循開發指南
+- [x] 修改後端路由處理邏輯，支持自動生成進貨單號
+- [x] 修改前端表單驗證，允許poid為空
+- [x] 確保自動生成的進貨單號格式為日期加序號（如20250410001）
 
 ## 測試階段
-- [x] 測試修改後的搜索功能
-- [x] 確保能夠通過健保碼搜索藥品
-- [x] 確保能夠通過國際條碼搜索商品
+- [x] 測試進貨單號為空時的自動生成功能
+- [x] 測試自動生成的進貨單號格式是否正確
+- [x] 測試序號遞增功能
 
 ## 提交階段
 - [ ] 提交更改到GitHub

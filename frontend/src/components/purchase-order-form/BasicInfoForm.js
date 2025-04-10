@@ -49,13 +49,13 @@ const BasicInfoForm = ({
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
-              required
               label="進貨單號"
               name="poid"
               value={formData.poid}
               onChange={handleInputChange}
               variant="outlined"
               disabled={isEditMode}
+              helperText="留空將自動生成"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>

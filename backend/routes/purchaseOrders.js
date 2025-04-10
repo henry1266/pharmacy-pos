@@ -89,11 +89,36 @@ async function generateUniqueOrderNumber(poid) {
   return orderNumber;
 }
 
+// 生成日期格式的進貨單號
+async function generateDateBasedOrderNumber() {
+  // 獲取當前日期，格式為YYYYMMDD
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const datePrefix = `${year}${month}${day}`;
+  
+  // 查找今天已有的進貨單，以確定序號
+  const regex = new RegExp(`^${datePrefix}\\d{3}$`);
+  const existingOrders = await PurchaseOrder.find({ poid: regex }).sort({ poid: -1 });
+  
+  let sequenceNumber = 1;
+  if (existingOrders.length > 0) {
+    // 從最後一個訂單號提取序號並加1
+    const lastOrderNumber = existingOrders[0].poid;
+    const lastSequence = parseInt(lastOrderNumber.substring(8), 10);
+    sequenceNumber = lastSequence + 1;
+  }
+  
+  // 格式化序號為3位數，例如001, 002, ...
+  const formattedSequence = String(sequenceNumber).padStart(3, '0');
+  return `${datePrefix}${formattedSequence}`;
+}
+
 // @route   POST api/purchase-orders
 // @desc    創建新進貨單
 // @access  Public
 router.post('/', [
-  check('poid', '進貨單號為必填項').not().isEmpty(),
   check('posupplier', '供應商為必填項').not().isEmpty(),
   check('items', '至少需要一個藥品項目').isArray().not().isEmpty()
 ], async (req, res) => {
@@ -103,12 +128,17 @@ router.post('/', [
   }
 
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus } = req.body;
+    let { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
-    // 檢查進貨單號是否已存在
-    const existingPO = await PurchaseOrder.findOne({ poid });
-    if (existingPO) {
-      return res.status(400).json({ msg: '該進貨單號已存在' });
+    // 如果進貨單號為空，自動生成
+    if (!poid || poid.trim() === '') {
+      poid = await generateDateBasedOrderNumber();
+    } else {
+      // 檢查進貨單號是否已存在
+      const existingPO = await PurchaseOrder.findOne({ poid });
+      if (existingPO) {
+        return res.status(400).json({ msg: '該進貨單號已存在' });
+      }
     }
 
     // 生成唯一訂單號

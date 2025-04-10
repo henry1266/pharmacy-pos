@@ -309,7 +309,7 @@ const PurchaseOrderFormPage = () => {
     e.preventDefault();
     
     // 驗證表單
-    if (!formData.poid || !formData.posupplier) {
+    if (!formData.posupplier) {
       setSnackbar({
         open: true,
         message: '請填寫所有必填欄位',
