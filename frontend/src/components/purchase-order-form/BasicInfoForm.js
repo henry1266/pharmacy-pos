@@ -1,5 +1,6 @@
 import React from 'react';
 import { 
+  Box,
   Grid, 
   TextField, 
   Autocomplete,  
@@ -102,7 +103,16 @@ const BasicInfoForm = ({
             />
           </Grid>
 		<Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
+            <Box
+				sx={{
+					backgroundColor:
+					formData.paymentStatus === '未付' ? '#F8D7DA' :     // 紅色（淡）
+					formData.paymentStatus === '已下收' ? '#D4EDDA' :    // 綠色（淡）
+					formData.paymentStatus === '已匯款' ? '#D4EDDA' :    // 綠色（淡）
+					'transparent',
+				}}
+			>
+			<FormControl fullWidth>
               <InputLabel id="payment-status-label">付款狀態</InputLabel>
               <Select
                 labelId="payment-status-label"
@@ -116,22 +126,29 @@ const BasicInfoForm = ({
                 <MenuItem value="已匯款">已匯款</MenuItem>
               </Select>
             </FormControl>
+            </Box>
           </Grid>
 		  <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
-              <InputLabel id="status-label">狀態</InputLabel>
-              <Select
-                labelId="status-label"
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                label="狀態"
-              >
-                <MenuItem value="pending">處理中</MenuItem>
-                <MenuItem value="completed">已完成</MenuItem>
-                <MenuItem value="cancelled">已取消</MenuItem>
-              </Select>
-            </FormControl>
+            <Box
+				sx={{
+					backgroundColor:
+					formData.status === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
+					formData.status === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
+				}}
+			>
+				<FormControl fullWidth>
+					<InputLabel>狀態</InputLabel>
+					<Select
+						name="status"
+						value={formData.status}
+						onChange={handleInputChange}
+						label="狀態"
+					>
+						<MenuItem value="pending">處理中</MenuItem>
+						<MenuItem value="completed">已完成</MenuItem>
+					</Select>
+				</FormControl>
+			</Box>
           </Grid>
 		</Grid>
 
