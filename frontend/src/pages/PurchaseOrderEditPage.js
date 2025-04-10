@@ -80,6 +80,10 @@ const PurchaseOrderEditPage = () => {
   // 保存當前選中的供應商對象
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   
+  // 標記數據加載狀態
+  const [orderDataLoaded, setOrderDataLoaded] = useState(false);
+  const [suppliersLoaded, setSuppliersLoaded] = useState(false);
+  
   // 初始化加載數據
   useEffect(() => {
     const loadData = async () => {
@@ -103,13 +107,15 @@ const PurchaseOrderEditPage = () => {
     try {
       const response = await axios.get(`/api/purchase-orders/${id}`);
       const orderData = response.data;
+      console.log('獲取到進貨單數據:', orderData);
       
       setFormData({
         ...orderData,
         pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date()
       });
       
-      return orderData; // 返回訂單數據以便後續使用
+      setOrderDataLoaded(true);
+      return orderData;
     } catch (err) {
       console.error('獲取進貨單數據失敗:', err);
       setError('獲取進貨單數據失敗');
@@ -118,7 +124,7 @@ const PurchaseOrderEditPage = () => {
         message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message),
         severity: 'error'
       });
-      throw err; // 拋出錯誤以便上層處理
+      throw err;
     }
   };
 
@@ -144,40 +150,9 @@ const PurchaseOrderEditPage = () => {
     try {
       const response = await axios.get('/api/suppliers');
       const suppliersData = response.data;
+      console.log('獲取到供應商數據:', suppliersData);
       setSuppliers(suppliersData);
-      
-      // 在獲取供應商數據後，設置當前選中的供應商
-      // 使用最新的formData狀態
-      const currentFormData = { ...formData };
-      if (currentFormData.supplier) {
-        console.log('當前供應商數據:', currentFormData.supplier);
-        
-        // 處理不同格式的supplier字段
-        let supplierId;
-        if (typeof currentFormData.supplier === 'string') {
-          supplierId = currentFormData.supplier;
-        } else if (typeof currentFormData.supplier === 'object') {
-          // 處理MongoDB返回的對象格式
-          if (currentFormData.supplier._id) {
-            supplierId = currentFormData.supplier._id;
-          } else if (currentFormData.supplier.$oid) {
-            supplierId = currentFormData.supplier.$oid;
-          }
-        }
-        
-        console.log('尋找供應商ID:', supplierId);
-        
-        if (supplierId) {
-          const supplier = suppliersData.find(s => s._id === supplierId);
-          if (supplier) {
-            console.log('找到匹配的供應商:', supplier);
-            setSelectedSupplier(supplier);
-          } else {
-            console.log('未找到匹配的供應商');
-          }
-        }
-      }
-      
+      setSuppliersLoaded(true);
       return suppliersData;
     } catch (err) {
       console.error('獲取供應商數據失敗:', err);
@@ -186,8 +161,45 @@ const PurchaseOrderEditPage = () => {
         message: '獲取供應商數據失敗',
         severity: 'error'
       });
+      throw err;
     }
   };
+  
+  // 當進貨單數據和供應商數據都加載完成後，設置選中的供應商
+  useEffect(() => {
+    if (orderDataLoaded && suppliersLoaded) {
+      console.log('進貨單數據和供應商數據都已加載完成');
+      
+      if (formData.supplier) {
+        console.log('當前供應商數據:', formData.supplier);
+        
+        // 處理不同格式的supplier字段
+        let supplierId;
+        if (typeof formData.supplier === 'string') {
+          supplierId = formData.supplier;
+        } else if (typeof formData.supplier === 'object') {
+          // 處理MongoDB返回的對象格式
+          if (formData.supplier._id) {
+            supplierId = formData.supplier._id;
+          } else if (formData.supplier.$oid) {
+            supplierId = formData.supplier.$oid;
+          }
+        }
+        
+        console.log('尋找供應商ID:', supplierId);
+        
+        if (supplierId) {
+          const supplier = suppliers.find(s => s._id === supplierId);
+          if (supplier) {
+            console.log('找到匹配的供應商:', supplier);
+            setSelectedSupplier(supplier);
+          } else {
+            console.log('未找到匹配的供應商');
+          }
+        }
+      }
+    }
+  }, [orderDataLoaded, suppliersLoaded, formData.supplier, suppliers]);
 
   // 處理輸入變化
   const handleInputChange = (e) => {
