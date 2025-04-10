@@ -4,39 +4,20 @@ import {
   Box,
   Typography,
   Button,
-  Grid,
-  Card,
-  CardContent,
-  TextField,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Snackbar,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete
+  Card,
+  CardContent
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Remove as RemoveIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  ArrowBack as ArrowBackIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  ModeEdit as ModeEditIcon
-} from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
+
+// 導入拆分後的組件
+import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
+import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
+import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
+import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
 const PurchaseOrderEditPage = () => {
   const navigate = useNavigate();
@@ -477,128 +458,15 @@ const PurchaseOrderEditPage = () => {
       
       <form onSubmit={handleSubmit}>
         {/* 基本資訊表單 */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              基本資訊
-            </Typography>
-            
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="進貨單號"
-                  name="poid"
-                  value={formData.poid}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="發票號碼"
-                  name="pobill"
-                  value={formData.pobill}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="發票日期"
-                  type="date"
-                  name="pobilldate"
-                  value={format(formData.pobilldate, 'yyyy-MM-dd')}
-                  onChange={(e) => handleDateChange(new Date(e.target.value))}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <Autocomplete
-                  id="supplier-select"
-                  options={suppliers}
-                  getOptionLabel={(option) => option.name}
-                  value={selectedSupplier}
-                  onChange={handleSupplierChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="供應商"
-                      required
-                    />
-                  )}
-                />
-              </Grid>
-              
-<Grid item xs={12} md={3}>
-  <Box
-    sx={{
-      backgroundColor:
-        formData.status === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
-        formData.status === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
-    }}
-  >
-    <FormControl fullWidth>
-      <InputLabel>狀態</InputLabel>
-      <Select
-        name="status"
-        value={formData.status}
-        onChange={handleInputChange}
-        label="狀態"
-      >
-        <MenuItem value="pending">處理中</MenuItem>
-        <MenuItem value="completed">已完成</MenuItem>
-      </Select>
-    </FormControl>
-  </Box>
-</Grid>
-              
-             <Grid item xs={12} md={3}>
-  <Box
-    sx={{
-      backgroundColor:
-        formData.paymentStatus === '未付' ? '#F8D7DA' :     // 紅色（淡）
-        formData.paymentStatus === '已下收' ? '#D4EDDA' :    // 綠色（淡）
-        formData.paymentStatus === '已匯款' ? '#D4EDDA' :    // 綠色（淡）
-        'transparent',
-    }}
-  >
-    <FormControl fullWidth>
-      <InputLabel>付款狀態</InputLabel>
-      <Select
-        name="paymentStatus"
-        value={formData.paymentStatus}
-        onChange={handleInputChange}
-        label="付款狀態"
-      >
-        <MenuItem value="未付">未付</MenuItem>
-        <MenuItem value="已下收">已下收</MenuItem>
-        <MenuItem value="已匯款">已匯款</MenuItem>
-                </Select>
-                </FormControl>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="備註"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  multiline
-                  rows={2}
-                />
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+        <BasicInfoForm 
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleDateChange={handleDateChange}
+          handleSupplierChange={handleSupplierChange}
+          suppliers={suppliers}
+          selectedSupplier={selectedSupplier}
+          isEditMode={true}
+        />
         
         <Card sx={{ mb: 3 }}>
           <CardContent>
@@ -606,253 +474,35 @@ const PurchaseOrderEditPage = () => {
               藥品項目
             </Typography>
             
-            {/* 操作按鈕 - 移到添加項目上方 */}
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                onClick={handleCancel}
-                sx={{ mr: 2 }}
-              >
-                取消
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                startIcon={<SaveIcon />}
-                disabled={loading}
-              >
-                儲存
-              </Button>
-            </Box>
+            {/* 操作按鈕 */}
+            <ActionButtons 
+              loading={loading}
+              onSave={handleSubmit}
+              onCancel={handleCancel}
+            />
             
             {/* 藥品項目輸入表單 */}
-            <Box sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={4}>
-                  <Autocomplete
-                    id="product-select-input"
-                    options={products}
-                    getOptionLabel={(option) => `${option.code} - ${option.name}`}
-                    onChange={handleProductChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="選擇藥品"
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={2}>
-                  <TextField
-                    fullWidth
-                    label="藥品編號"
-                    name="did"
-                    value={currentItem.did}
-                    onChange={handleItemInputChange}
-                    disabled
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={2}>
-                  <TextField
-                    fullWidth
-                    label="藥品名稱"
-                    name="dname"
-                    value={currentItem.dname}
-                    onChange={handleItemInputChange}
-                    disabled
-                  />
-                </Grid>
-                
-                <Grid item xs={6} md={1}>
-                  <TextField
-                    fullWidth
-                    label="數量"
-                    name="dquantity"
-                    type="number"
-                    value={currentItem.dquantity}
-                    onChange={handleItemInputChange}
-                    InputProps={{ inputProps: { min: 1 } }}
-                  />
-                </Grid>
-                
-                <Grid item xs={6} md={2}>
-                  <TextField
-                    fullWidth
-                    label="總成本"
-                    name="dtotalCost"
-                    type="number"
-                    value={currentItem.dtotalCost}
-                    onChange={handleItemInputChange}
-                    InputProps={{ inputProps: { min: 0, step: 0.01 } }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={1}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    onClick={handleAddItem}
-                    startIcon={<AddIcon />}
-                  >
-                    添加
-                  </Button>
-                </Grid>
-              </Grid>
-            </Box>
+            <ProductItemForm 
+              currentItem={currentItem}
+              handleItemInputChange={handleItemInputChange}
+              handleProductChange={handleProductChange}
+              handleAddItem={handleAddItem}
+              products={products}
+            />
             
             {/* 藥品項目表格 */}
-            <TableContainer component={Paper} variant="outlined">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>藥品編號</TableCell>
-                    <TableCell>藥品名稱</TableCell>
-                    <TableCell align="right">數量</TableCell>
-                    <TableCell align="right">總成本</TableCell>
-                    <TableCell align="center">操作</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {formData.items.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} align="center">
-                        尚無藥品項目
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    formData.items.map((item, index) => (
-                      <TableRow key={index}>
-                        {editingItemIndex === index ? (
-                          // 編輯模式
-                          <>
-                            <TableCell>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                name="did"
-                                value={editingItem.did}
-                                onChange={handleEditingItemChange}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                name="dname"
-                                value={editingItem.dname}
-                                onChange={handleEditingItemChange}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <TextField
-                                type="number"
-                                size="small"
-                                name="dquantity"
-                                value={editingItem.dquantity}
-                                onChange={handleEditingItemChange}
-                                InputProps={{ 
-                                  inputProps: { min: 1 },
-                                  style: { textAlign: 'right' }
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <TextField
-                                type="number"
-                                size="small"
-                                name="dtotalCost"
-                                value={editingItem.dtotalCost}
-                                onChange={handleEditingItemChange}
-                                InputProps={{ 
-                                  inputProps: { min: 0, step: 0.01 },
-                                  style: { textAlign: 'right' }
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell align="center">
-                              <IconButton 
-                                color="primary" 
-                                onClick={handleSaveEditItem}
-                                size="small"
-                              >
-								<SaveIcon />
-                              </IconButton>
-                              <IconButton 
-                                color="default" 
-                                onClick={handleCancelEditItem}
-                                size="small"
-                              >
-                                <ArrowBackIcon />
-                              </IconButton>
-                            </TableCell>
-                          </>
-                        ) : (
-                          // 顯示模式
-                          <>
-                            <TableCell>{item.did}</TableCell>
-                            <TableCell>{item.dname}</TableCell>
-                            <TableCell align="right">{item.dquantity}</TableCell>
-                            <TableCell align="right">{Number(item.dtotalCost).toFixed(2)}</TableCell>
-                            <TableCell align="center">
-                              <IconButton 
-                                color="primary" 
-                                onClick={() => handleEditItem(index)}
-                                size="small"
-                              >
-								<ModeEditIcon />
-                              </IconButton>
-                              <IconButton 
-                                color="default" 
-                                onClick={() => handleMoveItem(index, 'up')}
-                                disabled={index === 0}
-                                size="small"
-                              >
-                                <ArrowUpwardIcon />
-                              </IconButton>
-                              <IconButton 
-                                color="default" 
-                                onClick={() => handleMoveItem(index, 'down')}
-                                disabled={index === formData.items.length - 1}
-                                size="small"
-                              >
-                                <ArrowDownwardIcon />
-                              </IconButton>
-                              <IconButton 
-                                color="error" 
-                                onClick={() => handleRemoveItem(index)}
-                                size="small"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    ))
-                  )}
-                  <TableRow>
-                    <TableCell colSpan={3} />
-                    <TableCell align="right">
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        總金額:
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="h6" color="primary.main">
-                        {totalAmount.toFixed(2)}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            {/* 已移動操作按鈕到上方 */}
+            <ProductItemsTable 
+              items={formData.items}
+              editingItemIndex={editingItemIndex}
+              editingItem={editingItem}
+              handleEditItem={handleEditItem}
+              handleSaveEditItem={handleSaveEditItem}
+              handleCancelEditItem={handleCancelEditItem}
+              handleRemoveItem={handleRemoveItem}
+              handleMoveItem={handleMoveItem}
+              handleEditingItemChange={handleEditingItemChange}
+              totalAmount={totalAmount}
+            />
           </CardContent>
         </Card>
       </form>
@@ -862,9 +512,8 @@ const PurchaseOrderEditPage = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
           {snackbar.message}
         </Alert>
       </Snackbar>
