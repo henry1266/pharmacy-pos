@@ -383,7 +383,7 @@ const PurchaseOrderFormPage = () => {
   
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h5" component="h1" gutterBottom>
         {isEditMode ? '編輯進貨單' : '新增進貨單'}
       </Typography>
       
@@ -399,14 +399,14 @@ const PurchaseOrderFormPage = () => {
           isEditMode={isEditMode}
         />
         
-        <Card sx={{ mb: 2 }}>
+        <Card sx={{ mb: 1 }}>
           <CardContent sx={{ pb: 1 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
+            <Typography variant="h6">
               藥品項目
             </Typography>
             
             {/* 操作按鈕 - 移到添加項目上方 */}
-            <Box sx={{ mb: 2 }}>
+            <Box>
               <ActionButtons 
                 loading={loading}
                 onCancel={handleCancel}
@@ -420,8 +420,7 @@ const PurchaseOrderFormPage = () => {
                 top: 0, 
                 backgroundColor: 'white', 
                 zIndex: 10,
-                pt: 2,
-                pb: 2,
+                pb: 1,
                 borderBottom: '1px solid #e0e0e0'
               }}
             >

@@ -39,7 +39,7 @@ const BasicInfoForm = ({
   isEditMode
 }) => {
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card sx={{ mb: 2 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           基本資訊

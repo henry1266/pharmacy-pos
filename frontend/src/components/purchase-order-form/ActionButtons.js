@@ -20,7 +20,7 @@ const ActionButtons = ({
   onCancel
 }) => {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 4 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3, mb: 3 }}>
       <Button
         variant="outlined"
         startIcon={<ArrowBackIcon />}
