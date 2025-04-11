@@ -40,7 +40,8 @@ const ProductItemForm = ({
               option => 
                 option.name.toLowerCase().includes(filterValue) || 
                 option.code.toLowerCase().includes(filterValue) ||
-                // 擴展搜索條件，支持健保碼和國際條碼
+                // 擴展搜索條件，支持簡碼、健保碼和國際條碼
+                (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
                 (option.productType === 'medicine' && option.healthInsuranceCode && 
                  option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
                 (option.productType === 'product' && option.barcode && 
@@ -55,7 +56,8 @@ const ProductItemForm = ({
                 option => 
                   option.name.toLowerCase().includes(filterValue) || 
                   option.code.toLowerCase().includes(filterValue) ||
-                  // 擴展搜索條件，支持健保碼和國際條碼
+                  // 擴展搜索條件，支持簡碼、健保碼和國際條碼
+                  (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
                   (option.productType === 'medicine' && option.healthInsuranceCode && 
                    option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
                   (option.productType === 'product' && option.barcode && 

@@ -85,6 +85,14 @@ const BasicInfoForm = ({
               getOptionLabel={(option) => option.name}
               value={selectedSupplier}
               onChange={handleSupplierChange}
+              filterOptions={(options, { inputValue }) => {
+                const filterValue = inputValue.toLowerCase();
+                return options.filter(
+                  option => 
+                    option.name.toLowerCase().includes(filterValue) || 
+                    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue))
+                );
+              }}
               renderInput={(params) => (
                 <TextField {...params} required label="供應商" fullWidth />
               )}
