@@ -445,7 +445,7 @@ const SalesPage = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                條碼掃描
+                商品輸入
               </Typography>
               
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
