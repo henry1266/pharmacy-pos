@@ -25,6 +25,7 @@ const ActionButtons = ({
         variant="outlined"
         startIcon={<ArrowBackIcon />}
         onClick={onCancel}
+        tabIndex="-1"
       >
         取消
       </Button>
@@ -33,6 +34,7 @@ const ActionButtons = ({
         variant="contained"
         startIcon={<SaveIcon />}
         disabled={loading}
+        tabIndex="-1"
       >
         {loading ? '儲存中...' : '儲存進貨單'}
       </Button>
