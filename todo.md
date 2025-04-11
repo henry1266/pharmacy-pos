@@ -18,5 +18,5 @@
 - [x] 確保不影響其他功能
 
 ## 提交階段
-- [ ] 提交更改到GitHub
-- [ ] 確保提交訊息遵循Conventional Commits規範
+- [x] 提交更改到GitHub
+- [x] 確保提交訊息遵循Conventional Commits規範

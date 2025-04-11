@@ -1,28 +1,35 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge } from '@mui/material';
+import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import SellIcon from '@mui/icons-material/Sell';
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import FactoryIcon from '@mui/icons-material/Factory';
+import FactoryOutlinedIcon from '@mui/icons-material/FactoryOutlined';
+
 import PeopleIcon from '@mui/icons-material/People';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
-import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
-import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import BarChartIcon from '@mui/icons-material/BarChart';
 
 import LogoutIcon from '@mui/icons-material/Logout';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
+import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 
 import SettingsModal from '../settings/SettingsModal';
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
 
 /**
@@ -45,7 +52,7 @@ const MainLayout = ({ children }) => {
     },
 	{ 
 		text: '銷售管理', 
-		icon: (location.pathname === '/sales') ? <PointOfSaleOutlinedIcon /> : <PointOfSaleIcon />, 
+		icon: (location.pathname === '/sales') ? <SellOutlinedIcon /> : <SellIcon />, 
 		path: '/sales' 
 	},
 	{ 
@@ -60,7 +67,7 @@ const MainLayout = ({ children }) => {
 	},
     { 
       text: '供應商管理', 
-      icon: (location.pathname === '/suppliers') ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
+      icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, 
       path: '/suppliers' 
     },
 	{ 
@@ -109,7 +116,9 @@ const MainLayout = ({ children }) => {
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
         }}
       >
-        <Toolbar>
+
+		
+		<Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -122,24 +131,36 @@ const MainLayout = ({ children }) => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             POS系統
           </Typography>
+
           
-          {/* 搜索圖標 */}
-          <IconButton color="inherit" sx={{ mr: 1 }}>
-            <SearchIcon />
-          </IconButton>
-          
-          {/* 通知圖標 */}
-          <IconButton color="inherit" sx={{ mr: 1 }}>
-            <Badge badgeContent={4} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-          
-          {/* 設置圖標 */}
-          <IconButton color="inherit" sx={{ mr: 2 }} onClick={handleSettingsClick}>
+			<NavIconButton
+				to="/purchase-orders/new"
+				tooltip="出貨"
+				activeIcon={<LocalShippingIcon />}
+				inactiveIcon={<LocalShippingOutlinedIcon />}
+			/>
+			
+			<NavIconButton
+				to="/purchase-orders/new"
+				tooltip="進貨"
+				activeIcon={<AssignmentIcon />}
+				inactiveIcon={<AssignmentOutlinedIcon />}
+			/>
+			
+			<NavIconButton
+				to="/sales/new"
+				tooltip="銷售"
+				activeIcon={<PointOfSaleIcon />}
+				inactiveIcon={<PointOfSaleOutlinedIcon />}
+			/>
+
+		  
+		  {/* 設置圖標 */}
+          <Tooltip title="設訂">
+		  <IconButton color="inherit" sx={{ mr: 2 }} onClick={handleSettingsClick}>
             <SettingsIcon />
           </IconButton>
-          
+          </Tooltip>
           {/* 用戶頭像 */}
           <Avatar 
             sx={{ 
@@ -366,5 +387,31 @@ const MainLayout = ({ children }) => {
     </Box>
   );
 };
+
+const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <Tooltip title={tooltip}>
+      <Link to={to} style={{ color: 'inherit', textDecoration: 'none' }}>
+        <IconButton
+          sx={{
+            mr: 2,
+            color: isActive ? 'primary.main' : 'grey',
+            transition: 'transform 0.2s ease, color 0.2s ease',
+            '&:hover': {
+              color: 'primary.main',
+              transform: 'scale(1.3)',
+            },
+          }}
+        >
+          {isActive ? activeIcon : inactiveIcon}
+        </IconButton>
+      </Link>
+    </Tooltip>
+  );
+};
+
 
 export default MainLayout;
