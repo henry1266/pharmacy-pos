@@ -180,6 +180,37 @@ onKeyDown={(event) => {
 						value={formData.status}
 						onChange={handleInputChange}
 						label="狀態"
+						onKeyDown={(event) => {
+							if (event.key === 'Tab') {
+								event.preventDefault();
+								// 跳轉到藥品選擇欄位
+								setTimeout(() => {
+									try {
+										// 嘗試方法1：使用ID選擇器
+										const productSelect = document.getElementById('product-select-input');
+										if (productSelect) {
+											productSelect.focus();
+											return;
+										}
+										
+										// 嘗試方法2：使用更通用的選擇器
+										const productInput = document.querySelector('#product-select input');
+										if (productInput) {
+											productInput.focus();
+											return;
+										}
+										
+										// 嘗試方法3：直接點擊藥品選擇欄位
+										const productSelectElement = document.getElementById('product-select');
+										if (productSelectElement) {
+											productSelectElement.click();
+										}
+									} catch (error) {
+										console.error('無法自動聚焦到藥品選擇欄位:', error);
+									}
+								}, 100);
+							}
+						}}
 					>
 						<MenuItem value="pending">處理中</MenuItem>
 						<MenuItem value="completed">已完成</MenuItem>
