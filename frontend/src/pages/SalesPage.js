@@ -31,6 +31,7 @@ import {
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import CategoryProductsDialog from '../components/sales/CategoryProductsDialog';
 
 const SalesPage = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const SalesPage = () => {
   // 狀態管理
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [vaccineDialogOpen, setVaccineDialogOpen] = useState(false);
   
   const [currentSale, setCurrentSale] = useState({
     saleNumber: '',
@@ -364,9 +366,71 @@ const SalesPage = () => {
       open: false
     });
   };
+  
+  // 處理選擇產品
+  const handleSelectProduct = (product) => {
+    if (!product) return;
+    
+    // 檢查是否已存在該產品
+    const existingItemIndex = currentSale.items.findIndex(item => item.product === product._id);
+    
+    if (existingItemIndex >= 0) {
+      // 如果已存在，增加數量
+      const updatedItems = [...currentSale.items];
+      updatedItems[existingItemIndex].quantity += 1;
+      updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
+      
+      setCurrentSale({
+        ...currentSale,
+        items: updatedItems
+      });
+      
+      setSnackbar({
+        open: true,
+        message: `已增加 ${product.name} 的數量`,
+        severity: 'success'
+      });
+    } else {
+      // 如果不存在，添加新項目
+      const newItem = {
+        product: product._id,
+        productDetails: product,
+        name: product.name,
+        code: product.code,
+        price: product.sellingPrice,
+        quantity: 1,
+        subtotal: product.sellingPrice
+      };
+      
+      setCurrentSale({
+        ...currentSale,
+        items: [...currentSale.items, newItem]
+      });
+      
+      setSnackbar({
+        open: true,
+        message: `已添加 ${product.name}`,
+        severity: 'success'
+      });
+    }
+    
+    // 聚焦到條碼輸入框
+    if (barcodeInputRef.current) {
+      barcodeInputRef.current.focus();
+    }
+  };
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* 類別產品選擇對話框 */}
+      <CategoryProductsDialog
+        open={vaccineDialogOpen}
+        onClose={() => setVaccineDialogOpen(false)}
+        products={products}
+        category="疫苗"
+        onSelectProduct={handleSelectProduct}
+      />
+      
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           銷售管理
@@ -483,6 +547,14 @@ const SalesPage = () => {
                   sx={{ ml: 1, height: 56 }}
                 >
                   新增
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="secondary"
+                  onClick={() => setVaccineDialogOpen(true)}
+                  sx={{ ml: 1, height: 56 }}
+                >
+                  選擇疫苗
                 </Button>
               </Box>
               
