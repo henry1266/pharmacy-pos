@@ -41,6 +41,7 @@ const SalesPage = () => {
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [vaccineDialogOpen, setVaccineDialogOpen] = useState(false);
+  const [injectionDialogOpen, setInjectionDialogOpen] = useState(false);
   
   const [currentSale, setCurrentSale] = useState({
     saleNumber: '',
@@ -431,6 +432,15 @@ const SalesPage = () => {
         onSelectProduct={handleSelectProduct}
       />
       
+      {/* 注射藥品選擇對話框 */}
+      <CategoryProductsDialog
+        open={injectionDialogOpen}
+        onClose={() => setInjectionDialogOpen(false)}
+        products={products}
+        category="注射藥品"
+        onSelectProduct={handleSelectProduct}
+      />
+      
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           銷售管理
@@ -522,7 +532,7 @@ const SalesPage = () => {
                   inputRef={barcodeInputRef}
                   placeholder="掃描或輸入條碼後按Enter"
                   autoFocus
-                  sx={{ mr: 1 }}
+                  sx={{ mr: 1, width: '60%' }}
                   InputProps={{
                     startAdornment: (
                       <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>
@@ -555,6 +565,14 @@ const SalesPage = () => {
                   sx={{ ml: 1, height: 56 }}
                 >
                   選擇疫苗
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="info"
+                  onClick={() => setInjectionDialogOpen(true)}
+                  sx={{ ml: 1, height: 56 }}
+                >
+                  注射藥品
                 </Button>
               </Box>
               
