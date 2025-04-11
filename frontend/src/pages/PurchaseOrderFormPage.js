@@ -77,6 +77,14 @@ const PurchaseOrderFormPage = () => {
     
     if (isEditMode && id) {
       dispatch(fetchPurchaseOrder(id));
+    } else {
+      // 在新增模式下，設置焦點到發票號碼欄位
+      setTimeout(() => {
+        const invoiceInput = document.querySelector('input[name="pobill"]');
+        if (invoiceInput) {
+          invoiceInput.focus();
+        }
+      }, 800); // 延長時間確保DOM已完全載入
     }
   }, [dispatch, isEditMode, id]);
   

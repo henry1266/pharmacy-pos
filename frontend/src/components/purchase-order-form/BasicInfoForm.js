@@ -93,19 +93,32 @@ onKeyDown={(event) => {
       handleSupplierChange(event, filtered[0]);
       event.preventDefault();
 
-      // 修正：使用正確的選擇器找到付款狀態下拉框
+      // 直接模擬點擊付款狀態下拉框
       setTimeout(() => {
-        const selectInput = document.querySelector('[name="paymentStatus"]');
-        if (selectInput) {
-          selectInput.focus();
-        } else {
-          // 備用方案：嘗試找到付款狀態標籤並點擊它
+        try {
+          // 嘗試直接點擊付款狀態標籤
           const paymentStatusLabel = document.querySelector('#payment-status-label');
           if (paymentStatusLabel) {
             paymentStatusLabel.click();
+            return;
           }
+          
+          // 備用方案1：嘗試找到付款狀態下拉框並點擊
+          const selectElement = document.querySelector('[name="paymentStatus"]');
+          if (selectElement) {
+            selectElement.click();
+            return;
+          }
+          
+          // 備用方案2：嘗試找到付款狀態FormControl並點擊
+          const formControl = document.querySelector('label[id="payment-status-label"]').closest('.MuiFormControl-root');
+          if (formControl) {
+            formControl.click();
+          }
+        } catch (error) {
+          console.error('無法自動聚焦到付款狀態:', error);
         }
-      }, 0);
+      }, 100); // 增加延遲時間確保DOM已更新
     }
   }
 }}
