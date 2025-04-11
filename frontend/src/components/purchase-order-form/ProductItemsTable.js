@@ -73,6 +73,7 @@ const ProductItemsTable = ({
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell align="center" width="60px">序號</TableCell>
             <TableCell>藥品代碼</TableCell>
             <TableCell>藥品名稱</TableCell>
             <TableCell align="right">數量</TableCell>
@@ -87,6 +88,9 @@ const ProductItemsTable = ({
               {editingItemIndex === index ? (
                 // 編輯模式
                 <>
+                  <TableCell align="center">
+                    <Typography variant="body2">{index + 1}</Typography>
+                  </TableCell>
                   <TableCell>
                     <TextField
                       fullWidth
@@ -140,6 +144,9 @@ const ProductItemsTable = ({
               ) : (
                 // 顯示模式
                 <>
+                  <TableCell align="center">
+                    <Typography variant="body2">{index + 1}</Typography>
+                  </TableCell>
                   <TableCell>{item.did}</TableCell>
                   <TableCell>{item.dname}</TableCell>
                   <TableCell align="right">{item.dquantity}</TableCell>
@@ -169,7 +176,7 @@ const ProductItemsTable = ({
           ))}
           {items.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} align="center">
+              <TableCell colSpan={7} align="center">
                 尚未添加藥品項目
               </TableCell>
             </TableRow>
@@ -185,6 +192,7 @@ const ProductItemsTable = ({
               '& > *': { fontWeight: 'bold' }
             }}
           >
+            <TableCell></TableCell>
             <TableCell colSpan={3} align="right">
               <Typography variant="subtitle1">總計：</Typography>
             </TableCell>
