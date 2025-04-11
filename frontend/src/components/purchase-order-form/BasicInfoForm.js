@@ -78,26 +78,36 @@ const BasicInfoForm = ({
               />
             </LocalizationProvider>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Autocomplete
-              id="supplier-select"
-              options={suppliers}
-              getOptionLabel={(option) => option.name}
-              value={selectedSupplier}
-              onChange={handleSupplierChange}
-              filterOptions={(options, { inputValue }) => {
-                const filterValue = inputValue.toLowerCase();
-                return options.filter(
-                  option => 
-                    option.name.toLowerCase().includes(filterValue) || 
-                    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue))
-                );
-              }}
-              renderInput={(params) => (
-                <TextField {...params} required label="供應商" fullWidth />
-              )}
-            />
-          </Grid>
+<Grid item xs={12} sm={6} md={3}>
+  <Autocomplete
+    id="supplier-select"
+    options={suppliers}
+    getOptionLabel={(option) => option.name}
+    value={selectedSupplier}
+    onChange={handleSupplierChange}
+    filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
+onKeyDown={(event) => {
+  if (['Enter', 'Tab'].includes(event.key)) {
+    const filtered = filterSuppliers(suppliers, event.target.value);
+    if (filtered.length > 0) {
+      handleSupplierChange(event, filtered[0]);
+      event.preventDefault();
+
+      // 改成聚焦 input[name=paymentStatus]
+      setTimeout(() => {
+        const selectInput = document.querySelector('input[name="paymentStatus"]');
+        if (selectInput) {
+          selectInput.focus();
+        }
+      }, 0);
+    }
+  }
+}}
+    renderInput={(params) => (
+      <TextField {...params} required label="供應商" fullWidth />
+    )}
+  />
+</Grid>
           <Grid item xs={12} sm={6} md={6}>
             <TextField
               fullWidth
@@ -162,6 +172,14 @@ const BasicInfoForm = ({
 
       </CardContent>
     </Card>
+  );
+};
+
+const filterSuppliers = (options, inputValue) => {
+  const filterValue = inputValue?.toLowerCase() || '';
+  return options.filter(option =>
+    option.name.toLowerCase().includes(filterValue) ||
+    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue))
   );
 };
 

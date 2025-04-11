@@ -27,63 +27,34 @@ const ProductItemForm = ({
 }) => {
   return (
     <Grid container spacing={2} sx={{ mb: 1 }}>
-      <Grid item xs={12} sm={6} md={4}>
-        <Autocomplete
-          id="product-select"
-          options={products}
-          getOptionLabel={(option) => `${option.code} - ${option.name}`}
-          value={products.find(p => p._id === currentItem.product) || null}
-          onChange={handleProductChange}
-          filterOptions={(options, { inputValue }) => {
-            const filterValue = inputValue.toLowerCase();
-            return options.filter(
-              option => 
-                option.name.toLowerCase().includes(filterValue) || 
-                option.code.toLowerCase().includes(filterValue) ||
-                // 擴展搜索條件，支持簡碼、健保碼和國際條碼
-                (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
-                (option.productType === 'medicine' && option.healthInsuranceCode && 
-                 option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
-                (option.productType === 'product' && option.barcode && 
-                 option.barcode.toLowerCase().includes(filterValue))
-            );
-          }}
-          onKeyDown={(event) => {
-            // 當按下TAB鍵或Enter鍵且有過濾後的選項時
-            if (event.key === 'Tab' || event.key === 'Enter') {
-              const filterValue = event.target.value?.toLowerCase() || '';
-              const filteredOptions = products.filter(
-                option => 
-                  option.name.toLowerCase().includes(filterValue) || 
-                  option.code.toLowerCase().includes(filterValue) ||
-                  // 擴展搜索條件，支持簡碼、健保碼和國際條碼
-                  (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
-                  (option.productType === 'medicine' && option.healthInsuranceCode && 
-                   option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
-                  (option.productType === 'product' && option.barcode && 
-                   option.barcode.toLowerCase().includes(filterValue))
-              );
-              
-              // 如果只有一個選項符合，自動選擇該選項
-              if (filteredOptions.length === 1) {
-                handleProductChange(event, filteredOptions[0]);
-                // 防止默認的TAB或Enter行為，因為我們已經手動處理了選擇
-                event.preventDefault();
-                // 聚焦到數量輸入框
-                document.querySelector('input[name="dquantity"]').focus();
-              }
-            }
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              id="product-select-input"
-              label="選擇藥品"
-              fullWidth
-            />
-          )}
-        />
-      </Grid>
+<Grid item xs={12} sm={6} md={4}>
+  <Autocomplete
+    id="product-select"
+    options={products}
+    getOptionLabel={(option) => `${option.code} - ${option.name}`}
+    value={products.find(p => p._id === currentItem.product) || null}
+    onChange={handleProductChange}
+    filterOptions={(options, state) => filterProducts(options, state.inputValue)}
+    onKeyDown={(event) => {
+      if (['Enter', 'Tab'].includes(event.key)) {
+        const filteredOptions = filterProducts(products, event.target.value);
+        if (filteredOptions.length > 0) {
+          handleProductChange(event, filteredOptions[0]);
+          event.preventDefault();
+          document.querySelector('input[name="dquantity"]')?.focus();
+        }
+      }
+    }}
+    renderInput={(params) => (
+      <TextField
+        {...params}
+        id="product-select-input"
+        label="選擇藥品"
+        fullWidth
+      />
+    )}
+  />
+</Grid>
       <Grid item xs={12} sm={6} md={2}>
         <TextField
           fullWidth
@@ -150,6 +121,19 @@ const ProductItemForm = ({
         </Button>
       </Grid>
     </Grid>
+  );
+};
+
+const filterProducts = (options, inputValue) => {
+  const filterValue = inputValue?.toLowerCase() || '';
+  return options.filter(option =>
+    option.name.toLowerCase().includes(filterValue) ||
+    option.code.toLowerCase().includes(filterValue) ||
+    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
+    (option.productType === 'medicine' && option.healthInsuranceCode &&
+     option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
+    (option.productType === 'product' && option.barcode &&
+     option.barcode.toLowerCase().includes(filterValue))
   );
 };
 
