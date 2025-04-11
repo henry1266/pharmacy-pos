@@ -111,7 +111,7 @@ const CategoryProductsDialog = ({
           />
         </Box>
         
-        <Paper variant="outlined" sx={{ maxHeight: 400, overflow: 'auto' }}>
+        <Paper variant="outlined" sx={{ maxHeight: 500, overflow: 'auto' }}>
           {filteredProducts.length === 0 ? (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="body1" color="textSecondary">
@@ -134,11 +134,6 @@ const CategoryProductsDialog = ({
                           <Typography variant="body2" component="span">
                             編號: {product.code || '無'} | 
                             價格: {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}
-                          </Typography>
-                          <br />
-                          <Typography variant="body2" component="span">
-                            {product.healthInsuranceCode ? `健保碼: ${product.healthInsuranceCode} | ` : ''}
-                            {product.barcode ? `條碼: ${product.barcode}` : ''}
                           </Typography>
                         </>
                       }
