@@ -93,11 +93,17 @@ onKeyDown={(event) => {
       handleSupplierChange(event, filtered[0]);
       event.preventDefault();
 
-      // 改成聚焦 input[name=paymentStatus]
+      // 修正：使用正確的選擇器找到付款狀態下拉框
       setTimeout(() => {
-        const selectInput = document.querySelector('input[name="paymentStatus"]');
+        const selectInput = document.querySelector('[name="paymentStatus"]');
         if (selectInput) {
           selectInput.focus();
+        } else {
+          // 備用方案：嘗試找到付款狀態標籤並點擊它
+          const paymentStatusLabel = document.querySelector('#payment-status-label');
+          if (paymentStatusLabel) {
+            paymentStatusLabel.click();
+          }
         }
       }, 0);
     }
