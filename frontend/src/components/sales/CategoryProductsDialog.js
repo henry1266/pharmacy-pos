@@ -139,10 +139,7 @@ const CategoryProductsDialog = ({
                         {product.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        編號: {product.code || '無'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        價格: {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}
+                        編號 : {product.code || '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}  |  庫存 : {product.inventory || '0'}
                       </Typography>
                       {product.healthInsuranceCode && (
                         <Typography variant="body2" color="text.secondary">
