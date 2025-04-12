@@ -21,6 +21,7 @@ import {
   Add as AddIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
+import useInventoryData from '../../hooks/useInventoryData';
 
 /**
  * 類別產品選擇對話框
@@ -41,6 +42,7 @@ const CategoryProductsDialog = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const { getTotalInventory } = useInventoryData();
 
   // 當產品列表或類別變化時，過濾產品
   useEffect(() => {
@@ -139,7 +141,7 @@ const CategoryProductsDialog = ({
                         {product.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        編號 : {product.code || '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}  |  庫存 : {product.inventory || '0'}
+                        編號 : {product.code || '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}  |  庫存 : {getTotalInventory(product._id)}
                       </Typography>
 
                     </Box>
