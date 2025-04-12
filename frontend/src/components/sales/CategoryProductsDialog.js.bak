@@ -92,7 +92,7 @@ const CategoryProductsDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         選擇{category}
       </DialogTitle>
@@ -112,7 +112,7 @@ const CategoryProductsDialog = ({
           />
         </Box>
         
-        <Paper variant="outlined" sx={{  maxHeight: 600, overflow: 'auto', p: 2 }}>
+        <Paper variant="outlined" sx={{ maxHeight: 600, overflow: 'auto', p: 2 }}>
           {filteredProducts.length === 0 ? (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="body1" color="textSecondary">
@@ -139,9 +139,21 @@ const CategoryProductsDialog = ({
                         {product.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        編號 : {product.code || '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}  |  庫存 : {product.inventory || '0'}
+                        編號: {product.code || '無'}
                       </Typography>
-
+                      <Typography variant="body2" color="text.secondary">
+                        價格: {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}
+                      </Typography>
+                      {product.healthInsuranceCode && (
+                        <Typography variant="body2" color="text.secondary">
+                          健保碼: {product.healthInsuranceCode}
+                        </Typography>
+                      )}
+                      {product.barcode && (
+                        <Typography variant="body2" color="text.secondary">
+                          條碼: {product.barcode}
+                        </Typography>
+                      )}
                     </Box>
                     <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
                       <IconButton 
