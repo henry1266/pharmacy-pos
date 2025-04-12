@@ -111,7 +111,7 @@ const CategoryProductsDialog = ({
           />
         </Box>
         
-        <Paper variant="outlined" sx={{ maxHeight: 500, overflow: 'auto' }}>
+        <Paper variant="outlined" sx={{ maxHeight: 600, overflow: 'auto' }}>
           {filteredProducts.length === 0 ? (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="body1" color="textSecondary">
