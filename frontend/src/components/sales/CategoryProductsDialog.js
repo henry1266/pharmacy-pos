@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Dialog,
   DialogTitle,
@@ -15,13 +16,14 @@ import {
   Divider,
   Box,
   Paper,
-  Grid
+  Grid,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  Warning
 } from '@mui/icons-material';
-import useInventoryData from '../../hooks/useInventoryData';
 
 /**
  * 類別產品選擇對話框
@@ -42,9 +44,10 @@ const CategoryProductsDialog = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const { getTotalInventory } = useInventoryData();
+  const [inventoryData, setInventoryData] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  // 當產品列表或類別變化時，過濾產品
+  // 當產品列表或類別變化時，過濾產品並獲取庫存數據
   useEffect(() => {
     if (products && products.length > 0) {
       // 過濾指定類別的產品
@@ -52,10 +55,66 @@ const CategoryProductsDialog = ({
         product.category && product.category.toLowerCase() === category.toLowerCase()
       );
       setFilteredProducts(categoryProducts);
+      
+      // 獲取這些產品的庫存數據
+      fetchInventoryData(categoryProducts);
     } else {
       setFilteredProducts([]);
     }
   }, [products, category]);
+  
+  // 獲取庫存數據
+  const fetchInventoryData = async (productsList) => {
+    if (!productsList || productsList.length === 0) return;
+    
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+      
+      // 創建一個對象來存儲每個產品的庫存數據
+      const inventoryMap = {};
+      
+      // 對每個產品獲取庫存數據
+      for (const product of productsList) {
+        if (product._id) {
+          try {
+            const res = await axios.get(`/api/inventory/product/${product._id}`, config);
+            
+            // 計算當前庫存
+            let currentStock = 0;
+            res.data.forEach(item => {
+              if (item.type === 'purchase' || !item.type) {
+                currentStock += (parseInt(item.quantity) || 0);
+              } else if (item.type === 'sale') {
+                currentStock -= (parseInt(item.quantity) || 0);
+              }
+            });
+            
+            // 存儲庫存數據
+            inventoryMap[product._id] = {
+              currentStock,
+              minStock: product.minStock || 0,
+              isLowStock: currentStock < (product.minStock || 0)
+            };
+          } catch (err) {
+            console.error(`獲取產品 ${product._id} 庫存失敗:`, err);
+            inventoryMap[product._id] = { currentStock: 0, minStock: 0, isLowStock: false };
+          }
+        }
+      }
+      
+      setInventoryData(inventoryMap);
+    } catch (err) {
+      console.error('獲取庫存數據失敗:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 處理搜索
   const handleSearch = (e) => {
@@ -141,7 +200,11 @@ const CategoryProductsDialog = ({
                         {product.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        編號 : {product.code || '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}  |  庫存 : {getTotalInventory(product._id)}
+                        編號 : {product.code || '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}
+                      </Typography>
+                      <Typography variant="body2" color={inventoryData[product._id]?.isLowStock ? "error.main" : "text.secondary"} sx={{ display: 'flex', alignItems: 'center' }}>
+                        {inventoryData[product._id]?.isLowStock && <Warning fontSize="small" color="error" sx={{ mr: 0.5 }} />}
+                        庫存: {loading ? '載入中...' : (inventoryData[product._id]?.currentStock || 0)} / 最低庫存: {product.minStock || 0}
                       </Typography>
 
                     </Box>
