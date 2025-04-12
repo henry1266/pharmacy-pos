@@ -27,16 +27,39 @@ router.get('/summary', async (req, res) => {
     const monthSalesAmount = monthSales.reduce((total, sale) => total + sale.totalAmount, 0);
     
     // 獲取庫存警告（低於最低庫存量的產品）
-    const lowStockProducts = await Inventory.find().populate('product');
-    const lowStockWarnings = lowStockProducts.filter(item => {
-      return item.product && item.quantity < item.product.minStock;
-    }).map(item => ({
-      productId: item.product._id,
-      productCode: item.product.code,
-      productName: item.product.name,
-      currentStock: item.quantity,
-      minStock: item.product.minStock
-    }));
+    // 獲取所有產品
+    const products = await BaseProduct.find();
+    
+    // 計算每個產品的實際庫存
+    const lowStockWarnings = [];
+    
+    for (const product of products) {
+      if (!product.minStock) continue;
+      
+      // 獲取產品的所有庫存記錄
+      const inventoryRecords = await Inventory.find({ product: product._id });
+      
+      // 計算實際庫存（進貨減去銷售）
+      let currentStock = 0;
+      inventoryRecords.forEach(record => {
+        if (record.type === 'purchase' || !record.type) {
+          currentStock += (parseInt(record.quantity) || 0);
+        } else if (record.type === 'sale') {
+          currentStock -= (parseInt(record.quantity) || 0);
+        }
+      });
+      
+      // 檢查是否低於最低庫存
+      if (currentStock < product.minStock) {
+        lowStockWarnings.push({
+          productId: product._id,
+          productCode: product.code,
+          productName: product.name,
+          currentStock: currentStock,
+          minStock: product.minStock
+        });
+      }
+    }
     
     // 獲取各種統計數據
     const productCount = await BaseProduct.countDocuments();
