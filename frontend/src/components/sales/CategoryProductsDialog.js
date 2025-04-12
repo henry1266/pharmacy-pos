@@ -14,7 +14,8 @@ import {
   Typography,
   Divider,
   Box,
-  Paper
+  Paper,
+  Grid
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -111,7 +112,7 @@ const CategoryProductsDialog = ({
           />
         </Box>
         
-        <Paper variant="outlined" sx={{ maxHeight: 600, overflow: 'auto' }}>
+        <Paper variant="outlined" sx={{ maxHeight: 600, overflow: 'auto', p: 2 }}>
           {filteredProducts.length === 0 ? (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="body1" color="textSecondary">
@@ -119,39 +120,54 @@ const CategoryProductsDialog = ({
               </Typography>
             </Box>
           ) : (
-            <List>
+            <Grid container spacing={2}>
               {filteredProducts.map((product, index) => (
-                <React.Fragment key={product._id || index}>
-                  <ListItem>
-                    <ListItemText
-                      primary={
-                        <Typography variant="subtitle1">
-                          {product.name}
+                <Grid item xs={12} sm={6} key={product._id || index}>
+                  <Paper 
+                    elevation={1} 
+                    sx={{ 
+                      p: 2, 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      position: 'relative'
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', pr: 4 }}>
+                        {product.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        編號: {product.code || '無'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        價格: {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}
+                      </Typography>
+                      {product.healthInsuranceCode && (
+                        <Typography variant="body2" color="text.secondary">
+                          健保碼: {product.healthInsuranceCode}
                         </Typography>
-                      }
-                      secondary={
-                        <>
-                          <Typography variant="body2" component="span">
-                            編號: {product.code || '無'} | 
-                            價格: {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}
-                          </Typography>
-                        </>
-                      }
-                    />
-                    <ListItemSecondaryAction>
+                      )}
+                      {product.barcode && (
+                        <Typography variant="body2" color="text.secondary">
+                          條碼: {product.barcode}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
                       <IconButton 
-                        edge="end" 
+                        size="small"
                         color="primary"
                         onClick={() => handleSelectProduct(product)}
                       >
                         <AddIcon />
                       </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                  {index < filteredProducts.length - 1 && <Divider />}
-                </React.Fragment>
+                    </Box>
+                  </Paper>
+                </Grid>
               ))}
-            </List>
+            </Grid>
           )}
         </Paper>
       </DialogContent>
