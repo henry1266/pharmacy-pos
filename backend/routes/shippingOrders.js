@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 const ShippingOrder = require('../models/ShippingOrder');
 const { BaseProduct } = require('../models/BaseProduct');
 const Supplier = require('../models/Supplier');
@@ -421,7 +422,7 @@ router.get('/product/:productId', async (req, res) => {
       'status': 'completed'
     })
       .sort({ sobilldate: -1 })
-      .populate('customer', 'name')
+      .populate('supplier', 'name')
       .populate('items.product', 'name code');
     
     res.json(shippingOrders);
@@ -439,7 +440,7 @@ router.get('/recent/list', async (req, res) => {
     const shippingOrders = await ShippingOrder.find()
       .sort({ createdAt: -1 })
       .limit(10)
-      .populate('customer', 'name')
+      .populate('supplier', 'name')
       .populate('items.product', 'name code');
     
     res.json(shippingOrders);
@@ -451,15 +452,26 @@ router.get('/recent/list', async (req, res) => {
 
 // 更新庫存的輔助函數 - 出貨時扣減庫存
 async function updateInventory(shippingOrder) {
-  for (const item of shippingOrder.items) {
-    if (!item.product) continue;
-    
-    try {
+  // 使用事務來確保所有庫存更新是原子性的
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
+  try {
+    for (const item of shippingOrder.items) {
+      if (!item.product) continue;
+      
       // 獲取當前庫存記錄
       const inventoryRecords = await Inventory.find({ product: item.product })
-        .sort({ createdAt: 1 }); // 先進先出原則
+        .sort({ createdAt: 1 }) // 先進先出原則
+        .session(session);
       
       let remainingQuantity = item.dquantity;
+      
+      // 檢查總庫存是否足夠
+      const totalInventory = inventoryRecords.reduce((sum, record) => sum + record.quantity, 0);
+      if (totalInventory < remainingQuantity) {
+        throw new Error(`藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${totalInventory}，需要: ${remainingQuantity}`);
+      }
       
       // 遍歷庫存記錄，扣減庫存
       for (const record of inventoryRecords) {
@@ -483,29 +495,38 @@ async function updateInventory(shippingOrder) {
         
         record.shipping.push(shippingRecord);
         
-        await record.save();
-      }
-      
-      // 如果還有剩餘數量未扣減，說明庫存不足
-      if (remainingQuantity > 0) {
-        throw new Error(`藥品 ${item.dname} (${item.did}) 庫存不足，缺少 ${remainingQuantity} 個單位`);
+        await record.save({ session });
       }
       
       console.log(`已為產品 ${item.product} 扣減庫存，出貨單號: ${shippingOrder.orderNumber}, 數量: ${item.dquantity}`);
-    } catch (err) {
-      console.error(`扣減庫存時出錯: ${err.message}`);
-      // 繼續處理其他項目
     }
+    
+    // 提交事務
+    await session.commitTransaction();
+    session.endSession();
+    
+    console.log(`已成功更新出貨單 ${shippingOrder._id} 的所有庫存`);
+  } catch (err) {
+    // 如果有任何錯誤，回滾事務
+    await session.abortTransaction();
+    session.endSession();
+    
+    console.error(`更新庫存時出錯: ${err.message}`);
+    throw err; // 重新拋出錯誤，讓調用者知道出了問題
   }
 }
 
 // 恢復庫存的輔助函數 - 取消出貨時恢復庫存
 async function restoreInventory(shippingOrderId) {
+  // 使用事務來確保所有庫存恢復是原子性的
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
   try {
     // 查找所有包含該出貨單ID的庫存記錄
     const inventoryRecords = await Inventory.find({
       'shipping.shippingOrderId': shippingOrderId
-    });
+    }).session(session);
     
     for (const record of inventoryRecords) {
       // 找出與該出貨單相關的出貨記錄
@@ -526,15 +547,23 @@ async function restoreInventory(shippingOrderId) {
         s => s.shippingOrderId.toString() !== shippingOrderId.toString()
       );
       
-      await record.save();
+      await record.save({ session });
       
       console.log(`已為庫存記錄 ${record._id} 恢復數量 ${restoreQuantity}`);
     }
     
+    // 提交事務
+    await session.commitTransaction();
+    session.endSession();
+    
     console.log(`已恢復與出貨單 ${shippingOrderId} 相關的所有庫存`);
   } catch (err) {
+    // 如果有任何錯誤，回滾事務
+    await session.abortTransaction();
+    session.endSession();
+    
     console.error(`恢復庫存時出錯: ${err.message}`);
-    throw err;
+    throw err; // 重新拋出錯誤，讓調用者知道出了問題
   }
 }
 
