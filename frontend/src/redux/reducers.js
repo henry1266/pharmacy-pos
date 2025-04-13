@@ -393,3 +393,80 @@ export const purchaseOrdersReducer = (state = initialPurchaseOrdersState, action
       return state;
   }
 };
+
+// 出貨單狀態
+const initialShippingOrdersState = {
+  shippingOrders: [],
+  currentShippingOrder: null,
+  loading: false,
+  error: null
+};
+
+// 出貨單reducer
+export const shippingOrdersReducer = (state = initialShippingOrdersState, action) => {
+  switch (action.type) {
+    case ActionTypes.FETCH_SHIPPING_ORDERS_REQUEST:
+    case ActionTypes.FETCH_SHIPPING_ORDER_REQUEST:
+    case ActionTypes.ADD_SHIPPING_ORDER_REQUEST:
+    case ActionTypes.UPDATE_SHIPPING_ORDER_REQUEST:
+    case ActionTypes.DELETE_SHIPPING_ORDER_REQUEST:
+    case ActionTypes.SEARCH_SHIPPING_ORDERS_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+    case ActionTypes.FETCH_SHIPPING_ORDERS_SUCCESS:
+    case ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS:
+      return {
+        ...state,
+        shippingOrders: action.payload,
+        loading: false,
+        error: null
+      };
+    case ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS:
+      return {
+        ...state,
+        currentShippingOrder: action.payload,
+        loading: false,
+        error: null
+      };
+    case ActionTypes.ADD_SHIPPING_ORDER_SUCCESS:
+      return {
+        ...state,
+        shippingOrders: [...state.shippingOrders, action.payload],
+        loading: false,
+        error: null
+      };
+    case ActionTypes.UPDATE_SHIPPING_ORDER_SUCCESS:
+      return {
+        ...state,
+        shippingOrders: state.shippingOrders.map(so => 
+          so._id === action.payload._id ? action.payload : so
+        ),
+        currentShippingOrder: action.payload,
+        loading: false,
+        error: null
+      };
+    case ActionTypes.DELETE_SHIPPING_ORDER_SUCCESS:
+      return {
+        ...state,
+        shippingOrders: state.shippingOrders.filter(so => so._id !== action.payload),
+        loading: false,
+        error: null
+      };
+    case ActionTypes.FETCH_SHIPPING_ORDERS_FAILURE:
+    case ActionTypes.FETCH_SHIPPING_ORDER_FAILURE:
+    case ActionTypes.ADD_SHIPPING_ORDER_FAILURE:
+    case ActionTypes.UPDATE_SHIPPING_ORDER_FAILURE:
+    case ActionTypes.DELETE_SHIPPING_ORDER_FAILURE:
+    case ActionTypes.SEARCH_SHIPPING_ORDERS_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      };
+    default:
+      return state;
+  }
+};

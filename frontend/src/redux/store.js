@@ -11,7 +11,8 @@ import {
   salesReducer, 
   dashboardReducer, 
   reportsReducer,
-  purchaseOrdersReducer
+  purchaseOrdersReducer,
+  shippingOrdersReducer
 } from './reducers';
 
 // 合併所有reducers
@@ -24,7 +25,8 @@ const rootReducer = combineReducers({
   sales: salesReducer,
   dashboard: dashboardReducer,
   reports: reportsReducer,
-  purchaseOrders: purchaseOrdersReducer
+  purchaseOrders: purchaseOrdersReducer,
+  shippingOrders: shippingOrdersReducer
 });
 
 // 創建Redux store
