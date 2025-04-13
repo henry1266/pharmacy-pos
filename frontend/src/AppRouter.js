@@ -13,6 +13,9 @@ import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
 import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
+import ShippingOrdersPage from './pages/ShippingOrdersPage';
+import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
+import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 
 const AppRouter = () => {
   return (
@@ -43,6 +46,12 @@ const AppRouter = () => {
       <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
       <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderEditPage />} />
       <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
+      
+      {/* 出貨單相關路由 */}
+      <Route path="/shipping-orders" element={<ShippingOrdersPage />} />
+      <Route path="/shipping-orders/new" element={<ShippingOrderFormPage />} />
+      <Route path="/shipping-orders/edit/:id" element={<ShippingOrderFormPage />} />
+      <Route path="/shipping-orders/:id" element={<ShippingOrderDetailPage />} />
       
       {/* 未匹配路由重定向到儀表板 */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
