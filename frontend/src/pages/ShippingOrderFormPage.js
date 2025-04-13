@@ -20,6 +20,7 @@ import {
 import { fetchSuppliers } from '../redux/actions';
 import { fetchProducts } from '../redux/actions';
 import { fetchInventory } from '../redux/actions';
+import useInventoryData from '../hooks/useInventoryData';
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
@@ -36,29 +37,9 @@ const ShippingOrderFormPage = () => {
   const { currentShippingOrder, loading, error } = useSelector(state => state.shippingOrders);
   const { suppliers } = useSelector(state => state.suppliers);
   const { products } = useSelector(state => state.products);
-  const { inventory } = useSelector(state => state.inventory || { inventory: {} });
   
-  // 將庫存數據轉換為以產品ID為鍵的對象，方便查詢
-  const [inventoryData, setInventoryData] = useState({});
-  
-  useEffect(() => {
-    if (inventory && Array.isArray(inventory)) {
-      const inventoryMap = {};
-      inventory.forEach(item => {
-        if (item.product) {
-          // 如果產品ID已存在，累加數量
-          if (inventoryMap[item.product]) {
-            inventoryMap[item.product].quantity += item.quantity;
-          } else {
-            inventoryMap[item.product] = {
-              quantity: item.quantity
-            };
-          }
-        }
-      });
-      setInventoryData(inventoryMap);
-    }
-  }, [inventory]);
+  // 使用自定義Hook獲取庫存數據
+  const { getTotalInventory } = useInventoryData();
   
   const [formData, setFormData] = useState({
     soid: '',
@@ -235,13 +216,11 @@ const ShippingOrderFormPage = () => {
     }
   };
   
-  // 檢查庫存是否足夠
+  // 檢查庫存是否足夠，使用useInventoryData Hook
   const isInventorySufficient = (item) => {
     if (!item.product || !item.dquantity) return true;
     
-    const productInventory = inventoryData[item.product];
-    const availableQuantity = productInventory ? productInventory.quantity : 0;
-    
+    const availableQuantity = parseInt(getTotalInventory(item.product)) || 0;
     return availableQuantity >= parseInt(item.dquantity);
   };
   
@@ -524,7 +503,6 @@ const ShippingOrderFormPage = () => {
                 handleMoveItem={handleMoveItem}
                 handleEditingItemChange={handleEditingItemChange}
                 totalAmount={totalAmount}
-                inventoryData={inventoryData}
               />
             </Box>
           </CardContent>
