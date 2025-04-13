@@ -508,7 +508,6 @@ const ShippingOrderFormPage = () => {
                 handleProductChange={handleProductChange}
                 handleAddItem={handleAddItem}
                 products={products}
-                inventoryData={inventoryData}
               />
             </Box>
             

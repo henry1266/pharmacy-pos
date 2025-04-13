@@ -9,6 +9,7 @@ import {
   Alert
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
+import useInventoryData from '../../../../hooks/useInventoryData';
 
 /**
  * 藥品項目添加表單組件
@@ -18,7 +19,6 @@ import { Add as AddIcon } from '@mui/icons-material';
  * @param {Function} props.handleProductChange - 處理藥品選擇變更的函數
  * @param {Function} props.handleAddItem - 處理添加項目的函數
  * @param {Array} props.products - 藥品列表
- * @param {Object} props.inventoryData - 庫存數據
  * @returns {React.ReactElement} 藥品項目添加表單組件
  */
 const ItemForm = ({
@@ -26,15 +26,15 @@ const ItemForm = ({
   handleItemInputChange,
   handleProductChange,
   handleAddItem,
-  products,
-  inventoryData
+  products
 }) => {
+  // 使用自定義Hook獲取庫存數據
+  const { getTotalInventory } = useInventoryData();
+  
   // 獲取當前選中藥品的庫存數量
   const getInventoryQuantity = () => {
-    if (!currentItem.product || !inventoryData) return 0;
-    
-    const productInventory = inventoryData[currentItem.product];
-    return productInventory ? productInventory.quantity : 0;
+    if (!currentItem.product) return 0;
+    return parseInt(getTotalInventory(currentItem.product)) || 0;
   };
   
   // 檢查庫存是否足夠
