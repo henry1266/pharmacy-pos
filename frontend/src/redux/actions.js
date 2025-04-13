@@ -404,3 +404,149 @@ export const searchPurchaseOrders = (searchParams) => async (dispatch) => {
     });
   }
 };
+
+// 出貨單相關 Actions
+
+// 獲取所有出貨單
+export const fetchShippingOrders = () => async (dispatch) => {
+  try {
+    dispatch({ type: ActionTypes.FETCH_SHIPPING_ORDERS_REQUEST });
+    
+    const res = await axios.get('/api/shipping-orders');
+    
+    dispatch({
+      type: ActionTypes.FETCH_SHIPPING_ORDERS_SUCCESS,
+      payload: res.data
+    });
+  } catch (err) {
+    dispatch({
+      type: ActionTypes.FETCH_SHIPPING_ORDERS_FAILURE,
+      payload: err.response?.data?.msg || '獲取出貨單失敗'
+    });
+  }
+};
+
+// 獲取單個出貨單
+export const fetchShippingOrder = (id) => async (dispatch) => {
+  try {
+    dispatch({ type: ActionTypes.FETCH_SHIPPING_ORDER_REQUEST });
+    
+    const res = await axios.get(`/api/shipping-orders/${id}`);
+    
+    dispatch({
+      type: ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS,
+      payload: res.data
+    });
+  } catch (err) {
+    dispatch({
+      type: ActionTypes.FETCH_SHIPPING_ORDER_FAILURE,
+      payload: err.response?.data?.msg || '獲取出貨單詳情失敗'
+    });
+  }
+};
+
+// 添加出貨單
+export const addShippingOrder = (formData, navigate) => async (dispatch) => {
+  try {
+    dispatch({ type: ActionTypes.ADD_SHIPPING_ORDER_REQUEST });
+    
+    const config = {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    const res = await axios.post('/api/shipping-orders', formData, config);
+    
+    dispatch({
+      type: ActionTypes.ADD_SHIPPING_ORDER_SUCCESS,
+      payload: res.data
+    });
+    
+    // 導航到出貨單列表頁面
+    if (navigate) {
+      navigate('/shipping-orders');
+    }
+  } catch (err) {
+    dispatch({
+      type: ActionTypes.ADD_SHIPPING_ORDER_FAILURE,
+      payload: err.response?.data?.msg || '添加出貨單失敗'
+    });
+  }
+};
+
+// 更新出貨單
+export const updateShippingOrder = (id, formData, navigate) => async (dispatch) => {
+  try {
+    dispatch({ type: ActionTypes.UPDATE_SHIPPING_ORDER_REQUEST });
+    
+    const config = {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    const res = await axios.put(`/api/shipping-orders/${id}`, formData, config);
+    
+    dispatch({
+      type: ActionTypes.UPDATE_SHIPPING_ORDER_SUCCESS,
+      payload: res.data
+    });
+    
+    // 導航到出貨單列表頁面
+    if (navigate) {
+      navigate('/shipping-orders');
+    }
+  } catch (err) {
+    dispatch({
+      type: ActionTypes.UPDATE_SHIPPING_ORDER_FAILURE,
+      payload: err.response?.data?.msg || '更新出貨單失敗'
+    });
+  }
+};
+
+// 刪除出貨單
+export const deleteShippingOrder = (id) => async (dispatch) => {
+  try {
+    dispatch({ type: ActionTypes.DELETE_SHIPPING_ORDER_REQUEST });
+    
+    await axios.delete(`/api/shipping-orders/${id}`);
+    
+    dispatch({
+      type: ActionTypes.DELETE_SHIPPING_ORDER_SUCCESS,
+      payload: id
+    });
+  } catch (err) {
+    dispatch({
+      type: ActionTypes.DELETE_SHIPPING_ORDER_FAILURE,
+      payload: err.response?.data?.msg || '刪除出貨單失敗'
+    });
+  }
+};
+
+// 搜索出貨單
+export const searchShippingOrders = (searchParams) => async (dispatch) => {
+  try {
+    dispatch({ type: ActionTypes.SEARCH_SHIPPING_ORDERS_REQUEST });
+    
+    // 構建查詢字符串
+    const queryParams = new URLSearchParams();
+    for (const key in searchParams) {
+      if (searchParams[key]) {
+        queryParams.append(key, searchParams[key]);
+      }
+    }
+    
+    const res = await axios.get(`/api/shipping-orders/search/query?${queryParams.toString()}`);
+    
+    dispatch({
+      type: ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS,
+      payload: res.data
+    });
+  } catch (err) {
+    dispatch({
+      type: ActionTypes.SEARCH_SHIPPING_ORDERS_FAILURE,
+      payload: err.response?.data?.msg || '搜索出貨單失敗'
+    });
+  }
+};
