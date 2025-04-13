@@ -46,21 +46,18 @@ const ShippingOrderSchema = new mongoose.Schema({
     },
     unique: true
   },
-  sobill: {
-    type: String,
-    required: false
-  },
+  // 發票欄位已移除
   sobilldate: {
     type: Date,
     required: false
   },
-  socustomer: {
+  sosupplier: {
     type: String,
     required: true
   },
-  customer: {
+  supplier: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'customer'
+    ref: 'supplier'
   },
   items: [ShippingOrderItemSchema],
   totalAmount: {

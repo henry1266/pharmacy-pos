@@ -17,7 +17,7 @@ import {
   addShippingOrder, 
   updateShippingOrder 
 } from '../redux/actions';
-import { fetchCustomers } from '../redux/actions';
+import { fetchSuppliers } from '../redux/actions';
 import { fetchProducts } from '../redux/actions';
 import { fetchInventory } from '../redux/actions';
 
@@ -34,7 +34,7 @@ const ShippingOrderFormPage = () => {
   const isEditMode = !!id;
   
   const { currentShippingOrder, loading, error } = useSelector(state => state.shippingOrders);
-  const { customers } = useSelector(state => state.customers);
+  const { suppliers } = useSelector(state => state.suppliers);
   const { products } = useSelector(state => state.products);
   const { inventory } = useSelector(state => state.inventory || { inventory: {} });
   
@@ -62,10 +62,9 @@ const ShippingOrderFormPage = () => {
   
   const [formData, setFormData] = useState({
     soid: '',
-    sobill: '',
     sobilldate: new Date(),
-    socustomer: '',
-    customer: '',
+    sosupplier: '',
+    supplier: '',
     items: [],
     notes: '',
     status: 'pending',
@@ -92,61 +91,61 @@ const ShippingOrderFormPage = () => {
   
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   
-  // 保存當前選中的客戶對象
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  // 保存當前選中的供應商對象
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
   
   useEffect(() => {
-    dispatch(fetchCustomers());
+    dispatch(fetchSuppliers());
     dispatch(fetchProducts());
     dispatch(fetchInventory());
     
     if (isEditMode && id) {
       dispatch(fetchShippingOrder(id));
     } else {
-      // 在新增模式下，設置焦點到發票號碼欄位
+      // 在新增模式下，設置焦點到第一個欄位
       setTimeout(() => {
-        const invoiceInput = document.querySelector('input[name="sobill"]');
-        if (invoiceInput) {
-          invoiceInput.focus();
+        const firstInput = document.querySelector('input[name="soid"]');
+        if (firstInput) {
+          firstInput.focus();
         }
       }, 800); // 延長時間確保DOM已完全載入
     }
   }, [dispatch, isEditMode, id]);
   
-  // 確保customers數據已加載
-  const [customersLoaded, setCustomersLoaded] = useState(false);
+  // 確保suppliers數據已加載
+  const [suppliersLoaded, setSuppliersLoaded] = useState(false);
   
   useEffect(() => {
-    if (customers && customers.length > 0) {
-      setCustomersLoaded(true);
+    if (suppliers && suppliers.length > 0) {
+      setSuppliersLoaded(true);
     }
-  }, [customers]);
+  }, [suppliers]);
   
   // 在編輯模式下載入出貨單數據
   useEffect(() => {
-    if (isEditMode && currentShippingOrder && customersLoaded) {
+    if (isEditMode && currentShippingOrder && suppliersLoaded) {
       console.log('設置編輯模式數據', currentShippingOrder);
       
-      // 確保保留客戶信息
-      const customerData = {
-        socustomer: currentShippingOrder.socustomer || '',
-        customer: currentShippingOrder.customer || ''
+      // 確保保留供應商信息
+      const supplierData = {
+        sosupplier: currentShippingOrder.sosupplier || '',
+        supplier: currentShippingOrder.supplier || ''
       };
       
       setFormData({
         ...currentShippingOrder,
-        ...customerData, // 確保客戶信息被保留
+        ...supplierData, // 確保供應商信息被保留
         sobilldate: currentShippingOrder.sobilldate ? new Date(currentShippingOrder.sobilldate) : new Date()
       });
       
-      // 找到並設置當前選中的客戶
-      if (currentShippingOrder.customer) {
-        const customer = customers.find(c => 
-          c._id === currentShippingOrder.customer || 
-          c._id === currentShippingOrder.customer._id
+      // 找到並設置當前選中的供應商
+      if (currentShippingOrder.supplier) {
+        const supplier = suppliers.find(s => 
+          s._id === currentShippingOrder.supplier || 
+          s._id === currentShippingOrder.supplier._id
         );
-        if (customer) {
-          setSelectedCustomer(customer);
+        if (supplier) {
+          setSelectedSupplier(supplier);
         }
       }
       
@@ -159,7 +158,7 @@ const ShippingOrderFormPage = () => {
         }
       }, 800); // 延長時間確保DOM已完全載入
     }
-  }, [isEditMode, currentShippingOrder, customersLoaded, customers]);
+  }, [isEditMode, currentShippingOrder, suppliersLoaded, suppliers]);
   
   useEffect(() => {
     if (error) {
@@ -185,20 +184,20 @@ const ShippingOrderFormPage = () => {
     });
   };
   
-  const handleCustomerChange = (event, newValue) => {
+  const handleSupplierChange = (event, newValue) => {
     if (newValue) {
-      setSelectedCustomer(newValue);
+      setSelectedSupplier(newValue);
       setFormData({
         ...formData,
-        socustomer: newValue.name,
-        customer: newValue._id
+        sosupplier: newValue.name,
+        supplier: newValue._id
       });
     } else {
-      setSelectedCustomer(null);
+      setSelectedSupplier(null);
       setFormData({
         ...formData,
-        socustomer: '',
-        customer: ''
+        sosupplier: '',
+        supplier: ''
       });
     }
   };
@@ -372,7 +371,7 @@ const ShippingOrderFormPage = () => {
     e.preventDefault();
     
     // 驗證表單
-    if (!formData.socustomer) {
+    if (!formData.sosupplier) {
       setSnackbar({
         open: true,
         message: '請填寫所有必填欄位',
@@ -459,9 +458,9 @@ const ShippingOrderFormPage = () => {
           formData={formData}
           handleInputChange={handleInputChange}
           handleDateChange={handleDateChange}
-          handleCustomerChange={handleCustomerChange}
-          customers={customers}
-          selectedCustomer={selectedCustomer}
+          handleSupplierChange={handleSupplierChange}
+          suppliers={suppliers}
+          selectedSupplier={selectedSupplier}
           isEditMode={isEditMode}
         />
         

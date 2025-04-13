@@ -3,7 +3,7 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const ShippingOrder = require('../models/ShippingOrder');
 const { BaseProduct } = require('../models/BaseProduct');
-const Customer = require('../models/Customer');
+const Supplier = require('../models/Supplier');
 const Inventory = require('../models/Inventory');
 const multer = require('multer');
 const csv = require('csv-parser');
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
   try {
     const shippingOrders = await ShippingOrder.find()
       .sort({ soid: -1 })
-      .populate('customer', 'name')
+      .populate('supplier', 'name')
       .populate('items.product', 'name code');
     
     res.json(shippingOrders);
@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const shippingOrder = await ShippingOrder.findById(req.params.id)
-      .populate('customer', 'name')
+      .populate('supplier', 'name')
       .populate('items.product', 'name code');
     
     if (!shippingOrder) {
@@ -119,7 +119,7 @@ async function generateDateBasedOrderNumber() {
 // @desc    創建新出貨單
 // @access  Public
 router.post('/', [
-  check('socustomer', '客戶為必填項').not().isEmpty(),
+  check('sosupplier', '供應商為必填項').not().isEmpty(),
   check('items', '至少需要一個藥品項目').isArray().not().isEmpty()
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -128,7 +128,7 @@ router.post('/', [
   }
 
   try {
-    let { soid, sobill, sobilldate, socustomer, customer, items, notes, status, paymentStatus } = req.body;
+    let { soid, sobilldate, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 如果出貨單號為空，自動生成
     if (!soid || soid.trim() === '') {
@@ -173,14 +173,14 @@ router.post('/', [
       }
     }
 
-    // 嘗試查找客戶
-    let customerId = null;
-    if (customer) {
-      customerId = customer;
+    // 嘗試查找供應商
+    let supplierId = null;
+    if (supplier) {
+      supplierId = supplier;
     } else {
-      const customerDoc = await Customer.findOne({ name: socustomer });
-      if (customerDoc) {
-        customerId = customerDoc._id;
+      const supplierDoc = await Supplier.findOne({ name: sosupplier });
+      if (supplierDoc) {
+        supplierId = supplierDoc._id;
       }
     }
 
@@ -188,10 +188,9 @@ router.post('/', [
     const shippingOrder = new ShippingOrder({
       soid,
       orderNumber, // 設置唯一訂單號
-      sobill,
       sobilldate,
-      socustomer,
-      customer: customerId,
+      sosupplier,
+      supplier: supplierId,
       items,
       notes,
       status: status || 'pending',
@@ -217,7 +216,7 @@ router.post('/', [
 // @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { soid, sobill, sobilldate, socustomer, customer, items, notes, status, paymentStatus } = req.body;
+    const { soid, sobilldate, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
@@ -241,10 +240,9 @@ router.put('/:id', async (req, res) => {
     const updateData = {};
     if (soid) updateData.soid = soid;
     if (shippingOrder.orderNumber) updateData.orderNumber = shippingOrder.orderNumber;
-    if (sobill) updateData.sobill = sobill;
     if (sobilldate) updateData.sobilldate = sobilldate;
-    if (socustomer) updateData.socustomer = socustomer;
-    if (customer) updateData.customer = customer;
+    if (sosupplier) updateData.sosupplier = sosupplier;
+    if (supplier) updateData.supplier = supplier;
     if (notes !== undefined) updateData.notes = notes;
     if (paymentStatus) updateData.paymentStatus = paymentStatus;
     
@@ -367,14 +365,14 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// @route   GET api/shipping-orders/customer/:customerId
-// @desc    獲取特定客戶的出貨單
+// @route   GET api/shipping-orders/supplier/:supplierId
+// @desc    獲取特定供應商的出貨單
 // @access  Public
-router.get('/customer/:customerId', async (req, res) => {
+router.get('/supplier/:supplierId', async (req, res) => {
   try {
-    const shippingOrders = await ShippingOrder.find({ customer: req.params.customerId })
+    const shippingOrders = await ShippingOrder.find({ supplier: req.params.supplierId })
       .sort({ createdAt: -1 })
-      .populate('customer', 'name')
+      .populate('supplier', 'name')
       .populate('items.product', 'name code');
     
     res.json(shippingOrders);
@@ -389,12 +387,11 @@ router.get('/customer/:customerId', async (req, res) => {
 // @access  Public
 router.get('/search/query', async (req, res) => {
   try {
-    const { soid, sobill, socustomer, startDate, endDate } = req.query;
+    const { soid, sosupplier, startDate, endDate } = req.query;
     
     const query = {};
     if (soid) query.soid = { $regex: soid, $options: 'i' };
-    if (sobill) query.sobill = { $regex: sobill, $options: 'i' };
-    if (socustomer) query.socustomer = { $regex: socustomer, $options: 'i' };
+    if (sosupplier) query.sosupplier = { $regex: sosupplier, $options: 'i' };
     
     if (startDate || endDate) {
       query.sobilldate = {};
@@ -404,7 +401,7 @@ router.get('/search/query', async (req, res) => {
     
     const shippingOrders = await ShippingOrder.find(query)
       .sort({ createdAt: -1 })
-      .populate('customer', 'name')
+      .populate('supplier', 'name')
       .populate('items.product', 'name code');
     
     res.json(shippingOrders);

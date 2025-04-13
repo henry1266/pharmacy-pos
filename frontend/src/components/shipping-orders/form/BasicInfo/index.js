@@ -23,9 +23,9 @@ import { zhTW } from 'date-fns/locale';
  * @param {Object} props.formData - 表單數據
  * @param {Function} props.handleInputChange - 輸入變更處理函數
  * @param {Function} props.handleDateChange - 日期變更處理函數
- * @param {Function} props.handleCustomerChange - 客戶變更處理函數
- * @param {Array} props.customers - 客戶列表
- * @param {Object} props.selectedCustomer - 選中的客戶
+ * @param {Function} props.handleSupplierChange - 供應商變更處理函數
+ * @param {Array} props.suppliers - 供應商列表
+ * @param {Object} props.selectedSupplier - 選中的供應商
  * @param {boolean} props.isEditMode - 是否為編輯模式
  * @returns {React.ReactElement} 基本信息表單組件
  */
@@ -33,9 +33,9 @@ const BasicInfoForm = ({
   formData,
   handleInputChange,
   handleDateChange,
-  handleCustomerChange,
-  customers,
-  selectedCustomer,
+  handleSupplierChange,
+  suppliers,
+  selectedSupplier,
   isEditMode
 }) => {
   return (
@@ -46,7 +46,7 @@ const BasicInfoForm = ({
         </Typography>
         
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="出貨單號"
@@ -60,22 +60,10 @@ const BasicInfoForm = ({
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              fullWidth
-              label="發票號碼"
-              name="sobill"
-              value={formData.sobill}
-              onChange={handleInputChange}
-              variant="outlined"
-              size="small"
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
-                label="發票日期"
+                label="出貨日期"
                 value={formData.sobilldate}
                 onChange={handleDateChange}
                 renderInput={(params) => (
@@ -90,22 +78,22 @@ const BasicInfoForm = ({
             </LocalizationProvider>
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Autocomplete
-              id="customer-select"
-              options={customers || []}
+              id="supplier-select"
+              options={suppliers || []}
               getOptionLabel={(option) => option.name || ''}
-              value={selectedCustomer}
-              onChange={handleCustomerChange}
+              value={selectedSupplier}
+              onChange={handleSupplierChange}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="客戶"
+                  label="供應商"
                   variant="outlined"
                   size="small"
                   required
-                  error={!formData.socustomer}
-                  helperText={!formData.socustomer && "客戶為必填項"}
+                  error={!formData.sosupplier}
+                  helperText={!formData.sosupplier && "供應商為必填項"}
                 />
               )}
             />

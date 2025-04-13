@@ -27,7 +27,7 @@ import PaymentStatusChip from '../common/PaymentStatusChip';
  * @param {Function} props.handleDeleteClick - 刪除出貨單的處理函數
  * @param {Function} props.handlePreviewMouseEnter - 滑鼠懸停在檢視按鈕上的處理函數
  * @param {Function} props.handlePreviewMouseLeave - 滑鼠離開檢視按鈕的處理函數
- * @param {Function} props.renderCustomerHeader - 渲染客戶表頭的函數
+ * @param {Function} props.renderSupplierHeader - 渲染供應商表頭的函數
  * @returns {React.ReactElement} 出貨單表格組件
  */
 const ShippingOrdersTable = ({
@@ -41,25 +41,24 @@ const ShippingOrdersTable = ({
   handleDeleteClick,
   handlePreviewMouseEnter,
   handlePreviewMouseLeave,
-  renderCustomerHeader
+  renderSupplierHeader
 }) => {
   // 表格列定義
   const columns = [
     { field: 'soid', headerName: '出貨單號', flex: 1 },
-    { field: 'sobill', headerName: '發票號碼', flex: 1 },
     { 
       field: 'sobilldate', 
-      headerName: '發票日期', 
+      headerName: '出貨日期', 
       flex: 1,
       valueFormatter: (params) => {
         return params.value ? format(new Date(params.value), 'yyyy-MM-dd') : '';
       }
     },
     { 
-      field: 'socustomer', 
-      headerName: '客戶', 
+      field: 'sosupplier', 
+      headerName: '供應商', 
       flex: 1,
-      renderHeader: renderCustomerHeader
+      renderHeader: renderSupplierHeader
     },
     { 
       field: 'totalAmount', 
@@ -117,9 +116,8 @@ const ShippingOrdersTable = ({
     id: so._id, // DataGrid需要唯一的id字段
     _id: so._id, // 保留原始_id用於操作
     soid: so.soid,
-    sobill: so.sobill,
     sobilldate: so.sobilldate,
-    socustomer: so.socustomer,
+    sosupplier: so.sosupplier,
     totalAmount: so.totalAmount,
     status: so.status,
     paymentStatus: so.paymentStatus

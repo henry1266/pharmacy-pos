@@ -26,7 +26,7 @@ import Autocomplete from '@mui/material/Autocomplete';
  * @param {Function} props.handleDateChange - 日期變更處理函數
  * @param {Function} props.handleSearch - 搜索處理函數
  * @param {Function} props.handleClearSearch - 清除搜索處理函數
- * @param {Array} props.customers - 客戶列表
+ * @param {Array} props.suppliers - 供應商列表
  * @returns {React.ReactElement} 出貨單篩選器組件
  */
 const ShippingOrdersFilter = ({
@@ -35,12 +35,12 @@ const ShippingOrdersFilter = ({
   handleDateChange,
   handleSearch,
   handleClearSearch,
-  customers
+  suppliers
 }) => {
   return (
     <Box sx={{ mb: 2 }}>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4}>
           <TextField
             fullWidth
             label="出貨單號"
@@ -51,26 +51,15 @@ const ShippingOrdersFilter = ({
             size="small"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            label="發票號碼"
-            name="sobill"
-            value={searchParams.sobill}
-            onChange={handleInputChange}
-            variant="outlined"
-            size="small"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4}>
           <Autocomplete
-            options={customers || []}
+            options={suppliers || []}
             getOptionLabel={(option) => option.name || ''}
-            value={customers?.find(c => c.name === searchParams.socustomer) || null}
+            value={suppliers?.find(s => s.name === searchParams.sosupplier) || null}
             onChange={(event, newValue) => {
               handleInputChange({
                 target: {
-                  name: 'socustomer',
+                  name: 'sosupplier',
                   value: newValue ? newValue.name : ''
                 }
               });
@@ -78,7 +67,7 @@ const ShippingOrdersFilter = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="客戶"
+                label="供應商"
                 variant="outlined"
                 size="small"
                 fullWidth
@@ -86,7 +75,7 @@ const ShippingOrdersFilter = ({
             )}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
             <DatePicker
               label="開始日期"
@@ -103,7 +92,7 @@ const ShippingOrdersFilter = ({
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
             <DatePicker
               label="結束日期"
@@ -120,7 +109,7 @@ const ShippingOrdersFilter = ({
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="contained"
