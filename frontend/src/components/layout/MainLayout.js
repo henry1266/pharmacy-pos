@@ -65,6 +65,11 @@ const MainLayout = ({ children }) => {
 		icon: (location.pathname === '/purchase-orders') ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
 		path: '/purchase-orders' 
 	},
+	{ 
+		text: '出貨單管理', 
+		icon: (location.pathname === '/shipping-orders') ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
+		path: '/shipping-orders' 
+	},
     { 
       text: '供應商管理', 
       icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, 
@@ -134,7 +139,7 @@ const MainLayout = ({ children }) => {
 
           
 			<NavIconButton
-				to="/purchase-orders/new"
+				to="/shipping-orders/new"
 				tooltip="出貨"
 				activeIcon={<LocalShippingIcon />}
 				inactiveIcon={<LocalShippingOutlinedIcon />}
