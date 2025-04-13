@@ -1,28 +1,27 @@
 import React from 'react';
 import { 
-  Box, 
-  TextField, 
   Grid, 
-  Button, 
+  TextField, 
+  Autocomplete, 
+  Button,
   Typography,
-  Autocomplete,
-  Alert,
-  Tooltip
+  Tooltip,
+  Alert
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
 /**
- * 藥品項目表單組件
+ * 藥品項目添加表單組件
  * @param {Object} props - 組件屬性
- * @param {Object} props.currentItem - 當前藥品項目
- * @param {Function} props.handleItemInputChange - 項目輸入變更處理函數
- * @param {Function} props.handleProductChange - 藥品變更處理函數
- * @param {Function} props.handleAddItem - 添加項目處理函數
+ * @param {Object} props.currentItem - 當前正在編輯的項目
+ * @param {Function} props.handleItemInputChange - 處理項目輸入變更的函數
+ * @param {Function} props.handleProductChange - 處理藥品選擇變更的函數
+ * @param {Function} props.handleAddItem - 處理添加項目的函數
  * @param {Array} props.products - 藥品列表
  * @param {Object} props.inventoryData - 庫存數據
- * @returns {React.ReactElement} 藥品項目表單組件
+ * @returns {React.ReactElement} 藥品項目添加表單組件
  */
-const ProductItemForm = ({
+const ItemForm = ({
   currentItem,
   handleItemInputChange,
   handleProductChange,
@@ -45,136 +44,135 @@ const ProductItemForm = ({
     const availableQuantity = getInventoryQuantity();
     return availableQuantity >= parseInt(currentItem.dquantity);
   };
-  
-  // 獲取庫存不足警告
-  const getInventoryWarning = () => {
-    if (!currentItem.product || !currentItem.dquantity) return null;
-    
-    const availableQuantity = getInventoryQuantity();
-    if (availableQuantity < parseInt(currentItem.dquantity)) {
-      return `庫存不足！當前庫存: ${availableQuantity}, 需要: ${currentItem.dquantity}`;
-    }
-    
-    return null;
-  };
-  
+
   return (
-    <Box sx={{ mb: 2 }}>
-      <Typography variant="subtitle1" gutterBottom>
-        添加藥品項目
-      </Typography>
-      
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} sm={6} md={3}>
-          <Autocomplete
-            id="product-select-input"
-            options={products || []}
-            getOptionLabel={(option) => `${option.name} (${option.code})`}
-            value={products?.find(p => p._id === currentItem.product) || null}
-            onChange={handleProductChange}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="藥品"
-                variant="outlined"
-                size="small"
-                required
-              />
-            )}
-          />
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={2}>
-          <TextField
-            fullWidth
-            label="藥品代碼"
-            name="did"
-            value={currentItem.did}
-            onChange={handleItemInputChange}
-            variant="outlined"
-            size="small"
-            disabled
-          />
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            label="藥品名稱"
-            name="dname"
-            value={currentItem.dname}
-            onChange={handleItemInputChange}
-            variant="outlined"
-            size="small"
-            disabled
-          />
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={1}>
-          <Tooltip title={`當前庫存: ${getInventoryQuantity()}`}>
+    <Grid container spacing={2} sx={{ mb: 1 }}>
+      <Grid item xs={12} sm={6} md={4}>
+        <Autocomplete
+          id="product-select"
+          options={products || []}
+          getOptionLabel={(option) => `${option.code} - ${option.name}`}
+          value={products?.find(p => p._id === currentItem.product) || null}
+          onChange={handleProductChange}
+          filterOptions={(options, state) => filterProducts(options, state.inputValue)}
+          onKeyDown={(event) => {
+            if (['Enter', 'Tab'].includes(event.key)) {
+              const filteredOptions = filterProducts(products, event.target.value);
+              if (filteredOptions.length > 0) {
+                handleProductChange(event, filteredOptions[0]);
+                event.preventDefault();
+                document.querySelector('input[name="dquantity"]')?.focus();
+              }
+            }
+          }}
+          renderInput={(params) => (
             <TextField
+              {...params}
+              id="product-select-input"
+              label="選擇藥品"
               fullWidth
-              label="數量"
-              name="dquantity"
-              type="number"
-              value={currentItem.dquantity}
-              onChange={handleItemInputChange}
-              variant="outlined"
-              size="small"
-              required
-              error={!isInventorySufficient()}
-              helperText={!isInventorySufficient() ? "庫存不足" : ""}
-              InputProps={{
-                inputProps: { min: 1 }
-              }}
             />
-          </Tooltip>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={2}>
+          )}
+        />
+      </Grid>
+      <Grid item xs={12} sm={6} md={2}>
+        <Tooltip title={`當前庫存: ${getInventoryQuantity()}`}>
           <TextField
             fullWidth
-            label="總金額"
-            name="dtotalCost"
+            label="數量"
+            name="dquantity"
             type="number"
-            value={currentItem.dtotalCost}
+            value={currentItem.dquantity}
             onChange={handleItemInputChange}
-            variant="outlined"
-            size="small"
-            required
-            InputProps={{
-              inputProps: { min: 0 }
+            inputProps={{ min: 1 }}
+            error={!isInventorySufficient()}
+            helperText={!isInventorySufficient() ? "庫存不足" : ""}
+            onKeyDown={(event) => {
+              // 當按下ENTER鍵時
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                // 聚焦到總成本輸入框
+                document.querySelector('input[name="dtotalCost"]').focus();
+              }
             }}
           />
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={1}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddItem}
-            disabled={
-              !currentItem.did || 
-              !currentItem.dname || 
-              !currentItem.dquantity || 
-              currentItem.dtotalCost === '' ||
-              !isInventorySufficient()
+        </Tooltip>
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <TextField
+          fullWidth
+          label="總成本"
+          name="dtotalCost"
+          type="number"
+          value={currentItem.dtotalCost}
+          onChange={handleItemInputChange}
+          inputProps={{ min: 0 }}
+          onKeyDown={(event) => {
+            // 當按下ENTER鍵時
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              // 如果所有必填欄位都已填寫，則添加項目
+              if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost !== '' && isInventorySufficient()) {
+                handleAddItem();
+                // 添加項目後，將焦點移回商品選擇欄位
+                setTimeout(() => {
+                  const productInput = document.getElementById('product-select');
+                  if (productInput) {
+                    productInput.focus();
+                    console.log('ENTER鍵：焦點已設置到商品選擇欄位', productInput);
+                  } else {
+                    console.error('找不到商品選擇欄位元素');
+                  }
+                }, 200);
+              } else {
+                // 如果有欄位未填寫，顯示錯誤提示
+                console.error('請填寫完整的藥品項目資料或庫存不足');
+              }
             }
-            fullWidth
-          >
-            添加
-          </Button>
-        </Grid>
+          }}
+        />
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddItem}
+          fullWidth
+          sx={{ height: '100%' }}
+          disabled={
+            !currentItem.did || 
+            !currentItem.dname || 
+            !currentItem.dquantity || 
+            currentItem.dtotalCost === '' ||
+            !isInventorySufficient()
+          }
+        >
+          添加項目
+        </Button>
       </Grid>
       
       {!isInventorySufficient() && (
-        <Alert severity="error" sx={{ mt: 1 }}>
-          {getInventoryWarning()}
-        </Alert>
+        <Grid item xs={12}>
+          <Alert severity="error">
+            庫存不足！當前庫存: {getInventoryQuantity()}, 需要: {currentItem.dquantity}
+          </Alert>
+        </Grid>
       )}
-    </Box>
+    </Grid>
   );
 };
 
-export default ProductItemForm;
+const filterProducts = (options, inputValue) => {
+  const filterValue = inputValue?.toLowerCase() || '';
+  return options.filter(option =>
+    option.name.toLowerCase().includes(filterValue) ||
+    option.code.toLowerCase().includes(filterValue) ||
+    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
+    (option.productType === 'medicine' && option.healthInsuranceCode &&
+     option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
+    (option.productType === 'product' && option.barcode &&
+     option.barcode.toLowerCase().includes(filterValue))
+  );
+};
+
+export default ItemForm;
