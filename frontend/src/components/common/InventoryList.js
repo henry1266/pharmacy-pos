@@ -27,17 +27,19 @@ const InventoryList = ({ productId }) => {
         setLoading(true);
         const response = await axios.get(`/api/inventory/product/${productId}`);
         
-        // 篩選條件：至少saleNumber或purchaseOrderNumber其中之一要有值，兩者都有值或兩者都沒值就不列入
+        // 篩選條件：至少saleNumber、purchaseOrderNumber或shippingOrderNumber其中之一要有值
         const filteredInventories = response.data.filter(inv => {
           const hasSaleNumber = inv.saleNumber && inv.saleNumber.trim() !== '';
           const hasPurchaseOrderNumber = inv.purchaseOrderNumber && inv.purchaseOrderNumber.trim() !== '';
-          return (hasSaleNumber && !hasPurchaseOrderNumber) || (!hasSaleNumber && hasPurchaseOrderNumber);
+          const hasShippingOrderNumber = inv.shippingOrderNumber && inv.shippingOrderNumber.trim() !== '';
+          return hasSaleNumber || hasPurchaseOrderNumber || hasShippingOrderNumber;
         });
         
         // 合併相同類型且單號相同的記錄
         const mergedInventories = [];
         const saleGroups = {};
         const purchaseGroups = {};
+        const shipGroups = {};
         
         filteredInventories.forEach(inv => {
           if (inv.saleNumber) {
@@ -60,17 +62,28 @@ const InventoryList = ({ productId }) => {
             } else {
               purchaseGroups[inv.purchaseOrderNumber].totalQuantity += inv.quantity;
             }
+          } else if (inv.shippingOrderNumber) {
+            if (!shipGroups[inv.shippingOrderNumber]) {
+              shipGroups[inv.shippingOrderNumber] = {
+                ...inv,
+                type: 'ship',
+                totalQuantity: inv.quantity
+              };
+            } else {
+              shipGroups[inv.shippingOrderNumber].totalQuantity += inv.quantity;
+            }
           }
         });
         
         // 將合併後的記錄添加到結果數組
         Object.values(saleGroups).forEach(group => mergedInventories.push(group));
         Object.values(purchaseGroups).forEach(group => mergedInventories.push(group));
+        Object.values(shipGroups).forEach(group => mergedInventories.push(group));
         
-        // 排序：將saleNumber和purchaseOrderNumber從值大到小排序
+        // 排序：將saleNumber、purchaseOrderNumber和shippingOrderNumber從值大到小排序
         mergedInventories.sort((a, b) => {
-          const aValue = a.saleNumber || a.purchaseOrderNumber || '';
-          const bValue = b.saleNumber || b.purchaseOrderNumber || '';
+          const aValue = a.saleNumber || a.purchaseOrderNumber || a.shippingOrderNumber || '';
+          const bValue = b.saleNumber || b.purchaseOrderNumber || b.shippingOrderNumber || '';
           return bValue.localeCompare(aValue);
         });
         
@@ -80,8 +93,8 @@ const InventoryList = ({ productId }) => {
           const quantity = inv.totalQuantity;
           if (inv.type === 'purchase') {
             stock += quantity;
-          } else if (inv.type === 'sale') {
-            stock += quantity;
+          } else if (inv.type === 'sale' || inv.type === 'ship') {
+            stock += quantity; // ship類型的quantity已經是負數，直接加即可
           }
           return {
             ...inv,
@@ -155,17 +168,35 @@ const InventoryList = ({ productId }) => {
           </TableHead>
           <TableBody>
             {inventories.map((inv, index) => {
-              const orderNumber = inv.type === 'sale' ? inv.saleNumber : inv.purchaseOrderNumber;
-              const orderLink = inv.type === 'sale' 
-                ? `/sales/${inv.saleId?._id}` 
-                : `/purchase-orders/${inv.purchaseOrderId?._id}`;
-              const typeText = inv.type === 'sale' ? '銷售' : '進貨';
-              const typeColor = inv.type === 'sale' ? 'error.main' : 'primary.main';
-              const quantity = inv.type === 'sale' ? -inv.totalQuantity : inv.totalQuantity;
+              let orderNumber, orderLink, typeText, typeColor;
+              
+              if (inv.type === 'sale') {
+                orderNumber = inv.saleNumber;
+                orderLink = `/sales/${inv.saleId?._id}`;
+                typeText = '銷售';
+                typeColor = 'error.main';
+              } else if (inv.type === 'purchase') {
+                orderNumber = inv.purchaseOrderNumber;
+                orderLink = `/purchase-orders/${inv.purchaseOrderId?._id}`;
+                typeText = '進貨';
+                typeColor = 'primary.main';
+              } else if (inv.type === 'ship') {
+                orderNumber = inv.shippingOrderNumber;
+                orderLink = `/shipping-orders/${inv.shippingOrderId?._id}`;
+                typeText = '出貨';
+                typeColor = 'error.main';
+              }
+              
+              const quantity = (inv.type === 'sale' || inv.type === 'ship') ? inv.totalQuantity : inv.totalQuantity;
+              
               // 計算實際交易價格
               let price = '0.00';
               if (inv.type === 'purchase' && inv.totalAmount && inv.totalQuantity) {
                 // 進貨記錄：使用實際交易價格（總金額/數量）
+                const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+                price = unitPrice.toFixed(2);
+              } else if (inv.type === 'ship' && inv.totalAmount && inv.totalQuantity) {
+                // 出貨記錄：使用實際交易價格（總金額/數量）
                 const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
                 price = unitPrice.toFixed(2);
               } else if (inv.product && inv.product.sellingPrice) {
@@ -185,7 +216,7 @@ const InventoryList = ({ productId }) => {
                     <Link 
                       component={RouterLink} 
                       to={orderLink}
-                      color={inv.type === 'sale' ? 'error' : 'primary'}
+                      color={(inv.type === 'sale' || inv.type === 'ship') ? 'error' : 'primary'}
                       sx={{ textDecoration: 'none' }}
                     >
                       {orderNumber}
