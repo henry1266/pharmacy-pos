@@ -21,14 +21,18 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Autocomplete,
+  ListItem,
+  ListItemText
 } from '@mui/material';
 import {
   Add as AddIcon,
   Remove as RemoveIcon,
   Delete as DeleteIcon,
   Save as SaveIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import CategoryProductsDialog from '../components/sales/CategoryProductsDialog';
@@ -55,6 +59,7 @@ const SalesPage = () => {
   });
   
   const [barcode, setBarcode] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -133,7 +138,30 @@ const SalesPage = () => {
 
   // 處理條碼輸入
   const handleBarcodeChange = (e) => {
-    setBarcode(e.target.value);
+    const value = e.target.value;
+    setBarcode(value);
+    
+    // 當輸入變化時，過濾產品
+    if (value.trim() !== '') {
+      const searchResults = products.filter(product => {
+        const searchTerm = value.trim().toLowerCase();
+        return (
+          // 檔名
+          (product.name && product.name.toLowerCase().includes(searchTerm)) ||
+          // 簡碼
+          (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
+          // 健保碼
+          (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm)) ||
+          // 國際條碼
+          (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
+          // 產品代碼
+          (product.code && product.code.toLowerCase().includes(searchTerm))
+        );
+      });
+      setFilteredProducts(searchResults);
+    } else {
+      setFilteredProducts([]);
+    }
   };
 
   // 處理條碼輸入提交
@@ -142,7 +170,14 @@ const SalesPage = () => {
       e.preventDefault();
       
       try {
-        // 先嘗試精確匹配barcode字段
+        // 如果有過濾結果，選擇第一個
+        if (filteredProducts.length > 0) {
+          const product = filteredProducts[0];
+          handleSelectProduct(product);
+          return;
+        }
+        
+        // 如果沒有過濾結果，嘗試精確匹配
         let product = products.find(p => p.barcode === barcode.trim());
         
         // 如果沒有找到，嘗試精確匹配code字段
@@ -219,8 +254,9 @@ const SalesPage = () => {
         });
       }
       
-      // 清空條碼輸入框
+      // 清空條碼輸入框和過濾結果
       setBarcode('');
+      setFilteredProducts([]);
     }
   };
 
@@ -415,10 +451,37 @@ const SalesPage = () => {
       });
     }
     
+    // 清空條碼輸入框和過濾結果
+    setBarcode('');
+    setFilteredProducts([]);
+    
     // 聚焦到條碼輸入框
     if (barcodeInputRef.current) {
       barcodeInputRef.current.focus();
     }
+  };
+
+  // 產品選項的渲染函數
+  const renderOption = (props, option) => {
+    return (
+      <ListItem {...props}>
+        <ListItemText
+          primary={option.name}
+          secondary={
+            <React.Fragment>
+              <Typography component="span" variant="body2" color="text.primary">
+                {option.code || '無代碼'} | 
+              </Typography>
+              {' '}
+              {option.healthInsuranceCode ? `健保碼: ${option.healthInsuranceCode} | ` : ''}
+              {option.barcode ? `條碼: ${option.barcode} | ` : ''}
+              {option.shortCode ? `簡碼: ${option.shortCode} | ` : ''}
+              價格: ${option.sellingPrice?.toFixed(2) || '無價格'}
+            </React.Fragment>
+          }
+        />
+      </ListItem>
+    );
   };
 
   return (
@@ -523,34 +586,91 @@ const SalesPage = () => {
               </Typography>
               
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TextField
+                <Autocomplete
                   fullWidth
-                  label="掃描條碼"
-                  value={barcode}
-                  onChange={handleBarcodeChange}
-                  onKeyDown={handleBarcodeSubmit}
-                  inputRef={barcodeInputRef}
-                  placeholder="掃描或輸入條碼後按Enter"
-                  autoFocus
-                  sx={{ mr: 1, width: '60%' }}
-                  InputProps={{
-                    startAdornment: (
-                      <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 5h2v14H3z"></path>
-                          <path d="M7 5h1v14H7z"></path>
-                          <path d="M11 5h1v14h-1z"></path>
-                          <path d="M15 5h1v14h-1z"></path>
-                          <path d="M19 5h2v14h-2z"></path>
-                        </svg>
-                      </Box>
-                    ),
+                  freeSolo
+                  options={filteredProducts}
+                  getOptionLabel={(option) => {
+                    // 處理字符串和對象兩種情況
+                    if (typeof option === 'string') return option;
+                    return option.name || '';
                   }}
+                  renderOption={renderOption}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="掃描條碼"
+                      placeholder="掃描或輸入條碼後按Enter"
+                      inputRef={barcodeInputRef}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <React.Fragment>
+                            <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 5h2v14H3z"></path>
+                                <path d="M7 5h1v14H7z"></path>
+                                <path d="M11 5h1v14h-1z"></path>
+                                <path d="M15 5h1v14h-1z"></path>
+                                <path d="M19 5h2v14h-2z"></path>
+                              </svg>
+                            </Box>
+                            {params.InputProps.startAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
+                  )}
+                  value={barcode}
+                  onChange={(event, newValue) => {
+                    if (typeof newValue === 'string') {
+                      setBarcode(newValue);
+                    } else if (newValue && newValue.name) {
+                      handleSelectProduct(newValue);
+                    }
+                  }}
+                  onInputChange={(event, newInputValue) => {
+                    setBarcode(newInputValue);
+                    // 當輸入變化時，過濾產品
+                    if (newInputValue.trim() !== '') {
+                      const searchResults = products.filter(product => {
+                        const searchTerm = newInputValue.trim().toLowerCase();
+                        return (
+                          // 檔名
+                          (product.name && product.name.toLowerCase().includes(searchTerm)) ||
+                          // 簡碼
+                          (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
+                          // 健保碼
+                          (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm)) ||
+                          // 國際條碼
+                          (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
+                          // 產品代碼
+                          (product.code && product.code.toLowerCase().includes(searchTerm))
+                        );
+                      });
+                      setFilteredProducts(searchResults);
+                    } else {
+                      setFilteredProducts([]);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (filteredProducts.length > 0) {
+                        handleSelectProduct(filteredProducts[0]);
+                      } else if (barcode.trim()) {
+                        handleBarcodeSubmit({ key: 'Enter', preventDefault: () => {} });
+                      }
+                    }
+                  }}
+                  sx={{ mr: 1, width: '60%' }}
                 />
                 <Button 
                   variant="contained" 
                   onClick={() => {
-                    if (barcode.trim()) {
+                    if (filteredProducts.length > 0) {
+                      handleSelectProduct(filteredProducts[0]);
+                    } else if (barcode.trim()) {
                       handleBarcodeSubmit({ key: 'Enter', preventDefault: () => {} });
                     }
                   }}
