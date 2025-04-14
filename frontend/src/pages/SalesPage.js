@@ -474,8 +474,7 @@ const SalesPage = () => {
               </Typography>
               {' '}
               {option.healthInsuranceCode ? `健保碼: ${option.healthInsuranceCode} | ` : ''}
-              {option.barcode ? `條碼: ${option.barcode} | ` : ''}
-              {option.shortCode ? `簡碼: ${option.shortCode} | ` : ''}
+			  {option.name ? `商品名: ${option.name} | ` : ''}
               價格: ${option.sellingPrice?.toFixed(2) || '無價格'}
             </React.Fragment>
           }
