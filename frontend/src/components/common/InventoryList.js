@@ -120,6 +120,33 @@ const InventoryList = ({ productId }) => {
     }
   }, [productId]);
 
+  // 輔助函數：從MongoDB格式的對象ID中提取$oid值
+  const extractOidFromMongoId = (mongoId) => {
+    if (!mongoId) return '';
+    
+    // 如果是MongoDB格式的對象ID，如 {"$oid": "67fcec39a20aed37bbb62981"}
+    if (typeof mongoId === 'object' && mongoId.$oid) {
+      return mongoId.$oid;
+    }
+    
+    // 如果是普通對象且有_id屬性
+    if (typeof mongoId === 'object' && mongoId._id) {
+      // 如果_id本身是MongoDB格式的對象ID
+      if (typeof mongoId._id === 'object' && mongoId._id.$oid) {
+        return mongoId._id.$oid;
+      }
+      // 如果_id是字符串
+      return mongoId._id;
+    }
+    
+    // 如果是字符串，直接返回
+    if (typeof mongoId === 'string') {
+      return mongoId;
+    }
+    
+    return '';
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -172,18 +199,20 @@ const InventoryList = ({ productId }) => {
               
               if (inv.type === 'sale') {
                 orderNumber = inv.saleNumber;
-                orderLink = `/sales/${inv.saleId?._id || inv._id || ''}`;
+                const saleId = extractOidFromMongoId(inv.saleId) || extractOidFromMongoId(inv._id) || '';
+                orderLink = `/sales/${saleId}`;
                 typeText = '銷售';
                 typeColor = 'error.main';
               } else if (inv.type === 'purchase') {
                 orderNumber = inv.purchaseOrderNumber;
-                orderLink = `/purchase-orders/${inv.purchaseOrderId?._id || inv._id || ''}`;
+                const purchaseId = extractOidFromMongoId(inv.purchaseOrderId) || extractOidFromMongoId(inv._id) || '';
+                orderLink = `/purchase-orders/${purchaseId}`;
                 typeText = '進貨';
                 typeColor = 'primary.main';
               } else if (inv.type === 'ship') {
                 orderNumber = inv.shippingOrderNumber;
-                // 修復出貨超連結問題：使用inv._id作為備用ID
-                const shippingId = inv.shippingOrderId?._id || inv._id || '';
+                // 修復出貨超連結問題：正確處理MongoDB格式的對象ID
+                const shippingId = extractOidFromMongoId(inv.shippingOrderId) || extractOidFromMongoId(inv._id) || '';
                 orderLink = `/shipping-orders/${shippingId}`;
                 typeText = '出貨';
                 typeColor = 'error.main';
