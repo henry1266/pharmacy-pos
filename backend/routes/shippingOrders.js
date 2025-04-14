@@ -189,7 +189,6 @@ router.post('/', [
     const shippingOrder = new ShippingOrder({
       soid,
       orderNumber, // 設置唯一訂單號
-      sobilldate,
       sosupplier,
       supplier: supplierId,
       items,
@@ -601,7 +600,6 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
             const shippingOrderData = {
               soid: row['出貨單號'],
               sobill: row['發票號'] || '',
-              sobilldate: row['發票日期'] ? new Date(row['發票日期']) : null,
               socustomer: row['客戶'],
               paymentStatus: row['付款狀態'] || '未收',
               items: [],
