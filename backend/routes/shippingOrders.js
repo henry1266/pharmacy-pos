@@ -199,10 +199,8 @@ router.post('/', [
 
     await shippingOrder.save();
 
-    // 如果狀態為已完成，則更新庫存
+    // 如果狀態為已完成，則創建ship類型庫存記錄
     if (shippingOrder.status === 'completed') {
-      await updateInventory(shippingOrder);
-      // 為出貨單創建新的ship類型庫存記錄
       await createShippingInventoryRecords(shippingOrder);
     }
 
@@ -252,10 +250,8 @@ router.put('/:id', async (req, res) => {
     if (status && status !== oldStatus) {
       updateData.status = status;
       
-      // 如果狀態從已完成改為其他狀態，恢復庫存
+      // 如果狀態從已完成改為其他狀態，刪除相關的ship類型庫存記錄
       if (oldStatus === 'completed' && status !== 'completed') {
-        await restoreInventory(shippingOrder._id);
-        // 刪除相關的ship類型庫存記錄
         await deleteShippingInventoryRecords(shippingOrder._id);
       }
     }
@@ -296,10 +292,8 @@ router.put('/:id', async (req, res) => {
     // 保存更新後的出貨單，這樣會觸發pre-save中間件
     await shippingOrder.save();
 
-    // 如果狀態從非完成變為完成，則更新庫存
+    // 如果狀態從非完成變為完成，則創建ship類型庫存記錄
     if (oldStatus !== 'completed' && shippingOrder.status === 'completed') {
-      await updateInventory(shippingOrder);
-      // 為出貨單創建新的ship類型庫存記錄
       await createShippingInventoryRecords(shippingOrder);
     }
 
@@ -323,12 +317,9 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ msg: '找不到該出貨單' });
     }
 
-    // 如果出貨單已完成，不允許刪除
+    // 如果出貨單已完成，刪除相關的ship類型庫存記錄
     if (shippingOrder.status === 'completed') {
-      // 刪除相關的ship類型庫存記錄
       await deleteShippingInventoryRecords(shippingOrder._id);
-      // 恢復庫存
-      await restoreInventory(shippingOrder._id);
     }
 
     await shippingOrder.deleteOne();
@@ -420,59 +411,6 @@ router.get('/recent/list', async (req, res) => {
   }
 });
 
-// 更新庫存的輔助函數 - 出貨時扣減庫存
-async function updateInventory(shippingOrder) {
-  try {
-    for (const item of shippingOrder.items) {
-      if (!item.product) continue;
-      
-      // 獲取當前庫存記錄
-      const inventoryRecords = await Inventory.find({ product: item.product })
-        .sort({ createdAt: 1 }); // 先進先出原則
-      
-      let remainingQuantity = item.dquantity;
-      
-      // 檢查總庫存是否足夠
-      const totalInventory = inventoryRecords.reduce((sum, record) => sum + record.quantity, 0);
-      if (totalInventory < remainingQuantity) {
-        throw new Error(`藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${totalInventory}，需要: ${remainingQuantity}`);
-      }
-      
-      // 遍歷庫存記錄，扣減庫存
-      for (const record of inventoryRecords) {
-        if (remainingQuantity <= 0) break;
-        
-        const deductQuantity = Math.min(record.quantity, remainingQuantity);
-        record.quantity -= deductQuantity;
-        remainingQuantity -= deductQuantity;
-        
-        // 創建出貨記錄
-        const shippingRecord = {
-          shippingOrderId: shippingOrder._id,
-          shippingOrderNumber: shippingOrder.orderNumber,
-          quantity: deductQuantity
-        };
-        
-        // 如果沒有shipping字段，創建一個新數組
-        if (!record.shipping) {
-          record.shipping = [];
-        }
-        
-        record.shipping.push(shippingRecord);
-        
-        await record.save();
-      }
-      
-      console.log(`已為產品 ${item.product} 扣減庫存，出貨單號: ${shippingOrder.orderNumber}, 數量: ${item.dquantity}`);
-    }
-    
-    console.log(`已成功更新出貨單 ${shippingOrder._id} 的所有庫存`);
-  } catch (err) {
-    console.error(`更新庫存時出錯: ${err.message}`);
-    throw err; // 重新拋出錯誤，讓調用者知道出了問題
-  }
-}
-
 // 為出貨單創建新的ship類型庫存記錄的輔助函數
 async function createShippingInventoryRecords(shippingOrder) {
   try {
@@ -509,45 +447,6 @@ async function deleteShippingInventoryRecords(shippingOrderId) {
   } catch (err) {
     console.error(`刪除ship類型庫存記錄時出錯: ${err.message}`);
     throw err;
-  }
-}
-
-// 恢復庫存的輔助函數 - 取消出貨時恢復庫存
-async function restoreInventory(shippingOrderId) {
-  try {
-    // 查找所有包含該出貨單ID的庫存記錄
-    const inventoryRecords = await Inventory.find({
-      'shipping.shippingOrderId': shippingOrderId
-    });
-    
-    for (const record of inventoryRecords) {
-      // 找出與該出貨單相關的出貨記錄
-      const shippingRecords = record.shipping.filter(
-        s => s.shippingOrderId.toString() === shippingOrderId.toString()
-      );
-      
-      // 計算需要恢復的總數量
-      const restoreQuantity = shippingRecords.reduce(
-        (total, s) => total + s.quantity, 0
-      );
-      
-      // 恢復庫存數量
-      record.quantity += restoreQuantity;
-      
-      // 移除與該出貨單相關的出貨記錄
-      record.shipping = record.shipping.filter(
-        s => s.shippingOrderId.toString() !== shippingOrderId.toString()
-      );
-      
-      await record.save();
-      
-      console.log(`已為庫存記錄 ${record._id} 恢復數量 ${restoreQuantity}`);
-    }
-    
-    console.log(`已恢復與出貨單 ${shippingOrderId} 相關的所有庫存`);
-  } catch (err) {
-    console.error(`恢復庫存時出錯: ${err.message}`);
-    throw err; // 重新拋出錯誤，讓調用者知道出了問題
   }
 }
 

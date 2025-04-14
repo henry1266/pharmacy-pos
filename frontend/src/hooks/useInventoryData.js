@@ -61,7 +61,7 @@ const useInventoryData = (productId) => {
     
     // 第一步：按進貨單號分組並加總數量
     inventoryData.forEach(item => {
-      const poNumber = item.purchaseOrderNumber || '未指定';
+      const poNumber = item.purchaseOrderNumber || item.shippingOrderNumber || '未指定';
       
       if (groupedByPO.has(poNumber)) {
         // 如果已有該進貨單號的記錄，加總數量
@@ -78,8 +78,8 @@ const useInventoryData = (productId) => {
     
     // 第三步：按進貨單號排序
     mergedInventory.sort((a, b) => {
-      const poA = a.purchaseOrderNumber || '';
-      const poB = b.purchaseOrderNumber || '';
+      const poA = a.purchaseOrderNumber || a.shippingOrderNumber || '';
+      const poB = b.purchaseOrderNumber || b.shippingOrderNumber || '';
       return poA.localeCompare(poB);
     });
     
@@ -97,7 +97,7 @@ const useInventoryData = (productId) => {
   const getTotalInventory = (id) => {
     if (!id || loading) return '載入中...';
     
-    // 直接查找與產品ID匹配的庫存記錄
+    // 直接查找與產品ID匹配的庫存記錄，包括ship類型
     const productInv = inventory.filter(item => 
       item.product && (item.product._id === id || item.product === id)
     );
