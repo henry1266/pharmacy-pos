@@ -172,17 +172,19 @@ const InventoryList = ({ productId }) => {
               
               if (inv.type === 'sale') {
                 orderNumber = inv.saleNumber;
-                orderLink = `/sales/${inv.saleId?._id}`;
+                orderLink = `/sales/${inv.saleId?._id || inv._id || ''}`;
                 typeText = '銷售';
                 typeColor = 'error.main';
               } else if (inv.type === 'purchase') {
                 orderNumber = inv.purchaseOrderNumber;
-                orderLink = `/purchase-orders/${inv.purchaseOrderId?._id}`;
+                orderLink = `/purchase-orders/${inv.purchaseOrderId?._id || inv._id || ''}`;
                 typeText = '進貨';
                 typeColor = 'primary.main';
               } else if (inv.type === 'ship') {
                 orderNumber = inv.shippingOrderNumber;
-                orderLink = `/shipping-orders/${inv.shippingOrderId?._id}`;
+                // 修復出貨超連結問題：使用inv._id作為備用ID
+                const shippingId = inv.shippingOrderId?._id || inv._id || '';
+                orderLink = `/shipping-orders/${shippingId}`;
                 typeText = '出貨';
                 typeColor = 'error.main';
               }
