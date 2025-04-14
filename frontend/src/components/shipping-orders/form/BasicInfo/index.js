@@ -12,17 +12,13 @@ import {
   Typography,
   Autocomplete
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { zhTW } from 'date-fns/locale';
+
 
 /**
  * 出貨單基本信息表單組件
  * @param {Object} props - 組件屬性
  * @param {Object} props.formData - 表單數據
  * @param {Function} props.handleInputChange - 輸入變更處理函數
- * @param {Function} props.handleDateChange - 日期變更處理函數
  * @param {Function} props.handleSupplierChange - 供應商變更處理函數
  * @param {Array} props.suppliers - 供應商列表
  * @param {Object} props.selectedSupplier - 選中的供應商
@@ -32,7 +28,6 @@ import { zhTW } from 'date-fns/locale';
 const BasicInfoForm = ({
   formData,
   handleInputChange,
-  handleDateChange,
   handleSupplierChange,
   suppliers,
   selectedSupplier,
@@ -60,23 +55,7 @@ const BasicInfoForm = ({
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={4}>
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
-              <DatePicker
-                label="出貨日期"
-                value={formData.sobilldate}
-                onChange={handleDateChange}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                  />
-                )}
-              />
-            </LocalizationProvider>
-          </Grid>
+
           
           <Grid item xs={12} sm={6} md={4}>
             <Autocomplete

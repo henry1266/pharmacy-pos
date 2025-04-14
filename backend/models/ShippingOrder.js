@@ -46,11 +46,7 @@ const ShippingOrderSchema = new mongoose.Schema({
     },
     unique: true
   },
-  // 發票欄位已移除
-  sobilldate: {
-    type: Date,
-    required: false
-  },
+  // 發票欄位和日期欄位已移除
   sosupplier: {
     type: String,
     required: true

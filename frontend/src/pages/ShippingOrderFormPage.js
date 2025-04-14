@@ -10,7 +10,7 @@ import {
   Alert,
   Button
 } from '@mui/material';
-import { format } from 'date-fns';
+
 
 import { 
   fetchShippingOrder, 
@@ -43,7 +43,6 @@ const ShippingOrderFormPage = () => {
   
   const [formData, setFormData] = useState({
     soid: '',
-    sobilldate: new Date(),
     sosupplier: '',
     supplier: '',
     items: [],
@@ -115,8 +114,7 @@ const ShippingOrderFormPage = () => {
       
       setFormData({
         ...currentShippingOrder,
-        ...supplierData, // 確保供應商信息被保留
-        sobilldate: currentShippingOrder.sobilldate ? new Date(currentShippingOrder.sobilldate) : new Date()
+        ...supplierData // 確保供應商信息被保留
       });
       
       // 找到並設置當前選中的供應商
@@ -158,12 +156,7 @@ const ShippingOrderFormPage = () => {
     });
   };
   
-  const handleDateChange = (date) => {
-    setFormData({
-      ...formData,
-      sobilldate: date
-    });
-  };
+
   
   const handleSupplierChange = (event, newValue) => {
     if (newValue) {
@@ -391,8 +384,7 @@ const ShippingOrderFormPage = () => {
   
   const submitForm = () => {
     const submitData = {
-      ...formData,
-      sobilldate: format(formData.sobilldate, 'yyyy-MM-dd')
+      ...formData
     };
     
     if (isEditMode) {
@@ -436,7 +428,6 @@ const ShippingOrderFormPage = () => {
         <BasicInfoForm 
           formData={formData}
           handleInputChange={handleInputChange}
-          handleDateChange={handleDateChange}
           handleSupplierChange={handleSupplierChange}
           suppliers={suppliers}
           selectedSupplier={selectedSupplier}

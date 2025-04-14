@@ -10,7 +10,7 @@ import {
   Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
-import { format } from 'date-fns';
+
 import StatusChip from '../common/StatusChip';
 import PaymentStatusChip from '../common/PaymentStatusChip';
 
@@ -46,14 +46,6 @@ const ShippingOrdersTable = ({
   // 表格列定義
   const columns = [
     { field: 'soid', headerName: '出貨單號', flex: 1 },
-    { 
-      field: 'sobilldate', 
-      headerName: '出貨日期', 
-      flex: 1,
-      valueFormatter: (params) => {
-        return params.value ? format(new Date(params.value), 'yyyy-MM-dd') : '';
-      }
-    },
     { 
       field: 'sosupplier', 
       headerName: '供應商', 
@@ -116,7 +108,6 @@ const ShippingOrdersTable = ({
     id: so._id, // DataGrid需要唯一的id字段
     _id: so._id, // 保留原始_id用於操作
     soid: so.soid,
-    sobilldate: so.sobilldate,
     sosupplier: so.sosupplier,
     totalAmount: so.totalAmount,
     status: so.status,

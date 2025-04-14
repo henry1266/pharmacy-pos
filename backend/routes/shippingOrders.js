@@ -129,7 +129,7 @@ router.post('/', [
   }
 
   try {
-    let { soid, sobilldate, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
+    let { soid, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 如果出貨單號為空，自動生成
     if (!soid || soid.trim() === '') {
@@ -217,7 +217,7 @@ router.post('/', [
 // @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { soid, sobilldate, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
+    const { soid, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
@@ -241,7 +241,6 @@ router.put('/:id', async (req, res) => {
     const updateData = {};
     if (soid) updateData.soid = soid;
     if (shippingOrder.orderNumber) updateData.orderNumber = shippingOrder.orderNumber;
-    if (sobilldate) updateData.sobilldate = sobilldate;
     if (sosupplier) updateData.sosupplier = sosupplier;
     if (supplier) updateData.supplier = supplier;
     if (notes !== undefined) updateData.notes = notes;
@@ -388,17 +387,11 @@ router.get('/supplier/:supplierId', async (req, res) => {
 // @access  Public
 router.get('/search/query', async (req, res) => {
   try {
-    const { soid, sosupplier, startDate, endDate } = req.query;
+    const { soid, sosupplier } = req.query;
     
     const query = {};
     if (soid) query.soid = { $regex: soid, $options: 'i' };
     if (sosupplier) query.sosupplier = { $regex: sosupplier, $options: 'i' };
-    
-    if (startDate || endDate) {
-      query.sobilldate = {};
-      if (startDate) query.sobilldate.$gte = new Date(startDate);
-      if (endDate) query.sobilldate.$lte = new Date(endDate);
-    }
     
     const shippingOrders = await ShippingOrder.find(query)
       .sort({ createdAt: -1 })
@@ -421,7 +414,7 @@ router.get('/product/:productId', async (req, res) => {
       'items.product': req.params.productId,
       'status': 'completed'
     })
-      .sort({ sobilldate: -1 })
+      .sort({ createdAt: -1 })
       .populate('supplier', 'name')
       .populate('items.product', 'name code');
     
