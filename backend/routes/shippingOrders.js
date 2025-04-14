@@ -258,53 +258,22 @@ router.put('/:id', async (req, res) => {
 
     // 處理項目更新
     if (items && items.length > 0) {
-      // 如果狀態為已完成或將要變為已完成，檢查庫存是否足夠
-      if (status === 'completed' || (oldStatus === 'completed' && status !== 'cancelled')) {
-        // 驗證所有藥品ID是否存在，並檢查庫存是否足夠
-        for (const item of items) {
-          if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
-            return res.status(400).json({ msg: '藥品項目資料不完整' });
-          }
+      // 驗證所有藥品ID是否存在
+      for (const item of items) {
+        if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
+          return res.status(400).json({ msg: '藥品項目資料不完整' });
+        }
 
-          // 嘗試查找藥品
-          let productId = item.product;
-          if (!productId) {
-            const product = await BaseProduct.findOne({ code: item.did });
-            if (!product) {
-              return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
-            }
-            productId = product._id;
-            item.product = productId;
-          }
-          
-          // 檢查庫存是否足夠
-          // 如果是更新現有出貨單，需要考慮原有的出貨數量
-          const oldItem = shippingOrder.items.find(i => 
-            i.product && i.product.toString() === productId.toString()
-          );
-          
-          const oldQuantity = oldItem ? oldItem.dquantity : 0;
-          
-          const inventorySum = await Inventory.aggregate([
-            { $match: { product: new mongoose.Types.ObjectId(productId) } },
-            { $group: { _id: null, total: { $sum: "$quantity" } } }
-          ]);
-          
-          const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
-          
-          // 如果新數量大於舊數量，需要檢查增加的部分是否有足夠庫存
-          if (item.dquantity > oldQuantity) {
-            const additionalQuantity = item.dquantity - oldQuantity;
-            
-            if (availableQuantity < additionalQuantity) {
-              return res.status(400).json({ 
-                msg: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要額外: ${additionalQuantity}` 
-              });
-            }
+        // 嘗試查找藥品
+        if (!item.product) {
+          const product = await BaseProduct.findOne({ code: item.did });
+          if (product) {
+            item.product = product._id;
+          } else {
+            return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
           }
         }
       }
-      
       updateData.items = items;
     }
 
@@ -444,18 +413,13 @@ router.get('/recent/list', async (req, res) => {
 
 // 更新庫存的輔助函數 - 出貨時扣減庫存
 async function updateInventory(shippingOrder) {
-  // 使用事務來確保所有庫存更新是原子性的
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  
   try {
     for (const item of shippingOrder.items) {
       if (!item.product) continue;
       
       // 獲取當前庫存記錄
       const inventoryRecords = await Inventory.find({ product: item.product })
-        .sort({ createdAt: 1 }) // 先進先出原則
-        .session(session);
+        .sort({ createdAt: 1 }); // 先進先出原則
       
       let remainingQuantity = item.dquantity;
       
@@ -487,22 +451,14 @@ async function updateInventory(shippingOrder) {
         
         record.shipping.push(shippingRecord);
         
-        await record.save({ session });
+        await record.save();
       }
       
       console.log(`已為產品 ${item.product} 扣減庫存，出貨單號: ${shippingOrder.orderNumber}, 數量: ${item.dquantity}`);
     }
     
-    // 提交事務
-    await session.commitTransaction();
-    session.endSession();
-    
     console.log(`已成功更新出貨單 ${shippingOrder._id} 的所有庫存`);
   } catch (err) {
-    // 如果有任何錯誤，回滾事務
-    await session.abortTransaction();
-    session.endSession();
-    
     console.error(`更新庫存時出錯: ${err.message}`);
     throw err; // 重新拋出錯誤，讓調用者知道出了問題
   }
@@ -510,15 +466,11 @@ async function updateInventory(shippingOrder) {
 
 // 恢復庫存的輔助函數 - 取消出貨時恢復庫存
 async function restoreInventory(shippingOrderId) {
-  // 使用事務來確保所有庫存恢復是原子性的
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  
   try {
     // 查找所有包含該出貨單ID的庫存記錄
     const inventoryRecords = await Inventory.find({
       'shipping.shippingOrderId': shippingOrderId
-    }).session(session);
+    });
     
     for (const record of inventoryRecords) {
       // 找出與該出貨單相關的出貨記錄
@@ -539,21 +491,13 @@ async function restoreInventory(shippingOrderId) {
         s => s.shippingOrderId.toString() !== shippingOrderId.toString()
       );
       
-      await record.save({ session });
+      await record.save();
       
       console.log(`已為庫存記錄 ${record._id} 恢復數量 ${restoreQuantity}`);
     }
     
-    // 提交事務
-    await session.commitTransaction();
-    session.endSession();
-    
     console.log(`已恢復與出貨單 ${shippingOrderId} 相關的所有庫存`);
   } catch (err) {
-    // 如果有任何錯誤，回滾事務
-    await session.abortTransaction();
-    session.endSession();
-    
     console.error(`恢復庫存時出錯: ${err.message}`);
     throw err; // 重新拋出錯誤，讓調用者知道出了問題
   }
