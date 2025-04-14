@@ -24,7 +24,7 @@ const InventorySchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['purchase', 'sale', 'return', 'adjustment'],
+    enum: ['purchase', 'sale', 'return', 'adjustment', 'ship'],
     default: 'purchase'
   },
   saleId: {
@@ -32,6 +32,13 @@ const InventorySchema = new mongoose.Schema({
     ref: 'sale'
   },
   saleNumber: {
+    type: String
+  },
+  shippingOrderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'shippingorder'
+  },
+  shippingOrderNumber: {
     type: String
   },
   lastUpdated: {

@@ -202,6 +202,8 @@ router.post('/', [
     // 如果狀態為已完成，則更新庫存
     if (shippingOrder.status === 'completed') {
       await updateInventory(shippingOrder);
+      // 為出貨單創建新的ship類型庫存記錄
+      await createShippingInventoryRecords(shippingOrder);
     }
 
     res.json(shippingOrder);
@@ -253,6 +255,8 @@ router.put('/:id', async (req, res) => {
       // 如果狀態從已完成改為其他狀態，恢復庫存
       if (oldStatus === 'completed' && status !== 'completed') {
         await restoreInventory(shippingOrder._id);
+        // 刪除相關的ship類型庫存記錄
+        await deleteShippingInventoryRecords(shippingOrder._id);
       }
     }
 
@@ -295,6 +299,8 @@ router.put('/:id', async (req, res) => {
     // 如果狀態從非完成變為完成，則更新庫存
     if (oldStatus !== 'completed' && shippingOrder.status === 'completed') {
       await updateInventory(shippingOrder);
+      // 為出貨單創建新的ship類型庫存記錄
+      await createShippingInventoryRecords(shippingOrder);
     }
 
     res.json(shippingOrder);
@@ -319,7 +325,10 @@ router.delete('/:id', async (req, res) => {
 
     // 如果出貨單已完成，不允許刪除
     if (shippingOrder.status === 'completed') {
-      return res.status(400).json({ msg: '已完成的出貨單不能刪除' });
+      // 刪除相關的ship類型庫存記錄
+      await deleteShippingInventoryRecords(shippingOrder._id);
+      // 恢復庫存
+      await restoreInventory(shippingOrder._id);
     }
 
     await shippingOrder.deleteOne();
@@ -464,6 +473,45 @@ async function updateInventory(shippingOrder) {
   }
 }
 
+// 為出貨單創建新的ship類型庫存記錄的輔助函數
+async function createShippingInventoryRecords(shippingOrder) {
+  try {
+    for (const item of shippingOrder.items) {
+      if (!item.product) continue;
+      
+      // 為每個出貨單項目創建新的庫存記錄
+      const inventory = new Inventory({
+        product: item.product,
+        quantity: -parseInt(item.dquantity), // 負數表示庫存減少
+        totalAmount: Number(item.dtotalCost),
+        shippingOrderId: shippingOrder._id, // 使用出貨單ID
+        shippingOrderNumber: shippingOrder.orderNumber, // 使用出貨單號
+        type: 'ship' // 設置類型為'ship'
+      });
+      
+      await inventory.save();
+      console.log(`已為產品 ${item.product} 創建新庫存記錄，出貨單號: ${shippingOrder.orderNumber}, 數量: -${item.dquantity}, 總金額: ${item.dtotalCost}, 類型: ship`);
+    }
+    
+    console.log(`已成功為出貨單 ${shippingOrder._id} 創建所有ship類型庫存記錄`);
+  } catch (err) {
+    console.error(`創建ship類型庫存記錄時出錯: ${err.message}`);
+    throw err; // 重新拋出錯誤，讓調用者知道出了問題
+  }
+}
+
+// 刪除與出貨單相關的ship類型庫存記錄
+async function deleteShippingInventoryRecords(shippingOrderId) {
+  try {
+    const result = await Inventory.deleteMany({ shippingOrderId: shippingOrderId, type: 'ship' });
+    console.log(`已刪除 ${result.deletedCount} 筆與出貨單 ${shippingOrderId} 相關的ship類型庫存記錄`);
+    return result;
+  } catch (err) {
+    console.error(`刪除ship類型庫存記錄時出錯: ${err.message}`);
+    throw err;
+  }
+}
+
 // 恢復庫存的輔助函數 - 取消出貨時恢復庫存
 async function restoreInventory(shippingOrderId) {
   try {
@@ -573,128 +621,6 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
           errors: errors
         });
       });
-  } catch (err) {
-    console.error('CSV導入錯誤:', err);
-    res.status(500).json({ msg: '伺服器錯誤' });
-  }
-});
-
-// @route   POST api/shipping-orders/import/items
-// @desc    導入出貨品項CSV
-// @access  Public
-router.post('/import/items', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ msg: '請上傳CSV文件' });
-    }
-
-    const results = [];
-    const errors = [];
-    let successCount = 0;
-    const updatedSOs = new Set();
-
-    // 創建一個Promise來處理CSV解析和數據保存
-    const processCSV = () => {
-      return new Promise((resolve, reject) => {
-        fs.createReadStream(req.file.path)
-          .pipe(csv())
-          .on('data', (data) => results.push(data))
-          .on('end', async () => {
-            try {
-              // 刪除上傳的文件
-              fs.unlinkSync(req.file.path);
-
-              // 處理每一行數據
-              for (const row of results) {
-                try {
-                  // 檢查必要字段
-                  if (!row['出貨單號'] || !row['藥品代碼'] || !row['數量'] || !row['總金額']) {
-                    errors.push(`行 ${results.indexOf(row) + 1}: 出貨單號、藥品代碼、數量和總金額為必填項`);
-                    continue;
-                  }
-
-                  // 查找出貨單
-                  const shippingOrder = await ShippingOrder.findOne({ soid: row['出貨單號'] });
-                  if (!shippingOrder) {
-                    errors.push(`行 ${results.indexOf(row) + 1}: 找不到出貨單號 ${row['出貨單號']}`);
-                    continue;
-                  }
-
-                  // 查找藥品
-                  const product = await BaseProduct.findOne({ code: row['藥品代碼'] });
-                  if (!product) {
-                    errors.push(`行 ${results.indexOf(row) + 1}: 找不到藥品代碼 ${row['藥品代碼']}`);
-                    continue;
-                  }
-
-                  // 準備藥品項目數據
-                  const itemData = {
-                    did: row['藥品代碼'],
-                    dname: row['藥品名稱'] || product.name,
-                    dquantity: parseInt(row['數量']),
-                    dtotalCost: parseFloat(row['總金額']),
-                    product: product._id
-                  };
-
-                  // 檢查庫存是否足夠
-                  if (shippingOrder.status === 'completed') {
-                    const inventorySum = await Inventory.aggregate([
-                      { $match: { product: product._id } },
-                      { $group: { _id: null, total: { $sum: "$quantity" } } }
-                    ]);
-                    
-                    const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
-                    
-                    if (availableQuantity < itemData.dquantity) {
-                      errors.push(`行 ${results.indexOf(row) + 1}: 藥品 ${itemData.dname} (${itemData.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${itemData.dquantity}`);
-                      continue;
-                    }
-                  }
-
-                  // 添加藥品項目到出貨單
-                  shippingOrder.items.push(itemData);
-                  
-                  // 標記出貨單已更新
-                  updatedSOs.add(shippingOrder._id.toString());
-                  
-                  successCount++;
-                } catch (err) {
-                  console.error(`處理行 ${results.indexOf(row) + 1} 時出錯:`, err);
-                  errors.push(`行 ${results.indexOf(row) + 1}: ${err.message}`);
-                }
-              }
-
-              // 保存所有更新的出貨單
-              for (const soId of updatedSOs) {
-                const so = await ShippingOrder.findById(soId);
-                
-                // 計算總金額
-                so.totalAmount = so.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
-                
-                await so.save();
-                
-                // 如果出貨單狀態為已完成，更新庫存
-                if (so.status === 'completed') {
-                  await updateInventory(so);
-                }
-              }
-
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          });
-      });
-    };
-
-    await processCSV();
-
-    // 返回結果
-    res.json({
-      msg: `成功導入 ${successCount} 筆出貨品項${errors.length > 0 ? '，但有部分錯誤' : ''}`,
-      success: successCount,
-      errors: errors
-    });
   } catch (err) {
     console.error('CSV導入錯誤:', err);
     res.status(500).json({ msg: '伺服器錯誤' });
