@@ -45,6 +45,37 @@ const ItemForm = ({
     return availableQuantity >= parseInt(currentItem.dquantity);
   };
 
+  // 獲取當前選中產品的進貨價
+  const getProductPurchasePrice = () => {
+    if (!currentItem.product) return 0;
+    const selectedProduct = products?.find(p => p._id === currentItem.product);
+    return selectedProduct?.purchasePrice || 0;
+  };
+
+  // 自動計算總成本
+  const calculateTotalCost = (quantity) => {
+    const purchasePrice = getProductPurchasePrice();
+    return (parseFloat(purchasePrice) * parseInt(quantity)).toFixed(2);
+  };
+
+  // 處理數量輸入變更，自動計算總成本
+  const handleQuantityChange = (e) => {
+    const quantity = e.target.value;
+    handleItemInputChange(e);
+    
+    if (quantity && quantity > 0) {
+      const totalCost = calculateTotalCost(quantity);
+      // 創建一個模擬的事件對象來更新總成本
+      const totalCostEvent = {
+        target: {
+          name: 'dtotalCost',
+          value: totalCost
+        }
+      };
+      handleItemInputChange(totalCostEvent);
+    }
+  };
+
   return (
     <Grid container spacing={2} sx={{ mb: 1 }}>
       <Grid item xs={12} sm={6} md={4}>
@@ -83,7 +114,7 @@ const ItemForm = ({
             name="dquantity"
             type="number"
             value={currentItem.dquantity}
-            onChange={handleItemInputChange}
+            onChange={handleQuantityChange}
             inputProps={{ min: 1 }}
             error={!isInventorySufficient()}
             helperText={!isInventorySufficient() ? "庫存不足" : ""}
