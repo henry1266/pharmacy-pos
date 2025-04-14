@@ -19,8 +19,7 @@ import {
 } from '../redux/actions';
 import { fetchSuppliers } from '../redux/actions';
 import { fetchProducts } from '../redux/actions';
-import { fetchInventory } from '../redux/actions';
-import useInventoryData from '../hooks/useInventoryData';
+
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
@@ -38,8 +37,7 @@ const ShippingOrderFormPage = () => {
   const { suppliers } = useSelector(state => state.suppliers);
   const { products } = useSelector(state => state.products);
   
-  // 使用自定義Hook獲取庫存數據
-  const { getTotalInventory } = useInventoryData();
+
   
   const [formData, setFormData] = useState({
     soid: '',
@@ -77,7 +75,6 @@ const ShippingOrderFormPage = () => {
   useEffect(() => {
     dispatch(fetchSuppliers());
     dispatch(fetchProducts());
-    dispatch(fetchInventory());
     
     if (isEditMode && id) {
       dispatch(fetchShippingOrder(id));
@@ -209,13 +206,7 @@ const ShippingOrderFormPage = () => {
     }
   };
   
-  // 檢查庫存是否足夠，使用useInventoryData Hook
-  const isInventorySufficient = (item) => {
-    if (!item.product || !item.dquantity) return true;
-    
-    const availableQuantity = parseInt(getTotalInventory(item.product)) || 0;
-    return availableQuantity >= parseInt(item.dquantity);
-  };
+
   
   const handleAddItem = () => {
     // 驗證項目
@@ -228,15 +219,7 @@ const ShippingOrderFormPage = () => {
       return;
     }
     
-    // 檢查庫存是否足夠
-    if (!isInventorySufficient(currentItem)) {
-      setSnackbar({
-        open: true,
-        message: '庫存不足，無法添加此項目',
-        severity: 'error'
-      });
-      return;
-    }
+
     
     // 添加項目
     setFormData({
@@ -289,15 +272,7 @@ const ShippingOrderFormPage = () => {
       return;
     }
     
-    // 檢查庫存是否足夠
-    if (!isInventorySufficient(editingItem)) {
-      setSnackbar({
-        open: true,
-        message: '庫存不足，無法保存此項目',
-        severity: 'error'
-      });
-      return;
-    }
+
     
     // 更新項目
     const newItems = [...formData.items];
@@ -361,16 +336,7 @@ const ShippingOrderFormPage = () => {
       return;
     }
     
-    // 檢查所有項目的庫存是否足夠
-    const insufficientItems = formData.items.filter(item => !isInventorySufficient(item));
-    if (insufficientItems.length > 0) {
-      setSnackbar({
-        open: true,
-        message: '部分藥品庫存不足，無法提交',
-        severity: 'error'
-      });
-      return;
-    }
+
     
     // 如果狀態為已完成，顯示確認對話框
     if (formData.status === 'completed') {
