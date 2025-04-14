@@ -286,7 +286,7 @@ router.put('/:id', async (req, res) => {
           const oldQuantity = oldItem ? oldItem.dquantity : 0;
           
           const inventorySum = await Inventory.aggregate([
-            { $match: { product: mongoose.Types.ObjectId(productId) } },
+            { $match: { product: new mongoose.Types.ObjectId(productId) } },
             { $group: { _id: null, total: { $sum: "$quantity" } } }
           ]);
           
