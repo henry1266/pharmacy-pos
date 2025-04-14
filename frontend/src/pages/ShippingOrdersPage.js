@@ -23,9 +23,9 @@ import axios from 'axios';
 // 導入API基礎URL
 import { API_BASE_URL } from '../redux/actions';
 
-import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchCustomers } from '../redux/actions';
+import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
 import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview';
-import CustomerCheckboxFilter from '../components/filters/CustomerCheckboxFilter';
+import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
 import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
@@ -39,18 +39,18 @@ const ShippingOrdersPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { shippingOrders, loading, error } = useSelector(state => state.shippingOrders);
-  const { customers } = useSelector(state => state.customers || { customers: [] });
+  const { suppliers } = useSelector(state => state.suppliers || { suppliers: [] });
   
   const [searchParams, setSearchParams] = React.useState({
     soid: '',
     sobill: '',
-    socustomer: '',
+    sosupplier: '',
     startDate: null,
     endDate: null
   });
   
-  // 客戶篩選相關狀態
-  const [selectedCustomers, setSelectedCustomers] = React.useState([]);
+  // 供應商篩選相關狀態
+  const [selectedSuppliers, setSelectedSuppliers] = React.useState([]);
   const [filteredRows, setFilteredRows] = React.useState([]);
   
   const [showFilters, setShowFilters] = React.useState(false);
@@ -86,7 +86,7 @@ const ShippingOrdersPage = () => {
   
   React.useEffect(() => {
     dispatch(fetchShippingOrders());
-    dispatch(fetchCustomers());
+    dispatch(fetchSuppliers());
   }, [dispatch]);
   
   React.useEffect(() => {
@@ -99,14 +99,14 @@ const ShippingOrdersPage = () => {
     }
   }, [error]);
   
-  // 處理客戶篩選變更
+  // 處理供應商篩選變更
   React.useEffect(() => {
     if (shippingOrders.length > 0) {
       let filtered = [...shippingOrders];
       
-      // 如果有選擇客戶，則進行篩選
-      if (selectedCustomers.length > 0) {
-        filtered = filtered.filter(so => selectedCustomers.includes(so.socustomer));
+      // 如果有選擇供應商，則進行篩選
+      if (selectedSuppliers.length > 0) {
+        filtered = filtered.filter(so => selectedSuppliers.includes(so.sosupplier));
       }
       
       // 將篩選後的數據轉換為DataGrid需要的格式
@@ -116,7 +116,7 @@ const ShippingOrdersPage = () => {
         soid: so.soid,
         sobill: so.sobill,
         sobilldate: so.sobilldate,
-        socustomer: so.socustomer,
+        sosupplier: so.sosupplier,
         totalAmount: so.totalAmount,
         status: so.status,
         paymentStatus: so.paymentStatus
@@ -126,7 +126,7 @@ const ShippingOrdersPage = () => {
     } else {
       setFilteredRows([]);
     }
-  }, [shippingOrders, selectedCustomers]);
+  }, [shippingOrders, selectedSuppliers]);
   
   const handleSearch = () => {
     dispatch(searchShippingOrders(searchParams));
@@ -136,7 +136,7 @@ const ShippingOrdersPage = () => {
     setSearchParams({
       soid: '',
       sobill: '',
-      socustomer: '',
+      sosupplier: '',
       startDate: null,
       endDate: null
     });
@@ -169,9 +169,9 @@ const ShippingOrdersPage = () => {
     navigate(`/shipping-orders/${id}`);
   };
   
-  // 處理客戶篩選變更
-  const handleCustomerFilterChange = (customers) => {
-    setSelectedCustomers(customers);
+  // 處理供應商篩選變更
+  const handleSupplierFilterChange = (suppliers) => {
+    setSelectedSuppliers(suppliers);
   };
   
   // 處理滑鼠懸停在檢視按鈕上
@@ -324,13 +324,13 @@ const ShippingOrdersPage = () => {
     }
   };
   
-  // 自定義客戶列頭渲染函數
-  const renderCustomerHeader = () => {
+  // 自定義供應商列頭渲染函數
+  const renderSupplierHeader = () => {
     return (
-      <CustomerCheckboxFilter
-        customers={customers}
-        selectedCustomers={selectedCustomers}
-        onFilterChange={handleCustomerFilterChange}
+      <SupplierCheckboxFilter
+        suppliers={suppliers}
+        selectedSuppliers={selectedSuppliers}
+        onFilterChange={handleSupplierFilterChange}
       />
     );
   };
@@ -380,7 +380,7 @@ const ShippingOrdersPage = () => {
             handleDeleteClick={handleDeleteClick}
             handlePreviewMouseEnter={handlePreviewMouseEnter}
             handlePreviewMouseLeave={handlePreviewMouseLeave}
-            renderCustomerHeader={renderCustomerHeader}
+            renderSupplierHeader={renderSupplierHeader}
           />
         </CardContent>
       </Card>
