@@ -364,7 +364,6 @@ const ShippingOrdersPage = () => {
               handleDateChange={handleDateChange}
               handleSearch={handleSearch}
               handleClearSearch={handleClearSearch}
-              customers={customers}
             />
           )}
           
