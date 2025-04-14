@@ -6,7 +6,10 @@ import {
   Button,
   Typography,
   Tooltip,
-  Alert
+  Alert,
+  Box,
+  Paper,
+  Popover
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import useInventoryData from '../../../../hooks/useInventoryData';
@@ -31,6 +34,14 @@ const ItemForm = ({
   // 使用自定義Hook獲取庫存數據
   const { getTotalInventory } = useInventoryData();
   
+  // 用於顯示進貨價提示的狀態
+  const [priceTooltip, setPriceTooltip] = React.useState({
+    open: false,
+    anchorEl: null,
+    price: 0,
+    totalCost: 0
+  });
+  
   // 獲取當前選中藥品的庫存數量
   const getInventoryQuantity = () => {
     if (!currentItem.product) return 0;
@@ -52,28 +63,45 @@ const ItemForm = ({
     return selectedProduct?.purchasePrice || 0;
   };
 
-  // 自動計算總成本
+  // 計算總成本
   const calculateTotalCost = (quantity) => {
     const purchasePrice = getProductPurchasePrice();
     return (parseFloat(purchasePrice) * parseInt(quantity)).toFixed(2);
   };
 
-  // 處理數量輸入變更，自動計算總成本
+  // 處理數量輸入變更
   const handleQuantityChange = (e) => {
-    const quantity = e.target.value;
     handleItemInputChange(e);
-    
-    if (quantity && quantity > 0) {
-      const totalCost = calculateTotalCost(quantity);
-      // 創建一個模擬的事件對象來更新總成本
-      const totalCostEvent = {
-        target: {
-          name: 'dtotalCost',
-          value: totalCost
-        }
-      };
-      handleItemInputChange(totalCostEvent);
+  };
+
+  // 處理數量輸入框按下ENTER鍵
+  const handleQuantityKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      
+      // 獲取進貨價和計算總成本
+      const purchasePrice = getProductPurchasePrice();
+      const totalCost = calculateTotalCost(currentItem.dquantity);
+      
+      // 顯示進貨價提示
+      setPriceTooltip({
+        open: true,
+        anchorEl: event.currentTarget,
+        price: purchasePrice,
+        totalCost: totalCost
+      });
+      
+      // 聚焦到總成本輸入框
+      document.querySelector('input[name="dtotalCost"]')?.focus();
     }
+  };
+
+  // 關閉進貨價提示
+  const handleCloseTooltip = () => {
+    setPriceTooltip({
+      ...priceTooltip,
+      open: false
+    });
   };
 
   return (
@@ -118,16 +146,33 @@ const ItemForm = ({
             inputProps={{ min: 1 }}
             error={!isInventorySufficient()}
             helperText={!isInventorySufficient() ? "庫存不足" : ""}
-            onKeyDown={(event) => {
-              // 當按下ENTER鍵時
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                // 聚焦到總成本輸入框
-                document.querySelector('input[name="dtotalCost"]').focus();
-              }
-            }}
+            onKeyDown={handleQuantityKeyDown}
           />
         </Tooltip>
+        
+        {/* 進貨價提示彈出框 */}
+        <Popover
+          open={priceTooltip.open}
+          anchorEl={priceTooltip.anchorEl}
+          onClose={handleCloseTooltip}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+        >
+          <Paper sx={{ p: 2, maxWidth: 300 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              上次進價: {priceTooltip.price} 元
+            </Typography>
+            <Typography variant="subtitle2" color="primary">
+              建議總成本: {priceTooltip.totalCost} 元
+            </Typography>
+          </Paper>
+        </Popover>
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
         <TextField
