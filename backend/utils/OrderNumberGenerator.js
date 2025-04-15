@@ -62,14 +62,11 @@ class OrderNumberGenerator {
   async generate() {
     try {
       const datePrefix = this.generateDatePrefix();
+      console.log(`生成日期前綴: ${datePrefix}`);
       
-      // 構建正則表達式，查找當天的訂單
-      const regexPattern = `^${datePrefix}\\d{${this.sequenceDigits}}$`;
-      const regex = new RegExp(regexPattern);
-      
-      // 查詢條件
+      // 查詢條件 - 查找以日期前綴開頭的訂單
       const query = {};
-      query[this.field] = { $regex: regex };
+      query[this.field] = { $regex: new RegExp(`^${datePrefix}`) };
       
       // 排序條件
       const sort = {};
@@ -77,25 +74,46 @@ class OrderNumberGenerator {
       
       // 查找當天最後一個訂單號
       const latestOrder = await this.Model.findOne(query).sort(sort);
+      console.log(`最後一個訂單: ${latestOrder ? latestOrder[this.field] : '無'}`);
       
+      // 設置默認序號
       let sequenceNumber = this.sequenceStart;
+      
+      // 如果找到了當天的訂單，提取序號部分
       if (latestOrder) {
-        // 提取序號部分
-        const fieldValue = latestOrder[this.field];
-        const match = fieldValue.match(new RegExp(`^${datePrefix}(\\d{${this.sequenceDigits}})$`));
+        const orderNumber = latestOrder[this.field];
         
-        if (match && match[1]) {
-          // 序號加1，並確保不超過位數限制
-          sequenceNumber = (parseInt(match[1]) + 1) % Math.pow(10, this.sequenceDigits);
-          if (sequenceNumber === 0) sequenceNumber = this.sequenceStart; // 如果進位到0，重新從起始值開始
+        // 提取序號部分 - 從日期前綴後開始
+        const sequencePart = orderNumber.substring(datePrefix.length);
+        console.log(`序號部分: ${sequencePart}`);
+        
+        // 嘗試將序號部分轉換為數字
+        // 只取最後sequenceDigits位數字，避免中間有其他字符
+        const regex = new RegExp(`\\d{${this.sequenceDigits}}$`);
+        const match = sequencePart.match(regex);
+        
+        if (match) {
+          const sequence = parseInt(match[0]);
+          if (!isNaN(sequence)) {
+            sequenceNumber = sequence + 1;
+            console.log(`下一個序號: ${sequenceNumber}`);
+          }
         }
       }
       
+      // 確保序號不超過位數限制
+      sequenceNumber = sequenceNumber % Math.pow(10, this.sequenceDigits);
+      if (sequenceNumber === 0) sequenceNumber = this.sequenceStart;
+      
       // 格式化序號為指定位數
       const formattedSequence = String(sequenceNumber).padStart(this.sequenceDigits, '0');
+      console.log(`格式化後的序號: ${formattedSequence}`);
       
       // 組合最終訂單號
-      return `${datePrefix}${formattedSequence}`;
+      const finalOrderNumber = `${datePrefix}${formattedSequence}`;
+      console.log(`生成的訂單號: ${finalOrderNumber}`);
+      
+      return finalOrderNumber;
     } catch (error) {
       console.error('生成訂單單號時出錯:', error);
       throw error;
