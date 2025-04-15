@@ -133,7 +133,7 @@ const ShippingOrderDetailPage = () => {
           </Typography>
           
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={2}>
               <Typography variant="subtitle2" color="textSecondary">
                 出貨單號
               </Typography>
@@ -142,41 +142,23 @@ const ShippingOrderDetailPage = () => {
               </Typography>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="subtitle2" color="textSecondary">
-                發票號碼
-              </Typography>
-              <Typography variant="body1">
-                {currentShippingOrder.sobill || '-'}
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="subtitle2" color="textSecondary">
-                發票日期
-              </Typography>
-              <Typography variant="body1">
-                {currentShippingOrder.sobilldate ? format(new Date(currentShippingOrder.sobilldate), 'yyyy-MM-dd') : '-'}
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={2}>
               <Typography variant="subtitle2" color="textSecondary">
                 客戶
               </Typography>
               <Typography variant="body1">
-                {currentShippingOrder.socustomer}
+                {currentShippingOrder.sosupplier}
               </Typography>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={2}>
               <Typography variant="subtitle2" color="textSecondary">
                 狀態
               </Typography>
               <StatusChip status={currentShippingOrder.status} />
             </Grid>
             
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={2}>
               <Typography variant="subtitle2" color="textSecondary">
                 付款狀態
               </Typography>
