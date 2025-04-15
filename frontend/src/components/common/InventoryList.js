@@ -49,30 +49,39 @@ const InventoryList = ({ productId }) => {
               saleGroups[inv.saleNumber] = {
                 ...inv,
                 type: 'sale',
-                totalQuantity: inv.quantity
+                totalQuantity: inv.quantity,
+                totalAmount: inv.totalAmount || 0
               };
             } else {
               saleGroups[inv.saleNumber].totalQuantity += inv.quantity;
+              // 累加總金額
+              saleGroups[inv.saleNumber].totalAmount += (inv.totalAmount || 0);
             }
           } else if (inv.purchaseOrderNumber) {
             if (!purchaseGroups[inv.purchaseOrderNumber]) {
               purchaseGroups[inv.purchaseOrderNumber] = {
                 ...inv,
                 type: 'purchase',
-                totalQuantity: inv.quantity
+                totalQuantity: inv.quantity,
+                totalAmount: inv.totalAmount || 0
               };
             } else {
               purchaseGroups[inv.purchaseOrderNumber].totalQuantity += inv.quantity;
+              // 累加總金額，修復進貨合併顯示問題
+              purchaseGroups[inv.purchaseOrderNumber].totalAmount += (inv.totalAmount || 0);
             }
           } else if (inv.shippingOrderNumber) {
             if (!shipGroups[inv.shippingOrderNumber]) {
               shipGroups[inv.shippingOrderNumber] = {
                 ...inv,
                 type: 'ship',
-                totalQuantity: inv.quantity
+                totalQuantity: inv.quantity,
+                totalAmount: inv.totalAmount || 0
               };
             } else {
               shipGroups[inv.shippingOrderNumber].totalQuantity += inv.quantity;
+              // 累加總金額
+              shipGroups[inv.shippingOrderNumber].totalAmount += (inv.totalAmount || 0);
             }
           }
         });
