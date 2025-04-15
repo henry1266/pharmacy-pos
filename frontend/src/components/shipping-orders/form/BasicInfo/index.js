@@ -64,8 +64,6 @@ const BasicInfoForm = ({
               onChange={handleSupplierChange}
               label="供應商 (可用名稱或簡碼搜索)"
               required={true}
-              error={!formData.sosupplier}
-              helperText={!formData.sosupplier ? "供應商為必填項" : ""}
               size="small"
               showCode={true}
             />
