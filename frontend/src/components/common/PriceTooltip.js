@@ -29,15 +29,14 @@ const PriceTooltip = ({
     if (!currentItem.product || !currentItem.dquantity) return "請先選擇產品並輸入數量";
     
     const purchasePrice = getProductPurchasePrice();
-    const totalCost = calculateTotalCost(currentItem.dquantity);
-    
+    const totalCost = Math.round(calculateTotalCost(currentItem.dquantity));
     return `上次進價: ${purchasePrice} 元\n建議總成本: ${totalCost} 元`;
   };
 
   return (
     <Tooltip 
       title={
-        <Box component="div" sx={{ whiteSpace: 'pre-line', p: 1 }}>
+        <Box component="div" sx={{ whiteSpace: 'pre-line', p: 1 , fontSize: '1.2rem'}}>
           {getPriceTooltipText()}
         </Box>
       }
