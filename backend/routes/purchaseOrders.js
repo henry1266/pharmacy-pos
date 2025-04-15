@@ -89,24 +89,8 @@ async function generateUniqueOrderNumber(poid) {
   return orderNumber;
 }
 
-// 引入通用訂單單號生成器
-const OrderNumberGenerator = require('../utils/OrderNumberGenerator');
-
-// 生成日期格式的進貨單號
-async function generateDateBasedOrderNumber() {
-  // 創建進貨單號生成器實例
-  const generator = new OrderNumberGenerator({
-    Model: PurchaseOrder,
-    field: 'poid',
-    prefix: '',
-    useShortYear: false, // 使用YYYY格式
-    sequenceDigits: 3,    // 3位數序號
-    sequenceStart: 1
-  });
-  
-  // 生成進貨單號
-  return await generator.generate();
-}
+// 引入通用訂單單號生成服務
+const OrderNumberService = require('../utils/OrderNumberService');
 
 // @route   POST api/purchase-orders
 // @desc    創建新進貨單
@@ -125,7 +109,7 @@ router.post('/', [
 
     // 如果進貨單號為空，自動生成
     if (!poid || poid.trim() === '') {
-      poid = await generateDateBasedOrderNumber();
+      poid = await OrderNumberService.generatePurchaseOrderNumber();
     } else {
       // 檢查進貨單號是否已存在
       const existingPO = await PurchaseOrder.findOne({ poid });
@@ -135,7 +119,7 @@ router.post('/', [
     }
 
     // 生成唯一訂單號
-    const orderNumber = await generateUniqueOrderNumber(poid);
+    const orderNumber = await OrderNumberService.generateUniqueOrderNumber('purchase', poid);
 
     // 驗證所有藥品ID是否存在
     for (const item of items) {
