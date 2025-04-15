@@ -120,36 +120,24 @@ router.post(
         }
       }
       
+      // 引入通用訂單單號生成器
+      const OrderNumberGenerator = require('../utils/OrderNumberGenerator');
+      
       // 生成銷貨單號（如果未提供）
       let finalSaleNumber = saleNumber;
       if (!finalSaleNumber) {
-        const now = new Date();
-        const year = now.getFullYear().toString().substring(2); // 取年份後兩位
-        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 月份補零
-        const day = now.getDate().toString().padStart(2, '0'); // 日期補零
+        // 創建銷貨單號生成器實例
+        const generator = new OrderNumberGenerator({
+          model: 'Sale',
+          field: 'saleNumber',
+          prefix: '',
+          useShortYear: true, // 使用YY格式
+          sequenceDigits: 3,   // 3位數序號
+          sequenceStart: 1
+        });
         
-        // 基本格式：YYMMDD
-        const datePrefix = `${year}${month}${day}`;
-        
-        // 查找當天最後一個銷貨單號
-        const latestSale = await Sale.findOne({
-          saleNumber: { $regex: `^${datePrefix}` }
-        }).sort({ saleNumber: -1 });
-        
-        if (latestSale && latestSale.saleNumber) {
-          // 提取序號部分並加1 - 使用正則表達式確保正確提取序號
-          const match = latestSale.saleNumber.match(/^(\d{8})(\d{3})$/);
-          if (match && match[2]) {
-            const sequence = (parseInt(match[2]) + 1) % 1000; // 確保序號在0-999範圍內
-            finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
-          } else {
-            // 如果無法正確解析序號，從001開始
-            finalSaleNumber = `${datePrefix}001`;
-          }
-        } else {
-          // 如果當天沒有銷貨單，從001開始
-          finalSaleNumber = `${datePrefix}001`;
-        }
+        // 生成銷貨單號
+        finalSaleNumber = await generator.generate();
       }
       
       // 建立銷售記錄

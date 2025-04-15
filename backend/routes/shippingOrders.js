@@ -90,30 +90,23 @@ async function generateUniqueOrderNumber(soid) {
   return orderNumber;
 }
 
+// 引入通用訂單單號生成器
+const OrderNumberGenerator = require('../utils/OrderNumberGenerator');
+
 // 生成日期格式的出貨單號
 async function generateDateBasedOrderNumber() {
-  // 獲取當前日期，格式為YYYYMMDD
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  const datePrefix = `SO${year}${month}${day}`;
+  // 創建出貨單號生成器實例
+  const generator = new OrderNumberGenerator({
+    model: 'ShippingOrder',
+    field: 'soid',
+    prefix: 'SO',
+    useShortYear: false, // 使用YYYY格式
+    sequenceDigits: 5,    // 5位數序號
+    sequenceStart: 1
+  });
   
-  // 查找今天已有的出貨單，以確定序號
-  const regex = new RegExp(`^${datePrefix}\\d{5}$`);
-  const existingOrders = await ShippingOrder.find({ soid: regex }).sort({ soid: -1 });
-  
-  let sequenceNumber = 1;
-  if (existingOrders.length > 0) {
-    // 從最後一個訂單號提取序號並加1
-    const lastOrderNumber = existingOrders[0].soid;
-    const lastSequence = parseInt(lastOrderNumber.substring(10), 10);
-    sequenceNumber = lastSequence + 1;
-  }
-  
-  // 格式化序號為5位數，例如00001, 00002, ...
-  const formattedSequence = String(sequenceNumber).padStart(5, '0');
-  return `${datePrefix}${formattedSequence}`;
+  // 生成出貨單號
+  return await generator.generate();
 }
 
 // @route   POST api/shipping-orders

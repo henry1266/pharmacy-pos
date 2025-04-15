@@ -89,30 +89,23 @@ async function generateUniqueOrderNumber(poid) {
   return orderNumber;
 }
 
+// 引入通用訂單單號生成器
+const OrderNumberGenerator = require('../utils/OrderNumberGenerator');
+
 // 生成日期格式的進貨單號
 async function generateDateBasedOrderNumber() {
-  // 獲取當前日期，格式為YYYYMMDD
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  const datePrefix = `${year}${month}${day}`;
+  // 創建進貨單號生成器實例
+  const generator = new OrderNumberGenerator({
+    model: 'PurchaseOrder',
+    field: 'poid',
+    prefix: '',
+    useShortYear: false, // 使用YYYY格式
+    sequenceDigits: 3,    // 3位數序號
+    sequenceStart: 1
+  });
   
-  // 查找今天已有的進貨單，以確定序號
-  const regex = new RegExp(`^${datePrefix}\\d{3}$`);
-  const existingOrders = await PurchaseOrder.find({ poid: regex }).sort({ poid: -1 });
-  
-  let sequenceNumber = 1;
-  if (existingOrders.length > 0) {
-    // 從最後一個訂單號提取序號並加1
-    const lastOrderNumber = existingOrders[0].poid;
-    const lastSequence = parseInt(lastOrderNumber.substring(8), 10);
-    sequenceNumber = lastSequence + 1;
-  }
-  
-  // 格式化序號為3位數，例如001, 002, ...
-  const formattedSequence = String(sequenceNumber).padStart(3, '0');
-  return `${datePrefix}${formattedSequence}`;
+  // 生成進貨單號
+  return await generator.generate();
 }
 
 // @route   POST api/purchase-orders
