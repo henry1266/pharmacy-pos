@@ -10,7 +10,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
-import SupplierSelect from './SupplierSelect';
+import SupplierSelect from '../../../common/SupplierSelect';
 import StatusSelect from './StatusSelect';
 import PaymentSelect from './PaymentSelect';
 
@@ -80,6 +80,21 @@ const BasicInfoForm = ({
               suppliers={suppliers}
               selectedSupplier={selectedSupplier}
               onChange={onSupplierChange}
+              required={true}
+              size="medium"
+              onEnterKeyDown={() => {
+                // 嘗試聚焦到付款狀態下拉框
+                setTimeout(() => {
+                  try {
+                    const paymentStatusSelect = document.querySelector('[name="paymentStatus"]');
+                    if (paymentStatusSelect) {
+                      paymentStatusSelect.focus();
+                    }
+                  } catch (error) {
+                    console.error('無法自動聚焦到付款狀態:', error);
+                  }
+                }, 100);
+              }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={6}>

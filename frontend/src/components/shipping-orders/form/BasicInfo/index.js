@@ -9,9 +9,9 @@ import {
   MenuItem, 
   Card, 
   CardContent, 
-  Typography,
-  Autocomplete
+  Typography
 } from '@mui/material';
+import SupplierSelect from '../../../common/SupplierSelect';
 
 
 /**
@@ -58,35 +58,16 @@ const BasicInfoForm = ({
 
           
           <Grid item xs={12} sm={6} md={4}>
-            <Autocomplete
-              id="supplier-select"
-              options={suppliers || []}
-              getOptionLabel={(option) => option.name || ''}
-              filterOptions={(options, state) => {
-                const inputValue = state.inputValue.toLowerCase().trim();
-                return options.filter(option => 
-                  option.name.toLowerCase().includes(inputValue) || 
-                  (option.code && option.code.toLowerCase().includes(inputValue))
-                );
-              }}
-              value={selectedSupplier}
+            <SupplierSelect
+              suppliers={suppliers || []}
+              selectedSupplier={selectedSupplier}
               onChange={handleSupplierChange}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="供應商 (可用名稱或簡碼搜索)"
-                  variant="outlined"
-                  size="small"
-                  required
-                  error={!formData.sosupplier}
-                  helperText={!formData.sosupplier && "供應商為必填項"}
-                />
-              )}
-              renderOption={(props, option) => (
-                <li {...props}>
-                  {option.name} {option.code && <span style={{color: 'gray', marginLeft: '8px'}}>({option.code})</span>}
-                </li>
-              )}
+              label="供應商 (可用名稱或簡碼搜索)"
+              required={true}
+              error={!formData.sosupplier}
+              helperText={!formData.sosupplier ? "供應商為必填項" : ""}
+              size="small"
+              showCode={true}
             />
           </Grid>
           
