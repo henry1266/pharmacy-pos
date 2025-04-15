@@ -137,9 +137,15 @@ router.post(
         }).sort({ saleNumber: -1 });
         
         if (latestSale && latestSale.saleNumber) {
-          // 提取序號部分並加1
-          const sequence = parseInt(latestSale.saleNumber.substring(6)) + 1;
-          finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
+          // 提取序號部分並加1 - 使用正則表達式確保正確提取序號
+          const match = latestSale.saleNumber.match(/^(\d{8})(\d{3})$/);
+          if (match && match[2]) {
+            const sequence = (parseInt(match[2]) + 1) % 1000; // 確保序號在0-999範圍內
+            finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
+          } else {
+            // 如果無法正確解析序號，從001開始
+            finalSaleNumber = `${datePrefix}001`;
+          }
         } else {
           // 如果當天沒有銷貨單，從001開始
           finalSaleNumber = `${datePrefix}001`;
