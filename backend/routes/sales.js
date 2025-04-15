@@ -83,17 +83,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const {
-      saleNumber,
-      customer,
-      items,
-      totalAmount,
-      discount,
-      paymentMethod,
-      paymentStatus,
-      note,
-      cashier
-    } = req.body;
+    const { saleNumber, customer, items, totalAmount, discount, paymentMethod, paymentStatus, note, cashier } = req.body;
     try {
       // 檢查客戶是否存在
       if (customer) {
