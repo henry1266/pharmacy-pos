@@ -4,7 +4,8 @@ import {
   TableRow,
   TableCell,
   Typography,
-  IconButton
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import { 
   Check as CheckIcon,
@@ -28,6 +29,33 @@ const ItemForm = ({
   onSave,
   onCancel
 }) => {
+  /**
+   * 處理數量輸入框按下ENTER鍵
+   * @param {Object} event - 鍵盤事件對象
+   */
+  const handleQuantityKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      // 聚焦到總成本輸入框
+      document.querySelector('input[name="dtotalCost"]')?.focus();
+    }
+  };
+
+  /**
+   * 生成進價提示文本
+   * @returns {string} 提示文本
+   */
+  const getPriceTooltipText = () => {
+    if (!editingItem.product || !editingItem.dquantity) return "請先選擇產品並輸入數量";
+    
+    // 這裡假設有一個獲取產品進價的函數，實際應根據項目數據結構調整
+    const purchasePrice = editingItem.dquantity > 0 && editingItem.dtotalCost > 0 
+      ? (editingItem.dtotalCost / editingItem.dquantity).toFixed(2)
+      : '0.00';
+    const totalCost = editingItem.dquantity * purchasePrice;
+    
+    return `上次進價: ${purchasePrice} 元\n建議總成本: ${totalCost} 元`;
+  };
   return (
     <TableRow>
       <TableCell align="center">
@@ -57,19 +85,37 @@ const ItemForm = ({
           type="number"
           value={editingItem.dquantity}
           onChange={onChange}
+          onKeyDown={handleQuantityKeyDown}
           inputProps={{ min: 1 }}
         />
       </TableCell>
       <TableCell align="right">
-        <TextField
-          fullWidth
-          size="small"
-          name="dtotalCost"
-          type="number"
-          value={editingItem.dtotalCost}
-          onChange={onChange}
-          inputProps={{ min: 0 }}
-        />
+        <Tooltip 
+          title={getPriceTooltipText()}
+          placement="top"
+          arrow
+          enterDelay={500}
+          leaveDelay={200}
+          PopperProps={{
+            sx: { 
+              whiteSpace: 'pre-line',
+              '& .MuiTooltip-tooltip': { 
+                fontSize: '0.875rem',
+                padding: '8px 12px'
+              }
+            }
+          }}
+        >
+          <TextField
+            fullWidth
+            size="small"
+            name="dtotalCost"
+            type="number"
+            value={editingItem.dtotalCost}
+            onChange={onChange}
+            inputProps={{ min: 0 }}
+          />
+        </Tooltip>
       </TableCell>
       <TableCell align="right">
         {editingItem.dquantity > 0 ? (editingItem.dtotalCost / editingItem.dquantity).toFixed(2) : '0.00'}
