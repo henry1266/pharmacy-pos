@@ -97,11 +97,11 @@ const OrderNumberGenerator = require('../utils/OrderNumberGenerator');
 async function generateDateBasedOrderNumber() {
   // 創建出貨單號生成器實例
   const generator = new OrderNumberGenerator({
-    model: 'ShippingOrder',
+    Model: ShippingOrder,
     field: 'soid',
-    prefix: 'SO',
+    prefix: '',
     useShortYear: false, // 使用YYYY格式
-    sequenceDigits: 5,    // 5位數序號
+    sequenceDigits: 3,    // 3位數序號
     sequenceStart: 1
   });
   

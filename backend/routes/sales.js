@@ -128,10 +128,10 @@ router.post(
       if (!finalSaleNumber) {
         // 創建銷貨單號生成器實例
         const generator = new OrderNumberGenerator({
-          model: 'Sale',
+          Model: Sale,
           field: 'saleNumber',
           prefix: '',
-          useShortYear: true, // 使用YY格式
+          useShortYear: false, // 使用YYYY格式
           sequenceDigits: 3,   // 3位數序號
           sequenceStart: 1
         });

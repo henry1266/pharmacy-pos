@@ -10,13 +10,11 @@
  * 5. 提供統一的API接口
  */
 
-const mongoose = require('mongoose');
-
 class OrderNumberGenerator {
   /**
    * 創建訂單單號生成器
    * @param {Object} options - 配置選項
-   * @param {string} options.model - 模型名稱（例如：'PurchaseOrder', 'ShippingOrder', 'Sale'）
+   * @param {Object} options.Model - Mongoose模型實例
    * @param {string} options.field - 單號字段名稱（例如：'poid', 'soid', 'saleNumber'）
    * @param {string} options.prefix - 單號前綴（可選，例如：'SO'）
    * @param {boolean} options.useShortYear - 是否使用短年份（例如：true表示使用YY，false表示使用YYYY）
@@ -24,7 +22,7 @@ class OrderNumberGenerator {
    * @param {number} options.sequenceStart - 序號起始值（默認為1）
    */
   constructor(options) {
-    this.model = options.model;
+    this.Model = options.Model;
     this.field = options.field;
     this.prefix = options.prefix || '';
     this.useShortYear = options.useShortYear || false;
@@ -32,8 +30,8 @@ class OrderNumberGenerator {
     this.sequenceStart = options.sequenceStart || 1;
     
     // 驗證必要參數
-    if (!this.model || !this.field) {
-      throw new Error('模型名稱和字段名稱為必填項');
+    if (!this.Model || !this.field) {
+      throw new Error('Mongoose模型實例和字段名稱為必填項');
     }
     
     // 驗證序號位數
@@ -64,7 +62,6 @@ class OrderNumberGenerator {
   async generate() {
     try {
       const datePrefix = this.generateDatePrefix();
-      const Model = mongoose.model(this.model);
       
       // 構建正則表達式，查找當天的訂單
       const regexPattern = `^${datePrefix}\\d{${this.sequenceDigits}}$`;
@@ -79,7 +76,7 @@ class OrderNumberGenerator {
       sort[this.field] = -1;
       
       // 查找當天最後一個訂單號
-      const latestOrder = await Model.findOne(query).sort(sort);
+      const latestOrder = await this.Model.findOne(query).sort(sort);
       
       let sequenceNumber = this.sequenceStart;
       if (latestOrder) {
@@ -112,11 +109,10 @@ class OrderNumberGenerator {
    */
   async exists(orderNumber) {
     try {
-      const Model = mongoose.model(this.model);
       const query = {};
       query[this.field] = orderNumber;
       
-      const existingOrder = await Model.findOne(query);
+      const existingOrder = await this.Model.findOne(query);
       return !!existingOrder;
     } catch (error) {
       console.error('檢查訂單單號是否存在時出錯:', error);
