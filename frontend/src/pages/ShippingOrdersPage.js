@@ -30,6 +30,7 @@ import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrde
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
 import DeleteConfirmDialog from '../components/shipping-orders/common/ConfirmDialog';
+import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 /**
  * 出貨單管理頁面
@@ -364,6 +365,15 @@ const ShippingOrdersPage = () => {
               handleDateChange={handleDateChange}
               handleSearch={handleSearch}
               handleClearSearch={handleClearSearch}
+            />
+          )}
+          
+          {/* 篩選價格加總 */}
+          {filteredRows.length > 0 && (
+            <FilterPriceSummary 
+              filteredRows={filteredRows}
+              totalAmountField="totalAmount"
+              title="篩選結果"
             />
           )}
           

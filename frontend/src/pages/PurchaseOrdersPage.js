@@ -30,6 +30,7 @@ import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTab
 import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter';
 import CsvImportDialog from '../components/purchase-orders/CsvImportDialog';
 import DeleteConfirmDialog from '../components/purchase-orders/DeleteConfirmDialog';
+import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 /**
  * 進貨單管理頁面
@@ -365,6 +366,15 @@ const PurchaseOrdersPage = () => {
               handleSearch={handleSearch}
               handleClearSearch={handleClearSearch}
               suppliers={suppliers}
+            />
+          )}
+          
+          {/* 篩選價格加總 */}
+          {filteredRows.length > 0 && (
+            <FilterPriceSummary 
+              filteredRows={filteredRows}
+              totalAmountField="totalAmount"
+              title="篩選結果"
             />
           )}
           
