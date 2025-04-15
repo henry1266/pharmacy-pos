@@ -7,6 +7,7 @@ import {
   Typography
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
+import PriceTooltip from '../common/PriceTooltip';
 
 /**
  * 藥品項目添加表單組件
@@ -25,6 +26,23 @@ const ProductItemForm = ({
   handleAddItem,
   products
 }) => {
+  // 獲取當前選中產品的進貨價
+  const getProductPurchasePrice = () => {
+    if (!currentItem.product) return 0;
+    const selectedProduct = products?.find(p => p._id === currentItem.product);
+    return selectedProduct?.purchasePrice || 0;
+  };
+
+  // 計算總成本
+  const calculateTotalCost = (quantity) => {
+    const purchasePrice = getProductPurchasePrice();
+    return (parseFloat(purchasePrice) * parseInt(quantity)).toFixed(2);
+  };
+
+  // 檢查庫存是否足夠 (進貨單不需要檢查庫存，始終返回true)
+  const isInventorySufficient = () => {
+    return true;
+  };
   return (
     <Grid container spacing={2} sx={{ mb: 1 }}>
 <Grid item xs={12} sm={6} md={4}>
@@ -75,38 +93,13 @@ const ProductItemForm = ({
         />
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
-        <TextField
-          fullWidth
-          label="總成本"
-          name="dtotalCost"
-          type="number"
-          value={currentItem.dtotalCost}
-          onChange={handleItemInputChange}
-          inputProps={{ min: 0 }}
-          onKeyDown={(event) => {
-            // 當按下ENTER鍵時
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              // 如果所有必填欄位都已填寫，則添加項目
-              if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost !== '') {
-                handleAddItem();
-                // 添加項目後，將焦點移回商品選擇欄位
-                setTimeout(() => {
-                  // 使用用戶提供的確切選擇器信息
-                  const productInput = document.getElementById('product-select');
-                  if (productInput) {
-                    productInput.focus();
-                    console.log('ENTER鍵：焦點已設置到商品選擇欄位', productInput);
-                  } else {
-                    console.error('找不到商品選擇欄位元素');
-                  }
-                }, 200);
-              } else {
-                // 如果有欄位未填寫，顯示錯誤提示
-                console.error('請填寫完整的藥品項目資料');
-              }
-            }
-          }}
+        <PriceTooltip 
+          currentItem={currentItem}
+          handleItemInputChange={handleItemInputChange}
+          getProductPurchasePrice={getProductPurchasePrice}
+          calculateTotalCost={calculateTotalCost}
+          isInventorySufficient={isInventorySufficient}
+          handleAddItem={handleAddItem}
         />
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
