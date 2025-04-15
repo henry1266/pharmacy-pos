@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import ItemActions from './ItemActions';
 import ItemForm from './ItemForm';
+import PriceSummary from '../../../common/PriceSummary';
 
 /**
  * 藥品項目表格組件
@@ -116,26 +117,12 @@ const ItemsTable = ({
               </TableCell>
             </TableRow>
           )}
-          {/* 固定的總計欄 */}
-          <TableRow
-            sx={{
-              position: 'sticky',
-              bottom: 0,
-              backgroundColor: 'white',
-              zIndex: 5,
-              borderTop: '2px solid #e0e0e0',
-              '& > *': { fontWeight: 'bold' }
-            }}
-          >
-            <TableCell></TableCell>
-            <TableCell colSpan={3} align="right">
-              <Typography variant="subtitle1">總計：</Typography>
-            </TableCell>
-            <TableCell align="right">
-              <Typography variant="subtitle1">{totalAmount.toLocaleString()}</Typography>
-            </TableCell>
-            <TableCell colSpan={2}></TableCell>
-          </TableRow>
+          {/* 使用通用價格加總元件 */}
+          <PriceSummary 
+            totalAmount={totalAmount} 
+            colSpan={3} 
+            totalColumns={7} 
+          />
         </TableBody>
       </Table>
     </TableContainer>
