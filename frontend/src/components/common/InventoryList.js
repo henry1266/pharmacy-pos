@@ -11,7 +11,8 @@ import {
   TableHead,
   TableRow,
   Link,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const InventoryList = ({ productId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStock, setCurrentStock] = useState(0);
+  const [profitLoss, setProfitLoss] = useState(0);
 
   useEffect(() => {
     const fetchInventories = async () => {
@@ -105,8 +107,42 @@ const InventoryList = ({ productId }) => {
         // 反轉回來，保持從大到小的排序
         processedInventories.reverse();
         
+        // 計算損益總和：銷售-進貨+出貨
+        let totalProfitLoss = 0;
+        processedInventories.forEach(inv => {
+          // 計算實際交易價格
+          let price = 0;
+          if (inv.type === 'purchase' && inv.totalAmount && inv.totalQuantity) {
+            // 進貨記錄：使用實際交易價格（總金額/數量）
+            const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+            price = unitPrice;
+          } else if (inv.type === 'ship' && inv.totalAmount && inv.totalQuantity) {
+            // 出貨記錄：使用實際交易價格（總金額/數量）
+            const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+            price = unitPrice;
+          } else if (inv.product && inv.product.sellingPrice) {
+            // 其他記錄：使用產品售價
+            price = inv.product.sellingPrice;
+          }
+          
+          // 計算該記錄的損益
+          const recordCost = price * Math.abs(inv.totalQuantity);
+          
+          if (inv.type === 'sale') {
+            // 銷售記錄：增加損益
+            totalProfitLoss += recordCost;
+          } else if (inv.type === 'purchase') {
+            // 進貨記錄：減少損益
+            totalProfitLoss -= recordCost;
+          } else if (inv.type === 'ship') {
+            // 出貨記錄：增加損益
+            totalProfitLoss += recordCost;
+          }
+        });
+        
         setInventories(processedInventories);
         setCurrentStock(stock);
+        setProfitLoss(totalProfitLoss);
         setLoading(false);
       } catch (err) {
         console.error('獲取庫存記錄失敗:', err);
@@ -173,14 +209,31 @@ const InventoryList = ({ productId }) => {
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1 }}>
-        <Typography variant="body2" sx={{ mr: 1 }}>
-          總庫存數量:
-        </Typography>
-        <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
-          {currentStock}
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, px: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ mr: 1 }}>
+            總庫存數量:
+          </Typography>
+          <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
+            {currentStock}
+          </Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ mr: 1 }}>
+            損益總和:
+          </Typography>
+          <Typography 
+            variant="body1" 
+            color={profitLoss >= 0 ? 'success.main' : 'error.main'} 
+            sx={{ fontWeight: 'bold' }}
+          >
+            ${profitLoss.toFixed(2)}
+          </Typography>
+        </Box>
       </Box>
+      
+      <Divider sx={{ mb: 1 }} />
 
       <TableContainer component={Paper} sx={{ maxHeight: 250, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
