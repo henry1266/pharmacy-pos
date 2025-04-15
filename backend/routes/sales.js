@@ -6,6 +6,25 @@ const { BaseProduct } = require('../models/BaseProduct');
 const Inventory = require('../models/Inventory');
 const Customer = require('../models/Customer');
 
+// 引入通用訂單單號生成器
+const OrderNumberGenerator = require('../utils/OrderNumberGenerator');
+
+// 生成日期格式的銷貨單號
+async function generateDateBasedOrderNumber() {
+  // 創建銷貨單號生成器實例
+  const generator = new OrderNumberGenerator({
+    Model: Sale,
+    field: 'saleNumber',
+    prefix: '',
+    useShortYear: false, // 使用YYYY格式
+    sequenceDigits: 3,    // 3位數序號
+    sequenceStart: 1
+  });
+  
+  // 生成銷貨單號
+  return await generator.generate();
+}
+
 // @route   GET api/sales
 // @desc    Get all sales
 // @access  Public
@@ -120,24 +139,11 @@ router.post(
         }
       }
       
-      // 引入通用訂單單號生成器
-      const OrderNumberGenerator = require('../utils/OrderNumberGenerator');
-      
       // 生成銷貨單號（如果未提供）
       let finalSaleNumber = saleNumber;
       if (!finalSaleNumber) {
-        // 創建銷貨單號生成器實例
-        const generator = new OrderNumberGenerator({
-          Model: Sale,
-          field: 'saleNumber',
-          prefix: '',
-          useShortYear: false, // 使用YYYY格式
-          sequenceDigits: 3,   // 3位數序號
-          sequenceStart: 1
-        });
-        
-        // 生成銷貨單號
-        finalSaleNumber = await generator.generate();
+        // 使用與進貨單相同的單號生成方法
+        finalSaleNumber = await generateDateBasedOrderNumber();
       }
       
       // 建立銷售記錄
