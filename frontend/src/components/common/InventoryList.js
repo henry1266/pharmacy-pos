@@ -292,7 +292,11 @@ const InventoryList = ({ productId }) => {
                 // 出貨記錄：使用實際交易價格（總金額/數量）
                 const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
                 price = unitPrice.toFixed(2);
-              } else if (inv.product && inv.product.sellingPrice) {
+              } else if (inv.type === 'sale' && inv.totalAmount && inv.totalQuantity) {
+                // 出貨記錄：使用實際交易價格（總金額/數量）
+                const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+                price = unitPrice.toFixed(2);
+              }else if (inv.product && inv.product.sellingPrice) {
                 // 其他記錄：使用產品售價
                 price = inv.product.sellingPrice.toFixed(2);
               }
