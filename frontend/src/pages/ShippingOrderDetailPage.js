@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
 import { 
   Box, 
   Typography, 
@@ -9,26 +8,17 @@ import {
   CardContent, 
   Grid, 
   Button,
-  Divider,
-  Chip,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
+  Paper
 } from '@mui/material';
 import { 
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns';
 
 import { fetchShippingOrder } from '../redux/actions';
 import StatusChip from '../components/shipping-orders/common/StatusChip';
 import PaymentStatusChip from '../components/shipping-orders/common/PaymentStatusChip';
-import { getApiBaseUrl } from '../utils/apiConfig';
+import ProductItemsTable from '../components/common/ProductItemsTable';
 
 /**
  * 出貨單詳情頁面
@@ -38,43 +28,14 @@ const ShippingOrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const API_BASE_URL = getApiBaseUrl();
   
   const { currentShippingOrder, loading, error } = useSelector(state => state.shippingOrders);
-  const [productDetails, setProductDetails] = useState({});
   
   useEffect(() => {
     if (id) {
       dispatch(fetchShippingOrder(id));
     }
   }, [dispatch, id]);
-  
-  // 當currentShippingOrder更新時，獲取完整的產品資料
-  useEffect(() => {
-    const fetchProductDetails = async () => {
-      if (currentShippingOrder && currentShippingOrder.items && currentShippingOrder.items.length > 0) {
-        const details = {};
-        
-        // 為每個產品獲取詳細資料
-        for (const item of currentShippingOrder.items) {
-          if (item.did) {
-            try {
-              const response = await axios.get(`${API_BASE_URL}/products/code/${item.did}`);
-              if (response.data) {
-                details[item.did] = response.data;
-              }
-            } catch (error) {
-              console.error(`獲取產品詳情失敗: ${item.did}`, error);
-            }
-          }
-        }
-        
-        setProductDetails(details);
-      }
-    };
-    
-    fetchProductDetails();
-  }, [currentShippingOrder, API_BASE_URL]);
   
   const handleBack = () => {
     navigate('/shipping-orders');
@@ -212,70 +173,15 @@ const ShippingOrderDetailPage = () => {
         </CardContent>
       </Card>
       
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            藥品項目
-          </Typography>
-          
-          <TableContainer component={Paper} variant="outlined">
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell width="5%">#</TableCell>
-                  <TableCell width="15%">藥品代碼</TableCell>
-                  <TableCell width="15%">健保代碼</TableCell>
-                  <TableCell width="30%">藥品名稱</TableCell>
-                  <TableCell width="10%" align="right">數量</TableCell>
-                  <TableCell width="10%" align="right">單價</TableCell>
-                  <TableCell width="15%" align="right">總金額</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {currentShippingOrder.items && currentShippingOrder.items.length > 0 ? (
-                  currentShippingOrder.items.map((item, index) => {
-                    // 從productDetails中獲取健保代碼
-                    const productDetail = productDetails[item.did] || {};
-                    const healthInsuranceCode = productDetail.healthInsuranceCode || '-';
-                    
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{item.did}</TableCell>
-                        <TableCell>{healthInsuranceCode}</TableCell>
-                        <TableCell>{item.dname}</TableCell>
-                        <TableCell align="right">{item.dquantity}</TableCell>
-                        <TableCell align="right">
-                          {item.dquantity > 0 
-                            ? (item.dtotalCost / item.dquantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                            : '0.00'
-                          }
-                        </TableCell>
-                        <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      無藥品項目
-                    </TableCell>
-                  </TableRow>
-                )}
-                
-                <TableRow>
-                  <TableCell colSpan={6} align="right" sx={{ fontWeight: 'bold' }}>
-                    總金額
-                  </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                    {Number(currentShippingOrder.totalAmount).toLocaleString()} 元
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+      <ProductItemsTable 
+        items={currentShippingOrder.items || []}
+        codeField="did"
+        nameField="dname"
+        quantityField="dquantity"
+        totalCostField="dtotalCost"
+        totalAmount={currentShippingOrder.totalAmount}
+        title="藥品項目"
+      />
     </Box>
   );
 };

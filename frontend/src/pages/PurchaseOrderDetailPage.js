@@ -8,12 +8,6 @@ import {
   Grid, 
   Card, 
   CardContent, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
   Paper,
   Chip,
   Divider,
@@ -27,6 +21,7 @@ import {
 import { format } from 'date-fns';
 
 import { fetchPurchaseOrder } from '../redux/actions';
+import ProductItemsTable from '../components/common/ProductItemsTable';
 
 const PurchaseOrderDetailPage = () => {
   const dispatch = useDispatch();
@@ -216,55 +211,16 @@ const PurchaseOrderDetailPage = () => {
           
           <Divider sx={{ my: 2 }} />
           
-          <Typography variant="h6" gutterBottom>
-            藥品項目
-          </Typography>
-          <TableContainer component={Paper} sx={{ mb: 2 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>藥品代碼</TableCell>
-                  <TableCell>藥品名稱</TableCell>
-                  <TableCell align="right">數量</TableCell>
-                  <TableCell align="right">總成本</TableCell>
-                  <TableCell align="right">單價</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {currentPurchaseOrder.items.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">沒有藥品項目</TableCell>
-                  </TableRow>
-                ) : (
-                  currentPurchaseOrder.items.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.did}</TableCell>
-                      <TableCell>{item.dname}</TableCell>
-                      <TableCell align="right">{item.dquantity}</TableCell>
-                      <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
-                      <TableCell align="right">
-                        {(Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-                <TableRow>
-                  <TableCell colSpan={3} align="right">
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      總計:
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {currentPurchaseOrder.totalAmount?.toLocaleString() || 
-                       currentPurchaseOrder.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0).toLocaleString()}
-                    </Typography>
-                  </TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <ProductItemsTable 
+            items={currentPurchaseOrder.items || []}
+            codeField="did"
+            nameField="dname"
+            quantityField="dquantity"
+            totalCostField="dtotalCost"
+            totalAmount={currentPurchaseOrder.totalAmount || 
+                         currentPurchaseOrder.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0)}
+            title="藥品項目"
+          />
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant="body2" color="text.secondary">
