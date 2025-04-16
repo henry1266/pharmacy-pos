@@ -81,6 +81,24 @@ router.get('/medicines', async (req, res) => {
   }
 });
 
+// @route   GET api/products/code/:code
+// @desc    根據產品代碼獲取產品
+// @access  Public
+router.get('/code/:code', async (req, res) => {
+  try {
+    const product = await BaseProduct.findOne({ code: req.params.code });
+    
+    if (!product) {
+      return res.status(404).json({ msg: '產品不存在' });
+    }
+    
+    res.json(product);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   GET api/products/:id
 // @desc    獲取單個產品
 // @access  Public - 修改為公開訪問
