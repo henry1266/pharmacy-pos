@@ -36,7 +36,20 @@ router.get('/', async (req, res) => {
     const shippingOrders = await ShippingOrder.find()
       .sort({ soid: -1 })
       .populate('supplier', 'name')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code healthInsuranceCode');
+    
+    // 將產品的healthInsuranceCode添加到items中
+    if (shippingOrders && shippingOrders.length > 0) {
+      shippingOrders.forEach(order => {
+        if (order.items && order.items.length > 0) {
+          order.items.forEach(item => {
+            if (item.product && item.product.healthInsuranceCode) {
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
+            }
+          });
+        }
+      });
+    }
     
     res.json(shippingOrders);
   } catch (err) {
@@ -52,10 +65,19 @@ router.get('/:id', async (req, res) => {
   try {
     const shippingOrder = await ShippingOrder.findById(req.params.id)
       .populate('supplier', 'name')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code healthInsuranceCode');
     
     if (!shippingOrder) {
       return res.status(404).json({ msg: '找不到該出貨單' });
+    }
+    
+    // 將產品的healthInsuranceCode添加到items中
+    if (shippingOrder.items && shippingOrder.items.length > 0) {
+      shippingOrder.items.forEach(item => {
+        if (item.product && item.product.healthInsuranceCode) {
+          item.healthInsuranceCode = item.product.healthInsuranceCode;
+        }
+      });
     }
     
     res.json(shippingOrder);
@@ -318,7 +340,20 @@ router.get('/supplier/:supplierId', async (req, res) => {
     const shippingOrders = await ShippingOrder.find({ supplier: req.params.supplierId })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code healthInsuranceCode');
+    
+    // 將產品的healthInsuranceCode添加到items中
+    if (shippingOrders && shippingOrders.length > 0) {
+      shippingOrders.forEach(order => {
+        if (order.items && order.items.length > 0) {
+          order.items.forEach(item => {
+            if (item.product && item.product.healthInsuranceCode) {
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
+            }
+          });
+        }
+      });
+    }
     
     res.json(shippingOrders);
   } catch (err) {
@@ -341,7 +376,20 @@ router.get('/search/query', async (req, res) => {
     const shippingOrders = await ShippingOrder.find(query)
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code healthInsuranceCode');
+    
+    // 將產品的healthInsuranceCode添加到items中
+    if (shippingOrders && shippingOrders.length > 0) {
+      shippingOrders.forEach(order => {
+        if (order.items && order.items.length > 0) {
+          order.items.forEach(item => {
+            if (item.product && item.product.healthInsuranceCode) {
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
+            }
+          });
+        }
+      });
+    }
     
     res.json(shippingOrders);
   } catch (err) {
@@ -361,7 +409,20 @@ router.get('/product/:productId', async (req, res) => {
     })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code healthInsuranceCode');
+    
+    // 將產品的healthInsuranceCode添加到items中
+    if (shippingOrders && shippingOrders.length > 0) {
+      shippingOrders.forEach(order => {
+        if (order.items && order.items.length > 0) {
+          order.items.forEach(item => {
+            if (item.product && item.product.healthInsuranceCode) {
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
+            }
+          });
+        }
+      });
+    }
     
     res.json(shippingOrders);
   } catch (err) {
@@ -379,7 +440,20 @@ router.get('/recent/list', async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10)
       .populate('supplier', 'name')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code healthInsuranceCode');
+    
+    // 將產品的healthInsuranceCode添加到items中
+    if (shippingOrders && shippingOrders.length > 0) {
+      shippingOrders.forEach(order => {
+        if (order.items && order.items.length > 0) {
+          order.items.forEach(item => {
+            if (item.product && item.product.healthInsuranceCode) {
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
+            }
+          });
+        }
+      });
+    }
     
     res.json(shippingOrders);
   } catch (err) {
