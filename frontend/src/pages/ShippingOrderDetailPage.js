@@ -193,9 +193,10 @@ const ShippingOrderDetailPage = () => {
                 <TableRow>
                   <TableCell width="5%">#</TableCell>
                   <TableCell width="15%">藥品代碼</TableCell>
-                  <TableCell width="40%">藥品名稱</TableCell>
+                  <TableCell width="15%">健保代碼</TableCell>
+                  <TableCell width="30%">藥品名稱</TableCell>
                   <TableCell width="10%" align="right">數量</TableCell>
-                  <TableCell width="15%" align="right">單價</TableCell>
+                  <TableCell width="10%" align="right">單價</TableCell>
                   <TableCell width="15%" align="right">總金額</TableCell>
                 </TableRow>
               </TableHead>
@@ -205,6 +206,7 @@ const ShippingOrderDetailPage = () => {
                     <TableRow key={index}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{item.did}</TableCell>
+                      <TableCell>{item.healthInsuranceCode || '-'}</TableCell>
                       <TableCell>{item.dname}</TableCell>
                       <TableCell align="right">{item.dquantity}</TableCell>
                       <TableCell align="right">
@@ -218,14 +220,14 @@ const ShippingOrderDetailPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} align="center">
+                    <TableCell colSpan={7} align="center">
                       無藥品項目
                     </TableCell>
                   </TableRow>
                 )}
                 
                 <TableRow>
-                  <TableCell colSpan={5} align="right" sx={{ fontWeight: 'bold' }}>
+                  <TableCell colSpan={6} align="right" sx={{ fontWeight: 'bold' }}>
                     總金額
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>
