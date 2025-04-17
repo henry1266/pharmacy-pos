@@ -146,62 +146,9 @@ const FIFOProfitCalculator = ({ productId }) => {
       <Typography variant="subtitle1" gutterBottom>
         銷售毛利明細
       </Typography>
-      <TableContainer component={Paper} sx={{ maxHeight: 300, overflow: 'auto' }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>銷售時間</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>收入</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>成本</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利率</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {fifoData.profitMargins.map((item, index) => (
-              <TableRow 
-                key={index}
-                sx={{ 
-                  '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
-                  '&:hover': { backgroundColor: '#f1f1f1' }
-                }}
-              >
-                <TableCell>
-                  {new Date(item.saleTime).toLocaleString()}
-                </TableCell>
-                <TableCell align="right">{item.totalQuantity}</TableCell>
-                <TableCell align="right">
-                  ${(item.totalRevenue / item.totalQuantity).toFixed(2)}
-                </TableCell>
-                <TableCell align="right">${item.totalRevenue.toFixed(2)}</TableCell>
-                <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
-                <TableCell 
-                  align="right"
-                  sx={{ 
-                    color: item.grossProfit >= 0 ? 'success.main' : 'error.main',
-                    fontWeight: 'medium'
-                  }}
-                >
-                  ${item.grossProfit.toFixed(2)}
-                </TableCell>
-                <TableCell 
-                  align="right"
-                  sx={{ 
-                    color: parseFloat(item.profitMargin) >= 0 ? 'success.main' : 'error.main',
-                    fontWeight: 'medium'
-                  }}
-                >
-                  {item.profitMargin}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
 
-      <TableContainer component={Paper} sx={{ maxHeight: 300, overflow: 'auto' }}>
+
+      <TableContainer component={Paper} sx={{ maxWidth: 1000, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
@@ -225,7 +172,7 @@ const FIFOProfitCalculator = ({ productId }) => {
                   }}
                 >
                   <TableCell>
-                    {new Date(item.saleTime).toLocaleString()}
+                    {new Date(item.saleTime).toLocaleDateString()}
                   </TableCell>
                   <TableCell align="right">{item.totalQuantity}</TableCell>
                   <TableCell align="right">
@@ -266,7 +213,7 @@ const FIFOProfitCalculator = ({ productId }) => {
                 <TableRow>
                   <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
                     <Collapse in={expandedRows[index]} timeout="auto" unmountOnExit>
-                      <Box sx={{ margin: 1, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
+                      <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
                         <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
                           FIFO成本分佈明細
                         </Typography>
@@ -274,8 +221,8 @@ const FIFOProfitCalculator = ({ productId }) => {
                           <TableHead>
                             <TableRow sx={{ backgroundColor: '#e9ecef' }}>
                               <TableCell sx={{ fontWeight: 'bold' }}>批次時間</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
                               <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
+							  <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>                              
                               <TableCell align="right" sx={{ fontWeight: 'bold' }}>小計</TableCell>
                             </TableRow>
                           </TableHead>
@@ -285,9 +232,9 @@ const FIFOProfitCalculator = ({ productId }) => {
                               .flatMap(match => 
                                 match.costParts.map((part, partIndex) => (
                                   <TableRow key={partIndex}>
-                                    <TableCell>{new Date(part.batchTime).toLocaleString()}</TableCell>
-                                    <TableCell align="right">${part.unit_price.toFixed(2)}</TableCell>
+                                    <TableCell>{new Date(part.batchTime).toLocaleDateString()}</TableCell>
                                     <TableCell align="right">{part.quantity}</TableCell>
+									<TableCell align="right">${part.unit_price.toFixed(2)}</TableCell>
                                     <TableCell align="right">${(part.unit_price * part.quantity).toFixed(2)}</TableCell>
                                   </TableRow>
                                 ))
