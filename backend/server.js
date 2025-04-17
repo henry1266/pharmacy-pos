@@ -27,6 +27,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/purchase-orders', require('./routes/purchaseOrders'));
 app.use('/api/shipping-orders', require('./routes/shippingOrders'));
+app.use('/api/fifo', require('./routes/fifo')); // 新增FIFO路由
 
 // 設定靜態資源
 if (process.env.NODE_ENV === 'production') {
