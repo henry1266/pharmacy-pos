@@ -13,13 +13,26 @@ import {
   TableHead,
   TableRow,
   Paper,
-  CircularProgress
+  CircularProgress,
+  IconButton,
+  Collapse
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 const FIFOProfitCalculator = ({ productId }) => {
   const [fifoData, setFifoData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedRows, setExpandedRows] = useState({});
+  
+  // 切換展開/收起狀態
+  const toggleRowExpand = (index) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
 
   useEffect(() => {
     const fetchFIFOData = async () => {
@@ -139,8 +152,9 @@ const FIFOProfitCalculator = ({ productId }) => {
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell sx={{ fontWeight: 'bold' }}>銷售時間</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>成本</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold' }}>收入</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>成本</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利率</TableCell>
             </TableRow>
@@ -158,8 +172,11 @@ const FIFOProfitCalculator = ({ productId }) => {
                   {new Date(item.saleTime).toLocaleString()}
                 </TableCell>
                 <TableCell align="right">{item.totalQuantity}</TableCell>
-                <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
+                <TableCell align="right">
+                  ${(item.totalRevenue / item.totalQuantity).toFixed(2)}
+                </TableCell>
                 <TableCell align="right">${item.totalRevenue.toFixed(2)}</TableCell>
+                <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
                 <TableCell 
                   align="right"
                   sx={{ 
@@ -184,45 +201,106 @@ const FIFOProfitCalculator = ({ productId }) => {
         </Table>
       </TableContainer>
 
-      <Divider sx={{ my: 2 }} />
-
-      <Typography variant="subtitle1" gutterBottom>
-        FIFO成本分佈
-      </Typography>
       <TableContainer component={Paper} sx={{ maxHeight: 300, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell sx={{ fontWeight: 'bold' }}>銷售時間</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>批次時間</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>小計</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>收入</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>成本</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利率</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>FIFO明細</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {fifoData.fifoMatches.flatMap((match, matchIndex) => 
-              match.costParts.map((part, partIndex) => (
+            {fifoData.profitMargins.map((item, index) => (
+              <React.Fragment key={index}>
                 <TableRow 
-                  key={`${matchIndex}-${partIndex}`}
                   sx={{ 
                     '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
-                    '&:hover': { backgroundColor: '#f1f1f1' },
-                    backgroundColor: partIndex === 0 && match.costParts.length > 1 ? '#f0f7ff' : undefined
+                    '&:hover': { backgroundColor: '#f1f1f1' }
                   }}
                 >
-                  {partIndex === 0 ? (
-                    <TableCell rowSpan={match.costParts.length}>
-                      {new Date(match.outTime).toLocaleString()}
-                    </TableCell>
-                  ) : null}
-                  <TableCell>{new Date(part.batchTime).toLocaleString()}</TableCell>
-                  <TableCell align="right">${part.unit_price.toFixed(2)}</TableCell>
-                  <TableCell align="right">{part.quantity}</TableCell>
-                  <TableCell align="right">${(part.unit_price * part.quantity).toFixed(2)}</TableCell>
+                  <TableCell>
+                    {new Date(item.saleTime).toLocaleString()}
+                  </TableCell>
+                  <TableCell align="right">{item.totalQuantity}</TableCell>
+                  <TableCell align="right">
+                    ${(item.totalRevenue / item.totalQuantity).toFixed(2)}
+                  </TableCell>
+                  <TableCell align="right">${item.totalRevenue.toFixed(2)}</TableCell>
+                  <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
+                  <TableCell 
+                    align="right"
+                    sx={{ 
+                      color: item.grossProfit >= 0 ? 'success.main' : 'error.main',
+                      fontWeight: 'medium'
+                    }}
+                  >
+                    ${item.grossProfit.toFixed(2)}
+                  </TableCell>
+                  <TableCell 
+                    align="right"
+                    sx={{ 
+                      color: parseFloat(item.profitMargin) >= 0 ? 'success.main' : 'error.main',
+                      fontWeight: 'medium'
+                    }}
+                  >
+                    {item.profitMargin}
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => toggleRowExpand(index)}
+                      title={expandedRows[index] ? "收起FIFO明細" : "展開FIFO明細"}
+                    >
+                      {expandedRows[index] ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
-              ))
-            )}
+                
+                {/* FIFO明細展開區域 */}
+                <TableRow>
+                  <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+                    <Collapse in={expandedRows[index]} timeout="auto" unmountOnExit>
+                      <Box sx={{ margin: 1, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
+                        <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
+                          FIFO成本分佈明細
+                        </Typography>
+                        <Table size="small" aria-label="fifo-details">
+                          <TableHead>
+                            <TableRow sx={{ backgroundColor: '#e9ecef' }}>
+                              <TableCell sx={{ fontWeight: 'bold' }}>批次時間</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 'bold' }}>小計</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {fifoData.fifoMatches
+                              .filter(match => new Date(match.outTime).getTime() === new Date(item.saleTime).getTime())
+                              .flatMap(match => 
+                                match.costParts.map((part, partIndex) => (
+                                  <TableRow key={partIndex}>
+                                    <TableCell>{new Date(part.batchTime).toLocaleString()}</TableCell>
+                                    <TableCell align="right">${part.unit_price.toFixed(2)}</TableCell>
+                                    <TableCell align="right">{part.quantity}</TableCell>
+                                    <TableCell align="right">${(part.unit_price * part.quantity).toFixed(2)}</TableCell>
+                                  </TableRow>
+                                ))
+                              )
+                            }
+                          </TableBody>
+                        </Table>
+                      </Box>
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+              </React.Fragment>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

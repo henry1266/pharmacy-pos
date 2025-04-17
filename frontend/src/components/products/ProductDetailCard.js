@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardHeader,
@@ -12,6 +13,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import InventoryList from '../common/InventoryList';
 
 const ProductDetailCard = ({
@@ -20,6 +22,7 @@ const ProductDetailCard = ({
   handleEditProduct,
   handleDeleteProduct
 }) => {
+  const navigate = useNavigate();
   if (!product) {
     return (
       <Paper sx={{ p: 3, textAlign: 'center' }}>
@@ -38,14 +41,23 @@ const ProductDetailCard = ({
         action={
           <Box>
             <IconButton
+              color="info"
+              onClick={() => navigate(`/products/${product.id}`)}
+              title="查看詳情"
+            >
+              <VisibilityIcon />
+            </IconButton>
+            <IconButton
               color="primary"
               onClick={() => handleEditProduct(product.id, product.productType)}
+              title="編輯產品"
             >
               <EditIcon />
             </IconButton>
             <IconButton
               color="error"
               onClick={() => handleDeleteProduct(product.id)}
+              title="刪除產品"
             >
               <DeleteIcon />
             </IconButton>
