@@ -17,19 +17,26 @@ import {
   CircularProgress,
   IconButton,
   Collapse,
-  Link
+  Link,
+  Tooltip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 const FIFOProfitCalculator = ({ productId }) => {
   const [fifoData, setFifoData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedRows, setExpandedRows] = useState({});
+  const [sortConfig, setSortConfig] = useState({
+    key: 'orderNumber',
+    direction: 'desc'
+  });
   
   // 切換展開/收起狀態
   const toggleRowExpand = (index) => {
@@ -38,6 +45,91 @@ const FIFOProfitCalculator = ({ productId }) => {
       [index]: !prev[index]
     }));
   };
+  
+  // 處理排序
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+  
+  // 獲取排序圖標
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return null;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUpwardIcon fontSize="small" /> 
+      : <ArrowDownwardIcon fontSize="small" />;
+  };
+  
+  // 排序數據
+  const sortedData = React.useMemo(() => {
+    if (!fifoData || !fifoData.profitMargins) return [];
+    
+    let sortableItems = [...fifoData.profitMargins];
+    
+    if (sortConfig.key) {
+      sortableItems.sort((a, b) => {
+        // 處理不同類型的排序
+        if (sortConfig.key === 'orderNumber') {
+          // 提取數字部分進行比較
+          const aNum = a.orderNumber ? a.orderNumber.replace(/\D/g, '') : '';
+          const bNum = b.orderNumber ? b.orderNumber.replace(/\D/g, '') : '';
+          
+          if (aNum && bNum) {
+            const numComparison = parseInt(aNum) - parseInt(bNum);
+            if (numComparison !== 0) {
+              return sortConfig.direction === 'asc' ? numComparison : -numComparison;
+            }
+          }
+          
+          // 如果數字部分相同或無法比較，則按完整貨單號字母順序排序
+          if (a.orderNumber && b.orderNumber) {
+            const strComparison = a.orderNumber.localeCompare(b.orderNumber);
+            return sortConfig.direction === 'asc' ? strComparison : -strComparison;
+          }
+          
+          // 處理一方沒有訂單號的情況
+          if (a.orderNumber) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (b.orderNumber) return sortConfig.direction === 'asc' ? 1 : -1;
+          
+          // 都沒有訂單號，按時間排序
+          return sortConfig.direction === 'asc' 
+            ? new Date(a.saleTime) - new Date(b.saleTime)
+            : new Date(b.saleTime) - new Date(a.saleTime);
+        }
+        
+        if (sortConfig.key === 'saleTime') {
+          return sortConfig.direction === 'asc' 
+            ? new Date(a.saleTime) - new Date(b.saleTime)
+            : new Date(b.saleTime) - new Date(a.saleTime);
+        }
+        
+        if (sortConfig.key === 'totalQuantity' || 
+            sortConfig.key === 'totalCost' || 
+            sortConfig.key === 'totalRevenue' || 
+            sortConfig.key === 'grossProfit') {
+          return sortConfig.direction === 'asc' 
+            ? a[sortConfig.key] - b[sortConfig.key]
+            : b[sortConfig.key] - a[sortConfig.key];
+        }
+        
+        if (sortConfig.key === 'profitMargin') {
+          const aMargin = parseFloat(a.profitMargin);
+          const bMargin = parseFloat(b.profitMargin);
+          return sortConfig.direction === 'asc' ? aMargin - bMargin : bMargin - aMargin;
+        }
+        
+        // 默認排序
+        return 0;
+      });
+    }
+    
+    return sortableItems;
+  }, [fifoData, sortConfig]);
 
   useEffect(() => {
     const fetchFIFOData = async () => {
@@ -157,18 +249,119 @@ const FIFOProfitCalculator = ({ productId }) => {
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>銷售時間</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>收入</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>成本</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>毛利率</TableCell>
+              <TableCell 
+                sx={{ 
+                  fontWeight: 'bold', 
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#e0e0e0' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+                onClick={() => requestSort('orderNumber')}
+              >
+                <Tooltip title="點擊排序" arrow>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <span>銷售單號</span>
+                    {getSortIcon('orderNumber')}
+                  </Box>
+                </Tooltip>
+              </TableCell>
+              <TableCell 
+                align="right" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+                onClick={() => requestSort('totalQuantity')}
+              >
+                <Tooltip title="點擊排序" arrow>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <span>數量</span>
+                    {getSortIcon('totalQuantity')}
+                  </Box>
+                </Tooltip>
+              </TableCell>
+              <TableCell 
+                align="right" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+              >
+                <span>單價</span>
+              </TableCell>
+              <TableCell 
+                align="right" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+                onClick={() => requestSort('totalRevenue')}
+              >
+                <Tooltip title="點擊排序" arrow>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <span>收入</span>
+                    {getSortIcon('totalRevenue')}
+                  </Box>
+                </Tooltip>
+              </TableCell>
+              <TableCell 
+                align="right" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+                onClick={() => requestSort('totalCost')}
+              >
+                <Tooltip title="點擊排序" arrow>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <span>成本</span>
+                    {getSortIcon('totalCost')}
+                  </Box>
+                </Tooltip>
+              </TableCell>
+              <TableCell 
+                align="right" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+                onClick={() => requestSort('grossProfit')}
+              >
+                <Tooltip title="點擊排序" arrow>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <span>毛利</span>
+                    {getSortIcon('grossProfit')}
+                  </Box>
+                </Tooltip>
+              </TableCell>
+              <TableCell 
+                align="right" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+                onClick={() => requestSort('profitMargin')}
+              >
+                <Tooltip title="點擊排序" arrow>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <span>毛利率</span>
+                    {getSortIcon('profitMargin')}
+                  </Box>
+                </Tooltip>
+              </TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>FIFO明細</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {fifoData.profitMargins.map((item, index) => (
+            {sortedData.map((item, index) => (
               <React.Fragment key={index}>
                 <TableRow 
                   sx={{ 

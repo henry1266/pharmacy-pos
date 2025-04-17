@@ -196,9 +196,30 @@ const prepareInventoryForFIFO = (inventories) => {
     }
   });
   
-  // 按時間排序，確保先進先出
+  // 進貨記錄按時間排序，確保先進先出
   stockIn.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  stockOut.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  // 出貨記錄按貨單號大到小排序，再按時間排序
+  stockOut.sort((a, b) => {
+    // 先按貨單號大到小排序
+    if (a.orderNumber && b.orderNumber) {
+      // 提取數字部分進行比較
+      const aNum = a.orderNumber.replace(/\D/g, '');
+      const bNum = b.orderNumber.replace(/\D/g, '');
+      
+      if (aNum && bNum) {
+        const numComparison = parseInt(bNum) - parseInt(aNum); // 大到小排序
+        if (numComparison !== 0) return numComparison;
+      }
+      
+      // 如果數字部分相同或無法比較，則按完整貨單號字母順序排序
+      const strComparison = b.orderNumber.localeCompare(a.orderNumber);
+      if (strComparison !== 0) return strComparison;
+    }
+    
+    // 如果貨單號相同或無法比較，則按時間排序
+    return new Date(a.timestamp) - new Date(b.timestamp);
+  });
   
   // 修正：處理先銷售後進貨的情況，允許使用後續進貨來匹配先前的銷售
   return { stockIn, stockOut };
