@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
 import {
   Box,
@@ -15,10 +16,14 @@ import {
   Paper,
   CircularProgress,
   IconButton,
-  Collapse
+  Collapse,
+  Link
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 const FIFOProfitCalculator = ({ productId }) => {
   const [fifoData, setFifoData] = useState(null);
@@ -172,7 +177,25 @@ const FIFOProfitCalculator = ({ productId }) => {
                   }}
                 >
                   <TableCell>
-                    {new Date(item.saleTime).toLocaleDateString()}
+                    {item.orderNumber ? (
+                      <Link
+                        component={RouterLink}
+                        to={
+                          item.orderType === 'sale'
+                            ? `/sales/${item.orderId}`
+                            : item.orderType === 'shipping'
+                            ? `/shipping/${item.orderId}`
+                            : '#'
+                        }
+                        sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+                      >
+                        {item.orderType === 'sale' && <ReceiptIcon fontSize="small" sx={{ mr: 0.5 }} />}
+                        {item.orderType === 'shipping' && <LocalShippingIcon fontSize="small" sx={{ mr: 0.5 }} />}
+                        {item.orderNumber}
+                      </Link>
+                    ) : (
+                      new Date(item.saleTime).toLocaleDateString()
+                    )}
                   </TableCell>
                   <TableCell align="right">{item.totalQuantity}</TableCell>
                   <TableCell align="right">
@@ -232,7 +255,24 @@ const FIFOProfitCalculator = ({ productId }) => {
                               .flatMap(match => 
                                 match.costParts.map((part, partIndex) => (
                                   <TableRow key={partIndex}>
-                                    <TableCell>{new Date(part.batchTime).toLocaleDateString()}</TableCell>
+                                    <TableCell>
+                                      {part.orderNumber ? (
+                                        <Link
+                                          component={RouterLink}
+                                          to={
+                                            part.orderType === 'purchase'
+                                              ? `/purchase-orders/${part.orderId}`
+                                              : '#'
+                                          }
+                                          sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+                                        >
+                                          {part.orderType === 'purchase' && <ShoppingCartIcon fontSize="small" sx={{ mr: 0.5 }} />}
+                                          {part.orderNumber}
+                                        </Link>
+                                      ) : (
+                                        new Date(part.batchTime).toLocaleDateString()
+                                      )}
+                                    </TableCell>
                                     <TableCell align="right">{part.quantity}</TableCell>
 									<TableCell align="right">${part.unit_price.toFixed(2)}</TableCell>
                                     <TableCell align="right">${(part.unit_price * part.quantity).toFixed(2)}</TableCell>

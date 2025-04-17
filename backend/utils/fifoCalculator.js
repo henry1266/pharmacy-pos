@@ -33,6 +33,9 @@ const matchFIFOBatches = (stockIn, stockOut) => {
           batchTime: batch.timestamp,
           unit_price: batch.unit_price,
           quantity: used,
+          orderNumber: batch.orderNumber,
+          orderId: batch.orderId,
+          orderType: batch.orderType
         });
         batch.remainingQty -= used;
         remaining -= used;
@@ -46,6 +49,9 @@ const matchFIFOBatches = (stockIn, stockOut) => {
       drug_id: out.drug_id,
       totalQuantity: out.quantity,
       costParts, // 此筆出貨的成本分佈（哪幾批扣了多少）
+      orderNumber: out.orderNumber,
+      orderId: out.orderId,
+      orderType: out.orderType
     });
   }
 
@@ -88,7 +94,10 @@ const calculateProfitMargins = (usageLog, sales) => {
       totalRevenue,
       grossProfit,
       profitMargin: profitMargin.toFixed(2) + '%',
-      costBreakdown: usage.costParts
+      costBreakdown: usage.costParts,
+      orderNumber: usage.orderNumber,
+      orderId: usage.orderId,
+      orderType: usage.orderType
     };
   }).filter(result => result !== null);
 };
@@ -114,15 +123,32 @@ const prepareInventoryForFIFO = (inventories) => {
         quantity,
         unit_price,
         drug_id,
-        source_id: inv._id.toString()
+        source_id: inv._id.toString(),
+        orderNumber: inv.purchaseOrderNumber || '未知訂單',
+        orderId: inv.purchaseOrderId ? inv.purchaseOrderId.toString() : null,
+        orderType: 'purchase'
       });
-    } else if (inv.type === 'sale' || inv.type === 'ship') {
+    } else if (inv.type === 'sale') {
       stockOut.push({
         timestamp,
         quantity,
         drug_id,
         source_id: inv._id.toString(),
-        type: inv.type
+        type: inv.type,
+        orderNumber: inv.saleNumber || '未知訂單',
+        orderId: inv.saleId ? inv.saleId.toString() : null,
+        orderType: 'sale'
+      });
+    } else if (inv.type === 'ship') {
+      stockOut.push({
+        timestamp,
+        quantity,
+        drug_id,
+        source_id: inv._id.toString(),
+        type: inv.type,
+        orderNumber: inv.shippingOrderNumber || '未知訂單',
+        orderId: inv.shippingOrderId ? inv.shippingOrderId.toString() : null,
+        orderType: 'shipping'
       });
     }
   });
