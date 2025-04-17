@@ -77,14 +77,14 @@ router.post(
         }
       }
       
-      // 檢查所有產品是否存在並檢查庫存是否足夠
+      // 檢查所有產品是否存在
       for (const item of items) {
         const product = await BaseProduct.findById(item.product);
         if (!product) {
           return res.status(404).json({ msg: `產品ID ${item.product} 不存在` });
         }
         
-        // 檢查庫存是否足夠 - 計算總庫存量
+        // 記錄當前庫存量，但不限制負庫存
         console.log(`檢查產品ID: ${item.product}, 名稱: ${product.name}`);
         
         try {
@@ -99,13 +99,11 @@ router.post(
             console.log(`庫存記錄: ${inv._id}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
           }
           
-          console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}`);
+          console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，銷售數量: ${item.quantity}`);
           
-          // 檢查總庫存是否足夠
+          // 不再檢查庫存是否足夠，允許負庫存
           if (totalQuantity < item.quantity) {
-            return res.status(400).json({ 
-              msg: `產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${item.quantity}` 
-            });
+            console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${item.quantity}，將允許負庫存`);
           }
         } catch (err) {
           console.error(`庫存檢查錯誤:`, err);
@@ -226,7 +224,7 @@ router.put('/:id', [
       const originalItem = originalItems.find(oi => oi.product.toString() === item.product.toString());
       const originalQuantity = originalItem ? originalItem.quantity : 0;
       
-      // 如果新數量大於原始數量，需要檢查額外庫存是否足夠
+      // 如果新數量大於原始數量，記錄額外庫存需求但不限制負庫存
       if (item.quantity > originalQuantity) {
         const additionalQuantity = item.quantity - originalQuantity;
         console.log(`產品 ${product.name} 需要額外 ${additionalQuantity} 個庫存`);
@@ -243,13 +241,11 @@ router.put('/:id', [
             console.log(`庫存記錄: ${inv._id}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
           }
           
-          console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}`);
+          console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，需要額外: ${additionalQuantity}`);
           
-          // 檢查總庫存是否足夠
+          // 不再檢查庫存是否足夠，允許負庫存
           if (totalQuantity < additionalQuantity) {
-            return res.status(400).json({ 
-              msg: `產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${additionalQuantity}` 
-            });
+            console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${additionalQuantity}，將允許負庫存`);
           }
         } catch (err) {
           console.error(`庫存檢查錯誤:`, err);

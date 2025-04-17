@@ -17,11 +17,14 @@ const matchFIFOBatches = (stockIn, stockOut) => {
   for (const out of stockOut) {
     let remaining = out.quantity;
     const costParts = [];
+    let hasNegativeInventory = false;
 
     while (remaining > 0) {
-      // 若還沒進貨或進貨批次都用完，往後拉更多進貨
+      // 若還沒進貨或進貨批次都用完，標記為負庫存並跳出循環
       if (inIndex >= stockIn.length) {
-        throw new Error("Insufficient stock to match FIFO cost");
+        console.log(`警告: 產品 ${out.drug_id} 庫存不足，將標記為負庫存，等待庫存補入再計算毛利`);
+        hasNegativeInventory = true;
+        break; // 不再拋出錯誤，而是標記為負庫存並繼續處理
       }
 
       const batch = stockIn[inIndex];
@@ -51,7 +54,9 @@ const matchFIFOBatches = (stockIn, stockOut) => {
       costParts, // 此筆出貨的成本分佈（哪幾批扣了多少）
       orderNumber: out.orderNumber,
       orderId: out.orderId,
-      orderType: out.orderType
+      orderType: out.orderType,
+      hasNegativeInventory, // 標記是否為負庫存
+      remainingNegativeQuantity: hasNegativeInventory ? remaining : 0 // 記錄尚未匹配的負庫存數量
     });
   }
 
@@ -74,31 +79,69 @@ const calculateProfitMargins = (usageLog, sales) => {
     
     if (!sale) return null;
     
-    // 計算總成本
-    const totalCost = usage.costParts.reduce((sum, part) => {
-      return sum + (part.unit_price * part.quantity);
-    }, 0);
-    
     // 計算銷售總額
     const totalRevenue = sale.unit_price * usage.totalQuantity;
     
-    // 計算毛利
-    const grossProfit = totalRevenue - totalCost;
-    const profitMargin = (grossProfit / totalRevenue) * 100;
-    
-    return {
-      drug_id: usage.drug_id,
-      saleTime: usage.outTime,
-      totalQuantity: usage.totalQuantity,
-      totalCost,
-      totalRevenue,
-      grossProfit,
-      profitMargin: profitMargin.toFixed(2) + '%',
-      costBreakdown: usage.costParts,
-      orderNumber: usage.orderNumber,
-      orderId: usage.orderId,
-      orderType: usage.orderType
-    };
+    // 處理負庫存情況
+    if (usage.hasNegativeInventory) {
+      console.log(`產品 ${usage.drug_id} 存在負庫存情況，暫時將毛利計為0，等待庫存補入再計算`);
+      
+      // 計算已匹配部分的成本
+      const matchedCost = usage.costParts.reduce((sum, part) => {
+        return sum + (part.unit_price * part.quantity);
+      }, 0);
+      
+      // 計算已匹配部分的數量
+      const matchedQuantity = usage.totalQuantity - usage.remainingNegativeQuantity;
+      
+      // 計算已匹配部分的收入
+      const matchedRevenue = matchedQuantity > 0 ? (sale.unit_price * matchedQuantity) : 0;
+      
+      // 對於負庫存部分，成本暫時設為與收入相等，使毛利為0
+      const negativeInventoryRevenue = sale.unit_price * usage.remainingNegativeQuantity;
+      const totalCost = matchedCost + negativeInventoryRevenue; // 負庫存部分成本等於收入，毛利為0
+      
+      return {
+        drug_id: usage.drug_id,
+        saleTime: usage.outTime,
+        totalQuantity: usage.totalQuantity,
+        totalCost,
+        totalRevenue,
+        grossProfit: 0, // 負庫存情況下，暫時將毛利計為0
+        profitMargin: '0.00%', // 負庫存情況下，暫時將毛利率計為0%
+        costBreakdown: usage.costParts,
+        orderNumber: usage.orderNumber,
+        orderId: usage.orderId,
+        orderType: usage.orderType,
+        hasNegativeInventory: true,
+        remainingNegativeQuantity: usage.remainingNegativeQuantity,
+        pendingProfitCalculation: true // 標記為待計算毛利
+      };
+    } else {
+      // 正常庫存情況，計算總成本
+      const totalCost = usage.costParts.reduce((sum, part) => {
+        return sum + (part.unit_price * part.quantity);
+      }, 0);
+      
+      // 計算毛利
+      const grossProfit = totalRevenue - totalCost;
+      const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+      
+      return {
+        drug_id: usage.drug_id,
+        saleTime: usage.outTime,
+        totalQuantity: usage.totalQuantity,
+        totalCost,
+        totalRevenue,
+        grossProfit,
+        profitMargin: profitMargin.toFixed(2) + '%',
+        costBreakdown: usage.costParts,
+        orderNumber: usage.orderNumber,
+        orderId: usage.orderId,
+        orderType: usage.orderType,
+        hasNegativeInventory: false
+      };
+    }
   }).filter(result => result !== null);
 };
 
@@ -157,6 +200,7 @@ const prepareInventoryForFIFO = (inventories) => {
   stockIn.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   stockOut.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   
+  // 修正：處理先銷售後進貨的情況，允許使用後續進貨來匹配先前的銷售
   return { stockIn, stockOut };
 };
 
@@ -184,6 +228,17 @@ const calculateProductFIFO = (inventories) => {
         }
       };
     }
+    
+    // 修正：處理先銷售後進貨的情況
+    // 如果有先銷售後進貨的情況，我們需要特殊處理
+    // 檢查是否存在先銷售後進貨的情況
+    const hasNegativeInventory = stockOut.some(out => {
+      const outTime = new Date(out.timestamp);
+      // 檢查是否有任何進貨在此銷售之前
+      const hasPriorPurchase = stockIn.some(inp => new Date(inp.timestamp) < outTime);
+      // 如果沒有先前的進貨，但有後續的進貨，則標記為負庫存
+      return !hasPriorPurchase && stockIn.some(inp => new Date(inp.timestamp) >= outTime);
+    });
     
     // 執行FIFO匹配
     const fifoMatches = matchFIFOBatches(stockIn, stockOut);
@@ -220,9 +275,11 @@ const calculateProductFIFO = (inventories) => {
       success: true,
       fifoMatches,
       profitMargins,
-      summary
+      summary,
+      hasNegativeInventory // 添加負庫存標記
     };
   } catch (error) {
+    console.error('FIFO計算錯誤:', error);
     return {
       success: false,
       error: error.message
