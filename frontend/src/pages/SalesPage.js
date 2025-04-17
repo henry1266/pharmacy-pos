@@ -330,8 +330,8 @@ const SalesPage = () => {
           
           if (latestNumber) {
             // 提取序號部分並加1
-            const sequence = parseInt(latestNumber.substring(6)) + 1;
-            finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
+            const sequence = parseInt(latestNumber.slice(-3)) + 1;
+				finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
           } else {
             // 如果當天沒有銷貨單，從001開始
             finalSaleNumber = `${datePrefix}001`;
