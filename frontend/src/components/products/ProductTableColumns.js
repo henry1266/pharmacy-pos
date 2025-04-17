@@ -2,6 +2,8 @@ import React from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useNavigate } from 'react-router-dom';
 
 const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalInventory) => {
   return [
@@ -43,25 +45,48 @@ const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalIn
     {
       field: 'actions',
       headerName: '操作',
-      width: 120,
-      renderCell: (params) => (
-        <Box>
-          <IconButton
-            color="primary"
-            onClick={() => handleEditProduct(params.row.id, 'product')}
-            size="small"
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            color="error"
-            onClick={() => handleDeleteProduct(params.row.id)}
-            size="small"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-      ),
+      width: 180,
+      renderCell: (params) => {
+        // 使用函數組件以便使用useNavigate
+        const ActionButtons = () => {
+          const navigate = useNavigate();
+          
+          const handleViewDetail = () => {
+            navigate(`/products/${params.row.id}`);
+          };
+          
+          return (
+            <Box>
+              <IconButton
+                color="info"
+                onClick={handleViewDetail}
+                size="small"
+                title="查看詳情"
+              >
+                <VisibilityIcon />
+              </IconButton>
+              <IconButton
+                color="primary"
+                onClick={() => handleEditProduct(params.row.id, 'product')}
+                size="small"
+                title="編輯"
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                color="error"
+                onClick={() => handleDeleteProduct(params.row.id)}
+                size="small"
+                title="刪除"
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          );
+        };
+        
+        return <ActionButtons />;
+      },
     },
   ];
 };
@@ -106,25 +131,48 @@ const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalI
     {
       field: 'actions',
       headerName: '操作',
-      width: 120,
-      renderCell: (params) => (
-        <Box>
-          <IconButton
-            color="primary"
-            onClick={() => handleEditProduct(params.row.id, 'medicine')}
-            size="small"
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            color="error"
-            onClick={() => handleDeleteProduct(params.row.id)}
-            size="small"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-      ),
+      width: 180,
+      renderCell: (params) => {
+        // 使用函數組件以便使用useNavigate
+        const ActionButtons = () => {
+          const navigate = useNavigate();
+          
+          const handleViewDetail = () => {
+            navigate(`/products/${params.row.id}`);
+          };
+          
+          return (
+            <Box>
+              <IconButton
+                color="info"
+                onClick={handleViewDetail}
+                size="small"
+                title="查看詳情"
+              >
+                <VisibilityIcon />
+              </IconButton>
+              <IconButton
+                color="primary"
+                onClick={() => handleEditProduct(params.row.id, 'medicine')}
+                size="small"
+                title="編輯"
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                color="error"
+                onClick={() => handleDeleteProduct(params.row.id)}
+                size="small"
+                title="刪除"
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          );
+        };
+        
+        return <ActionButtons />;
+      },
     },
   ];
 };
