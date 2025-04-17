@@ -164,8 +164,8 @@ const ProductDetailPage = () => {
       </Box>
       
       <Grid container spacing={3}>
-        {/* 產品詳情卡片 */}
-        <Grid item xs={12}>
+        {/* 左側：產品詳情卡片 */}
+        <Grid item xs={12} md={5} lg={4}>
           <ProductDetailCard
             product={product}
             suppliers={suppliers}
@@ -174,17 +174,14 @@ const ProductDetailPage = () => {
           />
         </Grid>
 
-        
-        {/* FIFO毛利計算 */}
-        <Grid item xs={12}>
+        {/* 右側：FIFO毛利計算 */}
+        <Grid item xs={12} md={7} lg={8}>
           <Card>
             <CardContent>
               <FIFOProfitCalculator productId={product.id} />
             </CardContent>
           </Card>
         </Grid>
-        
-
       </Grid>
     </Box>
   );
