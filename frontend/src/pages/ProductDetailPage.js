@@ -173,18 +173,7 @@ const ProductDetailPage = () => {
             handleDeleteProduct={() => handleDeleteProduct(product.id)}
           />
         </Grid>
-        
-        {/* 庫存記錄 */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                庫存記錄
-              </Typography>
-              <InventoryList productId={product.id} />
-            </CardContent>
-          </Card>
-        </Grid>
+
         
         {/* FIFO毛利計算 */}
         <Grid item xs={12}>
