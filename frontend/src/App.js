@@ -6,7 +6,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import AppRouter from './AppRouter';
 import './assets/css/dashui-theme.css';
 
-// 創建自定義主題
+// 創建自定義主題1
 const theme = createTheme({
   palette: {
     primary: {
