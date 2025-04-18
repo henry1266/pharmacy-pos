@@ -1,8 +1,7 @@
 import React from 'react';
 import { 
   Autocomplete,
-  TextField,
-  Box
+  TextField
 } from '@mui/material';
 
 /**
