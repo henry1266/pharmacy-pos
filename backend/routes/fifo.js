@@ -98,20 +98,58 @@ router.post('/simulate', async (req, res) => {
       return res.status(400).json({ msg: '請提供產品ID和數量' });
     }
     
-    // 獲取產品的所有庫存記錄
-    const inventories = await Inventory.find({ 
-      product: productId,
-      type: 'purchase' // 只獲取進貨記錄
+    // 獲取產品的所有庫存記錄（包括進貨、銷貨和出貨）
+    const allInventories = await Inventory.find({ 
+      product: productId
     })
     .populate('product')
-    .sort({ lastUpdated: 1 }); // 按時間排序，確保先進先出
+    .sort({ lastUpdated: 1 }); // 按時間排序
     
-    if (inventories.length === 0) {
+    if (allInventories.length === 0) {
       return res.status(404).json({ msg: '找不到該產品的庫存記錄' });
     }
     
-    // 準備庫存數據
-    const { stockIn } = prepareInventoryForFIFO(inventories);
+    // 準備庫存數據，包括所有類型的庫存記錄
+    const { stockIn, stockOut } = prepareInventoryForFIFO(allInventories);
+    
+    // 計算已經消耗的庫存
+    // 先處理已有的出貨記錄，計算每個批次的剩餘數量
+    const processedStockIn = [...stockIn]; // 複製一份進貨記錄
+    let inIndex = 0;
+    
+    // 處理每一筆已有的出貨記錄
+    for (const out of stockOut) {
+      let remaining = out.quantity;
+      
+      while (remaining > 0 && inIndex < processedStockIn.length) {
+        const batch = processedStockIn[inIndex];
+        if (!batch.remainingQty) batch.remainingQty = batch.quantity;
+        
+        if (batch.remainingQty > 0) {
+          const used = Math.min(batch.remainingQty, remaining);
+          batch.remainingQty -= used;
+          remaining -= used;
+        }
+        
+        if (batch.remainingQty === 0) inIndex++;
+      }
+    }
+    
+    // 過濾出還有剩餘數量的批次
+    const availableStockIn = processedStockIn.filter(batch => {
+      return !batch.remainingQty || batch.remainingQty > 0;
+    }).map(batch => {
+      // 如果有remainingQty屬性，使用它作為數量；否則使用原始數量
+      return {
+        ...batch,
+        quantity: batch.remainingQty || batch.quantity
+      };
+    });
+    
+    console.log(`可用庫存批次數: ${availableStockIn.length}`);
+    availableStockIn.forEach((batch, index) => {
+      console.log(`批次[${index}]: 訂單號=${batch.orderNumber}, 剩餘數量=${batch.quantity}`);
+    });
     
     // 創建模擬出貨記錄
     const simulatedStockOut = [{
@@ -125,8 +163,8 @@ router.post('/simulate', async (req, res) => {
       orderType: 'simulation'
     }];
     
-    // 執行FIFO匹配
-    const fifoMatches = matchFIFOBatches(stockIn, simulatedStockOut);
+    // 執行FIFO匹配，使用可用的庫存
+    const fifoMatches = matchFIFOBatches(availableStockIn, simulatedStockOut);
     
     // 計算總成本
     let totalCost = 0;
@@ -145,7 +183,10 @@ router.post('/simulate', async (req, res) => {
     }
     
     // 獲取產品信息
-    const productInfo = inventories[0].product;
+    const productInfo = allInventories[0].product;
+    
+    // 計算實際可用庫存數量
+    const availableQuantity = availableStockIn.reduce((sum, batch) => sum + batch.quantity, 0);
     
     // 返回模擬結果
     res.json({
@@ -158,7 +199,7 @@ router.post('/simulate', async (req, res) => {
       totalCost,
       hasNegativeInventory,
       remainingNegativeQuantity,
-      availableQuantity: stockIn.reduce((sum, batch) => sum + batch.quantity, 0)
+      availableQuantity
     });
   } catch (err) {
     console.error('FIFO模擬計算錯誤:', err.message);
