@@ -10,8 +10,7 @@ router.get('/product/:productId', async (req, res) => {
   try {
     // 獲取產品的所有庫存記錄
     const inventories = await Inventory.find({ product: req.params.productId })
-      .populate('product')
-      .sort({ lastUpdated: 1 }); // 按時間排序，確保先進先出
+      .populate('product');
     
     if (inventories.length === 0) {
       return res.status(404).json({ msg: '找不到該產品的庫存記錄' });
@@ -44,8 +43,7 @@ router.get('/zero-profit/:productId', async (req, res) => {
     
     // 獲取產品的所有庫存記錄
     const inventories = await Inventory.find({ product: req.params.productId })
-      .populate('product')
-      .sort({ lastUpdated: 1 }); // 按時間排序，確保先進先出
+      .populate('product');
     
     if (inventories.length === 0) {
       return res.status(404).json({ 
@@ -95,8 +93,7 @@ router.get('/all', async (req, res) => {
     // 為每個產品計算FIFO成本和毛利
     for (const productId of productIds) {
       const inventories = await Inventory.find({ product: productId })
-        .populate('product')
-        .sort({ lastUpdated: 1 });
+        .populate('product');
       
       if (inventories.length > 0) {
         const fifoResult = calculateProductFIFO(inventories);
@@ -152,12 +149,37 @@ function calculateFIFOCostDistribution(inventories, quantity) {
   // 複製庫存記錄，避免修改原始數據
   const inventoryCopy = JSON.parse(JSON.stringify(inventories));
   
+  // 篩選出進貨記錄
+  const purchaseInventories = inventoryCopy.filter(inv => inv.type === 'purchase');
+  
+  // 按照貨單號從小到大排序進貨記錄
+  purchaseInventories.sort((a, b) => {
+    // 提取訂單號中的數字部分
+    const aOrderNumber = a.purchaseOrderNumber || '';
+    const bOrderNumber = b.purchaseOrderNumber || '';
+    const aNum = aOrderNumber.replace(/\D/g, '');
+    const bNum = bOrderNumber.replace(/\D/g, '');
+    
+    // 如果都有數字部分，按數字大小排序
+    if (aNum && bNum) {
+      return parseInt(aNum) - parseInt(bNum); // 從小到大排序
+    }
+    
+    // 如果數字部分不完整，按完整訂單號字母順序排序
+    if (aOrderNumber && bOrderNumber) {
+      return aOrderNumber.localeCompare(bOrderNumber);
+    }
+    
+    // 如果訂單號不完整，按時間排序
+    return new Date(a.lastUpdated || 0) - new Date(b.lastUpdated || 0);
+  });
+  
   // 按照FIFO原則計算成本分佈
   let remainingQuantity = quantity;
   let totalCost = 0;
   const costParts = [];
   
-  for (const inventory of inventoryCopy) {
+  for (const inventory of purchaseInventories) {
     if (remainingQuantity <= 0) break;
     
     // 獲取當前批次的可用數量
@@ -175,9 +197,9 @@ function calculateFIFOCostDistribution(inventories, quantity) {
     // 添加到成本分佈
     costParts.push({
       batchTime: inventory.lastUpdated,
-      orderNumber: inventory.orderNumber,
-      orderType: inventory.orderType,
-      orderId: inventory.order,
+      orderNumber: inventory.purchaseOrderNumber || '未知訂單',
+      orderType: 'purchase',
+      orderId: inventory.purchaseOrderId,
       quantity: usedQuantity,
       unit_price: unitPrice,
       cost: partCost
@@ -189,8 +211,8 @@ function calculateFIFOCostDistribution(inventories, quantity) {
   }
   
   // 如果庫存不足，使用最後一批的單價計算剩餘數量的成本
-  if (remainingQuantity > 0 && inventoryCopy.length > 0) {
-    const lastInventory = inventoryCopy[inventoryCopy.length - 1];
+  if (remainingQuantity > 0 && purchaseInventories.length > 0) {
+    const lastInventory = purchaseInventories[purchaseInventories.length - 1];
     const unitPrice = lastInventory.purchasePrice || lastInventory.product.purchasePrice;
     const partCost = unitPrice * remainingQuantity;
     
