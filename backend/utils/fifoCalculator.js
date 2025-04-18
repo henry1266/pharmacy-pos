@@ -286,8 +286,27 @@ const prepareInventoryForFIFO = (inventories) => {
   console.log(`\n進貨記錄總數: ${stockIn.length}`);
   console.log(`出貨記錄總數: ${stockOut.length}`);
   
-  // 進貨記錄按時間排序，確保先進先出
-  stockIn.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  // 進貨記錄按訂單號排序，而非時間
+  stockIn.sort((a, b) => {
+    // 先按貨單號小到大排序
+    if (a.orderNumber && b.orderNumber) {
+      // 提取數字部分進行比較
+      const aNum = a.orderNumber.replace(/\D/g, '');
+      const bNum = b.orderNumber.replace(/\D/g, '');
+      
+      if (aNum && bNum) {
+        const numComparison = parseInt(aNum) - parseInt(bNum); // 小到大排序
+        if (numComparison !== 0) return numComparison;
+      }
+      
+      // 如果數字部分相同或無法比較，則按完整貨單號字母順序排序
+      const strComparison = a.orderNumber.localeCompare(b.orderNumber);
+      if (strComparison !== 0) return strComparison;
+    }
+    
+    // 如果貨單號相同或無法比較，則按時間排序
+    return new Date(a.timestamp) - new Date(b.timestamp);
+  });
   
   console.log('\n進貨記錄排序後:');
   stockIn.forEach((record, index) => {
