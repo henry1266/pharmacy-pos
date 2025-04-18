@@ -445,8 +445,23 @@ const FIFOProfitCalculator = ({ productId }) => {
                           <TableBody>
                             {fifoData.fifoMatches
                               .filter(match => new Date(match.outTime).getTime() === new Date(item.saleTime).getTime())
-                              .flatMap(match => 
-                                match.costParts.map((part, partIndex) => (
+                              .flatMap(match => {
+                                // 對costParts進行排序，按照批次號從大到小排序
+                                const sortedCostParts = [...match.costParts].sort((a, b) => {
+                                  // 提取數字部分進行比較
+                                  const aNum = a.orderNumber ? a.orderNumber.replace(/\D/g, '') : '';
+                                  const bNum = b.orderNumber ? b.orderNumber.replace(/\D/g, '') : '';
+                                  
+                                  if (aNum && bNum) {
+                                    // 從大到小排序
+                                    return parseInt(bNum) - parseInt(aNum);
+                                  }
+                                  
+                                  // 如果無法比較數字，則按時間從新到舊排序
+                                  return new Date(b.batchTime) - new Date(a.batchTime);
+                                });
+                                
+                                return sortedCostParts.map((part, partIndex) => (
                                   <TableRow key={partIndex}>
                                     <TableCell>
                                       {part.orderNumber ? (
@@ -470,8 +485,8 @@ const FIFOProfitCalculator = ({ productId }) => {
 									<TableCell align="right">${part.unit_price.toFixed(2)}</TableCell>
                                     <TableCell align="right">${(part.unit_price * part.quantity).toFixed(2)}</TableCell>
                                   </TableRow>
-                                ))
-                              )
+                                ));
+                              })
                             }
                           </TableBody>
                         </Table>
