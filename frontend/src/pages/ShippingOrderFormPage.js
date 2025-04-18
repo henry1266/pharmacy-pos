@@ -26,6 +26,7 @@ import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
 import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm';
 import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable';
 import ConfirmDialog from '../components/shipping-orders/common/ConfirmDialog';
+import ZeroProfitCalculator from '../components/shipping-orders/ZeroProfitCalculator';
 
 const ShippingOrderFormPage = () => {
   const dispatch = useDispatch();
@@ -206,7 +207,13 @@ const ShippingOrderFormPage = () => {
     }
   };
   
-
+  // 處理零毛利計算結果
+  const handleZeroProfitCalculated = (zeroProfitCost) => {
+    setCurrentItem({
+      ...currentItem,
+      dtotalCost: zeroProfitCost.toString()
+    });
+  };
   
   const handleAddItem = () => {
     // 驗證項目
@@ -417,11 +424,16 @@ const ShippingOrderFormPage = () => {
               >
                 {isEditMode ? '保存' : '創建'}
               </Button>
+              <ZeroProfitCalculator 
+                currentItem={currentItem}
+                onCalculated={handleZeroProfitCalculated}
+              />
               <Button 
                 variant="outlined" 
                 color="secondary" 
                 onClick={handleCancel}
                 disabled={loading}
+                sx={{ ml: 1 }}
               >
                 取消
               </Button>
