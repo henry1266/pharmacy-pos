@@ -36,7 +36,7 @@ const AccountingSchema = new Schema({
     default: 0
   },
   createdBy: {
-    type: Schema.Types.ObjectId,
+    type: Schema.Types.Mixed,
     ref: 'User',
     required: true
   },
