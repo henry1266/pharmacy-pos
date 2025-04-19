@@ -29,8 +29,7 @@ router.get('/', auth, async (req, res) => {
     }
     
     const accountingRecords = await Accounting.find(query)
-      .sort({ date: -1, shift: 1 })
-      .populate('createdBy', 'name');
+      .sort({ date: -1, shift: 1 });
       
     res.json(accountingRecords);
   } catch (err) {
@@ -44,8 +43,7 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.get('/:id', auth, async (req, res) => {
   try {
-    const accounting = await Accounting.findById(req.params.id)
-      .populate('createdBy', 'name');
+    const accounting = await Accounting.findById(req.params.id);
       
     if (!accounting) {
       return res.status(404).json({ msg: '找不到記帳記錄' });
