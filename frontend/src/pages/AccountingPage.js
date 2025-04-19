@@ -157,7 +157,10 @@ const AccountingPage = () => {
     setFormData({
       date: new Date(),
       shift: '',
-      items: [{ amount: '', category: '', note: '' }]
+      items: [
+        { amount: '', category: '掛號費', note: '' },
+        { amount: '', category: '部分負擔', note: '' }
+      ]
     });
     setEditMode(false);
     setCurrentId(null);
