@@ -15,6 +15,8 @@ import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 
 import LogoutIcon from '@mui/icons-material/Logout';
 
@@ -80,7 +82,11 @@ const MainLayout = ({ children }) => {
       icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, 
       path: '/customers' 
     },
-	
+    { 
+      text: '記帳系統', 
+      icon: (location.pathname === '/accounting') ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, 
+      path: '/accounting' 
+    },
 	
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports' },
   ];
