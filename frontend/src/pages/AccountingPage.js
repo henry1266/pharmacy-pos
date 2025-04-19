@@ -269,7 +269,7 @@ const AccountingPage = ({ openAddDialog = false }) => {
   };
   
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3,width: '80%' }} >
       <Typography variant="h4" gutterBottom>
         記帳系統
       </Typography>
@@ -328,7 +328,7 @@ const AccountingPage = ({ openAddDialog = false }) => {
       
       {/* 記帳記錄列表 */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
+        <TableContainer sx={{ maxHeight: 540 }}>
           <Table stickyHeader aria-label="記帳記錄表格">
             <TableHead>
               <TableRow>
