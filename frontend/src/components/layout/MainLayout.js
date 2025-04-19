@@ -20,6 +20,8 @@ import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalance
 
 import LogoutIcon from '@mui/icons-material/Logout';
 
+import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
+import AssuredWorkloadOutlinedIcon from '@mui/icons-material/AssuredWorkloadOutlined';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -144,6 +146,7 @@ const MainLayout = ({ children }) => {
           </Typography>
 
           
+
 			<NavIconButton
 				to="/shipping-orders/new"
 				tooltip="出貨"
@@ -158,6 +161,7 @@ const MainLayout = ({ children }) => {
 				inactiveIcon={<AssignmentOutlinedIcon />}
 			/>
 			
+
 			<NavIconButton
 				to="/sales/new"
 				tooltip="銷售"
@@ -166,10 +170,10 @@ const MainLayout = ({ children }) => {
 			/>
 			
 			<NavIconButton
-				to="/accounting"
+				to="/accounting/new"
 				tooltip="記帳"
-				activeIcon={<AccountBalanceWalletIcon />}
-				inactiveIcon={<AccountBalanceWalletOutlinedIcon />}
+				activeIcon={<AssuredWorkloadIcon />}
+				inactiveIcon={<AssuredWorkloadOutlinedIcon />}
 			/>
 
 		  
@@ -430,6 +434,5 @@ const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon }) => {
     </Tooltip>
   );
 };
-
 
 export default MainLayout;
