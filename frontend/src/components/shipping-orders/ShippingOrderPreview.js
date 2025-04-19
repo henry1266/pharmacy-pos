@@ -47,85 +47,10 @@ const ShippingOrderPreview = ({ shippingOrder, loading, error }) => {
   }
   
   return (
-    <Paper sx={{ width: 350, p: 2, maxHeight: 500, overflow: 'auto' }}>
+    <Paper sx={{ width: 300, p: 2, maxHeight: 600, overflow: 'auto' }}>
       <Typography variant="h6" gutterBottom>
         出貨單預覽
       </Typography>
-      
-      <Grid container spacing={1} sx={{ mb: 1 }}>
-        <Grid item xs={4}>
-          <Typography variant="body2" color="textSecondary">
-            出貨單號:
-          </Typography>
-        </Grid>
-        <Grid item xs={8}>
-          <Typography variant="body2">
-            {shippingOrder.soid}
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={4}>
-          <Typography variant="body2" color="textSecondary">
-            發票號碼:
-          </Typography>
-        </Grid>
-        <Grid item xs={8}>
-          <Typography variant="body2">
-            {shippingOrder.sobill || '-'}
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={4}>
-          <Typography variant="body2" color="textSecondary">
-            發票日期:
-          </Typography>
-        </Grid>
-        <Grid item xs={8}>
-          <Typography variant="body2">
-            {shippingOrder.sobilldate ? format(new Date(shippingOrder.sobilldate), 'yyyy-MM-dd') : '-'}
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={4}>
-          <Typography variant="body2" color="textSecondary">
-            客戶:
-          </Typography>
-        </Grid>
-        <Grid item xs={8}>
-          <Typography variant="body2">
-            {shippingOrder.socustomer}
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={4}>
-          <Typography variant="body2" color="textSecondary">
-            狀態:
-          </Typography>
-        </Grid>
-        <Grid item xs={8}>
-          <StatusChip status={shippingOrder.status} />
-        </Grid>
-        
-        <Grid item xs={4}>
-          <Typography variant="body2" color="textSecondary">
-            付款狀態:
-          </Typography>
-        </Grid>
-        <Grid item xs={8}>
-          <PaymentStatusChip status={shippingOrder.paymentStatus} />
-        </Grid>
-        
-        <Grid item xs={4}>
-          <Typography variant="body2" color="textSecondary">
-            總金額:
-          </Typography>
-        </Grid>
-        <Grid item xs={8}>
-          <Typography variant="body2" fontWeight="bold">
-            {shippingOrder.totalAmount?.toLocaleString() || '0'} 元
-          </Typography>
-        </Grid>
-      </Grid>
       
       <Divider sx={{ my: 1 }} />
       
