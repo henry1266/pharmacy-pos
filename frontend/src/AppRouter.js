@@ -17,6 +17,7 @@ import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
 import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
+import AccountingPage from './pages/AccountingPage';
 
 const AppRouter = () => {
   return (
@@ -42,6 +43,9 @@ const AppRouter = () => {
       <Route path="/sales/:id" element={<SalesDetailPage />} />
       
       <Route path="/reports" element={<ReportsPage />} />
+      
+      {/* 記帳系統路由 */}
+      <Route path="/accounting" element={<AccountingPage />} />
       
       {/* 進貨單相關路由 */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />

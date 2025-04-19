@@ -1,206 +1,108 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Box, CssBaseline, Toolbar } from '@mui/material';
-import { ThemeProvider } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import MainLayout from './components/layout/MainLayout';
+import { BrowserRouter as Router } from 'react-router-dom';
+import AppRouter from './AppRouter';
+import './assets/css/dashui-theme.css';
 
-import theme from './theme';
-import Navbar from './components/layout/Navbar';
-import Sidebar from './components/layout/Sidebar';
-import DashboardPage from './pages/DashboardPage';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
-import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
-import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
-import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
-import SalesPage from './pages/SalesPage';
-import SalesListPage from './pages/SalesListPage';
-import SalesDetailPage from './pages/SalesDetailPage';
-import SalesEditPage from './pages/SalesEditPage';
-import ShippingOrdersPage from './pages/ShippingOrdersPage';
-import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
-import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
-import SuppliersPage from './pages/SuppliersPage';
-import CustomersPage from './pages/CustomersPage';
-import ReportsPage from './pages/ReportsPage';
-import LoginPage from './pages/LoginPage';
-import AccountingPage from './pages/AccountingPage';
-import PrivateRoute from './components/routing/PrivateRoute';
-import { AuthProvider } from './context/auth/AuthState';
+// 創建自定義主題
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#624bff',
+      light: '#e5e1ff',
+      dark: '#5040d9',
+    },
+    secondary: {
+      main: '#6c757d',
+    },
+    success: {
+      main: '#00d97e',
+    },
+    error: {
+      main: '#e53f3c',
+    },
+    warning: {
+      main: '#f5a623',
+    },
+    info: {
+      main: '#39afd1',
+    },
+    background: {
+      default: '#f5f4f8',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#1e293b',
+      secondary: '#64748b',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontSize: 14,
+    h1: {
+      fontWeight: 600,
+    },
+    h2: {
+      fontWeight: 600,
+    },
+    h3: {
+      fontWeight: 600,
+    },
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+    button: {
+      fontWeight: 500,
+    },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)',
+          transition: 'all 0.3s',
+          '&:hover': {
+            boxShadow: '0 0.5rem 1rem rgba(0, 0, 0, 0.15)',
+          },
+        },
+      },
+    },
+  },
+});
 
-const App = () => {
+function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider theme={theme}>
-        <Box sx={{ display: 'flex' }}>
-          <CssBaseline />
-          <Navbar />
-          <Sidebar />
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              height: '100vh',
-              overflow: 'auto',
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'light'
-                  ? theme.palette.grey[100]
-                  : theme.palette.grey[900],
-            }}
-          >
-            <Toolbar />
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route
-                path="/"
-                element={
-                  <PrivateRoute>
-                    <DashboardPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/products"
-                element={
-                  <PrivateRoute>
-                    <ProductsPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/products/:id"
-                element={
-                  <PrivateRoute>
-                    <ProductDetailPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/purchase-orders"
-                element={
-                  <PrivateRoute>
-                    <PurchaseOrdersPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/purchase-orders/new"
-                element={
-                  <PrivateRoute>
-                    <PurchaseOrderFormPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/purchase-orders/:id"
-                element={
-                  <PrivateRoute>
-                    <PurchaseOrderDetailPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/purchase-orders/:id/edit"
-                element={
-                  <PrivateRoute>
-                    <PurchaseOrderEditPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/sales"
-                element={
-                  <PrivateRoute>
-                    <SalesPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/sales/list"
-                element={
-                  <PrivateRoute>
-                    <SalesListPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/sales/:id"
-                element={
-                  <PrivateRoute>
-                    <SalesDetailPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/sales/:id/edit"
-                element={
-                  <PrivateRoute>
-                    <SalesEditPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/shipping-orders"
-                element={
-                  <PrivateRoute>
-                    <ShippingOrdersPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/shipping-orders/new"
-                element={
-                  <PrivateRoute>
-                    <ShippingOrderFormPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/shipping-orders/:id"
-                element={
-                  <PrivateRoute>
-                    <ShippingOrderDetailPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/suppliers"
-                element={
-                  <PrivateRoute>
-                    <SuppliersPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/customers"
-                element={
-                  <PrivateRoute>
-                    <CustomersPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <PrivateRoute>
-                    <ReportsPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/accounting"
-                element={
-                  <PrivateRoute>
-                    <AccountingPage />
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </Box>
-        </Box>
-      </ThemeProvider>
-    </AuthProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <MainLayout>
+          <AppRouter />
+        </MainLayout>
+      </Router>
+    </ThemeProvider>
   );
-};
+}
 
 export default App;
