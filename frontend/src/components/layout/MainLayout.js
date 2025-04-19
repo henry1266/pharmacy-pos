@@ -164,6 +164,13 @@ const MainLayout = ({ children }) => {
 				activeIcon={<PointOfSaleIcon />}
 				inactiveIcon={<PointOfSaleOutlinedIcon />}
 			/>
+			
+			<NavIconButton
+				to="/accounting"
+				tooltip="記帳"
+				activeIcon={<AccountBalanceWalletIcon />}
+				inactiveIcon={<AccountBalanceWalletOutlinedIcon />}
+			/>
 
 		  
 		  {/* 設置圖標 */}
