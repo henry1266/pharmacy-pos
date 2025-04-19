@@ -1,17 +1,11 @@
 import React from 'react';
 import { 
-  Card, 
-  CardContent, 
   Typography, 
   Box, 
   Skeleton,
   Divider,
-  Grid,
   Paper
 } from '@mui/material';
-import StatusChip from './common/StatusChip';
-import PaymentStatusChip from './common/PaymentStatusChip';
-import { format } from 'date-fns';
 
 /**
  * 出貨單預覽組件

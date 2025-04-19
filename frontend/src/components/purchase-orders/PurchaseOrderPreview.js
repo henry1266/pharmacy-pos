@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   Box, 
   Typography, 
-  Grid, 
   Card, 
   CardContent, 
   Table, 
@@ -13,10 +12,8 @@ import {
   TableRow, 
   Paper,
   Chip,
-  Divider,
   CircularProgress
 } from '@mui/material';
-import { format } from 'date-fns';
 
 /**
  * 進貨單預覽組件
@@ -85,7 +82,6 @@ const PurchaseOrderPreview = ({ purchaseOrder, loading, error }) => {
         <Typography variant="h6" gutterBottom>
           進貨單詳情
         </Typography>
-
 
         <TableContainer component={Paper} variant="outlined" sx={{ mb: 1 }}>
           <Table size="small">

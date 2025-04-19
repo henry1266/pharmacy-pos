@@ -6,7 +6,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -192,9 +191,6 @@ const FIFOProfitCalculator = ({ productId }) => {
 
       <Card sx={{ mb: 2 }}>
         <CardContent>
-          <Typography variant="subtitle1" gutterBottom>
-            毛利摘要
-          </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <Box sx={{ mr: 3, mb: 1 }}>
               <Typography variant="body2" color="text.secondary">
@@ -240,109 +236,96 @@ const FIFOProfitCalculator = ({ productId }) => {
         </CardContent>
       </Card>
 
-      <Typography variant="subtitle1" gutterBottom>
-        銷售毛利明細
-      </Typography>
-
-
-      <TableContainer component={Paper} sx={{ maxWidth: 1000, overflow: 'auto' }}>
+      <TableContainer component={Paper} sx={{ overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell 
+                align="center"
                 sx={{ 
                   fontWeight: 'bold', 
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#e0e0e0' },
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
+                  cursor: 'pointer', 
+                  '&:hover': { backgroundColor: '#e0e0e0' } 
                 }}
                 onClick={() => requestSort('orderNumber')}
               >
                 <Tooltip title="點擊排序" arrow>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <span>銷售單號</span>
+                  <Box>
+                    <span>單號</span>
                     {getSortIcon('orderNumber')}
                   </Box>
                 </Tooltip>
               </TableCell>
               <TableCell 
-                align="right" 
+                align="center"
                 sx={{ 
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#e0e0e0' }
+                  fontWeight: 'bold', 
+                  cursor: 'pointer', 
+                  '&:hover': { backgroundColor: '#e0e0e0' } 
                 }}
                 onClick={() => requestSort('totalQuantity')}
               >
                 <Tooltip title="點擊排序" arrow>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Box>
                     <span>數量</span>
                     {getSortIcon('totalQuantity')}
                   </Box>
                 </Tooltip>
               </TableCell>
               <TableCell 
-                align="right" 
+                align="center"
                 sx={{ 
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#e0e0e0' }
+                  fontWeight: 'bold', 
+                  cursor: 'pointer', 
+                  '&:hover': { backgroundColor: '#e0e0e0' } 
                 }}
               >
                 <span>單價</span>
               </TableCell>
-              <TableCell 
-                align="right" 
+              <TableCell
+                align="center"
                 sx={{ 
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#e0e0e0' }
+                  fontWeight: 'bold', 
+                  cursor: 'pointer', 
+                  '&:hover': { backgroundColor: '#e0e0e0' } 
                 }}
                 onClick={() => requestSort('totalRevenue')}
               >
                 <Tooltip title="點擊排序" arrow>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Box>
                     <span>收入</span>
                     {getSortIcon('totalRevenue')}
                   </Box>
                 </Tooltip>
               </TableCell>
               <TableCell 
-                align="right" 
+                align="center"
                 sx={{ 
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#e0e0e0' }
+                    fontWeight: 'bold', 
+                    cursor: 'pointer', 
+                    '&:hover': { backgroundColor: '#e0e0e0' } 
                 }}
                 onClick={() => requestSort('totalCost')}
               >
                 <Tooltip title="點擊排序" arrow>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Box>
                     <span>成本</span>
                     {getSortIcon('totalCost')}
                   </Box>
                 </Tooltip>
               </TableCell>
               <TableCell 
-                align="right" 
-                sx={{ 
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#e0e0e0' }
-                }}
+                sx={{ fontWeight: 'bold',cursor: 'pointer','&:hover': { backgroundColor: '#e0e0e0' }}}
                 onClick={() => requestSort('grossProfit')}
               >
                 <Tooltip title="點擊排序" arrow>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Box>
                     <span>毛利</span>
                     {getSortIcon('grossProfit')}
                   </Box>
                 </Tooltip>
               </TableCell>
               <TableCell 
-                align="right" 
                 sx={{ 
                   fontWeight: 'bold',
                   cursor: 'pointer',
@@ -351,13 +334,13 @@ const FIFOProfitCalculator = ({ productId }) => {
                 onClick={() => requestSort('profitMargin')}
               >
                 <Tooltip title="點擊排序" arrow>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Box>
                     <span>毛利率</span>
                     {getSortIcon('profitMargin')}
                   </Box>
                 </Tooltip>
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>FIFO明細</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>明細</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -418,7 +401,7 @@ const FIFOProfitCalculator = ({ productId }) => {
                     <IconButton 
                       size="small" 
                       onClick={() => toggleRowExpand(index)}
-                      title={expandedRows[index] ? "收起FIFO明細" : "展開FIFO明細"}
+                      title={expandedRows[index] ? "收起明細" : "展開明細"}
                     >
                       {expandedRows[index] ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
                     </IconButton>
@@ -431,7 +414,7 @@ const FIFOProfitCalculator = ({ productId }) => {
                     <Collapse in={expandedRows[index]} timeout="auto" unmountOnExit>
                       <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
                         <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
-                          FIFO成本分佈明細
+                          成本分佈明細
                         </Typography>
                         <Table size="small" aria-label="fifo-details">
                           <TableHead>
