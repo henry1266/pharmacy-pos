@@ -46,6 +46,7 @@ const AppRouter = () => {
       
       {/* 記帳系統路由 */}
       <Route path="/accounting" element={<AccountingPage />} />
+      <Route path="/accounting/new" element={<AccountingPage openAddDialog={true} />} />
       
       {/* 進貨單相關路由 */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />

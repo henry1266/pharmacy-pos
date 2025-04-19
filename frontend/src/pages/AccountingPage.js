@@ -34,7 +34,7 @@ import zhTW from 'date-fns/locale/zh-TW';
 import axios from 'axios';
 import { format } from 'date-fns';
 
-const AccountingPage = () => {
+const AccountingPage = ({ openAddDialog = false }) => {
   // 狀態管理
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,6 +96,13 @@ const AccountingPage = () => {
   useEffect(() => {
     fetchRecords();
   }, []);
+  
+  // 如果openAddDialog為true，自動打開新增對話框
+  useEffect(() => {
+    if (openAddDialog) {
+      handleOpenAddDialog();
+    }
+  }, [openAddDialog]);
   
   // 篩選條件變更時重新載入
   useEffect(() => {
