@@ -29,7 +29,6 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
-import SearchIcon from '@mui/icons-material/Search';
 
 import SettingsModal from '../settings/SettingsModal';
 
@@ -71,7 +70,7 @@ const MainLayout = ({ children }) => {
 	},
 	{ 
 		text: '出貨單管理', 
-		icon: (location.pathname === '/shipping-orders') ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
+		icon: (location.pathname === '/shipping-orders') ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
 		path: '/shipping-orders' 
 	},
     { 
@@ -130,7 +129,6 @@ const MainLayout = ({ children }) => {
         }}
       >
 
-		
 		<Toolbar>
           <IconButton
             color="inherit"
@@ -144,8 +142,6 @@ const MainLayout = ({ children }) => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             POS系統
           </Typography>
-
-          
 
 			<NavIconButton
 				to="/shipping-orders/new"
