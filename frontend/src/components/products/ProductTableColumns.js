@@ -39,9 +39,9 @@ const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalIn
         );
       }
     },
-    { field: 'category', headerName: '分類', width: 120 },
+    { field: 'category', headerName: '分類', width: 100 },
     { field: 'unit', headerName: '單位', width: 80 },
-    { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
+    { field: 'purchasePrice', headerName: '進貨價', width: 80, type: 'number' },
     {
       field: 'actions',
       headerName: '操作',

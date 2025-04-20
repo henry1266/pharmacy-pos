@@ -168,7 +168,7 @@ const SalesListPage = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
+        <Typography variant="h5" component="h1">
           銷售記錄
         </Typography>
         <Box>
@@ -303,13 +303,7 @@ const SalesListPage = () => {
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => navigate(`/sales/print/${sale._id}`)}
-                      title="列印"
-                    >
-                      <PrintIcon fontSize="small" />
-                    </IconButton>
+
                   </TableCell>
                 </TableRow>
               ))
