@@ -150,49 +150,6 @@ const ReportsPage = () => {
   };
 
 
-  // 生成模擬銷售數據
-  const generateSalesData = () => {
-    const data = [];
-    const now = new Date();
-    
-    for (let i = 0; i < 30; i++) {
-      const date = subDays(now, i);
-      const orders = Math.floor(Math.random() * 20) + 5;
-      const revenue = orders * (Math.floor(Math.random() * 500) + 100);
-      
-      data.push({
-        date: format(date, 'yyyy-MM-dd'),
-        orders,
-        revenue
-      });
-    }
-    
-    return data;
-  };
-
-  // 生成模擬庫存數據
-  const generateInventoryData = () => {
-    const categoryDistribution = [
-      { name: '處方藥', value: 45 },
-      { name: '非處方藥', value: 25 },
-      { name: '保健品', value: 15 },
-      { name: '醫療器材', value: 10 },
-      { name: '其他', value: 5 }
-    ];
-    
-    const lowStockItems = [
-      { name: '阿斯匹靈', stock: 5, threshold: 10 },
-      { name: '布洛芬', stock: 3, threshold: 15 },
-      { name: '血壓計', stock: 2, threshold: 5 }
-    ];
-    
-    return {
-      totalValue: 125000,
-      potentialRevenue: 250000,
-      categoryDistribution,
-      lowStockItems
-    };
-  };
 
 
   // 處理開始日期變更
