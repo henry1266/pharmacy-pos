@@ -18,7 +18,8 @@ import {
   CircularProgress,
   Divider
 } from '@mui/material';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable } from 'react-beautiful-dnd';
+import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -236,7 +237,7 @@ const AccountingCategoryManager = () => {
               拖動項目可調整順序。順序將影響記帳表單中的顯示順序。
             </Typography>
             <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="categories">
+              <StrictModeDroppable droppableId="categories">
                 {(provided) => (
                   <List
                     {...provided.droppableProps}
