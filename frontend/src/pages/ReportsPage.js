@@ -7,16 +7,13 @@ import {
   Card,
   CardContent,
   Button,
-  Avatar,
   CircularProgress,
   Alert,
-  TextField,
   MenuItem,
   FormControl,
   InputLabel,
   Select,
-  Tabs,
-  Tab
+  Chip,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -28,10 +25,8 @@ import {
   AttachMoney, 
   Warning, 
   Category, 
-  People, 
   ShoppingCart, 
   Inventory as InventoryIcon,
-  ReceiptLong
 } from '@mui/icons-material';
 import { format, subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import AccountingChart from '../components/reports/AccountingChart';
