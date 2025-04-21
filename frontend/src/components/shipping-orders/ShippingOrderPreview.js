@@ -1,11 +1,5 @@
 import React from 'react';
-import { 
-  Typography, 
-  Box, 
-  Skeleton,
-  Divider,
-  Paper
-} from '@mui/material';
+import ItemPreview from '../common/preview/ItemPreview';
 
 /**
  * 出貨單預覽組件
@@ -16,76 +10,67 @@ import {
  * @returns {React.ReactElement} 出貨單預覽組件
  */
 const ShippingOrderPreview = ({ shippingOrder, loading, error }) => {
-  if (loading) {
-    return (
-      <Paper sx={{ width: 350, p: 2 }}>
-        <Skeleton variant="text" height={30} width="60%" />
-        <Skeleton variant="text" height={20} width="40%" />
-        <Skeleton variant="text" height={20} width="70%" />
-        <Divider sx={{ my: 1 }} />
-        <Skeleton variant="rectangular" height={100} />
-      </Paper>
-    );
-  }
-  
-  if (error) {
-    return (
-      <Paper sx={{ width: 350, p: 2 }}>
-        <Typography color="error">{error}</Typography>
-      </Paper>
-    );
-  }
-  
-  if (!shippingOrder) {
-    return null;
-  }
-  
+  // 定義表格列配置
+  const columns = [
+    { key: 'dname', label: '藥品名稱', render: (item) => item.dname || item.name },
+    { key: 'did', label: '藥品代碼', render: (item) => item.did || item.id },
+    { key: 'dquantity', label: '數量', align: 'right', render: (item) => item.dquantity || item.quantity },
+    { key: 'dtotalCost', label: '金額', align: 'right', render: (item) => (item.dtotalCost || item.totalCost || 0).toLocaleString() }
+  ];
+
+  // 計算總計的函數
+  const getTotal = (data) => {
+    return data.totalAmount || 
+      (data.items && data.items.reduce((sum, item) => sum + Number(item.dtotalCost || item.totalCost || 0), 0));
+  };
+
+  // 獲取狀態顯示文本
+  const getStatusText = (status) => {
+    const statusMap = {
+      'pending': '處理中',
+      'shipped': '已出貨',
+      'delivered': '已送達',
+      'cancelled': '已取消'
+    };
+    return statusMap[status] || status;
+  };
+
+  // 自定義備註內容
+  const getNotes = (data) => {
+    if (!data) return '';
+    
+    let notes = data.notes || '';
+    
+    // 添加收件人信息
+    if (data.recipient) {
+      notes = `收件人: ${data.recipient}\n${notes ? notes + '\n' : ''}`;
+    }
+    
+    // 添加狀態信息
+    if (data.status) {
+      notes = `${notes ? notes + '\n' : ''}狀態: ${getStatusText(data.status)}`;
+    }
+    
+    return notes;
+  };
+
   return (
-    <Paper sx={{ width: 300, p: 2, maxHeight: 600, overflow: 'auto' }}>
-      <Typography variant="h6" gutterBottom>
-        出貨單預覽
-      </Typography>
-      
-      <Divider sx={{ my: 1 }} />
-      
-      <Typography variant="subtitle2" gutterBottom>
-        藥品項目
-      </Typography>
-      
-      {shippingOrder.items && shippingOrder.items.length > 0 ? (
-        shippingOrder.items.map((item, index) => (
-          <Box key={index} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
-            <Typography variant="body2">
-              {item.dname} ({item.did})
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="textSecondary">
-                數量: {item.dquantity}
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                金額: {item.dtotalCost?.toLocaleString() || '0'} 元
-              </Typography>
-            </Box>
-          </Box>
-        ))
-      ) : (
-        <Typography variant="body2" color="textSecondary">
-          無藥品項目
-        </Typography>
-      )}
-      
-      {shippingOrder.notes && (
-        <>
-          <Divider sx={{ my: 1 }} />
-          <Typography variant="subtitle2" gutterBottom>
-            備註
-          </Typography>
-          <Typography variant="body2">
-            {shippingOrder.notes}
-          </Typography>
-        </>
-      )}
-    </Paper>
+    <ItemPreview
+      data={shippingOrder}
+      loading={loading}
+      error={error}
+      title="出貨單預覽"
+      columns={columns}
+      itemsKey="items"
+      getTotal={getTotal}
+      emptyText="無藥品項目"
+      variant="table"
+      notes={shippingOrder ? getNotes(shippingOrder) : ''}
+      notesKey={null} // 使用自定義備註
+      containerProps={{
+        sx: { width: 550, maxHeight: 600 }
+      }}
+    />
   );
 };
 
