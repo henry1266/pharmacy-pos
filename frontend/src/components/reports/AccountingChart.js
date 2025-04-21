@@ -10,7 +10,17 @@ import {
   MenuItem, 
   Grid,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -32,6 +42,7 @@ import {
 } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import axios from 'axios';
+import { DownloadOutlined, TableChart, BarChartOutlined } from '@mui/icons-material';
 
 /**
  * 記帳系統圖表組件
@@ -51,6 +62,12 @@ const AccountingChart = () => {
   const [accountingData, setAccountingData] = useState([]);
   const [groupBy, setGroupBy] = useState('date'); // 'date' 或 'shift' 或 'category'
   const [viewMode, setViewMode] = useState('amount'); // 'amount' 或 'count'
+  const [viewTab, setViewTab] = useState(0); // 0: 圖表, 1: 表格
+  const [summaryData, setSummaryData] = useState({
+    totalAmount: 0,
+    totalCount: 0,
+    categoryStats: []
+  });
 
   // 顏色配置
   const COLORS = ['#624bff', '#00d97e', '#f5a623', '#e53f3c', '#39afd1', '#6c757d'];
@@ -120,21 +137,32 @@ const AccountingChart = () => {
         const params = new URLSearchParams();
         params.append('startDate', format(dateRange.startDate, 'yyyy-MM-dd'));
         params.append('endDate', format(dateRange.endDate, 'yyyy-MM-dd'));
+        params.append('groupBy', groupBy);
         
-        const response = await axios.get(`/api/accounting?${params.toString()}`);
-        setAccountingData(response.data);
+        const response = await axios.get(`/api/reports/accounting?${params.toString()}`);
+        setAccountingData(response.data.data || []);
+        setSummaryData({
+          totalAmount: response.data.summary.totalAmount || 0,
+          totalCount: response.data.summary.totalCount || 0,
+          categoryStats: response.data.categoryStats || []
+        });
         setError(null);
       } catch (err) {
         console.error('獲取記帳數據失敗:', err);
         setError('獲取記帳數據失敗');
         setAccountingData([]);
+        setSummaryData({
+          totalAmount: 0,
+          totalCount: 0,
+          categoryStats: []
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchAccountingData();
-  }, [dateRange.startDate, dateRange.endDate]);
+  }, [dateRange.startDate, dateRange.endDate, groupBy]);
 
   // 處理日期範圍變更
   const handleDateRangeChange = (option) => {
@@ -185,6 +213,11 @@ const AccountingChart = () => {
     setChartType(event.target.value);
   };
 
+  // 處理視圖標籤變更
+  const handleViewTabChange = (event, newValue) => {
+    setViewTab(newValue);
+  };
+
   // 格式化金額
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('zh-TW', {
@@ -200,115 +233,65 @@ const AccountingChart = () => {
       return [];
     }
 
-    // 過濾選定的類別
-    const filteredData = accountingData.map(record => {
-      return {
-        ...record,
-        items: record.items.filter(item => selectedCategories.includes(item.category))
-      };
-    }).filter(record => record.items.length > 0);
-
     // 根據分組方式處理數據
-    let groupedData = {};
-
     if (groupBy === 'date') {
-      // 按日期分組
-      filteredData.forEach(record => {
-        const date = format(new Date(record.date), 'yyyy-MM-dd');
-        if (!groupedData[date]) {
-          groupedData[date] = {};
+      // 按日期分組的數據已經從API獲取
+      return accountingData.map(item => {
+        const result = { name: item.date };
+        
+        // 如果是按類別過濾，則需要從items中提取
+        if (selectedCategories.length > 0) {
+          selectedCategories.forEach(category => {
+            const categoryItems = item.items.filter(i => i.category === category);
+            result[category] = viewMode === 'amount'
+              ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
+              : categoryItems.length;
+          });
+        } else {
+          // 否則直接使用總金額或總數量
+          result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
         }
-
-        record.items.forEach(item => {
-          if (!groupedData[date][item.category]) {
-            groupedData[date][item.category] = {
-              amount: 0,
-              count: 0
-            };
-          }
-          groupedData[date][item.category].amount += Number(item.amount);
-          groupedData[date][item.category].count += 1;
-        });
-      });
-
-      // 轉換為圖表數據格式
-      return Object.keys(groupedData).map(date => {
-        const result = { name: date };
-        selectedCategories.forEach(category => {
-          if (groupedData[date][category]) {
-            result[category] = viewMode === 'amount' 
-              ? groupedData[date][category].amount 
-              : groupedData[date][category].count;
-          } else {
-            result[category] = 0;
-          }
-        });
+        
         return result;
       }).sort((a, b) => a.name.localeCompare(b.name));
     } else if (groupBy === 'shift') {
-      // 按班別分組
-      filteredData.forEach(record => {
-        const shift = `${record.shift}班`;
-        if (!groupedData[shift]) {
-          groupedData[shift] = {};
+      // 按班別分組的數據已經從API獲取
+      return accountingData.map(item => {
+        const result = { name: item.shift };
+        
+        // 如果是按類別過濾，則需要從items中提取
+        if (selectedCategories.length > 0) {
+          selectedCategories.forEach(category => {
+            const categoryItems = item.items.filter(i => i.category === category);
+            result[category] = viewMode === 'amount'
+              ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
+              : categoryItems.length;
+          });
+        } else {
+          // 否則直接使用總金額或總數量
+          result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
         }
-
-        record.items.forEach(item => {
-          if (!groupedData[shift][item.category]) {
-            groupedData[shift][item.category] = {
-              amount: 0,
-              count: 0
-            };
-          }
-          groupedData[shift][item.category].amount += Number(item.amount);
-          groupedData[shift][item.category].count += 1;
-        });
-      });
-
-      // 轉換為圖表數據格式
-      return Object.keys(groupedData).map(shift => {
-        const result = { name: shift };
-        selectedCategories.forEach(category => {
-          if (groupedData[shift][category]) {
-            result[category] = viewMode === 'amount' 
-              ? groupedData[shift][category].amount 
-              : groupedData[shift][category].count;
-          } else {
-            result[category] = 0;
-          }
-        });
+        
         return result;
       }).sort((a, b) => {
         const shiftOrder = { '早班': 1, '中班': 2, '晚班': 3 };
         return shiftOrder[a.name] - shiftOrder[b.name];
       });
     } else if (groupBy === 'category') {
-      // 按類別分組
-      selectedCategories.forEach(category => {
-        groupedData[category] = {
-          amount: 0,
-          count: 0
-        };
-      });
-
-      filteredData.forEach(record => {
-        record.items.forEach(item => {
-          if (selectedCategories.includes(item.category)) {
-            groupedData[item.category].amount += Number(item.amount);
-            groupedData[item.category].count += 1;
-          }
-        });
-      });
-
-      // 轉換為圖表數據格式 (餅圖用)
-      return Object.keys(groupedData).map(category => {
-        return {
-          name: category,
-          value: viewMode === 'amount' 
-            ? groupedData[category].amount 
-            : groupedData[category].count
-        };
-      });
+      // 按類別分組的數據
+      if (selectedCategories.length > 0) {
+        return summaryData.categoryStats
+          .filter(item => selectedCategories.includes(item.category))
+          .map(item => ({
+            name: item.category,
+            value: viewMode === 'amount' ? item.totalAmount : item.count
+          }));
+      } else {
+        return summaryData.categoryStats.map(item => ({
+          name: item.category,
+          value: viewMode === 'amount' ? item.totalAmount : item.count
+        }));
+      }
     }
 
     return [];
@@ -316,6 +299,51 @@ const AccountingChart = () => {
 
   // 獲取處理後的圖表數據
   const chartData = processChartData();
+
+  // 導出CSV
+  const exportToCSV = () => {
+    if (!accountingData || accountingData.length === 0) {
+      alert('沒有數據可導出');
+      return;
+    }
+
+    let csvContent = '';
+    
+    // 添加標題行
+    if (groupBy === 'date') {
+      csvContent += '日期,總金額,項目數\n';
+      
+      // 添加數據行
+      accountingData.forEach(item => {
+        csvContent += `${item.date},${item.totalAmount},${item.items.length}\n`;
+      });
+    } else if (groupBy === 'shift') {
+      csvContent += '班別,總金額,項目數\n';
+      
+      // 添加數據行
+      accountingData.forEach(item => {
+        csvContent += `${item.shift},${item.totalAmount},${item.items.length}\n`;
+      });
+    } else if (groupBy === 'category') {
+      csvContent += '類別,總金額,項目數\n';
+      
+      // 添加數據行
+      summaryData.categoryStats.forEach(item => {
+        csvContent += `${item.category},${item.totalAmount},${item.count}\n`;
+      });
+    }
+    
+    // 創建下載鏈接
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `記帳報表_${groupBy}_${format(new Date(), 'yyyyMMdd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // 渲染加載中狀態
   if (loading) {
@@ -374,14 +402,22 @@ const AccountingChart = () => {
               }}
             />
             <Legend />
-            {selectedCategories.map((category, index) => (
+            {groupBy === 'category' || selectedCategories.length === 0 ? (
               <Bar 
-                key={category} 
-                dataKey={category} 
-                name={category} 
-                fill={COLORS[index % COLORS.length]} 
+                dataKey="value" 
+                name={viewMode === 'amount' ? '金額' : '數量'} 
+                fill={COLORS[0]} 
               />
-            ))}
+            ) : (
+              selectedCategories.map((category, index) => (
+                <Bar 
+                  key={category} 
+                  dataKey={category} 
+                  name={category} 
+                  fill={COLORS[index % COLORS.length]} 
+                />
+              ))
+            )}
           </BarChart>
         </ResponsiveContainer>
       );
@@ -421,16 +457,26 @@ const AccountingChart = () => {
               }}
             />
             <Legend />
-            {selectedCategories.map((category, index) => (
+            {groupBy === 'category' || selectedCategories.length === 0 ? (
               <Line 
-                key={category} 
                 type="monotone"
-                dataKey={category} 
-                name={category} 
-                stroke={COLORS[index % COLORS.length]} 
+                dataKey="value" 
+                name={viewMode === 'amount' ? '金額' : '數量'} 
+                stroke={COLORS[0]} 
                 activeDot={{ r: 8 }}
               />
-            ))}
+            ) : (
+              selectedCategories.map((category, index) => (
+                <Line 
+                  key={category} 
+                  type="monotone"
+                  dataKey={category} 
+                  name={category} 
+                  stroke={COLORS[index % COLORS.length]} 
+                  activeDot={{ r: 8 }}
+                />
+              ))
+            )}
           </LineChart>
         </ResponsiveContainer>
       );
@@ -471,28 +517,146 @@ const AccountingChart = () => {
     return null;
   };
 
-  // 計算總金額和總數量
-  const calculateTotals = () => {
-    if (!accountingData || accountingData.length === 0) {
-      return { totalAmount: 0, totalCount: 0 };
+  // 渲染表格
+  const renderTable = () => {
+    if (accountingData.length === 0) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
+          <Typography variant="body1" color="var(--text-secondary)">
+            暫無記帳數據
+          </Typography>
+        </Box>
+      );
     }
 
-    let totalAmount = 0;
-    let totalCount = 0;
+    if (groupBy === 'date') {
+      return (
+        <TableContainer component={Paper} sx={{ mt: 3 }}>
+          <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
+            <TableHead>
+              <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <TableCell>日期</TableCell>
+                <TableCell align="right">總金額</TableCell>
+                <TableCell align="right">項目數</TableCell>
+                <TableCell>明細</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {accountingData.map((row, index) => (
+                <TableRow
+                  key={index}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  <TableCell component="th" scope="row">
+                    {row.date}
+                  </TableCell>
+                  <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
+                  <TableCell align="right">{row.items.length}</TableCell>
+                  <TableCell>
+                    {row.items.slice(0, 3).map((item, i) => (
+                      <Chip 
+                        key={i} 
+                        label={`${item.category}: ${formatCurrency(item.amount)}`} 
+                        size="small" 
+                        sx={{ mr: 0.5, mb: 0.5 }} 
+                      />
+                    ))}
+                    {row.items.length > 3 && (
+                      <Chip 
+                        label={`+${row.items.length - 3}項`} 
+                        size="small" 
+                        variant="outlined" 
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      );
+    } else if (groupBy === 'shift') {
+      return (
+        <TableContainer component={Paper} sx={{ mt: 3 }}>
+          <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
+            <TableHead>
+              <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <TableCell>班別</TableCell>
+                <TableCell align="right">總金額</TableCell>
+                <TableCell align="right">項目數</TableCell>
+                <TableCell>明細</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {accountingData.map((row, index) => (
+                <TableRow
+                  key={index}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  <TableCell component="th" scope="row">
+                    {row.shift}
+                  </TableCell>
+                  <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
+                  <TableCell align="right">{row.items.length}</TableCell>
+                  <TableCell>
+                    {row.items.slice(0, 3).map((item, i) => (
+                      <Chip 
+                        key={i} 
+                        label={`${item.category}: ${formatCurrency(item.amount)}`} 
+                        size="small" 
+                        sx={{ mr: 0.5, mb: 0.5 }} 
+                      />
+                    ))}
+                    {row.items.length > 3 && (
+                      <Chip 
+                        label={`+${row.items.length - 3}項`} 
+                        size="small" 
+                        variant="outlined" 
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      );
+    } else if (groupBy === 'category') {
+      return (
+        <TableContainer component={Paper} sx={{ mt: 3 }}>
+          <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
+            <TableHead>
+              <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <TableCell>類別</TableCell>
+                <TableCell align="right">總金額</TableCell>
+                <TableCell align="right">項目數</TableCell>
+                <TableCell align="right">平均金額</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {summaryData.categoryStats.map((row, index) => (
+                <TableRow
+                  key={index}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  <TableCell component="th" scope="row">
+                    {row.category}
+                  </TableCell>
+                  <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
+                  <TableCell align="right">{row.count}</TableCell>
+                  <TableCell align="right">
+                    {formatCurrency(row.count > 0 ? row.totalAmount / row.count : 0)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      );
+    }
 
-    accountingData.forEach(record => {
-      record.items.forEach(item => {
-        if (selectedCategories.includes(item.category)) {
-          totalAmount += Number(item.amount);
-          totalCount += 1;
-        }
-      });
-    });
-
-    return { totalAmount, totalCount };
+    return null;
   };
-
-  const { totalAmount, totalCount } = calculateTotals();
 
   return (
     <Card sx={{ 
@@ -501,9 +665,32 @@ const AccountingChart = () => {
       mb: 4
     }}>
       <CardContent>
-        <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
-          記帳系統報表
-        </Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 3
+        }}>
+          <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
+            記帳系統報表
+          </Typography>
+          
+          <Button
+            variant="outlined"
+            startIcon={<DownloadOutlined />}
+            onClick={exportToCSV}
+            sx={{ 
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-primary)',
+              '&:hover': {
+                borderColor: 'var(--primary-color)',
+                backgroundColor: 'rgba(98, 75, 255, 0.04)'
+              }
+            }}
+          >
+            導出CSV
+          </Button>
+        </Box>
 
         {/* 篩選和控制區域 */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -582,6 +769,7 @@ const AccountingChart = () => {
               <Select
                 value={chartType}
                 onChange={handleChartTypeChange}
+                disabled={viewTab === 1}
               >
                 {chartTypeOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
@@ -598,7 +786,7 @@ const AccountingChart = () => {
               <Select
                 value={groupBy}
                 onChange={handleGroupByChange}
-                disabled={chartType === 'pie'}
+                disabled={chartType === 'pie' && viewTab === 0}
               >
                 {groupByOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
@@ -634,7 +822,7 @@ const AccountingChart = () => {
                 總金額
               </Typography>
               <Typography variant="h4" fontWeight="600" color="var(--text-primary)">
-                {formatCurrency(totalAmount)}
+                {formatCurrency(summaryData.totalAmount)}
               </Typography>
             </Box>
           </Grid>
@@ -644,20 +832,44 @@ const AccountingChart = () => {
                 總數量
               </Typography>
               <Typography variant="h4" fontWeight="600" color="var(--text-primary)">
-                {totalCount}
+                {summaryData.totalCount}
               </Typography>
             </Box>
           </Grid>
         </Grid>
 
-        {/* 圖表區域 */}
+        {/* 視圖切換 */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tabs value={viewTab} onChange={handleViewTabChange} aria-label="視圖切換">
+            <Tab 
+              icon={<BarChartOutlined />} 
+              label="圖表" 
+              id="tab-0" 
+              aria-controls="tabpanel-0" 
+            />
+            <Tab 
+              icon={<TableChart />} 
+              label="表格" 
+              id="tab-1" 
+              aria-controls="tabpanel-1" 
+            />
+          </Tabs>
+        </Box>
+
+        {/* 圖表/表格區域 */}
         {error ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography color="error">{error}</Typography>
           </Box>
         ) : (
-          renderChart()
+          <Box role="tabpanel" hidden={viewTab !== 0} id="tabpanel-0" aria-labelledby="tab-0">
+            {viewTab === 0 && renderChart()}
+          </Box>
         )}
+
+        <Box role="tabpanel" hidden={viewTab !== 1} id="tabpanel-1" aria-labelledby="tab-1">
+          {viewTab === 1 && renderTable()}
+        </Box>
       </CardContent>
     </Card>
   );

@@ -183,6 +183,9 @@ router.get('/sales', async (req, res) => {
 // @access  Public
 router.get('/inventory', async (req, res) => {
   try {
+    // 獲取查詢參數
+    const { productType } = req.query;
+    
     // 獲取庫存數據
     const inventory = await Inventory.find().populate('product');
     
@@ -198,6 +201,7 @@ router.get('/inventory', async (req, res) => {
         productCode: item.product.code,
         productName: item.product.name,
         category: item.product.category,
+        productType: item.product.productType || 'product', // 確保有產品類型
         quantity: item.quantity,
         unit: item.product.unit,
         purchasePrice: item.product.purchasePrice,
@@ -214,15 +218,21 @@ router.get('/inventory', async (req, res) => {
       };
     }).filter(Boolean);
     
+    // 如果指定了產品類型，則過濾數據
+    let filteredData = inventoryData;
+    if (productType && (productType === 'product' || productType === 'medicine')) {
+      filteredData = inventoryData.filter(item => item.productType === productType);
+    }
+    
     // 計算總計
-    const totalInventoryValue = inventoryData.reduce((sum, item) => sum + item.inventoryValue, 0);
-    const totalPotentialRevenue = inventoryData.reduce((sum, item) => sum + item.potentialRevenue, 0);
-    const totalPotentialProfit = inventoryData.reduce((sum, item) => sum + item.potentialProfit, 0);
-    const lowStockCount = inventoryData.filter(item => item.status === 'low').length;
+    const totalInventoryValue = filteredData.reduce((sum, item) => sum + item.inventoryValue, 0);
+    const totalPotentialRevenue = filteredData.reduce((sum, item) => sum + item.potentialRevenue, 0);
+    const totalPotentialProfit = filteredData.reduce((sum, item) => sum + item.potentialProfit, 0);
+    const lowStockCount = filteredData.filter(item => item.status === 'low').length;
     
     // 按類別分組
     const categoryGroups = {};
-    inventoryData.forEach(item => {
+    filteredData.forEach(item => {
       if (!categoryGroups[item.category]) {
         categoryGroups[item.category] = {
           category: item.category,
@@ -241,16 +251,50 @@ router.get('/inventory', async (req, res) => {
       categoryGroups[item.category].potentialProfit += item.potentialProfit;
     });
     
+    // 按產品類型分組
+    const productTypeGroups = {
+      product: {
+        type: 'product',
+        label: '商品',
+        itemCount: 0,
+        totalQuantity: 0,
+        inventoryValue: 0,
+        potentialRevenue: 0,
+        potentialProfit: 0
+      },
+      medicine: {
+        type: 'medicine',
+        label: '藥品',
+        itemCount: 0,
+        totalQuantity: 0,
+        inventoryValue: 0,
+        potentialRevenue: 0,
+        potentialProfit: 0
+      }
+    };
+    
+    inventoryData.forEach(item => {
+      const type = item.productType || 'product';
+      if (productTypeGroups[type]) {
+        productTypeGroups[type].itemCount += 1;
+        productTypeGroups[type].totalQuantity += item.quantity;
+        productTypeGroups[type].inventoryValue += item.inventoryValue;
+        productTypeGroups[type].potentialRevenue += item.potentialRevenue;
+        productTypeGroups[type].potentialProfit += item.potentialProfit;
+      }
+    });
+    
     res.json({
-      data: inventoryData,
+      data: filteredData,
       summary: {
-        totalItems: inventoryData.length,
+        totalItems: filteredData.length,
         totalInventoryValue,
         totalPotentialRevenue,
         totalPotentialProfit,
         lowStockCount
       },
-      categoryGroups: Object.values(categoryGroups)
+      categoryGroups: Object.values(categoryGroups),
+      productTypeGroups: Object.values(productTypeGroups)
     });
   } catch (err) {
     console.error(err.message);
@@ -258,81 +302,154 @@ router.get('/inventory', async (req, res) => {
   }
 });
 
-// @route   GET api/reports/customers
-// @desc    Get customer report data
+// @route   GET api/reports/accounting
+// @desc    Get accounting report data
 // @access  Public
-router.get('/customers', async (req, res) => {
+router.get('/accounting', async (req, res) => {
   try {
-    // 獲取客戶數據
-    const customers = await Customer.find();
+    // 獲取查詢參數
+    const { startDate, endDate, groupBy } = req.query;
     
-    // 獲取銷售數據
-    const sales = await Sale.find().populate('customer');
+    // 設置日期範圍
+    const dateFilter = {};
+    if (startDate) {
+      dateFilter.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      dateFilter.$lte = new Date(endDate);
+      // 設置結束日期為當天的最後一毫秒
+      dateFilter.$lte.setHours(23, 59, 59, 999);
+    }
     
-    // 處理客戶購買數據
-    const customerPurchases = {};
-    sales.forEach(sale => {
-      if (sale.customer) {
-        const customerId = sale.customer._id.toString();
-        if (!customerPurchases[customerId]) {
-          customerPurchases[customerId] = {
-            totalSpent: 0,
-            orderCount: 0,
-            lastPurchase: null
+    // 構建查詢條件
+    const query = {};
+    if (Object.keys(dateFilter).length > 0) {
+      query.date = dateFilter;
+    }
+    
+    // 獲取記帳數據
+    const accounting = await Accounting.find(query).sort({ date: 1 });
+    
+    // 處理分組
+    let groupedData = [];
+    
+    if (groupBy === 'day') {
+      // 按日分組
+      const accountingByDay = {};
+      accounting.forEach(record => {
+        const dateStr = record.date.toISOString().split('T')[0];
+        if (!accountingByDay[dateStr]) {
+          accountingByDay[dateStr] = {
+            date: dateStr,
+            totalAmount: 0,
+            items: []
           };
         }
         
-        customerPurchases[customerId].totalSpent += sale.totalAmount;
-        customerPurchases[customerId].orderCount += 1;
-        
-        if (!customerPurchases[customerId].lastPurchase || 
-            new Date(sale.date) > new Date(customerPurchases[customerId].lastPurchase)) {
-          customerPurchases[customerId].lastPurchase = sale.date;
-        }
-      }
-    });
-    
-    // 合併數據
-    const customerData = customers.map(customer => {
-      const purchases = customerPurchases[customer._id.toString()] || {
-        totalSpent: 0,
-        orderCount: 0,
-        lastPurchase: null
+        record.items.forEach(item => {
+          accountingByDay[dateStr].totalAmount += Number(item.amount);
+          accountingByDay[dateStr].items.push({
+            category: item.category,
+            amount: Number(item.amount),
+            note: item.note
+          });
+        });
+      });
+      
+      groupedData = Object.values(accountingByDay);
+    } else if (groupBy === 'category') {
+      // 按類別分組
+      const accountingByCategory = {};
+      accounting.forEach(record => {
+        record.items.forEach(item => {
+          if (!accountingByCategory[item.category]) {
+            accountingByCategory[item.category] = {
+              category: item.category,
+              totalAmount: 0,
+              count: 0
+            };
+          }
+          
+          accountingByCategory[item.category].totalAmount += Number(item.amount);
+          accountingByCategory[item.category].count += 1;
+        });
+      });
+      
+      groupedData = Object.values(accountingByCategory).sort((a, b) => b.totalAmount - a.totalAmount);
+    } else if (groupBy === 'shift') {
+      // 按班別分組
+      const accountingByShift = {
+        '早': { shift: '早班', totalAmount: 0, count: 0, items: [] },
+        '中': { shift: '中班', totalAmount: 0, count: 0, items: [] },
+        '晚': { shift: '晚班', totalAmount: 0, count: 0, items: [] }
       };
       
-      return {
-        id: customer._id,
-        code: customer.code,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email,
-        address: customer.address,
-        membershipLevel: customer.membershipLevel,
-        points: customer.points,
-        totalSpent: purchases.totalSpent,
-        orderCount: purchases.orderCount,
-        averageOrderValue: purchases.orderCount > 0 ? purchases.totalSpent / purchases.orderCount : 0,
-        lastPurchase: purchases.lastPurchase
-      };
-    });
-    
-    // 按消費金額排序
-    customerData.sort((a, b) => b.totalSpent - a.totalSpent);
+      accounting.forEach(record => {
+        if (accountingByShift[record.shift]) {
+          record.items.forEach(item => {
+            accountingByShift[record.shift].totalAmount += Number(item.amount);
+            accountingByShift[record.shift].count += 1;
+            accountingByShift[record.shift].items.push({
+              category: item.category,
+              amount: Number(item.amount),
+              note: item.note
+            });
+          });
+        }
+      });
+      
+      groupedData = Object.values(accountingByShift);
+    } else {
+      // 不分組，返回所有記帳記錄
+      groupedData = accounting.map(record => ({
+        id: record._id,
+        date: record.date,
+        shift: record.shift,
+        totalAmount: record.items.reduce((sum, item) => sum + Number(item.amount), 0),
+        items: record.items.map(item => ({
+          category: item.category,
+          amount: Number(item.amount),
+          note: item.note
+        }))
+      }));
+    }
     
     // 計算總計
-    const totalCustomers = customerData.length;
-    const totalSpent = customerData.reduce((sum, customer) => sum + customer.totalSpent, 0);
-    const totalOrders = customerData.reduce((sum, customer) => sum + customer.orderCount, 0);
-    const averageSpentPerCustomer = totalCustomers > 0 ? totalSpent / totalCustomers : 0;
+    let totalAmount = 0;
+    let totalCount = 0;
+    
+    accounting.forEach(record => {
+      record.items.forEach(item => {
+        totalAmount += Number(item.amount);
+        totalCount += 1;
+      });
+    });
+    
+    // 按類別統計
+    const categoryStats = {};
+    accounting.forEach(record => {
+      record.items.forEach(item => {
+        if (!categoryStats[item.category]) {
+          categoryStats[item.category] = {
+            category: item.category,
+            totalAmount: 0,
+            count: 0
+          };
+        }
+        
+        categoryStats[item.category].totalAmount += Number(item.amount);
+        categoryStats[item.category].count += 1;
+      });
+    });
     
     res.json({
-      data: customerData,
+      data: groupedData,
       summary: {
-        totalCustomers,
-        totalSpent,
-        totalOrders,
-        averageSpentPerCustomer
-      }
+        totalAmount,
+        totalCount,
+        recordCount: accounting.length
+      },
+      categoryStats: Object.values(categoryStats).sort((a, b) => b.totalAmount - a.totalAmount)
     });
   } catch (err) {
     console.error(err.message);
