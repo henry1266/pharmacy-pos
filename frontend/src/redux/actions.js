@@ -56,7 +56,7 @@ export const fetchProducts = () => async (dispatch) => {
   dispatch({ type: ActionTypes.FETCH_PRODUCTS_REQUEST });
   
   try {
-    const res = await axios.get(`${API_BASE_URL}/products`);
+    const res = await axios.get('/api/products');
     
     dispatch({
       type: ActionTypes.FETCH_PRODUCTS_SUCCESS,
@@ -76,8 +76,8 @@ export const addProduct = (productData) => async (dispatch) => {
   try {
     // 根據產品類型選擇正確的API端點
     const endpoint = productData.productType === 'medicine' 
-      ? `${API_BASE_URL}/products/medicine` 
-      : `${API_BASE_URL}/products/product`;
+      ? '/api/products/medicine' 
+      : '/api/products/product';
     
     const res = await axios.post(endpoint, productData);
     
@@ -97,7 +97,7 @@ export const updateProduct = (id, productData) => async (dispatch) => {
   dispatch({ type: ActionTypes.UPDATE_PRODUCT_REQUEST });
   
   try {
-    const res = await axios.put(`${API_BASE_URL}/products/${id}`, productData);
+    const res = await axios.put(`/api/products/${id}`, productData);
     
     dispatch({
       type: ActionTypes.UPDATE_PRODUCT_SUCCESS,
@@ -115,7 +115,7 @@ export const deleteProduct = (id) => async (dispatch) => {
   dispatch({ type: ActionTypes.DELETE_PRODUCT_REQUEST });
   
   try {
-    await axios.delete(`${API_BASE_URL}/products/${id}`);
+    await axios.delete(`/api/products/${id}`);
     
     dispatch({
       type: ActionTypes.DELETE_PRODUCT_SUCCESS,
@@ -134,7 +134,7 @@ export const fetchSuppliers = () => async (dispatch) => {
   dispatch({ type: ActionTypes.FETCH_SUPPLIERS_REQUEST });
   
   try {
-    const res = await axios.get(`${API_BASE_URL}/suppliers`);
+    const res = await axios.get('/api/suppliers');
     
     dispatch({
       type: ActionTypes.FETCH_SUPPLIERS_SUCCESS,
@@ -153,7 +153,7 @@ export const fetchCustomers = () => async (dispatch) => {
   dispatch({ type: ActionTypes.FETCH_CUSTOMERS_REQUEST });
   
   try {
-    const res = await axios.get(`${API_BASE_URL}/customers`);
+    const res = await axios.get('/api/customers');
     
     dispatch({
       type: ActionTypes.FETCH_CUSTOMERS_SUCCESS,
@@ -172,7 +172,7 @@ export const fetchInventory = () => async (dispatch) => {
   dispatch({ type: ActionTypes.FETCH_INVENTORY_REQUEST });
   
   try {
-    const res = await axios.get(`${API_BASE_URL}/inventory`);
+    const res = await axios.get('/api/inventory');
     
     // 不再過濾庫存記錄，保留所有庫存數據
     dispatch({
@@ -192,7 +192,7 @@ export const fetchSales = () => async (dispatch) => {
   dispatch({ type: ActionTypes.FETCH_SALES_REQUEST });
   
   try {
-    const res = await axios.get(`${API_BASE_URL}/sales`);
+    const res = await axios.get('/api/sales');
     
     dispatch({
       type: ActionTypes.FETCH_SALES_SUCCESS,
@@ -211,7 +211,7 @@ export const fetchDashboardData = () => async (dispatch) => {
   dispatch({ type: ActionTypes.FETCH_DASHBOARD_DATA_REQUEST });
   
   try {
-    const res = await axios.get(`${API_BASE_URL}/dashboard`);
+    const res = await axios.get('/api/dashboard');
     
     dispatch({
       type: ActionTypes.FETCH_DASHBOARD_DATA_SUCCESS,
@@ -230,7 +230,7 @@ export const fetchReportsData = (reportType, params) => async (dispatch) => {
   dispatch({ type: ActionTypes.FETCH_REPORTS_DATA_REQUEST });
   
   try {
-    const res = await axios.get(`${API_BASE_URL}/reports/${reportType}`, { params });
+    const res = await axios.get(`/api/reports/${reportType}`, { params });
     
     dispatch({
       type: ActionTypes.FETCH_REPORTS_DATA_SUCCESS,
