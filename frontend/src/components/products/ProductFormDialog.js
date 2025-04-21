@@ -79,6 +79,16 @@ const ProductFormDialog = ({
             <>
               <Grid item xs={12} sm={6}>
                 <TextField
+                  name="barcode"
+                  label="國際條碼"
+                  value={currentProduct.barcode}
+                  onChange={handleInputChange}
+                  fullWidth
+                  margin="dense"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
                   name="healthInsuranceCode"
                   label="健保碼"
                   value={currentProduct.healthInsuranceCode}

@@ -94,7 +94,7 @@ const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalIn
 const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalInventory) => {
   return [
     { field: 'code', headerName: '藥品編號', width: 80 },
-    { field: 'name', headerName: '藥品名稱', width: 220 },
+    { field: 'name', headerName: '藥品名稱', width: 180 },
     { 
       field: 'inventory', 
       headerName: '庫存', 
@@ -124,6 +124,7 @@ const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalI
         );
       }
     },
+    { field: 'barcode', headerName: '國際條碼', width: 120 },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
     { field: 'healthInsuranceCode', headerName: '健保碼', width: 100 },
     { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },

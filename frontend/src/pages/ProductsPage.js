@@ -214,6 +214,7 @@ const ProductsPage = () => {
         productData.barcode = currentProduct.barcode;
         productData.productType = 'product';
       } else {
+        productData.barcode = currentProduct.barcode;
         productData.healthInsuranceCode = currentProduct.healthInsuranceCode;
         productData.healthInsurancePrice = currentProduct.healthInsurancePrice;
         productData.productType = 'medicine';
