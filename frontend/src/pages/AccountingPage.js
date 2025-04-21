@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 // 導入拆分後的子組件
 import AccountingFilter from '../components/accounting/AccountingFilter';
@@ -9,6 +10,8 @@ import AccountingDataGrid from '../components/accounting/AccountingDataGrid';
 import AccountingForm from '../components/accounting/AccountingForm';
 
 const AccountingPage = ({ openAddDialog = false }) => {
+  const navigate = useNavigate();
+  
   // 狀態管理
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,19 +89,9 @@ const AccountingPage = ({ openAddDialog = false }) => {
     fetchRecords();
   }, [startDate, endDate, filterShift]);
   
-  // 開啟新增對話框
+  // 導航到新增頁面
   const handleOpenAddDialog = () => {
-    setFormData({
-      date: new Date(),
-      shift: '',
-      items: [
-        { amount: '', category: '掛號費', note: '' },
-        { amount: '', category: '部分負擔', note: '' }
-      ]
-    });
-    setEditMode(false);
-    setCurrentId(null);
-    setOpenDialog(true);
+    navigate('/accounting/new');
   };
   
   // 開啟編輯對話框
@@ -215,7 +208,7 @@ const AccountingPage = ({ openAddDialog = false }) => {
         onDelete={handleDelete}
       />
       
-      {/* 新增/編輯表單對話框 */}
+      {/* 編輯表單對話框 (僅用於編輯，新增已改為獨立頁面) */}
       <AccountingForm 
         open={openDialog}
         onClose={handleCloseDialog}

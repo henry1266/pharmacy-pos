@@ -97,6 +97,15 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
     }
   ];
 
+  // 根據項目數量計算行高
+  const getRowHeight = (params) => {
+    const itemCount = params.model.items.length || 0;
+    // 基本行高為52px，每個項目增加24px，最小高度為52px
+    const baseHeight = 52;
+    const itemHeight = 24;
+    return Math.max(baseHeight, baseHeight + (itemCount - 1) * itemHeight);
+  };
+
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
       <Box sx={{ height: 540, width: '100%' }}>
@@ -105,6 +114,7 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
           columns={columns}
           loading={loading}
           disableRowSelectionOnClick
+          getRowHeight={getRowHeight}
           initialState={{
             sorting: {
               sortModel: [
