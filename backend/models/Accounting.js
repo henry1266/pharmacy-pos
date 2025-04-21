@@ -22,8 +22,11 @@ const AccountingSchema = new Schema({
     },
     category: {
       type: String,
-      required: true,
-      enum: ['掛號費', '部分負擔', '其他']
+      required: true
+    },
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'AccountingCategory'
     },
     note: {
       type: String,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box,
   Grid,
@@ -13,7 +13,8 @@ import {
   Paper,
   Snackbar,
   Alert,
-  Container
+  Container,
+  CircularProgress
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -25,6 +26,7 @@ import zhTW from 'date-fns/locale/zh-TW';
 import { format } from 'date-fns';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { getAccountingCategories } from '../services/accountingCategoryService';
 
 /**
  * 記帳新增頁面

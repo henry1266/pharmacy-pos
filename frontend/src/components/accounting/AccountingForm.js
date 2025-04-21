@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog,
   DialogTitle,
@@ -12,7 +12,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -21,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import zhTW from 'date-fns/locale/zh-TW';
 import { format } from 'date-fns';
+import { getAccountingCategories } from '../../services/accountingCategoryService';
 
 /**
  * 記帳表單對話框組件
@@ -41,6 +43,30 @@ const AccountingForm = ({
   editMode,
   onSubmit
 }) => {
+  // 記帳名目類別狀態
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // 獲取記帳名目類別
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const data = await getAccountingCategories();
+        setCategories(data);
+        setError(null);
+      } catch (err) {
+        console.error('獲取記帳名目類別失敗:', err);
+        setError('獲取記帳名目類別失敗');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
+  
   // 處理表單變更
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -66,6 +92,14 @@ const AccountingForm = ({
       [field]: field === 'amount' ? (value === '' ? '' : parseFloat(value)) : value
     };
     
+    // 如果是類別變更，同時更新categoryId
+    if (field === 'category' && categories.length > 0) {
+      const selectedCategory = categories.find(cat => cat.name === value);
+      if (selectedCategory) {
+        updatedItems[index].categoryId = selectedCategory._id;
+      }
+    }
+    
     setFormData({
       ...formData,
       items: updatedItems
@@ -76,7 +110,7 @@ const AccountingForm = ({
   const handleAddItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { amount: '', category: '', note: '' }]
+      items: [...formData.items, { amount: '', category: '', categoryId: '', note: '' }]
     });
   };
   
@@ -87,7 +121,7 @@ const AccountingForm = ({
     
     setFormData({
       ...formData,
-      items: updatedItems.length ? updatedItems : [{ amount: '', category: '', note: '' }]
+      items: updatedItems.length ? updatedItems : [{ amount: '', category: '', categoryId: '', note: '' }]
     });
   };
   
@@ -154,10 +188,28 @@ const AccountingForm = ({
                       value={item.category}
                       label="名目"
                       onChange={(e) => handleItemChange(index, 'category', e.target.value)}
+                      disabled={loading}
                     >
-                      <MenuItem value="掛號費">掛號費</MenuItem>
-                      <MenuItem value="部分負擔">部分負擔</MenuItem>
-                      <MenuItem value="其他">其他</MenuItem>
+                      {loading ? (
+                        <MenuItem disabled>
+                          <CircularProgress size={20} />
+                          載入中...
+                        </MenuItem>
+                      ) : error ? (
+                        <MenuItem disabled>
+                          無法載入名目類別
+                        </MenuItem>
+                      ) : categories.length > 0 ? (
+                        categories.map(category => (
+                          <MenuItem key={category._id} value={category.name}>
+                            {category.name}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled>
+                          無可用名目類別
+                        </MenuItem>
+                      )}
                     </Select>
                   </FormControl>
                 </Grid>

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Accounting = require('../models/Accounting');
+const AccountingCategory = require('../models/AccountingCategory');
 const auth = require('../middleware/auth');
 const { check, validationResult } = require('express-validator');
 
@@ -69,7 +70,7 @@ router.post('/', [
     check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
     check('items', '至少需要一個項目').isArray().not().isEmpty(),
     check('items.*.amount', '金額必須為正數').isFloat({ min: 0 }),
-    check('items.*.category', '名目為必填欄位').isIn(['掛號費', '部分負擔', '其他'])
+    check('items.*.category', '名目為必填欄位').not().isEmpty()
   ]
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -112,7 +113,7 @@ router.put('/:id', [
     check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
     check('items', '至少需要一個項目').isArray().not().isEmpty(),
     check('items.*.amount', '金額必須為正數').isFloat({ min: 0 }),
-    check('items.*.category', '名目為必填欄位').isIn(['掛號費', '部分負擔', '其他'])
+    check('items.*.category', '名目為必填欄位').not().isEmpty()
   ]
 ], async (req, res) => {
   const errors = validationResult(req);
