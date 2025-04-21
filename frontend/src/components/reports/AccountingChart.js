@@ -26,7 +26,9 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  LineChart,
+  Line
 } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import axios from 'axios';
@@ -39,7 +41,7 @@ const AccountingChart = () => {
   // 狀態管理
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [chartType, setChartType] = useState('bar'); // 'bar' 或 'pie'
+  const [chartType, setChartType] = useState('bar'); // 'bar' 或 'pie' 或 'line'
   const [dateRange, setDateRange] = useState({
     startDate: startOfMonth(new Date()),
     endDate: new Date()
@@ -81,6 +83,13 @@ const AccountingChart = () => {
   const viewModeOptions = [
     { label: '金額', value: 'amount' },
     { label: '數量', value: 'count' }
+  ];
+
+  // 圖表類型選項
+  const chartTypeOptions = [
+    { label: '柱狀圖', value: 'bar' },
+    { label: '折線圖', value: 'line' },
+    { label: '餅圖', value: 'pie' }
   ];
 
   // 獲取記帳類別
@@ -376,6 +385,55 @@ const AccountingChart = () => {
           </BarChart>
         </ResponsiveContainer>
       );
+    } else if (chartType === 'line') {
+      return (
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={chartData}
+            margin={{
+              top: 20,
+              right: 30,
+              left: 20,
+              bottom: 60,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+            <XAxis 
+              dataKey="name" 
+              stroke="var(--text-secondary)" 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis 
+              stroke="var(--text-secondary)" 
+              tickFormatter={value => viewMode === 'amount' ? formatCurrency(value) : value}
+            />
+            <Tooltip 
+              formatter={(value, name) => [
+                viewMode === 'amount' ? formatCurrency(value) : value, 
+                name
+              ]}
+              contentStyle={{
+                backgroundColor: 'var(--bg-secondary)',
+                borderColor: 'var(--border-color)',
+                borderRadius: 'var(--border-radius-sm)'
+              }}
+            />
+            <Legend />
+            {selectedCategories.map((category, index) => (
+              <Line 
+                key={category} 
+                type="monotone"
+                dataKey={category} 
+                name={category} 
+                stroke={COLORS[index % COLORS.length]} 
+                activeDot={{ r: 8 }}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      );
     } else if (chartType === 'pie') {
       return (
         <ResponsiveContainer width="100%" height={400}>
@@ -525,8 +583,11 @@ const AccountingChart = () => {
                 value={chartType}
                 onChange={handleChartTypeChange}
               >
-                <MenuItem value="bar">柱狀圖</MenuItem>
-                <MenuItem value="pie">餅圖</MenuItem>
+                {chartTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
