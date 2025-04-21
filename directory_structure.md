@@ -8,16 +8,34 @@ pharmacy-pos/
 │   ├── config/             # 配置文件
 │   ├── middleware/         # 中間件
 │   ├── models/             # 資料模型
-│   └── routes/             # API路由
+│   ├── routes/             # API路由
+│   ├── scripts/            # 腳本文件
+│   └── utils/              # 工具函數
+├── config/                 # 系統配置文件
 ├── csv/                    # CSV匯入/匯出相關文件
 ├── frontend/               # 前端程式碼
 │   ├── public/             # 靜態資源
 │   └── src/                # 源代碼
 │       ├── assets/         # 靜態資源
+│       │   └── css/        # 樣式文件
 │       ├── components/     # 組件
+│       │   ├── accounting/ # 記帳相關組件
+│       │   ├── charts/     # 圖表組件
+│       │   ├── common/     # 共用組件
+│       │   ├── filters/    # 過濾器組件
+│       │   ├── layout/     # 布局組件
+│       │   ├── products/   # 產品相關組件
+│       │   ├── purchase-orders/ # 進貨單相關組件
+│       │   ├── reports/    # 報表相關組件
+│       │   ├── sales/      # 銷售相關組件
+│       │   ├── settings/   # 設置相關組件
+│       │   ├── shipping-orders/ # 出貨單相關組件
+│       │   └── tables/     # 表格組件
 │       ├── hooks/          # 自定義Hooks
 │       ├── pages/          # 頁面
 │       ├── redux/          # Redux狀態管理
+│       ├── services/       # 服務
+│       ├── tests/          # 測試文件
 │       └── utils/          # 工具函數
 ├── 報告/                   # AI產生的報告
 ├── setup.bat               # Windows環境設置腳本
@@ -28,7 +46,7 @@ pharmacy-pos/
 
 ## 前端組件結構
 
-### 優化後的PurchaseOrders相關組件結構
+### 進貨單相關組件結構
 
 ```
 frontend/src/components/
@@ -57,22 +75,58 @@ frontend/src/components/
 └── purchase-order-form/        # 舊版進貨單表單組件(待移除)
 ```
 
+### 出貨單相關組件結構
+
+```
+frontend/src/components/
+└── shipping-orders/            # 出貨單相關組件
+    ├── common/                 # 共用元件
+    │   ├── StatusChip.js       # 狀態標籤組件
+    │   └── ConfirmDialog.js    # 通用確認對話框
+    ├── list/                   # 列表相關組件
+    │   ├── ShippingOrdersTable.js # 出貨單表格
+    │   ├── TableActions.js     # 表格操作按鈕
+    │   └── TableFilters.js     # 表格篩選器
+    ├── form/                   # 表單相關組件
+    │   ├── BasicInfo/          # 基本信息相關
+    │   │   ├── index.js        # 基本信息表單主組件
+    │   │   ├── CustomerSelect.js # 客戶選擇組件
+    │   │   └── StatusSelect.js # 狀態選擇組件
+    │   └── ProductItems/       # 產品項目相關
+    │       ├── ItemsTable.js   # 項目表格
+    │       ├── ItemForm.js     # 項目表單
+    │       └── ItemActions.js  # 項目操作按鈕
+    └── import/                 # 導入相關組件
+        └── CsvImportDialog.js  # CSV導入對話框
+```
+
+### 報表相關組件結構
+
+```
+frontend/src/components/
+├── reports/                    # 報表相關組件
+│   └── AccountingChart.js      # 記帳報表圖表組件
+└── charts/                     # 圖表組件
+    ├── BarChart.js             # 柱狀圖組件
+    └── LineChart.js            # 折線圖組件
+```
+
 ## 組件功能說明
 
-### 共用元件 (common/)
+### 進貨單共用元件 (purchase-orders/common/)
 
 - **StatusChip.js**: 顯示進貨單狀態的標籤組件，根據不同狀態顯示不同顏色和文字。
 - **PaymentStatusChip.js**: 顯示付款狀態的標籤組件，根據不同付款狀態顯示不同顏色和文字。
 - **ConfirmDialog.js**: 通用確認對話框組件，用於各種需要用戶確認的操作。
 
-### 列表相關組件 (list/)
+### 進貨單列表相關組件 (purchase-orders/list/)
 
 - **PurchaseOrdersTable.js**: 進貨單列表表格組件，顯示所有進貨單的主要信息。
 - **TableActions.js**: 表格行操作按鈕組件，包含查看、編輯、刪除等功能。
 - **TableFilters.js**: 表格篩選器組件，提供多種條件篩選進貨單。
 - **PreviewPopover.js**: 進貨單預覽彈出框組件，顯示進貨單的詳細信息。
 
-### 表單相關組件 (form/)
+### 進貨單表單相關組件 (purchase-orders/form/)
 
 #### 基本信息相關 (BasicInfo/)
 
@@ -87,9 +141,30 @@ frontend/src/components/
 - **ItemForm.js**: 藥品項目編輯表單組件，用於編輯單個藥品項目。
 - **ItemActions.js**: 藥品項目操作按鈕組件，包含上移、下移、編輯、刪除等功能。
 
-### 導入相關組件 (import/)
+### 報表相關組件 (reports/ 和 charts/)
 
-- **CsvImportDialog.js**: CSV導入對話框組件，用於從CSV文件導入進貨單數據。
+- **AccountingChart.js**: 記帳報表圖表組件，提供多種圖表類型和數據視圖，支持按日期、班別或類別分組，並提供CSV導出功能。
+- **BarChart.js**: 柱狀圖組件，用於顯示分類數據的比較。
+- **LineChart.js**: 折線圖組件，用於顯示數據的趨勢變化。
+
+## 後端API結構
+
+### 報表相關API
+
+```
+backend/routes/
+├── reports.js                  # 報表相關API
+│   ├── GET /api/reports/sales  # 獲取銷售報表數據
+│   ├── GET /api/reports/inventory # 獲取庫存報表數據
+│   └── GET /api/reports/accounting # 獲取記帳報表數據
+└── accounting.js               # 記帳相關API
+    ├── GET /api/accounting     # 獲取所有記帳記錄
+    ├── GET /api/accounting/:id # 獲取單筆記帳記錄
+    ├── POST /api/accounting    # 新增記帳記錄
+    ├── PUT /api/accounting/:id # 更新記帳記錄
+    ├── DELETE /api/accounting/:id # 刪除記帳記錄
+    └── GET /api/accounting/summary/daily # 獲取每日記帳摘要
+```
 
 ## 組件間關係
 
@@ -106,6 +181,26 @@ frontend/src/components/
 3. **表單相關組件**負責進貨單的創建和編輯：
    - BasicInfo相關組件處理進貨單的基本信息
    - ProductItems相關組件處理進貨單中的藥品項目
+
+4. **報表相關組件**負責數據可視化和分析：
+   - AccountingChart組件使用BarChart和LineChart組件來顯示不同類型的圖表
+   - 報表組件通過API獲取數據，並提供多種視圖和分析工具
+
+## 最新功能說明
+
+### 庫存表分類功能
+
+- 實現了將庫存表區分為商品(product)和藥品(medicine)兩類
+- 添加了productType過濾功能，可以只顯示特定類型的庫存項目
+- 實現了按產品類型的分組統計，提供每種類型的庫存總值、潛在收入等信息
+
+### 記帳報表功能
+
+- 添加了表格視圖，可以在圖表和表格之間切換查看數據
+- 實現了CSV導出功能，可以將報表數據導出為CSV文件
+- 改進了數據處理邏輯，使用新的後端API獲取更完整的數據
+- 添加了摘要統計顯示，直觀展示總金額和總數量
+- 優化了UI界面，提供更好的控制選項和可視化效果
 
 ## 優化說明
 
@@ -132,3 +227,7 @@ frontend/src/components/
 4. **性能優化**：進一步優化組件的渲染性能，減少不必要的重渲染。
 
 5. **狀態管理優化**：考慮使用Context API或Redux來管理共享狀態，減少props drilling。
+
+6. **報表功能擴展**：添加更多圖表類型和分析工具，提供更豐富的數據分析能力。
+
+7. **數據導出增強**：支持更多格式的數據導出，如Excel、PDF等。
