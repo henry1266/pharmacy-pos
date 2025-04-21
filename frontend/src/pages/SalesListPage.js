@@ -24,7 +24,8 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle
+  DialogTitle,
+  Popover
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -38,6 +39,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import SalesPreview from '../components/sales/SalesPreview';
 
 const SalesListPage = () => {
   const navigate = useNavigate();
@@ -51,6 +53,12 @@ const SalesListPage = () => {
     message: '',
     severity: 'success'
   });
+  
+  // 預覽相關狀態
+  const [previewAnchorEl, setPreviewAnchorEl] = useState(null);
+  const [selectedSale, setSelectedSale] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
 
   // 獲取銷售數據
   const fetchSales = async () => {
@@ -164,6 +172,24 @@ const SalesListPage = () => {
     };
     return statusMap[status] || { text: status, color: 'default' };
   };
+
+  // 處理預覽點擊
+  const handlePreviewClick = (event, sale) => {
+    setPreviewAnchorEl(event.currentTarget);
+    setSelectedSale(sale);
+    setPreviewLoading(false);
+    setPreviewError(null);
+  };
+
+  // 處理預覽關閉
+  const handlePreviewClose = () => {
+    setPreviewAnchorEl(null);
+    setSelectedSale(null);
+  };
+
+  // 預覽彈出框是否開啟
+  const isPreviewOpen = Boolean(previewAnchorEl);
+  const previewId = isPreviewOpen ? 'sales-preview-popover' : undefined;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -283,8 +309,9 @@ const SalesListPage = () => {
                   <TableCell align="center">
                     <IconButton
                       size="small"
-                      onClick={() => navigate(`/sales/${sale._id}`)}
+                      onClick={(event) => handlePreviewClick(event, sale)}
                       title="查看詳情"
+                      aria-describedby={previewId}
                     >
                       <VisibilityIcon fontSize="small" />
                     </IconButton>
@@ -311,6 +338,28 @@ const SalesListPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      
+      {/* 預覽彈出框 */}
+      <Popover
+        id={previewId}
+        open={isPreviewOpen}
+        anchorEl={previewAnchorEl}
+        onClose={handlePreviewClose}
+        anchorOrigin={{
+          vertical: 'center',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'center',
+          horizontal: 'left',
+        }}
+      >
+        <SalesPreview 
+          sale={selectedSale} 
+          loading={previewLoading} 
+          error={previewError} 
+        />
+      </Popover>
       
       {/* 確認刪除對話框 */}
       <Dialog
