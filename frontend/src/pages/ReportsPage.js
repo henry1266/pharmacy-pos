@@ -29,7 +29,6 @@ import {
   Warning, 
   Category, 
   People, 
-  PersonAdd, 
   ShoppingCart, 
   Inventory as InventoryIcon,
   ReceiptLong
@@ -53,12 +52,6 @@ const ReportsPage = () => {
     potentialRevenue: 0,
     lowStockItems: [],
     categoryDistribution: []
-  });
-  const [customerData, setCustomerData] = useState({
-    totalCustomers: 0,
-    newCustomers: 0,
-    topCustomers: [],
-    customerActivity: []
   });
   const [tabValue, setTabValue] = useState(0);
 
@@ -106,8 +99,6 @@ const ReportsPage = () => {
       fetchSalesData();
     } else if (reportType === 'inventory') {
       fetchInventoryData();
-    } else if (reportType === 'customers') {
-      fetchCustomerData();
     }
   }, [reportType]);
 
@@ -115,14 +106,19 @@ const ReportsPage = () => {
   const fetchSalesData = async () => {
     setLoading(true);
     try {
-      // 模擬API請求
-      // 實際應用中應該使用真實的API請求
-      setTimeout(() => {
-        const data = generateSalesData();
-        setSalesData(data);
-        setLoading(false);
-        setError(null);
-      }, 1000);
+      const params = new URLSearchParams();
+      if (dateRange.startDate) {
+        params.append('startDate', format(dateRange.startDate, 'yyyy-MM-dd'));
+      }
+      if (dateRange.endDate) {
+        params.append('endDate', format(dateRange.endDate, 'yyyy-MM-dd'));
+      }
+      params.append('groupBy', groupBy);
+      
+      const response = await axios.get(`/api/reports/sales?${params.toString()}`);
+      setSalesData(response.data.data || []);
+      setLoading(false);
+      setError(null);
     } catch (err) {
       console.error('獲取銷售報表數據失敗:', err);
       setError('獲取銷售報表數據失敗');
@@ -134,23 +130,21 @@ const ReportsPage = () => {
   const fetchInventoryData = async () => {
     setLoading(true);
     try {
-      // 模擬API請求
-      // 實際應用中應該使用真實的API請求
-      setTimeout(() => {
-        const data = generateInventoryData();
-        setInventoryData(data);
-        setLoading(false);
-        setError(null);
-      }, 1000);
+      const response = await axios.get('/api/reports/inventory');
+      setInventoryData({
+        totalValue: response.data.summary.totalInventoryValue || 0,
+        potentialRevenue: response.data.summary.totalPotentialRevenue || 0,
+        lowStockItems: response.data.data.filter(item => item.status === 'low') || [],
+        categoryGroups: response.data.categoryGroups || []
+      });
+      setLoading(false);
+      setError(null);
     } catch (err) {
       console.error('獲取庫存報表數據失敗:', err);
       setError('獲取庫存報表數據失敗');
       setLoading(false);
     }
   };
-
-
-
 
   // 處理開始日期變更
   const handleStartDateChange = (date) => {
@@ -197,8 +191,6 @@ const ReportsPage = () => {
       fetchSalesData();
     } else if (reportType === 'inventory') {
       fetchInventoryData();
-    } else if (reportType === 'customers') {
-      fetchCustomerData();
     }
   };
 
@@ -213,8 +205,8 @@ const ReportsPage = () => {
     const data = Array.isArray(salesData) ? salesData : [];
     
     // 計算總訂單數和總收入
-    const totalOrders = safeReduce(data, (sum, item) => sum + item.orders, 0);
-    const totalRevenue = safeReduce(data, (sum, item) => sum + item.revenue, 0);
+    const totalOrders = safeReduce(data, (sum, item) => sum + (item.orderCount || 0), 0);
+    const totalRevenue = safeReduce(data, (sum, item) => sum + (item.totalAmount || 0), 0);
     
     return (
       <>
@@ -379,8 +371,8 @@ const ReportsPage = () => {
                   <YAxis stroke="var(--text-secondary)" />
                   <Tooltip 
                     formatter={(value, name) => [
-                      name === 'revenue' ? formatCurrency(value) : value, 
-                      name === 'revenue' ? '收入' : '訂單數'
+                      name === 'totalAmount' ? formatCurrency(value) : value, 
+                      name === 'totalAmount' ? '收入' : '訂單數'
                     ]}
                     contentStyle={{
                       backgroundColor: 'var(--bg-secondary)',
@@ -391,14 +383,14 @@ const ReportsPage = () => {
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="orders"
+                    dataKey="orderCount"
                     name="訂單數"
                     stroke="#624bff"
                     activeDot={{ r: 8 }}
                   />
                   <Line 
                     type="monotone" 
-                    dataKey="revenue" 
+                    dataKey="totalAmount" 
                     name="收入" 
                     stroke="#00d97e" 
                   />
@@ -479,36 +471,30 @@ const ReportsPage = () => {
                       }}>
                         <td style={{ 
                           padding: '12px 16px', 
-                          borderBottom: '1px solid var(--border-color)',
-                          color: 'var(--text-primary)',
-                          fontWeight: 500
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
                           {item.date}
                         </td>
                         <td style={{ 
                           padding: '12px 16px', 
                           textAlign: 'right', 
-                          borderBottom: '1px solid var(--border-color)',
-                          color: 'var(--text-primary)'
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
-                          {item.orders}
+                          {item.orderCount}
                         </td>
                         <td style={{ 
                           padding: '12px 16px', 
                           textAlign: 'right', 
-                          borderBottom: '1px solid var(--border-color)',
-                          color: 'var(--text-primary)',
-                          fontWeight: 600
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
-                          {formatCurrency(item.revenue)}
+                          {formatCurrency(item.totalAmount)}
                         </td>
                         <td style={{ 
                           padding: '12px 16px', 
                           textAlign: 'right', 
-                          borderBottom: '1px solid var(--border-color)',
-                          color: 'var(--text-primary)'
+                          borderBottom: '1px solid var(--border-color)'
                         }}>
-                          {formatCurrency(item.orders > 0 ? item.revenue / item.orders : 0)}
+                          {formatCurrency(item.orderCount > 0 ? item.totalAmount / item.orderCount : 0)}
                         </td>
                       </tr>
                     ))}
@@ -524,14 +510,7 @@ const ReportsPage = () => {
 
   // 渲染庫存報表
   const renderInventoryReport = () => {
-    // 確保 categoryDistribution 和 lowStockItems 是數組
-    const categoryDistribution = Array.isArray(inventoryData.categoryDistribution) 
-      ? inventoryData.categoryDistribution 
-      : [];
-    
-    const lowStockItems = Array.isArray(inventoryData.lowStockItems) 
-      ? inventoryData.lowStockItems 
-      : [];
+    const { totalValue, potentialRevenue, lowStockItems, categoryGroups } = inventoryData;
     
     return (
       <>
@@ -545,10 +524,10 @@ const ReportsPage = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <Box>
                     <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      庫存總價值
+                      庫存總值
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(inventoryData.totalValue || 0)}
+                      {formatCurrency(totalValue)}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -579,7 +558,7 @@ const ReportsPage = () => {
                       潛在收入
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(inventoryData.potentialRevenue || 0)}
+                      {formatCurrency(potentialRevenue)}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -607,7 +586,38 @@ const ReportsPage = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <Box>
                     <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      低庫存商品
+                      潛在毛利
+                    </Typography>
+                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
+                      {formatCurrency(potentialRevenue - totalValue)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ 
+                    backgroundColor: 'rgba(245, 166, 35, 0.1)', 
+                    color: 'var(--warning-color)',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 'var(--border-radius)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Category />
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              borderRadius: 'var(--border-radius)',
+              boxShadow: 'var(--card-shadow)'
+            }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                      庫存不足項目
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
                       {lowStockItems.length}
@@ -629,40 +639,9 @@ const ReportsPage = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      商品類別
-                    </Typography>
-                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {categoryDistribution.length}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    backgroundColor: 'rgba(245, 166, 35, 0.1)', 
-                    color: 'var(--warning-color)',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--border-radius)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Category />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
         </Grid>
         
-        <Grid container spacing={3}>
+        <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
             <Card sx={{ 
               borderRadius: 'var(--border-radius)',
@@ -671,14 +650,14 @@ const ReportsPage = () => {
             }}>
               <CardContent>
                 <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
-                  庫存類別分佈
+                  類別分布
                 </Typography>
                 
                 {loading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                     <CircularProgress />
                   </Box>
-                ) : categoryDistribution.length === 0 ? (
+                ) : !categoryGroups || categoryGroups.length === 0 ? (
                   <Box sx={{ p: 3, textAlign: 'center' }}>
                     <Typography color="var(--text-secondary)">暫無數據</Typography>
                   </Box>
@@ -686,21 +665,22 @@ const ReportsPage = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={categoryDistribution}
+                        data={categoryGroups}
                         cx="50%"
                         cy="50%"
                         labelLine={true}
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                         outerRadius={100}
                         fill="#8884d8"
-                        dataKey="value"
+                        dataKey="inventoryValue"
+                        nameKey="category"
                       >
-                        {categoryDistribution.map((entry, index) => (
+                        {categoryGroups.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip 
-                        formatter={(value) => [`${value}%`, '佔比']}
+                        formatter={(value) => formatCurrency(value)}
                         contentStyle={{
                           backgroundColor: 'var(--bg-secondary)',
                           borderColor: 'var(--border-color)',
@@ -713,6 +693,7 @@ const ReportsPage = () => {
               </CardContent>
             </Card>
           </Grid>
+          
           <Grid item xs={12} md={6}>
             <Card sx={{ 
               borderRadius: 'var(--border-radius)',
@@ -721,67 +702,85 @@ const ReportsPage = () => {
             }}>
               <CardContent>
                 <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
-                  低庫存商品
+                  庫存不足項目
                 </Typography>
                 
                 {loading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                     <CircularProgress />
                   </Box>
-                ) : lowStockItems.length === 0 ? (
+                ) : !lowStockItems || lowStockItems.length === 0 ? (
                   <Box sx={{ p: 3, textAlign: 'center' }}>
-                    <Typography color="var(--text-secondary)">暫無低庫存商品</Typography>
+                    <Typography color="var(--text-secondary)">暫無庫存不足項目</Typography>
                   </Box>
                 ) : (
-                  <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                    {lowStockItems.map((item, index) => (
-                      <Box 
-                        key={index} 
-                        sx={{ 
-                          p: 2, 
-                          mb: 1, 
-                          borderRadius: 'var(--border-radius)',
-                          border: '1px solid var(--border-color)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between'
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Box sx={{ 
-                            width: 40, 
-                            height: 40, 
-                            borderRadius: 'var(--border-radius)',
-                            backgroundColor: 'rgba(229, 63, 60, 0.1)',
-                            color: 'var(--danger-color)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mr: 2
+                  <Box sx={{ overflowX: 'auto' }}>
+                    <table style={{ 
+                      width: '100%', 
+                      borderCollapse: 'collapse',
+                      fontSize: '0.875rem'
+                    }}>
+                      <thead>
+                        <tr style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                          <th style={{ 
+                            padding: '12px 16px', 
+                            textAlign: 'left', 
+                            borderBottom: '1px solid var(--border-color)',
+                            color: 'var(--text-secondary)',
+                            fontWeight: 600
                           }}>
-                            <Warning />
-                          </Box>
-                          <Box>
-                            <Typography variant="body1" fontWeight="500" color="var(--text-primary)">
-                              {item.name}
-                            </Typography>
-                            <Typography variant="body2" color="var(--text-secondary)">
-                              庫存: {item.stock} / 閾值: {item.threshold}
-                            </Typography>
-                          </Box>
-                        </Box>
-                        <Box sx={{ 
-                          px: 2, 
-                          py: 1, 
-                          borderRadius: 'var(--border-radius-sm)',
-                          backgroundColor: 'rgba(229, 63, 60, 0.1)',
-                          color: 'var(--danger-color)',
-                          fontWeight: 500
-                        }}>
-                          低庫存
-                        </Box>
-                      </Box>
-                    ))}
+                            產品名稱
+                          </th>
+                          <th style={{ 
+                            padding: '12px 16px', 
+                            textAlign: 'right', 
+                            borderBottom: '1px solid var(--border-color)',
+                            color: 'var(--text-secondary)',
+                            fontWeight: 600
+                          }}>
+                            當前庫存
+                          </th>
+                          <th style={{ 
+                            padding: '12px 16px', 
+                            textAlign: 'right', 
+                            borderBottom: '1px solid var(--border-color)',
+                            color: 'var(--text-secondary)',
+                            fontWeight: 600
+                          }}>
+                            最低庫存
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lowStockItems.map((item, index) => (
+                          <tr key={index} style={{ 
+                            backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.02)'
+                          }}>
+                            <td style={{ 
+                              padding: '12px 16px', 
+                              borderBottom: '1px solid var(--border-color)'
+                            }}>
+                              {item.productName}
+                            </td>
+                            <td style={{ 
+                              padding: '12px 16px', 
+                              textAlign: 'right', 
+                              borderBottom: '1px solid var(--border-color)',
+                              color: 'var(--danger-color)'
+                            }}>
+                              {item.quantity} {item.unit}
+                            </td>
+                            <td style={{ 
+                              padding: '12px 16px', 
+                              textAlign: 'right', 
+                              borderBottom: '1px solid var(--border-color)'
+                            }}>
+                              {item.minStock} {item.unit}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </Box>
                 )}
               </CardContent>
@@ -792,138 +791,147 @@ const ReportsPage = () => {
     );
   };
 
+  // 渲染記帳報表
+  const renderAccountingReport = () => {
+    return (
+      <AccountingChart />
+    );
+  };
 
   return (
-    <Box sx={{ p: 3, width: '100%' }}>
-      <Typography variant="h4" gutterBottom>
-        報表中心
-      </Typography>
-      
-      {/* 標籤頁選擇 */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="銷售報表" icon={<ShoppingCart />} iconPosition="start" />
-          <Tab label="庫存報表" icon={<InventoryIcon />} iconPosition="start" />
-          <Tab label="記帳報表" icon={<ReceiptLong />} iconPosition="start" />
-        </Tabs>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 4
+      }}>
+        <Typography variant="h4" component="h1" fontWeight="700" color="var(--text-primary)">
+          報表
+        </Typography>
+        
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadOutlined />}
+            onClick={exportToCSV}
+            sx={{ 
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-primary)',
+              '&:hover': {
+                borderColor: 'var(--primary-color)',
+                backgroundColor: 'rgba(98, 75, 255, 0.04)'
+              }
+            }}
+          >
+            導出CSV
+          </Button>
+        </Box>
       </Box>
       
-      {/* 傳統報表篩選區域 (只在非記帳報表標籤頁顯示) */}
-      {tabValue !== 3 && (
-        <Card sx={{ 
-          borderRadius: 'var(--border-radius)',
-          boxShadow: 'var(--card-shadow)',
-          mb: 4
-        }}>
-          <CardContent>
-            <Grid container spacing={3} alignItems="flex-end">
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>報表類型</InputLabel>
-                  <Select
-                    value={reportType}
-                    onChange={handleReportTypeChange}
-                  >
-                    <MenuItem value="sales">銷售報表</MenuItem>
-                    <MenuItem value="inventory">庫存報表</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              {reportType !== 'inventory' && (
-                <>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth>
-                      <InputLabel>分組方式</InputLabel>
-                      <Select
-                        value={groupBy}
-                        onChange={handleGroupByChange}
-                      >
-                        {groupByOptions.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={2}>
+      <Card sx={{ 
+        borderRadius: 'var(--border-radius)',
+        boxShadow: 'var(--card-shadow)',
+        mb: 4
+      }}>
+        <CardContent>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>報表類型</InputLabel>
+                <Select
+                  value={reportType}
+                  onChange={handleReportTypeChange}
+                >
+                  <MenuItem value="sales">銷售報表</MenuItem>
+                  <MenuItem value="inventory">庫存報表</MenuItem>
+                  <MenuItem value="accounting">記帳報表</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            {reportType === 'sales' && (
+              <>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>分組方式</InputLabel>
+                    <Select
+                      value={groupBy}
+                      onChange={handleGroupByChange}
+                    >
+                      {groupByOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
                         label="開始日期"
                         value={dateRange.startDate}
                         onChange={handleStartDateChange}
-                        slotProps={{ textField: { fullWidth: true } }}
+                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
                       />
-                    </LocalizationProvider>
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
                         label="結束日期"
                         value={dateRange.endDate}
                         onChange={handleEndDateChange}
-                        slotProps={{ textField: { fullWidth: true } }}
+                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
                       />
                     </LocalizationProvider>
-                  </Grid>
-                  <Grid item xs={12} md={2}>
+                    
                     <Button
                       variant="contained"
                       startIcon={<FilterAlt />}
                       onClick={applyFilters}
-                      fullWidth
+                      sx={{ 
+                        backgroundColor: 'var(--primary-color)',
+                        '&:hover': {
+                          backgroundColor: 'var(--primary-dark)'
+                        }
+                      }}
                     >
-                      應用篩選
+                      篩選
                     </Button>
-                  </Grid>
-                </>
-              )}
-            </Grid>
-            
-            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {dateRangeOptions.map((option) => (
-                <Button
+                  </Box>
+                </Grid>
+              </>
+            )}
+          </Grid>
+          
+          <Box sx={{ mt: 2 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {reportType === 'sales' && dateRangeOptions.map((option) => (
+                <Chip
                   key={option.value}
-                  variant={
-                    option.value === 'custom' &&
-                    dateRange.startDate !== dateRangeOptions.find(o => o.value === 'custom').start
-                      ? 'contained'
-                      : dateRange.startDate === option.start && dateRange.endDate === option.end
-                      ? 'contained'
-                      : 'outlined'
-                  }
-                  size="small"
+                  label={option.label}
                   onClick={() => handleDateRangeChange(option)}
-                  sx={{ mb: 1 }}
-                >
-                  {option.label}
-                </Button>
+                  color={
+                    dateRange.startDate === option.start && dateRange.endDate === option.end
+                      ? 'primary'
+                      : 'default'
+                  }
+                />
               ))}
-              
-              <Button
-                variant="outlined"
-                startIcon={<DownloadOutlined />}
-                onClick={exportToCSV}
-                sx={{ ml: 'auto' }}
-              >
-                導出CSV
-              </Button>
             </Box>
-          </CardContent>
-        </Card>
+          </Box>
+        </CardContent>
+      </Card>
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {error}
+        </Alert>
       )}
       
-      {/* 報表內容 */}
-      {tabValue === 0 && renderSalesReport()}
-      {tabValue === 1 && renderInventoryReport()}
-      {tabValue === 2 && renderCustomerReport()}
-      {tabValue === 3 && <AccountingChart />}
+      {reportType === 'sales' && renderSalesReport()}
+      {reportType === 'inventory' && renderInventoryReport()}
+      {reportType === 'accounting' && renderAccountingReport()}
     </Box>
   );
 };
