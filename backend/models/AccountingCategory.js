@@ -13,6 +13,10 @@ const AccountingCategorySchema = new Schema({
     type: String,
     default: ''
   },
+  order: {
+    type: Number,
+    default: 999 // 預設排序值，新增的類別會排在最後
+  },
   isActive: {
     type: Boolean,
     default: true

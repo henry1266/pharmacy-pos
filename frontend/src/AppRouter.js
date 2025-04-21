@@ -19,6 +19,7 @@ import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 import AccountingPage from './pages/AccountingPage';
 import AccountingNewPage from './pages/AccountingNewPage';
+import AccountingCategoryPage from './pages/AccountingCategoryPage';
 
 const AppRouter = () => {
   return (
@@ -48,6 +49,7 @@ const AppRouter = () => {
       {/* 記帳系統路由 */}
       <Route path="/accounting" element={<AccountingPage />} />
       <Route path="/accounting/new" element={<AccountingNewPage />} />
+      <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
       
       {/* 進貨單相關路由 */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />

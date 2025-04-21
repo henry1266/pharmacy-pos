@@ -10,7 +10,7 @@ const { check, validationResult } = require('express-validator');
 router.get('/', auth, async (req, res) => {
   try {
     const categories = await AccountingCategory.find({ isActive: true })
-      .sort({ name: 1 });
+      .sort({ order: 1, name: 1 });
       
     res.json(categories);
   } catch (err) {

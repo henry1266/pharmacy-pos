@@ -7,12 +7,15 @@ import {
   FormControl, 
   InputLabel, 
   Select, 
-  MenuItem 
+  MenuItem,
+  Box
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import AddIcon from '@mui/icons-material/Add';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { Link } from 'react-router-dom';
 import zhTW from 'date-fns/locale/zh-TW';
 
 /**
@@ -75,15 +78,27 @@ const AccountingFilter = ({
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={3}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={onAddClick}
-            fullWidth
-          >
-            新增記帳
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              component={Link}
+              to="/accounting/categories"
+              variant="outlined"
+              color="primary"
+              startIcon={<SettingsIcon />}
+              sx={{ flex: 1 }}
+            >
+              管理名目
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={onAddClick}
+              sx={{ flex: 1 }}
+            >
+              新增記帳
+            </Button>
+          </Box>
         </Grid>
       </Grid>
     </Paper>
