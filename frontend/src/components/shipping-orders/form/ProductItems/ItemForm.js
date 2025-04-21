@@ -178,8 +178,7 @@ const filterProducts = (options, inputValue) => {
     (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
     (option.productType === 'medicine' && option.healthInsuranceCode &&
      option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
-    (option.productType === 'product' && option.barcode &&
-     option.barcode.toLowerCase().includes(filterValue))
+    (option.barcode && option.barcode.toLowerCase().includes(filterValue))
   );
 };
 

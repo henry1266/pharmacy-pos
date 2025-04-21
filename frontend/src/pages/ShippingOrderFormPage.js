@@ -79,11 +79,11 @@ const ShippingOrderFormPage = () => {
     if (isEditMode && id) {
       dispatch(fetchShippingOrder(id));
     } else {
-      // 在新增模式下，設置焦點到第一個欄位
+      // 在新增模式下，設置焦點到藥品選擇欄位
       setTimeout(() => {
-        const firstInput = document.querySelector('input[name="soid"]');
-        if (firstInput) {
-          firstInput.focus();
+        const productInput = document.getElementById('product-select-input');
+        if (productInput) {
+          productInput.focus();
         }
       }, 800); // 延長時間確保DOM已完全載入
     }
