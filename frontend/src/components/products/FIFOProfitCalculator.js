@@ -360,7 +360,7 @@ const FIFOProfitCalculator = ({ productId }) => {
                           item.orderType === 'sale'
                             ? `/sales/${item.orderId}`
                             : item.orderType === 'shipping'
-                            ? `/shipping/${item.orderId}`
+                            ? `/shipping-orders/${item.orderId}`
                             : '#'
                         }
                         sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
