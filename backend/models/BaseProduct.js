@@ -63,6 +63,9 @@ const Product = BaseProduct.discriminator('product', new mongoose.Schema({
 
 // 藥品擴展模型
 const Medicine = BaseProduct.discriminator('medicine', new mongoose.Schema({
+  barcode: {
+    type: String
+  },
   healthInsuranceCode: {
     type: String
   },

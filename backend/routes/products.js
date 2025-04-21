@@ -210,6 +210,7 @@ router.post(
         description,
         supplier,
         minStock,
+        barcode,
         healthInsuranceCode,
         healthInsurancePrice
       } = req.body;
@@ -227,6 +228,7 @@ router.post(
         description,
         supplier,
         minStock,
+        barcode,
         healthInsuranceCode,
         healthInsurancePrice
       };
@@ -308,6 +310,7 @@ router.put('/:id', auth, async (req, res) => {
           description,
           supplier,
           minStock,
+          barcode,
           healthInsuranceCode,
           healthInsurancePrice
         },
