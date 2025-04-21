@@ -293,7 +293,7 @@ const AccountingCategoryManager = () => {
                     {provided.placeholder}
                   </List>
                 )}
-              </Droppable>
+              </StrictModeDroppable>
             </DragDropContext>
           </Box>
         )}
