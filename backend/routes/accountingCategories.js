@@ -92,7 +92,7 @@ router.put('/:id', [
   }
   
   try {
-    const { name, description, isActive } = req.body;
+    const { name, description, isActive, order } = req.body;
     
     // 檢查是否存在相同名稱的其他類別
     const existingCategory = await AccountingCategory.findOne({
@@ -115,6 +115,9 @@ router.put('/:id', [
     category.description = description || '';
     if (isActive !== undefined) {
       category.isActive = isActive;
+    }
+    if (order !== undefined) {
+      category.order = order;
     }
     
     category = await category.save();
