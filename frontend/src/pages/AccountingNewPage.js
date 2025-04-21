@@ -35,15 +35,60 @@ import { getAccountingCategories } from '../services/accountingCategoryService';
 const AccountingNewPage = () => {
   const navigate = useNavigate();
   
+  // 記帳名目類別狀態
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   // 表單狀態
   const [formData, setFormData] = useState({
     date: new Date(),
     shift: '',
     items: [
-      { amount: '', category: '掛號費', note: '' },
-      { amount: '', category: '部分負擔', note: '' }
+      { amount: '', category: '', categoryId: '', note: '' },
+      { amount: '', category: '', categoryId: '', note: '' }
     ]
   });
+  
+  // 獲取記帳名目類別
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const data = await getAccountingCategories();
+        setCategories(data);
+        
+        // 如果獲取到類別，更新表單項目的預設類別
+        if (data.length > 0) {
+          const updatedItems = formData.items.map((item, index) => {
+            // 為前兩個項目設置預設類別（如果有）
+            if (index < 2 && data[index]) {
+              return {
+                ...item,
+                category: data[index].name,
+                categoryId: data[index]._id
+              };
+            }
+            return item;
+          });
+          
+          setFormData(prevState => ({
+            ...prevState,
+            items: updatedItems
+          }));
+        }
+        
+        setError(null);
+      } catch (err) {
+        console.error('獲取記帳名目類別失敗:', err);
+        setError('獲取記帳名目類別失敗');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
   
   // 提示訊息狀態
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -75,6 +120,14 @@ const AccountingNewPage = () => {
       [field]: field === 'amount' ? (value === '' ? '' : parseFloat(value)) : value
     };
     
+    // 如果是類別變更，同時更新categoryId
+    if (field === 'category' && categories.length > 0) {
+      const selectedCategory = categories.find(cat => cat.name === value);
+      if (selectedCategory) {
+        updatedItems[index].categoryId = selectedCategory._id;
+      }
+    }
+    
     setFormData({
       ...formData,
       items: updatedItems
@@ -85,7 +138,7 @@ const AccountingNewPage = () => {
   const handleAddItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { amount: '', category: '', note: '' }]
+      items: [...formData.items, { amount: '', category: '', categoryId: '', note: '' }]
     });
   };
   
@@ -96,7 +149,7 @@ const AccountingNewPage = () => {
     
     setFormData({
       ...formData,
-      items: updatedItems.length ? updatedItems : [{ amount: '', category: '', note: '' }]
+      items: updatedItems.length ? updatedItems : [{ amount: '', category: '', categoryId: '', note: '' }]
     });
   };
   
@@ -224,10 +277,28 @@ const AccountingNewPage = () => {
                       value={item.category}
                       label="名目"
                       onChange={(e) => handleItemChange(index, 'category', e.target.value)}
+                      disabled={loading}
                     >
-                      <MenuItem value="掛號費">掛號費</MenuItem>
-                      <MenuItem value="部分負擔">部分負擔</MenuItem>
-                      <MenuItem value="其他">其他</MenuItem>
+                      {loading ? (
+                        <MenuItem disabled>
+                          <CircularProgress size={20} />
+                          載入中...
+                        </MenuItem>
+                      ) : error ? (
+                        <MenuItem disabled>
+                          無法載入名目類別
+                        </MenuItem>
+                      ) : categories.length > 0 ? (
+                        categories.map(category => (
+                          <MenuItem key={category._id} value={category.name}>
+                            {category.name}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled>
+                          無可用名目類別
+                        </MenuItem>
+                      )}
                     </Select>
                   </FormControl>
                 </Grid>
