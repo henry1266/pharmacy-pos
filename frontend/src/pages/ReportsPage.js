@@ -46,9 +46,12 @@ const ReportsPage = () => {
     totalValue: 0,
     potentialRevenue: 0,
     lowStockItems: [],
-    categoryDistribution: []
+    categoryGroups: [],
+    productTypeGroups: []
   });
   const [tabValue, setTabValue] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categories, setCategories] = useState([]);
 
   // 顏色配置
   const COLORS = ['#624bff', '#00d97e', '#f5a623', '#e53f3c', '#39afd1', '#6c757d'];
@@ -125,12 +128,24 @@ const ReportsPage = () => {
   const fetchInventoryData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/reports/inventory');
+      const params = new URLSearchParams();
+      if (selectedCategory && selectedCategory !== 'all') {
+        params.append('category', selectedCategory);
+      }
+      
+      const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
+      
+      // 提取所有類別
+      const allCategories = response.data.categoryGroups || [];
+      const uniqueCategories = allCategories.map(group => group.category);
+      setCategories(['all', ...uniqueCategories]);
+      
       setInventoryData({
         totalValue: response.data.summary.totalInventoryValue || 0,
         potentialRevenue: response.data.summary.totalPotentialRevenue || 0,
         lowStockItems: response.data.data.filter(item => item.status === 'low') || [],
-        categoryGroups: response.data.categoryGroups || []
+        categoryGroups: response.data.categoryGroups || [],
+        productTypeGroups: response.data.productTypeGroups || []
       });
       setLoading(false);
       setError(null);
@@ -180,6 +195,11 @@ const ReportsPage = () => {
     });
   };
 
+  // 處理類別選擇變更
+  const handleCategoryChange = (event) => {
+    setSelectedCategory(event.target.value);
+  };
+
   // 應用篩選條件
   const applyFilters = () => {
     if (reportType === 'sales') {
@@ -199,14 +219,15 @@ const ReportsPage = () => {
     // 確保 salesData 是數組
     const data = Array.isArray(salesData) ? salesData : [];
     
-    // 計算總訂單數和總收入
-    const totalOrders = safeReduce(data, (sum, item) => sum + (item.orderCount || 0), 0);
-    const totalRevenue = safeReduce(data, (sum, item) => sum + (item.totalAmount || 0), 0);
+    // 計算總計
+    const totalSales = safeReduce(data, (sum, item) => sum + item.totalAmount, 0);
+    const totalOrders = safeReduce(data, (sum, item) => sum + item.orderCount, 0);
+    const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
     
     return (
       <>
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Card sx={{ 
               borderRadius: 'var(--border-radius)',
               boxShadow: 'var(--card-shadow)'
@@ -215,46 +236,15 @@ const ReportsPage = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <Box>
                     <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      總訂單數
+                      總銷售額
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {totalOrders}
+                      {formatCurrency(totalSales)}
                     </Typography>
                   </Box>
                   <Box sx={{ 
                     backgroundColor: 'var(--primary-light)', 
                     color: 'var(--primary-color)',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--border-radius)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <ShoppingCart />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      總收入
-                    </Typography>
-                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(totalRevenue)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    backgroundColor: 'rgba(0, 217, 126, 0.1)', 
-                    color: 'var(--success-color)',
                     width: 40,
                     height: 40,
                     borderRadius: 'var(--border-radius)',
@@ -268,7 +258,38 @@ const ReportsPage = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
+            <Card sx={{ 
+              borderRadius: 'var(--border-radius)',
+              boxShadow: 'var(--card-shadow)'
+            }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                      訂單數
+                    </Typography>
+                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
+                      {totalOrders}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ 
+                    backgroundColor: 'rgba(0, 217, 126, 0.1)', 
+                    color: 'var(--success-color)',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 'var(--border-radius)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <ShoppingCart />
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
             <Card sx={{ 
               borderRadius: 'var(--border-radius)',
               boxShadow: 'var(--card-shadow)'
@@ -280,7 +301,7 @@ const ReportsPage = () => {
                       平均訂單金額
                     </Typography>
                     <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(totalOrders > 0 ? totalRevenue / totalOrders : 0)}
+                      {formatCurrency(averageOrderValue)}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -294,37 +315,6 @@ const ReportsPage = () => {
                     justifyContent: 'center'
                   }}>
                     <Category />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      日均訂單數
-                    </Typography>
-                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {(data.length > 0 ? totalOrders / data.length : 0).toFixed(1)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    backgroundColor: 'rgba(229, 63, 60, 0.1)', 
-                    color: 'var(--danger-color)',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--border-radius)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Warning />
                   </Box>
                 </Box>
               </CardContent>
@@ -351,24 +341,27 @@ const ReportsPage = () => {
                 <Typography color="var(--text-secondary)">暫無數據</Typography>
               </Box>
             ) : (
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={300}>
                 <LineChart
-                  data={data.slice().reverse()}
+                  data={data}
                   margin={{
-                    top: 20,
+                    top: 5,
                     right: 30,
                     left: 20,
-                    bottom: 10,
+                    bottom: 5,
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                  <XAxis dataKey="date" stroke="var(--text-secondary)" />
-                  <YAxis stroke="var(--text-secondary)" />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="var(--text-secondary)" 
+                  />
+                  <YAxis 
+                    stroke="var(--text-secondary)" 
+                    tickFormatter={value => formatCurrency(value)}
+                  />
                   <Tooltip 
-                    formatter={(value, name) => [
-                      name === 'totalAmount' ? formatCurrency(value) : value, 
-                      name === 'totalAmount' ? '收入' : '訂單數'
-                    ]}
+                    formatter={(value) => formatCurrency(value)}
                     contentStyle={{
                       backgroundColor: 'var(--bg-secondary)',
                       borderColor: 'var(--border-color)',
@@ -378,16 +371,10 @@ const ReportsPage = () => {
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="orderCount"
-                    name="訂單數"
-                    stroke="#624bff"
+                    dataKey="totalAmount"
+                    name="銷售額"
+                    stroke="var(--primary-color)"
                     activeDot={{ r: 8 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="totalAmount" 
-                    name="收入" 
-                    stroke="#00d97e" 
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -509,6 +496,41 @@ const ReportsPage = () => {
     
     return (
       <>
+        {/* 類別選擇器 */}
+        <Box sx={{ mb: 4 }}>
+          <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+            <InputLabel id="category-select-label">商品類別</InputLabel>
+            <Select
+              labelId="category-select-label"
+              id="category-select"
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              label="商品類別"
+            >
+              <MenuItem value="all">所有類別</MenuItem>
+              {categories.filter(cat => cat !== 'all').map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <Button
+            variant="contained"
+            startIcon={<FilterAlt />}
+            onClick={applyFilters}
+            sx={{ 
+              backgroundColor: 'var(--primary-color)',
+              '&:hover': {
+                backgroundColor: 'var(--primary-dark)'
+              }
+            }}
+          >
+            應用篩選
+          </Button>
+        </Box>
+        
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ 
@@ -911,6 +933,7 @@ const ReportsPage = () => {
                       ? 'primary'
                       : 'default'
                   }
+                  sx={{ mb: 1 }}
                 />
               ))}
             </Box>
