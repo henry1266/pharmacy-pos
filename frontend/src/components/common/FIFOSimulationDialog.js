@@ -32,10 +32,6 @@ import AddIcon from '@mui/icons-material/Add';
  * @param {string} props.error - 錯誤訊息
  * @param {Function} props.onApplyCost - 應用成本的回調函數
  * @param {Function} props.handleAddItem - 添加項目的回調函數
- * @param {Object} props.currentItem - 當前項目數據
- * @param {Function} props.setFormData - 設置表單數據的函數
- * @param {Object} props.formData - 表單數據
- * @param {Function} props.setCurrentItem - 設置當前項目的函數
  * @returns {React.ReactElement} FIFO模擬結果對話框組件
  */
 const FIFOSimulationDialog = ({
@@ -45,11 +41,7 @@ const FIFOSimulationDialog = ({
   loading,
   error,
   onApplyCost,
-  handleAddItem,
-  currentItem,
-  setFormData,
-  formData,
-  setCurrentItem
+  handleAddItem
 }) => {
   // 如果沒有模擬結果，顯示加載中或錯誤訊息
   const renderContent = () => {
@@ -191,44 +183,33 @@ const FIFOSimulationDialog = ({
               // 先關閉對話框，避免用戶重複點擊
               onClose();
               
-              // 應用成本到輸入欄位（僅用於UI顯示）
+              // 應用成本到輸入欄位
               onApplyCost(simulationResult.totalCost);
               
-              // 直接添加項目到formData，繞過handleAddItem的驗證
-              if (currentItem && formData && setFormData && setCurrentItem) {
-                console.log('直接添加項目，繞過驗證', {
-                  ...currentItem,
-                  dtotalCost: simulationResult.totalCost.toFixed(2)
-                });
+              // 使用setTimeout確保成本已被應用到輸入欄位
+              setTimeout(() => {
+                // 獲取總成本輸入欄位
+                const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
                 
-                // 1. 直接添加當前項目到formData.items
-                setFormData({
-                  ...formData,
-                  items: [...formData.items, {
-                    ...currentItem,
-                    dtotalCost: simulationResult.totalCost.toFixed(2)
-                  }]
-                });
-                
-                // 2. 清空當前項目
-                setCurrentItem({
-                  did: '',
-                  dname: '',
-                  dquantity: '',
-                  dtotalCost: '',
-                  product: null
-                });
-                
-                // 3. 聚焦回藥品選擇欄位，方便繼續添加
-                setTimeout(() => {
-                  const productInput = document.getElementById('product-select-input');
-                  if (productInput) {
-                    productInput.focus();
-                  }
-                }, 100);
-              } else {
-                console.error('缺少必要的props，無法直接添加項目');
-              }
+                if (dtotalCostInput) {
+                  console.log('模擬在總成本輸入欄位中按下Enter鍵', dtotalCostInput.value);
+                  
+                  // 創建一個模擬的鍵盤事件（Enter鍵）
+                  const enterEvent = new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    code: 'Enter',
+                    keyCode: 13,
+                    which: 13,
+                    bubbles: true,
+                    cancelable: true
+                  });
+                  
+                  // 在總成本輸入欄位上觸發Enter鍵事件
+                  dtotalCostInput.dispatchEvent(enterEvent);
+                } else {
+                  console.error('找不到總成本輸入欄位');
+                }
+              }, 300);
             }} 
             color="primary"
             variant="contained"
