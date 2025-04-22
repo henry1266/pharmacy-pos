@@ -165,6 +165,7 @@ const PriceTooltip = ({
         loading={loading}
         error={error}
         onApplyCost={handleApplyCost}
+        handleAddItem={handleAddItem}
       />
     </>
   );

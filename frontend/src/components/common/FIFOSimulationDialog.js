@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { Add as AddIcon } from '@mui/icons-material/Add';
 
 /**
  * FIFO模擬結果對話框組件
@@ -30,6 +31,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
  * @param {boolean} props.loading - 是否正在加載
  * @param {string} props.error - 錯誤訊息
  * @param {Function} props.onApplyCost - 應用成本的回調函數
+ * @param {Function} props.handleAddItem - 添加項目的回調函數
  * @returns {React.ReactElement} FIFO模擬結果對話框組件
  */
 const FIFOSimulationDialog = ({
@@ -38,7 +40,8 @@ const FIFOSimulationDialog = ({
   simulationResult,
   loading,
   error,
-  onApplyCost
+  onApplyCost,
+  handleAddItem
 }) => {
   // 如果沒有模擬結果，顯示加載中或錯誤訊息
   const renderContent = () => {
@@ -176,9 +179,16 @@ const FIFOSimulationDialog = ({
       <DialogActions>
         {simulationResult && !loading && !error && (
           <Button 
-            onClick={() => onApplyCost(simulationResult.totalCost)} 
+            onClick={() => {
+              onApplyCost(simulationResult.totalCost);
+              // 延遲一點時間後自動觸發添加項目按鈕的點擊
+              setTimeout(() => {
+                handleAddItem && handleAddItem();
+              }, 300);
+            }} 
             color="primary"
             variant="contained"
+            startIcon={<AddIcon />}
           >
             應用此成本
           </Button>
