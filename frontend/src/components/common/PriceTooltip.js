@@ -19,6 +19,9 @@ import FIFOSimulationDialog from './FIFOSimulationDialog';
  * @param {Function} props.calculateTotalCost - 計算總成本的函數
  * @param {Function} props.isInventorySufficient - 檢查庫存是否足夠的函數
  * @param {Function} props.handleAddItem - 處理添加項目的函數
+ * @param {Object} props.formData - 表單數據
+ * @param {Function} props.setFormData - 設置表單數據的函數
+ * @param {Function} props.setCurrentItem - 設置當前項目的函數
  * @returns {React.ReactElement} 價格提示組件
  */
 const PriceTooltip = ({
@@ -27,7 +30,10 @@ const PriceTooltip = ({
   getProductPurchasePrice,
   calculateTotalCost,
   isInventorySufficient,
-  handleAddItem
+  handleAddItem,
+  formData,
+  setFormData,
+  setCurrentItem
 }) => {
   // FIFO模擬相關狀態
   const [simulationDialogOpen, setSimulationDialogOpen] = useState(false);
@@ -166,6 +172,10 @@ const PriceTooltip = ({
         error={error}
         onApplyCost={handleApplyCost}
         handleAddItem={handleAddItem}
+        currentItem={currentItem}
+        setCurrentItem={setCurrentItem}
+        formData={formData}
+        setFormData={setFormData}
       />
     </>
   );

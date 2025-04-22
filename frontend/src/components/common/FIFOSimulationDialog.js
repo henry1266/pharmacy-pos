@@ -32,6 +32,10 @@ import AddIcon from '@mui/icons-material/Add';
  * @param {string} props.error - 錯誤訊息
  * @param {Function} props.onApplyCost - 應用成本的回調函數
  * @param {Function} props.handleAddItem - 添加項目的回調函數
+ * @param {Object} props.currentItem - 當前項目數據
+ * @param {Function} props.setFormData - 設置表單數據的函數
+ * @param {Object} props.formData - 表單數據
+ * @param {Function} props.setCurrentItem - 設置當前項目的函數
  * @returns {React.ReactElement} FIFO模擬結果對話框組件
  */
 const FIFOSimulationDialog = ({
@@ -41,7 +45,11 @@ const FIFOSimulationDialog = ({
   loading,
   error,
   onApplyCost,
-  handleAddItem
+  handleAddItem,
+  currentItem,
+  setFormData,
+  formData,
+  setCurrentItem
 }) => {
   // 如果沒有模擬結果，顯示加載中或錯誤訊息
   const renderContent = () => {
@@ -183,22 +191,44 @@ const FIFOSimulationDialog = ({
               // 先關閉對話框，避免用戶重複點擊
               onClose();
               
-              // 應用成本後，等待React狀態更新完成
+              // 應用成本到輸入欄位（僅用於UI顯示）
               onApplyCost(simulationResult.totalCost);
               
-              // 使用requestAnimationFrame確保在下一個渲染週期執行
-              // 這比setTimeout更可靠，因為它會在下一個UI渲染後執行
-              requestAnimationFrame(() => {
-                // 再次使用requestAnimationFrame確保狀態已更新
-                requestAnimationFrame(() => {
-                  // 檢查表單是否已填寫完整
-                  const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
-                  if (dtotalCostInput && dtotalCostInput.value) {
-                    console.log('應用FIFO成本後自動添加項目', dtotalCostInput.value);
-                    handleAddItem && handleAddItem();
-                  }
+              // 直接添加項目到formData，繞過handleAddItem的驗證
+              if (currentItem && formData && setFormData && setCurrentItem) {
+                console.log('直接添加項目，繞過驗證', {
+                  ...currentItem,
+                  dtotalCost: simulationResult.totalCost.toFixed(2)
                 });
-              });
+                
+                // 1. 直接添加當前項目到formData.items
+                setFormData({
+                  ...formData,
+                  items: [...formData.items, {
+                    ...currentItem,
+                    dtotalCost: simulationResult.totalCost.toFixed(2)
+                  }]
+                });
+                
+                // 2. 清空當前項目
+                setCurrentItem({
+                  did: '',
+                  dname: '',
+                  dquantity: '',
+                  dtotalCost: '',
+                  product: null
+                });
+                
+                // 3. 聚焦回藥品選擇欄位，方便繼續添加
+                setTimeout(() => {
+                  const productInput = document.getElementById('product-select-input');
+                  if (productInput) {
+                    productInput.focus();
+                  }
+                }, 100);
+              } else {
+                console.error('缺少必要的props，無法直接添加項目');
+              }
             }} 
             color="primary"
             variant="contained"
