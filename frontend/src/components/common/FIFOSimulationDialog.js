@@ -180,11 +180,25 @@ const FIFOSimulationDialog = ({
         {simulationResult && !loading && !error && (
           <Button 
             onClick={() => {
+              // 先關閉對話框，避免用戶重複點擊
+              onClose();
+              
+              // 應用成本後，等待React狀態更新完成
               onApplyCost(simulationResult.totalCost);
-              // 延長延遲時間，確保成本已被正確應用且表單驗證能通過
-              setTimeout(() => {
-                handleAddItem && handleAddItem();
-              }, 600);
+              
+              // 使用requestAnimationFrame確保在下一個渲染週期執行
+              // 這比setTimeout更可靠，因為它會在下一個UI渲染後執行
+              requestAnimationFrame(() => {
+                // 再次使用requestAnimationFrame確保狀態已更新
+                requestAnimationFrame(() => {
+                  // 檢查表單是否已填寫完整
+                  const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
+                  if (dtotalCostInput && dtotalCostInput.value) {
+                    console.log('應用FIFO成本後自動添加項目', dtotalCostInput.value);
+                    handleAddItem && handleAddItem();
+                  }
+                });
+              });
             }} 
             color="primary"
             variant="contained"
