@@ -181,10 +181,10 @@ const FIFOSimulationDialog = ({
           <Button 
             onClick={() => {
               onApplyCost(simulationResult.totalCost);
-              // 延遲一點時間後自動觸發添加項目按鈕的點擊
+              // 延長延遲時間，確保成本已被正確應用且表單驗證能通過
               setTimeout(() => {
                 handleAddItem && handleAddItem();
-              }, 300);
+              }, 600);
             }} 
             color="primary"
             variant="contained"
