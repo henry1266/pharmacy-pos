@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { Add as AddIcon } from '@mui/icons-material/Add';
+import AddIcon from '@mui/icons-material/Add';
 
 /**
  * FIFO模擬結果對話框組件
