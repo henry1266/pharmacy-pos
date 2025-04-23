@@ -39,6 +39,15 @@ const BasicInfoForm = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState(0);
   
+  // 處理供應商欄位按ENTER後跳轉到付款狀態欄位
+  const handleSupplierEnterKeyDown = () => {
+    // 找到付款狀態欄位並設置焦點
+    const paymentStatusSelect = document.getElementById('payment-status-select');
+    if (paymentStatusSelect) {
+      paymentStatusSelect.focus();
+    }
+  };
+  
   // 調劑按鈕處理函數 - 使用單一狀態更新
   const handleDispenseClick = () => {
     // 開始處理
@@ -152,7 +161,7 @@ const BasicInfoForm = ({
         </Box>
         
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
               label="出貨單號"
@@ -166,7 +175,7 @@ const BasicInfoForm = ({
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <SupplierSelect
               suppliers={suppliers || []}
               selectedSupplier={selectedSupplier}
@@ -175,25 +184,8 @@ const BasicInfoForm = ({
               required={true}
               size="small"
               showCode={true}
+              onEnterKeyDown={handleSupplierEnterKeyDown}
             />
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel id="status-select-label">狀態</InputLabel>
-              <Select
-                labelId="status-select-label"
-                id="status-select"
-                name="status"
-                value={formData.status}
-                label="狀態"
-                onChange={handleInputChange}
-              >
-                <MenuItem value="pending">處理中</MenuItem>
-                <MenuItem value="completed">已完成</MenuItem>
-                <MenuItem value="cancelled">已取消</MenuItem>
-              </Select>
-            </FormControl>
           </Grid>
           
           <Grid item xs={12} sm={6} md={3}>
@@ -213,6 +205,25 @@ const BasicInfoForm = ({
               </Select>
             </FormControl>
           </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel id="status-select-label">狀態</InputLabel>
+              <Select
+                labelId="status-select-label"
+                id="status-select"
+                name="status"
+                value={formData.status}
+                label="狀態"
+                onChange={handleInputChange}
+              >
+                <MenuItem value="pending">處理中</MenuItem>
+                <MenuItem value="completed">已完成</MenuItem>
+                <MenuItem value="cancelled">已取消</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>          
+          
           
           <Grid item xs={12}>
             <TextField
