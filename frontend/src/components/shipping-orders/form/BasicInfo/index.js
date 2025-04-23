@@ -36,67 +36,75 @@ const BasicInfoForm = ({
 }) => {
   // 調劑按鈕處理函數
   const handleDispenseClick = () => {
-    // 使用原生DOM事件觸發Select組件的更新
-    // 先獲取Select元素
-    const statusSelect = document.getElementById('status-select');
-    const paymentStatusSelect = document.getElementById('payment-status-select');
+    // 使用延時執行，模擬手動點選的過程
     
-    // 設置formData的值
-    const statusEvent = {
-      target: {
-        name: 'status',
-        value: 'completed'
-      }
-    };
-    
-    const paymentStatusEvent = {
-      target: {
-        name: 'paymentStatus',
-        value: '已開立'
-      }
-    };
-    
-    // 調用輸入變更處理函數
-    handleInputChange(statusEvent);
-    handleInputChange(paymentStatusEvent);
-    
-    // 手動觸發Select元素的更新
-    if (statusSelect) {
-      // 使用MUI的原生方法更新Select值
-      const statusNativeInput = statusSelect.querySelector('.MuiSelect-nativeInput');
-      if (statusNativeInput) {
-        statusNativeInput.value = 'completed';
-        // 觸發change事件
-        const event = new Event('change', { bubbles: true });
-        statusNativeInput.dispatchEvent(event);
-      }
-    }
-    
-    if (paymentStatusSelect) {
-      // 使用MUI的原生方法更新Select值
-      const paymentStatusNativeInput = paymentStatusSelect.querySelector('.MuiSelect-nativeInput');
-      if (paymentStatusNativeInput) {
-        paymentStatusNativeInput.value = '已開立';
-        // 觸發change事件
-        const event = new Event('change', { bubbles: true });
-        paymentStatusNativeInput.dispatchEvent(event);
-      }
-    }
-    
-    // 尋找供應商"調劑"
+    // 第一步：設置供應商為"調劑"（立即執行）
     const dispensarySupplier = suppliers.find(s => s.name === '調劑');
     if (dispensarySupplier) {
-      // 設置供應商為"調劑"
       handleSupplierChange(null, dispensarySupplier);
     }
     
-    // 將焦點設在選擇藥品的輸入框
+    // 第二步：設置狀態為"已完成"（延遲1秒執行）
+    setTimeout(() => {
+      // 模擬點擊狀態下拉選單
+      const statusSelect = document.getElementById('status-select');
+      if (statusSelect) {
+        statusSelect.click();
+        
+        // 模擬選擇"已完成"選項
+        setTimeout(() => {
+          // 尋找"已完成"選項並點擊
+          const completedOption = document.querySelector('[data-value="completed"]');
+          if (completedOption) {
+            completedOption.click();
+          } else {
+            // 如果找不到選項，使用原始方法
+            const statusEvent = {
+              target: {
+                name: 'status',
+                value: 'completed'
+              }
+            };
+            handleInputChange(statusEvent);
+          }
+        }, 300);
+      }
+    }, 1000);
+    
+    // 第三步：設置付款狀態為"已開立"（延遲2秒執行）
+    setTimeout(() => {
+      // 模擬點擊付款狀態下拉選單
+      const paymentStatusSelect = document.getElementById('payment-status-select');
+      if (paymentStatusSelect) {
+        paymentStatusSelect.click();
+        
+        // 模擬選擇"已開立"選項
+        setTimeout(() => {
+          // 尋找"已開立"選項並點擊
+          const paidOption = document.querySelector('[data-value="已開立"]');
+          if (paidOption) {
+            paidOption.click();
+          } else {
+            // 如果找不到選項，使用原始方法
+            const paymentStatusEvent = {
+              target: {
+                name: 'paymentStatus',
+                value: '已開立'
+              }
+            };
+            handleInputChange(paymentStatusEvent);
+          }
+        }, 300);
+      }
+    }, 2000);
+    
+    // 第四步：將焦點設在選擇藥品的輸入框（延遲3秒執行）
     setTimeout(() => {
       const productInput = document.getElementById('product-select-input');
       if (productInput) {
         productInput.focus();
       }
-    }, 100);
+    }, 3000);
   };
 
   return (
