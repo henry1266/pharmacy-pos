@@ -48,6 +48,26 @@ const BasicInfoForm = ({
     }
   };
   
+  // 模擬Tab鍵按下的函數
+  const simulateTabKey = (times = 1) => {
+    // 創建Tab鍵事件
+    const tabEvent = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      key: 'Tab',
+      code: 'Tab',
+      keyCode: 9,
+      which: 9
+    });
+    
+    // 按指定次數模擬Tab鍵按下
+    for (let i = 0; i < times; i++) {
+      setTimeout(() => {
+        document.dispatchEvent(tabEvent);
+      }, i * 100); // 每次按Tab之間間隔100毫秒
+    }
+  };
+  
   // 調劑按鈕處理函數 - 使用單一狀態更新
   const handleDispenseClick = () => {
     // 開始處理
@@ -73,6 +93,11 @@ const BasicInfoForm = ({
         };
         handleInputChange(paymentEvent);
         
+        // 設置付款狀態後模擬一個Tab鍵按下
+        setTimeout(() => {
+          simulateTabKey(1);
+        }, 200);
+        
         // 3. 再設置狀態
         setTimeout(() => {
           setProcessingStep(3);
@@ -84,17 +109,15 @@ const BasicInfoForm = ({
           };
           handleInputChange(updateEvent);
           
-          // 4. 完成所有設置後，將焦點設在選擇藥品的輸入框
+          // 設置狀態後模擬三個Tab鍵按下
           setTimeout(() => {
-            setProcessingStep(4);
-            const productInput = document.getElementById('product-select-input');
-            if (productInput) {
-              productInput.focus();
-            }
+            simulateTabKey(3);
+            
             // 處理完成
+            setProcessingStep(4);
             setIsProcessing(false);
             setProcessingStep(0);
-          }, 500);
+          }, 200);
         }, 500);
       }, 500);
     }
@@ -116,7 +139,7 @@ const BasicInfoForm = ({
         stepText = '設置狀態...';
         break;
       case 4:
-        stepText = '設置焦點...';
+        stepText = '完成處理...';
         break;
       default:
         stepText = '處理中...';
