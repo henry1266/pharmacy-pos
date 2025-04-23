@@ -9,7 +9,8 @@ import {
   MenuItem, 
   Card, 
   CardContent, 
-  Typography
+  Typography,
+  Button
 } from '@mui/material';
 import SupplierSelect from '../../../common/SupplierSelect';
 
@@ -33,12 +34,62 @@ const BasicInfoForm = ({
   selectedSupplier,
   isEditMode
 }) => {
+  // 調劑按鈕處理函數
+  const handleDispenseClick = () => {
+    // 模擬輸入變更事件來設置狀態和付款狀態
+    const statusEvent = {
+      target: {
+        name: 'status',
+        value: 'completed'
+      }
+    };
+    
+    const paymentStatusEvent = {
+      target: {
+        name: 'paymentStatus',
+        value: '已開立'
+      }
+    };
+    
+    // 調用輸入變更處理函數
+    handleInputChange(statusEvent);
+    handleInputChange(paymentStatusEvent);
+    
+    // 尋找供應商"調劑"
+    const dispensarySupplier = suppliers.find(s => s.name === '調劑');
+    if (dispensarySupplier) {
+      // 設置供應商為"調劑"
+      handleSupplierChange(null, dispensarySupplier);
+    }
+    
+    // 將焦點設在選擇藥品的輸入框
+    setTimeout(() => {
+      const productInput = document.getElementById('product-select-input');
+      if (productInput) {
+        productInput.focus();
+      }
+    }, 100);
+  };
+
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           基本資訊
         </Typography>
+        
+        {/* 輸入模板區域 */}
+        <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleDispenseClick}
+            sx={{ mb: 1 }}
+          >
+            調劑
+          </Button>
+          {/* 可以在這裡添加更多模板按鈕 */}
+        </Box>
         
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
