@@ -36,7 +36,12 @@ const BasicInfoForm = ({
 }) => {
   // 調劑按鈕處理函數
   const handleDispenseClick = () => {
-    // 模擬輸入變更事件來設置狀態和付款狀態
+    // 使用原生DOM事件觸發Select組件的更新
+    // 先獲取Select元素
+    const statusSelect = document.getElementById('status-select');
+    const paymentStatusSelect = document.getElementById('payment-status-select');
+    
+    // 設置formData的值
     const statusEvent = {
       target: {
         name: 'status',
@@ -54,6 +59,29 @@ const BasicInfoForm = ({
     // 調用輸入變更處理函數
     handleInputChange(statusEvent);
     handleInputChange(paymentStatusEvent);
+    
+    // 手動觸發Select元素的更新
+    if (statusSelect) {
+      // 使用MUI的原生方法更新Select值
+      const statusNativeInput = statusSelect.querySelector('.MuiSelect-nativeInput');
+      if (statusNativeInput) {
+        statusNativeInput.value = 'completed';
+        // 觸發change事件
+        const event = new Event('change', { bubbles: true });
+        statusNativeInput.dispatchEvent(event);
+      }
+    }
+    
+    if (paymentStatusSelect) {
+      // 使用MUI的原生方法更新Select值
+      const paymentStatusNativeInput = paymentStatusSelect.querySelector('.MuiSelect-nativeInput');
+      if (paymentStatusNativeInput) {
+        paymentStatusNativeInput.value = '已開立';
+        // 觸發change事件
+        const event = new Event('change', { bubbles: true });
+        paymentStatusNativeInput.dispatchEvent(event);
+      }
+    }
     
     // 尋找供應商"調劑"
     const dispensarySupplier = suppliers.find(s => s.name === '調劑');
