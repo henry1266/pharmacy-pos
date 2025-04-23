@@ -57,41 +57,34 @@ const BasicInfoForm = ({
     // 尋找供應商"調劑"
     const dispensarySupplier = suppliers.find(s => s.name === '調劑');
     
-    // 創建一個新的formData對象，一次性設置所有需要的值
-    const newFormData = {
-      ...formData,
-      status: 'completed',
-      paymentStatus: '已開立'
-    };
-    
     // 一次性更新所有狀態
     if (dispensarySupplier) {
-      // 先設置供應商
+      // 1. 先設置供應商
       handleSupplierChange(null, dispensarySupplier);
       
-      // 然後設置其他狀態
+      // 2. 然後設置付款狀態
       setTimeout(() => {
         setProcessingStep(2);
-        // 使用一個事件對象包含所有需要更新的字段
-        const updateEvent = {
+        const paymentEvent = {
           target: {
-            name: 'status',
-            value: 'completed'
+            name: 'paymentStatus',
+            value: '已開立'
           }
         };
-        handleInputChange(updateEvent);
+        handleInputChange(paymentEvent);
         
+        // 3. 再設置狀態
         setTimeout(() => {
           setProcessingStep(3);
-          const paymentEvent = {
+          const updateEvent = {
             target: {
-              name: 'paymentStatus',
-              value: '已開立'
+              name: 'status',
+              value: 'completed'
             }
           };
-          handleInputChange(paymentEvent);
+          handleInputChange(updateEvent);
           
-          // 完成所有設置後，將焦點設在選擇藥品的輸入框
+          // 4. 完成所有設置後，將焦點設在選擇藥品的輸入框
           setTimeout(() => {
             setProcessingStep(4);
             const productInput = document.getElementById('product-select-input');
@@ -117,10 +110,10 @@ const BasicInfoForm = ({
         stepText = '設置供應商...';
         break;
       case 2:
-        stepText = '設置狀態...';
+        stepText = '設置付款狀態...';
         break;
       case 3:
-        stepText = '設置付款狀態...';
+        stepText = '設置狀態...';
         break;
       case 4:
         stepText = '設置焦點...';
