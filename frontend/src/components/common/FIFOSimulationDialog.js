@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -43,6 +43,18 @@ const FIFOSimulationDialog = ({
   onApplyCost,
   handleAddItem
 }) => {
+  // 創建一個ref用於應用此成本按鈕
+  const applyCostButtonRef = useRef(null);
+  
+  // 當對話框打開且有模擬結果時，自動聚焦到應用此成本按鈕
+  useEffect(() => {
+    if (open && simulationResult && !loading && !error && applyCostButtonRef.current) {
+      // 短暫延遲確保DOM已完全渲染
+      setTimeout(() => {
+        applyCostButtonRef.current.focus();
+      }, 100);
+    }
+  }, [open, simulationResult, loading, error]);
   // 如果沒有模擬結果，顯示加載中或錯誤訊息
   const renderContent = () => {
     if (loading) {
@@ -179,6 +191,7 @@ const FIFOSimulationDialog = ({
       <DialogActions>
         {simulationResult && !loading && !error && (
           <Button 
+            ref={applyCostButtonRef}
             onClick={() => {
               // 先關閉對話框，避免用戶重複點擊
               onClose();
