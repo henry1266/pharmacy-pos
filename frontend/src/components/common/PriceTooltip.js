@@ -133,6 +133,14 @@ const PriceTooltip = ({
                 // 當按下ENTER鍵時
                 if (event.key === 'Enter') {
                   event.preventDefault();
+                  
+                  // 如果總成本為空且已選擇產品和輸入數量，則觸發FIFO模擬按鈕的點擊
+                  if (currentItem.dtotalCost === '' && currentItem.product && currentItem.dquantity) {
+                    console.log('總成本為空，觸發FIFO模擬按鈕點擊');
+                    handleSimulateFIFO();
+                    return;
+                  }
+                  
                   // 如果所有必填欄位都已填寫，則添加項目
                   if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost !== '' && isInventorySufficient()) {
                     handleAddItem();
