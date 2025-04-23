@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   TextField, 
@@ -10,7 +10,8 @@ import {
   Card, 
   CardContent, 
   Typography,
-  Button
+  Button,
+  CircularProgress
 } from '@mui/material';
 import SupplierSelect from '../../../common/SupplierSelect';
 
@@ -34,77 +35,99 @@ const BasicInfoForm = ({
   selectedSupplier,
   isEditMode
 }) => {
-  // 調劑按鈕處理函數
+  // 添加本地狀態來跟踪調劑按鈕處理過程
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState(0);
+  
+  // 調劑按鈕處理函數 - 使用單一狀態更新
   const handleDispenseClick = () => {
-    // 使用延時執行，模擬手動點選的過程
+    // 開始處理
+    setIsProcessing(true);
+    setProcessingStep(1);
     
-    // 第一步：設置供應商為"調劑"（立即執行）
+    // 尋找供應商"調劑"
     const dispensarySupplier = suppliers.find(s => s.name === '調劑');
+    
+    // 創建一個新的formData對象，一次性設置所有需要的值
+    const newFormData = {
+      ...formData,
+      status: 'completed',
+      paymentStatus: '已開立'
+    };
+    
+    // 一次性更新所有狀態
     if (dispensarySupplier) {
+      // 先設置供應商
       handleSupplierChange(null, dispensarySupplier);
+      
+      // 然後設置其他狀態
+      setTimeout(() => {
+        setProcessingStep(2);
+        // 使用一個事件對象包含所有需要更新的字段
+        const updateEvent = {
+          target: {
+            name: 'status',
+            value: 'completed'
+          }
+        };
+        handleInputChange(updateEvent);
+        
+        setTimeout(() => {
+          setProcessingStep(3);
+          const paymentEvent = {
+            target: {
+              name: 'paymentStatus',
+              value: '已開立'
+            }
+          };
+          handleInputChange(paymentEvent);
+          
+          // 完成所有設置後，將焦點設在選擇藥品的輸入框
+          setTimeout(() => {
+            setProcessingStep(4);
+            const productInput = document.getElementById('product-select-input');
+            if (productInput) {
+              productInput.focus();
+            }
+            // 處理完成
+            setIsProcessing(false);
+            setProcessingStep(0);
+          }, 500);
+        }, 500);
+      }, 500);
+    }
+  };
+
+  // 渲染處理步驟指示器
+  const renderProcessingIndicator = () => {
+    if (!isProcessing) return null;
+    
+    let stepText = '';
+    switch (processingStep) {
+      case 1:
+        stepText = '設置供應商...';
+        break;
+      case 2:
+        stepText = '設置狀態...';
+        break;
+      case 3:
+        stepText = '設置付款狀態...';
+        break;
+      case 4:
+        stepText = '設置焦點...';
+        break;
+      default:
+        stepText = '處理中...';
     }
     
-    // 第二步：設置狀態為"已完成"（延遲1秒執行）
-    setTimeout(() => {
-      // 模擬點擊狀態下拉選單
-      const statusSelect = document.getElementById('status-select');
-      if (statusSelect) {
-        statusSelect.click();
-        
-        // 模擬選擇"已完成"選項
-        setTimeout(() => {
-          // 尋找"已完成"選項並點擊
-          const completedOption = document.querySelector('[data-value="completed"]');
-          if (completedOption) {
-            completedOption.click();
-          } else {
-            // 如果找不到選項，使用原始方法
-            const statusEvent = {
-              target: {
-                name: 'status',
-                value: 'completed'
-              }
-            };
-            handleInputChange(statusEvent);
-          }
-        }, 300);
-      }
-    }, 1000);
-    
-    // 第三步：設置付款狀態為"已開立"（延遲2秒執行）
-    setTimeout(() => {
-      // 模擬點擊付款狀態下拉選單
-      const paymentStatusSelect = document.getElementById('payment-status-select');
-      if (paymentStatusSelect) {
-        paymentStatusSelect.click();
-        
-        // 模擬選擇"已開立"選項
-        setTimeout(() => {
-          // 尋找"已開立"選項並點擊
-          const paidOption = document.querySelector('[data-value="已開立"]');
-          if (paidOption) {
-            paidOption.click();
-          } else {
-            // 如果找不到選項，使用原始方法
-            const paymentStatusEvent = {
-              target: {
-                name: 'paymentStatus',
-                value: '已開立'
-              }
-            };
-            handleInputChange(paymentStatusEvent);
-          }
-        }, 300);
-      }
-    }, 2000);
-    
-    // 第四步：將焦點設在選擇藥品的輸入框（延遲3秒執行）
-    setTimeout(() => {
-      const productInput = document.getElementById('product-select-input');
-      if (productInput) {
-        productInput.focus();
-      }
-    }, 3000);
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+        <CircularProgress size={20} sx={{ mr: 1 }} />
+        <Typography variant="body2" color="text.secondary">
+          {stepText}
+        </Typography>
+      </Box>
+    );
   };
 
   return (
@@ -115,16 +138,17 @@ const BasicInfoForm = ({
         </Typography>
         
         {/* 輸入模板區域 */}
-        <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
           <Button 
             variant="contained" 
             color="primary" 
             onClick={handleDispenseClick}
+            disabled={isProcessing}
             sx={{ mb: 1 }}
           >
             調劑
           </Button>
-          {/* 可以在這裡添加更多模板按鈕 */}
+          {renderProcessingIndicator()}
         </Box>
         
         <Grid container spacing={2}>
@@ -141,8 +165,6 @@ const BasicInfoForm = ({
               helperText={!isEditMode && "留空將自動生成"}
             />
           </Grid>
-          
-
           
           <Grid item xs={12} sm={6} md={4}>
             <SupplierSelect
