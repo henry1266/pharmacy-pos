@@ -14,6 +14,9 @@ import {
   InputLabel,
   Select,
   Chip,
+  Tabs,
+  Tab,
+  Container
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -30,6 +33,10 @@ import {
 } from '@mui/icons-material';
 import { format, subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import AccountingChart from '../components/reports/AccountingChart';
+import InventoryFilters from '../components/reports/inventory/InventoryFilters';
+import InventorySummary from '../components/reports/inventory/InventorySummary';
+import InventoryTable from '../components/reports/inventory/InventoryTable';
+import InventoryProfitLossChart from '../components/reports/inventory/InventoryProfitLossChart';
 
 const ReportsPage = () => {
   // 狀態管理
@@ -52,6 +59,18 @@ const ReportsPage = () => {
   const [tabValue, setTabValue] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState([]);
+  
+  // 庫存報表篩選條件
+  const [inventoryFilters, setInventoryFilters] = useState({
+    supplier: '',
+    category: '',
+    productCode: '',
+    productName: '',
+    productType: ''
+  });
+  
+  // 庫存報表標籤頁
+  const [inventoryTabValue, setInventoryTabValue] = useState(0);
 
   // 顏色配置
   const COLORS = ['#624bff', '#00d97e', '#f5a623', '#e53f3c', '#39afd1', '#6c757d'];
@@ -96,7 +115,8 @@ const ReportsPage = () => {
     if (reportType === 'sales') {
       fetchSalesData();
     } else if (reportType === 'inventory') {
-      fetchInventoryData();
+      // 不再使用舊的庫存報表邏輯
+      // 新的庫存報表組件會自行獲取數據
     }
   }, [reportType]);
 
@@ -120,38 +140,6 @@ const ReportsPage = () => {
     } catch (err) {
       console.error('獲取銷售報表數據失敗:', err);
       setError('獲取銷售報表數據失敗');
-      setLoading(false);
-    }
-  };
-
-  // 獲取庫存報表數據
-  const fetchInventoryData = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (selectedCategory && selectedCategory !== 'all') {
-        params.append('category', selectedCategory);
-      }
-      
-      const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
-      
-      // 提取所有類別
-      const allCategories = response.data.categoryGroups || [];
-      const uniqueCategories = allCategories.map(group => group.category);
-      setCategories(['all', ...uniqueCategories]);
-      
-      setInventoryData({
-        totalValue: response.data.summary.totalInventoryValue || 0,
-        potentialRevenue: response.data.summary.totalPotentialRevenue || 0,
-        lowStockItems: response.data.data.filter(item => item.status === 'low') || [],
-        categoryGroups: response.data.categoryGroups || [],
-        productTypeGroups: response.data.productTypeGroups || []
-      });
-      setLoading(false);
-      setError(null);
-    } catch (err) {
-      console.error('獲取庫存報表數據失敗:', err);
-      setError('獲取庫存報表數據失敗');
       setLoading(false);
     }
   };
@@ -199,13 +187,21 @@ const ReportsPage = () => {
   const handleCategoryChange = (event) => {
     setSelectedCategory(event.target.value);
   };
+  
+  // 處理庫存報表篩選條件變更
+  const handleInventoryFilterChange = (newFilters) => {
+    setInventoryFilters(newFilters);
+  };
+  
+  // 處理庫存報表標籤頁變更
+  const handleInventoryTabChange = (event, newValue) => {
+    setInventoryTabValue(newValue);
+  };
 
   // 應用篩選條件
   const applyFilters = () => {
     if (reportType === 'sales') {
       fetchSalesData();
-    } else if (reportType === 'inventory') {
-      fetchInventoryData();
     }
   };
 
@@ -489,391 +485,123 @@ const ReportsPage = () => {
       </>
     );
   };
-
+  
   // 渲染庫存報表
   const renderInventoryReport = () => {
-    const { totalValue, potentialRevenue, lowStockItems, categoryGroups } = inventoryData;
-    
     return (
       <>
-        {/* 類別選擇器 */}
-        <Box sx={{ mb: 4 }}>
-          <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-            <InputLabel id="category-select-label">商品類別</InputLabel>
-            <Select
-              labelId="category-select-label"
-              id="category-select"
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              label="商品類別"
-            >
-              <MenuItem value="all">所有類別</MenuItem>
-              {categories.filter(cat => cat !== 'all').map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <Button
-            variant="contained"
-            startIcon={<FilterAlt />}
-            onClick={applyFilters}
-            sx={{ 
-              backgroundColor: 'var(--primary-color)',
-              '&:hover': {
-                backgroundColor: 'var(--primary-dark)'
-              }
+        {/* 篩選器 */}
+        <InventoryFilters onFilterChange={handleInventoryFilterChange} />
+
+        {/* 摘要卡片 */}
+        <InventorySummary filters={inventoryFilters} />
+
+        {/* 標籤頁 */}
+        <Box sx={{ mb: 3 }}>
+          <Tabs
+            value={inventoryTabValue}
+            onChange={handleInventoryTabChange}
+            sx={{
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'var(--primary-color)',
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                color: 'var(--text-secondary)',
+                '&.Mui-selected': {
+                  color: 'var(--primary-color)',
+                },
+              },
             }}
           >
-            應用篩選
-          </Button>
+            <Tab label="庫存列表" />
+            <Tab label="盈虧分析" />
+          </Tabs>
         </Box>
-        
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      庫存總值
-                    </Typography>
-                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(totalValue)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    backgroundColor: 'var(--primary-light)', 
-                    color: 'var(--primary-color)',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--border-radius)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <InventoryIcon />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      潛在收入
-                    </Typography>
-                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(potentialRevenue)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    backgroundColor: 'rgba(0, 217, 126, 0.1)', 
-                    color: 'var(--success-color)',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--border-radius)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <AttachMoney />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      潛在毛利
-                    </Typography>
-                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {formatCurrency(potentialRevenue - totalValue)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    backgroundColor: 'rgba(245, 166, 35, 0.1)', 
-                    color: 'var(--warning-color)',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--border-radius)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Category />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)'
-            }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                      庫存不足項目
-                    </Typography>
-                    <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                      {lowStockItems.length}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    backgroundColor: 'rgba(229, 63, 60, 0.1)', 
-                    color: 'var(--danger-color)',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--border-radius)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Warning />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-        
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)',
-              height: '100%'
-            }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
-                  類別分布
-                </Typography>
-                
-                {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : !categoryGroups || categoryGroups.length === 0 ? (
-                  <Box sx={{ p: 3, textAlign: 'center' }}>
-                    <Typography color="var(--text-secondary)">暫無數據</Typography>
-                  </Box>
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={categoryGroups}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="inventoryValue"
-                        nameKey="category"
-                      >
-                        {categoryGroups.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value) => formatCurrency(value)}
-                        contentStyle={{
-                          backgroundColor: 'var(--bg-secondary)',
-                          borderColor: 'var(--border-color)',
-                          borderRadius: 'var(--border-radius-sm)'
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid item xs={12} md={6}>
-            <Card sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)',
-              height: '100%'
-            }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
-                  庫存不足項目
-                </Typography>
-                
-                {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : !lowStockItems || lowStockItems.length === 0 ? (
-                  <Box sx={{ p: 3, textAlign: 'center' }}>
-                    <Typography color="var(--text-secondary)">暫無庫存不足項目</Typography>
-                  </Box>
-                ) : (
-                  <Box sx={{ overflowX: 'auto' }}>
-                    <table style={{ 
-                      width: '100%', 
-                      borderCollapse: 'collapse',
-                      fontSize: '0.875rem'
-                    }}>
-                      <thead>
-                        <tr style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                          <th style={{ 
-                            padding: '12px 16px', 
-                            textAlign: 'left', 
-                            borderBottom: '1px solid var(--border-color)',
-                            color: 'var(--text-secondary)',
-                            fontWeight: 600
-                          }}>
-                            產品名稱
-                          </th>
-                          <th style={{ 
-                            padding: '12px 16px', 
-                            textAlign: 'right', 
-                            borderBottom: '1px solid var(--border-color)',
-                            color: 'var(--text-secondary)',
-                            fontWeight: 600
-                          }}>
-                            當前庫存
-                          </th>
-                          <th style={{ 
-                            padding: '12px 16px', 
-                            textAlign: 'right', 
-                            borderBottom: '1px solid var(--border-color)',
-                            color: 'var(--text-secondary)',
-                            fontWeight: 600
-                          }}>
-                            最低庫存
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {lowStockItems.map((item, index) => (
-                          <tr key={index} style={{ 
-                            backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.02)'
-                          }}>
-                            <td style={{ 
-                              padding: '12px 16px', 
-                              borderBottom: '1px solid var(--border-color)'
-                            }}>
-                              {item.productName}
-                            </td>
-                            <td style={{ 
-                              padding: '12px 16px', 
-                              textAlign: 'right', 
-                              borderBottom: '1px solid var(--border-color)',
-                              color: 'var(--danger-color)'
-                            }}>
-                              {item.quantity} {item.unit}
-                            </td>
-                            <td style={{ 
-                              padding: '12px 16px', 
-                              textAlign: 'right', 
-                              borderBottom: '1px solid var(--border-color)'
-                            }}>
-                              {item.minStock} {item.unit}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+
+        {/* 標籤頁內容 */}
+        {inventoryTabValue === 0 ? (
+          <InventoryTable filters={inventoryFilters} />
+        ) : (
+          <InventoryProfitLossChart filters={inventoryFilters} />
+        )}
       </>
     );
   };
 
-  // 渲染記帳報表
-  const renderAccountingReport = () => {
-    return (
-      <AccountingChart />
-    );
-  };
-
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        mb: 4
-      }}>
+    <Container maxWidth="xl" sx={{ py: 3 }}>
+      <Box sx={{ mb: 3 }}>
         <Typography variant="h4" component="h1" fontWeight="700" color="var(--text-primary)">
           報表
         </Typography>
-        
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadOutlined />}
-            onClick={exportToCSV}
-            sx={{ 
-              borderColor: 'var(--border-color)',
-              color: 'var(--text-primary)',
-              '&:hover': {
-                borderColor: 'var(--primary-color)',
-                backgroundColor: 'rgba(98, 75, 255, 0.04)'
-              }
-            }}
-          >
-            導出CSV
-          </Button>
-        </Box>
+        <Typography color="var(--text-secondary)">
+          查看銷售、庫存和記帳報表
+        </Typography>
       </Box>
       
-      <Card sx={{ 
-        borderRadius: 'var(--border-radius)',
-        boxShadow: 'var(--card-shadow)',
-        mb: 4
-      }}>
-        <CardContent>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>報表類型</InputLabel>
-                <Select
-                  value={reportType}
-                  onChange={handleReportTypeChange}
-                >
-                  <MenuItem value="sales">銷售報表</MenuItem>
-                  <MenuItem value="inventory">庫存報表</MenuItem>
-                  <MenuItem value="accounting">記帳報表</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            {reportType === 'sales' && (
-              <>
+      <Box sx={{ mb: 4 }}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel id="report-type-label">報表類型</InputLabel>
+          <Select
+            labelId="report-type-label"
+            id="report-type-select"
+            value={reportType}
+            label="報表類型"
+            onChange={handleReportTypeChange}
+          >
+            <MenuItem value="sales">銷售報表</MenuItem>
+            <MenuItem value="inventory">庫存報表</MenuItem>
+            <MenuItem value="accounting">記帳報表</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+      
+      {reportType === 'sales' && (
+        <Box sx={{ mb: 4 }}>
+          <Card sx={{ 
+            borderRadius: 'var(--border-radius)',
+            boxShadow: 'var(--card-shadow)',
+            mb: 4
+          }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <FilterAlt sx={{ mr: 1, color: 'var(--text-secondary)' }} />
+                <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
+                  篩選條件
+                </Typography>
+              </Box>
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <DatePicker
+                        label="開始日期"
+                        value={dateRange.startDate}
+                        onChange={handleStartDateChange}
+                        renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                      />
+                      <DatePicker
+                        label="結束日期"
+                        value={dateRange.endDate}
+                        onChange={handleEndDateChange}
+                        renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                      />
+                    </Box>
+                  </LocalizationProvider>
+                </Grid>
+                
                 <Grid item xs={12} md={3}>
-                  <FormControl fullWidth>
-                    <InputLabel>分組方式</InputLabel>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="group-by-label">分組方式</InputLabel>
                     <Select
+                      labelId="group-by-label"
+                      id="group-by-select"
                       value={groupBy}
+                      label="分組方式"
                       onChange={handleGroupByChange}
                     >
                       {groupByOptions.map((option) => (
@@ -885,72 +613,64 @@ const ReportsPage = () => {
                   </FormControl>
                 </Grid>
                 
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                      <DatePicker
-                        label="開始日期"
-                        value={dateRange.startDate}
-                        onChange={handleStartDateChange}
-                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
-                      />
-                      <DatePicker
-                        label="結束日期"
-                        value={dateRange.endDate}
-                        onChange={handleEndDateChange}
-                        slotProps={{ textField: { fullWidth: true, size: 'small' } }}
-                      />
-                    </LocalizationProvider>
-                    
-                    <Button
-                      variant="contained"
-                      startIcon={<FilterAlt />}
-                      onClick={applyFilters}
-                      sx={{ 
-                        backgroundColor: 'var(--primary-color)',
-                        '&:hover': {
-                          backgroundColor: 'var(--primary-dark)'
-                        }
-                      }}
-                    >
-                      篩選
-                    </Button>
-                  </Box>
+                <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Button 
+                    variant="contained" 
+                    onClick={applyFilters}
+                    sx={{ mr: 1 }}
+                  >
+                    應用篩選
+                  </Button>
+                  <Button 
+                    variant="outlined" 
+                    startIcon={<DownloadOutlined />}
+                    onClick={exportToCSV}
+                  >
+                    導出CSV
+                  </Button>
                 </Grid>
-              </>
-            )}
-          </Grid>
+              </Grid>
+              
+              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {dateRangeOptions.map((option) => (
+                  <Chip
+                    key={option.value}
+                    label={option.label}
+                    onClick={() => handleDateRangeChange(option)}
+                    variant={
+                      dateRange.startDate.getTime() === option.start.getTime() && 
+                      dateRange.endDate.getTime() === option.end.getTime() 
+                        ? 'filled' 
+                        : 'outlined'
+                    }
+                    color={
+                      dateRange.startDate.getTime() === option.start.getTime() && 
+                      dateRange.endDate.getTime() === option.end.getTime() 
+                        ? 'primary' 
+                        : 'default'
+                    }
+                  />
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
           
-          <Box sx={{ mt: 2 }}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {reportType === 'sales' && dateRangeOptions.map((option) => (
-                <Chip
-                  key={option.value}
-                  label={option.label}
-                  onClick={() => handleDateRangeChange(option)}
-                  color={
-                    dateRange.startDate === option.start && dateRange.endDate === option.end
-                      ? 'primary'
-                      : 'default'
-                  }
-                  sx={{ mb: 1 }}
-                />
-              ))}
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
-      
-      {error && (
-        <Alert severity="error" sx={{ mb: 4 }}>
-          {error}
-        </Alert>
+          {renderSalesReport()}
+        </Box>
       )}
       
-      {reportType === 'sales' && renderSalesReport()}
-      {reportType === 'inventory' && renderInventoryReport()}
-      {reportType === 'accounting' && renderAccountingReport()}
-    </Box>
+      {reportType === 'inventory' && (
+        <Box>
+          {renderInventoryReport()}
+        </Box>
+      )}
+      
+      {reportType === 'accounting' && (
+        <Box>
+          <AccountingChart />
+        </Box>
+      )}
+    </Container>
   );
 };
 

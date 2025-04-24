@@ -4,6 +4,8 @@ const Sale = require('../models/Sale');
 const { BaseProduct } = require('../models/BaseProduct');
 const Customer = require('../models/Customer');
 const Inventory = require('../models/Inventory');
+const Supplier = require('../models/Supplier');
+const mongoose = require('mongoose');
 
 // @route   GET api/reports/sales
 // @desc    Get sales report data
@@ -184,10 +186,35 @@ router.get('/sales', async (req, res) => {
 router.get('/inventory', async (req, res) => {
   try {
     // 獲取查詢參數
-    const { productType } = req.query;
+    const { productType, category, supplier, productCode, productName } = req.query;
     
-    // 獲取庫存數據
-    const inventory = await Inventory.find().populate('product');
+    // 構建產品查詢條件
+    const productQuery = {};
+    if (productType && (productType === 'product' || productType === 'medicine')) {
+      productQuery.productType = productType;
+    }
+    if (category) {
+      productQuery.category = category;
+    }
+    if (supplier) {
+      productQuery.supplier = mongoose.Types.ObjectId(supplier);
+    }
+    if (productCode) {
+      productQuery.code = { $regex: productCode, $options: 'i' };
+    }
+    if (productName) {
+      productQuery.name = { $regex: productName, $options: 'i' };
+    }
+    
+    // 獲取符合條件的產品
+    const products = await BaseProduct.find(productQuery).populate('supplier');
+    const productIds = products.map(product => product._id);
+    
+    // 獲取這些產品的庫存數據
+    const inventory = await Inventory.find({ product: { $in: productIds } }).populate({
+      path: 'product',
+      populate: { path: 'supplier' }
+    });
     
     // 處理數據
     const inventoryData = inventory.map(item => {
@@ -201,7 +228,11 @@ router.get('/inventory', async (req, res) => {
         productCode: item.product.code,
         productName: item.product.name,
         category: item.product.category,
-        productType: item.product.productType || 'product', // 確保有產品類型
+        productType: item.product.productType || 'product',
+        supplier: item.product.supplier ? {
+          id: item.product.supplier._id,
+          name: item.product.supplier.name
+        } : null,
         quantity: item.quantity,
         unit: item.product.unit,
         purchasePrice: item.product.purchasePrice,
@@ -214,25 +245,22 @@ router.get('/inventory', async (req, res) => {
         batchNumber: item.batchNumber,
         expiryDate: item.expiryDate,
         location: item.location,
-        lastUpdated: item.lastUpdated
+        lastUpdated: item.lastUpdated,
+        purchaseOrderNumber: item.purchaseOrderNumber,
+        shippingOrderNumber: item.shippingOrderNumber,
+        type: item.type
       };
     }).filter(Boolean);
     
-    // 如果指定了產品類型，則過濾數據
-    let filteredData = inventoryData;
-    if (productType && (productType === 'product' || productType === 'medicine')) {
-      filteredData = inventoryData.filter(item => item.productType === productType);
-    }
-    
     // 計算總計
-    const totalInventoryValue = filteredData.reduce((sum, item) => sum + item.inventoryValue, 0);
-    const totalPotentialRevenue = filteredData.reduce((sum, item) => sum + item.potentialRevenue, 0);
-    const totalPotentialProfit = filteredData.reduce((sum, item) => sum + item.potentialProfit, 0);
-    const lowStockCount = filteredData.filter(item => item.status === 'low').length;
+    const totalInventoryValue = inventoryData.reduce((sum, item) => sum + item.inventoryValue, 0);
+    const totalPotentialRevenue = inventoryData.reduce((sum, item) => sum + item.potentialRevenue, 0);
+    const totalPotentialProfit = inventoryData.reduce((sum, item) => sum + item.potentialProfit, 0);
+    const lowStockCount = inventoryData.filter(item => item.status === 'low').length;
     
     // 按類別分組
     const categoryGroups = {};
-    filteredData.forEach(item => {
+    inventoryData.forEach(item => {
       if (!categoryGroups[item.category]) {
         categoryGroups[item.category] = {
           category: item.category,
@@ -284,17 +312,128 @@ router.get('/inventory', async (req, res) => {
       }
     });
     
+    // 獲取所有供應商和類別，用於前端篩選器
+    const allSuppliers = await Supplier.find({}, 'name');
+    const allCategories = [...new Set(products.map(product => product.category))].filter(Boolean);
+    
     res.json({
-      data: filteredData,
+      data: inventoryData,
       summary: {
-        totalItems: filteredData.length,
+        totalItems: inventoryData.length,
         totalInventoryValue,
         totalPotentialRevenue,
         totalPotentialProfit,
         lowStockCount
       },
       categoryGroups: Object.values(categoryGroups),
-      productTypeGroups: Object.values(productTypeGroups)
+      productTypeGroups: Object.values(productTypeGroups),
+      filters: {
+        suppliers: allSuppliers,
+        categories: allCategories
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/reports/inventory/profit-loss
+// @desc    Get inventory profit-loss data by purchase order
+// @access  Public
+router.get('/inventory/profit-loss', async (req, res) => {
+  try {
+    // 獲取查詢參數
+    const { productType, category, supplier, productCode, productName } = req.query;
+    
+    // 構建產品查詢條件
+    const productQuery = {};
+    if (productType && (productType === 'product' || productType === 'medicine')) {
+      productQuery.productType = productType;
+    }
+    if (category) {
+      productQuery.category = category;
+    }
+    if (supplier) {
+      productQuery.supplier = mongoose.Types.ObjectId(supplier);
+    }
+    if (productCode) {
+      productQuery.code = { $regex: productCode, $options: 'i' };
+    }
+    if (productName) {
+      productQuery.name = { $regex: productName, $options: 'i' };
+    }
+    
+    // 獲取符合條件的產品
+    const products = await BaseProduct.find(productQuery);
+    const productIds = products.map(product => product._id);
+    
+    // 獲取這些產品的庫存數據
+    const inventory = await Inventory.find({ 
+      product: { $in: productIds },
+      purchaseOrderNumber: { $exists: true, $ne: null }
+    }).populate('product');
+    
+    // 按照貨單單號分組並計算盈虧
+    const profitLossByPO = {};
+    
+    inventory.forEach(item => {
+      if (!item.product) return;
+      
+      const poNumber = item.purchaseOrderNumber;
+      if (!poNumber) return;
+      
+      if (!profitLossByPO[poNumber]) {
+        profitLossByPO[poNumber] = {
+          purchaseOrderNumber: poNumber,
+          totalQuantity: 0,
+          totalCost: 0,
+          totalRevenue: 0,
+          profitLoss: 0,
+          items: []
+        };
+      }
+      
+      const cost = item.quantity * item.product.purchasePrice;
+      const revenue = item.quantity * item.product.sellingPrice;
+      const profit = revenue - cost;
+      
+      profitLossByPO[poNumber].totalQuantity += item.quantity;
+      profitLossByPO[poNumber].totalCost += cost;
+      profitLossByPO[poNumber].totalRevenue += revenue;
+      profitLossByPO[poNumber].profitLoss += profit;
+      
+      profitLossByPO[poNumber].items.push({
+        productId: item.product._id,
+        productCode: item.product.code,
+        productName: item.product.name,
+        quantity: item.quantity,
+        purchasePrice: item.product.purchasePrice,
+        sellingPrice: item.product.sellingPrice,
+        cost,
+        revenue,
+        profit
+      });
+    });
+    
+    // 轉換為數組並排序
+    const profitLossData = Object.values(profitLossByPO).sort((a, b) => {
+      // 按照貨單單號排序
+      return a.purchaseOrderNumber.localeCompare(b.purchaseOrderNumber);
+    });
+    
+    // 計算總計
+    const summary = {
+      totalPurchaseOrders: profitLossData.length,
+      totalQuantity: profitLossData.reduce((sum, po) => sum + po.totalQuantity, 0),
+      totalCost: profitLossData.reduce((sum, po) => sum + po.totalCost, 0),
+      totalRevenue: profitLossData.reduce((sum, po) => sum + po.totalRevenue, 0),
+      totalProfitLoss: profitLossData.reduce((sum, po) => sum + po.profitLoss, 0)
+    };
+    
+    res.json({
+      data: profitLossData,
+      summary
     });
   } catch (err) {
     console.error(err.message);
