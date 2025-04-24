@@ -343,7 +343,7 @@ const AccountingNewPage = () => {
               取消
             </Button>
             <Button onClick={handleSubmit} variant="contained" color="primary">
-              新增
+              儲存
             </Button>
           </Grid>
         </Grid>
