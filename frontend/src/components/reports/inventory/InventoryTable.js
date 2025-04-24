@@ -25,6 +25,46 @@ import axios from 'axios';
 const ExpandableRow = ({ item, formatCurrency }) => {
   const [open, setOpen] = useState(false);
 
+  // 根據交易類型獲取對應的單號
+  const getOrderNumber = (transaction) => {
+    if (transaction.type === '進貨') {
+      return transaction.purchaseOrderNumber || '-';
+    } else if (transaction.type === '出貨') {
+      return transaction.shippingOrderNumber || '-';
+    } else if (transaction.type === '銷售') {
+      return transaction.salesOrderNumber || '-';
+    }
+    return '-';
+  };
+
+  // 獲取交易類型對應的顏色
+  const getTypeColor = (type) => {
+    switch (type) {
+      case '進貨':
+        return 'var(--primary-color)';
+      case '出貨':
+        return 'var(--warning-color)';
+      case '銷售':
+        return 'var(--danger-color)';
+      default:
+        return 'var(--text-secondary)';
+    }
+  };
+
+  // 獲取交易類型對應的背景色
+  const getTypeBgColor = (type) => {
+    switch (type) {
+      case '進貨':
+        return 'rgba(98, 75, 255, 0.1)';
+      case '出貨':
+        return 'rgba(245, 166, 35, 0.1)';
+      case '銷售':
+        return 'rgba(229, 63, 60, 0.1)';
+      default:
+        return 'rgba(0, 0, 0, 0.05)';
+    }
+  };
+
   return (
     <>
       <TableRow
@@ -95,12 +135,12 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                         <Typography
                           component="span"
                           sx={{
-                            color: transaction.type === '進貨' ? 'var(--primary-color)' : 'var(--danger-color)',
+                            color: getTypeColor(transaction.type),
                             cursor: 'pointer',
                             '&:hover': { textDecoration: 'underline' }
                           }}
                         >
-                          {transaction.purchaseOrderNumber}
+                          {getOrderNumber(transaction)}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -108,14 +148,14 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                           label={transaction.type}
                           size="small"
                           sx={{
-                            bgcolor: transaction.type === '進貨' ? 'rgba(98, 75, 255, 0.1)' : 'rgba(229, 63, 60, 0.1)',
-                            color: transaction.type === '進貨' ? 'var(--primary-color)' : 'var(--danger-color)',
+                            bgcolor: getTypeBgColor(transaction.type),
+                            color: getTypeColor(transaction.type),
                             fontWeight: 500,
                           }}
                         />
                       </TableCell>
                       <TableCell align="right" sx={{ 
-                        color: transaction.type === '進貨' ? 'var(--primary-color)' : 'var(--danger-color)',
+                        color: getTypeColor(transaction.type),
                         fontWeight: 500
                       }}>
                         {transaction.type === '進貨' ? transaction.quantity : -transaction.quantity}
@@ -221,10 +261,22 @@ const InventoryTable = ({ filters }) => {
       groupedByProduct[productId].totalPotentialRevenue += item.potentialRevenue;
       groupedByProduct[productId].totalPotentialProfit += item.potentialProfit;
       
+      // 確定交易類型
+      let transactionType = '其他';
+      if (item.type === 'purchase') {
+        transactionType = '進貨';
+      } else if (item.type === 'shipping') {
+        transactionType = '出貨';
+      } else if (item.type === 'sales') {
+        transactionType = '銷售';
+      }
+      
       // 添加交易記錄
       groupedByProduct[productId].transactions.push({
         purchaseOrderNumber: item.purchaseOrderNumber || '-',
-        type: item.type === 'purchase' ? '進貨' : '銷售',
+        shippingOrderNumber: item.shippingOrderNumber || '-',
+        salesOrderNumber: item.salesOrderNumber || '-',
+        type: transactionType,
         quantity: item.quantity,
         currentStock: item.quantity, // 這裡應該是當前庫存，可能需要後端提供
         price: item.type === 'purchase' ? item.purchasePrice : item.sellingPrice,
