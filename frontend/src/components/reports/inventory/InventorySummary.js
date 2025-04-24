@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -6,12 +7,16 @@ import {
   Typography,
   Grid,
   CircularProgress,
-  Alert
+  Alert,
+  Link
 } from '@mui/material';
 import { 
   AttachMoney, 
   TrendingUp, 
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  ReceiptIcon,
+  LocalShippingIcon,
+  ShoppingCartIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -20,7 +25,8 @@ const InventorySummary = ({ filters }) => {
     totalItems: 0,
     totalInventoryValue: 0,
     totalGrossProfit: 0,
-    totalProfitLoss: 0
+    totalProfitLoss: 0,
+    orderLinks: []
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -49,17 +55,25 @@ const InventorySummary = ({ filters }) => {
         
         // 添加參數指示使用全部歷史計算
         params.append('useFullHistory', 'true');
+        params.append('calculateFifoProfit', 'true');
         
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         if (response.data && response.data.summary) {
-          // 將原有的totalPotentialRevenue映射為totalGrossProfit
-          // 將原有的totalPotentialProfit映射為totalProfitLoss
-          const { totalInventoryValue, totalPotentialRevenue, totalPotentialProfit } = response.data.summary;
+          // 使用FIFO算法計算的總毛利和損益總和
+          const { 
+            totalInventoryValue, 
+            totalRevenue, 
+            totalCost, 
+            totalProfit,
+            orderLinks = []
+          } = response.data.summary;
+          
           setSummaryData({
             totalItems: response.data.summary.totalItems || 0,
             totalInventoryValue: totalInventoryValue || 0,
-            totalGrossProfit: totalPotentialRevenue || 0,
-            totalProfitLoss: totalPotentialProfit || 0
+            totalGrossProfit: totalRevenue || 0,  // 總毛利 = 總收入
+            totalProfitLoss: totalProfit || 0,    // 損益總和 = 總收入 - 總成本
+            orderLinks: orderLinks || []
           });
         }
         setError(null);
@@ -73,6 +87,56 @@ const InventorySummary = ({ filters }) => {
 
     fetchSummaryData();
   }, [filters]);
+
+  // 渲染訂單連結
+  const renderOrderLinks = () => {
+    if (!summaryData.orderLinks || summaryData.orderLinks.length === 0) {
+      return null;
+    }
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="subtitle2" gutterBottom>
+          相關訂單:
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {summaryData.orderLinks.map((link, index) => (
+            <Link
+              key={index}
+              component={RouterLink}
+              to={
+                link.orderType === 'sale'
+                  ? `/sales/${link.orderId}`
+                  : link.orderType === 'shipping'
+                  ? `/shipping-orders/${link.orderId}`
+                  : link.orderType === 'purchase'
+                  ? `/purchase-orders/${link.orderId}`
+                  : '#'
+              }
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                textDecoration: 'none',
+                mr: 1,
+                mb: 1,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.08)'
+                }
+              }}
+            >
+              {link.orderType === 'sale' && <ReceiptIcon fontSize="small" sx={{ mr: 0.5 }} />}
+              {link.orderType === 'shipping' && <LocalShippingIcon fontSize="small" sx={{ mr: 0.5 }} />}
+              {link.orderType === 'purchase' && <ShoppingCartIcon fontSize="small" sx={{ mr: 0.5 }} />}
+              {link.orderNumber}
+            </Link>
+          ))}
+        </Box>
+      </Box>
+    );
+  };
 
   if (loading) {
     return (
@@ -91,106 +155,121 @@ const InventorySummary = ({ filters }) => {
   }
 
   return (
-    <Grid container spacing={3} sx={{ mb: 4 }}>
-      {/* 總庫存價值 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <Card sx={{ 
-          borderRadius: 'var(--border-radius)',
-          boxShadow: 'var(--card-shadow)'
-        }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Box>
-                <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                  總庫存價值
-                </Typography>
-                <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                  {formatCurrency(summaryData.totalInventoryValue)}
-                </Typography>
+    <Box>
+      <Grid container spacing={3} sx={{ mb: 2 }}>
+        {/* 總庫存價值 */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ 
+            borderRadius: 'var(--border-radius)',
+            boxShadow: 'var(--card-shadow)'
+          }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box>
+                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                    總庫存價值
+                  </Typography>
+                  <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
+                    {formatCurrency(summaryData.totalInventoryValue)}
+                  </Typography>
+                </Box>
+                <Box sx={{ 
+                  backgroundColor: 'var(--primary-light)', 
+                  color: 'var(--primary-color)',
+                  width: 40,
+                  height: 40,
+                  borderRadius: 'var(--border-radius)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <AttachMoney />
+                </Box>
               </Box>
-              <Box sx={{ 
-                backgroundColor: 'var(--primary-light)', 
-                color: 'var(--primary-color)',
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--border-radius)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <AttachMoney />
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        {/* 總毛利 */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ 
+            borderRadius: 'var(--border-radius)',
+            boxShadow: 'var(--card-shadow)'
+          }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box>
+                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                    總毛利
+                  </Typography>
+                  <Typography 
+                    variant="h5" 
+                    component="div" 
+                    fontWeight="600" 
+                    color={summaryData.totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
+                  >
+                    {formatCurrency(summaryData.totalGrossProfit)}
+                  </Typography>
+                </Box>
+                <Box sx={{ 
+                  backgroundColor: 'rgba(0, 217, 126, 0.1)', 
+                  color: 'var(--success-color)',
+                  width: 40,
+                  height: 40,
+                  borderRadius: 'var(--border-radius)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <TrendingUp />
+                </Box>
               </Box>
-            </Box>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        {/* 損益總和 */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ 
+            borderRadius: 'var(--border-radius)',
+            boxShadow: 'var(--card-shadow)'
+          }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box>
+                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                    損益總和
+                  </Typography>
+                  <Typography 
+                    variant="h5" 
+                    component="div" 
+                    fontWeight="600" 
+                    color={summaryData.totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+                  >
+                    {formatCurrency(summaryData.totalProfitLoss)}
+                  </Typography>
+                </Box>
+                <Box sx={{ 
+                  backgroundColor: 'rgba(245, 166, 35, 0.1)', 
+                  color: 'var(--warning-color)',
+                  width: 40,
+                  height: 40,
+                  borderRadius: 'var(--border-radius)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <TrendingUp />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
       
-      {/* 總毛利 (原潛在收入) */}
-      <Grid item xs={12} sm={6} md={4}>
-        <Card sx={{ 
-          borderRadius: 'var(--border-radius)',
-          boxShadow: 'var(--card-shadow)'
-        }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Box>
-                <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                  總毛利
-                </Typography>
-                <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                  {formatCurrency(summaryData.totalGrossProfit)}
-                </Typography>
-              </Box>
-              <Box sx={{ 
-                backgroundColor: 'rgba(0, 217, 126, 0.1)', 
-                color: 'var(--success-color)',
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--border-radius)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <TrendingUp />
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-      
-      {/* 損益總和 (原潛在利潤) */}
-      <Grid item xs={12} sm={6} md={4}>
-        <Card sx={{ 
-          borderRadius: 'var(--border-radius)',
-          boxShadow: 'var(--card-shadow)'
-        }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Box>
-                <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                  損益總和
-                </Typography>
-                <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                  {formatCurrency(summaryData.totalProfitLoss)}
-                </Typography>
-              </Box>
-              <Box sx={{ 
-                backgroundColor: 'rgba(245, 166, 35, 0.1)', 
-                color: 'var(--warning-color)',
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--border-radius)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <TrendingUp />
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+      {/* 訂單連結區域 */}
+      {renderOrderLinks()}
+    </Box>
   );
 };
 
