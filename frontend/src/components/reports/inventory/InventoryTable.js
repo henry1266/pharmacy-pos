@@ -113,8 +113,18 @@ const ExpandableRow = ({ item, formatCurrency }) => {
         <TableCell align="right">{formatCurrency(item.purchasePrice)}</TableCell>
         <TableCell align="right">{formatCurrency(item.sellingPrice)}</TableCell>
         <TableCell align="right">{formatCurrency(item.totalInventoryValue)}</TableCell>
-        <TableCell align="right">{formatCurrency(item.totalPotentialRevenue)}</TableCell>
-        <TableCell align="right">{formatCurrency(item.totalPotentialProfit)}</TableCell>
+        <TableCell align="right" sx={{ 
+          color: item.totalPotentialRevenue >= 0 ? 'success.main' : 'error.main',
+          fontWeight: 'bold'
+        }}>
+          {formatCurrency(item.totalPotentialRevenue)}
+        </TableCell>
+        <TableCell align="right" sx={{ 
+          color: item.totalPotentialProfit >= 0 ? 'success.main' : 'error.main',
+          fontWeight: 'bold'
+        }}>
+          {formatCurrency(item.totalPotentialProfit)}
+        </TableCell>
         <TableCell>
           <Box
             component="span"
@@ -405,7 +415,7 @@ const InventoryTable = ({ filters }) => {
               <Typography variant="body2" color="var(--text-secondary)">
                 損益總和:
               </Typography>
-              <Typography variant="h6" fontWeight="600" color="var(--success-color)">
+              <Typography variant="h6" fontWeight="600" color={totalProfitLoss >= 0 ? 'var(--success-color)' : 'var(--danger-color)'}>
                 {formatCurrency(totalProfitLoss)}
               </Typography>
             </Box>
