@@ -56,6 +56,8 @@ const InventorySummary = ({ filters }) => {
         // 添加參數指示使用全部歷史計算
         params.append('useFullHistory', 'true');
         params.append('calculateFifoProfit', 'true');
+        // 添加參數指示使用連續盈虧計算
+        params.append('useContinuousProfitLoss', 'true');
         
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         if (response.data && response.data.summary) {
@@ -65,6 +67,7 @@ const InventorySummary = ({ filters }) => {
             totalRevenue, 
             totalCost, 
             totalProfit,
+            cumulativeProfitLoss, // 使用累計損益總和
             orderLinks = []
           } = response.data.summary;
           
@@ -72,7 +75,8 @@ const InventorySummary = ({ filters }) => {
             totalItems: response.data.summary.totalItems || 0,
             totalInventoryValue: totalInventoryValue || 0,
             totalGrossProfit: totalRevenue || 0,  // 總毛利 = 總收入
-            totalProfitLoss: totalProfit || 0,    // 損益總和 = 總收入 - 總成本
+            // 使用累計損益總和，如果後端沒有提供，則使用totalProfit
+            totalProfitLoss: cumulativeProfitLoss !== undefined ? cumulativeProfitLoss : totalProfit,
             orderLinks: orderLinks || []
           });
         }
@@ -247,6 +251,9 @@ const InventorySummary = ({ filters }) => {
                     color={summaryData.totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
                   >
                     {formatCurrency(summaryData.totalProfitLoss)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    (累計計算)
                   </Typography>
                 </Box>
                 <Box sx={{ 
