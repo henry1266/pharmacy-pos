@@ -96,17 +96,17 @@ const InventorySummary = ({ filters }) => {
                 ? -(transaction.quantity * transaction.unitPrice)
                 : (transaction.quantity * transaction.unitPrice);
               
-              // 保存當前的累積盈虧值（變化前）
-              const previousCumulativeProfitLoss = cumulativeProfitLoss;
-              
               // 更新累積盈虧
               cumulativeProfitLoss += transactionAmount;
               
               return {
                 ...transaction,
                 transactionAmount,
-                previousCumulativeProfitLoss,
-                cumulativeProfitLoss
+                cumulativeProfitLoss,
+                // 添加庫存數量，根據交易類型增加或減少
+                inventoryCount: transaction.type === 'purchase' 
+                  ? transaction.quantity 
+                  : -transaction.quantity
               };
             });
             
@@ -189,7 +189,7 @@ const InventorySummary = ({ filters }) => {
       <Box sx={{ mt: 3 }}>
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
           <Timeline sx={{ mr: 1 }} />
-          累積盈虧記錄
+          交易記錄
         </Typography>
         <TableContainer component={Paper} sx={{ boxShadow: 'var(--card-shadow)' }}>
           <Table>
@@ -198,10 +198,9 @@ const InventorySummary = ({ filters }) => {
                 <TableCell>貨單號</TableCell>
                 <TableCell>類型</TableCell>
                 <TableCell align="right">數量</TableCell>
+                <TableCell align="right">庫存</TableCell>
+                <TableCell align="right">損益總和</TableCell>
                 <TableCell align="right">單價</TableCell>
-                <TableCell align="right">損益總和變化</TableCell>
-                <TableCell align="right">交易金額</TableCell>
-                <TableCell align="right">累積盈虧</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -240,29 +239,14 @@ const InventorySummary = ({ filters }) => {
                     </Typography>
                   </TableCell>
                   <TableCell align="right">{transaction.quantity}</TableCell>
-                  <TableCell align="right">{formatCurrency(transaction.unitPrice)}</TableCell>
-                  <TableCell align="right" sx={{ 
-                    color: transaction.previousCumulativeProfitLoss !== undefined 
-                      ? (transaction.cumulativeProfitLoss > transaction.previousCumulativeProfitLoss ? 'success.main' : 'error.main')
-                      : (transaction.transactionAmount >= 0 ? 'success.main' : 'error.main'),
-                    fontWeight: 'bold'
-                  }}>
-                    {transaction.previousCumulativeProfitLoss !== undefined 
-                      ? `${formatCurrency(transaction.previousCumulativeProfitLoss)} → ${formatCurrency(transaction.cumulativeProfitLoss)}`
-                      : formatCurrency(transaction.transactionAmount)}
-                  </TableCell>
+                  <TableCell align="right">{transaction.inventoryCount}</TableCell>
                   <TableCell align="right" sx={{ 
                     color: transaction.transactionAmount >= 0 ? 'success.main' : 'error.main',
                     fontWeight: 'bold'
                   }}>
                     {formatCurrency(transaction.transactionAmount)}
                   </TableCell>
-                  <TableCell align="right" sx={{ 
-                    color: transaction.cumulativeProfitLoss >= 0 ? 'success.main' : 'error.main',
-                    fontWeight: 'bold'
-                  }}>
-                    {formatCurrency(transaction.cumulativeProfitLoss)}
-                  </TableCell>
+                  <TableCell align="right">{formatCurrency(transaction.unitPrice)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
