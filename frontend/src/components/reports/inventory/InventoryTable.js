@@ -32,7 +32,7 @@ const ExpandableRow = ({ item, formatCurrency }) => {
     } else if (transaction.type === '出貨') {
       return transaction.shippingOrderNumber || '-';
     } else if (transaction.type === '銷售') {
-      return transaction.saleNumber || '-';
+      return transaction.saleNumber || '-';  // 修正：使用saleNumber而不是salesOrderNumber
     }
     return '-';
   };
@@ -265,9 +265,9 @@ const InventoryTable = ({ filters }) => {
       let transactionType = '其他';
       if (item.type === 'purchase') {
         transactionType = '進貨';
-      } else if (item.type === 'ship') {
+      } else if (item.type === 'ship') {  // 修正：使用'ship'而不是'shipping'
         transactionType = '出貨';
-      } else if (item.type === 'sale') {
+      } else if (item.type === 'sale') {  // 修正：使用'sale'而不是'sales'
         transactionType = '銷售';
       }
       
@@ -275,7 +275,7 @@ const InventoryTable = ({ filters }) => {
       groupedByProduct[productId].transactions.push({
         purchaseOrderNumber: item.purchaseOrderNumber || '-',
         shippingOrderNumber: item.shippingOrderNumber || '-',
-        saleNumber: item.saleNumber || '-',
+        saleNumber: item.saleNumber || '-',  // 修正：使用saleNumber而不是salesOrderNumber
         type: transactionType,
         quantity: item.quantity,
         currentStock: item.quantity, // 這裡應該是當前庫存，可能需要後端提供
