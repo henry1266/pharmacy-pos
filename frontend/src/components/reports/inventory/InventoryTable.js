@@ -94,15 +94,16 @@ const ExpandableRow = ({ item, formatCurrency }) => {
     
     return sortedTransactions.map(transaction => {
       // 計算庫存變化
-      if (transaction.type === '進貨') {
-        cumulativeStock += transaction.quantity;
-      } else if (transaction.type === '銷售' || transaction.type === '出貨') {
-        cumulativeStock -= transaction.quantity;
-      }
+      cumulativeStock += transaction.quantity;
+
       
       // 計算損益變化
-      cumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
-      
+      	  if (transaction.type === '進貨') {
+        cumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
+      } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+        cumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
+      }
+	  
       return {
         ...transaction,
         cumulativeStock,
@@ -215,13 +216,13 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                           sx={{
                             bgcolor: getTypeBgColor(transaction.type),
                             color: getTypeColor(transaction.type),
-                            fontWeight: 500,
+                            fontWeight: 400,
                           }}
                         />
                       </TableCell>
                       <TableCell align="right" sx={{ 
                         color: getTypeColor(transaction.type),
-                        fontWeight: 500
+                        fontWeight: 400
                       }}>
                         {transaction.quantity}
                       </TableCell>
@@ -469,18 +470,18 @@ const InventoryTable = ({ filters }) => {
             <TableHead sx={{ bgcolor: 'var(--bg-secondary)' }}>
               <TableRow>
                 <TableCell width="50px"></TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>商品編號</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>商品名稱</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>類別</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>供應商</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">數量</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>單位</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">進貨價</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">售價</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">庫存價值</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">總毛利</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">損益總和</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>狀態</TableCell>
+                <TableCell sx={{ fontWeight: 500 }}>商品編號</TableCell>
+                <TableCell sx={{ fontWeight: 500 }}>商品名稱</TableCell>
+                <TableCell sx={{ fontWeight: 500 }}>類別</TableCell>
+                <TableCell sx={{ fontWeight: 500 }}>供應商</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">數量</TableCell>
+                <TableCell sx={{ fontWeight: 500 }}>單位</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">進貨價</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">售價</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">庫存價值</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">總毛利</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">損益總和</TableCell>
+                <TableCell sx={{ fontWeight: 500 }}>狀態</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
