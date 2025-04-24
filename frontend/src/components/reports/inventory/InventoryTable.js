@@ -135,6 +135,7 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                     <TableCell align="right">數量</TableCell>
                     <TableCell align="right">庫存</TableCell>
                     <TableCell align="right">單價</TableCell>
+					<TableCell align="right">損益總和</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -169,7 +170,7 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                       }}>
                         {transaction.type === '進貨' ? transaction.quantity : -transaction.quantity}
                       </TableCell>
-                      <TableCell align="right">{transaction.currentStock}</TableCell>
+                      <TableCell align="right"></TableCell>
                       <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
                     </TableRow>
                   ))}
