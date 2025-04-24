@@ -8,12 +8,20 @@ import {
   Grid,
   CircularProgress,
   Alert,
-  Link
+  Link,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
 } from '@mui/material';
 import { 
   AttachMoney, 
   TrendingUp, 
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  Timeline
 } from '@mui/icons-material';
 import Receipt from '@mui/icons-material/Receipt';
 import LocalShipping from '@mui/icons-material/LocalShipping';
@@ -28,6 +36,7 @@ const InventorySummary = ({ filters }) => {
     totalProfitLoss: 0,
     orderLinks: []
   });
+  const [transactionHistory, setTransactionHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -40,7 +49,7 @@ const InventorySummary = ({ filters }) => {
     }).format(amount);
   };
 
-  // 獲取庫存摘要數據
+  // 獲取庫存摘要數據和交易歷史
   useEffect(() => {
     const fetchSummaryData = async () => {
       setLoading(true);
@@ -56,18 +65,16 @@ const InventorySummary = ({ filters }) => {
         // 添加參數指示使用全部歷史計算
         params.append('useFullHistory', 'true');
         params.append('calculateFifoProfit', 'true');
-        // 添加參數指示使用連續變化的損益總和
-        params.append('useSequentialProfitLoss', 'true');
+        // 添加參數請求交易歷史記錄
+        params.append('includeTransactionHistory', 'true');
         
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         if (response.data && response.data.summary) {
-          // 使用FIFO算法計算的總毛利和損益總和
           const { 
             totalInventoryValue, 
             totalRevenue, 
             totalCost, 
             totalProfit,
-            sequentialProfitLoss, // 使用連續變化的損益總和
             orderLinks = []
           } = response.data.summary;
           
@@ -75,10 +82,31 @@ const InventorySummary = ({ filters }) => {
             totalItems: response.data.summary.totalItems || 0,
             totalInventoryValue: totalInventoryValue || 0,
             totalGrossProfit: totalRevenue || 0,  // 總毛利 = 總收入
-            // 使用連續變化的損益總和，如果後端沒有提供，則使用totalProfit
-            totalProfitLoss: sequentialProfitLoss !== undefined ? sequentialProfitLoss : totalProfit,
+            totalProfitLoss: totalProfit || 0,    // 損益總和 = 總收入 - 總成本
             orderLinks: orderLinks || []
           });
+
+          // 處理交易歷史記錄
+          if (response.data.transactionHistory && Array.isArray(response.data.transactionHistory)) {
+            // 計算累積盈虧
+            let cumulativeProfitLoss = 0;
+            const historyWithCumulative = response.data.transactionHistory.map(transaction => {
+              // 進貨為負數，銷售為正數
+              const transactionAmount = transaction.type === 'purchase' 
+                ? -(transaction.quantity * transaction.unitPrice)
+                : (transaction.quantity * transaction.unitPrice);
+              
+              cumulativeProfitLoss += transactionAmount;
+              
+              return {
+                ...transaction,
+                transactionAmount,
+                cumulativeProfitLoss
+              };
+            });
+            
+            setTransactionHistory(historyWithCumulative);
+          }
         }
         setError(null);
       } catch (err) {
@@ -138,6 +166,92 @@ const InventorySummary = ({ filters }) => {
             </Link>
           ))}
         </Box>
+      </Box>
+    );
+  };
+
+  // 渲染交易歷史表格
+  const renderTransactionHistory = () => {
+    if (!transactionHistory || transactionHistory.length === 0) {
+      return (
+        <Alert severity="info" sx={{ mt: 3 }}>
+          沒有交易歷史記錄
+        </Alert>
+      );
+    }
+
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+          <Timeline sx={{ mr: 1 }} />
+          累積盈虧記錄
+        </Typography>
+        <TableContainer component={Paper} sx={{ boxShadow: 'var(--card-shadow)' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>貨單號</TableCell>
+                <TableCell>類型</TableCell>
+                <TableCell align="right">數量</TableCell>
+                <TableCell align="right">單價</TableCell>
+                <TableCell align="right">交易金額</TableCell>
+                <TableCell align="right">累積盈虧</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {transactionHistory.map((transaction, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Link
+                      component={RouterLink}
+                      to={
+                        transaction.type === 'sale'
+                          ? `/sales/${transaction.orderId}`
+                          : transaction.type === 'shipping'
+                          ? `/shipping-orders/${transaction.orderId}`
+                          : transaction.type === 'purchase'
+                          ? `/purchase-orders/${transaction.orderId}`
+                          : '#'
+                      }
+                      sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        textDecoration: 'none',
+                        color: transaction.type === 'purchase' ? 'primary.main' : 'error.main'
+                      }}
+                    >
+                      {transaction.type === 'sale' && <Receipt fontSize="small" sx={{ mr: 0.5 }} />}
+                      {transaction.type === 'shipping' && <LocalShipping fontSize="small" sx={{ mr: 0.5 }} />}
+                      {transaction.type === 'purchase' && <ShoppingCart fontSize="small" sx={{ mr: 0.5 }} />}
+                      {transaction.orderNumber}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Typography 
+                      color={transaction.type === 'purchase' ? 'primary.main' : 'error.main'}
+                    >
+                      {transaction.type === 'purchase' ? '進貨' : '銷售'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">{transaction.quantity}</TableCell>
+                  <TableCell align="right">{formatCurrency(transaction.unitPrice)}</TableCell>
+                  <TableCell align="right" sx={{ 
+                    color: transaction.transactionAmount >= 0 ? 'success.main' : 'error.main',
+                    fontWeight: 'bold'
+                  }}>
+                    {formatCurrency(transaction.transactionAmount)}
+                  </TableCell>
+                  <TableCell align="right" sx={{ 
+                    color: transaction.cumulativeProfitLoss >= 0 ? 'success.main' : 'error.main',
+                    fontWeight: 'bold'
+                  }}>
+                    {formatCurrency(transaction.cumulativeProfitLoss)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     );
   };
@@ -242,15 +356,19 @@ const InventorySummary = ({ filters }) => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
                   <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                    損益總和
+                    累積盈虧
                   </Typography>
                   <Typography 
                     variant="h5" 
                     component="div" 
                     fontWeight="600" 
-                    color={summaryData.totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+                    color={transactionHistory.length > 0 && transactionHistory[transactionHistory.length - 1]?.cumulativeProfitLoss >= 0 
+                      ? 'success.main' 
+                      : 'error.main'}
                   >
-                    {formatCurrency(summaryData.totalProfitLoss)}
+                    {transactionHistory.length > 0 
+                      ? formatCurrency(transactionHistory[transactionHistory.length - 1]?.cumulativeProfitLoss || 0)
+                      : formatCurrency(0)}
                   </Typography>
                 </Box>
                 <Box sx={{ 
@@ -263,7 +381,7 @@ const InventorySummary = ({ filters }) => {
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <TrendingUp />
+                  <Timeline />
                 </Box>
               </Box>
             </CardContent>
@@ -273,6 +391,9 @@ const InventorySummary = ({ filters }) => {
       
       {/* 訂單連結區域 */}
       {renderOrderLinks()}
+      
+      {/* 交易歷史表格 */}
+      {renderTransactionHistory()}
     </Box>
   );
 };
