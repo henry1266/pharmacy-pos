@@ -27,12 +27,15 @@ const ExpandableRow = ({ item, formatCurrency }) => {
 
   // 根據交易類型獲取對應的單號
   const getOrderNumber = (transaction) => {
+    // 記錄交易數據到控制台
+    console.log('交易記錄數據:', transaction);
+    
     if (transaction.type === '進貨') {
       return transaction.purchaseOrderNumber || '-';
     } else if (transaction.type === '出貨') {
       return transaction.shippingOrderNumber || '-';
     } else if (transaction.type === '銷售') {
-      return transaction.saleNumber || '-';  // 修正：使用saleNumber而不是salesOrderNumber
+      return transaction.saleNumber || '-';  // 使用saleNumber而不是salesOrderNumber
     }
     return '-';
   };
@@ -208,6 +211,10 @@ const InventoryTable = ({ filters }) => {
         if (filters.productType) params.append('productType', filters.productType);
         
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
+        
+        // 記錄API返回的原始數據到控制台
+        console.log('API返回的原始數據:', response.data);
+        
         if (response.data && response.data.data) {
           setInventoryData(response.data.data);
           
@@ -228,12 +235,24 @@ const InventoryTable = ({ filters }) => {
 
   // 處理庫存數據分組
   const processInventoryData = (data) => {
+    // 記錄處理前的數據到控制台
+    console.log('處理前的庫存數據:', data);
+    
     // 按產品ID分組
     const groupedByProduct = {};
     let totalQuantity = 0;
     let profitLossSum = 0;
     
     data.forEach(item => {
+      // 記錄每個項目的數據到控制台
+      console.log('處理項目:', item);
+      console.log('項目類型:', item.type);
+      console.log('項目單號信息:', {
+        purchaseOrderNumber: item.purchaseOrderNumber,
+        shippingOrderNumber: item.shippingOrderNumber,
+        saleNumber: item.saleNumber
+      });
+      
       const productId = item.productId;
       
       if (!groupedByProduct[productId]) {
@@ -265,23 +284,28 @@ const InventoryTable = ({ filters }) => {
       let transactionType = '其他';
       if (item.type === 'purchase') {
         transactionType = '進貨';
-      } else if (item.type === 'ship') {  // 修正：使用'ship'而不是'shipping'
+      } else if (item.type === 'ship') {  // 使用'ship'而不是'shipping'
         transactionType = '出貨';
-      } else if (item.type === 'sale') {  // 修正：使用'sale'而不是'sales'
+      } else if (item.type === 'sale') {  // 使用'sale'而不是'sales'
         transactionType = '銷售';
       }
       
       // 添加交易記錄
-      groupedByProduct[productId].transactions.push({
+      const transaction = {
         purchaseOrderNumber: item.purchaseOrderNumber || '-',
         shippingOrderNumber: item.shippingOrderNumber || '-',
-        saleNumber: item.saleNumber || '-',  // 修正：使用saleNumber而不是salesOrderNumber
+        saleNumber: item.saleNumber || '-',  // 使用saleNumber而不是salesOrderNumber
         type: transactionType,
         quantity: item.quantity,
         currentStock: item.quantity, // 這裡應該是當前庫存，可能需要後端提供
         price: item.type === 'purchase' ? item.purchasePrice : item.sellingPrice,
         date: item.lastUpdated || new Date()
-      });
+      };
+      
+      // 記錄創建的交易記錄到控制台
+      console.log('創建的交易記錄:', transaction);
+      
+      groupedByProduct[productId].transactions.push(transaction);
       
       // 更新總計
       totalQuantity += item.quantity;
@@ -293,6 +317,9 @@ const InventoryTable = ({ filters }) => {
     
     // 按總數量排序
     groupedArray.sort((a, b) => b.totalQuantity - a.totalQuantity);
+    
+    // 記錄處理後的數據到控制台
+    console.log('處理後的分組數據:', groupedArray);
     
     setGroupedData(groupedArray);
     setTotalInventoryQuantity(totalQuantity);
