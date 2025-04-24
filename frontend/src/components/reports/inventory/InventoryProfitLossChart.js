@@ -12,20 +12,35 @@ import {
   MenuItem,
   Paper
 } from '@mui/material';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  LineChart, 
+  Line, 
+  BarChart, 
+  Bar, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  ReferenceLine
+} from 'recharts';
 import axios from 'axios';
 
 const InventoryProfitLossChart = ({ filters }) => {
   const [profitLossData, setProfitLossData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [chartType, setChartType] = useState('line');
+  const [chartType, setChartType] = useState('area');
   
   // 圖表顏色
   const colors = {
     cost: '#e53f3c',
     revenue: '#00d97e',
-    profit: '#624bff'
+    profit: '#624bff',
+    loss: '#e53f3c'
   };
 
   // 格式化金額
@@ -57,7 +72,10 @@ const InventoryProfitLossChart = ({ filters }) => {
             purchaseOrderNumber: item.purchaseOrderNumber,
             totalCost: item.totalCost,
             totalRevenue: item.totalRevenue,
-            profitLoss: item.profitLoss
+            profitLoss: item.profitLoss,
+            // 為了區域圖的填充顏色，添加正負值分離
+            positiveProfit: item.profitLoss > 0 ? item.profitLoss : 0,
+            negativeLoss: item.profitLoss < 0 ? item.profitLoss : 0
           }));
           setProfitLossData(chartData);
         }
@@ -78,6 +96,42 @@ const InventoryProfitLossChart = ({ filters }) => {
     setChartType(event.target.value);
   };
 
+  // 自定義Tooltip
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <Paper sx={{ 
+          p: 2, 
+          boxShadow: 'var(--card-shadow)',
+          border: '1px solid var(--border-color)',
+          bgcolor: 'var(--bg-paper)'
+        }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            貨單號: {label}
+          </Typography>
+          {payload.map((entry, index) => (
+            <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              <Box
+                component="span"
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  bgcolor: entry.color,
+                  mr: 1
+                }}
+              />
+              <Typography variant="body2">
+                {entry.name}: {formatCurrency(entry.value)}
+              </Typography>
+            </Box>
+          ))}
+        </Paper>
+      );
+    }
+    return null;
+  };
+
   // 渲染圖表
   const renderChart = () => {
     if (profitLossData.length === 0) {
@@ -94,7 +148,63 @@ const InventoryProfitLossChart = ({ filters }) => {
       label: item.purchaseOrderNumber
     }));
 
-    if (chartType === 'line') {
+    if (chartType === 'area') {
+      return (
+        <ResponsiveContainer width="100%" height={400}>
+          <AreaChart
+            data={chartData}
+            margin={{
+              top: 20,
+              right: 30,
+              left: 20,
+              bottom: 60,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="label" 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+              interval={0}
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis 
+              tickFormatter={(value) => formatCurrency(value)}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            <ReferenceLine y={0} stroke="#000" />
+            <defs>
+              <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={colors.profit} stopOpacity={0.8}/>
+                <stop offset="95%" stopColor={colors.profit} stopOpacity={0.2}/>
+              </linearGradient>
+              <linearGradient id="colorLoss" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={colors.loss} stopOpacity={0.8}/>
+                <stop offset="95%" stopColor={colors.loss} stopOpacity={0.2}/>
+              </linearGradient>
+            </defs>
+            <Area 
+              type="monotone" 
+              dataKey="positiveProfit" 
+              name="盈利" 
+              stroke={colors.profit} 
+              fillOpacity={1}
+              fill="url(#colorProfit)"
+            />
+            <Area 
+              type="monotone" 
+              dataKey="negativeLoss" 
+              name="虧損" 
+              stroke={colors.loss} 
+              fillOpacity={1}
+              fill="url(#colorLoss)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    } else if (chartType === 'line') {
       return (
         <ResponsiveContainer width="100%" height={400}>
           <LineChart
@@ -118,10 +228,9 @@ const InventoryProfitLossChart = ({ filters }) => {
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
             />
-            <Tooltip 
-              formatter={(value) => formatCurrency(value)}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
+            <ReferenceLine y={0} stroke="#000" />
             <Line 
               type="monotone" 
               dataKey="totalCost" 
@@ -170,10 +279,9 @@ const InventoryProfitLossChart = ({ filters }) => {
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
             />
-            <Tooltip 
-              formatter={(value) => formatCurrency(value)}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
+            <ReferenceLine y={0} stroke="#000" />
             <Bar dataKey="totalCost" name="成本" fill={colors.cost} />
             <Bar dataKey="totalRevenue" name="收入" fill={colors.revenue} />
             <Bar dataKey="profitLoss" name="盈虧" fill={colors.profit} />
@@ -204,6 +312,7 @@ const InventoryProfitLossChart = ({ filters }) => {
               label="圖表類型"
               onChange={handleChartTypeChange}
             >
+              <MenuItem value="area">區域圖</MenuItem>
               <MenuItem value="line">折線圖</MenuItem>
               <MenuItem value="bar">柱狀圖</MenuItem>
             </Select>

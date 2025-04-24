@@ -13,16 +13,137 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination
+  TablePagination,
+  IconButton,
+  Collapse,
+  Chip
 } from '@mui/material';
+import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import axios from 'axios';
+
+// 展開行組件
+const ExpandableRow = ({ item, formatCurrency }) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <TableRow
+        sx={{ 
+          '& > *': { borderBottom: 'unset' },
+          bgcolor: open ? 'rgba(0, 0, 0, 0.04)' : 'transparent'
+        }}
+      >
+        <TableCell>
+          <IconButton
+            aria-label="展開行"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+          </IconButton>
+        </TableCell>
+        <TableCell>{item.productCode}</TableCell>
+        <TableCell>{item.productName}</TableCell>
+        <TableCell>{item.category}</TableCell>
+        <TableCell>{item.supplier ? item.supplier.name : '-'}</TableCell>
+        <TableCell align="right">{item.totalQuantity}</TableCell>
+        <TableCell>{item.unit}</TableCell>
+        <TableCell align="right">{formatCurrency(item.purchasePrice)}</TableCell>
+        <TableCell align="right">{formatCurrency(item.sellingPrice)}</TableCell>
+        <TableCell align="right">{formatCurrency(item.totalInventoryValue)}</TableCell>
+        <TableCell align="right">{formatCurrency(item.totalPotentialRevenue)}</TableCell>
+        <TableCell align="right">{formatCurrency(item.totalPotentialProfit)}</TableCell>
+        <TableCell>
+          <Box
+            component="span"
+            sx={{
+              px: 1,
+              py: 0.5,
+              borderRadius: 'var(--border-radius-sm)',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              bgcolor: item.status === 'low' ? 'rgba(229, 63, 60, 0.1)' : 'rgba(0, 217, 126, 0.1)',
+              color: item.status === 'low' ? 'var(--danger-color)' : 'var(--success-color)',
+            }}
+          >
+            {item.status === 'low' ? '低庫存' : '正常'}
+          </Box>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={13}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <Typography variant="h6" gutterBottom component="div" fontSize="1rem">
+                交易記錄
+              </Typography>
+              <Table size="small" aria-label="交易記錄">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>貨單號</TableCell>
+                    <TableCell>類型</TableCell>
+                    <TableCell align="right">數量</TableCell>
+                    <TableCell align="right">庫存</TableCell>
+                    <TableCell align="right">單價</TableCell>
+                    <TableCell>日期</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {item.transactions.map((transaction, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Typography
+                          component="span"
+                          sx={{
+                            color: transaction.type === '進貨' ? 'var(--primary-color)' : 'var(--danger-color)',
+                            cursor: 'pointer',
+                            '&:hover': { textDecoration: 'underline' }
+                          }}
+                        >
+                          {transaction.purchaseOrderNumber}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={transaction.type}
+                          size="small"
+                          sx={{
+                            bgcolor: transaction.type === '進貨' ? 'rgba(98, 75, 255, 0.1)' : 'rgba(229, 63, 60, 0.1)',
+                            color: transaction.type === '進貨' ? 'var(--primary-color)' : 'var(--danger-color)',
+                            fontWeight: 500,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="right" sx={{ 
+                        color: transaction.type === '進貨' ? 'var(--primary-color)' : 'var(--danger-color)',
+                        fontWeight: 500
+                      }}>
+                        {transaction.type === '進貨' ? transaction.quantity : -transaction.quantity}
+                      </TableCell>
+                      <TableCell align="right">{transaction.currentStock}</TableCell>
+                      <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
+                      <TableCell>{new Date(transaction.date).toLocaleDateString('zh-TW')}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+};
 
 const InventoryTable = ({ filters }) => {
   const [inventoryData, setInventoryData] = useState([]);
+  const [groupedData, setGroupedData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalInventoryQuantity, setTotalInventoryQuantity] = useState(0);
+  const [totalProfitLoss, setTotalProfitLoss] = useState(0);
 
   // 格式化金額
   const formatCurrency = (amount) => {
@@ -49,6 +170,9 @@ const InventoryTable = ({ filters }) => {
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         if (response.data && response.data.data) {
           setInventoryData(response.data.data);
+          
+          // 處理數據分組
+          processInventoryData(response.data.data);
         }
         setError(null);
       } catch (err) {
@@ -61,6 +185,67 @@ const InventoryTable = ({ filters }) => {
 
     fetchInventoryData();
   }, [filters]);
+
+  // 處理庫存數據分組
+  const processInventoryData = (data) => {
+    // 按產品ID分組
+    const groupedByProduct = {};
+    let totalQuantity = 0;
+    let profitLossSum = 0;
+    
+    data.forEach(item => {
+      const productId = item.productId;
+      
+      if (!groupedByProduct[productId]) {
+        groupedByProduct[productId] = {
+          productId: productId,
+          productCode: item.productCode,
+          productName: item.productName,
+          category: item.category,
+          supplier: item.supplier,
+          unit: item.unit,
+          purchasePrice: item.purchasePrice,
+          sellingPrice: item.sellingPrice,
+          status: item.status,
+          totalQuantity: 0,
+          totalInventoryValue: 0,
+          totalPotentialRevenue: 0,
+          totalPotentialProfit: 0,
+          transactions: []
+        };
+      }
+      
+      // 計算總數量和價值
+      groupedByProduct[productId].totalQuantity += item.quantity;
+      groupedByProduct[productId].totalInventoryValue += item.inventoryValue;
+      groupedByProduct[productId].totalPotentialRevenue += item.potentialRevenue;
+      groupedByProduct[productId].totalPotentialProfit += item.potentialProfit;
+      
+      // 添加交易記錄
+      groupedByProduct[productId].transactions.push({
+        purchaseOrderNumber: item.purchaseOrderNumber || '-',
+        type: item.type === 'purchase' ? '進貨' : '銷售',
+        quantity: item.quantity,
+        currentStock: item.quantity, // 這裡應該是當前庫存，可能需要後端提供
+        price: item.type === 'purchase' ? item.purchasePrice : item.sellingPrice,
+        date: item.lastUpdated || new Date()
+      });
+      
+      // 更新總計
+      totalQuantity += item.quantity;
+      profitLossSum += item.potentialProfit;
+    });
+    
+    // 轉換為數組
+    const groupedArray = Object.values(groupedByProduct);
+    
+    // 按總數量排序
+    groupedArray.sort((a, b) => b.totalQuantity - a.totalQuantity);
+    
+    setGroupedData(groupedArray);
+    setTotalInventoryQuantity(totalQuantity);
+    setTotalProfitLoss(profitLossSum);
+  };
 
   // 處理頁碼變更
   const handleChangePage = (event, newPage) => {
@@ -96,9 +281,31 @@ const InventoryTable = ({ filters }) => {
       mb: 4
     }}>
       <CardContent>
-        <Typography variant="h6" fontWeight="600" color="var(--text-primary)" gutterBottom>
-          庫存列表
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
+            庫存列表
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box>
+              <Typography variant="body2" color="var(--text-secondary)">
+                總庫存數量:
+              </Typography>
+              <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
+                {totalInventoryQuantity}
+              </Typography>
+            </Box>
+            
+            <Box>
+              <Typography variant="body2" color="var(--text-secondary)">
+                損益總和:
+              </Typography>
+              <Typography variant="h6" fontWeight="600" color="var(--success-color)">
+                {formatCurrency(totalProfitLoss)}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
         
         <TableContainer component={Paper} sx={{ 
           boxShadow: 'none',
@@ -108,61 +315,31 @@ const InventoryTable = ({ filters }) => {
           <Table sx={{ minWidth: 650 }} size="small">
             <TableHead sx={{ bgcolor: 'var(--bg-secondary)' }}>
               <TableRow>
+                <TableCell width="50px"></TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>商品編號</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>商品名稱</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>類別</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>供應商</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>數量</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">數量</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>單位</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>進貨價</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>售價</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>庫存價值</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>潛在收入</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>潛在利潤</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">進貨價</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">售價</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">庫存價值</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">潛在收入</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">潛在利潤</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>狀態</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {inventoryData
+              {groupedData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((item) => (
-                <TableRow
-                  key={item.id}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell>{item.productCode}</TableCell>
-                  <TableCell>{item.productName}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.supplier ? item.supplier.name : '-'}</TableCell>
-                  <TableCell>{item.quantity}</TableCell>
-                  <TableCell>{item.unit}</TableCell>
-                  <TableCell>{formatCurrency(item.purchasePrice)}</TableCell>
-                  <TableCell>{formatCurrency(item.sellingPrice)}</TableCell>
-                  <TableCell>{formatCurrency(item.inventoryValue)}</TableCell>
-                  <TableCell>{formatCurrency(item.potentialRevenue)}</TableCell>
-                  <TableCell>{formatCurrency(item.potentialProfit)}</TableCell>
-                  <TableCell>
-                    <Box
-                      component="span"
-                      sx={{
-                        px: 1,
-                        py: 0.5,
-                        borderRadius: 'var(--border-radius-sm)',
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        bgcolor: item.status === 'low' ? 'rgba(229, 63, 60, 0.1)' : 'rgba(0, 217, 126, 0.1)',
-                        color: item.status === 'low' ? 'var(--danger-color)' : 'var(--success-color)',
-                      }}
-                    >
-                      {item.status === 'low' ? '低庫存' : '正常'}
-                    </Box>
-                  </TableCell>
-                </TableRow>
+                <ExpandableRow key={item.productId} item={item} formatCurrency={formatCurrency} />
               ))}
               
-              {inventoryData.length === 0 && (
+              {groupedData.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={12} align="center">
+                  <TableCell colSpan={13} align="center">
                     暫無數據
                   </TableCell>
                 </TableRow>
@@ -174,7 +351,7 @@ const InventoryTable = ({ filters }) => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={inventoryData.length}
+          count={groupedData.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
