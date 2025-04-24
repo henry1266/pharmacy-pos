@@ -13,11 +13,11 @@ import {
 import { 
   AttachMoney, 
   TrendingUp, 
-  Inventory as InventoryIcon,
-  ReceiptIcon,
-  LocalShippingIcon,
-  ShoppingCartIcon
+  Inventory as InventoryIcon
 } from '@mui/icons-material';
+import Receipt from '@mui/icons-material/Receipt';
+import LocalShipping from '@mui/icons-material/LocalShipping';
+import ShoppingCart from '@mui/icons-material/ShoppingCart';
 import axios from 'axios';
 
 const InventorySummary = ({ filters }) => {
@@ -127,9 +127,9 @@ const InventorySummary = ({ filters }) => {
                 }
               }}
             >
-              {link.orderType === 'sale' && <ReceiptIcon fontSize="small" sx={{ mr: 0.5 }} />}
-              {link.orderType === 'shipping' && <LocalShippingIcon fontSize="small" sx={{ mr: 0.5 }} />}
-              {link.orderType === 'purchase' && <ShoppingCartIcon fontSize="small" sx={{ mr: 0.5 }} />}
+              {link.orderType === 'sale' && <Receipt fontSize="small" sx={{ mr: 0.5 }} />}
+              {link.orderType === 'shipping' && <LocalShipping fontSize="small" sx={{ mr: 0.5 }} />}
+              {link.orderType === 'purchase' && <ShoppingCart fontSize="small" sx={{ mr: 0.5 }} />}
               {link.orderNumber}
             </Link>
           ))}
