@@ -142,7 +142,7 @@ const InventoryProfitLossChart = ({ filters }) => {
               orderType: group.orderType,
               totalCost: group.totalCost,
               totalRevenue: group.totalRevenue,
-              profitLoss: group.profitLoss,
+              profitLoss: group.profitLoss, // 損益總和
               // 為了區域圖的填充顏色，添加正負值分離
               positiveProfit: group.profitLoss > 0 ? group.profitLoss : 0,
               negativeLoss: group.profitLoss < 0 ? group.profitLoss : 0
@@ -334,14 +334,14 @@ const InventoryProfitLossChart = ({ filters }) => {
             <Line 
               type="monotone" 
               dataKey="totalRevenue" 
-              name="收入" 
+              name="總毛利" 
               stroke={colors.revenue} 
               activeDot={{ r: 8 }} 
             />
             <Line 
               type="monotone" 
               dataKey="profitLoss" 
-              name="盈虧" 
+              name="損益總和" 
               stroke={colors.profit} 
               activeDot={{ r: 8 }} 
             />
@@ -376,8 +376,8 @@ const InventoryProfitLossChart = ({ filters }) => {
             <Legend />
             <ReferenceLine y={0} stroke="#000" />
             <Bar dataKey="totalCost" name="成本" fill={colors.cost} />
-            <Bar dataKey="totalRevenue" name="收入" fill={colors.revenue} />
-            <Bar dataKey="profitLoss" name="盈虧" fill={colors.profit} />
+            <Bar dataKey="totalRevenue" name="總毛利" fill={colors.revenue} />
+            <Bar dataKey="profitLoss" name="損益總和" fill={colors.profit} />
           </BarChart>
         </ResponsiveContainer>
       );

@@ -409,8 +409,8 @@ const InventoryTable = ({ filters }) => {
                 <TableCell sx={{ fontWeight: 600 }} align="right">進貨價</TableCell>
                 <TableCell sx={{ fontWeight: 600 }} align="right">售價</TableCell>
                 <TableCell sx={{ fontWeight: 600 }} align="right">庫存價值</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">潛在收入</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="right">潛在利潤</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">總毛利</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} align="right">損益總和</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>狀態</TableCell>
               </TableRow>
             </TableHead>
