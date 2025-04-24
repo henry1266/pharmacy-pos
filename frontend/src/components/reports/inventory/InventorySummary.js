@@ -11,8 +11,7 @@ import {
 import { 
   AttachMoney, 
   TrendingUp, 
-  Inventory as InventoryIcon,
-  Warning
+  Inventory as InventoryIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -20,9 +19,8 @@ const InventorySummary = ({ filters }) => {
   const [summaryData, setSummaryData] = useState({
     totalItems: 0,
     totalInventoryValue: 0,
-    totalPotentialRevenue: 0,
-    totalPotentialProfit: 0,
-    lowStockCount: 0
+    totalGrossProfit: 0,
+    totalProfitLoss: 0
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -49,9 +47,20 @@ const InventorySummary = ({ filters }) => {
         if (filters.productName) params.append('productName', filters.productName);
         if (filters.productType) params.append('productType', filters.productType);
         
+        // 添加參數指示使用全部歷史計算
+        params.append('useFullHistory', 'true');
+        
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         if (response.data && response.data.summary) {
-          setSummaryData(response.data.summary);
+          // 將原有的totalPotentialRevenue映射為totalGrossProfit
+          // 將原有的totalPotentialProfit映射為totalProfitLoss
+          const { totalInventoryValue, totalPotentialRevenue, totalPotentialProfit } = response.data.summary;
+          setSummaryData({
+            totalItems: response.data.summary.totalItems || 0,
+            totalInventoryValue: totalInventoryValue || 0,
+            totalGrossProfit: totalPotentialRevenue || 0,
+            totalProfitLoss: totalPotentialProfit || 0
+          });
         }
         setError(null);
       } catch (err) {
@@ -84,7 +93,7 @@ const InventorySummary = ({ filters }) => {
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       {/* 總庫存價值 */}
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} md={4}>
         <Card sx={{ 
           borderRadius: 'var(--border-radius)',
           boxShadow: 'var(--card-shadow)'
@@ -116,8 +125,8 @@ const InventorySummary = ({ filters }) => {
         </Card>
       </Grid>
       
-      {/* 潛在收入 */}
-      <Grid item xs={12} sm={6} md={3}>
+      {/* 總毛利 (原潛在收入) */}
+      <Grid item xs={12} sm={6} md={4}>
         <Card sx={{ 
           borderRadius: 'var(--border-radius)',
           boxShadow: 'var(--card-shadow)'
@@ -126,10 +135,10 @@ const InventorySummary = ({ filters }) => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Box>
                 <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                  潛在收入
+                  總毛利
                 </Typography>
                 <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                  {formatCurrency(summaryData.totalPotentialRevenue)}
+                  {formatCurrency(summaryData.totalGrossProfit)}
                 </Typography>
               </Box>
               <Box sx={{ 
@@ -149,8 +158,8 @@ const InventorySummary = ({ filters }) => {
         </Card>
       </Grid>
       
-      {/* 潛在利潤 */}
-      <Grid item xs={12} sm={6} md={3}>
+      {/* 損益總和 (原潛在利潤) */}
+      <Grid item xs={12} sm={6} md={4}>
         <Card sx={{ 
           borderRadius: 'var(--border-radius)',
           boxShadow: 'var(--card-shadow)'
@@ -159,10 +168,10 @@ const InventorySummary = ({ filters }) => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Box>
                 <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                  潛在利潤
+                  損益總和
                 </Typography>
                 <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                  {formatCurrency(summaryData.totalPotentialProfit)}
+                  {formatCurrency(summaryData.totalProfitLoss)}
                 </Typography>
               </Box>
               <Box sx={{ 
@@ -176,39 +185,6 @@ const InventorySummary = ({ filters }) => {
                 justifyContent: 'center'
               }}>
                 <TrendingUp />
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-      
-      {/* 低庫存商品 */}
-      <Grid item xs={12} sm={6} md={3}>
-        <Card sx={{ 
-          borderRadius: 'var(--border-radius)',
-          boxShadow: 'var(--card-shadow)'
-        }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Box>
-                <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                  低庫存商品
-                </Typography>
-                <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                  {summaryData.lowStockCount}
-                </Typography>
-              </Box>
-              <Box sx={{ 
-                backgroundColor: 'rgba(229, 63, 60, 0.1)', 
-                color: 'var(--danger-color)',
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--border-radius)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Warning />
               </Box>
             </Box>
           </CardContent>
