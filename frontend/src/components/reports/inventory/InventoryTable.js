@@ -68,8 +68,8 @@ const ExpandableRow = ({ item, formatCurrency }) => {
     }
   };
 
-  // 計算損益總和
-  const calculateProfitLoss = (transaction) => {
+  // 計算單筆交易的損益
+  const calculateTransactionProfitLoss = (transaction) => {
     if (transaction.type === '進貨') {
       // 進貨為負數
       return -(transaction.quantity * transaction.price);
@@ -80,11 +80,44 @@ const ExpandableRow = ({ item, formatCurrency }) => {
     return 0;
   };
 
-  // 按貨單號排序交易記錄（由大到小）
+  // 按貨單號排序交易記錄（由小到大）
   const sortedTransactions = [...item.transactions].sort((a, b) => {
     const aOrderNumber = getOrderNumber(a);
     const bOrderNumber = getOrderNumber(b);
-    return bOrderNumber.localeCompare(aOrderNumber); // 由大到小排序
+    return aOrderNumber.localeCompare(bOrderNumber); // 由小到大排序，確保時間順序
+  });
+
+  // 計算累積庫存和損益總和
+  const calculateCumulativeValues = () => {
+    let cumulativeStock = 0;
+    let cumulativeProfitLoss = 0;
+    
+    return sortedTransactions.map(transaction => {
+      // 計算庫存變化
+      if (transaction.type === '進貨') {
+        cumulativeStock += transaction.quantity;
+      } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+        cumulativeStock -= transaction.quantity;
+      }
+      
+      // 計算損益變化
+      cumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
+      
+      return {
+        ...transaction,
+        cumulativeStock,
+        cumulativeProfitLoss
+      };
+    });
+  };
+
+  const transactionsWithCumulativeValues = calculateCumulativeValues();
+
+  // 按貨單號排序（由大到小）用於顯示
+  const displayTransactions = [...transactionsWithCumulativeValues].sort((a, b) => {
+    const aOrderNumber = getOrderNumber(a);
+    const bOrderNumber = getOrderNumber(b);
+    return bOrderNumber.localeCompare(aOrderNumber); // 由大到小排序，顯示最新的在前面
   });
 
   return (
@@ -155,13 +188,13 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                     <TableCell>貨單號</TableCell>
                     <TableCell>類型</TableCell>
                     <TableCell align="right">數量</TableCell>
+                    <TableCell align="right">單價</TableCell>
                     <TableCell align="right">庫存</TableCell>
                     <TableCell align="right">損益總和</TableCell>
-                    <TableCell align="right">單價</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {sortedTransactions.map((transaction, index) => (
+                  {displayTransactions.map((transaction, index) => (
                     <TableRow key={index}>
                       <TableCell>
                         <Typography
@@ -192,16 +225,16 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                       }}>
                         {transaction.quantity}
                       </TableCell>
-                      <TableCell align="right">
-                        {transaction.type === '進貨' ? transaction.quantity : -transaction.quantity}
+                      <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {transaction.cumulativeStock}
                       </TableCell>
                       <TableCell align="right" sx={{ 
-                        color: calculateProfitLoss(transaction) >= 0 ? 'success.main' : 'error.main',
+                        color: transaction.cumulativeProfitLoss >= 0 ? 'success.main' : 'error.main',
                         fontWeight: 'bold'
                       }}>
-                        {formatCurrency(calculateProfitLoss(transaction))}
+                        {formatCurrency(transaction.cumulativeProfitLoss)}
                       </TableCell>
-                      <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -245,6 +278,10 @@ const InventoryTable = ({ filters }) => {
         if (filters.productCode) params.append('productCode', filters.productCode);
         if (filters.productName) params.append('productName', filters.productName);
         if (filters.productType) params.append('productType', filters.productType);
+        
+        // 添加參數以獲取完整的交易歷史記錄
+        params.append('includeTransactionHistory', 'true');
+        params.append('useSequentialProfitLoss', 'true');
         
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         
@@ -333,9 +370,10 @@ const InventoryTable = ({ filters }) => {
         saleNumber: item.saleNumber || '-',  // 使用saleNumber而不是salesOrderNumber
         type: transactionType,
         quantity: item.quantity,
-        currentStock: item.quantity, // 這裡應該是當前庫存，可能需要後端提供
+        currentStock: item.currentStock || 0, // 使用後端提供的當前庫存，如果沒有則默認為0
         price: item.type === 'purchase' ? item.purchasePrice : item.sellingPrice,
-        date: item.lastUpdated || new Date()
+        date: item.date || item.lastUpdated || new Date(),
+        orderNumber: item.orderNumber || ''
       };
       
       // 記錄創建的交易記錄到控制台
