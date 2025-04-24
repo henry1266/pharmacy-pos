@@ -68,6 +68,18 @@ const ExpandableRow = ({ item, formatCurrency }) => {
     }
   };
 
+  // 計算損益總和
+  const calculateProfitLoss = (transaction) => {
+    if (transaction.type === '進貨') {
+      // 進貨為負數
+      return -(transaction.quantity * transaction.price);
+    } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+      // 銷售為正數
+      return transaction.quantity * transaction.price;
+    }
+    return 0;
+  };
+
   // 按貨單號排序交易記錄（由大到小）
   const sortedTransactions = [...item.transactions].sort((a, b) => {
     const aOrderNumber = getOrderNumber(a);
@@ -134,8 +146,8 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                     <TableCell>類型</TableCell>
                     <TableCell align="right">數量</TableCell>
                     <TableCell align="right">庫存</TableCell>
+                    <TableCell align="right">損益總和</TableCell>
                     <TableCell align="right">單價</TableCell>
-					<TableCell align="right">損益總和</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -168,9 +180,17 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                         color: getTypeColor(transaction.type),
                         fontWeight: 500
                       }}>
+                        {transaction.quantity}
+                      </TableCell>
+                      <TableCell align="right">
                         {transaction.type === '進貨' ? transaction.quantity : -transaction.quantity}
                       </TableCell>
-                      <TableCell align="right"></TableCell>
+                      <TableCell align="right" sx={{ 
+                        color: calculateProfitLoss(transaction) >= 0 ? 'success.main' : 'error.main',
+                        fontWeight: 'bold'
+                      }}>
+                        {formatCurrency(calculateProfitLoss(transaction))}
+                      </TableCell>
                       <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
                     </TableRow>
                   ))}
