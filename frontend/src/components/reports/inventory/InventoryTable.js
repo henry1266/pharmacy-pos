@@ -68,6 +68,13 @@ const ExpandableRow = ({ item, formatCurrency }) => {
     }
   };
 
+  // 按貨單號排序交易記錄（由大到小）
+  const sortedTransactions = [...item.transactions].sort((a, b) => {
+    const aOrderNumber = getOrderNumber(a);
+    const bOrderNumber = getOrderNumber(b);
+    return bOrderNumber.localeCompare(aOrderNumber); // 由大到小排序
+  });
+
   return (
     <>
       <TableRow
@@ -128,11 +135,10 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                     <TableCell align="right">數量</TableCell>
                     <TableCell align="right">庫存</TableCell>
                     <TableCell align="right">單價</TableCell>
-                    <TableCell>日期</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {item.transactions.map((transaction, index) => (
+                  {sortedTransactions.map((transaction, index) => (
                     <TableRow key={index}>
                       <TableCell>
                         <Typography
@@ -165,7 +171,6 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                       </TableCell>
                       <TableCell align="right">{transaction.currentStock}</TableCell>
                       <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
-                      <TableCell>{new Date(transaction.date).toLocaleDateString('zh-TW')}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

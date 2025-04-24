@@ -40,7 +40,8 @@ const InventoryProfitLossChart = ({ filters }) => {
     cost: '#e53f3c',
     revenue: '#00d97e',
     profit: '#624bff',
-    loss: '#e53f3c'
+    loss: '#e53f3c',
+    sale: '#f5a623'
   };
 
   // 格式化金額
@@ -65,18 +66,89 @@ const InventoryProfitLossChart = ({ filters }) => {
         if (filters.productName) params.append('productName', filters.productName);
         if (filters.productType) params.append('productType', filters.productType);
         
-        const response = await axios.get(`/api/reports/inventory/profit-loss?${params.toString()}`);
+        // 獲取庫存數據，包括所有類型的交易
+        const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
+        
         if (response.data && response.data.data) {
-          // 處理數據，確保圖表可以正確顯示
-          const chartData = response.data.data.map(item => ({
-            purchaseOrderNumber: item.purchaseOrderNumber,
-            totalCost: item.totalCost,
-            totalRevenue: item.totalRevenue,
-            profitLoss: item.profitLoss,
-            // 為了區域圖的填充顏色，添加正負值分離
-            positiveProfit: item.profitLoss > 0 ? item.profitLoss : 0,
-            negativeLoss: item.profitLoss < 0 ? item.profitLoss : 0
-          }));
+          // 記錄原始數據到控制台
+          console.log('盈虧圖表原始數據:', response.data.data);
+          
+          // 按貨單號分組處理數據
+          const orderGroups = {};
+          
+          response.data.data.forEach(item => {
+            let orderNumber = '';
+            let orderType = '';
+            
+            // 確定訂單號和類型
+            if (item.type === 'purchase' && item.purchaseOrderNumber) {
+              orderNumber = item.purchaseOrderNumber;
+              orderType = 'purchase';
+            } else if (item.type === 'ship' && item.shippingOrderNumber) {
+              orderNumber = item.shippingOrderNumber;
+              orderType = 'ship';
+            } else if (item.type === 'sale' && item.saleNumber) {
+              orderNumber = item.saleNumber;
+              orderType = 'sale';
+            } else {
+              return; // 跳過沒有訂單號的項目
+            }
+            
+            if (!orderGroups[orderNumber]) {
+              orderGroups[orderNumber] = {
+                orderNumber,
+                orderType,
+                totalCost: 0,
+                totalRevenue: 0,
+                profitLoss: 0,
+                items: []
+              };
+            }
+            
+            const cost = item.quantity * item.purchasePrice;
+            const revenue = item.quantity * item.sellingPrice;
+            let profit = 0;
+            
+            // 根據交易類型計算盈虧
+            if (item.type === 'purchase') {
+              // 進貨：成本增加
+              orderGroups[orderNumber].totalCost += cost;
+              profit = -cost; // 進貨是負利潤（成本）
+            } else if (item.type === 'ship' || item.type === 'sale') {
+              // 出貨或銷售：收入增加
+              orderGroups[orderNumber].totalRevenue += revenue;
+              profit = revenue - cost; // 出貨或銷售的利潤
+            }
+            
+            orderGroups[orderNumber].profitLoss += profit;
+            
+            orderGroups[orderNumber].items.push({
+              productId: item.productId,
+              productName: item.productName,
+              quantity: item.quantity,
+              purchasePrice: item.purchasePrice,
+              sellingPrice: item.sellingPrice,
+              cost,
+              revenue,
+              profit
+            });
+          });
+          
+          // 轉換為數組並排序
+          const chartData = Object.values(orderGroups)
+            .sort((a, b) => b.orderNumber.localeCompare(a.orderNumber)) // 按訂單號從大到小排序
+            .map(group => ({
+              orderNumber: group.orderNumber,
+              orderType: group.orderType,
+              totalCost: group.totalCost,
+              totalRevenue: group.totalRevenue,
+              profitLoss: group.profitLoss,
+              // 為了區域圖的填充顏色，添加正負值分離
+              positiveProfit: group.profitLoss > 0 ? group.profitLoss : 0,
+              negativeLoss: group.profitLoss < 0 ? group.profitLoss : 0
+            }));
+          
+          console.log('處理後的盈虧圖表數據:', chartData);
           setProfitLossData(chartData);
         }
         setError(null);
@@ -96,9 +168,30 @@ const InventoryProfitLossChart = ({ filters }) => {
     setChartType(event.target.value);
   };
 
+  // 獲取訂單類型對應的顏色
+  const getOrderTypeColor = (type) => {
+    switch (type) {
+      case 'purchase':
+        return colors.cost;
+      case 'ship':
+        return colors.revenue;
+      case 'sale':
+        return colors.sale;
+      default:
+        return colors.profit;
+    }
+  };
+
   // 自定義Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const orderType = payload[0]?.payload?.orderType;
+      let typeText = '未知';
+      
+      if (orderType === 'purchase') typeText = '進貨單';
+      else if (orderType === 'ship') typeText = '出貨單';
+      else if (orderType === 'sale') typeText = '銷售單';
+      
       return (
         <Paper sx={{ 
           p: 2, 
@@ -107,7 +200,7 @@ const InventoryProfitLossChart = ({ filters }) => {
           bgcolor: 'var(--bg-paper)'
         }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            貨單號: {label}
+            {typeText}: {label}
           </Typography>
           {payload.map((entry, index) => (
             <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
@@ -145,7 +238,7 @@ const InventoryProfitLossChart = ({ filters }) => {
     // 準備圖表數據
     const chartData = profitLossData.map(item => ({
       ...item,
-      label: item.purchaseOrderNumber
+      label: item.orderNumber
     }));
 
     if (chartType === 'area') {
