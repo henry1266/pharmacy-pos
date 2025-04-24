@@ -6,19 +6,19 @@ import {
   Typography,
   CircularProgress,
   Alert,
+  Paper,
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
-  Paper
+  MenuItem
 } from '@mui/material';
 import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
   AreaChart, 
   Area, 
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -37,11 +37,8 @@ const InventoryProfitLossChart = ({ filters }) => {
   
   // 圖表顏色
   const colors = {
-    cost: '#e53f3c',
-    revenue: '#00d97e',
-    profit: '#624bff',
-    loss: '#e53f3c',
-    sale: '#f5a623'
+    profit: '#00d97e',  // 綠色 - 正值
+    loss: '#e53f3c'     // 紅色 - 負值
   };
 
   // 格式化金額
@@ -51,6 +48,19 @@ const InventoryProfitLossChart = ({ filters }) => {
       currency: 'TWD',
       minimumFractionDigits: 0
     }).format(amount);
+  };
+
+  // 計算損益總和
+  const calculateProfitLoss = (transaction) => {
+    if (transaction.type === 'purchase' || transaction.type === '進貨') {
+      // 進貨為負數
+      return -(transaction.quantity * transaction.price);
+    } else if (transaction.type === 'sale' || transaction.type === 'ship' || 
+               transaction.type === '銷售' || transaction.type === '出貨') {
+      // 銷售或出貨為正數
+      return transaction.quantity * transaction.price;
+    }
+    return 0;
   };
 
   // 獲取盈虧數據
@@ -66,90 +76,22 @@ const InventoryProfitLossChart = ({ filters }) => {
         if (filters.productName) params.append('productName', filters.productName);
         if (filters.productType) params.append('productType', filters.productType);
         
-        // 獲取庫存數據，包括所有類型的交易
+        // 添加參數以獲取完整的交易歷史記錄
+        params.append('includeTransactionHistory', 'true');
+        params.append('useSequentialProfitLoss', 'true');
+        
+        // 獲取庫存數據
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         
         if (response.data && response.data.data) {
           // 記錄原始數據到控制台
           console.log('盈虧圖表原始數據:', response.data.data);
           
-          // 按貨單號分組處理數據
-          const orderGroups = {};
+          // 處理交易數據
+          const processedData = processTransactionData(response.data.data);
           
-          response.data.data.forEach(item => {
-            let orderNumber = '';
-            let orderType = '';
-            
-            // 確定訂單號和類型
-            if (item.type === 'purchase' && item.purchaseOrderNumber) {
-              orderNumber = item.purchaseOrderNumber;
-              orderType = 'purchase';
-            } else if (item.type === 'ship' && item.shippingOrderNumber) {
-              orderNumber = item.shippingOrderNumber;
-              orderType = 'ship';
-            } else if (item.type === 'sale' && item.saleNumber) {
-              orderNumber = item.saleNumber;
-              orderType = 'sale';
-            } else {
-              return; // 跳過沒有訂單號的項目
-            }
-            
-            if (!orderGroups[orderNumber]) {
-              orderGroups[orderNumber] = {
-                orderNumber,
-                orderType,
-                totalCost: 0,
-                totalRevenue: 0,
-                profitLoss: 0,
-                items: []
-              };
-            }
-            
-            const cost = item.quantity * item.purchasePrice;
-            const revenue = item.quantity * item.sellingPrice;
-            let profit = 0;
-            
-            // 根據交易類型計算盈虧
-            if (item.type === 'purchase') {
-              // 進貨：成本增加
-              orderGroups[orderNumber].totalCost += cost;
-              profit = -cost; // 進貨是負利潤（成本）
-            } else if (item.type === 'ship' || item.type === 'sale') {
-              // 出貨或銷售：收入增加
-              orderGroups[orderNumber].totalRevenue += revenue;
-              profit = revenue - cost; // 出貨或銷售的利潤
-            }
-            
-            orderGroups[orderNumber].profitLoss += profit;
-            
-            orderGroups[orderNumber].items.push({
-              productId: item.productId,
-              productName: item.productName,
-              quantity: item.quantity,
-              purchasePrice: item.purchasePrice,
-              sellingPrice: item.sellingPrice,
-              cost,
-              revenue,
-              profit
-            });
-          });
-          
-          // 轉換為數組並排序
-          const chartData = Object.values(orderGroups)
-            .sort((a, b) => b.orderNumber.localeCompare(a.orderNumber)) // 按訂單號從大到小排序
-            .map(group => ({
-              orderNumber: group.orderNumber,
-              orderType: group.orderType,
-              totalCost: group.totalCost,
-              totalRevenue: group.totalRevenue,
-              profitLoss: group.profitLoss, // 損益總和
-              // 為了區域圖的填充顏色，添加正負值分離
-              positiveProfit: group.profitLoss > 0 ? group.profitLoss : 0,
-              negativeLoss: group.profitLoss < 0 ? group.profitLoss : 0
-            }));
-          
-          console.log('處理後的盈虧圖表數據:', chartData);
-          setProfitLossData(chartData);
+          console.log('處理後的盈虧圖表數據:', processedData);
+          setProfitLossData(processedData);
         }
         setError(null);
       } catch (err) {
@@ -163,34 +105,98 @@ const InventoryProfitLossChart = ({ filters }) => {
     fetchProfitLossData();
   }, [filters]);
 
+  // 處理交易數據，計算累積損益總和
+  const processTransactionData = (data) => {
+    // 按產品ID分組
+    const groupedByProduct = {};
+    
+    // 第一步：收集所有交易
+    data.forEach(item => {
+      const productId = item.productId;
+      
+      if (!groupedByProduct[productId]) {
+        groupedByProduct[productId] = {
+          productId: productId,
+          productCode: item.productCode,
+          productName: item.productName,
+          transactions: []
+        };
+      }
+      
+      // 確定交易類型
+      let transactionType = '其他';
+      if (item.type === 'purchase') {
+        transactionType = '進貨';
+      } else if (item.type === 'ship') {
+        transactionType = '出貨';
+      } else if (item.type === 'sale') {
+        transactionType = '銷售';
+      }
+      
+      // 添加交易記錄
+      const transaction = {
+        id: item.id || `${productId}-${Date.now()}-${Math.random()}`,
+        purchaseOrderNumber: item.purchaseOrderNumber || '-',
+        shippingOrderNumber: item.shippingOrderNumber || '-',
+        saleNumber: item.saleNumber || '-',
+        type: transactionType,
+        quantity: item.quantity,
+        price: item.type === 'purchase' ? item.purchasePrice : item.sellingPrice,
+        date: item.date || item.lastUpdated || new Date(),
+        profitLoss: calculateProfitLoss({
+          type: transactionType,
+          quantity: item.quantity,
+          price: item.type === 'purchase' ? item.purchasePrice : item.sellingPrice
+        })
+      };
+      
+      groupedByProduct[productId].transactions.push(transaction);
+    });
+    
+    // 第二步：對每個產品的交易按日期排序，並計算累積損益
+    const allTransactions = [];
+    
+    Object.values(groupedByProduct).forEach(product => {
+      // 按日期排序交易（由小到大）
+      const sortedTransactions = [...product.transactions].sort((a, b) => {
+        return new Date(a.date) - new Date(b.date);
+      });
+      
+      // 計算累積損益總和
+      let cumulativeProfitLoss = 0;
+      
+      sortedTransactions.forEach(transaction => {
+        cumulativeProfitLoss += transaction.profitLoss;
+        
+        allTransactions.push({
+          id: transaction.id,
+          productId: product.productId,
+          productName: product.productName,
+          productCode: product.productCode,
+          date: transaction.date,
+          type: transaction.type,
+          profitLoss: transaction.profitLoss,
+          cumulativeProfitLoss: cumulativeProfitLoss,
+          // 為了區域圖的填充顏色，添加正負值分離
+          positiveProfitLoss: cumulativeProfitLoss > 0 ? cumulativeProfitLoss : 0,
+          negativeProfitLoss: cumulativeProfitLoss < 0 ? cumulativeProfitLoss : 0
+        });
+      });
+    });
+    
+    // 按日期排序所有交易
+    return allTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+  };
+
   // 處理圖表類型變更
   const handleChartTypeChange = (event) => {
     setChartType(event.target.value);
   };
 
-  // 獲取訂單類型對應的顏色
-  const getOrderTypeColor = (type) => {
-    switch (type) {
-      case 'purchase':
-        return colors.cost;
-      case 'ship':
-        return colors.revenue;
-      case 'sale':
-        return colors.sale;
-      default:
-        return colors.profit;
-    }
-  };
-
   // 自定義Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const orderType = payload[0]?.payload?.orderType;
-      let typeText = '未知';
-      
-      if (orderType === 'purchase') typeText = '進貨單';
-      else if (orderType === 'ship') typeText = '出貨單';
-      else if (orderType === 'sale') typeText = '銷售單';
+      const data = payload[0]?.payload;
       
       return (
         <Paper sx={{ 
@@ -200,25 +206,35 @@ const InventoryProfitLossChart = ({ filters }) => {
           bgcolor: 'var(--bg-paper)'
         }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            {typeText}: {label}
+            {new Date(label).toLocaleDateString('zh-TW')}
           </Typography>
-          {payload.map((entry, index) => (
-            <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box
-                component="span"
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: '50%',
-                  bgcolor: entry.color,
-                  mr: 1
-                }}
-              />
-              <Typography variant="body2">
-                {entry.name}: {formatCurrency(entry.value)}
-              </Typography>
-            </Box>
-          ))}
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            商品: {data.productName} ({data.productCode})
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            類型: {data.type}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+            <Box
+              component="span"
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                bgcolor: data.cumulativeProfitLoss >= 0 ? colors.profit : colors.loss,
+                mr: 1
+              }}
+            />
+            <Typography variant="body2">
+              累積損益總和: {formatCurrency(data.cumulativeProfitLoss)}
+            </Typography>
+          </Box>
+          <Typography variant="body2" sx={{ 
+            color: data.profitLoss >= 0 ? colors.profit : colors.loss,
+            fontWeight: 500
+          }}>
+            本次交易損益: {formatCurrency(data.profitLoss)}
+          </Typography>
         </Paper>
       );
     }
@@ -235,32 +251,22 @@ const InventoryProfitLossChart = ({ filters }) => {
       );
     }
 
-    // 準備圖表數據
-    const chartData = profitLossData.map(item => ({
-      ...item,
-      label: item.orderNumber
-    }));
-
     if (chartType === 'area') {
       return (
         <ResponsiveContainer width="100%" height={400}>
           <AreaChart
-            data={chartData}
+            data={profitLossData}
             margin={{
               top: 20,
               right: 30,
               left: 20,
-              bottom: 60,
+              bottom: 20,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="label" 
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              interval={0}
-              tick={{ fontSize: 12 }}
+              dataKey="date" 
+              tickFormatter={(value) => new Date(value).toLocaleDateString('zh-TW')}
             />
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
@@ -280,7 +286,7 @@ const InventoryProfitLossChart = ({ filters }) => {
             </defs>
             <Area 
               type="monotone" 
-              dataKey="positiveProfit" 
+              dataKey="positiveProfitLoss" 
               name="盈利" 
               stroke={colors.profit} 
               fillOpacity={1}
@@ -288,7 +294,7 @@ const InventoryProfitLossChart = ({ filters }) => {
             />
             <Area 
               type="monotone" 
-              dataKey="negativeLoss" 
+              dataKey="negativeProfitLoss" 
               name="虧損" 
               stroke={colors.loss} 
               fillOpacity={1}
@@ -301,22 +307,18 @@ const InventoryProfitLossChart = ({ filters }) => {
       return (
         <ResponsiveContainer width="100%" height={400}>
           <LineChart
-            data={chartData}
+            data={profitLossData}
             margin={{
               top: 20,
               right: 30,
               left: 20,
-              bottom: 60,
+              bottom: 20,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="label" 
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              interval={0}
-              tick={{ fontSize: 12 }}
+              dataKey="date" 
+              tickFormatter={(value) => new Date(value).toLocaleDateString('zh-TW')}
             />
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
@@ -326,24 +328,19 @@ const InventoryProfitLossChart = ({ filters }) => {
             <ReferenceLine y={0} stroke="#000" />
             <Line 
               type="monotone" 
-              dataKey="totalCost" 
-              name="成本" 
-              stroke={colors.cost} 
-              activeDot={{ r: 8 }} 
-            />
-            <Line 
-              type="monotone" 
-              dataKey="totalRevenue" 
-              name="總毛利" 
-              stroke={colors.revenue} 
-              activeDot={{ r: 8 }} 
+              dataKey="cumulativeProfitLoss" 
+              name="累積損益總和" 
+              stroke={colors.profit} 
+              activeDot={{ r: 8 }}
+              dot={{ r: 4 }}
             />
             <Line 
               type="monotone" 
               dataKey="profitLoss" 
-              name="損益總和" 
-              stroke={colors.profit} 
-              activeDot={{ r: 8 }} 
+              name="單筆交易損益" 
+              stroke={colors.loss} 
+              activeDot={{ r: 8 }}
+              dot={{ r: 4 }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -352,22 +349,18 @@ const InventoryProfitLossChart = ({ filters }) => {
       return (
         <ResponsiveContainer width="100%" height={400}>
           <BarChart
-            data={chartData}
+            data={profitLossData}
             margin={{
               top: 20,
               right: 30,
               left: 20,
-              bottom: 60,
+              bottom: 20,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="label" 
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              interval={0}
-              tick={{ fontSize: 12 }}
+              dataKey="date" 
+              tickFormatter={(value) => new Date(value).toLocaleDateString('zh-TW')}
             />
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
@@ -375,9 +368,16 @@ const InventoryProfitLossChart = ({ filters }) => {
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <ReferenceLine y={0} stroke="#000" />
-            <Bar dataKey="totalCost" name="成本" fill={colors.cost} />
-            <Bar dataKey="totalRevenue" name="總毛利" fill={colors.revenue} />
-            <Bar dataKey="profitLoss" name="損益總和" fill={colors.profit} />
+            <Bar 
+              dataKey="profitLoss" 
+              name="單筆交易損益" 
+              fill={colors.loss}
+            />
+            <Bar 
+              dataKey="cumulativeProfitLoss" 
+              name="累積損益總和" 
+              fill={colors.profit}
+            />
           </BarChart>
         </ResponsiveContainer>
       );
@@ -393,7 +393,7 @@ const InventoryProfitLossChart = ({ filters }) => {
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
-            庫存盈虧分析（按貨單單號）
+            庫存盈虧分析（基於損益總和）
           </Typography>
           
           <FormControl size="small" sx={{ minWidth: 120 }}>
