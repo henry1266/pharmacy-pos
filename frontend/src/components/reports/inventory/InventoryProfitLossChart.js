@@ -50,6 +50,18 @@ const InventoryProfitLossChart = ({ filters }) => {
     }).format(amount);
   };
 
+  // 獲取交易的貨單號
+  const getOrderNumber = (transaction) => {
+    if (transaction.type === '進貨') {
+      return transaction.purchaseOrderNumber || '-';
+    } else if (transaction.type === '出貨') {
+      return transaction.shippingOrderNumber || '-';
+    } else if (transaction.type === '銷售') {
+      return transaction.saleNumber || '-';
+    }
+    return '-';
+  };
+
   // 計算損益總和
   const calculateProfitLoss = (transaction) => {
     if (transaction.type === 'purchase' || transaction.type === '進貨') {
@@ -168,6 +180,9 @@ const InventoryProfitLossChart = ({ filters }) => {
       sortedTransactions.forEach(transaction => {
         cumulativeProfitLoss += transaction.profitLoss;
         
+        // 獲取貨單號
+        const orderNumber = getOrderNumber(transaction);
+        
         allTransactions.push({
           id: transaction.id,
           productId: product.productId,
@@ -175,6 +190,7 @@ const InventoryProfitLossChart = ({ filters }) => {
           productCode: product.productCode,
           date: transaction.date,
           type: transaction.type,
+          orderNumber: orderNumber,
           profitLoss: transaction.profitLoss,
           cumulativeProfitLoss: cumulativeProfitLoss,
           // 為了區域圖的填充顏色，添加正負值分離
@@ -184,8 +200,19 @@ const InventoryProfitLossChart = ({ filters }) => {
       });
     });
     
-    // 按日期排序所有交易
-    return allTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // 按貨單號排序所有交易（由小到大）
+    return allTransactions.sort((a, b) => {
+      // 先按貨單號排序（由小到大）
+      const orderNumberA = a.orderNumber;
+      const orderNumberB = b.orderNumber;
+      
+      // 如果貨單號相同，則按日期排序
+      if (orderNumberA === orderNumberB) {
+        return new Date(a.date) - new Date(b.date);
+      }
+      
+      return orderNumberA.localeCompare(orderNumberB);
+    });
   };
 
   // 處理圖表類型變更
@@ -206,13 +233,16 @@ const InventoryProfitLossChart = ({ filters }) => {
           bgcolor: 'var(--bg-paper)'
         }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            {new Date(label).toLocaleDateString('zh-TW')}
+            貨單號: {label}
           </Typography>
           <Typography variant="body2" sx={{ mb: 0.5 }}>
             商品: {data.productName} ({data.productCode})
           </Typography>
           <Typography variant="body2" sx={{ mb: 0.5 }}>
             類型: {data.type}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            日期: {new Date(data.date).toLocaleDateString('zh-TW')}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
             <Box
@@ -260,13 +290,17 @@ const InventoryProfitLossChart = ({ filters }) => {
               top: 20,
               right: 30,
               left: 20,
-              bottom: 20,
+              bottom: 60,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="date" 
-              tickFormatter={(value) => new Date(value).toLocaleDateString('zh-TW')}
+              dataKey="orderNumber" 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+              interval={0}
+              tick={{ fontSize: 12 }}
             />
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
@@ -312,13 +346,17 @@ const InventoryProfitLossChart = ({ filters }) => {
               top: 20,
               right: 30,
               left: 20,
-              bottom: 20,
+              bottom: 60,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="date" 
-              tickFormatter={(value) => new Date(value).toLocaleDateString('zh-TW')}
+              dataKey="orderNumber" 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+              interval={0}
+              tick={{ fontSize: 12 }}
             />
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
@@ -354,13 +392,17 @@ const InventoryProfitLossChart = ({ filters }) => {
               top: 20,
               right: 30,
               left: 20,
-              bottom: 20,
+              bottom: 60,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="date" 
-              tickFormatter={(value) => new Date(value).toLocaleDateString('zh-TW')}
+              dataKey="orderNumber" 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+              interval={0}
+              tick={{ fontSize: 12 }}
             />
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
