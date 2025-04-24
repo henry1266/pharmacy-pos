@@ -8,7 +8,8 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Alert
 } from '@mui/material';
 import { 
   AreaChart, 
@@ -24,7 +25,7 @@ import {
   ReferenceLine
 } from 'recharts';
 
-const InventoryProfitLossChart = ({ groupedData }) => {
+const InventoryProfitLossChart = ({ groupedData = [] }) => {
   const [chartType, setChartType] = useState('area');
   
   // 圖表顏色
@@ -64,9 +65,16 @@ const InventoryProfitLossChart = ({ groupedData }) => {
   const getAllTransactionsWithCumulativeValues = () => {
     const allTransactions = [];
     
+    // 防護檢查：確保groupedData存在且是數組
+    if (!groupedData || !Array.isArray(groupedData) || groupedData.length === 0) {
+      console.warn('InventoryProfitLossChart: groupedData is undefined, null, or empty');
+      return allTransactions;
+    }
+    
     // 遍歷所有產品
     groupedData.forEach(product => {
-      if (!product.transactions || product.transactions.length === 0) {
+      // 防護檢查：確保product和transactions存在
+      if (!product || !product.transactions || !Array.isArray(product.transactions) || product.transactions.length === 0) {
         return;
       }
       
@@ -82,15 +90,21 @@ const InventoryProfitLossChart = ({ groupedData }) => {
       let cumulativeProfitLoss = 0;
       
       sortedTransactions.forEach(transaction => {
+        // 防護檢查：確保transaction存在且有必要的屬性
+        if (!transaction) return;
+        
         // 計算庫存變化
-        cumulativeStock += transaction.quantity;
+        const quantity = transaction.quantity || 0;
+        cumulativeStock += quantity;
         
         // 計算損益變化
         let profitLoss = 0;
+        const price = transaction.price || 0;
+        
         if (transaction.type === '進貨') {
-          profitLoss = -(transaction.quantity * transaction.price);
+          profitLoss = -(quantity * price);
         } else if (transaction.type === '銷售' || transaction.type === '出貨') {
-          profitLoss = transaction.quantity * transaction.price;
+          profitLoss = quantity * price;
         }
         
         if (transaction.type === '進貨') {
@@ -103,13 +117,13 @@ const InventoryProfitLossChart = ({ groupedData }) => {
         const orderNumber = getOrderNumber(transaction);
         
         allTransactions.push({
-          productId: product.productId,
-          productName: product.productName,
-          productCode: product.productCode,
+          productId: product.productId || '',
+          productName: product.productName || '未知商品',
+          productCode: product.productCode || '未知編碼',
           orderNumber: orderNumber,
-          type: transaction.type,
-          quantity: transaction.quantity,
-          price: transaction.price,
+          type: transaction.type || '未知類型',
+          quantity: quantity,
+          price: price,
           profitLoss: profitLoss,
           cumulativeStock: cumulativeStock,
           cumulativeProfitLoss: cumulativeProfitLoss,
@@ -197,7 +211,12 @@ const InventoryProfitLossChart = ({ groupedData }) => {
     if (chartData.length === 0) {
       return (
         <Box sx={{ p: 3, textAlign: 'center' }}>
-          <Typography color="var(--text-secondary)">暫無數據</Typography>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            暫無數據或數據未正確傳遞。請確保已選擇商品並有交易記錄。
+          </Alert>
+          <Typography color="var(--text-secondary)">
+            此圖表需要從InventoryTable獲取數據，請確保InventoryTable已正確加載。
+          </Typography>
         </Box>
       );
     }
