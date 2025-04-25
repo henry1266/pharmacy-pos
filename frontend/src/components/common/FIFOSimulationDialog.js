@@ -201,26 +201,33 @@ const FIFOSimulationDialog = ({
               
               // 使用setTimeout確保成本已被應用到輸入欄位
               setTimeout(() => {
-                // 獲取總成本輸入欄位
-                const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
-                
-                if (dtotalCostInput) {
-                  console.log('模擬在總成本輸入欄位中按下Enter鍵', dtotalCostInput.value);
-                  
-                  // 創建一個模擬的鍵盤事件（Enter鍵）
-                  const enterEvent = new KeyboardEvent('keydown', {
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    which: 13,
-                    bubbles: true,
-                    cancelable: true
-                  });
-                  
-                  // 在總成本輸入欄位上觸發Enter鍵事件
-                  dtotalCostInput.dispatchEvent(enterEvent);
+                // 直接調用handleAddItem函數來添加項目，而不是通過模擬按鍵事件
+                if (handleAddItem) {
+                  console.log('直接調用handleAddItem函數添加項目');
+                  handleAddItem();
                 } else {
-                  console.error('找不到總成本輸入欄位');
+                  console.error('handleAddItem函數未定義');
+                  
+                  // 作為備用方案，嘗試模擬按鍵事件
+                  const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
+                  if (dtotalCostInput) {
+                    console.log('備用方案：模擬在總成本輸入欄位中按下Enter鍵', dtotalCostInput.value);
+                    
+                    // 創建一個模擬的鍵盤事件（Enter鍵）
+                    const enterEvent = new KeyboardEvent('keydown', {
+                      key: 'Enter',
+                      code: 'Enter',
+                      keyCode: 13,
+                      which: 13,
+                      bubbles: true,
+                      cancelable: true
+                    });
+                    
+                    // 在總成本輸入欄位上觸發Enter鍵事件
+                    dtotalCostInput.dispatchEvent(enterEvent);
+                  } else {
+                    console.error('找不到總成本輸入欄位');
+                  }
                 }
               }, 300);
             }} 
