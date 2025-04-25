@@ -15,6 +15,7 @@ import {
   Divider
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
 
 const InventoryList = ({ productId }) => {
   const [inventories, setInventories] = useState([]);
@@ -22,6 +23,7 @@ const InventoryList = ({ productId }) => {
   const [error, setError] = useState(null);
   const [currentStock, setCurrentStock] = useState(0);
   const [profitLoss, setProfitLoss] = useState(0);
+  const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
     const fetchInventories = async () => {
@@ -149,9 +151,52 @@ const InventoryList = ({ productId }) => {
           }
         });
         
+        // 準備圖表數據
+        const chartTransactions = processedInventories.map(inv => {
+          // 獲取貨單號
+          let orderNumber = '';
+          if (inv.type === 'sale') {
+            orderNumber = inv.saleNumber || '-';
+          } else if (inv.type === 'purchase') {
+            orderNumber = inv.purchaseOrderNumber || '-';
+          } else if (inv.type === 'ship') {
+            orderNumber = inv.shippingOrderNumber || '-';
+          }
+          
+          // 轉換交易類型為中文
+          let typeText = '其他';
+          if (inv.type === 'sale') {
+            typeText = '銷售';
+          } else if (inv.type === 'purchase') {
+            typeText = '進貨';
+          } else if (inv.type === 'ship') {
+            typeText = '出貨';
+          }
+          
+          // 計算實際交易價格
+          let price = 0;
+          if (inv.totalAmount && inv.totalQuantity) {
+            price = inv.totalAmount / Math.abs(inv.totalQuantity);
+          } else if (inv.product && inv.product.sellingPrice) {
+            price = inv.product.sellingPrice;
+          }
+          
+          return {
+            purchaseOrderNumber: inv.type === 'purchase' ? orderNumber : '-',
+            shippingOrderNumber: inv.type === 'ship' ? orderNumber : '-',
+            saleNumber: inv.type === 'sale' ? orderNumber : '-',
+            type: typeText,
+            quantity: inv.totalQuantity,
+            price: price,
+            cumulativeStock: inv.currentStock,
+            cumulativeProfitLoss: 0 // 這個值會在SingleProductProfitLossChart中重新計算
+          };
+        });
+        
         setInventories(processedInventories);
         setCurrentStock(stock);
         setProfitLoss(totalProfitLoss);
+        setChartData(chartTransactions);
         setLoading(false);
       } catch (err) {
         console.error('獲取庫存記錄失敗:', err);
@@ -243,6 +288,11 @@ const InventoryList = ({ productId }) => {
       </Box>
       
       <Divider sx={{ mb: 1 }} />
+      
+      {/* 添加盈虧圖表 */}
+      <SingleProductProfitLossChart transactions={chartData} />
+      
+      <Divider sx={{ my: 2 }} />
 
       <TableContainer component={Paper} sx={{ maxHeight: 250, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
