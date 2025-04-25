@@ -1,31 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
   Paper,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert
 } from '@mui/material';
 import { 
   AreaChart, 
   Area, 
-  LineChart,
-  Line,
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   Legend, 
   ResponsiveContainer,
-  ReferenceLine
+  ReferenceLine,
+  Line
 } from 'recharts';
 
 const SingleProductProfitLossChart = ({ transactions = [] }) => {
-  const [chartType, setChartType] = useState('area');
-  
   // 圖表顏色
   const colors = {
     profit: '#00d97e',  // 綠色 - 正值
@@ -54,11 +47,6 @@ const SingleProductProfitLossChart = ({ transactions = [] }) => {
     return '-';
   };
 
-  // 處理圖表類型變更
-  const handleChartTypeChange = (event) => {
-    setChartType(event.target.value);
-  };
-
   // 處理交易數據，獲取累積值
   const getTransactionsWithCumulativeValues = () => {
     // 防護檢查：確保transactions存在且是數組
@@ -78,7 +66,7 @@ const SingleProductProfitLossChart = ({ transactions = [] }) => {
     let cumulativeStock = 0;
     let cumulativeProfitLoss = 0;
     
-    return sortedTransactions.map(transaction => {
+    return sortedTransactions.map((transaction, index) => {
       // 防護檢查：確保transaction存在且有必要的屬性
       if (!transaction) return null;
       
@@ -107,6 +95,7 @@ const SingleProductProfitLossChart = ({ transactions = [] }) => {
       
       return {
         orderNumber: orderNumber,
+        index: index, // 使用索引作為X軸值，而不是貨單號
         type: transaction.type || '未知類型',
         quantity: quantity,
         price: price,
@@ -136,7 +125,7 @@ const SingleProductProfitLossChart = ({ transactions = [] }) => {
           bgcolor: 'var(--bg-paper)'
         }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            貨單號: {label}
+            貨單號: {data.orderNumber}
           </Typography>
           <Typography variant="body2" sx={{ mb: 0.5 }}>
             類型: {data.type}
@@ -198,157 +187,83 @@ const SingleProductProfitLossChart = ({ transactions = [] }) => {
       );
     }
 
-    if (chartType === 'area') {
-      return (
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart
-            data={chartData}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 60,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="orderNumber" 
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              interval={0}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              yAxisId="left"
-              tickFormatter={(value) => formatCurrency(value)}
-            />
-            <YAxis 
-              yAxisId="right"
-              orientation="right"
-              domain={['auto', 'auto']}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend />
-            <ReferenceLine y={0} stroke="#000" yAxisId="left" />
-            <defs>
-              <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={colors.profit} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={colors.profit} stopOpacity={0.2}/>
-              </linearGradient>
-              <linearGradient id="colorLoss" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={colors.loss} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={colors.loss} stopOpacity={0.2}/>
-              </linearGradient>
-            </defs>
-            <Area 
-              yAxisId="left"
-              type="monotone" 
-              dataKey="positiveProfitLoss" 
-              name="盈利" 
-              stroke={colors.profit} 
-              fillOpacity={1}
-              fill="url(#colorProfit)"
-            />
-            <Area 
-              yAxisId="left"
-              type="monotone" 
-              dataKey="negativeProfitLoss" 
-              name="虧損" 
-              stroke={colors.loss} 
-              fillOpacity={1}
-              fill="url(#colorLoss)"
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="cumulativeStock"
-              name="庫存"
-              stroke={colors.stock}
-              dot={{ r: 4 }}
-              activeDot={{ r: 8 }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      );
-    } else {
-      return (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 60,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="orderNumber" 
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              interval={0}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              yAxisId="left"
-              tickFormatter={(value) => formatCurrency(value)}
-            />
-            <YAxis 
-              yAxisId="right"
-              orientation="right"
-              domain={['auto', 'auto']}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend />
-            <ReferenceLine y={0} stroke="#000" yAxisId="left" />
-            <Line 
-              yAxisId="left"
-              type="monotone" 
-              dataKey="cumulativeProfitLoss" 
-              name="累積損益總和" 
-              stroke={colors.profit} 
-              activeDot={{ r: 8 }}
-              dot={{ r: 4 }}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="cumulativeStock"
-              name="庫存"
-              stroke={colors.stock}
-              dot={{ r: 4 }}
-              activeDot={{ r: 8 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      );
-    }
+    return (
+      <ResponsiveContainer width="100%" height={180}>
+        <AreaChart
+          data={chartData}
+          margin={{
+            top: 10,
+            right: 30,
+            left: 20,
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="index" 
+            tick={false} // 不顯示刻度文字
+            tickLine={false} // 不顯示刻度線
+            axisLine={true} // 顯示軸線
+          />
+          <YAxis 
+            yAxisId="left"
+            tickFormatter={(value) => formatCurrency(value)}
+          />
+          <YAxis 
+            yAxisId="right"
+            orientation="right"
+            domain={['auto', 'auto']}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          <ReferenceLine y={0} stroke="#000" yAxisId="left" />
+          <defs>
+            <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={colors.profit} stopOpacity={0.8}/>
+              <stop offset="95%" stopColor={colors.profit} stopOpacity={0.2}/>
+            </linearGradient>
+            <linearGradient id="colorLoss" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={colors.loss} stopOpacity={0.8}/>
+              <stop offset="95%" stopColor={colors.loss} stopOpacity={0.2}/>
+            </linearGradient>
+          </defs>
+          <Area 
+            yAxisId="left"
+            type="monotone" 
+            dataKey="positiveProfitLoss" 
+            name="盈利" 
+            stroke={colors.profit} 
+            fillOpacity={1}
+            fill="url(#colorProfit)"
+          />
+          <Area 
+            yAxisId="left"
+            type="monotone" 
+            dataKey="negativeProfitLoss" 
+            name="虧損" 
+            stroke={colors.loss} 
+            fillOpacity={1}
+            fill="url(#colorLoss)"
+          />
+          <Line
+            yAxisId="right"
+            type="monotone"
+            dataKey="cumulativeStock"
+            name="庫存"
+            stroke={colors.stock}
+            dot={{ r: 3 }}
+            activeDot={{ r: 6 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    );
   };
 
   return (
-    <Box sx={{ mt: 3, mb: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="subtitle1" fontWeight="600" color="var(--text-primary)">
-          盈虧分析圖表
-        </Typography>
-        
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel id="chart-type-label">圖表類型</InputLabel>
-          <Select
-            labelId="chart-type-label"
-            id="chart-type-select"
-            value={chartType}
-            label="圖表類型"
-            onChange={handleChartTypeChange}
-          >
-            <MenuItem value="area">區域圖</MenuItem>
-            <MenuItem value="line">折線圖</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+    <Box sx={{ mt: 2, mb: 2 }}>
+      <Typography variant="subtitle1" fontWeight="600" color="var(--text-primary)" sx={{ mb: 1 }}>
+        盈虧分析圖表
+      </Typography>
       
       {renderChart()}
     </Box>
