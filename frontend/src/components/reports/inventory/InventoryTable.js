@@ -148,18 +148,6 @@ const ExpandableRow = ({ item, formatCurrency }) => {
         <TableCell align="right">{formatCurrency(item.purchasePrice)}</TableCell>
         <TableCell align="right">{formatCurrency(item.sellingPrice)}</TableCell>
         <TableCell align="right">{formatCurrency(item.totalInventoryValue)}</TableCell>
-        <TableCell align="right" sx={{ 
-          color: item.totalPotentialRevenue >= 0 ? 'success.main' : 'error.main',
-          fontWeight: 'bold'
-        }}>
-          {formatCurrency(item.totalPotentialRevenue)}
-        </TableCell>
-        <TableCell align="right" sx={{ 
-          color: item.totalPotentialProfit >= 0 ? 'success.main' : 'error.main',
-          fontWeight: 'bold'
-        }}>
-          {formatCurrency(item.totalPotentialProfit)}
-        </TableCell>
         <TableCell>
           <Box
             component="span"
@@ -397,7 +385,7 @@ const InventoryTable = ({ filters }) => {
     // 按總數量排序
     groupedArray.sort((a, b) => b.totalQuantity - a.totalQuantity);
     
-    // 計算每個商品的損益總和並取最上面那筆作為最終值
+    // 計算每個商品的損益總和並取貨單號最大的那筆作為最終值
     groupedArray.forEach(product => {
       if (product.transactions.length > 0) {
         // 根據交易類型計算損益
@@ -412,12 +400,22 @@ const InventoryTable = ({ filters }) => {
           return 0;
         };
         
+        // 獲取訂單號函數
+        const getOrderNumber = (transaction) => {
+          if (transaction.type === '進貨') {
+            return transaction.purchaseOrderNumber || '-';
+          } else if (transaction.type === '出貨') {
+            return transaction.shippingOrderNumber || '-';
+          } else if (transaction.type === '銷售') {
+            return transaction.saleNumber || '-';
+          }
+          return '-';
+        };
+        
         // 按貨單號排序交易記錄（由小到大）
         const sortedTransactions = [...product.transactions].sort((a, b) => {
-          const aOrderNumber = a.purchaseOrderNumber !== '-' ? a.purchaseOrderNumber : 
-                              (a.shippingOrderNumber !== '-' ? a.shippingOrderNumber : a.saleNumber);
-          const bOrderNumber = b.purchaseOrderNumber !== '-' ? b.purchaseOrderNumber : 
-                              (b.shippingOrderNumber !== '-' ? b.shippingOrderNumber : b.saleNumber);
+          const aOrderNumber = getOrderNumber(a);
+          const bOrderNumber = getOrderNumber(b);
           return aOrderNumber.localeCompare(bOrderNumber); // 由小到大排序，確保時間順序
         });
         
@@ -431,8 +429,40 @@ const InventoryTable = ({ filters }) => {
           }
         });
         
-        // 將最後一筆交易的累積損益加入總損益
-        profitLossSum += cumulativeProfitLoss;
+        // 按貨單號排序（由大到小）
+        const sortedByDescending = [...product.transactions].sort((a, b) => {
+          const aOrderNumber = getOrderNumber(a);
+          const bOrderNumber = getOrderNumber(b);
+          return bOrderNumber.localeCompare(aOrderNumber); // 由大到小排序，最新的在前面
+        });
+        
+        // 計算貨單號最大的那筆交易的累積損益
+        if (sortedByDescending.length > 0) {
+          // 找到貨單號最大的交易
+          const latestTransaction = sortedByDescending[0];
+          
+          // 找到該交易在原始排序中的位置
+          const index = sortedTransactions.findIndex(t => 
+            getOrderNumber(t) === getOrderNumber(latestTransaction));
+          
+          if (index !== -1) {
+            // 計算到該交易為止的累積損益
+            let latestCumulativeProfitLoss = 0;
+            for (let i = 0; i <= index; i++) {
+              const transaction = sortedTransactions[i];
+              if (transaction.type === '進貨') {
+                latestCumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
+              } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+                latestCumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
+              }
+            }
+            
+            // 將貨單號最大的交易的累積損益加入總損益
+            profitLossSum += latestCumulativeProfitLoss;
+            
+            console.log(`商品 ${product.productName} 的貨單號最大交易: ${getOrderNumber(latestTransaction)}, 累積損益: ${latestCumulativeProfitLoss}`);
+          }
+        }
       }
     });
     
