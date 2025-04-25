@@ -12,7 +12,6 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
   ResponsiveContainer,
   ReferenceLine,
   Line
@@ -215,7 +214,6 @@ const SingleProductProfitLossChart = ({ transactions = [] }) => {
             domain={['auto', 'auto']}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
           <ReferenceLine y={0} stroke="#000" yAxisId="left" />
           <defs>
             <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
