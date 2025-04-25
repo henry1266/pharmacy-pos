@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import axios from 'axios';
+import SingleProductProfitLossChart from './SingleProductProfitLossChart';
 
 // 展開行組件
 const ExpandableRow = ({ item, formatCurrency }) => {
@@ -240,6 +241,9 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                   ))}
                 </TableBody>
               </Table>
+              
+              {/* 添加單一品項的盈虧圖表 */}
+              <SingleProductProfitLossChart transactions={sortedTransactions} />
             </Box>
           </Collapse>
         </TableCell>
@@ -479,8 +483,8 @@ const InventoryTable = ({ filters }) => {
                 <TableCell sx={{ fontWeight: 500 }} align="right">進貨價</TableCell>
                 <TableCell sx={{ fontWeight: 500 }} align="right">售價</TableCell>
                 <TableCell sx={{ fontWeight: 500 }} align="right">庫存價值</TableCell>
-                <TableCell sx={{ fontWeight: 500 }} align="right">總毛利</TableCell>
-                <TableCell sx={{ fontWeight: 500 }} align="right">損益總和</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">潛在收入</TableCell>
+                <TableCell sx={{ fontWeight: 500 }} align="right">潛在利潤</TableCell>
                 <TableCell sx={{ fontWeight: 500 }}>狀態</TableCell>
               </TableRow>
             </TableHead>
@@ -488,22 +492,14 @@ const InventoryTable = ({ filters }) => {
               {groupedData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((item) => (
-                <ExpandableRow key={item.productId} item={item} formatCurrency={formatCurrency} />
-              ))}
-              
-              {groupedData.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={13} align="center">
-                    暫無數據
-                  </TableCell>
-                </TableRow>
-              )}
+                  <ExpandableRow key={item.productId} item={item} formatCurrency={formatCurrency} />
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
         
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={groupedData.length}
           rowsPerPage={rowsPerPage}
