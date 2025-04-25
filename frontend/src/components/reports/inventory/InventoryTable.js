@@ -388,7 +388,7 @@ const InventoryTable = ({ filters }) => {
       
       // 更新總計
       totalQuantity += item.quantity;
-      profitLossSum += item.potentialProfit;
+      // 不再在這裡累加損益總和，將在後面處理
     });
     
     // 轉換為數組
@@ -397,8 +397,48 @@ const InventoryTable = ({ filters }) => {
     // 按總數量排序
     groupedArray.sort((a, b) => b.totalQuantity - a.totalQuantity);
     
+    // 計算每個商品的損益總和並取最上面那筆作為最終值
+    groupedArray.forEach(product => {
+      if (product.transactions.length > 0) {
+        // 根據交易類型計算損益
+        const calculateTransactionProfitLoss = (transaction) => {
+          if (transaction.type === '進貨') {
+            // 進貨為負數
+            return -(transaction.quantity * transaction.price);
+          } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+            // 銷售為正數
+            return transaction.quantity * transaction.price;
+          }
+          return 0;
+        };
+        
+        // 按貨單號排序交易記錄（由小到大）
+        const sortedTransactions = [...product.transactions].sort((a, b) => {
+          const aOrderNumber = a.purchaseOrderNumber !== '-' ? a.purchaseOrderNumber : 
+                              (a.shippingOrderNumber !== '-' ? a.shippingOrderNumber : a.saleNumber);
+          const bOrderNumber = b.purchaseOrderNumber !== '-' ? b.purchaseOrderNumber : 
+                              (b.shippingOrderNumber !== '-' ? b.shippingOrderNumber : b.saleNumber);
+          return aOrderNumber.localeCompare(bOrderNumber); // 由小到大排序，確保時間順序
+        });
+        
+        // 計算累積損益
+        let cumulativeProfitLoss = 0;
+        sortedTransactions.forEach(transaction => {
+          if (transaction.type === '進貨') {
+            cumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
+          } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+            cumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
+          }
+        });
+        
+        // 將最後一筆交易的累積損益加入總損益
+        profitLossSum += cumulativeProfitLoss;
+      }
+    });
+    
     // 記錄處理後的數據到控制台
     console.log('處理後的分組數據:', groupedArray);
+    console.log('計算的損益總和:', profitLossSum);
     
     setGroupedData(groupedArray);
     setTotalInventoryQuantity(totalQuantity);
