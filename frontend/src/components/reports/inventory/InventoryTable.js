@@ -364,7 +364,8 @@ const InventoryTable = ({ filters }) => {
         type: transactionType,
         quantity: item.quantity,
         currentStock: item.currentStock || 0, // 使用後端提供的當前庫存，如果沒有則默認為0
-        price: item.type === 'purchase' ? item.purchasePrice : item.sellingPrice,
+        price: item.type === 'purchase' ? item.purchasePrice : 
+               (item.type === 'ship' ? (item.shippingPrice || item.sellingPrice) : item.sellingPrice),
         date: item.date || item.lastUpdated || new Date(),
         orderNumber: item.orderNumber || ''
       };
