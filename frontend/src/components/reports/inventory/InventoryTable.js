@@ -145,8 +145,7 @@ const ExpandableRow = ({ item, formatCurrency }) => {
         <TableCell>{item.supplier ? item.supplier.name : '-'}</TableCell>
         <TableCell align="right">{item.totalQuantity}</TableCell>
         <TableCell>{item.unit}</TableCell>
-        <TableCell align="right">{formatCurrency(item.purchasePrice)}</TableCell>
-        <TableCell align="right">{formatCurrency(item.sellingPrice)}</TableCell>
+        <TableCell align="right">{formatCurrency(item.price)}</TableCell>
         <TableCell align="right">{formatCurrency(item.totalInventoryValue)}</TableCell>
         <TableCell>
           <Box
@@ -329,8 +328,7 @@ const InventoryTable = ({ filters }) => {
           category: item.category,
           supplier: item.supplier,
           unit: item.unit,
-          purchasePrice: item.purchasePrice,
-          sellingPrice: item.sellingPrice,
+          price: item.price || (item.type === 'purchase' ? item.purchasePrice : item.sellingPrice),
           status: item.status,
           totalQuantity: 0,
           totalInventoryValue: 0,
@@ -365,8 +363,8 @@ const InventoryTable = ({ filters }) => {
         quantity: item.quantity,
         currentStock: item.currentStock || 0, // 使用後端提供的當前庫存，如果沒有則默認為0
         price: item.totalAmount && item.quantity ? Math.abs(item.totalAmount / item.quantity) : 
-               (item.type === 'purchase' ? item.purchasePrice : 
-               (item.type === 'ship' ? item.sellingPrice : item.sellingPrice)),
+               (item.type === 'purchase' ? item.price || item.purchasePrice : 
+               (item.type === 'ship' ? item.price || item.sellingPrice : item.price || item.sellingPrice)),
         date: item.date || item.lastUpdated || new Date(),
         orderNumber: item.orderNumber || ''
       };
