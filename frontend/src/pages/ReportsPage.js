@@ -517,7 +517,6 @@ const ReportsPage = () => {
               },
             }}
           >
-            <Tab label="庫存列表" />
           </Tabs>
         </Box>
 
