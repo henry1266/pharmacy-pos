@@ -467,8 +467,8 @@ const InventoryTable = ({ filters }) => {
     });
     
     // 記錄處理後的數據到控制台
-    console.log('處理後的分組數據:', groupedArray);
-    console.log('計算的損益總和:', profitLossSum);
+    //console.log('處理後的分組數據:', groupedArray);
+    //console.log('計算的損益總和:', profitLossSum);
     
     setGroupedData(groupedArray);
     setTotalInventoryQuantity(totalQuantity);
@@ -515,14 +515,6 @@ const InventoryTable = ({ filters }) => {
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 3 }}>
-            <Box>
-              <Typography variant="body2" color="var(--text-secondary)">
-                總庫存數量:
-              </Typography>
-              <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
-                {totalInventoryQuantity}
-              </Typography>
-            </Box>
             
             <Box>
               <Typography variant="body2" color="var(--text-secondary)">
@@ -552,7 +544,6 @@ const InventoryTable = ({ filters }) => {
                 <TableCell sx={{ fontWeight: 500 }}>單位</TableCell>
                 <TableCell sx={{ fontWeight: 500 }} align="right">進貨價</TableCell>
                 <TableCell sx={{ fontWeight: 500 }} align="right">售價</TableCell>
-                <TableCell sx={{ fontWeight: 500 }} align="right">庫存價值</TableCell>
                 <TableCell sx={{ fontWeight: 500 }}>狀態</TableCell>
               </TableRow>
             </TableHead>
