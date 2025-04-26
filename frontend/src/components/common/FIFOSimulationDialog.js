@@ -229,7 +229,7 @@ const FIFOSimulationDialog = ({
                     console.error('找不到總成本輸入欄位');
                   }
                 }
-              }, 300);
+              }, 500);
             }} 
             color="primary"
             variant="contained"
