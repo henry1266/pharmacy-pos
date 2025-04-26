@@ -122,10 +122,9 @@ const InventorySummary = ({ filters }) => {
     // 轉換為數組
     const groupedArray = Object.values(groupedByProduct);
     
-    // 計算總庫存價值和總毛利
+    // 計算總庫存價值
     groupedArray.forEach(product => {
       inventoryValueSum += product.totalInventoryValue;
-      grossProfitSum += product.totalPotentialProfit;
       
       if (product.transactions.length > 0) {
         // 根據交易類型計算損益
@@ -207,7 +206,8 @@ const InventorySummary = ({ filters }) => {
     // 更新狀態
     setTotalProfitLoss(profitLossSum);
     setTotalInventoryValue(inventoryValueSum);
-    setTotalGrossProfit(grossProfitSum);
+    // 根據公式計算總毛利：總毛利 = 庫存價值 + 損益總和
+    setTotalGrossProfit(inventoryValueSum + profitLossSum);
   };
 
   // 格式化金額
