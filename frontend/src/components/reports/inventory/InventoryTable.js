@@ -513,18 +513,6 @@ const InventoryTable = ({ filters }) => {
           <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
             庫存列表
           </Typography>
-          
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            
-            <Box>
-              <Typography variant="body2" color="var(--text-secondary)">
-                損益總和:
-              </Typography>
-              <Typography variant="h6" fontWeight="600" color={totalProfitLoss >= 0 ? 'var(--success-color)' : 'var(--danger-color)'}>
-                {formatCurrency(totalProfitLoss)}
-              </Typography>
-            </Box>
-          </Box>
         </Box>
         
         <TableContainer component={Paper} sx={{ 

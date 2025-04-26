@@ -29,17 +29,11 @@ import ShoppingCart from '@mui/icons-material/ShoppingCart';
 import axios from 'axios';
 
 const InventorySummary = ({ filters }) => {
-  const [summaryData, setSummaryData] = useState({
-    totalItems: 0,
-    totalInventoryValue: 0,
-    totalGrossProfit: 0,
-    totalProfitLoss: 0,
-    orderLinks: []
-  });
-  const [transactionHistory, setTransactionHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [totalProfitLoss, setTotalProfitLoss] = useState(0);
+  const [totalInventoryValue, setTotalInventoryValue] = useState(0);
+  const [totalGrossProfit, setTotalGrossProfit] = useState(0);
   
   // 獲取庫存數據
   useEffect(() => {
@@ -81,6 +75,8 @@ const InventorySummary = ({ filters }) => {
     // 按產品ID分組
     const groupedByProduct = {};
     let profitLossSum = 0;
+    let inventoryValueSum = 0;
+    let grossProfitSum = 0;
     
     data.forEach(item => {
       const productId = item.productId;
@@ -140,8 +136,11 @@ const InventorySummary = ({ filters }) => {
     // 轉換為數組
     const groupedArray = Object.values(groupedByProduct);
     
-    // 計算每個商品的損益總和並取貨單號最大的那筆作為最終值
+    // 計算總庫存價值和總毛利
     groupedArray.forEach(product => {
+      inventoryValueSum += product.totalInventoryValue;
+      grossProfitSum += product.totalPotentialProfit;
+      
       if (product.transactions.length > 0) {
         // 根據交易類型計算損益
         const calculateTransactionProfitLoss = (transaction) => {
@@ -219,8 +218,10 @@ const InventorySummary = ({ filters }) => {
       }
     });
     
-    // 更新損益總和
+    // 更新狀態
     setTotalProfitLoss(profitLossSum);
+    setTotalInventoryValue(inventoryValueSum);
+    setTotalGrossProfit(grossProfitSum);
   };
 
   // 格式化金額
@@ -248,7 +249,7 @@ const InventorySummary = ({ filters }) => {
                     總庫存價值
                   </Typography>
                   <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                    {formatCurrency(summaryData.totalInventoryValue)}
+                    {formatCurrency(totalInventoryValue)}
                   </Typography>
                 </Box>
                 <Box sx={{ 
@@ -289,9 +290,9 @@ const InventorySummary = ({ filters }) => {
                     variant="h5" 
                     component="div" 
                     fontWeight="600" 
-                    color={summaryData.totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
+                    color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
                   >
-                    {formatCurrency(summaryData.totalGrossProfit)}
+                    {formatCurrency(totalGrossProfit)}
                   </Typography>
                 </Box>
                 <Box sx={{ 
