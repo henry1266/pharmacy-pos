@@ -58,6 +58,9 @@ const SalesPage = () => {
     note: ''
   });
   
+  // 存儲每個項目的輸入模式（price 或 subtotal）
+  const [inputModes, setInputModes] = useState([]);
+  
   const [barcode, setBarcode] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [snackbar, setSnackbar] = useState({
@@ -297,6 +300,36 @@ const SalesPage = () => {
       ...currentSale,
       items: updatedItems
     });
+    
+    // 同時更新輸入模式數組
+    const updatedModes = [...inputModes];
+    updatedModes.splice(index, 1);
+    setInputModes(updatedModes);
+  };
+  
+  // 切換輸入模式（單價/小計）
+  const toggleInputMode = (index) => {
+    const updatedModes = [...inputModes];
+    updatedModes[index] = updatedModes[index] === 'price' ? 'subtotal' : 'price';
+    setInputModes(updatedModes);
+  };
+  
+  // 處理小計變更
+  const handleSubtotalChange = (index, newSubtotal) => {
+    if (newSubtotal < 0) return;
+    
+    const updatedItems = [...currentSale.items];
+    updatedItems[index].subtotal = newSubtotal;
+    
+    // 根據小計和數量計算單價
+    if (updatedItems[index].quantity > 0) {
+      updatedItems[index].price = newSubtotal / updatedItems[index].quantity;
+    }
+    
+    setCurrentSale({
+      ...currentSale,
+      items: updatedItems
+    });
   };
 
   // 處理保存銷售
@@ -443,6 +476,9 @@ const SalesPage = () => {
         ...currentSale,
         items: [...currentSale.items, newItem]
       });
+      
+      // 為新項目設置默認輸入模式為 'price'
+      setInputModes(prevModes => [...prevModes, 'price']);
       
       setSnackbar({
         open: true,
@@ -746,7 +782,19 @@ const SalesPage = () => {
                               }}
                               size="small"
                               inputProps={{ min: 0, style: { textAlign: 'right' } }}
-                              sx={{ width: '80px' }}
+                              sx={{ 
+                                width: '80px',
+                                bgcolor: inputModes[index] === 'price' ? 'rgba(144, 238, 144, 0.1)' : 'rgba(211, 211, 211, 0.3)',
+                                '& .MuiInputBase-input.Mui-disabled': {
+                                  WebkitTextFillColor: 'rgba(0, 0, 0, 0.38)',
+                                }
+                              }}
+                              disabled={inputModes[index] === 'subtotal'}
+                              onDoubleClick={() => {
+                                if (inputModes[index] === 'subtotal') {
+                                  toggleInputMode(index);
+                                }
+                              }}
                             />
                           </TableCell>
                           <TableCell align="center">
@@ -775,7 +823,52 @@ const SalesPage = () => {
                             </Box>
                           </TableCell>
                           <TableCell align="right">
-                            {(item.price * item.quantity).toFixed(2)}
+                            {inputModes[index] === 'subtotal' ? (
+                              <TextField
+                                type="number"
+                                value={item.subtotal}
+                                onChange={(e) => {
+                                  // 只更新當前項目的臨時小計，不立即更新狀態
+                                  const newSubtotal = parseFloat(e.target.value) || 0;
+                                  e.target._tempSubtotal = newSubtotal;
+                                }}
+                                onKeyDown={(e) => {
+                                  // 當按下Enter鍵時才更新小計
+                                  if (e.key === 'Enter') {
+                                    const newSubtotal = e.target._tempSubtotal !== undefined ? 
+                                      e.target._tempSubtotal : (parseFloat(e.target.value) || 0);
+                                    handleSubtotalChange(index, newSubtotal);
+                                    e.target._tempSubtotal = undefined;
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  // 當失去焦點時也更新小計
+                                  const newSubtotal = e.target._tempSubtotal !== undefined ? 
+                                    e.target._tempSubtotal : (parseFloat(e.target.value) || 0);
+                                  handleSubtotalChange(index, newSubtotal);
+                                  e.target._tempSubtotal = undefined;
+                                }}
+                                size="small"
+                                inputProps={{ min: 0, style: { textAlign: 'right' } }}
+                                sx={{ 
+                                  width: '80px',
+                                  bgcolor: 'rgba(144, 238, 144, 0.1)'
+                                }}
+                              />
+                            ) : (
+                              <Box 
+                                sx={{ 
+                                  cursor: 'pointer',
+                                  padding: '8px',
+                                  bgcolor: 'rgba(211, 211, 211, 0.3)',
+                                  borderRadius: '4px',
+                                  textAlign: 'right'
+                                }} 
+                                onDoubleClick={() => toggleInputMode(index)}
+                              >
+                                {(item.price * item.quantity).toFixed(2)}
+                              </Box>
+                            )}
                           </TableCell>
                           <TableCell align="center">
                             <IconButton
