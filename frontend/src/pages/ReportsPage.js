@@ -518,7 +518,6 @@ const ReportsPage = () => {
             }}
           >
             <Tab label="庫存列表" />
-            <Tab label="盈虧分析" />
           </Tabs>
         </Box>
 

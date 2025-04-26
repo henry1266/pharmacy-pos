@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Card,
   CardContent,
   Typography,
   Grid,
-  CircularProgress,
-  Alert,
-  Link,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper
 } from '@mui/material';
 import { 
   AttachMoney, 
@@ -23,9 +12,6 @@ import {
   Inventory as InventoryIcon,
   Timeline
 } from '@mui/icons-material';
-import Receipt from '@mui/icons-material/Receipt';
-import LocalShipping from '@mui/icons-material/LocalShipping';
-import ShoppingCart from '@mui/icons-material/ShoppingCart';
 import axios from 'axios';
 
 const InventorySummary = ({ filters }) => {
@@ -236,6 +222,49 @@ const InventorySummary = ({ filters }) => {
   return (
     <Box>
       <Grid container spacing={3} sx={{ mb: 2 }}>
+	  {/* 總毛利 */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ 
+            borderRadius: 'var(--border-radius)',
+            boxShadow: 'var(--card-shadow)'
+          }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box>
+                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                    總毛利
+                  </Typography>
+                  <Typography 
+                    variant="h5" 
+                    component="div" 
+                    fontWeight="600" 
+                    color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
+                  >
+                  </Typography>
+                </Box>
+                <Box sx={{ 
+                  backgroundColor: 'rgba(0, 217, 126, 0.1)', 
+                  color: 'var(--success-color)',
+                  width: 40,
+                  height: 40,
+                  borderRadius: 'var(--border-radius)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <TrendingUp />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+	  {/* 插入 "-" 符號 */}
+		<Grid item xs={12} sm={6} md={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+			<Typography variant="h4" fontWeight="700" color="text.secondary">
+				-
+			</Typography>
+		</Grid>
+
         {/* 總庫存價值 */}
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ 
@@ -268,50 +297,7 @@ const InventorySummary = ({ filters }) => {
             </CardContent>
           </Card>
         </Grid>
-          {/* 插入 "-" 符號 */}
-		<Grid item xs={12} sm={6} md={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-			<Typography variant="h4" fontWeight="700" color="text.secondary">
-				+
-			</Typography>
-		</Grid>
-        {/* 總毛利 */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            borderRadius: 'var(--border-radius)',
-            boxShadow: 'var(--card-shadow)'
-          }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box>
-                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                    總毛利
-                  </Typography>
-                  <Typography 
-                    variant="h5" 
-                    component="div" 
-                    fontWeight="600" 
-                    color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
-                  >
-                    {formatCurrency(totalGrossProfit)}
-                  </Typography>
-                </Box>
-                <Box sx={{ 
-                  backgroundColor: 'rgba(0, 217, 126, 0.1)', 
-                  color: 'var(--success-color)',
-                  width: 40,
-                  height: 40,
-                  borderRadius: 'var(--border-radius)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <TrendingUp />
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-          {/* 插入 "-" 符號 */}
+          {/* 插入 "=" 符號 */}
 		<Grid item xs={12} sm={6} md={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 			<Typography variant="h4" fontWeight="700" color="text.secondary">
 				=
