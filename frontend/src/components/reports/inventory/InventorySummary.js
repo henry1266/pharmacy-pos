@@ -240,6 +240,7 @@ const InventorySummary = ({ filters }) => {
                     fontWeight="600" 
                     color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
                   >
+                    {formatCurrency(totalGrossProfit)}
                   </Typography>
                 </Box>
                 <Box sx={{ 
