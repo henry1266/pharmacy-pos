@@ -89,22 +89,19 @@ const ProductDetailCard = ({
         </Grid>
         
         <Divider sx={{ my: 2 }} />
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={5}>
+
+		<Grid container spacing={2}>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="subtitle2">國際條碼: {product.barcode || '無'}</Typography>
+          </Grid>
+		  <Grid item xs={12} sm={4}>
             <Typography variant="subtitle2">健保碼: {product.healthInsuranceCode || '無'}</Typography>
           </Grid>
-          <Grid item xs={12} sm={5}>
+          <Grid item xs={12} sm={4}>
             <Typography variant="subtitle2">健保價: {product.healthInsurancePrice || '0'}</Typography>
           </Grid>
         </Grid>
-
-        <Divider sx={{ my: 2 }} />
         
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2">國際條碼: {product.barcode || '無'}</Typography>
-          </Grid>
-        </Grid>
         <Divider sx={{ my: 2 }} />
 
         <InventoryList productId={product.id} />
