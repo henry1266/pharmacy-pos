@@ -69,7 +69,7 @@ router.post('/', [
     check('date', '日期為必填欄位').not().isEmpty(),
     check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
     check('items', '至少需要一個項目').isArray().not().isEmpty(),
-    check('items.*.amount', '金額必須為正數').isFloat({ min: 0 }),
+    check('items.*.amount', '金額必須為數字').isFloat(),
     check('items.*.category', '名目為必填欄位').not().isEmpty()
   ]
 ], async (req, res) => {
@@ -112,7 +112,7 @@ router.put('/:id', [
     check('date', '日期為必填欄位').not().isEmpty(),
     check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
     check('items', '至少需要一個項目').isArray().not().isEmpty(),
-    check('items.*.amount', '金額必須為正數').isFloat({ min: 0 }),
+    check('items.*.amount', '金額必須為數字').isFloat(),
     check('items.*.category', '名目為必填欄位').not().isEmpty()
   ]
 ], async (req, res) => {
