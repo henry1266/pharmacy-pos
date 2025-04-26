@@ -240,6 +240,7 @@ router.get('/inventory', async (req, res) => {
         inventoryValue: item.quantity * item.product.purchasePrice,
         potentialRevenue: item.quantity * item.product.sellingPrice,
         potentialProfit: item.quantity * (item.product.sellingPrice - item.product.purchasePrice),
+        totalAmount: item.totalAmount || 0, // 添加 totalAmount 欄位
         minStock: item.product.minStock,
         status: item.quantity <= item.product.minStock ? 'low' : 'normal',
         batchNumber: item.batchNumber,
