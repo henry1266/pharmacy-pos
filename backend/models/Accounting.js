@@ -17,8 +17,7 @@ const AccountingSchema = new Schema({
   items: [{
     amount: {
       type: Number,
-      required: true,
-      min: 0
+      required: true
     },
     category: {
       type: String,
