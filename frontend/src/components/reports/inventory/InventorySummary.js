@@ -39,6 +39,189 @@ const InventorySummary = ({ filters }) => {
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [totalProfitLoss, setTotalProfitLoss] = useState(0);
+  
+  // 獲取庫存數據
+  useEffect(() => {
+    const fetchInventoryData = async () => {
+      setLoading(true);
+      try {
+        // 構建查詢參數
+        const params = new URLSearchParams();
+        if (filters.supplier) params.append('supplier', filters.supplier);
+        if (filters.category) params.append('category', filters.category);
+        if (filters.productCode) params.append('productCode', filters.productCode);
+        if (filters.productName) params.append('productName', filters.productName);
+        if (filters.productType) params.append('productType', filters.productType);
+        
+        // 添加參數以獲取完整的交易歷史記錄
+        params.append('includeTransactionHistory', 'true');
+        params.append('useSequentialProfitLoss', 'true');
+        
+        const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
+        
+        if (response.data && response.data.data) {
+          // 處理數據分組和計算損益總和
+          processInventoryData(response.data.data);
+        }
+        setError(null);
+      } catch (err) {
+        console.error('獲取庫存數據失敗:', err);
+        setError('獲取庫存數據失敗');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInventoryData();
+  }, [filters]);
+  
+  // 處理庫存數據分組和計算損益總和
+  const processInventoryData = (data) => {
+    // 按產品ID分組
+    const groupedByProduct = {};
+    let profitLossSum = 0;
+    
+    data.forEach(item => {
+      const productId = item.productId;
+      
+      if (!groupedByProduct[productId]) {
+        groupedByProduct[productId] = {
+          productId: productId,
+          productCode: item.productCode,
+          productName: item.productName,
+          category: item.category,
+          supplier: item.supplier,
+          unit: item.unit,
+          price: item.price || (item.type === 'purchase' ? item.purchasePrice : item.sellingPrice),
+          status: item.status,
+          totalQuantity: 0,
+          totalInventoryValue: 0,
+          totalPotentialRevenue: 0,
+          totalPotentialProfit: 0,
+          transactions: []
+        };
+      }
+      
+      // 計算總數量和價值
+      groupedByProduct[productId].totalQuantity += item.quantity;
+      groupedByProduct[productId].totalInventoryValue += item.inventoryValue;
+      groupedByProduct[productId].totalPotentialRevenue += item.potentialRevenue;
+      groupedByProduct[productId].totalPotentialProfit += item.potentialProfit;
+      
+      // 確定交易類型
+      let transactionType = '其他';
+      if (item.type === 'purchase') {
+        transactionType = '進貨';
+      } else if (item.type === 'ship') {
+        transactionType = '出貨';
+      } else if (item.type === 'sale') {
+        transactionType = '銷售';
+      }
+      
+      // 添加交易記錄
+      const transaction = {
+        purchaseOrderNumber: item.purchaseOrderNumber || '-',
+        shippingOrderNumber: item.shippingOrderNumber || '-',
+        saleNumber: item.saleNumber || '-',
+        type: transactionType,
+        quantity: item.quantity,
+        currentStock: item.currentStock || 0,
+        price: item.totalAmount && item.quantity ? Math.abs(item.totalAmount / item.quantity) : 
+               (item.type === 'purchase' ? item.price || item.purchasePrice : 
+               (item.type === 'ship' ? item.price || item.sellingPrice : item.price || item.sellingPrice)),
+        date: item.date || item.lastUpdated || new Date(),
+        orderNumber: item.orderNumber || ''
+      };
+      
+      groupedByProduct[productId].transactions.push(transaction);
+    });
+    
+    // 轉換為數組
+    const groupedArray = Object.values(groupedByProduct);
+    
+    // 計算每個商品的損益總和並取貨單號最大的那筆作為最終值
+    groupedArray.forEach(product => {
+      if (product.transactions.length > 0) {
+        // 根據交易類型計算損益
+        const calculateTransactionProfitLoss = (transaction) => {
+          if (transaction.type === '進貨') {
+            // 進貨為負數
+            return -(transaction.quantity * transaction.price);
+          } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+            // 銷售為正數
+            return transaction.quantity * transaction.price;
+          }
+          return 0;
+        };
+        
+        // 獲取訂單號函數
+        const getOrderNumber = (transaction) => {
+          if (transaction.type === '進貨') {
+            return transaction.purchaseOrderNumber || '-';
+          } else if (transaction.type === '出貨') {
+            return transaction.shippingOrderNumber || '-';
+          } else if (transaction.type === '銷售') {
+            return transaction.saleNumber || '-';
+          }
+          return '-';
+        };
+        
+        // 按貨單號排序交易記錄（由小到大）
+        const sortedTransactions = [...product.transactions].sort((a, b) => {
+          const aOrderNumber = getOrderNumber(a);
+          const bOrderNumber = getOrderNumber(b);
+          return aOrderNumber.localeCompare(bOrderNumber); // 由小到大排序，確保時間順序
+        });
+        
+        // 計算累積損益
+        let cumulativeProfitLoss = 0;
+        sortedTransactions.forEach(transaction => {
+          if (transaction.type === '進貨') {
+            cumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
+          } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+            cumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
+          }
+        });
+        
+        // 按貨單號排序（由大到小）
+        const sortedByDescending = [...product.transactions].sort((a, b) => {
+          const aOrderNumber = getOrderNumber(a);
+          const bOrderNumber = getOrderNumber(b);
+          return bOrderNumber.localeCompare(aOrderNumber); // 由大到小排序，最新的在前面
+        });
+        
+        // 計算貨單號最大的那筆交易的累積損益
+        if (sortedByDescending.length > 0) {
+          // 找到貨單號最大的交易
+          const latestTransaction = sortedByDescending[0];
+          
+          // 找到該交易在原始排序中的位置
+          const index = sortedTransactions.findIndex(t => 
+            getOrderNumber(t) === getOrderNumber(latestTransaction));
+          
+          if (index !== -1) {
+            // 計算到該交易為止的累積損益
+            let latestCumulativeProfitLoss = 0;
+            for (let i = 0; i <= index; i++) {
+              const transaction = sortedTransactions[i];
+              if (transaction.type === '進貨') {
+                latestCumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
+              } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+                latestCumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
+              }
+            }
+            
+            // 將貨單號最大的交易的累積損益加入總損益
+            profitLossSum += latestCumulativeProfitLoss;
+          }
+        }
+      }
+    });
+    
+    // 更新損益總和
+    setTotalProfitLoss(profitLossSum);
+  };
 
   // 格式化金額
   const formatCurrency = (amount) => {
@@ -149,13 +332,9 @@ const InventorySummary = ({ filters }) => {
                     variant="h5" 
                     component="div" 
                     fontWeight="600" 
-                    color={transactionHistory.length > 0 && transactionHistory[transactionHistory.length - 1]?.cumulativeProfitLoss >= 0 
-                      ? 'success.main' 
-                      : 'error.main'}
+                    color={totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
                   >
-                    {transactionHistory.length > 0 
-                      ? formatCurrency(transactionHistory[transactionHistory.length - 1]?.cumulativeProfitLoss || 0)
-                      : formatCurrency(0)}
+                    {formatCurrency(totalProfitLoss)}
                   </Typography>
                 </Box>
                 <Box sx={{ 
