@@ -115,10 +115,24 @@ const AccountingNewPage = () => {
   // 處理項目變更
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...formData.items];
-    updatedItems[index] = {
-      ...updatedItems[index],
-      [field]: field === 'amount' ? (value === '' ? '' : parseFloat(value)) : value
-    };
+    
+    // 如果是類別變更為"退押金"，確保金額為負數
+    if (field === 'category' && value === '退押金') {
+      // 如果當前金額為正數或為空，則將其轉為負數
+      const currentAmount = updatedItems[index].amount;
+      if (currentAmount > 0) {
+        updatedItems[index].amount = -Math.abs(currentAmount);
+      } else if (currentAmount === '' || currentAmount === 0) {
+        // 如果為空或為0，暫時不處理，等待用戶輸入金額
+      }
+    }
+    
+    // 如果是金額變更且類別為"退押金"，確保金額為負數
+    if (field === 'amount' && updatedItems[index].category === '退押金' && value !== '') {
+      updatedItems[index][field] = -Math.abs(parseFloat(value));
+    } else {
+      updatedItems[index][field] = field === 'amount' ? (value === '' ? '' : parseFloat(value)) : value;
+    }
     
     // 如果是類別變更，同時更新categoryId
     if (field === 'category' && categories.length > 0) {
@@ -268,6 +282,23 @@ const AccountingNewPage = () => {
                     onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
                     fullWidth
                     required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: item.category === '退押金' ? 'red' : 'inherit',
+                          borderWidth: item.category === '退押金' ? 2 : 1
+                        },
+                        '&:hover fieldset': {
+                          borderColor: item.category === '退押金' ? 'red' : 'inherit'
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: item.category === '退押金' ? 'red' : 'primary.main'
+                        }
+                      },
+                      '& .MuiInputBase-input': {
+                        color: item.category === '退押金' ? 'red' : 'inherit'
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={3}>
