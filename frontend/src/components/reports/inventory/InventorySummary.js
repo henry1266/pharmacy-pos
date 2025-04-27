@@ -18,6 +18,8 @@ const InventorySummary = ({ filters }) => {
   const [totalGrossProfit, setTotalGrossProfit] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const [totalIncome, setTotalIncome] = useState(0); // 總收入（出貨和銷售的總和）
+  const [totalCost, setTotalCost] = useState(0); // 總成本（進貨的總和）
   
   // 獲取庫存數據
   useEffect(() => {
@@ -61,6 +63,8 @@ const InventorySummary = ({ filters }) => {
     let profitLossSum = 0;
     let inventoryValueSum = 0;
     let grossProfitSum = 0;
+    let incomeSum = 0; // 總收入（出貨和銷售的總和）
+    let costSum = 0; // 總成本（進貨的總和）
     
     data.forEach(item => {
       const productId = item.productId;
@@ -161,8 +165,12 @@ const InventorySummary = ({ filters }) => {
         sortedTransactions.forEach(transaction => {
           if (transaction.type === '進貨') {
             cumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
+            // 計算進貨總成本
+            costSum += transaction.quantity * transaction.price;
           } else if (transaction.type === '銷售' || transaction.type === '出貨') {
             cumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
+            // 計算出貨和銷售總收入
+            incomeSum += transaction.quantity * transaction.price;
           }
         });
         
@@ -206,6 +214,9 @@ const InventorySummary = ({ filters }) => {
     setTotalInventoryValue(inventoryValueSum);
     // 根據公式計算總毛利：總毛利 = 庫存價值 + 損益總和
     setTotalGrossProfit(inventoryValueSum + profitLossSum);
+    // 更新總收入和總成本
+    setTotalIncome(incomeSum);
+    setTotalCost(costSum);
   };
 
   // 格式化金額
@@ -253,7 +264,7 @@ const InventorySummary = ({ filters }) => {
         }}
       >
         <Typography variant="body2" fontWeight="500">
-          總收入: {formatCurrency(totalProfitLoss >= 0 ? totalProfitLoss : 0)} - 總成本: {formatCurrency(totalProfitLoss < 0 ? Math.abs(totalProfitLoss) : 0)}
+          總收入: {formatCurrency(totalIncome)} - 總成本: {formatCurrency(totalCost)}
         </Typography>
       </Paper>
     );
