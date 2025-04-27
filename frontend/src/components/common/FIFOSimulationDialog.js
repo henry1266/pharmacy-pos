@@ -187,47 +187,72 @@ const FIFOSimulationDialog = ({
     
     // 使用setTimeout確保成本已被應用到輸入欄位
     setTimeout(() => {
+      // 確保所有必要的表單欄位都有值
+      const ensureFormFieldsPopulated = () => {
+        // 獲取所有必要的輸入欄位
+        const didInput = document.querySelector('input[name="did"]');
+        const dnameInput = document.querySelector('input[name="dname"]');
+        const dquantityInput = document.querySelector('input[name="dquantity"]');
+        const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
+        
+        // 如果產品代碼欄位為空，填充來自simulationResult的值
+        if (didInput && !didInput.value && simulationResult.productCode) {
+          console.log('填充產品代碼:', simulationResult.productCode);
+          didInput.value = simulationResult.productCode;
+          // 觸發change事件，確保React狀態更新
+          didInput.dispatchEvent(new Event('change', { bubbles: true }));
+          didInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        
+        // 如果產品名稱欄位為空，填充來自simulationResult的值
+        if (dnameInput && !dnameInput.value && simulationResult.productName) {
+          console.log('填充產品名稱:', simulationResult.productName);
+          dnameInput.value = simulationResult.productName;
+          // 觸發change事件，確保React狀態更新
+          dnameInput.dispatchEvent(new Event('change', { bubbles: true }));
+          dnameInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        
+        // 如果數量欄位為空，填充來自simulationResult的值
+        if (dquantityInput && !dquantityInput.value && simulationResult.quantity) {
+          console.log('填充數量:', simulationResult.quantity);
+          dquantityInput.value = simulationResult.quantity;
+          // 觸發change事件，確保React狀態更新
+          dquantityInput.dispatchEvent(new Event('change', { bubbles: true }));
+          dquantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        
+        // 確保總成本欄位有值
+        if (dtotalCostInput && dtotalCostInput.value === '' && simulationResult.totalCost) {
+          console.log('填充總成本:', simulationResult.totalCost);
+          dtotalCostInput.value = simulationResult.totalCost;
+          // 觸發change事件，確保React狀態更新
+          dtotalCostInput.dispatchEvent(new Event('change', { bubbles: true }));
+          dtotalCostInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        
+        // 檢查所有欄位是否都已填充
+        return (
+          didInput && didInput.value && 
+          dnameInput && dnameInput.value && 
+          dquantityInput && dquantityInput.value && 
+          dtotalCostInput && dtotalCostInput.value !== ''
+        );
+      };
+      
+      // 確保表單欄位已填充
+      const fieldsPopulated = ensureFormFieldsPopulated();
+      console.log('表單欄位已填充:', fieldsPopulated);
+      
       // 直接調用handleAddItem函數來添加項目
-      if (handleAddItem) {
+      if (handleAddItem && fieldsPopulated) {
         console.log('直接調用handleAddItem函數添加項目');
         handleAddItem();
       } else {
-        console.log('handleAddItem函數未定義，嘗試替代方案');
+        console.log('嘗試替代方案');
         
-        // 確保所有必要的輸入欄位都有值
-        const ensureFormFieldsValid = () => {
-          // 檢查產品代碼和名稱欄位
-          const didInput = document.querySelector('input[name="did"]');
-          const dnameInput = document.querySelector('input[name="dname"]');
-          const dquantityInput = document.querySelector('input[name="dquantity"]');
-          const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
-          
-          // 檢查所有必要欄位是否都有值
-          if (didInput && !didInput.value) {
-            console.error('產品代碼欄位為空');
-            return false;
-          }
-          
-          if (dnameInput && !dnameInput.value) {
-            console.error('產品名稱欄位為空');
-            return false;
-          }
-          
-          if (dquantityInput && !dquantityInput.value) {
-            console.error('數量欄位為空');
-            return false;
-          }
-          
-          if (dtotalCostInput && dtotalCostInput.value === '') {
-            console.error('總成本欄位為空');
-            return false;
-          }
-          
-          return true;
-        };
-        
-        // 檢查表單欄位
-        if (ensureFormFieldsValid()) {
+        // 再次檢查表單欄位
+        if (fieldsPopulated) {
           // 尋找添加按鈕並直接點擊
           const addButton = document.querySelector('button[type="button"][aria-label="添加項目"]');
           if (addButton) {
@@ -257,7 +282,7 @@ const FIFOSimulationDialog = ({
             console.error('找不到總成本輸入欄位');
           }
         } else {
-          console.error('表單欄位驗證失敗');
+          console.error('表單欄位未完全填充，無法添加項目');
         }
       }
     }, 700);
