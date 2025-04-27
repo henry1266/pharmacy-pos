@@ -51,15 +51,19 @@ const SupplierSelect = ({
       filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
-          const filtered = filterSuppliers(suppliers, event.target.value);
+          const inputValue = event.target.value;
+          
+          // 如果提供了Enter鍵回調函數，則調用它並傳遞當前輸入值
+          if (onEnterKeyDown) {
+            onEnterKeyDown(inputValue);
+            return;
+          }
+          
+          // 如果沒有提供回調函數，則執行默認行為
+          const filtered = filterSuppliers(suppliers, inputValue);
           if (filtered.length > 0) {
             onChange(event, filtered[0]);
             event.preventDefault();
-
-            // 如果提供了Enter鍵回調函數，則調用它
-            if (onEnterKeyDown) {
-              onEnterKeyDown();
-            }
           }
         }
       }}
