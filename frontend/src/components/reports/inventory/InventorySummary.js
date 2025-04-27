@@ -5,6 +5,8 @@ import {
   CardContent,
   Typography,
   Grid,
+  Tooltip,
+  Paper,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -14,6 +16,8 @@ const InventorySummary = ({ filters }) => {
   const [totalProfitLoss, setTotalProfitLoss] = useState(0);
   const [totalInventoryValue, setTotalInventoryValue] = useState(0);
   const [totalGrossProfit, setTotalGrossProfit] = useState(0);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   
   // 獲取庫存數據
   useEffect(() => {
@@ -213,15 +217,63 @@ const InventorySummary = ({ filters }) => {
     }).format(amount);
   };
 
+  // 處理滑鼠進入總毛利區域
+  const handleMouseEnter = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltipPosition({
+      top: rect.bottom,
+      left: rect.left + rect.width / 2
+    });
+    setShowTooltip(true);
+  };
+
+  // 處理滑鼠離開總毛利區域
+  const handleMouseLeave = () => {
+    setShowTooltip(false);
+  };
+
+  // 自定義懸浮視窗樣式
+  const CustomTooltip = () => {
+    if (!showTooltip) return null;
+    
+    return (
+      <Paper
+        sx={{
+          position: 'fixed',
+          top: `${tooltipPosition.top}px`,
+          left: `${tooltipPosition.left}px`,
+          transform: 'translateX(-50%)',
+          padding: '10px 15px',
+          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(5px)',
+          borderRadius: 'var(--border-radius)',
+          boxShadow: 'var(--card-shadow)',
+          zIndex: 1500,
+          transition: 'opacity 0.2s ease-in-out',
+        }}
+      >
+        <Typography variant="body2" fontWeight="500">
+          總收入: {formatCurrency(totalProfitLoss >= 0 ? totalProfitLoss : 0)} - 總成本: {formatCurrency(totalProfitLoss < 0 ? Math.abs(totalProfitLoss) : 0)}
+        </Typography>
+      </Paper>
+    );
+  };
+
   return (
     <Box>
       <Grid container spacing={2}>
-	  {/* 總毛利 */}
+      {/* 總毛利 */}
         <Grid item xs={12} sm={6} md={2}>
-          <Card sx={{ 
-            borderRadius: 'var(--border-radius)',
-            boxShadow: 'var(--card-shadow)'
-          }}>
+          <Card 
+            sx={{ 
+              borderRadius: 'var(--border-radius)',
+              boxShadow: 'var(--card-shadow)',
+              position: 'relative',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
@@ -241,12 +293,12 @@ const InventorySummary = ({ filters }) => {
             </CardContent>
           </Card>
         </Grid>
-	  {/* 插入 "-" 符號 */}
-		<Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' },  justifyContent: 'center', alignItems: 'center' }}>
-			<Typography variant="h4" fontWeight="700" color="text.secondary">
-				-
-			</Typography>
-		</Grid>
+      {/* 插入 "-" 符號 */}
+        <Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' },  justifyContent: 'center', alignItems: 'center' }}>
+          <Typography variant="h4" fontWeight="700" color="text.secondary">
+            -
+          </Typography>
+        </Grid>
 
         {/* 總庫存價值 */}
         <Grid item xs={12} sm={6} md={2}>
@@ -269,11 +321,11 @@ const InventorySummary = ({ filters }) => {
           </Card>
         </Grid>
           {/* 插入 "=" 符號 */}
-		<Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', alignItems: 'center' }}>
-			<Typography variant="h4" fontWeight="700" color="text.secondary">
-				=
-			</Typography>
-		</Grid>
+        <Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', alignItems: 'center' }}>
+          <Typography variant="h4" fontWeight="700" color="text.secondary">
+            =
+          </Typography>
+        </Grid>
         {/* 損益總和 */}
         <Grid item xs={12} sm={6} md={2}>
           <Card sx={{ 
@@ -300,6 +352,9 @@ const InventorySummary = ({ filters }) => {
           </Card>
         </Grid>
       </Grid>
+      
+      {/* 自定義懸浮視窗 */}
+      <CustomTooltip />
     </Box>
   );
 };
