@@ -308,10 +308,10 @@ const InventorySummary = ({ filters }) => {
           >
             <CardContent sx={{ 
               display: 'flex', 
-              flexDirection: 'column', 
+              flexDirection: 'row', 
               alignItems: 'center', 
-              justifyContent: 'center',
-              textAlign: 'center',
+              justifyContent: 'flex-start',
+              textAlign: 'left',
               flexGrow: 1,
               padding: 3
             }}>
@@ -319,20 +319,22 @@ const InventorySummary = ({ filters }) => {
                 sx={{ 
                   fontSize: 40, 
                   color: totalGrossProfit >= 0 ? 'success.main' : 'error.main',
-                  mb: 1
+                  mr: 2
                 }} 
               />
-              <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                總毛利
-              </Typography>
-              <Typography 
-                variant="h5" 
-                component="div" 
-                fontWeight="600" 
-                color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
-              >
-                {formatCurrency(totalGrossProfit)}
-              </Typography>
+              <Box>
+                <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                  總毛利
+                </Typography>
+                <Typography 
+                  variant="h5" 
+                  component="div" 
+                  fontWeight="600" 
+                  color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
+                >
+                  {formatCurrency(totalGrossProfit)}
+                </Typography>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -348,10 +350,10 @@ const InventorySummary = ({ filters }) => {
           <Card sx={{ ...cardStyle }}>
             <CardContent sx={{ 
               display: 'flex', 
-              flexDirection: 'column', 
+              flexDirection: 'row', 
               alignItems: 'center', 
-              justifyContent: 'center',
-              textAlign: 'center',
+              justifyContent: 'flex-start',
+              textAlign: 'left',
               flexGrow: 1,
               padding: 3
             }}>
@@ -359,15 +361,17 @@ const InventorySummary = ({ filters }) => {
                 sx={{ 
                   fontSize: 40, 
                   color: 'info.main',
-                  mb: 1
+                  mr: 2
                 }} 
               />
-              <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                總庫存價值
-              </Typography>
-              <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                {formatCurrency(totalInventoryValue)}
-              </Typography>
+              <Box>
+                <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                  總庫存價值
+                </Typography>
+                <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
+                  {formatCurrency(totalInventoryValue)}
+                </Typography>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -382,10 +386,10 @@ const InventorySummary = ({ filters }) => {
           <Card sx={{ ...cardStyle }}>
             <CardContent sx={{ 
               display: 'flex', 
-              flexDirection: 'column', 
+              flexDirection: 'row', 
               alignItems: 'center', 
-              justifyContent: 'center',
-              textAlign: 'center',
+              justifyContent: 'flex-start',
+              textAlign: 'left',
               flexGrow: 1,
               padding: 3
             }}>
@@ -393,20 +397,22 @@ const InventorySummary = ({ filters }) => {
                 sx={{ 
                   fontSize: 40, 
                   color: totalProfitLoss >= 0 ? 'success.main' : 'error.main',
-                  mb: 1
+                  mr: 2
                 }} 
               />
-              <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                損益總和
-              </Typography>
-              <Typography 
-                variant="h5" 
-                component="div" 
-                fontWeight="600" 
-                color={totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
-              >
-                {formatCurrency(totalProfitLoss)}
-              </Typography>
+              <Box>
+                <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                  損益總和
+                </Typography>
+                <Typography 
+                  variant="h5" 
+                  component="div" 
+                  fontWeight="600" 
+                  color={totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+                >
+                  {formatCurrency(totalProfitLoss)}
+                </Typography>
+              </Box>
             </CardContent>
           </Card>
         </Grid>

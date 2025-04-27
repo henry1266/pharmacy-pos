@@ -177,6 +177,92 @@ const FIFOSimulationDialog = ({
     );
   };
 
+  // 處理應用成本按鈕點擊
+  const handleApplyCost = () => {
+    // 先關閉對話框，避免用戶重複點擊
+    onClose();
+    
+    // 應用成本到輸入欄位
+    onApplyCost(simulationResult.totalCost);
+    
+    // 使用setTimeout確保成本已被應用到輸入欄位
+    setTimeout(() => {
+      // 直接調用handleAddItem函數來添加項目
+      if (handleAddItem) {
+        console.log('直接調用handleAddItem函數添加項目');
+        handleAddItem();
+      } else {
+        console.log('handleAddItem函數未定義，嘗試替代方案');
+        
+        // 確保所有必要的輸入欄位都有值
+        const ensureFormFieldsValid = () => {
+          // 檢查產品代碼和名稱欄位
+          const didInput = document.querySelector('input[name="did"]');
+          const dnameInput = document.querySelector('input[name="dname"]');
+          const dquantityInput = document.querySelector('input[name="dquantity"]');
+          const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
+          
+          // 檢查所有必要欄位是否都有值
+          if (didInput && !didInput.value) {
+            console.error('產品代碼欄位為空');
+            return false;
+          }
+          
+          if (dnameInput && !dnameInput.value) {
+            console.error('產品名稱欄位為空');
+            return false;
+          }
+          
+          if (dquantityInput && !dquantityInput.value) {
+            console.error('數量欄位為空');
+            return false;
+          }
+          
+          if (dtotalCostInput && dtotalCostInput.value === '') {
+            console.error('總成本欄位為空');
+            return false;
+          }
+          
+          return true;
+        };
+        
+        // 檢查表單欄位
+        if (ensureFormFieldsValid()) {
+          // 尋找添加按鈕並直接點擊
+          const addButton = document.querySelector('button[type="button"][aria-label="添加項目"]');
+          if (addButton) {
+            console.log('找到添加按鈕，直接點擊');
+            addButton.click();
+            return;
+          }
+          
+          // 如果找不到添加按鈕，嘗試模擬按下Enter鍵
+          const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
+          if (dtotalCostInput) {
+            console.log('模擬在總成本輸入欄位中按下Enter鍵', dtotalCostInput.value);
+            
+            // 創建一個模擬的鍵盤事件（Enter鍵）
+            const enterEvent = new KeyboardEvent('keydown', {
+              key: 'Enter',
+              code: 'Enter',
+              keyCode: 13,
+              which: 13,
+              bubbles: true,
+              cancelable: true
+            });
+            
+            // 在總成本輸入欄位上觸發Enter鍵事件
+            dtotalCostInput.dispatchEvent(enterEvent);
+          } else {
+            console.error('找不到總成本輸入欄位');
+          }
+        } else {
+          console.error('表單欄位驗證失敗');
+        }
+      }
+    }, 700);
+  };
+
   return (
     <Dialog 
       open={open} 
@@ -192,45 +278,7 @@ const FIFOSimulationDialog = ({
         {simulationResult && !loading && !error && (
           <Button 
             ref={applyCostButtonRef}
-            onClick={() => {
-              // 先關閉對話框，避免用戶重複點擊
-              onClose();
-              
-              // 應用成本到輸入欄位
-              onApplyCost(simulationResult.totalCost);
-              
-              // 使用setTimeout確保成本已被應用到輸入欄位
-              setTimeout(() => {
-                // 直接調用handleAddItem函數來添加項目，而不是通過模擬按鍵事件
-                if (handleAddItem) {
-                  console.log('直接調用handleAddItem函數添加項目');
-                  handleAddItem();
-                } else {
-                  console.error('handleAddItem函數未定義');
-                  
-                  // 作為備用方案，嘗試模擬按鍵事件
-                  const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
-                  if (dtotalCostInput) {
-                    console.log('備用方案：模擬在總成本輸入欄位中按下Enter鍵', dtotalCostInput.value);
-                    
-                    // 創建一個模擬的鍵盤事件（Enter鍵）
-                    const enterEvent = new KeyboardEvent('keydown', {
-                      key: 'Enter',
-                      code: 'Enter',
-                      keyCode: 13,
-                      which: 13,
-                      bubbles: true,
-                      cancelable: true
-                    });
-                    
-                    // 在總成本輸入欄位上觸發Enter鍵事件
-                    dtotalCostInput.dispatchEvent(enterEvent);
-                  } else {
-                    console.error('找不到總成本輸入欄位');
-                  }
-                }
-              }, 700);
-            }} 
+            onClick={handleApplyCost}
             color="primary"
             variant="contained"
             startIcon={<AddIcon />}
