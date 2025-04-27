@@ -157,6 +157,43 @@ onKeyDown={(event) => {
                 value={formData.paymentStatus}
                 onChange={handleInputChange}
                 label="付款狀態"
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    // 當按下Enter鍵時，將焦點轉移到status-select
+                    setTimeout(() => {
+                      try {
+                        // 嘗試方法1：使用選擇器找到狀態下拉框
+                        const statusSelect = document.querySelector('select[name="status"]');
+                        if (statusSelect) {
+                          statusSelect.focus();
+                          return;
+                        }
+                        
+                        // 嘗試方法2：使用更通用的選擇器
+                        const statusInput = document.querySelector('div[role="button"][aria-labelledby="mui-component-select-status"]');
+                        if (statusInput) {
+                          statusInput.focus();
+                          statusInput.click();
+                          return;
+                        }
+                        
+                        // 嘗試方法3：模擬Tab鍵
+                        const tabEvent = new KeyboardEvent('keydown', {
+                          key: 'Tab',
+                          code: 'Tab',
+                          keyCode: 9,
+                          which: 9,
+                          bubbles: true,
+                          cancelable: true
+                        });
+                        event.target.dispatchEvent(tabEvent);
+                      } catch (error) {
+                        console.error('無法自動聚焦到狀態選擇欄位:', error);
+                      }
+                    }, 100);
+                  }
+                }}
               >
                 <MenuItem value="未付">未付</MenuItem>
                 <MenuItem value="已下收">已下收</MenuItem>
@@ -180,8 +217,9 @@ onKeyDown={(event) => {
 						value={formData.status}
 						onChange={handleInputChange}
 						label="狀態"
+						id="status-select"
 						onKeyDown={(event) => {
-							if (event.key === 'Tab') {
+							if (event.key === 'Tab' || event.key === 'Enter') {
 								event.preventDefault();
 								// 跳轉到藥品選擇欄位
 								setTimeout(() => {
