@@ -63,64 +63,138 @@ const BasicInfoForm = ({
     // 按指定次數模擬Tab鍵按下
     for (let i = 0; i < times; i++) {
       setTimeout(() => {
-        document.dispatchEvent(tabEvent);
+        document.activeElement.dispatchEvent(tabEvent);
       }, i * 100); // 每次按Tab之間間隔100毫秒
     }
   };
   
-  // 調劑按鈕處理函數 - 使用單一狀態更新
+  // 模擬下鍵按下的函數
+  const simulateArrowDownKey = (times = 1) => {
+    // 創建下鍵事件
+    const arrowDownEvent = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      keyCode: 40,
+      which: 40
+    });
+    
+    // 按指定次數模擬下鍵按下
+    for (let i = 0; i < times; i++) {
+      setTimeout(() => {
+        document.activeElement.dispatchEvent(arrowDownEvent);
+      }, i * 100); // 每次按下鍵之間間隔100毫秒
+    }
+  };
+  
+  // 模擬Enter鍵按下的函數
+  const simulateEnterKey = () => {
+    // 創建Enter鍵事件
+    const enterEvent = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      key: 'Enter',
+      code: 'Enter',
+      keyCode: 13,
+      which: 13
+    });
+    
+    // 模擬Enter鍵按下
+    document.activeElement.dispatchEvent(enterEvent);
+  };
+  
+  // 模擬輸入文本的函數
+  const simulateTextInput = (element, text) => {
+    // 設置輸入值
+    if (element.tagName === 'INPUT') {
+      // 直接設置input元素的值
+      element.value = text;
+      
+      // 觸發input事件
+      const inputEvent = new Event('input', { bubbles: true });
+      element.dispatchEvent(inputEvent);
+      
+      // 觸發change事件
+      const changeEvent = new Event('change', { bubbles: true });
+      element.dispatchEvent(changeEvent);
+    }
+  };
+  
+  // 調劑按鈕處理函數 - 實現新的鍵盤導航序列
   const handleDispenseClick = () => {
     // 開始處理
     setIsProcessing(true);
     setProcessingStep(1);
     
-    // 尋找供應商"調劑"
-    const dispensarySupplier = suppliers.find(s => s.name === '調劑');
-    
-    // 一次性更新所有狀態
-    if (dispensarySupplier) {
-      // 1. 先設置供應商
-      handleSupplierChange(null, dispensarySupplier);
-      
-      // 2. 然後設置付款狀態
-      setTimeout(() => {
-        setProcessingStep(2);
-        const paymentEvent = {
-          target: {
-            name: 'paymentStatus',
-            value: '已開立'
-          }
-        };
-        handleInputChange(paymentEvent);
+    // 1. 將焦點設置到供應商輸入框
+    setTimeout(() => {
+      const supplierInput = document.querySelector('#supplier-select input');
+      if (supplierInput) {
+        supplierInput.focus();
+        console.log('已將焦點設置到供應商輸入框');
         
-        // 設置付款狀態後模擬一個Tab鍵按下
+        // 2. 輸入"WRUQ"
         setTimeout(() => {
-          simulateTabKey(1);
-        }, 200);
-        
-        // 3. 再設置狀態
-        setTimeout(() => {
-          setProcessingStep(3);
-          const updateEvent = {
-            target: {
-              name: 'status',
-              value: 'completed'
-            }
-          };
-          handleInputChange(updateEvent);
+          simulateTextInput(supplierInput, 'WRUQ');
+          console.log('已在供應商輸入框中輸入WRUQ');
           
-          // 設置狀態後模擬三個Tab鍵按下
+          // 3. 按Enter鍵
           setTimeout(() => {
-            simulateTabKey(3);
+            simulateEnterKey();
+            console.log('已在供應商輸入框中按下Enter鍵');
+            setProcessingStep(2);
             
-            // 處理完成
-            setProcessingStep(4);
-            setIsProcessing(false);
-            setProcessingStep(0);
-          }, 200);
-        }, 500);
-      }, 500);
-    }
+            // 4. 按下鍵三次
+            setTimeout(() => {
+              simulateArrowDownKey(3);
+              console.log('已按下鍵三次');
+              
+              // 5. 按Enter鍵
+              setTimeout(() => {
+                simulateEnterKey();
+                console.log('已按下Enter鍵選擇付款狀態');
+                
+                // 6. 按Tab鍵
+                setTimeout(() => {
+                  simulateTabKey(1);
+                  console.log('已按Tab鍵移至狀態欄位');
+                  setProcessingStep(3);
+                  
+                  // 7. 按下鍵兩次
+                  setTimeout(() => {
+                    simulateArrowDownKey(2);
+                    console.log('已按下鍵兩次');
+                    
+                    // 8. 按Enter鍵
+                    setTimeout(() => {
+                      simulateEnterKey();
+                      console.log('已按下Enter鍵選擇狀態');
+                      
+                      // 9. 按Tab鍵四次
+                      setTimeout(() => {
+                        simulateTabKey(4);
+                        console.log('已按Tab鍵四次移至藥品選擇區域');
+                        
+                        // 處理完成
+                        setProcessingStep(4);
+                        setTimeout(() => {
+                          setIsProcessing(false);
+                          setProcessingStep(0);
+                        }, 200);
+                      }, 100);
+                    }, 100);
+                  }, 100);
+                }, 100);
+              }, 100);
+            }, 100);
+          }, 100);
+        }, 100);
+      } else {
+        console.error('找不到供應商輸入框');
+        setIsProcessing(false);
+      }
+    }, 100);
   };
 
   // 渲染處理步驟指示器
