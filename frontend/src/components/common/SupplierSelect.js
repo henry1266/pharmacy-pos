@@ -53,17 +53,28 @@ const SupplierSelect = ({
         if (['Enter', 'Tab'].includes(event.key)) {
           const inputValue = event.target.value;
           
-          // 如果提供了Enter鍵回調函數，則調用它並傳遞當前輸入值
-          if (onEnterKeyDown) {
-            onEnterKeyDown(inputValue);
-            return;
-          }
-          
-          // 如果沒有提供回調函數，則執行默認行為
+          // 獲取過濾後的供應商列表
           const filtered = filterSuppliers(suppliers, inputValue);
+          
+          // 如果有過濾結果，自動選擇第一個選項
           if (filtered.length > 0) {
+            // 選擇第一個選項
             onChange(event, filtered[0]);
             event.preventDefault();
+            
+            // 延遲執行，確保選擇已完成
+            setTimeout(() => {
+              // 如果提供了Enter鍵回調函數，則調用它
+              if (onEnterKeyDown) {
+                onEnterKeyDown(inputValue);
+              } else {
+                // 如果沒有提供回調函數，則嘗試將焦點移至付款狀態欄位
+                const paymentStatusSelect = document.getElementById('payment-status-select');
+                if (paymentStatusSelect) {
+                  paymentStatusSelect.focus();
+                }
+              }
+            }, 50);
           }
         }
       }}
