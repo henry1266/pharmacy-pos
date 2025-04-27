@@ -9,14 +9,12 @@ import {
   CardContent,
   Button,
   CircularProgress,
-  Alert,
   MenuItem,
   FormControl,
   InputLabel,
   Select,
   Chip,
   Tabs,
-  Tab,
   Container
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -536,11 +534,7 @@ const ReportsPage = () => {
         <Typography variant="h4" component="h1" fontWeight="700" color="var(--text-primary)">
           報表
         </Typography>
-        <Typography color="var(--text-secondary)">
-          查看銷售、庫存和記帳報表
-        </Typography>
       </Box>
-      
       <Box sx={{ mb: 4 }}>
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel id="report-type-label">報表類型</InputLabel>
