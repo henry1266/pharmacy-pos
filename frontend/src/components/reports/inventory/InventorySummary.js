@@ -215,7 +215,7 @@ const InventorySummary = ({ filters }) => {
 
   return (
     <Box>
-      <Grid container spacing={1}>
+      <Grid container spacing={2}>
 	  {/* 總毛利 */}
         <Grid item xs={12} sm={6} md={2}>
           <Card sx={{ 
@@ -242,7 +242,7 @@ const InventorySummary = ({ filters }) => {
           </Card>
         </Grid>
 	  {/* 插入 "-" 符號 */}
-		<Grid item xs={12} sm={6} md={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+		<Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' },  justifyContent: 'center', alignItems: 'center' }}>
 			<Typography variant="h4" fontWeight="700" color="text.secondary">
 				-
 			</Typography>
@@ -269,7 +269,7 @@ const InventorySummary = ({ filters }) => {
           </Card>
         </Grid>
           {/* 插入 "=" 符號 */}
-		<Grid item xs={12} sm={6} md={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+		<Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', alignItems: 'center' }}>
 			<Typography variant="h4" fontWeight="700" color="text.secondary">
 				=
 			</Typography>
