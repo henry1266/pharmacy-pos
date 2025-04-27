@@ -79,11 +79,36 @@ const ShippingOrderFormPage = () => {
     if (isEditMode && id) {
       dispatch(fetchShippingOrder(id));
     } else {
-      // 在新增模式下，設置焦點到藥品選擇欄位
+      // 在新增模式下，設置焦點到供應商選擇欄位
       setTimeout(() => {
-        const productInput = document.getElementById('product-select-input');
-        if (productInput) {
-          productInput.focus();
+        try {
+          // 嘗試方法1：使用ID選擇器
+          const supplierSelect = document.querySelector('#supplier-select input');
+          if (supplierSelect) {
+            console.log('找到供應商選擇欄位，設置焦點');
+            supplierSelect.focus();
+            return;
+          }
+          
+          // 嘗試方法2：使用更通用的選擇器
+          const autocompleteInput = document.querySelector('.MuiAutocomplete-input');
+          if (autocompleteInput) {
+            console.log('找到自動完成輸入欄位，設置焦點');
+            autocompleteInput.focus();
+            return;
+          }
+          
+          // 嘗試方法3：使用標籤選擇器
+          const supplierLabel = document.querySelector('label:contains("供應商")');
+          if (supplierLabel) {
+            console.log('找到供應商標籤，嘗試設置焦點到相關輸入欄位');
+            const input = supplierLabel.closest('.MuiFormControl-root').querySelector('input');
+            if (input) {
+              input.focus();
+            }
+          }
+        } catch (error) {
+          console.error('自動聚焦到供應商選擇欄位失敗:', error);
         }
       }, 800); // 延長時間確保DOM已完全載入
     }
