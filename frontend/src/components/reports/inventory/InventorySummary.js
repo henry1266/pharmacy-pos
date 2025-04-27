@@ -251,7 +251,7 @@ const InventorySummary = ({ filters }) => {
       <Paper
         sx={{
           position: 'fixed',
-          top: `${tooltipPosition.top}px`,
+          top: `${tooltipPosition.top + 3}px`,
           left: `${tooltipPosition.left}px`,
           transform: 'translateX(-50%)',
           padding: '10px 15px',
