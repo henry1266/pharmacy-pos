@@ -9,6 +9,11 @@ import {
   Paper,
 } from '@mui/material';
 import axios from 'axios';
+import { 
+  TrendingUp, 
+  Inventory, 
+  BarChart 
+} from '@mui/icons-material';
 
 const InventorySummary = ({ filters }) => {
   const [loading, setLoading] = useState(false);
@@ -270,95 +275,138 @@ const InventorySummary = ({ filters }) => {
     );
   };
 
+  // 卡片共用樣式
+  const cardStyle = {
+    borderRadius: 'var(--border-radius)',
+    boxShadow: 'var(--card-shadow)',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column'
+  };
+
+  // 連接符號共用樣式
+  const connectorStyle = {
+    display: { xs: 'none', md: 'flex' },
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%'
+  };
+
   return (
     <Box>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} alignItems="center">
       {/* 總毛利 */}
-        <Grid item xs={12} sm={6} md={2}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card 
             sx={{ 
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--card-shadow)',
+              ...cardStyle,
               position: 'relative',
               cursor: 'pointer'
             }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box>
-                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                    總毛利
-                  </Typography>
-                  <Typography 
-                    variant="h5" 
-                    component="div" 
-                    fontWeight="600" 
-                    color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
-                  >
-                    {formatCurrency(totalGrossProfit)}
-                  </Typography>
-                </Box>
-              </Box>
+            <CardContent sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              textAlign: 'center',
+              flexGrow: 1,
+              padding: 3
+            }}>
+              <TrendingUp 
+                sx={{ 
+                  fontSize: 40, 
+                  color: totalGrossProfit >= 0 ? 'success.main' : 'error.main',
+                  mb: 1
+                }} 
+              />
+              <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                總毛利
+              </Typography>
+              <Typography 
+                variant="h5" 
+                component="div" 
+                fontWeight="600" 
+                color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
+              >
+                {formatCurrency(totalGrossProfit)}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
-      {/* 插入 "-" 符號 */}
-        <Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' },  justifyContent: 'center', alignItems: 'center' }}>
+      {/* 插入 "—" 符號 */}
+        <Grid item xs={12} sm={6} md={1} sx={connectorStyle}>
           <Typography variant="h4" fontWeight="700" color="text.secondary">
-            -
+            —
           </Typography>
         </Grid>
 
         {/* 總庫存價值 */}
-        <Grid item xs={12} sm={6} md={2}>
-          <Card sx={{ 
-            borderRadius: 'var(--border-radius)',
-            boxShadow: 'var(--card-shadow)'
-          }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box>
-                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                    總庫存價值
-                  </Typography>
-                  <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-                    {formatCurrency(totalInventoryValue)}
-                  </Typography>
-                </Box>
-              </Box>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ ...cardStyle }}>
+            <CardContent sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              textAlign: 'center',
+              flexGrow: 1,
+              padding: 3
+            }}>
+              <Inventory 
+                sx={{ 
+                  fontSize: 40, 
+                  color: 'info.main',
+                  mb: 1
+                }} 
+              />
+              <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                總庫存價值
+              </Typography>
+              <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
+                {formatCurrency(totalInventoryValue)}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
           {/* 插入 "=" 符號 */}
-        <Grid item xs={12} sm={6} md={1} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', alignItems: 'center' }}>
+        <Grid item xs={12} sm={6} md={1} sx={connectorStyle}>
           <Typography variant="h4" fontWeight="700" color="text.secondary">
             =
           </Typography>
         </Grid>
         {/* 損益總和 */}
-        <Grid item xs={12} sm={6} md={2}>
-          <Card sx={{ 
-            borderRadius: 'var(--border-radius)',
-            boxShadow: 'var(--card-shadow)'
-          }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box>
-                  <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
-                    損益總和
-                  </Typography>
-                  <Typography 
-                    variant="h5" 
-                    component="div" 
-                    fontWeight="600" 
-                    color={totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
-                  >
-                    {formatCurrency(totalProfitLoss)}
-                  </Typography>
-                </Box>
-              </Box>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ ...cardStyle }}>
+            <CardContent sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              textAlign: 'center',
+              flexGrow: 1,
+              padding: 3
+            }}>
+              <BarChart 
+                sx={{ 
+                  fontSize: 40, 
+                  color: totalProfitLoss >= 0 ? 'success.main' : 'error.main',
+                  mb: 1
+                }} 
+              />
+              <Typography color="var(--text-secondary)" fontSize="0.875rem" fontWeight="500" gutterBottom>
+                損益總和
+              </Typography>
+              <Typography 
+                variant="h5" 
+                component="div" 
+                fontWeight="600" 
+                color={totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+              >
+                {formatCurrency(totalProfitLoss)}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
