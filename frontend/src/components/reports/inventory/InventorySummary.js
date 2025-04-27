@@ -6,12 +6,6 @@ import {
   Typography,
   Grid,
 } from '@mui/material';
-import { 
-  AttachMoney, 
-  TrendingUp, 
-  Inventory as InventoryIcon,
-  Timeline
-} from '@mui/icons-material';
 import axios from 'axios';
 
 const InventorySummary = ({ filters }) => {
@@ -221,9 +215,9 @@ const InventorySummary = ({ filters }) => {
 
   return (
     <Box>
-      <Grid container spacing={3} sx={{ mb: 2 }}>
+      <Grid container spacing={1}>
 	  {/* 總毛利 */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2}>
           <Card sx={{ 
             borderRadius: 'var(--border-radius)',
             boxShadow: 'var(--card-shadow)'
@@ -243,18 +237,6 @@ const InventorySummary = ({ filters }) => {
                     {formatCurrency(totalGrossProfit)}
                   </Typography>
                 </Box>
-                <Box sx={{ 
-                  backgroundColor: 'rgba(0, 217, 126, 0.1)', 
-                  color: 'var(--success-color)',
-                  width: 40,
-                  height: 40,
-                  borderRadius: 'var(--border-radius)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <TrendingUp />
-                </Box>
               </Box>
             </CardContent>
           </Card>
@@ -267,7 +249,7 @@ const InventorySummary = ({ filters }) => {
 		</Grid>
 
         {/* 總庫存價值 */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2}>
           <Card sx={{ 
             borderRadius: 'var(--border-radius)',
             boxShadow: 'var(--card-shadow)'
@@ -282,18 +264,6 @@ const InventorySummary = ({ filters }) => {
                     {formatCurrency(totalInventoryValue)}
                   </Typography>
                 </Box>
-                <Box sx={{ 
-                  backgroundColor: 'var(--primary-light)', 
-                  color: 'var(--primary-color)',
-                  width: 40,
-                  height: 40,
-                  borderRadius: 'var(--border-radius)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <AttachMoney />
-                </Box>
               </Box>
             </CardContent>
           </Card>
@@ -305,7 +275,7 @@ const InventorySummary = ({ filters }) => {
 			</Typography>
 		</Grid>
         {/* 損益總和 */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2}>
           <Card sx={{ 
             borderRadius: 'var(--border-radius)',
             boxShadow: 'var(--card-shadow)'
@@ -324,18 +294,6 @@ const InventorySummary = ({ filters }) => {
                   >
                     {formatCurrency(totalProfitLoss)}
                   </Typography>
-                </Box>
-                <Box sx={{ 
-                  backgroundColor: 'rgba(245, 166, 35, 0.1)', 
-                  color: 'var(--warning-color)',
-                  width: 40,
-                  height: 40,
-                  borderRadius: 'var(--border-radius)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Timeline />
                 </Box>
               </Box>
             </CardContent>
