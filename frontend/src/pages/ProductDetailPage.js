@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import ProductDetailCard from '../components/products/ProductDetailCard';
 import InventoryList from '../components/common/InventoryList';
 import FIFOProfitCalculator from '../components/products/FIFOProfitCalculator';
+import { getProductCategories } from '../services/productCategoryService';
 
 const ProductDetailPage = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const ProductDetailPage = () => {
   
   const [product, setProduct] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -41,6 +43,10 @@ const ProductDetailPage = () => {
         // 獲取供應商列表
         const suppliersResponse = await axios.get('/api/suppliers');
         setSuppliers(suppliersResponse.data);
+        
+        // 獲取產品分類
+        const categoriesData = await getProductCategories();
+        setCategories(categoriesData);
         
         // 獲取產品詳情
         const productResponse = await axios.get(`/api/products/${id}`);
@@ -169,6 +175,7 @@ const ProductDetailPage = () => {
           <ProductDetailCard
             product={product}
             suppliers={suppliers}
+            categories={categories}
             handleEditProduct={() => handleEdit()}
             handleDeleteProduct={() => handleDeleteProduct(product.id)}
           />
