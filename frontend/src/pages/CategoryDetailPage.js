@@ -160,7 +160,8 @@ const CategoryDetailPage = () => {
     { field: 'code', headerName: '編號', width: 70 },
     { field: 'healthInsuranceCode', headerName: '健保碼', width: 110 },
     { field: 'name', headerName: '名稱', width: 220 },
-    { 
+    { field: '', headerName: '庫存', width: 80 },
+	{ 
       field: 'purchasePrice',
       headerName: '進貨價',
       width: 70,
@@ -228,19 +229,19 @@ const CategoryDetailPage = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2">
-                      創建時間: {new Date(category.createdAt).toLocaleString()}
-                    </Typography>
+					毛利總和:
+					</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2">
-                      更新時間: {new Date(category.updatedAt).toLocaleString()}
+                      損益總和:
                     </Typography>
                   </Grid>
                 </Grid>
               </CardContent>
             </Card>
             
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               分類下的產品 ({products.length})
             </Typography>
             
@@ -249,7 +250,7 @@ const CategoryDetailPage = () => {
                 此分類下暫無產品
               </Alert>
             ) : (
-              <Box sx={{ height: 400, width: '100%' }}>
+              <Box sx={{ height: 500, width: '100%' }}>
                 <DataGrid
                   rows={products} // Use the updated products state with profitLoss
                   columns={columns}
