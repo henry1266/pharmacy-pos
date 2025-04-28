@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Inventory = require('../models/Inventory');
+const Sale = require('../models/Sale');
 const { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } = require('../utils/fifoCalculator');
 
 // @route   GET api/fifo/product/:productId
@@ -23,6 +24,101 @@ router.get('/product/:productId', async (req, res) => {
     res.json(fifoResult);
   } catch (err) {
     console.error('FIFO計算錯誤:', err.message);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+});
+
+// @route   GET api/fifo/sale/:saleId
+// @desc    Calculate FIFO profit for a specific sale
+// @access  Public
+router.get('/sale/:saleId', async (req, res) => {
+  try {
+    // 獲取銷售訂單
+    const sale = await Sale.findById(req.params.saleId)
+      .populate('items.product');
+    
+    if (!sale) {
+      return res.status(404).json({ msg: '找不到該銷售訂單' });
+    }
+    
+    // 計算每個產品的FIFO毛利
+    const itemsWithProfit = [];
+    let totalProfit = 0;
+    let totalCost = 0;
+    
+    for (const item of sale.items) {
+      // 獲取產品的所有庫存記錄
+      const inventories = await Inventory.find({ product: item.product._id })
+        .populate('product')
+        .sort({ lastUpdated: 1 });
+      
+      if (inventories.length === 0) {
+        // 如果沒有庫存記錄，添加默認值
+        itemsWithProfit.push({
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: 0,
+            grossProfit: 0,
+            profitMargin: '0.00%'
+          }
+        });
+        continue;
+      }
+      
+      // 計算FIFO成本和毛利
+      const fifoResult = calculateProductFIFO(inventories);
+      
+      // 找到對應此銷售的毛利記錄
+      const profitRecord = fifoResult.profitMargins.find(p => 
+        p.orderType === 'sale' && 
+        p.orderId === req.params.saleId
+      );
+      
+      // 如果找到對應記錄，添加到結果中
+      if (profitRecord) {
+        const itemProfit = {
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: profitRecord.totalCost,
+            grossProfit: profitRecord.grossProfit,
+            profitMargin: profitRecord.profitMargin
+          }
+        };
+        
+        itemsWithProfit.push(itemProfit);
+        totalProfit += profitRecord.grossProfit;
+        totalCost += profitRecord.totalCost;
+      } else {
+        // 如果沒有找到對應記錄，添加默認值
+        itemsWithProfit.push({
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: 0,
+            grossProfit: 0,
+            profitMargin: '0.00%'
+          }
+        });
+      }
+    }
+    
+    // 計算總毛利率
+    const totalRevenue = sale.totalAmount || 0;
+    const totalProfitMargin = totalRevenue > 0 
+      ? ((totalProfit / totalRevenue) * 100).toFixed(2) + '%' 
+      : '0.00%';
+    
+    res.json({
+      success: true,
+      items: itemsWithProfit,
+      summary: {
+        totalCost,
+        totalRevenue,
+        totalProfit,
+        totalProfitMargin
+      }
+    });
+  } catch (err) {
+    console.error('銷售訂單FIFO計算錯誤:', err.message);
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 });

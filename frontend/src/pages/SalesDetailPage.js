@@ -17,7 +17,8 @@ import {
   Chip,
   Snackbar,
   Alert,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -34,8 +35,11 @@ const SalesDetailPage = () => {
   
   // 狀態管理
   const [sale, setSale] = useState(null);
+  const [fifoData, setFifoData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fifoLoading, setFifoLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fifoError, setFifoError] = useState(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -60,10 +64,30 @@ const SalesDetailPage = () => {
       });
     }
   };
+  
+  // 獲取FIFO毛利數據
+  const fetchFifoData = async () => {
+    try {
+      setFifoLoading(true);
+      const response = await axios.get(`/api/fifo/sale/${id}`);
+      setFifoData(response.data);
+      setFifoLoading(false);
+    } catch (err) {
+      console.error('獲取FIFO毛利數據失敗:', err);
+      setFifoError('獲取FIFO毛利數據失敗');
+      setFifoLoading(false);
+      setSnackbar({
+        open: true,
+        message: '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg || err.message),
+        severity: 'error'
+      });
+    }
+  };
 
   // 初始化加載數據
   useEffect(() => {
     fetchSaleData();
+    fetchFifoData();
   }, [id]);
 
   // 處理關閉提示
@@ -268,6 +292,52 @@ const SalesDetailPage = () => {
                     {sale.totalAmount.toFixed(2)}
                   </Typography>
                 </Grid>
+                {fifoData && !fifoLoading && (
+                  <>
+                    <Grid item xs={4}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        總成本
+                      </Typography>
+                      <Typography variant="body1">
+                        {fifoData.summary.totalCost.toFixed(2)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        總毛利
+                      </Typography>
+                      <Typography 
+                        variant="body1" 
+                        color={fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main'}
+                        fontWeight="bold"
+                      >
+                        {fifoData.summary.totalProfit.toFixed(2)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        毛利率
+                      </Typography>
+                      <Typography 
+                        variant="body1" 
+                        color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success.main' : 'error.main'}
+                        fontWeight="bold"
+                      >
+                        {fifoData.summary.totalProfitMargin}
+                      </Typography>
+                    </Grid>
+                  </>
+                )}
+                {fifoLoading && (
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        計算毛利中...
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
               </Grid>
               {sale.note && (
                 <Box sx={{ mt: 2 }}>
@@ -299,38 +369,111 @@ const SalesDetailPage = () => {
                       <TableCell align="right">單價</TableCell>
                       <TableCell align="right">數量</TableCell>
                       <TableCell align="right">小計</TableCell>
+                      {fifoData && !fifoLoading && (
+                        <>
+                          <TableCell align="right">成本</TableCell>
+                          <TableCell align="right">毛利</TableCell>
+                          <TableCell align="right">毛利率</TableCell>
+                        </>
+                      )}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {sale.items.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{item.product?.code || ''}</TableCell>
-                        <TableCell>{item.product?.name || item.name || ''}</TableCell>
-                        <TableCell align="right">{item.price.toFixed(2)}</TableCell>
-                        <TableCell align="right">{item.quantity}</TableCell>
-                        <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {sale.items.map((item, index) => {
+                      // 查找對應的FIFO毛利數據
+                      const fifoItem = fifoData?.items?.find(fi => 
+                        fi.product._id === item.product._id
+                      );
+                      
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>{item.product?.code || ''}</TableCell>
+                          <TableCell>{item.product?.name || item.name || ''}</TableCell>
+                          <TableCell align="right">{item.price.toFixed(2)}</TableCell>
+                          <TableCell align="right">{item.quantity}</TableCell>
+                          <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
+                          {fifoData && !fifoLoading && (
+                            <>
+                              <TableCell align="right">
+                                {fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : '0.00'}
+                              </TableCell>
+                              <TableCell 
+                                align="right"
+                                sx={{ 
+                                  color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 
+                                    ? 'success.main' 
+                                    : 'error.main'
+                                }}
+                              >
+                                {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : '0.00'}
+                              </TableCell>
+                              <TableCell 
+                                align="right"
+                                sx={{ 
+                                  color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 
+                                    ? 'success.main' 
+                                    : 'error.main'
+                                }}
+                              >
+                                {fifoItem ? fifoItem.fifoProfit.profitMargin : '0.00%'}
+                              </TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      );
+                    })}
                     <TableRow>
-                      <TableCell colSpan={3} />
+                      <TableCell colSpan={fifoData && !fifoLoading ? 4 : 3} />
                       <TableCell align="right">
                         <Typography variant="subtitle2">小計:</Typography>
                       </TableCell>
                       <TableCell align="right">
                         {(sale.totalAmount + (sale.discount || 0)).toFixed(2)}
                       </TableCell>
+                      {fifoData && !fifoLoading && (
+                        <>
+                          <TableCell align="right">
+                            <Typography variant="subtitle2">總成本:</Typography>
+                          </TableCell>
+                          <TableCell align="right" colSpan={2}>
+                            <Typography variant="subtitle2">
+                              {fifoData.summary.totalCost.toFixed(2)}
+                            </Typography>
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={3} />
+                      <TableCell colSpan={fifoData && !fifoLoading ? 4 : 3} />
                       <TableCell align="right">
                         <Typography variant="subtitle2">折扣:</Typography>
                       </TableCell>
                       <TableCell align="right">
                         {(sale.discount || 0).toFixed(2)}
                       </TableCell>
+                      {fifoData && !fifoLoading && (
+                        <>
+                          <TableCell align="right">
+                            <Typography variant="subtitle2">總毛利:</Typography>
+                          </TableCell>
+                          <TableCell 
+                            align="right" 
+                            colSpan={2}
+                            sx={{ 
+                              color: fifoData.summary.totalProfit >= 0 
+                                ? 'success.main' 
+                                : 'error.main'
+                            }}
+                          >
+                            <Typography variant="subtitle2">
+                              {fifoData.summary.totalProfit.toFixed(2)}
+                            </Typography>
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={3} />
+                      <TableCell colSpan={fifoData && !fifoLoading ? 4 : 3} />
                       <TableCell align="right">
                         <Typography variant="subtitle2" fontWeight="bold">總金額:</Typography>
                       </TableCell>
@@ -339,6 +482,26 @@ const SalesDetailPage = () => {
                           {sale.totalAmount.toFixed(2)}
                         </Typography>
                       </TableCell>
+                      {fifoData && !fifoLoading && (
+                        <>
+                          <TableCell align="right">
+                            <Typography variant="subtitle2" fontWeight="bold">毛利率:</Typography>
+                          </TableCell>
+                          <TableCell 
+                            align="right" 
+                            colSpan={2}
+                            sx={{ 
+                              color: parseFloat(fifoData.summary.totalProfitMargin) >= 0 
+                                ? 'success.main' 
+                                : 'error.main'
+                            }}
+                          >
+                            <Typography variant="subtitle2" fontWeight="bold">
+                              {fifoData.summary.totalProfitMargin}
+                            </Typography>
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   </TableBody>
                 </Table>
