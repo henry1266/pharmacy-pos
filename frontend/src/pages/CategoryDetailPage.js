@@ -12,9 +12,6 @@ import {
   Alert,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemText
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { getProductCategory, getProductsByCategory } from '../services/productCategoryService';
@@ -67,17 +64,12 @@ const CategoryDetailPage = () => {
   
   // 產品表格列定義
   const columns = [
-    { field: 'code', headerName: '編號', width: 120 },
-    { field: 'name', headerName: '名稱', width: 200 },
-    { field: 'unit', headerName: '單位', width: 100 },
-    { field: 'purchasePrice', headerName: '進貨價', width: 120, type: 'number' },
-    { field: 'sellingPrice', headerName: '售價', width: 120, type: 'number' },
-    { 
-      field: 'productType', 
-      headerName: '類型', 
-      width: 120,
-      valueFormatter: (params) => params.value === 'product' ? '商品' : '藥品'
-    }
+    { field: 'code', headerName: '編號', width: 70 },
+    { field: 'healthInsuranceCode', headerName: '健保碼', width: 110 },
+	{ field: 'name', headerName: '名稱', width: 220 },
+    { field: 'purchasePrice', headerName: '進貨價', width: 70, type: 'number' },
+    { field: 'healthInsurancePrice', headerName: '健保價', width: 70 },
+	{ field: '', headerName: '損益總和', width: 80, type: 'number' },
   ];
   
   // 處理產品點擊
@@ -117,12 +109,12 @@ const CategoryDetailPage = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2">
-                      創建時間: {new Date(category.createdAt).toLocaleString()}
+                      創建時間
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2">
-                      更新時間: {new Date(category.updatedAt).toLocaleString()}
+                      更新時間
                     </Typography>
                   </Grid>
                 </Grid>
