@@ -63,6 +63,11 @@ const MainLayout = ({ children }) => {
       icon: (location.pathname === '/products') ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
       path: '/products' 
     },
+    { 
+      text: '產品分類', 
+      icon: (location.pathname === '/product-categories') ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
+      path: '/product-categories' 
+    },
 	{ 
 		text: '進貨單管理', 
 		icon: (location.pathname === '/purchase-orders') ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 

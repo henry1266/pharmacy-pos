@@ -315,6 +315,12 @@ const ProductCategoryManager = () => {
                             <ListItemText
                               primary={category.name}
                               secondary={category.description || '無描述'}
+                              primaryTypographyProps={{
+                                sx: { color: '#000000', fontWeight: 500 }
+                              }}
+                              secondaryTypographyProps={{
+                                sx: { color: 'rgba(0, 0, 0, 0.7)' }
+                              }}
                             />
                           </ListItem>
                         )}
