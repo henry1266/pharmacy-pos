@@ -258,7 +258,6 @@ const ProductCategoryManager = () => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             onClick={() => navigate(`/product-categories/${category._id}`)}
-                            sx={{ cursor: 'pointer' }}
                             secondaryAction={
                               <Box>
                                 <IconButton
@@ -295,7 +294,16 @@ const ProductCategoryManager = () => {
                               border: '1px solid #eee',
                               borderRadius: 1,
                               mb: 1,
-                              bgcolor: 'background.paper'
+                              bgcolor: 'background.paper',
+                              cursor: 'pointer',
+                              color: 'text.primary',
+                              '& .MuiListItemText-primary': {
+                                color: 'text.primary',
+                                fontWeight: 500
+                              },
+                              '& .MuiListItemText-secondary': {
+                                color: 'text.secondary'
+                              }
                             }}
                           >
                             <IconButton
