@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -11,7 +11,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  CircularProgress,
 } from '@mui/material';
+import { getProductCategories } from '../../services/productCategoryService';
 
 const ProductFormDialog = ({
   open,
@@ -23,6 +25,28 @@ const ProductFormDialog = ({
   handleInputChange,
   handleSave,
 }) => {
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  // 獲取產品分類列表
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const data = await getProductCategories();
+        setCategories(data);
+      } catch (err) {
+        console.error('獲取產品分類失敗:', err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    if (open) {
+      fetchCategories();
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
@@ -112,14 +136,29 @@ const ProductFormDialog = ({
           )}
           
           <Grid item xs={12} sm={6}>
-            <TextField
-              name="category"
-              label="分類"
-              value={currentProduct.category}
-              onChange={handleInputChange}
-              fullWidth
-              margin="dense"
-            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="category-label">分類</InputLabel>
+              {loadingCategories ? (
+                <CircularProgress size={24} sx={{ mt: 2, ml: 1 }} />
+              ) : (
+                <Select
+                  labelId="category-label"
+                  name="category"
+                  value={currentProduct.category || ''}
+                  onChange={handleInputChange}
+                  label="分類"
+                >
+                  <MenuItem value="">
+                    <em>無</em>
+                  </MenuItem>
+                  {categories.map(category => (
+                    <MenuItem key={category._id} value={category._id}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField

@@ -23,6 +23,7 @@ app.use('/api/shipping-orders', require('./routes/shippingOrders'));
 app.use('/api/sales', require('./routes/sales'));
 app.use('/api/accounting', require('./routes/accounting'));
 app.use('/api/accounting-categories', require('./routes/accountingCategories'));
+app.use('/api/product-categories', require('./routes/productCategories'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/fifo', require('./routes/fifo'));

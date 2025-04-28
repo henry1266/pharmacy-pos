@@ -16,7 +16,8 @@ const BaseProductSchema = new mongoose.Schema({
     required: true
   },
   category: {
-    type: String
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProductCategory'
   },
   unit: {
     type: String

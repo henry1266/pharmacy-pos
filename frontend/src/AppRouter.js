@@ -20,6 +20,7 @@ import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 import AccountingPage from './pages/AccountingPage';
 import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
+import ProductCategoryPage from './pages/ProductCategoryPage';
 
 const AppRouter = () => {
   return (
@@ -31,6 +32,7 @@ const AppRouter = () => {
       
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
+      <Route path="/product-categories" element={<ProductCategoryPage />} />
       
       <Route path="/suppliers" element={<SuppliersPage />} />
       
