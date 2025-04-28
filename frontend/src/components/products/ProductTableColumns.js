@@ -5,7 +5,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 
-const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalInventory) => {
+const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalInventory, categories = []) => {
   return [
     { field: 'code', headerName: '商品編號', width: 120 },
     { field: 'name', headerName: '商品名稱', width: 180 },
@@ -39,7 +39,16 @@ const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalIn
         );
       }
     },
-    { field: 'category', headerName: '分類', width: 100 },
+    { 
+      field: 'category', 
+      headerName: '分類', 
+      width: 100,
+      valueGetter: (params) => {
+        if (!params.value) return '無';
+        const category = categories.find(c => c._id === params.value);
+        return category ? category.name : params.value;
+      }
+    },
     { field: 'unit', headerName: '單位', width: 80 },
     { field: 'purchasePrice', headerName: '進貨價', width: 80, type: 'number' },
     {
@@ -91,7 +100,7 @@ const createProductColumns = (handleEditProduct, handleDeleteProduct, getTotalIn
   ];
 };
 
-const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalInventory) => {
+const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalInventory, categories = []) => {
   return [
     { field: 'code', headerName: '藥品編號', width: 80 },
     { field: 'name', headerName: '藥品名稱', width: 180 },
@@ -128,7 +137,16 @@ const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalI
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
     { field: 'healthInsuranceCode', headerName: '健保碼', width: 100 },
     { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },
-    { field: 'category', headerName: '分類', width: 100 },
+    { 
+      field: 'category', 
+      headerName: '分類', 
+      width: 100,
+      valueGetter: (params) => {
+        if (!params.value) return '無';
+        const category = categories.find(c => c._id === params.value);
+        return category ? category.name : params.value;
+      }
+    },
     {
       field: 'actions',
       headerName: '操作',

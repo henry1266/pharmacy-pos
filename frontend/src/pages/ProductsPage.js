@@ -75,8 +75,8 @@ const ProductsPage = () => {
   } = useCsvImport(tabValue, fetchProducts);
   
   // 創建表格列定義
-  const productColumns = createProductColumns(handleEditProduct, handleDeleteProduct, getTotalInventory);
-  const medicineColumns = createMedicineColumns(handleEditProduct, handleDeleteProduct, getTotalInventory);
+  const productColumns = createProductColumns(handleEditProduct, handleDeleteProduct, getTotalInventory, categories);
+  const medicineColumns = createMedicineColumns(handleEditProduct, handleDeleteProduct, getTotalInventory, categories);
   
   // 處理標籤切換
   const handleTabChange = (event, newValue) => {
