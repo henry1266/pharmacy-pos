@@ -22,11 +22,13 @@ pharmacy-pos/
 │       │   ├── accounting/ # 記帳相關組件
 │       │   ├── charts/     # 圖表組件
 │       │   ├── common/     # 共用組件
+│       │   │   └── preview/ # 預覽相關組件
 │       │   ├── filters/    # 過濾器組件
 │       │   ├── layout/     # 布局組件
 │       │   ├── products/   # 產品相關組件
 │       │   ├── purchase-orders/ # 進貨單相關組件
 │       │   ├── reports/    # 報表相關組件
+│       │   │   └── inventory/ # 庫存報表相關組件
 │       │   ├── sales/      # 銷售相關組件
 │       │   ├── settings/   # 設置相關組件
 │       │   ├── shipping-orders/ # 出貨單相關組件
@@ -100,18 +102,54 @@ frontend/src/components/
         └── CsvImportDialog.js  # CSV導入對話框
 ```
 
+### 產品相關組件結構
+
+```
+frontend/src/components/
+└── products/                   # 產品相關組件
+    ├── ProductCategoryManager.js # 產品分類管理組件
+    ├── ProductDetailCard.js    # 產品詳情卡片
+    ├── ProductFormDialog.js    # 產品表單對話框
+    ├── ProductSearchBar.js     # 產品搜尋欄
+    ├── ProductTableColumns.js  # 產品表格列定義
+    ├── ProductTabs.js          # 產品分頁標籤
+    ├── CsvImportDialog.js      # CSV導入對話框
+    └── FIFOProfitCalculator.js # FIFO毛利計算器
+```
+
 ### 報表相關組件結構
 
 ```
 frontend/src/components/
 ├── reports/                    # 報表相關組件
-│   └── AccountingChart.js      # 記帳報表圖表組件
+│   ├── AccountingChart.js      # 記帳報表圖表組件
+│   └── inventory/              # 庫存報表相關組件
+│       └── InventoryReport.js  # 庫存報表組件
 └── charts/                     # 圖表組件
     ├── BarChart.js             # 柱狀圖組件
     └── LineChart.js            # 折線圖組件
 ```
 
+## 服務層結構
+
+```
+frontend/src/services/
+├── accountingCategoryService.js # 記帳分類服務
+└── productCategoryService.js    # 產品分類服務
+```
+
 ## 組件功能說明
+
+### 產品相關組件 (products/)
+
+- **ProductCategoryManager.js**: 產品分類管理組件，提供分類的新增、編輯、刪除和排序功能。
+- **ProductDetailCard.js**: 產品詳情卡片組件，顯示產品的詳細信息，包括分類、供應商等。
+- **ProductFormDialog.js**: 產品表單對話框組件，用於新增和編輯產品信息。
+- **ProductSearchBar.js**: 產品搜尋欄組件，提供多條件搜尋功能。
+- **ProductTableColumns.js**: 產品表格列定義組件，定義產品表格的列結構和顯示邏輯。
+- **ProductTabs.js**: 產品分頁標籤組件，用於切換不同類型的產品視圖。
+- **CsvImportDialog.js**: CSV導入對話框組件，用於批量導入產品數據。
+- **FIFOProfitCalculator.js**: FIFO毛利計算器組件，計算並顯示產品的FIFO毛利數據。
 
 ### 進貨單共用元件 (purchase-orders/common/)
 
@@ -144,10 +182,40 @@ frontend/src/components/
 ### 報表相關組件 (reports/ 和 charts/)
 
 - **AccountingChart.js**: 記帳報表圖表組件，提供多種圖表類型和數據視圖，支持按日期、班別或類別分組，並提供CSV導出功能。
+- **InventoryReport.js**: 庫存報表組件，顯示庫存數據和統計信息。
 - **BarChart.js**: 柱狀圖組件，用於顯示分類數據的比較。
 - **LineChart.js**: 折線圖組件，用於顯示數據的趨勢變化。
 
 ## 後端API結構
+
+### 產品相關API
+
+```
+backend/routes/
+├── products.js                # 產品相關API
+│   ├── GET /api/products      # 獲取所有產品
+│   ├── GET /api/products/:id  # 獲取單個產品
+│   ├── POST /api/products/product # 新增商品
+│   ├── POST /api/products/medicine # 新增藥品
+│   ├── PUT /api/products/:id  # 更新產品
+│   └── DELETE /api/products/:id # 刪除產品
+└── productCategories.js       # 產品分類相關API
+    ├── GET /api/product-categories # 獲取所有產品分類
+    ├── GET /api/product-categories/:id # 獲取單個產品分類
+    ├── POST /api/product-categories # 新增產品分類
+    ├── PUT /api/product-categories/:id # 更新產品分類
+    ├── DELETE /api/product-categories/:id # 刪除產品分類
+    └── PUT /api/product-categories/reorder # 重新排序產品分類
+```
+
+### FIFO毛利計算相關API
+
+```
+backend/routes/
+└── fifo.js                    # FIFO毛利計算相關API
+    ├── GET /api/fifo/product/:productId # 獲取產品的FIFO毛利數據
+    └── GET /api/fifo/sale/:saleId # 獲取銷貨單的FIFO毛利數據
+```
 
 ### 報表相關API
 
@@ -182,11 +250,33 @@ backend/routes/
    - BasicInfo相關組件處理進貨單的基本信息
    - ProductItems相關組件處理進貨單中的藥品項目
 
-4. **報表相關組件**負責數據可視化和分析：
+4. **產品相關組件**負責產品的管理和顯示：
+   - ProductCategoryManager管理產品分類
+   - ProductDetailCard顯示產品詳情
+   - ProductFormDialog處理產品的創建和編輯
+   - FIFOProfitCalculator計算產品的FIFO毛利
+
+5. **報表相關組件**負責數據可視化和分析：
    - AccountingChart組件使用BarChart和LineChart組件來顯示不同類型的圖表
    - 報表組件通過API獲取數據，並提供多種視圖和分析工具
 
 ## 最新功能說明
+
+### 產品分類管理功能
+
+- 實現了產品分類的可管理下拉選單功能
+- 添加了獨立的產品分類管理頁面
+- 支持分類的新增、編輯、刪除和拖拽排序
+- 在產品表單中使用分類下拉選單替代文本輸入
+- 提供分類詳情頁面，顯示分類基本信息和相關產品
+
+### FIFO毛利計算功能
+
+- 實現了產品的FIFO毛利計算功能
+- 在產品詳情頁面顯示FIFO毛利計算結果
+- 在銷貨單上顯示各個品項的FIFO毛利和總毛利
+- 支持按不同時間範圍查看毛利數據
+- 提供毛利率和成本分析
 
 ### 庫存表分類功能
 
@@ -216,6 +306,8 @@ backend/routes/
 
 6. **樣式處理**：將樣式邏輯集中到專門的組件中，提高樣式的一致性和可維護性。
 
+7. **錯誤處理優化**：改進錯誤處理機制，提供更友好的錯誤提示和恢復機制。
+
 ## 後續建議
 
 1. **完全移除舊版組件**：在確認新組件正常工作後，可以移除舊版的purchase-order-form目錄。
@@ -231,3 +323,7 @@ backend/routes/
 6. **報表功能擴展**：添加更多圖表類型和分析工具，提供更豐富的數據分析能力。
 
 7. **數據導出增強**：支持更多格式的數據導出，如Excel、PDF等。
+
+8. **分類功能擴展**：考慮添加多級分類功能，支持更複雜的產品分類結構。
+
+9. **毛利分析增強**：添加更多毛利分析工具，如按時間、供應商、分類等維度的毛利分析。
