@@ -6,8 +6,8 @@ const { check, validationResult } = require('express-validator');
 
 // @route   GET api/product-categories
 // @desc    獲取所有產品分類
-// @access  Private
-router.get('/', auth, async (req, res) => {
+// @access  Public
+router.get('/', async (req, res) => {
   try {
     const categories = await ProductCategory.find({ isActive: true })
       .sort({ order: 1, name: 1 });
@@ -21,8 +21,8 @@ router.get('/', auth, async (req, res) => {
 
 // @route   GET api/product-categories/:id
 // @desc    獲取單筆產品分類
-// @access  Private
-router.get('/:id', auth, async (req, res) => {
+// @access  Public
+router.get('/:id', async (req, res) => {
   try {
     const category = await ProductCategory.findById(req.params.id);
       

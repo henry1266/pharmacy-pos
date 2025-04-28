@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -24,12 +25,15 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { getProductCategories, addProductCategory, updateProductCategory, deleteProductCategory } from '../../services/productCategoryService';
 
 /**
  * 產品分類管理組件
  */
 const ProductCategoryManager = () => {
+  const navigate = useNavigate();
+  
   // 類別狀態
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -253,17 +257,35 @@ const ProductCategoryManager = () => {
                           <ListItem
                             ref={provided.innerRef}
                             {...provided.draggableProps}
+                            onClick={() => navigate(`/product-categories/${category._id}`)}
+                            sx={{ cursor: 'pointer' }}
                             secondaryAction={
                               <Box>
                                 <IconButton
                                   edge="end"
-                                  onClick={() => handleOpenEditDialog(category)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/product-categories/${category._id}`);
+                                  }}
+                                  title="查看分類詳情"
+                                >
+                                  <VisibilityIcon />
+                                </IconButton>
+                                <IconButton
+                                  edge="end"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenEditDialog(category);
+                                  }}
                                 >
                                   <EditIcon />
                                 </IconButton>
                                 <IconButton
                                   edge="end"
-                                  onClick={() => handleDeleteCategory(category._id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteCategory(category._id);
+                                  }}
                                 >
                                   <DeleteIcon />
                                 </IconButton>

@@ -19,6 +19,7 @@ import InventoryList from '../common/InventoryList';
 const ProductDetailCard = ({
   product,
   suppliers,
+  categories,
   handleEditProduct,
   handleDeleteProduct
 }) => {
@@ -72,7 +73,11 @@ const ProductDetailCard = ({
                 : '無'}</Typography>
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2">分類: {product.category || '無'}</Typography>
+            <Typography variant="subtitle2">分類: {
+              product.category ? 
+                categories.find(c => c._id === product.category)?.name || product.category 
+                : '無'
+            }</Typography>
           </Grid>
           <Grid item xs={12} sm={4}>
             <Typography variant="subtitle2">單位: {product.unit || '無'}</Typography>

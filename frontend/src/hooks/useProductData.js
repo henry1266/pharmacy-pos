@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getProductCategories } from '../services/productCategoryService';
 
 const useProductData = () => {
   const [products, setProducts] = useState([]);
   const [medicines, setMedicines] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -63,6 +65,17 @@ const useProductData = () => {
     } catch (err) {
       console.error(err);
       setError('獲取供應商失敗');
+    }
+  };
+  
+  // 獲取所有產品分類
+  const fetchCategories = async () => {
+    try {
+      const data = await getProductCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error(err);
+      setError('獲取產品分類失敗');
     }
   };
 
@@ -152,16 +165,19 @@ const useProductData = () => {
   useEffect(() => {
     fetchProducts();
     fetchSuppliers();
+    fetchCategories();
   }, []);
 
   return {
     products,
     medicines,
     suppliers,
+    categories,
     loading,
     error,
     fetchProducts,
     fetchSuppliers,
+    fetchCategories,
     handleDeleteProduct,
     handleSaveProduct
   };

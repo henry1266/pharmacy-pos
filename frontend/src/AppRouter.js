@@ -21,6 +21,7 @@ import AccountingPage from './pages/AccountingPage';
 import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import ProductCategoryPage from './pages/ProductCategoryPage';
+import CategoryDetailPage from './pages/CategoryDetailPage';
 
 const AppRouter = () => {
   return (
@@ -33,6 +34,7 @@ const AppRouter = () => {
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/product-categories" element={<ProductCategoryPage />} />
+      <Route path="/product-categories/:id" element={<CategoryDetailPage />} />
       
       <Route path="/suppliers" element={<SuppliersPage />} />
       

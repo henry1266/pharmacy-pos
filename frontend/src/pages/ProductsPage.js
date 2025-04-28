@@ -55,6 +55,7 @@ const ProductsPage = () => {
     products, 
     medicines, 
     suppliers, 
+    categories,
     loading, 
     fetchProducts,
     handleDeleteProduct,
@@ -295,6 +296,7 @@ const ProductsPage = () => {
             <ProductDetailCard 
               product={selectedProduct}
               suppliers={suppliers}
+              categories={categories}
               handleEditProduct={handleEditProduct}
               handleDeleteProduct={handleDeleteProduct}
             />
