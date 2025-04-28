@@ -316,10 +316,10 @@ const ProductCategoryManager = () => {
                               primary={category.name}
                               secondary={category.description || '無描述'}
                               primaryTypographyProps={{
-                                sx: { color: '#000000', fontWeight: 500 }
+                                sx: { color: '#000000 !important', fontWeight: 500 }
                               }}
                               secondaryTypographyProps={{
-                                sx: { color: 'rgba(0, 0, 0, 0.7)' }
+                                sx: { color: 'rgba(0, 0, 0, 0.7) !important' }
                               }}
                             />
                           </ListItem>
