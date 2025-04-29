@@ -53,6 +53,10 @@ router.get("/unaccounted-sales", auth, async (req, res) => {
     const products = await BaseProduct.find({ code: { $in: monitoredProductCodes } }, '_id code name');
     if (!products || products.length === 0) return res.json([]);
     const monitoredProductIds = products.map(p => p._id);
+    const productMap = products.reduce((map, p) => {
+      map[p._id.toString()] = p;
+      return map;
+    }, {});
 
     const sales = await Inventory.find({
       product: { $in: monitoredProductIds },
@@ -60,10 +64,19 @@ router.get("/unaccounted-sales", auth, async (req, res) => {
       accountingId: null,
       saleNumber: { $regex: `^${datePrefix}` }
     })
-    .populate('product', 'code name')
+    // .populate('product', 'code name') // Populate later if needed, or use map
     .sort({ lastUpdated: 1 });
 
-    res.json(sales);
+    // Manually add product details to sales records
+    const salesWithProductDetails = sales.map(sale => {
+      const productDetails = productMap[sale.product.toString()];
+      return {
+        ...sale.toObject(), // Convert Mongoose doc to plain object
+        product: productDetails ? { _id: productDetails._id, code: productDetails.code, name: productDetails.name } : { _id: sale.product, code: 'N/A', name: '未知產品' }
+      };
+    });
+
+    res.json(salesWithProductDetails);
   } catch (err) {
     console.error("查詢未標記銷售記錄失敗:", err.message);
     res.status(500).send("伺服器錯誤");
@@ -124,7 +137,7 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 // @route   POST api/accounting
-// @desc    新增記帳記錄 (移除 Transaction, 加入銷售額到總額)
+// @desc    新增記帳記錄 (將關聯銷售加入 items)
 // @access  Private
 router.post(
   "/",
@@ -133,9 +146,9 @@ router.post(
     [
       check("date", "日期為必填欄位").not().isEmpty(),
       check("shift", "班別為必填欄位").isIn(["早", "中", "晚"]),
-      check("items", "至少需要一個項目").isArray().not().isEmpty(),
-      check("items.*.amount", "金額必須為數字").isFloat(),
-      check("items.*.category", "名目為必填欄位").not().isEmpty(),
+      check("items", "至少需要一個項目").isArray(), // Allow empty initially, will add sales
+      check("items.*.amount", "金額必須為數字").optional().isFloat(),
+      check("items.*.category", "名目為必填欄位").optional().not().isEmpty(),
     ],
   ],
   async (req, res) => {
@@ -144,9 +157,9 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Removed Transaction logic
     try {
-      const { date, shift, items } = req.body;
+      const { date, shift } = req.body;
+      let items = req.body.items || []; // Get items from request or default to empty array
       const accountingDate = new Date(date);
 
       // 檢查是否已存在相同日期和班別的記錄
@@ -163,30 +176,44 @@ router.post(
         console.error("內部日期格式化錯誤:", formatError);
         throw new Error("內部日期格式化錯誤"); 
       }
+      
+      // Populate product name for adding to items
       const unaccountedSales = await Inventory.find({
         type: "sale",
         accountingId: null,
         saleNumber: { $regex: `^${datePrefix}` }
-      });
+      }).populate('product', 'name'); // Populate product name
 
-      // 計算未結算銷售總額
-      const unaccountedSalesTotal = unaccountedSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
+      // 將未結算銷售轉換為記帳項目並加入 items 陣列
+      const salesItems = unaccountedSales.map(sale => ({
+        amount: sale.totalAmount || 0,
+        category: "自動關聯銷售", // Define a category for linked sales
+        categoryId: null, // Or a specific ID if you create one for this category
+        note: `銷售單 ${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}`, // Add product name to note
+        isAutoLinked: true // Add a flag to differentiate if needed
+      }));
       
-      // 計算記帳項目總額
-      const itemsTotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
-      
-      // 計算最終總額 (記帳項目 + 未結算銷售)
-      const finalTotalAmount = itemsTotal + unaccountedSalesTotal;
+      // 合併手動輸入的項目和自動關聯的銷售項目
+      const allItems = [...items, ...salesItems];
 
-      // 新增記帳記錄 (包含計算後的總額)
+      // 檢查合併後是否有項目
+      if (allItems.length === 0) {
+         return res.status(400).json({ msg: "沒有手動輸入的項目，且當日無自動關聯的銷售記錄" });
+      }
+
+      // 計算最終總額 (所有項目加總)
+      const finalTotalAmount = allItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+
+      // 新增記帳記錄 (包含合併後的項目和計算後的總額)
       const newAccounting = new Accounting({
-        ...req.body,
-        totalAmount: finalTotalAmount, // 使用計算後的總額
         date: accountingDate,
+        shift,
+        items: allItems, // Use the merged items array
+        totalAmount: finalTotalAmount, // Use the final calculated total
         createdBy: req.user.id,
       });
 
-      const accounting = await newAccounting.save(); // Removed { session }
+      const accounting = await newAccounting.save();
 
       // 更新這些銷售記錄的 accountingId
       if (unaccountedSales.length > 0) {
@@ -194,15 +221,12 @@ router.post(
         await Inventory.updateMany(
           { _id: { $in: saleIdsToUpdate } },
           { $set: { accountingId: accounting._id } }
-          // Removed { session }
         );
         console.log(`Linked ${saleIdsToUpdate.length} sales (by saleNumber prefix ${datePrefix}) to accounting record ${accounting._id}`);
       }
 
-      // Removed Transaction commit/end
       res.json(accounting);
     } catch (err) {
-      // Removed Transaction abort/end
       console.error("新增記帳記錄失敗:", err.message);
       res.status(500).send("伺服器錯誤");
     }
@@ -252,38 +276,40 @@ router.put(
       if (!accounting) return res.status(404).json({ msg: "找不到記帳記錄" });
 
       // 重新計算記帳項目總額
-      const itemsTotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
-      // 注意：更新時是否需要重新關聯銷售並計算總額？目前僅更新項目總額
+      // 注意：更新時是否需要重新關聯銷售並計算總額？目前僅更新手動項目
       // 如果需要，邏輯會更複雜，需要先取消舊關聯，再查找新關聯並計算
-      const finalTotalAmount = itemsTotal; // 暫時只用項目總額
+      // 過濾掉自動關聯的項目，只保留手動項目進行更新
+      const manualItems = items.filter(item => !item.isAutoLinked);
+      const itemsTotal = manualItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      // TODO: Decide if PUT should re-link sales and recalculate total
+      const finalTotalAmount = itemsTotal; // Temporarily only use manual items total for PUT
 
       accounting.date = accountingDate;
       accounting.shift = shift;
-      accounting.items = items;
-      accounting.totalAmount = finalTotalAmount; // 更新總額
+      // 只更新手動項目，保留原有的自動關聯項目 (如果需要更新關聯，需重寫此邏輯)
+      accounting.items = [...accounting.items.filter(item => item.isAutoLinked), ...manualItems]; 
+      accounting.totalAmount = finalTotalAmount; // 更新總額 (暫時只基於手動項目)
 
       accounting = await accounting.save();
       res.json(accounting);
     } catch (err) {
-      console.error(err.message);
+      console.error("更新記帳記錄失敗:", err.message);
       res.status(500).send("伺服器錯誤");
     }
   }
 );
 
 // @route   DELETE api/accounting/:id
-// @desc    刪除記帳記錄 (移除 Transaction)
+// @desc    刪除記帳記錄
 // @access  Private
 router.delete("/:id", auth, async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ msg: "無效的記帳記錄 ID 格式" });
   }
 
-  // Removed Transaction logic
   try {
-    const accounting = await Accounting.findById(req.params.id); // Removed .session(session)
+    const accounting = await Accounting.findById(req.params.id);
     if (!accounting) {
-      // Removed Transaction abort/end
       return res.status(404).json({ msg: "找不到記帳記錄" });
     }
 
@@ -291,17 +317,14 @@ router.delete("/:id", auth, async (req, res) => {
     const updateResult = await Inventory.updateMany(
       { accountingId: accounting._id },
       { $set: { accountingId: null } }
-      // Removed { session }
     );
     console.log(`Unlinked ${updateResult.modifiedCount} sales from accounting record ${accounting._id}`);
 
     // 2. 刪除記帳記錄
-    await Accounting.findByIdAndDelete(req.params.id); // Removed .session(session)
+    await Accounting.findByIdAndDelete(req.params.id);
 
-    // Removed Transaction commit/end
     res.json({ msg: "記帳記錄已刪除，相關銷售記錄已取消連結" });
   } catch (err) {
-    // Removed Transaction abort/end
     console.error("刪除記帳記錄失敗:", err.message);
     res.status(500).send("伺服器錯誤");
   }
