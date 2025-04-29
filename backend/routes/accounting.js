@@ -64,7 +64,6 @@ router.get("/unaccounted-sales", auth, async (req, res) => {
       accountingId: null,
       saleNumber: { $regex: `^${datePrefix}` }
     })
-    // .populate('product', 'code name') // Populate later if needed, or use map
     .sort({ lastUpdated: 1 });
 
     // Manually add product details to sales records
@@ -137,7 +136,7 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 // @route   POST api/accounting
-// @desc    新增記帳記錄 (將關聯銷售加入 items)
+// @desc    新增記帳記錄 (將關聯銷售加入 items, 僅限監測產品, 名目為其他自費, 備註含數量)
 // @access  Private
 router.post(
   "/",
@@ -168,7 +167,7 @@ router.post(
         return res.status(400).json({ msg: "該日期和班別已有記帳記錄" });
       }
 
-      // 找出該日期對應銷售單號前綴且尚未標記的銷售記錄
+      // 找出該日期對應銷售單號前綴且尚未標記的 *監測產品* 銷售記錄
       let datePrefix;
       try {
         datePrefix = format(accountingDate, "yyyyMMdd");
@@ -176,20 +175,33 @@ router.post(
         console.error("內部日期格式化錯誤:", formatError);
         throw new Error("內部日期格式化錯誤"); 
       }
+
+      // 1. 獲取監測產品列表
+      const monitored = await MonitoredProduct.find({}, 'productCode');
+      const monitoredProductCodes = monitored.map(p => p.productCode);
+      let monitoredProductIds = [];
+      if (monitoredProductCodes.length > 0) {
+          const products = await BaseProduct.find({ code: { $in: monitoredProductCodes } }, '_id');
+          monitoredProductIds = products.map(p => p._id);
+      }
       
-      // Populate product name for adding to items
-      const unaccountedSales = await Inventory.find({
-        type: "sale",
-        accountingId: null,
-        saleNumber: { $regex: `^${datePrefix}` }
-      }).populate('product', 'name'); // Populate product name
+      let unaccountedSales = [];
+      if (monitoredProductIds.length > 0) {
+          // 2. 查找符合條件的銷售記錄 (僅限監測產品)
+          unaccountedSales = await Inventory.find({
+            product: { $in: monitoredProductIds }, // *** 只查找監測產品 ***
+            type: "sale",
+            accountingId: null,
+            saleNumber: { $regex: `^${datePrefix}` }
+          }).populate('product', 'name'); // Populate product name
+      }
 
       // 將未結算銷售轉換為記帳項目並加入 items 陣列
       const salesItems = unaccountedSales.map(sale => ({
         amount: sale.totalAmount || 0,
-        category: "自動關聯銷售", // Define a category for linked sales
-        categoryId: null, // Or a specific ID if you create one for this category
-        note: `銷售單 ${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}`, // Add product name to note
+        category: "其他自費", // *** 將名目設為 其他自費 ***
+        categoryId: null, // TODO: Find the ID for '其他自費' category if needed
+        note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`, // *** 加入數量 ***
         isAutoLinked: true // Add a flag to differentiate if needed
       }));
       
@@ -222,7 +234,7 @@ router.post(
           { _id: { $in: saleIdsToUpdate } },
           { $set: { accountingId: accounting._id } }
         );
-        console.log(`Linked ${saleIdsToUpdate.length} sales (by saleNumber prefix ${datePrefix}) to accounting record ${accounting._id}`);
+        console.log(`Linked ${saleIdsToUpdate.length} monitored sales (by saleNumber prefix ${datePrefix}) to accounting record ${accounting._id}`);
       }
 
       res.json(accounting);

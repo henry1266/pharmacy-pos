@@ -12,8 +12,9 @@ const MonitoredProductSchema = new Schema({
   },
   // 可選：記錄添加者和添加時間
   addedBy: {
+    // 恢復為 ObjectId 並保留 ref
     type: Schema.Types.ObjectId,
-    ref: "User" // 假設存在 User 模型
+    ref: "User" 
   },
   addedAt: {
     type: Date,
