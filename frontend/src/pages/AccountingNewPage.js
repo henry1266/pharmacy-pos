@@ -14,7 +14,13 @@ import {
   Snackbar,
   Alert,
   Container,
-  CircularProgress
+  CircularProgress,
+  Table, // Added for sales monitoring
+  TableBody, // Added
+  TableCell, // Added
+  TableContainer, // Added
+  TableHead, // Added
+  TableRow // Added
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -37,8 +43,8 @@ const AccountingNewPage = () => {
   
   // 記帳名目類別狀態
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [errorCategories, setErrorCategories] = useState(null);
   
   // 表單狀態
   const [formData, setFormData] = useState({
@@ -49,19 +55,24 @@ const AccountingNewPage = () => {
       { amount: '', category: '', categoryId: '', note: '' }
     ]
   });
+
+  // 銷售監測狀態
+  const [monitoredProductCode, setMonitoredProductCode] = useState('61001'); // 預設監測產品編號
+  const [unaccountedSales, setUnaccountedSales] = useState([]);
+  const [loadingSales, setLoadingSales] = useState(false);
+  const [salesError, setSalesError] = useState(null);
   
   // 獲取記帳名目類別
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        setLoading(true);
+        setLoadingCategories(true);
         const data = await getAccountingCategories();
         setCategories(data);
         
         // 如果獲取到類別，更新表單項目的預設類別
         if (data.length > 0) {
           const updatedItems = formData.items.map((item, index) => {
-            // 為前兩個項目設置預設類別（如果有）
             if (index < 2 && data[index]) {
               return {
                 ...item,
@@ -78,17 +89,53 @@ const AccountingNewPage = () => {
           }));
         }
         
-        setError(null);
+        setErrorCategories(null);
       } catch (err) {
         console.error('獲取記帳名目類別失敗:', err);
-        setError('獲取記帳名目類別失敗');
+        setErrorCategories('獲取記帳名目類別失敗');
       } finally {
-        setLoading(false);
+        setLoadingCategories(false);
       }
     };
     
     fetchCategories();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 初始加載時執行一次
+
+  // 獲取未標記銷售記錄
+  useEffect(() => {
+    const fetchUnaccountedSales = async () => {
+      if (!formData.date || !monitoredProductCode) {
+        setUnaccountedSales([]);
+        return;
+      }
+      setLoadingSales(true);
+      setSalesError(null);
+      try {
+        const formattedDate = format(formData.date, 'yyyy-MM-dd');
+        const response = await axios.get('/api/accounting/unaccounted-sales', {
+          params: {
+            date: formattedDate,
+            productCode: monitoredProductCode,
+          },
+        });
+        setUnaccountedSales(response.data);
+      } catch (err) {
+        console.error('獲取未標記銷售記錄失敗:', err);
+        // 檢查是否是 404 錯誤 (找不到產品)
+        if (err.response && err.response.status === 404) {
+          setSalesError(`找不到產品編號 ${monitoredProductCode} 或今日無銷售`);
+        } else {
+          setSalesError('獲取未標記銷售記錄失敗');
+        }
+        setUnaccountedSales([]); // 清空銷售記錄
+      } finally {
+        setLoadingSales(false);
+      }
+    };
+
+    fetchUnaccountedSales();
+  }, [formData.date, monitoredProductCode]); // 當日期或監測產品變更時觸發
   
   // 提示訊息狀態
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -116,25 +163,19 @@ const AccountingNewPage = () => {
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...formData.items];
     
-    // 如果是類別變更為"退押金"，確保金額為負數
     if (field === 'category' && value === '退押金') {
-      // 如果當前金額為正數或為空，則將其轉為負數
       const currentAmount = updatedItems[index].amount;
       if (currentAmount > 0) {
         updatedItems[index].amount = -Math.abs(currentAmount);
-      } else if (currentAmount === '' || currentAmount === 0) {
-        // 如果為空或為0，暫時不處理，等待用戶輸入金額
-      }
+      } 
     }
     
-    // 如果是金額變更且類別為"退押金"，確保金額為負數
     if (field === 'amount' && updatedItems[index].category === '退押金' && value !== '') {
       updatedItems[index][field] = -Math.abs(parseFloat(value));
     } else {
       updatedItems[index][field] = field === 'amount' ? (value === '' ? '' : parseFloat(value)) : value;
     }
     
-    // 如果是類別變更，同時更新categoryId
     if (field === 'category' && categories.length > 0) {
       const selectedCategory = categories.find(cat => cat.name === value);
       if (selectedCategory) {
@@ -187,7 +228,6 @@ const AccountingNewPage = () => {
   // 提交表單
   const handleSubmit = async () => {
     try {
-      // 驗證表單
       if (!formData.date) {
         showSnackbar('請選擇日期', 'error');
         return;
@@ -199,11 +239,11 @@ const AccountingNewPage = () => {
       }
       
       const validItems = formData.items.filter(
-        item => item.amount && item.category
+        item => item.amount !== '' && item.category !== ''
       );
       
       if (validItems.length === 0) {
-        showSnackbar('至少需要一個有效的項目', 'error');
+        showSnackbar('至少需要一個有效的項目 (金額和名目皆需填寫)', 'error');
         return;
       }
       
@@ -213,11 +253,9 @@ const AccountingNewPage = () => {
         items: validItems
       };
       
-      // 新增記錄
       await axios.post('/api/accounting', submitData);
       showSnackbar('記帳記錄已新增', 'success');
       
-      // 重置表單或導航回列表頁面
       setTimeout(() => {
         navigate('/accounting');
       }, 1500);
@@ -240,6 +278,7 @@ const AccountingNewPage = () => {
         </Box>
         
         <Grid container spacing={3}>
+          {/* 日期與班別選擇 */}
           <Grid item xs={12} sm={6}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
@@ -269,11 +308,11 @@ const AccountingNewPage = () => {
           {/* 項目列表 */}
           <Grid item xs={12}>
             <Typography variant="h6" gutterBottom>
-              項目
+              記帳項目
             </Typography>
             
             {formData.items.map((item, index) => (
-              <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
+              <Grid container spacing={2} key={index} sx={{ mb: 2, alignItems: 'center' }}>
                 <Grid item xs={12} sm={3}>
                   <TextField
                     label="金額"
@@ -285,18 +324,15 @@ const AccountingNewPage = () => {
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': {
-                          borderColor: item.category === '退押金' ? 'red' : 'inherit',
+                          borderColor: item.category === '退押金' ? 'error.main' : undefined,
                           borderWidth: item.category === '退押金' ? 2 : 1
                         },
-                        '&:hover fieldset': {
-                          borderColor: item.category === '退押金' ? 'red' : 'inherit'
-                        },
                         '&.Mui-focused fieldset': {
-                          borderColor: item.category === '退押金' ? 'red' : 'primary.main'
+                          borderColor: item.category === '退押金' ? 'error.main' : 'primary.main'
                         }
                       },
                       '& .MuiInputBase-input': {
-                        color: item.category === '退押金' ? 'red' : 'inherit'
+                        color: item.category === '退押金' ? 'error.main' : 'inherit'
                       }
                     }}
                   />
@@ -308,16 +344,16 @@ const AccountingNewPage = () => {
                       value={item.category}
                       label="名目"
                       onChange={(e) => handleItemChange(index, 'category', e.target.value)}
-                      disabled={loading}
+                      disabled={loadingCategories}
                     >
-                      {loading ? (
+                      {loadingCategories ? (
                         <MenuItem disabled>
-                          <CircularProgress size={20} />
+                          <CircularProgress size={20} sx={{ mr: 1 }} />
                           載入中...
                         </MenuItem>
-                      ) : error ? (
+                      ) : errorCategories ? (
                         <MenuItem disabled>
-                          無法載入名目類別
+                          <Typography color="error" variant="body2">無法載入名目</Typography>
                         </MenuItem>
                       ) : categories.length > 0 ? (
                         categories.map(category => (
@@ -327,7 +363,7 @@ const AccountingNewPage = () => {
                         ))
                       ) : (
                         <MenuItem disabled>
-                          無可用名目類別
+                          無可用名目
                         </MenuItem>
                       )}
                     </Select>
@@ -341,7 +377,7 @@ const AccountingNewPage = () => {
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={12} sm={2}>
+                <Grid item xs={12} sm={2} sx={{ textAlign: 'right' }}>
                   <IconButton
                     color="error"
                     onClick={() => handleRemoveItem(index)}
@@ -362,10 +398,66 @@ const AccountingNewPage = () => {
               新增項目
             </Button>
           </Grid>
-          
+
+          {/* 銷售監測區塊 */}
           <Grid item xs={12}>
+            <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="h6">
+                  產品監測 - 當日未結算銷售
+                </Typography>
+                <TextField 
+                  label="監測產品編號"
+                  variant="outlined"
+                  size="small"
+                  value={monitoredProductCode}
+                  onChange={(e) => setMonitoredProductCode(e.target.value)}
+                  sx={{ width: '150px' }}
+                />
+              </Box>
+              {loadingSales ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : salesError ? (
+                <Alert severity="error">{salesError}</Alert>
+              ) : unaccountedSales.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
+                  今日尚無此產品的未結算銷售記錄。
+                </Typography>
+              ) : (
+                <TableContainer sx={{ maxHeight: 200 }}> {/* 限制高度 */} 
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow sx={{ '& th': { backgroundColor: '#eee' } }}>
+                        <TableCell>時間</TableCell>
+                        <TableCell align="right">數量</TableCell>
+                        <TableCell align="right">金額</TableCell>
+                        <TableCell>銷售單號</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {unaccountedSales.map((sale) => (
+                        <TableRow key={sale._id} sx={{ '&:hover': { backgroundColor: '#f0f0f0' } }}>
+                          <TableCell>
+                            {format(new Date(sale.lastUpdated), 'HH:mm:ss')}
+                          </TableCell>
+                          <TableCell align="right">{sale.quantity}</TableCell>
+                          <TableCell align="right">${sale.totalAmount?.toFixed(2) ?? '0.00'}</TableCell>
+                          <TableCell>{sale.saleNumber}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Paper>
+          </Grid>
+          
+          {/* 總金額與按鈕 */}
+          <Grid item xs={12} sx={{ mt: 2 }}>
             <Typography variant="h6" align="right">
-              總金額: ${calculateTotal(formData.items)}
+              記帳總金額: ${calculateTotal(formData.items).toFixed(2)}
             </Typography>
           </Grid>
           
@@ -385,11 +477,13 @@ const AccountingNewPage = () => {
         open={openSnackbar}
         autoHideDuration={6000}
         onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
           onClose={() => setOpenSnackbar(false)}
           severity={snackbarSeverity}
           sx={{ width: '100%' }}
+          variant="filled"
         >
           {snackbarMessage}
         </Alert>
@@ -399,3 +493,4 @@ const AccountingNewPage = () => {
 };
 
 export default AccountingNewPage;
+
