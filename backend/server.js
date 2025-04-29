@@ -27,6 +27,7 @@ app.use('/api/product-categories', require('./routes/productCategories'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/fifo', require('./routes/fifo'));
+app.use('/api/monitored-products', require('./routes/monitoredProducts')); // 新增監測產品路由
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === 'production') {
@@ -41,3 +42,4 @@ if (process.env.NODE_ENV === 'production') {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`伺服器已啟動，監聽埠號: ${PORT}`));
+

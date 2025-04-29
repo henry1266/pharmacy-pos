@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge } from '@mui/material';
+import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge, Collapse } from '@mui/material'; // Added Collapse
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
@@ -9,7 +9,6 @@ import LocalMallIcon from '@mui/icons-material/LocalMall';
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import FactoryIcon from '@mui/icons-material/Factory';
 import FactoryOutlinedIcon from '@mui/icons-material/FactoryOutlined';
-
 import PeopleIcon from '@mui/icons-material/People';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptIcon from '@mui/icons-material/Receipt';
@@ -17,9 +16,7 @@ import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
-
 import LogoutIcon from '@mui/icons-material/Logout';
-
 import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
 import AssuredWorkloadOutlinedIcon from '@mui/icons-material/AssuredWorkloadOutlined';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -29,6 +26,10 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
+import CategoryIcon from '@mui/icons-material/Category'; // For Accounting Categories
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart'; // Icon for Monitored Products
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 
 import SettingsModal from '../settings/SettingsModal';
 
@@ -44,56 +45,62 @@ import '../../assets/css/dashui-theme.css';
 const MainLayout = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState(false); // State for accounting submenu
   const navigate = useNavigate();
   const location = useLocation();
 
   const menuItems = [
-	{ 
+    { 
       text: '儀表板', 
       icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, 
       path: '/dashboard' 
     },
-	{ 
-		text: '銷售管理', 
-		icon: (location.pathname === '/sales') ? <SellOutlinedIcon /> : <SellIcon />, 
-		path: '/sales' 
-	},
-	{ 
+    { 
+      text: '銷售管理', 
+      icon: (location.pathname.startsWith('/sales')) ? <SellOutlinedIcon /> : <SellIcon />, 
+      path: '/sales' 
+    },
+    { 
       text: '商品管理', 
-      icon: (location.pathname === '/products') ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
+      icon: (location.pathname.startsWith('/products') || location.pathname.startsWith('/product-categories')) ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
       path: '/products' 
     },
     { 
       text: '產品分類', 
-      icon: (location.pathname === '/product-categories') ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
+      icon: (location.pathname.startsWith('/product-categories')) ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
       path: '/product-categories' 
     },
-	{ 
-		text: '進貨單管理', 
-		icon: (location.pathname === '/purchase-orders') ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
-		path: '/purchase-orders' 
-	},
-	{ 
-		text: '出貨單管理', 
-		icon: (location.pathname === '/shipping-orders') ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
-		path: '/shipping-orders' 
-	},
+    { 
+      text: '進貨單管理', 
+      icon: (location.pathname.startsWith('/purchase-orders')) ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
+      path: '/purchase-orders' 
+    },
+    { 
+      text: '出貨單管理', 
+      icon: (location.pathname.startsWith('/shipping-orders')) ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
+      path: '/shipping-orders' 
+    },
     { 
       text: '供應商管理', 
       icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, 
       path: '/suppliers' 
     },
-	{ 
+    { 
       text: '會員管理', 
       icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, 
       path: '/customers' 
     },
+    // Modified Accounting Menu Item to be a collapsible group
     { 
       text: '記帳系統', 
-      icon: (location.pathname === '/accounting') ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, 
-      path: '/accounting' 
+      icon: (location.pathname.startsWith('/accounting') || location.pathname.startsWith('/settings/monitored-products')) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, 
+      // No direct path, click toggles submenu
+      subItems: [
+        { text: '記帳列表', path: '/accounting' },
+        { text: '名目設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '監測產品設定', path: '/settings/monitored-products', icon: <MonitorHeartIcon fontSize="small" sx={{ ml: 1 }} /> }
+      ]
     },
-	
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports' },
   ];
 
@@ -121,6 +128,16 @@ const MainLayout = ({ children }) => {
     setSettingsOpen(false);
   };
 
+  // Toggle Accounting Submenu
+  const handleAccountingClick = () => {
+    setAccountingSubMenuOpen(!accountingSubMenuOpen);
+  };
+
+  // Function to check if a path belongs to the accounting section
+  const isAccountingPath = (path) => {
+    return path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
       {/* 頂部導航欄 */}
@@ -133,8 +150,7 @@ const MainLayout = ({ children }) => {
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
         }}
       >
-
-		<Toolbar>
+        <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -148,41 +164,39 @@ const MainLayout = ({ children }) => {
             POS系統
           </Typography>
 
-			<NavIconButton
-				to="/shipping-orders/new"
-				tooltip="出貨"
-				activeIcon={<LocalShippingIcon />}
-				inactiveIcon={<LocalShippingOutlinedIcon />}
-			/>
-			
-			<NavIconButton
-				to="/purchase-orders/new"
-				tooltip="進貨"
-				activeIcon={<AssignmentIcon />}
-				inactiveIcon={<AssignmentOutlinedIcon />}
-			/>
-			
+          <NavIconButton
+            to="/shipping-orders/new"
+            tooltip="出貨"
+            activeIcon={<LocalShippingIcon />}
+            inactiveIcon={<LocalShippingOutlinedIcon />}
+          />
+          
+          <NavIconButton
+            to="/purchase-orders/new"
+            tooltip="進貨"
+            activeIcon={<AssignmentIcon />}
+            inactiveIcon={<AssignmentOutlinedIcon />}
+          />
+          
+          <NavIconButton
+            to="/sales/new"
+            tooltip="銷售"
+            activeIcon={<PointOfSaleIcon />}
+            inactiveIcon={<PointOfSaleOutlinedIcon />}
+          />
+          
+          <NavIconButton
+            to="/accounting/new"
+            tooltip="記帳"
+            activeIcon={<AssuredWorkloadIcon />}
+            inactiveIcon={<AssuredWorkloadOutlinedIcon />}
+          />
 
-			<NavIconButton
-				to="/sales/new"
-				tooltip="銷售"
-				activeIcon={<PointOfSaleIcon />}
-				inactiveIcon={<PointOfSaleOutlinedIcon />}
-			/>
-			
-			<NavIconButton
-				to="/accounting/new"
-				tooltip="記帳"
-				activeIcon={<AssuredWorkloadIcon />}
-				inactiveIcon={<AssuredWorkloadOutlinedIcon />}
-			/>
-
-		  
-		  {/* 設置圖標 */}
-          <Tooltip title="設訂">
-		  <IconButton color="inherit" sx={{ mr: 2 }} onClick={handleSettingsClick}>
-            <SettingsIcon />
-          </IconButton>
+          {/* 設置圖標 */}
+          <Tooltip title="設定">
+            <IconButton color="inherit" sx={{ mr: 2 }} onClick={handleSettingsClick}>
+              <SettingsIcon />
+            </IconButton>
           </Tooltip>
           {/* 用戶頭像 */}
           <Avatar 
@@ -227,41 +241,117 @@ const MainLayout = ({ children }) => {
           <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
           
           {/* 菜單項目 */}
-          <List>
+          <List component="nav">
             {menuItems.map((item) => (
-              <ListItem 
-                button 
-                key={item.text} 
-                onClick={() => handleNavigation(item.path)}
-                selected={location.pathname === item.path}
-                sx={{
-                  borderLeft: location.pathname === item.path ? '3px solid var(--primary-color)' : '3px solid transparent',
-                  pl: 2.5,
-                  py: 1.5,
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                  },
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                  }
-                }}
-              >
-                <ListItemIcon sx={{ 
-                  color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                  minWidth: 40
-                }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{ 
-                    sx: { 
-                      color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                      fontWeight: 500
-                    } 
+              item.subItems ? (
+                <React.Fragment key={item.text}>
+                  <ListItem 
+                    button 
+                    onClick={handleAccountingClick}
+                    sx={{
+                      borderLeft: isAccountingPath(location.pathname) ? '3px solid var(--primary-color)' : '3px solid transparent',
+                      pl: 2.5,
+                      py: 1.5,
+                      backgroundColor: isAccountingPath(location.pathname) ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ 
+                      color: isAccountingPath(location.pathname) ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                      minWidth: 40
+                    }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.text} 
+                      primaryTypographyProps={{ 
+                        sx: { 
+                          color: isAccountingPath(location.pathname) ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                          fontWeight: 500
+                        } 
+                      }}
+                    />
+                    {accountingSubMenuOpen ? <ExpandLess sx={{ color: 'rgba(255, 255, 255, 0.7)' }} /> : <ExpandMore sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />}
+                  </ListItem>
+                  <Collapse in={accountingSubMenuOpen} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                      {item.subItems.map((subItem) => (
+                        <ListItem 
+                          button 
+                          key={subItem.text} 
+                          onClick={() => handleNavigation(subItem.path)}
+                          selected={location.pathname === subItem.path}
+                          sx={{
+                            pl: 4, // Indent sub-items
+                            py: 1,
+                            '&.Mui-selected': {
+                              backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            '&:hover': {
+                              backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                            }
+                          }}
+                        >
+                          {subItem.icon && (
+                            <ListItemIcon sx={{ 
+                              color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                              minWidth: 30
+                            }}>
+                              {subItem.icon}
+                            </ListItemIcon>
+                          )}
+                          <ListItemText 
+                            primary={subItem.text} 
+                            primaryTypographyProps={{ 
+                              sx: { 
+                                color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                                fontWeight: location.pathname === subItem.path ? 500 : 400,
+                                fontSize: '0.9rem'
+                              } 
+                            }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Collapse>
+                </React.Fragment>
+              ) : (
+                <ListItem 
+                  button 
+                  key={item.text} 
+                  onClick={() => handleNavigation(item.path)}
+                  selected={location.pathname.startsWith(item.path) && item.path !== '/'} // Adjust selection logic
+                  sx={{
+                    borderLeft: location.pathname.startsWith(item.path) && item.path !== '/' ? '3px solid var(--primary-color)' : '3px solid transparent',
+                    pl: 2.5,
+                    py: 1.5,
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                    }
                   }}
-                />
-              </ListItem>
+                >
+                  <ListItemIcon sx={{ 
+                    color: location.pathname.startsWith(item.path) && item.path !== '/' ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                    minWidth: 40
+                  }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    primaryTypographyProps={{ 
+                      sx: { 
+                        color: location.pathname.startsWith(item.path) && item.path !== '/' ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                        fontWeight: 500
+                      } 
+                    }}
+                  />
+                </ListItem>
+              )
             ))}
           </List>
           
@@ -300,7 +390,7 @@ const MainLayout = ({ children }) => {
         </Box>
       </Drawer>
       
-      {/* 移動設備側邊欄 */}
+      {/* 移動設備側邊欄 (Simplified - only showing top-level items) */}
       <Drawer
         anchor="left"
         open={drawerOpen}
@@ -321,14 +411,14 @@ const MainLayout = ({ children }) => {
         </Box>
         <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
         <List>
-          {menuItems.map((item) => (
+          {menuItems.filter(item => !item.subItems).map((item) => ( // Filter out items with subItems for mobile
             <ListItem 
               button 
               key={item.text} 
               onClick={() => handleNavigation(item.path)}
-              selected={location.pathname === item.path}
+              selected={location.pathname.startsWith(item.path) && item.path !== '/'}
               sx={{
-                borderLeft: location.pathname === item.path ? '3px solid var(--primary-color)' : '3px solid transparent',
+                borderLeft: location.pathname.startsWith(item.path) && item.path !== '/' ? '3px solid var(--primary-color)' : '3px solid transparent',
                 pl: 2.5,
                 py: 1.5,
                 '&.Mui-selected': {
@@ -340,7 +430,7 @@ const MainLayout = ({ children }) => {
               }}
             >
               <ListItemIcon sx={{ 
-                color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                color: location.pathname.startsWith(item.path) && item.path !== '/' ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
                 minWidth: 40
               }}>
                 {item.icon}
@@ -349,13 +439,46 @@ const MainLayout = ({ children }) => {
                 primary={item.text} 
                 primaryTypographyProps={{ 
                   sx: { 
-                    color: location.pathname === item.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                    color: location.pathname.startsWith(item.path) && item.path !== '/' ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
                     fontWeight: 500
                   } 
                 }}
               />
             </ListItem>
           ))}
+          {/* Add Accounting main item for mobile */}
+          <ListItem 
+            button 
+            onClick={() => handleNavigation('/accounting')} // Navigate to main accounting page on mobile
+            selected={isAccountingPath(location.pathname)}
+            sx={{
+              borderLeft: isAccountingPath(location.pathname) ? '3px solid var(--primary-color)' : '3px solid transparent',
+              pl: 2.5,
+              py: 1.5,
+              '&.Mui-selected': {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)'
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)'
+              }
+            }}
+          >
+            <ListItemIcon sx={{ 
+              color: isAccountingPath(location.pathname) ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+              minWidth: 40
+            }}>
+              {location.pathname.startsWith('/accounting') ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />}
+            </ListItemIcon>
+            <ListItemText 
+              primary="記帳系統" 
+              primaryTypographyProps={{ 
+                sx: { 
+                  color: isAccountingPath(location.pathname) ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
+                  fontWeight: 500
+                } 
+              }}
+            />
+          </ListItem>
         </List>
         <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', my: 2 }} />
         <List>
@@ -396,7 +519,7 @@ const MainLayout = ({ children }) => {
           flexGrow: 1,
           p: 3,
           width: '100%',
-          ml: { sm: '0' },
+          ml: { sm: '0' }, // Adjusted margin for permanent drawer
           backgroundColor: 'var(--bg-primary)',
           minHeight: '100vh'
         }}
@@ -421,7 +544,7 @@ const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon }) => {
         <IconButton
           sx={{
             mr: 2,
-            color: isActive ? 'primary.main' : 'grey',
+            color: isActive ? 'primary.main' : 'grey.500', // Use theme color
             transition: 'transform 0.2s ease, color 0.2s ease',
             '&:hover': {
               color: 'primary.main',
@@ -437,3 +560,4 @@ const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon }) => {
 };
 
 export default MainLayout;
+

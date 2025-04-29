@@ -15,12 +15,13 @@ import {
   Alert,
   Container,
   CircularProgress,
-  Table, // Added for sales monitoring
-  TableBody, // Added
-  TableCell, // Added
-  TableContainer, // Added
-  TableHead, // Added
-  TableRow // Added
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel // Added for sorting
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -57,10 +58,12 @@ const AccountingNewPage = () => {
   });
 
   // 銷售監測狀態
-  const [monitoredProductCode, setMonitoredProductCode] = useState('61001'); // 預設監測產品編號
+  // Removed monitoredProductCode state
   const [unaccountedSales, setUnaccountedSales] = useState([]);
   const [loadingSales, setLoadingSales] = useState(false);
   const [salesError, setSalesError] = useState(null);
+  const [order, setOrder] = useState('asc'); // Sort order
+  const [orderBy, setOrderBy] = useState('lastUpdated'); // Sort by column
   
   // 獲取記帳名目類別
   useEffect(() => {
@@ -70,7 +73,6 @@ const AccountingNewPage = () => {
         const data = await getAccountingCategories();
         setCategories(data);
         
-        // 如果獲取到類別，更新表單項目的預設類別
         if (data.length > 0) {
           const updatedItems = formData.items.map((item, index) => {
             if (index < 2 && data[index]) {
@@ -100,12 +102,12 @@ const AccountingNewPage = () => {
     
     fetchCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 初始加載時執行一次
+  }, []);
 
-  // 獲取未標記銷售記錄
+  // 獲取未標記銷售記錄 (Modified to fetch all monitored products)
   useEffect(() => {
     const fetchUnaccountedSales = async () => {
-      if (!formData.date || !monitoredProductCode) {
+      if (!formData.date) {
         setUnaccountedSales([]);
         return;
       }
@@ -113,29 +115,24 @@ const AccountingNewPage = () => {
       setSalesError(null);
       try {
         const formattedDate = format(formData.date, 'yyyy-MM-dd');
+        // Updated API call - no productCode needed
         const response = await axios.get('/api/accounting/unaccounted-sales', {
           params: {
             date: formattedDate,
-            productCode: monitoredProductCode,
           },
         });
         setUnaccountedSales(response.data);
       } catch (err) {
         console.error('獲取未標記銷售記錄失敗:', err);
-        // 檢查是否是 404 錯誤 (找不到產品)
-        if (err.response && err.response.status === 404) {
-          setSalesError(`找不到產品編號 ${monitoredProductCode} 或今日無銷售`);
-        } else {
-          setSalesError('獲取未標記銷售記錄失敗');
-        }
-        setUnaccountedSales([]); // 清空銷售記錄
+        setSalesError(err.response?.data?.msg || '獲取未標記銷售記錄失敗');
+        setUnaccountedSales([]);
       } finally {
         setLoadingSales(false);
       }
     };
 
     fetchUnaccountedSales();
-  }, [formData.date, monitoredProductCode]); // 當日期或監測產品變更時觸發
+  }, [formData.date]); // Only depends on date now
   
   // 提示訊息狀態
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -264,6 +261,68 @@ const AccountingNewPage = () => {
       showSnackbar(err.response?.data?.msg || '提交記帳記錄失敗', 'error');
     }
   };
+
+  // --- Sorting Logic ---
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const stableSort = (array, comparator) => {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+      const order = comparator(a[0], b[0]);
+      if (order !== 0) return order;
+      return a[1] - b[1];
+    });
+    return stabilizedThis.map((el) => el[0]);
+  };
+
+  const getComparator = (order, orderBy) => {
+    return order === 'desc'
+      ? (a, b) => descendingComparator(a, b, orderBy)
+      : (a, b) => -descendingComparator(a, b, orderBy);
+  };
+
+  const descendingComparator = (a, b, orderBy) => {
+    let valA = a[orderBy];
+    let valB = b[orderBy];
+
+    // Handle nested properties like product.code
+    if (orderBy.includes('.')) {
+      const keys = orderBy.split('.');
+      valA = keys.reduce((obj, key) => obj && obj[key], a);
+      valB = keys.reduce((obj, key) => obj && obj[key], b);
+    }
+
+    // Handle date sorting
+    if (orderBy === 'lastUpdated') {
+      valA = new Date(valA);
+      valB = new Date(valB);
+    }
+
+    if (valB < valA) {
+      return -1;
+    }
+    if (valB > valA) {
+      return 1;
+    }
+    return 0;
+  };
+
+  const sortedSales = stableSort(unaccountedSales, getComparator(order, orderBy));
+  // --- End Sorting Logic ---
+
+  // Table Headers
+  const headCells = [
+    { id: 'lastUpdated', label: '時間', numeric: false },
+    { id: 'product.code', label: '產品編號', numeric: false }, // Added Product Code
+    { id: 'product.name', label: '產品名稱', numeric: false }, // Added Product Name
+    { id: 'quantity', label: '數量', numeric: true },
+    { id: 'totalAmount', label: '金額', numeric: true },
+    { id: 'saleNumber', label: '銷售單號', numeric: false },
+  ];
 
   return (
     <Container maxWidth="lg">
@@ -399,21 +458,14 @@ const AccountingNewPage = () => {
             </Button>
           </Grid>
 
-          {/* 銷售監測區塊 */}
+          {/* 銷售監測區塊 (Modified) */}
           <Grid item xs={12}>
             <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant="h6">
-                  產品監測 - 當日未結算銷售
+                  監測產品 - 當日未結算銷售
                 </Typography>
-                <TextField 
-                  label="監測產品編號"
-                  variant="outlined"
-                  size="small"
-                  value={monitoredProductCode}
-                  onChange={(e) => setMonitoredProductCode(e.target.value)}
-                  sx={{ width: '150px' }}
-                />
+                {/* Removed product code input */}
               </Box>
               {loadingSales ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -421,27 +473,40 @@ const AccountingNewPage = () => {
                 </Box>
               ) : salesError ? (
                 <Alert severity="error">{salesError}</Alert>
-              ) : unaccountedSales.length === 0 ? (
+              ) : sortedSales.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-                  今日尚無此產品的未結算銷售記錄。
+                  今日尚無已設定監測產品的未結算銷售記錄，或未設定監測產品。
                 </Typography>
               ) : (
-                <TableContainer sx={{ maxHeight: 200 }}> {/* 限制高度 */} 
+                <TableContainer sx={{ maxHeight: 300 }}> {/* Increased height */}
                   <Table size="small" stickyHeader>
                     <TableHead>
-                      <TableRow sx={{ '& th': { backgroundColor: '#eee' } }}>
-                        <TableCell>時間</TableCell>
-                        <TableCell align="right">數量</TableCell>
-                        <TableCell align="right">金額</TableCell>
-                        <TableCell>銷售單號</TableCell>
+                      <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
+                        {headCells.map((headCell) => (
+                          <TableCell
+                            key={headCell.id}
+                            align={headCell.numeric ? 'right' : 'left'}
+                            sortDirection={orderBy === headCell.id ? order : false}
+                          >
+                            <TableSortLabel
+                              active={orderBy === headCell.id}
+                              direction={orderBy === headCell.id ? order : 'asc'}
+                              onClick={() => handleRequestSort(headCell.id)}
+                            >
+                              {headCell.label}
+                            </TableSortLabel>
+                          </TableCell>
+                        ))}
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {unaccountedSales.map((sale) => (
-                        <TableRow key={sale._id} sx={{ '&:hover': { backgroundColor: '#f0f0f0' } }}>
+                      {sortedSales.map((sale) => (
+                        <TableRow key={sale._id} hover sx={{ '&:hover': { backgroundColor: '#f0f0f0' } }}>
                           <TableCell>
                             {format(new Date(sale.lastUpdated), 'HH:mm:ss')}
                           </TableCell>
+                          <TableCell>{sale.product?.code || 'N/A'}</TableCell> {/* Display Product Code */}
+                          <TableCell>{sale.product?.name || 'N/A'}</TableCell> {/* Display Product Name */}
                           <TableCell align="right">{sale.quantity}</TableCell>
                           <TableCell align="right">${sale.totalAmount?.toFixed(2) ?? '0.00'}</TableCell>
                           <TableCell>{sale.saleNumber}</TableCell>

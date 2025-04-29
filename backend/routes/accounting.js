@@ -1,12 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
+const mongoose = require("mongoose");
 const Accounting = require("../models/Accounting");
-const Inventory = require("../models/Inventory"); // Import Inventory model
-const BaseProduct = require("../models/BaseProduct"); // Import BaseProduct model for product code query (FIXED)
+const Inventory = require("../models/Inventory");
+const BaseProduct = require("../models/BaseProduct");
+const MonitoredProduct = require("../models/MonitoredProduct"); // Import MonitoredProduct model
 const auth = require("../middleware/auth");
 const { check, validationResult } = require("express-validator");
-const { startOfDay, endOfDay } = require("date-fns"); // Import date-fns for date manipulation
+const { startOfDay, endOfDay } = require("date-fns");
+
+// --- 省略 GET /, GET /:id, POST /, PUT /:id, DELETE /:id 路由 (與之前相同) ---
 
 // @route   GET api/accounting
 // @desc    獲取所有記帳記錄
@@ -235,10 +238,7 @@ router.delete("/:id", auth, async (req, res) => {
     console.log(`Unlinked ${updateResult.modifiedCount} sales from accounting record ${accounting._id}`);
 
     // 2. 刪除記帳記錄
-    // Mongoose 5.x 使用 remove(), 6.x+ 使用 deleteOne() 或 findByIdAndDelete()
-    // Assuming Mongoose 6.x+
     await Accounting.findByIdAndDelete(req.params.id).session(session);
-    // 如果是 Mongoose 5.x, 使用 await accounting.remove({ session });
 
     await session.commitTransaction();
     session.endSession();
@@ -256,38 +256,56 @@ router.delete("/:id", auth, async (req, res) => {
 });
 
 // @route   GET api/accounting/unaccounted-sales
-// @desc    獲取指定產品在特定日期尚未標記的銷售記錄
+// @desc    獲取所有監測產品在特定日期尚未標記的銷售記錄 (MODIFIED)
 // @access  Private
 router.get("/unaccounted-sales", auth, async (req, res) => {
   try {
-    const { date, productCode } = req.query;
+    const { date } = req.query;
 
-    if (!date || !productCode) {
-      return res.status(400).json({ msg: "缺少日期或產品編號參數" });
+    if (!date) {
+      return res.status(400).json({ msg: "缺少日期參數" });
     }
 
     const targetDate = new Date(date);
     const dayStart = startOfDay(targetDate);
     const dayEnd = endOfDay(targetDate);
 
-    // 1. 根據 productCode 找到 productId (FIXED: Use BaseProduct)
-    const product = await BaseProduct.findOne({ code: productCode });
-    if (!product) {
-      // Return empty array instead of 404 to avoid frontend error display
-      // return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品` });
-      return res.json([]); 
+    // 1. 獲取所有監測產品的 productCode
+    const monitored = await MonitoredProduct.find({}, 'productCode'); // 只選擇 productCode 欄位
+    if (!monitored || monitored.length === 0) {
+      return res.json([]); // 沒有設定監測產品，返回空陣列
     }
-    const productId = product._id;
+    const monitoredProductCodes = monitored.map(p => p.productCode);
 
-    // 2. 查詢 Inventory 中符合條件的銷售記錄
+    // 2. 根據 productCodes 找到對應的 productId
+    const products = await BaseProduct.find({ code: { $in: monitoredProductCodes } }, '_id code name'); // 選擇需要的欄位
+    if (!products || products.length === 0) {
+        return res.json([]); // 監測的產品編號在產品庫中找不到
+    }
+    const monitoredProductIds = products.map(p => p._id);
+    const productMap = products.reduce((map, p) => {
+        map[p._id.toString()] = { code: p.code, name: p.name };
+        return map;
+    }, {});
+
+    // 3. 查詢 Inventory 中符合條件的銷售記錄
     const sales = await Inventory.find({
-      product: productId,
+      product: { $in: monitoredProductIds }, // 篩選監測的產品 ID
       type: "sale",
       accountingId: null,
       lastUpdated: { $gte: dayStart, $lte: dayEnd },
-    }).sort({ lastUpdated: 1 }); // 按時間排序
+    })
+    .populate('product', 'code name') // 直接填充產品信息 (替代手動映射)
+    .sort({ lastUpdated: 1 }); // 按時間排序
 
-    res.json(sales);
+    // // 4. (如果不用 populate) 手動將產品信息添加到銷售記錄中
+    // const salesWithProductInfo = sales.map(sale => ({
+    //   ...sale.toObject(), // 轉換為普通 JS 對象
+    //   productInfo: productMap[sale.product.toString()] || { code: 'N/A', name: '未知產品' }
+    // }));
+
+    res.json(sales); // 返回包含產品信息的銷售記錄
+
   } catch (err) {
     console.error("查詢未標記銷售記錄失敗:", err.message);
     res.status(500).send("伺服器錯誤");
@@ -324,7 +342,6 @@ router.get("/summary/daily", auth, async (req, res) => {
           },
           // 直接從 Accounting model 取 totalAmount
           totalAmount: { $first: "$totalAmount" }, // Use $first since we group by date and shift
-          // items: { $push: "$items" } // Avoid pushing large arrays if not needed
         },
       },
       // 修正 group stage 以正確加總 dailyTotal

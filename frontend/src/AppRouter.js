@@ -22,6 +22,7 @@ import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
+import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage'; // 新增導入
 
 const AppRouter = () => {
   return (
@@ -54,6 +55,8 @@ const AppRouter = () => {
       <Route path="/accounting" element={<AccountingPage />} />
       <Route path="/accounting/new" element={<AccountingNewPage />} />
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
+      {/* 新增監測產品設定路由 */}
+      <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
       {/* 進貨單相關路由 */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
@@ -74,3 +77,4 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
+
