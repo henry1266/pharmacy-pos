@@ -399,9 +399,9 @@ const SalesPage = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>商品輸入</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'stretch', mb: 2 }}> {/* Use stretch for equal height */} 
+              {/* Modified Box for input and buttons */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', mb: 2, gap: 1 }}> 
                 <Autocomplete
-                  fullWidth
                   freeSolo
                   options={filteredProducts}
                   getOptionLabel={(option) => typeof option === 'string' ? option : option.name || ''}
@@ -411,10 +411,9 @@ const SalesPage = () => {
                     <TextField
                       {...params}
                       label="掃描/搜尋藥品"
-                      placeholder="輸入條碼/代碼/名稱/簡碼/健保碼..."
+                      placeholder="輸入條碼/代碼/名稱..."
                       inputRef={barcodeInputRef}
                       size="small" // Match button height
-                      sx={{ height: 56 }} // Ensure consistent height
                       InputProps={{
                         ...params.InputProps,
                         startAdornment: (
@@ -425,29 +424,35 @@ const SalesPage = () => {
                   )}
                   value={barcode}
                   onChange={(event, newValue) => {
-                      // This handles selection from the dropdown
                       if (newValue && typeof newValue !== 'string') {
                           handleSelectProduct(newValue);
                       }
                   }}
                   onInputChange={(event, newInputValue, reason) => {
-                      // This handles typing into the input
                       if (reason === 'input') {
                           setBarcode(newInputValue);
                           handleBarcodeAutocompleteChange({ target: { value: newInputValue } });
                       }
                   }}
                   onKeyDown={(e) => {
-                      // Handle Enter key press
                       if (e.key === 'Enter') {
                           e.preventDefault();
-                          handleBarcodeSubmit(); // Use the dedicated submit handler
+                          handleBarcodeSubmit();
                       }
                   }}
-                  sx={{ mr: 1, flexGrow: 1 }}
+                  // Adjust width: remove flexGrow, set specific width/maxWidth
+                  sx={{ 
+                    // mr: 1, // Remove margin right if using gap
+                    // flexGrow: 1, // Remove flexGrow
+                    width: { xs: '100%', sm: '50%', md: '40%' }, // Responsive width
+                    minWidth: '250px', // Ensure it doesn't get too small
+                    height: 56 // Match button height if possible, TextField size='small' is shorter
+                  }}
                 />
-                {/* Shortcut Buttons - Pass allProducts for the edit dialog */}
-                <ShortcutButtonManager onShortcutSelect={handleShortcutSelect} allProducts={products} />
+                {/* Shortcut Buttons - Allow them to wrap and take remaining space */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', flexGrow: 1 }}>
+                  <ShortcutButtonManager onShortcutSelect={handleShortcutSelect} allProducts={products} />
+                </Box>
               </Box>
 
               {/* Sales Items Table */}
