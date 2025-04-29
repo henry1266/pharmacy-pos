@@ -522,7 +522,7 @@ const AccountingNewPage = () => {
           {/* 總金額與按鈕 */}
           <Grid item xs={12} sx={{ mt: 2 }}>
             <Typography variant="h6" align="right">
-              記帳總金額: ${calculateTotal(formData.items).toFixed(2)}
+              記帳總金額: ${(calculateTotal(formData.items) + sortedSales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0)).toFixed(2)}
             </Typography>
           </Grid>
           
