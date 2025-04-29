@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -16,8 +16,13 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'pharmacist', 'staff'],
-    default: 'staff'
+    enum: ["admin", "pharmacist", "staff"],
+    default: "staff"
+  },
+  // Add a new field to store user-specific settings
+  settings: {
+    type: mongoose.Schema.Types.Mixed, // Use Mixed type for flexibility
+    default: {}
   },
   date: {
     type: Date,
@@ -25,4 +30,5 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('user', UserSchema);
+module.exports = mongoose.model("user", UserSchema);
+

@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid, TextField, Button } from '@mui/material';
+import { Box, Typography, Paper, Grid, TextField, Button, Snackbar, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Import axios for API calls
+
+// TODO: Implement proper global state management (Context or Redux) to store user info and token
 
 /**
- * 登入頁面組件
- * @returns {React.ReactElement} 登入頁面
+ * Login Page Component
+ * @returns {React.ReactElement} Login Page
  */
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({
-    username: '',
+    email: '', // Changed from username to email
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -22,20 +27,54 @@ const LoginPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    // 這裡應該調用API進行身份驗證
-    // 模擬登入成功
-    if (credentials.username && credentials.password) {
-      // 儲存令牌到本地存儲
-      localStorage.setItem('token', 'sample-token');
-      // 導航到儀表板
-      navigate('/dashboard');
-    } else {
-      setError('請輸入用戶名和密碼');
+    try {
+      // Call the backend API for authentication
+      const response = await axios.post('/api/auth', {
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      // Assuming the API returns a token on success
+      if (response.data.token) {
+        // Store the token in localStorage
+        localStorage.setItem('token', response.data.token);
+        
+        // Set axios default header for subsequent requests
+        axios.defaults.headers.common['x-auth-token'] = response.data.token;
+
+        // TODO: Fetch user details and update global state
+        
+        // Navigate to the dashboard or another protected route
+        navigate('/dashboard'); 
+      } else {
+        // Handle cases where token is not returned (should not happen on success)
+        setError('登入失敗，未收到驗證資訊。');
+        setSnackbar({ open: true, message: '登入失敗，未收到驗證資訊。', severity: 'error' });
+      }
+
+    } catch (err) {
+      console.error('Login error:', err.response || err.message);
+      let errorMessage = '登入失敗，請檢查您的憑證或稍後再試。';
+      if (err.response && err.response.data && err.response.data.msg) {
+        errorMessage = err.response.data.msg; // Use specific error message from backend if available
+      } else if (err.response && err.response.data && err.response.data.errors) {
+        // Handle validation errors
+        errorMessage = err.response.data.errors.map(e => e.msg).join(', ');
+      }
+      setError(errorMessage);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -68,12 +107,14 @@ const LoginPage = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="用戶名"
-                name="username"
-                value={credentials.username}
+                label="電子郵件"
+                name="email" // Changed from username to email
+                type="email" // Set type to email for basic validation
+                value={credentials.email}
                 onChange={handleChange}
                 variant="outlined"
                 required
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -86,11 +127,12 @@ const LoginPage = () => {
                 onChange={handleChange}
                 variant="outlined"
                 required
+                disabled={loading}
               />
             </Grid>
             {error && (
               <Grid item xs={12}>
-                <Typography color="error" align="center">
+                <Typography color="error" align="center" variant="body2">
                   {error}
                 </Typography>
               </Grid>
@@ -103,15 +145,22 @@ const LoginPage = () => {
                 color="primary"
                 size="large"
                 sx={{ mt: 1 }}
+                disabled={loading}
               >
-                登入
+                {loading ? '登入中...' : '登入'}
               </Button>
             </Grid>
           </Grid>
         </form>
       </Paper>
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
 
 export default LoginPage;
+
