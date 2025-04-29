@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose"); // Import mongoose for ObjectId validation
 const Accounting = require("../models/Accounting");
 const Inventory = require("../models/Inventory"); // Import Inventory model
-const Product = require("../models/Product"); // Import Product model for product code query
+const BaseProduct = require("../models/BaseProduct"); // Import BaseProduct model for product code query (FIXED)
 const auth = require("../middleware/auth");
 const { check, validationResult } = require("express-validator");
 const { startOfDay, endOfDay } = require("date-fns"); // Import date-fns for date manipulation
@@ -270,10 +270,12 @@ router.get("/unaccounted-sales", auth, async (req, res) => {
     const dayStart = startOfDay(targetDate);
     const dayEnd = endOfDay(targetDate);
 
-    // 1. 根據 productCode 找到 productId
-    const product = await Product.findOne({ code: productCode });
+    // 1. 根據 productCode 找到 productId (FIXED: Use BaseProduct)
+    const product = await BaseProduct.findOne({ code: productCode });
     if (!product) {
-      return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品` });
+      // Return empty array instead of 404 to avoid frontend error display
+      // return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品` });
+      return res.json([]); 
     }
     const productId = product._id;
 
@@ -320,7 +322,8 @@ router.get("/summary/daily", auth, async (req, res) => {
             date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
             shift: "$shift",
           },
-          totalAmount: { $sum: "$totalAmount" }, // 這裡應該是 $sum: '$items.amount' 但需要 $unwind
+          totalAmount: { $sum: "$totalAmount" }, // 這裡應該是 $sum: 
+'$items.amount' 但需要 $unwind
           // 改為直接從 Accounting model 取 totalAmount
           // totalAmount: { $sum: "$totalAmount" },
           // items: { $push: "$items" }
