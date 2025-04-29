@@ -296,7 +296,7 @@ router.get("/unaccounted-sales", auth, async (req, res) => {
 
 
 // @route   GET api/accounting/summary/daily
-// @desc    獲取每日記帳摘要 (此路由未修改)
+// @desc    獲取每日記帳摘要
 // @access  Private
 router.get("/summary/daily", auth, async (req, res) => {
   try {
@@ -322,14 +322,12 @@ router.get("/summary/daily", auth, async (req, res) => {
             date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
             shift: "$shift",
           },
-          totalAmount: { $sum: "$totalAmount" }, // 這裡應該是 $sum: 
-'$items.amount' 但需要 $unwind
-          // 改為直接從 Accounting model 取 totalAmount
-          // totalAmount: { $sum: "$totalAmount" },
-          // items: { $push: "$items" }
+          // 直接從 Accounting model 取 totalAmount
+          totalAmount: { $first: "$totalAmount" }, // Use $first since we group by date and shift
+          // items: { $push: "$items" } // Avoid pushing large arrays if not needed
         },
       },
-      // 修正 group stage 以正確加總 totalAmount
+      // 修正 group stage 以正確加總 dailyTotal
       {
         $group: {
            _id: "$_id.date",
