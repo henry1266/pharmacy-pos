@@ -3,12 +3,11 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Accounting = require("../models/Accounting");
 const Inventory = require("../models/Inventory");
-// Correctly import BaseProduct using destructuring
 const { BaseProduct } = require("../models/BaseProduct"); 
 const MonitoredProduct = require("../models/MonitoredProduct");
 const auth = require("../middleware/auth");
 const { check, validationResult } = require("express-validator");
-const { startOfDay, endOfDay } = require("date-fns");
+const { startOfDay, endOfDay, format } = require("date-fns"); // Import format function
 
 // @route   GET api/accounting
 // @desc    獲取所有記帳記錄
@@ -47,7 +46,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // @route   GET api/accounting/unaccounted-sales
-// @desc    獲取所有監測產品在特定日期尚未標記的銷售記錄 (MOVED UP)
+// @desc    獲取所有監測產品在特定日期尚未標記的銷售記錄 (按銷售單號前綴篩選)
 // @access  Private
 router.get("/unaccounted-sales", auth, async (req, res) => {
   try {
@@ -57,9 +56,14 @@ router.get("/unaccounted-sales", auth, async (req, res) => {
       return res.status(400).json({ msg: "缺少日期參數" });
     }
 
-    const targetDate = new Date(date);
-    const dayStart = startOfDay(targetDate);
-    const dayEnd = endOfDay(targetDate);
+    // 將日期格式化為 YYYYMMDD 字串作為銷售單號前綴
+    let datePrefix;
+    try {
+      datePrefix = format(new Date(date), "yyyyMMdd");
+    } catch (formatError) {
+      console.error("日期格式化錯誤:", formatError);
+      return res.status(400).json({ msg: "無效的日期格式" });
+    }
 
     // 1. 獲取所有監測產品的 productCode
     const monitored = await MonitoredProduct.find({}, 'productCode');
@@ -68,22 +72,23 @@ router.get("/unaccounted-sales", auth, async (req, res) => {
     }
     const monitoredProductCodes = monitored.map(p => p.productCode);
 
-    // 2. 根據 productCodes 找到對應的 productId (Uses correctly imported BaseProduct)
+    // 2. 根據 productCodes 找到對應的 productId
     const products = await BaseProduct.find({ code: { $in: monitoredProductCodes } }, '_id code name');
     if (!products || products.length === 0) {
         return res.json([]);
     }
     const monitoredProductIds = products.map(p => p._id);
 
-    // 3. 查詢 Inventory 中符合條件的銷售記錄
+    // 3. 查詢 Inventory 中符合條件的銷售記錄 (按 saleNumber 前綴篩選)
     const sales = await Inventory.find({
       product: { $in: monitoredProductIds },
       type: "sale",
       accountingId: null,
-      lastUpdated: { $gte: dayStart, $lte: dayEnd },
+      // 使用正則表達式匹配 saleNumber 前綴
+      saleNumber: { $regex: `^${datePrefix}` }
     })
     .populate('product', 'code name')
-    .sort({ lastUpdated: 1 });
+    .sort({ lastUpdated: 1 }); // 仍然可以按時間排序結果
 
     res.json(sales);
 
@@ -165,7 +170,7 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 // @route   POST api/accounting
-// @desc    新增記帳記錄 (並標記相關銷售記錄)
+// @desc    新增記帳記錄 (並標記相關銷售記錄 - 按銷售單號前綴)
 // @access  Private
 router.post(
   "/",
@@ -192,6 +197,7 @@ router.post(
       const { date, shift } = req.body;
       const accountingDate = new Date(date);
 
+      // 檢查是否已存在相同日期和班別的記錄
       const existingRecord = await Accounting.findOne({
         date: accountingDate,
         shift,
@@ -203,6 +209,7 @@ router.post(
         return res.status(400).json({ msg: "該日期和班別已有記帳記錄" });
       }
 
+      // 新增記帳記錄
       const newAccounting = new Accounting({
         ...req.body,
         date: accountingDate,
@@ -211,15 +218,23 @@ router.post(
 
       const accounting = await newAccounting.save({ session });
 
-      const dayStart = startOfDay(accountingDate);
-      const dayEnd = endOfDay(accountingDate);
+      // 找出該日期對應銷售單號前綴且尚未標記的銷售記錄
+      let datePrefix;
+      try {
+        datePrefix = format(accountingDate, "yyyyMMdd");
+      } catch (formatError) {
+        // 理論上不應發生，因為日期來自請求體且已驗證
+        console.error("內部日期格式化錯誤:", formatError);
+        throw new Error("內部日期格式化錯誤"); 
+      }
 
       const unaccountedSales = await Inventory.find({
         type: "sale",
         accountingId: null,
-        lastUpdated: { $gte: dayStart, $lte: dayEnd },
+        saleNumber: { $regex: `^${datePrefix}` }
       }).session(session);
 
+      // 更新這些銷售記錄的 accountingId
       if (unaccountedSales.length > 0) {
         const saleIdsToUpdate = unaccountedSales.map((sale) => sale._id);
         await Inventory.updateMany(
@@ -227,7 +242,7 @@ router.post(
           { $set: { accountingId: accounting._id } },
           { session }
         );
-        console.log(`Linked ${saleIdsToUpdate.length} sales to accounting record ${accounting._id}`);
+        console.log(`Linked ${saleIdsToUpdate.length} sales (by saleNumber prefix ${datePrefix}) to accounting record ${accounting._id}`);
       }
 
       await session.commitTransaction();
@@ -320,6 +335,7 @@ router.delete("/:id", auth, async (req, res) => {
       return res.status(404).json({ msg: "找不到記帳記錄" });
     }
 
+    // 取消與此記帳記錄關聯的銷售記錄標記
     const updateResult = await Inventory.updateMany(
       { accountingId: accounting._id },
       { $set: { accountingId: null } },
@@ -327,6 +343,7 @@ router.delete("/:id", auth, async (req, res) => {
     );
     console.log(`Unlinked ${updateResult.modifiedCount} sales from accounting record ${accounting._id}`);
 
+    // 刪除記帳記錄
     await Accounting.findByIdAndDelete(req.params.id).session(session);
 
     await session.commitTransaction();
