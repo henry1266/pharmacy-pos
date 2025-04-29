@@ -557,7 +557,7 @@ const SalesPage = () => {
           <Card>
             <CardContent>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
                     label="銷貨單號"
@@ -570,7 +570,7 @@ const SalesPage = () => {
                   />
                 </Grid>
                 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <FormControl fullWidth>
                     <InputLabel>客戶</InputLabel>
                     <Select
@@ -591,7 +591,7 @@ const SalesPage = () => {
                   </FormControl>
                 </Grid>
                 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <FormControl fullWidth>
                     <InputLabel>付款方式</InputLabel>
                     <Select
