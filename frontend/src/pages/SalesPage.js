@@ -35,19 +35,20 @@ import {
   Search as SearchIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import CategoryProductsDialog from '../components/sales/CategoryProductsDialog';
-import ShortcutButtonManager from '../components/sales/ShortcutButtonManager'; // Import the new component
+// Import the new components
+import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
+import CustomProductsDialog from '../components/sales/CustomProductsDialog'; // Import the new dialog
 
 const SalesPage = () => {
   const navigate = useNavigate();
   const barcodeInputRef = useRef(null);
 
   // State Management
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]); // Holds all fetched products
   const [customers, setCustomers] = useState([]);
-  // Removed vaccineDialogOpen and injectionDialogOpen
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false); // New state for generic category dialog
-  const [selectedCategory, setSelectedCategory] = useState(''); // New state for the selected category
+  // State for the custom products dialog
+  const [customDialogOpen, setCustomDialogOpen] = useState(false);
+  const [selectedShortcut, setSelectedShortcut] = useState(null); // Holds the currently selected shortcut object {id, name, productIds}
 
   const [currentSale, setCurrentSale] = useState({
     saleNumber: '',
@@ -62,7 +63,7 @@ const SalesPage = () => {
 
   const [inputModes, setInputModes] = useState([]);
   const [barcode, setBarcode] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // For barcode/search autocomplete
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -93,7 +94,7 @@ const SalesPage = () => {
     const total = currentSale.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     setCurrentSale(prev => ({
       ...prev,
-      totalAmount: total - currentSale.discount
+      totalAmount: total - prev.discount // Use prev.discount to avoid dependency loop warning
     }));
   }, [currentSale.items, currentSale.discount]);
 
@@ -119,59 +120,68 @@ const SalesPage = () => {
     }
   };
 
-  // Handle Input Change
+  // Handle Input Change (for sale details like customer, payment method, etc.)
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCurrentSale({ ...currentSale, [name]: value });
   };
 
-  // Handle Barcode Change
-  const handleBarcodeChange = (e) => {
+  // Handle Barcode/Search Autocomplete Input Change
+  const handleBarcodeAutocompleteChange = (e) => {
     const value = e.target.value;
     setBarcode(value);
     if (value.trim() !== '') {
-      const searchResults = products.filter(product => {
-        const searchTerm = value.trim().toLowerCase();
-        return (
-          (product.name && product.name.toLowerCase().includes(searchTerm)) ||
-          (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
-          (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm)) ||
-          (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
-          (product.code && product.code.toLowerCase().includes(searchTerm))
-        );
-      });
+      const searchTerm = value.trim().toLowerCase();
+      const searchResults = products.filter(product =>
+        (product.name && product.name.toLowerCase().includes(searchTerm)) ||
+        (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
+        (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm)) ||
+        (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
+        (product.code && product.code.toLowerCase().includes(searchTerm))
+      ).slice(0, 20); // Limit results
       setFilteredProducts(searchResults);
     } else {
       setFilteredProducts([]);
     }
   };
 
-  // Handle Barcode Submit
-  const handleBarcodeSubmit = async (e) => {
-    if (e.key === 'Enter' && barcode.trim()) {
-      e.preventDefault();
+  // Handle Barcode Submit (Enter key)
+  const handleBarcodeSubmit = async () => {
+      // This function is called when Enter is pressed in the Autocomplete
+      // or the add button next to it is clicked.
+      if (!barcode.trim()) return;
+
       try {
+        // Prioritize selection from autocomplete suggestions if available
         if (filteredProducts.length > 0) {
-          handleSelectProduct(filteredProducts[0]);
+          // Heuristic: If the input exactly matches a code/barcode in the filtered list, use that.
+          // Otherwise, use the first item.
+          const exactMatch = filteredProducts.find(p => p.code === barcode.trim() || p.barcode === barcode.trim());
+          handleSelectProduct(exactMatch || filteredProducts[0]);
           return;
         }
+
+        // If no suggestions, try finding an exact match in all products
         let product = products.find(p => p.barcode === barcode.trim() || p.code === barcode.trim());
-        if (!product) {
-          product = products.find(p => (p.barcode && p.barcode.includes(barcode.trim())) || (p.code && p.code.includes(barcode.trim())));
-        }
+
+        // If still no exact match, maybe try a broader search (optional)
+        // if (!product) { ... }
 
         if (product) {
           handleSelectProduct(product);
         } else {
-          setSnackbar({ open: true, message: `找不到條碼 ${barcode} 對應的產品`, severity: 'warning' });
+          setSnackbar({ open: true, message: `找不到條碼/代碼 ${barcode} 對應的產品`, severity: 'warning' });
         }
       } catch (err) {
-        console.error('處理條碼失敗:', err);
-        setSnackbar({ open: true, message: '處理條碼失敗: ' + err.message, severity: 'error' });
+        console.error('處理條碼/搜尋失敗:', err);
+        setSnackbar({ open: true, message: '處理條碼/搜尋失敗: ' + err.message, severity: 'error' });
       }
+      // Clear input and suggestions after processing
       setBarcode('');
       setFilteredProducts([]);
-    }
+      if (barcodeInputRef.current) {
+        barcodeInputRef.current.focus();
+      }
   };
 
   // Handle Select Product (from barcode, autocomplete, or dialog)
@@ -187,17 +197,18 @@ const SalesPage = () => {
     } else {
       const newItem = {
         product: product._id,
-        productDetails: product,
+        productDetails: product, // Keep details for reference if needed
         name: product.name,
         code: product.code,
-        price: product.sellingPrice,
+        price: product.sellingPrice || 0, // Ensure price is a number
         quantity: 1,
-        subtotal: product.sellingPrice
+        subtotal: product.sellingPrice || 0
       };
       setCurrentSale({ ...currentSale, items: [...currentSale.items, newItem] });
-      setInputModes(prevModes => [...prevModes, 'price']);
+      setInputModes(prevModes => [...prevModes, 'price']); // Default input mode for new item
       setSnackbar({ open: true, message: `已添加 ${product.name}`, severity: 'success' });
     }
+    // Clear search/barcode input after adding
     setBarcode('');
     setFilteredProducts([]);
     if (barcodeInputRef.current) {
@@ -205,7 +216,7 @@ const SalesPage = () => {
     }
   };
 
-  // Handle Quantity Change
+  // Handle Quantity Change in table
   const handleQuantityChange = (index, newQuantity) => {
     if (newQuantity < 1) return;
     const updatedItems = [...currentSale.items];
@@ -214,7 +225,7 @@ const SalesPage = () => {
     setCurrentSale({ ...currentSale, items: updatedItems });
   };
 
-  // Handle Price Change
+  // Handle Price Change in table
   const handlePriceChange = (index, newPrice) => {
     if (newPrice < 0) return;
     const updatedItems = [...currentSale.items];
@@ -223,7 +234,7 @@ const SalesPage = () => {
     setCurrentSale({ ...currentSale, items: updatedItems });
   };
 
-  // Handle Remove Item
+  // Handle Remove Item from table
   const handleRemoveItem = (index) => {
     const updatedItems = [...currentSale.items];
     updatedItems.splice(index, 1);
@@ -233,20 +244,23 @@ const SalesPage = () => {
     setInputModes(updatedModes);
   };
 
-  // Toggle Input Mode (Price/Subtotal)
+  // Toggle Input Mode (Price/Subtotal) in table
   const toggleInputMode = (index) => {
     const updatedModes = [...inputModes];
     updatedModes[index] = updatedModes[index] === 'price' ? 'subtotal' : 'price';
     setInputModes(updatedModes);
   };
 
-  // Handle Subtotal Change
+  // Handle Subtotal Change in table
   const handleSubtotalChange = (index, newSubtotal) => {
     if (newSubtotal < 0) return;
     const updatedItems = [...currentSale.items];
     updatedItems[index].subtotal = newSubtotal;
     if (updatedItems[index].quantity > 0) {
+      // Calculate price based on subtotal and quantity
       updatedItems[index].price = newSubtotal / updatedItems[index].quantity;
+    } else {
+        updatedItems[index].price = 0; // Avoid division by zero
     }
     setCurrentSale({ ...currentSale, items: updatedItems });
   };
@@ -275,15 +289,16 @@ const SalesPage = () => {
       const saleData = {
         saleNumber: finalSaleNumber,
         customer: currentSale.customer || null,
-        items: currentSale.items.map(item => ({ product: item.product, quantity: item.quantity, price: item.price, subtotal: item.price * item.quantity })),
+        items: currentSale.items.map(item => ({ product: item.product, quantity: item.quantity, price: item.price, subtotal: item.subtotal })),
         totalAmount: currentSale.totalAmount,
         discount: currentSale.discount,
         paymentMethod: currentSale.paymentMethod,
         paymentStatus: currentSale.paymentStatus,
         note: currentSale.note,
-        cashier: '60f1b0b9e6b3f32f8c9f4d1a' // Placeholder cashier ID
+        // cashier: '...' // Replace with actual logged-in user ID
       };
       await axios.post('/api/sales', saleData);
+      // Reset form after successful save
       setCurrentSale({ saleNumber: '', customer: '', items: [], totalAmount: 0, discount: 0, paymentMethod: 'cash', paymentStatus: 'paid', note: '' });
       setInputModes([]);
       setSnackbar({ open: true, message: '銷售記錄已保存', severity: 'success' });
@@ -301,25 +316,22 @@ const SalesPage = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Handle Shortcut Button Selection
-  const handleShortcutSelect = (category) => {
-    setSelectedCategory(category);
-    setCategoryDialogOpen(true);
+  // Handle Shortcut Button Selection - Opens the CustomProductsDialog
+  const handleShortcutSelect = (shortcut) => {
+    setSelectedShortcut(shortcut); // Store the selected shortcut object
+    setCustomDialogOpen(true);
   };
 
-  // Render Autocomplete Option
+  // Render Autocomplete Option for barcode/search input
   const renderOption = (props, option) => (
-    <ListItem {...props}>
+    <ListItem {...props} key={option._id}> {/* Ensure key is unique */}
       <ListItemText
         primary={option.name}
         secondary={
           <>
             <Typography component="span" variant="body2" color="text.primary">
-              {option.code || '無代碼'} | 
+              {option.code || '無代碼'} | {option.barcode || '無條碼'} | 
             </Typography>
-            {' '}
-            {option.healthInsuranceCode ? `健保碼: ${option.healthInsuranceCode} | ` : ''}
-            {option.name ? `商品名: ${option.name} | ` : ''}
             價格: ${option.sellingPrice?.toFixed(2) || '無價格'}
           </>
         }
@@ -329,18 +341,21 @@ const SalesPage = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Generic Category Products Dialog */}
-      <CategoryProductsDialog
-        open={categoryDialogOpen}
-        onClose={() => setCategoryDialogOpen(false)}
-        products={products}
-        category={selectedCategory} // Use selected category
-        onSelectProduct={handleSelectProduct}
-      />
+      {/* Custom Products Dialog (replaces CategoryProductsDialog) */}
+      {selectedShortcut && (
+        <CustomProductsDialog
+          open={customDialogOpen}
+          onClose={() => setCustomDialogOpen(false)}
+          allProducts={products} // Pass all products for lookup
+          productIdsToShow={selectedShortcut.productIds} // Pass the specific IDs for this shortcut
+          shortcutName={selectedShortcut.name} // Pass the shortcut name for the title
+          onSelectProduct={handleSelectProduct} // Callback when a product is selected from the dialog
+        />
+      )}
 
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">銷售管理</Typography>
+        <Typography variant="h4" component="h1">銷售作業</Typography>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/sales')}>返回銷售列表</Button>
       </Box>
 
@@ -351,10 +366,10 @@ const SalesPage = () => {
             <CardContent>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={3}>
-                  <TextField fullWidth label="銷貨單號" name="saleNumber" value={currentSale.saleNumber} onChange={handleInputChange} placeholder="選填，格式如：20240826001" helperText="若不填寫將自動生成" sx={{ mb: 2 }} />
+                  <TextField fullWidth label="銷貨單號" name="saleNumber" value={currentSale.saleNumber} onChange={handleInputChange} placeholder="選填，自動生成" helperText="格式: YYYYMMDDXXX" size="small" />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth size="small">
                     <InputLabel>客戶</InputLabel>
                     <Select name="customer" value={currentSale.customer} onChange={handleInputChange} label="客戶">
                       <MenuItem value=""><em>一般客戶</em></MenuItem>
@@ -363,7 +378,7 @@ const SalesPage = () => {
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth size="small">
                     <InputLabel>付款方式</InputLabel>
                     <Select name="paymentMethod" value={currentSale.paymentMethod} onChange={handleInputChange} label="付款方式">
                       <MenuItem value="cash">現金</MenuItem>
@@ -384,80 +399,95 @@ const SalesPage = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>商品輸入</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'stretch', mb: 2 }}> {/* Use stretch for equal height */} 
                 <Autocomplete
                   fullWidth
                   freeSolo
                   options={filteredProducts}
                   getOptionLabel={(option) => typeof option === 'string' ? option : option.name || ''}
+                  filterOptions={(x) => x} // Disable internal filtering
                   renderOption={renderOption}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="掃描條碼或搜尋"
-                      placeholder="掃描/輸入條碼/名稱/簡碼/健保碼後按Enter"
+                      label="掃描/搜尋藥品"
+                      placeholder="輸入條碼/代碼/名稱/簡碼/健保碼..."
                       inputRef={barcodeInputRef}
+                      size="small" // Match button height
+                      sx={{ height: 56 }} // Ensure consistent height
                       InputProps={{
                         ...params.InputProps,
                         startAdornment: (
-                          <>
-                            <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h2v14H3z"/><path d="M7 5h1v14H7z"/><path d="M11 5h1v14h-1z"/><path d="M15 5h1v14h-1z"/><path d="M19 5h2v14h-2z"/></svg>
-                            </Box>
-                            {params.InputProps.startAdornment}
-                          </>
+                          <SearchIcon color="action" sx={{ ml: 1, mr: 1 }} />
                         ),
                       }}
                     />
                   )}
                   value={barcode}
-                  onChange={(event, newValue) => { if (typeof newValue === 'string') { setBarcode(newValue); } else if (newValue && newValue.name) { handleSelectProduct(newValue); } }}
-                  onInputChange={(event, newInputValue) => { setBarcode(newInputValue); handleBarcodeChange({ target: { value: newInputValue } }); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (filteredProducts.length > 0) { handleSelectProduct(filteredProducts[0]); } else if (barcode.trim()) { handleBarcodeSubmit({ key: 'Enter', preventDefault: () => {} }); } } }}
+                  onChange={(event, newValue) => {
+                      // This handles selection from the dropdown
+                      if (newValue && typeof newValue !== 'string') {
+                          handleSelectProduct(newValue);
+                      }
+                  }}
+                  onInputChange={(event, newInputValue, reason) => {
+                      // This handles typing into the input
+                      if (reason === 'input') {
+                          setBarcode(newInputValue);
+                          handleBarcodeAutocompleteChange({ target: { value: newInputValue } });
+                      }
+                  }}
+                  onKeyDown={(e) => {
+                      // Handle Enter key press
+                      if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleBarcodeSubmit(); // Use the dedicated submit handler
+                      }
+                  }}
                   sx={{ mr: 1, flexGrow: 1 }}
                 />
-                {/* Replace old buttons with ShortcutButtonManager */}
-                <ShortcutButtonManager onShortcutSelect={handleShortcutSelect} />
+                {/* Shortcut Buttons - Pass allProducts for the edit dialog */}
+                <ShortcutButtonManager onShortcutSelect={handleShortcutSelect} allProducts={products} />
               </Box>
 
               {/* Sales Items Table */}
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
-                    <TableRow>
-                      <TableCell>條碼</TableCell>
-                      <TableCell>藥品</TableCell>
+                    <TableRow sx={{ '& th': { fontWeight: 'bold' } }}>
+                      <TableCell>代碼</TableCell>
+                      <TableCell>藥品名稱</TableCell>
                       <TableCell align="right">單價</TableCell>
-                      <TableCell align="center">數量</TableCell>
+                      <TableCell align="center" sx={{ width: '150px' }}>數量</TableCell>
                       <TableCell align="right">小計</TableCell>
                       <TableCell align="center">操作</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {currentSale.items.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} align="center">尚無銷售項目</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}>尚無銷售項目</TableCell></TableRow>
                     ) : (
                       currentSale.items.map((item, index) => (
-                        <TableRow key={index}>
+                        <TableRow key={item.product + '-' + index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}> {/* Use unique key */} 
                           <TableCell>{item.code}</TableCell>
                           <TableCell>{item.name}</TableCell>
                           <TableCell align="right">
                             <TextField
                               type="number"
-                              defaultValue={item.price} // Use defaultValue for uncontrolled temporary state
+                              defaultValue={item.price.toFixed(2)} // Format default value
                               onKeyDown={(e) => { if (e.key === 'Enter') { handlePriceChange(index, parseFloat(e.target.value) || 0); e.target.blur(); } }}
                               onBlur={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
                               size="small"
-                              inputProps={{ min: 0, style: { textAlign: 'right' } }}
-                              sx={{ width: '80px', bgcolor: inputModes[index] === 'price' ? 'rgba(144, 238, 144, 0.1)' : 'rgba(211, 211, 211, 0.3)', '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(0, 0, 0, 0.38)' } }}
+                              inputProps={{ min: 0, step: "0.01", style: { textAlign: 'right' } }}
+                              sx={{ width: '90px', bgcolor: inputModes[index] === 'price' ? 'rgba(220, 255, 220, 0.3)' : 'inherit', '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(0, 0, 0, 0.5)' } }}
                               disabled={inputModes[index] === 'subtotal'}
-                              onDoubleClick={() => { if (inputModes[index] === 'subtotal') { toggleInputMode(index); } }}
+                              onClick={() => { if (inputModes[index] === 'subtotal') { toggleInputMode(index); } }} // Use onClick instead of onDoubleClick for easier mobile use
                             />
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <IconButton size="small" onClick={() => handleQuantityChange(index, item.quantity - 1)} disabled={item.quantity <= 1}><RemoveIcon fontSize="small" /></IconButton>
-                              <TextField type="number" value={item.quantity} onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)} size="small" inputProps={{ min: 1, style: { textAlign: 'center' } }} sx={{ width: '60px', mx: 1 }} />
+                              <TextField type="number" value={item.quantity} onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)} size="small" inputProps={{ min: 1, style: { textAlign: 'center' } }} sx={{ width: '50px', mx: 0.5 }} />
                               <IconButton size="small" onClick={() => handleQuantityChange(index, item.quantity + 1)}><AddIcon fontSize="small" /></IconButton>
                             </Box>
                           </TableCell>
@@ -465,15 +495,15 @@ const SalesPage = () => {
                             {inputModes[index] === 'subtotal' ? (
                               <TextField
                                 type="number"
-                                defaultValue={item.subtotal} // Use defaultValue
+                                defaultValue={item.subtotal.toFixed(2)} // Format default value
                                 onKeyDown={(e) => { if (e.key === 'Enter') { handleSubtotalChange(index, parseFloat(e.target.value) || 0); e.target.blur(); } }}
                                 onBlur={(e) => handleSubtotalChange(index, parseFloat(e.target.value) || 0)}
                                 size="small"
-                                inputProps={{ min: 0, style: { textAlign: 'right' } }}
-                                sx={{ width: '80px', bgcolor: 'rgba(144, 238, 144, 0.1)' }}
+                                inputProps={{ min: 0, step: "0.01", style: { textAlign: 'right' } }}
+                                sx={{ width: '90px', bgcolor: 'rgba(220, 255, 220, 0.3)' }}
                               />
                             ) : (
-                              <Typography variant="body2" align="right" sx={{ width: '80px', display: 'inline-block', cursor: 'pointer', padding: '8.5px 14px' }} onDoubleClick={() => toggleInputMode(index)}>
+                              <Typography variant="body2" align="right" sx={{ width: '90px', display: 'inline-block', cursor: 'pointer', padding: '8.5px 14px', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }} onClick={() => toggleInputMode(index)}>
                                 {item.subtotal.toFixed(2)}
                               </Typography>
                             )}
@@ -495,24 +525,25 @@ const SalesPage = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Grid container spacing={2} alignItems="center">
+              <Grid container spacing={2} alignItems="flex-start">
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="備註" name="note" value={currentSale.note} onChange={handleInputChange} multiline rows={2} />
+                  <TextField fullWidth label="備註" name="note" value={currentSale.note} onChange={handleInputChange} multiline rows={3} size="small" />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                     <TextField
-                      label="折扣"
+                      label="折扣金額"
                       name="discount"
                       type="number"
                       value={currentSale.discount}
                       onChange={handleInputChange}
                       size="small"
                       sx={{ mb: 1, width: '150px' }}
-                      InputProps={{ startAdornment: <Typography sx={{ mr: 1 }}>$</Typography> }}
+                      InputProps={{ startAdornment: <Typography sx={{ mr: 0.5 }}>$</Typography> }}
+                      inputProps={{ min: 0, step: "0.01" }}
                     />
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      總金額: ${currentSale.totalAmount.toFixed(2)}
+                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
+                      總計: ${currentSale.totalAmount.toFixed(2)}
                     </Typography>
                     <Button
                       variant="contained"
@@ -522,7 +553,7 @@ const SalesPage = () => {
                       onClick={handleSaveSale}
                       disabled={currentSale.items.length === 0}
                     >
-                      儲存銷售
+                      儲存銷售單
                     </Button>
                   </Box>
                 </Grid>
@@ -533,8 +564,8 @@ const SalesPage = () => {
       </Grid>
 
       {/* Snackbar for notifications */}
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>
