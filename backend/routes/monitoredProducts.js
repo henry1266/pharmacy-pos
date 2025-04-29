@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const MonitoredProduct = require("../models/MonitoredProduct");
-// Correctly import BaseProduct using destructuring
-const { BaseProduct } = require("../models/BaseProduct"); 
+// Alternative import style for BaseProduct
+const ProductModels = require("../models/BaseProduct"); 
+const BaseProduct = ProductModels.BaseProduct; 
 const auth = require("../middleware/auth");
 const { check, validationResult } = require("express-validator");
 
@@ -37,7 +38,7 @@ router.post(
     const { productCode } = req.body;
 
     try {
-      // 1. 檢查產品編號是否存在於 BaseProduct 中 (Now uses the correctly imported BaseProduct model)
+      // 1. 檢查產品編號是否存在於 BaseProduct 中 (Using alternative import)
       const productExists = await BaseProduct.findOne({ code: productCode });
       if (!productExists) {
         return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品，無法加入監測` });
