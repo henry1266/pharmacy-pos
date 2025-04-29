@@ -19,9 +19,9 @@ import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios'; // Import axios
 
 /**
- * Helper function to calculate profit/loss for a single product
+ * Helper function to calculate inventory and profit/loss for a single product
  */
-const calculateProductProfitLoss = async (productId) => {
+const calculateProductData = async (productId) => {
   try {
     const response = await axios.get(`/api/inventory/product/${productId}`);
     const inventories = response.data;
@@ -69,9 +69,27 @@ const calculateProductProfitLoss = async (productId) => {
     Object.values(purchaseGroups).forEach(group => mergedInventories.push(group));
     Object.values(shipGroups).forEach(group => mergedInventories.push(group));
 
+    // 計算當前庫存 (same logic as InventoryList)
+    let currentStock = 0;
+    const processedInventories = [...mergedInventories].reverse().map(inv => {
+      const quantity = inv.totalQuantity;
+      if (inv.type === 'purchase') {
+        currentStock += quantity;
+      } else if (inv.type === 'sale' || inv.type === 'ship') {
+        currentStock += quantity; // ship類型的quantity已經是負數，直接加即可
+      }
+      return {
+        ...inv,
+        currentStock: currentStock
+      };
+    });
+    
+    // 反轉回來，保持從大到小的排序
+    processedInventories.reverse();
+
     // Calculate profit/loss (same logic as InventoryList)
     let totalProfitLoss = 0;
-    mergedInventories.forEach(inv => {
+    processedInventories.forEach(inv => {
       let price = 0;
       if ((inv.type === 'purchase' || inv.type === 'ship' || inv.type === 'sale') && inv.totalAmount && inv.totalQuantity) {
         const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
@@ -91,10 +109,16 @@ const calculateProductProfitLoss = async (productId) => {
       }
     });
 
-    return totalProfitLoss;
+    return {
+      profitLoss: totalProfitLoss,
+      currentStock: currentStock
+    };
   } catch (err) {
     console.error(`獲取產品 ${productId} 的庫存記錄失敗:`, err);
-    return 0; // Return 0 on error
+    return {
+      profitLoss: 0,
+      currentStock: 0
+    }; // Return defaults on error
   }
 };
 
@@ -109,7 +133,9 @@ const CategoryDetailPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [loadingProfitLoss, setLoadingProfitLoss] = useState(false); // State for profit/loss loading
+  const [loadingProductData, setLoadingProductData] = useState(false); // State for product data loading
+  const [categoryTotalProfitLoss, setCategoryTotalProfitLoss] = useState(0); // 分類損益總和
+  const [categoryTotalStock, setCategoryTotalStock] = useState(0); // 分類庫存總和
   
   // 返回上一頁
   const handleBack = () => {
@@ -121,7 +147,7 @@ const CategoryDetailPage = () => {
     const fetchCategoryAndProducts = async () => {
       try {
         setLoading(true);
-        setLoadingProfitLoss(true); // Start loading profit/loss
+        setLoadingProductData(true); // Start loading product data
         setError(null);
         
         // 獲取分類詳情
@@ -131,22 +157,37 @@ const CategoryDetailPage = () => {
         // 獲取分類下的產品
         const productsData = await getProductsByCategory(id);
         
-        // Fetch profit/loss for each product
-        const productsWithProfitLoss = await Promise.all(
+        // Fetch inventory and profit/loss for each product
+        let totalProfitLoss = 0;
+        let totalStock = 0;
+        
+        const productsWithData = await Promise.all(
           productsData.map(async (product) => {
-            const profitLoss = await calculateProductProfitLoss(product._id);
-            return { ...product, id: product._id, profitLoss }; // Add profitLoss to product object
+            const { profitLoss, currentStock } = await calculateProductData(product._id);
+            
+            // 累計分類總計
+            totalProfitLoss += profitLoss;
+            totalStock += currentStock;
+            
+            return { 
+              ...product, 
+              id: product._id, 
+              profitLoss,
+              currentStock
+            };
           })
         );
         
-        setProducts(productsWithProfitLoss);
+        setProducts(productsWithData);
+        setCategoryTotalProfitLoss(totalProfitLoss);
+        setCategoryTotalStock(totalStock);
         
       } catch (err) {
         console.error('獲取分類詳情或產品失敗:', err);
         setError('獲取分類詳情或產品失敗');
       } finally {
         setLoading(false);
-        setLoadingProfitLoss(false); // Finish loading profit/loss
+        setLoadingProductData(false); // Finish loading product data
       }
     };
     
@@ -160,8 +201,23 @@ const CategoryDetailPage = () => {
     { field: 'code', headerName: '編號', width: 70 },
     { field: 'healthInsuranceCode', headerName: '健保碼', width: 110 },
     { field: 'name', headerName: '名稱', width: 220 },
-    { field: '', headerName: '庫存', width: 80 },
-	{ 
+    { 
+      field: 'currentStock', 
+      headerName: '庫存', 
+      width: 80,
+      type: 'number',
+      renderCell: (params) => {
+        const value = params.value;
+        // 庫存低於10顯示警告顏色
+        const color = value < 10 ? 'error.main' : 'text.primary';
+        return (
+          <Typography variant="body2" sx={{ color, fontWeight: value < 10 ? 'bold' : 'medium' }}>
+            {value != null ? value : '計算中...'}
+          </Typography>
+        );
+      }
+    },
+    { 
       field: 'purchasePrice',
       headerName: '進貨價',
       width: 70,
@@ -176,11 +232,11 @@ const CategoryDetailPage = () => {
       valueFormatter: (params) => params.value ? `$${params.value.toFixed(2)}` : '$0.00'
     },
     { 
-      field: 'profitLoss', // Use the new profitLoss field
+      field: 'profitLoss',
       headerName: '損益總和',
       width: 90, 
       type: 'number',
-      renderCell: (params) => { // Use renderCell for custom styling
+      renderCell: (params) => {
         const value = params.value;
         const color = value >= 0 ? 'success.main' : 'error.main';
         return (
@@ -229,12 +285,22 @@ const CategoryDetailPage = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2">
-					毛利總和:
-					</Typography>
+                      庫存總量: {' '}
+                      <Typography component="span" color="primary" fontWeight="bold">
+                        {categoryTotalStock}
+                      </Typography>
+                    </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle2">
-                      損益總和:
+                      損益總和: {' '}
+                      <Typography 
+                        component="span" 
+                        color={categoryTotalProfitLoss >= 0 ? 'success.main' : 'error.main'} 
+                        fontWeight="bold"
+                      >
+                        ${categoryTotalProfitLoss.toFixed(2)}
+                      </Typography>
                     </Typography>
                   </Grid>
                 </Grid>
@@ -252,13 +318,13 @@ const CategoryDetailPage = () => {
             ) : (
               <Box sx={{ height: 500, width: '100%' }}>
                 <DataGrid
-                  rows={products} // Use the updated products state with profitLoss
+                  rows={products}
                   columns={columns}
                   pageSize={10}
                   rowsPerPageOptions={[10]}
                   onRowClick={handleProductClick}
                   disableSelectionOnClick
-                  loading={loadingProfitLoss} // Show loading indicator while calculating profit/loss
+                  loading={loadingProductData}
                   sx={{ 
                     '& .MuiDataGrid-row:hover': {
                       cursor: 'pointer',
@@ -278,4 +344,3 @@ const CategoryDetailPage = () => {
 };
 
 export default CategoryDetailPage;
-
