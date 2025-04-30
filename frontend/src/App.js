@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import MainLayout from './components/layout/MainLayout';
-import { BrowserRouter as Router } from 'react-router-dom';
-import AppRouter from './AppRouter';
+import LoginPage from './pages/LoginPage'; // Import LoginPage
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import AppRouter from './AppRouter'; // This will contain protected routes
+import axios from 'axios'; // Import axios to set default header
 import './assets/css/dashui-theme.css';
 
-// 創建自定義主題
+// 創建自定義主題 (Keep theme definition as is)
 const theme = createTheme({
   palette: {
     primary: {
@@ -92,17 +94,66 @@ const theme = createTheme({
   },
 });
 
+// Simple check for authentication token
+const isAuthenticated = () => {
+  const token = localStorage.getItem('token');
+  // TODO: Add token validation/decoding if necessary
+  return !!token;
+};
+
+// Component to handle protected routes
+const ProtectedRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    // Redirect them to the /login page, but save the current location they were
+    // trying to go to when they were redirected.
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 function App() {
+  // Set axios default header if token exists (on initial load)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['x-auth-token'] = token;
+    } else {
+      delete axios.defaults.headers.common['x-auth-token'];
+    }
+    // Basic listener for storage changes to update auth status (optional, might need more robust state management)
+    const handleStorageChange = () => {
+        // Force re-render or update state if needed
+        window.location.reload(); // Simplest way, but not ideal UX
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <MainLayout>
-          <AppRouter />
-        </MainLayout>
+        <Routes>
+          {/* Public Login Route */}
+          <Route path="/login" element={<LoginPage />} />
+          
+          {/* Protected Routes - Wrap MainLayout and AppRouter */}
+          <Route 
+            path="/*" 
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AppRouter /> { /* AppRouter now contains only protected routes */}
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </Router>
     </ThemeProvider>
   );
 }
 
 export default App;
+

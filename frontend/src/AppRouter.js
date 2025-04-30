@@ -22,13 +22,14 @@ import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
-import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage'; // 新增導入
+import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 
+// AppRouter now only contains routes accessible *after* login
 const AppRouter = () => {
   return (
     <Routes>
-      {/* 所有路由都不需要登入 */}
-      <Route path="/" element={<DashboardPage />} />
+      {/* Default route after login redirects to dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       
       <Route path="/dashboard" element={<DashboardPage />} />
       
@@ -41,9 +42,7 @@ const AppRouter = () => {
       
       <Route path="/customers" element={<CustomersPage />} />
       
-      {/* 移除庫存頁面路由 */}
-      
-      {/* 銷售相關路由 */}
+      {/* Sales routes */}
       <Route path="/sales" element={<SalesListPage />} />
       <Route path="/sales/new" element={<SalesPage />} />
       <Route path="/sales/edit/:id" element={<SalesEditPage />} />
@@ -51,26 +50,26 @@ const AppRouter = () => {
       
       <Route path="/reports" element={<ReportsPage />} />
       
-      {/* 記帳系統路由 */}
+      {/* Accounting routes */}
       <Route path="/accounting" element={<AccountingPage />} />
       <Route path="/accounting/new" element={<AccountingNewPage />} />
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
-      {/* 新增監測產品設定路由 */}
+      {/* Settings routes (assuming they require login) */}
       <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
-      {/* 進貨單相關路由 */}
+      {/* Purchase Order routes */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
       <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
       <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderEditPage />} />
       <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
       
-      {/* 出貨單相關路由 */}
+      {/* Shipping Order routes */}
       <Route path="/shipping-orders" element={<ShippingOrdersPage />} />
       <Route path="/shipping-orders/new" element={<ShippingOrderFormPage />} />
       <Route path="/shipping-orders/edit/:id" element={<ShippingOrderFormPage />} />
       <Route path="/shipping-orders/:id" element={<ShippingOrderDetailPage />} />
       
-      {/* 未匹配路由重定向到儀表板 */}
+      {/* Fallback for any unmatched route within the protected area */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
