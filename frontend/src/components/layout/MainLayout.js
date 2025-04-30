@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios
-import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge, Collapse } from '@mui/material';
+import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge, Collapse, Popover, Button } from '@mui/material'; // Added Popover, Button
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
@@ -49,6 +49,7 @@ const MainLayout = ({ children }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState(false);
   const [productSubMenuOpen, setProductSubMenuOpen] = useState(false); // State for product submenu
+  const [anchorEl, setAnchorEl] = useState(null); // State for Popover anchor
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -145,6 +146,7 @@ const MainLayout = ({ children }) => {
   };
 
   const handleLogout = () => {
+    handleClosePopover(); // Close popover before logout
     localStorage.removeItem('token'); // Clear token on logout
     localStorage.removeItem('user'); // Clear user info on logout
     delete axios.defaults.headers.common['x-auth-token']; // Remove token from axios headers
@@ -169,11 +171,33 @@ const MainLayout = ({ children }) => {
     setProductSubMenuOpen(!productSubMenuOpen);
   };
 
+  // Handle Avatar Click to open Popover
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  // Handle Popover Close
+  const handleClosePopover = () => {
+    setAnchorEl(null);
+  };
+
+  const openPopover = Boolean(anchorEl);
+  const popoverId = openPopover ? 'user-popover' : undefined;
+
   // Filter menu items based on user role
   const filteredMenuItems = menuItems.filter(item => {
     if (!item.adminOnly) return true; // Show if not admin only
     return user && user.role === 'admin'; // Show if admin only and user is admin
   });
+
+  // Determine Avatar content based on user role
+  const getAvatarContent = () => {
+    if (!user) return '?';
+    if (user.role === 'admin') return 'A';
+    if (user.role === 'stuff') return 'S'; // Assuming 'stuff' is the role name
+    if (user.username) return user.username.charAt(0).toUpperCase();
+    return '?';
+  };
 
 
   return (
@@ -238,17 +262,53 @@ const MainLayout = ({ children }) => {
             </IconButton>
           </Tooltip>
           <Avatar 
+            aria-describedby={popoverId}
             sx={{ 
               width: 36, 
               height: 36,
               cursor: 'pointer',
               bgcolor: 'var(--primary-color)'
             }}
-            onClick={handleLogout} // Simple logout on avatar click for now
+            onClick={handleAvatarClick} // Changed onClick to open popover
           >
-            {/* Fixed: Check for user and user.username before accessing charAt */} 
-            {user && user.username ? user.username.charAt(0).toUpperCase() : '?'}
+            {getAvatarContent()} {/* Use function to get avatar content */}
           </Avatar>
+          {/* User Info Popover */}
+          <Popover
+            id={popoverId}
+            open={openPopover}
+            anchorEl={anchorEl}
+            onClose={handleClosePopover}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            sx={{ mt: 1 }}
+          >
+            <Box sx={{ p: 2, minWidth: 200 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                {user?.username || '使用者'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                角色: {user?.role || '未知'}
+              </Typography>
+              <Divider sx={{ my: 1 }} />
+              <Button 
+                variant="outlined" 
+                color="error" 
+                size="small" 
+                fullWidth 
+                onClick={handleLogout} 
+                startIcon={<LogoutIcon />}
+              >
+                登出
+              </Button>
+            </Box>
+          </Popover>
         </Toolbar>
       </AppBar>
       
@@ -406,7 +466,7 @@ const MainLayout = ({ children }) => {
                       primaryTypographyProps={{ 
                         sx: { 
                           color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                          fontWeight: 500
+                          fontWeight: isActive ? 500 : 400
                         } 
                       }}
                     />
@@ -414,35 +474,6 @@ const MainLayout = ({ children }) => {
                 );
               }
             })}
-          </List>
-          
-          <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', my: 2 }} />
-          
-          <List>
-            <ListItem 
-              button 
-              onClick={handleLogout}
-              sx={{
-                pl: 2.5,
-                py: 1.5,
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                }
-              }}
-            >
-              <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>
-                <LogoutIcon />
-              </ListItemIcon>
-              <ListItemText 
-                primary="登出" 
-                primaryTypographyProps={{ 
-                  sx: { 
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    fontWeight: 500
-                  } 
-                }}
-              />
-            </ListItem>
           </List>
         </Box>
       </Drawer>
@@ -454,8 +485,7 @@ const MainLayout = ({ children }) => {
           flexGrow: 1, 
           p: 3, 
           backgroundColor: 'var(--bg-primary)',
-          minHeight: '100vh',
-          color: 'var(--text-primary)'
+          minHeight: '100vh'
         }}
       >
         <Toolbar />
@@ -463,31 +493,37 @@ const MainLayout = ({ children }) => {
       </Box>
 
       {/* Settings Modal */}
-      <SettingsModal open={settingsOpen} handleClose={handleSettingsClose} />
+      <SettingsModal open={settingsOpen} onClose={handleSettingsClose} />
     </Box>
   );
 };
 
-// Helper component for top navigation icons
-const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon }) => {
+// Helper component for Nav Icon Buttons in AppBar
+const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon, adminOnly = false, userRole }) => {
   const location = useLocation();
-  const isActive = location.pathname.startsWith(to);
-  const navigate = useNavigate();
+  const isActive = location.pathname === to;
+
+  // Hide if adminOnly and user is not admin
+  if (adminOnly && userRole !== 'admin') {
+    return null;
+  }
 
   return (
     <Tooltip title={tooltip}>
       <IconButton 
         color="inherit" 
-        sx={{ mr: 1 }} 
-        onClick={() => navigate(to)}
+        component={Link} 
+        to={to} 
+        sx={{ 
+          mr: 2,
+          color: isActive ? 'var(--primary-color)' : 'inherit'
+        }}
       >
         {isActive ? activeIcon : inactiveIcon}
       </IconButton>
     </Tooltip>
   );
 };
-
-
 
 export default MainLayout;
 
