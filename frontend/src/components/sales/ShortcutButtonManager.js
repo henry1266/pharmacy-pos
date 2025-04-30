@@ -185,7 +185,7 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
       // For simplicity now, we assume settings only contain shortcuts.
       // A better approach would involve a global state or fetching current settings first.
       const settingsToSave = { shortcuts: updatedShortcuts }; 
-      await axios.put("http://localhost:5000/api/settings", settingsToSave); 
+      await axios.put("http://192.168.68.93:5000/api/settings", settingsToSave); 
       setSnackbar({ open: true, message: '快捷按鈕設定已儲存', severity: 'success' });
     } catch (err) {
       console.error("Failed to save shortcuts to backend", err);
@@ -201,7 +201,7 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get("http://localhost:5000/api/settings");
+        const response = await axios.get("http://192.168.68.93:5000/api/settings");
         // Assuming the settings object has a 'shortcuts' key
         const loadedShortcuts = response.data?.shortcuts;
         if (Array.isArray(loadedShortcuts) && loadedShortcuts.length > 0) {
