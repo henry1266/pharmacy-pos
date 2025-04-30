@@ -34,7 +34,6 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
 import SettingsModal from '../settings/SettingsModal';
-import NavIconButton from './NavIconButton'; // Import the new component
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
@@ -468,6 +467,27 @@ const MainLayout = ({ children }) => {
     </Box>
   );
 };
+
+// Helper component for top navigation icons
+const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon }) => {
+  const location = useLocation();
+  const isActive = location.pathname.startsWith(to);
+  const navigate = useNavigate();
+
+  return (
+    <Tooltip title={tooltip}>
+      <IconButton 
+        color="inherit" 
+        sx={{ mr: 1 }} 
+        onClick={() => navigate(to)}
+      >
+        {isActive ? activeIcon : inactiveIcon}
+      </IconButton>
+    </Tooltip>
+  );
+};
+
+
 
 export default MainLayout;
 
