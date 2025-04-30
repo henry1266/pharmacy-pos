@@ -97,7 +97,7 @@ const LoginPage = () => {
         }}
       >
         <Typography variant="h4" component="h1" align="center" gutterBottom>
-          藥局POS系統
+          POS系統
         </Typography>
         <Typography variant="subtitle1" align="center" color="textSecondary" sx={{ mb: 3 }}>
           請登入以繼續
