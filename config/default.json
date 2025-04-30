@@ -1,5 +1,6 @@
 {
-  "mongoURI": "mongodb://192.168.68.79:27017/pharmacy-pos",
+  "mongoURI": "mongodb+srv://zxh1266:DUhR2kSuhX5hx2Jo@cluster0.vjlmtk2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
   "jwtSecret": "mysecrettoken",
   "jwtExpiration": 3600
 }
+

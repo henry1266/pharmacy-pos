@@ -2,6 +2,7 @@ const express = require("express");
 const connectDB = require("./config/db");
 const path = require("path");
 const cors = require("cors"); // 引入 cors 套件
+// Removed mongoose import and debug setting
 
 // 連接資料庫
 connectDB();
