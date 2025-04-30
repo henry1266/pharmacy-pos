@@ -92,7 +92,7 @@ const MainLayout = ({ children }) => {
     },
     // Modified Accounting Menu Item to be a collapsible group
     { 
-      text: '記帳系統', 
+      text: '記帳管理', 
       icon: (location.pathname.startsWith('/accounting') || location.pathname.startsWith('/settings/monitored-products')) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, 
       // No direct path, click toggles submenu
       subItems: [

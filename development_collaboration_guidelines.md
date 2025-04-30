@@ -12,6 +12,6 @@
 - 不要執行 npm install
 
 ## 說明文件
-- ai產生的報告md放置於報告資料夾之內 檔名之前加上日期
+- ai產生的報告md放置於報告資料夾之內 檔名格式yyyy-mm-dd內容使用中文
 - 參考directory_structure 有差異的地方要進行更新
 
