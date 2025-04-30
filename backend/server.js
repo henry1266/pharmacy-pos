@@ -1,7 +1,7 @@
-// 在server.js中註冊新的路由
 const express = require("express");
 const connectDB = require("./config/db");
 const path = require("path");
+const cors = require("cors"); // 引入 cors 套件
 
 // 連接資料庫
 connectDB();
@@ -9,6 +9,7 @@ connectDB();
 const app = express();
 
 // 初始化中間件
+app.use(cors({ origin: "http://localhost:3000" })); // 使用 cors 中介軟體，允許來自前端的請求
 app.use(express.json({ extended: false }));
 
 // 定義路由
