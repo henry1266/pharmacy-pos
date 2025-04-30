@@ -82,7 +82,8 @@ const MainLayout = ({ children }) => {
     { 
       text: '儀表板', 
       icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, 
-      path: '/dashboard' 
+      path: '/dashboard' ,
+      adminOnly: true // Mark as admin only
     },
     { 
       text: '銷售管理', 
@@ -109,7 +110,8 @@ const MainLayout = ({ children }) => {
     { 
       text: '出貨單管理', 
       icon: (location.pathname.startsWith('/shipping-orders')) ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
-      path: '/shipping-orders' 
+      path: '/shipping-orders',
+      adminOnly: true // Mark as admin only 
     },
     { 
       text: '供應商管理', 
@@ -133,7 +135,10 @@ const MainLayout = ({ children }) => {
         { text: '監測產品設定', path: '/settings/monitored-products', icon: <MonitorHeartIcon fontSize="small" sx={{ ml: 1 }} /> }
       ]
     },
-    { text: '報表功能', icon: <BarChartIcon />, path: '/reports' },
+    { text: '報表功能', icon: <BarChartIcon />, 
+	path: '/reports' ,
+    adminOnly: true // Mark as admin only
+	},
   ];
 
   const toggleDrawer = () => {
@@ -231,6 +236,8 @@ const MainLayout = ({ children }) => {
             tooltip="出貨"
             activeIcon={<LocalShippingIcon />}
             inactiveIcon={<LocalShippingOutlinedIcon />}
+			adminOnly={true} // Apply admin check
+            userRole={user?.role} // Pass user role
           />
           
           <NavIconButton
@@ -255,12 +262,11 @@ const MainLayout = ({ children }) => {
             activeIcon={<AssuredWorkloadIcon />}
             inactiveIcon={<AssuredWorkloadOutlinedIcon />}
           />
-
           <Tooltip title="設定">
             <IconButton color="inherit" sx={{ mr: 2 }} onClick={handleSettingsClick}>
               <SettingsIcon />
-            </IconButton>
-          </Tooltip>
+			</IconButton>
+		  </Tooltip>
           <Avatar 
             aria-describedby={popoverId}
             sx={{ 
