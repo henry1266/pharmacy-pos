@@ -3,8 +3,6 @@ import { Box, Typography, Paper, Grid, TextField, Button, Snackbar, Alert } from
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Import axios for API calls
 
-// TODO: Implement proper global state management (Context or Redux) to store user info and token
-
 /**
  * Login Page Component
  * @returns {React.ReactElement} Login Page
@@ -39,22 +37,25 @@ const LoginPage = () => {
         password: credentials.password
       });
 
-      // Assuming the API returns a token on success
-      if (response.data.token) {
+      // Assuming the API returns a token and user info on success
+      if (response.data.token && response.data.user) {
         // Store the token in localStorage
         localStorage.setItem('token', response.data.token);
+        // Store user info in localStorage (stringify the object)
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         
         // Set axios default header for subsequent requests
         axios.defaults.headers.common['x-auth-token'] = response.data.token;
 
-        // TODO: Fetch user details and update global state
-        
         // Navigate to the dashboard or another protected route
-        navigate('/dashboard'); 
+        // Use window.location.replace to force a full refresh, ensuring App.js re-reads localStorage
+        // navigate('/dashboard'); // This might not trigger a re-read of localStorage in App.js useEffect
+        window.location.replace('/dashboard'); 
+
       } else {
-        // Handle cases where token is not returned (should not happen on success)
-        setError('登入失敗，未收到驗證資訊。');
-        setSnackbar({ open: true, message: '登入失敗，未收到驗證資訊。', severity: 'error' });
+        // Handle cases where token or user info is not returned
+        setError('登入失敗，未收到完整的驗證資訊。');
+        setSnackbar({ open: true, message: '登入失敗，未收到完整的驗證資訊。', severity: 'error' });
       }
 
     } catch (err) {

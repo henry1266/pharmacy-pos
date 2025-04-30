@@ -24,6 +24,9 @@ import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 
+// Import the AdminRoute guard
+import AdminRoute from './components/common/AdminRoute';
+
 // AppRouter now only contains routes accessible *after* login
 const AppRouter = () => {
   return (
@@ -33,12 +36,16 @@ const AppRouter = () => {
       
       <Route path="/dashboard" element={<DashboardPage />} />
       
+      {/* Product Routes */}
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/product-categories" element={<ProductCategoryPage />} />
       <Route path="/product-categories/:id" element={<CategoryDetailPage />} />
       
-      <Route path="/suppliers" element={<SuppliersPage />} />
+      {/* Supplier Route - Protected by AdminRoute */}
+      <Route path="/suppliers" element={<AdminRoute />}>
+        <Route path="" element={<SuppliersPage />} />
+      </Route>
       
       <Route path="/customers" element={<CustomersPage />} />
       
@@ -54,14 +61,17 @@ const AppRouter = () => {
       <Route path="/accounting" element={<AccountingPage />} />
       <Route path="/accounting/new" element={<AccountingNewPage />} />
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
+      
       {/* Settings routes (assuming they require login) */}
       <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
-      {/* Purchase Order routes */}
-      <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
-      <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
-      <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderEditPage />} />
-      <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
+      {/* Purchase Order routes - Protected by AdminRoute */}
+      <Route path="/purchase-orders" element={<AdminRoute />}>
+        <Route path="" element={<PurchaseOrdersPage />} />
+        <Route path="new" element={<PurchaseOrderFormPage />} />
+        <Route path="edit/:id" element={<PurchaseOrderEditPage />} />
+        <Route path=":id" element={<PurchaseOrderDetailPage />} />
+      </Route>
       
       {/* Shipping Order routes */}
       <Route path="/shipping-orders" element={<ShippingOrdersPage />} />
