@@ -34,6 +34,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
 import SettingsModal from '../settings/SettingsModal';
+import NavIconButton from './NavIconButton'; // Import the new component
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
@@ -62,6 +63,21 @@ const MainLayout = ({ children }) => {
     return path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
   };
 
+  // Get user info from localStorage
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Failed to parse user data from localStorage", error);
+        // Handle error, maybe clear invalid data
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
   const menuItems = [
     { 
       text: '儀表板', 
@@ -87,7 +103,8 @@ const MainLayout = ({ children }) => {
     { 
       text: '進貨單管理', 
       icon: (location.pathname.startsWith('/purchase-orders')) ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
-      path: '/purchase-orders' 
+      path: '/purchase-orders',
+      adminOnly: true // Mark as admin only
     },
     { 
       text: '出貨單管理', 
@@ -97,7 +114,8 @@ const MainLayout = ({ children }) => {
     { 
       text: '供應商管理', 
       icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, 
-      path: '/suppliers' 
+      path: '/suppliers',
+      adminOnly: true // Mark as admin only
     },
     { 
       text: '會員管理', 
@@ -152,20 +170,12 @@ const MainLayout = ({ children }) => {
     setProductSubMenuOpen(!productSubMenuOpen);
   };
 
-  // Get user info from localStorage
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse user data from localStorage", error);
-        // Handle error, maybe clear invalid data
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
+  // Filter menu items based on user role
+  const filteredMenuItems = menuItems.filter(item => {
+    if (!item.adminOnly) return true; // Show if not admin only
+    return user && user.role === 'admin'; // Show if admin only and user is admin
+  });
+
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -205,6 +215,8 @@ const MainLayout = ({ children }) => {
             tooltip="進貨"
             activeIcon={<AssignmentIcon />}
             inactiveIcon={<AssignmentOutlinedIcon />}
+            adminOnly={true} // Apply admin check
+            userRole={user?.role} // Pass user role
           />
           
           <NavIconButton
@@ -235,7 +247,8 @@ const MainLayout = ({ children }) => {
             }}
             onClick={handleLogout} // Simple logout on avatar click for now
           >
-            {user ? user.username.charAt(0).toUpperCase() : '?'}
+            {/* Fixed: Check for user and user.username before accessing charAt */} 
+            {user && user.username ? user.username.charAt(0).toUpperCase() : '?'}
           </Avatar>
         </Toolbar>
       </AppBar>
@@ -268,12 +281,24 @@ const MainLayout = ({ children }) => {
           <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
           
           <List component="nav">
-            {menuItems.map((item) => {
+            {/* Use filteredMenuItems */}
+            {filteredMenuItems.map((item) => {
               if (item.subItems) {
                 const isOpen = item.text === '記帳管理' ? accountingSubMenuOpen : productSubMenuOpen;
                 const handleClick = item.text === '記帳管理' ? handleAccountingClick : handleProductClick;
                 const isActive = item.text === '記帳管理' ? isAccountingPath(location.pathname) : isProductPath(location.pathname);
                 
+                // Filter subItems based on adminOnly flag
+                const filteredSubItems = item.subItems.filter(subItem => {
+                  if (!subItem.adminOnly) return true;
+                  return user && user.role === 'admin';
+                });
+
+                // If all subitems are filtered out, don't render the main item
+                if (filteredSubItems.length === 0 && item.subItems.length > 0) {
+                  return null;
+                }
+
                 return (
                   <React.Fragment key={item.text}>
                     <ListItem 
@@ -308,7 +333,8 @@ const MainLayout = ({ children }) => {
                     </ListItem>
                     <Collapse in={isOpen} timeout="auto" unmountOnExit>
                       <List component="div" disablePadding>
-                        {item.subItems.map((subItem) => (
+                        {/* Use filteredSubItems */}
+                        {filteredSubItems.map((subItem) => (
                           <ListItem 
                             button 
                             key={subItem.text} 
@@ -405,10 +431,7 @@ const MainLayout = ({ children }) => {
                 }
               }}
             >
-              <ListItemIcon sx={{ 
-                color: 'rgba(255, 255, 255, 0.7)',
-                minWidth: 40
-              }}>
+              <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>
                 <LogoutIcon />
               </ListItemIcon>
               <ListItemText 
@@ -424,96 +447,6 @@ const MainLayout = ({ children }) => {
           </List>
         </Box>
       </Drawer>
-      
-      {/* Mobile Drawer (Simplified - needs update for submenus if required) */}
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={toggleDrawer}
-        sx={{
-          display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': { 
-            width: 200,
-            backgroundColor: 'var(--bg-sidebar)',
-            color: 'var(--text-light)'
-          },
-        }}
-      >
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
-            POS系統
-          </Typography>
-        </Box>
-        <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-        {/* Mobile menu needs similar logic update if submenus are desired */}
-        <List>
-          {menuItems.map((item) => (
-            // Simplified for now, doesn't handle mobile submenus
-            !item.subItems && (
-              <ListItem 
-                button 
-                key={item.text} 
-                onClick={() => handleNavigation(item.path)}
-                selected={location.pathname.startsWith(item.path) && item.path !== '/'}
-                sx={{
-                  pl: 2.5,
-                  py: 1.5,
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  },
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  }
-                }}
-              >
-                <ListItemIcon sx={{ 
-                  color: location.pathname.startsWith(item.path) && item.path !== '/' ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                  minWidth: 40
-                }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{ 
-                    sx: { 
-                      color: location.pathname.startsWith(item.path) && item.path !== '/' ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                      fontWeight: 500
-                    } 
-                  }}
-                />
-              </ListItem>
-            )
-          ))}
-          {/* Add Logout for mobile */}
-          <ListItem 
-            button 
-            onClick={handleLogout}
-            sx={{
-              pl: 2.5,
-              py: 1.5,
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)'
-              }
-            }}
-          >
-            <ListItemIcon sx={{ 
-              color: 'rgba(255, 255, 255, 0.7)',
-              minWidth: 40
-            }}>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="登出" 
-              primaryTypographyProps={{ 
-                sx: { 
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontWeight: 500
-                } 
-              }}
-            />
-          </ListItem>
-        </List>
-      </Drawer>
 
       {/* Main Content Area */}
       <Box 
@@ -521,36 +454,18 @@ const MainLayout = ({ children }) => {
         sx={{ 
           flexGrow: 1, 
           p: 3, 
-          mt: 8, // Adjust margin top to account for AppBar height
-          backgroundColor: 'var(--bg-main)',
-          minHeight: 'calc(100vh - 64px)' // Ensure content area fills viewport height minus AppBar
+          backgroundColor: 'var(--bg-primary)',
+          minHeight: '100vh',
+          color: 'var(--text-primary)'
         }}
       >
+        <Toolbar />
         {children}
       </Box>
 
       {/* Settings Modal */}
-      <SettingsModal open={settingsOpen} onClose={handleSettingsClose} />
+      <SettingsModal open={settingsOpen} handleClose={handleSettingsClose} />
     </Box>
-  );
-};
-
-// Helper component for top navigation icons
-const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon }) => {
-  const location = useLocation();
-  const isActive = location.pathname.startsWith(to);
-  const navigate = useNavigate();
-
-  return (
-    <Tooltip title={tooltip}>
-      <IconButton 
-        color="inherit" 
-        sx={{ mr: 1 }} 
-        onClick={() => navigate(to)}
-      >
-        {isActive ? activeIcon : inactiveIcon}
-      </IconButton>
-    </Tooltip>
   );
 };
 
