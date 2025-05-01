@@ -24,7 +24,9 @@ import {
   MenuItem,
   Autocomplete,
   ListItem,
-  ListItemText
+  ListItemText,
+  useTheme, // Import useTheme
+  useMediaQuery // Import useMediaQuery
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -40,6 +42,8 @@ import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
 import CustomProductsDialog from '../components/sales/CustomProductsDialog'; // Import the new dialog
 
 const SalesPage = () => {
+  const theme = useTheme(); // Get theme
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Check for small screens
   const navigate = useNavigate();
   const barcodeInputRef = useRef(null);
 
@@ -354,9 +358,9 @@ const SalesPage = () => {
       )}
 
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">銷售作業</Typography>
-        <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/sales')}>返回銷售列表</Button>
+      <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', mb: 3 }}>
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom={isMobile}>銷售作業</Typography>
+        <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/sales')} sx={{ mt: isMobile ? 1 : 0 }}>返回銷售列表</Button>
       </Box>
 
       <Grid container spacing={3}>
@@ -456,72 +460,160 @@ const SalesPage = () => {
               </Box>
 
               {/* Sales Items Table */}
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ '& th': { fontWeight: 'bold' } }}>
-                      <TableCell>代碼</TableCell>
-                      <TableCell>藥品名稱</TableCell>
-                      <TableCell align="right">單價</TableCell>
-                      <TableCell align="center" sx={{ width: '150px' }}>數量</TableCell>
-                      <TableCell align="right">小計</TableCell>
-                      <TableCell align="center">操作</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {currentSale.items.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}>尚無銷售項目</TableCell></TableRow>
-                    ) : (
-                      currentSale.items.map((item, index) => (
-                        <TableRow key={item.product + '-' + index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}> {/* Use unique key */} 
-                          <TableCell>{item.code}</TableCell>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell align="right">
-                            <TextField
-                              type="number"
-                              defaultValue={item.price.toFixed(2)} // Format default value
-                              onKeyDown={(e) => { if (e.key === 'Enter') { handlePriceChange(index, parseFloat(e.target.value) || 0); e.target.blur(); } }}
-                              onBlur={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
-                              size="small"
-                              inputProps={{ min: 0, step: "0.01", style: { textAlign: 'right' } }}
-                              sx={{ width: '90px', bgcolor: inputModes[index] === 'price' ? 'rgba(220, 255, 220, 0.3)' : 'inherit', '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(0, 0, 0, 0.5)' } }}
-                              disabled={inputModes[index] === 'subtotal'}
-                              onClick={() => { if (inputModes[index] === 'subtotal') { toggleInputMode(index); } }} // Use onClick instead of onDoubleClick for easier mobile use
-                            />
-                          </TableCell>
-                          <TableCell align="center">
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <IconButton size="small" onClick={() => handleQuantityChange(index, item.quantity - 1)} disabled={item.quantity <= 1}><RemoveIcon fontSize="small" /></IconButton>
-                              <TextField type="number" value={item.quantity} onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)} size="small" inputProps={{ min: 1, style: { textAlign: 'center' } }} sx={{ width: '50px', mx: 0.5 }} />
-                              <IconButton size="small" onClick={() => handleQuantityChange(index, item.quantity + 1)}><AddIcon fontSize="small" /></IconButton>
+              {/* Sales Items - Conditional Rendering */}
+              {isMobile ? (
+                // Mobile View: List of Cards
+                <Box>
+                  {currentSale.items.length === 0 ? (
+                    <Typography align="center" sx={{ py: 3 }}>尚無銷售項目</Typography>
+                  ) : (
+                    currentSale.items.map((item, index) => (
+                      <Card key={item.product + '-' + index} variant="outlined" sx={{ mb: 2 }}>
+                        <CardContent sx={{ '&:last-child': { pb: 2 } }}> {/* Reduce padding bottom */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                            <Box>
+                              <Typography variant="subtitle1" component="div">{item.name}</Typography>
+                              <Typography variant="body2" color="text.secondary">代碼: {item.code}</Typography>
                             </Box>
-                          </TableCell>
-                          <TableCell align="right">
-                            {inputModes[index] === 'subtotal' ? (
+                            <IconButton size="medium" color="error" onClick={() => handleRemoveItem(index)} sx={{ mt: -1, mr: -1 }}> {/* Increase size */}
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+
+                          <Grid container spacing={1} alignItems="center">
+                            {/* Price */}
+                            <Grid item xs={6}>
                               <TextField
+                                label="單價"
                                 type="number"
-                                defaultValue={item.subtotal.toFixed(2)} // Format default value
-                                onKeyDown={(e) => { if (e.key === 'Enter') { handleSubtotalChange(index, parseFloat(e.target.value) || 0); e.target.blur(); } }}
-                                onBlur={(e) => handleSubtotalChange(index, parseFloat(e.target.value) || 0)}
+                                value={item.price} // Use value for controlled component
+                                onChange={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
                                 size="small"
+                                fullWidth
                                 inputProps={{ min: 0, step: "0.01", style: { textAlign: 'right' } }}
-                                sx={{ width: '90px', bgcolor: 'rgba(220, 255, 220, 0.3)' }}
+                                InputProps={{ startAdornment: '$' }}
+                                sx={{ bgcolor: inputModes[index] === 'price' ? 'rgba(220, 255, 220, 0.3)' : 'inherit', '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(0, 0, 0, 0.5)' } }}
+                                disabled={inputModes[index] === 'subtotal'}
+                                onClick={() => { if (inputModes[index] === 'subtotal') { toggleInputMode(index); } }}
                               />
-                            ) : (
-                              <Typography variant="body2" align="right" sx={{ width: '90px', display: 'inline-block', cursor: 'pointer', padding: '8.5px 14px', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }} onClick={() => toggleInputMode(index)}>
-                                {item.subtotal.toFixed(2)}
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell align="center">
-                            <IconButton size="small" color="error" onClick={() => handleRemoveItem(index)}><DeleteIcon fontSize="small" /></IconButton>
-                          </TableCell>
+                            </Grid>
+
+                            {/* Quantity */}
+                            <Grid item xs={6}>
+                               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <IconButton onClick={() => handleQuantityChange(index, item.quantity - 1)} disabled={item.quantity <= 1} size="medium"><RemoveIcon /></IconButton> {/* Increase size */}
+                                <TextField
+                                  type="number"
+                                  value={item.quantity}
+                                  onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
+                                  size="small"
+                                  inputProps={{ min: 1, style: { textAlign: 'center' } }}
+                                  sx={{ width: '60px', mx: 0.5 }} // Slightly wider
+                                />
+                                <IconButton onClick={() => handleQuantityChange(index, item.quantity + 1)} size="medium"><AddIcon /></IconButton> {/* Increase size */}
+                              </Box>
+                            </Grid>
+
+                            {/* Subtotal */}
+                             <Grid item xs={12}>
+                                {inputModes[index] === 'subtotal' ? (
+                                  <TextField
+                                    label="小計"
+                                    type="number"
+                                    value={item.subtotal} // Use value for controlled component
+                                    onChange={(e) => handleSubtotalChange(index, parseFloat(e.target.value) || 0)}
+                                    size="small"
+                                    fullWidth
+                                    inputProps={{ min: 0, step: "0.01", style: { textAlign: 'right' } }}
+                                    InputProps={{ startAdornment: '$' }}
+                                    sx={{ bgcolor: 'rgba(220, 255, 220, 0.3)', mt: 1 }} // Add margin top
+                                  />
+                                ) : (
+                                  <Typography variant="body1" align="right" sx={{ width: '100%', cursor: 'pointer', padding: '8.5px 14px', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' }, fontWeight: 'bold', mt: 1 }} onClick={() => toggleInputMode(index)}> {/* Add margin top */}
+                                    小計: ${item.subtotal.toFixed(2)}
+                                  </Typography>
+                                )}
+                            </Grid>
+                          </Grid>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </Box>
+              ) : (
+                // Desktop View: Table
+                <TableContainer component={Paper} variant="outlined">
+                  {/* Existing Table Code Goes Here... */}
+                  <Table size="small">
+                    {/* ... TableHead ... */}
+                     <TableHead>
+                        <TableRow sx={{ '& th': { fontWeight: 'bold' } }}>
+                          <TableCell>代碼</TableCell>
+                          <TableCell>藥品名稱</TableCell>
+                          <TableCell align="right">單價</TableCell>
+                          <TableCell align="center" sx={{ width: '150px' }}>數量</TableCell>
+                          <TableCell align="right">小計</TableCell>
+                          <TableCell align="center">操作</TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                      </TableHead>
+                    {/* ... TableBody ... */}
+                    <TableBody>
+                        {currentSale.items.length === 0 ? (
+                          <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}>尚無銷售項目</TableCell></TableRow>
+                        ) : (
+                          currentSale.items.map((item, index) => (
+                            // ... Existing TableRow code ...
+                            <TableRow key={item.product + '-' + index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}> {/* Use unique key */}
+                              <TableCell>{item.code}</TableCell>
+                              <TableCell>{item.name}</TableCell>
+                              <TableCell align="right">
+                                <TextField
+                                  type="number"
+                                  defaultValue={item.price.toFixed(2)} // Format default value
+                                  onKeyDown={(e) => { if (e.key === 'Enter') { handlePriceChange(index, parseFloat(e.target.value) || 0); e.target.blur(); } }}
+                                  onBlur={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
+                                  size="small"
+                                  inputProps={{ min: 0, step: "0.01", style: { textAlign: 'right' } }}
+                                  sx={{ width: '90px', bgcolor: inputModes[index] === 'price' ? 'rgba(220, 255, 220, 0.3)' : 'inherit', '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: 'rgba(0, 0, 0, 0.5)' } }}
+                                  disabled={inputModes[index] === 'subtotal'}
+                                  onClick={() => { if (inputModes[index] === 'subtotal') { toggleInputMode(index); } }} // Use onClick instead of onDoubleClick for easier mobile use
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <IconButton size="small" onClick={() => handleQuantityChange(index, item.quantity - 1)} disabled={item.quantity <= 1}><RemoveIcon fontSize="small" /></IconButton>
+                                  <TextField type="number" value={item.quantity} onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)} size="small" inputProps={{ min: 1, style: { textAlign: 'center' } }} sx={{ width: '50px', mx: 0.5 }} />
+                                  <IconButton size="small" onClick={() => handleQuantityChange(index, item.quantity + 1)}><AddIcon fontSize="small" /></IconButton>
+                                </Box>
+                              </TableCell>
+                              <TableCell align="right">
+                                {inputModes[index] === 'subtotal' ? (
+                                  <TextField
+                                    type="number"
+                                    defaultValue={item.subtotal.toFixed(2)} // Format default value
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { handleSubtotalChange(index, parseFloat(e.target.value) || 0); e.target.blur(); } }}
+                                    onBlur={(e) => handleSubtotalChange(index, parseFloat(e.target.value) || 0)}
+                                    size="small"
+                                    inputProps={{ min: 0, step: "0.01", style: { textAlign: 'right' } }}
+                                    sx={{ width: '90px', bgcolor: 'rgba(220, 255, 220, 0.3)' }}
+                                  />
+                                ) : (
+                                  <Typography variant="body2" align="right" sx={{ width: '90px', display: 'inline-block', cursor: 'pointer', padding: '8.5px 14px', borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }} onClick={() => toggleInputMode(index)}>
+                                    {item.subtotal.toFixed(2)}
+                                  </Typography>
+                                )}
+                              </TableCell>
+                              <TableCell align="center">
+                                <IconButton size="small" color="error" onClick={() => handleRemoveItem(index)}><DeleteIcon fontSize="small" /></IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+              {/* End Conditional Rendering */}
             </CardContent>
           </Card>
         </Grid>
@@ -532,10 +624,11 @@ const SalesPage = () => {
             <CardContent>
               <Grid container spacing={2} alignItems="flex-start">
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="備註" name="note" value={currentSale.note} onChange={handleInputChange} multiline rows={3} size="small" />
+                  <TextField fullWidth label="備註" name="note" value={currentSale.note} onChange={handleInputChange} multiline rows={isMobile ? 2 : 3} size="small" /> {/* Adjust rows for mobile */}
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  {/* Adjust Box alignment and Button width/size for mobile */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'stretch' : 'flex-end', mt: isMobile ? 2 : 0 }}>
                     <TextField
                       label="折扣金額"
                       name="discount"
@@ -543,17 +636,18 @@ const SalesPage = () => {
                       value={currentSale.discount}
                       onChange={handleInputChange}
                       size="small"
-                      sx={{ mb: 1, width: '150px' }}
+                      sx={{ mb: 1, width: isMobile ? '100%' : '150px' }} // Full width on mobile
                       InputProps={{ startAdornment: <Typography sx={{ mr: 0.5 }}>$</Typography> }}
                       inputProps={{ min: 0, step: "0.01" }}
                     />
-                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
+                    <Typography variant={isMobile ? 'h6' : 'h5'} sx={{ mb: 2, fontWeight: 'bold', textAlign: isMobile ? 'right' : 'inherit' }}> {/* Adjust variant and alignment */}
                       總計: ${currentSale.totalAmount.toFixed(2)}
                     </Typography>
                     <Button
                       variant="contained"
                       color="primary"
-                      size="large"
+                      size={isMobile ? 'medium' : 'large'} // Medium size on mobile
+                      fullWidth={isMobile} // Full width on mobile
                       startIcon={<SaveIcon />}
                       onClick={handleSaveSale}
                       disabled={currentSale.items.length === 0}
