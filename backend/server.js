@@ -10,7 +10,7 @@ connectDB();
 const app = express();
 
 // 初始化中間件
-app.use(cors({ origin: allowedOrigins })); // 使用 cors 中介軟體，允許來自前端的請求
+app.use(cors()); // 允許所有來源
 app.use(express.json({ extended: false }));
 
 // 定義路由
