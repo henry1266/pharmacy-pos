@@ -2,13 +2,13 @@
 
 :root {
   /* 主要顏色 */
-  --primary-color: #624bff;
+  --primary-color: #7a65ff;
   --primary-light: #e5e1ff;
   --secondary-color: #6c757d;
-  --success-color: #00d97e;
+  --success-color: #00b66a;
   --danger-color: #e53f3c;
   --warning-color: #f5a623;
-  --info-color: #39afd1;
+  --info-color: #30b1aa;
   
   /* 背景顏色 */
   --bg-primary: #f5f4f8;
