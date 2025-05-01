@@ -10,7 +10,7 @@ connectDB();
 const app = express();
 
 // 初始化中間件
-app.use(cors({ origin: ["http://localhost:3000", "http://192.168.68.90:3000", "http://192.168.68.93:3000", "http://192.168.68.68:3003"] })); // 使用 cors 中介軟體，允許來自前端的請求
+app.use(cors({ origin: allowedOrigins })); // 使用 cors 中介軟體，允許來自前端的請求
 app.use(express.json({ extended: false }));
 
 // 定義路由
