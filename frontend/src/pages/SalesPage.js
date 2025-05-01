@@ -26,7 +26,9 @@ import {
   ListItem,
   ListItemText,
   useTheme, // Import useTheme
-  useMediaQuery // Import useMediaQuery
+  useMediaQuery, // Import useMediaQuery
+  Collapse, // Import Collapse
+  CardHeader // Import CardHeader
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -34,7 +36,8 @@ import {
   Delete as DeleteIcon,
   Save as SaveIcon,
   ArrowBack as ArrowBackIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  ExpandMore as ExpandMoreIcon // Import ExpandMoreIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 // Import the new components
@@ -53,6 +56,7 @@ const SalesPage = () => {
   // State for the custom products dialog
   const [customDialogOpen, setCustomDialogOpen] = useState(false);
   const [selectedShortcut, setSelectedShortcut] = useState(null); // Holds the currently selected shortcut object {id, name, productIds}
+  const [infoExpanded, setInfoExpanded] = useState(!isMobile); // State for info card collapse
 
   const [currentSale, setCurrentSale] = useState({
     saleNumber: '',
@@ -364,37 +368,52 @@ const SalesPage = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Sale Info Card */}
+        {/* Sale Info Card - Collapsible */}
         <Grid item xs={12}>
           <Card>
-            <CardContent>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
-                  <TextField fullWidth label="銷貨單號" name="saleNumber" value={currentSale.saleNumber} onChange={handleInputChange} placeholder="選填，自動生成" helperText="格式: YYYYMMDDXXX" size="small" />
+            <CardHeader
+              title="基本資訊"
+              action={
+                <IconButton
+                  onClick={() => setInfoExpanded(!infoExpanded)}
+                  aria-expanded={infoExpanded}
+                  aria-label="顯示/隱藏基本資訊"
+                >
+                  <ExpandMoreIcon sx={{ transform: infoExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                </IconButton>
+              }
+              sx={{ pb: infoExpanded ? 0 : 2 }} // Remove padding bottom if expanded
+            />
+            <Collapse in={infoExpanded} timeout="auto" unmountOnExit>
+              <CardContent sx={{ pt: 0 }}> {/* Remove padding top */} 
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <TextField fullWidth label="銷貨單號" name="saleNumber" value={currentSale.saleNumber} onChange={handleInputChange} placeholder="選填，自動生成" helperText="格式: YYYYMMDDXXX" size="small" />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>客戶</InputLabel>
+                      <Select name="customer" value={currentSale.customer} onChange={handleInputChange} label="客戶">
+                        <MenuItem value=""><em>一般客戶</em></MenuItem>
+                        {customers.map((customer) => (<MenuItem key={customer._id} value={customer._id}>{customer.name}</MenuItem>))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>付款方式</InputLabel>
+                      <Select name="paymentMethod" value={currentSale.paymentMethod} onChange={handleInputChange} label="付款方式">
+                        <MenuItem value="cash">現金</MenuItem>
+                        <MenuItem value="credit_card">信用卡</MenuItem>
+                        <MenuItem value="debit_card">金融卡</MenuItem>
+                        <MenuItem value="mobile_payment">行動支付</MenuItem>
+                        <MenuItem value="other">其他</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>客戶</InputLabel>
-                    <Select name="customer" value={currentSale.customer} onChange={handleInputChange} label="客戶">
-                      <MenuItem value=""><em>一般客戶</em></MenuItem>
-                      {customers.map((customer) => (<MenuItem key={customer._id} value={customer._id}>{customer.name}</MenuItem>))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>付款方式</InputLabel>
-                    <Select name="paymentMethod" value={currentSale.paymentMethod} onChange={handleInputChange} label="付款方式">
-                      <MenuItem value="cash">現金</MenuItem>
-                      <MenuItem value="credit_card">信用卡</MenuItem>
-                      <MenuItem value="debit_card">金融卡</MenuItem>
-                      <MenuItem value="mobile_payment">行動支付</MenuItem>
-                      <MenuItem value="other">其他</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </CardContent>
+              </CardContent>
+            </Collapse>
           </Card>
         </Grid>
 
@@ -502,14 +521,8 @@ const SalesPage = () => {
                             <Grid item xs={6}>
                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                                 <IconButton onClick={() => handleQuantityChange(index, item.quantity - 1)} disabled={item.quantity <= 1} size="medium"><RemoveIcon /></IconButton> {/* Increase size */}
-                                <TextField
-                                  type="number"
-                                  value={item.quantity}
-                                  onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
-                                  size="small"
-                                  inputProps={{ min: 1, style: { textAlign: 'center' } }}
-                                  sx={{ width: '60px', mx: 0.5 }} // Slightly wider
-                                />
+                                {/* Mobile: Display quantity as text, not input */}
+                                <Typography sx={{ width: '40px', mx: 1, textAlign: 'center', fontSize: '1.1rem' }}>{item.quantity}</Typography>
                                 <IconButton onClick={() => handleQuantityChange(index, item.quantity + 1)} size="medium"><AddIcon /></IconButton> {/* Increase size */}
                               </Box>
                             </Grid>
