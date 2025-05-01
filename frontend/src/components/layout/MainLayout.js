@@ -122,7 +122,8 @@ const MainLayout = ({ children }) => {
     { 
       text: '會員管理', 
       icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, 
-      path: '/customers' 
+      path: '/customers' ,
+      adminOnly: true // Mark as admin only
     },
     // Modified Accounting Menu Item to be a collapsible group
     { 
@@ -132,7 +133,6 @@ const MainLayout = ({ children }) => {
       subItems: [
         { text: '記帳列表', path: '/accounting' },
         { text: '名目設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
-        { text: '監測產品設定', path: '/settings/monitored-products', icon: <MonitorHeartIcon fontSize="small" sx={{ ml: 1 }} /> }
       ]
     },
     { text: '報表功能', icon: <BarChartIcon />, 
@@ -145,7 +145,7 @@ const MainLayout = ({ children }) => {
       // No direct path, click toggles submenu
       subItems: [
         { text: '設定列表', path: '/settings' },
-        { text: '名目設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '系統設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '監測產品設定', path: '/settings/monitored-products', icon: <MonitorHeartIcon fontSize="small" sx={{ ml: 1 }} /> }
       ]
     },
