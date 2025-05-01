@@ -503,8 +503,7 @@ const MainLayout = ({ children }) => {
         {children}
       </Box>
 
-      {/* Settings Modal */}
-      <SettingsModal open={settingsOpen} onClose={handleSettingsClose} />
+
     </Box>
   );
 };

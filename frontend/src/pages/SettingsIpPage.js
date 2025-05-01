@@ -11,7 +11,7 @@ import {
   Divider,
   CircularProgress
 } from '@mui/material';
-import { syncMongoDBConfig } from '../../utils/configSync';
+import { syncMongoDBConfig } from '../utils/configSync';
 
 /**
  * IP 設定頁面組件
