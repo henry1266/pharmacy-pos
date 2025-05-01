@@ -136,9 +136,19 @@ const MainLayout = ({ children }) => {
       ]
     },
     { text: '報表功能', icon: <BarChartIcon />, 
-	path: '/reports' ,
-    adminOnly: true // Mark as admin only
-	},
+	    path: '/reports' ,
+      adminOnly: true // Mark as admin only
+	  },
+	  { 
+      text: '系統設定', 
+      icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, 
+      // No direct path, click toggles submenu
+      subItems: [
+        { text: '設定列表', path: '/settings' },
+        { text: '名目設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '監測產品設定', path: '/settings/monitored-products', icon: <MonitorHeartIcon fontSize="small" sx={{ ml: 1 }} /> }
+      ]
+    },
   ];
 
   const toggleDrawer = () => {
