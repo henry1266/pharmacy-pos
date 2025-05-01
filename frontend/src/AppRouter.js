@@ -23,7 +23,7 @@ import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
-import SettingsPage from './pages/SettingsPage'; // Import the new settings page
+import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settings page
 
 // Import the AdminRoute guard
 import AdminRoute from './components/common/AdminRoute';
@@ -64,7 +64,7 @@ const AppRouter = () => {
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
       
       {/* Settings routes (assuming they require login) */}
-      <Route path="/settings" element={<SettingsPage />} /> {/* Add the new general settings route */}
+      <Route path="/settings/ip" element={<SettingsIpPage />} /> {/* Add the new IP settings route */}
       <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
       {/* Purchase Order routes - Protected by AdminRoute */}

@@ -33,7 +33,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt'; // Icon for Product List
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
-import SettingsModal from '../settings/SettingsModal';
+
 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
@@ -46,7 +46,6 @@ import '../../assets/css/dashui-theme.css';
  */
 const MainLayout = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState(false);
   const [productSubMenuOpen, setProductSubMenuOpen] = useState(false); // State for product submenu
   const [anchorEl, setAnchorEl] = useState(null); // State for Popover anchor
@@ -169,11 +168,7 @@ const MainLayout = ({ children }) => {
   };
   
   const handleSettingsClick = () => {
-    setSettingsOpen(true);
-  };
-  
-  const handleSettingsClose = () => {
-    setSettingsOpen(false);
+    navigate("/settings/ip"); // Navigate to the new IP settings page
   };
 
   // Toggle Accounting Submenu
