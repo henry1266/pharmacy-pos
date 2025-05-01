@@ -10,7 +10,7 @@ connectDB();
 const app = express();
 
 // 初始化中間件
-app.use(cors({ origin: ["http://localhost:3000", "http://192.168.68.90:3000", "http://192.168.68.93:3000"] })); // 使用 cors 中介軟體，允許來自前端的請求
+app.use(cors({ origin: ["http://localhost:3000", "http://192.168.68.90:3000", "http://192.168.68.93:3000", "http://192.168.68.68:3003"] })); // 使用 cors 中介軟體，允許來自前端的請求
 app.use(express.json({ extended: false }));
 
 // 定義路由
@@ -31,6 +31,7 @@ app.use("/api/reports", require("./routes/reports"));
 app.use("/api/fifo", require("./routes/fifo"));
 app.use("/api/monitored-products", require("./routes/monitoredProducts")); // 新增監測產品路由
 app.use("/api/settings", require("./routes/settings")); // *** Add the new settings route ***
+app.use("/api/config", require("./routes/config")); // Add the new config route
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {
