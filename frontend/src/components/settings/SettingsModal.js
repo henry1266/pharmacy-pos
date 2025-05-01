@@ -40,7 +40,7 @@ const SettingsModal = ({ open, onClose }) => {
       setApiIpAddress(savedApiIp);
     } else {
       // 默認值，從當前apiService配置中獲取
-      setApiIpAddress('192.168.68.90');
+      setApiIpAddress(process.env.REACT_APP_DEFAULT_API_IP || '192.168.68.90'); // Use env var or fallback
     }
 
     const savedMongodbIp = localStorage.getItem('mongodbServerIp');
@@ -48,7 +48,7 @@ const SettingsModal = ({ open, onClose }) => {
       setMongodbIpAddress(savedMongodbIp);
     } else {
       // 默認值，通常與API伺服器相同
-      setMongodbIpAddress('192.168.68.90');
+      setMongodbIpAddress(process.env.REACT_APP_DEFAULT_MONGODB_IP || '192.168.68.90'); // Use env var or fallback
     }
   }, [open]);
 
