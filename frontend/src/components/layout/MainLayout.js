@@ -27,6 +27,7 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import CategoryIcon from '@mui/icons-material/Category';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import ListAltIcon from '@mui/icons-material/ListAlt'; // Icon for Product List
@@ -47,7 +48,8 @@ import '../../assets/css/dashui-theme.css';
 const MainLayout = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState(false);
-  const [productSubMenuOpen, setProductSubMenuOpen] = useState(false); // State for product submenu
+  const [productSubMenuOpen, setProductSubMenuOpen ] = useState(false); // State for product submenu
+  const [settingSubMenuOpen, setSettingSubMenuOpen ] = useState(false); // State for product submenu
   const [anchorEl, setAnchorEl] = useState(null); // State for Popover anchor
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,6 +63,9 @@ const MainLayout = ({ children }) => {
   const isAccountingPath = (path) => {
     return path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
   };
+const isSettingPath = (path) => {
+  return /^\/settings(\/|$)/.test(path);
+};
 
   // Get user info from localStorage
   const [user, setUser] = useState(null);
@@ -140,12 +145,11 @@ const MainLayout = ({ children }) => {
 	  },
 	  { 
       text: '系統設定', 
-      icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, 
+      icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, 
       // No direct path, click toggles submenu
       subItems: [
         { text: '設定列表', path: '/settings' },
-        { text: '系統設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
-        { text: '監測產品設定', path: '/settings/monitored-products', icon: <MonitorHeartIcon fontSize="small" sx={{ ml: 1 }} /> }
+        { text: 'ip設定', path: '/settings/ip', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
       ]
     },
   ];
@@ -166,11 +170,11 @@ const MainLayout = ({ children }) => {
     delete axios.defaults.headers.common['x-auth-token']; // Remove token from axios headers
     navigate('/login');
   };
-  
-  const handleSettingsClick = () => {
-    navigate("/settings/ip"); // Navigate to the new IP settings page
-  };
 
+  // Toggle Accounting Submenu
+  const handleSettingClick = () => {
+    setSettingSubMenuOpen(!settingSubMenuOpen);
+  };
   // Toggle Accounting Submenu
   const handleAccountingClick = () => {
     setAccountingSubMenuOpen(!accountingSubMenuOpen);
@@ -267,11 +271,6 @@ const MainLayout = ({ children }) => {
             activeIcon={<AssuredWorkloadIcon />}
             inactiveIcon={<AssuredWorkloadOutlinedIcon />}
           />
-          <Tooltip title="設定">
-            <IconButton color="inherit" sx={{ mr: 2 }} onClick={handleSettingsClick}>
-              <SettingsIcon />
-			</IconButton>
-		  </Tooltip>
           <Avatar 
             aria-describedby={popoverId}
             sx={{ 
@@ -354,9 +353,32 @@ const MainLayout = ({ children }) => {
             {/* Use filteredMenuItems */}
             {filteredMenuItems.map((item) => {
               if (item.subItems) {
-                const isOpen = item.text === '記帳管理' ? accountingSubMenuOpen : productSubMenuOpen;
-                const handleClick = item.text === '記帳管理' ? handleAccountingClick : handleProductClick;
-                const isActive = item.text === '記帳管理' ? isAccountingPath(location.pathname) : isProductPath(location.pathname);
+const isOpen =
+  item.text === '記帳管理'
+    ? accountingSubMenuOpen
+    : item.text === '商品管理'
+    ? productSubMenuOpen
+    : item.text === '系統設定'
+    ? settingSubMenuOpen
+	: false;
+
+const handleClick =
+  item.text === '記帳管理'
+    ? handleAccountingClick
+    : item.text === '商品管理'
+    ? handleProductClick
+    : item.text === '系統設定'
+	? handleSettingClick
+	: undefined;
+
+const isActive =
+  item.text === '記帳管理'
+    ? isAccountingPath(location.pathname)
+    : item.text === '商品管理'
+    ? isProductPath(location.pathname)
+    : item.text === '系統設定'
+    ? isSettingPath(location.pathname)
+    : false;
                 
                 // Filter subItems based on adminOnly flag
                 const filteredSubItems = item.subItems.filter(subItem => {
@@ -536,4 +558,3 @@ const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon, adminOnly = fals
 };
 
 export default MainLayout;
-
