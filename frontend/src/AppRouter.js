@@ -4,7 +4,9 @@ import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
+import SupplierDetailPage from './pages/SupplierDetailPage'; // Import Supplier Detail Page
 import CustomersPage from './pages/CustomersPage';
+import CustomerDetailPage from './pages/CustomerDetailPage'; // Import Customer Detail Page
 import SalesPage from './pages/SalesPage';
 import SalesListPage from './pages/SalesListPage';
 import SalesEditPage from './pages/SalesEditPage';
@@ -43,12 +45,15 @@ const AppRouter = () => {
       <Route path="/product-categories" element={<ProductCategoryPage />} />
       <Route path="/product-categories/:id" element={<CategoryDetailPage />} />
       
-      {/* Supplier Route - Protected by AdminRoute */}
+      {/* Supplier Routes - Protected by AdminRoute */}
       <Route path="/suppliers" element={<AdminRoute />}>
         <Route path="" element={<SuppliersPage />} />
+        <Route path=":id" element={<SupplierDetailPage />} /> {/* Add Supplier Detail Route */}
       </Route>
       
+      {/* Customer Routes */}
       <Route path="/customers" element={<CustomersPage />} />
+      <Route path="/customers/:id" element={<CustomerDetailPage />} /> {/* Add Customer Detail Route */}
       
       {/* Sales routes */}
       <Route path="/sales" element={<SalesListPage />} />
