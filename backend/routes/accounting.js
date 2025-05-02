@@ -258,6 +258,7 @@ router.put(
       check("items", "至少需要一個項目").isArray().not().isEmpty(),
       check("items.*.amount", "金額必須為數字").isFloat(),
       check("items.*.category", "名目為必填欄位").not().isEmpty(),
+      check("status", "狀態為必填欄位").optional().isIn(["pending", "completed"]), // Add status validation
     ],
   ],
   async (req, res) => {
@@ -271,7 +272,7 @@ router.put(
     }
 
     try {
-      const { date, shift, items } = req.body;
+      const { date, shift, items, status } = req.body; // Add status here
       const accountingDate = new Date(date);
 
       const existingRecord = await Accounting.findOne({
@@ -301,7 +302,7 @@ router.put(
       // 只更新手動項目，保留原有的自動關聯項目 (如果需要更新關聯，需重寫此邏輯)
       accounting.items = [...accounting.items.filter(item => item.isAutoLinked), ...manualItems]; 
       accounting.totalAmount = finalTotalAmount; // 更新總額 (暫時只基於手動項目)
-
+      if (status) accounting.status = status; // Add this line to update status
       accounting = await accounting.save();
       res.json(accounting);
     } catch (err) {
