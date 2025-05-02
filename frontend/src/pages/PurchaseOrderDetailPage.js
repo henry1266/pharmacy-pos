@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 
 import { fetchPurchaseOrder } from '../redux/actions';
 import ProductItemsTable from '../components/common/ProductItemsTable';
+import TwoColumnLayout from '../components/common/TwoColumnLayout'; // Import the new layout component
 
 const PurchaseOrderDetailPage = () => {
   const dispatch = useDispatch();
@@ -111,6 +112,102 @@ const PurchaseOrderDetailPage = () => {
       </Box>
     );
   }
+
+  // Define content for the left column (Basic Info)
+  const leftContent = (
+    <Card>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          基本資訊
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="text.secondary">
+              進貨單號
+            </Typography>
+            <Typography variant="body1">
+              {currentPurchaseOrder.poid}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="text.secondary">
+              發票號碼
+            </Typography>
+            <Typography variant="body1">
+              {currentPurchaseOrder.pobill}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="text.secondary">
+              發票日期
+            </Typography>
+            <Typography variant="body1">
+              {currentPurchaseOrder.pobilldate ? format(new Date(currentPurchaseOrder.pobilldate), 'yyyy-MM-dd') : ''}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="text.secondary">
+              狀態
+            </Typography>
+            <Typography variant="body1">
+              {getStatusChip(currentPurchaseOrder.status)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="text.secondary">
+              付款狀態
+            </Typography>
+            <Typography variant="body1">
+              {currentPurchaseOrder.paymentStatus || '未付'}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="text.secondary">
+              供應商
+            </Typography>
+            <Typography variant="body1">
+              {currentPurchaseOrder.posupplier}
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle2" color="text.secondary">
+              備註
+            </Typography>
+            <Typography variant="body1">
+              {currentPurchaseOrder.notes || '無'}
+            </Typography>
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
+  );
+
+  // Define content for the right column (Product Items)
+  const rightContent = (
+    <Card>
+      <CardContent>
+        <ProductItemsTable 
+          items={currentPurchaseOrder.items || []}
+          codeField="did"
+          nameField="dname"
+          quantityField="dquantity"
+          totalCostField="dtotalCost"
+          totalAmount={currentPurchaseOrder.totalAmount || 
+                       (currentPurchaseOrder.items || []).reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0)}
+          title="藥品項目"
+        />
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="body2" color="text.secondary">
+            創建時間: {format(new Date(currentPurchaseOrder.createdAt), 'yyyy-MM-dd HH:mm:ss')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            最後更新: {format(new Date(currentPurchaseOrder.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
   
   return (
     <Box>
@@ -145,95 +242,16 @@ const PurchaseOrderDetailPage = () => {
         </Box>
       </Box>
       
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            基本資訊
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="subtitle2" color="text.secondary">
-                進貨單號
-              </Typography>
-              <Typography variant="body1">
-                {currentPurchaseOrder.poid}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="subtitle2" color="text.secondary">
-                發票號碼
-              </Typography>
-              <Typography variant="body1">
-                {currentPurchaseOrder.pobill}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="subtitle2" color="text.secondary">
-                發票日期
-              </Typography>
-              <Typography variant="body1">
-                {currentPurchaseOrder.pobilldate ? format(new Date(currentPurchaseOrder.pobilldate), 'yyyy-MM-dd') : ''}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="subtitle2" color="text.secondary">
-                狀態
-              </Typography>
-              <Typography variant="body1">
-                {getStatusChip(currentPurchaseOrder.status)}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="subtitle2" color="text.secondary">
-                付款狀態
-              </Typography>
-              <Typography variant="body1">
-                {currentPurchaseOrder.paymentStatus || '未付'}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" color="text.secondary">
-                供應商
-              </Typography>
-              <Typography variant="body1">
-                {currentPurchaseOrder.posupplier}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" color="text.secondary">
-                備註
-              </Typography>
-              <Typography variant="body1">
-                {currentPurchaseOrder.notes || '無'}
-              </Typography>
-            </Grid>
-          </Grid>
-          
-          <Divider sx={{ my: 2 }} />
-          
-          <ProductItemsTable 
-            items={currentPurchaseOrder.items || []}
-            codeField="did"
-            nameField="dname"
-            quantityField="dquantity"
-            totalCostField="dtotalCost"
-            totalAmount={currentPurchaseOrder.totalAmount || 
-                         currentPurchaseOrder.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0)}
-            title="藥品項目"
-          />
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2" color="text.secondary">
-              創建時間: {format(new Date(currentPurchaseOrder.createdAt), 'yyyy-MM-dd HH:mm:ss')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              最後更新: {format(new Date(currentPurchaseOrder.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      {/* Use the TwoColumnLayout component */}
+      <TwoColumnLayout 
+        leftContent={leftContent} 
+        rightContent={rightContent} 
+        leftWidth={4} // Adjust width as needed (e.g., 4 for left, 8 for right)
+        rightWidth={8}
+      />
     </Box>
   );
 };
 
 export default PurchaseOrderDetailPage;
+
