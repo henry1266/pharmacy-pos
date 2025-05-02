@@ -155,14 +155,12 @@ const AccountingForm = ({
   // 計算總金額 (僅用於顯示，後端會重新計算)
   const calculateTotal = (items, unaccountedSales = []) => {
     const manualTotal = items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-    // If in edit mode and status is pending, include unaccounted sales in the displayed total
-    const salesTotal = (editMode && formData.status === 'pending' && unaccountedSales)
+    // If in edit mode and unaccounted sales were fetched (meaning it was initially pending), include them in the displayed total
+    const salesTotal = (editMode && unaccountedSales && unaccountedSales.length > 0)
       ? unaccountedSales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0)
       : 0;
       
-    // If editing a completed record, the items already include linked sales, so don't add salesTotal again.
-    // If adding a new record (not editMode), this component doesn't handle sales, so salesTotal is 0.
-    // If editing a pending record, items only contains manual items, so add salesTotal.
+    // Always add manual and sales total for preview in edit mode if sales were fetched
     return manualTotal + salesTotal; 
   };
 
@@ -360,8 +358,8 @@ const AccountingForm = ({
             </Button>
           </Grid>
 
-          {/* Unaccounted Sales Section (Only in Edit mode for Pending status) */}
-          {editMode && formData.status === 'pending' && (
+          {/* Unaccounted Sales Section (Show in Edit mode if sales were fetched, regardless of current status selection) */}
+          {editMode && formData.unaccountedSales && formData.unaccountedSales.length > 0 && (
             <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
                 <Typography variant="h6" gutterBottom>
