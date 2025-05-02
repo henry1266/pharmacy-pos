@@ -4,14 +4,9 @@ import {
   Typography,
   Grid,
   Paper,
-  Button,
-  CircularProgress,
-  Card,
-  CardContent
+  CircularProgress
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import DataTable from './tables/DataTable'; // Assuming DataTable is in ./tables/
+import DataTable from '../tables/DataTable'; // Assuming DataTable is in ./tables/
 
 /**
  * 通用的列表頁面佈局組件
