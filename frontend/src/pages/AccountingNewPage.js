@@ -51,7 +51,7 @@ const AccountingNewPage = () => {
   // 表單狀態
   const [formData, setFormData] = useState({
     date: new Date(),
-    shift: 
+    shift:,
     status: 'pending', // Add status field with default 'pending'
     items: [
       { amount: '', category: '', categoryId: '', note: '' },
