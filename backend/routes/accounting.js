@@ -288,22 +288,85 @@ router.put(
       let accounting = await Accounting.findById(req.params.id);
       if (!accounting) return res.status(404).json({ msg: "找不到記帳記錄" });
 
-      // 重新計算記帳項目總額
-      // 注意：更新時是否需要重新關聯銷售並計算總額？目前僅更新手動項目
-      // 如果需要，邏輯會更複雜，需要先取消舊關聯，再查找新關聯並計算
-      // 過濾掉自動關聯的項目，只保留手動項目進行更新
-      const manualItems = items.filter(item => !item.isAutoLinked);
-      const itemsTotal = manualItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-      // TODO: Decide if PUT should re-link sales and recalculate total
-      const finalTotalAmount = itemsTotal; // Temporarily only use manual items total for PUT
+      // --- Start: New logic for handling status change and sales re-linking ---
 
+      // 1. Always unlink previously associated sales regardless of the final status
+      const unlinkResult = await Inventory.updateMany(
+        { accountingId: accounting._id },
+        { $set: { accountingId: null } }
+      );
+      if (unlinkResult.modifiedCount > 0) {
+        console.log(`Unlinked ${unlinkResult.modifiedCount} previous sales from accounting record ${accounting._id} during update.`);
+      }
+
+      // Filter manual items from the request
+      const manualItems = items.filter(item => !item.isAutoLinked);
+      let finalItems = manualItems;
+      let finalTotalAmount = manualItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      let linkedSaleIds = [];
+
+      // 2. If the status is being set to 'completed', re-fetch and link current sales
+      if (status === 'completed') {
+        // Re-fetch logic (similar to POST route)
+        let datePrefix;
+        try {
+          datePrefix = format(accountingDate, "yyyyMMdd");
+        } catch (formatError) {
+          console.error("內部日期格式化錯誤 during update:", formatError);
+          throw new Error("內部日期格式化錯誤"); 
+        }
+        const monitored = await MonitoredProduct.find({}, 'productCode');
+        const monitoredProductCodes = monitored.map(p => p.productCode);
+        let monitoredProductIds = [];
+        if (monitoredProductCodes.length > 0) {
+            const products = await BaseProduct.find({ code: { $in: monitoredProductCodes } }, '_id');
+            monitoredProductIds = products.map(p => p._id);
+        }
+        
+        let currentUnaccountedSales = [];
+        if (monitoredProductIds.length > 0) {
+            currentUnaccountedSales = await Inventory.find({
+              product: { $in: monitoredProductIds },
+              type: "sale",
+              accountingId: null, // Find currently unlinked sales
+              saleNumber: { $regex: `^${datePrefix}` }
+            }).populate('product', 'name');
+        }
+
+        const newSalesItems = currentUnaccountedSales.map(sale => ({
+          amount: sale.totalAmount || 0,
+          category: "其他自費",
+          categoryId: null, 
+          note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`,
+          isAutoLinked: true
+        }));
+
+        finalItems = [...manualItems, ...newSalesItems];
+        finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+        linkedSaleIds = currentUnaccountedSales.map(sale => sale._id);
+      }
+      // If status remains 'pending', finalItems and finalTotalAmount are already set based on manualItems only
+
+      // 3. Update the accounting record
       accounting.date = accountingDate;
       accounting.shift = shift;
-      // 只更新手動項目，保留原有的自動關聯項目 (如果需要更新關聯，需重寫此邏輯)
-      accounting.items = [...accounting.items.filter(item => item.isAutoLinked), ...manualItems]; 
-      accounting.totalAmount = finalTotalAmount; // 更新總額 (暫時只基於手動項目)
-      if (status) accounting.status = status; // Add this line to update status
+      accounting.items = finalItems; 
+      accounting.totalAmount = finalTotalAmount;
+      if (status) accounting.status = status;
+
       accounting = await accounting.save();
+
+      // 4. Link the new sales if status is 'completed'
+      if (status === 'completed' && linkedSaleIds.length > 0) {
+        await Inventory.updateMany(
+          { _id: { $in: linkedSaleIds } },
+          { $set: { accountingId: accounting._id } }
+        );
+        console.log(`Linked ${linkedSaleIds.length} current sales to accounting record ${accounting._id} upon completion.`);
+      }
+      
+      // --- End: New logic --- 
+
       res.json(accounting);
     } catch (err) {
       console.error("更新記帳記錄失敗:", err.message);
