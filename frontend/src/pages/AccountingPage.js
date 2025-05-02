@@ -3,6 +3,7 @@ import { Box, Typography, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { getUnaccountedSales } from '../services/accountingService'; // Import service function
 
 // 導入拆分後的子組件
 import AccountingFilter from '../components/accounting/AccountingFilter';
@@ -31,11 +32,13 @@ const AccountingPage = ({ openAddDialog = false }) => {
   // 表單資料
   const [formData, setFormData] = useState({
     date: new Date(),
-    shift: '',
+    shift: 
+    status: 'pending', // Add status
     items: [
       { amount: '', category: '掛號費', note: '' },
       { amount: '', category: '部分負擔', note: '' }
-    ]
+    ],
+    unaccountedSales: [] // Add unaccountedSales
   });
   
   // 載入記帳記錄
@@ -95,19 +98,35 @@ const AccountingPage = ({ openAddDialog = false }) => {
   };
   
   // 開啟編輯對話框
-  const handleOpenEditDialog = (record) => {
-    setFormData({
-      date: new Date(record.date),
-      shift: record.shift,
-      items: record.items.map(item => ({
-        amount: item.amount,
-        category: item.category,
-        note: item.note || ''
-      }))
-    });
-    setEditMode(true);
-    setCurrentId(record._id);
-    setOpenDialog(true);
+  const handleOpenEditDialog = async (record) => { // Make async
+    try {
+      let currentUnaccountedSales = [];
+      let manualItems = record.items.filter(item => !item.isAutoLinked); // Always filter manual items first
+
+      // If editing a pending record, fetch current unaccounted sales
+      if (record.status === 'pending') {
+        setLoading(true); // Show loading indicator while fetching sales
+        currentUnaccountedSales = await getUnaccountedSales(format(new Date(record.date), 'yyyy-MM-dd'));
+        setLoading(false);
+      }
+
+      setFormData({
+        date: new Date(record.date),
+        shift: record.shift,
+        status: record.status || 'pending', // Ensure status is set
+        // If pending, only show manual items in the editable list.
+        // If completed, show all saved items (manual + previously linked).
+        items: record.status === 'pending' ? manualItems : record.items,
+        unaccountedSales: currentUnaccountedSales // Set fetched sales (empty if status is 'completed')
+      });
+      setEditMode(true);
+      setCurrentId(record._id);
+      setOpenDialog(true);
+    } catch (err) {
+      console.error('開啟編輯對話框失敗:', err);
+      showSnackbar('載入編輯資料失敗，無法獲取未結算銷售', 'error');
+      setLoading(false);
+    }
   };
   
   // 關閉對話框
@@ -216,6 +235,7 @@ const AccountingPage = ({ openAddDialog = false }) => {
         setFormData={setFormData}
         editMode={editMode}
         onSubmit={handleSubmit}
+        loadingSales={loading} // Pass loading state
       />
       
       {/* 提示訊息 */}

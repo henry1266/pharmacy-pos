@@ -13,7 +13,17 @@ import {
   Select,
   MenuItem,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  Paper, // Add Paper
+  Table, // Add Table
+  TableBody, // Add TableBody
+  TableCell, // Add TableCell
+  TableContainer, // Add TableContainer
+  TableHead, // Add TableHead
+  TableRow, // Add TableRow
+  TableSortLabel, // Add TableSortLabel
+  Box, // Add Box
+  Alert // Add Alert
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -35,6 +45,7 @@ import StatusSelect from '../common/form/StatusSelect'; // Import StatusSelect
  * @param {Function} props.setFormData - 設置表單數據的函數
  * @param {boolean} props.editMode - 是否為編輯模式
  * @param {Function} props.onSubmit - 提交表單的處理函數
+ * @param {boolean} props.loadingSales - 是否正在載入未結算銷售 (用於編輯模式)
  */
 const AccountingForm = ({
   open,
@@ -42,7 +53,8 @@ const AccountingForm = ({
   formData,
   setFormData,
   editMode,
-  onSubmit
+  onSubmit,
+  loadingSales // Add loadingSales prop
 }) => {
   // 記帳名目類別狀態
   const [categories, setCategories] = useState([]);
@@ -140,10 +152,75 @@ const AccountingForm = ({
     });
   };
   
-  // 計算總金額
-  const calculateTotal = (items) => {
-    return items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  // 計算總金額 (僅用於顯示，後端會重新計算)
+  const calculateTotal = (items, unaccountedSales = []) => {
+    const manualTotal = items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    // If in edit mode and status is pending, include unaccounted sales in the displayed total
+    const salesTotal = (editMode && formData.status === 'pending' && unaccountedSales)
+      ? unaccountedSales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0)
+      : 0;
+      
+    // If editing a completed record, the items already include linked sales, so don't add salesTotal again.
+    // If adding a new record (not editMode), this component doesn't handle sales, so salesTotal is 0.
+    // If editing a pending record, items only contains manual items, so add salesTotal.
+    return manualTotal + salesTotal; 
   };
+
+  // --- Sorting Logic (Copied from AccountingNewPage) ---
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("lastUpdated");
+
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
+
+  const stableSort = (array, comparator) => {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+      const order = comparator(a[0], b[0]);
+      if (order !== 0) return order;
+      return a[1] - b[1];
+    });
+    return stabilizedThis.map((el) => el[0]);
+  };
+
+  const getComparator = (order, orderBy) => {
+    return order === "desc"
+      ? (a, b) => descendingComparator(a, b, orderBy)
+      : (a, b) => -descendingComparator(a, b, orderBy);
+  };
+
+  const descendingComparator = (a, b, orderBy) => {
+    let valA = a[orderBy];
+    let valB = b[orderBy];
+    if (orderBy.includes(".")) {
+      const keys = orderBy.split(".");
+      valA = keys.reduce((obj, key) => obj && obj[key], a);
+      valB = keys.reduce((obj, key) => obj && obj[key], b);
+    }
+    if (orderBy === "lastUpdated") {
+      valA = new Date(valA);
+      valB = new Date(valB);
+    }
+    if (valB < valA) return -1;
+    if (valB > valA) return 1;
+    return 0;
+  };
+
+  const sortedSales = formData.unaccountedSales ? stableSort(formData.unaccountedSales, getComparator(order, orderBy)) : [];
+  // --- End Sorting Logic ---
+
+  // Table Headers (Copied from AccountingNewPage)
+  const headCells = [
+    { id: "lastUpdated", label: "時間", numeric: false },
+    { id: "product.code", label: "產品編號", numeric: false },
+    { id: "product.name", label: "產品名稱", numeric: false },
+    { id: "quantity", label: "數量", numeric: true },
+    { id: "totalAmount", label: "金額", numeric: true },
+    { id: "saleNumber", label: "銷售單號", numeric: false },
+  ];
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -282,10 +359,66 @@ const AccountingForm = ({
               新增項目
             </Button>
           </Grid>
+
+          {/* Unaccounted Sales Section (Only in Edit mode for Pending status) */}
+          {editMode && formData.status === 'pending' && (
+            <Grid item xs={12}>
+              <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
+                <Typography variant="h6" gutterBottom>
+                  監測產品 - 當日未結算銷售 (將於完成時自動加入)
+                </Typography>
+                {loadingSales ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : !formData.unaccountedSales || formData.unaccountedSales.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
+                    目前無未結算銷售記錄。
+                  </Typography>
+                ) : (
+                  <TableContainer sx={{ maxHeight: 300 }}>
+                    <Table size="small" stickyHeader>
+                      <TableHead>
+                        <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
+                          {headCells.map((headCell) => (
+                            <TableCell
+                              key={headCell.id}
+                              align={headCell.numeric ? 'right' : 'left'}
+                              sortDirection={orderBy === headCell.id ? order : false}
+                            >
+                              <TableSortLabel
+                                active={orderBy === headCell.id}
+                                direction={orderBy === headCell.id ? order : 'asc'}
+                                onClick={() => handleRequestSort(headCell.id)}
+                              >
+                                {headCell.label}
+                              </TableSortLabel>
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {sortedSales.map((sale) => (
+                          <TableRow hover key={sale._id}>
+                            <TableCell>{format(new Date(sale.lastUpdated), 'HH:mm:ss')}</TableCell>
+                            <TableCell>{sale.product?.code || 'N/A'}</TableCell>
+                            <TableCell>{sale.product?.name || '未知產品'}</TableCell>
+                            <TableCell align="right">{Math.abs(sale.quantity || 0)}</TableCell>
+                            <TableCell align="right">${sale.totalAmount || 0}</TableCell>
+                            <TableCell>{sale.saleNumber}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Paper>
+            </Grid>
+          )}
           
           <Grid item xs={12}>
             <Typography variant="h6" align="right">
-              總金額: ${calculateTotal(formData.items)}
+              總金額 (預覽): ${calculateTotal(formData.items, formData.unaccountedSales)}
             </Typography>
           </Grid>
         </Grid>
