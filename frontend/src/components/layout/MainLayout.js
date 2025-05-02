@@ -170,6 +170,7 @@ const isSettingPath = (path) => {
     delete axios.defaults.headers.common['x-auth-token']; // Remove token from axios headers
     navigate('/login');
   };
+  
 
   // Toggle Accounting Submenu
   const handleSettingClick = () => {
@@ -353,32 +354,32 @@ const isSettingPath = (path) => {
             {/* Use filteredMenuItems */}
             {filteredMenuItems.map((item) => {
               if (item.subItems) {
-const isOpen =
-  item.text === '記帳管理'
-    ? accountingSubMenuOpen
-    : item.text === '商品管理'
-    ? productSubMenuOpen
-    : item.text === '系統設定'
-    ? settingSubMenuOpen
-	: false;
+            const isOpen =
+              item.text === '記帳管理'
+                ? accountingSubMenuOpen
+                : item.text === '商品管理'
+                ? productSubMenuOpen
+                : item.text === '系統設定'
+                ? settingSubMenuOpen
+                : false;
 
-const handleClick =
-  item.text === '記帳管理'
-    ? handleAccountingClick
-    : item.text === '商品管理'
-    ? handleProductClick
-    : item.text === '系統設定'
-	? handleSettingClick
-	: undefined;
+            const handleClick =
+              item.text === '記帳管理'
+                ? handleAccountingClick
+                : item.text === '商品管理'
+                ? handleProductClick
+                : item.text === '系統設定'
+                ? handleSettingClick
+                : undefined;
 
-const isActive =
-  item.text === '記帳管理'
-    ? isAccountingPath(location.pathname)
-    : item.text === '商品管理'
-    ? isProductPath(location.pathname)
-    : item.text === '系統設定'
-    ? isSettingPath(location.pathname)
-    : false;
+            const isActive =
+              item.text === '記帳管理'
+                ? isAccountingPath(location.pathname)
+                : item.text === '商品管理'
+                ? isProductPath(location.pathname)
+                : item.text === '系統設定'
+                ? isSettingPath(location.pathname)
+                : false;
                 
                 // Filter subItems based on adminOnly flag
                 const filteredSubItems = item.subItems.filter(subItem => {
@@ -524,8 +525,6 @@ const isActive =
         <Toolbar />
         {children}
       </Box>
-
-
     </Box>
   );
 };
@@ -558,3 +557,4 @@ const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon, adminOnly = fals
 };
 
 export default MainLayout;
+
