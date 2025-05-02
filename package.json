@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "@mui/icons-material": "^7.0.2"
+  },
+  "devDependencies": {
+    "madge": "^8.0.0"
   }
 }
