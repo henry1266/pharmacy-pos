@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 函數：獲取API基礎URL，優先從localStorage讀取，否則使用默認值
 const getApiBaseUrl = () => {
-  const ip = localStorage.getItem('apiServerIp') || process.env.REACT_APP_DEFAULT_API_IP || '192.168.68.90';
+  const ip = localStorage.getItem("apiServerIp") || process.env.REACT_APP_DEFAULT_API_IP || "192.168.68.93";
   return `http://${ip}:5000`; // 假設後端運行在5000埠
 };
 
