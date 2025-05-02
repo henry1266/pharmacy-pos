@@ -8,6 +8,13 @@ const AccountingSchema = new Schema({
     required: true,
     index: true
   },
+  status: {
+    type: String,
+    required: true,
+    enum: ["pending", "completed"],
+    default: "pending",
+    index: true
+  },
   shift: {
     type: String,
     required: true,

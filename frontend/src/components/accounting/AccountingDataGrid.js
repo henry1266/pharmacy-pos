@@ -4,6 +4,7 @@ import { Paper, IconButton, Box } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { format } from 'date-fns';
+import StatusChip from '../common/StatusChip'; // Import StatusChip
 
 /**
  * 記帳系統數據表格組件
@@ -27,6 +28,7 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
     id: record._id,
     date: new Date(record.date),
     shift: record.shift,
+    status: record.status, // Add status field
     items: record.items,
     totalAmount: record.totalAmount,
     rawRecord: record // 保存原始記錄以便編輯時使用
@@ -39,6 +41,12 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
       headerName: '日期', 
       width: 150,
       valueFormatter: (params) => format(params.value, 'yyyy-MM-dd')
+    },
+    { 
+      field: 'status',
+      headerName: '狀態',
+      width: 120,
+      renderCell: (params) => <StatusChip status={params.value} />
     },
     { 
       field: 'shift', 

@@ -34,6 +34,7 @@ import { format } from 'date-fns';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { getAccountingCategories } from '../services/accountingCategoryService';
+import StatusSelect from '../components/common/form/StatusSelect'; // Import StatusSelect
 
 /**
  * 記帳新增頁面
@@ -50,7 +51,8 @@ const AccountingNewPage = () => {
   // 表單狀態
   const [formData, setFormData] = useState({
     date: new Date(),
-    shift: '',
+    shift: 
+    status: 'pending', // Add status field with default 'pending'
     items: [
       { amount: '', category: '', categoryId: '', note: '' },
       { amount: '', category: '', categoryId: '', note: '' }
@@ -245,7 +247,7 @@ const AccountingNewPage = () => {
       }
       
       const submitData = {
-        ...formData,
+        ...formData, // Includes status now
         date: format(formData.date, 'yyyy-MM-dd'),
         items: validItems
       };
@@ -348,7 +350,7 @@ const AccountingNewPage = () => {
               />
             </LocalizationProvider>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}> {/* Adjust grid size */}
             <FormControl fullWidth required>
               <InputLabel>班別</InputLabel>
               <Select
@@ -362,6 +364,12 @@ const AccountingNewPage = () => {
                 <MenuItem value="晚">晚班</MenuItem>
               </Select>
             </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={4}> {/* Add StatusSelect grid item */}
+            <StatusSelect 
+              value={formData.status}
+              onChange={handleFormChange} // Use handleFormChange for status too
+            />
           </Grid>
           
           {/* 項目列表 */}

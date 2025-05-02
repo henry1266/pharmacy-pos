@@ -23,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import zhTW from 'date-fns/locale/zh-TW';
 import { format } from 'date-fns';
 import { getAccountingCategories } from '../../services/accountingCategoryService';
+import StatusSelect from '../common/form/StatusSelect'; // Import StatusSelect
 
 /**
  * 記帳表單對話框組件
@@ -176,6 +177,14 @@ const AccountingForm = ({
               </Select>
             </FormControl>
           </Grid>
+          {editMode && (
+            <Grid item xs={12} sm={6}>
+              <StatusSelect 
+                value={formData.status || 'pending'} // Default to pending if status is missing
+                onChange={handleFormChange} 
+              />
+            </Grid>
+          )}
           
           {/* 項目列表 */}
           <Grid item xs={12}>
