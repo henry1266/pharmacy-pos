@@ -20,8 +20,8 @@ import {
   Divider,
   CircularProgress,
   Stack,
-  IconButton, // For potential collapse button
-  Collapse // For collapsible section
+  IconButton,
+  Collapse
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -31,21 +31,20 @@ import {
   TrendingUp as TrendingUpIcon,
   ReceiptLong as ReceiptLongIcon,
   Percent as PercentIcon,
-  ExpandMore as ExpandMoreIcon, // Icon for expand/collapse
-  Info as InfoIcon, // Icon for Basic Info
-  Person as PersonIcon, // Icon for Customer/Cashier
-  CalendarToday as CalendarTodayIcon, // Icon for Date
-  Payment as PaymentIcon, // Icon for Payment Method
-  CheckCircle as CheckCircleIcon, // Icon for Paid Status
-  Pending as PendingIcon, // Icon for Pending Status
-  Cancel as CancelIcon, // Icon for Cancelled Status
-  AccountBalanceWallet as AccountBalanceWalletIcon, // Icon for Amount Info section
-  ListAlt as ListAltIcon // Icon for Items section
+  ExpandMore as ExpandMoreIcon,
+  Info as InfoIcon,
+  Person as PersonIcon,
+  CalendarToday as CalendarTodayIcon,
+  Payment as PaymentIcon,
+  CheckCircle as CheckCircleIcon,
+  Pending as PendingIcon,
+  Cancel as CancelIcon,
+  AccountBalanceWallet as AccountBalanceWalletIcon,
+  ListAlt as ListAltIcon
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-// Removed TwoColumnLayout as we are restructuring based on the reference
 
 const SalesDetailPage = () => {
   const navigate = useNavigate();
@@ -58,7 +57,7 @@ const SalesDetailPage = () => {
   const [fifoLoading, setFifoLoading] = useState(true);
   const [error, setError] = useState(null);
   const [fifoError, setFifoError] = useState(null);
-  const [amountInfoOpen, setAmountInfoOpen] = useState(true); // State for collapsible section
+  const [amountInfoOpen, setAmountInfoOpen] = useState(true);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -121,7 +120,7 @@ const SalesDetailPage = () => {
     setAmountInfoOpen(!amountInfoOpen);
   };
 
-  // Helper Functions (Payment Method, Status)
+  // Helper Functions
   const getPaymentMethodText = (method) => {
     const methodMap = { 'cash': '現金', 'credit_card': '信用卡', 'debit_card': '金融卡', 'mobile_payment': '行動支付', 'other': '其他' };
     return methodMap[method] || method;
@@ -131,7 +130,7 @@ const SalesDetailPage = () => {
     const statusMap = {
       'paid': { text: '已付款', color: 'success', icon: <CheckCircleIcon fontSize="small" /> },
       'pending': { text: '待付款', color: 'warning', icon: <PendingIcon fontSize="small" /> },
-      'partial': { text: '部分付款', color: 'info', icon: <AccountBalanceWalletIcon fontSize="small" /> }, // Reusing icon
+      'partial': { text: '部分付款', color: 'info', icon: <AccountBalanceWalletIcon fontSize="small" /> },
       'cancelled': { text: '已取消', color: 'error', icon: <CancelIcon fontSize="small" /> }
     };
     return statusMap[status] || { text: status, color: 'default', icon: <InfoIcon fontSize="small" /> };
@@ -169,10 +168,10 @@ const SalesDetailPage = () => {
     );
   }
 
-  // --- Component Structure based on Reference --- 
+  // --- Component Structure --- 
   return (
     <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-      {/* Header: Title and Action Buttons */}
+      {/* Header */}
       <Stack 
         direction={{ xs: 'column', sm: 'row' }}
         justifyContent="space-between" 
@@ -192,22 +191,41 @@ const SalesDetailPage = () => {
 
       {/* Main Content Grid */}
       <Grid container spacing={3}>
-        {/* Left Column (Main Content Area) */}
+        {/* Left Column */}
         <Grid item xs={12} md={8}>
           <Stack spacing={3}>
-            
-                        {/* Amount Information Card (Collapsible) */}
-                        <Card variant="outlined">
-              <CardContent sx={{ pb: amountInfoOpen ? 2 : '16px !important' }}> {/* Adjust padding when closed */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer' }}>
-                  <Typography variant="h6"><AccountBalanceWalletIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>金額信息</Typography>
-                  <IconButton size="small">
-                    <ExpandMoreIcon sx={{ transform: amountInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
-                  </IconButton>
+            {/* Amount Information Card */}
+            <Card variant="outlined">
+              {/* Card Header: Title, Total Amount (always visible), Collapse Button */}
+              <CardContent sx={{ pb: '16px !important' }}> {/* Ensure consistent padding */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  {/* Left side: Title + Collapse Button */} 
+                  <Stack direction="row" alignItems="center" onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer', flexGrow: 1, mr: 2 }}>
+                    <Typography variant="h6" component="div"> {/* Use div to prevent click issues */} 
+                      <AccountBalanceWalletIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>金額信息
+                    </Typography>
+                    <IconButton size="small" sx={{ ml: 0.5 }}>
+                      <ExpandMoreIcon sx={{ transform: amountInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                    </IconButton>
+                  </Stack>
+                  
+                  {/* Right side: Total Amount (always visible) */} 
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <ReceiptLongIcon color="primary" fontSize="small"/>
+                    <Box textAlign="right">
+                      <Typography variant="subtitle2" color="text.secondary">總金額</Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight="bold">
+                        {sale.totalAmount.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  </Stack>
                 </Stack>
-                {/* Collapsible Content */} 
-                <Collapse in={amountInfoOpen} timeout="auto" unmountOnExit>
-                  <Divider sx={{ my: 2 }} />
+              </CardContent>
+              
+              {/* Collapsible Content Area */} 
+              <Collapse in={amountInfoOpen} timeout="auto" unmountOnExit>
+                <Divider />
+                <CardContent> {/* Add CardContent for padding inside Collapse */} 
                   {fifoLoading ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
                       <CircularProgress size={24} sx={{ mr: 1 }} />
@@ -216,12 +234,24 @@ const SalesDetailPage = () => {
                   ) : fifoError ? (
                     <Typography color="error" variant="body2">無法載入毛利數據。</Typography>
                   ) : fifoData ? (
-                    <Grid container spacing={2} alignItems="flex-start"> {/* Changed to flex-start */}
-                      {/* Discount (If applicable) */}
+                    <Grid container spacing={2} alignItems="flex-start">
+                      {/* Subtotal */} 
+                      <Grid item xs={6} sm={4} md={3}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <ReceiptLongIcon color="action" fontSize="small"/>
+                          <Box>
+                            <Typography variant="subtitle2" color="text.secondary">小計</Typography>
+                            <Typography variant="body1">
+                              {(sale.totalAmount + (sale.discount || 0) - (sale.tax || 0)).toFixed(2)}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </Grid>
+                      {/* Discount */} 
                       {sale.discount > 0 && (
-                        <Grid item xs={6} sm={3}>
+                        <Grid item xs={6} sm={4} md={3}>
                            <Stack direction="row" spacing={1} alignItems="center">
-                              <PercentIcon color="secondary" />
+                              <PercentIcon color="secondary" fontSize="small"/>
                               <Box>
                                 <Typography variant="subtitle2" color="text.secondary">折扣</Typography>
                                 <Typography variant="body1" color="secondary.main">
@@ -231,11 +261,11 @@ const SalesDetailPage = () => {
                             </Stack>
                         </Grid>
                       )}
-                      {/* Tax (If applicable) */}
+                      {/* Tax */} 
                       {sale.tax > 0 && (
-                        <Grid item xs={6} sm={3}>
+                        <Grid item xs={6} sm={4} md={3}>
                            <Stack direction="row" spacing={1} alignItems="center">
-                              <PercentIcon color="warning" />
+                              <PercentIcon color="warning" fontSize="small"/>
                               <Box>
                                 <Typography variant="subtitle2" color="text.secondary">稅金</Typography>
                                 <Typography variant="body1" color="warning.main">
@@ -245,22 +275,10 @@ const SalesDetailPage = () => {
                             </Stack>
                         </Grid>
                       )}
-                      {/* Total Amount */}
-                      <Grid item xs={6} sm={3}>
+                      {/* Total Cost */} 
+                      <Grid item xs={6} sm={4} md={3}>
                         <Stack direction="row" spacing={1} alignItems="center">
-                          <ReceiptLongIcon color="primary" />
-                          <Box>
-                            <Typography variant="subtitle2" color="text.secondary">總金額</Typography>
-                            <Typography variant="h6" color="primary.main" fontWeight="bold">
-                              {sale.totalAmount.toFixed(2)}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      </Grid>
-                      {/* Total Cost */}
-                      <Grid item xs={6} sm={3}>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <MonetizationOnIcon color="action" />
+                          <MonetizationOnIcon color="action" fontSize="small"/>
                           <Box>
                             <Typography variant="subtitle2" color="text.secondary">總成本</Typography>
                             <Typography variant="body1">
@@ -269,10 +287,10 @@ const SalesDetailPage = () => {
                           </Box>
                         </Stack>
                       </Grid>
-                      {/* Total Profit */}
-                      <Grid item xs={6} sm={3}>
+                      {/* Total Profit */} 
+                      <Grid item xs={6} sm={4} md={3}>
                         <Stack direction="row" spacing={1} alignItems="center">
-                          <TrendingUpIcon color={fifoData.summary.totalProfit >= 0 ? 'success' : 'error'} />
+                          <TrendingUpIcon color={fifoData.summary.totalProfit >= 0 ? 'success' : 'error'} fontSize="small"/>
                           <Box>
                             <Typography variant="subtitle2" color="text.secondary">總毛利</Typography>
                             <Typography variant="body1" color={fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main'} fontWeight="bold">
@@ -281,10 +299,10 @@ const SalesDetailPage = () => {
                           </Box>
                         </Stack>
                       </Grid>
-                      {/* Profit Margin */}
-                      <Grid item xs={6} sm={3}>
+                      {/* Profit Margin */} 
+                      <Grid item xs={6} sm={4} md={3}>
                         <Stack direction="row" spacing={1} alignItems="center">
-                          <PercentIcon color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success' : 'error'} />
+                          <PercentIcon color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success' : 'error'} fontSize="small"/>
                           <Box>
                             <Typography variant="subtitle2" color="text.secondary">毛利率</Typography>
                             <Typography variant="body1" color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success.main' : 'error.main'} fontWeight="bold">
@@ -297,15 +315,15 @@ const SalesDetailPage = () => {
                   ) : (
                     <Typography variant="body2" color="text.secondary">無毛利數據</Typography>
                   )}
-                </Collapse>
-              </CardContent>
+                </CardContent>
+              </Collapse>
             </Card>
+
             {/* Items Table Card */}
             <Card variant="outlined">
               <CardContent>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                   <Typography variant="h6"><ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目</Typography>
-                  {/* Optional: Add item count here if needed */}
                 </Stack>
                 <Divider sx={{ mb: 2 }} />
                 <TableContainer component={Paper} variant="outlined">
@@ -350,14 +368,11 @@ const SalesDetailPage = () => {
                           </TableRow>
                         );
                       })}
-                      {/* Summary Row - Simplified for now, will be in Amount Info */}
                     </TableBody>
                   </Table>
                 </TableContainer>
               </CardContent>
             </Card>
-
-
           </Stack>
         </Grid>
 
@@ -369,7 +384,7 @@ const SalesDetailPage = () => {
               <CardContent>
                 <Typography variant="h6" gutterBottom><InfoIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>基本信息</Typography>
                 <Divider sx={{ mb: 2 }} />
-                <Stack spacing={1.5}> {/* Use Stack for vertical spacing within card */}
+                <Stack spacing={1.5}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <CalendarTodayIcon fontSize="small" color="action"/>
                     <Typography variant="body2">日期: {sale.date ? format(new Date(sale.date), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : 'N/A'}</Typography>
@@ -400,14 +415,11 @@ const SalesDetailPage = () => {
                 </Stack>
               </CardContent>
             </Card>
-            
-            {/* Add other sidebar cards here if needed, e.g., Notes, Customer Details */}
-
           </Stack>
         </Grid>
       </Grid>
 
-      {/* Snackbar for notifications */}
+      {/* Snackbar */} 
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
