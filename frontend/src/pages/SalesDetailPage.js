@@ -358,7 +358,7 @@ const SalesDetailPage = () => {
                               <Typography variant="subtitle1" fontWeight="bold">{item.product?.name || item.name || 'N/A'}</Typography>
                               <Typography variant="body2" color="text.secondary">
                                 編號: {item.product?._id ? (
-                                  <Link to={`/products/${item.product._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                  <Link to={`/products/${item.product._id}`} style={{ textDecoration: 'underline', color: 'inherit' }}>
                                     {item.product?.code || 'N/A'}
                                   </Link>
                                 ) : (
@@ -444,7 +444,7 @@ const SalesDetailPage = () => {
                             <TableRow key={index} hover>
                               <TableCell>
                                 {item.product?._id ? (
-                                  <Link to={`/products/${item.product._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                  <Link to={`/products/${item.product._id}`} style={{ textDecoration: 'underline', color: 'inherit' }}>
                                     {item.product?.code || 'N/A'}
                                   </Link>
                                 ) : (
