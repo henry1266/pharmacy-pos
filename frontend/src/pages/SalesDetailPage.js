@@ -124,6 +124,16 @@ const SalesDetailPage = () => {
     setAmountInfoOpen(!amountInfoOpen);
   };
 
+  const [itemProfitOpen, setItemProfitOpen] = useState({}); // State map for item profit collapse { index: boolean }
+
+  // Toggle Item Profit Collapse
+  const handleToggleItemProfit = (index) => {
+    setItemProfitOpen(prev => ({
+      ...prev,
+      [index]: !prev[index] // Toggle the state for the specific item index
+    }));
+  };
+
   // Helper Functions
   const getPaymentMethodText = (method) => {
     const methodMap = { 'cash': '現金', 'credit_card': '信用卡', 'debit_card': '金融卡', 'mobile_payment': '行動支付', 'other': '其他' };
@@ -333,52 +343,120 @@ const SalesDetailPage = () => {
                   <Typography variant="h6"><ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目</Typography>
                 </Stack>
                 <Divider sx={{ mb: 2 }} />
-                {/* Make table container responsive */}
-                <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}> 
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>編號</TableCell>
-                        <TableCell>名稱</TableCell>
-                        <TableCell align="right">單價</TableCell>
-                        <TableCell align="right">數量</TableCell>
-                        <TableCell align="right">小計</TableCell>
-                        {!fifoLoading && fifoData && (
-                          <>
-                            <TableCell align="right">成本</TableCell>
-                            <TableCell align="right">毛利</TableCell>
-                            <TableCell align="right">毛利率</TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {sale.items.map((item, index) => {
-                        const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
-                        return (
-                          <TableRow key={index} hover>
-                            <TableCell>{item.product?.code || 'N/A'}</TableCell>
-                            <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
-                            <TableCell align="right">{item.price.toFixed(2)}</TableCell>
-                            <TableCell align="right">{item.quantity}</TableCell>
-                            <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
-                            {!fifoLoading && fifoData && (
-                              <>
-                                <TableCell align="right">{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
-                                  {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
-                                </TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
-                                  {fifoItem ? fifoItem.fifoProfit.profitMargin : 'N/A'}
-                                </TableCell>
-                              </>
-                            )}
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                {/* Conditional Rendering: Table for large screens, Cards for small screens */}
+                {isSmallScreen ? (
+                  <Stack spacing={2}>
+                    {sale.items.map((item, index) => {
+                      const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
+                      const isProfitOpen = !!itemProfitOpen[index]; // Check if profit section is open for this item
+
+                      return (
+                        <Paper key={index} variant="outlined" sx={{ p: 2 }}>
+                          {/* Top Section: Similar to SalesPage mobile card */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                            <Box>
+                              <Typography variant="subtitle1" fontWeight="bold">{item.product?.name || item.name || 'N/A'}</Typography>
+                              <Typography variant="body2" color="text.secondary">編號: {item.product?.code || 'N/A'}</Typography>
+                            </Box>
+                            <Box textAlign="right">
+                              <Typography variant="subtitle1" fontWeight="bold">${(item.price * item.quantity).toFixed(2)}</Typography>
+                              <Typography variant="body2" color="text.secondary">{item.quantity} x ${item.price.toFixed(2)}</Typography>
+                            </Box>
+                          </Box>
+
+                          {/* Profit Section Toggle and Collapse */}
+                          {!fifoLoading && fifoData && fifoItem && (
+                            <Box>
+                              <Box 
+                                onClick={() => handleToggleItemProfit(index)} 
+                                sx={{
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  cursor: 'pointer', 
+                                  py: 0.5, 
+                                  borderTop: '1px solid', 
+                                  borderColor: 'divider', 
+                                  mt: 1
+                                }}
+                              >
+                                <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>成本與毛利</Typography>
+                                <ExpandMoreIcon sx={{ transform: isProfitOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                              </Box>
+                              <Collapse in={isProfitOpen} timeout="auto" unmountOnExit>
+                                <Box sx={{ pt: 1 }}> {/* Add padding top inside collapse */}
+                                  <Grid container spacing={1}>
+                                    <Grid item xs={4}>
+                                      <Typography variant="caption" color="text.secondary">成本</Typography>
+                                      <Typography variant="body2">${fifoItem.fifoProfit.totalCost.toFixed(2)}</Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                      <Typography variant="caption" color="text.secondary">毛利</Typography>
+                                      <Typography variant="body2" color={fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main'}>
+                                        ${fifoItem.fifoProfit.grossProfit.toFixed(2)}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                      <Typography variant="caption" color="text.secondary">毛利率</Typography>
+                                      <Typography variant="body2" color={parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main'}>
+                                        {fifoItem.fifoProfit.profitMargin}
+                                      </Typography>
+                                    </Grid>
+                                  </Grid>
+                                </Box>
+                              </Collapse>
+                            </Box>
+                          )}
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+                ) : (
+                  <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}> 
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>編號</TableCell>
+                          <TableCell>名稱</TableCell>
+                          <TableCell align="right">單價</TableCell>
+                          <TableCell align="right">數量</TableCell>
+                          <TableCell align="right">小計</TableCell>
+                          {!fifoLoading && fifoData && (
+                            <>
+                              <TableCell align="right">成本</TableCell>
+                              <TableCell align="right">毛利</TableCell>
+                              <TableCell align="right">毛利率</TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {sale.items.map((item, index) => {
+                          const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
+                          return (
+                            <TableRow key={index} hover>
+                              <TableCell>{item.product?.code || 'N/A'}</TableCell>
+                              <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
+                              <TableCell align="right">{item.price.toFixed(2)}</TableCell>
+                              <TableCell align="right">{item.quantity}</TableCell>
+                              <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
+                              {!fifoLoading && fifoData && (
+                                <>
+                                  <TableCell align="right">{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
+                                  <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
+                                    {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
+                                  </TableCell>
+                                  <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
+                                    {fifoItem ? fifoItem.fifoProfit.profitMargin : 'N/A'}
+                                  </TableCell>
+                                </> 
+                              )}
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
               </CardContent>
             </Card>
           </Stack>
