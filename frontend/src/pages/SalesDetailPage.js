@@ -44,7 +44,7 @@ import {
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ListAlt as ListAltIcon
 } from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -356,7 +356,15 @@ const SalesDetailPage = () => {
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                             <Box>
                               <Typography variant="subtitle1" fontWeight="bold">{item.product?.name || item.name || 'N/A'}</Typography>
-                              <Typography variant="body2" color="text.secondary">編號: {item.product?.code || 'N/A'}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                編號: {item.product?._id ? (
+                                  <Link to={`/products/${item.product._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    {item.product?.code || 'N/A'}
+                                  </Link>
+                                ) : (
+                                  item.product?.code || 'N/A'
+                                )}
+                              </Typography>
                             </Box>
                             <Box textAlign="right">
                               <Typography variant="subtitle1" fontWeight="bold">${(item.price * item.quantity).toFixed(2)}</Typography>
@@ -434,7 +442,15 @@ const SalesDetailPage = () => {
                           const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
                           return (
                             <TableRow key={index} hover>
-                              <TableCell>{item.product?.code || 'N/A'}</TableCell>
+                              <TableCell>
+                                {item.product?._id ? (
+                                  <Link to={`/products/${item.product._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    {item.product?.code || 'N/A'}
+                                  </Link>
+                                ) : (
+                                  item.product?.code || 'N/A'
+                                )}
+                              </TableCell>
                               <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
                               <TableCell align="right">{item.price.toFixed(2)}</TableCell>
                               <TableCell align="right">{item.quantity}</TableCell>
