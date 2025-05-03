@@ -300,10 +300,10 @@ router.put(
         console.log(`Unlinked ${unlinkResult.modifiedCount} previous sales from accounting record ${accounting._id} during update.`);
       }
 
-      // Filter manual items from the request
-      const manualItems = items.filter(item => !item.isAutoLinked);
-      let finalItems = manualItems;
-      let finalTotalAmount = manualItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      // The 'items' array from req.body *already* contains only the manual items (filtered by frontend)
+      const manualItemsFromRequest = items; // Use items directly from request
+      let finalItems = manualItemsFromRequest;
+      let finalTotalAmount = manualItemsFromRequest.reduce((sum, item) => sum + (item.amount || 0), 0);
       let linkedSaleIds = [];
       let currentUnaccountedSales = []; // Define outside the if block
 
