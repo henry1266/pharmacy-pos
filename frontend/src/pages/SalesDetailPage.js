@@ -169,81 +169,7 @@ const SalesDetailPage = () => {
   // Define Left Content
   const leftContent = (
     <>
-      <Card variant="outlined" sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            金額信息
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <Grid container spacing={2}>
 
-            {fifoData && !fifoLoading && (
-              <>
-                <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    總成本
-                  </Typography>
-                  <Typography variant="body1">
-                    {fifoData.summary.totalCost.toFixed(2)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    總毛利
-                  </Typography>
-                  <Typography 
-                    variant="body1" 
-                    color={fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main'}
-                    fontWeight="bold"
-                  >
-                    {fifoData.summary.totalProfit.toFixed(2)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-              <Typography variant="subtitle2" color="text.secondary">
-                總金額
-              </Typography>
-              <Typography variant="h6" color="primary.main" fontWeight="bold">
-                {sale.totalAmount.toFixed(2)}
-              </Typography>
-            </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    毛利率
-                  </Typography>
-                  <Typography 
-                    variant="body1" 
-                    color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success.main' : 'error.main'}
-                    fontWeight="bold"
-                  >
-                    {fifoData.summary.totalProfitMargin}
-                  </Typography>
-                </Grid>
-              </>
-            )}
-            {fifoLoading && (
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    計算毛利中...
-                  </Typography>
-                </Box>
-              </Grid>
-            )}
-          </Grid>
-          {sale.note && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                備註
-              </Typography>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                {sale.note}
-              </Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
       <Card variant="outlined" sx={{ mb: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
@@ -311,7 +237,75 @@ const SalesDetailPage = () => {
 
   // Define Right Content
   const rightContent = (
+  <>  
+    <Card variant="outlined" sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            金額信息
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={2}>
+
+            {fifoData && !fifoLoading && (
+              <>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    總成本
+                  </Typography>
+                  <Typography variant="body1">
+                    {fifoData.summary.totalCost.toFixed(2)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    總毛利
+                  </Typography>
+                  <Typography 
+                    variant="body1" 
+                    color={fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main'}
+                    fontWeight="bold"
+                  >
+                    {fifoData.summary.totalProfit.toFixed(2)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+              <Typography variant="subtitle2" color="text.secondary">
+                總金額
+              </Typography>
+              <Typography variant="h6" color="primary.main" fontWeight="bold">
+                {sale.totalAmount.toFixed(2)}
+              </Typography>
+            </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    毛利率
+                  </Typography>
+                  <Typography 
+                    variant="body1" 
+                    color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success.main' : 'error.main'}
+                    fontWeight="bold"
+                  >
+                    {fifoData.summary.totalProfitMargin}
+                  </Typography>
+                </Grid>
+              </>
+            )}
+            {fifoLoading && (
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <CircularProgress size={20} sx={{ mr: 1 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    計算毛利中...
+                  </Typography>
+                </Box>
+              </Grid>
+            )}
+          </Grid>
+
+        </CardContent>
+    </Card>
     <Card variant="outlined">
+      <Divider sx={{ mb: 2 }} />
       <CardContent>
         <Typography variant="h6" gutterBottom>
           項目
@@ -399,7 +393,8 @@ const SalesDetailPage = () => {
         </TableContainer>
       </CardContent>
     </Card>
-  );
+  </>
+);
 
   return (
     <Box sx={{ p: 3 }}>
