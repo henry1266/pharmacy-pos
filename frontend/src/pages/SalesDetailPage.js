@@ -338,8 +338,8 @@ const SalesDetailPage = () => {
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        <TableCell>藥品編號</TableCell>
-                        <TableCell>藥品名稱</TableCell>
+                        <TableCell>編號</TableCell>
+                        <TableCell>名稱</TableCell>
                         <TableCell align="right">單價</TableCell>
                         <TableCell align="right">數量</TableCell>
                         <TableCell align="right">小計</TableCell>
