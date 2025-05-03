@@ -342,7 +342,7 @@ router.put(
       }));
 
       // Always merge manual items and current sales for storage
-      finalItems = [...manualItems, ...newSalesItems];
+      finalItems = [...manualItemsFromRequest, ...newSalesItems];
       finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount || 0), 0);
       linkedSaleIds = currentUnaccountedSales.map(sale => sale._id); // Prepare IDs to link if completed
 
