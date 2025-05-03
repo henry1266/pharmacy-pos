@@ -1,9 +1,12 @@
-# 開發任務清單 (第四階段 - 小螢幕優化)
+# Pharmacy POS Mobile Responsiveness Adjustment
 
-- [x] 步驟 1: 分析參考網頁排版與需求 (沿用先前分析)
-- [x] 步驟 2: 更新金額信息區塊，將總金額移至標題列右側 (已完成於 commit 83edb61)
-- [x] 步驟 3: 實作可收合的金額資訊區塊 (已完成於 commit 83edb61)
-- [x] 步驟 4: 針對小螢幕優化寬度與排版
-- [x] 步驟 5: 檢視並重構代碼以確保一致性
-- [ ] 步驟 6: 提交並推送變更
-- [ ] 步驟 7: 驗證變更並回報使用者
+- [x] Clone GitHub repository with token
+- [x] Review development collaboration guidelines
+- [x] Analyze DashboardPage responsiveness
+- [x] Analyze SalesDetailPage responsiveness
+- [x] Identify CSS framework/methodology (MUI)
+- [x] Adjust SalesDetailPage mobile width based on DashboardPage (Removed table minWidth)
+- [x] Test mobile responsiveness (Verified by code analysis due to build constraints)
+- [ ] Commit changes following Conventional Commits
+- [ ] Push changes to GitHub using token
+- [ ] Report completion and provide updated files
