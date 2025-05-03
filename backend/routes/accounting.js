@@ -364,7 +364,8 @@ router.put(
         console.log(`Linked ${linkedSaleIds.length} current sales to accounting record ${accounting._id} upon completion.`);
       }
       
-      // --- End: New logic ---.json(accounting);
+      // --- End: New logic ---
+      res.json(accounting);
     } catch (err) {
       console.error("更新記帳記錄失敗:", err.message);
       res.status(500).send("伺服器錯誤");
