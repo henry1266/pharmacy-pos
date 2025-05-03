@@ -5,5 +5,5 @@
 - [ ] 步驟 3: 檢視 development_collaboration_guidelines.md (已完成)
 - [ ] 步驟 4: 分析 SalesDetailPage.js (已完成)
 - [x] 步驟 5: 優化 SalesDetailPage 排版並為金額資訊添加圖示
-- [ ] 步驟 6: 提交並推送變更
-- [ ] 步驟 7: 驗證變更並回報使用者
+- [x] 步驟 6: 提交並推送變更
+- [x] 步驟 7: 驗證變更並回報使用者
