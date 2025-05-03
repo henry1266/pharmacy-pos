@@ -1,0 +1,96 @@
+📄 ../services/accountingCategoryService.js 被以下檔案引用:
+   └── accounting/AccountingCategoryManager.js
+   └── accounting/AccountingForm.js
+
+📄 common/StrictModeDroppable.js 被以下檔案引用:
+   └── accounting/AccountingCategoryManager.js
+   └── products/ProductCategoryManager.js
+
+📄 common/StatusChip.js 被以下檔案引用:
+   └── accounting/AccountingDataGrid.js
+
+📄 common/form/StatusSelect.js 被以下檔案引用:
+   └── accounting/AccountingForm.js
+
+📄 tables/DataTable.js 被以下檔案引用:
+   └── common/CommonListPageLayout.js
+   └── products/ProductTabs.js
+
+📄 reports/inventory/SingleProductProfitLossChart.js 被以下檔案引用:
+   └── common/InventoryList.js
+   └── reports/inventory/InventoryTable.js
+
+📄 common/FIFOSimulationDialog.js 被以下檔案引用:
+   └── common/PriceTooltip.js
+
+📄 ../utils/apiConfig.js 被以下檔案引用:
+   └── common/ProductItemsTable.js
+   └── sales/ShortcutButtonManager.js
+
+📄 common/preview/ItemPreview.js 被以下檔案引用:
+   └── common/preview/index.js
+   └── sales/SalesPreview.js
+   └── shipping-orders/ShippingOrderPreview.js
+
+📄 ../assets/css/dashui-theme.css 被以下檔案引用:
+   └── layout/MainLayout.js
+
+📄 ../services/productCategoryService.js 被以下檔案引用:
+   └── products/ProductCategoryManager.js
+   └── products/ProductFormDialog.js
+
+📄 common/InventoryList.js 被以下檔案引用:
+   └── products/ProductDetailCard.js
+
+📄 products/TabPanel.js 被以下檔案引用:
+   └── products/ProductTabs.js
+
+📄 common/PriceTooltip.js 被以下檔案引用:
+   └── purchase-order-form/ProductItemForm.js
+   └── shipping-orders/form/ProductItems/ItemForm.js
+
+📄 common/SupplierSelect.js 被以下檔案引用:
+   └── purchase-orders/form/BasicInfo/index.js
+   └── shipping-orders/form/BasicInfo/index.js
+
+📄 purchase-orders/form/BasicInfo/PaymentSelect.js 被以下檔案引用:
+   └── purchase-orders/form/BasicInfo/index.js
+
+📄 purchase-orders/form/BasicInfo/StatusSelect.js 被以下檔案引用:
+   └── purchase-orders/form/BasicInfo/index.js
+
+📄 common/PriceSummary.jsx 被以下檔案引用:
+   └── purchase-orders/form/ProductItems/ItemsTable.js
+   └── shipping-orders/form/ProductItems/ItemsTable.js
+
+📄 purchase-orders/form/ProductItems/ItemActions.js 被以下檔案引用:
+   └── purchase-orders/form/ProductItems/ItemsTable.js
+
+📄 purchase-orders/form/ProductItems/ItemForm.js 被以下檔案引用:
+   └── purchase-orders/form/ProductItems/ItemsTable.js
+
+📄 purchase-orders/form/ProductItems/ItemsTable.js 被以下檔案引用:
+   └── purchase-orders/form/ProductItems/index.js
+
+📄 purchase-orders/common/PaymentStatusChip.js 被以下檔案引用:
+   └── purchase-orders/list/PurchaseOrdersTable.js
+
+📄 purchase-orders/common/StatusChip.js 被以下檔案引用:
+   └── purchase-orders/list/PurchaseOrdersTable.js
+
+📄 purchase-orders/list/TableActions.js 被以下檔案引用:
+   └── purchase-orders/list/PurchaseOrdersTable.js
+
+📄 ../hooks/useInventoryData.js 被以下檔案引用:
+   └── sales/CategoryProductsDialog.js
+   └── sales/CustomProductsDialog.js
+   └── shipping-orders/form/ProductItems/ItemForm.js
+
+📄 ../utils/configSync.js 被以下檔案引用:
+   └── settings/SettingsModal.js
+
+📄 shipping-orders/common/PaymentStatusChip.js 被以下檔案引用:
+   └── shipping-orders/list/ShippingOrdersTable.js
+
+📄 shipping-orders/common/StatusChip.js 被以下檔案引用:
+   └── shipping-orders/list/ShippingOrdersTable.js

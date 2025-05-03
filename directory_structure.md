@@ -74,7 +74,7 @@ frontend/src/components/
 │   │       └── ItemActions.js  # 項目操作按鈕
 │   └── import/                 # 導入相關組件
 │       └── CsvImportDialog.js  # CSV導入對話框
-└── purchase-order-form/        # 舊版進貨單表單組件(待移除)
+└── purchase-order-form/        # 舊版進貨單表單組件
 ```
 
 ### 出貨單相關組件結構

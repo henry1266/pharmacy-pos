@@ -157,7 +157,7 @@ router.post(
     }
 
     try {
-      const { date, shift } = req.body;
+      const { date, shift, status } = req.body; // Add status here
       let items = req.body.items || []; // Get items from request or default to empty array
       const accountingDate = new Date(date);
 
@@ -222,19 +222,20 @@ router.post(
         shift,
         items: allItems, // Use the merged items array
         totalAmount: finalTotalAmount, // Use the final calculated total
+        status: status || 'pending', // Set status from request or default to pending
         createdBy: req.user.id,
       });
 
       const accounting = await newAccounting.save();
 
-      // 更新這些銷售記錄的 accountingId
-      if (unaccountedSales.length > 0) {
+      // 更新銷售記錄的 accountingId *僅當狀態為 completed*
+      if (status === 'completed' && unaccountedSales.length > 0) {
         const saleIdsToUpdate = unaccountedSales.map((sale) => sale._id);
         await Inventory.updateMany(
           { _id: { $in: saleIdsToUpdate } },
           { $set: { accountingId: accounting._id } }
         );
-        console.log(`Linked ${saleIdsToUpdate.length} monitored sales (by saleNumber prefix ${datePrefix}) to accounting record ${accounting._id}`);
+        console.log(`Linked ${saleIdsToUpdate.length} monitored sales to accounting record ${accounting._id} upon creation with completed status.`);
       }
 
       res.json(accounting);
@@ -304,48 +305,46 @@ router.put(
       let finalItems = manualItems;
       let finalTotalAmount = manualItems.reduce((sum, item) => sum + (item.amount || 0), 0);
       let linkedSaleIds = [];
+      let currentUnaccountedSales = []; // Define outside the if block
 
-      // 2. If the status is being set to 'completed', re-fetch and link current sales
-      if (status === 'completed') {
-        // Re-fetch logic (similar to POST route)
-        let datePrefix;
-        try {
-          datePrefix = format(accountingDate, "yyyyMMdd");
-        } catch (formatError) {
-          console.error("內部日期格式化錯誤 during update:", formatError);
-          throw new Error("內部日期格式化錯誤"); 
-        }
-        const monitored = await MonitoredProduct.find({}, 'productCode');
-        const monitoredProductCodes = monitored.map(p => p.productCode);
-        let monitoredProductIds = [];
-        if (monitoredProductCodes.length > 0) {
-            const products = await BaseProduct.find({ code: { $in: monitoredProductCodes } }, '_id');
-            monitoredProductIds = products.map(p => p._id);
-        }
-        
-        let currentUnaccountedSales = [];
-        if (monitoredProductIds.length > 0) {
-            currentUnaccountedSales = await Inventory.find({
-              product: { $in: monitoredProductIds },
-              type: "sale",
-              accountingId: null, // Find currently unlinked sales
-              saleNumber: { $regex: `^${datePrefix}` }
-            }).populate('product', 'name');
-        }
-
-        const newSalesItems = currentUnaccountedSales.map(sale => ({
-          amount: sale.totalAmount || 0,
-          category: "其他自費",
-          categoryId: null, 
-          note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`,
-          isAutoLinked: true
-        }));
-
-        finalItems = [...manualItems, ...newSalesItems];
-        finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-        linkedSaleIds = currentUnaccountedSales.map(sale => sale._id);
+      // 2. Always re-fetch current sales to include in items and total, regardless of final status
+      // Re-fetch logic (similar to POST route)
+      let datePrefix;
+      try {
+        datePrefix = format(accountingDate, "yyyyMMdd");
+      } catch (formatError) {
+        console.error("內部日期格式化錯誤 during update:", formatError);
+        throw new Error("內部日期格式化錯誤"); 
       }
-      // If status remains 'pending', finalItems and finalTotalAmount are already set based on manualItems only
+      const monitored = await MonitoredProduct.find({}, "productCode");
+      const monitoredProductCodes = monitored.map(p => p.productCode);
+      let monitoredProductIds = [];
+      if (monitoredProductCodes.length > 0) {
+          const products = await BaseProduct.find({ code: { $in: monitoredProductCodes } }, "_id");
+          monitoredProductIds = products.map(p => p._id);
+      }
+      
+      if (monitoredProductIds.length > 0) {
+          currentUnaccountedSales = await Inventory.find({
+            product: { $in: monitoredProductIds },
+            type: "sale",
+            accountingId: null, // Find currently unlinked sales
+            saleNumber: { $regex: `^${datePrefix}` }
+          }).populate("product", "name");
+      }
+
+      const newSalesItems = currentUnaccountedSales.map(sale => ({
+        amount: sale.totalAmount || 0,
+        category: "其他自費",
+        categoryId: null, 
+        note: `${sale.saleNumber} - ${sale.product ? sale.product.name : "未知產品"}#${Math.abs(sale.quantity || 0)}`,
+        isAutoLinked: true
+      }));
+
+      // Always merge manual items and current sales for storage
+      finalItems = [...manualItems, ...newSalesItems];
+      finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      linkedSaleIds = currentUnaccountedSales.map(sale => sale._id); // Prepare IDs to link if completed
 
       // 3. Update the accounting record
       accounting.date = accountingDate;
@@ -356,8 +355,8 @@ router.put(
 
       accounting = await accounting.save();
 
-      // 4. Link the new sales if status is 'completed'
-      if (status === 'completed' && linkedSaleIds.length > 0) {
+      // 4. Link the sales *only* if status is being set to completed
+      if (status === "completed" && linkedSaleIds.length > 0) {
         await Inventory.updateMany(
           { _id: { $in: linkedSaleIds } },
           { $set: { accountingId: accounting._id } }
@@ -365,9 +364,7 @@ router.put(
         console.log(`Linked ${linkedSaleIds.length} current sales to accounting record ${accounting._id} upon completion.`);
       }
       
-      // --- End: New logic --- 
-
-      res.json(accounting);
+      // --- End: New logic ---.json(accounting);
     } catch (err) {
       console.error("更新記帳記錄失敗:", err.message);
       res.status(500).send("伺服器錯誤");
