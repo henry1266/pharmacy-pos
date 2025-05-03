@@ -195,65 +195,9 @@ const SalesDetailPage = () => {
         {/* Left Column (Main Content Area) */}
         <Grid item xs={12} md={8}>
           <Stack spacing={3}>
-            {/* Items Table Card */}
-            <Card variant="outlined">
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                  <Typography variant="h6"><ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目</Typography>
-                  {/* Optional: Add item count here if needed */}
-                </Stack>
-                <Divider sx={{ mb: 2 }} />
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>藥品編號</TableCell>
-                        <TableCell>藥品名稱</TableCell>
-                        <TableCell align="right">單價</TableCell>
-                        <TableCell align="right">數量</TableCell>
-                        <TableCell align="right">小計</TableCell>
-                        {!fifoLoading && fifoData && (
-                          <>
-                            <TableCell align="right">成本</TableCell>
-                            <TableCell align="right">毛利</TableCell>
-                            <TableCell align="right">毛利率</TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {sale.items.map((item, index) => {
-                        const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
-                        return (
-                          <TableRow key={index} hover>
-                            <TableCell>{item.product?.code || 'N/A'}</TableCell>
-                            <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
-                            <TableCell align="right">{item.price.toFixed(2)}</TableCell>
-                            <TableCell align="right">{item.quantity}</TableCell>
-                            <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
-                            {!fifoLoading && fifoData && (
-                              <>
-                                <TableCell align="right">{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
-                                  {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
-                                </TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
-                                  {fifoItem ? fifoItem.fifoProfit.profitMargin : 'N/A'}
-                                </TableCell>
-                              </>
-                            )}
-                          </TableRow>
-                        );
-                      })}
-                      {/* Summary Row - Simplified for now, will be in Amount Info */}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-
-            {/* Amount Information Card (Collapsible) */}
-            <Card variant="outlined">
+            
+                        {/* Amount Information Card (Collapsible) */}
+                        <Card variant="outlined">
               <CardContent sx={{ pb: amountInfoOpen ? 2 : '16px !important' }}> {/* Adjust padding when closed */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer' }}>
                   <Typography variant="h6"><AccountBalanceWalletIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>金額信息</Typography>
@@ -273,18 +217,6 @@ const SalesDetailPage = () => {
                     <Typography color="error" variant="body2">無法載入毛利數據。</Typography>
                   ) : fifoData ? (
                     <Grid container spacing={2} alignItems="flex-start"> {/* Changed to flex-start */}
-                      {/* Subtotal (Calculated from items) */}
-                      <Grid item xs={6} sm={3}>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <ReceiptLongIcon color="action" />
-                          <Box>
-                            <Typography variant="subtitle2" color="text.secondary">小計</Typography>
-                            <Typography variant="body1">
-                              {(sale.totalAmount + (sale.discount || 0) - (sale.tax || 0)).toFixed(2)} {/* Approximate calculation */} 
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      </Grid>
                       {/* Discount (If applicable) */}
                       {sale.discount > 0 && (
                         <Grid item xs={6} sm={3}>
@@ -368,6 +300,64 @@ const SalesDetailPage = () => {
                 </Collapse>
               </CardContent>
             </Card>
+            {/* Items Table Card */}
+            <Card variant="outlined">
+              <CardContent>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                  <Typography variant="h6"><ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目</Typography>
+                  {/* Optional: Add item count here if needed */}
+                </Stack>
+                <Divider sx={{ mb: 2 }} />
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>藥品編號</TableCell>
+                        <TableCell>藥品名稱</TableCell>
+                        <TableCell align="right">單價</TableCell>
+                        <TableCell align="right">數量</TableCell>
+                        <TableCell align="right">小計</TableCell>
+                        {!fifoLoading && fifoData && (
+                          <>
+                            <TableCell align="right">成本</TableCell>
+                            <TableCell align="right">毛利</TableCell>
+                            <TableCell align="right">毛利率</TableCell>
+                          </>
+                        )}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {sale.items.map((item, index) => {
+                        const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
+                        return (
+                          <TableRow key={index} hover>
+                            <TableCell>{item.product?.code || 'N/A'}</TableCell>
+                            <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
+                            <TableCell align="right">{item.price.toFixed(2)}</TableCell>
+                            <TableCell align="right">{item.quantity}</TableCell>
+                            <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
+                            {!fifoLoading && fifoData && (
+                              <>
+                                <TableCell align="right">{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
+                                <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
+                                  {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
+                                </TableCell>
+                                <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
+                                  {fifoItem ? fifoItem.fifoProfit.profitMargin : 'N/A'}
+                                </TableCell>
+                              </>
+                            )}
+                          </TableRow>
+                        );
+                      })}
+                      {/* Summary Row - Simplified for now, will be in Amount Info */}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+
+
           </Stack>
         </Grid>
 
