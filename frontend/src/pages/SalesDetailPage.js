@@ -357,18 +357,18 @@ const SalesDetailPage = () => {
                         const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
                         return (
                           <TableRow key={index} hover>
-                            <TableCell sx={{ whiteSpace: 'nowrap' }}>{item.product?.code || 'N/A'}</TableCell> {/* Prevent wrap */} 
+                            <TableCell>{item.product?.code || 'N/A'}</TableCell>
                             <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
-                            <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{item.price.toFixed(2)}</TableCell>
+                            <TableCell align="right">{item.price.toFixed(2)}</TableCell>
                             <TableCell align="right">{item.quantity}</TableCell>
-                            <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{(item.price * item.quantity).toFixed(2)}</TableCell>
+                            <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
                             {!fifoLoading && fifoData && (
                               <>
-                                <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main', whiteSpace: 'nowrap' }}>
+                                <TableCell align="right">{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
+                                <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
                                   {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
                                 </TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main', whiteSpace: 'nowrap' }}>
+                                <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
                                   {fifoItem ? fifoItem.fifoProfit.profitMargin : 'N/A'}
                                 </TableCell>
                               </>
