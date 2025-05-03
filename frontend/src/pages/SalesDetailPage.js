@@ -21,7 +21,9 @@ import {
   CircularProgress,
   Stack,
   IconButton,
-  Collapse
+  Collapse,
+  useTheme, // Import useTheme to access breakpoints
+  useMediaQuery // Import useMediaQuery for conditional rendering/styling
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -49,6 +51,8 @@ import { zhTW } from 'date-fns/locale';
 const SalesDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')); // Check if screen is small
 
   // State Management
   const [sale, setSale] = useState(null);
@@ -179,10 +183,10 @@ const SalesDetailPage = () => {
         spacing={1}
         sx={{ mb: 3 }}
       >
-        <Typography variant="h4" component="h1" gutterBottom={false}>
+        <Typography variant={isSmallScreen ? 'h5' : 'h4'} component="h1" gutterBottom={false} noWrap sx={{ flexShrink: 0 }}> {/* Adjust variant and prevent wrap */}
           銷售詳情 #{sale.saleNumber || 'N/A'}
         </Typography>
-        <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}> {/* Ensure buttons align right on larger screens */}
           <Button variant="outlined" color="primary" size="small" startIcon={<EditIcon />} onClick={() => navigate(`/sales/edit/${id}`)}>編輯</Button>
           <Button variant="outlined" color="secondary" size="small" startIcon={<PrintIcon />} onClick={() => navigate(`/sales/print/${id}`)}>列印</Button>
           <Button variant="contained" size="small" startIcon={<ArrowBackIcon />} onClick={() => navigate('/sales')}>返回列表</Button>
@@ -197,35 +201,38 @@ const SalesDetailPage = () => {
             {/* Amount Information Card */}
             <Card variant="outlined">
               {/* Card Header: Title, Total Amount (always visible), Collapse Button */}
-              <CardContent sx={{ pb: '16px !important' }}> {/* Ensure consistent padding */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <CardContent sx={{ pb: '16px !important' }}>
+                {/* Use Grid for better responsive control in header */}
+                <Grid container spacing={1} alignItems="center" justifyContent="space-between">
                   {/* Left side: Title + Collapse Button */} 
-                  <Stack direction="row" alignItems="center" onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer', flexGrow: 1, mr: 2 }}>
-                    <Typography variant="h6" component="div"> {/* Use div to prevent click issues */} 
+                  <Grid item xs={12} sm="auto" onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', flexGrow: { xs: 1, sm: 0 } }}>
+                    <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center' }}>
                       <AccountBalanceWalletIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>金額信息
                     </Typography>
                     <IconButton size="small" sx={{ ml: 0.5 }}>
                       <ExpandMoreIcon sx={{ transform: amountInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
                     </IconButton>
-                  </Stack>
+                  </Grid>
                   
                   {/* Right side: Total Amount (always visible) */} 
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <ReceiptLongIcon color="primary" fontSize="small"/>
-                    <Box textAlign="right">
-                      <Typography variant="subtitle2" color="text.secondary">總金額</Typography>
-                      <Typography variant="h6" color="primary.main" fontWeight="bold">
-                        {sale.totalAmount.toFixed(2)}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Stack>
+                  <Grid item xs={12} sm="auto" sx={{ mt: { xs: 1, sm: 0 } }}> {/* Add top margin on extra small screens */} 
+                    <Stack direction="row" spacing={1} alignItems="center" justifyContent={{ xs: 'flex-end', sm: 'flex-end' }}> {/* Align right */} 
+                      <ReceiptLongIcon color="primary" fontSize="small"/>
+                      <Box textAlign="right">
+                        <Typography variant="subtitle2" color="text.secondary">總金額</Typography>
+                        <Typography variant="h6" color="primary.main" fontWeight="bold">
+                          {sale.totalAmount.toFixed(2)}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                </Grid>
               </CardContent>
               
               {/* Collapsible Content Area */} 
               <Collapse in={amountInfoOpen} timeout="auto" unmountOnExit>
                 <Divider />
-                <CardContent> {/* Add CardContent for padding inside Collapse */} 
+                <CardContent>
                   {fifoLoading ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
                       <CircularProgress size={24} sx={{ mr: 1 }} />
@@ -326,8 +333,9 @@ const SalesDetailPage = () => {
                   <Typography variant="h6"><ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目</Typography>
                 </Stack>
                 <Divider sx={{ mb: 2 }} />
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
+                {/* Make table container responsive */}
+                <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}> 
+                  <Table size="small" sx={{ minWidth: 650 }}> {/* Set minWidth for horizontal scroll on small screens */} 
                     <TableHead>
                       <TableRow>
                         <TableCell>藥品編號</TableCell>
@@ -349,18 +357,18 @@ const SalesDetailPage = () => {
                         const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
                         return (
                           <TableRow key={index} hover>
-                            <TableCell>{item.product?.code || 'N/A'}</TableCell>
+                            <TableCell sx={{ whiteSpace: 'nowrap' }}>{item.product?.code || 'N/A'}</TableCell> {/* Prevent wrap */} 
                             <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
-                            <TableCell align="right">{item.price.toFixed(2)}</TableCell>
+                            <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{item.price.toFixed(2)}</TableCell>
                             <TableCell align="right">{item.quantity}</TableCell>
-                            <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
+                            <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{(item.price * item.quantity).toFixed(2)}</TableCell>
                             {!fifoLoading && fifoData && (
                               <>
-                                <TableCell align="right">{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
+                                <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
+                                <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main', whiteSpace: 'nowrap' }}>
                                   {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
                                 </TableCell>
-                                <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
+                                <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main', whiteSpace: 'nowrap' }}>
                                   {fifoItem ? fifoItem.fifoProfit.profitMargin : 'N/A'}
                                 </TableCell>
                               </>
