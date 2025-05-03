@@ -101,7 +101,7 @@ const AccountingPage = ({ openAddDialog = false }) => {
   const handleOpenEditDialog = async (record) => { // Make async
     try {
       let currentUnaccountedSales = [];
-      let manualItems = record.items.filter(item => !item.isAutoLinked); // Always filter manual items first
+      let manualItems = record.items.filter(item => item.category !== "其他自費"); // Filter out items with category "其他自費"
 
       // If editing a pending record, fetch current unaccounted sales
       if (record.status === 'pending') {
