@@ -32,7 +32,7 @@ const AccountingPage = ({ openAddDialog = false }) => {
   // 表單資料
   const [formData, setFormData] = useState({
     date: new Date(),
-    shift: 
+    shift: '',
     status: 'pending', // Add status
     items: [
       { amount: '', category: '掛號費', note: '' },
