@@ -16,7 +16,8 @@ import {
   Paper,
   CircularProgress,
   IconButton,
-  Collapse
+  Collapse,
+  Divider // Added Divider back
 } from '@mui/material';
 import {
   CalendarToday as CalendarTodayIcon,
@@ -128,12 +129,9 @@ const renderSalesAmountInfo = (data, relatedData, isSmallScreen, loadingRelated,
     return <Typography color="error" variant="body2">無法載入毛利數據。</Typography>;
   }
 
-  if (!fifoData) {
+  if (!fifoData || !fifoData.summary) { // Added check for fifoData.summary
     return <Typography variant="body2" color="text.secondary">無毛利數據</Typography>;
   }
-
-  // Display Total Amount in Header (Handled by Template? Need to check template design)
-  // For now, render the details within the collapse section
 
   return (
     <Grid container spacing={2} alignItems="flex-start">
@@ -177,7 +175,7 @@ const renderSalesAmountInfo = (data, relatedData, isSmallScreen, loadingRelated,
             </Stack>
         </Grid>
       )}
-       {/* Total Amount (already in header, maybe repeat here?) */}
+       {/* Total Amount */}
        <Grid item xs={6} sm={4} md={3}>
         <Stack direction="row" spacing={1} alignItems="center">
           <ReceiptLongIcon color="primary" fontSize="small"/>
@@ -229,14 +227,10 @@ const renderSalesAmountInfo = (data, relatedData, isSmallScreen, loadingRelated,
   );
 };
 
-// Render function for Items Table section
-const renderSalesItemsTable = (data, relatedData, isSmallScreen, loadingRelated, errorRelated) => {
+// Render function for Items Table section - ACCEPTS STATE PROPS
+const renderSalesItemsTable = (data, relatedData, isSmallScreen, loadingRelated, errorRelated, itemProfitOpen, handleToggleItemProfit) => {
   const fifoData = relatedData;
-  const [itemProfitOpen, setItemProfitOpen] = React.useState({}); // Local state for collapse
-
-  const handleToggleItemProfit = (index) => {
-    setItemProfitOpen(prev => ({ ...prev, [index]: !prev[index] }));
-  };
+  // REMOVED: useState call was here
 
   if (!data || !data.items || data.items.length === 0) {
     return <Typography>沒有項目</Typography>;
@@ -250,6 +244,7 @@ const renderSalesItemsTable = (data, relatedData, isSmallScreen, loadingRelated,
       <Stack spacing={2}>
         {items.map((item, index) => {
           const fifoItem = !loadingRelated && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
+          // Use passed state prop
           const isProfitOpen = !!itemProfitOpen[index];
 
           return (
@@ -290,9 +285,10 @@ const renderSalesItemsTable = (data, relatedData, isSmallScreen, loadingRelated,
               </Grid>
 
               {/* Bottom Section: Profit (Collapsible) */}
-              {!loadingRelated && fifoItem && (
+              {!loadingRelated && fifoItem && fifoItem.fifoProfit && ( // Added check for fifoItem.fifoProfit
                 <Box>
                   <Divider sx={{ my: 1 }} />
+                  {/* Use passed handler prop */}
                   <Box onClick={() => handleToggleItemProfit(index)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Typography variant="body2" color="text.secondary">顯示/隱藏毛利</Typography>
                     <IconButton size="small">
@@ -341,7 +337,7 @@ const renderSalesItemsTable = (data, relatedData, isSmallScreen, loadingRelated,
             <TableCell align="right">單價</TableCell>
             <TableCell align="right">數量</TableCell>
             <TableCell align="right">小計</TableCell>
-            {!loadingRelated && fifoData && (
+            {!loadingRelated && fifoData && fifoData.items && ( // Added check for fifoData.items
               <>
                 <TableCell align="right">成本</TableCell>
                 <TableCell align="right">毛利</TableCell>
@@ -368,14 +364,14 @@ const renderSalesItemsTable = (data, relatedData, isSmallScreen, loadingRelated,
                 <TableCell align="right">{item.price.toFixed(2)}</TableCell>
                 <TableCell align="right">{item.quantity}</TableCell>
                 <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
-                {!loadingRelated && fifoData && (
+                {!loadingRelated && fifoData && fifoData.items && ( // Added check for fifoData.items
                   <>
-                    <TableCell align="right">{fifoItem ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
-                    <TableCell align="right" sx={{ color: fifoItem && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
-                      {fifoItem ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
+                    <TableCell align="right">{fifoItem?.fifoProfit ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
+                    <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
+                      {fifoItem?.fifoProfit ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
                     </TableCell>
-                    <TableCell align="right" sx={{ color: fifoItem && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
-                      {fifoItem ? fifoItem.fifoProfit.profitMargin : 'N/A'}
+                    <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
+                      {fifoItem?.fifoProfit ? fifoItem.fifoProfit.profitMargin : 'N/A'}
                     </TableCell>
                   </>
                 )}
@@ -397,6 +393,12 @@ const fetchFifoDataForSale = async (id) => {
 // Main Component using the Template
 const SalesDetailPage = () => {
   const { id } = useParams();
+  // ADDED: State for item collapse
+  const [itemProfitOpen, setItemProfitOpen] = React.useState({});
+  // ADDED: Handler for item collapse
+  const handleToggleItemProfit = (index) => {
+    setItemProfitOpen(prev => ({ ...prev, [index]: !prev[index] }));
+  };
 
   return (
     <DetailPageTemplate
@@ -413,6 +415,9 @@ const SalesDetailPage = () => {
       renderItemsTable={renderSalesItemsTable}
       fetchRelatedData={fetchFifoDataForSale} // Pass the function to fetch FIFO data
       additionalActions={null} // No extra actions needed beyond Edit, Print, Back
+      // ADDED: Pass state and handler to template
+      itemsUiState={itemProfitOpen}
+      setItemsUiState={handleToggleItemProfit} // Pass the setter function or the handler itself
     />
   );
 };
