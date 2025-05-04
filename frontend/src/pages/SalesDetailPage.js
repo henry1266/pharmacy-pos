@@ -379,21 +379,8 @@ const SalesDetailPage = () => {
                   />
                 </Typography>
               </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">建立日期: {sale.createdAt ? format(new Date(sale.createdAt), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : 'N/A'}</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">更新日期: {sale.updatedAt ? format(new Date(sale.updatedAt), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : 'N/A'}</Typography>
-              </Stack>
-              {/* Add notes if available */}
-              {sale.notes && (
-                  <>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.notes}</Typography>
-                  </>
-              )}
+              <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note || '無'}</Typography>
             </Stack>
           </CardContent>
         </Card>
