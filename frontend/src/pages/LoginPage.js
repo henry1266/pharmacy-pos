@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, Typography, Paper, Grid, TextField, Button, Snackbar, Alert, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// Removed axios import
+import authService from '../services/authService'; // Import the auth service
 
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
-import { motion, AnimatePresence } from "framer-motion"; // ✅ 新增這行
+import { motion, AnimatePresence } from "framer-motion";
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
@@ -13,7 +14,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
   const [particlesInit, setParticlesInit] = useState(false);
-  const [formVisible, setFormVisible] = useState(true); // ✅ 控制淡出動畫
+  const [formVisible, setFormVisible] = useState(true);
 
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -50,28 +51,24 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/auth', {
-        email: credentials.email,
-        password: credentials.password,
-      });
+      // Use the authService for login
+      const { token, user } = await authService.login(credentials);
 
-      if (response.data.token && response.data.user) {
-        // ✅ 執行淡出動畫後跳轉
-        setFormVisible(false); // 觸發動畫
-        setTimeout(() => {
-          localStorage.setItem('token', response.data.token);
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          axios.defaults.headers.common['x-auth-token'] = response.data.token;
-          window.location.replace('/dashboard');
-        }, 600); // 對應動畫時間
-      } else {
-        throw new Error('登入失敗，未收到完整的驗證資訊。');
-      }
+      // Trigger fade-out animation and then redirect
+      setFormVisible(false);
+      setTimeout(() => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        // Note: Setting axios default header here might be better placed
+        // in an Axios instance configuration or an interceptor.
+        // For simplicity, keeping it here for now.
+        // axios.defaults.headers.common['x-auth-token'] = token;
+        window.location.replace('/dashboard');
+      }, 600); // Match animation duration
+
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.msg ||
-        (err.response?.data?.errors?.map(e => e.msg).join(', ')) ||
-        '登入失敗，請檢查您的憑證或稍後再試。';
+      // Use the error message from the service
+      const errorMessage = err.message || '登入失敗，請檢查您的憑證或稍後再試。';
       setError(errorMessage);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
@@ -166,13 +163,14 @@ const LoginPage = () => {
                         InputLabelProps={{ sx: { color: '#bbb' } }}
                       />
                     </Grid>
-                    {error && (
+                    {/* Error display can be removed if snackbar is sufficient */}
+                    {/* {error && (
                       <Grid item xs={12}>
                         <Typography color="error" align="center" variant="body2">
                           {error}
                         </Typography>
                       </Grid>
-                    )}
+                    )} */}
                     <Grid item xs={12}>
                       <Button
                         type="submit"
@@ -213,3 +211,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
