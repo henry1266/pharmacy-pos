@@ -23,10 +23,6 @@
 📄 common/FIFOSimulationDialog.js 被以下檔案引用:
    └── common/PriceTooltip.js
 
-📄 ../utils/apiConfig.js 被以下檔案引用:
-   └── common/ProductItemsTable.js
-   └── sales/ShortcutButtonManager.js
-
 📄 common/preview/ItemPreview.js 被以下檔案引用:
    └── common/preview/index.js
    └── sales/SalesPreview.js
@@ -85,6 +81,9 @@
    └── sales/CategoryProductsDialog.js
    └── sales/CustomProductsDialog.js
    └── shipping-orders/form/ProductItems/ItemForm.js
+
+📄 ../utils/apiConfig.js 被以下檔案引用:
+   └── sales/ShortcutButtonManager.js
 
 📄 ../utils/configSync.js 被以下檔案引用:
    └── settings/SettingsModal.js

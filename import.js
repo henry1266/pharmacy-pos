@@ -33,7 +33,7 @@ madge(ENTRY_DIR, {
       });
   
       const output = lines.join('\n');
-      fs.writeFileSync('component-usage-report.txt', output, 'utf8');
+      fs.writeFileSync('開發指南/component-usage-report.txt', output, 'utf8');
       console.log('✅ 元件引用清單已儲存為 component-usage-report.txt');
     })
     .catch((err) => {
