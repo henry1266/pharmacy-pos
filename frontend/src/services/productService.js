@@ -115,3 +115,38 @@ const productService = {
 
 export default productService;
 
+
+
+
+/**
+ * Fetches a single product by its code.
+ * @param {string} code - The code of the product to fetch.
+ * @returns {Promise<object>} A promise that resolves to the product object.
+ */
+export const getProductByCode = async (code) => {
+  try {
+    const config = getAuthConfig(false);
+    // Assuming the API endpoint is /api/products/code/:code
+    const response = await axios.get(`${PRODUCTS_API_URL}/code/${code}`, config);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching product with code ${code}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Update the exported object to include the new function
+const updatedProductService = {
+  getProducts,
+  getSuppliers,
+  // getProductCategories is imported separately, keep it that way or integrate if preferred
+  addProduct,
+  updateProduct,
+  deleteProduct,
+  getProductByCode, // Add the new function here
+};
+
+// Replace the old export default with the updated one
+// export default productService;
+export default updatedProductService;
+

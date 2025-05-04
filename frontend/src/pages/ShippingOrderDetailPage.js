@@ -1,34 +1,32 @@
-import React, { useEffect, useState } from 'react'; // Added useState
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios'; // Added axios for product details fetching
+// import axios from 'axios'; // Removed axios import as product fetching is now in service
 import {
   Chip,
   Typography,
   Card,
   CardContent,
   Divider,
-  Stack // Added Stack
+  Stack
 } from '@mui/material';
 import {
-  // Icons for sidebar
   CalendarToday as CalendarTodayIcon,
   Person as PersonIcon,
   Receipt as ReceiptIcon,
   Info as InfoIcon,
   CurrencyExchange as CurrencyExchangeIcon
-
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchShippingOrder } from '../redux/actions';
-import DetailLayout from '../components/DetailLayout'; // Using DetailLayout
-import ProductItemsTable from '../components/common/ProductItemsTable'; // Using the pure UI table
-import { getApiBaseUrl } from '../utils/apiConfig'; // Added for API calls
+import { fetchShippingOrder } from '../redux/actions'; // Keep Redux action for fetching the main order
+import DetailLayout from '../components/DetailLayout';
+import ProductItemsTable from '../components/common/ProductItemsTable';
+// import { getApiBaseUrl } from '../utils/apiConfig'; // Removed as API call is now in service
+import { getProductByCode } from '../services/productService'; // Import the service function
 
-// Assuming StatusChip and PaymentStatusChip are available and correctly imported
-// Recreating basic versions here for completeness if they aren't imported from elsewhere
+// StatusChip and PaymentStatusChip components (assuming they exist or are defined as before)
 const StatusChip = ({ status }) => {
     let color = 'default';
     let label = status || '未知';
@@ -45,63 +43,61 @@ const PaymentStatusChip = ({ status }) => {
     return <Chip size="small" label={label} color={color} />;
 };
 
-/**
- * 出貨單詳情頁面
- * @returns {React.ReactElement} 出貨單詳情頁面
- */
 const ShippingOrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const API_BASE_URL = getApiBaseUrl();
+  // const API_BASE_URL = getApiBaseUrl(); // Removed
 
-  // Redux state for shipping order
   const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector(state => state.shippingOrders);
 
-  // Local state for product details
   const [productDetails, setProductDetails] = useState({});
   const [productDetailsLoading, setProductDetailsLoading] = useState(false);
   const [productDetailsError, setProductDetailsError] = useState(null);
 
-  // Fetch shipping order details
+  // Fetch shipping order details via Redux action
   useEffect(() => {
     if (id) {
       dispatch(fetchShippingOrder(id));
     }
   }, [dispatch, id]);
 
-  // Fetch product details when items are available
+  // Fetch product details using service when items are available
   useEffect(() => {
     const fetchProductDetails = async () => {
       if (!currentShippingOrder || !currentShippingOrder.items || currentShippingOrder.items.length === 0) {
-        setProductDetails({}); // Clear details if no items
+        setProductDetails({});
         return;
       }
 
       setProductDetailsLoading(true);
       setProductDetailsError(null);
       const details = {};
-      const productCodes = [...new Set(currentShippingOrder.items.map(item => item.did).filter(Boolean))]; // Get unique product codes (did)
+      const productCodes = [...new Set(currentShippingOrder.items.map(item => item.did).filter(Boolean))];
 
       try {
-        // Fetch details for each unique product code
-        // Consider using Promise.all for parallel fetching if API supports it well
-        for (const code of productCodes) {
+        // Use Promise.all for potentially faster parallel fetching
+        const promises = productCodes.map(async (code) => {
           try {
-            // Assuming API endpoint exists to fetch product by code (did)
-            // Adjust endpoint if needed (e.g., /products/code/:code or /products?code=:code)
-            const response = await axios.get(`${API_BASE_URL}/products/code/${code}`);
-            if (response.data) {
-              details[code] = response.data; // Store details keyed by product code (did)
+            const productData = await getProductByCode(code); // Use service function
+            if (productData) {
+              details[code] = productData;
             }
           } catch (err) {
             console.error(`獲取產品 ${code} 詳情失敗:`, err);
-            // Optionally store partial errors or handle them differently
+            // Set a flag or specific error message for this product if needed
+            // For now, just log the error and continue
           }
-        }
+        });
+
+        await Promise.all(promises);
         setProductDetails(details);
+
       } catch (err) {
-        console.error('獲取所有產品詳情失敗:', err);
+        // This catch block might be less likely to be hit with Promise.all
+        // if individual errors are caught within the map callback.
+        // It would catch errors related to Promise.all itself.
+        console.error('獲取所有產品詳情過程中發生錯誤:', err);
         setProductDetailsError('無法載入部分或所有產品的詳細資料。');
       } finally {
         setProductDetailsLoading(false);
@@ -109,13 +105,13 @@ const ShippingOrderDetailPage = () => {
     };
 
     fetchProductDetails();
-  }, [currentShippingOrder, API_BASE_URL]); // Re-run when shipping order data changes
+  // Removed API_BASE_URL from dependencies as it's no longer used here
+  }, [currentShippingOrder]);
 
   // --- Define Content for Layout --- 
 
   const mainContent = (
     <Stack spacing={3}>
-      {/* Items Table Card */}
       {currentShippingOrder && (
         <Card variant="outlined">
           <CardContent>
@@ -126,15 +122,15 @@ const ShippingOrderDetailPage = () => {
             )}
             <ProductItemsTable
               items={currentShippingOrder.items || []}
-              productDetails={productDetails} // Pass fetched details
-              codeField="did" // Field for product code in item
-              nameField="dname" // Field for product name in item
+              productDetails={productDetails}
+              codeField="did"
+              nameField="dname"
               quantityField="dquantity"
-              priceField="dprice" // Field for unit price in item
-              totalCostField="dtotalCost" // Field for item subtotal (assuming dtotalPrice is item subtotal)
-              totalAmount={currentShippingOrder.totalAmount || 0} // Order total amount
-              title="" // Title is already outside the component
-              isLoading={productDetailsLoading} // Pass loading state for product details
+              priceField="dprice"
+              totalCostField="dtotalCost"
+              totalAmount={currentShippingOrder.totalAmount || 0}
+              title=""
+              isLoading={productDetailsLoading}
             />
           </CardContent>
         </Card>
@@ -144,7 +140,6 @@ const ShippingOrderDetailPage = () => {
 
   const sidebarContent = (
     <Stack spacing={3}>
-      {/* Basic Information Card */}
       {currentShippingOrder && (
         <Card variant="outlined">
           <CardContent>
@@ -194,7 +189,7 @@ const ShippingOrderDetailPage = () => {
       printPageUrl={null}
       mainContent={mainContent}
       sidebarContent={sidebarContent}
-      isLoading={orderLoading} // Use loading state for the order itself
+      isLoading={orderLoading}
       errorContent={orderError ? <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography> : null}
     />
   );

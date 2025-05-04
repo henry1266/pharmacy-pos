@@ -11,3 +11,4 @@
 - [x] Push changes to GitHub using token (fix)
 - [x] Report completion and provide updated files (fix)
 - [x] Refactor PurchaseOrderEditPage.js: Moved API calls (getPurchaseOrderById, getProducts, getSuppliers, updatePurchaseOrder) to respective services (purchaseOrdersService.js, productService.js, supplierService.js). Added missing updatePurchaseOrder function to service.
+- [x] Refactor ShippingOrderDetailPage.js: Moved product detail API call (fetch by code) to productService.js. Added getProductByCode function to service. (Note: Main order data fetched via Redux action).
