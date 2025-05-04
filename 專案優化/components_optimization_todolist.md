@@ -37,7 +37,6 @@
     - [ ] **CategoryDetailPage.js**: 抽離 `calculateProductData` 中的 API 呼叫至 `services/inventoryService.js` 或 `services/productService.js`，並考慮將其邏輯移至 Hook 或 Service。
 - [ ] **其他**: 繼續檢查剩餘頁面元件。
     - [ ] 逐一檢查 `pages/` 目錄下的其他元件，應用相同的重構原則 (SRP、抽離邏輯、強制 API 層)。
-    - [ ] 逐一檢查 `pages/` 目錄下的其他元件，應用相同的重構原則 (SRP、抽離邏輯、強制 API 層)。
 
 ## II. 通用元件審查與重構 (Common Component Review & Refactoring)
 
