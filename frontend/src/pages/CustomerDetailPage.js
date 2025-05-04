@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// Removed axios import
 import {
   Box,
   Typography,
@@ -16,49 +16,39 @@ import {
   Edit as EditIcon,
   Print as PrintIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns'; // Keep for potential date formatting
+// Removed date-fns import as it's not used directly here
 
+// Import Hook
+import useCustomerDetailData from '../hooks/useCustomerDetailData'; // Import the new hook
+
+// Import Presentation Components
 import CustomerInfoCard from '../components/customers/CustomerInfoCard';
 import TwoColumnLayout from '../components/common/TwoColumnLayout'; // Use the two-column layout
 
+/**
+ * Customer Detail Page (Refactored)
+ * Uses useCustomerDetailData hook for data fetching and state management.
+ */
 const CustomerDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  
-  const [customer, setCustomer] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  useEffect(() => {
-    const fetchCustomerData = async () => {
-      try {
-        setLoading(true);
-        // Assuming an API endpoint exists at /api/customers/:id
-        const response = await axios.get(`/api/customers/${id}`); 
-        setCustomer(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('獲取客戶詳情失敗:', err);
-        setError(err.response?.data?.message || '獲取客戶詳情失敗');
-        setLoading(false);
-      }
-    };
-    
-    if (id) {
-      fetchCustomerData();
-    }
-  }, [id]);
-  
+
+  // Use the custom hook for data and state management
+  const { customer, loading, error } = useCustomerDetailData(id);
+
+  // Event Handlers remain the same
   const handleBack = () => {
     navigate('/customers'); // Navigate back to customers list page
   };
-  
+
   const handleEdit = () => {
     // Navigate to customer edit page or open edit dialog
     // Assuming a similar pattern to products, navigate back to list with state
     navigate('/customers', { state: { editCustomerId: id } });
   };
-  
+
+  // --- Render Logic --- (Uses data from hook)
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -66,10 +56,10 @@ const CustomerDetailPage = () => {
       </Box>
     );
   }
-  
+
   if (error) {
     return (
-      <Box>
+      <Box sx={{ p: 3 }}>
         <Typography color="error" variant="h6">
           載入客戶詳情時發生錯誤: {error}
         </Typography>
@@ -84,10 +74,10 @@ const CustomerDetailPage = () => {
       </Box>
     );
   }
-  
+
   if (!customer) {
     return (
-      <Box>
+      <Box sx={{ p: 3 }}>
         <Typography variant="h6">
           找不到客戶
         </Typography>
@@ -121,9 +111,9 @@ const CustomerDetailPage = () => {
       </CardContent>
     </Card>
   );
-  
+
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" component="h1">
           客戶詳情
@@ -154,12 +144,12 @@ const CustomerDetailPage = () => {
           </Button>
         </Box>
       </Box>
-      
-      <TwoColumnLayout 
-        leftContent={leftContent} 
-        rightContent={rightContent} 
-        leftWidth={4} 
-        rightWidth={8} 
+
+      <TwoColumnLayout
+        leftContent={leftContent}
+        rightContent={rightContent}
+        leftWidth={4}
+        rightWidth={8}
       />
     </Box>
   );

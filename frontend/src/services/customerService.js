@@ -37,6 +37,25 @@ export const getCustomers = async () => {
 };
 
 /**
+ * Fetches a single customer by ID.
+ * @param {string} id - The ID of the customer to fetch.
+ * @returns {Promise<object>} A promise that resolves to the customer object.
+ */
+export const getCustomerById = async (id) => {
+  try {
+    const token = localStorage.getItem('token'); // Get token directly
+    if (!token) throw new Error('Authentication required.');
+    const config = { headers: { 'x-auth-token': token } }; // Config for GET
+    const response = await axios.get(`${API_URL}/${id}`, config);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching customer ${id}:`, error.response?.data || error.message);
+    // Throw a more specific error message
+    throw new Error(error.response?.data?.message || `獲取客戶 ${id} 詳情失敗`);
+  }
+};
+
+/**
  * Adds a new customer.
  * @param {object} customerData - The data for the new customer.
  * @returns {Promise<object>} A promise that resolves to the newly created customer object.
@@ -102,6 +121,7 @@ export const deleteCustomer = async (id) => {
 // Export all functions individually or as an object
 const customerService = {
   getCustomers,
+  getCustomerById, // Added the new function
   addCustomer,
   updateCustomer,
   deleteCustomer,
