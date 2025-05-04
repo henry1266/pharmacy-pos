@@ -106,7 +106,7 @@ const SalesProductInput = ({
         onChange={(event, newValue) => {
           // This handles selection from the dropdown
           if (newValue && typeof newValue !== 'string') {
-            handleSelectProduct(newValue);
+            onSelectProduct(newValue);
           }
         }}
         renderInput={(params) => (
