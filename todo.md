@@ -15,3 +15,4 @@
 - [x] Fix productService.js: Resolved multiple default export error by merging exports.
 - [x] Refactor PurchaseOrderDetailPage.js: Rebuilt layout using DetailLayout component, aligning structure with ShippingOrderDetailPage.js.
 - [x] Fix ProductItemsTable.js: Resolved issue where product code (did) was not displayed correctly in PurchaseOrderDetailPage by conditionally rendering the health insurance code column based on `productDetails` prop availability.
+- [x] Enhance PurchaseOrderDetailPage.js: Added logic to fetch product details (including healthInsuranceCode) for items and pass them to ProductItemsTable, similar to ShippingOrderDetailPage.

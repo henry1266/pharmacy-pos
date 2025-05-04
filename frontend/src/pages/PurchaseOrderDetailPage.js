@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react'; // Added useState
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -27,6 +27,7 @@ import { zhTW } from 'date-fns/locale'; // Added for consistent date formatting
 import { fetchPurchaseOrder } from '../redux/actions';
 import ProductItemsTable from '../components/common/ProductItemsTable';
 import DetailLayout from '../components/DetailLayout'; // Import DetailLayout
+import { getProductByCode } from '../services/productService'; // Import service function
 
 // StatusChip component (similar to ShippingOrderDetailPage)
 const StatusChip = ({ status }) => {
@@ -53,13 +54,60 @@ const PurchaseOrderDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   
-  const { currentPurchaseOrder, loading, error } = useSelector(state => state.purchaseOrders);
+  const { currentPurchaseOrder, loading: orderLoading, error: orderError } = useSelector(state => state.purchaseOrders);
+
+  // State for product details (similar to ShippingOrderDetailPage)
+  const [productDetails, setProductDetails] = useState({});
+  const [productDetailsLoading, setProductDetailsLoading] = useState(false);
+  const [productDetailsError, setProductDetailsError] = useState(null);
   
+  // Fetch main purchase order data
   useEffect(() => {
     if (id) {
       dispatch(fetchPurchaseOrder(id));
     }
   }, [dispatch, id]);
+
+  // Fetch product details when items are available
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      if (!currentPurchaseOrder || !currentPurchaseOrder.items || currentPurchaseOrder.items.length === 0) {
+        setProductDetails({});
+        return;
+      }
+
+      setProductDetailsLoading(true);
+      setProductDetailsError(null);
+      const details = {};
+      // Use 'did' as the product code field based on previous analysis
+      const productCodes = [...new Set(currentPurchaseOrder.items.map(item => item.did).filter(Boolean))];
+
+      try {
+        const promises = productCodes.map(async (code) => {
+          try {
+            const productData = await getProductByCode(code); // Use service function
+            if (productData) {
+              details[code] = productData;
+            }
+          } catch (err) {
+            console.error(`獲取產品 ${code} 詳情失敗:`, err);
+            // Optionally set a specific error state or message
+          }
+        });
+
+        await Promise.all(promises);
+        setProductDetails(details);
+
+      } catch (err) {
+        console.error('獲取所有產品詳情過程中發生錯誤:', err);
+        setProductDetailsError('無法載入部分或所有產品的詳細資料。');
+      } finally {
+        setProductDetailsLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [currentPurchaseOrder]); // Dependency on currentPurchaseOrder
 
   // --- Define Content for Layout --- 
 
@@ -70,17 +118,20 @@ const PurchaseOrderDetailPage = () => {
           <CardContent>
             <Typography variant="h6" gutterBottom><InventoryIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>藥品項目</Typography>
             <Divider sx={{ mb: 2 }} />
+            {productDetailsError && (
+              <Typography color="error" sx={{ mb: 2 }}>{productDetailsError}</Typography>
+            )}
             <ProductItemsTable 
               items={currentPurchaseOrder.items || []}
-              codeField="did"
-              nameField="dname"
+              productDetails={productDetails} // Pass fetched product details
+              codeField="did" // Field for product code in item
+              nameField="dname" // Field for product name in item
               quantityField="dquantity"
               totalCostField="dtotalCost"
               totalAmount={currentPurchaseOrder.totalAmount || 
                            (currentPurchaseOrder.items || []).reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0)}
               title="" // Title is handled above
-              // No productDetails needed here as items likely have names already
-              // No isLoading prop for product details here
+              isLoading={productDetailsLoading} // Pass loading state for product details
             />
           </CardContent>
         </Card>
@@ -145,6 +196,9 @@ const PurchaseOrderDetailPage = () => {
   );
 
   // --- Render Layout --- 
+  // Use combined loading state: main order OR product details are loading
+  const combinedLoading = orderLoading || productDetailsLoading;
+
   return (
     <DetailLayout
       pageTitle="進貨單詳情"
@@ -155,10 +209,10 @@ const PurchaseOrderDetailPage = () => {
       printPageUrl={null} // Print button handled separately or omitted
       mainContent={mainContent}
       sidebarContent={sidebarContent}
-      isLoading={loading} // Use loading state for the order itself
-      errorContent={error ? (
+      isLoading={combinedLoading} // Use combined loading state
+      errorContent={orderError ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color="error" variant="h6">載入進貨單時發生錯誤: {error}</Typography>
+            <Typography color="error" variant="h6">載入進貨單時發生錯誤: {orderError}</Typography>
           </Box>
         ) : null}
       // Add custom actions if DetailLayout supports it, or handle outside
