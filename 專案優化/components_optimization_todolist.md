@@ -12,11 +12,11 @@
     - [x] 將資料獲取邏輯移至自定義 Hook (`hooks/usePurchaseOrdersData.js` 或 `features/purchaseOrders/hooks/`) 或 Redux/狀態管理庫。
     - [x] 移除直接的 `axios` 或 `fetch` 呼叫，改用 `services/purchaseOrdersService.js` (或 `features/purchaseOrders/services.js`)。
     - [x] 簡化 `PurchaseOrdersPage.js`，使其主要負責佈局、從 Hook/Store 獲取資料並傳遞給子元件。
-- [ ] **DashboardPage.js**:
-    - [ ] 識別並抽離純 UI 展示邏輯至新的展示型元件 (存放於 `components/dashboard/` 或 `features/dashboard/components/`)。
-    - [ ] 將資料獲取邏輯移至自定義 Hook (`hooks/useDashboardData.js` 或 `features/dashboard/hooks/`) 或 Redux/狀態管理庫。
-    - [ ] 移除直接的 `axios` 或 `fetch` 呼叫，改用對應的 service 函數。
-    - [ ] 簡化 `DashboardPage.js`，使其主要負責佈局、從 Hook/Store 獲取資料並傳遞給子元件。
+- [x] **DashboardPage.js**:
+    - [x] 識別並抽離純 UI 展示邏輯至新的展示型元件 (存放於 `components/dashboard/` 或 `features/dashboard/components/`)。
+    - [x] 將資料獲取邏輯移至自定義 Hook (`hooks/useDashboardData.js` 或 `features/dashboard/hooks/`) 或 Redux/狀態管理庫。
+    - [x] 移除直接的 `axios` 或 `fetch` 呼叫，改用對應的 service 函數。
+    - [x] 簡化 `DashboardPage.js`，使其主要負責佈局、從 Hook/Store 獲取資料並傳遞給子元件。
 - [ ] **其他頁面元件**:
     - [ ] 逐一檢查 `pages/` 目錄下的其他元件，應用相同的重構原則 (SRP、抽離邏輯、強制 API 層)。
 
