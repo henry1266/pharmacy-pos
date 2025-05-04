@@ -29,6 +29,7 @@
     - [x] 簡化 `AccountingPage.js`，使其主要負責佈局、從 Hook/Store 獲取資料並傳遞給子元件。
 - [x] **CustomersPage.js**:
 - [x] **ProductsPage.js**:
+- [ ] **ReportsPage.js**:
 - [ ] **其他頁面元件**:
     - [ ] 逐一檢查 `pages/` 目錄下的其他元件，應用相同的重構原則 (SRP、抽離邏輯、強制 API 層)。
 
