@@ -1,23 +1,111 @@
 import axios from 'axios';
 
-// 根據 improvement_proposal.md 的建議，將 API 呼叫集中到 services 層
+// Base API URL for customers
+const API_URL = '/api/customers';
 
-const API_URL = '/api/customers'; // 假設後端 API 路徑
+// Helper function to get auth config
+const getAuthConfig = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error('Authentication token not found.');
+    // Optionally redirect to login or throw a specific error
+    throw new Error('Authentication required.');
+  }
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': token,
+    },
+  };
+};
 
 /**
- * 獲取所有客戶列表
- * @returns {Promise<Array>} 客戶列表
+ * Fetches all customers.
+ * @returns {Promise<Array>} A promise that resolves to an array of customer objects.
  */
 export const getCustomers = async () => {
   try {
-    const response = await axios.get(API_URL);
+    const token = localStorage.getItem('token'); // Get token directly
+    if (!token) throw new Error('Authentication required.');
+    const config = { headers: { 'x-auth-token': token } }; // Config for GET
+    const response = await axios.get(API_URL, config);
     return response.data;
   } catch (error) {
-    console.error('Error fetching customers:', error);
-    // 拋出標準化錯誤或根據需要處理
-    throw error; // 暫時直接拋出，可在攔截器中統一處理
+    console.error('Error fetching customers:', error.response?.data || error.message);
+    throw error; // Re-throw for handling in the hook/component
   }
 };
 
-// 可在此處添加其他與客戶相關的 API 服務函數
+/**
+ * Adds a new customer.
+ * @param {object} customerData - The data for the new customer.
+ * @returns {Promise<object>} A promise that resolves to the newly created customer object.
+ */
+export const addCustomer = async (customerData) => {
+  try {
+    const config = getAuthConfig(); // Get full config with Content-Type
+    // Ensure empty strings are handled if needed by backend, or remove this logic if backend handles null/undefined
+    const dataToSend = {
+        ...customerData,
+        email: customerData.email === '' ? ' ' : customerData.email, // Keep original logic for now
+        address: customerData.address === '' ? ' ' : customerData.address, // Keep original logic for now
+    };
+    const response = await axios.post(API_URL, dataToSend, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding customer:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Updates an existing customer.
+ * @param {string} id - The ID of the customer to update.
+ * @param {object} customerData - The updated data for the customer.
+ * @returns {Promise<object>} A promise that resolves to the updated customer object.
+ */
+export const updateCustomer = async (id, customerData) => {
+  try {
+    const config = getAuthConfig(); // Get full config with Content-Type
+     // Ensure empty strings are handled if needed by backend
+    const dataToSend = {
+        ...customerData,
+        email: customerData.email === '' ? ' ' : customerData.email, // Keep original logic for now
+        address: customerData.address === '' ? ' ' : customerData.address, // Keep original logic for now
+    };
+    const response = await axios.put(`${API_URL}/${id}`, dataToSend, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating customer:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a customer.
+ * @param {string} id - The ID of the customer to delete.
+ * @returns {Promise<void>} A promise that resolves when the customer is deleted.
+ */
+export const deleteCustomer = async (id) => {
+  try {
+    const token = localStorage.getItem('token'); // Get token directly
+    if (!token) throw new Error('Authentication required.');
+    // DELETE requests typically don't need Content-Type, just the auth token
+    const config = { headers: { 'x-auth-token': token } };
+    await axios.delete(`${API_URL}/${id}`, config);
+  } catch (error) {
+    console.error('Error deleting customer:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Export all functions individually or as an object
+const customerService = {
+  getCustomers,
+  addCustomer,
+  updateCustomer,
+  deleteCustomer,
+};
+
+export default customerService;
 

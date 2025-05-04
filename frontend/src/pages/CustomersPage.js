@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -28,101 +27,68 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import CommonListPageLayout from '../components/common/CommonListPageLayout'; // Import the common layout
-import Button from '../components/common/Button'; // Keep custom Button if needed, or switch to MuiButton
+import CommonListPageLayout from '../components/common/CommonListPageLayout';
+import useCustomerData from '../hooks/useCustomerData'; // Import the custom hook
+
+// Initial state for the customer form
+const initialCustomerState = {
+  name: '',
+  phone: '',
+  email: '',
+  address: '',
+  points: 0,
+  membershipLevel: 'regular'
+};
 
 /**
- * 會員管理頁面組件
- * @returns {React.ReactElement} 會員管理頁面
+ * 會員管理頁面組件 (Refactored)
  */
 const CustomersPage = () => {
-  // State management
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Use the custom hook for data management
+  const {
+    customers,
+    loading,
+    error,
+    addCustomer,
+    updateCustomer,
+    deleteCustomer,
+    mapMembershipLevel // Get mapping function from hook
+  } = useCustomerData();
+
+  // State for dialog and form management
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [currentCustomer, setCurrentCustomer] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    points: 0,
-    membershipLevel: 'regular'
-  });
+  const [currentCustomer, setCurrentCustomer] = useState(initialCustomerState);
   const [selectedCustomer, setSelectedCustomer] = useState(null); // State for detail panel
+  const [formError, setFormError] = useState(null); // Specific error state for the form
 
-  // Map membership level (remains the same)
-  const mapMembershipLevel = useCallback((level) => {
-    const levelMap = {
-      'regular': '一般會員',
-      'silver': '銀卡會員',
-      'gold': '金卡會員',
-      'platinum': '白金會員'
-    };
-    return levelMap[level] || '一般會員';
-  }, []);
-
-  // Fetch customers data (remains the same)
-  const fetchCustomers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const config = { headers: { 'Content-Type': 'application/json', 'x-auth-token': token } };
-      const response = await axios.get('/api/customers', config);
-      const formattedCustomers = response.data.map(customer => ({
-        id: customer._id,
-        code: customer.code,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email || '',
-        address: customer.address || '',
-        points: customer.points || 0,
-        level: mapMembershipLevel(customer.membershipLevel),
-        // Keep original level for editing
-        membershipLevel: customer.membershipLevel || 'regular' 
-      }));
-      setCustomers(formattedCustomers);
-      setLoading(false);
-    } catch (err) {
-      console.error('獲取會員數據失敗:', err);
-      setError('獲取會員數據失敗');
-      setLoading(false);
-    }
-  }, [setCustomers, setLoading, setError, mapMembershipLevel]);
-
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
-
-  // Table columns definition
+  // Table columns definition (remains the same)
   const columns = [
     { field: 'code', headerName: '會員編號', width: 120 },
     { field: 'name', headerName: '會員姓名', width: 120 },
     { field: 'phone', headerName: '電話', width: 150 },
     { field: 'email', headerName: '電子郵件', width: 200 },
-    // { field: 'address', headerName: '地址', width: 300 }, // Removed for brevity, can be seen in detail panel
     { field: 'points', headerName: '積分', width: 100, type: 'number' },
-    { field: 'level', headerName: '會員等級', width: 120 },
+    { field: 'level', headerName: '會員等級', width: 120 }, // Display mapped level
     {
       field: 'actions',
       headerName: '操作',
-      width: 120, // Adjusted width
+      width: 120,
       renderCell: (params) => (
         <Box>
           <Tooltip title="編輯">
-            <IconButton 
-              size="small" 
+            <IconButton
+              size="small"
               color="primary"
-              onClick={(e) => { e.stopPropagation(); handleEdit(params.row.id); }}
+              onClick={(e) => { e.stopPropagation(); handleEdit(params.row); }}
             >
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="刪除">
-            <IconButton 
-              size="small" 
-              color="error" 
+            <IconButton
+              size="small"
+              color="error"
               onClick={(e) => { e.stopPropagation(); handleDelete(params.row.id); }}
             >
               <DeleteIcon />
@@ -133,95 +99,91 @@ const CustomersPage = () => {
     },
   ];
 
-  // Handler functions (remain mostly the same)
+  // Handler functions - updated to use hook methods
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const processedValue = value === '' && name !== 'points' ? '' : 
+    const processedValue = value === '' && name !== 'points' ? '' :
                           name === 'points' ? (value === '' ? 0 : Number(value)) : value;
     setCurrentCustomer({ ...currentCustomer, [name]: processedValue });
   };
 
-  const handleEdit = async (id) => {
-    // Fetch full customer data for editing, including original membershipLevel
-    const customerToEdit = customers.find(c => c.id === id);
-    if (customerToEdit) {
-       setCurrentCustomer({
-        id: customerToEdit.id,
-        code: customerToEdit.code,
-        name: customerToEdit.name,
-        phone: customerToEdit.phone,
-        email: customerToEdit.email || '',
-        address: customerToEdit.address || '',
-        points: customerToEdit.points || 0,
-        membershipLevel: customerToEdit.membershipLevel || 'regular' // Use original level
-      });
-      setEditMode(true);
-      setOpenDialog(true);
-    } else {
-       setError('無法找到要編輯的會員資料');
-    }
+  const handleEdit = (customer) => {
+    // Use the full customer object passed from renderCell
+    setCurrentCustomer({
+      id: customer.id,
+      code: customer.code, // Include code if needed, though usually not editable
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email || '',
+      address: customer.address || '',
+      points: customer.points || 0,
+      membershipLevel: customer.membershipLevel || 'regular' // Use original level from hook data
+    });
+    setEditMode(true);
+    setFormError(null); // Clear previous form errors
+    setOpenDialog(true);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('確定要刪除此會員嗎？')) {
       try {
-        const token = localStorage.getItem('token');
-        const config = { headers: { 'x-auth-token': token } };
-        await axios.delete(`/api/customers/${id}`, config);
-        setCustomers(customers.filter(customer => customer.id !== id));
+        await deleteCustomer(id);
         if (selectedCustomer && selectedCustomer.id === id) {
           setSelectedCustomer(null); // Clear selection if deleted customer was selected
         }
       } catch (err) {
-        console.error('刪除會員失敗:', err);
-        setError('刪除會員失敗');
+        // Error is already set in the hook, maybe show an alert
+        alert(`刪除會員失敗: ${err.message}`);
+        console.error('刪除會員操作失敗:', err);
       }
     }
   };
 
   const handleAddCustomer = () => {
-    setCurrentCustomer({ name: '', phone: '', email: '', address: '', points: 0, membershipLevel: 'regular' });
+    setCurrentCustomer(initialCustomerState);
     setEditMode(false);
+    setFormError(null); // Clear previous form errors
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => setOpenDialog(false);
 
   const handleSaveCustomer = async () => {
+    setFormError(null); // Clear previous form errors before saving
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { 'Content-Type': 'application/json', 'x-auth-token': token } };
       const customerData = {
         name: currentCustomer.name,
         phone: currentCustomer.phone,
-        email: currentCustomer.email === '' ? ' ' : currentCustomer.email,
-        address: currentCustomer.address === '' ? ' ' : currentCustomer.address,
+        email: currentCustomer.email,
+        address: currentCustomer.address,
         points: currentCustomer.points,
         membershipLevel: currentCustomer.membershipLevel
       };
-      
+
       if (editMode) {
-        await axios.put(`/api/customers/${currentCustomer.id}`, customerData, config);
+        await updateCustomer(currentCustomer.id, customerData);
       } else {
-        await axios.post('/api/customers', customerData, config);
+        await addCustomer(customerData);
       }
       setOpenDialog(false);
-      fetchCustomers(); // Refresh list
+      // Data is refreshed within the hook
     } catch (err) {
-      console.error('保存會員失敗:', err);
-      setError(`保存會員失敗: ${err.response?.data?.message || err.message}`);
-      alert(`保存會員失敗: ${err.response?.data?.message || err.message}`);
+      console.error('保存會員操作失敗:', err);
+      setFormError(`保存會員失敗: ${err.message}`); // Set form-specific error
+      // Optionally keep the dialog open on error
+      // alert(`保存會員失敗: ${err.message}`); // Alert is optional if formError is shown
     }
   };
-  
+
   // Handler for row click to update detail panel
   const handleRowClick = (params) => {
+      // Find the customer from the hook's state
       setSelectedCustomer(customers.find(c => c.id === params.row.id));
   };
 
   // Define Action Buttons for the layout header
   const actionButtons = (
-    <MuiButton // Use MuiButton for consistency or keep custom Button
+    <MuiButton
       variant="contained"
       color="primary"
       startIcon={<AddIcon />}
@@ -231,7 +193,7 @@ const CustomersPage = () => {
     </MuiButton>
   );
 
-  // Define Detail Panel for the layout
+  // Define Detail Panel for the layout (uses selectedCustomer state)
   const detailPanel = selectedCustomer ? (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
       <CardHeader
@@ -241,7 +203,8 @@ const CustomersPage = () => {
         action={
           <Box>
             <Tooltip title="編輯">
-              <IconButton color="primary" onClick={() => handleEdit(selectedCustomer.id)} size="small"><EditIcon /></IconButton>
+              {/* Pass the full selectedCustomer object to handleEdit */}
+              <IconButton color="primary" onClick={() => handleEdit(selectedCustomer)} size="small"><EditIcon /></IconButton>
             </Tooltip>
             <Tooltip title="刪除">
               <IconButton color="error" onClick={() => handleDelete(selectedCustomer.id)} size="small"><DeleteIcon /></IconButton>
@@ -261,7 +224,7 @@ const CustomersPage = () => {
               <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography>
           </ListItem>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>積分:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.points}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem> {/* Display mapped level */}
         </List>
       </CardContent>
     </Card>
@@ -281,16 +244,15 @@ const CustomersPage = () => {
         title="會員管理"
         actionButtons={actionButtons}
         columns={columns}
-        rows={customers}
-        loading={loading}
-        error={error}
-        onRowClick={handleRowClick} // Pass the row click handler
-        detailPanel={detailPanel}   // Pass the detail panel content
-        tableGridWidth={9}          // Adjust grid width if needed
+        rows={customers} // Use customers from hook
+        loading={loading} // Use loading from hook
+        error={error}     // Use error from hook (for list loading errors)
+        onRowClick={handleRowClick}
+        detailPanel={detailPanel}
+        tableGridWidth={9}
         detailGridWidth={3}
         dataTableProps={{
           pageSizeOptions: [10, 25, 50],
-          // checkboxSelection: true, // Keep checkbox if needed
           initialState: {
             pagination: { paginationModel: { pageSize: 10 } },
             sorting: {
@@ -300,11 +262,16 @@ const CustomersPage = () => {
         }}
       />
 
-      {/* Customer Form Dialog (remains the same) */}
+      {/* Customer Form Dialog - Consider moving to a separate component */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editMode ? '編輯會員' : '添加會員'}</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+          {formError && (
+            <Typography color="error" sx={{ mb: 2 }}>
+              {formError}
+            </Typography>
+          )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: formError ? 0 : 2 }}>
             <TextField name="name" label="會員姓名" value={currentCustomer.name} onChange={handleInputChange} fullWidth required margin="dense" size="small"/>
             <TextField name="phone" label="電話" value={currentCustomer.phone} onChange={handleInputChange} fullWidth required margin="dense" size="small"/>
             <TextField name="email" label="電子郵件" value={currentCustomer.email} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
@@ -318,6 +285,7 @@ const CustomersPage = () => {
                 onChange={handleInputChange}
                 label="會員等級"
               >
+                {/* Use mapMembershipLevel to generate options dynamically or keep static */}
                 <MenuItem value="regular">一般會員</MenuItem>
                 <MenuItem value="silver">銀卡會員</MenuItem>
                 <MenuItem value="gold">金卡會員</MenuItem>
@@ -327,12 +295,11 @@ const CustomersPage = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          {/* Use MuiButton here as well */}
           <MuiButton onClick={handleCloseDialog} color="inherit">
             取消
           </MuiButton>
-          <MuiButton onClick={handleSaveCustomer} color="primary" variant="contained">
-            保存
+          <MuiButton onClick={handleSaveCustomer} color="primary" variant="contained" disabled={loading}> {/* Disable save button while loading */}
+            {loading ? '保存中...' : '保存'}
           </MuiButton>
         </DialogActions>
       </Dialog>
