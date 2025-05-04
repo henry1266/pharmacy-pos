@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // Removed direct axios import
 import {
   Box,
   Typography,
@@ -40,6 +40,10 @@ import {
   ExpandMore as ExpandMoreIcon // Import ExpandMoreIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+// Import services
+import { getProducts } from '../services/productService';
+import { getCustomers } from '../services/customerService';
+import { getLatestSaleNumber, createSale } from '../services/salesService';
 // Import the new components
 import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
 import CustomProductsDialog from '../components/sales/CustomProductsDialog'; // Import the new dialog
@@ -109,22 +113,24 @@ const SalesPage = () => {
   // Fetch Products
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/products');
-      setProducts(response.data);
+      // const response = await axios.get("/api/products"); // Replaced with service call
+      const data = await getProducts();
+      setProducts(data);
     } catch (err) {
-      console.error('獲取藥品數據失敗:', err);
-      setSnackbar({ open: true, message: '獲取藥品數據失敗', severity: 'error' });
+      console.error("獲取藥品數據失敗:", err);
+      setSnackbar({ open: true, message: "獲取藥品數據失敗", severity: "error" });
     }
   };
 
   // Fetch Customers
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get('/api/customers');
-      setCustomers(response.data);
+      // const response = await axios.get("/api/customers"); // Replaced with service call
+      const data = await getCustomers();
+      setCustomers(data);
     } catch (err) {
-      console.error('獲取客戶數據失敗:', err);
-      setSnackbar({ open: true, message: '獲取客戶數據失敗', severity: 'error' });
+      console.error("獲取客戶數據失敗:", err);
+      setSnackbar({ open: true, message: "獲取客戶數據失敗", severity: "error" });
     }
   };
 
@@ -285,8 +291,9 @@ const SalesPage = () => {
         const now = new Date();
         const datePrefix = `${now.getFullYear().toString()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
         try {
-          const response = await axios.get(`/api/sales/latest-number/${datePrefix}`);
-          const latestNumber = response.data.latestNumber;
+          // const response = await axios.get(`/api/sales/latest-number/${datePrefix}`); // Replaced with service call
+          // const latestNumber = response.data.latestNumber;
+          const latestNumber = await getLatestSaleNumber(datePrefix);
           const sequence = latestNumber ? parseInt(latestNumber.slice(-3)) + 1 : 1;
           finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
         } catch (err) {
@@ -302,20 +309,20 @@ const SalesPage = () => {
         discount: currentSale.discount,
         paymentMethod: currentSale.paymentMethod,
         paymentStatus: currentSale.paymentStatus,
-        note: currentSale.note,
-        // cashier: '...' // Replace with actual logged-in user ID
+        note: currentSale.note,        // cashier: \'...' // Replace with actual logged-in user ID
       };
-      await axios.post('/api/sales', saleData);
+      // await axios.post("/api/sales", saleData); // Replaced with service call
+      await createSale(saleData);
       // Reset form after successful save
-      setCurrentSale({ saleNumber: '', customer: '', items: [], totalAmount: 0, discount: 0, paymentMethod: 'cash', paymentStatus: 'paid', note: '' });
+      setCurrentSale({ saleNumber: "", customer: "", items: [], totalAmount: 0, discount: 0, paymentMethod: "cash", paymentStatus: "paid", note: "" });
       setInputModes([]);
-      setSnackbar({ open: true, message: '銷售記錄已保存', severity: 'success' });
+      setSnackbar({ open: true, message: "銷售記錄已保存", severity: "success" });
       if (barcodeInputRef.current) {
         barcodeInputRef.current.focus();
       }
     } catch (err) {
-      console.error('保存銷售記錄失敗:', err);
-      setSnackbar({ open: true, message: '保存銷售記錄失敗: ' + (err.response?.data?.msg || err.message), severity: 'error' });
+      console.error("保存銷售記錄失敗:", err);
+      setSnackbar({ open: true, message: "保存銷售記錄失敗: " + (err.response?.data?.msg || err.message), severity: "error" });
     }
   };
 
