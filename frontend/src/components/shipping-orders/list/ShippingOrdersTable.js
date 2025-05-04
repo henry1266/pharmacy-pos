@@ -31,8 +31,8 @@ import PaymentStatusChip from '../common/PaymentStatusChip';
  * @returns {React.ReactElement} 出貨單表格組件
  */
 const ShippingOrdersTable = ({
-  shippingOrders,
-  filteredRows,
+  // shippingOrders, // Removed, no longer needed directly
+  filteredRows, // Use filteredRows directly
   paginationModel,
   setPaginationModel,
   loading,
@@ -103,21 +103,13 @@ const ShippingOrdersTable = ({
     }
   ];
   
-  // 為DataGrid準備行數據
-  const rows = shippingOrders.map(so => ({
-    id: so._id, // DataGrid需要唯一的id字段
-    _id: so._id, // 保留原始_id用於操作
-    soid: so.soid,
-    sosupplier: so.sosupplier,
-    totalAmount: so.totalAmount,
-    status: so.status,
-    paymentStatus: so.paymentStatus
-  }));
+  // Removed internal rows calculation
+  // const rows = shippingOrders.map(so => ({ ... }));
   
   return (
     <Box sx={{ width: '100%' }}>
       <DataGrid
-        rows={filteredRows.length > 0 ? filteredRows : rows}
+        rows={filteredRows || []} // Directly use filteredRows, provide default empty array
         columns={columns}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
