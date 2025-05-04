@@ -2,11 +2,11 @@
 
 ## I. 頁面元件重構 (Page Component Refactoring)
 
-- [ ] **SalesPage.js**:
-    - [ ] 識別並抽離純 UI 展示邏輯至新的展示型元件 (存放於 `components/sales/` 或 `features/sales/components/`)。
-    - [ ] 將資料獲取邏輯移至自定義 Hook (`hooks/useSalesData.js` 或 `features/sales/hooks/`) 或 Redux/狀態管理庫。
-    - [ ] 移除直接的 `axios` 或 `fetch` 呼叫，改用 `services/salesService.js` (或 `features/sales/services.js`)。
-    - [ ] 簡化 `SalesPage.js`，使其主要負責佈局、從 Hook/Store 獲取資料並傳遞給子元件。
+- [x] **SalesPage.js**:
+    - [x] 識別並抽離純 UI 展示邏輯至新的展示型元件 (存放於 `components/sales/` 或 `features/sales/components/`)。
+    - [x] 將資料獲取邏輯移至自定義 Hook (`hooks/useSalesData.js` 或 `features/sales/hooks/`) 或 Redux/狀態管理庫。
+    - [x] 移除直接的 `axios` 或 `fetch` 呼叫，改用 `services/salesService.js` (或 `features/sales/services.js`)。
+    - [x] 簡化 `SalesPage.js`，使其主要負責佈局、從 Hook/Store 獲取資料並傳遞給子元件。
 - [ ] **PurchaseOrdersPage.js**:
     - [ ] 識別並抽離純 UI 展示邏輯至新的展示型元件 (存放於 `components/purchase-orders/` 或 `features/purchaseOrders/components/`)。
     - [ ] 將資料獲取邏輯移至自定義 Hook (`hooks/usePurchaseOrdersData.js` 或 `features/purchaseOrders/hooks/`) 或 Redux/狀態管理庫。
