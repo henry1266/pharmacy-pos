@@ -92,9 +92,9 @@ const ProductItemsTable = ({
               <TableHead>
                 <TableRow>
                   <TableCell width="5%">#</TableCell>
-                  <TableCell width="15%">藥品代碼</TableCell>
-                  <TableCell width="15%">健保代碼</TableCell>
-                  <TableCell width="30%">藥品名稱</TableCell>
+                  <TableCell width="15%">編號</TableCell>
+                  <TableCell width="15%">代碼</TableCell>
+                  <TableCell width="30%">名稱</TableCell>
                   <TableCell width="10%" align="right">數量</TableCell>
                   <TableCell width="10%" align="right">單價</TableCell>
                   <TableCell width="15%" align="right">總金額</TableCell>
@@ -125,7 +125,7 @@ const ProductItemsTable = ({
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
-                      無藥品項目
+                      無項目
                     </TableCell>
                   </TableRow>
                 )}

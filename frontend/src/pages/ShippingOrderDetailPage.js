@@ -3,26 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios'; // Added axios for product details fetching
 import {
-  Box,
+  Chip,
   Typography,
   Card,
   CardContent,
-  Grid,
-  Button,
-  Paper,
-  CircularProgress,
   Divider,
   Stack // Added Stack
 } from '@mui/material';
 import {
-  ArrowBack as ArrowBackIcon,
-  Edit as EditIcon,
   // Icons for sidebar
   CalendarToday as CalendarTodayIcon,
   Person as PersonIcon,
   Receipt as ReceiptIcon,
   Info as InfoIcon,
-  LocalShipping as LocalShippingIcon
+  CurrencyExchange as CurrencyExchangeIcon
+
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -124,7 +119,7 @@ const ShippingOrderDetailPage = () => {
       {currentShippingOrder && (
         <Card variant="outlined">
           <CardContent>
-            <Typography variant="h6" gutterBottom>藥品項目</Typography>
+            <Typography variant="h6" gutterBottom>項目</Typography>
             <Divider sx={{ mb: 2 }} />
             {productDetailsError && (
               <Typography color="error" sx={{ mb: 2 }}>{productDetailsError}</Typography>
@@ -136,7 +131,7 @@ const ShippingOrderDetailPage = () => {
               nameField="dname" // Field for product name in item
               quantityField="dquantity"
               priceField="dprice" // Field for unit price in item
-              totalCostField="dtotalPrice" // Field for item subtotal (assuming dtotalPrice is item subtotal)
+              totalCostField="dtotalCost" // Field for item subtotal (assuming dtotalPrice is item subtotal)
               totalAmount={currentShippingOrder.totalAmount || 0} // Order total amount
               title="" // Title is already outside the component
               isLoading={productDetailsLoading} // Pass loading state for product details
@@ -158,27 +153,19 @@ const ShippingOrderDetailPage = () => {
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <ReceiptIcon fontSize="small" color="action"/>
-                <Typography variant="body2">出貨單號: {currentShippingOrder.soid || 'N/A'}</Typography>
+                <Typography variant="body2">單號: {currentShippingOrder.soid || 'N/A'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PersonIcon fontSize="small" color="action"/>
                 <Typography variant="body2">客戶: {currentShippingOrder.customer?.name || currentShippingOrder.sosupplier || '未指定'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
-                <LocalShippingIcon fontSize="small" color="action"/>
+                <InfoIcon fontSize="small" color="action"/>
                 <Typography variant="body2">狀態: <StatusChip status={currentShippingOrder.status} /></Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
-                <InfoIcon fontSize="small" color="action"/>
+                <CurrencyExchangeIcon fontSize="small" color="action"/>
                 <Typography variant="body2">付款狀態: <PaymentStatusChip status={currentShippingOrder.paymentStatus} /></Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">出貨日期: {currentShippingOrder.shippingDate ? format(new Date(currentShippingOrder.shippingDate), 'yyyy-MM-dd', { locale: zhTW }) : '未指定'}</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <PersonIcon fontSize="small" color="action"/>
-                <Typography variant="body2">處理人員: {currentShippingOrder.handler?.name || '未指定'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
