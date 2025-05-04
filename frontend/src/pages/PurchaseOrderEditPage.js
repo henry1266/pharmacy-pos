@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // Removed axios import
 import {
   Box,
   Typography,
@@ -13,7 +13,12 @@ import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 
-// 導入拆分後的組件
+// Import service functions
+import { getPurchaseOrderById, updatePurchaseOrder } from '../services/purchaseOrdersService';
+import { getProducts } from '../services/productService';
+import { getSuppliers } from '../services/supplierService';
+
+// Import components
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
@@ -22,80 +27,57 @@ import ActionButtons from '../components/purchase-order-form/ActionButtons';
 const PurchaseOrderEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  
-  // 狀態管理
+
+  // State management
   const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     poid: '',
     pobill: '',
     pobilldate: new Date(),
     posupplier: '',
-    supplier: '',
+    supplier: '', // This should store the supplier ID
     items: [],
     notes: '',
     status: 'pending',
     paymentStatus: '未付'
   });
-  
+
   const [currentItem, setCurrentItem] = useState({
     did: '',
     dname: '',
     dquantity: '',
     dtotalCost: '',
-    product: null
+    product: null // This should store the product ID
   });
-  
-  // 編輯項目狀態
+
   const [editingItemIndex, setEditingItemIndex] = useState(-1);
   const [editingItem, setEditingItem] = useState(null);
-  
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
-  
-  // 保存當前選中的供應商對象
+
   const [selectedSupplier, setSelectedSupplier] = useState(null);
-  
-  // 標記數據加載狀態
   const [orderDataLoaded, setOrderDataLoaded] = useState(false);
   const [suppliersLoaded, setSuppliersLoaded] = useState(false);
-  
-  // 初始化加載數據
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        await fetchPurchaseOrderData();
-        await fetchProducts();
-        await fetchSuppliers();
-        setLoading(false);
-      } catch (err) {
-        setLoading(false);
-        console.error('加載數據失敗:', err);
-      }
-    };
-    
-    loadData();
-  }, [id]);
 
-  // 獲取進貨單數據
+  // Refactored fetch functions using services
   const fetchPurchaseOrderData = async () => {
     try {
-      const response = await axios.get(`/api/purchase-orders/${id}`);
-      const orderData = response.data;
+      const orderData = await getPurchaseOrderById(id);
       console.log('獲取到進貨單數據:', orderData);
-      
       setFormData({
         ...orderData,
-        pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date()
+        pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date(),
+        // Ensure supplier field holds the ID if the API returns a populated object
+        supplier: typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier
       });
-      
       setOrderDataLoaded(true);
       return orderData;
     } catch (err) {
@@ -103,35 +85,32 @@ const PurchaseOrderEditPage = () => {
       setError('獲取進貨單數據失敗');
       setSnackbar({
         open: true,
-        message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message),
+        message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
         severity: 'error'
       });
       throw err;
     }
   };
 
-  // 獲取產品數據
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/products');
-      setProducts(response.data);
-      return response.data;
+      const productsData = await getProducts();
+      setProducts(productsData);
+      return productsData;
     } catch (err) {
       console.error('獲取產品數據失敗:', err);
       setSnackbar({
         open: true,
-        message: '獲取產品數據失敗',
+        message: '獲取產品數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
         severity: 'error'
       });
       throw err;
     }
   };
 
-  // 獲取供應商數據
   const fetchSuppliers = async () => {
     try {
-      const response = await axios.get('/api/suppliers');
-      const suppliersData = response.data;
+      const suppliersData = await getSuppliers(); // Uses supplierService which maps _id to id
       console.log('獲取到供應商數據:', suppliersData);
       setSuppliers(suppliersData);
       setSuppliersLoaded(true);
@@ -140,358 +119,259 @@ const PurchaseOrderEditPage = () => {
       console.error('獲取供應商數據失敗:', err);
       setSnackbar({
         open: true,
-        message: '獲取供應商數據失敗',
+        message: '獲取供應商數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
         severity: 'error'
       });
       throw err;
     }
   };
-  
-  // 當進貨單數據和供應商數據都加載完成後，設置選中的供應商
+
+  // Initial data loading useEffect
   useEffect(() => {
-    if (orderDataLoaded && suppliersLoaded) {
-      console.log('進貨單數據和供應商數據都已加載完成');
-      
-      if (formData.supplier) {
-        console.log('當前供應商數據:', formData.supplier);
-        
-        // 處理不同格式的supplier字段
-        let supplierId;
-        if (typeof formData.supplier === 'string') {
-          supplierId = formData.supplier;
-        } else if (typeof formData.supplier === 'object') {
-          // 處理MongoDB返回的對象格式
-          if (formData.supplier._id) {
-            supplierId = formData.supplier._id;
-          } else if (formData.supplier.$oid) {
-            supplierId = formData.supplier.$oid;
-          }
-        }
-        
-        console.log('尋找供應商ID:', supplierId);
-        
-        if (supplierId) {
-          const supplier = suppliers.find(s => s._id === supplierId);
-          if (supplier) {
-            console.log('找到匹配的供應商:', supplier);
-            setSelectedSupplier(supplier);
-          } else {
-            console.log('未找到匹配的供應商');
-          }
-        }
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await Promise.all([
+          fetchPurchaseOrderData(),
+          fetchProducts(),
+          fetchSuppliers()
+        ]);
+        setLoading(false);
+      } catch (err) {
+        setLoading(false);
+        console.error('加載數據過程中發生錯誤:', err);
+        // Error state is set within individual fetch functions
       }
+    };
+    loadData();
+  }, [id]);
+
+  // useEffect for setting selected supplier based on loaded data
+  useEffect(() => {
+    if (orderDataLoaded && suppliersLoaded && formData.supplier) {
+      console.log('Attempting to find supplier for ID:', formData.supplier);
+      // Find supplier using 'id' field from supplierService response
+      const supplier = suppliers.find(s => s.id === formData.supplier || s._id === formData.supplier);
+      if (supplier) {
+        console.log('找到匹配的供應商:', supplier);
+        setSelectedSupplier(supplier);
+        // Ensure posupplier (name) is consistent if it wasn't set correctly initially
+        if (formData.posupplier !== supplier.name) {
+             setFormData(prev => ({ ...prev, posupplier: supplier.name }));
+        }
+      } else {
+        console.log('未找到匹配的供應商 for ID:', formData.supplier);
+        setSelectedSupplier(null);
+        // Optionally clear invalid supplier data from form
+        // setFormData(prev => ({ ...prev, posupplier: '', supplier: '' }));
+      }
+    } else if (!formData.supplier) {
+        // Clear selection if formData.supplier is empty
+        setSelectedSupplier(null);
     }
   }, [orderDataLoaded, suppliersLoaded, formData.supplier, suppliers]);
 
-  // 處理輸入變化
+  // Input change handlers
   const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  
+
   const handleDateChange = (date) => {
-    setFormData({
-      ...formData,
-      pobilldate: date
-    });
+    setFormData({ ...formData, pobilldate: date });
   };
-  
+
+  // Supplier change handler (uses 'id' from supplierService)
   const handleSupplierChange = (event, newValue) => {
     if (newValue) {
       setSelectedSupplier(newValue);
-      setFormData({
-        ...formData,
-        posupplier: newValue.name,
-        supplier: newValue._id
-      });
+      setFormData({ ...formData, posupplier: newValue.name, supplier: newValue.id });
     } else {
       setSelectedSupplier(null);
-      setFormData({
-        ...formData,
-        posupplier: '',
-        supplier: ''
-      });
+      setFormData({ ...formData, posupplier: '', supplier: '' });
     }
   };
-  
+
+  // Item input change handlers
   const handleItemInputChange = (e) => {
-    setCurrentItem({
-      ...currentItem,
-      [e.target.name]: e.target.value
-    });
+    setCurrentItem({ ...currentItem, [e.target.name]: e.target.value });
   };
-  
-  // 處理編輯項目輸入變更
+
   const handleEditingItemChange = (e) => {
-    setEditingItem({
-      ...editingItem,
-      [e.target.name]: e.target.value
-    });
+    setEditingItem({ ...editingItem, [e.target.name]: e.target.value });
   };
-  
+
+  // Product change handler (uses '_id' from productService)
   const handleProductChange = (event, newValue) => {
     if (newValue) {
       setCurrentItem({
         ...currentItem,
-        did: newValue.code,
+        did: newValue.code, // Assuming 'code' is the identifier shown/used in items
         dname: newValue.name,
-        product: newValue._id
+        product: newValue._id // Store the actual product ID
       });
     } else {
-      setCurrentItem({
-        ...currentItem,
-        did: '',
-        dname: '',
-        product: null
-      });
+      setCurrentItem({ ...currentItem, did: '', dname: '', product: null });
     }
   };
-  
+
+  // Add/Remove/Edit/Move item handlers (logic remains the same)
   const handleAddItem = () => {
-    // 驗證項目
     if (!currentItem.did || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
-      setSnackbar({
-        open: true,
-        message: '請填寫完整的藥品項目資料',
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
       return;
     }
-    
-    // 添加項目
-    setFormData({
-      ...formData,
-      items: [...formData.items, { ...currentItem }]
-    });
-    
-    // 清空當前項目
-    setCurrentItem({
-      did: '',
-      dname: '',
-      dquantity: '',
-      dtotalCost: '',
-      product: null
-    });
-    
-    // 聚焦回藥品選擇欄位，方便繼續添加
+    // Ensure the item being added has the product ID
+    const newItem = { ...currentItem, product: currentItem.product }; 
+    setFormData({ ...formData, items: [...formData.items, newItem] });
+    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
+    // Refocus logic remains
     setTimeout(() => {
-      const productInput = document.getElementById('product-select-input');
-      if (productInput) {
-        productInput.focus();
-      }
+      const productInput = document.querySelector('#product-select-input'); // Use querySelector for robustness
+      if (productInput) productInput.focus();
     }, 100);
   };
-  
+
   const handleRemoveItem = (index) => {
-    const newItems = [...formData.items];
-    newItems.splice(index, 1);
-    setFormData({
-      ...formData,
-      items: newItems
-    });
+    const newItems = formData.items.filter((_, i) => i !== index);
+    setFormData({ ...formData, items: newItems });
   };
-  
-  // 開始編輯項目
+
   const handleEditItem = (index) => {
     setEditingItemIndex(index);
-    setEditingItem({...formData.items[index]});
+    // Ensure we are editing a copy, not the original item in state
+    setEditingItem({ ...formData.items[index] }); 
   };
-  
-  // 保存編輯項目
+
   const handleSaveEditItem = () => {
-    // 驗證編輯項目
-    if (!editingItem.did || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
-      setSnackbar({
-        open: true,
-        message: '請填寫完整的藥品項目資料',
-        severity: 'error'
-      });
+    if (!editingItem || !editingItem.did || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
+      setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
       return;
     }
-    
-    // 更新項目
     const newItems = [...formData.items];
     newItems[editingItemIndex] = editingItem;
-    setFormData({
-      ...formData,
-      items: newItems
-    });
-    
-    // 退出編輯模式
+    setFormData({ ...formData, items: newItems });
     setEditingItemIndex(-1);
     setEditingItem(null);
   };
-  
-  // 取消編輯項目
+
   const handleCancelEditItem = () => {
     setEditingItemIndex(-1);
     setEditingItem(null);
   };
-  
-  // 移動項目順序
+
   const handleMoveItem = (index, direction) => {
-    if (
-      (direction === 'up' && index === 0) || 
-      (direction === 'down' && index === formData.items.length - 1)
-    ) {
-      return; // 如果是第一項要上移或最後一項要下移，則不執行
-    }
-    
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === formData.items.length - 1)) return;
     const newItems = [...formData.items];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    
-    // 交換項目位置
     [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
-    
-    setFormData({
-      ...formData,
-      items: newItems
-    });
+    setFormData({ ...formData, items: newItems });
   };
-  
+
+  // Refactored submit handler using service
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // 驗證表單
-    if (!formData.poid || !formData.posupplier) {
-      setSnackbar({
-        open: true,
-        message: '請填寫所有必填欄位',
-        severity: 'error'
-      });
+    if (!formData.poid || !formData.posupplier || !formData.supplier) {
+      setSnackbar({ open: true, message: '請填寫所有必填欄位 (單號, 供應商)', severity: 'error' });
       return;
     }
-    
     if (formData.items.length === 0) {
-      setSnackbar({
-        open: true,
-        message: '請至少添加一個藥品項目',
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: '請至少添加一個藥品項目', severity: 'error' });
       return;
     }
-    
+
     try {
-      // 準備銷售數據
       const submitData = {
         ...formData,
-        pobilldate: format(formData.pobilldate, 'yyyy-MM-dd')
+        pobilldate: format(formData.pobilldate, 'yyyy-MM-dd'),
+        // Ensure items being submitted contain the product ID
+        items: formData.items.map(item => ({ 
+            ...item, 
+            product: item.product // Ensure product ID is included
+        }))
       };
-      
-      // 更新進貨單
-      await axios.put(`/api/purchase-orders/${id}`, submitData);
-      
-      setSnackbar({
-        open: true,
-        message: '進貨單已更新',
-        severity: 'success'
-      });
-      
-      // 導航回進貨單列表
-      setTimeout(() => {
-        navigate('/purchase-orders');
-      }, 1500);
-      
+
+      await updatePurchaseOrder(id, submitData);
+      setSnackbar({ open: true, message: '進貨單已成功更新', severity: 'success' });
+      setTimeout(() => { navigate('/purchase-orders'); }, 1500);
+
     } catch (err) {
       console.error('更新進貨單失敗:', err);
       setSnackbar({
         open: true,
-        message: '更新進貨單失敗: ' + (err.response?.data?.msg || err.message),
+        message: '更新進貨單失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
         severity: 'error'
       });
     }
   };
-  
-  const handleSnackbarClose = () => {
-    setSnackbar({
-      ...snackbar,
-      open: false
-    });
+
+  // Snackbar close and cancel handlers
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
-  
+
   const handleCancel = () => {
     navigate('/purchase-orders');
   };
-  
-  // 計算總金額
-  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0);
-  
-  if (loading) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography>載入中...</Typography>
-      </Box>
-    );
-  }
 
+  // Calculate total amount
+  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+
+  // Loading and error states rendering
+  if (loading) {
+    return <Box sx={{ p: 3, textAlign: 'center' }}><Typography>載入中...</Typography></Box>;
+  }
   if (error) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="error">{error}</Typography>
-        <Button 
-          variant="contained" 
-          onClick={() => navigate('/purchase-orders')}
-          sx={{ mt: 2 }}
-        >
+        <Button variant="contained" onClick={() => navigate('/purchase-orders')} sx={{ mt: 2 }}>
           返回進貨單列表
         </Button>
       </Box>
     );
   }
 
+  // Main component rendering
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          編輯進貨單
-        </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/purchase-orders')}
-        >
+        <Typography variant="h4" component="h1">編輯進貨單</Typography>
+        <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={handleCancel}>
           返回進貨單列表
         </Button>
       </Box>
-      
+
       <form onSubmit={handleSubmit}>
-        {/* 基本資訊表單 */}
-        <BasicInfoForm 
+        <BasicInfoForm
           formData={formData}
           handleInputChange={handleInputChange}
           handleDateChange={handleDateChange}
           handleSupplierChange={handleSupplierChange}
-          suppliers={suppliers}
-          selectedSupplier={selectedSupplier}
+          suppliers={suppliers} // Pass suppliers list
+          selectedSupplier={selectedSupplier} // Pass selected supplier object
           isEditMode={true}
         />
-        
+
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              藥品項目
-            </Typography>
-            
-            {/* 操作按鈕 */}
-            <ActionButtons 
-              loading={loading}
-              onSave={handleSubmit}
+            <Typography variant="h6" gutterBottom>藥品項目</Typography>
+            <ActionButtons
+              loading={loading} // Pass loading state if needed
+              onSave={handleSubmit} // Use handleSubmit directly
               onCancel={handleCancel}
             />
-            
-            {/* 藥品項目輸入表單 */}
-            <ProductItemForm 
+            <ProductItemForm
               currentItem={currentItem}
               handleItemInputChange={handleItemInputChange}
               handleProductChange={handleProductChange}
               handleAddItem={handleAddItem}
-              products={products}
+              products={products} // Pass products list
             />
-            
-            {/* 藥品項目表格 */}
-            <ProductItemsTable 
+            <ProductItemsTable
               items={formData.items}
               editingItemIndex={editingItemIndex}
               editingItem={editingItem}
@@ -506,14 +386,9 @@ const PurchaseOrderEditPage = () => {
           </CardContent>
         </Card>
       </form>
-      
-      {/* 提示訊息 */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
@@ -522,3 +397,4 @@ const PurchaseOrderEditPage = () => {
 };
 
 export default PurchaseOrderEditPage;
+

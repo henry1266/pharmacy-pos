@@ -10,3 +10,4 @@
 - [x] Commit changes following Conventional Commits (fix)
 - [x] Push changes to GitHub using token (fix)
 - [x] Report completion and provide updated files (fix)
+- [x] Refactor PurchaseOrderEditPage.js: Moved API calls (getPurchaseOrderById, getProducts, getSuppliers, updatePurchaseOrder) to respective services (purchaseOrdersService.js, productService.js, supplierService.js). Added missing updatePurchaseOrder function to service.

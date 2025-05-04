@@ -84,3 +84,22 @@ export const importPurchaseOrderItems = async (formData) => {
 // to call functions defined here, rather than making direct axios calls themselves (if they do).
 // For now, this service only includes the API calls made directly from PurchaseOrdersPage.js.
 
+
+
+
+/**
+ * Updates an existing purchase order by its ID.
+ * @param {string} id - The ID of the purchase order to update.
+ * @param {object} data - The data to update the purchase order with.
+ * @returns {Promise<object>} The updated purchase order data.
+ */
+export const updatePurchaseOrder = async (id, data) => {
+  try {
+    const response = await axios.put(`${API_URL}/${id}`, data, getAuthConfig());
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating purchase order with ID ${id}:`, error);
+    throw error;
+  }
+};
+
