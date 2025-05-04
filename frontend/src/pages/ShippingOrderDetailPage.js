@@ -1,28 +1,54 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react'; // Added useState
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Grid, 
+import axios from 'axios'; // Added axios for product details fetching
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
   Button,
   Paper,
-  CircularProgress, // Added for loading state
-  Divider // Added for consistency
+  CircularProgress,
+  Divider,
+  Stack // Added Stack
 } from '@mui/material';
-import { 
+import {
   ArrowBack as ArrowBackIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  // Icons for sidebar
+  CalendarToday as CalendarTodayIcon,
+  Person as PersonIcon,
+  Receipt as ReceiptIcon,
+  Info as InfoIcon,
+  LocalShipping as LocalShippingIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns'; // Added for potential date formatting
+import { format } from 'date-fns';
+import { zhTW } from 'date-fns/locale';
 
 import { fetchShippingOrder } from '../redux/actions';
-import StatusChip from '../components/shipping-orders/common/StatusChip';
-import PaymentStatusChip from '../components/shipping-orders/common/PaymentStatusChip';
-import ProductItemsTable from '../components/common/ProductItemsTable';
-import TwoColumnLayout from '../components/common/TwoColumnLayout'; // Import the new layout component
+import DetailLayout from '../components/DetailLayout'; // Using DetailLayout
+import ProductItemsTable from '../components/common/ProductItemsTable'; // Using the pure UI table
+import { getApiBaseUrl } from '../utils/apiConfig'; // Added for API calls
+
+// Assuming StatusChip and PaymentStatusChip are available and correctly imported
+// Recreating basic versions here for completeness if they aren't imported from elsewhere
+const StatusChip = ({ status }) => {
+    let color = 'default';
+    let label = status || '未知';
+    if (status === 'shipped') { color = 'success'; label = '已出貨'; }
+    if (status === 'pending') { color = 'warning'; label = '待處理'; }
+    if (status === 'cancelled') { color = 'error'; label = '已取消'; }
+    return <Chip size="small" label={label} color={color} />;
+};
+const PaymentStatusChip = ({ status }) => {
+    let color = 'default';
+    let label = status || '未指定';
+    if (status === 'paid') { color = 'success'; label = '已付款'; }
+    if (status === 'unpaid') { color = 'warning'; label = '未付款'; }
+    return <Chip size="small" label={label} color={color} />;
+};
 
 /**
  * 出貨單詳情頁面
@@ -32,186 +58,158 @@ const ShippingOrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
-  const { currentShippingOrder, loading, error } = useSelector(state => state.shippingOrders);
-  
+  const API_BASE_URL = getApiBaseUrl();
+
+  // Redux state for shipping order
+  const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector(state => state.shippingOrders);
+
+  // Local state for product details
+  const [productDetails, setProductDetails] = useState({});
+  const [productDetailsLoading, setProductDetailsLoading] = useState(false);
+  const [productDetailsError, setProductDetailsError] = useState(null);
+
+  // Fetch shipping order details
   useEffect(() => {
     if (id) {
       dispatch(fetchShippingOrder(id));
     }
   }, [dispatch, id]);
-  
-  const handleBack = () => {
-    navigate('/shipping-orders');
-  };
-  
-  const handleEdit = () => {
-    navigate(`/shipping-orders/edit/${id}`);
-  };
-  
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  
-  if (error) {
-    return (
-      <Box>
-        <Typography color="error" variant="h6">
-          載入出貨單時發生錯誤: {error}
-        </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBack}
-          sx={{ mt: 2 }}
-        >
-          返回列表
-        </Button>
-      </Box>
-    );
-  }
-  
-  if (!currentShippingOrder) {
-    return (
-      <Box>
-        <Typography variant="h6">
-          找不到出貨單
-        </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBack}
-          sx={{ mt: 2 }}
-        >
-          返回列表
-        </Button>
-      </Box>
-    );
-  }
 
-  // Define content for the left column (Basic Info)
-  const leftContent = (
-    <Card>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          基本資訊
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="textSecondary">
-              出貨單號
-            </Typography>
-            <Typography variant="body1">
-              {currentShippingOrder.soid}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="textSecondary">
-              客戶
-            </Typography>
-            <Typography variant="body1">
-              {currentShippingOrder.sosupplier}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="textSecondary">
-              狀態
-            </Typography>
-            <StatusChip status={currentShippingOrder.status} />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="textSecondary">
-              付款狀態
-            </Typography>
-            <PaymentStatusChip status={currentShippingOrder.paymentStatus} />
-          </Grid>
-          {currentShippingOrder.notes && (
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" color="textSecondary">
-                備註
-              </Typography>
-              <Paper variant="outlined" sx={{ p: 1, mt: 1 }}>
-                <Typography variant="body2">
-                  {currentShippingOrder.notes}
-                </Typography>
-              </Paper>
-            </Grid>
-          )}
-        </Grid>
-      </CardContent>
-    </Card>
+  // Fetch product details when items are available
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      if (!currentShippingOrder || !currentShippingOrder.items || currentShippingOrder.items.length === 0) {
+        setProductDetails({}); // Clear details if no items
+        return;
+      }
+
+      setProductDetailsLoading(true);
+      setProductDetailsError(null);
+      const details = {};
+      const productCodes = [...new Set(currentShippingOrder.items.map(item => item.did).filter(Boolean))]; // Get unique product codes (did)
+
+      try {
+        // Fetch details for each unique product code
+        // Consider using Promise.all for parallel fetching if API supports it well
+        for (const code of productCodes) {
+          try {
+            // Assuming API endpoint exists to fetch product by code (did)
+            // Adjust endpoint if needed (e.g., /products/code/:code or /products?code=:code)
+            const response = await axios.get(`${API_BASE_URL}/products/code/${code}`);
+            if (response.data) {
+              details[code] = response.data; // Store details keyed by product code (did)
+            }
+          } catch (err) {
+            console.error(`獲取產品 ${code} 詳情失敗:`, err);
+            // Optionally store partial errors or handle them differently
+          }
+        }
+        setProductDetails(details);
+      } catch (err) {
+        console.error('獲取所有產品詳情失敗:', err);
+        setProductDetailsError('無法載入部分或所有產品的詳細資料。');
+      } finally {
+        setProductDetailsLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [currentShippingOrder, API_BASE_URL]); // Re-run when shipping order data changes
+
+  // --- Define Content for Layout --- 
+
+  const mainContent = (
+    <Stack spacing={3}>
+      {/* Items Table Card */}
+      {currentShippingOrder && (
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="h6" gutterBottom>藥品項目</Typography>
+            <Divider sx={{ mb: 2 }} />
+            {productDetailsError && (
+              <Typography color="error" sx={{ mb: 2 }}>{productDetailsError}</Typography>
+            )}
+            <ProductItemsTable
+              items={currentShippingOrder.items || []}
+              productDetails={productDetails} // Pass fetched details
+              codeField="did" // Field for product code in item
+              nameField="dname" // Field for product name in item
+              quantityField="dquantity"
+              priceField="dprice" // Field for unit price in item
+              totalCostField="dtotalPrice" // Field for item subtotal (assuming dtotalPrice is item subtotal)
+              totalAmount={currentShippingOrder.totalAmount || 0} // Order total amount
+              title="" // Title is already outside the component
+              isLoading={productDetailsLoading} // Pass loading state for product details
+            />
+          </CardContent>
+        </Card>
+      )}
+    </Stack>
   );
 
-  // Define content for the right column (Product Items)
-  const rightContent = (
-    <Card>
-      <CardContent>
-        <ProductItemsTable 
-          items={currentShippingOrder.items || []}
-          codeField="did"
-          nameField="dname"
-          quantityField="dquantity"
-          totalCostField="dtotalCost" // Assuming cost is relevant here, adjust if needed
-          totalAmount={currentShippingOrder.totalAmount || 
-                       (currentShippingOrder.items || []).reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0)} // Calculate if not present
-          title="藥品項目"
-        />
-        {/* Optionally add creation/update timestamps if available */}
-        {currentShippingOrder.createdAt && currentShippingOrder.updatedAt && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">
-                創建時間: {format(new Date(currentShippingOrder.createdAt), 'yyyy-MM-dd HH:mm:ss')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                最後更新: {format(new Date(currentShippingOrder.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
-              </Typography>
-            </Box>
-          </>
-        )}
-      </CardContent>
-    </Card>
+  const sidebarContent = (
+    <Stack spacing={3}>
+      {/* Basic Information Card */}
+      {currentShippingOrder && (
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="h6" gutterBottom><InfoIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>基本信息</Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Stack spacing={1.5}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <ReceiptIcon fontSize="small" color="action"/>
+                <Typography variant="body2">出貨單號: {currentShippingOrder.soid || 'N/A'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <PersonIcon fontSize="small" color="action"/>
+                <Typography variant="body2">客戶: {currentShippingOrder.customer?.name || currentShippingOrder.sosupplier || '未指定'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <LocalShippingIcon fontSize="small" color="action"/>
+                <Typography variant="body2">狀態: <StatusChip status={currentShippingOrder.status} /></Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <InfoIcon fontSize="small" color="action"/>
+                <Typography variant="body2">付款狀態: <PaymentStatusChip status={currentShippingOrder.paymentStatus} /></Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarTodayIcon fontSize="small" color="action"/>
+                <Typography variant="body2">出貨日期: {currentShippingOrder.shippingDate ? format(new Date(currentShippingOrder.shippingDate), 'yyyy-MM-dd', { locale: zhTW }) : '未指定'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <PersonIcon fontSize="small" color="action"/>
+                <Typography variant="body2">處理人員: {currentShippingOrder.handler?.name || '未指定'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarTodayIcon fontSize="small" color="action"/>
+                <Typography variant="body2">建立日期: {currentShippingOrder.createdAt ? format(new Date(currentShippingOrder.createdAt), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : 'N/A'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarTodayIcon fontSize="small" color="action"/>
+                <Typography variant="body2">更新日期: {currentShippingOrder.updatedAt ? format(new Date(currentShippingOrder.updatedAt), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : 'N/A'}</Typography>
+              </Stack>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{currentShippingOrder.notes || '無'}</Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+    </Stack>
   );
-  
+
+  // --- Render Layout --- 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" component="h1">
-          出貨單詳情
-        </Typography>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-          >
-            返回列表
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<EditIcon />}
-            onClick={handleEdit}
-            disabled={currentShippingOrder.status === 'cancelled'}
-          >
-            編輯
-          </Button>
-        </Box>
-      </Box>
-      
-      {/* Use the TwoColumnLayout component */}
-      <TwoColumnLayout 
-        leftContent={leftContent} 
-        rightContent={rightContent} 
-        leftWidth={4} // Adjust width as needed
-        rightWidth={8}
-      />
-    </Box>
+    <DetailLayout
+      pageTitle="出貨單詳情"
+      recordIdentifier={currentShippingOrder?.soid}
+      listPageUrl="/shipping-orders"
+      editPageUrl={currentShippingOrder && currentShippingOrder.status !== 'cancelled' ? `/shipping-orders/edit/${id}` : null}
+      printPageUrl={null}
+      mainContent={mainContent}
+      sidebarContent={sidebarContent}
+      isLoading={orderLoading} // Use loading state for the order itself
+      errorContent={orderError ? <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography> : null}
+    />
   );
 };
 
