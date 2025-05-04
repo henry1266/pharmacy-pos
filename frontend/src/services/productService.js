@@ -103,21 +103,6 @@ export const deleteProduct = async (id) => {
   }
 };
 
-// Combining all service functions into one object
-const productService = {
-  getProducts,
-  getSuppliers,
-  // getProductCategories is imported separately, keep it that way or integrate if preferred
-  addProduct,
-  updateProduct,
-  deleteProduct,
-};
-
-export default productService;
-
-
-
-
 /**
  * Fetches a single product by its code.
  * @param {string} code - The code of the product to fetch.
@@ -135,18 +120,16 @@ export const getProductByCode = async (code) => {
   }
 };
 
-// Update the exported object to include the new function
-const updatedProductService = {
+// Combine all service functions into one object for default export
+const productService = {
   getProducts,
   getSuppliers,
   // getProductCategories is imported separately, keep it that way or integrate if preferred
   addProduct,
   updateProduct,
   deleteProduct,
-  getProductByCode, // Add the new function here
+  getProductByCode, // Include the new function
 };
 
-// Replace the old export default with the updated one
-// export default productService;
-export default updatedProductService;
+export default productService;
 
