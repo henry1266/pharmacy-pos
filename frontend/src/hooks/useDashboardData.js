@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 // Import service functions
-import { getDashboardSummary, getSalesTrend } from '../services/dashboardService';
+import { getDashboardSummary, getProcessedSalesDataForDashboard } from '../services/dashboardService';
 
 /**
  * Custom Hook to fetch data required for the Dashboard Page using the service layer.
- * Handles fetching summary data, sales trend, and category sales.
+ * Handles fetching summary data, processed sales trend, and category sales.
  * Manages loading and error states internally.
  * 
  * @returns {Object} - Contains dashboardData, salesTrend, categorySales, loading state, error state, and refetchData function.
@@ -22,14 +22,15 @@ const useDashboardData = () => {
     setError(null);
     try {
       // Use Promise.all to fetch data concurrently using service functions
-      const [summaryData, trendData] = await Promise.all([
+      const [summaryData, processedSalesData] = await Promise.all([
         getDashboardSummary(),
-        getSalesTrend()
+        getProcessedSalesDataForDashboard() // Fetch processed sales data
       ]);
 
       setDashboardData(summaryData); // Assuming summaryData is the object { salesSummary: ..., counts: ... }
-      setSalesTrend(trendData?.salesTrend || []); // Ensure array even if undefined
-      setCategorySales(trendData?.categorySales || []); // Ensure array even if undefined
+      // Set state from the processed sales data
+      setSalesTrend(processedSalesData?.salesTrend || []); // Ensure array even if undefined
+      setCategorySales(processedSalesData?.categorySales || []); // Ensure array even if undefined
 
     } catch (err) {
       console.error('獲取儀表板數據失敗 (hook):', err);

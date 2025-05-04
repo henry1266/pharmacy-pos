@@ -42,3 +42,20 @@ export const createSale = async (saleData) => {
 
 // 可在此處添加其他與銷售相關的 API 服務函數
 
+
+
+/**
+ * 獲取所有銷售記錄
+ * @returns {Promise<Array<object>>} 包含所有銷售記錄的陣列
+ */
+export const getAllSales = async () => {
+  try {
+    const response = await axios.get(API_URL);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all sales:', error);
+    // 拋出標準化錯誤或根據需要處理
+    throw error; // 暫時直接拋出，可在攔截器中統一處理
+  }
+};
+
