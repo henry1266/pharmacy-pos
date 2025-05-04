@@ -1,27 +1,117 @@
 import axios from 'axios';
+import { getProductCategories } from './productCategoryService'; // Keep this import if categories are fetched here, otherwise remove
 
-// 根據 improvement_proposal.md 的建議，將 API 呼叫集中到 services 層
+// Base API URLs
+const PRODUCTS_API_URL = '/api/products';
+const SUPPLIERS_API_URL = '/api/suppliers';
 
-const API_URL = '/api/products'; // 假設後端 API 路徑
+// Helper function to get auth config (similar to customerService)
+const getAuthConfig = (includeContentType = true) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error('Authentication token not found.');
+    throw new Error('Authentication required.');
+  }
+  const headers = { 'x-auth-token': token };
+  if (includeContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+  return { headers };
+};
 
 /**
- * 獲取所有產品列表
- * @returns {Promise<Array>} 產品列表
+ * Fetches all products (both regular and medicines).
+ * @returns {Promise<Array>} A promise that resolves to an array of product objects.
  */
 export const getProducts = async () => {
   try {
-    const response = await axios.get(API_URL);
+    const config = getAuthConfig(false); // GET request doesn't need Content-Type
+    const response = await axios.get(PRODUCTS_API_URL, config);
     return response.data;
   } catch (error) {
-    console.error('Error fetching products:', error);
-    // 拋出標準化錯誤或根據需要處理
-    throw error; // 暫時直接拋出，可在攔截器中統一處理
+    console.error('Error fetching products:', error.response?.data || error.message);
+    throw error;
   }
 };
 
-// 可在此處添加其他與產品相關的 API 服務函數，例如：
-// export const getProductById = async (id) => { ... };
-// export const createProduct = async (productData) => { ... };
-// export const updateProduct = async (id, productData) => { ... };
-// export const deleteProduct = async (id) => { ... };
+/**
+ * Fetches all suppliers.
+ * @returns {Promise<Array>} A promise that resolves to an array of supplier objects.
+ */
+export const getSuppliers = async () => {
+  try {
+    const config = getAuthConfig(false);
+    const response = await axios.get(SUPPLIERS_API_URL, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching suppliers:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Adds a new product (product or medicine).
+ * @param {object} productData - The data for the new product.
+ * @param {string} productType - 'product' or 'medicine'.
+ * @returns {Promise<object>} A promise that resolves to the newly created product object.
+ */
+export const addProduct = async (productData, productType) => {
+  try {
+    const config = getAuthConfig();
+    // Backend might have specific endpoints or handle type via data
+    // Assuming backend uses productType field or separate endpoints as in the original hook
+    const endpoint = productType === 'medicine'
+        ? `${PRODUCTS_API_URL}/medicine`
+        : `${PRODUCTS_API_URL}/product`;
+    const response = await axios.post(endpoint, { ...productData, productType }, config);
+    return response.data;
+  } catch (error) {
+    console.error(`Error adding ${productType}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Updates an existing product.
+ * @param {string} id - The ID of the product to update.
+ * @param {object} productData - The updated data for the product.
+ * @returns {Promise<object>} A promise that resolves to the updated product object.
+ */
+export const updateProduct = async (id, productData) => {
+  try {
+    const config = getAuthConfig();
+    const response = await axios.put(`${PRODUCTS_API_URL}/${id}`, productData, config);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating product:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a product.
+ * @param {string} id - The ID of the product to delete.
+ * @returns {Promise<void>} A promise that resolves when the product is deleted.
+ */
+export const deleteProduct = async (id) => {
+  try {
+    const config = getAuthConfig(false); // DELETE doesn't need Content-Type
+    await axios.delete(`${PRODUCTS_API_URL}/${id}`, config);
+  } catch (error) {
+    console.error('Error deleting product:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Combining all service functions into one object
+const productService = {
+  getProducts,
+  getSuppliers,
+  // getProductCategories is imported separately, keep it that way or integrate if preferred
+  addProduct,
+  updateProduct,
+  deleteProduct,
+};
+
+export default productService;
 

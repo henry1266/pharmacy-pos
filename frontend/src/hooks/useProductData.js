@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { getProductCategories } from '../services/productCategoryService';
+import { useState, useEffect, useCallback } from 'react';
+import productService from '../services/productService'; // Import the consolidated service
+import { getProductCategories } from '../services/productCategoryService'; // Keep category service separate or integrate
 
 const useProductData = () => {
   const [products, setProducts] = useState([]);
@@ -10,177 +10,159 @@ const useProductData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 獲取所有產品
-  const fetchProducts = async () => {
+  // Fetch all products (using service)
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-      
-      const res = await axios.get('/api/products', config);
-      
-      // 分離商品和藥品
+      setError(null);
+      const data = await productService.getProducts();
+
+      // Separate products and medicines
       const productsList = [];
       const medicinesList = [];
-      
-      res.data.forEach(item => {
-        const product = {
-          ...item,
-          id: item._id
-        };
-        
+      data.forEach(item => {
+        const product = { ...item, id: item._id }; // Map _id to id
         if (item.productType === 'product') {
           productsList.push(product);
         } else if (item.productType === 'medicine') {
           medicinesList.push(product);
         }
       });
-      
+
       setProducts(productsList);
       setMedicines(medicinesList);
-      setLoading(false);
     } catch (err) {
-      console.error(err);
+      console.error('獲取產品失敗 (hook):', err);
       setError('獲取產品失敗');
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // 獲取所有供應商
-  const fetchSuppliers = async () => {
+  // Fetch all suppliers (using service)
+  const fetchSuppliers = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-      
-      const res = await axios.get('/api/suppliers', config);
-      setSuppliers(res.data);
+      // Assuming suppliers don't change often, maybe load only once or less frequently
+      // setLoading(true); // Optional: manage loading state for suppliers separately if needed
+      setError(null);
+      const data = await productService.getSuppliers();
+      setSuppliers(data);
     } catch (err) {
-      console.error(err);
+      console.error('獲取供應商失敗 (hook):', err);
       setError('獲取供應商失敗');
+    } finally {
+      // setLoading(false);
     }
-  };
-  
-  // 獲取所有產品分類
-  const fetchCategories = async () => {
+  }, []);
+
+  // Fetch all product categories (using service)
+  const fetchCategories = useCallback(async () => {
     try {
-      const data = await getProductCategories();
+      // setLoading(true); // Optional: manage loading state for categories
+      setError(null);
+      const data = await getProductCategories(); // Using dedicated category service
       setCategories(data);
     } catch (err) {
-      console.error(err);
+      console.error('獲取產品分類失敗 (hook):', err);
       setError('獲取產品分類失敗');
+    } finally {
+      // setLoading(false);
     }
-  };
-
-  // 處理刪除產品
-  const handleDeleteProduct = async (id) => {
-    if (window.confirm('確定要刪除此產品嗎？')) {
-      try {
-        const token = localStorage.getItem('token');
-        const config = {
-          headers: {
-            'x-auth-token': token
-          }
-        };
-        
-        await axios.delete(`/api/products/${id}`, config);
-        
-        // 更新本地狀態
-        setProducts(products.filter(p => p.id !== id));
-        setMedicines(medicines.filter(p => p.id !== id));
-        
-        return true;
-      } catch (err) {
-        console.error(err);
-        setError('刪除產品失敗');
-        return false;
-      }
-    }
-    return false;
-  };
-
-  // 處理保存產品
-  const handleSaveProduct = async (productData, editMode, productType) => {
-    try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token
-        }
-      };
-      
-      let response;
-      if (editMode) {
-        // 更新產品
-        response = await axios.put(`/api/products/${productData.id}`, productData, config);
-        
-        // 更新本地狀態
-        if (productType === 'product') {
-          setProducts(products.map(p => 
-            p.id === productData.id ? { ...response.data, id: response.data._id, productType: 'product' } : p
-          ));
-        } else {
-          setMedicines(medicines.map(p => 
-            p.id === productData.id ? { ...response.data, id: response.data._id, productType: 'medicine' } : p
-          ));
-        }
-      } else {
-        // 創建新產品
-        const endpoint = productType === 'medicine' 
-          ? '/api/products/medicine' 
-          : '/api/products/product';
-        response = await axios.post(endpoint, productData, config);
-        
-        // 更新本地狀態
-        const newProduct = {
-          ...response.data,
-          id: response.data._id,
-          productType
-        };
-        
-        if (productType === 'product') {
-          setProducts([...products, newProduct]);
-        } else {
-          setMedicines([...medicines, newProduct]);
-        }
-      }
-      
-      return response.data;
-    } catch (err) {
-      console.error(err);
-      setError('保存產品失敗');
-      return null;
-    }
-  };
-
-  // 初始化
-  useEffect(() => {
-    fetchProducts();
-    fetchSuppliers();
-    fetchCategories();
   }, []);
+
+  // Handle deleting a product (using service)
+  const handleDeleteProduct = useCallback(async (id) => {
+    // Keep confirmation dialog logic in the component or move it here if preferred
+    // if (window.confirm('確定要刪除此產品嗎？')) { ... }
+    try {
+      setLoading(true); // Indicate loading during delete
+      setError(null);
+      await productService.deleteProduct(id);
+
+      // Update local state optimistically or refetch
+      setProducts(prev => prev.filter(p => p.id !== id));
+      setMedicines(prev => prev.filter(p => p.id !== id));
+      // Or call fetchProducts() again
+
+      return true; // Indicate success
+    } catch (err) {
+      console.error('刪除產品失敗 (hook):', err);
+      setError(`刪除產品失敗: ${err.response?.data?.message || err.message}`);
+      // Re-throw the error if the component needs to handle it (e.g., show specific alerts)
+      // throw err;
+      return false; // Indicate failure
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Dependencies might be needed if state setters are used directly
+
+  // Handle saving (add/update) a product (using service)
+  const handleSaveProduct = useCallback(async (productData, editMode, productType) => {
+    try {
+      setLoading(true);
+      setError(null);
+      let savedProductData;
+
+      if (editMode) {
+        // Update product
+        savedProductData = await productService.updateProduct(productData.id, productData);
+      } else {
+        // Add new product
+        savedProductData = await productService.addProduct(productData, productType);
+      }
+
+      // Refetch products to ensure data consistency
+      // This is simpler than trying to update the state manually and potentially missing edge cases
+      await fetchProducts();
+
+      return { ...savedProductData, id: savedProductData._id }; // Return the saved product data with mapped id
+
+    } catch (err) {
+      console.error('保存產品失敗 (hook):', err);
+      const errorMsg = `保存產品失敗: ${err.response?.data?.message || err.message}`;
+      setError(errorMsg);
+      // Re-throw the error for the component to handle (e.g., show alert, keep dialog open)
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchProducts]); // Add fetchProducts as dependency
+
+  // Initial data fetch
+  useEffect(() => {
+    // Use Promise.all to fetch concurrently, but manage loading state carefully
+    const loadInitialData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([fetchProducts(), fetchSuppliers(), fetchCategories()]);
+      } catch (err) {
+        // Errors are already handled within individual fetch functions and state is set
+        console.error("Error loading initial product data:", err)
+      } finally {
+         // Ensure loading is false even if only one part failed initially
+         // However, fetchProducts already sets loading to false at the end.
+         // If suppliers/categories loading is critical, manage a combined loading state.
+         // For simplicity, relying on fetchProducts' loading state might suffice.
+         // setLoading(false); // Might be redundant if fetchProducts is the main indicator
+      }
+    };
+    loadInitialData();
+  }, [fetchProducts, fetchSuppliers, fetchCategories]); // Include all fetch functions
 
   return {
     products,
     medicines,
     suppliers,
     categories,
-    loading,
+    loading, // Primarily reflects product loading state now
     error,
-    fetchProducts,
-    fetchSuppliers,
-    fetchCategories,
+    fetchProducts, // Expose if manual refresh is needed
+    // fetchSuppliers, // Usually not needed by component
+    // fetchCategories, // Usually not needed by component
     handleDeleteProduct,
     handleSaveProduct
   };
 };
 
 export default useProductData;
+

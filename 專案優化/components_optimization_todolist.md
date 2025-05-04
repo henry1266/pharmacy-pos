@@ -28,7 +28,7 @@
     - [x] 移除直接的 `axios` 或 `fetch` 呼叫，改用 `services/accountingService.js` (或 `features/accounting/services.js`)。
     - [x] 簡化 `AccountingPage.js`，使其主要負責佈局、從 Hook/Store 獲取資料並傳遞給子元件。
 - [x] **CustomersPage.js**:
-- [ ] **ProductsPage.js**:
+- [x] **ProductsPage.js**:
 - [ ] **其他頁面元件**:
     - [ ] 逐一檢查 `pages/` 目錄下的其他元件，應用相同的重構原則 (SRP、抽離邏輯、強制 API 層)。
 
