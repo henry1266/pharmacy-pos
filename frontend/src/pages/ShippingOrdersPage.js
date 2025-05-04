@@ -1,29 +1,32 @@
-import React from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Card, 
-  CardContent, 
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  CardContent,
   Tooltip,
   Fab,
   Snackbar,
   Alert,
   Popper
 } from '@mui/material';
-import { 
-  Add as AddIcon, 
+import {
+  Add as AddIcon,
   FilterList as FilterListIcon,
   CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
+import { useDispatch } from 'react-redux'; // Keep useDispatch for potential future use or if CSV success needs a refresh action
 
-// 導入API基礎URL
-import { API_BASE_URL } from '../redux/actions';
+// Import Hook
+import useShippingOrdersData from '../hooks/useShippingOrdersData';
 
-import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
+// Import Service functions for CSV import
+import { importShippingOrdersBasic, importShippingOrdersItems } from '../services/shippingOrdersService';
+import { fetchShippingOrders } from '../redux/actions'; // Keep for refreshing list after CSV import
+
+// Import Presentation Components
 import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview';
 import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
 import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
@@ -33,197 +36,107 @@ import DeleteConfirmDialog from '../components/shipping-orders/common/ConfirmDia
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 /**
- * 出貨單管理頁面
- * @returns {React.ReactElement} 出貨單管理頁面
+ * Shipping Orders Management Page (Refactored)
+ * Uses useShippingOrdersData hook for data fetching, filtering, preview, and deletion logic.
+ * Manages UI state (dialogs, snackbar, etc.) locally.
  */
 const ShippingOrdersPage = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { shippingOrders, loading, error } = useSelector(state => state.shippingOrders);
-  const { suppliers } = useSelector(state => state.suppliers || { suppliers: [] });
-  
-  const [searchParams, setSearchParams] = React.useState({
-    soid: '',
-    sobill: '',
-    sosupplier: '',
-    startDate: null,
-    endDate: null
-  });
-  
-  // 供應商篩選相關狀態
-  const [selectedSuppliers, setSelectedSuppliers] = React.useState([]);
-  const [filteredRows, setFilteredRows] = React.useState([]);
-  
-  const [showFilters, setShowFilters] = React.useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [shippingOrderToDelete, setShippingOrderToDelete] = React.useState(null);
-  const [snackbar, setSnackbar] = React.useState({
+  const dispatch = useDispatch(); // Keep dispatch
+
+  // Use the custom hook to get data and handlers
+  const {
+    suppliers,
+    filteredRows,
+    listLoading,
+    suppliersLoading,
+    previewLoading,
+    listError,
+    suppliersError,
+    previewError,
+    searchParams,
+    selectedSuppliers,
+    handleSearch,
+    handleClearSearch,
+    handleInputChange,
+    handleDateChange,
+    handleSupplierFilterChange,
+    previewShippingOrder,
+    fetchPreviewData,
+    clearPreviewData,
+    handleDelete,
+  } = useShippingOrdersData();
+
+  // --- Local UI State ---
+  const [showFilters, setShowFilters] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [shippingOrderToDelete, setShippingOrderToDelete] = useState(null); // Store the whole object for the dialog
+  const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
-  
-  // 預覽相關狀態
-  const [previewOpen, setPreviewOpen] = React.useState(false);
-  const [previewAnchorEl, setPreviewAnchorEl] = React.useState(null);
-  const [previewShippingOrder, setPreviewShippingOrder] = React.useState(null);
-  const [previewLoading, setPreviewLoading] = React.useState(false);
-  const [previewError, setPreviewError] = React.useState(null);
-  
-  // CSV導入相關狀態
-  const [csvImportDialogOpen, setCsvImportDialogOpen] = React.useState(false);
-  const [csvType, setCsvType] = React.useState('basic'); // 'basic' 或 'items'
-  const [csvFile, setCsvFile] = React.useState(null);
-  const [csvImportLoading, setCsvImportLoading] = React.useState(false);
-  const [csvImportError, setCsvImportError] = React.useState(null);
-  const [csvImportSuccess, setCsvImportSuccess] = React.useState(false);
-  const [csvTabValue, setCsvTabValue] = React.useState(0);
-  
-  // DataGrid 分頁設置
-  const [paginationModel, setPaginationModel] = React.useState({
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewAnchorEl, setPreviewAnchorEl] = useState(null);
+  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
+  const [csvType, setCsvType] = useState('basic'); // 'basic' or 'items'
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvImportLoading, setCsvImportLoading] = useState(false);
+  const [csvImportError, setCsvImportError] = useState(null);
+  const [csvImportSuccess, setCsvImportSuccess] = useState(false);
+  const [csvTabValue, setCsvTabValue] = useState(0);
+  const [paginationModel, setPaginationModel] = useState({
     pageSize: 50,
     page: 0,
   });
-  
-  React.useEffect(() => {
-    dispatch(fetchShippingOrders());
-    dispatch(fetchSuppliers());
-  }, [dispatch]);
-  
-  React.useEffect(() => {
+
+  // Show snackbar on list or supplier fetch error
+  useEffect(() => {
+    const error = listError || suppliersError;
     if (error) {
       setSnackbar({
         open: true,
-        message: error,
+        message: typeof error === 'string' ? error : '載入資料時發生錯誤',
         severity: 'error'
       });
     }
-  }, [error]);
-  
-  // 處理供應商篩選變更
-  React.useEffect(() => {
-    if (shippingOrders.length > 0) {
-      let filtered = [...shippingOrders];
-      
-      // 如果有選擇供應商，則進行篩選
-      if (selectedSuppliers.length > 0) {
-        filtered = filtered.filter(so => selectedSuppliers.includes(so.sosupplier));
-      }
-      
-      // 將篩選後的數據轉換為DataGrid需要的格式
-      const formattedRows = filtered.map(so => ({
-        id: so._id,
-        _id: so._id,
-        soid: so.soid,
-        sobill: so.sobill,
-        sobilldate: so.sobilldate,
-        sosupplier: so.sosupplier,
-        totalAmount: so.totalAmount,
-        status: so.status,
-        paymentStatus: so.paymentStatus
-      }));
-      
-      setFilteredRows(formattedRows);
-    } else {
-      setFilteredRows([]);
-    }
-  }, [shippingOrders, selectedSuppliers]);
-  
-  const handleSearch = () => {
-    dispatch(searchShippingOrders(searchParams));
-  };
-  
-  const handleClearSearch = () => {
-    setSearchParams({
-      soid: '',
-      sobill: '',
-      sosupplier: '',
-      startDate: null,
-      endDate: null
-    });
-    dispatch(fetchShippingOrders());
-  };
-  
-  const handleInputChange = (e) => {
-    setSearchParams({
-      ...searchParams,
-      [e.target.name]: e.target.value
-    });
-  };
-  
-  const handleDateChange = (name, date) => {
-    setSearchParams({
-      ...searchParams,
-      [name]: date
-    });
-  };
-  
+  }, [listError, suppliersError]);
+
+  // --- Navigation Handlers ---
   const handleAddNew = () => {
     navigate('/shipping-orders/new');
   };
-  
+
   const handleEdit = (id) => {
     navigate(`/shipping-orders/edit/${id}`);
   };
-  
+
   const handleView = (id) => {
     navigate(`/shipping-orders/${id}`);
   };
-  
-  // 處理供應商篩選變更
-  const handleSupplierFilterChange = (suppliers) => {
-    setSelectedSuppliers(suppliers);
-  };
-  
-  // 處理滑鼠懸停在檢視按鈕上
-  const handlePreviewMouseEnter = async (event, id) => {
+
+  // --- Preview Handlers ---
+  const handlePreviewMouseEnter = useCallback((event, id) => {
     setPreviewAnchorEl(event.currentTarget);
     setPreviewOpen(true);
-    setPreviewLoading(true);
-    setPreviewError(null);
-    
-    try {
-      // 從現有的shippingOrders中查找，如果找到就直接使用
-      const existingSO = shippingOrders.find(so => so._id === id);
-      if (existingSO && existingSO.items) {
-        setPreviewShippingOrder(existingSO);
-        setPreviewLoading(false);
-        return;
-      }
-      
-      // 如果在現有數據中沒有找到完整信息，則從API獲取
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-      
-      const response = await axios.get(`${API_BASE_URL}/shipping-orders/${id}`.replace('/api/api', '/api'), config);
-      setPreviewShippingOrder(response.data);
-      setPreviewLoading(false);
-    } catch (err) {
-      console.error('獲取出貨單預覽失敗:', err);
-      setPreviewError('獲取出貨單預覽失敗');
-      setPreviewLoading(false);
-    }
-  };
-  
-  // 處理滑鼠離開檢視按鈕
-  const handlePreviewMouseLeave = () => {
+    fetchPreviewData(id); // Call hook's function
+  }, [fetchPreviewData]);
+
+  const handlePreviewMouseLeave = useCallback(() => {
     setPreviewOpen(false);
     setPreviewAnchorEl(null);
-    setPreviewShippingOrder(null);
-  };
-  
-  const handleDeleteClick = (shippingOrder) => {
-    setShippingOrderToDelete(shippingOrder);
+    clearPreviewData(); // Call hook's function
+  }, [clearPreviewData]);
+
+  // --- Deletion Handlers ---
+  const handleDeleteClick = useCallback((shippingOrder) => {
+    setShippingOrderToDelete(shippingOrder); // Store the order object for the dialog
     setDeleteDialogOpen(true);
-  };
-  
-  const handleDeleteConfirm = () => {
+  }, []);
+
+  const handleDeleteConfirm = useCallback(() => {
     if (shippingOrderToDelete) {
-      dispatch(deleteShippingOrder(shippingOrderToDelete._id));
+      handleDelete(shippingOrderToDelete._id); // Call hook's delete function
       setDeleteDialogOpen(false);
       setShippingOrderToDelete(null);
       setSnackbar({
@@ -232,132 +145,118 @@ const ShippingOrdersPage = () => {
         severity: 'success'
       });
     }
-  };
-  
-  const handleDeleteCancel = () => {
+  }, [shippingOrderToDelete, handleDelete]);
+
+  const handleDeleteCancel = useCallback(() => {
     setDeleteDialogOpen(false);
     setShippingOrderToDelete(null);
-  };
-  
-  const handleSnackbarClose = () => {
-    setSnackbar({
-      ...snackbar,
-      open: false
-    });
-  };
-  
-  // 處理打開CSV導入對話框
-  const handleOpenCsvImport = () => {
+  }, []);
+
+  // --- CSV Import Handlers ---
+  const handleOpenCsvImport = useCallback(() => {
     setCsvFile(null);
     setCsvImportError(null);
     setCsvImportSuccess(false);
     setCsvImportDialogOpen(true);
-  };
-  
-  // 處理CSV標籤頁切換
-  const handleCsvTabChange = (event, newValue) => {
+    setCsvTabValue(0); // Reset to basic tab
+    setCsvType('basic');
+  }, []);
+
+  const handleCsvTabChange = useCallback((event, newValue) => {
     setCsvTabValue(newValue);
     setCsvType(newValue === 0 ? 'basic' : 'items');
     setCsvFile(null);
     setCsvImportError(null);
-  };
-  
-  // 處理CSV文件選擇
-  const handleCsvFileChange = (e) => {
+  }, []);
+
+  const handleCsvFileChange = useCallback((e) => {
     if (e.target.files && e.target.files[0]) {
       setCsvFile(e.target.files[0]);
       setCsvImportError(null);
     }
-  };
-  
-  // 處理CSV導入
-  const handleCsvImport = async () => {
+  }, []);
+
+  const handleCsvImport = useCallback(async () => {
     if (!csvFile) {
       setCsvImportError('請選擇CSV文件');
       return;
     }
-    
+
     try {
       setCsvImportLoading(true);
       setCsvImportError(null);
-      
-      const formData = new FormData();
-      formData.append('file', csvFile);
-      formData.append('type', csvType);
-      
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'x-auth-token': token,
-          'Content-Type': 'multipart/form-data'
-        }
-      };
-      
-      // 根據CSV類型選擇不同的API端點
-      const endpoint = csvType === 'basic' 
-        ? `${API_BASE_URL}/shipping-orders/import/basic`.replace('/api/api', '/api')
-        : `${API_BASE_URL}/shipping-orders/import/items`.replace('/api/api', '/api');
-      
-      const response = await axios.post(endpoint, formData, config);
-      
-      // 更新出貨單列表
+      setCsvImportSuccess(false);
+
+      let response;
+      if (csvType === 'basic') {
+        response = await importShippingOrdersBasic(csvFile);
+      } else {
+        response = await importShippingOrdersItems(csvFile);
+      }
+
+      // Refresh the list after successful import
       dispatch(fetchShippingOrders());
-      
+
       setCsvImportSuccess(true);
       setCsvImportLoading(false);
-      
-      // 顯示成功消息
+
       setSnackbar({
         open: true,
-        message: response.data.msg || 'CSV導入成功',
+        message: response.msg || 'CSV導入成功',
         severity: 'success'
       });
-      
-      // 3秒後關閉對話框
+
+      // Close dialog after a delay
       setTimeout(() => {
         setCsvImportDialogOpen(false);
-        setCsvImportSuccess(false);
+        setCsvImportSuccess(false); // Reset success state
       }, 3000);
     } catch (err) {
       console.error('CSV導入錯誤:', err);
-      setCsvImportError(err.response?.data?.msg || '導入失敗，請檢查CSV格式');
+      setCsvImportError(err.response?.data?.msg || err.message || '導入失敗，請檢查CSV格式或聯繫管理員');
       setCsvImportLoading(false);
     }
-  };
-  
-  // 自定義供應商列頭渲染函數
-  const renderSupplierHeader = () => {
+  }, [csvFile, csvType, dispatch]);
+
+  // --- Snackbar Handler ---
+  const handleSnackbarClose = useCallback(() => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  }, []);
+
+  // --- Supplier Header Renderer ---
+  const renderSupplierHeader = useCallback(() => {
     return (
       <SupplierCheckboxFilter
         suppliers={suppliers}
         selectedSuppliers={selectedSuppliers}
         onFilterChange={handleSupplierFilterChange}
+        loading={suppliersLoading}
       />
     );
-  };
-  
+  }, [suppliers, selectedSuppliers, handleSupplierFilterChange, suppliersLoading]);
+
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
         出貨單管理
       </Typography>
-      
+
       <Card sx={{ mb: 3, px: 2, mx: 1 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6">出貨單列表</Typography>
             <Box>
-              <Button 
-                variant="outlined" 
-                startIcon={<FilterListIcon />} 
-                onClick={() => setShowFilters(!showFilters)}
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                onClick={() => setShowFilters(prev => !prev)}
                 sx={{ mr: 1 }}
               >
                 {showFilters ? '隱藏篩選' : '顯示篩選'}
               </Button>
             </Box>
           </Box>
-          
+
           {showFilters && (
             <ShippingOrdersFilter
               searchParams={searchParams}
@@ -367,34 +266,31 @@ const ShippingOrdersPage = () => {
               handleClearSearch={handleClearSearch}
             />
           )}
-          
-          {/* 篩選價格加總 */}
+
           {filteredRows.length > 0 && (
-            <FilterPriceSummary 
+            <FilterPriceSummary
               filteredRows={filteredRows}
               totalAmountField="totalAmount"
               title="篩選結果"
             />
           )}
-          
-          {/* DataGrid表格 */}
+
           <ShippingOrdersTable
-            shippingOrders={shippingOrders}
+            // shippingOrders prop is no longer needed as filteredRows is used
             filteredRows={filteredRows}
             paginationModel={paginationModel}
             setPaginationModel={setPaginationModel}
-            loading={loading}
+            loading={listLoading} // Use listLoading from hook
             handleView={handleView}
             handleEdit={handleEdit}
-            handleDeleteClick={handleDeleteClick}
+            handleDeleteClick={handleDeleteClick} // Pass the component's handler
             handlePreviewMouseEnter={handlePreviewMouseEnter}
             handlePreviewMouseLeave={handlePreviewMouseLeave}
             renderSupplierHeader={renderSupplierHeader}
           />
         </CardContent>
       </Card>
-      
-      {/* 出貨單預覽彈出窗口 */}
+
       <Popper
         open={previewOpen}
         anchorEl={previewAnchorEl}
@@ -402,13 +298,12 @@ const ShippingOrdersPage = () => {
         sx={{ zIndex: 1300 }}
       >
         <ShippingOrderPreview
-          shippingOrder={previewShippingOrder}
-          loading={previewLoading}
-          error={previewError}
+          shippingOrder={previewShippingOrder} // From hook
+          loading={previewLoading} // From hook
+          error={previewError} // From hook
         />
       </Popper>
-      
-      {/* 固定按鈕區域 */}
+
       <Box
         sx={{
           position: 'fixed',
@@ -422,36 +317,24 @@ const ShippingOrdersPage = () => {
         }}
       >
         <Tooltip title="新增出貨單" placement="left" arrow>
-          <Fab
-            color="primary"
-            size="medium"
-            onClick={handleAddNew}
-            aria-label="新增出貨單"
-          >
+          <Fab color="primary" size="medium" onClick={handleAddNew} aria-label="新增出貨單">
             <AddIcon />
           </Fab>
         </Tooltip>
         <Tooltip title="CSV匯入" placement="left" arrow>
-          <Fab
-            color="secondary"
-            size="medium"
-            onClick={handleOpenCsvImport}
-            aria-label="CSV匯入"
-          >
+          <Fab color="secondary" size="medium" onClick={handleOpenCsvImport} aria-label="CSV匯入">
             <CloudUploadIcon />
           </Fab>
         </Tooltip>
       </Box>
-      
-      {/* 刪除確認對話框 */}
+
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        shippingOrder={shippingOrderToDelete}
+        shippingOrder={shippingOrderToDelete} // Pass the locally stored order object
       />
-      
-      {/* CSV導入對話框 */}
+
       <CsvImportDialog
         open={csvImportDialogOpen}
         onClose={() => setCsvImportDialogOpen(false)}
@@ -464,8 +347,7 @@ const ShippingOrdersPage = () => {
         error={csvImportError}
         success={csvImportSuccess}
       />
-      
-      {/* 提示消息 */}
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
@@ -481,3 +363,4 @@ const ShippingOrdersPage = () => {
 };
 
 export default ShippingOrdersPage;
+
