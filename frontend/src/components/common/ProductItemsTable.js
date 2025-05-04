@@ -73,6 +73,9 @@ const ProductItemsTable = ({
         : '0.00';
   }
 
+  // Determine if product details are available to show the health insurance code column
+  const showHealthInsuranceCode = Object.keys(productDetails).length > 0;
+
   return (
     <Card sx={{ maxWidth: 1000, margin: '0 auto' }}>
       <CardContent>
@@ -92,9 +95,11 @@ const ProductItemsTable = ({
               <TableHead>
                 <TableRow>
                   <TableCell width="5%">#</TableCell>
-                  <TableCell width="15%">編號</TableCell>
-                  <TableCell width="15%">代碼</TableCell>
-                  <TableCell width="30%">名稱</TableCell>
+                  <TableCell width="15%">產品編號</TableCell> {/* Renamed from 編號 */}
+                  {showHealthInsuranceCode && (
+                    <TableCell width="15%">健保代碼</TableCell> /* Renamed from 代碼, conditionally rendered */
+                  )}
+                  <TableCell width={showHealthInsuranceCode ? "30%" : "45%"}>名稱</TableCell> {/* Adjust width based on column visibility */}
                   <TableCell width="10%" align="right">數量</TableCell>
                   <TableCell width="10%" align="right">單價</TableCell>
                   <TableCell width="15%" align="right">總金額</TableCell>
@@ -112,8 +117,10 @@ const ProductItemsTable = ({
                     return (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{productCode || 'N/A'}</TableCell>
-                        <TableCell>{healthInsuranceCode}</TableCell>
+                        <TableCell>{productCode || 'N/A'}</TableCell> {/* This is the actual product code (did) */}
+                        {showHealthInsuranceCode && (
+                          <TableCell>{healthInsuranceCode}</TableCell> /* Conditionally render health insurance code */
+                        )}
                         {/* Use name from item first, fallback to name from productDetail */}
                         <TableCell>{item[nameField] || productDetail.name || 'N/A'}</TableCell>
                         <TableCell align="right">{item[quantityField] || 0}</TableCell>
@@ -124,7 +131,8 @@ const ProductItemsTable = ({
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    {/* Adjust colspan based on column visibility */} 
+                    <TableCell colSpan={showHealthInsuranceCode ? 7 : 6} align="center">
                       無項目
                     </TableCell>
                   </TableRow>
@@ -132,7 +140,8 @@ const ProductItemsTable = ({
 
                 {/* Display total amount for the order */}
                 <TableRow>
-                  <TableCell colSpan={6} align="right" sx={{ fontWeight: 'bold' }}>
+                  {/* Adjust colspan based on column visibility */} 
+                  <TableCell colSpan={showHealthInsuranceCode ? 6 : 5} align="right" sx={{ fontWeight: 'bold' }}>
                     訂單總金額
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>

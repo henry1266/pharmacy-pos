@@ -14,3 +14,4 @@
 - [x] Refactor ShippingOrderDetailPage.js: Moved product detail API call (fetch by code) to productService.js. Added getProductByCode function to service. (Note: Main order data fetched via Redux action).
 - [x] Fix productService.js: Resolved multiple default export error by merging exports.
 - [x] Refactor PurchaseOrderDetailPage.js: Rebuilt layout using DetailLayout component, aligning structure with ShippingOrderDetailPage.js.
+- [x] Fix ProductItemsTable.js: Resolved issue where product code (did) was not displayed correctly in PurchaseOrderDetailPage by conditionally rendering the health insurance code column based on `productDetails` prop availability.
