@@ -21,7 +21,7 @@ import {
 import { format } from 'date-fns';
 
 import ProductDetailCard from '../components/products/ProductDetailCard';
-import InventoryList from '../components/common/InventoryList';
+import InventoryList from '../components/products/InventoryList';
 import FIFOProfitCalculator from '../components/products/FIFOProfitCalculator';
 import { getProductCategories } from '../services/productCategoryService';
 

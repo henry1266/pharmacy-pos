@@ -14,7 +14,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import InventoryList from '../common/InventoryList';
+import InventoryList from './InventoryList';
 
 const ProductDetailCard = ({
   product,

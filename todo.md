@@ -1,18 +1,6 @@
-# Pharmacy POS Mobile Responsiveness Adjustment
+# 專案優化：InventoryList.js
 
-- [x] Clone GitHub repository with token
-- [x] Review development collaboration guidelines
-- [x] Analyze DashboardPage responsiveness
-- [x] Analyze SalesDetailPage responsiveness
-- [x] Identify CSS framework/methodology (MUI)
-- [x] investigate_and_fix_salesdetailpage_layout_issue (Removed table minWidth and cell nowrap)
-- [x] Test mobile responsiveness (Verified by code analysis due to build constraints)
-- [x] Commit changes following Conventional Commits (fix)
-- [x] Push changes to GitHub using token (fix)
-- [x] Report completion and provide updated files (fix)
-- [x] Refactor PurchaseOrderEditPage.js: Moved API calls (getPurchaseOrderById, getProducts, getSuppliers, updatePurchaseOrder) to respective services (purchaseOrdersService.js, productService.js, supplierService.js). Added missing updatePurchaseOrder function to service.
-- [x] Refactor ShippingOrderDetailPage.js: Moved product detail API call (fetch by code) to productService.js. Added getProductByCode function to service. (Note: Main order data fetched via Redux action).
-- [x] Fix productService.js: Resolved multiple default export error by merging exports.
-- [x] Refactor PurchaseOrderDetailPage.js: Rebuilt layout using DetailLayout component, aligning structure with ShippingOrderDetailPage.js.
-- [x] Fix ProductItemsTable.js: Resolved issue where product code (did) was not displayed correctly in PurchaseOrderDetailPage by conditionally rendering the health insurance code column based on `productDetails` prop availability.
-- [x] Enhance PurchaseOrderDetailPage.js: Added logic to fetch product details (including healthInsuranceCode) for items and pass them to ProductItemsTable, similar to ShippingOrderDetailPage.
+- [ ] **InventoryList.js**:
+    - [X] 評估其通用性：是否在至少 2-3 個不同功能模組中使用？ (結果：否，僅用於產品詳情相關模組)
+    - [X] 檢查是否嚴格遵循 Props-Driven 設計？是否包含內部業務邏輯？ (結果：否，包含大量內部業務邏輯和狀態管理)
+    - [X] 若非真正通用或過於複雜，考慮移至特定功能模組或重構。(決策：已移至 `src/components/products/` 並驗證建置成功)
