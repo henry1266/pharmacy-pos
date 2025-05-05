@@ -103,3 +103,21 @@ export const updatePurchaseOrder = async (id, data) => {
   }
 };
 
+
+
+
+/**
+ * Adds a new purchase order.
+ * @param {object} data - The data for the new purchase order.
+ * @returns {Promise<object>} The newly created purchase order data.
+ */
+export const addPurchaseOrder = async (data) => {
+  try {
+    const response = await axios.post(API_URL, data, getAuthConfig());
+    return response.data;
+  } catch (error) {
+    console.error('Error adding purchase order:', error);
+    throw error;
+  }
+};
+
