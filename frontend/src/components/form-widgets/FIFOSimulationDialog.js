@@ -23,15 +23,14 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AddIcon from '@mui/icons-material/Add';
 
 /**
- * FIFO模擬結果對話框組件
+ * FIFO模擬結果對話框組件 (Refactored: Removed DOM manipulation)
  * @param {Object} props - 組件屬性
  * @param {boolean} props.open - 對話框是否開啟
  * @param {Function} props.onClose - 關閉對話框的回調函數
  * @param {Object} props.simulationResult - FIFO模擬結果
  * @param {boolean} props.loading - 是否正在加載
  * @param {string} props.error - 錯誤訊息
- * @param {Function} props.onApplyCost - 應用成本的回調函數
- * @param {Function} props.handleAddItem - 添加項目的回調函數
+ * @param {Function} props.onApplyCostAndAdd - 應用成本並觸發添加項目的回調函數 (Receives simulationResult)
  * @returns {React.ReactElement} FIFO模擬結果對話框組件
  */
 const FIFOSimulationDialog = ({
@@ -40,8 +39,7 @@ const FIFOSimulationDialog = ({
   simulationResult,
   loading,
   error,
-  onApplyCost,
-  handleAddItem
+  onApplyCostAndAdd // Renamed prop to reflect its action
 }) => {
   // 創建一個ref用於應用此成本按鈕
   const applyCostButtonRef = useRef(null);
@@ -55,6 +53,7 @@ const FIFOSimulationDialog = ({
       }, 100);
     }
   }, [open, simulationResult, loading, error]);
+
   // 如果沒有模擬結果，顯示加載中或錯誤訊息
   const renderContent = () => {
     if (loading) {
@@ -177,115 +176,12 @@ const FIFOSimulationDialog = ({
     );
   };
 
-  // 處理應用成本按鈕點擊
-  const handleApplyCost = () => {
-    // 先關閉對話框，避免用戶重複點擊
-    onClose();
-    
-    // 應用成本到輸入欄位
-    onApplyCost(simulationResult.totalCost);
-    
-    // 使用setTimeout確保成本已被應用到輸入欄位
-    setTimeout(() => {
-      // 確保所有必要的表單欄位都有值
-      const ensureFormFieldsPopulated = () => {
-        // 獲取所有必要的輸入欄位
-        const didInput = document.querySelector('input[name="did"]');
-        const dnameInput = document.querySelector('input[name="dname"]');
-        const dquantityInput = document.querySelector('input[name="dquantity"]');
-        const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
-        
-        // 如果產品代碼欄位為空，填充來自simulationResult的值
-        if (didInput && !didInput.value && simulationResult.productCode) {
-          console.log('填充產品代碼:', simulationResult.productCode);
-          didInput.value = simulationResult.productCode;
-          // 觸發change事件，確保React狀態更新
-          didInput.dispatchEvent(new Event('change', { bubbles: true }));
-          didInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        
-        // 如果產品名稱欄位為空，填充來自simulationResult的值
-        if (dnameInput && !dnameInput.value && simulationResult.productName) {
-          console.log('填充產品名稱:', simulationResult.productName);
-          dnameInput.value = simulationResult.productName;
-          // 觸發change事件，確保React狀態更新
-          dnameInput.dispatchEvent(new Event('change', { bubbles: true }));
-          dnameInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        
-        // 如果數量欄位為空，填充來自simulationResult的值
-        if (dquantityInput && !dquantityInput.value && simulationResult.quantity) {
-          console.log('填充數量:', simulationResult.quantity);
-          dquantityInput.value = simulationResult.quantity;
-          // 觸發change事件，確保React狀態更新
-          dquantityInput.dispatchEvent(new Event('change', { bubbles: true }));
-          dquantityInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        
-        // 確保總成本欄位有值
-        if (dtotalCostInput && dtotalCostInput.value === '' && simulationResult.totalCost) {
-          console.log('填充總成本:', simulationResult.totalCost);
-          dtotalCostInput.value = simulationResult.totalCost;
-          // 觸發change事件，確保React狀態更新
-          dtotalCostInput.dispatchEvent(new Event('change', { bubbles: true }));
-          dtotalCostInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        
-        // 檢查所有欄位是否都已填充
-        return (
-          didInput && didInput.value && 
-          dnameInput && dnameInput.value && 
-          dquantityInput && dquantityInput.value && 
-          dtotalCostInput && dtotalCostInput.value !== ''
-        );
-      };
-      
-      // 確保表單欄位已填充
-      const fieldsPopulated = ensureFormFieldsPopulated();
-      console.log('表單欄位已填充:', fieldsPopulated);
-      
-      // 直接調用handleAddItem函數來添加項目
-      if (handleAddItem && fieldsPopulated) {
-        console.log('直接調用handleAddItem函數添加項目');
-        handleAddItem();
-      } else {
-        console.log('嘗試替代方案');
-        
-        // 再次檢查表單欄位
-        if (fieldsPopulated) {
-          // 尋找添加按鈕並直接點擊
-          const addButton = document.querySelector('button[type="button"][aria-label="添加項目"]');
-          if (addButton) {
-            console.log('找到添加按鈕，直接點擊');
-            addButton.click();
-            return;
-          }
-          
-          // 如果找不到添加按鈕，嘗試模擬按下Enter鍵
-          const dtotalCostInput = document.querySelector('input[name="dtotalCost"]');
-          if (dtotalCostInput) {
-            console.log('模擬在總成本輸入欄位中按下Enter鍵', dtotalCostInput.value);
-            
-            // 創建一個模擬的鍵盤事件（Enter鍵）
-            const enterEvent = new KeyboardEvent('keydown', {
-              key: 'Enter',
-              code: 'Enter',
-              keyCode: 13,
-              which: 13,
-              bubbles: true,
-              cancelable: true
-            });
-            
-            // 在總成本輸入欄位上觸發Enter鍵事件
-            dtotalCostInput.dispatchEvent(enterEvent);
-          } else {
-            console.error('找不到總成本輸入欄位');
-          }
-        } else {
-          console.error('表單欄位未完全填充，無法添加項目');
-        }
-      }
-    }, 700);
+  // 處理應用成本按鈕點擊 (Refactored: Removed DOM manipulation)
+  const handleApplyCostClick = () => {
+    if (simulationResult && onApplyCostAndAdd) {
+      onApplyCostAndAdd(simulationResult); // Pass the result back to parent
+    }
+    onClose(); // Close the dialog regardless
   };
 
   return (
@@ -303,12 +199,12 @@ const FIFOSimulationDialog = ({
         {simulationResult && !loading && !error && (
           <Button 
             ref={applyCostButtonRef}
-            onClick={handleApplyCost}
+            onClick={handleApplyCostClick} // Use the refactored handler
             color="primary"
             variant="contained"
             startIcon={<AddIcon />}
           >
-            應用此成本
+            應用此成本並添加
           </Button>
         )}
         <Button onClick={onClose} color="secondary">
@@ -320,3 +216,4 @@ const FIFOSimulationDialog = ({
 };
 
 export default FIFOSimulationDialog;
+

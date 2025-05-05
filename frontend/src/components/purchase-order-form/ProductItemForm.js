@@ -7,7 +7,7 @@ import {
   Typography
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import PriceTooltip from '../common/PriceTooltip';
+import PriceTooltip from '../form-widgets/PriceTooltip';
 
 /**
  * 藥品項目添加表單組件
