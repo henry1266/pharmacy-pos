@@ -37,7 +37,7 @@
     - [x] **CategoryDetailPage.js**: 抽離 `calculateProductData` 中的 API 呼叫至 `services/inventoryService.js` 或 `services/productService.js`，並考慮將其邏輯移至 Hook 或 Service。
     - [x] **CustomerDetailPage.js**: 抽離 API 呼叫至 `services/customerService.js` (確認函數是否存在) 或創建 Hook。
     - [x] **ShippingOrderDetailPage.js**: 
-    - [ ] **PurchaseOrderEditPage.js**: 抽離 API 呼叫至 `services/purchaseOrdersService.js`, `services/productService.js`, `services/supplierService.js` (確認函數是否存在) 或創建 Hook。
+    - [x] **PurchaseOrderEditPage.js**: 抽離 API 呼叫至 `services/purchaseOrdersService.js`, `services/productService.js`, `services/supplierService.js` (確認函數是否存在) 或創建 Hook。
     - [ ] **ProductDetailPage.js**: 抽離 API 呼叫至 `services/productService.js` 和 `services/supplierService.js` (確認函數是否存在) 或創建 Hook。
 - [ ] **其他**: 已完成剩餘頁面元件的檢查。
 
