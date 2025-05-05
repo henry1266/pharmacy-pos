@@ -38,7 +38,8 @@
     - [x] **CustomerDetailPage.js**: 抽離 API 呼叫至 `services/customerService.js` (確認函數是否存在) 或創建 Hook。
     - [x] **ShippingOrderDetailPage.js**: 
     - [x] **PurchaseOrderEditPage.js**: 抽離 API 呼叫至 `services/purchaseOrdersService.js`, `services/productService.js`, `services/supplierService.js` (確認函數是否存在) 或創建 Hook。
-    - [ ] **ProductDetailPage.js**: 抽離 API 呼叫至 `services/productService.js` 和 `services/supplierService.js` (確認函數是否存在) 或創建 Hook。
+- [ ] **PurchaseOrderEditPage.js**:
+- [ ] **PurchaseOrderFormPage.js**:
 - [ ] **其他**: 已完成剩餘頁面元件的檢查。
 
 ## II. 通用元件審查與重構 (Common Component Review & Refactoring)
