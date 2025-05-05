@@ -30,7 +30,7 @@
 - [x] **CustomersPage.js**:
 - [x] **ProductsPage.js**:
 - [x] **ReportsPage.js**:
-- [ ] **其他頁面元件**:
+- [x] **其他頁面元件**:
     - [x] **SuppliersPage.js**: 抽離 API 呼叫至 `services/supplierService.js`，狀態管理至 `hooks/useSupplierData.js`。
     - [x] **AccountingNewPage.js**: 抽離 API 呼叫至 `services/accountingService.js`，狀態管理至 `hooks/useAccountingFormData.js`。
     - [x] **LoginPage.js**: 抽離 API 呼叫至 `services/authService.js`。
