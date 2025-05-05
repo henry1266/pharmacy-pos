@@ -42,10 +42,10 @@
 
 ## II. 通用元件審查與重構 (Common Component Review & Refactoring)
 
-- [ ] **InventoryList.js**:
-    - [ ] 評估其通用性：是否在至少 2-3 個不同功能模組中使用？
-    - [ ] 檢查是否嚴格遵循 Props-Driven 設計？是否包含內部業務邏輯？
-    - [ ] 若非真正通用或過於複雜，考慮移至特定功能模組或重構。
+- [x] **InventoryList.js**:
+    - [x] 評估其通用性：是否在至少 2-3 個不同功能模組中使用？
+    - [x] 檢查是否嚴格遵循 Props-Driven 設計？是否包含內部業務邏輯？
+    - [x] 若非真正通用或過於複雜，考慮移至特定功能模組或重構。
 - [ ] **FIFOSimulationDialog.js**:
     - [ ] 評估其通用性。
     - [ ] 檢查是否 Props-Driven。
