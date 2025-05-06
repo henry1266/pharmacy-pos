@@ -88,8 +88,6 @@
 - [ ] 確保 `utils/apiService.js` (或類似檔案) 中有統一的錯誤處理攔截器 (interceptor)。
 - [ ] 確保元件層面主要依賴 `error` 狀態顯示錯誤，減少 `try...catch`。
 
-
-
 ## SalesEditPage.js 優化 (執行日期: 2025-05-06)
 
 **目標**: 根據 `improvement_proposal.md` 的建議，降低 `SalesEditPage.js` 的複雜度，提高可維護性與可讀性。
