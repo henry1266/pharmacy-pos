@@ -27,11 +27,11 @@ const SalesProductInput = ({
       const searchTerm = value.trim().toLowerCase();
       // Perform filtering based on various product fields including name, short code (減碼), NHI code (健保碼), barcode, and product code.
       const searchResults = products.filter(product =>
-        (product.name && product.name.toLowerCase().includes(searchTerm)) ||
-        (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) || // Search by short code (減碼)
-        (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm)) || // Search by NHI code (健保碼)
-        (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
-        (product.code && product.code.toLowerCase().includes(searchTerm))
+        (product.name && String(product.name).toLowerCase().includes(searchTerm)) ||
+        (product.shortCode && String(product.shortCode).toLowerCase().includes(searchTerm)) || // Search by short code (減碼)
+        (product.healthInsuranceCode && String(product.healthInsuranceCode).toLowerCase().includes(searchTerm)) || // Search by NHI code (健保碼)
+        (product.barcode && String(product.barcode).toLowerCase().includes(searchTerm)) ||
+        (product.code && String(product.code).toLowerCase().includes(searchTerm))
       ).slice(0, 20); // Limit results for performance
       setFilteredProducts(searchResults);
     } else {
@@ -48,11 +48,11 @@ const SalesProductInput = ({
       if (filteredProducts.length > 0) {
         // Heuristic: If the input exactly matches a code/barcode in the filtered list, use that.
         // Otherwise, use the first item.
-        const exactMatch = filteredProducts.find(p => p.code === barcode.trim() || p.barcode === barcode.trim());
+        const exactMatch = filteredProducts.find(p => String(p.code) === barcode.trim() || String(p.barcode) === barcode.trim());
         onSelectProduct(exactMatch || filteredProducts[0]);
       } else {
         // If no suggestions, try finding an exact match in all products
-        let product = products.find(p => p.barcode === barcode.trim() || p.code === barcode.trim());
+        let product = products.find(p => String(p.barcode) === barcode.trim() || String(p.code) === barcode.trim());
         if (product) {
           onSelectProduct(product);
         } else {
@@ -95,7 +95,7 @@ const SalesProductInput = ({
         freeSolo
         fullWidth
         options={filteredProducts}
-        getOptionLabel={(option) => (typeof option === 'string' ? option : option.name || '')} // Handle potential string input during freeSolo
+        getOptionLabel={(option) => (typeof option === 'string' ? option : String(option.name) || '')} // Handle potential string input during freeSolo
         value={barcode} // Controlled component for input value
         onInputChange={(event, newValue, reason) => {
           // This handles input changes directly in the text field
@@ -108,13 +108,19 @@ const SalesProductInput = ({
           // This handles selection from the dropdown
           if (newValue && typeof newValue !== 'string') {
             onSelectProduct(newValue);
+            // Clear input after selection to allow new search
+            setBarcode(''); 
+            setFilteredProducts([]);
+            if (barcodeInputRef.current) {
+                barcodeInputRef.current.focus();
+            }
           }
         }}
         renderInput={(params) => (
           <TextField
             {...params}
             inputRef={barcodeInputRef}
-            label="掃描條碼 / 輸入產品名稱、代碼"
+            label="掃描條碼 / 輸入產品名稱、代碼、健保碼"
             variant="outlined"
             size="small"
             onKeyDown={(e) => {
