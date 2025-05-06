@@ -36,7 +36,7 @@ const initialCustomerState = {
   phone: '',
   email: '',
   address: '',
-  points: 0,
+  idCardNumber: '', // Replaced points with idCardNumber
   membershipLevel: 'regular'
 };
 
@@ -62,13 +62,13 @@ const CustomersPage = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null); // State for detail panel
   const [formError, setFormError] = useState(null); // Specific error state for the form
 
-  // Table columns definition (remains the same)
+  // Table columns definition
   const columns = [
     { field: 'code', headerName: '會員編號', width: 120 },
     { field: 'name', headerName: '會員姓名', width: 120 },
     { field: 'phone', headerName: '電話', width: 150 },
+    { field: 'idCardNumber', headerName: '身分證', width: 180 }, // Replaced points with idCardNumber
     { field: 'email', headerName: '電子郵件', width: 200 },
-    { field: 'points', headerName: '積分', width: 100, type: 'number' },
     { field: 'level', headerName: '會員等級', width: 120 }, // Display mapped level
     {
       field: 'actions',
@@ -102,9 +102,8 @@ const CustomersPage = () => {
   // Handler functions - updated to use hook methods
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const processedValue = value === '' && name !== 'points' ? '' :
-                          name === 'points' ? (value === '' ? 0 : Number(value)) : value;
-    setCurrentCustomer({ ...currentCustomer, [name]: processedValue });
+    // Removed points specific logic, handle idCardNumber as a normal string
+    setCurrentCustomer({ ...currentCustomer, [name]: value });
   };
 
   const handleEdit = (customer) => {
@@ -116,7 +115,7 @@ const CustomersPage = () => {
       phone: customer.phone,
       email: customer.email || '',
       address: customer.address || '',
-      points: customer.points || 0,
+      idCardNumber: customer.idCardNumber || '', // Replaced points with idCardNumber
       membershipLevel: customer.membershipLevel || 'regular' // Use original level from hook data
     });
     setEditMode(true);
@@ -156,7 +155,7 @@ const CustomersPage = () => {
         phone: currentCustomer.phone,
         email: currentCustomer.email,
         address: currentCustomer.address,
-        points: currentCustomer.points,
+        idCardNumber: currentCustomer.idCardNumber, // Replaced points with idCardNumber
         membershipLevel: currentCustomer.membershipLevel
       };
 
@@ -223,7 +222,7 @@ const CustomersPage = () => {
               <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>地址:</Typography>
               <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography>
           </ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>積分:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.points}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber || '無'}</Typography></ListItem> {/* Replaced points with idCardNumber */}
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem> {/* Display mapped level */}
         </List>
       </CardContent>
@@ -274,9 +273,9 @@ const CustomersPage = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: formError ? 0 : 2 }}>
             <TextField name="name" label="會員姓名" value={currentCustomer.name} onChange={handleInputChange} fullWidth required margin="dense" size="small"/>
             <TextField name="phone" label="電話" value={currentCustomer.phone} onChange={handleInputChange} fullWidth required margin="dense" size="small"/>
+            <TextField name="idCardNumber" label="身分證" value={currentCustomer.idCardNumber} onChange={handleInputChange} fullWidth margin="dense" size="small"/> {/* Replaced points with idCardNumber */}
             <TextField name="email" label="電子郵件" value={currentCustomer.email} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
             <TextField name="address" label="地址" value={currentCustomer.address} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
-            <TextField name="points" label="積分" type="number" value={currentCustomer.points} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
             <FormControl fullWidth margin="dense" size="small">
               <InputLabel>會員等級</InputLabel>
               <Select
