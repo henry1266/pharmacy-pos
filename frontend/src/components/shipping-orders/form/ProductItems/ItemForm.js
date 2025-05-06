@@ -7,7 +7,7 @@ import {
   Typography,
   Tooltip,
   Alert,
-  Box
+  Box // Added Box for renderOption
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import useInventoryData from '../../../../hooks/useInventoryData';
@@ -112,6 +112,22 @@ const ItemForm = ({
               fullWidth
             />
           )}
+          renderOption={(props, option) => (
+            <Box component="li" {...props} key={option._id || option.code}>
+              <Grid container direction="column">
+                <Grid item>
+                  <Typography variant="body1">{`${option.code} - ${option.name}`}</Typography>
+                </Grid>
+                <Grid item container spacing={1} sx={{ pl: 1 }}>
+                  <Grid item>
+                    <Typography variant="caption" color="text.secondary">
+                      {`售價: ${option.sellingPrice !== undefined ? option.sellingPrice : '-'}`}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
         />
       </Grid>
       <Grid item xs={12} sm={6} md={2}>
@@ -183,3 +199,4 @@ const filterProducts = (options, inputValue) => {
 };
 
 export default ItemForm;
+
