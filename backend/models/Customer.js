@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const CustomerSchema = new mongoose.Schema({
   code: {
@@ -25,7 +25,7 @@ const CustomerSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    enum: ['male', 'female', 'other']
+    enum: ["male", "female", "other"]
   },
   medicalHistory: {
     type: String
@@ -33,14 +33,14 @@ const CustomerSchema = new mongoose.Schema({
   allergies: {
     type: [String]
   },
-  points: {
-    type: Number,
-    default: 0
+  idCardNumber: { // Replaced points with idCardNumber
+    type: String,
+    default: ""
   },
   membershipLevel: {
     type: String,
-    enum: ['regular', 'silver', 'gold', 'platinum'],
-    default: 'regular'
+    enum: ["regular", "silver", "gold", "platinum"],
+    default: "regular"
   },
   date: {
     type: Date,
@@ -48,4 +48,5 @@ const CustomerSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('customer', CustomerSchema);
+module.exports = mongoose.model("customer", CustomerSchema);
+
