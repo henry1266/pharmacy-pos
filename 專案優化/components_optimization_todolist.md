@@ -39,7 +39,7 @@
     - [x] **ShippingOrderDetailPage.js**: 
     - [x] **PurchaseOrderEditPage.js**: 抽離 API 呼叫至 `services/purchaseOrdersService.js`, `services/productService.js`, `services/supplierService.js` (確認函數是否存在) 或創建 Hook。
     - [x] **PurchaseOrderFormPage.js**:
-
+    - [ ] **SalesEditPage.js**:
 ## II. 通用元件審查與重構 (Common Component Review & Refactoring)
 
 - [x] **InventoryList.js**:
@@ -88,3 +88,49 @@
 - [ ] 確保 `utils/apiService.js` (或類似檔案) 中有統一的錯誤處理攔截器 (interceptor)。
 - [ ] 確保元件層面主要依賴 `error` 狀態顯示錯誤，減少 `try...catch`。
 
+
+
+## SalesEditPage.js 優化 (執行日期: 2025-05-06)
+
+**目標**: 根據 `improvement_proposal.md` 的建議，降低 `SalesEditPage.js` 的複雜度，提高可維護性與可讀性。
+
+**執行步驟與結果**:
+
+1.  **資料獲取邏輯抽離**: 
+    *   創建了 `src/hooks/useSalesEditData.js` 自定義 Hook。
+    *   此 Hook 負責異步獲取編輯所需的初始銷售資料 (`/api/sales/:id`)、所有產品列表 (`/api/products`) 和所有客戶列表 (`/api/customers`)。
+    *   使用 `Promise.all` 並發請求以提高效率。
+    *   統一管理載入狀態 (`loading`) 和錯誤狀態 (`error`)。
+    *   將從 API 獲取的銷售項目 (`saleData.items`) 格式化為前端所需的結構。
+
+2.  **狀態管理與操作邏輯抽離**:
+    *   創建了 `src/hooks/useSaleEditManagement.js` 自定義 Hook。
+    *   此 Hook 負責管理 `currentSale` 狀態對象，包含客戶、銷售項目、總金額、折扣、付款方式、付款狀態和備註。
+    *   封裝了所有與銷售編輯相關的操作邏輯，包括：
+        *   處理表單輸入變化 (`handleInputChange`)。
+        *   處理條碼掃描與提交 (`handleBarcodeChange`, `handleBarcodeSubmit`)，包含查找產品、增加數量或添加新項目。
+        *   處理銷售項目數量變更 (`handleQuantityChange`)。
+        *   處理銷售項目單價變更 (`handlePriceChange`) 及失焦驗證 (`handlePriceBlur`)。
+        *   處理移除銷售項目 (`handleRemoveItem`)。
+        *   處理更新銷售記錄 (`handleUpdateSale`)，包含數據驗證、調用 `salesService.updateSale` API，以及成功後導航。
+    *   管理 Snackbar 提示狀態 (`snackbar`, `handleCloseSnackbar`)。
+    *   使用 `useCallback` 優化事件處理函數，防止不必要的重新渲染。
+
+3.  **UI 元件拆分**:
+    *   將原 `SalesEditPage.js` 中的 UI 拆分為以下獨立的子元件，放置於 `src/components/sales/` 目錄下：
+        *   `SaleEditInfoCard.js`: 負責顯示和處理客戶選擇下拉框以及條碼輸入框。包含條碼輸入框的自動聚焦邏輯。
+        *   `SalesEditItemsTable.js`: 負責渲染銷售項目表格，包含單價、數量編輯功能和移除項目按鈕。
+        *   `SaleEditSummaryActions.js`: 負責顯示銷售摘要資訊（折扣、付款方式/狀態、備註、總金額）和提供「更新銷售記錄」按鈕。
+
+4.  **重構 SalesEditPage.js**: 
+    *   `SalesEditPage.js` 現在作為容器元件 (Container Component)。
+    *   主要職責是：
+        *   從 `react-router-dom` 獲取 `id`。
+        *   調用 `useSalesEditData` Hook 獲取數據、載入和錯誤狀態。
+        *   調用 `useSaleEditManagement` Hook 獲取銷售狀態和操作函數。
+        *   根據載入和錯誤狀態顯示對應的 UI (載入指示器或錯誤訊息)。
+        *   渲染頁面標題、返回按鈕以及三個子元件 (`SaleEditInfoCard`, `SalesEditItemsTable`, `SaleEditSummaryActions`)。
+        *   將從 Hooks 獲取的狀態和函數作為 props 傳遞給子元件。
+        *   渲染 Snackbar 元件以顯示操作結果通知。
+
+**結果**: `SalesEditPage.js` 的程式碼行數大幅減少，職責更加清晰單一。資料獲取、狀態管理和 UI 展示邏輯有效分離，提高了程式碼的可讀性、可測試性和可維護性。遵循了關注點分離 (Separation of Concerns) 和單一責任原則 (Single Responsibility Principle)。
