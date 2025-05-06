@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
@@ -8,62 +8,71 @@ import {
   ListItemText,
   Typography
 } from '@mui/material';
-import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Add as AddIcon } from '@mui/icons-material';
+import { createFilterOptions } from '@mui/material/Autocomplete';
 
 const SalesProductInput = ({
-  products, // Array of all available products
-  barcodeInputRef, // Ref for the input field
-  onSelectProduct, // Callback function when a product is selected
-  showSnackbar // Callback function to show snackbar messages
+  products,
+  barcodeInputRef,
+  onSelectProduct,
+  showSnackbar
 }) => {
   const [barcode, setBarcode] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState([]); // For barcode/search autocomplete
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Handle Barcode/Search Autocomplete Input Change
+  // Custom filter: enable multi-field search
+  const filterOptions = createFilterOptions({
+    stringify: (option) =>
+      `${option.name} ${option.code} ${option.shortCode} ${option.barcode} ${option.healthInsuranceCode}`
+  });
+
+  // When user types, filter from original product list
   const handleBarcodeAutocompleteChange = (e) => {
     const value = e.target.value;
     setBarcode(value);
     if (value.trim() !== '') {
       const searchTerm = value.trim().toLowerCase();
-      // Perform filtering based on various product fields including name, short code (減碼), NHI code (健保碼), barcode, and product code.
-      const searchResults = products.filter(product =>
-        (product.name && String(product.name).toLowerCase().includes(searchTerm)) ||
-        (product.shortCode && String(product.shortCode).toLowerCase().includes(searchTerm)) || // Search by short code (減碼)
-        (product.healthInsuranceCode && String(product.healthInsuranceCode).toLowerCase().includes(searchTerm)) || // Search by NHI code (健保碼)
-        (product.barcode && String(product.barcode).toLowerCase().includes(searchTerm)) ||
-        (product.code && String(product.code).toLowerCase().includes(searchTerm))
-      ).slice(0, 20); // Limit results for performance
-      setFilteredProducts(searchResults);
+      const results = products.filter(product =>
+        (product.name && product.name.toLowerCase().includes(searchTerm)) ||
+        (product.code && product.code.toLowerCase().includes(searchTerm)) ||
+        (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
+        (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
+        (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm))
+      ).slice(0, 20);
+      setFilteredProducts(results);
     } else {
       setFilteredProducts([]);
     }
   };
 
-  // Handle Barcode Submit (Enter key in Autocomplete or Add button click)
-  const handleBarcodeSubmit = async () => {
+  const handleBarcodeSubmit = () => {
     if (!barcode.trim()) return;
 
     try {
-      // Prioritize selection from autocomplete suggestions if available
       if (filteredProducts.length > 0) {
-        // Heuristic: If the input exactly matches a code/barcode in the filtered list, use that.
-        // Otherwise, use the first item.
-        const exactMatch = filteredProducts.find(p => String(p.code) === barcode.trim() || String(p.barcode) === barcode.trim());
-        onSelectProduct(exactMatch || filteredProducts[0]);
+        const exactMatch = filteredProducts.find(
+          p => String(p.code) === barcode.trim() || String(p.barcode) === barcode.trim()
+        );
+        const selected = exactMatch || filteredProducts[0];
+        onSelectProduct(selected);
+        setSelectedProduct(selected);
       } else {
-        // If no suggestions, try finding an exact match in all products
-        let product = products.find(p => String(p.barcode) === barcode.trim() || String(p.code) === barcode.trim());
+        const product = products.find(
+          p => String(p.barcode) === barcode.trim() || String(p.code) === barcode.trim()
+        );
         if (product) {
           onSelectProduct(product);
+          setSelectedProduct(product);
         } else {
           showSnackbar(`找不到條碼/代碼 ${barcode} 對應的產品`, 'warning');
         }
       }
     } catch (err) {
-      console.error('處理條碼/搜尋失敗:', err);
-      showSnackbar('處理條碼/搜尋失敗: ' + err.message, 'error');
+      console.error('處理條碼失敗:', err);
+      showSnackbar('處理條碼失敗: ' + err.message, 'error');
     }
-    // Clear input and suggestions after processing
+
     setBarcode('');
     setFilteredProducts([]);
     if (barcodeInputRef.current) {
@@ -71,76 +80,79 @@ const SalesProductInput = ({
     }
   };
 
-  // Render Autocomplete Option
   const renderOption = (props, option) => (
-    <ListItem {...props} key={option._id}> {/* Ensure key is unique */}
+    <ListItem {...props} key={option._id}>
       <ListItemText
         primary={<Typography sx={{ color: 'black' }}>{option.name}</Typography>}
         secondary={
           <>
-            <Typography component="span" variant="body2" sx={{ color: 'black' }}>
+            <Typography variant="body2" sx={{ color: 'black' }}>
               代碼: {option.code || 'N/A'} | 健保碼: {option.healthInsuranceCode || 'N/A'}
             </Typography>
-            <Typography component="span" variant="body2" display="block" sx={{ color: 'black' }}>
-              條碼: {option.barcode || 'N/A'} | 價格: ${option.sellingPrice?.toFixed(2) || 'N/A'}
+            <Typography variant="body2" display="block" sx={{ color: 'black' }}>
+              價格: ${option.sellingPrice?.toFixed(0) || 'N/A'}
             </Typography>
           </>
         }
       />
     </ListItem>
   );
+
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-      <Autocomplete
-        freeSolo
-        fullWidth
-        options={filteredProducts}
-        getOptionLabel={(option) => (typeof option === 'string' ? option : String(option.name) || '')} // Handle potential string input during freeSolo
-        value={barcode} // Controlled component for input value
-        onInputChange={(event, newValue, reason) => {
-          // This handles input changes directly in the text field
-          if (reason === 'input') {
-            setBarcode(newValue);
-            handleBarcodeAutocompleteChange({ target: { value: newValue } }); // Trigger filtering
+    <>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Autocomplete
+          freeSolo
+          fullWidth
+          options={filteredProducts}
+          getOptionLabel={(option) =>
+            typeof option === 'string' ? option : option.name || ''
           }
-        }}
-        onChange={(event, newValue) => {
-          // This handles selection from the dropdown
-          if (newValue && typeof newValue !== 'string') {
-            onSelectProduct(newValue);
-            // Clear input after selection to allow new search
-            setBarcode(''); 
-            setFilteredProducts([]);
-            if (barcodeInputRef.current) {
-                barcodeInputRef.current.focus();
+          filterOptions={filterOptions} // ✅ enable multi-field match
+          value={barcode}
+          onInputChange={(event, newValue, reason) => {
+            if (reason === 'input') {
+              setBarcode(newValue);
+              handleBarcodeAutocompleteChange({ target: { value: newValue } });
             }
-          }
-        }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            inputRef={barcodeInputRef}
-            label="掃描條碼 / 輸入產品名稱、代碼、健保碼"
-            variant="outlined"
-            size="small"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent form submission if any
-                handleBarcodeSubmit();
+          }}
+          onChange={(event, newValue) => {
+            if (newValue && typeof newValue !== 'string') {
+              onSelectProduct(newValue);
+              setSelectedProduct(newValue);
+              setBarcode('');
+              setFilteredProducts([]);
+              if (barcodeInputRef.current) {
+                barcodeInputRef.current.focus();
               }
-            }}
-          />
-        )}
-        renderOption={renderOption}
-        ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
-        sx={{ flexGrow: 1, mr: 1 }}
-      />
-      <IconButton color="primary" onClick={handleBarcodeSubmit} aria-label="添加產品">
-        <AddIcon />
-      </IconButton>
-    </Box>
+            }
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              inputRef={barcodeInputRef}
+              label="掃描條碼 / 輸入產品名稱、代碼、健保碼"
+              variant="outlined"
+              size="small"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleBarcodeSubmit();
+                }
+              }}
+            />
+          )}
+          renderOption={renderOption}
+          ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
+          sx={{ flexGrow: 1, mr: 1 }}
+        />
+        <IconButton color="primary" onClick={handleBarcodeSubmit} aria-label="添加產品">
+          <AddIcon />
+        </IconButton>
+      </Box>
+
+    </>
   );
 };
 
 export default SalesProductInput;
-
