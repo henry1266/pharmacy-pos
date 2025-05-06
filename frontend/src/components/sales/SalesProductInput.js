@@ -78,10 +78,12 @@ const SalesProductInput = ({
         primary={option.name}
         secondary={
           <>
-            <Typography component="span" variant="body2" color="text.primary">
+            <Typography component="span" variant="body2" sx={{ color: 'black' }}>
               {option.code || '無代碼'} | {option.barcode || '無條碼'} | 
             </Typography>
-            價格: ${option.sellingPrice?.toFixed(2) || '無價格'}
+            <Typography component="span" variant="body2" sx={{ color: 'black' }}>
+              {' '}價格: ${option.sellingPrice?.toFixed(2) || '無價格'}
+            </Typography>
           </>
         }
       />
