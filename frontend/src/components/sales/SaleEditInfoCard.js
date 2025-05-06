@@ -3,20 +3,15 @@ import {
   Grid,
   Card,
   CardContent,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
+  TextField
 } from '@mui/material';
 
+// This component is now focused only on barcode input, similar to SalesProductInput in SalesPage
 const SaleEditInfoCard = ({
-  customers,
-  currentSale,
-  handleInputChange,
   barcode,
   handleBarcodeChange,
-  handleBarcodeSubmit
+  handleBarcodeSubmit,
+  currentSaleItems // Used to re-focus after item list changes
 }) => {
   const barcodeInputRef = useRef(null);
 
@@ -29,33 +24,12 @@ const SaleEditInfoCard = ({
     }, 100); // Delay slightly to ensure it focuses after potential re-renders
     
     return () => clearTimeout(focusTimeout);
-  }, [currentSale.items]); // Refocus after item list changes (e.g., adding item via barcode)
+  }, [currentSaleItems]); // Refocus after item list changes (e.g., adding item via barcode)
 
   return (
-    <Card>
+    <Card sx={{ mb: 3 }}> {/* Added margin bottom for spacing */}
       <CardContent>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>客戶</InputLabel>
-              <Select
-                name="customer"
-                value={currentSale.customer || ''} // Ensure value is controlled
-                onChange={handleInputChange}
-                label="客戶"
-              >
-                <MenuItem value="">
-                  <em>一般客戶</em>
-                </MenuItem>
-                {customers.map((customer) => (
-                  <MenuItem key={customer._id} value={customer._id}>
-                    {customer.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          
           <Grid item xs={12}>
             <TextField
               fullWidth

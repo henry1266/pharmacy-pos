@@ -167,3 +167,38 @@
     *   再次嘗試 `npm start`，編譯錯誤已解決，但出現 Webpack Dev Server 的 `allowedHosts` 配置問題。此問題與核心 bug 無關，屬於開發環境配置。
 
 **結果**: 核心的 Hooks 與 Services 層集成錯誤已修正。`useSalesEditData` 和 `useSaleEditManagement` 現在能正確調用 Service 層提供的函數來獲取和更新數據。前端專案能夠通過編譯階段（儘管 Dev Server 啟動配置需調整）。
+
+
+
+## UI Refactor: Align SalesEditPage with SalesPage (執行日期: 2025-05-06)
+
+**目標**: 根據使用者要求，調整 `SalesEditPage.js` 的 UI 佈局與元件結構，使其輸入介面與 `SalesPage.js` 更加接近，以提供一致的操作體驗。
+
+**執行步驟與結果**:
+
+1.  **UI 比對**: 
+    *   詳細比對了 `SalesPage.js` 和 `SalesEditPage.js` 的 UI 結構、元件使用和佈局。
+    *   主要差異在於 `SalesPage` 採用左右兩欄佈局 (主內容區 + 側邊資訊欄)，而 `SalesEditPage` 原為單欄垂直堆疊。
+    *   元件內容分配也不同，例如客戶選擇、折扣、付款資訊等欄位的位置。
+    *   比對詳情記錄於 `專案優化/ui_comparison_sales_edit_vs_sales.md`。
+
+2.  **佈局調整**: 
+    *   修改 `SalesEditPage.js` 的根 Grid 結構，採用與 `SalesPage` 類似的兩欄佈局 (`Grid item xs={12} md={8}` 為主內容區，`Grid item xs={12} md={4}` 為側邊資訊區)。
+
+3.  **元件重構與重新分配**: 
+    *   創建了新的子元件 `src/components/sales/SaleEditDetailsCard.js`，用於放置在側邊欄 (md=4)。此元件負責顯示和編輯客戶選擇、折扣金額、付款方式、付款狀態、備註，並顯示總金額。
+    *   修改了原有的 `src/components/sales/SaleEditInfoCard.js`，使其功能類似 `SalesPage` 中的 `SalesProductInput`，僅專注於條碼輸入，並放置在主內容區 (md=8) 頂部。
+    *   `SalesEditItemsTable.js` 保留在主內容區 (md=8)，位於條碼輸入下方。
+    *   將「更新銷售記錄」按鈕從原 `SaleEditSummaryActions` 移至主內容區 (md=8) 的底部。
+    *   移除了不再需要的 `src/components/sales/SaleEditSummaryActions.js` 元件。
+
+4.  **更新 SalesEditPage.js**: 
+    *   在 `SalesEditPage.js` 中引入新的 `SaleEditDetailsCard`。
+    *   調整了 Grid 結構以實現兩欄佈局。
+    *   更新了傳遞給 `SaleEditInfoCard`, `SalesEditItemsTable`, `SaleEditDetailsCard` 的 props，確保數據和事件處理函數正確傳遞。
+    *   添加了 `useTheme` 和 `useMediaQuery` 以處理響應式佈局調整 (與 `SalesPage` 一致)。
+
+5.  **環境配置與初步驗證**: 
+    *   添加了 `.env` 文件以解決 Webpack Dev Server 的 `allowedHosts` 問題 (雖然啟動時仍提示 schema 錯誤，但核心 UI 重構已完成)。
+
+**結果**: `SalesEditPage.js` 的佈局和元件結構現在與 `SalesPage.js` 非常相似，提供了更一致的視覺和操作體驗。主內容區包含條碼輸入和項目列表，側邊欄包含銷售的詳細資訊和摘要。
