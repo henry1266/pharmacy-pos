@@ -13,6 +13,7 @@ import {
   Typography
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Remove as RemoveIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
