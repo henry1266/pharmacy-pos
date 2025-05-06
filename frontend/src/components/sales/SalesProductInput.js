@@ -25,11 +25,11 @@ const SalesProductInput = ({
     setBarcode(value);
     if (value.trim() !== '') {
       const searchTerm = value.trim().toLowerCase();
-      // Perform filtering based on various product fields
+      // Perform filtering based on various product fields including name, short code (減碼), NHI code (健保碼), barcode, and product code.
       const searchResults = products.filter(product =>
         (product.name && product.name.toLowerCase().includes(searchTerm)) ||
-        (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
-        (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm)) ||
+        (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) || // Search by short code (減碼)
+        (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm)) || // Search by NHI code (健保碼)
         (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
         (product.code && product.code.toLowerCase().includes(searchTerm))
       ).slice(0, 20); // Limit results for performance
@@ -75,7 +75,7 @@ const SalesProductInput = ({
   const renderOption = (props, option) => (
     <ListItem {...props} key={option._id}> {/* Ensure key is unique */}
       <ListItemText
-        primary={option.name}
+        primary={<Typography sx={{ color: 'black' }}>{option.name}</Typography>}
         secondary={
           <>
             <Typography component="span" variant="body2" sx={{ color: 'black' }}>
