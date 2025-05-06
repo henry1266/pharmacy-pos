@@ -182,7 +182,8 @@ const SalesPage = () => {
           />
 
           <Box sx={{ mt: 3 }}>
-            <ShortcutButtonManager onSelect={handleShortcutSelect} />
+            {/* Corrected prop name here */}
+            <ShortcutButtonManager onShortcutSelect={handleShortcutSelect} allProducts={products} />
           </Box>
         </Grid>
       </Grid>

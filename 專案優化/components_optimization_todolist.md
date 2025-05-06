@@ -270,3 +270,31 @@
     *   確認整體操作體驗與 `SalesEditPage` 一致。
 
 **結果**: `SalesPage.js` 的數量輸入體驗已與 `SalesEditPage.js` 同步優化，提供了更一致且便捷的操作流程。欄位寬度和焦點管理均符合預期。
+
+
+
+## Bug Fix: Shortcut Button Functionality (執行日期: 2025-05-06)
+
+**問題描述**: 使用者回報 `SalesPage` 中的快捷按鈕功能毀損。錯誤日誌顯示 `TypeError: onShortcutSelect is not a function`，指出 `ShortcutButtonManager` 元件內部嘗試調用 `onShortcutSelect` 但該 prop 未被正確傳遞或未定義為函數。
+
+**錯誤分析與定位**:
+
+1.  **檢查錯誤日誌**: 確認錯誤發生在 `ShortcutButtonManager` 元件的 `onClick` 事件處理器中，調用了 `onShortcutSelect`。
+2.  **檢查 `ShortcutButtonManager.js`**: 確認該元件期望接收一個名為 `onShortcutSelect` 的 prop 作為點擊事件的回調函數。
+3.  **檢查 `SalesPage.js`**: 
+    *   發現 `SalesPage.js` 在渲染 `<ShortcutButtonManager />` 時，傳遞的 prop 名稱為 `onSelect` 而非 `onShortcutSelect`。
+    *   同時，`ShortcutButtonManager` 也需要 `allProducts` 這個 prop，但在先前的修改中可能遺失或未正確傳遞。
+
+**修正步驟與結果**:
+
+1.  **修改 `SalesPage.js`**: 
+    *   在 `SalesPage.js` 中，將傳遞給 `<ShortcutButtonManager />` 的 prop `onSelect={handleShortcutSelect}` 修改為 `onShortcutSelect={handleShortcutSelect}`，以匹配 `ShortcutButtonManager` 內部期望的 prop 名稱。
+    *   確保 `allProducts={products}` 也正確傳遞給 `ShortcutButtonManager`。
+
+2.  **驗證**: 
+    *   啟動開發伺服器進行測試 (雖然仍有 Dev Server 配置警告)。
+    *   在 `SalesPage` 中點擊快捷按鈕。
+    *   確認 `handleShortcutSelect` 函數被正確調用，並且 `CustomProductsDialog` 能夠正常打開，顯示對應快捷按鈕的產品列表。
+    *   確認快捷按鈕功能已恢復正常。
+
+**結果**: 由於 `SalesPage.js` 中傳遞給 `ShortcutButtonManager` 的 prop 名稱不一致 (`onSelect` 而非 `onShortcutSelect`) 導致的快捷按鈕功能異常已修復。統一 prop 名稱後，功能恢復正常。
