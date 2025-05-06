@@ -31,14 +31,15 @@ import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useCustomerData from '../hooks/useCustomerData'; // Import the custom hook
 
 // Initial state for the customer form
-const initialCustomerState = {
-  name: '',
-  phone: '',
-  email: '',
-  address: '',
-  idCardNumber: '', // Replaced points with idCardNumber
+consconst initialCustomerState = {
+  name: ".
+  phone: ".
+  email: ".
+  address: ".
+  idCardNumber: ". // Replaced points with idCardNumber
+  birthdate: null, // Add birthdate field
   membershipLevel: 'regular'
-};
+};;
 
 /**
  * 會員管理頁面組件 (Refactored)
@@ -69,6 +70,7 @@ const CustomersPage = () => {
     { field: 'phone', headerName: '電話', width: 150 },
     { field: 'idCardNumber', headerName: '身分證', width: 180 }, // Replaced points with idCardNumber
     { field: 'email', headerName: '電子郵件', width: 200 },
+    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params) => params ? new Date(params).toLocaleDateString() : '' },
     { field: 'level', headerName: '會員等級', width: 120 }, // Display mapped level
     {
       field: 'actions',
@@ -115,7 +117,8 @@ const CustomersPage = () => {
       phone: customer.phone,
       email: customer.email || '',
       address: customer.address || '',
-      idCardNumber: customer.idCardNumber || '', // Replaced points with idCardNumber
+       idCardNumber: customer.idCardNumber || ". // Replaced points with idCardNumber
+      birthdate: customer.birthdate || null, // Add birthdate
       membershipLevel: customer.membershipLevel || 'regular' // Use original level from hook data
     });
     setEditMode(true);
@@ -156,6 +159,7 @@ const CustomersPage = () => {
         email: currentCustomer.email,
         address: currentCustomer.address,
         idCardNumber: currentCustomer.idCardNumber, // Replaced points with idCardNumber
+        birthdate: currentCustomer.birthdate, // Add birthdate
         membershipLevel: currentCustomer.membershipLevel
       };
 
@@ -223,6 +227,7 @@ const CustomersPage = () => {
               <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography>
           </ListItem>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber || '無'}</Typography></ListItem> {/* Replaced points with idCardNumber */}
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.birthdate ? new Date(selectedCustomer.birthdate).toLocaleDateString() : '無'}</Typography></ListItem>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem> {/* Display mapped level */}
         </List>
       </CardContent>
@@ -274,6 +279,7 @@ const CustomersPage = () => {
             <TextField name="name" label="會員姓名" value={currentCustomer.name} onChange={handleInputChange} fullWidth required margin="dense" size="small"/>
             <TextField name="phone" label="電話" value={currentCustomer.phone} onChange={handleInputChange} fullWidth required margin="dense" size="small"/>
             <TextField name="idCardNumber" label="身分證" value={currentCustomer.idCardNumber} onChange={handleInputChange} fullWidth margin="dense" size="small"/> {/* Replaced points with idCardNumber */}
+            <TextField name="birthdate" label="出生年月日" type="date" value={currentCustomer.birthdate ? new Date(currentCustomer.birthdate).toISOString().split('T')[0] : ''} onChange={handleInputChange} fullWidth margin="dense" size="small" InputLabelProps={{ shrink: true }}/>
             <TextField name="email" label="電子郵件" value={currentCustomer.email} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
             <TextField name="address" label="地址" value={currentCustomer.address} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
             <FormControl fullWidth margin="dense" size="small">
