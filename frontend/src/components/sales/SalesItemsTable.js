@@ -30,7 +30,8 @@ const SalesItemsTable = ({
   onToggleInputMode,
   onSubtotalChange,
   totalAmount,
-  discount
+  discount,
+  onQuantityInputComplete // New prop for focus management
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -42,7 +43,7 @@ const SalesItemsTable = ({
           <TableRow>
             <TableCell sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>產品名稱</TableCell>
             {!isMobile && <TableCell align="right" sx={{ px: 1 }}>代碼</TableCell>}
-            <TableCell align="right" sx={{ px: 1 }}>數量</TableCell>
+            <TableCell align="center" sx={{ px: 1, width: isMobile ? 'auto' : '150px' }}>數量</TableCell> {/* Adjusted header width */}
             <TableCell align="right" sx={{ px: 1 }}>單價/小計</TableCell>
             <TableCell align="center" sx={{ px: 1 }}>操作</TableCell>
           </TableRow>
@@ -56,22 +57,47 @@ const SalesItemsTable = ({
             </TableRow>
           ) : (
             items.map((item, index) => (
-              <TableRow key={item.product + index}> {/* Use index as part of key if product ID might repeat before save */}
+              <TableRow key={item.product + index}> 
                 <TableCell component="th" scope="row" sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>
                   {item.name}
                 </TableCell>
                 {!isMobile && <TableCell align="right" sx={{ px: 1 }}>{item.code}</TableCell>}
                 <TableCell align="right" sx={{ px: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}> {/* Centered content */}
                     <IconButton size="small" onClick={() => onQuantityChange(index, item.quantity - 1)} disabled={item.quantity <= 1}>
                       <RemoveIcon fontSize="inherit" />
                     </IconButton>
                     <TextField
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => onQuantityChange(index, parseInt(e.target.value, 10) || 1)}
+                      onChange={(e) => {
+                        const newQuantityStr = e.target.value;
+                        if (newQuantityStr === '') {
+                            onQuantityChange(index, ''); // Allow empty string temporarily
+                        } else {
+                            const newQuantity = parseInt(newQuantityStr, 10);
+                            if (!isNaN(newQuantity) && newQuantity >= 1) {
+                                onQuantityChange(index, newQuantity);
+                            }
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
+                            onQuantityChange(index, 1); // Reset to 1 if invalid
+                          }
+                          onQuantityInputComplete && onQuantityInputComplete();
+                          e.target.blur();
+                        }
+                      }}
+                      onBlur={() => {
+                        if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
+                          onQuantityChange(index, 1); // Reset to 1 if invalid
+                        }
+                        onQuantityInputComplete && onQuantityInputComplete();
+                      }}
                       size="small"
-                      sx={{ width: '60px', mx: 0.5, "& input": { textAlign: "center" } }}
+                      sx={{ width: '80px', mx: 0.5, "& input": { textAlign: "center" } }} // Increased width
                       inputProps={{ min: 1, style: { textAlign: 'center' } }}
                     />
                     <IconButton size="small" onClick={() => onQuantityChange(index, item.quantity + 1)}>

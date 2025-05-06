@@ -240,3 +240,35 @@
     *   確認在數量欄位按下 Enter 或點擊頁面其他地方使欄位失焦後，焦點會自動返回條碼輸入框。
 
 **結果**: 數量輸入體驗得到改善，欄位更寬，焦點管理更符合使用者預期，避免了頻繁的焦點跳轉干擾輸入。
+
+
+
+## UI/UX Improvement: SalesPage Quantity Input & Focus (同步 SalesEditPage) (執行日期: 2025-05-06)
+
+**目標**: 將先前應用於 `SalesEditPage` 的數量欄位加寬和輸入焦點優化，同步應用到 `SalesPage.js`，以確保新增和編輯銷售時的操作體驗一致。
+
+**執行步驟與結果**:
+
+1.  **共用元件 `SalesItemsTable.js` 的調整 (已在 SalesEditPage 優化時完成)**:
+    *   數量輸入 `TextField` 的寬度已調整為 `80px`。
+    *   已添加 `onQuantityInputComplete` prop，並在數量 `TextField` 的 `onKeyDown` (Enter) 和 `onBlur` 事件中觸發此 prop。
+    *   數量輸入欄位已包含 `+` / `-` 按鈕。
+
+2.  **修改 `SalesPage.js`**: 
+    *   **Focus 管理**: 
+        *   與 `SalesEditPage.js` 類似，使用 `useRef` 創建了 `barcodeInputRef`。
+        *   定義了 `focusBarcode` 函數 (使用 `useCallback`)，用於將焦點設置到 `SalesProductInput` 中的條碼輸入框。
+        *   定義了 `handleQuantityInputComplete` 函數 (使用 `useCallback`)，該函數調用 `focusBarcode`。
+        *   將 `handleQuantityInputComplete` 作為 `onQuantityInputComplete` prop 傳遞給 `SalesItemsTable`。
+        *   將 `barcodeInputRef` 傳遞給 `SalesProductInput`。
+        *   確保在頁面載入完成後 (非 `loading` 且無 `error` 狀態時) 自動聚焦到條碼輸入框。
+        *   在成功保存銷售記錄後 (`handleSaveSale` 成功時) 也會重新聚焦到條碼輸入框。
+
+3.  **驗證**: 
+    *   啟動開發伺服器進行測試 (雖然仍有 Dev Server 配置警告)。
+    *   確認 `SalesPage` 中銷售項目表格的數量欄位已加寬。
+    *   確認在數量欄位輸入數字時，焦點不會立即跳回條碼框。
+    *   確認在數量欄位按下 Enter 或點擊頁面其他地方使欄位失焦後，焦點會自動返回條碼輸入框。
+    *   確認整體操作體驗與 `SalesEditPage` 一致。
+
+**結果**: `SalesPage.js` 的數量輸入體驗已與 `SalesEditPage.js` 同步優化，提供了更一致且便捷的操作流程。欄位寬度和焦點管理均符合預期。

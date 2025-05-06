@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -8,7 +8,7 @@ import {
   Alert,
   useTheme,
   useMediaQuery,
-  CircularProgress // Added for loading state
+  CircularProgress
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -31,7 +31,7 @@ const SalesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-  const barcodeInputRef = useRef(null);
+  const barcodeInputRef = useRef(null); // Ref for barcode input, same as SalesEditPage
 
   // Use the custom hook to fetch data
   const { products, customers, loading, error } = useSalesData();
@@ -59,7 +59,7 @@ const SalesPage = () => {
     handleSubtotalChange,
     handleRemoveItem,
     toggleInputMode,
-    handleSaveSale: handleSaveSaleHook // Renamed from hook
+    handleSaveSale: handleSaveSaleHook
   } = useSaleManagement(showSnackbar);
 
   // Component-specific UI State
@@ -67,45 +67,48 @@ const SalesPage = () => {
   const [selectedShortcut, setSelectedShortcut] = useState(null);
   const [infoExpanded, setInfoExpanded] = useState(!isMobile);
 
-  // Focus input on initial load (after data loads)
+  // --- Focus Management (similar to SalesEditPage) --- 
+  const focusBarcode = useCallback(() => {
+    setTimeout(() => {
+        if (barcodeInputRef.current) {
+            barcodeInputRef.current.focus();
+        }
+    }, 50);
+  }, []);
+
+  const handleQuantityInputComplete = useCallback(() => {
+    focusBarcode();
+  }, [focusBarcode]);
+
+  // Initial focus and refocus after saving (if applicable)
   useEffect(() => {
-    if (!loading && barcodeInputRef.current) {
-      barcodeInputRef.current.focus();
+    if (!loading && !error) {
+      focusBarcode();
     }
-  }, [loading]);
+  }, [loading, error, focusBarcode]);
 
   // Show error message from data fetching hook
   useEffect(() => {
     if (error) {
-      showSnackbar(error, 'error'); // Fixed error severity
+      showSnackbar(error, 'error');
     }
-  }, [error, showSnackbar]); // Added showSnackbar dependency
+  }, [error, showSnackbar]);
 
-  // Refocus barcode input after adding item (remains in component)
-  useEffect(() => {
-    const focusTimeout = setTimeout(() => {
-      if (barcodeInputRef.current) {
-        barcodeInputRef.current.focus();
-      }
-    }, 100);
-    return () => clearTimeout(focusTimeout);
-  }, [currentSale.items]); // Dependency on items from the hook
+  // Refocus barcode input after adding item (SalesProductInput handles its own focus after submit)
+  // The onQuantityInputComplete will handle focus return from SalesItemsTable
 
-  // Wrapper for handleSaveSale to include UI logic (focus)
   const handleSaveSale = async () => {
     const success = await handleSaveSaleHook();
-    if (success && barcodeInputRef.current) {
-      barcodeInputRef.current.focus();
+    if (success) {
+      focusBarcode(); // Refocus after successful save
     }
   };
 
-  // Handler for Shortcut Buttons (remains in component)
   const handleShortcutSelect = (shortcut) => {
     setSelectedShortcut(shortcut);
     setCustomDialogOpen(true);
   };
 
-  // --- Render --- 
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -117,87 +120,78 @@ const SalesPage = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Dialogs */}
       {selectedShortcut && (
         <CustomProductsDialog
           open={customDialogOpen}
           onClose={() => setCustomDialogOpen(false)}
-          allProducts={products} // Use products from useSalesData
+          allProducts={products}
           productIdsToShow={selectedShortcut.productIds}
           shortcutName={selectedShortcut.name}
-          onSelectProduct={handleSelectProduct} // Use handler from useSaleManagement
+          onSelectProduct={handleSelectProduct}
         />
       )}
 
-      {/* Header */}
       <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', mb: 3 }}>
         <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom={isMobile}>銷售作業</Typography>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/sales')} sx={{ mt: isMobile ? 1 : 0 }}>返回銷售列表</Button>
       </Box>
 
       <Grid container spacing={3}>
-        {/* Left Column (or Top on Mobile) */}
         <Grid item xs={12} md={8}>
-          {/* Product Input */}
           <SalesProductInput
-            products={products} // Use products from useSalesData
-            barcodeInputRef={barcodeInputRef}
-            onSelectProduct={handleSelectProduct} // Use handler from useSaleManagement
-            showSnackbar={showSnackbar} // Pass down snackbar function
+            products={products}
+            barcodeInputRef={barcodeInputRef} // Pass the ref
+            onSelectProduct={handleSelectProduct}
+            showSnackbar={showSnackbar}
           />
 
-          {/* Items Table */}
           <SalesItemsTable
-            items={currentSale.items} // Use items from useSaleManagement
-            inputModes={inputModes} // Use inputModes from useSaleManagement
-            onQuantityChange={handleQuantityChange} // Use handler from useSaleManagement
-            onPriceChange={handlePriceChange} // Use handler from useSaleManagement
-            onRemoveItem={handleRemoveItem} // Use handler from useSaleManagement
-            onToggleInputMode={toggleInputMode} // Use handler from useSaleManagement
-            onSubtotalChange={handleSubtotalChange} // Use handler from useSaleManagement
-            totalAmount={currentSale.totalAmount} // Use totalAmount from useSaleManagement
-            discount={currentSale.discount} // Use discount from useSaleManagement
+            items={currentSale.items}
+            inputModes={inputModes}
+            onQuantityChange={handleQuantityChange}
+            onPriceChange={handlePriceChange}
+            onRemoveItem={handleRemoveItem}
+            onToggleInputMode={toggleInputMode}
+            onSubtotalChange={handleSubtotalChange}
+            totalAmount={currentSale.totalAmount}
+            discount={currentSale.discount}
+            onQuantityInputComplete={handleQuantityInputComplete} // Pass the handler
           />
 
-          {/* Save Button */}
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
               color="primary"
               startIcon={<SaveIcon />}
-              onClick={handleSaveSale} // Use the wrapper function
-              disabled={currentSale.items.length === 0 || loading} // Disable if loading or no items
+              onClick={handleSaveSale}
+              disabled={currentSale.items.length === 0 || loading}
             >
               儲存銷售記錄
             </Button>
           </Box>
         </Grid>
 
-        {/* Right Column (or Bottom on Mobile) */}
         <Grid item xs={12} md={4}>
-          {/* Sale Info Card */}
           <SaleInfoCard
-            saleData={currentSale} // Use currentSale from useSaleManagement
-            customers={customers} // Use customers from useSalesData
+            saleData={currentSale}
+            customers={customers}
             isMobile={isMobile}
             expanded={infoExpanded}
             onExpandToggle={() => setInfoExpanded(!infoExpanded)}
-            onInputChange={handleSaleInfoChange} // Use handler from useSaleManagement
+            onInputChange={handleSaleInfoChange}
           />
 
-          {/* Shortcut Buttons */}
           <Box sx={{ mt: 3 }}>
             <ShortcutButtonManager onSelect={handleShortcutSelect} />
           </Box>
         </Grid>
       </Grid>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Fixed syntax
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
