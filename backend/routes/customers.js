@@ -71,7 +71,8 @@ router.post(
       medicalHistory,
       allergies,
       membershipLevel,
-      points
+      points,
+      idCardNumber // <<< Add idCardNumber here
     } = req.body;
 
     try {
@@ -94,6 +95,7 @@ router.post(
       if (allergies) customerFields.allergies = allergies;
       if (membershipLevel) customerFields.membershipLevel = membershipLevel;
       if (points) customerFields.points = points;
+      if (idCardNumber) customerFields.idCardNumber = idCardNumber; // <<< Add idCardNumber here
 
       // 若沒提供會員編號，系統自動生成
       if (!code) {
@@ -127,7 +129,8 @@ router.put('/:id', async (req, res) => {
     medicalHistory,
     allergies,
     membershipLevel,
-    points
+    points,
+    idCardNumber // <<< Add idCardNumber here
   } = req.body;
 
   // 建立更新欄位物件
@@ -143,6 +146,7 @@ router.put('/:id', async (req, res) => {
   if (allergies) customerFields.allergies = allergies;
   if (membershipLevel) customerFields.membershipLevel = membershipLevel;
   if (points !== undefined) customerFields.points = points;
+  if (idCardNumber) customerFields.idCardNumber = idCardNumber; // <<< Add idCardNumber here
 
   try {
     let customer = await Customer.findById(req.params.id);

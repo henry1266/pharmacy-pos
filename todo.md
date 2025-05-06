@@ -1,15 +1,11 @@
-# 專案優化：元件分析
+# 待辦事項
 
-## InventoryList.js
-
-- [X] **InventoryList.js**:
-    - [X] 評估其通用性：是否在至少 2-3 個不同功能模組中使用？ (結果：否，僅用於產品詳情相關模組)
-    - [X] 檢查是否嚴格遵循 Props-Driven 設計？是否包含內部業務邏輯？ (結果：否，包含大量內部業務邏輯和狀態管理)
-    - [X] 若非真正通用或過於複雜，考慮移至特定功能模組或重構。(決策：已移至 `src/components/products/` 並驗證建置成功)
-
-## FIFOSimulationDialog.js
-
-- [ ] **FIFOSimulationDialog.js**:
-    - [X] 評估其通用性。(結果：否，僅被 `PriceTooltip.js` 引用)
-    - [X] 檢查是否 Props-Driven。(結果：大部分是，但 `handleApplyCost` 包含複雜的 DOM 操作邏輯，與特定表單耦合)
-    - [X] 若非通用，移至相關功能模組。(決策：已重構 `handleApplyCost` 移除 DOM 操作，並將 `FIFOSimulationDialog.js` 與 `PriceTooltip.js` 一同移至 `src/components/form-widgets/`，建置驗證成功)
+- [x] 分析 `customers` 的 `idCardNumber` 讀取與存檔問題
+  - [x] 找出與 `customers` 和 `idCardNumber` 相關的檔案
+  - [x] 閱讀相關程式碼，理解目前的實作方式
+  - [x] 找出導致 `idCardNumber` 無法正確讀取和存檔的具體原因：後端 API 未處理 `idCardNumber` 欄位
+- [ ] 實作 `idCardNumber` 讀取與存檔的修復方案
+- [ ] 實作 `idCardNumber` 讀取與存檔的修復方案
+- [ ] 測試 `idCardNumber` 功能是否正常運作
+- [ ] 提交並推送變更到 GitHub
+- [ ] 向用戶報告並發送更新
