@@ -34,6 +34,7 @@ const useCustomerData = () => {
         phone: customer.phone,
         email: customer.email || '',
         address: customer.address || '',
+        idCardNumber: customer.idCardNumber || '',
         points: customer.points || 0,
         level: mapMembershipLevel(customer.membershipLevel),
         membershipLevel: customer.membershipLevel || 'regular' // Keep original level for forms
