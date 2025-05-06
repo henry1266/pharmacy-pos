@@ -44,8 +44,7 @@ export const useSalesEditData = (saleId) => {
           }));
 
           setInitialSaleData({
-            customer: saleData.customer?._id || saleData.customer || 
-ore '',
+            customer: saleData.customer?._id || saleData.customer,
             items: formattedItems,
             totalAmount: saleData.totalAmount,
             discount: saleData.discount || 0,
