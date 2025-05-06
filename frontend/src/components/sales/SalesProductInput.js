@@ -79,17 +79,16 @@ const SalesProductInput = ({
         secondary={
           <>
             <Typography component="span" variant="body2" sx={{ color: 'black' }}>
-              {option.code || '無代碼'} | {option.barcode || '無條碼'} | 
+              代碼: {option.code || 'N/A'} | 健保碼: {option.healthInsuranceCode || 'N/A'}
             </Typography>
-            <Typography component="span" variant="body2" sx={{ color: 'black' }}>
-              {' '}價格: ${option.sellingPrice?.toFixed(2) || '無價格'}
+            <Typography component="span" variant="body2" display="block" sx={{ color: 'black' }}>
+              條碼: {option.barcode || 'N/A'} | 價格: ${option.sellingPrice?.toFixed(2) || 'N/A'}
             </Typography>
           </>
         }
       />
     </ListItem>
   );
-
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
       <Autocomplete
