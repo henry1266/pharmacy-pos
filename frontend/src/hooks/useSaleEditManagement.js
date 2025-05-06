@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as salesService from '../services/salesService';
+import * as salesService from '../services/salesService'; // Ensure this path is correct
 
 export const useSaleEditManagement = (initialSaleData, products, saleId) => {
   const navigate = useNavigate();
@@ -20,19 +20,17 @@ export const useSaleEditManagement = (initialSaleData, products, saleId) => {
     severity: 'success'
   });
 
-  // Initialize state when initial data is loaded
   useEffect(() => {
     if (initialSaleData) {
       setCurrentSale(initialSaleData);
     }
   }, [initialSaleData]);
 
-  // Recalculate total amount when items or discount change
   useEffect(() => {
-    const total = currentSale.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = currentSale.items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     setCurrentSale(prev => ({
       ...prev,
-      totalAmount: total - (prev.discount || 0)
+      totalAmount: total - (parseFloat(prev.discount) || 0)
     }));
   }, [currentSale.items, currentSale.discount]);
 
@@ -52,7 +50,7 @@ export const useSaleEditManagement = (initialSaleData, products, saleId) => {
     if (e.key === 'Enter' && barcode.trim()) {
       e.preventDefault();
       const trimmedBarcode = barcode.trim();
-      setBarcode(''); // Clear input immediately
+      setBarcode('');
 
       try {
         let product = products.find(p => p.code === trimmedBarcode);
@@ -107,18 +105,15 @@ export const useSaleEditManagement = (initialSaleData, products, saleId) => {
 
   const handlePriceChange = useCallback((index, newPriceStr) => {
     const updatedItems = [...currentSale.items];
-    // Allow temporary empty string for user input flexibility
     if (newPriceStr === '') {
         updatedItems[index].price = ''; 
-        updatedItems[index].subtotal = 0; // Or handle as needed
+        updatedItems[index].subtotal = 0;
     } else {
         const newPrice = parseFloat(newPriceStr);
         if (!isNaN(newPrice) && newPrice >= 0) {
             updatedItems[index].price = newPrice;
             updatedItems[index].subtotal = newPrice * updatedItems[index].quantity;
         } else {
-            // Optionally revert or show error if input is invalid and not empty
-            // For now, we just don't update if invalid number > 0
             return; 
         }
     }
@@ -128,11 +123,9 @@ export const useSaleEditManagement = (initialSaleData, products, saleId) => {
   const handlePriceBlur = useCallback((index) => {
     const item = currentSale.items[index];
     if (item.price === '' || isNaN(parseFloat(item.price))) {
-        // Reset to 0 or original price if needed when input is invalid/empty on blur
         handlePriceChange(index, '0'); 
     }
   }, [currentSale.items, handlePriceChange]);
-
 
   const handleRemoveItem = useCallback((index) => {
     const updatedItems = [...currentSale.items];
@@ -151,7 +144,7 @@ export const useSaleEditManagement = (initialSaleData, products, saleId) => {
       items: currentSale.items.map(item => ({
         product: item.product,
         quantity: item.quantity,
-        price: parseFloat(item.price) || 0, // Ensure price is a number
+        price: parseFloat(item.price) || 0,
         subtotal: (parseFloat(item.price) || 0) * item.quantity
       })),
       totalAmount: currentSale.totalAmount,
@@ -159,10 +152,10 @@ export const useSaleEditManagement = (initialSaleData, products, saleId) => {
       paymentMethod: currentSale.paymentMethod,
       paymentStatus: currentSale.paymentStatus,
       note: currentSale.note,
-      // cashier: '...' // Get cashier ID from auth context or similar
     };
 
     try {
+      // Corrected: Ensure salesService.updateSale is correctly called
       await salesService.updateSale(saleId, saleData);
       setSnackbar({ open: true, message: '銷售記錄已更新', severity: 'success' });
       setTimeout(() => navigate('/sales'), 1500);
@@ -178,14 +171,13 @@ export const useSaleEditManagement = (initialSaleData, products, saleId) => {
 
   return {
     currentSale,
-    setCurrentSale, // Expose if direct manipulation is needed, otherwise rely on handlers
     barcode,
     handleBarcodeChange,
     handleBarcodeSubmit,
     handleInputChange,
     handleQuantityChange,
     handlePriceChange,
-    handlePriceBlur, // Added blur handler
+    handlePriceBlur,
     handleRemoveItem,
     handleUpdateSale,
     snackbar,

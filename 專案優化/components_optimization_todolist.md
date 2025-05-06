@@ -134,3 +134,36 @@
         *   渲染 Snackbar 元件以顯示操作結果通知。
 
 **結果**: `SalesEditPage.js` 的程式碼行數大幅減少，職責更加清晰單一。資料獲取、狀態管理和 UI 展示邏輯有效分離，提高了程式碼的可讀性、可測試性和可維護性。遵循了關注點分離 (Separation of Concerns) 和單一責任原則 (Single Responsibility Principle)。
+
+
+
+## Bug Fix: SalesEditPage Hooks/Services Integration (執行日期: 2025-05-06)
+
+**問題描述**: 在 `SalesEditPage.js` 重構後，前端編譯失敗，錯誤報告指出 `useSalesEditData.js` 和 `useSaleEditManagement.js` 嘗試從 `salesService.js`, `productService.js`, `customerService.js` 導入不存在或名稱錯誤的函數 (`getSaleById`, `updateSale`, `getAllProducts`, `getAllCustomers`)。
+
+**修正步驟與結果**:
+
+1.  **檢查 Service 層**: 
+    *   檢查了 `salesService.js`, `productService.js`, `customerService.js` 的實際導出函數。
+    *   確認 `productService.js` 導出的是 `getProducts` 而非 `getAllProducts`。
+    *   確認 `customerService.js` 導出的是 `getCustomers` 而非 `getAllCustomers`。
+    *   確認 `salesService.js` 缺少 `getSaleById` 和 `updateSale` 函數。
+
+2.  **補齊 Service 層函數**: 
+    *   在 `salesService.js` 中添加了 `getSaleById(id)` 和 `updateSale(id, data)` 函數的實現，使其能夠處理對應的 API 請求 (`GET /api/sales/:id` 和 `PUT /api/sales/:id`)。
+
+3.  **修正 Hooks 層導入與調用**: 
+    *   修改 `useSalesEditData.js`：
+        *   將 `productService.getAllProducts()` 修改為 `productService.getProducts()`。
+        *   將 `customerService.getAllCustomers()` 修改為 `customerService.getCustomers()`。
+        *   確保調用的是 `salesService.getSaleById(saleId)`。
+        *   修正了 `fetchData` 函數未定義的 ESLint 錯誤，將其移至 `useCallback` 內部並正確處理依賴。
+    *   修改 `useSaleEditManagement.js`：
+        *   確保調用的是 `salesService.updateSale(saleId, saleData)`。
+
+4.  **依賴安裝與驗證**: 
+    *   嘗試 `npm start` 失敗，發現缺少 `react-scripts` 依賴。
+    *   執行 `npm install react-scripts` 安裝了缺失的依賴。
+    *   再次嘗試 `npm start`，編譯錯誤已解決，但出現 Webpack Dev Server 的 `allowedHosts` 配置問題。此問題與核心 bug 無關，屬於開發環境配置。
+
+**結果**: 核心的 Hooks 與 Services 層集成錯誤已修正。`useSalesEditData` 和 `useSaleEditManagement` 現在能正確調用 Service 層提供的函數來獲取和更新數據。前端專案能夠通過編譯階段（儘管 Dev Server 啟動配置需調整）。
