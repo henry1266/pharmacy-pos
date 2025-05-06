@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useCallback } from 'react'; // Added useRef, useCallback
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -8,8 +8,8 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  useTheme, // Import useTheme
-  useMediaQuery // Import useMediaQuery
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon } from '@mui/icons-material';
 
@@ -18,16 +18,16 @@ import { useSalesEditData } from '../hooks/useSalesEditData';
 import { useSaleEditManagement } from '../hooks/useSaleEditManagement';
 
 // Import sub-components
-import SaleEditInfoCard from '../components/sales/SaleEditInfoCard'; // Now only for barcode
+import SaleEditInfoCard from '../components/sales/SaleEditInfoCard';
 import SalesEditItemsTable from '../components/sales/SalesEditItemsTable';
-import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard'; // New component for details
-// SaleEditSummaryActions is no longer needed
+import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard';
 
 const SalesEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const barcodeInputRef = useRef(null); // Create ref for barcode input
 
   // --- Data Fetching Hook ---
   const { initialSaleData, products, customers, loading, error } = useSalesEditData(id);
@@ -47,6 +47,35 @@ const SalesEditPage = () => {
     snackbar,
     handleCloseSnackbar
   } = useSaleEditManagement(initialSaleData, products, id);
+
+  // --- Focus Management --- 
+  // Function to focus the barcode input
+  const focusBarcode = useCallback(() => {
+    // Use a timeout to ensure focus happens after potential state updates/re-renders
+    setTimeout(() => {
+        if (barcodeInputRef.current) {
+            barcodeInputRef.current.focus();
+            // Optional: Select text for easier replacement
+            // barcodeInputRef.current.select(); 
+        }
+    }, 50); // Small delay
+  }, []);
+
+  // Handler for when quantity input is completed (Enter or Blur)
+  const handleQuantityInputComplete = useCallback(() => {
+    focusBarcode();
+  }, [focusBarcode]);
+
+  // Initial focus on barcode input after loading is complete
+  useEffect(() => {
+    if (!loading && !error) {
+      focusBarcode();
+    }
+  }, [loading, error, focusBarcode]);
+
+  // Refocus after barcode submit (if needed, hook might handle this)
+  // Consider if handleBarcodeSubmit in the hook should also call focusBarcode
+  // For now, assume focus returns naturally or is handled by the hook/browser
 
   // --- Render Logic ---
 
@@ -100,19 +129,18 @@ const SalesEditPage = () => {
         </Button>
       </Box>
       
-      {/* Adopt two-column layout similar to SalesPage */}
       <Grid container spacing={3}>
         {/* Left Column (Main Content) */}
         <Grid item xs={12} md={8}>
-          {/* Barcode Input (using the modified SaleEditInfoCard) */}
+          {/* Barcode Input */} 
           <SaleEditInfoCard
             barcode={barcode}
             handleBarcodeChange={handleBarcodeChange}
             handleBarcodeSubmit={handleBarcodeSubmit}
-            currentSaleItems={currentSale.items} // Pass items to trigger re-focus
+            barcodeInputRef={barcodeInputRef} // Pass the ref down
           />
         
-          {/* Sales Items Table */}
+          {/* Sales Items Table */} 
            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
                 銷售項目
               </Typography>
@@ -122,16 +150,17 @@ const SalesEditPage = () => {
             handlePriceChange={handlePriceChange}
             handlePriceBlur={handlePriceBlur}
             handleRemoveItem={handleRemoveItem}
+            onQuantityInputComplete={handleQuantityInputComplete} // Pass the handler down
           />
 
-          {/* Update Button (moved here) */}
+          {/* Update Button */} 
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
               color="primary"
               startIcon={<SaveIcon />}
               onClick={handleUpdateSale}
-              disabled={currentSale.items.length === 0 || loading} // Disable if loading or no items
+              disabled={currentSale.items.length === 0 || loading}
             >
               更新銷售記錄
             </Button>
@@ -140,7 +169,7 @@ const SalesEditPage = () => {
 
         {/* Right Column (Details/Side Info) */}
         <Grid item xs={12} md={4}>
-          {/* Sale Details Card (New component) */}
+          {/* Sale Details Card */} 
           <SaleEditDetailsCard
             customers={customers}
             currentSale={currentSale}
@@ -149,7 +178,7 @@ const SalesEditPage = () => {
         </Grid>
       </Grid>
 
-      {/* Snackbar for notifications */} 
+      {/* Snackbar */} 
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

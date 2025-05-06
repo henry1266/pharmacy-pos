@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react'; // Removed useRef as it's passed from parent
 import {
   Grid,
   Card,
@@ -6,28 +6,30 @@ import {
   TextField
 } from '@mui/material';
 
-// This component is now focused only on barcode input, similar to SalesProductInput in SalesPage
+// This component now receives the ref from the parent
 const SaleEditInfoCard = ({
   barcode,
   handleBarcodeChange,
   handleBarcodeSubmit,
-  currentSaleItems // Used to re-focus after item list changes
+  barcodeInputRef // Receive ref from parent
 }) => {
-  const barcodeInputRef = useRef(null);
 
-  // Auto-focus barcode input
+  // Auto-focus logic remains, but uses the passed ref
+  // Removed the dependency on currentSaleItems as focus is now managed explicitly by parent
   useEffect(() => {
     const focusTimeout = setTimeout(() => {
       if (barcodeInputRef.current) {
-        barcodeInputRef.current.focus();
+        // Initial focus or refocus after barcode scan (handled by parent potentially)
+        // Let's ensure initial focus on mount if needed
+        // barcodeInputRef.current.focus(); 
+        // Decided against auto-focus on every render here, parent controls explicit focus.
       }
-    }, 100); // Delay slightly to ensure it focuses after potential re-renders
-    
+    }, 100);
     return () => clearTimeout(focusTimeout);
-  }, [currentSaleItems]); // Refocus after item list changes (e.g., adding item via barcode)
+  }, [barcodeInputRef]); // Depend on the ref itself
 
   return (
-    <Card sx={{ mb: 3 }}> {/* Added margin bottom for spacing */}
+    <Card sx={{ mb: 3 }}>
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -38,7 +40,7 @@ const SaleEditInfoCard = ({
               onChange={handleBarcodeChange}
               onKeyDown={handleBarcodeSubmit}
               placeholder="掃描或輸入條碼後按 Enter"
-              inputRef={barcodeInputRef}
+              inputRef={barcodeInputRef} // Use the passed ref
               autoComplete="off"
             />
           </Grid>

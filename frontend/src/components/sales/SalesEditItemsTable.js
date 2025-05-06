@@ -21,8 +21,9 @@ const SalesEditItemsTable = ({
   items,
   handleQuantityChange,
   handlePriceChange,
-  handlePriceBlur, // Pass down the blur handler
-  handleRemoveItem
+  handlePriceBlur,
+  handleRemoveItem,
+  onQuantityInputComplete // New prop for focus management
 }) => {
   return (
     <TableContainer component={Paper} variant="outlined">
@@ -31,7 +32,7 @@ const SalesEditItemsTable = ({
           <TableRow>
             <TableCell>藥品/商品</TableCell>
             <TableCell align="right">單價</TableCell>
-            <TableCell align="center">數量</TableCell>
+            <TableCell align="center" sx={{ width: '150px' }}>數量</TableCell> {/* Adjusted header width slightly */} 
             <TableCell align="right">小計</TableCell>
             <TableCell align="center">操作</TableCell>
           </TableRow>
@@ -58,7 +59,7 @@ const SalesEditItemsTable = ({
                     onBlur={() => handlePriceBlur(index)} // Call blur handler
                     InputProps={{
                       inputProps: { min: 0, step: 0.01 },
-                      style: { textAlign: 'right', width: '80px' } // Adjust width as needed
+                      style: { textAlign: 'right', width: '80px' } // Price field width
                     }}
                     sx={{ '.MuiInputBase-input': { textAlign: 'right' } }} // Ensure text aligns right
                   />
@@ -77,21 +78,48 @@ const SalesEditItemsTable = ({
                       size="small"
                       value={item.quantity}
                       onChange={(e) => {
-                        const newQuantity = parseInt(e.target.value);
-                        if (!isNaN(newQuantity) && newQuantity >= 1) {
-                          handleQuantityChange(index, newQuantity);
-                        } else if (e.target.value === '') {
-                           // Allow clearing the field, maybe reset to 1 on blur if empty?
-                           // For now, just update state to allow empty temporarily
-                           // handleQuantityChange(index, ''); // Or handle appropriately
+                        const newQuantityStr = e.target.value;
+                        // Allow empty string temporarily
+                        if (newQuantityStr === '') {
+                            handleQuantityChange(index, ''); // Update state to allow empty
+                        } else {
+                            const newQuantity = parseInt(newQuantityStr);
+                            if (!isNaN(newQuantity) && newQuantity >= 1) {
+                                handleQuantityChange(index, newQuantity);
+                            }
+                            // Do nothing if input is invalid (e.g., negative, non-numeric after parsing)
                         }
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          // Validate and potentially reset if empty/invalid on Enter
+                          if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
+                            handleQuantityChange(index, 1); // Reset to 1 if invalid
+                          }
+                          onQuantityInputComplete && onQuantityInputComplete(); // Trigger focus return
+                          e.target.blur(); // Optional: remove focus from current field
+                        }
+                      }}
+                      onBlur={() => {
+                        // Validate and potentially reset if empty/invalid on Blur
+                        if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
+                          handleQuantityChange(index, 1); // Reset to 1 if invalid
+                        }
+                        onQuantityInputComplete && onQuantityInputComplete(); // Trigger focus return
+                      }}
                       InputProps={{
-                        inputProps: { min: 1, style: { textAlign: 'center', width: '50px' } } // Adjust width
+                        inputProps: { min: 1, style: { textAlign: 'center', width: '80px' } } // Increased width
                       }}
                       sx={{ mx: 1, '.MuiInputBase-input': { textAlign: 'center' } }}
                     />
                     {/* Add button removed as barcode scanning adds items */}
+                     <IconButton
+                      size="small"
+                      onClick={() => handleQuantityChange(index, item.quantity + 1)}
+                      // disabled={item.quantity >= item.stock} // Optional: Disable if exceeding stock
+                    >
+                      <AddIcon fontSize="small" /> {/* Assuming AddIcon is imported */} 
+                    </IconButton>
                   </Box>
                 </TableCell>
                 <TableCell align="right">
@@ -116,3 +144,4 @@ const SalesEditItemsTable = ({
 };
 
 export default SalesEditItemsTable;
+

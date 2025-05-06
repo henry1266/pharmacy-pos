@@ -202,3 +202,41 @@
     *   添加了 `.env` 文件以解決 Webpack Dev Server 的 `allowedHosts` 問題 (雖然啟動時仍提示 schema 錯誤，但核心 UI 重構已完成)。
 
 **結果**: `SalesEditPage.js` 的佈局和元件結構現在與 `SalesPage.js` 非常相似，提供了更一致的視覺和操作體驗。主內容區包含條碼輸入和項目列表，側邊欄包含銷售的詳細資訊和摘要。
+
+
+
+## UI/UX Improvement: SalesEditPage Quantity Input & Focus (執行日期: 2025-05-06)
+
+**目標**: 根據使用者回饋，優化 `SalesEditPage` 中銷售項目表格的數量輸入體驗。
+
+**執行步驟與結果**:
+
+1.  **加寬數量欄位**: 
+    *   在 `SalesEditItemsTable.js` 中，將數量輸入的 `TextField` 的 `InputProps.inputProps.style.width` 從 `'50px'` 增加到 `'80px'`，使其更容易輸入多位數數量。
+    *   同時微調了表格頭部「數量」欄位的寬度 (`sx={{ width: '150px' }}`) 以容納 +/- 按鈕和加寬的輸入框。
+
+2.  **優化 Focus 返回邏輯**: 
+    *   **問題**: 原本修改價格或數量後，焦點會立即返回條碼輸入框，使用者希望在輸入數量時，只有在輸入完成（按 Enter 或失焦）後才返回。
+    *   **修改 `SalesEditItemsTable.js`**: 
+        *   移除了 `onChange` 事件中觸發焦點返回的邏輯。
+        *   在數量 `TextField` 上添加了 `onKeyDown` 和 `onBlur` 事件處理器。
+        *   當使用者在數量欄位按下 `Enter` 鍵或欄位失去焦點 (`onBlur`) 時，會觸發一個新的 prop `onQuantityInputComplete`。
+        *   同時在 `onKeyDown` 和 `onBlur` 中加入了輸入驗證，確保數量至少為 1。
+        *   添加了數量增加的 `+` 按鈕 (`AddIcon`)。
+    *   **修改 `SalesEditPage.js`**: 
+        *   使用 `useRef` 創建了 `barcodeInputRef`。
+        *   定義了 `focusBarcode` 函數 (使用 `useCallback`)，用於將焦點設置到條碼輸入框。
+        *   定義了 `handleQuantityInputComplete` 函數 (使用 `useCallback`)，該函數調用 `focusBarcode`。
+        *   將 `handleQuantityInputComplete` 作為 `onQuantityInputComplete` prop 傳遞給 `SalesEditItemsTable`。
+        *   將 `barcodeInputRef` 傳遞給 `SaleEditInfoCard`。
+    *   **修改 `SaleEditInfoCard.js`**: 
+        *   接收來自父元件的 `barcodeInputRef` prop，並將其應用於條碼 `TextField`。
+        *   移除了元件內部的自動聚焦邏輯，改由父元件 (`SalesEditPage.js`) 控制焦點。
+
+3.  **驗證**: 
+    *   啟動開發伺服器進行測試 (雖然仍有 Dev Server 配置警告)。
+    *   確認數量欄位已加寬。
+    *   確認在數量欄位輸入數字時，焦點不會跳回條碼框。
+    *   確認在數量欄位按下 Enter 或點擊頁面其他地方使欄位失焦後，焦點會自動返回條碼輸入框。
+
+**結果**: 數量輸入體驗得到改善，欄位更寬，焦點管理更符合使用者預期，避免了頻繁的焦點跳轉干擾輸入。
