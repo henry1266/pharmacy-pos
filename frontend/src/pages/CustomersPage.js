@@ -30,6 +30,17 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useCustomerData from '../hooks/useCustomerData'; // Import the custom hook
 
+// Helper function to format date as YYYY/MM/DD
+const formatDateToYYYYMMDD = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return ''; // Invalid date
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}/${month}/${day}`;
+};
+
 // Initial state for the customer form
 const initialCustomerState = {
   name: '',
@@ -68,7 +79,7 @@ const CustomersPage = () => {
     { field: 'code', headerName: '會員編號', width: 100 },
     { field: 'name', headerName: '會員姓名', width: 120 },
     { field: 'idCardNumber', headerName: '身分證', width: 140 }, // Replaced points with idCardNumber
-    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params) => params.value ? new Date(params.value).toLocaleDateString() : '' },
+    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params) => formatDateToYYYYMMDD(params.value) },
     { field: 'phone', headerName: '電話', width: 140 },
 	{ field: 'level', headerName: '會員等級', width: 120 }, // Display mapped level
     {
@@ -221,7 +232,7 @@ const CustomersPage = () => {
         <List dense sx={{ py: 0 }}>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.phone}</Typography></ListItem>          
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber || '無'}</Typography></ListItem> {/* Replaced points with idCardNumber */}
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.birthdate ? new Date(selectedCustomer.birthdate).toLocaleDateString() : '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDateToYYYYMMDD(selectedCustomer.birthdate) || '無'}</Typography></ListItem>
 		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email || '無'}</Typography></ListItem>        
 		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem> {/* Display mapped level */}
 		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography></ListItem>
@@ -289,7 +300,6 @@ const CustomersPage = () => {
               >
                 {/* Use mapMembershipLevel to generate options dynamically or keep static */}
                 <MenuItem value="regular">一般會員</MenuItem>
-                <MenuItem value="gold">金卡會員</MenuItem>
                 <MenuItem value="platinum">白金會員</MenuItem>
               </Select>
             </FormControl>
@@ -309,4 +319,3 @@ const CustomersPage = () => {
 };
 
 export default CustomersPage;
-
