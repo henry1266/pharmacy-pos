@@ -35,7 +35,7 @@ const useCustomerData = () => {
         address: customer.address || '',
         idCardNumber: customer.idCardNumber || '',
         birthdate: customer.birthdate || null, // Add birthdate field
-        note: customer.note || ". // Add note field
+        note: customer.note || '', // Add note field
         level: mapMembershipLevel(customer.membershipLevel),
         membershipLevel: customer.membershipLevel || 'regular' // Keep original level for forms
       }));
