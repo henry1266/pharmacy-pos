@@ -65,13 +65,12 @@ const CustomersPage = () => {
 
   // Table columns definition
   const columns = [
-    { field: 'code', headerName: '會員編號', width: 120 },
+    { field: 'code', headerName: '會員編號', width: 100 },
     { field: 'name', headerName: '會員姓名', width: 120 },
-    { field: 'phone', headerName: '電話', width: 150 },
-    { field: 'idCardNumber', headerName: '身分證', width: 180 }, // Replaced points with idCardNumber
-    { field: 'email', headerName: '電子郵件', width: 200 },
-    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params) => params ? new Date(params).toLocaleDateString() : '' },
-    { field: 'level', headerName: '會員等級', width: 120 }, // Display mapped level
+    { field: 'idCardNumber', headerName: '身分證', width: 140 }, // Replaced points with idCardNumber
+    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params) => params.value ? new Date(params.value).toLocaleDateString() : '' },
+    { field: 'phone', headerName: '電話', width: 140 },
+	{ field: 'level', headerName: '會員等級', width: 120 }, // Display mapped level
     {
       field: 'actions',
       headerName: '操作',
@@ -117,7 +116,7 @@ const CustomersPage = () => {
       phone: customer.phone,
       email: customer.email || '',
       address: customer.address || '',
-       idCardNumber: customer.idCardNumber || ". // Replaced points with idCardNumber
+       idCardNumber: customer.idCardNumber || "", // Replaced points with idCardNumber
       birthdate: customer.birthdate || null, // Add birthdate
       membershipLevel: customer.membershipLevel || 'regular' // Use original level from hook data
     });
@@ -220,17 +219,15 @@ const CustomersPage = () => {
       <CardContent sx={{ py: 1 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>會員資訊</Typography>
         <List dense sx={{ py: 0 }}>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.phone}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email || '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>地址:</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography>
-          </ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.phone}</Typography></ListItem>          
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber || '無'}</Typography></ListItem> {/* Replaced points with idCardNumber */}
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.birthdate ? new Date(selectedCustomer.birthdate).toLocaleDateString() : '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem> {/* Display mapped level */}
-        </List>
-      </CardContent>
+		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email || '無'}</Typography></ListItem>        
+		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem> {/* Display mapped level */}
+		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography></ListItem>
+		</List>
+      
+	  </CardContent>
     </Card>
   ) : (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -292,7 +289,6 @@ const CustomersPage = () => {
               >
                 {/* Use mapMembershipLevel to generate options dynamically or keep static */}
                 <MenuItem value="regular">一般會員</MenuItem>
-                <MenuItem value="silver">銀卡會員</MenuItem>
                 <MenuItem value="gold">金卡會員</MenuItem>
                 <MenuItem value="platinum">白金會員</MenuItem>
               </Select>

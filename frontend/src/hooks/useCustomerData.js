@@ -5,7 +5,6 @@ import customerService from '../services/customerService';
 const mapMembershipLevel = (level) => {
   const levelMap = {
     'regular': '一般會員',
-    'silver': '銀卡會員',
     'gold': '金卡會員',
     'platinum': '白金會員'
   };
@@ -34,9 +33,8 @@ const useCustomerData = () => {
         phone: customer.phone,
         email: customer.email || '',
         address: customer.address || '',
-         idCardNumber: customer.idCardNumber || ".
+        idCardNumber: customer.idCardNumber || '',
         birthdate: customer.birthdate || null, // Add birthdate field
-        points: customer.points || 0,
         level: mapMembershipLevel(customer.membershipLevel),
         membershipLevel: customer.membershipLevel || 'regular' // Keep original level for forms
       }));
