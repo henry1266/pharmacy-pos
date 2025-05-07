@@ -130,7 +130,8 @@ router.put('/:id', async (req, res) => {
     allergies,
     membershipLevel,
     points,
-    idCardNumber // <<< Add idCardNumber here
+    idCardNumber, // <<< Add idCardNumber here
+    note // <<< Add note here
   } = req.body;
 
   // 建立更新欄位物件
@@ -147,6 +148,7 @@ router.put('/:id', async (req, res) => {
   if (membershipLevel) customerFields.membershipLevel = membershipLevel;
   if (points !== undefined) customerFields.points = points;
   if (idCardNumber) customerFields.idCardNumber = idCardNumber; // <<< Add idCardNumber here
+  if (note !== undefined) customerFields.note = note; // <<< Add note here
 
   try {
     let customer = await Customer.findById(req.params.id);
