@@ -47,9 +47,10 @@ const initialCustomerState = {
   phone: '',
   email: '',
   address: '',
-  idCardNumber: '',
+  idCardNumber: "",
   birthdate: null,
-  membershipLevel: 'regular'
+  note: "", // Add note field
+  membershipLevel: 'regular',
 };
 
 /**
@@ -129,6 +130,7 @@ const CustomersPage = () => {
       address: customer.address || '',
        idCardNumber: customer.idCardNumber || "", // Replaced points with idCardNumber
       birthdate: customer.birthdate || null, // Add birthdate
+      note: customer.note || "", // Add note
       membershipLevel: customer.membershipLevel || 'regular' // Use original level from hook data
     });
     setEditMode(true);
@@ -170,6 +172,7 @@ const CustomersPage = () => {
         address: currentCustomer.address,
         idCardNumber: currentCustomer.idCardNumber, // Replaced points with idCardNumber
         birthdate: currentCustomer.birthdate, // Add birthdate
+        note: currentCustomer.note, // Add note
         membershipLevel: currentCustomer.membershipLevel
       };
 
@@ -236,6 +239,7 @@ const CustomersPage = () => {
 		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email || '無'}</Typography></ListItem>        
 		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem> {/* Display mapped level */}
 		  <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.note || '無'}</Typography></ListItem>
 		</List>
       
 	  </CardContent>
@@ -290,6 +294,7 @@ const CustomersPage = () => {
             <TextField name="birthdate" label="出生年月日" type="date" value={currentCustomer.birthdate ? new Date(currentCustomer.birthdate).toISOString().split('T')[0] : ''} onChange={handleInputChange} fullWidth margin="dense" size="small" InputLabelProps={{ shrink: true }}/>
             <TextField name="email" label="電子郵件" value={currentCustomer.email} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
             <TextField name="address" label="地址" value={currentCustomer.address} onChange={handleInputChange} fullWidth margin="dense" size="small"/>
+            <TextField name="note" label="備註" value={currentCustomer.note || ''} onChange={handleInputChange} fullWidth margin="dense" size="small" multiline rows={3}/>
             <FormControl fullWidth margin="dense" size="small">
               <InputLabel>會員等級</InputLabel>
               <Select
