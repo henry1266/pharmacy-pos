@@ -31,15 +31,15 @@ import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useCustomerData from '../hooks/useCustomerData'; // Import the custom hook
 
 // Initial state for the customer form
-consconst initialCustomerState = {
-  name: ".
-  phone: ".
-  email: ".
-  address: ".
-  idCardNumber: ". // Replaced points with idCardNumber
-  birthdate: null, // Add birthdate field
+const initialCustomerState = {
+  name: '',
+  phone: '',
+  email: '',
+  address: '',
+  idCardNumber: '',
+  birthdate: null,
   membershipLevel: 'regular'
-};;
+};
 
 /**
  * 會員管理頁面組件 (Refactored)
