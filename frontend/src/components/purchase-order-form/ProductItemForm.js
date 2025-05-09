@@ -20,9 +20,7 @@ const ProductItemForm = ({
   const packageQuantityValue = currentItem.packageQuantity || '';
   const boxQuantityValue = currentItem.boxQuantity || ''; // This is the new "數量" field
 
-  // If dQuantityValue has a value (and is > 0), package and box fields are disabled.
   const packageAndBoxDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue) > 0;
-  // If packageQuantityValue or boxQuantityValue has a value (and is > 0), dQuantity field is disabled.
   const dQuantityDisabled = 
     (packageQuantityValue !== '' && parseFloat(packageQuantityValue) > 0) ||
     (boxQuantityValue !== '' && parseFloat(boxQuantityValue) > 0);
@@ -42,7 +40,7 @@ const ProductItemForm = ({
     let newPackageQtyStr = name === 'packageQuantity' ? value : packageQuantityValue;
     let newBoxQtyStr = name === 'boxQuantity' ? value : boxQuantityValue;
 
-    handleItemInputChange({ target: { name, value } }); // Update the changed sub-quantity field
+    handleItemInputChange({ target: { name, value } });
 
     const pkgQty = parseFloat(newPackageQtyStr) || 0;
     const boxQty = parseFloat(newBoxQtyStr) || 0;
@@ -138,7 +136,9 @@ const ProductItemForm = ({
                   if (packageQtyInput && !packageQtyInput.disabled) {
                       packageQtyInput.focus();
                   } else {
-                      document.querySelector('input[name="dtotalCost"]')?.focus();
+                      // If sub-quantities are disabled (meaning main quantity was entered),
+                      // or if user just wants to proceed, they can tab or enter to totalCost.
+                      // No explicit focus needed here, rely on Tab or next field in PriceTooltip.
                   }
                 }
               }}
@@ -180,7 +180,8 @@ const ProductItemForm = ({
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault();
-                  document.querySelector('input[name="dtotalCost"]')?.focus();
+                  // Allow natural tab order to move to the next focusable element (e.g., totalCost or Add button)
+                  // Do not explicitly focus on dtotalCost here.
                 }
               }}
             />
@@ -190,12 +191,12 @@ const ProductItemForm = ({
 
       <Grid item xs={12} sm={6} md={2.5}>
         <PriceTooltip 
-          currentItem={{...currentItem, dquantity: dQuantityValue}}
-          handleItemInputChange={handleItemInputChange}
+          currentItem={{...currentItem, dquantity: dQuantityValue}} // Ensure PriceTooltip gets the potentially calculated dquantity
+          handleItemInputChange={handleItemInputChange} // Pass this if PriceTooltip needs to update other parts of currentItem
           getProductPurchasePrice={getProductPurchasePrice}
           calculateTotalCost={calculateTotalCost}
           isInventorySufficient={isInventorySufficient}
-          handleAddItem={handleAddItem}
+          handleAddItem={handleAddItem} // Pass if PriceTooltip has an add mechanism
         />
       </Grid>
       <Grid item xs={12} sm={6} md={2.5}>
