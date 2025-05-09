@@ -9,16 +9,6 @@ import {
 import { Add as AddIcon } from '@mui/icons-material';
 import PriceTooltip from '../form-widgets/PriceTooltip';
 
-/**
- * 藥品項目添加表單組件
- * @param {Object} props - 組件屬性
- * @param {Object} props.currentItem - 當前正在編輯的項目
- * @param {Function} props.handleItemInputChange - 處理項目輸入變更的函數
- * @param {Function} props.handleProductChange - 處理藥品選擇變更的函數
- * @param {Function} props.handleAddItem - 處理添加項目的函數
- * @param {Array} props.products - 藥品列表
- * @returns {React.ReactElement} 藥品項目添加表單組件
- */
 const ProductItemForm = ({
   currentItem,
   handleItemInputChange,
@@ -26,75 +16,181 @@ const ProductItemForm = ({
   handleAddItem,
   products
 }) => {
-  // 獲取當前選中產品的進貨價
+  const dQuantityValue = currentItem.dquantity || '';
+  const packageQuantityValue = currentItem.packageQuantity || '';
+  const boxQuantityValue = currentItem.boxQuantity || ''; // This is the new "數量" field
+
+  // If dQuantityValue has a value (and is > 0), package and box fields are disabled.
+  const packageAndBoxDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue) > 0;
+  // If packageQuantityValue or boxQuantityValue has a value (and is > 0), dQuantity field is disabled.
+  const dQuantityDisabled = 
+    (packageQuantityValue !== '' && parseFloat(packageQuantityValue) > 0) ||
+    (boxQuantityValue !== '' && parseFloat(boxQuantityValue) > 0);
+
+  const handleMainQuantityChange = (e) => {
+    const { value } = e.target;
+    handleItemInputChange({ target: { name: 'dquantity', value } });
+
+    if (value !== '' && parseFloat(value) > 0) {
+      handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
+      handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
+    }
+  };
+
+  const handleSubQuantityChange = (e) => {
+    const { name, value } = e.target;
+    let newPackageQtyStr = name === 'packageQuantity' ? value : packageQuantityValue;
+    let newBoxQtyStr = name === 'boxQuantity' ? value : boxQuantityValue;
+
+    handleItemInputChange({ target: { name, value } }); // Update the changed sub-quantity field
+
+    const pkgQty = parseFloat(newPackageQtyStr) || 0;
+    const boxQty = parseFloat(newBoxQtyStr) || 0;
+
+    if (pkgQty > 0 || boxQty > 0) {
+      const totalQty = pkgQty * boxQty;
+      handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
+    } else {
+      handleItemInputChange({ target: { name: 'dquantity', value: '' } });
+    }
+  };
+  
   const getProductPurchasePrice = () => {
     if (!currentItem.product) return 0;
     const selectedProduct = products?.find(p => p._id === currentItem.product);
     return selectedProduct?.purchasePrice || 0;
   };
 
-  // 計算總成本
   const calculateTotalCost = (quantity) => {
     const purchasePrice = getProductPurchasePrice();
-    return (parseFloat(purchasePrice) * parseInt(quantity)).toFixed(2);
+    const numericQuantity = parseFloat(quantity) || 0;
+    return (parseFloat(purchasePrice) * numericQuantity).toFixed(2);
   };
 
-  // 檢查庫存是否足夠 (進貨單不需要檢查庫存，始終返回true)
-  const isInventorySufficient = () => {
-    return true;
+  const isInventorySufficient = () => true;
+
+  const filterProducts = (options, inputValue) => {
+    const filterValue = inputValue?.toLowerCase() || '';
+    return options.filter(option =>
+      option.name.toLowerCase().includes(filterValue) ||
+      option.code.toLowerCase().includes(filterValue) ||
+      (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
+      (option.productType === 'medicine' && option.healthInsuranceCode &&
+       option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
+      (option.productType === 'product' && option.barcode &&
+       option.barcode.toLowerCase().includes(filterValue))
+    );
   };
+
   return (
-    <Grid container spacing={2} sx={{ mb: 1 }}>
-<Grid item xs={12} sm={6} md={4}>
-  <Autocomplete
-    id="product-select"
-    options={products}
-    getOptionLabel={(option) => `${option.code} - ${option.name}`}
-    value={products.find(p => p._id === currentItem.product) || null}
-    onChange={handleProductChange}
-    filterOptions={(options, state) => filterProducts(options, state.inputValue)}
-    onKeyDown={(event) => {
-      if (['Enter', 'Tab'].includes(event.key)) {
-        const filteredOptions = filterProducts(products, event.target.value);
-        if (filteredOptions.length > 0) {
-          handleProductChange(event, filteredOptions[0]);
-          event.preventDefault();
-          document.querySelector('input[name="dquantity"]')?.focus();
-        }
-      }
-    }}
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        id="product-select-input"
-        label="選擇藥品"
-        fullWidth
-      />
-    )}
-  />
-</Grid>
-      <Grid item xs={12} sm={6} md={2}>
-        <TextField
-          fullWidth
-          label="數量"
-          name="dquantity"
-          type="number"
-          value={currentItem.dquantity}
-          onChange={handleItemInputChange}
-          inputProps={{ min: 1 }}
+    <Grid container spacing={2} alignItems="flex-start" sx={{ mb: 1 }}>
+      <Grid item xs={12} sm={6} md={4}>
+        <Autocomplete
+          id="product-select"
+          options={products}
+          getOptionLabel={(option) => `${option.code} - ${option.name}`}
+          value={products.find(p => p._id === currentItem.product) || null}
+          onChange={handleProductChange}
+          filterOptions={(options, state) => filterProducts(options, state.inputValue)}
           onKeyDown={(event) => {
-            // 當按下ENTER鍵時
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              // 聚焦到總成本輸入框
-              document.querySelector('input[name="dtotalCost"]').focus();
+            if (['Enter', 'Tab'].includes(event.key)) {
+              const filteredOptions = filterProducts(products, event.target.value);
+              if (filteredOptions.length > 0) {
+                handleProductChange(event, filteredOptions[0]);
+                event.preventDefault();
+                const dquantityInput = document.querySelector('input[name="dquantity"]');
+                const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
+                if (dquantityInput && !dquantityInput.disabled) {
+                  dquantityInput.focus();
+                } else if (packageQuantityInput && !packageQuantityInput.disabled) {
+                  packageQuantityInput.focus();
+                }
+              }
             }
           }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              id="product-select-input"
+              label="選擇藥品"
+              fullWidth
+            />
+          )}
         />
       </Grid>
+
       <Grid item xs={12} sm={6} md={3}>
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="總數量"
+              name="dquantity"
+              type="number"
+              value={dQuantityValue}
+              onChange={handleMainQuantityChange}
+              inputProps={{ min: "1" }}
+              disabled={dQuantityDisabled}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  const packageQtyInput = document.querySelector('input[name="packageQuantity"]');
+                  if (packageQtyInput && !packageQtyInput.disabled) {
+                      packageQtyInput.focus();
+                  } else {
+                      document.querySelector('input[name="dtotalCost"]')?.focus();
+                  }
+                }
+              }}
+            />
+          </Grid>
+          <Grid item xs={5}>
+            <TextField
+              fullWidth
+              label="大包裝"
+              name="packageQuantity"
+              type="number"
+              value={packageQuantityValue}
+              onChange={handleSubQuantityChange}
+              inputProps={{ min: "1" }}
+              disabled={packageAndBoxDisabled}
+              size="small"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  document.querySelector('input[name="boxQuantity"]')?.focus();
+                }
+              }}
+            />
+          </Grid>
+          <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="body1">*</Typography>
+          </Grid>
+          <Grid item xs={5}>
+            <TextField
+              fullWidth
+              label="數量"
+              name="boxQuantity"
+              type="number"
+              value={boxQuantityValue}
+              onChange={handleSubQuantityChange}
+              inputProps={{ min: "1" }}
+              disabled={packageAndBoxDisabled}
+              size="small"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  document.querySelector('input[name="dtotalCost"]')?.focus();
+                }
+              }}
+            />
+          </Grid>
+        </Grid>
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={2.5}>
         <PriceTooltip 
-          currentItem={currentItem}
+          currentItem={{...currentItem, dquantity: dQuantityValue}}
           handleItemInputChange={handleItemInputChange}
           getProductPurchasePrice={getProductPurchasePrice}
           calculateTotalCost={calculateTotalCost}
@@ -102,7 +198,7 @@ const ProductItemForm = ({
           handleAddItem={handleAddItem}
         />
       </Grid>
-      <Grid item xs={12} sm={6} md={3}>
+      <Grid item xs={12} sm={6} md={2.5}>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -117,17 +213,5 @@ const ProductItemForm = ({
   );
 };
 
-const filterProducts = (options, inputValue) => {
-  const filterValue = inputValue?.toLowerCase() || '';
-  return options.filter(option =>
-    option.name.toLowerCase().includes(filterValue) ||
-    option.code.toLowerCase().includes(filterValue) ||
-    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
-    (option.productType === 'medicine' && option.healthInsuranceCode &&
-     option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
-    (option.productType === 'product' && option.barcode &&
-     option.barcode.toLowerCase().includes(filterValue))
-  );
-};
-
 export default ProductItemForm;
+
