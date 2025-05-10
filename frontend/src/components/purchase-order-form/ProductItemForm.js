@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Grid, 
   TextField, 
@@ -14,21 +14,37 @@ const ProductItemForm = ({
   handleItemInputChange,
   handleProductChange,
   handleAddItem,
-  products
+  products,
+  productInputRef
 }) => {
+  const [activeInput, setActiveInput] = useState(null);
+
   const dQuantityValue = currentItem.dquantity || '';
   const packageQuantityValue = currentItem.packageQuantity || '';
-  const boxQuantityValue = currentItem.boxQuantity || ''; // This is the new "數量" field
+  const boxQuantityValue = currentItem.boxQuantity || '';
 
-  const packageAndBoxDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue) > 0;
-  const dQuantityDisabled = 
-    (packageQuantityValue !== '' && parseFloat(packageQuantityValue) > 0) ||
-    (boxQuantityValue !== '' && parseFloat(boxQuantityValue) > 0);
+  const subQuantitiesDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue) > 0 && activeInput !== 'packageQuantity' && activeInput !== 'boxQuantity';
+  const mainQuantityDisabled = 
+    ((packageQuantityValue !== '' && parseFloat(packageQuantityValue) > 0) ||
+    (boxQuantityValue !== '' && parseFloat(boxQuantityValue) > 0)) && activeInput !== 'dquantity';
+
+  const calculateAndUpdateDQuantity = () => {
+    const pkgQty = parseFloat(currentItem.packageQuantity) || 0;
+    const boxQty = parseFloat(currentItem.boxQuantity) || 0;
+    if (pkgQty > 0 || boxQty > 0) {
+      const totalQty = pkgQty * boxQty;
+      handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
+    } else {
+      // If both sub-quantities are cleared or zero, clear main quantity as well, unless user is actively editing dquantity
+      if (activeInput !== 'dquantity') {
+        handleItemInputChange({ target: { name: 'dquantity', value: '' } });
+      }
+    }
+  };
 
   const handleMainQuantityChange = (e) => {
     const { value } = e.target;
     handleItemInputChange({ target: { name: 'dquantity', value } });
-
     if (value !== '' && parseFloat(value) > 0) {
       handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
       handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
@@ -37,20 +53,14 @@ const ProductItemForm = ({
 
   const handleSubQuantityChange = (e) => {
     const { name, value } = e.target;
-    let newPackageQtyStr = name === 'packageQuantity' ? value : packageQuantityValue;
-    let newBoxQtyStr = name === 'boxQuantity' ? value : boxQuantityValue;
-
+    // Only update the specific sub-quantity field's value in currentItem
     handleItemInputChange({ target: { name, value } });
+    // dquantity will be calculated onBlur of these fields
+  };
 
-    const pkgQty = parseFloat(newPackageQtyStr) || 0;
-    const boxQty = parseFloat(newBoxQtyStr) || 0;
-
-    if (pkgQty > 0 || boxQty > 0) {
-      const totalQty = pkgQty * boxQty;
-      handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
-    } else {
-      handleItemInputChange({ target: { name: 'dquantity', value: '' } });
-    }
+  const handleSubQuantityBlur = () => {
+    calculateAndUpdateDQuantity();
+    // setActiveInput(null); // Consider if activeInput should be cleared on blur
   };
   
   const getProductPurchasePrice = () => {
@@ -65,13 +75,13 @@ const ProductItemForm = ({
     return (parseFloat(purchasePrice) * numericQuantity).toFixed(2);
   };
 
-  const isInventorySufficient = () => true;
+  const isInventorySufficient = () => true; 
 
   const filterProducts = (options, inputValue) => {
     const filterValue = inputValue?.toLowerCase() || '';
     return options.filter(option =>
       option.name.toLowerCase().includes(filterValue) ||
-      option.code.toLowerCase().includes(filterValue) ||
+      (option.code && option.code.toLowerCase().includes(filterValue)) ||
       (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
       (option.productType === 'medicine' && option.healthInsuranceCode &&
        option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
@@ -80,28 +90,42 @@ const ProductItemForm = ({
     );
   };
 
+  const handleFocus = (e) => {
+    setActiveInput(e.target.name);
+  };
+
+  // Generic onKeyDown for quantity inputs to prevent Enter issues
+  const handleQuantityKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+    }
+  };
+
   return (
     <Grid container spacing={2} alignItems="flex-start" sx={{ mb: 1 }}>
       <Grid item xs={12} sm={6} md={4}>
         <Autocomplete
           id="product-select"
-          options={products}
-          getOptionLabel={(option) => `${option.code} - ${option.name}`}
-          value={products.find(p => p._id === currentItem.product) || null}
+          options={products || []} 
+          getOptionLabel={(option) => `${option.code || 'N/A'} - ${option.name}`}
+          value={products && products.find(p => p._id === currentItem.product) || null}
           onChange={handleProductChange}
           filterOptions={(options, state) => filterProducts(options, state.inputValue)}
           onKeyDown={(event) => {
-            if (['Enter', 'Tab'].includes(event.key)) {
-              const filteredOptions = filterProducts(products, event.target.value);
-              if (filteredOptions.length > 0) {
-                handleProductChange(event, filteredOptions[0]);
-                event.preventDefault();
-                const dquantityInput = document.querySelector('input[name="dquantity"]');
-                const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
-                if (dquantityInput && !dquantityInput.disabled) {
-                  dquantityInput.focus();
-                } else if (packageQuantityInput && !packageQuantityInput.disabled) {
-                  packageQuantityInput.focus();
+            if (event.key === 'Enter' || event.key === 'Tab') {
+              if (event.target.value) {
+                const filteredOptions = filterProducts(products || [], event.target.value);
+                if (filteredOptions.length > 0) {
+                  handleProductChange(event, filteredOptions[0]);
+                  event.preventDefault(); 
+                  const dquantityInput = document.querySelector('input[name="dquantity"]');
+                  const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
+                  if (dquantityInput && !dquantityInput.disabled) {
+                    dquantityInput.focus();
+                  } else if (packageQuantityInput && !packageQuantityInput.disabled) {
+                    packageQuantityInput.focus();
+                  }
+                  return; 
                 }
               }
             }
@@ -109,6 +133,7 @@ const ProductItemForm = ({
           renderInput={(params) => (
             <TextField
               {...params}
+              inputRef={productInputRef} 
               id="product-select-input"
               label="選擇藥品"
               fullWidth
@@ -127,21 +152,10 @@ const ProductItemForm = ({
               type="number"
               value={dQuantityValue}
               onChange={handleMainQuantityChange}
-              inputProps={{ min: "1" }}
-              disabled={dQuantityDisabled}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  const packageQtyInput = document.querySelector('input[name="packageQuantity"]');
-                  if (packageQtyInput && !packageQtyInput.disabled) {
-                      packageQtyInput.focus();
-                  } else {
-                      // If sub-quantities are disabled (meaning main quantity was entered),
-                      // or if user just wants to proceed, they can tab or enter to totalCost.
-                      // No explicit focus needed here, rely on Tab or next field in PriceTooltip.
-                  }
-                }
-              }}
+              onFocus={handleFocus}
+              onKeyDown={handleQuantityKeyDown}
+              inputProps={{ min: "0.01", step: "0.01" }}
+              disabled={mainQuantityDisabled}
             />
           </Grid>
           <Grid item xs={5}>
@@ -152,15 +166,12 @@ const ProductItemForm = ({
               type="number"
               value={packageQuantityValue}
               onChange={handleSubQuantityChange}
+              onFocus={handleFocus}
+              onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
+              onKeyDown={handleQuantityKeyDown}
               inputProps={{ min: "1" }}
-              disabled={packageAndBoxDisabled}
+              disabled={subQuantitiesDisabled}
               size="small"
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  document.querySelector('input[name="boxQuantity"]')?.focus();
-                }
-              }}
             />
           </Grid>
           <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -174,16 +185,12 @@ const ProductItemForm = ({
               type="number"
               value={boxQuantityValue}
               onChange={handleSubQuantityChange}
+              onFocus={handleFocus}
+              onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
+              onKeyDown={handleQuantityKeyDown}
               inputProps={{ min: "1" }}
-              disabled={packageAndBoxDisabled}
+              disabled={subQuantitiesDisabled}
               size="small"
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  // Allow natural tab order to move to the next focusable element (e.g., totalCost or Add button)
-                  // Do not explicitly focus on dtotalCost here.
-                }
-              }}
             />
           </Grid>
         </Grid>
@@ -191,12 +198,12 @@ const ProductItemForm = ({
 
       <Grid item xs={12} sm={6} md={2.5}>
         <PriceTooltip 
-          currentItem={{...currentItem, dquantity: dQuantityValue}} // Ensure PriceTooltip gets the potentially calculated dquantity
-          handleItemInputChange={handleItemInputChange} // Pass this if PriceTooltip needs to update other parts of currentItem
+          currentItem={{...currentItem, dquantity: dQuantityValue}}
+          handleItemInputChange={handleItemInputChange}
           getProductPurchasePrice={getProductPurchasePrice}
           calculateTotalCost={calculateTotalCost}
           isInventorySufficient={isInventorySufficient}
-          handleAddItem={handleAddItem} // Pass if PriceTooltip has an add mechanism
+          handleAddItem={handleAddItem}
         />
       </Grid>
       <Grid item xs={12} sm={6} md={2.5}>
