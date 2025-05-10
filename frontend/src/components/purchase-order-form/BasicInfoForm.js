@@ -46,7 +46,7 @@ const BasicInfoForm = ({
         </Typography>
         
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField
               fullWidth
               label="進貨單號"
@@ -58,7 +58,7 @@ const BasicInfoForm = ({
               helperText="留空將自動生成"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField
               fullWidth
               label="發票號碼"
@@ -68,7 +68,7 @@ const BasicInfoForm = ({
               variant="outlined"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
                 label="發票日期"
@@ -78,7 +78,7 @@ const BasicInfoForm = ({
               />
             </LocalizationProvider>
           </Grid>
-<Grid item xs={12} sm={6} md={3}>
+<Grid item xs={12} sm={6} md={2}>
   <Autocomplete
     id="supplier-select"
     options={suppliers}
@@ -126,20 +126,10 @@ onKeyDown={(event) => {
       <TextField {...params} required label="供應商" fullWidth />
     )}
   />
+
+
 </Grid>
-          <Grid item xs={12} sm={6} md={6}>
-            <TextField
-              fullWidth
-              label="備註"
-              name="notes"
-              value={formData.notes}
-              onChange={handleInputChange}
-              variant="outlined"
-              multiline
-              rows={1}
-            />
-          </Grid>
-		<Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2}>
             <Box
 				sx={{
 					backgroundColor:
@@ -202,7 +192,20 @@ onKeyDown={(event) => {
             </FormControl>
             </Box>
           </Grid>
-		  <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={6}>
+            <TextField
+              fullWidth
+              label="備註"
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              variant="outlined"
+              multiline
+              rows={1}
+            />
+          </Grid>
+
+		  <Grid item xs={12} sm={6} md={2}>
             <Box
 				sx={{
 					backgroundColor:
@@ -254,7 +257,7 @@ onKeyDown={(event) => {
 						<MenuItem value="completed">已完成</MenuItem>
 					</Select>
 				</FormControl>
-			</Box>
+			      </Box>
           </Grid>
 		</Grid>
 

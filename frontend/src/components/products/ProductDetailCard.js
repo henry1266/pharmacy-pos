@@ -40,8 +40,8 @@ const ProductDetailCard = ({
         title={product.name}
           subheader={
         <>
-          編號: {product.code}  | 簡碼: {product.shortCode} | 健保碼: {product.healthInsuranceCode || '無'}<br />
-          國際條碼: {product.barcode || '無'}
+          編號: {product.code}  | 簡碼: {product.shortCode} | 單位: {product.unit || '無'}<br />
+          國際條碼: {product.barcode || '無'} | 健保碼: {product.healthInsuranceCode || '無'}
         </>
         }
         action={
@@ -78,9 +78,6 @@ const ProductDetailCard = ({
             }</Typography>
           </Grid>
           <Grid item xs={12} sm={3}>
-            <Typography variant="subtitle2">單位: {product.unit || '無'}</Typography>
-          </Grid>
-          <Grid item xs={12} sm={3}>
             <Typography variant="subtitle2">最低庫存: {product.minStock || '0'}</Typography>
           </Grid>
           
@@ -98,8 +95,8 @@ const ProductDetailCard = ({
         <Divider sx={{ my: 2 }} />
 
 		<Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2">備註: {product.barcode || '無'}</Typography>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2">備註: {product.description || '無'}</Typography>
           </Grid>
 
         </Grid>
