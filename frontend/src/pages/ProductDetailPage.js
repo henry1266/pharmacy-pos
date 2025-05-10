@@ -8,10 +8,7 @@ import {
   Grid,
   Card,
   CardContent,
-  Paper,
-  Divider,
-  CircularProgress,
-  Chip
+  CircularProgress
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,

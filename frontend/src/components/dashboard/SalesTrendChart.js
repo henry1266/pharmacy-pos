@@ -38,7 +38,7 @@ const SalesTrendChart = ({ salesTrendData }) => {
     }}>
       <CardContent>
         <Typography variant="h6" gutterBottom fontWeight="600" color="var(--text-primary)">
-          銷售趨勢 (過去30天)
+          銷售趨勢
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart

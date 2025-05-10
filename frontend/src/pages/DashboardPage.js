@@ -46,7 +46,7 @@ const mockPageData = {
     { date: '2025-05-07', totalSales: 1400, profit: 420 },
   ],
   categorySales: [
-    { name: '感冒藥 (測試)', sales: 5000 },
+    { name: '感冒藥 (測試)', sales: 500 },
     { name: '維他命 (測試)', sales: 3500 },
     { name: '保健品 (測試)', sales: 2500 },
     { name: '醫療器材 (測試)', sales: 1500 },
@@ -153,7 +153,7 @@ const DashboardPage = () => {
       {/* Charts */}
       <Grid container spacing={3} sx={{mt: 2}}>
         {/* Sales Trend Chart */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={6}>
           {salesTrend && <SalesTrendChart salesTrendData={salesTrend} />}
         </Grid>
 
