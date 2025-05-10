@@ -61,7 +61,8 @@ const LoginPage = () => {
       setTimeout(() => {
         // In test mode, set mock token and user info for dashboard access
         localStorage.setItem('token', 'test-mode-token'); 
-        localStorage.setItem('user', JSON.stringify({ name: 'Test User', email: 'test@example.com', role: 'admin' })); // Added role for potential checks
+        localStorage.setItem('user', JSON.stringify({ name: 'Test User', email: 'test@example.com', role: '測試模式' })); // Role set to Test Mode
+        localStorage.setItem('isTestMode', 'true'); // Indicate test mode is active
         window.location.replace('/dashboard');
       }, 600); // Match animation duration
       return; // Important to return here to skip actual login
