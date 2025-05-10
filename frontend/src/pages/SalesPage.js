@@ -27,14 +27,44 @@ import SaleInfoCard from '../components/sales/SaleInfoCard';
 import SalesProductInput from '../components/sales/SalesProductInput';
 import SalesItemsTable from '../components/sales/SalesItemsTable';
 
+// Mock data for test mode
+const mockSalesPageData = {
+  products: [
+    { _id: 'mockProd001', code: 'MOCK001', name: '測試藥品X (模擬)', purchasePrice: 100, retailPrice: 150, stock: 50, category: { name: '測試分類' }, supplier: { name: '測試供應商' }, productType: 'medicine' },
+    { _id: 'mockProd002', code: 'MOCK002', name: '測試藥品Y (模擬)', purchasePrice: 200, retailPrice: 250, stock: 30, category: { name: '測試分類' }, supplier: { name: '測試供應商' }, productType: 'medicine' },
+    { _id: 'mockProd003', code: 'MOCK003', name: '測試保健品Z (模擬)', purchasePrice: 250, retailPrice: 300, stock: 0, category: { name: '測試分類' }, supplier: { name: '測試供應商' }, productType: 'product' }, // Low stock example
+  ],
+  customers: [
+    { _id: 'mockCust001', code: 'MC001', name: '測試客戶A (模擬)', phone: '0912345678', membershipLevel: 'regular' },
+    { _id: 'mockCust002', code: 'MC002', name: '測試客戶B (模擬)', phone: '0987654321', membershipLevel: 'platinum' },
+  ],
+};
+
 const SalesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-  const barcodeInputRef = useRef(null); // Ref for barcode input, same as SalesEditPage
+  const barcodeInputRef = useRef(null);
+  const [isTestMode, setIsTestMode] = useState(false);
+
+  useEffect(() => {
+    const testModeActive = localStorage.getItem('isTestMode') === 'true';
+    setIsTestMode(testModeActive);
+  }, []);
 
   // Use the custom hook to fetch data
-  const { products, customers, loading, error } = useSalesData();
+  const { 
+    products: actualProducts, 
+    customers: actualCustomers, 
+    loading: actualLoading, 
+    error: actualError 
+  } = useSalesData();
+
+  // Determine data sources based on test mode
+  const products = (isTestMode && actualError) || (isTestMode && !actualProducts) ? mockSalesPageData.products : actualProducts;
+  const customers = (isTestMode && actualError) || (isTestMode && !actualCustomers) ? mockSalesPageData.customers : actualCustomers;
+  const loading = isTestMode ? false : actualLoading;
+  const error = isTestMode ? null : actualError; // In test mode, we use mock data on actual error
 
   // Snackbar state
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -59,15 +89,15 @@ const SalesPage = () => {
     handleSubtotalChange,
     handleRemoveItem,
     toggleInputMode,
-    handleSaveSale: handleSaveSaleHook
-  } = useSaleManagement(showSnackbar);
+    handleSaveSale: handleSaveSaleHook,
+    resetSale // Added from hook
+  } = useSaleManagement(showSnackbar, isTestMode); // Pass isTestMode to the hook
 
   // Component-specific UI State
   const [customDialogOpen, setCustomDialogOpen] = useState(false);
   const [selectedShortcut, setSelectedShortcut] = useState(null);
   const [infoExpanded, setInfoExpanded] = useState(!isMobile);
 
-  // --- Focus Management (similar to SalesEditPage) --- 
   const focusBarcode = useCallback(() => {
     setTimeout(() => {
         if (barcodeInputRef.current) {
@@ -80,27 +110,32 @@ const SalesPage = () => {
     focusBarcode();
   }, [focusBarcode]);
 
-  // Initial focus and refocus after saving (if applicable)
   useEffect(() => {
     if (!loading && !error) {
       focusBarcode();
     }
   }, [loading, error, focusBarcode]);
 
-  // Show error message from data fetching hook
   useEffect(() => {
-    if (error) {
+    if (error && !isTestMode) { // Only show actual error if not in test mode
       showSnackbar(error, 'error');
+    } else if (isTestMode && actualError) {
+      showSnackbar('測試模式：載入實際產品/客戶資料失敗，已使用模擬數據。', 'info');
     }
-  }, [error, showSnackbar]);
-
-  // Refocus barcode input after adding item (SalesProductInput handles its own focus after submit)
-  // The onQuantityInputComplete will handle focus return from SalesItemsTable
+  }, [error, actualError, isTestMode, showSnackbar]);
 
   const handleSaveSale = async () => {
+    if (isTestMode) {
+      // Simulate save for test mode
+      console.log("Test Mode: Simulating save sale with data:", currentSale);
+      showSnackbar('測試模式：銷售記錄已模擬儲存成功！', 'success');
+      resetSale(); // Reset the sale form as if it were saved
+      focusBarcode();
+      return;
+    }
     const success = await handleSaveSaleHook();
     if (success) {
-      focusBarcode(); // Refocus after successful save
+      focusBarcode(); 
     }
   };
 
@@ -109,7 +144,7 @@ const SalesPage = () => {
     setCustomDialogOpen(true);
   };
 
-  if (loading) {
+  if (loading && !isTestMode) { // Show loading only if not in test mode overriding with mock data
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress />
@@ -117,6 +152,8 @@ const SalesPage = () => {
       </Box>
     );
   }
+  
+  // If in test mode and actual data failed, products/customers will be mock data.
 
   return (
     <Box sx={{ p: 3 }}>
@@ -124,7 +161,7 @@ const SalesPage = () => {
         <CustomProductsDialog
           open={customDialogOpen}
           onClose={() => setCustomDialogOpen(false)}
-          allProducts={products}
+          allProducts={products || []} // Ensure products is an array
           productIdsToShow={selectedShortcut.productIds}
           shortcutName={selectedShortcut.name}
           onSelectProduct={handleSelectProduct}
@@ -132,17 +169,20 @@ const SalesPage = () => {
       )}
 
       <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', mb: 3 }}>
-        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom={isMobile}>銷售作業</Typography>
+        <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom={isMobile}>
+          銷售作業 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+        </Typography>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/sales')} sx={{ mt: isMobile ? 1 : 0 }}>返回銷售列表</Button>
       </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <SalesProductInput
-            products={products}
-            barcodeInputRef={barcodeInputRef} // Pass the ref
+            products={products || []} // Ensure products is an array
+            barcodeInputRef={barcodeInputRef}
             onSelectProduct={handleSelectProduct}
             showSnackbar={showSnackbar}
+            isTestMode={isTestMode}
           />
 
           <SalesItemsTable
@@ -155,7 +195,8 @@ const SalesPage = () => {
             onSubtotalChange={handleSubtotalChange}
             totalAmount={currentSale.totalAmount}
             discount={currentSale.discount}
-            onQuantityInputComplete={handleQuantityInputComplete} // Pass the handler
+            onQuantityInputComplete={handleQuantityInputComplete}
+            isTestMode={isTestMode}
           />
 
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
@@ -164,9 +205,9 @@ const SalesPage = () => {
               color="primary"
               startIcon={<SaveIcon />}
               onClick={handleSaveSale}
-              disabled={currentSale.items.length === 0 || loading}
+              disabled={currentSale.items.length === 0 || (loading && !isTestMode)}
             >
-              儲存銷售記錄
+              儲存銷售記錄 {isTestMode && "(模擬)"}
             </Button>
           </Box>
         </Grid>
@@ -174,16 +215,20 @@ const SalesPage = () => {
         <Grid item xs={12} md={4}>
           <SaleInfoCard
             saleData={currentSale}
-            customers={customers}
+            customers={customers || []} // Ensure customers is an array
             isMobile={isMobile}
             expanded={infoExpanded}
             onExpandToggle={() => setInfoExpanded(!infoExpanded)}
             onInputChange={handleSaleInfoChange}
+            isTestMode={isTestMode}
           />
 
           <Box sx={{ mt: 3 }}>
-            {/* Corrected prop name here */}
-            <ShortcutButtonManager onShortcutSelect={handleShortcutSelect} allProducts={products} />
+            <ShortcutButtonManager 
+              onShortcutSelect={handleShortcutSelect} 
+              allProducts={products || []} // Ensure products is an array
+              isTestMode={isTestMode}
+            />
           </Box>
         </Grid>
       </Grid>

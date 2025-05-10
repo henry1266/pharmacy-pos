@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-// Removed axios import
 import {
   CircularProgress,
   ListItemText,
@@ -24,7 +23,7 @@ import {
   LinearProgress,
   Link,
   Tooltip,
-  Snackbar // Added Snackbar
+  Snackbar
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -33,29 +32,61 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
-import useSupplierData from '../hooks/useSupplierData'; // Import the custom hook
+import useSupplierData from '../hooks/useSupplierData'; 
+
+// Mock data for test mode
+const mockSuppliersData = [
+  {
+    id: 'mockSup001',
+    code: 'MKSUP001',
+    shortCode: 'MS1',
+    name: '測試供應商甲 (模擬)',
+    contactPerson: '陳先生',
+    phone: '02-12345678',
+    taxId: '12345678',
+    paymentTerms: '月結30天',
+    notes: '這是模擬的供應商資料。'
+  },
+  {
+    id: 'mockSup002',
+    code: 'MKSUP002',
+    shortCode: 'MS2',
+    name: '測試供應商乙 (模擬)',
+    contactPerson: '林小姐',
+    phone: '03-87654321',
+    taxId: '87654321',
+    paymentTerms: '貨到付款',
+    notes: '這是另一筆模擬供應商資料，用於測試。'
+  },
+];
 
 const SuppliersPage = () => {
-  // Use the custom hook for data and operations
+  const [isTestMode, setIsTestMode] = useState(false);
+
+  useEffect(() => {
+    const testModeActive = localStorage.getItem('isTestMode') === 'true';
+    setIsTestMode(testModeActive);
+  }, []);
+
   const {
-    suppliers,
-    loading,
-    error,
-    selectedSupplier,
-    selectSupplier,
-    addSupplier,
-    updateSupplier,
-    deleteSupplier,
-    importCsv,
-    downloadTemplate,
-    setError // Use setError from hook to manage errors
+    suppliers: actualSuppliers,
+    loading: actualLoading,
+    error: actualError,
+    selectedSupplier: actualSelectedSupplier,
+    selectSupplier: actualSelectSupplier,
+    addSupplier: actualAddSupplier,
+    updateSupplier: actualUpdateSupplier,
+    deleteSupplier: actualDeleteSupplier,
+    importCsv: actualImportCsv,
+    downloadTemplate: actualDownloadTemplate,
+    setError: setActualError 
   } = useSupplierData();
 
   // Local UI state (dialogs, form data, etc.)
   const [openDialog, setOpenDialog] = useState(false);
   const [openImportDialog, setOpenImportDialog] = useState(false);
-  const [currentSupplier, setCurrentSupplier] = useState({
-    id: null, // Add id for editing
+  const [currentSupplierState, setCurrentSupplierState] = useState({
+    id: null, 
     code: '',
     shortCode: '',
     name: '',
@@ -71,20 +102,57 @@ const SuppliersPage = () => {
   const [importResult, setImportResult] = useState(null);
   const [templateDownloading, setTemplateDownloading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [localSuppliers, setLocalSuppliers] = useState([]);
+  const [localSelectedSupplier, setLocalSelectedSupplier] = useState(null);
 
-  // Reset error state from hook when component mounts or relevant state changes
   useEffect(() => {
-    setError(null);
-  }, [setError]);
+    if (isTestMode) {
+      if (actualError || !actualSuppliers || actualSuppliers.length === 0) {
+        setLocalSuppliers(mockSuppliersData);
+        showSnackbar('測試模式：載入實際供應商資料失敗，已使用模擬數據。', 'info');
+      } else {
+        setLocalSuppliers(actualSuppliers);
+      }
+    } else {
+      setLocalSuppliers(actualSuppliers);
+    }
+  }, [isTestMode, actualSuppliers, actualError]);
 
-  // Show snackbar for errors from the hook
   useEffect(() => {
-    if (error) {
+    if (isTestMode) {
+        setLocalSelectedSupplier(actualSelectedSupplier ? localSuppliers.find(s => s.id === actualSelectedSupplier.id) || null : null);
+    } else {
+        setLocalSelectedSupplier(actualSelectedSupplier);
+    }
+  }, [isTestMode, actualSelectedSupplier, localSuppliers]);
+
+
+  const suppliers = isTestMode ? localSuppliers : actualSuppliers;
+  const loading = isTestMode ? false : actualLoading;
+  const error = isTestMode ? null : actualError;
+  const selectedSupplier = isTestMode ? localSelectedSupplier : actualSelectedSupplier;
+
+  const selectSupplier = (id) => {
+    if (isTestMode) {
+        const supplier = localSuppliers.find(s => s.id === id);
+        setLocalSelectedSupplier(supplier || null);
+    } else {
+        actualSelectSupplier(id);
+    }
+  };
+
+  useEffect(() => {
+    if (!isTestMode) {
+      setActualError(null);
+    }
+  }, [setActualError, isTestMode]);
+
+  useEffect(() => {
+    if (error && !isTestMode) {
       showSnackbar(error, 'error');
     }
-  }, [error]);
+  }, [error, isTestMode]);
 
-  // Table columns definition (remains the same)
   const columns = [
     { field: 'code', headerName: '供應商編號', width: 120 },
     { field: 'shortCode', headerName: '簡碼', width: 100 },
@@ -120,27 +188,24 @@ const SuppliersPage = () => {
     },
   ];
 
-  // Handler functions adapted to use the hook
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const processedValue = value === '' ? '' : value;
-    setCurrentSupplier({ ...currentSupplier, [name]: processedValue });
+    setCurrentSupplierState({ ...currentSupplierState, [name]: value });
   };
 
   const handleEditSupplier = (id) => {
-    const supplier = suppliers.find(s => s.id === id);
-    if (supplier) {
-      // Ensure all fields exist in the state object
-      setCurrentSupplier({
-        id: supplier.id,
-        code: supplier.code || '',
-        shortCode: supplier.shortCode || '',
-        name: supplier.name || '',
-        contactPerson: supplier.contactPerson || '',
-        phone: supplier.phone || '',
-        taxId: supplier.taxId || '',
-        paymentTerms: supplier.paymentTerms || '',
-        notes: supplier.notes || ''
+    const supplierToEdit = suppliers.find(s => s.id === id);
+    if (supplierToEdit) {
+      setCurrentSupplierState({
+        id: supplierToEdit.id,
+        code: supplierToEdit.code || '',
+        shortCode: supplierToEdit.shortCode || '',
+        name: supplierToEdit.name || '',
+        contactPerson: supplierToEdit.contactPerson || '',
+        phone: supplierToEdit.phone || '',
+        taxId: supplierToEdit.taxId || '',
+        paymentTerms: supplierToEdit.paymentTerms || '',
+        notes: supplierToEdit.notes || ''
       });
       setEditMode(true);
       setOpenDialog(true);
@@ -148,43 +213,59 @@ const SuppliersPage = () => {
   };
 
   const handleDeleteSupplier = async (id) => {
-    if (window.confirm('確定要刪除此供應商嗎？')) {
-      const success = await deleteSupplier(id);
+    if (window.confirm(isTestMode ? '測試模式：確定要模擬刪除此供應商嗎？' : '確定要刪除此供應商嗎？')) {
+      if (isTestMode) {
+        setLocalSuppliers(prev => prev.filter(s => s.id !== id));
+        if (localSelectedSupplier && localSelectedSupplier.id === id) {
+            setLocalSelectedSupplier(null);
+        }
+        showSnackbar('測試模式：供應商已模擬刪除', 'info');
+        return;
+      }
+      const success = await actualDeleteSupplier(id);
       if (success) {
         showSnackbar('供應商已成功刪除', 'success');
-      } else {
-        // Error is handled by the useEffect watching the hook's error state
-        // showSnackbar(`刪除供應商失敗: ${error}`, 'error'); // Already handled
-      }
+      } 
     }
   };
 
   const handleAddSupplier = () => {
-    setCurrentSupplier({ id: null, code: '', shortCode: '', name: '', contactPerson: '', phone: '', taxId: '', paymentTerms: '', notes: '' });
+    setCurrentSupplierState({ id: null, code: '', shortCode: '', name: '', contactPerson: '', phone: '', taxId: '', paymentTerms: '', notes: '' });
     setEditMode(false);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => setOpenDialog(false);
   const handleCloseImportDialog = () => { setOpenImportDialog(false); setCsvFile(null); setImportResult(null); };
-  const handleSelectSupplier = (id) => selectSupplier(id); // Use hook's select function
-  const handleRowClick = (params) => handleSelectSupplier(params.row.id);
+  const handleRowClick = (params) => selectSupplier(params.row.id);
 
   const handleSaveSupplier = async () => {
+    if (isTestMode) {
+      const newSupplier = { ...currentSupplierState, id: currentSupplierState.id || `mockSup${Date.now()}`, code: currentSupplierState.code || `MKSUP${Date.now().toString().slice(-4)}` };
+      if (editMode) {
+        setLocalSuppliers(prev => prev.map(s => s.id === newSupplier.id ? newSupplier : s));
+         if(localSelectedSupplier && localSelectedSupplier.id === newSupplier.id) {
+            setLocalSelectedSupplier(newSupplier);
+        }
+      } else {
+        setLocalSuppliers(prev => [...prev, newSupplier]);
+      }
+      setOpenDialog(false);
+      showSnackbar(editMode ? '測試模式：供應商已模擬更新' : '測試模式：供應商已模擬新增', 'info');
+      return;
+    }
+
     let success = false;
     if (editMode) {
-      success = await updateSupplier(currentSupplier.id, currentSupplier);
+      success = await actualUpdateSupplier(currentSupplierState.id, currentSupplierState);
     } else {
-      success = await addSupplier(currentSupplier);
+      success = await actualAddSupplier(currentSupplierState);
     }
 
     if (success) {
       setOpenDialog(false);
       showSnackbar(editMode ? '供應商已更新' : '供應商已新增', 'success');
-    } else {
-      // Error is handled by the useEffect watching the hook's error state
-      // showSnackbar(`保存供應商失敗: ${error}`, 'error'); // Already handled
-    }
+    } 
   };
 
   const handleOpenImportDialog = () => { setOpenImportDialog(true); setImportResult(null); setCsvFile(null); };
@@ -202,9 +283,26 @@ const SuppliersPage = () => {
   };
 
   const handleDownloadTemplate = async () => {
+    if (isTestMode) {
+        showSnackbar('測試模式：模擬下載CSV模板。實際下載將被阻止。', 'info');
+        console.log("Test Mode: Simulating CSV template download.");
+        // Optionally create a dummy blob and link for visual feedback if desired
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); // UTF-8 BOM
+        const csvContent = "code,shortCode,name,contactPerson,phone,taxId,paymentTerms,notes\nSUP001,S1,範例供應商,張三,02-11112222,12345678,月結30天,這是範例備註";
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'mock-suppliers-template.csv');
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+        return;
+    }
     try {
       setTemplateDownloading(true);
-      const blob = await downloadTemplate();
+      const blob = await actualDownloadTemplate();
       if (blob) {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -214,11 +312,8 @@ const SuppliersPage = () => {
         link.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
-      } else {
-        // Error handled by hook
-      }
+      } 
     } catch (err) {
-      // Should be caught by hook, but have a fallback
       console.error('下載CSV模板失敗 (component):', err);
       showSnackbar('下載CSV模板失敗，請稍後再試', 'error');
     } finally {
@@ -228,9 +323,20 @@ const SuppliersPage = () => {
 
   const handleImportCsv = async () => {
     if (!csvFile) { showSnackbar('請先選擇CSV文件', 'warning'); return; }
+    if (isTestMode) {
+        setImportLoading(true);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate import
+        const mockResult = { total: 5, success: 3, failed: 1, duplicates: 1, errors: [{ row: 4, error: '模擬錯誤：欄位格式不符'}] };
+        setImportResult(mockResult);
+        showSnackbar(`測試模式：模擬匯入完成。成功 ${mockResult.success}, 失敗 ${mockResult.failed}, 重複 ${mockResult.duplicates}`, 'info');
+        setImportLoading(false);
+        // Optionally add mock data to localSuppliers if needed for further testing
+        // setLocalSuppliers(prev => [...prev, ...mockSuppliersData.slice(0,1)]); // Example
+        return;
+    }
     try {
       setImportLoading(true);
-      const result = await importCsv(csvFile);
+      const result = await actualImportCsv(csvFile);
       setImportResult(result);
       if (result.success > 0) {
         showSnackbar(`成功匯入 ${result.success} 筆供應商資料`, 'success');
@@ -240,7 +346,6 @@ const SuppliersPage = () => {
         showSnackbar('未匯入任何資料', 'info');
       }
     } catch (err) {
-      // Error should be handled by hook, but have fallback
       console.error('匯入CSV失敗 (component):', err);
       setImportResult({ total: 0, success: 0, failed: 0, duplicates: 0, errors: [{ error: err.message }] });
       showSnackbar('匯入CSV失敗', 'error');
@@ -249,7 +354,6 @@ const SuppliersPage = () => {
     }
   };
 
-  // Show snackbar utility
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
@@ -261,7 +365,6 @@ const SuppliersPage = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Define Action Buttons for the layout header (remains the same)
   const actionButtons = (
     <Box>
       <Button
@@ -271,7 +374,7 @@ const SuppliersPage = () => {
         onClick={handleOpenImportDialog}
         sx={{ mr: 2 }}
       >
-        匯入CSV
+        匯入CSV {isTestMode && "(模擬)"}
       </Button>
       <Button
         variant="contained"
@@ -279,12 +382,11 @@ const SuppliersPage = () => {
         startIcon={<AddIcon />}
         onClick={handleAddSupplier}
       >
-        添加供應商
+        添加供應商 {isTestMode && "(模擬)"}
       </Button>
     </Box>
   );
 
-  // Define Detail Panel for the layout (uses selectedSupplier from hook)
   const detailPanel = selectedSupplier ? (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
       <CardHeader
@@ -334,12 +436,12 @@ const SuppliersPage = () => {
   return (
     <>
       <CommonListPageLayout
-        title="供應商管理"
+        title={isTestMode ? "供應商管理 (測試模式)" : "供應商管理"}
         actionButtons={actionButtons}
         columns={columns}
-        rows={suppliers}
-        loading={loading} // Use loading state from hook
-        error={null} // Error is handled via snackbar, don't pass to layout
+        rows={suppliers || []}
+        loading={loading}
+        error={null} 
         onRowClick={handleRowClick}
         detailPanel={detailPanel}
         tableGridWidth={9}
@@ -355,34 +457,33 @@ const SuppliersPage = () => {
         }}
       />
 
-      {/* Add/Edit Supplier Dialog (remains the same structure) */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'}</DialogTitle>
+        <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'} {isTestMode && "(模擬)"}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 0.5 }}>
             <Grid item xs={12} sm={6}>
-              <TextField name="code" label="供應商編號" value={currentSupplier.code} onChange={handleInputChange} fullWidth margin="dense" size="small" helperText="留空將自動生成" />
+              <TextField name="code" label="供應商編號" value={currentSupplierState.code} onChange={handleInputChange} fullWidth margin="dense" size="small" helperText={isTestMode ? "測試模式：可留空" : "留空將自動生成"} />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField name="shortCode" label="簡碼" value={currentSupplier.shortCode} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
+              <TextField name="shortCode" label="簡碼" value={currentSupplierState.shortCode} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
             </Grid>
             <Grid item xs={12}>
-              <TextField name="name" label="供應商名稱" value={currentSupplier.name} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
+              <TextField name="name" label="供應商名稱" value={currentSupplierState.name} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField name="contactPerson" label="聯絡人" value={currentSupplier.contactPerson} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+              <TextField name="contactPerson" label="聯絡人" value={currentSupplierState.contactPerson} onChange={handleInputChange} fullWidth margin="dense" size="small" />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField name="phone" label="電話" value={currentSupplier.phone} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+              <TextField name="phone" label="電話" value={currentSupplierState.phone} onChange={handleInputChange} fullWidth margin="dense" size="small" />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField name="taxId" label="稅號" value={currentSupplier.taxId} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+              <TextField name="taxId" label="稅號" value={currentSupplierState.taxId} onChange={handleInputChange} fullWidth margin="dense" size="small" />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField name="paymentTerms" label="付款條件" value={currentSupplier.paymentTerms} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+              <TextField name="paymentTerms" label="付款條件" value={currentSupplierState.paymentTerms} onChange={handleInputChange} fullWidth margin="dense" size="small" />
             </Grid>
             <Grid item xs={12}>
-              <TextField name="notes" label="備註" value={currentSupplier.notes} onChange={handleInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
+              <TextField name="notes" label="備註" value={currentSupplierState.notes} onChange={handleInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
             </Grid>
           </Grid>
         </DialogContent>
@@ -392,9 +493,8 @@ const SuppliersPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Import CSV Dialog (remains the same structure) */}
       <Dialog open={openImportDialog} onClose={handleCloseImportDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>匯入供應商 CSV</DialogTitle>
+        <DialogTitle>匯入供應商 CSV {isTestMode && "(模擬)"}</DialogTitle>
         <DialogContent>
           <Box sx={{ my: 2 }}>
             <Typography variant="body2" gutterBottom>
@@ -407,57 +507,60 @@ const SuppliersPage = () => {
             <Button
               component="label"
               variant="outlined"
-              startIcon={<UploadFileIcon />}
-              sx={{ mr: 1 }}
+              startIcon={<FileDownloadIcon />}
+              onClick={handleDownloadTemplate} // This will now be the test mode aware one
+              sx={{ mr: 2, mb: { xs: 1, sm: 0 } }}
+              disabled={templateDownloading}
             >
-              選擇文件
-              <input type="file" hidden accept=".csv" onChange={handleFileChange} />
+              {templateDownloading ? '下載中...' : '下載CSV模板'}
             </Button>
-            {csvFile && <Typography variant="body2" component="span">已選擇: {csvFile.name}</Typography>}
-            <Box sx={{ mt: 2 }}>
-              <Link component="button" variant="body2" onClick={handleDownloadTemplate} disabled={templateDownloading}>
-                {templateDownloading ? <CircularProgress size={16} sx={{ mr: 1 }} /> : <FileDownloadIcon sx={{ verticalAlign: 'middle', mr: 0.5, fontSize: '1rem' }} />}下載CSV模板
-              </Link>
-            </Box>
+            <input type="file" accept=".csv" onChange={handleFileChange} style={{ display: 'none' }} id="csv-upload-input" />
+            <label htmlFor="csv-upload-input">
+              <Button component="span" variant="contained" startIcon={<UploadFileIcon />}>
+                選擇文件
+              </Button>
+            </label>
+            {csvFile && <Typography sx={{ mt: 1 }}>已選擇: {csvFile.name}</Typography>}
           </Box>
           {importLoading && <LinearProgress sx={{ my: 2 }} />}
           {importResult && (
-            <Alert severity={importResult.failed > 0 || importResult.errors?.length > 0 ? 'warning' : 'success'} sx={{ mt: 2 }}>
-              <Typography variant="body2">總共處理: {importResult.total}</Typography>
-              <Typography variant="body2">成功匯入: {importResult.success}</Typography>
-              <Typography variant="body2">失敗: {importResult.failed}</Typography>
-              <Typography variant="body2">重複: {importResult.duplicates}</Typography>
+            <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+              <Typography variant="subtitle1">匯入結果:</Typography>
+              <Typography>總共處理: {importResult.total}</Typography>
+              <Typography color="success.main">成功: {importResult.success}</Typography>
+              <Typography color="error.main">失敗: {importResult.failed}</Typography>
+              <Typography color="warning.main">重複: {importResult.duplicates}</Typography>
               {importResult.errors && importResult.errors.length > 0 && (
                 <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2" fontWeight="bold">錯誤詳情:</Typography>
-                  <List dense sx={{ maxHeight: 100, overflow: 'auto' }}>
-                    {importResult.errors.map((err, index) => (
-                      <ListItem key={index} sx={{ py: 0 }}>
-                        <ListItemText primary={`行 ${err.row || 'N/A'}: ${err.error}`} primaryTypographyProps={{ variant: 'caption', color: 'error' }} />
+                  <Typography variant="body2" color="error.main">錯誤詳情:</Typography>
+                  <List dense disablePadding>
+                    {importResult.errors.slice(0, 5).map((err, index) => (
+                      <ListItem key={index} disableGutters sx={{pl:1}}>
+                        <ListItemText primary={`行 ${err.row || '-'}: ${err.error}`} sx={{fontSize: '0.8rem'}}/>
                       </ListItem>
                     ))}
+                    {importResult.errors.length > 5 && <ListItemText primary={`...還有 ${importResult.errors.length - 5} 個錯誤`} sx={{fontSize: '0.8rem', pl:1}}/>}
                   </List>
                 </Box>
               )}
-            </Alert>
+            </Box>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseImportDialog}>關閉</Button>
           <Button onClick={handleImportCsv} variant="contained" disabled={!csvFile || importLoading}>
-            {importLoading ? <CircularProgress size={24} /> : '開始匯入'}
+            {importLoading ? '匯入中...' : '開始匯入'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={6000}
+        autoHideDuration={isTestMode ? 5000 : 3000} // Longer for test mode info messages
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

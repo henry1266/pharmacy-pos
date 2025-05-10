@@ -34,41 +34,38 @@ import ListAltIcon from '@mui/icons-material/ListAlt'; // Icon for Product List
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
-
-
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
 
-/**
- * 主要佈局組件，包含頂部導航欄和側邊菜單
- * @param {Object} props - 組件屬性
- * @param {React.ReactNode} props.children - 子組件內容
- * @returns {React.ReactElement} 佈局組件
- */
+const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon, adminOnly, userRole }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = location.pathname === to || location.pathname.startsWith(to + '/'); // More robust active check
+
+  if (adminOnly && userRole !== 'admin') {
+    return null; // Don't render if adminOnly and user is not admin
+  }
+
+  return (
+    <Tooltip title={tooltip}>
+      <IconButton color="inherit" onClick={() => navigate(to)} sx={{ mx: 0.5 }}>
+        {isActive ? activeIcon : inactiveIcon}
+      </IconButton>
+    </Tooltip>
+  );
+};
+
 const MainLayout = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState(false);
-  const [productSubMenuOpen, setProductSubMenuOpen ] = useState(false); // State for product submenu
-  const [settingSubMenuOpen, setSettingSubMenuOpen ] = useState(false); // State for product submenu
-  const [anchorEl, setAnchorEl] = useState(null); // State for Popover anchor
+  const [productSubMenuOpen, setProductSubMenuOpen ] = useState(false);
+  const [settingSubMenuOpen, setSettingSubMenuOpen ] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Function to check if a path belongs to the product section
-  const isProductPath = (path) => {
-    return path.startsWith('/products') || path.startsWith('/product-categories');
-  };
-
-  // Function to check if a path belongs to the accounting section
-  const isAccountingPath = (path) => {
-    return path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
-  };
-const isSettingPath = (path) => {
-  return /^\/settings(\/|$)/.test(path);
-};
-
-  // Get user info from localStorage
   const [user, setUser] = useState(null);
+  const [isTestMode, setIsTestMode] = useState(false);
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -76,246 +73,116 @@ const isSettingPath = (path) => {
         setUser(JSON.parse(storedUser));
       } catch (error) {
         console.error("Failed to parse user data from localStorage", error);
-        // Handle error, maybe clear invalid data
         localStorage.removeItem('user');
       }
     }
+    const testModeActive = localStorage.getItem('isTestMode') === 'true';
+    setIsTestMode(testModeActive);
   }, []);
 
+  const isProductPath = (path) => path.startsWith('/products') || path.startsWith('/product-categories');
+  const isAccountingPath = (path) => path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
+  const isSettingPath = (path) => /^\/settings(\/|$)/.test(path);
+
   const menuItems = [
-    { 
-      text: '儀表板', 
-      icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, 
-      path: '/dashboard' ,
-      adminOnly: true // Mark as admin only
-    },
-    { 
-      text: '銷售管理', 
-      icon: (location.pathname.startsWith('/sales')) ? <SellOutlinedIcon /> : <SellIcon />, 
-      path: '/sales' 
-    },
-    // Modified Product Menu Item to be a collapsible group
-    { 
-      text: '商品管理', 
-      icon: isProductPath(location.pathname) ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, 
-      // No direct path, click toggles submenu
-      subItems: [
+    { text: '儀表板', icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, path: '/dashboard', adminOnly: true },
+    { text: '銷售管理', icon: (location.pathname.startsWith('/sales')) ? <SellOutlinedIcon /> : <SellIcon />, path: '/sales' },
+    { text: '商品管理', icon: isProductPath(location.pathname) ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, subItems: [
         { text: '商品列表', path: '/products', icon: <ListAltIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '商品分類', path: '/product-categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
       ]
     },
-    // Removed '產品分類' as it's now a subitem
-    { 
-      text: '進貨單管理', 
-      icon: (location.pathname.startsWith('/purchase-orders')) ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, 
-      path: '/purchase-orders',
-      adminOnly: true // Mark as admin only
-    },
-    { 
-      text: '出貨單管理', 
-      icon: (location.pathname.startsWith('/shipping-orders')) ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, 
-      path: '/shipping-orders',
-      adminOnly: true // Mark as admin only 
-    },
-    { 
-      text: '供應商管理', 
-      icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, 
-      path: '/suppliers',
-      adminOnly: true // Mark as admin only
-    },
-    { 
-      text: '會員管理', 
-      icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, 
-      path: '/customers' ,
-      adminOnly: true // Mark as admin only
-    },
-    // Modified Accounting Menu Item to be a collapsible group
-    { 
-      text: '記帳管理', 
-      icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, 
-      // No direct path, click toggles submenu
-      subItems: [
+    { text: '進貨單管理', icon: (location.pathname.startsWith('/purchase-orders')) ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, path: '/purchase-orders', adminOnly: true },
+    { text: '出貨單管理', icon: (location.pathname.startsWith('/shipping-orders')) ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, path: '/shipping-orders', adminOnly: true },
+    { text: '供應商管理', icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, path: '/suppliers', adminOnly: true },
+    { text: '會員管理', icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, path: '/customers', adminOnly: true },
+    { text: '記帳管理', icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, subItems: [
         { text: '記帳列表', path: '/accounting' },
         { text: '名目設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
       ]
     },
-    { text: '報表功能', icon: <BarChartIcon />, 
-	    path: '/reports' ,
-      adminOnly: true // Mark as admin only
-	  },
-	  { 
-      text: '系統設定', 
-      icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, 
-      // No direct path, click toggles submenu
-      subItems: [
+    { text: '報表功能', icon: <BarChartIcon />, path: '/reports', adminOnly: true },
+    { text: '系統設定', icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, subItems: [
         { text: '設定列表', path: '/settings' },
         { text: 'ip設定', path: '/settings/ip', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
       ]
     },
   ];
 
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
   const handleNavigation = (path) => {
     navigate(path);
     setDrawerOpen(false);
   };
 
   const handleLogout = () => {
-    handleClosePopover(); // Close popover before logout
-    localStorage.removeItem('token'); // Clear token on logout
-    localStorage.removeItem('user'); // Clear user info on logout
-    delete axios.defaults.headers.common['x-auth-token']; // Remove token from axios headers
+    handleClosePopover();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isTestMode'); // Also clear test mode on logout
+    delete axios.defaults.headers.common['x-auth-token'];
     navigate('/login');
   };
-  
 
-  // Toggle Accounting Submenu
-  const handleSettingClick = () => {
-    setSettingSubMenuOpen(!settingSubMenuOpen);
-  };
-  // Toggle Accounting Submenu
-  const handleAccountingClick = () => {
-    setAccountingSubMenuOpen(!accountingSubMenuOpen);
-  };
-
-  // Toggle Product Submenu
-  const handleProductClick = () => {
-    setProductSubMenuOpen(!productSubMenuOpen);
-  };
-
-  // Handle Avatar Click to open Popover
-  const handleAvatarClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  // Handle Popover Close
-  const handleClosePopover = () => {
-    setAnchorEl(null);
-  };
+  const handleSettingClick = () => setSettingSubMenuOpen(!settingSubMenuOpen);
+  const handleAccountingClick = () => setAccountingSubMenuOpen(!accountingSubMenuOpen);
+  const handleProductClick = () => setProductSubMenuOpen(!productSubMenuOpen);
+  const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClosePopover = () => setAnchorEl(null);
 
   const openPopover = Boolean(anchorEl);
   const popoverId = openPopover ? 'user-popover' : undefined;
 
-  // Filter menu items based on user role
   const filteredMenuItems = menuItems.filter(item => {
-    if (!item.adminOnly) return true; // Show if not admin only
-    return user && user.role === 'admin'; // Show if admin only and user is admin
+    if (!item.adminOnly) return true;
+    return user && user.role === 'admin';
   });
 
-  // Determine Avatar content based on user role
   const getAvatarContent = () => {
+    if (isTestMode) return 'T'; // Test Mode Avatar
     if (!user) return '?';
     if (user.role === 'admin') return 'A';
-    if (user.role === 'stuff') return 'S'; // Assuming 'stuff' is the role name
+    if (user.role === 'stuff') return 'S';
     if (user.username) return user.username.charAt(0).toUpperCase();
     return '?';
   };
-
+  
+  const getUserRoleDisplay = () => {
+    if (isTestMode) return '測試模式';
+    if (user?.role === 'admin') return '管理員';
+    if (user?.role === 'stuff') return '員工';
+    return user?.role || '未知';
+  };
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Top Navigation Bar */}
-      <AppBar 
-        position="fixed" 
-        sx={{ 
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'var(--bg-secondary)',
-          color: 'var(--text-primary)',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
-        }}
-      >
+      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={toggleDrawer}
-            sx={{ mr: 2 }}
-          >
+          <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={toggleDrawer} sx={{ mr: 2 }}>
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            POS系統
+            POS系統 {isTestMode && <Typography component="span" sx={{ fontSize: '0.7em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
           </Typography>
 
-          <NavIconButton
-            to="/shipping-orders/new"
-            tooltip="出貨"
-            activeIcon={<LocalShippingIcon />}
-            inactiveIcon={<LocalShippingOutlinedIcon />}
-			adminOnly={true} // Apply admin check
-            userRole={user?.role} // Pass user role
-          />
+          <NavIconButton to="/shipping-orders/new" tooltip="出貨" activeIcon={<LocalShippingIcon />} inactiveIcon={<LocalShippingOutlinedIcon />} adminOnly={true} userRole={user?.role} />
+          <NavIconButton to="/purchase-orders/new" tooltip="進貨" activeIcon={<AssignmentIcon />} inactiveIcon={<AssignmentOutlinedIcon />} adminOnly={true} userRole={user?.role} />
+          <NavIconButton to="/sales/new" tooltip="銷售" activeIcon={<PointOfSaleIcon />} inactiveIcon={<PointOfSaleOutlinedIcon />} />
+          <NavIconButton to="/accounting/new" tooltip="記帳" activeIcon={<AssuredWorkloadIcon />} inactiveIcon={<AssuredWorkloadOutlinedIcon />} />
           
-          <NavIconButton
-            to="/purchase-orders/new"
-            tooltip="進貨"
-            activeIcon={<AssignmentIcon />}
-            inactiveIcon={<AssignmentOutlinedIcon />}
-            adminOnly={true} // Apply admin check
-            userRole={user?.role} // Pass user role
-          />
-          
-          <NavIconButton
-            to="/sales/new"
-            tooltip="銷售"
-            activeIcon={<PointOfSaleIcon />}
-            inactiveIcon={<PointOfSaleOutlinedIcon />}
-          />
-          
-          <NavIconButton
-            to="/accounting/new"
-            tooltip="記帳"
-            activeIcon={<AssuredWorkloadIcon />}
-            inactiveIcon={<AssuredWorkloadOutlinedIcon />}
-          />
-          <Avatar 
-            aria-describedby={popoverId}
-            sx={{ 
-              width: 36, 
-              height: 36,
-              cursor: 'pointer',
-              bgcolor: 'var(--primary-color)'
-            }}
-            onClick={handleAvatarClick} // Changed onClick to open popover
-          >
-            {getAvatarContent()} {/* Use function to get avatar content */}
+          <Avatar aria-describedby={popoverId} sx={{ width: 36, height: 36, cursor: 'pointer', bgcolor: isTestMode ? 'orange' : 'var(--primary-color)' }} onClick={handleAvatarClick}>
+            {getAvatarContent()}
           </Avatar>
-          {/* User Info Popover */}
-          <Popover
-            id={popoverId}
-            open={openPopover}
-            anchorEl={anchorEl}
-            onClose={handleClosePopover}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            sx={{ mt: 1 }}
-          >
+          <Popover id={popoverId} open={openPopover} anchorEl={anchorEl} onClose={handleClosePopover} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} sx={{ mt: 1 }}>
             <Box sx={{ p: 2, minWidth: 200 }}>
               <Typography variant="subtitle1" gutterBottom>
-                {user?.username || '使用者'}
+                {isTestMode ? '測試帳戶' : (user?.username || '使用者')}
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                角色: {user?.role || '未知'}
+                角色: {getUserRoleDisplay()}
               </Typography>
               <Divider sx={{ my: 1 }} />
-              <Button 
-                variant="outlined" 
-                color="error" 
-                size="small" 
-                fullWidth 
-                onClick={handleLogout} 
-                startIcon={<LogoutIcon />}
-              >
+              <Button variant="outlined" color="error" size="small" fullWidth onClick={handleLogout} startIcon={<LogoutIcon />}>
                 登出
               </Button>
             </Box>
@@ -323,23 +190,7 @@ const isSettingPath = (path) => {
         </Toolbar>
       </AppBar>
       
-      {/* Sidebar */}
-      <Drawer
-        variant="permanent"
-        open={true}
-        sx={{
-          width: 200,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { 
-            width: 200, 
-            boxSizing: 'border-box',
-            backgroundColor: 'var(--bg-sidebar)',
-            color: 'var(--text-light)',
-            borderRight: 'none'
-          },
-          display: { xs: 'none', sm: 'block' }
-        }}
-      >
+      <Drawer variant="permanent" open={true} sx={{ width: 200, flexShrink: 0, [`& .MuiDrawer-paper`]: { width: 200, boxSizing: 'border-box', backgroundColor: 'var(--bg-sidebar)', color: 'var(--text-light)', borderRight: 'none' }, display: { xs: 'none', sm: 'block' } }}>
         <Toolbar />
         <Box sx={{ overflow: 'auto', mt: 2 }}>
           <Box sx={{ px: 3, mb: 3 }}>
@@ -347,121 +198,28 @@ const isSettingPath = (path) => {
               興安藥局
             </Typography>
           </Box>
-          
           <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-          
           <List component="nav">
-            {/* Use filteredMenuItems */}
             {filteredMenuItems.map((item) => {
               if (item.subItems) {
-            const isOpen =
-              item.text === '記帳管理'
-                ? accountingSubMenuOpen
-                : item.text === '商品管理'
-                ? productSubMenuOpen
-                : item.text === '系統設定'
-                ? settingSubMenuOpen
-                : false;
-
-            const handleClick =
-              item.text === '記帳管理'
-                ? handleAccountingClick
-                : item.text === '商品管理'
-                ? handleProductClick
-                : item.text === '系統設定'
-                ? handleSettingClick
-                : undefined;
-
-            const isActive =
-              item.text === '記帳管理'
-                ? isAccountingPath(location.pathname)
-                : item.text === '商品管理'
-                ? isProductPath(location.pathname)
-                : item.text === '系統設定'
-                ? isSettingPath(location.pathname)
-                : false;
-                
-                // Filter subItems based on adminOnly flag
-                const filteredSubItems = item.subItems.filter(subItem => {
-                  if (!subItem.adminOnly) return true;
-                  return user && user.role === 'admin';
-                });
-
-                // If all subitems are filtered out, don't render the main item
-                if (filteredSubItems.length === 0 && item.subItems.length > 0) {
-                  return null;
-                }
-
+                const isOpen = item.text === '記帳管理' ? accountingSubMenuOpen : item.text === '商品管理' ? productSubMenuOpen : item.text === '系統設定' ? settingSubMenuOpen : false;
+                const handleClick = item.text === '記帳管理' ? handleAccountingClick : item.text === '商品管理' ? handleProductClick : item.text === '系統設定' ? handleSettingClick : undefined;
+                const isActive = item.text === '記帳管理' ? isAccountingPath(location.pathname) : item.text === '商品管理' ? isProductPath(location.pathname) : item.text === '系統設定' ? isSettingPath(location.pathname) : false;
+                const filteredSubItems = item.subItems.filter(subItem => !subItem.adminOnly || (user && user.role === 'admin'));
+                if (filteredSubItems.length === 0 && item.subItems.length > 0) return null;
                 return (
                   <React.Fragment key={item.text}>
-                    <ListItem 
-                      button 
-                      onClick={handleClick}
-                      sx={{
-                        borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent',
-                        pl: 2.5,
-                        py: 1.5,
-                        backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                        }
-                      }}
-                    >
-                      <ListItemIcon sx={{ 
-                        color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                        minWidth: 40
-                      }}>
-                        {item.icon}
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={item.text} 
-                        primaryTypographyProps={{ 
-                          sx: { 
-                            color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                            fontWeight: 500
-                          } 
-                        }}
-                      />
+                    <ListItem button onClick={handleClick} sx={{ borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent', pl: 2.5, py: 1.5, backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
+                      <ListItemIcon sx={{ color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>{item.icon}</ListItemIcon>
+                      <ListItemText primary={item.text} primaryTypographyProps={{ sx: { color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', fontWeight: 500 } }} />
                       {isOpen ? <ExpandLess sx={{ color: 'rgba(255, 255, 255, 0.7)' }} /> : <ExpandMore sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />}
                     </ListItem>
                     <Collapse in={isOpen} timeout="auto" unmountOnExit>
                       <List component="div" disablePadding>
-                        {/* Use filteredSubItems */}
                         {filteredSubItems.map((subItem) => (
-                          <ListItem 
-                            button 
-                            key={subItem.text} 
-                            onClick={() => handleNavigation(subItem.path)}
-                            selected={location.pathname === subItem.path}
-                            sx={{
-                              pl: 4, // Indent sub-items
-                              py: 1,
-                              '&.Mui-selected': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                              },
-                              '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                              }
-                            }}
-                          >
-                            {subItem.icon && (
-                              <ListItemIcon sx={{ 
-                                color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                                minWidth: 30
-                              }}>
-                                {subItem.icon}
-                              </ListItemIcon>
-                            )}
-                            <ListItemText 
-                              primary={subItem.text} 
-                              primaryTypographyProps={{ 
-                                sx: { 
-                                  color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                                  fontWeight: location.pathname === subItem.path ? 500 : 400,
-                                  fontSize: '0.9rem'
-                                } 
-                              }}
-                            />
+                          <ListItem button key={subItem.text} onClick={() => handleNavigation(subItem.path)} sx={{ pl: 4, py: 1, borderLeft: location.pathname === subItem.path ? '3px solid var(--primary-color)' : '3px solid transparent', backgroundColor: location.pathname === subItem.path ? 'rgba(255, 255, 255, 0.08)' : 'transparent', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' } }}>
+                            {subItem.icon && <ListItemIcon sx={{ color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.6)', minWidth: 30 }}>{subItem.icon}</ListItemIcon>}
+                            <ListItemText primary={subItem.text} primaryTypographyProps={{ sx: { color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' } }} />
                           </ListItem>
                         ))}
                       </List>
@@ -469,41 +227,11 @@ const isSettingPath = (path) => {
                   </React.Fragment>
                 );
               } else {
-                // Render non-collapsible items
-                const isActive = location.pathname.startsWith(item.path) && item.path !== '/';
+                const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'));
                 return (
-                  <ListItem 
-                    button 
-                    key={item.text} 
-                    onClick={() => handleNavigation(item.path)}
-                    selected={isActive}
-                    sx={{
-                      borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent',
-                      pl: 2.5,
-                      py: 1.5,
-                      '&.Mui-selected': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                      },
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                      }
-                    }}
-                  >
-                    <ListItemIcon sx={{ 
-                      color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                      minWidth: 40
-                    }}>
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary={item.text} 
-                      primaryTypographyProps={{ 
-                        sx: { 
-                          color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)',
-                          fontWeight: isActive ? 500 : 400
-                        } 
-                      }}
-                    />
+                  <ListItem button key={item.text} onClick={() => handleNavigation(item.path)} sx={{ borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent', pl: 2.5, py: 1.5, backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
+                    <ListItemIcon sx={{ color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>{item.icon}</ListItemIcon>
+                    <ListItemText primary={item.text} primaryTypographyProps={{ sx: { color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', fontWeight: 500 } }} />
                   </ListItem>
                 );
               }
@@ -511,48 +239,12 @@ const isSettingPath = (path) => {
           </List>
         </Box>
       </Drawer>
-
       {/* Main Content Area */}
-      <Box 
-        component="main" 
-        sx={{ 
-          flexGrow: 1, 
-          p: 3, 
-          backgroundColor: 'var(--bg-primary)',
-          minHeight: '100vh'
-        }}
-      >
-        <Toolbar />
+      <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
+        <Toolbar /> {/* For spacing below AppBar */}
         {children}
       </Box>
     </Box>
-  );
-};
-
-// Helper component for Nav Icon Buttons in AppBar
-const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon, adminOnly = false, userRole }) => {
-  const location = useLocation();
-  const isActive = location.pathname === to;
-
-  // Hide if adminOnly and user is not admin
-  if (adminOnly && userRole !== 'admin') {
-    return null;
-  }
-
-  return (
-    <Tooltip title={tooltip}>
-      <IconButton 
-        color="inherit" 
-        component={Link} 
-        to={to} 
-        sx={{ 
-          mr: 2,
-          color: isActive ? 'var(--primary-color)' : 'inherit'
-        }}
-      >
-        {isActive ? activeIcon : inactiveIcon}
-      </IconButton>
-    </Tooltip>
   );
 };
 
