@@ -268,7 +268,7 @@ const ProductsPage = () => {
         tabValue={tabValue}
       />
       
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {/* 左側表格區域 */}
         <Grid item xs={12} md={8}>
           <ProductTabs 

@@ -133,7 +133,6 @@ const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalI
         );
       }
     },
-    { field: 'barcode', headerName: '國際條碼', width: 120 },
     { field: 'purchasePrice', headerName: '進貨價', width: 100, type: 'number' },
     { field: 'healthInsuranceCode', headerName: '健保碼', width: 100 },
     { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },
@@ -150,7 +149,7 @@ const createMedicineColumns = (handleEditProduct, handleDeleteProduct, getTotalI
     {
       field: 'actions',
       headerName: '操作',
-      width: 180,
+      width: 160,
       renderCell: (params) => {
         // 使用函數組件以便使用useNavigate
         const ActionButtons = () => {

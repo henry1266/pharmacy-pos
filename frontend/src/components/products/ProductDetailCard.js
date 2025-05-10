@@ -38,16 +38,14 @@ const ProductDetailCard = ({
     <Card>
       <CardHeader
         title={product.name}
-        subheader={`編號: ${product.code} | 簡碼: ${product.shortCode}`}
+          subheader={
+        <>
+          編號: {product.code}  | 簡碼: {product.shortCode} | 健保碼: {product.healthInsuranceCode || '無'}<br />
+          國際條碼: {product.barcode || '無'}
+        </>
+        }
         action={
           <Box>
-            <IconButton
-              color="info"
-              onClick={() => navigate(`/products/${product.id}`)}
-              title="查看詳情"
-            >
-              <VisibilityIcon />
-            </IconButton>
             <IconButton
               color="primary"
               onClick={() => handleEditProduct(product.id, product.productType)}
@@ -67,29 +65,33 @@ const ProductDetailCard = ({
       />
       <CardContent>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <Typography variant="subtitle2">供應商: {product.supplier ? 
                 suppliers.find(s => s._id === product.supplier)?.name || product.supplier 
                 : '無'}</Typography>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <Typography variant="subtitle2">分類: {
               product.category ? 
                 categories.find(c => c._id === product.category)?.name || product.category 
                 : '無'
             }</Typography>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <Typography variant="subtitle2">單位: {product.unit || '無'}</Typography>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
+            <Typography variant="subtitle2">最低庫存: {product.minStock || '0'}</Typography>
+          </Grid>
+          
+          <Grid item xs={12} sm={3}>
             <Typography variant="subtitle2">進貨價: {product.purchasePrice || '0'}</Typography>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <Typography variant="subtitle2">售價: {product.sellingPrice || '0'}</Typography>
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2">最低庫存: {product.minStock || '0'}</Typography>
+          <Grid item xs={12} sm={3}>
+            <Typography variant="subtitle2">健保價: {product.healthInsurancePrice || '0'}</Typography>
           </Grid>
         </Grid>
         
@@ -97,14 +99,9 @@ const ProductDetailCard = ({
 
 		<Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2">國際條碼: {product.barcode || '無'}</Typography>
+            <Typography variant="subtitle2">備註: {product.barcode || '無'}</Typography>
           </Grid>
-		  <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2">健保碼: {product.healthInsuranceCode || '無'}</Typography>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2">健保價: {product.healthInsurancePrice || '0'}</Typography>
-          </Grid>
+
         </Grid>
         
         <Divider sx={{ my: 2 }} />
