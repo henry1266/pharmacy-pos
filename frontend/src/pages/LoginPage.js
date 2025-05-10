@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Typography, Paper, Grid, TextField, Button, Snackbar, Alert, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, Grid, TextField, Button, Snackbar, Alert, CircularProgress, FormControlLabel, Checkbox } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 // Removed axios import
 import authService from '../services/authService'; // Import the auth service
@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
   const [particlesInit, setParticlesInit] = useState(false);
   const [formVisible, setFormVisible] = useState(true);
+  const [isTestMode, setIsTestMode] = useState(false); // Added state for test mode
 
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -45,10 +46,26 @@ const LoginPage = () => {
     setCredentials({ ...credentials, [name]: value });
   };
 
+  const handleTestModeChange = (event) => {
+    setIsTestMode(event.target.checked);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    if (isTestMode) {
+      // Test mode: bypass actual login
+      setFormVisible(false);
+      setTimeout(() => {
+        // In test mode, set mock token and user info for dashboard access
+        localStorage.setItem('token', 'test-mode-token'); 
+        localStorage.setItem('user', JSON.stringify({ name: 'Test User', email: 'test@example.com', role: 'admin' })); // Added role for potential checks
+        window.location.replace('/dashboard');
+      }, 600); // Match animation duration
+      return; // Important to return here to skip actual login
+    }
 
     try {
       // Use the authService for login
@@ -59,15 +76,10 @@ const LoginPage = () => {
       setTimeout(() => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
-        // Note: Setting axios default header here might be better placed
-        // in an Axios instance configuration or an interceptor.
-        // For simplicity, keeping it here for now.
-        // axios.defaults.headers.common['x-auth-token'] = token;
         window.location.replace('/dashboard');
       }, 600); // Match animation duration
 
     } catch (err) {
-      // Use the error message from the service
       const errorMessage = err.message || '登入失敗，請檢查您的憑證或稍後再試。';
       setError(errorMessage);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
@@ -143,8 +155,8 @@ const LoginPage = () => {
                         type="email"
                         value={credentials.email}
                         onChange={handleChange}
-                        required
-                        disabled={loading}
+                        required={!isTestMode} // Not required in test mode
+                        disabled={loading || isTestMode} // Disabled in test mode
                         InputProps={{ sx: { color: '#fff' } }}
                         InputLabelProps={{ sx: { color: '#bbb' } }}
                       />
@@ -157,20 +169,19 @@ const LoginPage = () => {
                         type="password"
                         value={credentials.password}
                         onChange={handleChange}
-                        required
-                        disabled={loading}
+                        required={!isTestMode} // Not required in test mode
+                        disabled={loading || isTestMode} // Disabled in test mode
                         InputProps={{ sx: { color: '#fff' } }}
                         InputLabelProps={{ sx: { color: '#bbb' } }}
                       />
                     </Grid>
-                    {/* Error display can be removed if snackbar is sufficient */}
-                    {/* {error && (
-                      <Grid item xs={12}>
-                        <Typography color="error" align="center" variant="body2">
-                          {error}
-                        </Typography>
-                      </Grid>
-                    )} */}
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={<Checkbox checked={isTestMode} onChange={handleTestModeChange} sx={{ color: '#00bfff', '&.Mui-checked': { color: '#00ffff' } }} />}
+                        label={<Typography sx={{ color: '#e0f7fa' }}>測試模式</Typography>}
+                        disabled={loading}
+                      />
+                    </Grid>
                     <Grid item xs={12}>
                       <Button
                         type="submit"

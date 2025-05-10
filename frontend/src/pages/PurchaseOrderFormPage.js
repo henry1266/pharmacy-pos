@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -7,7 +7,8 @@ import {
   CardContent,
   Snackbar,
   Alert,
-  Button
+  Button,
+  CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
 
@@ -26,31 +27,78 @@ const PurchaseOrderFormPage = () => {
   const { id } = useParams();
   const isEditMode = !!id;
 
+  const isGlobalTestMode = useMemo(() => {
+    try {
+      return localStorage.getItem('token') === 'test-mode-token';
+    } catch (e) {
+      console.error('Failed to access localStorage:', e);
+      return false;
+    }
+  }, []);
+
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const showSnackbar = useCallback((message, severity) => {
     setSnackbar({ open: true, message, severity });
   }, []);
 
-  const {
-    loading: dataLoading,
-    error: dataError,
-    suppliers,
-    products,
+  // Destructure with 'let' to allow reassignment for test mode
+  let {
+    loading: initialDataLoading,
+    error: initialDataError,
+    suppliers: initialSuppliers,
+    products: initialProducts,
     productDetails,
     setProductDetails,
-    productDetailsLoading,
+    productDetailsLoading: initialProductDetailsLoading,
     orderData,
     orderDataLoaded,
-    suppliersLoaded,
-    productsLoaded,
-    fetchProductDetailsForItems
+    suppliersLoaded: initialSuppliersLoaded,
+    productsLoaded: initialProductsLoaded,
+    // fetchProductDetailsForItems // This is a function from the hook, not directly modified here
   } = usePurchaseOrderData(isEditMode, id, showSnackbar);
+
+  // Create mutable versions of data for test mode modification
+  let dataLoading = initialDataLoading;
+  let dataError = initialDataError;
+  let suppliers = initialSuppliers;
+  let products = initialProducts;
+  let productDetailsLoading = initialProductDetailsLoading;
+  let suppliersLoaded = initialSuppliersLoaded;
+  let productsLoaded = initialProductsLoaded;
+
+  if (isGlobalTestMode) {
+    const mockProducts = [
+      { id: 'mockProd1', _id: 'mockProd1', name: '模擬產品A (測試)', unit: '瓶', purchasePrice: 50, stock: 100, did: 'MOCK001', dname: '模擬產品A (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
+      { id: 'mockProd2', _id: 'mockProd2', name: '模擬產品B (測試)', unit: '盒', purchasePrice: 120, stock: 50, did: 'MOCK002', dname: '模擬產品B (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商Y' } },
+      { id: 'mockProd3', _id: 'mockProd3', name: '模擬產品C (測試)', unit: '支', purchasePrice: 75, stock: 200, did: 'MOCK003', dname: '模擬產品C (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
+    ];
+    const mockSuppliers = [
+      { id: 'mockSup1', _id: 'mockSup1', name: '模擬供應商X (測試)' },
+      { id: 'mockSup2', _id: 'mockSup2', name: '模擬供應商Y (測試)' },
+    ];
+
+    if (!products || products.length === 0 || (dataError && !productsLoaded)) {
+      products = mockProducts;
+      productsLoaded = true;
+    }
+    if (!suppliers || suppliers.length === 0 || (dataError && !suppliersLoaded)) {
+      suppliers = mockSuppliers;
+      suppliersLoaded = true;
+    }
+    // If there was an error but we have mock data, clear the error and loading state
+    if (dataError && (products === mockProducts || suppliers === mockSuppliers)) {
+      dataError = null;
+    }
+    if (dataLoading && (productsLoaded || suppliersLoaded)) {
+        dataLoading = false;
+    }
+  }
 
   const [formData, setFormData] = useState({
     poid: '',
     pobill: '',
     pobilldate: new Date(),
-    posupplier: '',
+    posupplier: '', // supplier name
     supplier: '', // Store supplier ID
     items: [],
     notes: '',
@@ -80,7 +128,6 @@ const PurchaseOrderFormPage = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
-  // Effect to populate formData when orderData is loaded in edit mode
   useEffect(() => {
     if (isEditMode && orderData) {
       const supplierId = typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier;
@@ -88,33 +135,30 @@ const PurchaseOrderFormPage = () => {
         ...orderData,
         pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date(),
         supplier: supplierId,
-        items: orderData.items || [] // Ensure items is an array
+        items: orderData.items || []
       });
-      // Product details for these items are fetched by usePurchaseOrderData hook
     }
   }, [isEditMode, orderData]);
 
-  // Effect to set selected supplier when data loads in edit mode
   useEffect(() => {
-    if (isEditMode && orderDataLoaded && suppliersLoaded && formData.supplier && suppliers.length > 0) {
-      const supplier = suppliers.find(s => s.id === formData.supplier || s._id === formData.supplier);
-      if (supplier) {
-        setSelectedSupplier(supplier);
-        if (formData.posupplier !== supplier.name) {
-          setFormData(prev => ({ ...prev, posupplier: supplier.name }));
+    if (isEditMode && orderDataLoaded && suppliersLoaded && formData.supplier && suppliers && suppliers.length > 0) {
+      const supplierObj = suppliers.find(s => s.id === formData.supplier || s._id === formData.supplier);
+      if (supplierObj) {
+        setSelectedSupplier(supplierObj);
+        if (formData.posupplier !== supplierObj.name) {
+          setFormData(prev => ({ ...prev, posupplier: supplierObj.name }));
         }
       }
     }
   }, [isEditMode, orderDataLoaded, suppliersLoaded, formData.supplier, formData.posupplier, suppliers]);
 
-  // Effect for initial focus
   useEffect(() => {
-    if (!dataLoading) { // Ensure data loading is complete
+    if (!dataLoading) {
         if (!isEditMode) {
             if (invoiceInputRef.current) {
                 setTimeout(() => invoiceInputRef.current.focus(), 500); 
             }
-        } else if (orderDataLoaded) { // For edit mode, ensure order data is also loaded
+        } else if (orderDataLoaded) {
             if (productInputRef.current) {
                 setTimeout(() => productInputRef.current.focus(), 500);
             }
@@ -133,7 +177,7 @@ const PurchaseOrderFormPage = () => {
   const handleSupplierChange = (event, newValue) => {
     if (newValue) {
       setSelectedSupplier(newValue);
-      setFormData({ ...formData, posupplier: newValue.name, supplier: newValue.id });
+      setFormData({ ...formData, posupplier: newValue.name, supplier: newValue.id || newValue._id });
     } else {
       setSelectedSupplier(null);
       setFormData({ ...formData, posupplier: '', supplier: '' });
@@ -150,7 +194,7 @@ const PurchaseOrderFormPage = () => {
       showSnackbar('請至少添加一個藥品項目', 'error');
       return;
     }
-    if (formData.status === 'completed') {
+    if (formData.status === 'completed' && !isGlobalTestMode) {
       setConfirmDialogOpen(true);
       return;
     }
@@ -159,6 +203,16 @@ const PurchaseOrderFormPage = () => {
 
   const submitForm = async () => {
     setFormSubmitLoading(true);
+
+    if (isGlobalTestMode) {
+      console.log('TEST MODE: Simulating form submission with data:', formData);
+      showSnackbar(`進貨單已在測試模式下模擬${isEditMode ? '更新' : '新增'}成功`, 'success');
+      setTimeout(() => { navigate('/purchase-orders'); }, 1500);
+      setFormSubmitLoading(false);
+      setConfirmDialogOpen(false);
+      return;
+    }
+
     const submitData = {
       ...formData,
       pobilldate: format(formData.pobilldate, 'yyyy-MM-dd'),
@@ -207,17 +261,26 @@ const PurchaseOrderFormPage = () => {
 
   const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
 
-  if (dataLoading && !orderDataLoaded) {
-    return <Box sx={{ p: 3, textAlign: 'center' }}><Typography>載入中...</Typography></Box>;
+  if (dataLoading && !orderDataLoaded && !isGlobalTestMode) {
+    return <Box sx={{ p: 3, textAlign: 'center' }}><CircularProgress /><Typography sx={{mt:1}}>載入中...</Typography></Box>;
   }
 
-  if (dataError && !orderData && !isEditMode) {
+  if (dataError && (!orderData && !isEditMode) && !isGlobalTestMode) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error">{dataError}</Typography>
+        <Typography color="error">{typeof dataError === 'string' ? dataError : JSON.stringify(dataError)}</Typography>
         <Button variant="contained" onClick={() => window.location.reload()} sx={{ mt: 2 }}>
           重試
         </Button>
+      </Box>
+    );
+  }
+  
+  if (isGlobalTestMode && dataError && !(products && products.length > 0 && suppliers && suppliers.length > 0)) {
+     // If still error in test mode and mock data didn't load (should not happen with current logic but as a fallback)
+     return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="warning">測試模式：無法載入初始資料，也無法載入模擬資料。請檢查控制台。</Typography>
       </Box>
     );
   }
@@ -226,6 +289,7 @@ const PurchaseOrderFormPage = () => {
     <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
       <Typography variant="h5" component="h1" gutterBottom>
         {isEditMode ? '編輯進貨單' : '新增進貨單'}
+        {isGlobalTestMode && <Typography variant="caption" color="secondary" sx={{ ml: 1 }}>(測試模式)</Typography>}
       </Typography>
 
       <form onSubmit={handleSubmit}>
@@ -234,11 +298,12 @@ const PurchaseOrderFormPage = () => {
           handleInputChange={handleFormInputChange}
           handleDateChange={handleDateChange}
           handleSupplierChange={handleSupplierChange}
-          suppliers={suppliers}
+          suppliers={suppliers || []}
           selectedSupplier={selectedSupplier}
           isEditMode={isEditMode}
-          loading={dataLoading && !suppliersLoaded}
-          invoiceInputRef={invoiceInputRef} // Pass ref
+          loading={dataLoading && !suppliersLoaded && !isGlobalTestMode}
+          invoiceInputRef={invoiceInputRef}
+          isTestMode={isGlobalTestMode}
         />
 
         <Card sx={{ mb: 1 }}>
@@ -248,6 +313,7 @@ const PurchaseOrderFormPage = () => {
               <ActionButtons
                 loading={formSubmitLoading} 
                 onCancel={handleCancel}
+                isTestMode={isGlobalTestMode}
               />
             </Box>
             <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
@@ -256,9 +322,10 @@ const PurchaseOrderFormPage = () => {
                 handleItemInputChange={handleItemInputChange}
                 handleProductChange={handleProductChange}
                 handleAddItem={handleAddItem}
-                products={products}
-                loading={dataLoading && !productsLoaded}
-                productInputRef={productInputRef} // Pass ref
+                products={products || []}
+                loading={dataLoading && !productsLoaded && !isGlobalTestMode}
+                productInputRef={productInputRef}
+                isTestMode={isGlobalTestMode}
               />
             </Box>
             <Box sx={{ height: 'calc(100vh - 550px)', minHeight: '250px', overflowY: 'auto' }}>
@@ -273,10 +340,11 @@ const PurchaseOrderFormPage = () => {
                 handleMoveItem={handleMoveItem}
                 handleEditingItemChange={handleEditingItemChange}
                 totalAmount={totalAmount}
-                productDetails={productDetails}
-                productDetailsLoading={productDetailsLoading}
+                productDetails={productDetails} // This might still be an issue if it relies on real product IDs
+                productDetailsLoading={productDetailsLoading && !isGlobalTestMode}
                 codeField="did"
                 showHealthInsuranceCode={true}
+                isTestMode={isGlobalTestMode}
               />
             </Box>
           </CardContent>
@@ -286,11 +354,13 @@ const PurchaseOrderFormPage = () => {
           open={confirmDialogOpen}
           onClose={handleCancelComplete}
           onConfirm={handleConfirmComplete}
+          title={isGlobalTestMode ? "測試模式確認" : (formData.status === 'completed' ? "確認完成進貨單" : "確認提交")}
+          message={isGlobalTestMode ? "此為測試模式，操作不會實際儲存。是否繼續？" : (formData.status === 'completed' ? "您確定要將此進貨單標記為完成嗎？完成後將無法修改。" : "您確定要提交此進貨單嗎？")}
         />
       </form>
 
       <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>
