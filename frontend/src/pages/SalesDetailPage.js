@@ -42,7 +42,7 @@ import {
   VisibilityOff // Added for profit toggle
 } from '@mui/icons-material';
 import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns'; // Import isValid from date-fns
 import { zhTW } from 'date-fns/locale';
 
 import DetailLayout from '../components/DetailLayout';
@@ -73,7 +73,7 @@ const SalesDetailPage = () => {
   const [fifoError, setFifoError] = useState(null);
   const [amountInfoOpen, setAmountInfoOpen] = useState(true);
   const [itemProfitOpen, setItemProfitOpen] = useState({});
-  const [showSalesProfitColumns, setShowSalesProfitColumns] = useState(true); // New state for profit column visibility
+  const [showSalesProfitColumns, setShowSalesProfitColumns] = useState(true);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -133,7 +133,14 @@ const SalesDetailPage = () => {
 
   const handleToggleSalesProfitColumns = () => {
     setShowSalesProfitColumns(!showSalesProfitColumns);
-  }; // Handler for toggling profit columns
+  };
+
+  // Helper function to safely format dates
+  const formatDateSafe = (dateValue, formatString = 'yyyy-MM-dd HH:mm') => {
+    if (!dateValue) return 'N/A';
+    const date = new Date(dateValue);
+    return isValid(date) ? format(date, formatString, { locale: zhTW }) : 'N/A';
+  };
 
   const mainContent = (
     <Stack spacing={3}>
@@ -256,7 +263,7 @@ const SalesDetailPage = () => {
       {sale && sale.items && (
         <Card variant="outlined">
           <CardContent>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}> {/* Adjusted mb */} 
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
               <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
                 <ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目
               </Typography>
@@ -352,15 +359,15 @@ const SalesDetailPage = () => {
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">銷售日期: {format(new Date(sale.saleDate), 'yyyy-MM-dd HH:mm', { locale: zhTW })}</Typography>
+                <Typography variant="body2">銷售日期: {formatDateSafe(sale.saleDate)}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">建立日期: {format(new Date(sale.createdAt), 'yyyy-MM-dd HH:mm', { locale: zhTW })}</Typography>
+                <Typography variant="body2">建立日期: {formatDateSafe(sale.createdAt)}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">更新日期: {format(new Date(sale.updatedAt), 'yyyy-MM-dd HH:mm', { locale: zhTW })}</Typography>
+                <Typography variant="body2">更新日期: {formatDateSafe(sale.updatedAt)}</Typography>
               </Stack>
               {sale.notes && (
                 <>
@@ -381,7 +388,7 @@ const SalesDetailPage = () => {
       recordIdentifier={sale?.sid}
       listPageUrl="/sales"
       editPageUrl={`/sales/edit/${id}`}
-      printPageUrl={null} // Add print functionality if needed
+      printPageUrl={null}
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={loading}
