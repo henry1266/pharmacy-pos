@@ -57,7 +57,24 @@ const ItemForm = ({
   // 計算總成本
   const calculateTotalCost = (quantity) => {
     const purchasePrice = getProductPurchasePrice();
-    return (parseFloat(purchasePrice) * parseInt(quantity)).toFixed(2);
+    const numQuantity = parseInt(quantity);
+    if (isNaN(numQuantity) || numQuantity <= 0) return '0.00';
+    return (parseFloat(purchasePrice) * numQuantity).toFixed(2);
+  };
+
+  // 獲取當前選中產品的健保價
+  const getProductHealthInsurancePrice = () => {
+    if (!currentItem.product) return 0;
+    const selectedProduct = products?.find(p => p._id === currentItem.product);
+    return selectedProduct?.healthInsurancePrice || 0; // Assuming 'healthInsurancePrice' is a field in the product object
+  };
+
+  // 計算健保給付金額
+  const calculateHealthInsurancePayment = (quantity) => {
+    const numQuantity = parseInt(quantity);
+    if (!currentItem.product || isNaN(numQuantity) || numQuantity <= 0) return '0.00';
+    const healthInsurancePrice = getProductHealthInsurancePrice();
+    return (parseFloat(healthInsurancePrice) * numQuantity).toFixed(2);
   };
 
   // 處理數量輸入變更
@@ -72,16 +89,6 @@ const ItemForm = ({
       // 聚焦到總成本輸入框
       document.querySelector('input[name="dtotalCost"]')?.focus();
     }
-  };
-
-  // 生成進價提示文本
-  const getPriceTooltipText = () => {
-    if (!currentItem.product || !currentItem.dquantity) return "請先選擇產品並輸入數量";
-    
-    const purchasePrice = getProductPurchasePrice();
-    const totalCost = calculateTotalCost(currentItem.dquantity);
-    
-    return `上次進價: ${purchasePrice} 元\n建議總成本: ${totalCost} 元`;
   };
 
   return (
@@ -124,6 +131,13 @@ const ItemForm = ({
                       {`售價: ${option.sellingPrice !== undefined ? option.sellingPrice : '-'}`}
                     </Typography>
                   </Grid>
+                  {option.healthInsurancePrice !== undefined && (
+                    <Grid item>
+                      <Typography variant="caption" color="text.secondary">
+                        {`健保價: ${option.healthInsurancePrice}`}
+                      </Typography>
+                    </Grid>
+                  )}
                 </Grid>
               </Grid>
             </Box>
@@ -152,6 +166,8 @@ const ItemForm = ({
           handleItemInputChange={handleItemInputChange}
           getProductPurchasePrice={getProductPurchasePrice}
           calculateTotalCost={calculateTotalCost}
+          healthInsurancePrice={getProductHealthInsurancePrice()} // Pass the actual value
+          healthInsurancePayment={calculateHealthInsurancePayment(currentItem.dquantity)} // Pass the calculated value
           isInventorySufficient={isInventorySufficient}
           handleAddItem={handleAddItem}
         />

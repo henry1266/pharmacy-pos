@@ -17,6 +17,8 @@ import FIFOSimulationDialog from './FIFOSimulationDialog';
  * @param {Function} props.handleItemInputChange - 處理項目輸入變更的函數
  * @param {Function} props.getProductPurchasePrice - 獲取產品進價的函數
  * @param {Function} props.calculateTotalCost - 計算總成本的函數
+ * @param {number | string} props.healthInsurancePrice - 產品的健保價
+ * @param {number | string} props.healthInsurancePayment - 計算後的健保給付金額
  * @param {Function} props.isInventorySufficient - 檢查庫存是否足夠的函數
  * @param {Function} props.handleAddItem - 處理添加項目的函數
  * @returns {React.ReactElement} 價格提示組件
@@ -26,6 +28,8 @@ const PriceTooltip = ({
   handleItemInputChange,
   getProductPurchasePrice,
   calculateTotalCost,
+  healthInsurancePrice, // Added new prop
+  healthInsurancePayment, // Added new prop
   isInventorySufficient,
   handleAddItem
 }) => {
@@ -41,7 +45,17 @@ const PriceTooltip = ({
     
     const purchasePrice = getProductPurchasePrice();
     const totalCost = Math.round(calculateTotalCost(currentItem.dquantity));
-    return `上次進價: ${purchasePrice} 元\n建議總成本: ${totalCost} 元`;
+    let tooltipText = `上次進價: ${purchasePrice} 元\n建議總成本: ${totalCost} 元`;
+
+    // Add health insurance information if available
+    if (healthInsurancePrice !== undefined && healthInsurancePrice !== null && healthInsurancePrice !== 0) {
+      tooltipText += `\n健保價: ${healthInsurancePrice} 元`;
+    }
+    if (healthInsurancePayment !== undefined && healthInsurancePayment !== null && healthInsurancePayment !== '0.00') {
+      tooltipText += `\n健保給付: ${healthInsurancePayment} 元`;
+    }
+    
+    return tooltipText;
   };
 
   // 處理FIFO模擬按鈕點擊
@@ -180,3 +194,4 @@ const PriceTooltip = ({
 };
 
 export default PriceTooltip;
+
