@@ -343,11 +343,11 @@ const SalesDetailPage = () => {
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">銷售單號: {sale.sid || 'N/A'}</Typography>
+                <Typography variant="body2">銷售單號: {sale.saleNumber || 'N/A'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PersonIcon fontSize="small" color="action"/>
-                <Typography variant="body2">客戶: {sale.customer?.name || '未指定'}</Typography>
+                <Typography variant="body2">客戶: {sale.customer?.name || '一般客戶'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PaymentIcon fontSize="small" color="action"/>
@@ -357,24 +357,8 @@ const SalesDetailPage = () => {
                 {getPaymentStatusInfo(sale.paymentStatus).icon}
                 <Typography variant="body2">付款狀態: <Chip label={getPaymentStatusInfo(sale.paymentStatus).text} color={getPaymentStatusInfo(sale.paymentStatus).color} size="small" /></Typography>
               </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">銷售日期: {formatDateSafe(sale.saleDate)}</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">建立日期: {formatDateSafe(sale.createdAt)}</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">更新日期: {formatDateSafe(sale.updatedAt)}</Typography>
-              </Stack>
-              {sale.notes && (
-                <>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.notes}</Typography>
-                </>
-              )}
+              <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note || '無'}</Typography>
             </Stack>
           </CardContent>
         </Card>
@@ -385,7 +369,7 @@ const SalesDetailPage = () => {
   return (
     <DetailLayout
       pageTitle="銷售單詳情"
-      recordIdentifier={sale?.sid}
+      recordIdentifier={sale?.saleNumber}
       listPageUrl="/sales"
       editPageUrl={`/sales/edit/${id}`}
       printPageUrl={null}
