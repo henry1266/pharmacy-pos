@@ -24,7 +24,6 @@ import {
   Link as MuiLink // Renamed to avoid conflict with RouterLink
 } from '@mui/material';
 import {
-  // Icons needed for this specific page
   MonetizationOn as MonetizationOnIcon,
   TrendingUp as TrendingUpIcon,
   ReceiptLong as ReceiptLongIcon,
@@ -38,21 +37,21 @@ import {
   Pending as PendingIcon,
   Cancel as CancelIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
-  ListAlt as ListAltIcon
+  ListAlt as ListAltIcon,
+  Visibility, // Added for profit toggle
+  VisibilityOff // Added for profit toggle
 } from '@mui/icons-material';
-import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom'; // Use RouterLink for navigation
+import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import DetailLayout from '../components/DetailLayout'; // Import the new layout component
+import DetailLayout from '../components/DetailLayout';
 
-// Helper function (specific to Sales)
 const getPaymentMethodText = (method) => {
   const methodMap = { 'cash': '現金', 'credit_card': '信用卡', 'debit_card': '金融卡', 'mobile_payment': '行動支付', 'other': '其他' };
   return methodMap[method] || method;
 };
 
-// Helper function (specific to Sales)
 const getPaymentStatusInfo = (status) => {
   const statusMap = {
     'paid': { text: '已付款', color: 'success', icon: <CheckCircleIcon fontSize="small" /> },
@@ -66,7 +65,6 @@ const getPaymentStatusInfo = (status) => {
 const SalesDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  // Re-introduce state management within the page
   const [sale, setSale] = useState(null);
   const [fifoData, setFifoData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,20 +72,20 @@ const SalesDetailPage = () => {
   const [error, setError] = useState(null);
   const [fifoError, setFifoError] = useState(null);
   const [amountInfoOpen, setAmountInfoOpen] = useState(true);
-  const [itemProfitOpen, setItemProfitOpen] = useState({}); // State for item profit collapse
+  const [itemProfitOpen, setItemProfitOpen] = useState({});
+  const [showSalesProfitColumns, setShowSalesProfitColumns] = useState(true); // New state for profit column visibility
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
 
-  // Re-introduce data fetching logic
   const fetchSaleData = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`/api/sales/${id}`);
       setSale(response.data);
-      setError(null); // Clear previous error on success
+      setError(null);
     } catch (err) {
       console.error('獲取銷售數據失敗:', err);
       const errorMsg = '獲取銷售數據失敗: ' + (err.response?.data?.msg || err.message);
@@ -103,12 +101,11 @@ const SalesDetailPage = () => {
       setFifoLoading(true);
       const response = await axios.get(`/api/fifo/sale/${id}`);
       setFifoData(response.data);
-      setFifoError(null); // Clear previous error on success
+      setFifoError(null);
     } catch (err) {
       console.error('獲取FIFO毛利數據失敗:', err);
       const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg || err.message);
       setFifoError(errorMsg);
-      // Show warning only if main data loaded successfully
       if (!error) {
         setSnackbar({ open: true, message: errorMsg, severity: 'warning' });
       }
@@ -117,13 +114,11 @@ const SalesDetailPage = () => {
     }
   };
 
-  // Re-introduce useEffect for initial data load
   useEffect(() => {
     fetchSaleData();
     fetchFifoData();
   }, [id]);
 
-  // Re-introduce handlers
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
@@ -136,11 +131,12 @@ const SalesDetailPage = () => {
     setItemProfitOpen(prev => ({ ...prev, [index]: !prev[index] }));
   };
 
-  // --- Define Content for Layout --- 
+  const handleToggleSalesProfitColumns = () => {
+    setShowSalesProfitColumns(!showSalesProfitColumns);
+  }; // Handler for toggling profit columns
 
   const mainContent = (
     <Stack spacing={3}>
-      {/* Amount Information Card */}
       {sale && (
         <Card variant="outlined">
           <CardContent sx={{ pb: '16px !important' }}>
@@ -178,7 +174,6 @@ const SalesDetailPage = () => {
                 <Typography color="error" variant="body2">{fifoError}</Typography>
               ) : fifoData && fifoData.summary ? (
                 <Grid container spacing={2} alignItems="flex-start">
-                  {/* Subtotal */}
                   <Grid item xs={6} sm={4} md={3}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <ReceiptLongIcon color="action" fontSize="small"/>
@@ -190,7 +185,6 @@ const SalesDetailPage = () => {
                       </Box>
                     </Stack>
                   </Grid>
-                  {/* Discount */}
                   {sale.discount > 0 && (
                     <Grid item xs={6} sm={4} md={3}>
                        <Stack direction="row" spacing={1} alignItems="center">
@@ -204,7 +198,6 @@ const SalesDetailPage = () => {
                         </Stack>
                     </Grid>
                   )}
-                  {/* Tax */}
                   {sale.tax > 0 && (
                     <Grid item xs={6} sm={4} md={3}>
                        <Stack direction="row" spacing={1} alignItems="center">
@@ -218,7 +211,6 @@ const SalesDetailPage = () => {
                         </Stack>
                     </Grid>
                   )}
-                  {/* Total Cost */}
                   <Grid item xs={6} sm={4} md={3}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <MonetizationOnIcon color="action" fontSize="small"/>
@@ -230,7 +222,6 @@ const SalesDetailPage = () => {
                       </Box>
                     </Stack>
                   </Grid>
-                  {/* Total Profit */}
                   <Grid item xs={6} sm={4} md={3}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <TrendingUpIcon color={fifoData.summary.totalProfit >= 0 ? 'success' : 'error'} fontSize="small"/>
@@ -242,7 +233,6 @@ const SalesDetailPage = () => {
                       </Box>
                     </Stack>
                   </Grid>
-                  {/* Profit Margin */}
                   <Grid item xs={6} sm={4} md={3}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <PercentIcon color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success' : 'error'} fontSize="small"/>
@@ -263,17 +253,20 @@ const SalesDetailPage = () => {
         </Card>
       )}
 
-      {/* Items Table Card */}
       {sale && sale.items && (
         <Card variant="outlined">
           <CardContent>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Typography variant="h6"><ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}> {/* Adjusted mb */} 
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                <ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目
+              </Typography>
+              {!fifoLoading && fifoData && fifoData.items && (
+                <IconButton onClick={handleToggleSalesProfitColumns} size="small" aria-label={showSalesProfitColumns ? "隱藏毛利欄位" : "顯示毛利欄位"}>
+                  {showSalesProfitColumns ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              )}
             </Stack>
             <Divider sx={{ mb: 2 }} />
-            {/* Conditional Rendering: Table for large screens, Cards for small screens */} 
-            {/* Check screen size using useMediaQuery, maybe pass as prop or use here */} 
-            {/* For simplicity, showing Table version first */} 
             <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
               <Table size="small">
                 <TableHead>
@@ -283,7 +276,7 @@ const SalesDetailPage = () => {
                     <TableCell align="right">單價</TableCell>
                     <TableCell align="right">數量</TableCell>
                     <TableCell align="right">小計</TableCell>
-                    {!fifoLoading && fifoData && fifoData.items && (
+                    {!fifoLoading && fifoData && fifoData.items && showSalesProfitColumns && (
                       <>
                         <TableCell align="right">成本</TableCell>
                         <TableCell align="right">毛利</TableCell>
@@ -295,15 +288,7 @@ const SalesDetailPage = () => {
                 <TableBody>
                   {sale.items.map((item, index) => {
                     const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
-                    const isProfitOpen = !!itemProfitOpen[index]; // Use state from this component
-
-                    // Small screen rendering (Stack of Papers)
-                    // TODO: Add useMediaQuery check here for proper responsive rendering
-                    // if (isSmallScreen) { return (...); }
-
-                    // Large screen rendering (Table Row)
                     return (
-                      // We can extract the Row into a sub-component if needed, especially if adding collapse for profit here too
                       <TableRow key={index} hover>
                         <TableCell>
                           {item.product?._id ? (
@@ -318,7 +303,7 @@ const SalesDetailPage = () => {
                         <TableCell align="right">{item.price.toFixed(2)}</TableCell>
                         <TableCell align="right">{item.quantity}</TableCell>
                         <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
-                        {!fifoLoading && fifoData && fifoData.items && (
+                        {!fifoLoading && fifoData && fifoData.items && showSalesProfitColumns && (
                           <>
                             <TableCell align="right">{fifoItem?.fifoProfit ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
                             <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
@@ -330,13 +315,11 @@ const SalesDetailPage = () => {
                           </>
                         )}
                       </TableRow>
-                      // TODO: Add collapsible row for profit details on large screens if needed
                     );
                   })}
                 </TableBody>
               </Table>
             </TableContainer>
-            {/* TODO: Add Stack rendering for small screens based on useMediaQuery */}
           </CardContent>
         </Card>
       )}
@@ -345,7 +328,6 @@ const SalesDetailPage = () => {
 
   const sidebarContent = (
     <Stack spacing={3}>
-      {/* Basic Information Card */}
       {sale && (
         <Card variant="outlined">
           <CardContent>
@@ -354,15 +336,11 @@ const SalesDetailPage = () => {
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
-                <Typography variant="body2">日期: {sale.date ? format(new Date(sale.date), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : 'N/A'}</Typography>
+                <Typography variant="body2">銷售單號: {sale.sid || 'N/A'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PersonIcon fontSize="small" color="action"/>
-                <Typography variant="body2">客戶: {sale.customer?.name || '一般客戶'}</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <PersonIcon fontSize="small" color="action"/>
-                <Typography variant="body2">收銀員: {sale.cashier?.name || '未指定'}</Typography>
+                <Typography variant="body2">客戶: {sale.customer?.name || '未指定'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PaymentIcon fontSize="small" color="action"/>
@@ -370,17 +348,26 @@ const SalesDetailPage = () => {
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 {getPaymentStatusInfo(sale.paymentStatus).icon}
-                <Typography variant="body2">付款狀態:
-                  <Chip
-                    label={getPaymentStatusInfo(sale.paymentStatus).text}
-                    color={getPaymentStatusInfo(sale.paymentStatus).color}
-                    size="small"
-                    sx={{ ml: 0.5 }}
-                  />
-                </Typography>
+                <Typography variant="body2">付款狀態: <Chip label={getPaymentStatusInfo(sale.paymentStatus).text} color={getPaymentStatusInfo(sale.paymentStatus).color} size="small" /></Typography>
               </Stack>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note || '無'}</Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarTodayIcon fontSize="small" color="action"/>
+                <Typography variant="body2">銷售日期: {format(new Date(sale.saleDate), 'yyyy-MM-dd HH:mm', { locale: zhTW })}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarTodayIcon fontSize="small" color="action"/>
+                <Typography variant="body2">建立日期: {format(new Date(sale.createdAt), 'yyyy-MM-dd HH:mm', { locale: zhTW })}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarTodayIcon fontSize="small" color="action"/>
+                <Typography variant="body2">更新日期: {format(new Date(sale.updatedAt), 'yyyy-MM-dd HH:mm', { locale: zhTW })}</Typography>
+              </Stack>
+              {sale.notes && (
+                <>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.notes}</Typography>
+                </>
+              )}
             </Stack>
           </CardContent>
         </Card>
@@ -388,32 +375,20 @@ const SalesDetailPage = () => {
     </Stack>
   );
 
-  // --- Render Layout --- 
   return (
-    <>
-      <DetailLayout
-        pageTitle="銷售詳情"
-        recordIdentifier={sale?.saleNumber}
-        listPageUrl="/sales"
-        editPageUrl={sale ? `/sales/edit/${id}` : null}
-        printPageUrl={sale ? `/sales/print/${id}` : null}
-        mainContent={mainContent}
-        sidebarContent={sidebarContent}
-        isLoading={loading} // Pass loading state
-        errorContent={error ? <Typography color="error" variant="h6">{error}</Typography> : null} // Pass error state
-      />
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </>
+    <DetailLayout
+      pageTitle="銷售單詳情"
+      recordIdentifier={sale?.sid}
+      listPageUrl="/sales"
+      editPageUrl={`/sales/edit/${id}`}
+      printPageUrl={null} // Add print functionality if needed
+      mainContent={mainContent}
+      sidebarContent={sidebarContent}
+      isLoading={loading}
+      errorContent={error ? <Typography color="error" variant="h6">{error}</Typography> : null}
+      snackbarProps={snackbar}
+      handleCloseSnackbar={handleCloseSnackbar}
+    />
   );
 };
 
