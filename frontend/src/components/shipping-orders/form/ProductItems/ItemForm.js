@@ -125,20 +125,6 @@ const ItemForm = ({
                 <Grid item>
                   <Typography variant="body1">{`${option.code} - ${option.name}`}</Typography>
                 </Grid>
-                <Grid item container spacing={1} sx={{ pl: 1 }}>
-                  <Grid item>
-                    <Typography variant="caption" color="text.secondary">
-                      {`售價: ${option.sellingPrice !== undefined ? option.sellingPrice : '-'}`}
-                    </Typography>
-                  </Grid>
-                  {option.healthInsurancePrice !== undefined && (
-                    <Grid item>
-                      <Typography variant="caption" color="text.secondary">
-                        {`健保價: ${option.healthInsurancePrice}`}
-                      </Typography>
-                    </Grid>
-                  )}
-                </Grid>
               </Grid>
             </Box>
           )}
