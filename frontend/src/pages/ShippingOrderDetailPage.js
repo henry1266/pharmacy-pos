@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-// import axios from 'axios'; // Removed axios import as product fetching is now in service
 import {
   Chip,
   Typography,
@@ -13,20 +12,25 @@ import {
 import {
   CalendarToday as CalendarTodayIcon,
   Person as PersonIcon,
-  Receipt as ReceiptIcon,
+  Receipt as ReceiptIcon, // Already present
   Info as InfoIcon,
-  CurrencyExchange as CurrencyExchangeIcon
+  CurrencyExchange as CurrencyExchangeIcon,
+  // Icons needed for CollapsibleAmountInfo, matching SalesDetailPage.js
+  MonetizationOn as MonetizationOnIcon,
+  TrendingUp as TrendingUpIcon,
+  Percent as PercentIcon,
+  AccountBalanceWallet as AccountBalanceWalletIcon, // For titleIcon
+  ReceiptLong as ReceiptLongIcon // For mainAmountIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchShippingOrder } from '../redux/actions'; // Keep Redux action for fetching the main order
+import { fetchShippingOrder } from '../redux/actions';
 import DetailLayout from '../components/DetailLayout';
 import ProductItemsTable from '../components/common/ProductItemsTable';
-// import { getApiBaseUrl } from '../utils/apiConfig'; // Removed as API call is now in service
-import { getProductByCode } from '../services/productService'; // Import the service function
+import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo'; // Import the new component
+import { getProductByCode } from '../services/productService';
 
-// StatusChip and PaymentStatusChip components (assuming they exist or are defined as before)
 const StatusChip = ({ status }) => {
     let color = 'default';
     let label = status || '未知';
@@ -47,7 +51,6 @@ const ShippingOrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  // const API_BASE_URL = getApiBaseUrl(); // Removed
 
   const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector(state => state.shippingOrders);
 
@@ -55,14 +58,12 @@ const ShippingOrderDetailPage = () => {
   const [productDetailsLoading, setProductDetailsLoading] = useState(false);
   const [productDetailsError, setProductDetailsError] = useState(null);
 
-  // Fetch shipping order details via Redux action
   useEffect(() => {
     if (id) {
       dispatch(fetchShippingOrder(id));
     }
   }, [dispatch, id]);
 
-  // Fetch product details using service when items are available
   useEffect(() => {
     const fetchProductDetails = async () => {
       if (!currentShippingOrder || !currentShippingOrder.items || currentShippingOrder.items.length === 0) {
@@ -76,17 +77,14 @@ const ShippingOrderDetailPage = () => {
       const productCodes = [...new Set(currentShippingOrder.items.map(item => item.did).filter(Boolean))];
 
       try {
-        // Use Promise.all for potentially faster parallel fetching
         const promises = productCodes.map(async (code) => {
           try {
-            const productData = await getProductByCode(code); // Use service function
+            const productData = await getProductByCode(code);
             if (productData) {
               details[code] = productData;
             }
           } catch (err) {
             console.error(`獲取產品 ${code} 詳情失敗:`, err);
-            // Set a flag or specific error message for this product if needed
-            // For now, just log the error and continue
           }
         });
 
@@ -94,9 +92,6 @@ const ShippingOrderDetailPage = () => {
         setProductDetails(details);
 
       } catch (err) {
-        // This catch block might be less likely to be hit with Promise.all
-        // if individual errors are caught within the map callback.
-        // It would catch errors related to Promise.all itself.
         console.error('獲取所有產品詳情過程中發生錯誤:', err);
         setProductDetailsError('無法載入部分或所有產品的詳細資料。');
       } finally {
@@ -105,13 +100,71 @@ const ShippingOrderDetailPage = () => {
     };
 
     fetchProductDetails();
-  // Removed API_BASE_URL from dependencies as it's no longer used here
   }, [currentShippingOrder]);
 
-  // --- Define Content for Layout --- 
+  const getCollapsibleDetails = () => {
+    if (!currentShippingOrder) return [];
+
+    const details = [];
+    const subtotal = (currentShippingOrder.totalAmount || 0) + (currentShippingOrder.discountAmount || 0) - (currentShippingOrder.taxAmount || 0);
+
+    details.push({
+      label: '小計',
+      value: subtotal,
+      icon: <ReceiptLongIcon color="action" fontSize="small" />,
+      condition: true
+    });
+
+    if (currentShippingOrder.discountAmount && currentShippingOrder.discountAmount > 0) {
+      details.push({
+        label: '折扣',
+        value: -currentShippingOrder.discountAmount,
+        icon: <PercentIcon color="secondary" fontSize="small" />,
+        color: 'secondary.main',
+        condition: true
+      });
+    }
+
+    if (currentShippingOrder.taxAmount && currentShippingOrder.taxAmount > 0) {
+      details.push({
+        label: '稅金',
+        value: currentShippingOrder.taxAmount,
+        icon: <PercentIcon color="warning" fontSize="small" />,
+        color: 'warning.main',
+        condition: true
+      });
+    }
+    
+    // Shipping specific fields, if any, can be added here.
+    // For example, if there's a shippingFee field:
+    if (currentShippingOrder.shippingFee && currentShippingOrder.shippingFee > 0) {
+      details.push({
+        label: '運費',
+        value: currentShippingOrder.shippingFee,
+        icon: <MonetizationOnIcon color="action" fontSize="small" />, // Example icon
+        condition: true
+      });
+    }
+
+    return details;
+  };
 
   const mainContent = (
     <Stack spacing={3}>
+      {currentShippingOrder && (
+        <CollapsibleAmountInfo
+          title="金額信息"
+          titleIcon={<AccountBalanceWalletIcon />}
+          mainAmountLabel="總金額"
+          mainAmountValue={currentShippingOrder.totalAmount || 0}
+          mainAmountIcon={<ReceiptLongIcon />}
+          collapsibleDetails={getCollapsibleDetails()}
+          initialOpenState={true}
+          isLoading={orderLoading} // You might want a more specific loading for amounts if it's separate
+          error={orderError ? "金額資訊載入失敗" : null} // Or a more specific error
+          noDetailsText="無金額明細"
+        />
+      )}
       {currentShippingOrder && (
         <Card variant="outlined">
           <CardContent>
@@ -127,10 +180,10 @@ const ShippingOrderDetailPage = () => {
               nameField="dname"
               quantityField="dquantity"
               priceField="dprice"
-              totalCostField="dtotalCost"
-              totalAmount={currentShippingOrder.totalAmount || 0}
+              totalCostField="dtotalCost" // This might not be directly available in shipping order, adjust if needed
+              totalAmount={currentShippingOrder.totalAmount || 0} // This is the order total, not items subtotal
               title=""
-              isLoading={productDetailsLoading}
+              isLoading={productDetailsLoading || orderLoading}
             />
           </CardContent>
         </Card>
@@ -179,14 +232,13 @@ const ShippingOrderDetailPage = () => {
     </Stack>
   );
 
-  // --- Render Layout --- 
   return (
     <DetailLayout
       pageTitle="出貨單詳情"
       recordIdentifier={currentShippingOrder?.soid}
       listPageUrl="/shipping-orders"
       editPageUrl={currentShippingOrder && currentShippingOrder.status !== 'cancelled' ? `/shipping-orders/edit/${id}` : null}
-      printPageUrl={null}
+      printPageUrl={null} // Add print functionality if needed
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={orderLoading}
