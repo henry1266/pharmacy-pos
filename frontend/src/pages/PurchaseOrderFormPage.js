@@ -68,9 +68,9 @@ const PurchaseOrderFormPage = () => {
 
   if (isGlobalTestMode) {
     const mockProducts = [
-      { id: 'mockProd1', _id: 'mockProd1', name: '模擬產品A (測試)', unit: '瓶', purchasePrice: 50, stock: 100, did: 'MOCK001', dname: '模擬產品A (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
-      { id: 'mockProd2', _id: 'mockProd2', name: '模擬產品B (測試)', unit: '盒', purchasePrice: 120, stock: 50, did: 'MOCK002', dname: '模擬產品B (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商Y' } },
-      { id: 'mockProd3', _id: 'mockProd3', name: '模擬產品C (測試)', unit: '支', purchasePrice: 75, stock: 200, did: 'MOCK003', dname: '模擬產品C (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
+      { id: 'mockProd1', _id: 'mockProd1', name: '模擬產品A (測試)', unit: '瓶', purchasePrice: 50, stock: 100, did: 'T001', dname: '模擬產品A (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
+      { id: 'mockProd2', _id: 'mockProd2', name: '模擬產品B (測試)', unit: '盒', purchasePrice: 120, stock: 50, did: 'T002', dname: '模擬產品B (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商Y' } },
+      { id: 'mockProd3', _id: 'mockProd3', name: '模擬產品C (測試)', unit: '支', purchasePrice: 75, stock: 200, did: 'T003', dname: '模擬產品C (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
     ];
     const mockSuppliers = [
       { id: 'mockSup1', _id: 'mockSup1', name: '模擬供應商X (測試)' },
