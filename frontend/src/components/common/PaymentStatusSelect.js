@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react'; // 新增 useState
 import { 
   Autocomplete,
   TextField
@@ -26,7 +26,7 @@ const paymentStatusShortcuts = {
 };
 
 const PaymentStatusSelect = ({
-  options = [], // Expecting ['未付款', '已付款', '已匯款']
+  options = [], 
   selectedPaymentStatus,
   onChange,
   label = "付款狀態",
@@ -36,20 +36,16 @@ const PaymentStatusSelect = ({
   size = "medium",
   onEnterKeyDown,
 }) => {
-  // 選項過濾函數，現在也處理簡碼
-  const filterStatuses = (currentOptions, inputValue) => {
-    const filterValue = inputValue?.toUpperCase() || ''; // Convert to uppercase for shortcut matching
+  const [open, setOpen] = useState(false); // 新增 state 來控制下拉選單的開啟狀態
 
-    // 檢查是否為簡碼
+  const filterStatuses = (currentOptions, inputValue) => {
+    const filterValue = inputValue?.toUpperCase() || '';
     if (paymentStatusShortcuts[filterValue]) {
-      // 如果是簡碼，且簡碼對應的完整狀態在選項中，則直接返回該選項
       const fullStatus = paymentStatusShortcuts[filterValue];
       if (currentOptions.includes(fullStatus)) {
         return [fullStatus];
       }
     }
-
-    // 否則，執行原始的過濾邏輯 (轉小寫以進行部分匹配)
     const lowerCaseFilterValue = inputValue?.toLowerCase() || '';
     return currentOptions.filter(option =>
       option.toLowerCase().includes(lowerCaseFilterValue)
@@ -59,22 +55,26 @@ const PaymentStatusSelect = ({
   return (
     <Autocomplete
       id="payment-status-select"
+      open={open} // 使用 state 控制開啟
+      onOpen={() => {
+        setOpen(true); // 當選單開啟時更新 state
+      }}
+      onClose={() => {
+        setOpen(false); // 當選單關閉時更新 state
+      }}
       options={options}
       autoHighlight={true}
-      getOptionLabel={(option) => {
-        return option;
-      }}
+      getOptionLabel={(option) => option}
       value={selectedPaymentStatus}
-      onChange={onChange} // This is for Autocomplete's own change event
+      onChange={onChange}
       filterOptions={(currentOptions, state) => filterStatuses(currentOptions, state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
           const inputValue = event.target.value;
           const upperInputValue = inputValue?.toUpperCase();
-
           let selectedValue = null;
 
-          if (!inputValue && options.length > 0) { // 新增條件：如果輸入框為空且有選項
+          if (!inputValue && options.length > 0) {
             selectedValue = options[0];
           } else if (paymentStatusShortcuts[upperInputValue]) {
             const fullStatus = paymentStatusShortcuts[upperInputValue];
@@ -90,26 +90,23 @@ const PaymentStatusSelect = ({
           
           if (selectedValue) {
             if (typeof onChange === 'function') {
-              onChange(event, selectedValue); 
+              onChange(event, selectedValue);
             } else {
               console.warn('PaymentStatusSelect: onChange 屬性應為函數，但收到的類型是:', typeof onChange);
             }
             event.preventDefault();
+            setOpen(false); // 選中後關閉選單
             
             setTimeout(() => {
               if (onEnterKeyDown) {
-                // 保持與 SupplierSelect 一致，傳遞 inputValue 或 selectedValue
-                // 根據之前與 SupplierSelect 同步的邏輯，此處應為 inputValue
-                // 但若 inputValue 為空，則傳遞 selectedValue 可能更合理
-                // 暫時維持傳遞 inputValue，若有問題再調整
-                onEnterKeyDown(inputValue || selectedValue); 
+                onEnterKeyDown(inputValue || selectedValue);
               } else {
                 const nextFocusableElement = document.getElementById('status-select'); 
                 if (nextFocusableElement) {
                   nextFocusableElement.focus();
                 }
               }
-            }, 50); 
+            }, 50);
           }
         }
       }}
@@ -122,6 +119,7 @@ const PaymentStatusSelect = ({
           error={error}
           helperText={helperText || "可輸入簡碼: JZ(未付款), UZ(已付款), UC(已匯款)"}
           size={size}
+          onFocus={() => setOpen(true)} // Tab 聚焦時開啟選單
         />
       )}
     />

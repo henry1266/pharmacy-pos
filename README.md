@@ -64,17 +64,12 @@ cd pharmacy-pos
 # 安裝後端依賴
 cd backend
 npm install
-
-
-### 前端安裝
-```bash
-# 在另一個終端中
-cd pharmacy-pos/frontend
-npm install
-
-# 啟動前端開發服務器
 npm start
-```
+
+# 前端安裝 在另一個終端中
+cd frontend
+npm install
+npm start
 
 ### 快速啟動（Windows）
 ```
