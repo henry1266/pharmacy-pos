@@ -130,24 +130,9 @@ start.bat  # 啟動系統
 
 ## 開發團隊
 
-- Henry Chen - 項目負責人
+- Henry ZHENG - 項目負責人
 - 藥局POS開發團隊
 
-## 貢獻指南
-
-1. Fork 本倉庫
-2. 創建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 創建Pull Request
-
-## 許可證
-
-本項目採用 MIT 許可證 - 詳情請查看 LICENSE 文件
-
-## 聯繫方式
-
-如有問題或建議，請聯繫：zxh1266@gmail.com
 
 ## 用戶角色
 
