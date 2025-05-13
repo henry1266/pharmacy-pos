@@ -60,7 +60,7 @@ const PaymentStatusSelect = ({
     <Autocomplete
       id="payment-status-select"
       options={options}
-      autoHighlight={true} // <--- 新增此行以自動高亮第一個選項
+      autoHighlight={true}
       getOptionLabel={(option) => {
         return option;
       }}
@@ -74,9 +74,9 @@ const PaymentStatusSelect = ({
 
           let selectedValue = null;
 
-          // 優先處理 autoHighlight 選中的情況 (如果 Autocomplete 內部已處理)
-          // 但我們的 onKeyDown 邏輯會覆蓋，所以需要確保我們的邏輯能正確選中
-          if (paymentStatusShortcuts[upperInputValue]) {
+          if (!inputValue && options.length > 0) { // 新增條件：如果輸入框為空且有選項
+            selectedValue = options[0];
+          } else if (paymentStatusShortcuts[upperInputValue]) {
             const fullStatus = paymentStatusShortcuts[upperInputValue];
             if (options.includes(fullStatus)) {
               selectedValue = fullStatus;
@@ -84,17 +84,12 @@ const PaymentStatusSelect = ({
           } else {
             const filtered = filterStatuses(options, inputValue);
             if (filtered.length > 0) {
-              // 如果 autoHighlight 為 true，理論上第一個選項已經是高亮的
-              // 直接按 Enter 時，Autocomplete 可能已經將高亮項作為其內部 "pending" 值
-              // 但為確保我們的邏輯覆蓋且正確，我們仍以 filtered[0] 為準
               selectedValue = filtered[0];
             }
           }
           
           if (selectedValue) {
             if (typeof onChange === 'function') {
-              // 確保傳遞的是 Autocomplete onChange 期望的 (event, value) 格式
-              // event 參數在這裡可能不是最重要的，但 value (selectedValue) 是
               onChange(event, selectedValue); 
             } else {
               console.warn('PaymentStatusSelect: onChange 屬性應為函數，但收到的類型是:', typeof onChange);
@@ -103,7 +98,11 @@ const PaymentStatusSelect = ({
             
             setTimeout(() => {
               if (onEnterKeyDown) {
-                onEnterKeyDown(inputValue); 
+                // 保持與 SupplierSelect 一致，傳遞 inputValue 或 selectedValue
+                // 根據之前與 SupplierSelect 同步的邏輯，此處應為 inputValue
+                // 但若 inputValue 為空，則傳遞 selectedValue 可能更合理
+                // 暫時維持傳遞 inputValue，若有問題再調整
+                onEnterKeyDown(inputValue || selectedValue); 
               } else {
                 const nextFocusableElement = document.getElementById('status-select'); 
                 if (nextFocusableElement) {
@@ -121,7 +120,7 @@ const PaymentStatusSelect = ({
           fullWidth
           required={required}
           error={error}
-          helperText={helperText}
+          helperText={helperText || "可輸入簡碼: JZ(未付款), UZ(已付款), UC(已匯款)"}
           size={size}
         />
       )}
