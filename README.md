@@ -65,9 +65,6 @@ cd pharmacy-pos
 cd backend
 npm install
 
-# 啟動後端服務
-npm run server
-```
 
 ### 前端安裝
 ```bash
