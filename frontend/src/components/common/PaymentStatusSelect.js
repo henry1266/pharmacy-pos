@@ -66,9 +66,15 @@ const PaymentStatusSelect = ({
       autoHighlight={true}
       getOptionLabel={(option) => option}
       value={selectedPaymentStatus}
-      onChange={onChange}
+      onChange={onChange} // This is Autocomplete's own change event
       filterOptions={(currentOptions, state) => filterStatuses(currentOptions, state.inputValue)}
       onKeyDown={(event) => {
+        // For Tab key, always prevent its default behavior (jumping focus) and stop propagation.
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
         if (event.key === 'Enter' || event.key === 'Tab') {
           const inputValue = event.target.value;
           const upperInputValue = inputValue?.toUpperCase();
@@ -94,7 +100,11 @@ const PaymentStatusSelect = ({
             } else {
               console.warn('PaymentStatusSelect: onChange 屬性應為函數，但收到的類型是:', typeof onChange);
             }
-            event.preventDefault(); 
+            // If Enter key made a selection, prevent its default (e.g. form submission)
+            // Tab's default was already prevented at the top.
+            if (event.key === 'Enter') {
+                event.preventDefault();
+            }
             setOpen(false); 
             
             setTimeout(() => {
@@ -107,15 +117,10 @@ const PaymentStatusSelect = ({
                 }
               }
             }, 50);
-          } else {
-            // 如果沒有確定選中的值 (例如輸入無效內容)
-            // 為了讓 Tab 的行為與 Enter 一致 (Enter 在此情況下通常不做任何事，或執行表單的預設提交行為)
-            // 我們需要阻止 Tab 鍵的預設跳轉行為。
-            if (event.key === 'Tab') {
-              event.preventDefault();
-            }
-            // Enter 鍵在此情況下會執行其預設行為 (如果未在上層被阻止)。
           }
+          // If no selectedValue is found:
+          // - Tab: Will do nothing further as its default and propagation are stopped.
+          // - Enter: Its default behavior (e.g., form submission) will proceed if not prevented by other means.
         }
       }}
       renderInput={(params) => (
