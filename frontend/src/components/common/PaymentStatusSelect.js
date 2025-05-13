@@ -7,7 +7,7 @@ import {
 /**
  * 通用付款狀態選擇組件
  * @param {Object} props - 組件屬性
- * @param {Array} props.options - 付款狀態選項列表
+ * @param {Array} props.options - 付款狀態選項列表 (e.g., ['未付款', '已付款', '已匯款'])
  * @param {string} props.selectedPaymentStatus - 當前選中的狀態值
  * @param {Function} props.onChange - 狀態變更處理函數
  * @param {string} props.label - 輸入框標籤
@@ -16,11 +16,17 @@ import {
  * @param {string} props.helperText - 幫助文本
  * @param {string} props.size - 輸入框大小
  * @param {Function} props.onEnterKeyDown - Enter鍵按下時的回調函數
- * @param {boolean} props.showCode - 是否在選項中顯示供應商代碼
  * @returns {React.ReactElement} 付款狀態選擇組件
  */
+
+const paymentStatusShortcuts = {
+  'JZ': '未付款',
+  'UZ': '已付款',
+  'UC': '已匯款',
+};
+
 const PaymentStatusSelect = ({
-  options = [],
+  options = [], // Expecting ['未付款', '已付款', '已匯款']
   selectedPaymentStatus,
   onChange,
   label = "付款狀態",
@@ -29,13 +35,24 @@ const PaymentStatusSelect = ({
   helperText = "",
   size = "medium",
   onEnterKeyDown,
-  showCode = false
 }) => {
-  // 選項過濾函數
-  const filterStatuses = (options, inputValue) => {
-    const filterValue = inputValue?.toLowerCase() || '';
-    return options.filter(option =>
-      option.toLowerCase().includes(filterValue)
+  // 選項過濾函數，現在也處理簡碼
+  const filterStatuses = (currentOptions, inputValue) => {
+    const filterValue = inputValue?.toUpperCase() || ''; // Convert to uppercase for shortcut matching
+
+    // 檢查是否為簡碼
+    if (paymentStatusShortcuts[filterValue]) {
+      // 如果是簡碼，且簡碼對應的完整狀態在選項中，則直接返回該選項
+      const fullStatus = paymentStatusShortcuts[filterValue];
+      if (currentOptions.includes(fullStatus)) {
+        return [fullStatus];
+      }
+    }
+
+    // 否則，執行原始的過濾邏輯 (轉小寫以進行部分匹配)
+    const lowerCaseFilterValue = inputValue?.toLowerCase() || '';
+    return currentOptions.filter(option =>
+      option.toLowerCase().includes(lowerCaseFilterValue)
     );
   };
 
@@ -43,37 +60,49 @@ const PaymentStatusSelect = ({
     <Autocomplete
       id="payment-status-select"
       options={options}
-      getOptionLabel={(option) => option}
+      getOptionLabel={(option) => {
+        // 如果選項是簡碼對應的完整狀態，可以考慮顯示簡碼提示，但目前保持原樣
+        return option;
+      }}
       value={selectedPaymentStatus}
       onChange={onChange} // This is for Autocomplete's own change event
-      filterOptions={(options, state) => filterStatuses(options, state.inputValue)}
+      filterOptions={(currentOptions, state) => filterStatuses(currentOptions, state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
           const inputValue = event.target.value;
+          const upperInputValue = inputValue?.toUpperCase();
+
+          let selectedValue = null;
+
+          // 檢查是否輸入了簡碼
+          if (paymentStatusShortcuts[upperInputValue]) {
+            const fullStatus = paymentStatusShortcuts[upperInputValue];
+            if (options.includes(fullStatus)) {
+              selectedValue = fullStatus;
+            }
+          } else {
+            // 如果不是簡碼，則使用過濾後的結果
+            const filtered = filterStatuses(options, inputValue);
+            if (filtered.length > 0) {
+              selectedValue = filtered[0];
+            }
+          }
           
-          // 獲取過濾後的供應商列表
-          const filtered = filterStatuses(options, inputValue);
-          
-          // 如果有過濾結果，自動選擇第一個選項
-          if (filtered.length > 0) {
-            // 選擇第一個選項
+          if (selectedValue) {
             if (typeof onChange === 'function') {
-              onChange(event, filtered[0]);
+              onChange(event, selectedValue);
             } else {
               console.warn('PaymentStatusSelect: onChange 屬性應為函數，但收到的類型是:', typeof onChange);
             }
             event.preventDefault();
             
-            // 延遲執行，確保選擇已完成
             setTimeout(() => {
-              // 如果提供了Enter鍵回調函數，則調用它
               if (onEnterKeyDown) {
-                onEnterKeyDown(inputValue);
+                onEnterKeyDown(selectedValue); // Pass the selected value to onEnterKeyDown
               } else {
-                // 如果沒有提供回調函數，則嘗試將焦點移至付款狀態欄位
-                const paymentStatusSelect = document.getElementById('payment-status-select');
-                if (paymentStatusSelect) {
-                  paymentStatusSelect.focus();
+                const nextFocusableElement = document.getElementById('status-select'); // Example: focus next element
+                if (nextFocusableElement) {
+                  nextFocusableElement.focus();
                 }
               }
             }, 50);
@@ -87,7 +116,7 @@ const PaymentStatusSelect = ({
           fullWidth
           required={required}
           error={error}
-          helperText={helperText}
+          helperText={helperText || "可輸入簡碼: JZ(未付款), UZ(已付款), UC(已匯款)"}
           size={size}
         />
       )}
