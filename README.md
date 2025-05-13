@@ -147,9 +147,7 @@ start.bat  # 啟動系統
 
 ## 聯繫方式
 
-如有問題或建議，請聯繫：henry1266@example.com
-
-
+如有問題或建議，請聯繫：zxh1266@gmail.com
 
 ## 用戶角色
 

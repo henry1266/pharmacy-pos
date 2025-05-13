@@ -63,6 +63,7 @@ const LoginPage = () => {
         localStorage.setItem('token', 'test-mode-token'); 
         localStorage.setItem('user', JSON.stringify({ name: 'Test User', email: 'test@example.com', role: '測試模式' })); // Role set to Test Mode
         localStorage.setItem('isTestMode', 'true'); // Indicate test mode is active
+        localStorage.setItem('loginTime', Math.floor(Date.now() / 1000).toString()); // Store login time
         window.location.replace('/dashboard');
       }, 600); // Match animation duration
       return; // Important to return here to skip actual login
@@ -77,6 +78,7 @@ const LoginPage = () => {
       setTimeout(() => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('loginTime', Math.floor(Date.now() / 1000).toString()); // Store login time
         window.location.replace('/dashboard');
       }, 600); // Match animation duration
 
