@@ -86,6 +86,7 @@ const BasicInfoForm = ({
               selectedSupplier={selectedSupplier}
               onChange={handleSupplierChange}
               label="進貨商 (可用名稱或簡碼)"
+              disabled={isEditMode} // MODIFIED LINE
             />
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
@@ -123,3 +124,4 @@ const BasicInfoForm = ({
 };
 
 export default BasicInfoForm;
+
