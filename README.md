@@ -131,7 +131,6 @@ start.bat  # 啟動系統
 ## 開發團隊
 
 - Henry ZHENG - 項目負責人
-- POS開發團隊
 
 ## 用戶角色
 
