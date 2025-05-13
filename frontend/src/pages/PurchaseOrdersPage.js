@@ -45,8 +45,32 @@ const PurchaseOrdersPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Use the custom hook to fetch data from Redux
-  const { purchaseOrders, suppliers, loading, error } = usePurchaseOrdersData();
+  const { purchaseOrders: fetchedPurchaseOrders, suppliers, loading, error } = usePurchaseOrdersData();
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+
+  useEffect(() => {
+    const isTestMode = localStorage.getItem('token') === 'test-mode-token';
+    let ordersToSet = fetchedPurchaseOrders || [];
+    if (isTestMode) {
+      const virtualOrder = {
+        _id: 'virtual-po-001',
+        poid: 'VIRTUAL-PO-001',
+        pobill: 'V-BILL-001',
+        pobilldate: new Date().toISOString(),
+        posupplier: '虛擬供應商 (測試)',
+        totalAmount: 1234.50,
+        status: '處理中',
+        paymentStatus: '未付款',
+        items: [{ did: 'V-PROD-01', dname: '虛擬產品A', dquantity: 10, dtotalCost: 1000 }, { did: 'V-PROD-02', dname: '虛擬產品B', dquantity: 5, dtotalCost: 234.50 }],
+        isVirtual: true // Flag to identify virtual order
+      };
+      // Prepend the virtual order to the list if it's not already there (to avoid duplicates on re-renders)
+      if (!ordersToSet.find(order => order._id === virtualOrder._id)) {
+        ordersToSet = [virtualOrder, ...ordersToSet];
+      }
+    }
+    setPurchaseOrders(ordersToSet);
+  }, [fetchedPurchaseOrders]);
 
   // Component-specific state remains
   const [searchParams, setSearchParams] = useState({

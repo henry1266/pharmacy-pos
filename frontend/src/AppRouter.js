@@ -72,13 +72,11 @@ const AppRouter = () => {
       <Route path="/settings/ip" element={<SettingsIpPage />} /> {/* Add the new IP settings route */}
       <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
-      {/* Purchase Order routes - Protected by AdminRoute */}
-      <Route path="/purchase-orders" element={<AdminRoute />}>
-        <Route path="" element={<PurchaseOrdersPage />} />
-        <Route path="new" element={<PurchaseOrderFormPage />} />
-        <Route path="edit/:id" element={<PurchaseOrderEditPage />} />
-        <Route path=":id" element={<PurchaseOrderDetailPage />} />
-      </Route>
+      {/* Purchase Order routes */}
+      <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
+      <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
+      <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderEditPage />} />
+      <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
       
       {/* Shipping Order routes */}
       <Route path="/shipping-orders" element={<ShippingOrdersPage />} />

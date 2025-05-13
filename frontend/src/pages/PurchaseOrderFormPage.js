@@ -125,18 +125,56 @@ const PurchaseOrderFormPage = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   useEffect(() => {
-    if (isEditMode && orderData) {
-      const supplierId = typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier;
-      setFormData({
-        ...orderData,
-        pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date(),
-        supplier: supplierId,
-        items: orderData.items || [],
-        status: orderData.status || '處理中',
-        paymentStatus: orderData.paymentStatus || '未付款'
-      });
+    if (isEditMode) {
+      if (isGlobalTestMode && id === 'virtual-po-001') {
+        const virtualOrderData = {
+          _id: 'virtual-po-001',
+          poid: 'VIRTUAL-PO-001',
+          pobill: 'V-BILL-001',
+          pobilldate: new Date(), // Use new Date() for current date
+          posupplier: '虛擬供應商 (測試)',
+          supplier: 'mockSup1', // Assuming mockSup1 exists in mockSuppliers
+          totalAmount: 1234.50,
+          status: '處理中',
+          paymentStatus: '未付款',
+          items: [
+            { product: 'mockProd1', did: 'T001', dname: '模擬產品A (測試)', dquantity: 10, dtotalCost: 1000, unitPrice: 100 },
+            { product: 'mockProd2', did: 'T002', dname: '模擬產品B (測試)', dquantity: 5, dtotalCost: 234.50, unitPrice: 46.9 }
+          ],
+          notes: '這是一張測試模式下的虛擬進貨單。',
+          isVirtual: true
+        };
+        setFormData({
+          ...virtualOrderData,
+          pobilldate: virtualOrderData.pobilldate ? new Date(virtualOrderData.pobilldate) : new Date(),
+        });
+        // Simulate data loaded for virtual order
+        if (typeof initialDataLoading !== 'undefined' && initialDataLoading) {
+            // This is a bit of a hack; ideally usePurchaseOrderData would expose a setter for loading
+            // For now, we assume that if we set formData, the loading sequence for real data is bypassed or irrelevant
+        }
+        if (suppliers && suppliers.length > 0) {
+            const supplierObj = suppliers.find(s => s.id === virtualOrderData.supplier || s._id === virtualOrderData.supplier);
+            if (supplierObj) {
+                setSelectedSupplier(supplierObj);
+            }
+        }
+        dataLoading = false; // Force loading to false for test mode virtual order
+        orderDataLoaded = true; // Force orderDataLoaded to true
+
+      } else if (orderData) {
+        const supplierId = typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier;
+        setFormData({
+          ...orderData,
+          pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date(),
+          supplier: supplierId,
+          items: orderData.items || [],
+          status: orderData.status || '處理中',
+          paymentStatus: orderData.paymentStatus || '未付款'
+        });
+      }
     }
-  }, [isEditMode, orderData]);
+  }, [isEditMode, orderData, id, isGlobalTestMode, initialDataLoading, suppliers]);
 
   useEffect(() => {
     if (isEditMode && orderDataLoaded && suppliersLoaded && formData.supplier && suppliers && suppliers.length > 0) {
