@@ -1,11 +1,8 @@
-# 待辦事項
+# 專案開發任務清單
 
-- [x] 分析 `customers` 的 `idCardNumber` 讀取與存檔問題
-  - [x] 找出與 `customers` 和 `idCardNumber` 相關的檔案
-  - [x] 閱讀相關程式碼，理解目前的實作方式
-  - [x] 找出導致 `idCardNumber` 無法正確讀取和存檔的具體原因：後端 API 未處理 `idCardNumber` 欄位
-- [ ] 實作 `idCardNumber` 讀取與存檔的修復方案
-- [ ] 實作 `idCardNumber` 讀取與存檔的修復方案
-- [ ] 測試 `idCardNumber` 功能是否正常運作
-- [ ] 提交並推送變更到 GitHub
-- [ ] 向用戶報告並發送更新
+- [x] 從 GitHub 下載專案
+- [x] 分析 `frontend/src/components/purchase-order-form/BasicInfoForm.js` 的邏輯
+- [x] 修改 `BasicInfoForm.js` 中的 edit 模式邏輯
+- [x] 驗證 edit 模式功能 (已告知使用者沙箱環境限制)
+- [x] 提交並推送變更到 GitHub
+- [x] 向使用者報告進度並提供更新後的檔案
