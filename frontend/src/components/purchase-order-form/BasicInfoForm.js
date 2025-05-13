@@ -18,6 +18,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
 import SupplierSelect from '../common/SupplierSelect';
 import PaymentStatusSelect from '../common/PaymentStatusSelect';
+import StatusSelect from '../common/StatusSelect';
 /**
  * 進貨單基本資訊表單組件
  * @param {Object} props - 組件屬性
@@ -30,11 +31,6 @@ import PaymentStatusSelect from '../common/PaymentStatusSelect';
  * @param {boolean} props.isEditMode - 是否為編輯模式
  * @returns {React.ReactElement} 基本資訊表單組件
  */
-const paymentOptions = [
-  { label: '未付', value: '未付' },
-  { label: '已下收', value: '已下收' },
-  { label: '已匯款', value: '已匯款' },
-]; 
 
 const BasicInfoForm = ({
   formData,
@@ -42,6 +38,8 @@ const BasicInfoForm = ({
   handleDateChange,
   handlePaymentStatusChange,
   selectedPaymentStatus,
+  handleStatusChange,
+  selectedStatus,
   handleSupplierChange,
   suppliers,
   selectedSupplier,
@@ -100,7 +98,7 @@ const BasicInfoForm = ({
               options={['未付款', '已付款', '已匯款']}
               selectedPaymentStatus={selectedPaymentStatus}
               onChange={handlePaymentStatusChange}
-              label="付款狀態1"
+              label="付款狀態"
             />
           </Grid>      
           <Grid item xs={12} sm={6} md={6}>
@@ -115,7 +113,14 @@ const BasicInfoForm = ({
               rows={1}
             />
           </Grid>
-
+          <Grid item xs={12} sm={6} md={2}>
+            <StatusSelect
+              options={['處理中', '已完成']}
+              selectedStatus={selectedStatus}
+              onChange={handleStatusChange}
+              label="狀態"
+            />
+          </Grid>
 		      <Grid item xs={12} sm={6} md={2}>
             <Box
               sx={{backgroundColor:
