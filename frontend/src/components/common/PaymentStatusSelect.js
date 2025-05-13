@@ -114,7 +114,7 @@ const PaymentStatusSelect = ({
           fullWidth
           required={required}
           error={error}
-          helperText={helperText || "可輸入簡碼: JZ(未付款), UZ(已付款), UC(已匯款)"}
+          helperText={helperText}
           size={size}
         />
       )}
