@@ -41,7 +41,6 @@ const PurchaseOrderFormPage = () => {
     setSnackbar({ open: true, message, severity });
   }, []);
 
-  // Destructure with 'let' to allow reassignment for test mode
   let {
     loading: initialDataLoading,
     error: initialDataError,
@@ -54,10 +53,8 @@ const PurchaseOrderFormPage = () => {
     orderDataLoaded,
     suppliersLoaded: initialSuppliersLoaded,
     productsLoaded: initialProductsLoaded,
-    // fetchProductDetailsForItems // This is a function from the hook, not directly modified here
   } = usePurchaseOrderData(isEditMode, id, showSnackbar);
 
-  // Create mutable versions of data for test mode modification
   let dataLoading = initialDataLoading;
   let dataError = initialDataError;
   let suppliers = initialSuppliers;
@@ -85,7 +82,6 @@ const PurchaseOrderFormPage = () => {
       suppliers = mockSuppliers;
       suppliersLoaded = true;
     }
-    // If there was an error but we have mock data, clear the error and loading state
     if (dataError && (products === mockProducts || suppliers === mockSuppliers)) {
       dataError = null;
     }
@@ -98,12 +94,12 @@ const PurchaseOrderFormPage = () => {
     poid: '',
     pobill: '',
     pobilldate: new Date(),
-    posupplier: '', // supplier name
-    supplier: '', // Store supplier ID
+    posupplier: '', 
+    supplier: '', 
     items: [],
     notes: '',
-    status: 'pending',
-    paymentStatus: '未付'
+    status: '處理中', // Default to '處理中' as per updated backend model
+    paymentStatus: '未付款'
   });
 
   const productInputRef = useRef(null);
@@ -135,7 +131,9 @@ const PurchaseOrderFormPage = () => {
         ...orderData,
         pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date(),
         supplier: supplierId,
-        items: orderData.items || []
+        items: orderData.items || [],
+        status: orderData.status || '處理中',
+        paymentStatus: orderData.paymentStatus || '未付款'
       });
     }
   }, [isEditMode, orderData]);
@@ -181,6 +179,56 @@ const PurchaseOrderFormPage = () => {
     } else {
       setSelectedSupplier(null);
       setFormData({ ...formData, posupplier: '', supplier: '' });
+    }
+  };
+
+  // Handler for PaymentStatusSelect change
+  const handlePaymentStatusChangeInternal = async (event, newValue) => {
+    const originalPaymentStatus = formData.paymentStatus;
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      paymentStatus: newValue
+    }));
+
+    if (isEditMode && id && !isGlobalTestMode) {
+      try {
+        await updatePurchaseOrder(id, { paymentStatus: newValue });
+        showSnackbar('付款狀態已更新', 'success');
+      } catch (err) {
+        console.error('更新付款狀態失敗:', err);
+        showSnackbar('更新付款狀態失敗: ' + (err.response?.data?.msg || err.message), 'error');
+        setFormData(prevFormData => ({ // Revert on failure
+          ...prevFormData,
+          paymentStatus: originalPaymentStatus 
+        }));
+      }
+    }
+  };
+
+  // Handler for StatusSelect change
+  const handleStatusChangeInternal = async (event, newValue) => {
+    // If StatusSelect is a simple Select, newValue might be event.target.value
+    // Assuming StatusSelect's onChange provides newValue directly or as second arg like Autocomplete
+    const actualNewValue = typeof newValue === 'string' ? newValue : event.target.value; 
+    const originalStatus = formData.status;
+
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      status: actualNewValue
+    }));
+
+    if (isEditMode && id && !isGlobalTestMode) {
+      try {
+        await updatePurchaseOrder(id, { status: actualNewValue });
+        showSnackbar('狀態已更新', 'success');
+      } catch (err) {
+        console.error('更新狀態失敗:', err);
+        showSnackbar('更新狀態失敗: ' + (err.response?.data?.msg || err.message), 'error');
+        setFormData(prevFormData => ({ // Revert on failure
+          ...prevFormData,
+          status: originalStatus
+        }));
+      }
     }
   };
 
@@ -277,7 +325,6 @@ const PurchaseOrderFormPage = () => {
   }
   
   if (isGlobalTestMode && dataError && !(products && products.length > 0 && suppliers && suppliers.length > 0)) {
-     // If still error in test mode and mock data didn't load (should not happen with current logic but as a fallback)
      return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="warning">測試模式：無法載入初始資料，也無法載入模擬資料。請檢查控制台。</Typography>
@@ -304,6 +351,11 @@ const PurchaseOrderFormPage = () => {
           loading={dataLoading && !suppliersLoaded && !isGlobalTestMode}
           invoiceInputRef={invoiceInputRef}
           isTestMode={isGlobalTestMode}
+          // Pass down the new handlers and current values
+          handlePaymentStatusChange={handlePaymentStatusChangeInternal}
+          selectedPaymentStatus={formData.paymentStatus}
+          handleStatusChange={handleStatusChangeInternal}
+          selectedStatus={formData.status}
         />
 
         <Card sx={{ mb: 1 }}>
@@ -340,7 +392,7 @@ const PurchaseOrderFormPage = () => {
                 handleMoveItem={handleMoveItem}
                 handleEditingItemChange={handleEditingItemChange}
                 totalAmount={totalAmount}
-                productDetails={productDetails} // This might still be an issue if it relies on real product IDs
+                productDetails={productDetails} 
                 productDetailsLoading={productDetailsLoading && !isGlobalTestMode}
                 codeField="did"
                 showHealthInsuranceCode={true}

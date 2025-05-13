@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require(\'mongoose\');
 
 // 進貨單項目子模型
 const PurchaseOrderItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'baseproduct',
+    ref: \'baseproduct\',
     required: true
   },
   did: {
@@ -60,7 +60,7 @@ const PurchaseOrderSchema = new mongoose.Schema({
   },
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'supplier'
+    ref: \'supplier\'
   },
   items: [PurchaseOrderItemSchema],
   totalAmount: {
@@ -69,13 +69,13 @@ const PurchaseOrderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'completed', 'cancelled'],
-    default: 'pending'
+    enum: [\'處理中\', \'已完成\', \'cancelled\'], // 更新 enum，保留 cancelled 以防現有資料問題，但新邏輯應主要使用前兩者
+    default: \'處理中\' // 更新 default
   },
   paymentStatus: {
     type: String,
-    enum: ['未付', '已下收', '已匯款'],
-    default: '未付'
+    enum: [\'未付款\', \'已付款\', \'已匯款\'], // 更新 enum
+    default: \'未付款\' // 更新 default
   },
   notes: {
     type: String
@@ -91,7 +91,7 @@ const PurchaseOrderSchema = new mongoose.Schema({
 });
 
 // 計算總金額的中間件
-PurchaseOrderSchema.pre('save', function(next) {
+PurchaseOrderSchema.pre(\'save\', function(next) {
   this.totalAmount = this.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
   this.updatedAt = Date.now();
   
@@ -103,4 +103,5 @@ PurchaseOrderSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('purchaseorder', PurchaseOrderSchema);
+module.exports = mongoose.model(\'purchaseorder\', PurchaseOrderSchema);
+
