@@ -45,7 +45,7 @@ const PaymentStatusSelect = ({
       options={options}
       getOptionLabel={(option) => option}
       value={selectedPaymentStatus}
-      onChange={onChange}
+      onChange={onChange} // This is for Autocomplete's own change event
       filterOptions={(options, state) => filterStatuses(options, state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
@@ -57,7 +57,11 @@ const PaymentStatusSelect = ({
           // 如果有過濾結果，自動選擇第一個選項
           if (filtered.length > 0) {
             // 選擇第一個選項
-            onChange(event, filtered[0]);
+            if (typeof onChange === 'function') {
+              onChange(event, filtered[0]);
+            } else {
+              console.warn('PaymentStatusSelect: onChange 屬性應為函數，但收到的類型是:', typeof onChange);
+            }
             event.preventDefault();
             
             // 延遲執行，確保選擇已完成
@@ -92,3 +96,4 @@ const PaymentStatusSelect = ({
 };
 
 export default PaymentStatusSelect;
+
