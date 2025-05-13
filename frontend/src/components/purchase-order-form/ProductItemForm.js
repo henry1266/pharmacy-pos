@@ -23,10 +23,10 @@ const ProductItemForm = ({
   const packageQuantityValue = currentItem.packageQuantity || '';
   const boxQuantityValue = currentItem.boxQuantity || '';
 
+  // MODIFIED LOGIC for mainQuantityDisabled
+  const mainQuantityDisabled = activeInput === 'packageQuantity' || activeInput === 'boxQuantity';
+  
   const subQuantitiesDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue) > 0 && activeInput !== 'packageQuantity' && activeInput !== 'boxQuantity';
-  const mainQuantityDisabled = 
-    ((packageQuantityValue !== '' && parseFloat(packageQuantityValue) > 0) ||
-    (boxQuantityValue !== '' && parseFloat(boxQuantityValue) > 0)) && activeInput !== 'dquantity';
 
   const calculateAndUpdateDQuantity = () => {
     const pkgQty = parseFloat(currentItem.packageQuantity) || 0;
@@ -155,7 +155,7 @@ const ProductItemForm = ({
               onFocus={handleFocus}
               onKeyDown={handleQuantityKeyDown}
               inputProps={{ min: "0.01", step: "0.01" }}
-              disabled={mainQuantityDisabled}
+              disabled={mainQuantityDisabled} // Uses the modified mainQuantityDisabled
             />
           </Grid>
           <Grid item xs={5}>
