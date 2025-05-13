@@ -3,11 +3,6 @@ import {
   Box,
   Grid, 
   TextField, 
-  Autocomplete,  
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem,
   Typography,
   Card,
   CardContent
@@ -101,7 +96,7 @@ const BasicInfoForm = ({
               label="付款狀態"
             />
           </Grid>      
-          <Grid item xs={12} sm={6} md={6}>
+          <Grid item xs={12} sm={8} md={8}>
             <TextField
               fullWidth
               label="備註"
@@ -120,53 +115,6 @@ const BasicInfoForm = ({
               onChange={handleStatusChange}
               label="狀態"
             />
-          </Grid>
-		      <Grid item xs={12} sm={6} md={2}>
-            <Box
-              sx={{backgroundColor:
-              formData.status === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
-              formData.status === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
-              }}
-            > 
-              <FormControl fullWidth>
-                <InputLabel>狀態</InputLabel>
-                  <Select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    label="狀態"
-                    id="status-select"
-                    onKeyDown={(event) => {
-                      if (event.key === 'Tab' || event.key === 'Enter') {
-                        event.preventDefault();
-                        // 跳轉到藥品選擇欄位
-                        setTimeout(() => {
-                          try {
-                            // 嘗試方法1：使用ID選擇器
-                            const productSelect = document.getElementById('product-select-input');
-                            if (productSelect) {
-                              productSelect.focus();
-                              return;
-                            }
-                            // 嘗試方法2：使用更通用的選擇器
-                            const productInput = document.querySelector('#product-select input');
-                            if (productInput) {
-                              productInput.focus();
-                              return;
-                            }
-
-                          } catch (error) {
-                            console.error('無法自動聚焦到藥品選擇欄位:', error);
-                          }
-                        }, 100);
-                      }
-                    }}
-                  >
-						        <MenuItem value="pending">處理中</MenuItem>
-						        <MenuItem value="completed">已完成</MenuItem>
-					        </Select>
-				      </FormControl>
-			      </Box>
           </Grid>
         </Grid>
       </CardContent>

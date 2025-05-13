@@ -48,11 +48,19 @@ const PurchaseOrdersTable = ({
     let label = '未知';
     
     switch (status) {
+      case '處理中':
+        color = 'warning';
+        label = '處理中';
+        break;
       case 'pending':
         color = 'warning';
         label = '處理中';
         break;
-      case 'completed':
+      case '已完成':
+        color = 'success';
+        label = '已完成';
+        break;
+        case 'completed':
         color = 'success';
         label = '已完成';
         break;
@@ -73,8 +81,14 @@ const PurchaseOrdersTable = ({
     let label = status || '未付';
     
     switch (status) {
+      case '未付款':
+        color = 'warning';
+        break;
       case '未付':
         color = 'warning';
+        break;
+      case '已付款':
+        color = 'info';
         break;
       case '已下收':
         color = 'info';
