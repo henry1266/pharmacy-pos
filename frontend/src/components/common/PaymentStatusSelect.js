@@ -60,6 +60,7 @@ const PaymentStatusSelect = ({
     <Autocomplete
       id="payment-status-select"
       options={options}
+      autoHighlight={true} // <--- 新增此行以自動高亮第一個選項
       getOptionLabel={(option) => {
         return option;
       }}
@@ -73,6 +74,8 @@ const PaymentStatusSelect = ({
 
           let selectedValue = null;
 
+          // 優先處理 autoHighlight 選中的情況 (如果 Autocomplete 內部已處理)
+          // 但我們的 onKeyDown 邏輯會覆蓋，所以需要確保我們的邏輯能正確選中
           if (paymentStatusShortcuts[upperInputValue]) {
             const fullStatus = paymentStatusShortcuts[upperInputValue];
             if (options.includes(fullStatus)) {
@@ -81,29 +84,33 @@ const PaymentStatusSelect = ({
           } else {
             const filtered = filterStatuses(options, inputValue);
             if (filtered.length > 0) {
+              // 如果 autoHighlight 為 true，理論上第一個選項已經是高亮的
+              // 直接按 Enter 時，Autocomplete 可能已經將高亮項作為其內部 "pending" 值
+              // 但為確保我們的邏輯覆蓋且正確，我們仍以 filtered[0] 為準
               selectedValue = filtered[0];
             }
           }
           
           if (selectedValue) {
             if (typeof onChange === 'function') {
-              onChange(event, selectedValue);
+              // 確保傳遞的是 Autocomplete onChange 期望的 (event, value) 格式
+              // event 參數在這裡可能不是最重要的，但 value (selectedValue) 是
+              onChange(event, selectedValue); 
             } else {
               console.warn('PaymentStatusSelect: onChange 屬性應為函數，但收到的類型是:', typeof onChange);
             }
             event.preventDefault();
             
-            // 仿照 SupplierSelect.js 的延遲邏輯
             setTimeout(() => {
               if (onEnterKeyDown) {
-                onEnterKeyDown(inputValue); // 傳遞 inputValue，與 SupplierSelect 一致
+                onEnterKeyDown(inputValue); 
               } else {
                 const nextFocusableElement = document.getElementById('status-select'); 
                 if (nextFocusableElement) {
                   nextFocusableElement.focus();
                 }
               }
-            }, 50); // 使用 50ms 延遲，與 SupplierSelect 一致
+            }, 50); 
           }
         }
       }}
@@ -114,7 +121,7 @@ const PaymentStatusSelect = ({
           fullWidth
           required={required}
           error={error}
-          helperText={helperText}
+          helperText={helperText || "可輸入簡碼: JZ(未付款), UZ(已付款), UC(已匯款)"}
           size={size}
         />
       )}
