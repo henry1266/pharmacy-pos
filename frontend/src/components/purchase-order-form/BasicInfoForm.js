@@ -16,7 +16,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
-
+import SupplierSelect from '../common/SupplierSelect';
+import PaymentStatusSelect from '../common/PaymentStatusSelect';
 /**
  * 進貨單基本資訊表單組件
  * @param {Object} props - 組件屬性
@@ -29,10 +30,18 @@ import { zhTW } from 'date-fns/locale';
  * @param {boolean} props.isEditMode - 是否為編輯模式
  * @returns {React.ReactElement} 基本資訊表單組件
  */
+const paymentOptions = [
+  { label: '未付', value: '未付' },
+  { label: '已下收', value: '已下收' },
+  { label: '已匯款', value: '已匯款' },
+]; 
+
 const BasicInfoForm = ({
   formData,
   handleInputChange,
   handleDateChange,
+  handlePaymentStatusChange,
+  selectedPaymentStatus,
   handleSupplierChange,
   suppliers,
   selectedSupplier,
@@ -78,120 +87,22 @@ const BasicInfoForm = ({
               />
             </LocalizationProvider>
           </Grid>
-<Grid item xs={12} sm={6} md={2}>
-  <Autocomplete
-    id="supplier-select"
-    options={suppliers}
-    getOptionLabel={(option) => option.name}
-    value={selectedSupplier}
-    onChange={handleSupplierChange}
-    filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
-onKeyDown={(event) => {
-  if (['Enter', 'Tab'].includes(event.key)) {
-    const filtered = filterSuppliers(suppliers, event.target.value);
-    if (filtered.length > 0) {
-      handleSupplierChange(event, filtered[0]);
-      event.preventDefault();
-
-      // 直接模擬點擊付款狀態下拉框
-      setTimeout(() => {
-        try {
-          // 嘗試直接點擊付款狀態標籤
-          const paymentStatusLabel = document.querySelector('#payment-status-label');
-          if (paymentStatusLabel) {
-            paymentStatusLabel.click();
-            return;
-          }
-          
-          // 備用方案1：嘗試找到付款狀態下拉框並點擊
-          const selectElement = document.querySelector('[name="paymentStatus"]');
-          if (selectElement) {
-            selectElement.click();
-            return;
-          }
-          
-          // 備用方案2：嘗試找到付款狀態FormControl並點擊
-          const formControl = document.querySelector('label[id="payment-status-label"]').closest('.MuiFormControl-root');
-          if (formControl) {
-            formControl.click();
-          }
-        } catch (error) {
-          console.error('無法自動聚焦到付款狀態:', error);
-        }
-      }, 100); // 增加延遲時間確保DOM已更新
-    }
-  }
-}}
-    renderInput={(params) => (
-      <TextField {...params} required label="供應商" fullWidth />
-    )}
-  />
-
-
-</Grid>
-        <Grid item xs={12} sm={6} md={2}>
-            <Box
-				sx={{
-					backgroundColor:
-					formData.paymentStatus === '未付' ? '#F8D7DA' :     // 紅色（淡）
-					formData.paymentStatus === '已下收' ? '#D4EDDA' :    // 綠色（淡）
-					formData.paymentStatus === '已匯款' ? '#D4EDDA' :    // 綠色（淡）
-					'transparent',
-				}}
-			>
-			<FormControl fullWidth>
-              <InputLabel id="payment-status-label">付款狀態</InputLabel>
-              <Select
-                labelId="payment-status-label"
-                name="paymentStatus"
-                value={formData.paymentStatus}
-                onChange={handleInputChange}
-                label="付款狀態"
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    // 當按下Enter鍵時，將焦點轉移到status-select
-                    setTimeout(() => {
-                      try {
-                        // 嘗試方法1：使用選擇器找到狀態下拉框
-                        const statusSelect = document.querySelector('select[name="status"]');
-                        if (statusSelect) {
-                          statusSelect.focus();
-                          return;
-                        }
-                        
-                        // 嘗試方法2：使用更通用的選擇器
-                        const statusInput = document.querySelector('div[role="button"][aria-labelledby="mui-component-select-status"]');
-                        if (statusInput) {
-                          statusInput.focus();
-                          statusInput.click();
-                          return;
-                        }
-                        
-                        // 嘗試方法3：模擬Tab鍵
-                        const tabEvent = new KeyboardEvent('keydown', {
-                          key: 'Tab',
-                          code: 'Tab',
-                          keyCode: 9,
-                          which: 9,
-                          bubbles: true,
-                          cancelable: true
-                        });
-                        event.target.dispatchEvent(tabEvent);
-                      } catch (error) {
-                        console.error('無法自動聚焦到狀態選擇欄位:', error);
-                      }
-                    }, 100);
-                  }
-                }}
-              >
-                <MenuItem value="未付">未付</MenuItem>
-                <MenuItem value="已下收">已下收</MenuItem>
-                <MenuItem value="已匯款">已匯款</MenuItem>
-              </Select>
-            </FormControl>
-            </Box>
+          <Grid item xs={12} sm={6} md={2}>
+            <SupplierSelect
+              suppliers={suppliers || []}
+              selectedSupplier={selectedSupplier}
+              onChange={handleSupplierChange}
+              label="進貨商 (可用名稱或簡碼)"
+            />
           </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <PaymentStatusSelect
+              options={['未付款', '已付款', '已匯款']}
+              selectedPaymentStatus={selectedPaymentStatus}
+              onChange={handlePaymentStatusChange}
+              label="付款狀態1"
+            />
+          </Grid>      
           <Grid item xs={12} sm={6} md={6}>
             <TextField
               fullWidth
@@ -205,72 +116,56 @@ onKeyDown={(event) => {
             />
           </Grid>
 
-		  <Grid item xs={12} sm={6} md={2}>
+		      <Grid item xs={12} sm={6} md={2}>
             <Box
-				sx={{
-					backgroundColor:
-					formData.status === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
-					formData.status === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
-				}}
-			>
-				<FormControl fullWidth>
-					<InputLabel>狀態</InputLabel>
-					<Select
-						name="status"
-						value={formData.status}
-						onChange={handleInputChange}
-						label="狀態"
-						id="status-select"
-						onKeyDown={(event) => {
-							if (event.key === 'Tab' || event.key === 'Enter') {
-								event.preventDefault();
-								// 跳轉到藥品選擇欄位
-								setTimeout(() => {
-									try {
-										// 嘗試方法1：使用ID選擇器
-										const productSelect = document.getElementById('product-select-input');
-										if (productSelect) {
-											productSelect.focus();
-											return;
-										}
-										
-										// 嘗試方法2：使用更通用的選擇器
-										const productInput = document.querySelector('#product-select input');
-										if (productInput) {
-											productInput.focus();
-											return;
-										}
-										
-										// 嘗試方法3：直接點擊藥品選擇欄位
-										const productSelectElement = document.getElementById('product-select');
-										if (productSelectElement) {
-											productSelectElement.click();
-										}
-									} catch (error) {
-										console.error('無法自動聚焦到藥品選擇欄位:', error);
-									}
-								}, 100);
-							}
-						}}
-					>
-						<MenuItem value="pending">處理中</MenuItem>
-						<MenuItem value="completed">已完成</MenuItem>
-					</Select>
-				</FormControl>
+              sx={{backgroundColor:
+              formData.status === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
+              formData.status === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
+              }}
+            > 
+              <FormControl fullWidth>
+                <InputLabel>狀態</InputLabel>
+                  <Select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    label="狀態"
+                    id="status-select"
+                    onKeyDown={(event) => {
+                      if (event.key === 'Tab' || event.key === 'Enter') {
+                        event.preventDefault();
+                        // 跳轉到藥品選擇欄位
+                        setTimeout(() => {
+                          try {
+                            // 嘗試方法1：使用ID選擇器
+                            const productSelect = document.getElementById('product-select-input');
+                            if (productSelect) {
+                              productSelect.focus();
+                              return;
+                            }
+                            // 嘗試方法2：使用更通用的選擇器
+                            const productInput = document.querySelector('#product-select input');
+                            if (productInput) {
+                              productInput.focus();
+                              return;
+                            }
+
+                          } catch (error) {
+                            console.error('無法自動聚焦到藥品選擇欄位:', error);
+                          }
+                        }, 100);
+                      }
+                    }}
+                  >
+						        <MenuItem value="pending">處理中</MenuItem>
+						        <MenuItem value="completed">已完成</MenuItem>
+					        </Select>
+				      </FormControl>
 			      </Box>
           </Grid>
-		</Grid>
-
+        </Grid>
       </CardContent>
     </Card>
-  );
-};
-
-const filterSuppliers = (options, inputValue) => {
-  const filterValue = inputValue?.toLowerCase() || '';
-  return options.filter(option =>
-    option.name.toLowerCase().includes(filterValue) ||
-    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue))
   );
 };
 

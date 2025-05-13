@@ -5,11 +5,11 @@ import {
 } from '@mui/material';
 
 /**
- * 通用供應商選擇組件
+ * 通用付款狀態選擇組件
  * @param {Object} props - 組件屬性
- * @param {Array} props.suppliers - 供應商列表
- * @param {Object} props.selectedSupplier - 當前選中的供應商
- * @param {Function} props.onChange - 供應商變更處理函數
+ * @param {Array} props.options - 付款狀態選項列表
+ * @param {string} props.selectedPaymentStatus - 當前選中的狀態值
+ * @param {Function} props.onChange - 狀態變更處理函數
  * @param {string} props.label - 輸入框標籤
  * @param {boolean} props.required - 是否必填
  * @param {boolean} props.error - 是否顯示錯誤
@@ -17,13 +17,13 @@ import {
  * @param {string} props.size - 輸入框大小
  * @param {Function} props.onEnterKeyDown - Enter鍵按下時的回調函數
  * @param {boolean} props.showCode - 是否在選項中顯示供應商代碼
- * @returns {React.ReactElement} 供應商選擇組件
+ * @returns {React.ReactElement} 付款狀態選擇組件
  */
-const SupplierSelect = ({
-  suppliers = [],
-  selectedSupplier,
+const PaymentStatusSelect = ({
+  options = [],
+  selectedPaymentStatus,
   onChange,
-  label = "供應商",
+  label = "付款狀態",
   required = true,
   error = false,
   helperText = "",
@@ -31,30 +31,28 @@ const SupplierSelect = ({
   onEnterKeyDown,
   showCode = false
 }) => {
-  // 供應商過濾函數
-  const filterSuppliers = (options, inputValue) => {
+  // 選項過濾函數
+  const filterStatuses = (options, inputValue) => {
     const filterValue = inputValue?.toLowerCase() || '';
     return options.filter(option =>
-      option.name.toLowerCase().includes(filterValue) ||
-      (option.code && option.code.toLowerCase().includes(filterValue)) ||
-      (option.shortCode && option.shortCode.toLowerCase().includes(filterValue))
+      option.toLowerCase().includes(filterValue)
     );
   };
 
   return (
     <Autocomplete
-      id="supplier-select"
-      options={suppliers}
-      getOptionLabel={(option) => option.name || ''}
-      value={selectedSupplier}
+      id="payment-status-select"
+      options={options}
+      getOptionLabel={(option) => option}
+      value={selectedPaymentStatus}
       onChange={onChange}
-      filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
+      filterOptions={(options, state) => filterStatuses(options, state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
           const inputValue = event.target.value;
           
           // 獲取過濾後的供應商列表
-          const filtered = filterSuppliers(suppliers, inputValue);
+          const filtered = filterStatuses(options, inputValue);
           
           // 如果有過濾結果，自動選擇第一個選項
           if (filtered.length > 0) {
@@ -80,22 +78,17 @@ const SupplierSelect = ({
       }}
       renderInput={(params) => (
         <TextField 
-          {...params} 
-          label={label} 
-          fullWidth 
+          {...params}
+          label={label}
+          fullWidth
           required={required}
           error={error}
           helperText={helperText}
           size={size}
         />
       )}
-      renderOption={showCode ? (props, option) => (
-        <li {...props}>
-          {option.name} {option.code && <span style={{color: 'gray', marginLeft: '8px'}}>({option.code})</span>}
-        </li>
-      ) : undefined}
     />
   );
 };
 
-export default SupplierSelect;
+export default PaymentStatusSelect;

@@ -39,15 +39,6 @@ const BasicInfoForm = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState(0);
   
-  // 處理供應商欄位按ENTER後跳轉到付款狀態欄位
-  const handleSupplierEnterKeyDown = () => {
-    // 找到付款狀態欄位並設置焦點
-    const paymentStatusSelect = document.getElementById('payment-status-select');
-    if (paymentStatusSelect) {
-      paymentStatusSelect.focus();
-    }
-  };
-  
   // 模擬Tab鍵按下的函數
   const simulateTabKey = (times = 1) => {
     // 創建Tab鍵事件
@@ -236,22 +227,8 @@ const BasicInfoForm = ({
           基本資訊
         </Typography>
         
-        {/* 輸入模板區域 */}
-        <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleDispenseClick}
-            disabled={isProcessing}
-            sx={{ mb: 1 }}
-          >
-            調劑
-          </Button>
-          {renderProcessingIndicator()}
-        </Box>
-        
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField
               fullWidth
               label="出貨單號"
@@ -270,11 +247,7 @@ const BasicInfoForm = ({
               suppliers={suppliers || []}
               selectedSupplier={selectedSupplier}
               onChange={handleSupplierChange}
-              label="供應商 (可用名稱或簡碼搜索)"
-              required={true}
-              size="small"
-              showCode={true}
-              onEnterKeyDown={handleSupplierEnterKeyDown}
+              label="出貨商 (可用名稱或簡碼)"
             />
           </Grid>
           

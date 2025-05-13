@@ -67,7 +67,7 @@ const ItemsTable = ({
         <TableHead>
           <TableRow>
             <TableCell align="center" width="60px">序號12345</TableCell>
-            <TableCell>藥品代碼</TableCell>
+            <TableCell>藥品代碼12345</TableCell>
             <TableCell>藥品名稱</TableCell>
             <TableCell align="right">數量</TableCell>
             <TableCell align="right">總成本</TableCell>
