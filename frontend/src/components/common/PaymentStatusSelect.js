@@ -93,17 +93,17 @@ const PaymentStatusSelect = ({
             }
             event.preventDefault();
             
-            // 使用 requestAnimationFrame 確保在瀏覽器下一次重繪前執行焦點轉移
-            requestAnimationFrame(() => {
+            // 仿照 SupplierSelect.js 的延遲邏輯
+            setTimeout(() => {
               if (onEnterKeyDown) {
-                onEnterKeyDown(selectedValue);
+                onEnterKeyDown(inputValue); // 傳遞 inputValue，與 SupplierSelect 一致
               } else {
                 const nextFocusableElement = document.getElementById('status-select'); 
                 if (nextFocusableElement) {
                   nextFocusableElement.focus();
                 }
               }
-            });
+            }, 50); // 使用 50ms 延遲，與 SupplierSelect 一致
           }
         }
       }}
@@ -114,7 +114,7 @@ const PaymentStatusSelect = ({
           fullWidth
           required={required}
           error={error}
-          helperText={helperText}
+          helperText={helperText || "可輸入簡碼: JZ(未付款), UZ(已付款), UC(已匯款)"}
           size={size}
         />
       )}
