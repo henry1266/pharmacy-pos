@@ -69,12 +69,11 @@ const PaymentStatusSelect = ({
       onChange={onChange}
       filterOptions={(currentOptions, state) => filterStatuses(currentOptions, state.inputValue)}
       onKeyDown={(event) => {
-        if (['Enter', 'Tab'].includes(event.key)) {
+        if (event.key === 'Enter' || event.key === 'Tab') {
           const inputValue = event.target.value;
           const upperInputValue = inputValue?.toUpperCase();
           let selectedValue = null;
 
-          // 當輸入框為空且按下 Enter 或 Tab，且選項列表不為空時，自動選取第一個項目
           if (!inputValue && options.length > 0) {
             selectedValue = options[0];
           } else if (paymentStatusShortcuts[upperInputValue]) {
@@ -89,22 +88,17 @@ const PaymentStatusSelect = ({
             }
           }
           
-          // 如果成功確定了要選中的值 (包括空白時選第一個的情況)
           if (selectedValue) {
             if (typeof onChange === 'function') {
               onChange(event, selectedValue);
             } else {
               console.warn('PaymentStatusSelect: onChange 屬性應為函數，但收到的類型是:', typeof onChange);
             }
-            // 對於 Enter 和 Tab，都阻止預設行為（如表單提交或跳轉到下一個元素）
-            // 以便我們的自訂焦點邏輯生效
             event.preventDefault(); 
-            setOpen(false); // 選中後關閉選單
+            setOpen(false); 
             
             setTimeout(() => {
               if (onEnterKeyDown) {
-                // 如果 inputValue 為空（例如在空白時按 Enter/Tab），則傳遞 selectedValue
-                // 否則傳遞 inputValue (例如在簡碼輸入後按 Enter/Tab)
                 onEnterKeyDown(inputValue ? inputValue : selectedValue);
               } else {
                 const nextFocusableElement = document.getElementById('status-select'); 
@@ -113,9 +107,15 @@ const PaymentStatusSelect = ({
                 }
               }
             }, 50);
+          } else {
+            // 如果沒有確定選中的值 (例如輸入無效內容)
+            // 為了讓 Tab 的行為與 Enter 一致 (Enter 在此情況下通常不做任何事，或執行表單的預設提交行為)
+            // 我們需要阻止 Tab 鍵的預設跳轉行為。
+            if (event.key === 'Tab') {
+              event.preventDefault();
+            }
+            // Enter 鍵在此情況下會執行其預設行為 (如果未在上層被阻止)。
           }
-          // 如果沒有 selectedValue (例如輸入無效內容按 Enter/Tab)，則不阻止預設行為
-          // Enter 可能無操作，Tab 會正常跳轉 (除非 Autocomplete 內部有其他處理)
         }
       }}
       renderInput={(params) => (
@@ -127,7 +127,7 @@ const PaymentStatusSelect = ({
           error={error}
           helperText={helperText || "可輸入簡碼: JZ(未付款), UZ(已付款), UC(已匯款)"}
           size={size}
-          onFocus={() => setOpen(true)} // Tab 聚焦時開啟選單
+          onFocus={() => setOpen(true)} 
         />
       )}
     />
