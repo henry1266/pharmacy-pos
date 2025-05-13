@@ -69,7 +69,7 @@ const ProductItemForm = ({
 
   const handleSubQuantityBlur = () => {
     calculateAndUpdateDQuantity();
-    // setActiveInput(null); // Clearing activeInput on blur might be too aggressive, handled by useEffect on item change
+    setActiveInput(null);
   };
   
   const getProductPurchasePrice = () => {
