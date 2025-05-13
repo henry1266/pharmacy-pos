@@ -61,7 +61,6 @@ const PaymentStatusSelect = ({
       id="payment-status-select"
       options={options}
       getOptionLabel={(option) => {
-        // 如果選項是簡碼對應的完整狀態，可以考慮顯示簡碼提示，但目前保持原樣
         return option;
       }}
       value={selectedPaymentStatus}
@@ -74,14 +73,12 @@ const PaymentStatusSelect = ({
 
           let selectedValue = null;
 
-          // 檢查是否輸入了簡碼
           if (paymentStatusShortcuts[upperInputValue]) {
             const fullStatus = paymentStatusShortcuts[upperInputValue];
             if (options.includes(fullStatus)) {
               selectedValue = fullStatus;
             }
           } else {
-            // 如果不是簡碼，則使用過濾後的結果
             const filtered = filterStatuses(options, inputValue);
             if (filtered.length > 0) {
               selectedValue = filtered[0];
@@ -96,16 +93,17 @@ const PaymentStatusSelect = ({
             }
             event.preventDefault();
             
-            setTimeout(() => {
+            // 使用 requestAnimationFrame 確保在瀏覽器下一次重繪前執行焦點轉移
+            requestAnimationFrame(() => {
               if (onEnterKeyDown) {
-                onEnterKeyDown(selectedValue); // Pass the selected value to onEnterKeyDown
+                onEnterKeyDown(selectedValue);
               } else {
-                const nextFocusableElement = document.getElementById('status-select'); // Example: focus next element
+                const nextFocusableElement = document.getElementById('status-select'); 
                 if (nextFocusableElement) {
                   nextFocusableElement.focus();
                 }
               }
-            }, 50);
+            });
           }
         }
       }}
