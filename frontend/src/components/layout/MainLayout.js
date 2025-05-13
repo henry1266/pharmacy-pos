@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios'; // Import axios
 import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge, Collapse, Popover, Button } from '@mui/material'; // Added Popover, Button
 import MenuIcon from '@mui/icons-material/Menu';
@@ -65,6 +65,7 @@ const MainLayout = ({ children }) => {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [isTestMode, setIsTestMode] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(''); // New state for countdown
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -79,6 +80,73 @@ const MainLayout = ({ children }) => {
     const testModeActive = localStorage.getItem('isTestMode') === 'true';
     setIsTestMode(testModeActive);
   }, []);
+
+  const handleClosePopover = useCallback(() => setAnchorEl(null), []);
+
+  const handleLogout = useCallback(() => {
+    handleClosePopover();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isTestMode');
+    localStorage.removeItem('loginTime'); // Clear loginTime
+    delete axios.defaults.headers.common['x-auth-token'];
+    if (location.pathname !== '/login') {
+      navigate('/login');
+    }
+  }, [navigate, location.pathname, handleClosePopover]);
+
+  // JWT Expiry Timer Effect
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const loginTimeStr = localStorage.getItem('loginTime'); // Assumed to be stored as Unix timestamp string
+
+    if (token && loginTimeStr) {
+      const loginTimestamp = parseInt(loginTimeStr, 10);
+      const jwtAuthExpiration = 604800; // 7 days in seconds, from default.json
+      const expiryTimestamp = loginTimestamp + jwtAuthExpiration;
+
+      const updateDisplayAndCheckExpiry = () => {
+        const now = Math.floor(Date.now() / 1000);
+        const remainingSeconds = expiryTimestamp - now;
+
+        if (remainingSeconds <= 0) {
+          setTimeLeft('已過期');
+          if (location.pathname !== '/login') {
+            handleLogout(); // Perform logout and redirect
+          }
+          return true; // Indicates expired
+        } else {
+          const days = Math.floor(remainingSeconds / (24 * 60 * 60));
+          const hours = Math.floor((remainingSeconds % (24 * 60 * 60)) / (60 * 60));
+          const minutes = Math.floor((remainingSeconds % (60 * 60)) / 60);
+          const seconds = remainingSeconds % 60;
+
+          let timeLeftString = '';
+          if (days > 0) timeLeftString += `${days}天 `;
+          if (days > 0 || hours > 0) timeLeftString += `${hours}時 `;
+          timeLeftString += `${minutes}分 ${seconds}秒`;
+          
+          setTimeLeft(` (登入將於 ${timeLeftString} 後失效)`);
+          return false; // Indicates not expired
+        }
+      };
+
+      // Initial check and display update
+      if (updateDisplayAndCheckExpiry()) {
+        return; // Already expired and handled, no interval needed
+      }
+
+      const intervalId = setInterval(() => {
+        if (updateDisplayAndCheckExpiry()) {
+          clearInterval(intervalId); // Stop timer if expired
+        }
+      }, 1000);
+
+      return () => clearInterval(intervalId); // Cleanup on unmount
+    } else {
+      setTimeLeft(''); // Clear if no token/loginTime
+    }
+  }, [location.pathname, handleLogout]); // Dependencies
 
   const isProductPath = (path) => path.startsWith('/products') || path.startsWith('/product-categories');
   const isAccountingPath = (path) => path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
@@ -115,20 +183,10 @@ const MainLayout = ({ children }) => {
     setDrawerOpen(false);
   };
 
-  const handleLogout = () => {
-    handleClosePopover();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('isTestMode'); // Also clear test mode on logout
-    delete axios.defaults.headers.common['x-auth-token'];
-    navigate('/login');
-  };
-
   const handleSettingClick = () => setSettingSubMenuOpen(!settingSubMenuOpen);
   const handleAccountingClick = () => setAccountingSubMenuOpen(!accountingSubMenuOpen);
   const handleProductClick = () => setProductSubMenuOpen(!productSubMenuOpen);
   const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
-  const handleClosePopover = () => setAnchorEl(null);
 
   const openPopover = Boolean(anchorEl);
   const popoverId = openPopover ? 'user-popover' : undefined;
@@ -163,6 +221,7 @@ const MainLayout = ({ children }) => {
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             POS系統 {isTestMode && <Typography component="span" sx={{ fontSize: '0.7em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+            {timeLeft && <Typography component="span" sx={{ fontSize: '0.7em', color: 'lightcoral', marginLeft: 1 }}>{timeLeft}</Typography>} {/* Display timeLeft */}
           </Typography>
 
           <NavIconButton to="/shipping-orders/new" tooltip="出貨" activeIcon={<LocalShippingIcon />} inactiveIcon={<LocalShippingOutlinedIcon />} adminOnly={true} userRole={user?.role} />
