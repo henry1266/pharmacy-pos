@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useEffect
 import { 
   Grid, 
   TextField, 
@@ -19,14 +19,24 @@ const ProductItemForm = ({
 }) => {
   const [activeInput, setActiveInput] = useState(null);
 
+  useEffect(() => {
+    // When the item being edited changes (i.e., currentItem prop changes),
+    // reset activeInput to null. This ensures that the disabled states for quantity fields
+    // are re-evaluated based on a clean focus state when a new item is loaded for editing.
+    setActiveInput(null);
+  }, [currentItem]); // Resets when currentItem (the item being edited) changes
+
   const dQuantityValue = currentItem.dquantity || '';
   const packageQuantityValue = currentItem.packageQuantity || '';
   const boxQuantityValue = currentItem.boxQuantity || '';
 
-  // MODIFIED LOGIC for mainQuantityDisabled
+  // dquantity (total quantity) is disabled if user is actively editing packageQuantity or boxQuantity
   const mainQuantityDisabled = activeInput === 'packageQuantity' || activeInput === 'boxQuantity';
   
-  const subQuantitiesDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue) > 0 && activeInput !== 'packageQuantity' && activeInput !== 'boxQuantity';
+  // packageQuantity and boxQuantity are disabled if dquantity has a value AND user is not actively editing them.
+  const subQuantitiesDisabled = 
+    (dQuantityValue !== '' && parseFloat(dQuantityValue) > 0) && 
+    (activeInput !== 'packageQuantity' && activeInput !== 'boxQuantity');
 
   const calculateAndUpdateDQuantity = () => {
     const pkgQty = parseFloat(currentItem.packageQuantity) || 0;
@@ -35,7 +45,6 @@ const ProductItemForm = ({
       const totalQty = pkgQty * boxQty;
       handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
     } else {
-      // If both sub-quantities are cleared or zero, clear main quantity as well, unless user is actively editing dquantity
       if (activeInput !== 'dquantity') {
         handleItemInputChange({ target: { name: 'dquantity', value: '' } });
       }
@@ -46,6 +55,7 @@ const ProductItemForm = ({
     const { value } = e.target;
     handleItemInputChange({ target: { name: 'dquantity', value } });
     if (value !== '' && parseFloat(value) > 0) {
+      // If total quantity is entered, clear sub-quantities
       handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
       handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
     }
@@ -53,14 +63,13 @@ const ProductItemForm = ({
 
   const handleSubQuantityChange = (e) => {
     const { name, value } = e.target;
-    // Only update the specific sub-quantity field's value in currentItem
     handleItemInputChange({ target: { name, value } });
-    // dquantity will be calculated onBlur of these fields
+    // dquantity will be calculated onBlur of these fields or if both are filled
   };
 
   const handleSubQuantityBlur = () => {
     calculateAndUpdateDQuantity();
-    // setActiveInput(null); // Consider if activeInput should be cleared on blur
+    // setActiveInput(null); // Clearing activeInput on blur might be too aggressive, handled by useEffect on item change
   };
   
   const getProductPurchasePrice = () => {
@@ -94,7 +103,6 @@ const ProductItemForm = ({
     setActiveInput(e.target.name);
   };
 
-  // Generic onKeyDown for quantity inputs to prevent Enter issues
   const handleQuantityKeyDown = (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -155,7 +163,7 @@ const ProductItemForm = ({
               onFocus={handleFocus}
               onKeyDown={handleQuantityKeyDown}
               inputProps={{ min: "0.01", step: "0.01" }}
-              disabled={mainQuantityDisabled} // Uses the modified mainQuantityDisabled
+              disabled={mainQuantityDisabled}
             />
           </Grid>
           <Grid item xs={5}>
@@ -167,7 +175,7 @@ const ProductItemForm = ({
               value={packageQuantityValue}
               onChange={handleSubQuantityChange}
               onFocus={handleFocus}
-              onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
+              onBlur={handleSubQuantityBlur}
               onKeyDown={handleQuantityKeyDown}
               inputProps={{ min: "1" }}
               disabled={subQuantitiesDisabled}
@@ -186,7 +194,7 @@ const ProductItemForm = ({
               value={boxQuantityValue}
               onChange={handleSubQuantityChange}
               onFocus={handleFocus}
-              onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
+              onBlur={handleSubQuantityBlur}
               onKeyDown={handleQuantityKeyDown}
               inputProps={{ min: "1" }}
               disabled={subQuantitiesDisabled}
