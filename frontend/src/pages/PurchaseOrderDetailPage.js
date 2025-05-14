@@ -19,7 +19,10 @@ import {
   Info as InfoIcon,
   Payment as PaymentIcon, // Using Payment for payment status
   Notes as NotesIcon, // Using Notes for notes
-  Inventory as InventoryIcon // Using Inventory for Items title
+  Inventory as InventoryIcon, // Using Inventory for Items title
+    Percent as PercentIcon,
+  AccountBalanceWallet as AccountBalanceWalletIcon, // For titleIcon
+  ReceiptLong as ReceiptLongIcon // For mainAmountIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale'; // Added for consistent date formatting
@@ -28,6 +31,8 @@ import { fetchPurchaseOrder } from '../redux/actions';
 import ProductItemsTable from '../components/common/ProductItemsTable';
 import DetailLayout from '../components/DetailLayout'; // Import DetailLayout
 import { getProductByCode } from '../services/productService'; // Import service function
+
+import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo'; // Import the new component
 
 // StatusChip component (similar to ShippingOrderDetailPage)
 const StatusChip = ({ status }) => {
@@ -111,8 +116,49 @@ const PurchaseOrderDetailPage = () => {
 
   // --- Define Content for Layout --- 
 
+  const getCollapsibleDetails = () => {
+      if (!currentPurchaseOrder) return [];
+  
+      const details = [];
+      const subtotal = (currentPurchaseOrder.totalAmount || 0) + (currentPurchaseOrder.discountAmount || 0);
+  
+      details.push({
+        label: '小計',
+        value: subtotal,
+        icon: <ReceiptLongIcon color="action" fontSize="small" />,
+        condition: true
+      });
+  
+      if (currentPurchaseOrder.discountAmount && currentPurchaseOrder.discountAmount > 0) {
+        details.push({
+          label: '折扣',
+          value: -currentPurchaseOrder.discountAmount,
+          icon: <PercentIcon color="secondary" fontSize="small" />,
+          color: 'secondary.main',
+          condition: true
+        });
+      }
+  
+      return details;
+    };
+  
+  
   const mainContent = (
     <Stack spacing={3}>
+      {currentPurchaseOrder && (
+        <CollapsibleAmountInfo
+          title="金額信息"
+          titleIcon={<AccountBalanceWalletIcon />}
+          mainAmountLabel="總金額"
+          mainAmountValue={currentPurchaseOrder.totalAmount || 0}
+          mainAmountIcon={<ReceiptLongIcon />}
+          collapsibleDetails={getCollapsibleDetails()}
+          initialOpenState={true}
+          isLoading={orderLoading} // You might want a more specific loading for amounts if it's separate
+          error={orderError ? "金額資訊載入失敗" : null} // Or a more specific error
+          noDetailsText="無金額明細"
+        />
+      )}
       {currentPurchaseOrder && (
         <Card variant="outlined">
           <CardContent>

@@ -106,7 +106,7 @@ const ShippingOrderDetailPage = () => {
     if (!currentShippingOrder) return [];
 
     const details = [];
-    const subtotal = (currentShippingOrder.totalAmount || 0) + (currentShippingOrder.discountAmount || 0) - (currentShippingOrder.taxAmount || 0);
+    const subtotal = (currentShippingOrder.totalAmount || 0) + (currentShippingOrder.discountAmount || 0);
 
     details.push({
       label: '小計',
@@ -121,27 +121,6 @@ const ShippingOrderDetailPage = () => {
         value: -currentShippingOrder.discountAmount,
         icon: <PercentIcon color="secondary" fontSize="small" />,
         color: 'secondary.main',
-        condition: true
-      });
-    }
-
-    if (currentShippingOrder.taxAmount && currentShippingOrder.taxAmount > 0) {
-      details.push({
-        label: '稅金',
-        value: currentShippingOrder.taxAmount,
-        icon: <PercentIcon color="warning" fontSize="small" />,
-        color: 'warning.main',
-        condition: true
-      });
-    }
-    
-    // Shipping specific fields, if any, can be added here.
-    // For example, if there's a shippingFee field:
-    if (currentShippingOrder.shippingFee && currentShippingOrder.shippingFee > 0) {
-      details.push({
-        label: '運費',
-        value: currentShippingOrder.shippingFee,
-        icon: <MonetizationOnIcon color="action" fontSize="small" />, // Example icon
         condition: true
       });
     }

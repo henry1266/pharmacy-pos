@@ -205,19 +205,6 @@ const SalesDetailPage = () => {
                         </Stack>
                     </Grid>
                   )}
-                  {sale.tax > 0 && (
-                    <Grid item xs={6} sm={4} md={3}>
-                       <Stack direction="row" spacing={1} alignItems="center">
-                          <PercentIcon color="warning" fontSize="small"/>
-                          <Box>
-                            <Typography variant="subtitle2" color="text.secondary">稅金</Typography>
-                            <Typography variant="body1" color="warning.main">
-                              +{sale.tax.toFixed(2)}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                    </Grid>
-                  )}
                   <Grid item xs={6} sm={4} md={3}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <MonetizationOnIcon color="action" fontSize="small"/>
