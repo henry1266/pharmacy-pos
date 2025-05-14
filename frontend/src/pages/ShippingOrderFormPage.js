@@ -25,7 +25,6 @@ import { fetchProducts } from '../redux/actions';
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
 import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm';
 import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable';
-// import ConfirmDialog from '../components/shipping-orders/common/ConfirmDialog'; // OLD IMPORT
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 
 const ShippingOrderFormPage = () => {
