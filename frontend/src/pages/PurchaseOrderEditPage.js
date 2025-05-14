@@ -42,8 +42,8 @@ const PurchaseOrderEditPage = () => {
     supplier: '', // This should store the supplier ID
     items: [],
     notes: '',
-    status: 'pending',
-    paymentStatus: '未付'
+    status: '處理中',
+    paymentStatus: '未付款'
   });
 
   const [currentItem, setCurrentItem] = useState({
