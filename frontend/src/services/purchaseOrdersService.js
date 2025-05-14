@@ -1,35 +1,33 @@
-import apiService from '../utils/apiService'; // Use the centralized apiService
+import apiService from "../utils/apiService";
 
-const API_PATH = '/api/purchase-orders'; // Path relative to base URL in apiService
+const API_PATH = "/api/purchase-orders";
 
 // Mock data for test mode
 const mockPurchaseOrderData = {
-  _id: "64b2f8e3cd68fbdbcea9427f", // Default mock ID, can be overridden by specific requests
+  _id: "64b2f8e3cd68fbdbcea9427f",
   orderId: "PO-VMOCK-001",
   purchaseOrderNumber: "PO-VMOCK-001",
-  supplier: { _id: "supplier_mock_id_1", name: "虛擬供應商A" },
-  status: "處理中", // Possible values: Pending, Approved, Shipped, Received, Cancelled
+  supplier: { _id: "supplier_mock_id_1", name: "虛擬供應商 Alpha" },
+  status: "Pending",
   items: [
     {
       _id: "item_mock_id_1",
-      did: "T10001",
-      dname: "虛擬藥品A",
-      dquantity: 100,
+      product: { _id: "product_mock_id_A", name: "虛擬藥品 X", category: "止痛藥" },
+      quantity: 100,
       unitPrice: 15.50,
-      dtotalCost: 1550.00,
+      totalPrice: 1550.00,
     },
     {
       _id: "item_mock_id_2",
-      did: "T10002",
-      dname: "虛擬藥品B",
-      dquantity: 50,
+      product: { _id: "product_mock_id_B", name: "虛擬藥品 Y", category: "維他命" },
+      quantity: 50,
       unitPrice: 30.00,
-      dtotalCost: 1500.00,
+      totalPrice: 1500.00,
     },
   ],
   totalAmount: 3050.00,
-  orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-  expectedDeliveryDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+  orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  expectedDeliveryDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
   notes: "這是測試模式下加載的虛擬採購訂單數據。",
   paymentTerm: "Net 30",
   shippingAddress: "虛擬市測試路123號",
@@ -39,14 +37,8 @@ const mockPurchaseOrderData = {
   updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
 };
 
-// Helper to check if in test mode
-const isTestMode = () => localStorage.getItem('isTestMode') === 'true';
+const isTestMode = () => localStorage.getItem("isTestMode") === "true";
 
-/**
- * Fetches a single purchase order by its ID.
- * @param {string} id - The ID of the purchase order.
- * @returns {Promise<object>} The purchase order data.
- */
 export const getPurchaseOrderById = async (id) => {
   if (isTestMode()) {
     console.log(`[Test Mode] Fetching virtual purchase order with ID: ${id}`);
@@ -56,7 +48,7 @@ export const getPurchaseOrderById = async (id) => {
       }, 300);
     });
   }
-
+  // Production mode: Use apiService
   try {
     const response = await apiService.get(`${API_PATH}/${id}`);
     return response.data;
@@ -66,21 +58,15 @@ export const getPurchaseOrderById = async (id) => {
   }
 };
 
-/**
- * Updates an existing purchase order by its ID.
- * @param {string} id - The ID of the purchase order to update.
- * @param {object} data - The data to update the purchase order with.
- * @returns {Promise<object>} The updated purchase order data.
- */
 export const updatePurchaseOrder = async (id, data) => {
   if (isTestMode()) {
     console.log(`[Test Mode] Updating virtual purchase order with ID: ${id}`, data);
     return new Promise(resolve => {
       setTimeout(() => {
         const updatedMockData = {
-          ...mockPurchaseOrderData, // Base mock data
-          ...data,                 // Submitted changes
-          _id: id,                 // Ensure ID is correct
+          ...mockPurchaseOrderData,
+          ...data,
+          _id: id,
           updatedAt: new Date().toISOString(),
         };
         console.log("[Test Mode] Virtual data after update:", updatedMockData);
@@ -88,7 +74,7 @@ export const updatePurchaseOrder = async (id, data) => {
       }, 300);
     });
   }
-
+  // Production mode: Use apiService
   try {
     const response = await apiService.put(`${API_PATH}/${id}`, data);
     return response.data;
@@ -98,61 +84,6 @@ export const updatePurchaseOrder = async (id, data) => {
   }
 };
 
-/**
- * Imports basic purchase order data from a CSV file.
- * @param {FormData} formData - The form data containing the CSV file and type.
- * @returns {Promise<object>} The response data from the server.
- */
-export const importPurchaseOrdersBasic = async (formData) => {
-  if (isTestMode()) {
-    console.log("[Test Mode] Simulating import of basic purchase orders CSV:", formData.get('file')?.name || 'N/A');
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve({ message: "虛擬匯入成功 (基本資料)", importedCount: 10, errors: [] });
-      }, 300);
-    });
-  }
-  try {
-    const response = await apiService.post(`${API_PATH}/import/basic`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error importing basic purchase orders CSV:', error);
-    throw error;
-  }
-};
-
-/**
- * Imports purchase order items data from a CSV file.
- * @param {FormData} formData - The form data containing the CSV file and type.
- * @returns {Promise<object>} The response data from the server.
- */
-export const importPurchaseOrderItems = async (formData) => {
-  if (isTestMode()) {
-    console.log("[Test Mode] Simulating import of purchase order items CSV:", formData.get('file')?.name || 'N/A');
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve({ message: "虛擬匯入成功 (項目資料)", importedCount: 50, errors: [] });
-      }, 300);
-    });
-  }
-  try {
-    const response = await apiService.post(`${API_PATH}/import/items`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error importing purchase order items CSV:', error);
-    throw error;
-  }
-};
-
-/**
- * Adds a new purchase order.
- * @param {object} data - The data for the new purchase order.
- * @returns {Promise<object>} The newly created purchase order data.
- */
 export const addPurchaseOrder = async (data) => {
   if (isTestMode()) {
     console.log("[Test Mode] Adding virtual purchase order:", data);
@@ -171,11 +102,54 @@ export const addPurchaseOrder = async (data) => {
       }, 300);
     });
   }
+  // Production mode: Use apiService
   try {
     const response = await apiService.post(API_PATH, data);
     return response.data;
   } catch (error) {
-    console.error('Error adding purchase order:', error);
+    console.error("Error adding purchase order:", error);
+    throw error;
+  }
+};
+
+export const importPurchaseOrdersBasic = async (formData) => {
+  if (isTestMode()) {
+    console.log("[Test Mode] Simulating import of basic purchase orders CSV:", formData.get("file")?.name || "N/A");
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({ message: "虛擬匯入成功 (基本資料)", importedCount: 10, errors: [] });
+      }, 300);
+    });
+  }
+  // Production mode: Use apiService
+  try {
+    const response = await apiService.post(`${API_PATH}/import/basic`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error importing basic purchase orders CSV:", error);
+    throw error;
+  }
+};
+
+export const importPurchaseOrderItems = async (formData) => {
+  if (isTestMode()) {
+    console.log("[Test Mode] Simulating import of purchase order items CSV:", formData.get("file")?.name || "N/A");
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({ message: "虛擬匯入成功 (項目資料)", importedCount: 50, errors: [] });
+      }, 300);
+    });
+  }
+  // Production mode: Use apiService
+  try {
+    const response = await apiService.post(`${API_PATH}/import/items`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error importing purchase order items CSV:", error);
     throw error;
   }
 };
