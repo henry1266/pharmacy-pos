@@ -20,6 +20,7 @@ import {
   Check as CheckIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
+import ProductCodeLink from '../common/ProductCodeLink'; // ADDED IMPORT
 
 /**
  * 藥品項目表格組件
@@ -50,10 +51,8 @@ const ProductItemsTable = ({
 }) => {
   const tableContainerRef = useRef(null);
   
-  // 當項目數量變化時，滾動到底部
   useEffect(() => {
     if (tableContainerRef.current && items.length > 0) {
-      // 使用setTimeout確保在DOM更新後執行滾動
       setTimeout(() => {
         const scrollHeight = tableContainerRef.current.scrollHeight;
         tableContainerRef.current.scrollTop = scrollHeight;
@@ -95,7 +94,8 @@ const ProductItemsTable = ({
                     <TextField
                       fullWidth
                       size="small"
-                      value={editingItem.did}
+                      value={editingItem.did} // Assuming editingItem also needs this change if it's displayed, but it's an input here.
+                                              // ProductCodeLink is for display, not input. So this part remains unchanged.
                       disabled
                     />
                   </TableCell>
@@ -147,7 +147,7 @@ const ProductItemsTable = ({
                   <TableCell align="center">
                     <Typography variant="body2">{index + 1}</Typography>
                   </TableCell>
-                  <TableCell>{item.did}</TableCell>
+                  <TableCell><ProductCodeLink product={{ _id: item._id, code: item.did }} /></TableCell> {/* MODIFIED LINE */}
                   <TableCell>{item.dname}</TableCell>
                   <TableCell align="right">{item.dquantity}</TableCell>
                   <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
@@ -181,7 +181,6 @@ const ProductItemsTable = ({
               </TableCell>
             </TableRow>
           )}
-          {/* 固定的總計欄 */}
           <TableRow
             sx={{
               position: 'sticky',
@@ -208,3 +207,4 @@ const ProductItemsTable = ({
 };
 
 export default ProductItemsTable;
+

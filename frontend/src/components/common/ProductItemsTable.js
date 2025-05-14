@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Added useState
+import React, { useState } from 'react';
 import {
   Typography,
   Card,
@@ -12,13 +12,14 @@ import {
   TableRow,
   CircularProgress,
   Box,
-  IconButton, // Added IconButton
-  Stack // Added Stack for title and button
+  IconButton,
+  Stack
 } from '@mui/material';
 import {
-  Visibility, // Added Visibility icon
-  VisibilityOff // Added VisibilityOff icon
+  Visibility,
+  VisibilityOff
 } from '@mui/icons-material';
+import ProductCodeLink from './ProductCodeLink'; // ADDED IMPORT
 
 /**
  * 產品項目表格組件 (純 UI)
@@ -40,18 +41,18 @@ import {
  */
 const ProductItemsTable = ({
   items = [],
-  productDetails = {}, 
+  productDetails = {},
   codeField = 'did',
   nameField = 'dname',
   quantityField = 'dquantity',
-  priceField = 'dprice', 
+  priceField = 'dprice',
   totalCostField = 'dtotalCost',
   totalAmount = 0,
   title = '項目',
   isLoading = false,
-  defaultShowProfit = true, // New prop for default visibility
-  profitField = 'profit', // New prop for profit field name
-  profitMarginField = 'profitMargin' // New prop for profit margin field name
+  defaultShowProfit = true,
+  profitField = 'profit',
+  profitMarginField = 'profitMargin'
 }) => {
   const [showProfitColumns, setShowProfitColumns] = useState(defaultShowProfit);
 
@@ -85,10 +86,9 @@ const ProductItemsTable = ({
 
   const showHealthInsuranceCode = Object.keys(productDetails).length > 0;
   
-  // Determine if any item has profit data to decide if the toggle button should be shown
   const hasProfitData = items.some(item => item.hasOwnProperty(profitField) || item.hasOwnProperty(profitMarginField));
 
-  let colspanBase = 5; // #, Code, Name, Qty, Unit Price, Subtotal
+  let colspanBase = 5;
   if (showHealthInsuranceCode) colspanBase++;
 
   return (
@@ -120,10 +120,10 @@ const ProductItemsTable = ({
                   {showHealthInsuranceCode && (
                     <TableCell width="15%">健保代碼</TableCell>
                   )}
-                  <TableCell width={showHealthInsuranceCode ? "20%" : "35%"}>名稱</TableCell> {/* Adjusted width */}
+                  <TableCell width={showHealthInsuranceCode ? "20%" : "35%"}>名稱</TableCell>
                   <TableCell width="10%" align="right">數量</TableCell>
                   <TableCell width="10%" align="right">單價</TableCell>
-                  <TableCell width="10%" align="right">小計</TableCell> {/* Renamed from 總金額 to 小計 for item row */}
+                  <TableCell width="10%" align="right">小計</TableCell>
                   {showProfitColumns && hasProfitData && (
                     <>
                       <TableCell width="10%" align="right">毛利</TableCell>
@@ -139,12 +139,12 @@ const ProductItemsTable = ({
                     const productDetail = productDetails[productCode] || {};
                     const healthInsuranceCode = productDetail.healthInsuranceCode || '-';
                     const itemProfit = Number(item[profitField]);
-                    const itemProfitMargin = item[profitMarginField]; // Keep as string if it's like "25.00%"
+                    const itemProfitMargin = item[profitMarginField];
 
                     return (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{productCode || 'N/A'}</TableCell>
+                        <TableCell><ProductCodeLink product={{ _id: productDetail._id, code: productCode }} /></TableCell> {/* MODIFIED LINE */}
                         {showHealthInsuranceCode && (
                           <TableCell>{healthInsuranceCode}</TableCell>
                         )}
