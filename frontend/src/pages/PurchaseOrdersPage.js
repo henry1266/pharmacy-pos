@@ -53,7 +53,7 @@ const PurchaseOrdersPage = () => {
     let ordersToSet = fetchedPurchaseOrders || [];
     if (isTestMode) {
       const virtualOrder = {
-        _id: 'virtual-po-001',
+        _id: '64b2f8e3cd68fbdbcea9427f', // Changed to a valid ObjectId format
         poid: 'VIRTUAL-PO-001',
         pobill: 'V-BILL-001',
         pobilldate: new Date().toISOString(),
