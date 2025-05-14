@@ -45,6 +45,7 @@ import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import { format, isValid } from 'date-fns'; // Import isValid from date-fns
 import { zhTW } from 'date-fns/locale';
 
+import ProductCodeLink from '../components/ProductCodeLink';
 import DetailLayout from '../components/DetailLayout';
 
 const getPaymentMethodText = (method) => {
@@ -285,13 +286,7 @@ const SalesDetailPage = () => {
                     return (
                       <TableRow key={index} hover>
                         <TableCell>
-                          {item.product?._id ? (
-                            <MuiLink component={RouterLink} to={`/products/${item.product._id}`} sx={{ textDecoration: 'underline', color: 'inherit' }}>
-                              {item.product?.code || 'N/A'}
-                            </MuiLink>
-                          ) : (
-                            item.product?.code || 'N/A'
-                          )}
+                          <ProductCodeLink product={item.product} />
                         </TableCell>
                         <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
                         <TableCell align="right">{item.price.toFixed(2)}</TableCell>
