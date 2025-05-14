@@ -131,15 +131,15 @@ onKeyDown={(event) => {
 </Grid>
         <Grid item xs={12} sm={6} md={2}>
             <Box
-				sx={{
-					backgroundColor:
-					formData.paymentStatus === '未付' ? '#F8D7DA' :     // 紅色（淡）
-					formData.paymentStatus === '已下收' ? '#D4EDDA' :    // 綠色（淡）
-					formData.paymentStatus === '已匯款' ? '#D4EDDA' :    // 綠色（淡）
-					'transparent',
-				}}
-			>
-			<FormControl fullWidth>
+				    sx={{
+					  backgroundColor:
+            formData.paymentStatus === '未付' ? '#F8D7DA' :     // 紅色（淡）
+            formData.paymentStatus === '已下收' ? '#D4EDDA' :    // 綠色（淡）
+            formData.paymentStatus === '已匯款' ? '#D4EDDA' :    // 綠色（淡）
+            'transparent',
+				    }}
+			  >
+			        <FormControl fullWidth>
               <InputLabel id="payment-status-label">付款狀態</InputLabel>
               <Select
                 labelId="payment-status-label"
@@ -147,43 +147,6 @@ onKeyDown={(event) => {
                 value={formData.paymentStatus}
                 onChange={handleInputChange}
                 label="付款狀態"
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    // 當按下Enter鍵時，將焦點轉移到status-select
-                    setTimeout(() => {
-                      try {
-                        // 嘗試方法1：使用選擇器找到狀態下拉框
-                        const statusSelect = document.querySelector('select[name="status"]');
-                        if (statusSelect) {
-                          statusSelect.focus();
-                          return;
-                        }
-                        
-                        // 嘗試方法2：使用更通用的選擇器
-                        const statusInput = document.querySelector('div[role="button"][aria-labelledby="mui-component-select-status"]');
-                        if (statusInput) {
-                          statusInput.focus();
-                          statusInput.click();
-                          return;
-                        }
-                        
-                        // 嘗試方法3：模擬Tab鍵
-                        const tabEvent = new KeyboardEvent('keydown', {
-                          key: 'Tab',
-                          code: 'Tab',
-                          keyCode: 9,
-                          which: 9,
-                          bubbles: true,
-                          cancelable: true
-                        });
-                        event.target.dispatchEvent(tabEvent);
-                      } catch (error) {
-                        console.error('無法自動聚焦到狀態選擇欄位:', error);
-                      }
-                    }, 100);
-                  }
-                }}
               >
                 <MenuItem value="未付">未付</MenuItem>
                 <MenuItem value="已下收">已下收</MenuItem>
@@ -192,7 +155,7 @@ onKeyDown={(event) => {
             </FormControl>
             </Box>
           </Grid>
-          <Grid item xs={12} sm={6} md={6}>
+          <Grid item xs={12} sm={8} md={8}>
             <TextField
               fullWidth
               label="備註"
@@ -221,37 +184,6 @@ onKeyDown={(event) => {
 						onChange={handleInputChange}
 						label="狀態"
 						id="status-select"
-						onKeyDown={(event) => {
-							if (event.key === 'Tab' || event.key === 'Enter') {
-								event.preventDefault();
-								// 跳轉到藥品選擇欄位
-								setTimeout(() => {
-									try {
-										// 嘗試方法1：使用ID選擇器
-										const productSelect = document.getElementById('product-select-input');
-										if (productSelect) {
-											productSelect.focus();
-											return;
-										}
-										
-										// 嘗試方法2：使用更通用的選擇器
-										const productInput = document.querySelector('#product-select input');
-										if (productInput) {
-											productInput.focus();
-											return;
-										}
-										
-										// 嘗試方法3：直接點擊藥品選擇欄位
-										const productSelectElement = document.getElementById('product-select');
-										if (productSelectElement) {
-											productSelectElement.click();
-										}
-									} catch (error) {
-										console.error('無法自動聚焦到藥品選擇欄位:', error);
-									}
-								}, 100);
-							}
-						}}
 					>
 						<MenuItem value="pending">處理中</MenuItem>
 						<MenuItem value="completed">已完成</MenuItem>
