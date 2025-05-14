@@ -35,7 +35,8 @@ import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter
 import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTable';
 import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter';
 import CsvImportDialog from '../components/purchase-orders/CsvImportDialog';
-import DeleteConfirmDialog from '../components/purchase-orders/DeleteConfirmDialog';
+// import DeleteConfirmDialog from '../components/purchase-orders/DeleteConfirmDialog'; // OLD IMPORT
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 /**
@@ -358,11 +359,14 @@ const PurchaseOrdersPage = () => {
         </Tooltip>
       </Box>
 
-      <DeleteConfirmDialog
+      <GenericConfirmDialog
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        purchaseOrder={purchaseOrderToDelete}
+        title="確認刪除進貨單"
+        message={`您確定要刪除進貨單 ${purchaseOrderToDelete?.poid || ''} 嗎？此操作無法撤銷。`}
+        confirmText="確認刪除"
+        cancelText="取消"
       />
 
       <CsvImportDialog
