@@ -25,7 +25,8 @@ import { fetchProducts } from '../redux/actions';
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
 import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm';
 import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable';
-import ConfirmDialog from '../components/shipping-orders/common/ConfirmDialog';
+// import ConfirmDialog from '../components/shipping-orders/common/ConfirmDialog'; // OLD IMPORT
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 
 const ShippingOrderFormPage = () => {
   const dispatch = useDispatch();
@@ -491,11 +492,14 @@ const ShippingOrderFormPage = () => {
         </Card>
         
         {/* 確認對話框 */}
-        <ConfirmDialog 
+        <GenericConfirmDialog 
           open={confirmDialogOpen}
           onClose={handleCancelComplete}
           onConfirm={handleConfirmComplete}
-          shippingOrder={formData}
+          title="確認完成出貨單" 
+          message="您確定要將此出貨單標記為完成並提交嗎？此操作將更新相關庫存。" 
+          confirmText="確認完成"
+          cancelText="取消"
         />
       </form>
       
@@ -514,3 +518,4 @@ const ShippingOrderFormPage = () => {
 };
 
 export default ShippingOrderFormPage;
+
