@@ -1,11 +1,16 @@
-# 待辦事項
+# Shipping Orders Refactoring Todo
 
-- [x] 分析 `customers` 的 `idCardNumber` 讀取與存檔問題
-  - [x] 找出與 `customers` 和 `idCardNumber` 相關的檔案
-  - [x] 閱讀相關程式碼，理解目前的實作方式
-  - [x] 找出導致 `idCardNumber` 無法正確讀取和存檔的具體原因：後端 API 未處理 `idCardNumber` 欄位
-- [ ] 實作 `idCardNumber` 讀取與存檔的修復方案
-- [ ] 實作 `idCardNumber` 讀取與存檔的修復方案
-- [ ] 測試 `idCardNumber` 功能是否正常運作
-- [ ] 提交並推送變更到 GitHub
-- [ ] 向用戶報告並發送更新
+- [x] **I. Frontend Refactoring (`frontend/src`)** - Reviewed and aligned with guidelines.
+    - [x] `components/shipping-orders/` (all sub-components) - Reviewed and aligned.
+    - [x] `hooks/useShippingOrdersData.js` - Reviewed and aligned.
+    - [x] `pages/` related to Shipping Orders (`ShippingOrderDetailPage.js`, `ShippingOrderFormPage.js`, `ShippingOrdersPage.js`) - Reviewed and aligned.
+    - [x] `services/shippingOrdersService.js` - Reviewed and aligned.
+    - [x] General Frontend Checks (Naming, Data Formats, Abstraction) - Completed.
+- [x] **II. Backend Refactoring (`backend/`)** - Reviewed and aligned with guidelines.
+    - [x] `models/ShippingOrder.js` - Reviewed and aligned.
+    - [x] `routes/shippingOrders.js` - Reviewed and aligned.
+- [x] **III. Testing (`frontend/src/tests/`)** - Reviewed and aligned with guidelines.
+    - [x] Review and Update Tests (`ShippingOrderDetailPage.test.js`, `ShippingOrderFormPage.test.js`, `ShippingOrdersPage.test.js`) - Reviewed and aligned.
+- [x] **IV. Final Review and Validation** - Completed.
+    - [x] Ensure all changes (confirming existing code alignment) align with development guidelines.
+    - [x] Verify consistency across frontend and backend.
