@@ -162,7 +162,7 @@ const ProductItemForm = ({
               onChange={handleMainQuantityChange}
               onFocus={handleFocus}
               onKeyDown={handleQuantityKeyDown}
-              inputProps={{ min: "0.01", step: "0.01" }}
+              inputProps={{ min: "1", step: "1" }}
               disabled={mainQuantityDisabled}
             />
           </Grid>

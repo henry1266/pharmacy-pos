@@ -7,22 +7,24 @@ const mockPurchaseOrderData = {
   _id: "64b2f8e3cd68fbdbcea9427f", // Default mock ID, can be overridden by specific requests
   orderId: "PO-VMOCK-001",
   purchaseOrderNumber: "PO-VMOCK-001",
-  supplier: { _id: "supplier_mock_id_1", name: "虛擬供應商 Alpha" },
-  status: "Pending", // Possible values: Pending, Approved, Shipped, Received, Cancelled
+  supplier: { _id: "supplier_mock_id_1", name: "虛擬供應商A" },
+  status: "處理中", // Possible values: Pending, Approved, Shipped, Received, Cancelled
   items: [
     {
       _id: "item_mock_id_1",
-      product: { _id: "product_mock_id_A", name: "虛擬藥品 X", category: "止痛藥" },
-      quantity: 100,
+      did: "T10001",
+      dname: "虛擬藥品A",
+      dquantity: 100,
       unitPrice: 15.50,
-      totalPrice: 1550.00,
+      dtotalCost: 1550.00,
     },
     {
       _id: "item_mock_id_2",
-      product: { _id: "product_mock_id_B", name: "虛擬藥品 Y", category: "維他命" },
-      quantity: 50,
+      did: "T10002",
+      dname: "虛擬藥品B",
+      dquantity: 50,
       unitPrice: 30.00,
-      totalPrice: 1500.00,
+      dtotalCost: 1500.00,
     },
   ],
   totalAmount: 3050.00,

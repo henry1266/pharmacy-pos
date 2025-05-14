@@ -4,9 +4,9 @@ const SUPPLIERS_API_PATH = "/api/suppliers";
 
 // Mock data for test mode
 const mockSupplierData = [
-  { _id: "supplier_mock_id_1", id: "supplier_mock_id_1", name: "虛擬供應商 Alpha", contactPerson: "陳經理", phone: "02-1111-1111", email: "alpha@example.com", address: "虛擬市虛擬路一段1號" },
-  { _id: "supplier_mock_id_2", id: "supplier_mock_id_2", name: "虛擬供應商 Beta", contactPerson: "林小姐", phone: "03-2222-2222", email: "beta@example.com", address: "虛擬市虛擬路二段2號" },
-  { _id: "supplier_mock_id_3", id: "supplier_mock_id_3", name: "虛擬供應商 Gamma", contactPerson: "王先生", phone: "04-3333-3333", email: "gamma@example.com", address: "虛擬市虛擬路三段3號" },
+  { _id: "supplier_mock_id_1", id: "supplier_mock_id_1", name: "虛擬供應商A", contactPerson: "陳經理", phone: "02-1111-1111", email: "alpha@example.com", address: "虛擬市虛擬路一段1號" },
+  { _id: "supplier_mock_id_2", id: "supplier_mock_id_2", name: "虛擬供應商B", contactPerson: "林小姐", phone: "03-2222-2222", email: "beta@example.com", address: "虛擬市虛擬路二段2號" },
+  { _id: "supplier_mock_id_3", id: "supplier_mock_id_3", name: "虛擬供應商C", contactPerson: "王先生", phone: "04-3333-3333", email: "gamma@example.com", address: "虛擬市虛擬路三段3號" },
 ];
 
 // Helper to check if in test mode

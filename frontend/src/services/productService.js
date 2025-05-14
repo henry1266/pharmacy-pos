@@ -4,10 +4,10 @@ const PRODUCTS_API_PATH = '/api/products';
 
 // Mock data for test mode
 const mockProductData = [
-  { _id: "product_mock_id_A", name: "虛擬藥品 X (10mg)", code: "VMEDX10", category: "止痛藥", purchasePrice: 12.50, sellingPrice: 20.00, stock: 150, unit: "盒", supplier: "supplier_mock_id_1", productType: "medicine", healthInsuranceCode: "AB12345", description: "測試用虛擬止痛藥品X" },
-  { _id: "product_mock_id_B", name: "虛擬藥品 Y (250ml)", code: "VMEDY250", category: "維他命", purchasePrice: 25.00, sellingPrice: 40.00, stock: 80, unit: "瓶", supplier: "supplier_mock_id_2", productType: "medicine", healthInsuranceCode: "CD67890", description: "測試用虛擬維他命Y" },
-  { _id: "product_mock_id_C", name: "虛擬保健品 Z", code: "VHLTHZ", category: "保健食品", purchasePrice: 50.00, sellingPrice: 85.00, stock: 200, unit: "罐", supplier: "supplier_mock_id_1", productType: "product", barcode: "9876543210123", description: "測試用虛擬保健品Z" },
-  { _id: "product_mock_id_D", name: "虛擬醫療器材 W", code: "VDEVW", category: "醫療器材", purchasePrice: 150.00, sellingPrice: 250.00, stock: 30, unit: "個", supplier: "supplier_mock_id_3", productType: "product", barcode: "1230123456789", description: "測試用虛擬醫療器材W" },
+  { _id: "product_mock_id_A", name: "虛擬藥品 A 10MG", code: "T10001", category: "止痛藥", purchasePrice: 12.50, sellingPrice: 20.00, stock: 150, unit: "粒", supplier: "supplier_mock_id_1", productType: "medicine", healthInsuranceCode: "AB12345", description: "測試用虛擬止痛藥品X" },
+  { _id: "product_mock_id_B", name: "虛擬藥品 B 250MG", code: "T10002", category: "維他命", purchasePrice: 25.00, sellingPrice: 40.00, stock: 80, unit: "粒", supplier: "supplier_mock_id_2", productType: "medicine", healthInsuranceCode: "CD67890", description: "測試用虛擬維他命Y" },
+  { _id: "product_mock_id_C", name: "虛擬保健品C", code: "T20001", category: "保健食品", purchasePrice: 50.00, sellingPrice: 85.00, stock: 200, unit: "罐", supplier: "supplier_mock_id_1", productType: "product", barcode: "9876543210123", description: "測試用虛擬保健品C" },
+  { _id: "product_mock_id_D", name: "虛擬醫療器材D", code: "T20002", category: "醫療器材", purchasePrice: 150.00, sellingPrice: 250.00, stock: 30, unit: "個", supplier: "supplier_mock_id_3", productType: "product", barcode: "1230123456789", description: "測試用虛擬醫療器材D" },
 ];
 
 // Helper to check if in test mode
