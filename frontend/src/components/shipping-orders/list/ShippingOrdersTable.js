@@ -11,8 +11,8 @@ import {
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 
-import StatusChip from '../common/StatusChip';
-import PaymentStatusChip from '../common/PaymentStatusChip';
+import StatusChip from '../../common/StatusChip';
+import PaymentStatusChip from '../../common/PaymentStatusChip';
 
 /**
  * 出貨單表格組件

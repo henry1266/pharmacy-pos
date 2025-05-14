@@ -1,6 +1,5 @@
 import React from 'react';
 import ItemPreview from '../common/preview/ItemPreview';
-
 /**
  * 出貨單預覽組件
  * @param {Object} props - 組件屬性
@@ -24,36 +23,6 @@ const ShippingOrderPreview = ({ shippingOrder, loading, error }) => {
       (data.items && data.items.reduce((sum, item) => sum + Number(item.dtotalCost || item.totalCost || 0), 0));
   };
 
-  // 獲取狀態顯示文本
-  const getStatusText = (status) => {
-    const statusMap = {
-      'pending': '處理中',
-      'shipped': '已出貨',
-      'delivered': '已送達',
-      'cancelled': '已取消'
-    };
-    return statusMap[status] || status;
-  };
-
-  // 自定義備註內容
-  const getNotes = (data) => {
-    if (!data) return '';
-    
-    let notes = data.notes || '';
-    
-    // 添加收件人信息
-    if (data.recipient) {
-      notes = `收件人: ${data.recipient}\n${notes ? notes + '\n' : ''}`;
-    }
-    
-    // 添加狀態信息
-    if (data.status) {
-      notes = `${notes ? notes + '\n' : ''}狀態: ${getStatusText(data.status)}`;
-    }
-    
-    return notes;
-  };
-
   return (
     <ItemPreview
       data={shippingOrder}
@@ -65,7 +34,6 @@ const ShippingOrderPreview = ({ shippingOrder, loading, error }) => {
       getTotal={getTotal}
       emptyText="無藥品項目"
       variant="table"
-      notes={shippingOrder ? getNotes(shippingOrder) : ''}
       notesKey={null} // 使用自定義備註
       containerProps={{
         sx: { width: 550, maxHeight: 600 }

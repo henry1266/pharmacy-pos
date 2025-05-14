@@ -11,6 +11,8 @@ import {
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import { format } from 'date-fns';
+import StatusChip from '../common/StatusChip';
+import PaymentStatusChip from '../common/PaymentStatusChip';
 
 /**
  * 進貨單表格組件
@@ -42,53 +44,6 @@ const PurchaseOrdersTable = ({
   handlePreviewMouseLeave,
   renderSupplierHeader
 }) => {
-  // 狀態芯片渲染函數
-  const getStatusChip = (status) => {
-    let color = 'default';
-    let label = '未知';
-    
-    switch (status) {
-      case 'pending':
-        color = 'warning';
-        label = '處理中';
-        break;
-      case 'completed':
-        color = 'success';
-        label = '已完成';
-        break;
-      case 'cancelled':
-        color = 'error';
-        label = '已取消';
-        break;
-      default:
-        break;
-    }
-    
-    return <Chip size="small" color={color} label={label} />;
-  };
-  
-  // 付款狀態芯片渲染函數
-  const getPaymentStatusChip = (status) => {
-    let color = 'default';
-    let label = status || '未付';
-    
-    switch (status) {
-      case '未付':
-        color = 'warning';
-        break;
-      case '已下收':
-        color = 'info';
-        break;
-      case '已匯款':
-        color = 'success';
-        break;
-      default:
-        break;
-    }
-    
-    return <Chip size="small" color={color} label={label} />;
-  };
-  
   // 表格列定義
   const columns = [
     { field: 'poid', headerName: '進貨單號', flex: 1 },
@@ -119,13 +74,13 @@ const PurchaseOrdersTable = ({
       field: 'status', 
       headerName: '狀態', 
       flex: 1,
-      renderCell: (params) => getStatusChip(params.value)
+      renderCell: (params) => <StatusChip status={params.value} />
     },
     { 
       field: 'paymentStatus', 
       headerName: '付款狀態', 
       flex: 1,
-      renderCell: (params) => getPaymentStatusChip(params.value)
+      renderCell: (params) => <PaymentStatusChip status={params.value} />
     },
     { 
       field: 'actions', 
