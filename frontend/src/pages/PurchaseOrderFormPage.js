@@ -19,7 +19,8 @@ import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
-import ConfirmDialog from '../components/purchase-order-form/ConfirmDialog';
+// import ConfirmDialog from '../components/purchase-order-form/ConfirmDialog'; // OLD IMPORT
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
 const PurchaseOrderFormPage = () => {
@@ -350,12 +351,14 @@ const PurchaseOrderFormPage = () => {
           </CardContent>
         </Card>
 
-        <ConfirmDialog
+        <GenericConfirmDialog
           open={confirmDialogOpen}
           onClose={handleCancelComplete}
           onConfirm={handleConfirmComplete}
           title={isGlobalTestMode ? "測試模式確認" : (formData.status === 'completed' ? "確認完成進貨單" : "確認提交")}
           message={isGlobalTestMode ? "此為測試模式，操作不會實際儲存。是否繼續？" : (formData.status === 'completed' ? "您確定要將此進貨單標記為完成嗎？完成後將無法修改。" : "您確定要提交此進貨單嗎？")}
+          confirmText="確認"
+          cancelText="取消"
         />
       </form>
 
