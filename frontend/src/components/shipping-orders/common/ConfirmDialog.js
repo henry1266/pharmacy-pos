@@ -1,15 +1,8 @@
 import React from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogContentText, 
-  DialogActions, 
-  Button 
-} from '@mui/material';
+import GenericConfirmDialog from '../../../components/common/GenericConfirmDialog'; // Updated import path
 
 /**
- * 通用確認對話框組件
+ * 確認刪除出貨單的對話框
  * @param {Object} props - 組件屬性
  * @param {boolean} props.open - 是否顯示對話框
  * @param {Function} props.onClose - 關閉對話框的處理函數
@@ -19,30 +12,18 @@ import {
  */
 const ConfirmDialog = ({ open, onClose, onConfirm, shippingOrder }) => {
   return (
-    <Dialog
+    <GenericConfirmDialog
       open={open}
       onClose={onClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-    >
-      <DialogTitle id="alert-dialog-title">
-        確認刪除出貨單
-      </DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          您確定要刪除出貨單 {shippingOrder?.soid || ''} 嗎？此操作無法撤銷。
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          取消
-        </Button>
-        <Button onClick={onConfirm} color="primary" autoFocus>
-          確認
-        </Button>
-      </DialogActions>
-    </Dialog>
+      onConfirm={onConfirm}
+      title="確認刪除出貨單"
+      message={`您確定要刪除出貨單 ${shippingOrder?.soid || ''} 嗎？此操作無法撤銷。`}
+      confirmText="確認"
+      cancelText="取消"
+      confirmButtonProps={{ autoFocus: true }}
+    />
   );
 };
 
 export default ConfirmDialog;
+
