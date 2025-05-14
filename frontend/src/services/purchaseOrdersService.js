@@ -1,33 +1,97 @@
-import axios from 'axios';
+import apiService from '../utils/apiService'; // Use the centralized apiService
 
-// Assuming API_BASE_URL is defined elsewhere or use relative paths
-// If API_BASE_URL is needed, it should be imported or configured globally
-const API_URL = '/api/purchase-orders'; // Adjust if your base URL is different
+const API_PATH = '/api/purchase-orders'; // Path relative to base URL in apiService
 
-// Helper function to get auth config
-const getAuthConfig = () => {
-  const token = localStorage.getItem('token');
-  return {
-    headers: {
-      'x-auth-token': token
-    }
-  };
+// Mock data for test mode
+const mockPurchaseOrderData = {
+  _id: "64b2f8e3cd68fbdbcea9427f", // Default mock ID, can be overridden by specific requests
+  orderId: "PO-VMOCK-001",
+  purchaseOrderNumber: "PO-VMOCK-001",
+  supplier: { _id: "supplier_mock_id_1", name: "虛擬供應商 Alpha" },
+  status: "Pending", // Possible values: Pending, Approved, Shipped, Received, Cancelled
+  items: [
+    {
+      _id: "item_mock_id_1",
+      product: { _id: "product_mock_id_A", name: "虛擬藥品 X", category: "止痛藥" },
+      quantity: 100,
+      unitPrice: 15.50,
+      totalPrice: 1550.00,
+    },
+    {
+      _id: "item_mock_id_2",
+      product: { _id: "product_mock_id_B", name: "虛擬藥品 Y", category: "維他命" },
+      quantity: 50,
+      unitPrice: 30.00,
+      totalPrice: 1500.00,
+    },
+  ],
+  totalAmount: 3050.00,
+  orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+  expectedDeliveryDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+  notes: "這是測試模式下加載的虛擬採購訂單數據。",
+  paymentTerm: "Net 30",
+  shippingAddress: "虛擬市測試路123號",
+  billingAddress: "虛擬市測試路123號",
+  createdBy: { _id: "user_mock_id", name: "測試管理員" },
+  createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
 };
+
+// Helper to check if in test mode
+const isTestMode = () => localStorage.getItem('isTestMode') === 'true';
 
 /**
  * Fetches a single purchase order by its ID.
- * Used for the preview functionality.
  * @param {string} id - The ID of the purchase order.
  * @returns {Promise<object>} The purchase order data.
  */
 export const getPurchaseOrderById = async (id) => {
+  if (isTestMode()) {
+    console.log(`[Test Mode] Fetching virtual purchase order with ID: ${id}`);
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({ ...mockPurchaseOrderData, _id: id, orderId: `PO-VMOCK-${id.slice(-4)}`, purchaseOrderNumber: `PO-VMOCK-${id.slice(-4)}` });
+      }, 300);
+    });
+  }
+
   try {
-    // Note: The original code had .replace('/api/api', '/api'), ensure the base URL is correct
-    const response = await axios.get(`${API_URL}/${id}`, getAuthConfig());
+    const response = await apiService.get(`${API_PATH}/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching purchase order with ID ${id}:`, error);
-    // Re-throw the error to be handled by the caller (e.g., the component or hook)
+    throw error;
+  }
+};
+
+/**
+ * Updates an existing purchase order by its ID.
+ * @param {string} id - The ID of the purchase order to update.
+ * @param {object} data - The data to update the purchase order with.
+ * @returns {Promise<object>} The updated purchase order data.
+ */
+export const updatePurchaseOrder = async (id, data) => {
+  if (isTestMode()) {
+    console.log(`[Test Mode] Updating virtual purchase order with ID: ${id}`, data);
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const updatedMockData = {
+          ...mockPurchaseOrderData, // Base mock data
+          ...data,                 // Submitted changes
+          _id: id,                 // Ensure ID is correct
+          updatedAt: new Date().toISOString(),
+        };
+        console.log("[Test Mode] Virtual data after update:", updatedMockData);
+        resolve(updatedMockData);
+      }, 300);
+    });
+  }
+
+  try {
+    const response = await apiService.put(`${API_PATH}/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating purchase order with ID ${id}:`, error);
     throw error;
   }
 };
@@ -38,20 +102,22 @@ export const getPurchaseOrderById = async (id) => {
  * @returns {Promise<object>} The response data from the server.
  */
 export const importPurchaseOrdersBasic = async (formData) => {
+  if (isTestMode()) {
+    console.log("[Test Mode] Simulating import of basic purchase orders CSV:", formData.get('file')?.name || 'N/A');
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({ message: "虛擬匯入成功 (基本資料)", importedCount: 10, errors: [] });
+      }, 300);
+    });
+  }
   try {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        'x-auth-token': token,
-        'Content-Type': 'multipart/form-data'
-      }
-    };
-    // Note: The original code had .replace('/api/api', '/api'), ensure the base URL is correct
-    const response = await axios.post(`${API_URL}/import/basic`, formData, config);
+    const response = await apiService.post(`${API_PATH}/import/basic`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   } catch (error) {
     console.error('Error importing basic purchase orders CSV:', error);
-    throw error; // Re-throw for handling in the component
+    throw error;
   }
 };
 
@@ -61,50 +127,24 @@ export const importPurchaseOrdersBasic = async (formData) => {
  * @returns {Promise<object>} The response data from the server.
  */
 export const importPurchaseOrderItems = async (formData) => {
+  if (isTestMode()) {
+    console.log("[Test Mode] Simulating import of purchase order items CSV:", formData.get('file')?.name || 'N/A');
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({ message: "虛擬匯入成功 (項目資料)", importedCount: 50, errors: [] });
+      }, 300);
+    });
+  }
   try {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        'x-auth-token': token,
-        'Content-Type': 'multipart/form-data'
-      }
-    };
-    // Note: The original code had .replace('/api/api', '/api'), ensure the base URL is correct
-    const response = await axios.post(`${API_URL}/import/items`, formData, config);
+    const response = await apiService.post(`${API_PATH}/import/items`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   } catch (error) {
     console.error('Error importing purchase order items CSV:', error);
-    throw error; // Re-throw for handling in the component
-  }
-};
-
-// Note: Functions like fetchPurchaseOrders, deletePurchaseOrder, searchPurchaseOrders 
-// are currently handled via Redux actions in the original code.
-// If the goal is to move *all* API calls to services, those actions would need to be refactored
-// to call functions defined here, rather than making direct axios calls themselves (if they do).
-// For now, this service only includes the API calls made directly from PurchaseOrdersPage.js.
-
-
-
-
-/**
- * Updates an existing purchase order by its ID.
- * @param {string} id - The ID of the purchase order to update.
- * @param {object} data - The data to update the purchase order with.
- * @returns {Promise<object>} The updated purchase order data.
- */
-export const updatePurchaseOrder = async (id, data) => {
-  try {
-    const response = await axios.put(`${API_URL}/${id}`, data, getAuthConfig());
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating purchase order with ID ${id}:`, error);
     throw error;
   }
 };
-
-
-
 
 /**
  * Adds a new purchase order.
@@ -112,8 +152,25 @@ export const updatePurchaseOrder = async (id, data) => {
  * @returns {Promise<object>} The newly created purchase order data.
  */
 export const addPurchaseOrder = async (data) => {
+  if (isTestMode()) {
+    console.log("[Test Mode] Adding virtual purchase order:", data);
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const newMockOrder = {
+          ...data,
+          _id: `mock_id_${Date.now()}`,
+          orderId: `PO-VMOCK-${Date.now().toString().slice(-4)}`,
+          purchaseOrderNumber: `PO-VMOCK-${Date.now().toString().slice(-4)}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          status: data.status || "Pending",
+        };
+        resolve(newMockOrder);
+      }, 300);
+    });
+  }
   try {
-    const response = await axios.post(API_URL, data, getAuthConfig());
+    const response = await apiService.post(API_PATH, data);
     return response.data;
   } catch (error) {
     console.error('Error adding purchase order:', error);
