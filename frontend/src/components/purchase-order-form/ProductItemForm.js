@@ -20,20 +20,15 @@ const ProductItemForm = ({
   const [activeInput, setActiveInput] = useState(null);
 
   useEffect(() => {
-    // When the item being edited changes (i.e., currentItem prop changes),
-    // reset activeInput to null. This ensures that the disabled states for quantity fields
-    // are re-evaluated based on a clean focus state when a new item is loaded for editing.
     setActiveInput(null);
-  }, [currentItem]); // Resets when currentItem (the item being edited) changes
+  }, [currentItem]);
 
   const dQuantityValue = currentItem.dquantity || '';
   const packageQuantityValue = currentItem.packageQuantity || '';
   const boxQuantityValue = currentItem.boxQuantity || '';
 
-  // dquantity (total quantity) is disabled if user is actively editing packageQuantity or boxQuantity
   const mainQuantityDisabled = activeInput === 'packageQuantity' || activeInput === 'boxQuantity';
   
-  // packageQuantity and boxQuantity are disabled if dquantity has a value AND user is not actively editing them.
   const subQuantitiesDisabled = 
     (dQuantityValue !== '' && parseFloat(dQuantityValue) > 0) && 
     (activeInput !== 'packageQuantity' && activeInput !== 'boxQuantity');
@@ -55,7 +50,6 @@ const ProductItemForm = ({
     const { value } = e.target;
     handleItemInputChange({ target: { name: 'dquantity', value } });
     if (value !== '' && parseFloat(value) > 0) {
-      // If total quantity is entered, clear sub-quantities
       handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
       handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
     }
@@ -64,7 +58,6 @@ const ProductItemForm = ({
   const handleSubQuantityChange = (e) => {
     const { name, value } = e.target;
     handleItemInputChange({ target: { name, value } });
-    // dquantity will be calculated onBlur of these fields or if both are filled
   };
 
   const handleSubQuantityBlur = () => {
@@ -118,6 +111,7 @@ const ProductItemForm = ({
           getOptionLabel={(option) => `${option.code || 'N/A'} - ${option.name}`}
           value={products && products.find(p => p._id === currentItem.product) || null}
           onChange={handleProductChange}
+          isOptionEqualToValue={(option, value) => option._id === value._id || option.id === value.id} // Added this line
           filterOptions={(options, state) => filterProducts(options, state.inputValue)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === 'Tab') {

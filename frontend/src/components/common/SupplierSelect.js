@@ -48,6 +48,7 @@ const SupplierSelect = ({
       getOptionLabel={(option) => option.name || ''}
       value={selectedSupplier}
       onChange={onChange}
+      isOptionEqualToValue={(option, value) => option._id === value._id || option.id === value.id}
       filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
@@ -99,3 +100,4 @@ const SupplierSelect = ({
 };
 
 export default SupplierSelect;
+

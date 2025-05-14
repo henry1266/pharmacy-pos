@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// import axios from 'axios'; // Removed axios import
 import {
   Box,
   Typography,
@@ -14,7 +13,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 
 // Import service functions
-import { getPurchaseOrderById, updatePurchaseOrder } from '../services/purchaseOrdersService';
+import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService'; // Added addPurchaseOrder
 import { getProducts } from '../services/productService';
 import { getSuppliers } from '../services/supplierService';
 
@@ -24,22 +23,25 @@ import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
 import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
+// Helper to check if a string is a valid MongoDB ObjectId
+const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+
 const PurchaseOrderEditPage = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id } = useParams(); // id will be undefined for new orders
+  const isEditMode = !!id;
 
-  // State management
   const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
-    poid: '',
+    poid: '', // Purchase Order ID (user input or auto-generated for new)
     pobill: '',
     pobilldate: new Date(),
-    posupplier: '',
-    supplier: '', // This should store the supplier ID
+    posupplier: '', // Supplier name for display
+    supplier: '', // Supplier ObjectId for submission
     items: [],
     notes: '',
     status: '處理中',
@@ -47,11 +49,11 @@ const PurchaseOrderEditPage = () => {
   });
 
   const [currentItem, setCurrentItem] = useState({
-    did: '',
-    dname: '',
+    did: '', // Product code for display
+    dname: '', // Product name for display
     dquantity: '',
     dtotalCost: '',
-    product: null // This should store the product ID
+    product: null // Product ObjectId for submission
   });
 
   const [editingItemIndex, setEditingItemIndex] = useState(-1);
@@ -64,166 +66,131 @@ const PurchaseOrderEditPage = () => {
   });
 
   const [selectedSupplier, setSelectedSupplier] = useState(null);
-  const [orderDataLoaded, setOrderDataLoaded] = useState(false);
+  const [orderDataLoaded, setOrderDataLoaded] = useState(!isEditMode); // True if new order
   const [suppliersLoaded, setSuppliersLoaded] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
 
-  // Refactored fetch functions using services
+  const isTestMode = () => localStorage.getItem('isTestMode') === 'true';
+
   const fetchPurchaseOrderData = async () => {
+    if (!isEditMode) {
+      setOrderDataLoaded(true);
+      return;
+    }
     try {
       const orderData = await getPurchaseOrderById(id);
-      console.log('獲取到進貨單數據:', orderData);
       setFormData({
         ...orderData,
         pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) : new Date(),
-        // Ensure supplier field holds the ID if the API returns a populated object
-        supplier: typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier
+        supplier: orderData.supplier?._id || orderData.supplier, // Ensure it's the ID
+        posupplier: orderData.supplier?.name || '',
+        items: orderData.items ? orderData.items.map(item => ({ // Ensure items have product ObjectId
+          ...item,
+          product: item.product?._id || item.product
+        })) : []
       });
       setOrderDataLoaded(true);
       return orderData;
     } catch (err) {
-      console.error('獲取進貨單數據失敗:', err);
       setError('獲取進貨單數據失敗');
-      setSnackbar({
-        open: true,
-        message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'), severity: 'error' });
       throw err;
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchProductsData = async () => {
     try {
       const productsData = await getProducts();
-      setProducts(productsData);
+      setProducts(productsData || []);
+      setProductsLoaded(true);
       return productsData;
     } catch (err) {
-      console.error('獲取產品數據失敗:', err);
-      setSnackbar({
-        open: true,
-        message: '獲取產品數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: '獲取產品數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'), severity: 'error' });
       throw err;
     }
   };
 
-  const fetchSuppliers = async () => {
+  const fetchSuppliersData = async () => {
     try {
-      const suppliersData = await getSuppliers(); // Uses supplierService which maps _id to id
-      console.log('獲取到供應商數據:', suppliersData);
-      setSuppliers(suppliersData);
+      const suppliersData = await getSuppliers();
+      setSuppliers(suppliersData || []);
       setSuppliersLoaded(true);
       return suppliersData;
     } catch (err) {
-      console.error('獲取供應商數據失敗:', err);
-      setSnackbar({
-        open: true,
-        message: '獲取供應商數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: '獲取供應商數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'), severity: 'error' });
       throw err;
     }
   };
 
-  // Initial data loading useEffect
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
-        await Promise.all([
-          fetchPurchaseOrderData(),
-          fetchProducts(),
-          fetchSuppliers()
-        ]);
+        const promises = [fetchProductsData(), fetchSuppliersData()];
+        if (isEditMode) {
+          promises.push(fetchPurchaseOrderData());
+        }
+        await Promise.all(promises);
         setLoading(false);
       } catch (err) {
         setLoading(false);
-        console.error('加載數據過程中發生錯誤:', err);
-        // Error state is set within individual fetch functions
       }
     };
     loadData();
-  }, [id]); // Removed fetchPurchaseOrderData from dependencies as it's stable
+  }, [id, isEditMode]);
 
-  // useEffect for setting selected supplier based on loaded data
   useEffect(() => {
     if (orderDataLoaded && suppliersLoaded && formData.supplier) {
-      console.log('Attempting to find supplier for ID:', formData.supplier);
-      const supplier = suppliers.find(s => s.id === formData.supplier || s._id === formData.supplier);
-      if (supplier) {
-        console.log('找到匹配的供應商:', supplier);
-        setSelectedSupplier(supplier);
-        if (formData.posupplier !== supplier.name) {
-             setFormData(prev => ({ ...prev, posupplier: supplier.name }));
+      const supplierObj = suppliers.find(s => s._id === formData.supplier || s.id === formData.supplier);
+      if (supplierObj) {
+        setSelectedSupplier(supplierObj);
+        if (formData.posupplier !== supplierObj.name) {
+             setFormData(prev => ({ ...prev, posupplier: supplierObj.name }));
         }
       } else {
-        console.log('未找到匹配的供應商 for ID:', formData.supplier);
         setSelectedSupplier(null);
       }
-    } else if (!formData.supplier) {
-        setSelectedSupplier(null);
     }
-  }, [orderDataLoaded, suppliersLoaded, formData.supplier, suppliers, formData.posupplier]); // Added formData.posupplier
+  }, [orderDataLoaded, suppliersLoaded, formData.supplier, suppliers]);
 
-  // Input change handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleDateChange = (date) => {
-    setFormData(prevFormData => ({ ...prevFormData, pobilldate: date }));
+    setFormData(prev => ({ ...prev, pobilldate: date }));
   };
 
   const handleSupplierChange = (event, newValue) => {
-    if (newValue) {
-      setSelectedSupplier(newValue);
-      setFormData(prevFormData => ({ ...prevFormData, posupplier: newValue.name, supplier: newValue.id }));
-    } else {
-      setSelectedSupplier(null);
-      setFormData(prevFormData => ({ ...prevFormData, posupplier: '', supplier: '' }));
-    }
+    setSelectedSupplier(newValue);
+    setFormData(prev => ({
+      ...prev,
+      posupplier: newValue ? newValue.name : '',
+      supplier: newValue ? (newValue._id || newValue.id) : '' // Store ObjectId
+    }));
   };
 
-  // Item input change handlers
   const handleItemInputChange = (e) => {
     const { name, value } = e.target;
-    setCurrentItem(prevCurrentItem => ({
-      ...prevCurrentItem,
-      [name]: value
-    }));
+    setCurrentItem(prev => ({ ...prev, [name]: value }));
   };
 
   const handleEditingItemChange = (e) => {
     const { name, value } = e.target;
-    setEditingItem(prevEditingItem => ({
-      ...prevEditingItem,
-      [name]: value
-    }));
+    setEditingItem(prev => ({ ...prev, [name]: value }));
   };
 
   const handleProductChange = (event, newValue) => {
-    if (newValue) {
-      setCurrentItem(prevCurrentItem => ({
-        ...prevCurrentItem,
-        did: newValue.code, 
-        dname: newValue.name,
-        product: newValue._id,
-        dquantity: '', // Reset quantity when product changes
-        dtotalCost: ''  // Reset total cost when product changes
-      }));
-    } else {
-      setCurrentItem(prevCurrentItem => ({
-        ...prevCurrentItem,
-        did: '', 
-        dname: '', 
-        product: null,
-        dquantity: '',
-        dtotalCost: ''
-      }));
-    }
+    setCurrentItem(prev => ({
+      ...prev,
+      did: newValue ? newValue.code : '',
+      dname: newValue ? newValue.name : '',
+      product: newValue ? (newValue._id || newValue.id) : null, // Store ObjectId
+      dquantity: '',
+      dtotalCost: ''
+    }));
   };
 
   const handleAddItem = () => {
@@ -231,8 +198,13 @@ const PurchaseOrderEditPage = () => {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料 (藥品、數量、總成本)', severity: 'error' });
       return;
     }
+    // Ensure product ID is valid before adding if not in test mode
+    if (!isTestMode() && !isValidObjectId(currentItem.product)) {
+        setSnackbar({ open: true, message: '無效的藥品ID，請重新選擇藥品。', severity: 'error' });
+        return;
+    }
     const newItem = { ...currentItem }; 
-    setFormData(prevFormData => ({ ...prevFormData, items: [...prevFormData.items, newItem] }));
+    setFormData(prev => ({ ...prev, items: [...prev.items, newItem] }));
     setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
     setTimeout(() => {
       const productInput = document.querySelector('#product-select-input');
@@ -241,15 +213,18 @@ const PurchaseOrderEditPage = () => {
   };
 
   const handleRemoveItem = (index) => {
-    setFormData(prevFormData => ({
-      ...prevFormData,
-      items: prevFormData.items.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== index) }));
   };
 
   const handleEditItem = (index) => {
     setEditingItemIndex(index);
-    setEditingItem({ ...formData.items[index] }); 
+    const itemToEdit = formData.items[index];
+    // Ensure product ID is valid if not in test mode
+    if (!isTestMode() && itemToEdit.product && !isValidObjectId(itemToEdit.product)){
+        setSnackbar({ open: true, message: `項目 ${itemToEdit.dname} 的藥品ID無效，請修正。`, severity: 'error' });
+        // Potentially clear the product or handle differently
+    }
+    setEditingItem({ ...itemToEdit }); 
   };
 
   const handleSaveEditItem = () => {
@@ -257,9 +232,14 @@ const PurchaseOrderEditPage = () => {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
       return;
     }
+    // Ensure product ID is valid before saving if not in test mode
+    if (!isTestMode() && !isValidObjectId(editingItem.product)) {
+        setSnackbar({ open: true, message: '無效的藥品ID，請重新選擇藥品。', severity: 'error' });
+        return;
+    }
     const newItems = [...formData.items];
     newItems[editingItemIndex] = editingItem;
-    setFormData(prevFormData => ({ ...prevFormData, items: newItems }));
+    setFormData(prev => ({ ...prev, items: newItems }));
     setEditingItemIndex(-1);
     setEditingItem(null);
   };
@@ -274,13 +254,18 @@ const PurchaseOrderEditPage = () => {
     const newItems = [...formData.items];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
-    setFormData(prevFormData => ({ ...prevFormData, items: newItems }));
+    setFormData(prev => ({ ...prev, items: newItems }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.poid || !formData.supplier) { // posupplier is derived from supplier
-      setSnackbar({ open: true, message: '請填寫所有必填欄位 (單號, 供應商)', severity: 'error' });
+    // Basic validations
+    if (!formData.poid && !isEditMode) { // poid can be auto-generated for new, but check if user tried to input something invalid
+        // For new orders, poid might be empty if auto-generated. Let backend handle this if needed.
+        // If it's required from user for new, this check needs adjustment.
+    }
+    if (!formData.supplier) {
+      setSnackbar({ open: true, message: '請選擇一個供應商', severity: 'error' });
       return;
     }
     if (formData.items.length === 0) {
@@ -288,53 +273,91 @@ const PurchaseOrderEditPage = () => {
       return;
     }
 
-    try {
-      const submitData = {
-        ...formData,
-        pobilldate: format(new Date(formData.pobilldate), 'yyyy-MM-dd'),
-        items: formData.items.map(item => ({ 
-            ...item,
-            product: item.product 
-        }))
-      };
+    // Filter out any test/mock data if not in test mode
+    // And ensure all IDs are valid ObjectIds
+    let itemsForSubmit = formData.items;
+    if (!isTestMode()) {
+      if (!isValidObjectId(formData.supplier)) {
+        setSnackbar({ open: true, message: '供應商ID無效，請重新選擇供應商。', severity: 'error' });
+        return;
+      }
+      itemsForSubmit = formData.items.map(item => {
+        if (!isValidObjectId(item.product)) {
+          // This should ideally not happen if selection and add/edit logic is correct
+          throw new Error(`藥品 ${item.dname || '未知藥品'} 的ID格式不正確。`);
+        }
+        return {
+          product: item.product, // Already ObjectId from selection
+          dquantity: parseFloat(item.dquantity),
+          dtotalCost: parseFloat(item.dtotalCost),
+          // Include other relevant item fields like did, dname if backend expects them
+          // but ensure they are not mock values if they are also IDs.
+          did: item.did, // Assuming did is a code, not an ObjectId
+          dname: item.dname
+        };
+      }).filter(item => isValidObjectId(item.product)); // Final safety filter
 
-      await updatePurchaseOrder(id, submitData);
-      setSnackbar({ open: true, message: '進貨單已成功更新', severity: 'success' });
+      if (itemsForSubmit.length !== formData.items.length) {
+          setSnackbar({ open: true, message: '部分藥品項目因ID無效已被過濾，請檢查。', severity: 'warning' });
+          // Optionally, prevent submission or update formData.items to reflect filtered list
+          // For now, we proceed with filtered items if any were invalid.
+      }
+      if (itemsForSubmit.length === 0 && formData.items.length > 0) {
+          setSnackbar({ open: true, message: '所有藥品項目ID均無效，無法提交。', severity: 'error' });
+          return;
+      }
+    }
+
+    const submitData = {
+      ...formData,
+      pobilldate: format(new Date(formData.pobilldate), 'yyyy-MM-dd'),
+      supplier: formData.supplier, // Already ObjectId from selection
+      items: itemsForSubmit,
+      // Remove client-side only fields or ensure backend handles them
+      posupplier: undefined, // This is for display only
+    };
+    // For new orders, poid might be auto-generated by backend, so don't send if empty
+    if (!isEditMode && !submitData.poid) {
+        delete submitData.poid;
+    }
+
+    try {
+      if (isEditMode) {
+        await updatePurchaseOrder(id, submitData);
+        setSnackbar({ open: true, message: '進貨單已成功更新', severity: 'success' });
+      } else {
+        await addPurchaseOrder(submitData); // Use addPurchaseOrder for new
+        setSnackbar({ open: true, message: '進貨單已成功新增', severity: 'success' });
+      }
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);
 
     } catch (err) {
-      console.error('更新進貨單失敗:', err);
+      console.error(isEditMode ? '更新進貨單失敗:' : '新增進貨單失敗:', err);
       setSnackbar({
         open: true,
-        message: '更新進貨單失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'),
+        message: (isEditMode ? '更新進貨單失敗: ' : '新增進貨單失敗: ') + (err.response?.data?.msg || err.message || '未知錯誤'),
         severity: 'error'
       });
     }
   };
 
   const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
+    if (reason === 'clickaway') return;
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handleCancel = () => {
-    navigate('/purchase-orders');
-  };
+  const handleCancel = () => navigate('/purchase-orders');
 
   const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
 
-  if (loading && !orderDataLoaded) { // Show loading only if initial order data isn't loaded
+  if (loading && !orderDataLoaded && !productsLoaded && !suppliersLoaded) {
     return <Box sx={{ p: 3, textAlign: 'center' }}><Typography>載入中...</Typography></Box>;
   }
-  if (error && !orderDataLoaded) { // Show error only if initial order data failed to load
+  if (error && !orderDataLoaded) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="error">{error}</Typography>
-        <Button variant="contained" onClick={() => navigate('/purchase-orders')} sx={{ mt: 2 }}>
-          返回進貨單列表
-        </Button>
+        <Button variant="contained" onClick={() => navigate('/purchase-orders')} sx={{ mt: 2 }}>返回進貨單列表</Button>
       </Box>
     );
   }
@@ -342,10 +365,8 @@ const PurchaseOrderEditPage = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">編輯進貨單</Typography>
-        <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={handleCancel}>
-          返回進貨單列表
-        </Button>
+        <Typography variant="h4" component="h1">{isEditMode ? '編輯進貨單' : '新增進貨單'}</Typography>
+        <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={handleCancel}>返回進貨單列表</Button>
       </Box>
 
       <form onSubmit={handleSubmit}>
@@ -356,16 +377,12 @@ const PurchaseOrderEditPage = () => {
           handleSupplierChange={handleSupplierChange}
           suppliers={suppliers}
           selectedSupplier={selectedSupplier}
-          isEditMode={true}
+          isEditMode={isEditMode} // Pass isEditMode
         />
 
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>藥品項目</Typography>
-            <ActionButtons
-              onSave={handleSubmit}
-              onCancel={handleCancel}
-            />
             <ProductItemForm
               currentItem={currentItem}
               handleItemInputChange={handleItemInputChange}
@@ -384,6 +401,11 @@ const PurchaseOrderEditPage = () => {
               handleMoveItem={handleMoveItem}
               handleEditingItemChange={handleEditingItemChange}
               totalAmount={totalAmount}
+            />
+             <ActionButtons // Moved ActionButtons here, or integrate into the form submission logic
+              onSave={handleSubmit} // This button will now trigger the form's onSubmit
+              onCancel={handleCancel}
+              isEditMode={isEditMode}
             />
           </CardContent>
         </Card>
