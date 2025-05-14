@@ -32,7 +32,6 @@ import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter
 import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
-// import DeleteConfirmDialog from '../components/shipping-orders/common/ConfirmDialog'; // OLD IMPORT
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
