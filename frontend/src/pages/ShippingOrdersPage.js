@@ -32,7 +32,8 @@ import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter
 import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
-import DeleteConfirmDialog from '../components/shipping-orders/common/ConfirmDialog';
+// import DeleteConfirmDialog from '../components/shipping-orders/common/ConfirmDialog'; // OLD IMPORT
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 /**
@@ -328,11 +329,14 @@ const ShippingOrdersPage = () => {
         </Tooltip>
       </Box>
 
-      <DeleteConfirmDialog
+      <GenericConfirmDialog
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        shippingOrder={shippingOrderToDelete} // Pass the locally stored order object
+        title="確認刪除出貨單"
+        message={`您確定要刪除出貨單 ${shippingOrderToDelete?.soid || ''} 嗎？此操作無法撤銷。`}
+        confirmText="確認刪除"
+        cancelText="取消"
       />
 
       <CsvImportDialog
