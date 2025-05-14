@@ -16,7 +16,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
-
+import SupplierSelect from '../common/SupplierSelect';
 /**
  * 進貨單基本資訊表單組件
  * @param {Object} props - 組件屬性
@@ -78,57 +78,15 @@ const BasicInfoForm = ({
               />
             </LocalizationProvider>
           </Grid>
-<Grid item xs={12} sm={6} md={2}>
-  <Autocomplete
-    id="supplier-select"
-    options={suppliers}
-    getOptionLabel={(option) => option.name}
-    value={selectedSupplier}
-    onChange={handleSupplierChange}
-    filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
-onKeyDown={(event) => {
-  if (['Enter', 'Tab'].includes(event.key)) {
-    const filtered = filterSuppliers(suppliers, event.target.value);
-    if (filtered.length > 0) {
-      handleSupplierChange(event, filtered[0]);
-      event.preventDefault();
-
-      // 直接模擬點擊付款狀態下拉框
-      setTimeout(() => {
-        try {
-          // 嘗試直接點擊付款狀態標籤
-          const paymentStatusLabel = document.querySelector('#payment-status-label');
-          if (paymentStatusLabel) {
-            paymentStatusLabel.click();
-            return;
-          }
-          
-          // 備用方案1：嘗試找到付款狀態下拉框並點擊
-          const selectElement = document.querySelector('[name="paymentStatus"]');
-          if (selectElement) {
-            selectElement.click();
-            return;
-          }
-          
-          // 備用方案2：嘗試找到付款狀態FormControl並點擊
-          const formControl = document.querySelector('label[id="payment-status-label"]').closest('.MuiFormControl-root');
-          if (formControl) {
-            formControl.click();
-          }
-        } catch (error) {
-          console.error('無法自動聚焦到付款狀態:', error);
-        }
-      }, 100); // 增加延遲時間確保DOM已更新
-    }
-  }
-}}
-    renderInput={(params) => (
-      <TextField {...params} required label="供應商" fullWidth />
-    )}
-  />
-
-
-</Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <SupplierSelect
+              suppliers={suppliers || []}
+              selectedSupplier={selectedSupplier} 
+              onChange={handleSupplierChange} 
+              label="進貨商 (可用名稱或簡碼)"
+              disabled={isEditMode}
+            />
+          </Grid>
         <Grid item xs={12} sm={6} md={2}>
             <Box
 				    sx={{
@@ -140,14 +98,15 @@ onKeyDown={(event) => {
 				    }}
 			  >
 			        <FormControl fullWidth>
-              <InputLabel id="payment-status-label">付款狀態</InputLabel>
-              <Select
-                labelId="payment-status-label"
-                name="paymentStatus"
-                value={formData.paymentStatus}
-                onChange={handleInputChange}
-                label="付款狀態"
-              >
+               <InputLabel id="payment-status-select-label">付款狀態</InputLabel>
+                  <Select
+                    labelId="payment-status-select-label"
+                    id="payment-status-select"
+                    name="paymentStatus"
+                    value={formData.paymentStatus}
+                    label="付款狀態"
+                    onChange={handleInputChange}
+                  >
                 <MenuItem value="未付">未付</MenuItem>
                 <MenuItem value="已下收">已下收</MenuItem>
                 <MenuItem value="已匯款">已匯款</MenuItem>

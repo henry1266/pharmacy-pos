@@ -9,9 +9,7 @@ import {
   MenuItem, 
   Card, 
   CardContent, 
-  Typography,
-  Button,
-  CircularProgress
+  Typography
 } from '@mui/material';
 import SupplierSelect from '../../../common/SupplierSelect';
 
@@ -35,199 +33,6 @@ const BasicInfoForm = ({
   selectedSupplier,
   isEditMode
 }) => {
-  // 添加本地狀態來跟踪調劑按鈕處理過程
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStep, setProcessingStep] = useState(0);
-  
-  // 處理供應商欄位按ENTER後跳轉到付款狀態欄位
-  const handleSupplierEnterKeyDown = () => {
-    // 找到付款狀態欄位並設置焦點
-    const paymentStatusSelect = document.getElementById('payment-status-select');
-    if (paymentStatusSelect) {
-      paymentStatusSelect.focus();
-    }
-  };
-  
-  // 模擬Tab鍵按下的函數
-  const simulateTabKey = (times = 1) => {
-    // 創建Tab鍵事件
-    const tabEvent = new KeyboardEvent('keydown', {
-      bubbles: true,
-      cancelable: true,
-      key: 'Tab',
-      code: 'Tab',
-      keyCode: 9,
-      which: 9
-    });
-    
-    // 按指定次數模擬Tab鍵按下
-    for (let i = 0; i < times; i++) {
-      setTimeout(() => {
-        document.activeElement.dispatchEvent(tabEvent);
-      }, i * 100); // 每次按Tab之間間隔100毫秒
-    }
-  };
-  
-  // 模擬下鍵按下的函數
-  const simulateArrowDownKey = (times = 1) => {
-    // 創建下鍵事件
-    const arrowDownEvent = new KeyboardEvent('keydown', {
-      bubbles: true,
-      cancelable: true,
-      key: 'ArrowDown',
-      code: 'ArrowDown',
-      keyCode: 40,
-      which: 40
-    });
-    
-    // 按指定次數模擬下鍵按下
-    for (let i = 0; i < times; i++) {
-      setTimeout(() => {
-        document.activeElement.dispatchEvent(arrowDownEvent);
-      }, i * 100); // 每次按下鍵之間間隔100毫秒
-    }
-  };
-  
-  // 模擬Enter鍵按下的函數
-  const simulateEnterKey = () => {
-    // 創建Enter鍵事件
-    const enterEvent = new KeyboardEvent('keydown', {
-      bubbles: true,
-      cancelable: true,
-      key: 'Enter',
-      code: 'Enter',
-      keyCode: 13,
-      which: 13
-    });
-    
-    // 模擬Enter鍵按下
-    document.activeElement.dispatchEvent(enterEvent);
-  };
-  
-  // 模擬輸入文本的函數
-  const simulateTextInput = (element, text) => {
-    // 設置輸入值
-    if (element.tagName === 'INPUT') {
-      // 直接設置input元素的值
-      element.value = text;
-      
-      // 觸發input事件
-      const inputEvent = new Event('input', { bubbles: true });
-      element.dispatchEvent(inputEvent);
-      
-      // 觸發change事件
-      const changeEvent = new Event('change', { bubbles: true });
-      element.dispatchEvent(changeEvent);
-    }
-  };
-  
-  // 調劑按鈕處理函數 - 實現新的鍵盤導航序列
-  const handleDispenseClick = () => {
-    // 開始處理
-    setIsProcessing(true);
-    setProcessingStep(1);
-    
-    // 1. 將焦點設置到供應商輸入框
-    setTimeout(() => {
-      const supplierInput = document.querySelector('#supplier-select input');
-      if (supplierInput) {
-        supplierInput.focus();
-        console.log('已將焦點設置到供應商輸入框');
-        
-        // 2. 輸入"WRUQ"
-        setTimeout(() => {
-          simulateTextInput(supplierInput, 'WRUQ');
-          console.log('已在供應商輸入框中輸入WRUQ');
-          
-          // 3. 按Enter鍵
-          setTimeout(() => {
-            simulateEnterKey();
-            console.log('已在供應商輸入框中按下Enter鍵');
-            setProcessingStep(2);
-            
-            // 4. 按下鍵三次
-            setTimeout(() => {
-              simulateArrowDownKey(3);
-              console.log('已按下鍵三次');
-              
-              // 5. 按Enter鍵
-              setTimeout(() => {
-                simulateEnterKey();
-                console.log('已按下Enter鍵選擇付款狀態');
-                
-                // 6. 按Tab鍵
-                setTimeout(() => {
-                  simulateTabKey(1);
-                  console.log('已按Tab鍵移至狀態欄位');
-                  setProcessingStep(3);
-                  
-                  // 7. 按下鍵兩次
-                  setTimeout(() => {
-                    simulateArrowDownKey(2);
-                    console.log('已按下鍵兩次');
-                    
-                    // 8. 按Enter鍵
-                    setTimeout(() => {
-                      simulateEnterKey();
-                      console.log('已按下Enter鍵選擇狀態');
-                      
-                      // 9. 按Tab鍵四次
-                      setTimeout(() => {
-                        simulateTabKey(4);
-                        console.log('已按Tab鍵四次移至藥品選擇區域');
-                        
-                        // 處理完成
-                        setProcessingStep(4);
-                        setTimeout(() => {
-                          setIsProcessing(false);
-                          setProcessingStep(0);
-                        }, 200);
-                      }, 100);
-                    }, 100);
-                  }, 100);
-                }, 100);
-              }, 100);
-            }, 100);
-          }, 100);
-        }, 100);
-      } else {
-        console.error('找不到供應商輸入框');
-        setIsProcessing(false);
-      }
-    }, 100);
-  };
-
-  // 渲染處理步驟指示器
-  const renderProcessingIndicator = () => {
-    if (!isProcessing) return null;
-    
-    let stepText = '';
-    switch (processingStep) {
-      case 1:
-        stepText = '設置供應商...';
-        break;
-      case 2:
-        stepText = '設置付款狀態...';
-        break;
-      case 3:
-        stepText = '設置狀態...';
-        break;
-      case 4:
-        stepText = '完成處理...';
-        break;
-      default:
-        stepText = '處理中...';
-    }
-    
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-        <CircularProgress size={20} sx={{ mr: 1 }} />
-        <Typography variant="body2" color="text.secondary">
-          {stepText}
-        </Typography>
-      </Box>
-    );
-  };
 
   return (
     <Card sx={{ mb: 2 }}>
@@ -236,19 +41,6 @@ const BasicInfoForm = ({
           基本資訊
         </Typography>
         
-        {/* 輸入模板區域 */}
-        <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleDispenseClick}
-            disabled={isProcessing}
-            sx={{ mb: 1 }}
-          >
-            調劑
-          </Button>
-          {renderProcessingIndicator()}
-        </Box>
         
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
@@ -272,9 +64,7 @@ const BasicInfoForm = ({
               onChange={handleSupplierChange}
               label="供應商 (可用名稱或簡碼搜索)"
               required={true}
-              size="small"
               showCode={true}
-              onEnterKeyDown={handleSupplierEnterKeyDown}
             />
           </Grid>
           
