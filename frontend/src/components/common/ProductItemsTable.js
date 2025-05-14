@@ -19,7 +19,8 @@ import {
   Visibility,
   VisibilityOff
 } from '@mui/icons-material';
-import ProductCodeLink from './ProductCodeLink'; // ADDED IMPORT
+import ProductCodeLink from './ProductCodeLink';
+import GrossProfitCell from './GrossProfitCell'; // Added import
 
 /**
  * 產品項目表格組件 (純 UI)
@@ -51,7 +52,7 @@ const ProductItemsTable = ({
   title = '項目',
   isLoading = false,
   defaultShowProfit = true,
-  profitField = 'profit',
+  profitField = 'profit', // This will be used to get the gross profit value
   profitMarginField = 'profitMargin'
 }) => {
   const [showProfitColumns, setShowProfitColumns] = useState(defaultShowProfit);
@@ -86,7 +87,11 @@ const ProductItemsTable = ({
 
   const showHealthInsuranceCode = Object.keys(productDetails).length > 0;
   
-  const hasProfitData = items.some(item => item.hasOwnProperty(profitField) || item.hasOwnProperty(profitMarginField));
+  // Check if any item has data for the specified profitField or profitMarginField
+  const hasProfitData = items.some(item => 
+    (item.hasOwnProperty(profitField) && typeof item[profitField] === 'number') || 
+    item.hasOwnProperty(profitMarginField)
+  );
 
   let colspanBase = 5;
   if (showHealthInsuranceCode) colspanBase++;
@@ -137,14 +142,17 @@ const ProductItemsTable = ({
                   items.map((item, index) => {
                     const productCode = item[codeField];
                     const productDetail = productDetails[productCode] || {};
-                    const healthInsuranceCode = productDetail.healthInsuranceCode || '-';
-                    const itemProfit = Number(item[profitField]);
+                    const healthInsuranceCode = productDetail.healthInsuranceCode || 'N/A';
+                    // Construct fifoProfit object for GrossProfitCell
+                    const fifoProfitData = {
+                      grossProfit: item.hasOwnProperty(profitField) ? Number(item[profitField]) : undefined
+                    };
                     const itemProfitMargin = item[profitMarginField];
 
                     return (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell><ProductCodeLink product={{ _id: productDetail._id, code: productCode }} /></TableCell> {/* MODIFIED LINE */}
+                        <TableCell><ProductCodeLink product={{ _id: productDetail._id, code: productCode }} /></TableCell>
                         {showHealthInsuranceCode && (
                           <TableCell>{healthInsuranceCode}</TableCell>
                         )}
@@ -154,11 +162,9 @@ const ProductItemsTable = ({
                         <TableCell align="right">{getItemSubtotal(item)}</TableCell>
                         {showProfitColumns && hasProfitData && (
                           <>
-                            <TableCell align="right" sx={{ color: itemProfit >= 0 ? 'success.main' : 'error.main' }}>
-                              {!isNaN(itemProfit) ? itemProfit.toFixed(2) : '-'}
-                            </TableCell>
-                            <TableCell align="right" sx={{ color: !isNaN(itemProfit) && itemProfit >= 0 ? 'success.main' : (!isNaN(itemProfit) && itemProfit < 0 ? 'error.main' : 'text.primary') }}>
-                              {itemProfitMargin !== undefined ? itemProfitMargin : '-'}
+                            <GrossProfitCell fifoProfit={fifoProfitData} />
+                            <TableCell align="right" sx={{ color: fifoProfitData.grossProfit !== undefined && fifoProfitData.grossProfit >= 0 ? 'success.main' : (fifoProfitData.grossProfit !== undefined && fifoProfitData.grossProfit < 0 ? 'error.main' : 'text.primary') }}>
+                              {itemProfitMargin !== undefined ? itemProfitMargin : 'N/A'}
                             </TableCell>
                           </>
                         )}

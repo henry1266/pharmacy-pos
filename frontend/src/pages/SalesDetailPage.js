@@ -47,6 +47,7 @@ import { zhTW } from 'date-fns/locale';
 
 import ProductCodeLink from '../components/common/ProductCodeLink';
 import DetailLayout from '../components/DetailLayout';
+import GrossProfitCell from '../components/common/GrossProfitCell'; // Added import
 
 const getPaymentMethodText = (method) => {
   const methodMap = { 'cash': '現金', 'credit_card': '信用卡', 'debit_card': '金融卡', 'mobile_payment': '行動支付', 'other': '其他' };
@@ -295,9 +296,7 @@ const SalesDetailPage = () => {
                         {!fifoLoading && fifoData && fifoData.items && showSalesProfitColumns && (
                           <>
                             <TableCell align="right">{fifoItem?.fifoProfit ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
-                            <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && fifoItem.fifoProfit.grossProfit >= 0 ? 'success.main' : 'error.main' }}>
-                              {fifoItem?.fifoProfit ? fifoItem.fifoProfit.grossProfit.toFixed(2) : 'N/A'}
-                            </TableCell>
+                            <GrossProfitCell fifoProfit={fifoItem?.fifoProfit} />
                             <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
                               {fifoItem?.fifoProfit ? fifoItem.fifoProfit.profitMargin : 'N/A'}
                             </TableCell>
@@ -359,8 +358,7 @@ const SalesDetailPage = () => {
       sidebarContent={sidebarContent}
       isLoading={loading}
       errorContent={error ? <Typography color="error" variant="h6">{error}</Typography> : null}
-      snackbarProps={snackbar}
-      handleCloseSnackbar={handleCloseSnackbar}
+      noDataContent={!loading && !sale && !error ? <Typography variant="h6">找不到銷售單數據</Typography> : null}
     />
   );
 };
