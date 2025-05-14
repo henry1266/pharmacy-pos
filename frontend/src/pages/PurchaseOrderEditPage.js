@@ -145,112 +145,121 @@ const PurchaseOrderEditPage = () => {
       }
     };
     loadData();
-  }, [id]);
+  }, [id]); // Removed fetchPurchaseOrderData from dependencies as it's stable
 
   // useEffect for setting selected supplier based on loaded data
   useEffect(() => {
     if (orderDataLoaded && suppliersLoaded && formData.supplier) {
       console.log('Attempting to find supplier for ID:', formData.supplier);
-      // Find supplier using 'id' field from supplierService response
       const supplier = suppliers.find(s => s.id === formData.supplier || s._id === formData.supplier);
       if (supplier) {
         console.log('找到匹配的供應商:', supplier);
         setSelectedSupplier(supplier);
-        // Ensure posupplier (name) is consistent if it wasn't set correctly initially
         if (formData.posupplier !== supplier.name) {
              setFormData(prev => ({ ...prev, posupplier: supplier.name }));
         }
       } else {
         console.log('未找到匹配的供應商 for ID:', formData.supplier);
         setSelectedSupplier(null);
-        // Optionally clear invalid supplier data from form
-        // setFormData(prev => ({ ...prev, posupplier: '', supplier: '' }));
       }
     } else if (!formData.supplier) {
-        // Clear selection if formData.supplier is empty
         setSelectedSupplier(null);
     }
-  }, [orderDataLoaded, suppliersLoaded, formData.supplier, suppliers]);
+  }, [orderDataLoaded, suppliersLoaded, formData.supplier, suppliers, formData.posupplier]); // Added formData.posupplier
 
   // Input change handlers
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
   };
 
   const handleDateChange = (date) => {
-    setFormData({ ...formData, pobilldate: date });
+    setFormData(prevFormData => ({ ...prevFormData, pobilldate: date }));
   };
 
-  // Supplier change handler (uses 'id' from supplierService)
   const handleSupplierChange = (event, newValue) => {
     if (newValue) {
       setSelectedSupplier(newValue);
-      setFormData({ ...formData, posupplier: newValue.name, supplier: newValue.id });
+      setFormData(prevFormData => ({ ...prevFormData, posupplier: newValue.name, supplier: newValue.id }));
     } else {
       setSelectedSupplier(null);
-      setFormData({ ...formData, posupplier: '', supplier: '' });
+      setFormData(prevFormData => ({ ...prevFormData, posupplier: '', supplier: '' }));
     }
   };
 
   // Item input change handlers
   const handleItemInputChange = (e) => {
-    setCurrentItem({ ...currentItem, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setCurrentItem(prevCurrentItem => ({
+      ...prevCurrentItem,
+      [name]: value
+    }));
   };
 
   const handleEditingItemChange = (e) => {
-    setEditingItem({ ...editingItem, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setEditingItem(prevEditingItem => ({
+      ...prevEditingItem,
+      [name]: value
+    }));
   };
 
-  // Product change handler (uses '_id' from productService)
   const handleProductChange = (event, newValue) => {
     if (newValue) {
-      setCurrentItem({
-        ...currentItem,
-        did: newValue.code, // Assuming 'code' is the identifier shown/used in items
+      setCurrentItem(prevCurrentItem => ({
+        ...prevCurrentItem,
+        did: newValue.code, 
         dname: newValue.name,
-        product: newValue._id // Store the actual product ID
-      });
+        product: newValue._id,
+        dquantity: '', // Reset quantity when product changes
+        dtotalCost: ''  // Reset total cost when product changes
+      }));
     } else {
-      setCurrentItem({ ...currentItem, did: '', dname: '', product: null });
+      setCurrentItem(prevCurrentItem => ({
+        ...prevCurrentItem,
+        did: '', 
+        dname: '', 
+        product: null,
+        dquantity: '',
+        dtotalCost: ''
+      }));
     }
   };
 
-  // Add/Remove/Edit/Move item handlers (logic remains the same)
   const handleAddItem = () => {
-    if (!currentItem.did || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
-      setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
+    if (!currentItem.product || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
+      setSnackbar({ open: true, message: '請填寫完整的藥品項目資料 (藥品、數量、總成本)', severity: 'error' });
       return;
     }
-    // Ensure the item being added has the product ID
-    const newItem = { ...currentItem, product: currentItem.product }; 
-    setFormData({ ...formData, items: [...formData.items, newItem] });
+    const newItem = { ...currentItem }; 
+    setFormData(prevFormData => ({ ...prevFormData, items: [...prevFormData.items, newItem] }));
     setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
-    // Refocus logic remains
     setTimeout(() => {
-      const productInput = document.querySelector('#product-select-input'); // Use querySelector for robustness
+      const productInput = document.querySelector('#product-select-input');
       if (productInput) productInput.focus();
     }, 100);
   };
 
   const handleRemoveItem = (index) => {
-    const newItems = formData.items.filter((_, i) => i !== index);
-    setFormData({ ...formData, items: newItems });
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      items: prevFormData.items.filter((_, i) => i !== index)
+    }));
   };
 
   const handleEditItem = (index) => {
     setEditingItemIndex(index);
-    // Ensure we are editing a copy, not the original item in state
     setEditingItem({ ...formData.items[index] }); 
   };
 
   const handleSaveEditItem = () => {
-    if (!editingItem || !editingItem.did || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
+    if (!editingItem || !editingItem.product || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
       return;
     }
     const newItems = [...formData.items];
     newItems[editingItemIndex] = editingItem;
-    setFormData({ ...formData, items: newItems });
+    setFormData(prevFormData => ({ ...prevFormData, items: newItems }));
     setEditingItemIndex(-1);
     setEditingItem(null);
   };
@@ -265,13 +274,12 @@ const PurchaseOrderEditPage = () => {
     const newItems = [...formData.items];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
-    setFormData({ ...formData, items: newItems });
+    setFormData(prevFormData => ({ ...prevFormData, items: newItems }));
   };
 
-  // Refactored submit handler using service
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.poid || !formData.posupplier || !formData.supplier) {
+    if (!formData.poid || !formData.supplier) { // posupplier is derived from supplier
       setSnackbar({ open: true, message: '請填寫所有必填欄位 (單號, 供應商)', severity: 'error' });
       return;
     }
@@ -283,11 +291,10 @@ const PurchaseOrderEditPage = () => {
     try {
       const submitData = {
         ...formData,
-        pobilldate: format(formData.pobilldate, 'yyyy-MM-dd'),
-        // Ensure items being submitted contain the product ID
+        pobilldate: format(new Date(formData.pobilldate), 'yyyy-MM-dd'),
         items: formData.items.map(item => ({ 
-            ...item, 
-            product: item.product // Ensure product ID is included
+            ...item,
+            product: item.product 
         }))
       };
 
@@ -305,7 +312,6 @@ const PurchaseOrderEditPage = () => {
     }
   };
 
-  // Snackbar close and cancel handlers
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -317,14 +323,12 @@ const PurchaseOrderEditPage = () => {
     navigate('/purchase-orders');
   };
 
-  // Calculate total amount
   const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
 
-  // Loading and error states rendering
-  if (loading) {
+  if (loading && !orderDataLoaded) { // Show loading only if initial order data isn't loaded
     return <Box sx={{ p: 3, textAlign: 'center' }}><Typography>載入中...</Typography></Box>;
   }
-  if (error) {
+  if (error && !orderDataLoaded) { // Show error only if initial order data failed to load
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="error">{error}</Typography>
@@ -335,7 +339,6 @@ const PurchaseOrderEditPage = () => {
     );
   }
 
-  // Main component rendering
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -351,8 +354,8 @@ const PurchaseOrderEditPage = () => {
           handleInputChange={handleInputChange}
           handleDateChange={handleDateChange}
           handleSupplierChange={handleSupplierChange}
-          suppliers={suppliers} // Pass suppliers list
-          selectedSupplier={selectedSupplier} // Pass selected supplier object
+          suppliers={suppliers}
+          selectedSupplier={selectedSupplier}
           isEditMode={true}
         />
 
@@ -360,8 +363,7 @@ const PurchaseOrderEditPage = () => {
           <CardContent>
             <Typography variant="h6" gutterBottom>藥品項目</Typography>
             <ActionButtons
-              loading={loading} // Pass loading state if needed
-              onSave={handleSubmit} // Use handleSubmit directly
+              onSave={handleSubmit}
               onCancel={handleCancel}
             />
             <ProductItemForm
@@ -369,7 +371,7 @@ const PurchaseOrderEditPage = () => {
               handleItemInputChange={handleItemInputChange}
               handleProductChange={handleProductChange}
               handleAddItem={handleAddItem}
-              products={products} // Pass products list
+              products={products}
             />
             <ProductItemsTable
               items={formData.items}

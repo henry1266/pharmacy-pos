@@ -72,11 +72,10 @@ npm install
 npm start
 
 ### 快速啟動（Windows）
-```
+
 # 使用提供的批處理文件
 setup.bat  # 首次安裝依賴
 start.bat  # 啟動系統
-```
 
 ## 使用指南
 
