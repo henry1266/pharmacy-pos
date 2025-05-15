@@ -120,19 +120,19 @@ const ProductItemsTable = ({
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell width="5%">#</TableCell>
-                  <TableCell width="15%">產品編號</TableCell>
+                  <TableCell width="1%">#</TableCell>
+                  <TableCell width="1%">編號</TableCell>
                   {showHealthInsuranceCode && (
-                    <TableCell width="15%">健保代碼</TableCell>
+                    <TableCell width="1%">健保代碼</TableCell>
                   )}
-                  <TableCell width={showHealthInsuranceCode ? "20%" : "35%"}>名稱</TableCell>
-                  <TableCell width="10%" align="right">數量</TableCell>
-                  <TableCell width="10%" align="right">單價</TableCell>
-                  <TableCell width="10%" align="right">小計</TableCell>
+                  <TableCell width={showHealthInsuranceCode ? "20%" : "25%"}>名稱</TableCell>
+                  <TableCell width="4%" align="right">數量</TableCell>
+                  <TableCell width="4%" align="right">單價</TableCell>
+                  <TableCell width="4%" align="right">小計</TableCell>
                   {showProfitColumns && hasProfitData && (
                     <>
-                      <TableCell width="10%" align="right">毛利</TableCell>
-                      <TableCell width="10%" align="right">毛利率</TableCell>
+                      <TableCell width="4%" align="right">毛利</TableCell>
+                      <TableCell width="4%" align="right">毛利率</TableCell>
                     </>
                   )}
                 </TableRow>
