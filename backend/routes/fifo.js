@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Inventory = require('../models/Inventory');
 const Sale = require('../models/Sale');
+const ShippingOrder = require('../models/ShippingOrder'); // Added ShippingOrder model
 const { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } = require('../utils/fifoCalculator');
 
 // @route   GET api/fifo/product/:productId
@@ -9,18 +10,15 @@ const { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } = requ
 // @access  Public
 router.get('/product/:productId', async (req, res) => {
   try {
-    // 獲取產品的所有庫存記錄
     const inventories = await Inventory.find({ product: req.params.productId })
       .populate('product')
-      .sort({ lastUpdated: 1 }); // 按時間排序，確保先進先出
+      .sort({ lastUpdated: 1 });
     
     if (inventories.length === 0) {
       return res.status(404).json({ msg: '找不到該產品的庫存記錄' });
     }
     
-    // 計算FIFO成本和毛利
     const fifoResult = calculateProductFIFO(inventories);
-    
     res.json(fifoResult);
   } catch (err) {
     console.error('FIFO計算錯誤:', err.message);
@@ -33,7 +31,6 @@ router.get('/product/:productId', async (req, res) => {
 // @access  Public
 router.get('/sale/:saleId', async (req, res) => {
   try {
-    // 獲取銷售訂單
     const sale = await Sale.findById(req.params.saleId)
       .populate('items.product');
     
@@ -41,19 +38,16 @@ router.get('/sale/:saleId', async (req, res) => {
       return res.status(404).json({ msg: '找不到該銷售訂單' });
     }
     
-    // 計算每個產品的FIFO毛利
     const itemsWithProfit = [];
     let totalProfit = 0;
     let totalCost = 0;
     
     for (const item of sale.items) {
-      // 獲取產品的所有庫存記錄
       const inventories = await Inventory.find({ product: item.product._id })
         .populate('product')
         .sort({ lastUpdated: 1 });
       
       if (inventories.length === 0) {
-        // 如果沒有庫存記錄，添加默認值
         itemsWithProfit.push({
           ...item.toObject(),
           fifoProfit: {
@@ -65,16 +59,12 @@ router.get('/sale/:saleId', async (req, res) => {
         continue;
       }
       
-      // 計算FIFO成本和毛利
       const fifoResult = calculateProductFIFO(inventories);
-      
-      // 找到對應此銷售的毛利記錄
       const profitRecord = fifoResult.profitMargins.find(p => 
         p.orderType === 'sale' && 
         p.orderId === req.params.saleId
       );
       
-      // 如果找到對應記錄，添加到結果中
       if (profitRecord) {
         const itemProfit = {
           ...item.toObject(),
@@ -84,12 +74,10 @@ router.get('/sale/:saleId', async (req, res) => {
             profitMargin: profitRecord.profitMargin
           }
         };
-        
         itemsWithProfit.push(itemProfit);
         totalProfit += profitRecord.grossProfit;
         totalCost += profitRecord.totalCost;
       } else {
-        // 如果沒有找到對應記錄，添加默認值
         itemsWithProfit.push({
           ...item.toObject(),
           fifoProfit: {
@@ -101,7 +89,6 @@ router.get('/sale/:saleId', async (req, res) => {
       }
     }
     
-    // 計算總毛利率
     const totalRevenue = sale.totalAmount || 0;
     const totalProfitMargin = totalRevenue > 0 
       ? ((totalProfit / totalRevenue) * 100).toFixed(2) + '%' 
@@ -123,28 +110,135 @@ router.get('/sale/:saleId', async (req, res) => {
   }
 });
 
+// @route   GET api/fifo/shipping-order/:shippingOrderId
+// @desc    Calculate FIFO profit for a specific shipping order
+// @access  Public
+router.get('/shipping-order/:shippingOrderId', async (req, res) => {
+  try {
+    const shippingOrder = await ShippingOrder.findById(req.params.shippingOrderId)
+      .populate('items.product'); // Assuming items.product exists and needs population
+    
+    if (!shippingOrder) {
+      return res.status(404).json({ msg: '找不到該出貨單' });
+    }
+    
+    const itemsWithProfit = [];
+    let totalProfit = 0;
+    let totalCost = 0;
+
+    // Ensure items are populated and product details are available
+    // The product ID in shippingOrder.items is 'did', and name is 'dname'
+    // The 'product' field in shippingOrder.items might not be a direct ref like in Sale model
+    // We need to ensure we get the correct product._id for inventory lookup.
+
+    for (const item of shippingOrder.items) {
+      // Assuming item.did is the product code and we need to find the product._id
+      // Or, if item.product is already populated with the product object containing _id:
+      const productId = item.product?._id || null; 
+      if (!productId) {
+        // If product ID cannot be determined, push item with no profit
+        itemsWithProfit.push({
+          ...item.toObject(), // Convert Mongoose document to plain object
+          fifoProfit: {
+            totalCost: 0,
+            grossProfit: 0,
+            profitMargin: '0.00%'
+          }
+        });
+        continue;
+      }
+
+      const inventories = await Inventory.find({ product: productId })
+        .populate('product') // This might be redundant if item.product is already populated
+        .sort({ lastUpdated: 1 });
+      
+      if (inventories.length === 0) {
+        itemsWithProfit.push({
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: 0,
+            grossProfit: 0,
+            profitMargin: '0.00%'
+          }
+        });
+        continue;
+      }
+      
+      const fifoResult = calculateProductFIFO(inventories);
+      // fifoCalculator's profitMargins are linked by orderId and orderType
+      // For shipping orders, orderType should be 'shipping' (or 'ship' as seen in prepareInventoryForFIFO)
+      const profitRecord = fifoResult.profitMargins.find(p => 
+        (p.orderType === 'shipping' || p.orderType === 'ship') && 
+        p.orderId === req.params.shippingOrderId
+      );
+      
+      if (profitRecord) {
+        const itemProfit = {
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: profitRecord.totalCost,
+            grossProfit: profitRecord.grossProfit,
+            profitMargin: profitRecord.profitMargin
+          }
+        };
+        itemsWithProfit.push(itemProfit);
+        totalProfit += profitRecord.grossProfit;
+        totalCost += profitRecord.totalCost;
+      } else {
+        // If no specific profit record for this shipping order item, assume zero profit/cost for now
+        // This might happen if the shipping event hasn't been fully processed by fifoCalculator logic
+        // or if the item was not considered 'sold' in a way that generates profit (e.g., internal transfer)
+        itemsWithProfit.push({
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: 0, // Or derive cost if possible, but profit is unknown
+            grossProfit: 0,
+            profitMargin: '0.00%'
+          }
+        });
+      }
+    }
+    
+    // For shipping orders, 'revenue' is typically the dtotalCost of items
+    // However, the frontend for SalesDetailPage uses sale.totalAmount for revenue.
+    // We should align with how totalAmount is calculated for shipping orders.
+    const totalRevenue = shippingOrder.totalAmount || 0; 
+    
+    const totalProfitMargin = totalRevenue > 0 
+      ? ((totalProfit / totalRevenue) * 100).toFixed(2) + '%' 
+      : '0.00%';
+    
+    res.json({
+      success: true,
+      items: itemsWithProfit,
+      summary: {
+        totalCost,
+        totalRevenue, // This is the total amount of the shipping order
+        totalProfit,
+        totalProfitMargin
+      }
+    });
+  } catch (err) {
+    console.error('出貨單FIFO計算錯誤:', err.message);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+});
+
+
 // @route   GET api/fifo/all
 // @desc    Calculate FIFO cost and profit margins for all products
 // @access  Public
 router.get('/all', async (req, res) => {
   try {
-    // 獲取所有產品ID
     const productIds = await Inventory.distinct('product');
-    
     const results = [];
-    
-    // 為每個產品計算FIFO成本和毛利
     for (const productId of productIds) {
       const inventories = await Inventory.find({ product: productId })
         .populate('product')
         .sort({ lastUpdated: 1 });
-      
       if (inventories.length > 0) {
         const fifoResult = calculateProductFIFO(inventories);
-        
-        // 添加產品信息
         const productInfo = inventories[0].product;
-        
         results.push({
           productId,
           productName: productInfo.name,
@@ -153,8 +247,6 @@ router.get('/all', async (req, res) => {
         });
       }
     }
-    
-    // 計算總體摘要
     const overallSummary = results.reduce((sum, result) => {
       if (result.success && result.summary) {
         sum.totalCost += result.summary.totalCost || 0;
@@ -162,21 +254,11 @@ router.get('/all', async (req, res) => {
         sum.totalProfit += result.summary.totalProfit || 0;
       }
       return sum;
-    }, {
-      totalCost: 0,
-      totalRevenue: 0,
-      totalProfit: 0
-    });
-    
-    // 計算總體平均毛利率
+    }, { totalCost: 0, totalRevenue: 0, totalProfit: 0 });
     overallSummary.averageProfitMargin = overallSummary.totalRevenue > 0 
       ? ((overallSummary.totalProfit / overallSummary.totalRevenue) * 100).toFixed(2) + '%' 
       : '0.00%';
-    
-    res.json({
-      results,
-      overallSummary
-    });
+    res.json({ results, overallSummary });
   } catch (err) {
     console.error('FIFO計算錯誤:', err.message);
     res.status(500).json({ msg: 'Server Error', error: err.message });
@@ -189,65 +271,33 @@ router.get('/all', async (req, res) => {
 router.post('/simulate', async (req, res) => {
   try {
     const { productId, quantity } = req.body;
-    
     if (!productId || !quantity) {
       return res.status(400).json({ msg: '請提供產品ID和數量' });
     }
-    
-    // 獲取產品的所有庫存記錄（包括進貨、銷貨和出貨）
-    const allInventories = await Inventory.find({ 
-      product: productId
-    })
-    .populate('product')
-    .sort({ lastUpdated: 1 }); // 按時間排序
-    
+    const allInventories = await Inventory.find({ product: productId })
+      .populate('product')
+      .sort({ lastUpdated: 1 });
     if (allInventories.length === 0) {
       return res.status(404).json({ msg: '找不到該產品的庫存記錄' });
     }
-    
-    // 準備庫存數據，包括所有類型的庫存記錄
-    const { stockIn, stockOut } = prepareInventoryForFIFO(allInventories);
-    
-    // 計算已經消耗的庫存
-    // 先處理已有的出貨記錄，計算每個批次的剩餘數量
-    const processedStockIn = [...stockIn]; // 複製一份進貨記錄
+    const { stockIn, stockOut: existingStockOut } = prepareInventoryForFIFO(allInventories);
+    const processedStockIn = [...stockIn];
     let inIndex = 0;
-    
-    // 處理每一筆已有的出貨記錄
-    for (const out of stockOut) {
+    for (const out of existingStockOut) {
       let remaining = out.quantity;
-      
       while (remaining > 0 && inIndex < processedStockIn.length) {
         const batch = processedStockIn[inIndex];
         if (!batch.remainingQty) batch.remainingQty = batch.quantity;
-        
         if (batch.remainingQty > 0) {
           const used = Math.min(batch.remainingQty, remaining);
           batch.remainingQty -= used;
           remaining -= used;
         }
-        
         if (batch.remainingQty === 0) inIndex++;
       }
     }
-    
-    // 過濾出還有剩餘數量的批次
-    const availableStockIn = processedStockIn.filter(batch => {
-      return !batch.remainingQty || batch.remainingQty > 0;
-    }).map(batch => {
-      // 如果有remainingQty屬性，使用它作為數量；否則使用原始數量
-      return {
-        ...batch,
-        quantity: batch.remainingQty || batch.quantity
-      };
-    });
-    
-    console.log(`可用庫存批次數: ${availableStockIn.length}`);
-    availableStockIn.forEach((batch, index) => {
-      console.log(`批次[${index}]: 訂單號=${batch.orderNumber}, 剩餘數量=${batch.quantity}`);
-    });
-    
-    // 創建模擬出貨記錄
+    const availableStockIn = processedStockIn.filter(batch => !batch.remainingQty || batch.remainingQty > 0)
+      .map(batch => ({ ...batch, quantity: batch.remainingQty || batch.quantity }));
     const simulatedStockOut = [{
       timestamp: new Date(),
       quantity: parseInt(quantity),
@@ -258,33 +308,18 @@ router.post('/simulate', async (req, res) => {
       orderId: null,
       orderType: 'simulation'
     }];
-    
-    // 執行FIFO匹配，使用可用的庫存
     const fifoMatches = matchFIFOBatches(availableStockIn, simulatedStockOut);
-    
-    // 計算總成本
     let totalCost = 0;
     let hasNegativeInventory = false;
     let remainingNegativeQuantity = 0;
-    
     if (fifoMatches.length > 0) {
       const match = fifoMatches[0];
       hasNegativeInventory = match.hasNegativeInventory;
       remainingNegativeQuantity = match.remainingNegativeQuantity || 0;
-      
-      // 計算已匹配部分的成本
-      totalCost = match.costParts.reduce((sum, part) => {
-        return sum + (part.unit_price * part.quantity);
-      }, 0);
+      totalCost = match.costParts.reduce((sum, part) => sum + (part.unit_price * part.quantity), 0);
     }
-    
-    // 獲取產品信息
     const productInfo = allInventories[0].product;
-    
-    // 計算實際可用庫存數量
     const availableQuantity = availableStockIn.reduce((sum, batch) => sum + batch.quantity, 0);
-    
-    // 返回模擬結果
     res.json({
       success: true,
       productId,
@@ -304,3 +339,4 @@ router.post('/simulate', async (req, res) => {
 });
 
 module.exports = router;
+
