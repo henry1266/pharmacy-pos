@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios'; // Added import
+import { downloadShippingOrderPdf } from '../services/pdf/shippingOrderPdf';
 import {
   Chip,
   Typography,
@@ -10,7 +11,8 @@ import {
   Divider,
   Stack,
   CircularProgress, // Added for fifoLoading in CollapsibleAmountInfo
-  Box // Added for fifoLoading in CollapsibleAmountInfo
+  Box, // Added for fifoLoading in CollapsibleAmountInfo
+  Button
 } from '@mui/material';
 import {
   CalendarToday as CalendarTodayIcon,
@@ -22,7 +24,8 @@ import {
   TrendingUp as TrendingUpIcon,
   Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
-  ReceiptLong as ReceiptLongIcon
+  ReceiptLong as ReceiptLongIcon,
+  Print as PrintIcon
 } from '@mui/icons-material';
 import { format, isValid } from 'date-fns'; // Import isValid
 import { zhTW } from 'date-fns/locale';
@@ -306,6 +309,31 @@ const ShippingOrderDetailPage = () => {
     </Stack>
   );
 
+  // 處理列印按鈕點擊事件
+  const handlePrintClick = async () => {
+    try {
+      if (!currentShippingOrder || !id) return;
+      await downloadShippingOrderPdf(id, currentShippingOrder.soid);
+    } catch (error) {
+      console.error('列印出貨單時發生錯誤:', error);
+      // 可以在這裡加入錯誤處理，例如顯示錯誤訊息
+    }
+  };
+
+  // 自定義列印按鈕
+  const printButton = currentShippingOrder ? (
+    <Button 
+      key="print" 
+      variant="outlined" 
+      color="secondary" 
+      size="small" 
+      startIcon={<PrintIcon />} 
+      onClick={handlePrintClick}
+    >
+      列印
+    </Button>
+  ) : null;
+
   return (
     <DetailLayout
       pageTitle="出貨單詳情"
@@ -313,6 +341,7 @@ const ShippingOrderDetailPage = () => {
       listPageUrl="/shipping-orders"
       editPageUrl={currentShippingOrder && currentShippingOrder.status !== 'cancelled' ? `/shipping-orders/edit/${id}` : null}
       printPageUrl={null}
+      additionalActions={[printButton]}
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={orderLoading || productDetailsLoading || fifoLoading} // Overall loading state
