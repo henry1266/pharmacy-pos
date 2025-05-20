@@ -56,11 +56,6 @@ router.get('/pdf/:id', async (req, res) => {
     // 直接使用sosupplier而非customer.name
     doc.text(`客戶: ${shippingOrder.sosupplier || '未指定'}`, { continued: false });
     
-    doc.text(`狀態: ${getStatusText(shippingOrder.status)}`, { continued: false });
-    doc.text(`付款狀態: ${getPaymentStatusText(shippingOrder.paymentStatus)}`, { continued: false });
-    doc.text(`建立日期: ${formatDate(shippingOrder.createdAt)}`, { continued: false });
-    doc.text(`更新日期: ${formatDate(shippingOrder.updatedAt)}`, { continued: false });
-    
     if (shippingOrder.notes) {
       doc.moveDown();
       doc.text('備註:', { continued: false });
@@ -119,12 +114,13 @@ router.get('/pdf/:id', async (req, res) => {
         currentX += columnWidths[1];
         
         // 單價靠右對齊，但保留右側空間
-        doc.text(formatCurrency(item.dprice), currentX, currentY, { width: columnWidths[2] - 5, align: 'right' });
+        const dprice = (item.dtotalCost || 0) / (item.dquantity || 1);
+        doc.text(formatCurrency(dprice), currentX, currentY, { width: columnWidths[2] , align: 'center' });
         currentX += columnWidths[2];
         
         // 小計靠右對齊，但保留右側空間
-        const subtotal = (item.dquantity || 0) * (item.dprice || 0);
-        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[3] - 5, align: 'right' });
+        const subtotal = (item.dtotalCost || 0) ;
+        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[3] - 1, align: 'center' });
         
         currentY += 20;
       });
@@ -138,21 +134,12 @@ router.get('/pdf/:id', async (req, res) => {
     currentY += 20;
     
     // 添加金額信息
-    const subtotal = (shippingOrder.totalAmount || 0) + (shippingOrder.discountAmount || 0);
-    doc.text(`小計: ${formatCurrency(subtotal)}`, { align: 'right' });
     
-    if (shippingOrder.discountAmount && shippingOrder.discountAmount > 0) {
-      doc.text(`折扣: ${formatCurrency(-shippingOrder.discountAmount)}`, { align: 'right' });
-    }
-    
-    doc.fontSize(12).text(`總金額: ${formatCurrency(shippingOrder.totalAmount || 0)}`, { align: 'right' });
+    doc.fontSize(12).text(`總金額: ${formatCurrency(shippingOrder.totalAmount || 0)}`, 50, currentY,  { align: 'right' });
+    currentY += 20;
     
     doc.moveDown(2);
     
-    // 添加簽名欄
-    doc.fontSize(10);
-    doc.text('客戶簽名: ____________________', 50, doc.y);
-    doc.text('經手人: ____________________', 300, doc.y);
     
     doc.moveDown();
     doc.text(`列印日期: ${formatDate(new Date())}`, { align: 'center' });
@@ -161,7 +148,7 @@ router.get('/pdf/:id', async (req, res) => {
     const pageCount = doc.bufferedPageRange().count;
     for (let i = 0; i < pageCount; i++) {
       doc.switchToPage(i);
-      doc.text(`第 ${i + 1} 頁，共 ${pageCount} 頁`, 50, doc.page.height - 50, { align: 'center' });
+      doc.text(`第 ${i + 1} 頁，共 ${pageCount} 頁`, 50, doc.page.height - 100, { align: 'center' });
     }
     
     // 完成PDF生成
@@ -185,19 +172,5 @@ const formatCurrency = (value) => {
   return `$${parseFloat(value).toFixed(2)}`;
 };
 
-// 獲取狀態文字
-const getStatusText = (status) => {
-  if (status === 'shipped') return '已出貨';
-  if (status === 'pending') return '待處理';
-  if (status === 'cancelled') return '已取消';
-  return status || '未知';
-};
-
-// 獲取付款狀態文字
-const getPaymentStatusText = (status) => {
-  if (status === 'paid') return '已付款';
-  if (status === 'unpaid') return '未付款';
-  return status || '未指定';
-};
 
 module.exports = router;
