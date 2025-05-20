@@ -34,12 +34,12 @@ router.get('/pdf/:id', async (req, res) => {
     doc.pipe(res);
 
     // Windows環境中的字體路徑
-    const fontPath = path.join(process.cwd(), 'assets', 'fonts', 'NotoSansCJK-Regular.ttc');
+    const fontPath = path.join(process.cwd(), 'assets', 'fonts', 'NotoSansTC-Thin.ttf');
     
     try {
       // 嘗試註冊字體，如果失敗則使用默認字體
-      doc.registerFont('NotoSansCJK', fontPath);
-      doc.font('NotoSansCJK');
+      doc.registerFont('NotoSansTC', fontPath);
+      doc.font('NotoSansTC');
     } catch (fontError) {
       console.warn('無法載入中文字體，使用默認字體:', fontError.message);
       // 繼續使用默認字體
