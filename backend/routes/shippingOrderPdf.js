@@ -73,17 +73,19 @@ router.get('/pdf/:id', async (req, res) => {
     doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
     doc.moveDown();
 
-    // 添加項目表格標題
+      // 添加表格標題
     const tableTop = doc.y;
     const tableHeaders = ['項目', '數量', '單價', '小計'];
-    const columnWidths = [250, 70, 70, 70];
+    // 調整欄寬以避免數字重疊
+    const columnWidths = [220, 80, 80, 80];
     let currentY = tableTop;
-
+    
     // 繪製表格標題
     doc.fontSize(10);
     let currentX = 50;
     tableHeaders.forEach((header, i) => {
-      doc.text(header, currentX, currentY, { width: columnWidths[i], align: 'left' });
+      const align = i === 0 ? 'left' : 'center';
+      doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
       currentX += columnWidths[i];
     });
     currentY += 20;
@@ -99,7 +101,8 @@ router.get('/pdf/:id', async (req, res) => {
           // 在新頁重繪表格標題
           currentX = 50;
           tableHeaders.forEach((header, i) => {
-            doc.text(header, currentX, currentY, { width: columnWidths[i], align: 'left' });
+            const align = i === 0 ? 'left' : 'center';
+            doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
             currentX += columnWidths[i];
           });
           currentY += 20;
@@ -107,17 +110,21 @@ router.get('/pdf/:id', async (req, res) => {
         
         // 繪製項目行
         currentX = 50;
+        // 項目名稱靠左對齊
         doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[0], align: 'left' });
         currentX += columnWidths[0];
         
-        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[1], align: 'right' });
+        // 數量置中對齊
+        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[1], align: 'center' });
         currentX += columnWidths[1];
         
-        doc.text(formatCurrency(item.dprice), currentX, currentY, { width: columnWidths[2], align: 'right' });
+        // 單價靠右對齊，但保留右側空間
+        doc.text(formatCurrency(item.dprice), currentX, currentY, { width: columnWidths[2] - 5, align: 'right' });
         currentX += columnWidths[2];
         
+        // 小計靠右對齊，但保留右側空間
         const subtotal = (item.dquantity || 0) * (item.dprice || 0);
-        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[3], align: 'right' });
+        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[3] - 5, align: 'right' });
         
         currentY += 20;
       });
