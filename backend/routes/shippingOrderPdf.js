@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ShippingOrder = require('../models/ShippingOrder');
 const { isAuthenticated } = require('../middleware/auth');
-const { createShippingOrderPdf } = require('../utils/pdfGenerator');
+const pdfGenerator = require('../utils/pdfGenerator');
 
 // 生成出貨單PDF
 router.get('/pdf/:id', isAuthenticated, async (req, res) => {
@@ -16,7 +16,7 @@ router.get('/pdf/:id', isAuthenticated, async (req, res) => {
     }
 
     // 生成PDF
-    const pdfBuffer = await createShippingOrderPdf(shippingOrder);
+    const pdfBuffer = await pdfGenerator.createShippingOrderPdf(shippingOrder);
     
     // 設置響應頭
     res.setHeader('Content-Type', 'application/pdf');
