@@ -8,9 +8,8 @@ const dayjs = require('dayjs');
 // 生成出貨單PDF - 移除isAuthenticated中間件以解決undefined問題
 router.get('/pdf/:id', async (req, res) => {
   try {
-    const shippingOrder = await ShippingOrder.findById(req.params.id)
-      .populate('customer')
-      .lean();
+    // 移除populate('customer')以解決schema錯誤
+    const shippingOrder = await ShippingOrder.findById(req.params.id).lean();
     
     if (!shippingOrder) {
       return res.status(404).json({ msg: '找不到出貨單' });
@@ -53,7 +52,10 @@ router.get('/pdf/:id', async (req, res) => {
     // 添加出貨單基本信息
     doc.fontSize(12);
     doc.text(`出貨單號: ${shippingOrder.soid || 'N/A'}`, { continued: false });
-    doc.text(`客戶: ${shippingOrder.customer?.name || shippingOrder.sosupplier || '未指定'}`, { continued: false });
+    
+    // 直接使用sosupplier而非customer.name
+    doc.text(`客戶: ${shippingOrder.sosupplier || '未指定'}`, { continued: false });
+    
     doc.text(`狀態: ${getStatusText(shippingOrder.status)}`, { continued: false });
     doc.text(`付款狀態: ${getPaymentStatusText(shippingOrder.paymentStatus)}`, { continued: false });
     doc.text(`建立日期: ${formatDate(shippingOrder.createdAt)}`, { continued: false });
