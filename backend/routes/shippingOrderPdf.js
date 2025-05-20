@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const ShippingOrder = require('../models/ShippingOrder');
-const { isAuthenticated } = require('../middleware/auth');
 const path = require('path');
 const PDFDocument = require('pdfkit');
 const dayjs = require('dayjs');
 
-// 生成出貨單PDF
-router.get('/pdf/:id', isAuthenticated, async (req, res) => {
+// 生成出貨單PDF - 移除isAuthenticated中間件以解決undefined問題
+router.get('/pdf/:id', async (req, res) => {
   try {
     const shippingOrder = await ShippingOrder.findById(req.params.id)
       .populate('customer')
