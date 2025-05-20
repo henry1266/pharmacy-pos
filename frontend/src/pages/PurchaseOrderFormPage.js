@@ -102,7 +102,8 @@ const PurchaseOrderFormPage = () => {
     items: [],
     notes: '',
     status: 'pending',
-    paymentStatus: '未付'
+    paymentStatus: '未付',
+    multiplierMode: '' // 倍率模式欄位
   });
 
   const productInputRef = useRef(null);
@@ -212,10 +213,17 @@ const PurchaseOrderFormPage = () => {
       return;
     }
 
+    // 應用倍率到各項目成本
+    const multiplier = getMultiplier();
+    const adjustedItems = formData.items.map(item => ({
+      ...item,
+      dtotalCost: parseFloat((Number(item.dtotalCost) * multiplier).toFixed(2))
+    }));
+
     const submitData = {
       ...formData,
       pobilldate: format(formData.pobilldate, 'yyyy-MM-dd'),
-      items: formData.items.map(item => ({
+      items: adjustedItems.map(item => ({
         did: item.did,
         dname: item.dname,
         dquantity: item.dquantity,
@@ -258,7 +266,19 @@ const PurchaseOrderFormPage = () => {
     navigate('/purchase-orders');
   };
 
-  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  // 計算倍率係數
+  const getMultiplier = () => {
+    const multiplierValue = parseFloat(formData.multiplierMode);
+    if (!multiplierValue || isNaN(multiplierValue)) {
+      return 1; // 無倍率或無效值時返回1（不調整）
+    }
+    return 1 + (multiplierValue / 100); // 轉換為倍率係數
+  };
+
+  // 計算總金額（含倍率調整）
+  const rawTotalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  const multiplier = getMultiplier();
+  const totalAmount = rawTotalAmount * multiplier;
 
   if (dataLoading && !orderDataLoaded && !isGlobalTestMode) {
     return <Box sx={{ p: 3, textAlign: 'center' }}><CircularProgress /><Typography sx={{mt:1}}>載入中...</Typography></Box>;

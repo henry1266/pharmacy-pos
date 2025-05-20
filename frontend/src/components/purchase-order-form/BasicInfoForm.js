@@ -114,7 +114,7 @@ const BasicInfoForm = ({
             </FormControl>
             </Box>
           </Grid>
-          <Grid item xs={12} sm={8} md={8}>
+          <Grid item xs={12} sm={6} md={6}>
             <TextField
               fullWidth
               label="備註"
@@ -124,6 +124,19 @@ const BasicInfoForm = ({
               variant="outlined"
               multiline
               rows={1}
+            />
+          </Grid>
+          <Grid item xs={12} sm={2} md={2}>
+            <TextField
+              fullWidth
+              label="倍率模式 (%)"
+              name="multiplierMode"
+              value={formData.multiplierMode}
+              onChange={handleInputChange}
+              variant="outlined"
+              type="number"
+              inputProps={{ step: "0.1" }}
+              helperText="正數增加，負數減少"
             />
           </Grid>
 
