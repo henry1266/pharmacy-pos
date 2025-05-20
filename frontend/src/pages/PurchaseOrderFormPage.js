@@ -215,10 +215,38 @@ const PurchaseOrderFormPage = () => {
 
     // 應用倍率到各項目成本
     const multiplier = getMultiplier();
-    const adjustedItems = formData.items.map(item => ({
+    
+    // 計算倍率調整後的總金額，並四捨五入為整數
+    const rawTotalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+    const adjustedTotalAmount = rawTotalAmount * multiplier;
+    const roundedTotalAmount = Math.round(adjustedTotalAmount);
+    
+    // 計算四捨五入後的誤差
+    const roundingDifference = roundedTotalAmount - adjustedTotalAmount;
+    
+    // 先應用倍率到各項目成本
+    let adjustedItems = formData.items.map(item => ({
       ...item,
       dtotalCost: parseFloat((Number(item.dtotalCost) * multiplier).toFixed(2))
     }));
+    
+    // 如果有誤差且有項目，將誤差分配到最後一個項目
+    if (roundingDifference !== 0 && adjustedItems.length > 0) {
+      // 找出金額最大的項目來分配誤差，避免小金額項目變成負數
+      const maxCostItemIndex = adjustedItems.reduce((maxIndex, item, index, array) => 
+        Number(array[maxIndex].dtotalCost) < Number(item.dtotalCost) ? index : maxIndex, 0);
+      
+      // 將誤差加到金額最大的項目上
+      adjustedItems = adjustedItems.map((item, index) => {
+        if (index === maxCostItemIndex) {
+          return {
+            ...item,
+            dtotalCost: parseFloat((Number(item.dtotalCost) + roundingDifference).toFixed(2))
+          };
+        }
+        return item;
+      });
+    }
 
     const submitData = {
       ...formData,
@@ -278,7 +306,13 @@ const PurchaseOrderFormPage = () => {
   // 計算總金額（含倍率調整）
   const rawTotalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
   const multiplier = getMultiplier();
-  const totalAmount = rawTotalAmount * multiplier;
+  
+  // 計算倍率調整後的總金額，並四捨五入為整數
+  const adjustedTotalAmount = rawTotalAmount * multiplier;
+  const totalAmount = Math.round(adjustedTotalAmount);
+  
+  // 計算四捨五入後的誤差（用於後續分配到產品項目）
+  const roundingDifference = totalAmount - adjustedTotalAmount;
 
   if (dataLoading && !orderDataLoaded && !isGlobalTestMode) {
     return <Box sx={{ p: 3, textAlign: 'center' }}><CircularProgress /><Typography sx={{mt:1}}>載入中...</Typography></Box>;
