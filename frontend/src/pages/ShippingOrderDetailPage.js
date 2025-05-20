@@ -321,7 +321,7 @@ const ShippingOrderDetailPage = () => {
   };
 
   // 自定義列印按鈕
-  const printButton = currentShippingOrder ? (
+  const printButton = (
     <Button 
       key="print" 
       variant="outlined" 
@@ -329,10 +329,11 @@ const ShippingOrderDetailPage = () => {
       size="small" 
       startIcon={<PrintIcon />} 
       onClick={handlePrintClick}
+      disabled={!currentShippingOrder || orderLoading || productDetailsLoading || fifoLoading}
     >
       列印
     </Button>
-  ) : null;
+  );
 
   return (
     <DetailLayout
