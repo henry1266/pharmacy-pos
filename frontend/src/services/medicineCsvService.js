@@ -55,6 +55,28 @@ export const parseMedicineCsvForPreview = (file) => {
 };
 
 /**
+ * 根據日期生成訂單號
+ * @param {Date} date - 日期對象
+ * @returns {string} 生成的訂單號
+ */
+export const generateOrderNumberByDate = (date = new Date()) => {
+  // 確保date是有效的Date對象
+  const dateObj = date instanceof Date ? date : new Date();
+  
+  // 格式化日期為YYYYMMDD
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const dateFormat = `${year}${month}${day}`;
+  
+  // 生成3位隨機序號
+  const sequence = Math.floor(Math.random() * 900) + 100; // 100-999之間的隨機數
+  
+  // 返回格式為D+YYYYMMDD+序號的訂單號
+  return `D${dateFormat}${sequence}`;
+};
+
+/**
  * 生成新的出貨單號
  * @returns {Promise<string>} 生成的出貨單號
  */
@@ -67,10 +89,8 @@ export const generateShippingOrderNumber = async () => {
     return response.data.orderNumber;
   } catch (error) {
     console.error('生成出貨單號時發生錯誤:', error);
-    // 如果API調用失敗，生成一個基於時間戳的臨時編號
-    const timestamp = new Date().getTime();
-    const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `SO-${timestamp.toString().slice(-6)}-${randomPart}`;
+    // 如果API調用失敗，使用與後端一致的格式生成訂單號
+    return generateOrderNumberByDate();
   }
 };
 
@@ -81,8 +101,25 @@ export const generateShippingOrderNumber = async () => {
  */
 export const importMedicineCsv = async (file) => {
   try {
-    // 先生成新的出貨單號
-    const orderNumber = await generateShippingOrderNumber();
+    // 先解析CSV以獲取日期
+    let firstDate = null;
+    try {
+      const previewData = await parseMedicineCsvForPreview(file);
+      if (previewData.length > 0 && previewData[0].date) {
+        const dateStr = previewData[0].date;
+        // 檢查日期格式是否為YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          firstDate = new Date(dateStr);
+        }
+      }
+    } catch (error) {
+      console.warn('解析CSV日期時出錯，將使用當前日期:', error);
+    }
+    
+    // 生成新的出貨單號，如果有有效日期則使用該日期
+    const orderNumber = firstDate && !isNaN(firstDate.getTime()) 
+      ? generateOrderNumberByDate(firstDate) 
+      : await generateShippingOrderNumber();
     
     const formData = new FormData();
     formData.append('file', file);
