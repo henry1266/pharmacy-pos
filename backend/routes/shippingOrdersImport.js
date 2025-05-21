@@ -29,12 +29,63 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+/**
+ * 根據日期生成訂單號
+ * @param {string} dateStr - 日期字符串，格式為YYYY-MM-DD
+ * @returns {Promise<string>} 生成的訂單號
+ */
+async function generateOrderNumberByDate(dateStr) {
+  try {
+    // 解析日期
+    let dateObj;
+    if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      dateObj = new Date(dateStr);
+    } else {
+      // 如果日期格式不正確或未提供，使用當前日期
+      dateObj = new Date();
+    }
+    
+    // 檢查日期是否有效
+    if (isNaN(dateObj.getTime())) {
+      dateObj = new Date();
+    }
+    
+    // 格式化日期為YYYYMMDD
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const dateFormat = `${year}${month}${day}`;
+    
+    // 基本訂單號前綴
+    const prefix = `D${dateFormat}`;
+    
+    // 查找當天最大序號
+    const regex = new RegExp(`^${prefix}\\d{3}$`);
+    const existingOrders = await ShippingOrder.find({ soid: regex }).sort({ soid: -1 }).limit(1);
+    
+    let sequence = 1;
+    if (existingOrders.length > 0) {
+      // 從現有訂單號中提取序號並加1
+      const lastOrderNumber = existingOrders[0].soid;
+      const lastSequence = parseInt(lastOrderNumber.substring(prefix.length), 10);
+      sequence = lastSequence + 1;
+    }
+    
+    // 生成新訂單號，序號部分固定3位數
+    return `${prefix}${String(sequence).padStart(3, '0')}`;
+  } catch (error) {
+    console.error('根據日期生成訂單號時出錯:', error);
+    throw error;
+  }
+}
+
 // @route   GET api/shipping-orders/generate-number
 // @desc    生成新的出貨單號
 // @access  Public
 router.get('/generate-number', async (req, res) => {
   try {
-    const orderNumber = await OrderNumberService.generateShippingOrderNumber();
+    // 使用當前日期生成訂單號
+    const orderNumber = await generateOrderNumberByDate();
     res.json({ orderNumber });
   } catch (err) {
     console.error('生成出貨單號時出錯:', err.message);
@@ -63,23 +114,12 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       console.error('解析預設供應商數據時出錯:', error);
     }
 
-    // 如果沒有提供出貨單號，生成一個新的
-    let soid = orderNumber;
-    if (!soid) {
-      soid = await OrderNumberService.generateShippingOrderNumber();
-    }
-
-    // 檢查出貨單號是否已存在
-    const existingSO = await ShippingOrder.findOne({ soid });
-    if (existingSO) {
-      return res.status(400).json({ msg: '該出貨單號已存在' });
-    }
-
     const results = [];
     const errors = [];
     let successCount = 0;
     let failCount = 0;
     let totalItems = 0;
+    let firstDate = null;
 
     // 讀取並解析CSV文件
     await new Promise((resolve, reject) => {
@@ -94,6 +134,11 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
             const nhCode = data[keys[1]] || '';
             const quantity = parseInt(data[keys[2]], 10) || 0;
             const nhPrice = parseFloat(data[keys[3]]) || 0;
+
+            // 記錄第一行的日期，用於生成訂單號
+            if (firstDate === null && date && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+              firstDate = date;
+            }
 
             if (nhCode && quantity > 0 && nhPrice > 0) {
               results.push({
@@ -124,6 +169,25 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
         msg: 'CSV文件中沒有有效的藥品明細數據',
         errors
       });
+    }
+
+    // 根據CSV首行日期生成訂單號
+    let soid = orderNumber;
+    if (!soid) {
+      soid = await generateOrderNumberByDate(firstDate);
+    }
+
+    // 檢查出貨單號是否已存在
+    const existingSO = await ShippingOrder.findOne({ soid });
+    if (existingSO) {
+      // 如果已存在，生成新的訂單號
+      soid = await generateOrderNumberByDate(firstDate);
+      
+      // 再次檢查
+      const existingSO2 = await ShippingOrder.findOne({ soid });
+      if (existingSO2) {
+        return res.status(400).json({ msg: '無法生成唯一的出貨單號，請稍後再試' });
+      }
     }
 
     // 查找所有健保碼對應的藥品
@@ -191,18 +255,15 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       }
     }
 
-    // 生成唯一訂單號
-    const uniqueOrderNumber = await OrderNumberService.generateUniqueOrderNumber('shipping', soid);
-
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
       soid,
-      orderNumber: uniqueOrderNumber,
+      orderNumber: soid, // 使用相同的編號作為orderNumber
       sosupplier: supplierName,
       supplier: supplierId,
       items,
       status: 'pending',
-      paymentStatus: '未收',
+      paymentStatus: '已收款', // 根據新需求設置為已收款
       notes: `從CSV匯入 (${new Date().toLocaleDateString()})`
     });
 
@@ -216,7 +277,8 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
         orderNumber: shippingOrder.orderNumber,
         supplier: supplierName,
         itemCount: items.length,
-        totalAmount: shippingOrder.totalAmount
+        totalAmount: shippingOrder.totalAmount,
+        paymentStatus: shippingOrder.paymentStatus
       },
       summary: {
         totalItems,
