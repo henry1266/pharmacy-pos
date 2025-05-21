@@ -30,6 +30,48 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 /**
+ * 為出貨單創建庫存記錄
+ * @param {Object} shippingOrder - 出貨單對象
+ */
+async function createShippingInventoryRecords(shippingOrder) {
+  try {
+    // 檢查是否已經存在該出貨單的庫存記錄
+    const existingRecords = await Inventory.find({ 
+      source: 'ship', 
+      sourceId: shippingOrder._id 
+    });
+    
+    if (existingRecords.length > 0) {
+      console.log(`出貨單 ${shippingOrder.soid} 的庫存記錄已存在，跳過創建`);
+      return;
+    }
+    
+    // 為每個藥品項目創建庫存記錄
+    for (const item of shippingOrder.items) {
+      if (!item.product || !item.dquantity) continue;
+      
+      // 創建出貨庫存記錄（負數表示出貨）
+      const inventory = new Inventory({
+        product: item.product,
+        quantity: -item.dquantity, // 負數表示出貨減少庫存
+        unitPrice: item.unitPrice || 0,
+        totalPrice: item.dtotalCost || 0,
+        source: 'ship', // 來源類型為出貨
+        sourceId: shippingOrder._id, // 關聯到出貨單ID
+        notes: `出貨單: ${shippingOrder.soid}`
+      });
+      
+      await inventory.save();
+    }
+    
+    console.log(`成功為出貨單 ${shippingOrder.soid} 創建庫存記錄`);
+  } catch (error) {
+    console.error(`創建出貨單庫存記錄時出錯:`, error);
+    throw error;
+  }
+}
+
+/**
  * 根據日期生成訂單號
  * @param {string} dateStr - 日期字符串，格式為YYYY-MM-DD
  * @returns {Promise<string>} 生成的訂單號
@@ -262,12 +304,15 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       sosupplier: supplierName,
       supplier: supplierId,
       items,
-      status: 'pending',
-      paymentStatus: '已收款', // 根據新需求設置為已收款
+      status: 'completed', // 根據新需求設置為completed
+      paymentStatus: '已收款', // 根據之前的需求設置為已收款
       notes: `從CSV匯入 (${new Date().toLocaleDateString()})`
     });
 
     await shippingOrder.save();
+    
+    // 創建庫存記錄
+    await createShippingInventoryRecords(shippingOrder);
 
     res.json({
       msg: '藥品明細CSV匯入成功',
@@ -278,7 +323,8 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
         supplier: supplierName,
         itemCount: items.length,
         totalAmount: shippingOrder.totalAmount,
-        paymentStatus: shippingOrder.paymentStatus
+        paymentStatus: shippingOrder.paymentStatus,
+        status: shippingOrder.status
       },
       summary: {
         totalItems,
