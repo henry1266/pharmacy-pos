@@ -99,11 +99,12 @@ async function generateOrderNumberByDate(dateStr) {
     const day = String(dateObj.getDate()).padStart(2, '0');
     const dateFormat = `${year}${month}${day}`;
     
-    // 基本訂單號前綴
-    const prefix = `D${dateFormat}`;
+    // 新的訂單號格式: YYYYMMDD+序號+D
+    const prefix = `${dateFormat}`;
+    const suffix = 'D';
     
     // 查找當天最大序號
-    const regex = new RegExp(`^${prefix}\\d{3}$`);
+    const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
     const existingOrders = await ShippingOrder.find({ soid: regex }).sort({ soid: -1 });
     
     let sequence = 1; // 默認從001開始
@@ -111,12 +112,13 @@ async function generateOrderNumberByDate(dateStr) {
     if (existingOrders.length > 0) {
       // 從現有訂單號中提取序號並加1
       const lastOrderNumber = existingOrders[0].soid;
-      const lastSequence = parseInt(lastOrderNumber.substring(prefix.length), 10);
+      // 提取序號部分 (去掉日期前綴和D後綴)
+      const lastSequence = parseInt(lastOrderNumber.substring(prefix.length, lastOrderNumber.length - suffix.length), 10);
       sequence = lastSequence + 1;
       
       // 檢查是否有序號缺失，如果有則使用最小的缺失序號
       const existingSequences = existingOrders.map(order => 
-        parseInt(order.soid.substring(prefix.length), 10)
+        parseInt(order.soid.substring(prefix.length, order.soid.length - suffix.length), 10)
       ).sort((a, b) => a - b);
       
       // 查找從1開始的第一個缺失序號
@@ -129,7 +131,7 @@ async function generateOrderNumberByDate(dateStr) {
     }
     
     // 生成新訂單號，序號部分固定3位數
-    return `${prefix}${String(sequence).padStart(3, '0')}`;
+    return `${prefix}${String(sequence).padStart(3, '0')}${suffix}`;
   } catch (error) {
     console.error('根據日期生成訂單號時出錯:', error);
     throw error;
