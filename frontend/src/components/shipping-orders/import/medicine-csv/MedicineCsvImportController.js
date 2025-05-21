@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Button, Box, Typography, Alert } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import MedicineCsvImportDialog from './medicine-csv/MedicineCsvImportDialog';
-import { parseMedicineCsvForPreview, importMedicineCsv } from '../../../services/medicineCsvService';
+import MedicineCsvImportDialog from '../medicine-csv/MedicineCsvImportDialog';
+import { parseMedicineCsvForPreview, importMedicineCsv } from '../../../../services/medicineCsvService';
 
 /**
  * 藥品CSV匯入控制器元件
