@@ -72,8 +72,8 @@ export const generateOrderNumberByDate = (date = new Date()) => {
   // 生成3位隨機序號
   const sequence = Math.floor(Math.random() * 900) + 100; // 100-999之間的隨機數
   
-  // 返回格式為D+YYYYMMDD+序號的訂單號
-  return `D${dateFormat}${sequence}`;
+  // 返回格式為YYYYMMDD+序號+D的訂單號
+  return `${dateFormat}${sequence}D`;
 };
 
 /**
