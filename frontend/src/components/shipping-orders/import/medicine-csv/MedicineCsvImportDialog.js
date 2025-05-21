@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -52,7 +52,7 @@ const MedicineCsvImportDialog = ({
       maxWidth="md"
       fullWidth
     >
-      <DialogTitle>藥品CSV導入</DialogTitle>
+      <DialogTitle>藥品CSV導入 (自動產生出貨單號)</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
           <Typography variant="body2" gutterBottom>
@@ -115,6 +115,9 @@ const MedicineCsvImportDialog = ({
               </TableContainer>
               <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
                 供應商將預設為：調劑 (SS)
+              </Typography>
+              <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'primary.main' }}>
+                出貨單號將自動產生
               </Typography>
             </Box>
           )}

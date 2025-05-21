@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Button, Box, Typography } from '@mui/material';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Button, Box, Typography, Alert } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import MedicineCsvImportDialog from './medicine-csv/MedicineCsvImportDialog';
 import { parseMedicineCsvForPreview, importMedicineCsv } from '../../../services/medicineCsvService';
@@ -15,6 +15,7 @@ const MedicineCsvImportController = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [previewData, setPreviewData] = useState([]);
+  const [orderNumber, setOrderNumber] = useState('');
 
   // 開啟對話框
   const handleOpen = () => {
@@ -35,6 +36,7 @@ const MedicineCsvImportController = () => {
     setError('');
     setSuccess(false);
     setPreviewData([]);
+    setOrderNumber('');
   };
 
   // 處理文件選擇變更
@@ -64,8 +66,9 @@ const MedicineCsvImportController = () => {
     setError('');
     
     try {
-      await importMedicineCsv(csvFile);
+      const result = await importMedicineCsv(csvFile);
       setSuccess(true);
+      setOrderNumber(result.orderNumber || '');
       setLoading(false);
     } catch (err) {
       setError(err.response?.data?.message || err.message || '導入失敗');
@@ -85,7 +88,7 @@ const MedicineCsvImportController = () => {
           匯入藥品CSV
         </Button>
         <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-          格式: 日期,健保碼,數量,健保價
+          格式: 日期,健保碼,數量,健保價 (自動產生出貨單號)
         </Typography>
       </Box>
 
@@ -100,6 +103,12 @@ const MedicineCsvImportController = () => {
         success={success}
         previewData={previewData}
       />
+
+      {success && orderNumber && (
+        <Alert severity="success" sx={{ mt: 2, mb: 2 }}>
+          藥品CSV已成功匯入！出貨單號: {orderNumber}
+        </Alert>
+      )}
     </>
   );
 };

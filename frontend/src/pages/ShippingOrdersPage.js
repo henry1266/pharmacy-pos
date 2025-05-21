@@ -32,6 +32,7 @@ import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter
 import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
+import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
@@ -69,6 +70,7 @@ const ShippingOrdersPage = () => {
 
   // --- Local UI State ---
   const [showFilters, setShowFilters] = useState(false);
+  const [showImportOptions, setShowImportOptions] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [shippingOrderToDelete, setShippingOrderToDelete] = useState(null); // Store the whole object for the dialog
   const [snackbar, setSnackbar] = useState({
@@ -154,12 +156,29 @@ const ShippingOrdersPage = () => {
 
   // --- CSV Import Handlers ---
   const handleOpenCsvImport = useCallback(() => {
+    setShowImportOptions(prev => !prev);
+  }, []);
+
+  const handleBasicImportOpen = useCallback(() => {
     setCsvFile(null);
     setCsvImportError(null);
     setCsvImportSuccess(false);
     setCsvImportDialogOpen(true);
     setCsvTabValue(0); // Reset to basic tab
     setCsvType('basic');
+  }, []);
+
+  const handleItemsImportOpen = useCallback(() => {
+    setCsvFile(null);
+    setCsvImportError(null);
+    setCsvImportSuccess(false);
+    setCsvImportDialogOpen(true);
+    setCsvTabValue(1); // Set to items tab
+    setCsvType('items');
+  }, []);
+
+  const handleImportClose = useCallback(() => {
+    setCsvImportDialogOpen(false);
   }, []);
 
   const handleCsvTabChange = useCallback((event, newValue) => {
@@ -241,6 +260,25 @@ const ShippingOrdersPage = () => {
         出貨單管理
       </Typography>
 
+      {/* 匯入選項區塊 - 當showImportOptions為true時顯示 */}
+      {showImportOptions && (
+        <ShippingOrderImportOptions
+          openBasicImport={csvImportDialogOpen && csvTabValue === 0}
+          openItemsImport={csvImportDialogOpen && csvTabValue === 1}
+          handleBasicImportOpen={handleBasicImportOpen}
+          handleItemsImportOpen={handleItemsImportOpen}
+          handleImportClose={handleImportClose}
+          handleTabChange={handleCsvTabChange}
+          tabValue={csvTabValue}
+          csvFile={csvFile}
+          handleFileChange={handleCsvFileChange}
+          handleImport={handleCsvImport}
+          loading={csvImportLoading}
+          error={csvImportError}
+          success={csvImportSuccess}
+        />
+      )}
+
       <Card sx={{ mb: 3, px: 2, mx: 1 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -321,7 +359,7 @@ const ShippingOrdersPage = () => {
             <AddIcon />
           </Fab>
         </Tooltip>
-        <Tooltip title="CSV匯入" placement="left" arrow>
+        <Tooltip title={showImportOptions ? "隱藏匯入選項" : "顯示匯入選項"} placement="left" arrow>
           <Fab color="secondary" size="medium" onClick={handleOpenCsvImport} aria-label="CSV匯入">
             <CloudUploadIcon />
           </Fab>
@@ -366,4 +404,3 @@ const ShippingOrdersPage = () => {
 };
 
 export default ShippingOrdersPage;
-

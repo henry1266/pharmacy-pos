@@ -55,15 +55,39 @@ export const parseMedicineCsvForPreview = (file) => {
 };
 
 /**
- * 導入藥品CSV文件，自動設定預設供應商
+ * 生成新的出貨單號
+ * @returns {Promise<string>} 生成的出貨單號
+ */
+export const generateShippingOrderNumber = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const config = { headers: { 'x-auth-token': token } };
+    
+    const response = await axios.get(`${SERVICE_URL}/generate-number`, config);
+    return response.data.orderNumber;
+  } catch (error) {
+    console.error('生成出貨單號時發生錯誤:', error);
+    // 如果API調用失敗，生成一個基於時間戳的臨時編號
+    const timestamp = new Date().getTime();
+    const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `SO-${timestamp.toString().slice(-6)}-${randomPart}`;
+  }
+};
+
+/**
+ * 導入藥品CSV文件，自動設定預設供應商和出貨單號
  * @param {File} file - CSV文件
  * @returns {Promise<object>} 服務器響應
  */
 export const importMedicineCsv = async (file) => {
   try {
+    // 先生成新的出貨單號
+    const orderNumber = await generateShippingOrderNumber();
+    
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', 'medicine');
+    formData.append('orderNumber', orderNumber);
     
     // 添加預設供應商信息
     const defaultSupplier = {
@@ -89,7 +113,10 @@ export const importMedicineCsv = async (file) => {
     };
     
     const response = await axios.post(`${SERVICE_URL}/import/medicine`, formData, config);
-    return response.data;
+    return {
+      ...response.data,
+      orderNumber // 返回生成的出貨單號，以便在UI中顯示
+    };
   } catch (error) {
     console.error('導入藥品CSV時發生錯誤:', error);
     throw error;
