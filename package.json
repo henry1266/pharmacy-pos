@@ -1,6 +1,9 @@
 {
   "dependencies": {
-    "@mui/icons-material": "^7.0.2"
+    "@mui/icons-material": "^7.0.2",
+    "axios": "^1.9.0",
+    "form-data": "^4.0.2",
+    "mongoose": "^8.15.0"
   },
   "devDependencies": {
     "madge": "^8.0.0"

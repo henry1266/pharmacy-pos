@@ -23,6 +23,7 @@ app.use("/api/customers", require("./routes/customers"));
 app.use("/api/purchase-orders", require("./routes/purchaseOrders"));
 app.use("/api/shipping-orders", require("./routes/shippingOrders"));
 app.use("/api/shipping-orders", require("./routes/shippingOrderPdf")); // 新增出貨單PDF生成路由
+app.use("/api/shipping-orders", require("./routes/shippingOrdersImport")); // 新增出貨單CSV匯入路由
 app.use("/api/sales", require("./routes/sales"));
 app.use("/api/accounting", require("./routes/accounting"));
 app.use("/api/accounting-categories", require("./routes/accountingCategories"));
