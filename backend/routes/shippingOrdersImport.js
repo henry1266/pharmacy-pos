@@ -37,8 +37,7 @@ async function createShippingInventoryRecords(shippingOrder) {
   try {
     // 檢查是否已經存在該出貨單的庫存記錄
     const existingRecords = await Inventory.find({ 
-      source: 'ship', 
-      sourceId: shippingOrder._id 
+      shippingOrderId: shippingOrder._id 
     });
     
     if (existingRecords.length > 0) {
@@ -54,14 +53,16 @@ async function createShippingInventoryRecords(shippingOrder) {
       const inventory = new Inventory({
         product: item.product,
         quantity: -item.dquantity, // 負數表示出貨減少庫存
-        unitPrice: item.unitPrice || 0,
-        totalPrice: item.dtotalCost || 0,
-        source: 'ship', // 來源類型為出貨
-        sourceId: shippingOrder._id, // 關聯到出貨單ID
-        notes: `出貨單: ${shippingOrder.soid}`
+        totalAmount: item.dtotalCost || 0,
+        type: 'ship', // 設置類型為ship
+        shippingOrderId: shippingOrder._id, // 關聯到出貨單ID
+        shippingOrderNumber: shippingOrder.soid, // 設置出貨單號
+        accountingId: null, // 預設為null
+        lastUpdated: new Date() // 設置最後更新時間
       });
       
       await inventory.save();
+      console.log(`為產品 ${item.dname} 創建了庫存記錄，數量: ${-item.dquantity}`);
     }
     
     console.log(`成功為出貨單 ${shippingOrder.soid} 創建庫存記錄`);
@@ -103,14 +104,28 @@ async function generateOrderNumberByDate(dateStr) {
     
     // 查找當天最大序號
     const regex = new RegExp(`^${prefix}\\d{3}$`);
-    const existingOrders = await ShippingOrder.find({ soid: regex }).sort({ soid: -1 }).limit(1);
+    const existingOrders = await ShippingOrder.find({ soid: regex }).sort({ soid: -1 });
     
-    let sequence = 1;
+    let sequence = 1; // 默認從001開始
+    
     if (existingOrders.length > 0) {
       // 從現有訂單號中提取序號並加1
       const lastOrderNumber = existingOrders[0].soid;
       const lastSequence = parseInt(lastOrderNumber.substring(prefix.length), 10);
       sequence = lastSequence + 1;
+      
+      // 檢查是否有序號缺失，如果有則使用最小的缺失序號
+      const existingSequences = existingOrders.map(order => 
+        parseInt(order.soid.substring(prefix.length), 10)
+      ).sort((a, b) => a - b);
+      
+      // 查找從1開始的第一個缺失序號
+      for (let i = 1; i <= existingSequences[existingSequences.length - 1]; i++) {
+        if (!existingSequences.includes(i)) {
+          sequence = i;
+          break;
+        }
+      }
     }
     
     // 生成新訂單號，序號部分固定3位數
@@ -309,22 +324,25 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       notes: `從CSV匯入 (${new Date().toLocaleDateString()})`
     });
 
-    await shippingOrder.save();
+    // 保存出貨單
+    const savedOrder = await shippingOrder.save();
+    console.log(`出貨單 ${savedOrder.soid} 已保存，狀態: ${savedOrder.status}`);
     
     // 創建庫存記錄
-    await createShippingInventoryRecords(shippingOrder);
+    await createShippingInventoryRecords(savedOrder);
+    console.log(`已為出貨單 ${savedOrder.soid} 創建庫存記錄`);
 
     res.json({
       msg: '藥品明細CSV匯入成功',
       shippingOrder: {
-        _id: shippingOrder._id,
-        soid: shippingOrder.soid,
-        orderNumber: shippingOrder.orderNumber,
+        _id: savedOrder._id,
+        soid: savedOrder.soid,
+        orderNumber: savedOrder.orderNumber,
         supplier: supplierName,
         itemCount: items.length,
-        totalAmount: shippingOrder.totalAmount,
-        paymentStatus: shippingOrder.paymentStatus,
-        status: shippingOrder.status
+        totalAmount: savedOrder.totalAmount,
+        paymentStatus: savedOrder.paymentStatus,
+        status: savedOrder.status
       },
       summary: {
         totalItems,
