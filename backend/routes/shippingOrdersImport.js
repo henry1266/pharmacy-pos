@@ -1,21 +1,21 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { check, validationResult } = require('express-validator');
-const mongoose = require('mongoose');
-const ShippingOrder = require('../models/ShippingOrder');
-const { BaseProduct } = require('../models/BaseProduct');
-const Supplier = require('../models/Supplier');
-const Inventory = require('../models/Inventory');
-const multer = require('multer');
-const csv = require('csv-parser');
-const fs = require('fs');
-const path = require('path');
-const OrderNumberService = require('../utils/OrderNumberService');
+const { check, validationResult } = require("express-validator");
+const mongoose = require("mongoose");
+const ShippingOrder = require("../models/ShippingOrder");
+const { BaseProduct } = require("../models/BaseProduct");
+const Supplier = require("../models/Supplier");
+const Inventory = require("../models/Inventory");
+const multer = require("multer");
+const csv = require("csv-parser");
+const fs = require("fs");
+const path = require("path");
+const OrderNumberService = require("../utils/OrderNumberService");
 
 // 設置文件上傳
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../uploads');
+    const uploadDir = path.join(__dirname, "../uploads");
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -54,7 +54,7 @@ async function createShippingInventoryRecords(shippingOrder) {
         product: item.product,
         quantity: -item.dquantity, // 負數表示出貨減少庫存
         totalAmount: item.dtotalCost || 0,
-        type: 'ship', // 設置類型為ship
+        type: "ship", // 設置類型為ship
         shippingOrderId: shippingOrder._id, // 關聯到出貨單ID
         shippingOrderNumber: shippingOrder.soid, // 設置出貨單號
         accountingId: null, // 預設為null
@@ -103,7 +103,7 @@ function convertToWesternDate(dateStr) {
       const westernYear = rocYear + 1911;
       
       // 格式化為 YYYY-MM-DD
-      return `${westernYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      return `${westernYear}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     } catch (error) {
       console.error(`轉換民國年日期時出錯: ${dateStr}`, error);
       return null;
@@ -114,7 +114,7 @@ function convertToWesternDate(dateStr) {
   try {
     const dateObj = new Date(dateStr);
     if (!isNaN(dateObj.getTime())) {
-      return dateObj.toISOString().split('T')[0]; // 返回YYYY-MM-DD格式
+      return dateObj.toISOString().split("T")[0]; // 返回YYYY-MM-DD格式
     }
   } catch (error) {
     console.error(`解析日期時出錯: ${dateStr}`, error);
@@ -135,27 +135,25 @@ async function generateOrderNumberByDate(dateStr) {
     
     // 解析日期
     let dateObj;
+    // **修正：如果日期無效或未提供，則拋出錯誤，而不是使用當前日期**
     if (westernDateStr && westernDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
       dateObj = new Date(westernDateStr);
+      if (isNaN(dateObj.getTime())) {
+        throw new Error(`無效的日期格式: ${dateStr}`);
+      }
     } else {
-      // 如果日期格式不正確或未提供，使用當前日期
-      dateObj = new Date();
-    }
-    
-    // 檢查日期是否有效
-    if (isNaN(dateObj.getTime())) {
-      dateObj = new Date();
+      throw new Error(`無法從CSV獲取有效日期: ${dateStr}`);
     }
     
     // 格式化日期為YYYYMMDD
     const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
     const dateFormat = `${year}${month}${day}`;
     
     // 訂單號格式: YYYYMMDD+序號+D
     const prefix = `${dateFormat}`;
-    const suffix = 'D';
+    const suffix = "D";
     
     // 查找當天最大序號
     const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
@@ -164,30 +162,17 @@ async function generateOrderNumberByDate(dateStr) {
     let sequence = 1; // 默認從001開始
     
     if (existingOrders.length > 0) {
-      // 從現有訂單號中提取序號並加1
+      // **修正：嚴格使用最大序號+1，不再填補空缺**
       const lastOrderNumber = existingOrders[0].soid;
       // 提取序號部分 (去掉日期前綴和D後綴)
       const lastSequence = parseInt(lastOrderNumber.substring(prefix.length, lastOrderNumber.length - suffix.length), 10);
       sequence = lastSequence + 1;
-      
-      // 檢查是否有序號缺失，如果有則使用最小的缺失序號
-      const existingSequences = existingOrders.map(order => 
-        parseInt(order.soid.substring(prefix.length, order.soid.length - suffix.length), 10)
-      ).sort((a, b) => a - b);
-      
-      // 查找從1開始的第一個缺失序號
-      for (let i = 1; i <= existingSequences[existingSequences.length - 1]; i++) {
-        if (!existingSequences.includes(i)) {
-          sequence = i;
-          break;
-        }
-      }
     }
     
     // 生成新訂單號，序號部分固定3位數
-    return `${prefix}${String(sequence).padStart(3, '0')}${suffix}`;
+    return `${prefix}${String(sequence).padStart(3, "0")}${suffix}`;
   } catch (error) {
-    console.error('根據日期生成訂單號時出錯:', error);
+    console.error("根據日期生成訂單號時出錯:", error);
     throw error;
   }
 }
@@ -195,24 +180,27 @@ async function generateOrderNumberByDate(dateStr) {
 // @route   GET api/shipping-orders/generate-number
 // @desc    生成新的出貨單號
 // @access  Public
-router.get('/generate-number', async (req, res) => {
+router.get("/generate-number", async (req, res) => {
   try {
-    // 使用當前日期生成訂單號
-    const orderNumber = await generateOrderNumberByDate();
+    // **注意：此API現在需要日期參數，否則會報錯**
+    // 如果需要一個不依賴CSV日期的生成方式，需要另行處理
+    // 暫時使用當前日期，但這可能與CSV匯入邏輯不一致
+    const todayStr = new Date().toISOString().split("T")[0];
+    const orderNumber = await generateOrderNumberByDate(todayStr);
     res.json({ orderNumber });
   } catch (err) {
-    console.error('生成出貨單號時出錯:', err.message);
-    res.status(500).json({ msg: '伺服器錯誤', error: err.message });
+    console.error("生成出貨單號時出錯:", err.message);
+    res.status(500).json({ msg: "伺服器錯誤", error: err.message });
   }
 });
 
 // @route   POST api/shipping-orders/import/medicine
 // @desc    導入藥品明細CSV (日期,健保碼,數量,健保價)
 // @access  Public
-router.post('/import/medicine', upload.single('file'), async (req, res) => {
+router.post("/import/medicine", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ msg: '請上傳CSV文件' });
+      return res.status(400).json({ msg: "請上傳CSV文件" });
     }
 
     // 獲取請求中的出貨單號和預設供應商
@@ -224,7 +212,7 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
         defaultSupplier = JSON.parse(req.body.defaultSupplier);
       }
     } catch (error) {
-      console.error('解析預設供應商數據時出錯:', error);
+      console.error("解析預設供應商數據時出錯:", error);
     }
 
     const results = [];
@@ -232,35 +220,35 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
     let successCount = 0;
     let failCount = 0;
     let totalItems = 0;
-    let firstDate = null;
+    let firstValidDate = null; // **修正：變數名更清晰**
 
     // 讀取並解析CSV文件
     await new Promise((resolve, reject) => {
       fs.createReadStream(req.file.path)
         .pipe(csv())
-        .on('data', (data) => {
+        .on("data", (data) => {
           // 檢查CSV格式是否符合要求
           const keys = Object.keys(data);
           // 如果CSV沒有標題行，則使用索引位置
           if (keys.length >= 4) {
-            const rawDate = data[keys[0]] || '';
-            const nhCode = data[keys[1]] || '';
+            const rawDate = data[keys[0]] || "";
+            const nhCode = data[keys[1]] || "";
             const quantity = parseInt(data[keys[2]], 10) || 0;
             const nhPrice = parseFloat(data[keys[3]]) || 0;
 
             // 轉換日期格式（支持民國年和西元年）
             const date = convertToWesternDate(rawDate);
             
-            // 記錄第一行的日期，用於生成訂單號
-            if (firstDate === null && date) {
-              firstDate = date;
-              console.log(`首行日期已轉換: ${rawDate} -> ${date}`);
+            // **修正：記錄第一個有效的日期**
+            if (firstValidDate === null && date) {
+              firstValidDate = date;
+              console.log(`首個有效日期已轉換: ${rawDate} -> ${date}`);
             }
 
             if (nhCode && quantity > 0 && nhPrice > 0) {
               results.push({
                 rawDate,
-                date,
+                date, // 保存轉換後的日期
                 nhCode,
                 quantity,
                 nhPrice
@@ -275,8 +263,8 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
             failCount++;
           }
         })
-        .on('end', resolve)
-        .on('error', reject);
+        .on("end", resolve)
+        .on("error", reject);
     });
 
     // 刪除上傳的文件
@@ -284,7 +272,15 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
 
     if (results.length === 0) {
       return res.status(400).json({ 
-        msg: 'CSV文件中沒有有效的藥品明細數據',
+        msg: "CSV文件中沒有有效的藥品明細數據",
+        errors
+      });
+    }
+    
+    // **修正：如果CSV中沒有找到任何有效日期，則返回錯誤**
+    if (!firstValidDate) {
+      return res.status(400).json({ 
+        msg: "CSV文件中缺少有效的日期欄位",
         errors
       });
     }
@@ -292,19 +288,27 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
     // 根據CSV首行日期生成訂單號
     let soid = orderNumber;
     if (!soid) {
-      soid = await generateOrderNumberByDate(firstDate);
+      try {
+        soid = await generateOrderNumberByDate(firstValidDate);
+      } catch (genError) {
+        return res.status(500).json({ msg: "生成訂單號時出錯", error: genError.message });
+      }
     }
 
     // 檢查出貨單號是否已存在
     const existingSO = await ShippingOrder.findOne({ soid });
     if (existingSO) {
-      // 如果已存在，生成新的訂單號
-      soid = await generateOrderNumberByDate(firstDate);
+      // 如果已存在，嘗試生成新的訂單號
+      try {
+        soid = await generateOrderNumberByDate(firstValidDate);
+      } catch (genError) {
+        return res.status(500).json({ msg: "生成訂單號時出錯", error: genError.message });
+      }
       
       // 再次檢查
       const existingSO2 = await ShippingOrder.findOne({ soid });
       if (existingSO2) {
-        return res.status(400).json({ msg: '無法生成唯一的出貨單號，請稍後再試' });
+        return res.status(400).json({ msg: `訂單號 ${soid} 已存在，無法生成唯一的出貨單號，請檢查數據或稍後再試` });
       }
     }
 
@@ -336,8 +340,8 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       
       items.push({
         product: product._id,
-        did: product.code || '',
-        dname: product.name || '',
+        did: product.code || "",
+        dname: product.name || "",
         dquantity: item.quantity,
         dtotalCost: totalCost,
         unitPrice: item.nhPrice
@@ -348,14 +352,14 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
 
     if (items.length === 0) {
       return res.status(400).json({ 
-        msg: '無法匹配任何有效的藥品',
+        msg: "無法匹配任何有效的藥品",
         errors
       });
     }
 
     // 確定供應商
     let supplierId = null;
-    let supplierName = '預設供應商';
+    let supplierName = "預設供應商";
     
     if (defaultSupplier) {
       if (defaultSupplier._id) {
@@ -366,7 +370,7 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       }
     } else {
       // 嘗試查找名為"調劑"的供應商
-      const supplier = await Supplier.findOne({ name: '調劑' });
+      const supplier = await Supplier.findOne({ name: "調劑" });
       if (supplier) {
         supplierId = supplier._id;
         supplierName = supplier.name;
@@ -380,8 +384,8 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       sosupplier: supplierName,
       supplier: supplierId,
       items,
-      status: 'completed', // 根據新需求設置為completed
-      paymentStatus: '已收款', // 根據之前的需求設置為已收款
+      status: "completed", // 根據新需求設置為completed
+      paymentStatus: "已收款", // 根據之前的需求設置為已收款
       notes: `從CSV匯入 (${new Date().toLocaleDateString()})`
     });
 
@@ -394,7 +398,7 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
     console.log(`已為出貨單 ${savedOrder.soid} 創建庫存記錄`);
 
     res.json({
-      msg: '藥品明細CSV匯入成功',
+      msg: "藥品明細CSV匯入成功",
       shippingOrder: {
         _id: savedOrder._id,
         soid: savedOrder.soid,
@@ -413,11 +417,11 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('匯入藥品明細CSV時出錯:', err.message);
+    console.error("匯入藥品明細CSV時出錯:", err.message);
     res.status(500).json({ 
-      msg: '伺服器錯誤', 
+      msg: "伺服器錯誤", 
       error: err.message,
-      stack: process.env.NODE_ENV === 'production' ? null : err.stack
+      stack: process.env.NODE_ENV === "production" ? null : err.stack
     });
   }
 });
