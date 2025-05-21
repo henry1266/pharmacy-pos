@@ -34,6 +34,7 @@ app.use("/api/fifo", require("./routes/fifo"));
 app.use("/api/monitored-products", require("./routes/monitoredProducts")); // 新增監測產品路由
 app.use("/api/settings", require("./routes/settings")); // *** Add the new settings route ***
 app.use("/api/config", require("./routes/config")); // Add the new config route
+app.use("/api/csv-import", require("./routes/csvImportApi")); // 新增CSV匯入REST API
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {
