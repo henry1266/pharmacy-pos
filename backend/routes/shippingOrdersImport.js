@@ -73,16 +73,70 @@ async function createShippingInventoryRecords(shippingOrder) {
 }
 
 /**
+ * 將民國年日期轉換為西元年日期
+ * @param {string} dateStr - 日期字符串，可能是民國年格式(YYYMMDD)或西元年格式(YYYY-MM-DD)
+ * @returns {string} 轉換後的西元年日期，格式為YYYY-MM-DD
+ */
+function convertToWesternDate(dateStr) {
+  if (!dateStr) return null;
+  
+  // 如果已經是西元年格式 YYYY-MM-DD，直接返回
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return dateStr;
+  }
+  
+  // 檢查是否是民國年格式 YYYMMDD (例如1140407)
+  if (dateStr.match(/^\d{7}$/)) {
+    try {
+      // 提取民國年、月、日
+      const rocYear = parseInt(dateStr.substring(0, 3), 10);
+      const month = parseInt(dateStr.substring(3, 5), 10);
+      const day = parseInt(dateStr.substring(5, 7), 10);
+      
+      // 檢查月份和日期是否有效
+      if (month < 1 || month > 12 || day < 1 || day > 31) {
+        console.warn(`無效的民國年日期格式: ${dateStr}`);
+        return null;
+      }
+      
+      // 民國年轉西元年 (民國年+1911=西元年)
+      const westernYear = rocYear + 1911;
+      
+      // 格式化為 YYYY-MM-DD
+      return `${westernYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    } catch (error) {
+      console.error(`轉換民國年日期時出錯: ${dateStr}`, error);
+      return null;
+    }
+  }
+  
+  // 其他格式嘗試解析
+  try {
+    const dateObj = new Date(dateStr);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj.toISOString().split('T')[0]; // 返回YYYY-MM-DD格式
+    }
+  } catch (error) {
+    console.error(`解析日期時出錯: ${dateStr}`, error);
+  }
+  
+  return null;
+}
+
+/**
  * 根據日期生成訂單號
- * @param {string} dateStr - 日期字符串，格式為YYYY-MM-DD
+ * @param {string} dateStr - 日期字符串，格式為YYYY-MM-DD或民國年格式YYYMMDD
  * @returns {Promise<string>} 生成的訂單號
  */
 async function generateOrderNumberByDate(dateStr) {
   try {
+    // 先將日期轉換為西元年格式
+    const westernDateStr = convertToWesternDate(dateStr);
+    
     // 解析日期
     let dateObj;
-    if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      dateObj = new Date(dateStr);
+    if (westernDateStr && westernDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      dateObj = new Date(westernDateStr);
     } else {
       // 如果日期格式不正確或未提供，使用當前日期
       dateObj = new Date();
@@ -99,7 +153,7 @@ async function generateOrderNumberByDate(dateStr) {
     const day = String(dateObj.getDate()).padStart(2, '0');
     const dateFormat = `${year}${month}${day}`;
     
-    // 新的訂單號格式: YYYYMMDD+序號+D
+    // 訂單號格式: YYYYMMDD+序號+D
     const prefix = `${dateFormat}`;
     const suffix = 'D';
     
@@ -189,18 +243,23 @@ router.post('/import/medicine', upload.single('file'), async (req, res) => {
           const keys = Object.keys(data);
           // 如果CSV沒有標題行，則使用索引位置
           if (keys.length >= 4) {
-            const date = data[keys[0]] || '';
+            const rawDate = data[keys[0]] || '';
             const nhCode = data[keys[1]] || '';
             const quantity = parseInt(data[keys[2]], 10) || 0;
             const nhPrice = parseFloat(data[keys[3]]) || 0;
 
+            // 轉換日期格式（支持民國年和西元年）
+            const date = convertToWesternDate(rawDate);
+            
             // 記錄第一行的日期，用於生成訂單號
-            if (firstDate === null && date && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            if (firstDate === null && date) {
               firstDate = date;
+              console.log(`首行日期已轉換: ${rawDate} -> ${date}`);
             }
 
             if (nhCode && quantity > 0 && nhPrice > 0) {
               results.push({
+                rawDate,
                 date,
                 nhCode,
                 quantity,
