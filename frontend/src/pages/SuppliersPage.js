@@ -421,6 +421,19 @@ const SuppliersPage = () => {
             </ListItem>
           )}
         </List>
+        <Divider sx={{ my: 1.5 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+          <Button
+            component={Link}
+            to={`/purchase-orders/supplier/${selectedSupplier.id}`}
+            variant="contained"
+            color="primary"
+            size="small"
+            sx={{ textTransform: 'none' }}
+          >
+            查看進貨單
+          </Button>
+        </Box>
       </CardContent>
     </Card>
   ) : (
