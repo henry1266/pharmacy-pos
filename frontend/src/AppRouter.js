@@ -16,6 +16,7 @@ import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
 import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
+import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage';
 import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
@@ -79,6 +80,7 @@ const AppRouter = () => {
         <Route path="" element={<PurchaseOrdersPage />} />
         <Route path="new" element={<PurchaseOrderFormPage />} />
         <Route path="edit/:id" element={<PurchaseOrderEditPage />} />
+        <Route path="supplier/:id" element={<PurchaseOrdersSupplierFilterPage />} />
         <Route path=":id" element={<PurchaseOrderDetailPage />} />
       </Route>
       

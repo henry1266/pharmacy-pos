@@ -17,7 +17,7 @@ import {
   FilterList as FilterListIcon,
   CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux'; // Removed useSelector, handled by hook
 
 // Import Hooks
@@ -41,9 +41,13 @@ import FilterPriceSummary from '../components/common/FilterPriceSummary';
 /**
  * 進貨單管理頁面 (Refactored)
  */
-const PurchaseOrdersPage = () => {
+const PurchaseOrdersPage = ({ initialSupplierId = null }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const params = useParams();
+  
+  // 從路由參數或 props 獲取供應商 ID
+  const supplierIdFromRoute = initialSupplierId || params.id;
 
   // Use the custom hook to fetch data from Redux
   const { purchaseOrders, suppliers, loading, error } = usePurchaseOrdersData();
@@ -89,6 +93,18 @@ const PurchaseOrdersPage = () => {
       showSnackbar(error, 'error');
     }
   }, [error, showSnackbar]);
+
+  // 根據路由參數設置初始供應商篩選
+  useEffect(() => {
+    if (supplierIdFromRoute && suppliers && suppliers.length > 0) {
+      const supplier = suppliers.find(s => s._id === supplierIdFromRoute);
+      if (supplier) {
+        setSelectedSuppliers([supplier.name]);
+        // 顯示篩選器，讓用戶知道目前有篩選條件
+        setShowFilters(true);
+      }
+    }
+  }, [supplierIdFromRoute, suppliers]);
 
   // Filter rows based on Redux state and local filter state
   useEffect(() => {
