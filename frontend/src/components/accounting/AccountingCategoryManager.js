@@ -283,7 +283,22 @@ const AccountingCategoryManager = () => {
                               <DragHandleIcon />
                             </IconButton>
                             <ListItemText
-                              primary={category.name}
+                              primary={
+                                <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                                  {category.name}
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ ml: 2 }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.location.href = `/accounting/categories/${category._id}`;
+                                    }}
+                                  >
+                                    詳細
+                                  </Button>
+                                </Box>
+                              }
                               secondary={category.description || '無描述'}
                             />
                           </ListItem>

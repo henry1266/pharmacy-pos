@@ -22,6 +22,7 @@ import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
 import AccountingPage from './pages/AccountingPage';
 import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
+import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage';
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
@@ -67,6 +68,7 @@ const AppRouter = () => {
       <Route path="/accounting" element={<AccountingPage />} />
       <Route path="/accounting/new" element={<AccountingNewPage />} />
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
+      <Route path="/accounting/categories/:categoryId" element={<AccountingCategoryDetailPage />} />
       
       {/* Settings routes (assuming they require login) */}
       <Route path="/settings/ip" element={<SettingsIpPage />} /> {/* Add the new IP settings route */}
