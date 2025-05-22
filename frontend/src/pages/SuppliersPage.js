@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CircularProgress,
   ListItemText,
@@ -61,6 +62,7 @@ const mockSuppliersData = [
 ];
 
 const SuppliersPage = () => {
+  const navigate = useNavigate();
   const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
@@ -424,8 +426,7 @@ const SuppliersPage = () => {
         <Divider sx={{ my: 1.5 }} />
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
           <Button
-            component={Link}
-            to={`/purchase-orders/supplier/${selectedSupplier.id}`}
+            onClick={() => navigate(`/purchase-orders/supplier/${selectedSupplier.id}`)}
             variant="contained"
             color="primary"
             size="small"
