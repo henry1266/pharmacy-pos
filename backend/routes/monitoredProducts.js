@@ -13,7 +13,7 @@ const { check, validationResult } = require("express-validator");
 router.get("/", auth, async (req, res) => {
   try {
     // 獲取所有監測產品
-    const monitoredProducts = await MonitoredProduct.find().sort({ addedAt: -1 });
+    const monitoredProducts = await MonitoredProduct.find().sort({ productCode: 1 }); // 按照產品編號排序
     
     // 使用 Promise.all 並行查詢每個監測產品的詳細資訊
     const productsWithDetails = await Promise.all(
@@ -21,13 +21,12 @@ router.get("/", auth, async (req, res) => {
         // 查詢對應的基礎產品以獲取名稱
         const baseProduct = await BaseProduct.findOne({ code: product.productCode });
         
-        // 返回合併後的資料
+        // 返回合併後的資料，不包含 addedAt
         return {
           _id: product._id,
           productCode: product.productCode,
-          productName: baseProduct ? baseProduct.name : '未知商品',
-          addedBy: product.addedBy,
-          addedAt: product.addedAt
+          productName: baseProduct ? baseProduct.name : '',
+          addedBy: product.addedBy
         };
       })
     );
@@ -72,13 +71,12 @@ router.post(
       });
       await monitoredProduct.save();
       
-      // 4. 返回包含產品名稱的完整資訊
+      // 4. 返回包含產品名稱的完整資訊，不包含 addedAt
       const responseData = {
         _id: monitoredProduct._id,
         productCode: monitoredProduct.productCode,
         productName: productExists.name,
-        addedBy: monitoredProduct.addedBy,
-        addedAt: monitoredProduct.addedAt
+        addedBy: monitoredProduct.addedBy
       };
       
       res.json(responseData);

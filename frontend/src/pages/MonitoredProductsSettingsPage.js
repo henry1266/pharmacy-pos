@@ -163,22 +163,20 @@ const MonitoredProductsSettingsPage = () => {
                         size="small" 
                         sx={{ fontWeight: 'bold' }}
                       />
-                      <Typography 
-                        variant="body1" 
-                        component="span" 
-                        sx={{ color: '#333', fontWeight: 'medium' }}
-                      >
-                        {product.productName || '未知商品'}
-                      </Typography>
+                      {product.productName && (
+                        <Typography 
+                          variant="body1" 
+                          component="span" 
+                          sx={{ color: '#333', fontWeight: 'medium' }}
+                        >
+                          {product.productName}
+                        </Typography>
+                      )}
                     </Box>
                   }
-                  secondary={`新增時間: ${new Date(product.addedAt).toLocaleString()}`}
                   primaryTypographyProps={{ 
                     color: 'text.primary',
                     fontWeight: 'medium'
-                  }}
-                  secondaryTypographyProps={{ 
-                    color: 'text.secondary'
                   }}
                 />
               </ListItem>
