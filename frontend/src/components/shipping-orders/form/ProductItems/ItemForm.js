@@ -43,8 +43,8 @@ const ItemForm = ({
   const isInventorySufficient = () => {
     if (!currentItem.product || !currentItem.dquantity) return true;
     
-    const availableQuantity = getInventoryQuantity();
-    return availableQuantity >= parseInt(currentItem.dquantity);
+    // 移除庫存數量檢查，允許負數庫存
+    return true;
   };
 
   // 獲取當前選中產品的進貨價
@@ -139,7 +139,7 @@ const ItemForm = ({
             type="number"
             value={currentItem.dquantity}
             onChange={handleQuantityChange}
-            inputProps={{ min: 1 }}
+            inputProps={{ min: null }}
             error={!isInventorySufficient()}
             helperText={!isInventorySufficient() ? "庫存不足" : ""}
             onKeyDown={handleQuantityKeyDown}
@@ -177,7 +177,7 @@ const ItemForm = ({
         </Button>
       </Grid>
       
-      {!isInventorySufficient() && (
+      {false && (
         <Grid item xs={12}>
           <Alert severity="error">
             庫存不足！當前庫存: {getInventoryQuantity()}, 需要: {currentItem.dquantity}
