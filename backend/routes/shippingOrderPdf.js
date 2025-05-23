@@ -70,18 +70,34 @@ router.get('/pdf/:id', async (req, res) => {
 
       // 添加表格標題
     const tableTop = doc.y;
-    const tableHeaders = ['項目', '數量', '單價', '小計'];
+    const tableHeaders = ['序號', '項目', '數量', '單價', '小計'];
     // 調整欄寬以避免數字重疊
-    const columnWidths = [220, 80, 80, 80];
+    const columnWidths = [40, 180, 80, 80, 80];
     let currentY = tableTop;
     
     // 繪製表格標題
     doc.fontSize(10);
     let currentX = 50;
+    
+    // 繪製表格外框
+    doc.lineWidth(0.5);
+    doc.strokeColor('#000000');
+    doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+    
+    // 繪製表格標題
     tableHeaders.forEach((header, i) => {
-      const align = i === 0 ? 'left' : 'center';
+      const align = i === 0 || i === 1 ? 'left' : 'center';
       doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
       currentX += columnWidths[i];
+      
+      // 繪製垂直分隔線（除了最後一列）
+      if (i < tableHeaders.length - 1) {
+        doc.lineWidth(0.2);
+        doc.strokeColor('#666666');
+        doc.moveTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY)
+           .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + 20)
+           .stroke();
+      }
     });
     currentY += 20;
     
@@ -95,37 +111,86 @@ router.get('/pdf/:id', async (req, res) => {
           
           // 在新頁重繪表格標題
           currentX = 50;
+          
+          // 繪製表格外框
+          doc.lineWidth(0.5);
+          doc.strokeColor('#000000');
+          doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+          
           tableHeaders.forEach((header, i) => {
-            const align = i === 0 ? 'left' : 'center';
+            const align = i === 0 || i === 1 ? 'left' : 'center';
             doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
             currentX += columnWidths[i];
+            
+            // 繪製垂直分隔線（除了最後一列）
+            if (i < tableHeaders.length - 1) {
+              doc.lineWidth(0.2);
+              doc.strokeColor('#666666');
+              doc.moveTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY)
+                 .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + 20)
+                 .stroke();
+            }
           });
           currentY += 20;
         }
         
+        // 繪製項目行外框
+        doc.lineWidth(0.2);
+        doc.strokeColor('#666666');
+        doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+        
         // 繪製項目行
         currentX = 50;
-        // 項目名稱靠左對齊
-        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[0], align: 'left' });
+        
+        // 序號靠左對齊
+        doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'left' });
         currentX += columnWidths[0];
         
-        // 數量置中對齊
-        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[1], align: 'center' });
+        // 繪製第一條垂直分隔線
+        doc.moveTo(currentX, currentY)
+           .lineTo(currentX, currentY + 20)
+           .stroke();
+        
+        // 項目名稱靠左對齊
+        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[1], align: 'left' });
         currentX += columnWidths[1];
+        
+        // 繪製第二條垂直分隔線
+        doc.moveTo(currentX, currentY)
+           .lineTo(currentX, currentY + 20)
+           .stroke();
+        
+        // 數量置中對齊
+        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[2], align: 'center' });
+        currentX += columnWidths[2];
+        
+        // 繪製第三條垂直分隔線
+        doc.moveTo(currentX, currentY)
+           .lineTo(currentX, currentY + 20)
+           .stroke();
         
         // 單價靠右對齊，但保留右側空間
         const dprice = (item.dtotalCost || 0) / (item.dquantity || 1);
-        doc.text(formatCurrency(dprice), currentX, currentY, { width: columnWidths[2] , align: 'center' });
-        currentX += columnWidths[2];
+        doc.text(formatCurrency(dprice), currentX, currentY, { width: columnWidths[3] , align: 'center' });
+        currentX += columnWidths[3];
+        
+        // 繪製第四條垂直分隔線
+        doc.moveTo(currentX, currentY)
+           .lineTo(currentX, currentY + 20)
+           .stroke();
         
         // 小計靠右對齊，但保留右側空間
         const subtotal = (item.dtotalCost || 0) ;
-        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[3] - 1, align: 'center' });
+        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[4] - 1, align: 'center' });
         
         currentY += 20;
       });
     } else {
-      doc.text('無項目', 50, currentY, { align: 'center' });
+      // 無項目時繪製空行
+      doc.lineWidth(0.2);
+      doc.strokeColor('#666666');
+      doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
+      doc.text('無項目', 50, currentY, { align: 'center', width: doc.page.width - 100 });
       currentY += 20;
     }
     
