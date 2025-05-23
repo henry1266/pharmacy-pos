@@ -50,20 +50,41 @@ const SalesProductInput = ({
     if (!barcode.trim()) return;
 
     try {
-      if (filteredProducts.length > 0) {
+      // 如果已經有選中的產品（通過下拉選單點選），直接使用它
+      if (selectedProduct) {
+        onSelectProduct(selectedProduct);
+        setSelectedProduct(null); // 重置選中狀態，避免影響下次選擇
+      } 
+      // 否則嘗試精確匹配
+      else if (filteredProducts.length > 0) {
+        // 優先使用精確匹配
         const exactMatch = filteredProducts.find(
-          p => String(p.code) === barcode.trim() || String(p.barcode) === barcode.trim()
+          p => String(p.code) === barcode.trim() || 
+               String(p.barcode) === barcode.trim() || 
+               String(p.shortCode) === barcode.trim() ||
+               String(p.healthInsuranceCode) === barcode.trim()
         );
-        const selected = exactMatch || filteredProducts[0];
-        onSelectProduct(selected);
-        setSelectedProduct(selected);
+        
+        // 如果沒有精確匹配，但有過濾結果，使用第一個結果
+        // 這裡不再自動選擇第一個結果，除非是精確匹配
+        if (exactMatch) {
+          onSelectProduct(exactMatch);
+        } else {
+          // 如果沒有精確匹配，顯示警告
+          showSnackbar(`找不到與 "${barcode}" 精確匹配的產品，請從下拉選單選擇`, 'warning');
+          return; // 提前返回，不清空輸入框，讓用戶可以從下拉選單選擇
+        }
       } else {
+        // 在所有產品中查找精確匹配
         const product = products.find(
-          p => String(p.barcode) === barcode.trim() || String(p.code) === barcode.trim()
+          p => String(p.barcode) === barcode.trim() || 
+               String(p.code) === barcode.trim() || 
+               String(p.shortCode) === barcode.trim() ||
+               String(p.healthInsuranceCode) === barcode.trim()
         );
+        
         if (product) {
           onSelectProduct(product);
-          setSelectedProduct(product);
         } else {
           showSnackbar(`找不到條碼/代碼 ${barcode} 對應的產品`, 'warning');
         }

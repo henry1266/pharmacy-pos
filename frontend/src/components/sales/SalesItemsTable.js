@@ -70,31 +70,45 @@ const SalesItemsTable = ({
                     <TextField
                       type="number"
                       value={item.quantity}
+                      onClick={(e) => {
+                        // 點擊時選中全部文字，方便直接輸入新數量
+                        e.target.select();
+                      }}
                       onChange={(e) => {
                         const newQuantityStr = e.target.value;
+                        // 只允許數字輸入，避免非法字符
                         if (newQuantityStr === '') {
-                            onQuantityChange(index, ''); // Allow empty string temporarily
-                        } else {
+                            onQuantityChange(index, ''); // 允許暫時為空
+                        } else if (/^\d+$/.test(newQuantityStr)) {
                             const newQuantity = parseInt(newQuantityStr, 10);
-                            if (!isNaN(newQuantity) && newQuantity >= 1) {
+                            if (newQuantity >= 1) {
                                 onQuantityChange(index, newQuantity);
                             }
                         }
                       }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
+                          e.preventDefault(); // 防止表單提交
+                          // 確保數量有效
                           if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
-                            onQuantityChange(index, 1); // Reset to 1 if invalid
+                            onQuantityChange(index, 1); // 無效時重置為 1
                           }
-                          onQuantityInputComplete && onQuantityInputComplete();
+                          // 完成輸入，返回到條碼輸入框
                           e.target.blur();
+                          setTimeout(() => {
+                            onQuantityInputComplete && onQuantityInputComplete();
+                          }, 50); // 短暫延遲確保狀態更新
                         }
                       }}
-                      onBlur={() => {
+                      onBlur={(e) => {
+                        // 失去焦點時確保數量有效
                         if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
-                          onQuantityChange(index, 1); // Reset to 1 if invalid
+                          onQuantityChange(index, 1); // 無效時重置為 1
                         }
-                        onQuantityInputComplete && onQuantityInputComplete();
+                        // 使用 setTimeout 確保狀態更新後再切換焦點
+                        setTimeout(() => {
+                          onQuantityInputComplete && onQuantityInputComplete();
+                        }, 50);
                       }}
                       size="small"
                       sx={{ width: '80px', mx: 0.5, "& input": { textAlign: "center" } }} // Increased width
