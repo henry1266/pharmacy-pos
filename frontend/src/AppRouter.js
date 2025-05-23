@@ -24,6 +24,7 @@ import AccountingPage from './pages/AccountingPage';
 import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage';
+import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage'; // Import All Categories Detail Page
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
@@ -69,6 +70,7 @@ const AppRouter = () => {
       <Route path="/accounting" element={<AccountingPage />} />
       <Route path="/accounting/new" element={<AccountingNewPage />} />
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
+      <Route path="/accounting/categories/all" element={<AllCategoriesDetailPage />} />
       <Route path="/accounting/categories/:categoryId" element={<AccountingCategoryDetailPage />} />
       
       {/* Settings routes (assuming they require login) */}
