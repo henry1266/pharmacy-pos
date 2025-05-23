@@ -70,9 +70,9 @@ router.get('/pdf/:id', async (req, res) => {
 
       // 添加表格標題
     const tableTop = doc.y;
-    const tableHeaders = ['序號', '項目', '數量', '單價', '小計'];
+    const tableHeaders = ['序號', '健保代碼', '項目', '數量', '單價', '小計'];
     // 調整欄寬以避免數字重疊
-    const columnWidths = [30, 220, 80, 80, 80];
+    const columnWidths = [40, 80, 140, 60, 60, 80];
     let currentY = tableTop;
     
     // 繪製表格標題
@@ -151,8 +151,9 @@ router.get('/pdf/:id', async (req, res) => {
            .lineTo(currentX, currentY + 20)
            .stroke();
         
-        // 項目名稱靠左對齊
-        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[1] - 10, align: 'left' });
+        // 健保代碼靠左對齊
+        // 從 item.did 取得健保代碼，通常藥品代碼就是健保代碼
+        doc.text(item.did || 'N/A', currentX, currentY, { width: columnWidths[1] - 10, align: 'left' });
         currentX += columnWidths[1];
         
         // 繪製第二條垂直分隔線
@@ -160,9 +161,18 @@ router.get('/pdf/:id', async (req, res) => {
            .lineTo(currentX, currentY + 20)
            .stroke();
         
-        // 數量置中對齊
-        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[2], align: 'center' });
+        // 項目名稱靠左對齊
+        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[2] - 10, align: 'left' });
         currentX += columnWidths[2];
+        
+        // 繪製第三條垂直分隔線
+        doc.moveTo(currentX, currentY)
+           .lineTo(currentX, currentY + 20)
+           .stroke();
+        
+        // 數量置中對齊
+        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[3], align: 'center' });
+        currentX += columnWidths[3];
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
