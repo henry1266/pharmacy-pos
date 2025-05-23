@@ -152,8 +152,8 @@ router.get('/pdf/:id', async (req, res) => {
            .stroke();
         
         // 健保代碼靠左對齊
-        // 從 item.did 取得健保代碼，通常藥品代碼就是健保代碼
-        doc.text(item.did || 'N/A', currentX, currentY, { width: columnWidths[1] - 10, align: 'left' });
+        // 從 item.healthInsuranceCode 取得健保代碼
+        doc.text(item.healthInsuranceCode || 'N/A', currentX, currentY, { width: columnWidths[1] - 10, align: 'left' });
         currentX += columnWidths[1];
         
         // 繪製第二條垂直分隔線
