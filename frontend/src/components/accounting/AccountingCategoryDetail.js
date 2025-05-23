@@ -403,7 +403,13 @@ const AccountingCategoryDetail = () => {
                 <Typography variant="h6" gutterBottom>
                   {currentYear}年度月度統計表
                 </Typography>
-                <List sx={{ width: '100%' }}>
+                <List 
+                  sx={{ 
+                    width: '100%',
+                    maxHeight: 'calc(100vh - 300px)', // 限制最大高度，避免超出螢幕
+                    overflow: 'auto' // 加入滾動功能
+                  }}
+                >
                   {monthNames.map((month, index) => (
                     <ListItem 
                       key={index} 
@@ -417,27 +423,47 @@ const AccountingCategoryDetail = () => {
                       }}
                     >
                       <ListItemButton onClick={() => handleMonthSelect(index)}>
-                        <ListItemText 
-                          primary={month} 
-                          secondary={`$${monthlyData[index]}`} 
-                          primaryTypographyProps={{
-                            fontWeight: selectedMonth === index ? 'bold' : 'normal'
-                          }}
-                          secondaryTypographyProps={{
-                            color: monthlyData[index] > 0 ? 'primary' : 'text.secondary',
-                            fontWeight: 'bold'
-                          }}
-                        />
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          width: '100%' 
+                        }}>
+                          <Typography 
+                            sx={{ 
+                              color: 'text.primary', // 黑色文字
+                              fontWeight: selectedMonth === index ? 'bold' : 'normal'
+                            }}
+                          >
+                            {month}
+                          </Typography>
+                          <Typography 
+                            sx={{ 
+                              color: monthlyData[index] > 0 ? 'primary.main' : 'text.secondary',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            ${monthlyData[index]}
+                          </Typography>
+                        </Box>
                       </ListItemButton>
                     </ListItem>
                   ))}
                   <ListItem sx={{ backgroundColor: '#f5f5f5' }}>
-                    <ListItemText 
-                      primary="總計" 
-                      secondary={`$${calculateYearlyTotal()}`}
-                      primaryTypographyProps={{ fontWeight: 'bold' }}
-                      secondaryTypographyProps={{ fontWeight: 'bold', color: 'primary' }}
-                    />
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      width: '100%',
+                      px: 2
+                    }}>
+                      <Typography sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        總計
+                      </Typography>
+                      <Typography sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                        ${calculateYearlyTotal()}
+                      </Typography>
+                    </Box>
                   </ListItem>
                 </List>
               </Paper>
