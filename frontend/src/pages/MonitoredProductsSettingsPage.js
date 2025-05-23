@@ -13,7 +13,8 @@ import {
   CircularProgress,
   Alert,
   Paper,
-  Divider
+  Divider,
+  Chip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -83,15 +84,14 @@ const MonitoredProductsSettingsPage = () => {
   return (
     <Container maxWidth="md">
       <Paper sx={{ p: 3, my: 3 }}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 'bold' }}>
           管理監測產品
         </Typography>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography variant="body1" color="text.primary" gutterBottom>
           在此處新增或刪除需要在「新增記帳」頁面監測銷售狀況的產品編號。
         </Typography>
-
         <Divider sx={{ my: 2 }} />
-
+        
         {/* Add Product Section */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <TextField
@@ -113,11 +113,12 @@ const MonitoredProductsSettingsPage = () => {
             新增
           </Button>
         </Box>
-
+        
         {/* Product List Section */}
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', mt: 3 }}>
           目前監測的產品列表
         </Typography>
+        
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
             <CircularProgress />
@@ -125,15 +126,23 @@ const MonitoredProductsSettingsPage = () => {
         ) : error ? (
           <Alert severity="error">{error}</Alert>
         ) : products.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body1" color="text.primary">
             目前沒有設定任何監測產品。
           </Typography>
         ) : (
-          <List dense>
+          <List>
             {products.map((product) => (
               <ListItem 
                 key={product._id}
                 divider
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  borderRadius: '4px',
+                  mb: 1,
+                  '&:hover': {
+                    backgroundColor: '#e3f2fd',
+                  }
+                }}
                 secondaryAction={
                   <IconButton
                     edge="end"
@@ -146,8 +155,31 @@ const MonitoredProductsSettingsPage = () => {
                 }
               >
                 <ListItemText 
-                  primary={product.productCode} 
-                  // secondary={`Added by: ${product.addedBy?.name || 'N/A'} on ${new Date(product.addedAt).toLocaleDateString()}`}
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip 
+                        label={product.productCode} 
+                        color="primary" 
+                        size="small" 
+                        sx={{ fontWeight: 'bold' }}
+                      />
+                      <Typography 
+                        variant="body1" 
+                        component="span" 
+                        sx={{ color: '#333', fontWeight: 'medium' }}
+                      >
+                        {product.productName || '未知商品'}
+                      </Typography>
+                    </Box>
+                  }
+                  secondary={`新增時間: ${new Date(product.addedAt).toLocaleString()}`}
+                  primaryTypographyProps={{ 
+                    color: 'text.primary',
+                    fontWeight: 'medium'
+                  }}
+                  secondaryTypographyProps={{ 
+                    color: 'text.secondary'
+                  }}
                 />
               </ListItem>
             ))}
@@ -159,4 +191,3 @@ const MonitoredProductsSettingsPage = () => {
 };
 
 export default MonitoredProductsSettingsPage;
-

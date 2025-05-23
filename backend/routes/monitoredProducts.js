@@ -8,12 +8,31 @@ const auth = require("../middleware/auth");
 const { check, validationResult } = require("express-validator");
 
 // @route   GET api/monitored-products
-// @desc    獲取所有監測產品編號
+// @desc    獲取所有監測產品編號（增強版：包含商品名稱）
 // @access  Private
 router.get("/", auth, async (req, res) => {
   try {
-    const products = await MonitoredProduct.find().sort({ addedAt: -1 });
-    res.json(products);
+    // 獲取所有監測產品
+    const monitoredProducts = await MonitoredProduct.find().sort({ addedAt: -1 });
+    
+    // 使用 Promise.all 並行查詢每個監測產品的詳細資訊
+    const productsWithDetails = await Promise.all(
+      monitoredProducts.map(async (product) => {
+        // 查詢對應的基礎產品以獲取名稱
+        const baseProduct = await BaseProduct.findOne({ code: product.productCode });
+        
+        // 返回合併後的資料
+        return {
+          _id: product._id,
+          productCode: product.productCode,
+          productName: baseProduct ? baseProduct.name : '未知商品',
+          addedBy: product.addedBy,
+          addedAt: product.addedAt
+        };
+      })
+    );
+    
+    res.json(productsWithDetails);
   } catch (err) {
     console.error("獲取監測產品失敗:", err.message);
     res.status(500).send("伺服器錯誤");
@@ -34,30 +53,35 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
     const { productCode } = req.body;
-
     try {
       // 1. 檢查產品編號是否存在於 BaseProduct 中 (Using alternative import)
       const productExists = await BaseProduct.findOne({ code: productCode });
       if (!productExists) {
         return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品，無法加入監測` });
       }
-
       // 2. 檢查是否已存在相同的監測產品編號
       let monitoredProduct = await MonitoredProduct.findOne({ productCode });
       if (monitoredProduct) {
         return res.status(400).json({ msg: "該產品編號已在監測列表中" });
       }
-
       // 3. 新增監測產品
       monitoredProduct = new MonitoredProduct({
         productCode,
         addedBy: req.user.id, // 記錄添加者
       });
-
       await monitoredProduct.save();
-      res.json(monitoredProduct);
+      
+      // 4. 返回包含產品名稱的完整資訊
+      const responseData = {
+        _id: monitoredProduct._id,
+        productCode: monitoredProduct.productCode,
+        productName: productExists.name,
+        addedBy: monitoredProduct.addedBy,
+        addedAt: monitoredProduct.addedAt
+      };
+      
+      res.json(responseData);
     } catch (err) {
       console.error("新增監測產品失敗:", err.message);
       // Handle potential duplicate key error during save, although findOne should catch it first
@@ -75,20 +99,16 @@ router.post(
 router.delete("/:id", auth, async (req, res) => {
   try {
     const monitoredProduct = await MonitoredProduct.findById(req.params.id);
-
     if (!monitoredProduct) {
       return res.status(404).json({ msg: "找不到要刪除的監測產品記錄" });
     }
-
     // 可選：權限檢查，例如只允許添加者刪除
     // if (monitoredProduct.addedBy.toString() !== req.user.id) {
     //   return res.status(401).json({ msg: "權限不足" });
     // }
-
     // Mongoose 6.x+ uses findByIdAndDelete()
     await MonitoredProduct.findByIdAndDelete(req.params.id);
     // If Mongoose 5.x, use: await monitoredProduct.remove();
-
     res.json({ msg: "監測產品已刪除" });
   } catch (err) {
     console.error("刪除監測產品失敗:", err.message);
@@ -100,4 +120,3 @@ router.delete("/:id", auth, async (req, res) => {
 });
 
 module.exports = router;
-
