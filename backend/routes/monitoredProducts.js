@@ -18,21 +18,34 @@ router.get("/", auth, async (req, res) => {
     // 使用 Promise.all 並行查詢每個監測產品的詳細資訊
     const productsWithDetails = await Promise.all(
       monitoredProducts.map(async (product) => {
+        // 將 productCode 轉換為字串，確保類型一致性
+        const productCodeStr = String(product.productCode);
+        
         // 查詢對應的基礎產品以獲取名稱 - 修正查詢條件，同時檢查 code 和 shortCode
+        // 使用 $regex 和 $options 進行不區分大小寫的精確匹配
         const baseProduct = await BaseProduct.findOne({ 
           $or: [
-            { code: product.productCode },
-            { shortCode: product.productCode }
+            { code: { $regex: `^${productCodeStr}$`, $options: 'i' } },
+            { shortCode: { $regex: `^${productCodeStr}$`, $options: 'i' } }
           ] 
         });
         
+        // 記錄查詢結果，幫助調試
+        console.log(`查詢產品: ${productCodeStr}, 結果:`, baseProduct ? 
+          `找到產品 - 名稱: ${baseProduct.name}, code: ${baseProduct.code}, shortCode: ${baseProduct.shortCode}` : 
+          '未找到產品');
+        
         // 返回合併後的資料，不包含 addedAt
-        return {
+        // 確保 productName 欄位一定有值，並記錄最終回傳的資料
+        const result = {
           _id: product._id,
           productCode: product.productCode,
           productName: baseProduct ? baseProduct.name : '未知產品',
           addedBy: product.addedBy
         };
+        
+        console.log(`最終回傳資料: ${JSON.stringify(result)}`);
+        return result;
       })
     );
     
@@ -60,13 +73,20 @@ router.post(
     const { productCode } = req.body;
     try {
       // 1. 檢查產品編號是否存在於 BaseProduct 中 (Using alternative import)
-      // 修正查詢條件，同時檢查 code 和 shortCode
+      // 修正查詢條件，同時檢查 code 和 shortCode，並確保類型一致性
+      const productCodeStr = String(productCode);
       const productExists = await BaseProduct.findOne({ 
         $or: [
-          { code: productCode },
-          { shortCode: productCode }
+          { code: { $regex: `^${productCodeStr}$`, $options: 'i' } },
+          { shortCode: { $regex: `^${productCodeStr}$`, $options: 'i' } }
         ] 
       });
+      
+      // 記錄查詢結果，幫助調試
+      console.log(`新增監測產品: ${productCodeStr}, 查詢結果:`, productExists ? 
+        `找到產品 - 名稱: ${productExists.name}, code: ${productExists.code}, shortCode: ${productExists.shortCode}` : 
+        '未找到產品');
+        
       if (!productExists) {
         return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品，無法加入監測` });
       }

@@ -163,15 +163,13 @@ const MonitoredProductsSettingsPage = () => {
                         size="small" 
                         sx={{ fontWeight: 'bold' }}
                       />
-                      {product.productName && (
-                        <Typography 
-                          variant="body1" 
-                          component="span" 
-                          sx={{ color: '#333', fontWeight: 'medium' }}
-                        >
-                          {product.productName}
-                        </Typography>
-                      )}
+                      <Typography 
+                        variant="body1" 
+                        component="span" 
+                        sx={{ color: '#333', fontWeight: 'medium' }}
+                      >
+                        {product.productName || '未知產品'}
+                      </Typography>
                     </Box>
                   }
                   primaryTypographyProps={{ 
