@@ -1,6 +1,6 @@
 import React from 'react';
 import AllCategoriesDetail from '../components/accounting/AllCategoriesDetail';
-import Layout from '../components/layout/Layout';
+import Layout from '../components/layout/MainLayout';
 
 /**
  * 所有會計類別彙總頁面
