@@ -72,7 +72,7 @@ router.get('/pdf/:id', async (req, res) => {
     const tableTop = doc.y;
     const tableHeaders = ['序號', '健保代碼', '項目', '數量', '單價', '小計'];
     // 調整欄寬以避免數字重疊
-    const columnWidths = [40, 80, 140, 60, 60, 80];
+    const columnWidths = [30, 60, 220, 60, 60, 60];
     let currentY = tableTop;
     
     // 繪製表格標題
@@ -118,7 +118,7 @@ router.get('/pdf/:id', async (req, res) => {
           doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
           
           tableHeaders.forEach((header, i) => {
-            const align = i === 0 || i === 1 ? 'left' : 'center';
+            const align = 'center';
             doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
             currentX += columnWidths[i];
             
@@ -142,7 +142,7 @@ router.get('/pdf/:id', async (req, res) => {
         // 繪製項目行
         currentX = 50;
         
-        // 序號靠左對齊
+        // 序號
         doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'center' });
         currentX += columnWidths[0];
         
@@ -151,9 +151,9 @@ router.get('/pdf/:id', async (req, res) => {
            .lineTo(currentX, currentY + 20)
            .stroke();
         
-        // 健保代碼靠左對齊
+        // 健保代碼
         // 從 item.healthInsuranceCode 取得健保代碼
-        doc.text(item.healthInsuranceCode || 'N/A', currentX, currentY, { width: columnWidths[1] - 10, align: 'left' });
+        doc.text(item.healthInsuranceCode || 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' });
         currentX += columnWidths[1];
         
         // 繪製第二條垂直分隔線
@@ -161,8 +161,8 @@ router.get('/pdf/:id', async (req, res) => {
            .lineTo(currentX, currentY + 20)
            .stroke();
         
-        // 項目名稱靠左對齊
-        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[2] - 10, align: 'left' });
+        // 項目名稱
+        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' });
         currentX += columnWidths[2];
         
         // 繪製第三條垂直分隔線
@@ -198,7 +198,7 @@ router.get('/pdf/:id', async (req, res) => {
     } else {
       // 無項目時繪製空行
       doc.lineWidth(0.2);
-      doc.strokeColor('#666666');
+      doc.strokeColor('#c0c0c0');
       doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
       doc.text('無項目', 50, currentY, { align: 'center', width: doc.page.width - 100 });
       currentY += 20;
@@ -244,7 +244,7 @@ const formatDate = (dateValue) => {
 // 格式化貨幣
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return 'N/A';
-  return `$${parseFloat(value).toFixed(2)}`;
+  return `$${parseFloat(value).toFixed(1)}`;
 };
 
 
