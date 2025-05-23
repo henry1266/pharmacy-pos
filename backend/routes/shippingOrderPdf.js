@@ -21,7 +21,7 @@ router.get('/pdf/:id', async (req, res) => {
       margin: 50,
       info: {
         Title: `出貨單 #${shippingOrder.soid}`,
-        Author: '藥局POS系統',
+        Author: 'POS系統',
         Subject: '出貨單',
       }
     });
@@ -72,7 +72,7 @@ router.get('/pdf/:id', async (req, res) => {
     const tableTop = doc.y;
     const tableHeaders = ['序號', '項目', '數量', '單價', '小計'];
     // 調整欄寬以避免數字重疊
-    const columnWidths = [40, 180, 80, 80, 80];
+    const columnWidths = [30, 220, 80, 80, 80];
     let currentY = tableTop;
     
     // 繪製表格標題
@@ -80,20 +80,20 @@ router.get('/pdf/:id', async (req, res) => {
     let currentX = 50;
     
     // 繪製表格外框
-    doc.lineWidth(0.5);
-    doc.strokeColor('#000000');
+    doc.lineWidth(0.2);
+    doc.strokeColor('#c0c0c0');
     doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
     
     // 繪製表格標題
     tableHeaders.forEach((header, i) => {
-      const align = i === 0 || i === 1 ? 'left' : 'center';
+      const align = 'center';
       doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
       currentX += columnWidths[i];
       
       // 繪製垂直分隔線（除了最後一列）
       if (i < tableHeaders.length - 1) {
         doc.lineWidth(0.2);
-        doc.strokeColor('#666666');
+        doc.strokeColor('#c0c0c0');
         doc.moveTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY)
            .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + 20)
            .stroke();
@@ -113,8 +113,8 @@ router.get('/pdf/:id', async (req, res) => {
           currentX = 50;
           
           // 繪製表格外框
-          doc.lineWidth(0.5);
-          doc.strokeColor('#000000');
+          doc.lineWidth(0.2);
+          doc.strokeColor('#c0c0c0');
           doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
           
           tableHeaders.forEach((header, i) => {
@@ -125,7 +125,7 @@ router.get('/pdf/:id', async (req, res) => {
             // 繪製垂直分隔線（除了最後一列）
             if (i < tableHeaders.length - 1) {
               doc.lineWidth(0.2);
-              doc.strokeColor('#666666');
+              doc.strokeColor('#c0c0c0');
               doc.moveTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY)
                  .lineTo(50 + columnWidths.slice(0, i + 1).reduce((a, b) => a + b, 0), currentY + 20)
                  .stroke();
@@ -136,14 +136,14 @@ router.get('/pdf/:id', async (req, res) => {
         
         // 繪製項目行外框
         doc.lineWidth(0.2);
-        doc.strokeColor('#666666');
+        doc.strokeColor('#c0c0c0');
         doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
         
         // 繪製項目行
         currentX = 50;
         
         // 序號靠左對齊
-        doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'left' });
+        doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'center' });
         currentX += columnWidths[0];
         
         // 繪製第一條垂直分隔線
@@ -152,7 +152,7 @@ router.get('/pdf/:id', async (req, res) => {
            .stroke();
         
         // 項目名稱靠左對齊
-        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[1], align: 'left' });
+        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[1] - 10, align: 'left' });
         currentX += columnWidths[1];
         
         // 繪製第二條垂直分隔線
