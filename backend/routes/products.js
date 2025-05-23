@@ -9,6 +9,8 @@ const path = require('path');
 
 // 模型 - 修正導入方式
 const { BaseProduct, Product, Medicine } = require('../models/BaseProduct');
+// 導入編號產生器
+const { generateNextProductCode, generateNextMedicineCode } = require('../utils/codeGenerator');
 
 // 配置multer存儲
 const storage = multer.diskStorage({
@@ -155,7 +157,7 @@ router.post(
       
       // 創建商品對象
       const productFields = {
-        code: code || `P${Date.now()}`,
+        code: code || await generateNextProductCode(), // 使用自動產生的編號
         shortCode,
         name,
         productType: 'product',
@@ -217,7 +219,7 @@ router.post(
       
       // 創建藥品對象
       const medicineFields = {
-        code: code || `M${Date.now()}`,
+        code: code || await generateNextMedicineCode(), // 使用自動產生的編號
         shortCode,
         name,
         productType: 'medicine',
@@ -424,7 +426,7 @@ router.post('/import', [auth, upload.single('file')], async (req, res) => {
             
             // 基本產品字段
             const productFields = {
-              code: item.code || (productType === 'product' ? `P${Date.now()}-${Math.floor(Math.random() * 1000)}` : `M${Date.now()}-${Math.floor(Math.random() * 1000)}`),
+              code: item.code || await (productType === 'product' ? generateNextProductCode() : generateNextMedicineCode()),
               shortCode: item.shortCode,
               name: item.name,
               productType,
