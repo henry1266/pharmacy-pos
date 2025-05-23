@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios'; // Import axios
-import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Badge, Collapse, Popover, Button } from '@mui/material'; // Added Popover, Button
+import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Collapse, Popover, Button } from '@mui/material'; // Added Popover, Button
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
@@ -29,12 +29,11 @@ import PointOfSaleOutlinedIcon from '@mui/icons-material/PointOfSaleOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import CategoryIcon from '@mui/icons-material/Category';
-import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import ListAltIcon from '@mui/icons-material/ListAlt'; // Icon for Product List
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
 
 const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon, adminOnly, userRole }) => {

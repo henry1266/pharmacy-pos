@@ -62,7 +62,7 @@ const ProductsPage = () => {
     handleSaveProduct: saveProduct
   } = useProductData();
   
-  const { inventory, getTotalInventory } = useInventoryData(selectedProduct?.id);
+  const { getTotalInventory } = useInventoryData(selectedProduct?.id);
   
   const {
     csvFile,

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardHeader,
@@ -13,7 +12,6 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import InventoryList from './InventoryList';
 
 const ProductDetailCard = ({
@@ -23,7 +21,6 @@ const ProductDetailCard = ({
   handleEditProduct,
   handleDeleteProduct
 }) => {
-  const navigate = useNavigate();
   if (!product) {
     return (
       <Paper sx={{ p: 3, textAlign: 'center' }}>
