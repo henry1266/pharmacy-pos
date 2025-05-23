@@ -18,14 +18,19 @@ router.get("/", auth, async (req, res) => {
     // 使用 Promise.all 並行查詢每個監測產品的詳細資訊
     const productsWithDetails = await Promise.all(
       monitoredProducts.map(async (product) => {
-        // 查詢對應的基礎產品以獲取名稱
-        const baseProduct = await BaseProduct.findOne({ code: product.productCode });
+        // 查詢對應的基礎產品以獲取名稱 - 修正查詢條件，同時檢查 code 和 shortCode
+        const baseProduct = await BaseProduct.findOne({ 
+          $or: [
+            { code: product.productCode },
+            { shortCode: product.productCode }
+          ] 
+        });
         
         // 返回合併後的資料，不包含 addedAt
         return {
           _id: product._id,
           productCode: product.productCode,
-          productName: baseProduct ? baseProduct.name : '',
+          productName: baseProduct ? baseProduct.name : '未知產品',
           addedBy: product.addedBy
         };
       })
@@ -55,7 +60,13 @@ router.post(
     const { productCode } = req.body;
     try {
       // 1. 檢查產品編號是否存在於 BaseProduct 中 (Using alternative import)
-      const productExists = await BaseProduct.findOne({ code: productCode });
+      // 修正查詢條件，同時檢查 code 和 shortCode
+      const productExists = await BaseProduct.findOne({ 
+        $or: [
+          { code: productCode },
+          { shortCode: productCode }
+        ] 
+      });
       if (!productExists) {
         return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品，無法加入監測` });
       }
