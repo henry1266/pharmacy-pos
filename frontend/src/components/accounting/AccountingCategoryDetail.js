@@ -22,7 +22,9 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText
+  ListItemText,
+  Tab,
+  Tabs
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -38,6 +40,21 @@ import {
   isSameDay,
   addDays
 } from 'date-fns';
+import { 
+  BarChart, 
+  Bar, 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 import { getAccountingRecords } from '../../services/accountingService';
 import { getAccountingCategories } from '../../services/accountingCategoryService';
 
@@ -59,6 +76,7 @@ const AccountingCategoryDetail = () => {
   const [dailyData, setDailyData] = useState({});
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [chartType, setChartType] = useState(0); // 0: 長條圖, 1: 折線圖, 2: 圓餅圖
   
   // 獲取類別資訊
   const fetchCategoryInfo = async () => {
@@ -187,6 +205,11 @@ const AccountingCategoryDetail = () => {
     setSelectedMonth(month);
   };
   
+  // 處理圖表類型切換
+  const handleChartTypeChange = (event, newValue) => {
+    setChartType(newValue);
+  };
+  
   // 處理返回按鈕點擊
   const handleBack = () => {
     navigate('/accounting/categories');
@@ -275,7 +298,7 @@ const AccountingCategoryDetail = () => {
             
             return (
               <Grid item xs={12/7} key={`day-${index}`} sx={{ 
-                height: '80px',
+                height: '70px', // 稍微縮小高度
                 p: 1, 
                 border: '1px solid #e0e0e0',
                 backgroundColor: isCurrentMonth ? 'white' : '#f9f9f9',
@@ -311,6 +334,107 @@ const AccountingCategoryDetail = () => {
             );
           })}
         </Grid>
+      </Box>
+    );
+  };
+  
+  // 準備圖表數據
+  const prepareChartData = () => {
+    return Object.keys(monthlyData).map(month => ({
+      name: monthNames[month],
+      金額: monthlyData[month],
+      月份: parseInt(month) + 1
+    }));
+  };
+  
+  // 生成數據可視化圖表
+  const generateDataVisualization = () => {
+    const data = prepareChartData();
+    const maxValue = Math.max(...Object.values(monthlyData));
+    
+    // 圖表顏色
+    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+    
+    // 圓餅圖數據
+    const pieData = data.filter(item => item.金額 > 0);
+    
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          {currentYear}年度數據可視化
+        </Typography>
+        
+        <Box sx={{ mb: 2 }}>
+          <Tabs value={chartType} onChange={handleChartTypeChange} centered>
+            <Tab label="長條圖" />
+            <Tab label="折線圖" />
+            <Tab label="圓餅圖" />
+          </Tabs>
+        </Box>
+        
+        <Box sx={{ height: 300, mt: 2 }}>
+          {chartType === 0 && (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="月份" />
+                <YAxis />
+                <RechartsTooltip 
+                  formatter={(value) => [`$${value}`, '金額']}
+                  labelFormatter={(label) => `${label}月`}
+                />
+                <Legend />
+                <Bar dataKey="金額" fill="#8884d8" name="金額" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+          
+          {chartType === 1 && (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="月份" />
+                <YAxis />
+                <RechartsTooltip 
+                  formatter={(value) => [`$${value}`, '金額']}
+                  labelFormatter={(label) => `${label}月`}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="金額" 
+                  stroke="#8884d8" 
+                  activeDot={{ r: 8 }} 
+                  name="金額"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+          
+          {chartType === 2 && (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={true}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="金額"
+                  nameKey="name"
+                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip formatter={(value) => [`$${value}`, '金額']} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </Box>
       </Box>
     );
   };
@@ -396,18 +520,22 @@ const AccountingCategoryDetail = () => {
             ))}
           </Box>
           
-          <Grid container spacing={3}>
-            {/* 左側月份列表 */}
-            <Grid item xs={12} md={5} lg={4}>
-              <Paper sx={{ p: 2, height: '100%' }}>
-                <Typography variant="h6" gutterBottom>
-                  {currentYear}年度月度統計表
+          <Grid container spacing={2}>
+            {/* 左側月份列表 - 更緊湊 */}
+            <Grid item xs={12} md={3} lg={2}>
+              <Paper sx={{ p: 1, height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1, textAlign: 'center' }}>
+                  {currentYear}年月度統計
                 </Typography>
                 <List 
+                  dense
                   sx={{ 
                     width: '100%',
-                    maxHeight: 'calc(100vh - 300px)', // 限制最大高度，避免超出螢幕
-                    overflow: 'auto' // 加入滾動功能
+                    maxHeight: 'calc(100vh - 280px)', // 限制最大高度，避免超出螢幕
+                    overflow: 'auto', // 加入滾動功能
+                    '& .MuiListItem-root': {
+                      py: 0.5 // 減少上下間距
+                    }
                   }}
                 >
                   {monthNames.map((month, index) => (
@@ -422,7 +550,10 @@ const AccountingCategoryDetail = () => {
                         }
                       }}
                     >
-                      <ListItemButton onClick={() => handleMonthSelect(index)}>
+                      <ListItemButton 
+                        onClick={() => handleMonthSelect(index)}
+                        sx={{ py: 0.5 }} // 減少上下間距
+                      >
                         <Box sx={{ 
                           display: 'flex', 
                           justifyContent: 'space-between', 
@@ -430,6 +561,7 @@ const AccountingCategoryDetail = () => {
                           width: '100%' 
                         }}>
                           <Typography 
+                            variant="body2"
                             sx={{ 
                               color: 'text.primary', // 黑色文字
                               fontWeight: selectedMonth === index ? 'bold' : 'normal'
@@ -438,6 +570,7 @@ const AccountingCategoryDetail = () => {
                             {month}
                           </Typography>
                           <Typography 
+                            variant="body2"
                             sx={{ 
                               color: monthlyData[index] > 0 ? 'primary.main' : 'text.secondary',
                               fontWeight: 'bold'
@@ -449,18 +582,18 @@ const AccountingCategoryDetail = () => {
                       </ListItemButton>
                     </ListItem>
                   ))}
-                  <ListItem sx={{ backgroundColor: '#f5f5f5' }}>
+                  <ListItem sx={{ backgroundColor: '#f5f5f5', py: 0.5 }}>
                     <Box sx={{ 
                       display: 'flex', 
                       justifyContent: 'space-between', 
                       alignItems: 'center',
                       width: '100%',
-                      px: 2
+                      px: 1
                     }}>
-                      <Typography sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                         總計
                       </Typography>
-                      <Typography sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                         ${calculateYearlyTotal()}
                       </Typography>
                     </Box>
@@ -469,10 +602,17 @@ const AccountingCategoryDetail = () => {
               </Paper>
             </Grid>
             
-            {/* 右側日曆 */}
-            <Grid item xs={12} md={7} lg={8}>
-              <Paper sx={{ p: 2 }}>
+            {/* 中間日曆 */}
+            <Grid item xs={12} md={4} lg={5}>
+              <Paper sx={{ p: 1 }}>
                 {generateCalendarGrid()}
+              </Paper>
+            </Grid>
+            
+            {/* 右側數據可視化 */}
+            <Grid item xs={12} md={5} lg={5}>
+              <Paper sx={{ p: 1 }}>
+                {generateDataVisualization()}
               </Paper>
             </Grid>
           </Grid>
