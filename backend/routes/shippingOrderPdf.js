@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ShippingOrder = require('../models/ShippingOrder');
+const { BaseProduct, Medicine } = require('../models/BaseProduct');
 const path = require('path');
 const PDFDocument = require('pdfkit');
 const dayjs = require('dayjs');
@@ -14,6 +15,33 @@ router.get('/pdf/:id', async (req, res) => {
     if (!shippingOrder) {
       return res.status(404).json({ msg: '找不到出貨單' });
     }
+    
+    // 收集所有產品ID
+    const productIds = shippingOrder.items.map(item => item.product);
+    
+    // 批次查詢所有相關產品
+    const products = await BaseProduct.find({ _id: { $in: productIds } }).lean();
+    
+    // 建立產品ID到健保代碼的映射
+    const productHealthInsuranceMap = {};
+    products.forEach(product => {
+      // 如果是藥品類型且有健保代碼，則記錄健保代碼
+      if (product.productType === 'medicine' && product.healthInsuranceCode) {
+        productHealthInsuranceMap[product._id.toString()] = product.healthInsuranceCode;
+      } else {
+        // 非藥品或無健保代碼時，使用產品代碼
+        productHealthInsuranceMap[product._id.toString()] = product.code || 'N/A';
+      }
+    });
+    
+    // 為每個項目添加健保代碼
+    shippingOrder.items = shippingOrder.items.map(item => {
+      const productId = item.product.toString();
+      return {
+        ...item,
+        healthInsuranceCode: productHealthInsuranceMap[productId] || 'N/A'
+      };
+    });
 
     // 創建PDF文檔
     const doc = new PDFDocument({
