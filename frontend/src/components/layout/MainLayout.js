@@ -173,7 +173,7 @@ const MainLayout = ({ children }) => {
         { text: '基本資料', path: '/employees/basic-info', icon: <PersonIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '排班系統', path: '/employees/scheduling', icon: <CalendarMonthIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '加班管理', path: '/employees/overtime', icon: <AccessTimeIcon fontSize="small" sx={{ ml: 1 }} /> },
-      ], adminOnly: true
+      ]
     },
     { text: '會員管理', icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, path: '/customers', adminOnly: true },
     { text: '記帳管理', icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, subItems: [
