@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   Typography, 
   Paper, 
@@ -26,7 +27,8 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle
+  DialogTitle,
+  Snackbar
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -38,6 +40,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 /**
  * 員工列表頁面
  * 顯示所有員工的基本資料，提供搜尋、排序、新增、編輯、刪除功能
+ * 從 MongoDB 獲取真實資料
  */
 const EmployeeListPage = () => {
   const [user, setUser] = useState(null);
@@ -50,24 +53,47 @@ const EmployeeListPage = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
   const navigate = useNavigate();
 
-  // 模擬員工資料
-  const mockEmployees = [
-    { id: '1', name: '王大明', gender: '男', department: '藥劑部', position: '藥師', phone: '0912-345-678', hireDate: '2020-01-15' },
-    { id: '2', name: '李小華', gender: '女', department: '行政部', position: '行政助理', phone: '0923-456-789', hireDate: '2021-03-20' },
-    { id: '3', name: '張美玲', gender: '女', department: '藥劑部', position: '資深藥師', phone: '0934-567-890', hireDate: '2018-05-10' },
-    { id: '4', name: '陳志明', gender: '男', department: '資訊部', position: '系統工程師', phone: '0945-678-901', hireDate: '2022-02-01' },
-    { id: '5', name: '林雅婷', gender: '女', department: '行政部', position: '人資專員', phone: '0956-789-012', hireDate: '2019-11-15' },
-    { id: '6', name: '黃建志', gender: '男', department: '藥劑部', position: '藥師助理', phone: '0967-890-123', hireDate: '2021-07-05' },
-    { id: '7', name: '吳佳穎', gender: '女', department: '客服部', position: '客服專員', phone: '0978-901-234', hireDate: '2020-09-30' },
-    { id: '8', name: '趙明宏', gender: '男', department: '管理部', position: '部門主管', phone: '0989-012-345', hireDate: '2017-04-18' },
-    { id: '9', name: '周雅文', gender: '女', department: '藥劑部', position: '實習藥師', phone: '0990-123-456', hireDate: '2023-01-10' },
-    { id: '10', name: '謝宗翰', gender: '男', department: '資訊部', position: '前端工程師', phone: '0901-234-567', hireDate: '2022-06-20' },
-    { id: '11', name: '鄭美珍', gender: '女', department: '行政部', position: '會計專員', phone: '0912-345-678', hireDate: '2020-03-15' },
-    { id: '12', name: '楊志豪', gender: '男', department: '管理部', position: '專案經理', phone: '0923-456-789', hireDate: '2019-08-01' },
-  ];
+  // 從 API 獲取員工資料
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登入或權限不足');
+      }
 
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+
+      // 構建 API 請求 URL，包含分頁和搜尋參數
+      const url = `/api/employees?page=${page}&limit=${rowsPerPage}&search=${searchTerm}`;
+      
+      const response = await axios.get(url, config);
+      
+      setEmployees(response.data.employees);
+      setTotalCount(response.data.totalCount);
+      setError(null);
+    } catch (err) {
+      console.error('獲取員工資料失敗:', err);
+      setError(err.response?.data?.msg || '獲取員工資料失敗');
+      setEmployees([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始化時獲取用戶資訊和員工資料
   useEffect(() => {
     // 從 localStorage 獲取用戶資訊
     const storedUser = localStorage.getItem('user');
@@ -81,13 +107,19 @@ const EmployeeListPage = () => {
       }
     }
 
-    // 模擬從 API 獲取員工資料
-    setTimeout(() => {
-      setEmployees(mockEmployees);
-      setTotalCount(mockEmployees.length);
-      setLoading(false);
-    }, 800);
-  }, []);
+    // 獲取員工資料
+    fetchEmployees();
+  }, [page, rowsPerPage]); // 當頁碼或每頁筆數變更時重新獲取資料
+
+  // 當搜尋條件變更時，重置頁碼並重新獲取資料
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      setPage(0);
+      fetchEmployees();
+    }, 500); // 延遲 500ms 再執行搜尋，避免頻繁請求
+
+    return () => clearTimeout(delaySearch);
+  }, [searchTerm]);
 
   // 檢查用戶是否為管理員
   const isAdmin = user && user.role === 'admin';
@@ -106,7 +138,6 @@ const EmployeeListPage = () => {
   // 處理搜尋
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
 
   // 處理新增員工
@@ -132,12 +163,41 @@ const EmployeeListPage = () => {
   };
 
   // 處理確認刪除員工
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (employeeToDelete) {
-      // 模擬刪除操作
-      setEmployees(employees.filter(employee => employee.id !== employeeToDelete.id));
-      setTotalCount(prev => prev - 1);
-      handleCloseDeleteDialog();
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('未登入或權限不足');
+        }
+
+        const config = {
+          headers: {
+            'x-auth-token': token
+          }
+        };
+
+        await axios.delete(`/api/employees/${employeeToDelete._id}`, config);
+        
+        // 刪除成功後重新獲取資料
+        fetchEmployees();
+        
+        // 顯示成功訊息
+        setSnackbar({
+          open: true,
+          message: '員工資料已成功刪除',
+          severity: 'success'
+        });
+      } catch (err) {
+        console.error('刪除員工資料失敗:', err);
+        setSnackbar({
+          open: true,
+          message: err.response?.data?.msg || '刪除員工資料失敗',
+          severity: 'error'
+        });
+      } finally {
+        handleCloseDeleteDialog();
+      }
     }
   };
 
@@ -146,18 +206,17 @@ const EmployeeListPage = () => {
     navigate(`/employees/basic-info/${id}`);
   };
 
-  // 過濾員工資料
-  const filteredEmployees = employees.filter(employee => 
-    employee.name.includes(searchTerm) || 
-    employee.department.includes(searchTerm) || 
-    employee.position.includes(searchTerm)
-  );
+  // 處理關閉提示訊息
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
-  // 分頁後的員工資料
-  const paginatedEmployees = filteredEmployees.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  // 格式化日期
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  };
 
   // 如果正在載入，顯示載入中訊息
   if (loading) {
@@ -268,29 +327,29 @@ const EmployeeListPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedEmployees.map((employee) => (
+              {employees.map((employee) => (
                 <TableRow
                   hover
-                  key={employee.id}
-                  onClick={() => handleRowClick(employee.id)}
+                  key={employee._id}
+                  onClick={() => handleRowClick(employee._id)}
                   sx={{ cursor: 'pointer' }}
                 >
                   <TableCell component="th" scope="row">
                     {employee.name}
                   </TableCell>
-                  <TableCell>{employee.gender}</TableCell>
+                  <TableCell>{employee.gender === 'male' ? '男' : '女'}</TableCell>
                   <TableCell>
                     <Chip label={employee.department} size="small" />
                   </TableCell>
                   <TableCell>{employee.position}</TableCell>
                   <TableCell>{employee.phone}</TableCell>
-                  <TableCell>{employee.hireDate}</TableCell>
+                  <TableCell>{formatDate(employee.hireDate)}</TableCell>
                   <TableCell align="right">
                     <Tooltip title="編輯">
                       <IconButton
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleEditEmployee(employee.id);
+                          handleEditEmployee(employee._id);
                         }}
                       >
                         <EditIcon />
@@ -309,7 +368,7 @@ const EmployeeListPage = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {paginatedEmployees.length === 0 && (
+              {employees.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} align="center">
                     {searchTerm ? '沒有符合搜尋條件的員工' : '目前沒有員工資料'}
@@ -323,7 +382,7 @@ const EmployeeListPage = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredEmployees.length}
+          count={totalCount}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -355,6 +414,19 @@ const EmployeeListPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 提示訊息 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        message={snackbar.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

@@ -35,6 +35,7 @@ app.use("/api/monitored-products", require("./routes/monitoredProducts")); // �
 app.use("/api/settings", require("./routes/settings")); // *** Add the new settings route ***
 app.use("/api/config", require("./routes/config")); // Add the new config route
 app.use("/api/csv-import", require("./routes/csvImportApi")); // 新增CSV匯入REST API
+app.use("/api/employees", require("./routes/api/employees")); // 新增員工資料API路由
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {
@@ -49,4 +50,3 @@ if (process.env.NODE_ENV === "production") {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`伺服器已啟動，監聽埠號: ${PORT}`));
-
