@@ -266,7 +266,7 @@ router.get('/pdf/:id', async (req, res) => {
 // 格式化日期
 const formatDate = (dateValue) => {
   if (!dateValue) return 'N/A';
-  return dayjs(dateValue).format('YYYY-MM-DD HH:mm');
+  return dayjs(dateValue).format('YYYY-MM-DD');
 };
 
 // 格式化貨幣
