@@ -170,7 +170,7 @@ const MainLayout = ({ children }) => {
     { text: '出貨單管理', icon: (location.pathname.startsWith('/shipping-orders')) ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, path: '/shipping-orders', adminOnly: true },
     { text: '供應商管理', icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, path: '/suppliers', adminOnly: true },
     { text: '員工管理', icon: isEmployeePath(location.pathname) ? <BadgeOutlinedIcon /> : <BadgeIcon />, subItems: [
-        { text: '基本資料', path: '/employees/basic-info', icon: <PersonIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
+        { text: '基本資料', path: '/employees', icon: <PersonIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
         { text: '排班系統', path: '/employees/scheduling', icon: <CalendarMonthIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '加班管理', path: '/employees/overtime', icon: <AccessTimeIcon fontSize="small" sx={{ ml: 1 }} /> },
       ]
