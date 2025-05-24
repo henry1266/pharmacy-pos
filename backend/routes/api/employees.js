@@ -2,13 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const auth = require('../../middleware/auth');
-const adminAuth = require('../../middleware/adminAuth');
 const Employee = require('../../models/Employee');
 
 // @route   GET api/employees
 // @desc    Get all employees with pagination and search
-// @access  Admin only
-router.get('/', auth, adminAuth, async (req, res) => {
+// @access  Private
+router.get('/', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 0;
     const limit = parseInt(req.query.limit) || 10;
@@ -50,8 +49,8 @@ router.get('/', auth, adminAuth, async (req, res) => {
 
 // @route   GET api/employees/:id
 // @desc    Get employee by ID
-// @access  Admin only
-router.get('/:id', auth, adminAuth, async (req, res) => {
+// @access  Private
+router.get('/:id', auth, async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
 
@@ -71,12 +70,11 @@ router.get('/:id', auth, adminAuth, async (req, res) => {
 
 // @route   POST api/employees
 // @desc    Create a new employee
-// @access  Admin only
+// @access  Private
 router.post(
   '/',
   [
     auth,
-    adminAuth,
     [
       check('name', '姓名為必填欄位').not().isEmpty(),
       check('gender', '性別為必填欄位').isIn(['male', 'female']),
@@ -145,7 +143,7 @@ router.post(
         additionalInfo,
         idCardFront,
         idCardBack,
-        userId
+        userId: userId || req.user.id // 使用當前登入用戶ID作為預設值
       });
 
       const savedEmployee = await newEmployee.save();
@@ -159,8 +157,8 @@ router.post(
 
 // @route   PUT api/employees/:id
 // @desc    Update an employee
-// @access  Admin only
-router.put('/:id', auth, adminAuth, async (req, res) => {
+// @access  Private
+router.put('/:id', auth, async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
 
@@ -205,8 +203,8 @@ router.put('/:id', auth, adminAuth, async (req, res) => {
 
 // @route   DELETE api/employees/:id
 // @desc    Delete an employee
-// @access  Admin only
-router.delete('/:id', auth, adminAuth, async (req, res) => {
+// @access  Private
+router.delete('/:id', auth, async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
 
@@ -214,7 +212,7 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
       return res.status(404).json({ msg: '找不到此員工資料' });
     }
 
-    await employee.remove();
+    await Employee.findByIdAndDelete(req.params.id);
     res.json({ msg: '員工資料已刪除' });
   } catch (err) {
     console.error(err.message);
