@@ -243,16 +243,7 @@ router.get('/pdf/:id', async (req, res) => {
     
     doc.moveDown(2);
     
-    
-    doc.moveDown();
-    doc.text(`列印日期: ${formatDate(new Date())}`, { align: 'center' });
-    
-    // 添加頁碼
-    const pageCount = doc.bufferedPageRange().count;
-    for (let i = 0; i < pageCount; i++) {
-      doc.switchToPage(i);
-      doc.text(`第 ${i + 1} 頁，共 ${pageCount} 頁`, 50, doc.page.height - 100, { align: 'center' });
-    }
+
     
     // 完成PDF生成
     doc.end();
