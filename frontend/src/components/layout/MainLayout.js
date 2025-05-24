@@ -166,12 +166,13 @@ const MainLayout = ({ children }) => {
     { text: '記帳管理', icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, subItems: [
         { text: '記帳列表', path: '/accounting' },
         { text: '名目設定', path: '/accounting/categories', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '業績報表', path: '/accounting/categories/all' },
+        { text: '監測列表', path: '/settings/monitored-products' },
       ]
     },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports', adminOnly: true },
     { text: '系統設定', icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, subItems: [
         { text: '設定列表', path: '/settings' },
-        { text: '監測列表', path: '/settings/monitored-products' },
         { text: 'ip設定', path: '/settings/ip', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
       ]
     },
