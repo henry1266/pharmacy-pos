@@ -79,7 +79,13 @@ const LoginPage = () => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('loginTime', Math.floor(Date.now() / 1000).toString()); // Store login time
-        window.location.replace('/dashboard');
+        
+        // 根據用戶角色決定首頁導向
+        if (user.role === 'staff') {
+          window.location.replace('/sales');
+        } else {
+          window.location.replace('/dashboard');
+        }
       }, 600); // Match animation duration
 
     } catch (err) {
