@@ -31,7 +31,8 @@ import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage
 import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settings page
 
 // 員工管理頁面元件
-import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage'; // 新的員工基本資料頁面
+import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage'; // 員工基本資料頁面
+import EmployeeListPage from './pages/employees/EmployeeListPage'; // 員工列表頁面
 import Scheduling from './components/employees/Scheduling';
 import Overtime from './components/employees/Overtime';
 
@@ -97,9 +98,13 @@ const AppRouter = () => {
       <Route path="/shipping-orders/edit/:id" element={<ShippingOrderFormPage />} />
       <Route path="/shipping-orders/:id" element={<ShippingOrderDetailPage />} />
       
-      {/* 員工管理路由 - 基本資料受 AdminRoute 保護，排班系統和加班管理所有角色可用 */}
-      <Route path="/employees/basic-info" element={<AdminRoute />}>
-        <Route path="" element={<EmployeeBasicInfoPage />} />
+      {/* 員工管理路由 - 受 AdminRoute 保護 */}
+      <Route path="/employees" element={<AdminRoute />}>
+        {/* 員工列表頁面 */}
+        <Route path="" element={<EmployeeListPage />} />
+        {/* 員工基本資料頁面 - 新增與編輯 */}
+        <Route path="basic-info/new" element={<EmployeeBasicInfoPage />} />
+        <Route path="basic-info/:id" element={<EmployeeBasicInfoPage />} />
       </Route>
       <Route path="/employees/scheduling" element={<Scheduling />} />
       <Route path="/employees/overtime" element={<Overtime />} />
