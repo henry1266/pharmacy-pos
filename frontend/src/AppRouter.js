@@ -30,6 +30,11 @@ import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settings page
 
+// 員工管理頁面元件
+import BasicInfo from './components/employees/BasicInfo';
+import Scheduling from './components/employees/Scheduling';
+import Overtime from './components/employees/Overtime';
+
 // Import the AdminRoute guard
 import AdminRoute from './components/common/AdminRoute';
 
@@ -92,6 +97,13 @@ const AppRouter = () => {
       <Route path="/shipping-orders/edit/:id" element={<ShippingOrderFormPage />} />
       <Route path="/shipping-orders/:id" element={<ShippingOrderDetailPage />} />
       
+      {/* 員工管理路由 - 受 AdminRoute 保護 */}
+      <Route path="/employees" element={<AdminRoute />}>
+        <Route path="basic-info" element={<BasicInfo />} />
+        <Route path="scheduling" element={<Scheduling />} />
+        <Route path="overtime" element={<Overtime />} />
+      </Route>
+      
       {/* Fallback for any unmatched route within the protected area */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
@@ -99,4 +111,3 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
-

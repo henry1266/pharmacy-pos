@@ -32,6 +32,11 @@ import CategoryIcon from '@mui/icons-material/Category';
 import ListAltIcon from '@mui/icons-material/ListAlt'; // Icon for Product List
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import BadgeIcon from '@mui/icons-material/Badge';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+import PersonIcon from '@mui/icons-material/Person';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
@@ -59,6 +64,7 @@ const MainLayout = ({ children }) => {
   const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState(false);
   const [productSubMenuOpen, setProductSubMenuOpen ] = useState(false);
   const [settingSubMenuOpen, setSettingSubMenuOpen ] = useState(false);
+  const [employeeSubMenuOpen, setEmployeeSubMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -150,6 +156,7 @@ const MainLayout = ({ children }) => {
   const isProductPath = (path) => path.startsWith('/products') || path.startsWith('/product-categories');
   const isAccountingPath = (path) => path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
   const isSettingPath = (path) => /^\/settings(\/|$)/.test(path);
+  const isEmployeePath = (path) => path.startsWith('/employees');
 
   const menuItems = [
     { text: '儀表板', icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, path: '/dashboard', adminOnly: true },
@@ -162,6 +169,12 @@ const MainLayout = ({ children }) => {
     { text: '進貨單管理', icon: (location.pathname.startsWith('/purchase-orders')) ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, path: '/purchase-orders', adminOnly: true },
     { text: '出貨單管理', icon: (location.pathname.startsWith('/shipping-orders')) ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, path: '/shipping-orders', adminOnly: true },
     { text: '供應商管理', icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, path: '/suppliers', adminOnly: true },
+    { text: '員工管理', icon: isEmployeePath(location.pathname) ? <BadgeOutlinedIcon /> : <BadgeIcon />, subItems: [
+        { text: '基本資料', path: '/employees/basic-info', icon: <PersonIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '排班系統', path: '/employees/scheduling', icon: <CalendarMonthIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '加班管理', path: '/employees/overtime', icon: <AccessTimeIcon fontSize="small" sx={{ ml: 1 }} /> },
+      ], adminOnly: true
+    },
     { text: '會員管理', icon: (location.pathname === '/customers') ? <PeopleOutlinedIcon /> : <PeopleIcon />, path: '/customers', adminOnly: true },
     { text: '記帳管理', icon: isAccountingPath(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, subItems: [
         { text: '記帳列表', path: '/accounting' },
@@ -187,6 +200,7 @@ const MainLayout = ({ children }) => {
   const handleSettingClick = () => setSettingSubMenuOpen(!settingSubMenuOpen);
   const handleAccountingClick = () => setAccountingSubMenuOpen(!accountingSubMenuOpen);
   const handleProductClick = () => setProductSubMenuOpen(!productSubMenuOpen);
+  const handleEmployeeClick = () => setEmployeeSubMenuOpen(!employeeSubMenuOpen);
   const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
 
   const openPopover = Boolean(anchorEl);
