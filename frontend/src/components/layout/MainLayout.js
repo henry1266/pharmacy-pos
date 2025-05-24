@@ -276,9 +276,9 @@ const MainLayout = ({ children }) => {
           <List component="nav">
             {filteredMenuItems.map((item) => {
               if (item.subItems) {
-                const isOpen = item.text === '記帳管理' ? accountingSubMenuOpen : item.text === '商品管理' ? productSubMenuOpen : item.text === '系統設定' ? settingSubMenuOpen : false;
-                const handleClick = item.text === '記帳管理' ? handleAccountingClick : item.text === '商品管理' ? handleProductClick : item.text === '系統設定' ? handleSettingClick : undefined;
-                const isActive = item.text === '記帳管理' ? isAccountingPath(location.pathname) : item.text === '商品管理' ? isProductPath(location.pathname) : item.text === '系統設定' ? isSettingPath(location.pathname) : false;
+                const isOpen = item.text === '記帳管理' ? accountingSubMenuOpen : item.text === '商品管理' ? productSubMenuOpen : item.text === '系統設定' ? settingSubMenuOpen : item.text === '員工管理' ? employeeSubMenuOpen : false;
+                const handleClick = item.text === '記帳管理' ? handleAccountingClick : item.text === '商品管理' ? handleProductClick : item.text === '系統設定' ? handleSettingClick : item.text === '員工管理' ? handleEmployeeClick : undefined;
+                const isActive = item.text === '記帳管理' ? isAccountingPath(location.pathname) : item.text === '商品管理' ? isProductPath(location.pathname) : item.text === '系統設定' ? isSettingPath(location.pathname) : item.text === '員工管理' ? isEmployeePath(location.pathname) : false;
                 const filteredSubItems = item.subItems.filter(subItem => !subItem.adminOnly || (user && user.role === 'admin'));
                 if (filteredSubItems.length === 0 && item.subItems.length > 0) return null;
                 return (
