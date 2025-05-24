@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
-const auth = require('../../middleware/auth');
-const Employee = require('../../models/Employee');
+const auth = require("../middleware/auth");
+const Employee = require('../models/Employee');
 
 // @route   GET api/employees
 // @desc    Get all employees with pagination and search

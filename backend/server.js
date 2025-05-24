@@ -35,7 +35,7 @@ app.use("/api/monitored-products", require("./routes/monitoredProducts")); // �
 app.use("/api/settings", require("./routes/settings")); // *** Add the new settings route ***
 app.use("/api/config", require("./routes/config")); // Add the new config route
 app.use("/api/csv-import", require("./routes/csvImportApi")); // 新增CSV匯入REST API
-app.use("/api/employees", require("./routes/api/employees")); // 新增員工資料API路由
+app.use("/api/employees", require("./routes/employees")); // 新增員工資料API路由
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {
