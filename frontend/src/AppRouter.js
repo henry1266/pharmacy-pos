@@ -97,12 +97,12 @@ const AppRouter = () => {
       <Route path="/shipping-orders/edit/:id" element={<ShippingOrderFormPage />} />
       <Route path="/shipping-orders/:id" element={<ShippingOrderDetailPage />} />
       
-      {/* 員工管理路由 - 受 AdminRoute 保護 */}
-      <Route path="/employees" element={<AdminRoute />}>
-        <Route path="basic-info" element={<BasicInfo />} />
-        <Route path="scheduling" element={<Scheduling />} />
-        <Route path="overtime" element={<Overtime />} />
+      {/* 員工管理路由 - 基本資料受 AdminRoute 保護，排班系統和加班管理所有角色可用 */}
+      <Route path="/employees/basic-info" element={<AdminRoute />}>
+        <Route path="" element={<BasicInfo />} />
       </Route>
+      <Route path="/employees/scheduling" element={<Scheduling />} />
+      <Route path="/employees/overtime" element={<Overtime />} />
       
       {/* Fallback for any unmatched route within the protected area */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
