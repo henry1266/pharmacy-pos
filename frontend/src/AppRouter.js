@@ -31,7 +31,7 @@ import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage
 import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settings page
 
 // 員工管理頁面元件
-import BasicInfo from './components/employees/BasicInfo';
+import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage'; // 新的員工基本資料頁面
 import Scheduling from './components/employees/Scheduling';
 import Overtime from './components/employees/Overtime';
 
@@ -99,7 +99,7 @@ const AppRouter = () => {
       
       {/* 員工管理路由 - 基本資料受 AdminRoute 保護，排班系統和加班管理所有角色可用 */}
       <Route path="/employees/basic-info" element={<AdminRoute />}>
-        <Route path="" element={<BasicInfo />} />
+        <Route path="" element={<EmployeeBasicInfoPage />} />
       </Route>
       <Route path="/employees/scheduling" element={<Scheduling />} />
       <Route path="/employees/overtime" element={<Overtime />} />
