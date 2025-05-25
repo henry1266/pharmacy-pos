@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Typography,
@@ -132,6 +133,19 @@ const CustomerFormDialog = ({
   </Dialog>
 );
 
+// 添加 PropTypes 驗證
+CustomerFormDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  editMode: PropTypes.bool.isRequired,
+  currentCustomerState: PropTypes.object.isRequired,
+  onInputChange: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  formError: PropTypes.string,
+  isTestMode: PropTypes.bool.isRequired,
+  loading: PropTypes.bool.isRequired
+};
+
 // ---
 // Extracted Component for Customer Detail Panel ( 그대로 유지 )
 // ---
@@ -183,6 +197,13 @@ const CustomerDetailPanel = ({ selectedCustomer, handleEdit, handleDelete }) => 
   );
 };
 
+// 添加 PropTypes 驗證
+CustomerDetailPanel.propTypes = {
+  selectedCustomer: PropTypes.object,
+  handleEdit: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func.isRequired
+};
+
 // ---
 // Refactoring Helper Functions (defined outside CustomersPage)
 // ---
@@ -199,18 +220,20 @@ const getCustomerDataSource = (isTestMode, actualCustomers, actualError, showSna
   return actualCustomers || []; // Return empty array if actualCustomers is null/undefined
 };
 
-// Helper for saving customer in Test Mode
-const handleSaveCustomerTestMode = (
-  customerData,
-  editMode,
-  currentCustomerState,
-  mapMembershipLevel,
-  setLocalCustomers,
-  setLocalSelectedCustomer,
-  localSelectedCustomer,
-  showSnackbarCallback,
-  setOpenDialog
-) => {
+// 修改參數過多的函式 - 使用配置對象模式
+const handleSaveCustomerTestMode = (config) => {
+  const {
+    customerData,
+    editMode,
+    currentCustomerState,
+    mapMembershipLevel,
+    setLocalCustomers,
+    setLocalSelectedCustomer,
+    localSelectedCustomer,
+    showSnackbarCallback,
+    setOpenDialog
+  } = config;
+
   const newOrUpdatedCustomer = {
     ...customerData,
     id: editMode ? currentCustomerState.id : `mockCust${Date.now()}`,
@@ -230,17 +253,19 @@ const handleSaveCustomerTestMode = (
   showSnackbarCallback(editMode ? '測試模式：會員已模擬更新' : '測試模式：會員已模擬新增', 'info');
 };
 
-// Helper for saving customer in Actual Mode
-const handleSaveCustomerActual = async (
-  customerData,
-  editMode,
-  currentCustomerId, // Pass only ID for update
-  actualAddCustomer,
-  actualUpdateCustomer,
-  showSnackbarCallback,
-  setOpenDialog,
-  setFormError
-) => {
+// 修改參數過多的函式 - 使用配置對象模式
+const handleSaveCustomerActual = async (config) => {
+  const {
+    customerData,
+    editMode,
+    currentCustomerId,
+    actualAddCustomer,
+    actualUpdateCustomer,
+    showSnackbarCallback,
+    setOpenDialog,
+    setFormError
+  } = config;
+
   try {
     if (editMode) {
       await actualUpdateCustomer(currentCustomerId, customerData);
@@ -427,66 +452,65 @@ const CustomersPage = () => {
       membershipLevel: currentCustomerState.membershipLevel
     };
 
+    // Validate required fields
+    if (!customerDataToSave.name || !customerDataToSave.phone) {
+      setFormError('請填寫必填欄位：會員姓名和電話');
+      return;
+    }
+
     if (isTestMode) {
-      handleSaveCustomerTestMode(
-        customerDataToSave, editMode, currentCustomerState, mapMembershipLevel,
-        setLocalCustomers, setLocalSelectedCustomer, localSelectedCustomer,
-        showSnackbar, setOpenDialog
-      );
+      // 使用配置對象模式調用函式
+      handleSaveCustomerTestMode({
+        customerData: customerDataToSave,
+        editMode,
+        currentCustomerState,
+        mapMembershipLevel,
+        setLocalCustomers,
+        setLocalSelectedCustomer,
+        localSelectedCustomer,
+        showSnackbarCallback: showSnackbar,
+        setOpenDialog
+      });
     } else {
-      await handleSaveCustomerActual(
-        customerDataToSave, editMode, currentCustomerState.id,
-        actualAddCustomer, actualUpdateCustomer,
-        showSnackbar, setOpenDialog, setFormError
-      );
+      // 使用配置對象模式調用函式
+      await handleSaveCustomerActual({
+        customerData: customerDataToSave,
+        editMode,
+        currentCustomerId: currentCustomerState.id,
+        actualAddCustomer,
+        actualUpdateCustomer,
+        showSnackbarCallback: showSnackbar,
+        setOpenDialog,
+        setFormError
+      });
     }
   }, [
-    isTestMode, editMode, currentCustomerState, mapMembershipLevel,
-    actualAddCustomer, actualUpdateCustomer, showSnackbar, localSelectedCustomer
-  ]); // Removed setters from deps (stable)
-
-  const handleRowClick = useCallback((params) => {
-    // params.row is an object from the `customersToDisplay` list.
-    // Set this as the `localSelectedCustomer` (the reference to the selected item).
-    setLocalSelectedCustomer(params.row);
-  }, []);
-
-  const actionButtons = (
-    <MuiButton variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleAddCustomer}>
-      添加會員 {isTestMode && "(模擬)"}
-    </MuiButton>
-  );
-
-  const pageTitle = isTestMode ? "會員管理 (測試模式)" : "會員管理";
+    currentCustomerState,
+    editMode,
+    isTestMode,
+    mapMembershipLevel,
+    localSelectedCustomer,
+    showSnackbar,
+    actualAddCustomer,
+    actualUpdateCustomer
+  ]);
 
   return (
     <>
       <CommonListPageLayout
-        title={pageTitle}
-        actionButtons={actionButtons}
-        columns={columns}
-        rows={customersToDisplay || []}
+        title="會員管理"
+        subtitle="管理會員資料"
+        icon={<AddIcon />}
+        buttonText="新增會員"
+        onButtonClick={handleAddCustomer}
         loading={isLoading}
         error={pageError}
-        onRowClick={handleRowClick}
-        detailPanel={
-          <CustomerDetailPanel
-            selectedCustomer={panelSelectedCustomer} // Use the derived panelSelectedCustomer
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-          />
-        }
-        tableGridWidth={9}
-        detailGridWidth={3}
-        dataTableProps={{
-          pageSizeOptions: [10, 25, 50],
-          initialState: {
-            pagination: { paginationModel: { pageSize: 10 } },
-            sorting: {
-              sortModel: [{ field: 'code', sort: 'asc' }],
-            },
-          }
-        }}
+        columns={columns}
+        rows={customersToDisplay}
+        onRowClick={(params) => setLocalSelectedCustomer(params.row)}
+        selectedRow={localSelectedCustomer?.id}
+        detailPanel={<CustomerDetailPanel selectedCustomer={panelSelectedCustomer} handleEdit={handleEdit} handleDelete={handleDelete} />}
+        isTestMode={isTestMode}
       />
 
       <CustomerFormDialog
@@ -498,10 +522,10 @@ const CustomersPage = () => {
         onSave={handleSaveCustomer}
         formError={formError}
         isTestMode={isTestMode}
-        loading={isLoading} // Pass isLoading for the save button state
+        loading={isLoading}
       />
 
-      <Snackbar open={snackbar.open} autoHideDuration={isTestMode ? 4000 : 3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
         <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
