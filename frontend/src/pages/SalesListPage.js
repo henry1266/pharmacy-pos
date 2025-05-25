@@ -75,6 +75,29 @@ const mockSalesData = [
   },
 ];
 
+// 付款方式和狀態的映射函數
+const getPaymentMethodText = (method) => {
+  const methodMap = {
+    'cash': '現金',
+    'credit_card': '信用卡',
+    'debit_card': '金融卡',
+    'mobile_payment': '行動支付',
+    'other': '其他'
+  };
+  return methodMap[method] || method;
+};
+
+const getPaymentStatusInfo = (status) => {
+  const statusMap = {
+    'paid': { text: '已付款', color: 'success' },
+    'pending': { text: '待付款', color: 'warning' },
+    'partial': { text: '部分付款', color: 'info' },
+    'cancelled': { text: '已取消', color: 'error' }
+  };
+  return statusMap[status] || { text: status, color: 'default' };
+};
+
+// 銷售列表頁面元件
 const SalesListPage = () => {
   const navigate = useNavigate();
   const [isTestMode, setIsTestMode] = useState(false);
@@ -100,51 +123,65 @@ const SalesListPage = () => {
     fetchSales(testModeActive);
   }, []);
 
+  // 獲取銷售數據
   const fetchSales = async (testModeEnabled) => {
     setLoading(true);
     setError(null);
+    
     if (testModeEnabled) {
-      try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 500)); 
-        // Simulate a potential error even in test mode for fallback to mock
-        // if (Math.random() < 0.3) throw new Error("Simulated API error in test mode");
-        const response = await axios.get('/api/sales'); // Attempt real fetch
-        if (response.data && response.data.length > 0) {
-            setSales(response.data);
-        } else {
-            console.log("Test Mode: No actual sales data, using mock data.");
-            setSales(mockSalesData);
-        }
-      } catch (err) {
-        console.warn('Test Mode: Failed to fetch actual sales, using mock data.', err.message);
-        setSales(mockSalesData);
-        // setError('測試模式：載入實際銷售數據失敗，已使用模擬數據。'); // Optional: inform user
-      } finally {
-        setLoading(false);
-      }
+      await fetchTestModeSales();
     } else {
-      try {
-        const response = await axios.get('/api/sales');
-        setSales(response.data);
-      } catch (err) {
-        console.error('獲取銷售數據失敗:', err);
-        setError('獲取銷售數據失敗');
-        setSnackbar({
-          open: true,
-          message: '獲取銷售數據失敗',
-          severity: 'error'
-        });
-      } finally {
-        setLoading(false);
-      }
+      await fetchProductionSales();
     }
   };
 
+  // 測試模式下獲取銷售數據
+  const fetchTestModeSales = async () => {
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+      // Simulate a potential error even in test mode for fallback to mock
+      // if (Math.random() < 0.3) throw new Error("Simulated API error in test mode");
+      const response = await axios.get('/api/sales'); // Attempt real fetch
+      if (response.data && response.data.length > 0) {
+          setSales(response.data);
+      } else {
+          console.log("Test Mode: No actual sales data, using mock data.");
+          setSales(mockSalesData);
+      }
+    } catch (err) {
+      console.warn('Test Mode: Failed to fetch actual sales, using mock data.', err.message);
+      setSales(mockSalesData);
+      // setError('測試模式：載入實際銷售數據失敗，已使用模擬數據。'); // Optional: inform user
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 生產模式下獲取銷售數據
+  const fetchProductionSales = async () => {
+    try {
+      const response = await axios.get('/api/sales');
+      setSales(response.data);
+    } catch (err) {
+      console.error('獲取銷售數據失敗:', err);
+      setError('獲取銷售數據失敗');
+      setSnackbar({
+        open: true,
+        message: '獲取銷售數據失敗',
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 處理搜索變更
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
+  // 過濾銷售數據
   const filteredSales = sales.filter(sale => {
     const searchTermLower = searchTerm.toLowerCase();
     const customerName = sale.customer?.name || '';
@@ -160,18 +197,29 @@ const SalesListPage = () => {
            saleDate.includes(searchTermLower);
   });
 
+  // 處理刪除銷售記錄
   const handleDeleteSale = async (id) => {
     if (isTestMode) {
-      setSales(prevSales => prevSales.filter(sale => sale._id !== id));
-      setSnackbar({
-        open: true,
-        message: '測試模式：銷售記錄已模擬刪除',
-        severity: 'info'
-      });
-      setConfirmDeleteId(null);
+      handleTestModeDelete(id);
       return;
     }
 
+    await handleProductionDelete(id);
+  };
+
+  // 測試模式下的刪除處理
+  const handleTestModeDelete = (id) => {
+    setSales(prevSales => prevSales.filter(sale => sale._id !== id));
+    setSnackbar({
+      open: true,
+      message: '測試模式：銷售記錄已模擬刪除',
+      severity: 'info'
+    });
+    setConfirmDeleteId(null);
+  };
+
+  // 生產模式下的刪除處理
+  const handleProductionDelete = async (id) => {
     try {
       await axios.delete(`/api/sales/${id}`);
       fetchSales(isTestMode); // Refetch after delete
@@ -191,35 +239,17 @@ const SalesListPage = () => {
     setConfirmDeleteId(null);
   };
 
+  // 關閉確認對話框
   const handleCloseConfirmDialog = () => {
     setConfirmDeleteId(null);
   };
 
+  // 關閉提示訊息
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const getPaymentMethodText = (method) => {
-    const methodMap = {
-      'cash': '現金',
-      'credit_card': '信用卡',
-      'debit_card': '金融卡',
-      'mobile_payment': '行動支付',
-      'other': '其他'
-    };
-    return methodMap[method] || method;
-  };
-
-  const getPaymentStatusInfo = (status) => {
-    const statusMap = {
-      'paid': { text: '已付款', color: 'success' },
-      'pending': { text: '待付款', color: 'warning' },
-      'partial': { text: '部分付款', color: 'info' },
-      'cancelled': { text: '已取消', color: 'error' }
-    };
-    return statusMap[status] || { text: status, color: 'default' };
-  };
-
+  // 處理預覽點擊
   const handlePreviewClick = (event, sale) => {
     setPreviewAnchorEl(event.currentTarget);
     setSelectedSale(sale);
@@ -227,6 +257,7 @@ const SalesListPage = () => {
     setPreviewError(null);
   };
 
+  // 關閉預覽
   const handlePreviewClose = () => {
     setPreviewAnchorEl(null);
     setSelectedSale(null);
@@ -235,6 +266,7 @@ const SalesListPage = () => {
   const isPreviewOpen = Boolean(previewAnchorEl);
   const previewId = isPreviewOpen ? 'sales-preview-popover' : undefined;
 
+  // 導航處理函數
   const handleAddNewSale = () => {
     navigate('/sales/new');
   };
@@ -246,6 +278,131 @@ const SalesListPage = () => {
   const handleViewSale = (saleId) => {
     navigate(`/sales/${saleId}`);
   }
+
+  // 渲染表格內容
+  const renderTableContent = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>載入銷售記錄中...</Typography>
+        </Box>
+      );
+    }
+    
+    if (error && !isTestMode) {
+      return <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>;
+    }
+    
+    return (
+      <TableContainer component={Paper} variant="outlined">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>銷貨單號</TableCell>
+              <TableCell>日期</TableCell>
+              <TableCell>客戶</TableCell>
+              <TableCell>產品</TableCell>
+              <TableCell align="right">總金額</TableCell>
+              <TableCell align="center">付款方式</TableCell>
+              <TableCell align="center">付款狀態</TableCell>
+              <TableCell align="center">操作</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {renderTableRows()}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  // 渲染表格行
+  const renderTableRows = () => {
+    if (filteredSales.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={8} align="center">
+            {searchTerm ? '沒有符合搜索條件的銷售記錄' : (isTestMode ? '尚無模擬銷售記錄 (或篩選後無結果)' : '尚無銷售記錄')}
+          </TableCell>
+        </TableRow>
+      );
+    }
+    
+    return filteredSales.map((sale) => (
+      <TableRow key={sale._id}>
+        <TableCell>
+          <Button
+            size="small"
+            color="primary"
+            onClick={() => handleViewSale(sale._id)}
+          >
+            {sale.saleNumber || '無單號'}
+          </Button>
+        </TableCell>
+        <TableCell>
+          {sale.date ? format(new Date(sale.date), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : ''}
+        </TableCell>
+        <TableCell>
+          {sale.customer?.name || '一般客戶'}
+        </TableCell>
+        <TableCell>
+          {sale.items.map((item, index) => (
+            <div key={index}>
+              {item.product?.name || item.name} x {item.quantity}
+            </div>
+          ))}
+        </TableCell>
+        <TableCell align="right">
+          {sale.totalAmount?.toFixed(2) || '0.00'}
+        </TableCell>
+        <TableCell align="center">
+          {getPaymentMethodText(sale.paymentMethod)}
+        </TableCell>
+        <TableCell align="center">
+          <Chip 
+            label={getPaymentStatusInfo(sale.paymentStatus).text}
+            color={getPaymentStatusInfo(sale.paymentStatus).color}
+            size="small"
+          />
+        </TableCell>
+        <TableCell align="center">
+          {renderRowActions(sale)}
+        </TableCell>
+      </TableRow>
+    ));
+  };
+
+  // 渲染行操作按鈕
+  const renderRowActions = (sale) => {
+    return (
+      <>
+        <IconButton
+          size="small"
+          onClick={(event) => handlePreviewClick(event, sale)}
+          title="查看詳情"
+          aria-describedby={previewId}
+        >
+          <VisibilityIcon fontSize="small" />
+        </IconButton>
+        <IconButton
+          size="small"
+          onClick={() => handleEditSale(sale._id)}
+          title="編輯"
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton
+          size="small"
+          color="error"
+          onClick={() => setConfirmDeleteId(sale._id)}
+          title="刪除"
+        >
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </>
+    );
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -291,105 +448,7 @@ const SalesListPage = () => {
         </CardContent>
       </Card>
       
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-          <CircularProgress />
-          <Typography sx={{ ml: 2 }}>載入銷售記錄中...</Typography>
-        </Box>
-      ) : error && !isTestMode ? ( // Show error only if not in test mode (or if test mode itself failed, which is handled by mock data)
-        <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>
-      ) : (
-        <TableContainer component={Paper} variant="outlined">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>銷貨單號</TableCell>
-                <TableCell>日期</TableCell>
-                <TableCell>客戶</TableCell>
-                <TableCell>產品</TableCell>
-                <TableCell align="right">總金額</TableCell>
-                <TableCell align="center">付款方式</TableCell>
-                <TableCell align="center">付款狀態</TableCell>
-                <TableCell align="center">操作</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredSales.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center">
-                    {searchTerm ? '沒有符合搜索條件的銷售記錄' : (isTestMode ? '尚無模擬銷售記錄 (或篩選後無結果)' : '尚無銷售記錄')}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSales.map((sale) => (
-                  <TableRow key={sale._id}>
-                    <TableCell>
-                      <Button
-                        size="small"
-                        color="primary"
-                        onClick={() => handleViewSale(sale._id)} // Navigate to detail view
-                      >
-                        {sale.saleNumber || '無單號'}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      {sale.date ? format(new Date(sale.date), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : ''}
-                    </TableCell>
-                    <TableCell>
-                      {sale.customer?.name || '一般客戶'}
-                    </TableCell>
-                    <TableCell>
-                      {sale.items.map((item, index) => (
-                        <div key={index}>
-                          {item.product?.name || item.name} x {item.quantity}
-                        </div>
-                      ))}
-                    </TableCell>
-                    <TableCell align="right">
-                      {sale.totalAmount?.toFixed(2) || '0.00'}
-                    </TableCell>
-                    <TableCell align="center">
-                      {getPaymentMethodText(sale.paymentMethod)}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip 
-                        label={getPaymentStatusInfo(sale.paymentStatus).text}
-                        color={getPaymentStatusInfo(sale.paymentStatus).color}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={(event) => handlePreviewClick(event, sale)}
-                        title="查看詳情"
-                        aria-describedby={previewId}
-                      >
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditSale(sale._id)}
-                        title="編輯"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => setConfirmDeleteId(sale._id)}
-                        title="刪除"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      {renderTableContent()}
       
       <Popover
         id={previewId}
@@ -431,4 +490,3 @@ const SalesListPage = () => {
 };
 
 export default SalesListPage;
-
