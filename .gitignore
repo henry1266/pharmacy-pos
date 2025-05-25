@@ -19,3 +19,5 @@ yarn-error.log*
 build/
 dist/
 coverage/
+sonar-project.properties
+.scannerwork/
