@@ -67,7 +67,7 @@ const mockCustomersData = [
     birthdate: '1990-01-15',
     note: '這是模擬客戶資料。',
     membershipLevel: 'platinum',
-    level: '白金會員' // Mapped level for display
+    // level will be mapped
   },
   {
     id: 'mockCust002',
@@ -80,12 +80,12 @@ const mockCustomersData = [
     birthdate: '1985-05-20',
     note: '另一筆模擬客戶資料。',
     membershipLevel: 'regular',
-    level: '一般會員' // Mapped level for display
+    // level will be mapped
   },
 ];
 
 // ---
-// Extracted Component for Customer Form Dialog
+// Extracted Component for Customer Form Dialog ( 그대로 유지 )
 // ---
 const CustomerFormDialog = ({
   open,
@@ -133,7 +133,7 @@ const CustomerFormDialog = ({
 );
 
 // ---
-// Extracted Component for Customer Detail Panel
+// Extracted Component for Customer Detail Panel ( 그대로 유지 )
 // ---
 const CustomerDetailPanel = ({ selectedCustomer, handleEdit, handleDelete }) => {
   if (!selectedCustomer) {
@@ -183,6 +183,115 @@ const CustomerDetailPanel = ({ selectedCustomer, handleEdit, handleDelete }) => 
   );
 };
 
+// ---
+// Refactoring Helper Functions (defined outside CustomersPage)
+// ---
+
+// Helper to determine the source of customer data
+const getCustomerDataSource = (isTestMode, actualCustomers, actualError, showSnackbarCallback) => {
+  if (isTestMode) {
+    if (actualError || !actualCustomers || actualCustomers.length === 0) {
+      showSnackbarCallback('測試模式：載入實際客戶資料失敗，已使用模擬數據。', 'info');
+      return mockCustomersData;
+    }
+    return actualCustomers;
+  }
+  return actualCustomers || []; // Return empty array if actualCustomers is null/undefined
+};
+
+// Helper for saving customer in Test Mode
+const handleSaveCustomerTestMode = (
+  customerData,
+  editMode,
+  currentCustomerState,
+  mapMembershipLevel,
+  setLocalCustomers,
+  setLocalSelectedCustomer,
+  localSelectedCustomer,
+  showSnackbarCallback,
+  setOpenDialog
+) => {
+  const newOrUpdatedCustomer = {
+    ...customerData,
+    id: editMode ? currentCustomerState.id : `mockCust${Date.now()}`,
+    code: editMode ? currentCustomerState.code : `MKC${Date.now().toString().slice(-4)}`,
+    level: mapMembershipLevel(customerData.membershipLevel)
+  };
+
+  if (editMode) {
+    setLocalCustomers(prev => prev.map(c => (c.id === newOrUpdatedCustomer.id ? newOrUpdatedCustomer : c)));
+    if (localSelectedCustomer && localSelectedCustomer.id === newOrUpdatedCustomer.id) {
+      setLocalSelectedCustomer(newOrUpdatedCustomer);
+    }
+  } else {
+    setLocalCustomers(prev => [...prev, newOrUpdatedCustomer]);
+  }
+  setOpenDialog(false);
+  showSnackbarCallback(editMode ? '測試模式：會員已模擬更新' : '測試模式：會員已模擬新增', 'info');
+};
+
+// Helper for saving customer in Actual Mode
+const handleSaveCustomerActual = async (
+  customerData,
+  editMode,
+  currentCustomerId, // Pass only ID for update
+  actualAddCustomer,
+  actualUpdateCustomer,
+  showSnackbarCallback,
+  setOpenDialog,
+  setFormError
+) => {
+  try {
+    if (editMode) {
+      await actualUpdateCustomer(currentCustomerId, customerData);
+    } else {
+      await actualAddCustomer(customerData);
+    }
+    setOpenDialog(false);
+    showSnackbarCallback(editMode ? '會員已更新' : '會員已新增', 'success');
+  } catch (err) {
+    setFormError(`保存會員失敗: ${err.message}`);
+  }
+};
+
+// Helper for deleting customer in Test Mode
+const handleDeleteCustomerTestMode = (
+  id,
+  setLocalCustomers,
+  localSelectedCustomer,
+  setLocalSelectedCustomer,
+  showSnackbarCallback
+) => {
+  setLocalCustomers(prev => prev.filter(c => c.id !== id));
+  if (localSelectedCustomer && localSelectedCustomer.id === id) {
+    setLocalSelectedCustomer(null);
+  }
+  showSnackbarCallback('測試模式：會員已模擬刪除', 'info');
+};
+
+// Helper for deleting customer in Actual Mode
+const handleDeleteCustomerActual = async (
+  id,
+  actualDeleteCustomer,
+  localSelectedCustomer,
+  setLocalSelectedCustomer,
+  showSnackbarCallback
+) => {
+  try {
+    await actualDeleteCustomer(id);
+    if (localSelectedCustomer && localSelectedCustomer.id === id) {
+      setLocalSelectedCustomer(null);
+    }
+    showSnackbarCallback('會員已成功刪除', 'success');
+  } catch (err) {
+    showSnackbarCallback(`刪除會員失敗: ${err.message}`, 'error');
+  }
+};
+
+
+// ---
+// Refactored CustomersPage Component
+// ---
 const CustomersPage = () => {
   const [isTestMode, setIsTestMode] = useState(false);
 
@@ -202,40 +311,37 @@ const CustomersPage = () => {
   } = useCustomerData();
 
   const [localCustomers, setLocalCustomers] = useState([]);
-  const [localSelectedCustomer, setLocalSelectedCustomer] = useState(null);
-
-  useEffect(() => {
-    if (isTestMode) {
-      if (actualError || !actualCustomers || actualCustomers.length === 0) {
-        setLocalCustomers(mockCustomersData.map(c => ({ ...c, level: mapMembershipLevel(c.membershipLevel) })));
-        showSnackbar('測試模式：載入實際客戶資料失敗，已使用模擬數據。', 'info');
-      } else {
-        setLocalCustomers(actualCustomers.map(c => ({ ...c, level: mapMembershipLevel(c.membershipLevel) })));
-      }
-    } else {
-      setLocalCustomers(actualCustomers.map(c => ({ ...c, level: mapMembershipLevel(c.membershipLevel) })));
-    }
-  }, [isTestMode, actualCustomers, actualError, mapMembershipLevel]);
-
-  const customers = isTestMode ? localCustomers : localCustomers; // Always use localCustomers for display and modification in test mode
-  const loading = isTestMode ? false : actualLoading;
-  const error = isTestMode ? null : actualError;
-  const selectedCustomer = isTestMode ? localSelectedCustomer : (actualCustomers.find(c => c.id === localSelectedCustomer?.id) || null);
-
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [currentCustomerState, setCurrentCustomerState] = useState(initialCustomerState);
-  const [formError, setFormError] = useState(null);
+  const [localSelectedCustomer, setLocalSelectedCustomer] = useState(null); // Stores the selected customer object
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const showSnackbar = useCallback((message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   }, []);
 
+  useEffect(() => {
+    const customerSource = getCustomerDataSource(isTestMode, actualCustomers, actualError, showSnackbar);
+    setLocalCustomers(customerSource.map(c => ({ ...c, level: mapMembershipLevel(c.membershipLevel) })));
+  }, [isTestMode, actualCustomers, actualError, mapMembershipLevel, showSnackbar]);
+
+
+  const customersToDisplay = localCustomers; // Always use localCustomers, which is managed by the effect above
+  const isLoading = isTestMode ? false : actualLoading;
+  const pageError = isTestMode ? null : actualError;
+
+  // Derived state for the detail panel, ensuring it uses the latest from customersToDisplay
+  const panelSelectedCustomer = customersToDisplay.find(c => c.id === localSelectedCustomer?.id) || null;
+
+
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentCustomerState, setCurrentCustomerState] = useState(initialCustomerState);
+  const [formError, setFormError] = useState(null);
+
+
   const handleCloseSnackbar = useCallback((event, reason) => {
     if (reason === 'clickaway') return;
-    setSnackbar({ ...snackbar, open: false });
-  }, [snackbar]);
+    setSnackbar(s => ({ ...s, open: false })); // Use functional update for snackbar
+  }, []);
 
   const columns = [
     { field: 'code', headerName: '會員編號', width: 100 },
@@ -289,26 +395,15 @@ const CustomersPage = () => {
   }, []);
 
   const handleDelete = useCallback(async (id) => {
-    if (window.confirm(isTestMode ? '測試模式：確定要模擬刪除此會員嗎？' : '確定要刪除此會員嗎？')) {
+    const confirmMessage = isTestMode ? '測試模式：確定要模擬刪除此會員嗎？' : '確定要刪除此會員嗎？';
+    if (window.confirm(confirmMessage)) {
       if (isTestMode) {
-        setLocalCustomers(prev => prev.filter(c => c.id !== id));
-        if (localSelectedCustomer && localSelectedCustomer.id === id) {
-          setLocalSelectedCustomer(null);
-        }
-        showSnackbar('測試模式：會員已模擬刪除', 'info');
-        return;
-      }
-      try {
-        await actualDeleteCustomer(id);
-        if (localSelectedCustomer && localSelectedCustomer.id === id) {
-          setLocalSelectedCustomer(null);
-        }
-        showSnackbar('會員已成功刪除', 'success');
-      } catch (err) {
-        showSnackbar(`刪除會員失敗: ${err.message}`, 'error');
+        handleDeleteCustomerTestMode(id, setLocalCustomers, localSelectedCustomer, setLocalSelectedCustomer, showSnackbar);
+      } else {
+        await handleDeleteCustomerActual(id, actualDeleteCustomer, localSelectedCustomer, setLocalSelectedCustomer, showSnackbar);
       }
     }
-  }, [isTestMode, actualDeleteCustomer, localSelectedCustomer, showSnackbar]);
+  }, [isTestMode, actualDeleteCustomer, localSelectedCustomer, showSnackbar]); // Removed setters from deps (stable)
 
   const handleAddCustomer = useCallback(() => {
     setCurrentCustomerState(initialCustomerState);
@@ -321,7 +416,7 @@ const CustomersPage = () => {
 
   const handleSaveCustomer = useCallback(async () => {
     setFormError(null);
-    const customerData = {
+    const customerDataToSave = { // Renamed to avoid conflict with currentCustomerState fields like id/code
       name: currentCustomerState.name,
       phone: currentCustomerState.phone,
       email: currentCustomerState.email,
@@ -333,42 +428,28 @@ const CustomersPage = () => {
     };
 
     if (isTestMode) {
-      const newOrUpdatedCustomer = {
-        ...customerData,
-        id: editMode ? currentCustomerState.id : `mockCust${Date.now()}`,
-        code: editMode ? currentCustomerState.code : `MKC${Date.now().toString().slice(-4)}`,
-        level: mapMembershipLevel(customerData.membershipLevel)
-      };
-      if (editMode) {
-        setLocalCustomers(prev => prev.map(c => c.id === newOrUpdatedCustomer.id ? newOrUpdatedCustomer : c));
-        if (localSelectedCustomer && localSelectedCustomer.id === newOrUpdatedCustomer.id) {
-          setLocalSelectedCustomer(newOrUpdatedCustomer);
-        }
-      } else {
-        setLocalCustomers(prev => [...prev, newOrUpdatedCustomer]);
-      }
-      setOpenDialog(false);
-      showSnackbar(editMode ? '測試模式：會員已模擬更新' : '測試模式：會員已模擬新增', 'info');
-      return;
+      handleSaveCustomerTestMode(
+        customerDataToSave, editMode, currentCustomerState, mapMembershipLevel,
+        setLocalCustomers, setLocalSelectedCustomer, localSelectedCustomer,
+        showSnackbar, setOpenDialog
+      );
+    } else {
+      await handleSaveCustomerActual(
+        customerDataToSave, editMode, currentCustomerState.id,
+        actualAddCustomer, actualUpdateCustomer,
+        showSnackbar, setOpenDialog, setFormError
+      );
     }
-
-    try {
-      if (editMode) {
-        await actualUpdateCustomer(currentCustomerState.id, customerData);
-      } else {
-        await actualAddCustomer(customerData);
-      }
-      setOpenDialog(false);
-      showSnackbar(editMode ? '會員已更新' : '會員已新增', 'success');
-    } catch (err) {
-      setFormError(`保存會員失敗: ${err.message}`);
-    }
-  }, [isTestMode, editMode, currentCustomerState, mapMembershipLevel, actualAddCustomer, actualUpdateCustomer, showSnackbar, localSelectedCustomer]);
+  }, [
+    isTestMode, editMode, currentCustomerState, mapMembershipLevel,
+    actualAddCustomer, actualUpdateCustomer, showSnackbar, localSelectedCustomer
+  ]); // Removed setters from deps (stable)
 
   const handleRowClick = useCallback((params) => {
-    const customer = customers.find(c => c.id === params.row.id);
-    setLocalSelectedCustomer(customer || null);
-  }, [customers]);
+    // params.row is an object from the `customersToDisplay` list.
+    // Set this as the `localSelectedCustomer` (the reference to the selected item).
+    setLocalSelectedCustomer(params.row);
+  }, []);
 
   const actionButtons = (
     <MuiButton variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleAddCustomer}>
@@ -376,19 +457,21 @@ const CustomersPage = () => {
     </MuiButton>
   );
 
+  const pageTitle = isTestMode ? "會員管理 (測試模式)" : "會員管理";
+
   return (
     <>
       <CommonListPageLayout
-        title={isTestMode ? "會員管理 (測試模式)" : "會員管理"}
+        title={pageTitle}
         actionButtons={actionButtons}
         columns={columns}
-        rows={customers || []}
-        loading={loading}
-        error={error}
+        rows={customersToDisplay || []}
+        loading={isLoading}
+        error={pageError}
         onRowClick={handleRowClick}
         detailPanel={
           <CustomerDetailPanel
-            selectedCustomer={selectedCustomer}
+            selectedCustomer={panelSelectedCustomer} // Use the derived panelSelectedCustomer
             handleEdit={handleEdit}
             handleDelete={handleDelete}
           />
@@ -415,7 +498,7 @@ const CustomersPage = () => {
         onSave={handleSaveCustomer}
         formError={formError}
         isTestMode={isTestMode}
-        loading={loading}
+        loading={isLoading} // Pass isLoading for the save button state
       />
 
       <Snackbar open={snackbar.open} autoHideDuration={isTestMode ? 4000 : 3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
