@@ -200,7 +200,7 @@ router.post(
       const salesItems = unaccountedSales.map(sale => ({
         amount: sale.totalAmount || 0,
         category: "其他自費", // *** 將名目設為 其他自費 ***
-        categoryId: null, // TODO: Find the ID for '其他自費' category if needed
+        categoryId: null, // Find the ID for '其他自費' category if needed
         note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`, // *** 加入數量 ***
         isAutoLinked: true // Add a flag to differentiate if needed
       }));
