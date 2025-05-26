@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'; // Added useState
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { 
   Typography, 
   Chip,
@@ -8,7 +8,6 @@ import {
   CardContent,
   Divider,
   Stack,
-  CircularProgress,
   Box // Added Box for loading/error states
 } from '@mui/material';
 import {
@@ -26,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale'; // Added for consistent date formatting
+import PropTypes from 'prop-types';
 
 import { fetchPurchaseOrder } from '../redux/actions';
 import ProductItemsTable from '../components/common/ProductItemsTable';
@@ -44,6 +44,10 @@ const StatusChip = ({ status }) => {
   return <Chip size="small" label={label} color={color} />;
 };
 
+StatusChip.propTypes = {
+  status: PropTypes.string
+};
+
 // PaymentStatusChip (assuming '未付' is the main status)
 const PaymentStatusChip = ({ status }) => {
     let color = 'default';
@@ -54,9 +58,12 @@ const PaymentStatusChip = ({ status }) => {
     return <Chip size="small" label={label} color={color} />;
 };
 
+PaymentStatusChip.propTypes = {
+  status: PropTypes.string
+};
+
 const PurchaseOrderDetailPage = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { id } = useParams();
   
   const { currentPurchaseOrder, loading: orderLoading, error: orderError } = useSelector(state => state.purchaseOrders);
@@ -76,7 +83,7 @@ const PurchaseOrderDetailPage = () => {
   // Fetch product details when items are available
   useEffect(() => {
     const fetchProductDetails = async () => {
-      if (!currentPurchaseOrder || !currentPurchaseOrder.items || currentPurchaseOrder.items.length === 0) {
+      if (!currentPurchaseOrder?.items?.length) {
         setProductDetails({});
         return;
       }
@@ -129,7 +136,7 @@ const PurchaseOrderDetailPage = () => {
         condition: true
       });
   
-      if (currentPurchaseOrder.discountAmount && currentPurchaseOrder.discountAmount > 0) {
+      if (currentPurchaseOrder?.discountAmount > 0) {
         details.push({
           label: '折扣',
           value: -currentPurchaseOrder.discountAmount,
@@ -267,4 +274,3 @@ const PurchaseOrderDetailPage = () => {
 };
 
 export default PurchaseOrderDetailPage;
-

@@ -11,6 +11,7 @@ import {
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 
 // Import service functions
 import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService'; // Added addPurchaseOrder
@@ -135,6 +136,7 @@ const PurchaseOrderEditPage = () => {
         setLoading(false);
       } catch (err) {
         setLoading(false);
+        console.error('載入數據時發生錯誤:', err);
       }
     };
     loadData();
@@ -227,6 +229,109 @@ const PurchaseOrderEditPage = () => {
     setEditingItem({ ...itemToEdit }); 
   };
 
+  // 將複雜的 handleSubmit 函數拆分為多個較小的函數
+  const validateFormData = () => {
+    if (!formData.supplier) {
+      setSnackbar({ open: true, message: '請選擇一個供應商', severity: 'error' });
+      return false;
+    }
+    if (formData.items.length === 0) {
+      setSnackbar({ open: true, message: '請至少添加一個藥品項目', severity: 'error' });
+      return false;
+    }
+    return true;
+  };
+
+  const validateItemsForSubmit = () => {
+    // 只在非測試模式下進行驗證
+    if (!isTestMode()) {
+      if (!isValidObjectId(formData.supplier)) {
+        setSnackbar({ open: true, message: '供應商ID無效，請重新選擇供應商。', severity: 'error' });
+        return null;
+      }
+
+      try {
+        const validItems = formData.items.map(item => {
+          if (!isValidObjectId(item.product)) {
+            throw new Error(`藥品 ${item.dname || '未知藥品'} 的ID格式不正確。`);
+          }
+          return {
+            product: item.product,
+            dquantity: parseFloat(item.dquantity),
+            dtotalCost: parseFloat(item.dtotalCost),
+            did: item.did,
+            dname: item.dname
+          };
+        }).filter(item => isValidObjectId(item.product));
+
+        if (validItems.length !== formData.items.length) {
+          setSnackbar({ open: true, message: '部分藥品項目因ID無效已被過濾，請檢查。', severity: 'warning' });
+        }
+        if (validItems.length === 0 && formData.items.length > 0) {
+          setSnackbar({ open: true, message: '所有藥品項目ID均無效，無法提交。', severity: 'error' });
+          return null;
+        }
+        return validItems;
+      } catch (error) {
+        setSnackbar({ open: true, message: error.message, severity: 'error' });
+        return null;
+      }
+    }
+    return formData.items;
+  };
+
+  const prepareSubmitData = (itemsForSubmit) => {
+    const submitData = {
+      ...formData,
+      pobilldate: format(new Date(formData.pobilldate), 'yyyy-MM-dd'),
+      supplier: formData.supplier,
+      items: itemsForSubmit,
+      posupplier: undefined,
+    };
+    
+    if (!isEditMode && !submitData.poid) {
+      delete submitData.poid;
+    }
+    
+    return submitData;
+  };
+
+  const submitFormData = async (submitData) => {
+    try {
+      if (isEditMode) {
+        await updatePurchaseOrder(id, submitData);
+        setSnackbar({ open: true, message: '進貨單已成功更新', severity: 'success' });
+      } else {
+        await addPurchaseOrder(submitData);
+        setSnackbar({ open: true, message: '進貨單已成功新增', severity: 'success' });
+      }
+      setTimeout(() => { navigate('/purchase-orders'); }, 1500);
+    } catch (err) {
+      console.error(isEditMode ? '更新進貨單失敗:' : '新增進貨單失敗:', err);
+      setSnackbar({
+        open: true,
+        message: (isEditMode ? '更新進貨單失敗: ' : '新增進貨單失敗: ') + (err.response?.data?.msg || err.message || '未知錯誤'),
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateFormData()) {
+      return;
+    }
+    
+    const itemsForSubmit = validateItemsForSubmit();
+    if (itemsForSubmit === null) {
+      return;
+    }
+    
+    const submitData = prepareSubmitData(itemsForSubmit);
+    await submitFormData(submitData);
+  };
+
   const handleSaveEditItem = () => {
     if (!editingItem || !editingItem.product || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
@@ -255,90 +360,6 @@ const PurchaseOrderEditPage = () => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
     setFormData(prev => ({ ...prev, items: newItems }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Basic validations
-    if (!formData.poid && !isEditMode) { // poid can be auto-generated for new, but check if user tried to input something invalid
-        // For new orders, poid might be empty if auto-generated. Let backend handle this if needed.
-        // If it's required from user for new, this check needs adjustment.
-    }
-    if (!formData.supplier) {
-      setSnackbar({ open: true, message: '請選擇一個供應商', severity: 'error' });
-      return;
-    }
-    if (formData.items.length === 0) {
-      setSnackbar({ open: true, message: '請至少添加一個藥品項目', severity: 'error' });
-      return;
-    }
-
-    // Filter out any test/mock data if not in test mode
-    // And ensure all IDs are valid ObjectIds
-    let itemsForSubmit = formData.items;
-    if (!isTestMode()) {
-      if (!isValidObjectId(formData.supplier)) {
-        setSnackbar({ open: true, message: '供應商ID無效，請重新選擇供應商。', severity: 'error' });
-        return;
-      }
-      itemsForSubmit = formData.items.map(item => {
-        if (!isValidObjectId(item.product)) {
-          // This should ideally not happen if selection and add/edit logic is correct
-          throw new Error(`藥品 ${item.dname || '未知藥品'} 的ID格式不正確。`);
-        }
-        return {
-          product: item.product, // Already ObjectId from selection
-          dquantity: parseFloat(item.dquantity),
-          dtotalCost: parseFloat(item.dtotalCost),
-          // Include other relevant item fields like did, dname if backend expects them
-          // but ensure they are not mock values if they are also IDs.
-          did: item.did, // Assuming did is a code, not an ObjectId
-          dname: item.dname
-        };
-      }).filter(item => isValidObjectId(item.product)); // Final safety filter
-
-      if (itemsForSubmit.length !== formData.items.length) {
-          setSnackbar({ open: true, message: '部分藥品項目因ID無效已被過濾，請檢查。', severity: 'warning' });
-          // Optionally, prevent submission or update formData.items to reflect filtered list
-          // For now, we proceed with filtered items if any were invalid.
-      }
-      if (itemsForSubmit.length === 0 && formData.items.length > 0) {
-          setSnackbar({ open: true, message: '所有藥品項目ID均無效，無法提交。', severity: 'error' });
-          return;
-      }
-    }
-
-    const submitData = {
-      ...formData,
-      pobilldate: format(new Date(formData.pobilldate), 'yyyy-MM-dd'),
-      supplier: formData.supplier, // Already ObjectId from selection
-      items: itemsForSubmit,
-      // Remove client-side only fields or ensure backend handles them
-      posupplier: undefined, // This is for display only
-    };
-    // For new orders, poid might be auto-generated by backend, so don't send if empty
-    if (!isEditMode && !submitData.poid) {
-        delete submitData.poid;
-    }
-
-    try {
-      if (isEditMode) {
-        await updatePurchaseOrder(id, submitData);
-        setSnackbar({ open: true, message: '進貨單已成功更新', severity: 'success' });
-      } else {
-        await addPurchaseOrder(submitData); // Use addPurchaseOrder for new
-        setSnackbar({ open: true, message: '進貨單已成功新增', severity: 'success' });
-      }
-      setTimeout(() => { navigate('/purchase-orders'); }, 1500);
-
-    } catch (err) {
-      console.error(isEditMode ? '更新進貨單失敗:' : '新增進貨單失敗:', err);
-      setSnackbar({
-        open: true,
-        message: (isEditMode ? '更新進貨單失敗: ' : '新增進貨單失敗: ') + (err.response?.data?.msg || err.message || '未知錯誤'),
-        severity: 'error'
-      });
-    }
   };
 
   const handleSnackbarClose = (event, reason) => {
