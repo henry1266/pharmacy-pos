@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Box, 
   Typography, 
@@ -11,7 +12,6 @@ import {
   TableHead, 
   TableRow, 
   Paper,
-  Chip,
   CircularProgress,
   Divider
 } from '@mui/material';
@@ -254,6 +254,30 @@ const ItemPreview = ({
   
   // 根據變體類型渲染不同的UI
   return variant === 'table' ? renderTableVariant() : renderListVariant();
+};
+
+ItemPreview.propTypes = {
+  data: PropTypes.object,
+  loading: PropTypes.bool,
+  error: PropTypes.string,
+  title: PropTypes.string,
+  columns: PropTypes.arrayOf(
+    PropTypes.shape({
+      key: PropTypes.string,
+      label: PropTypes.string,
+      align: PropTypes.string,
+      render: PropTypes.func
+    })
+  ),
+  itemsKey: PropTypes.string,
+  renderItem: PropTypes.func,
+  getTotal: PropTypes.func,
+  emptyText: PropTypes.string,
+  variant: PropTypes.oneOf(['table', 'list']),
+  containerProps: PropTypes.object,
+  maxItems: PropTypes.number,
+  notes: PropTypes.string,
+  notesKey: PropTypes.string
 };
 
 export default ItemPreview;
