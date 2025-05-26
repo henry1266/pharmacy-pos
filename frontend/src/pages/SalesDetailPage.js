@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types'; // 新增 PropTypes 引入
 import axios from 'axios';
 import {
   Box,
@@ -99,6 +100,13 @@ const AmountInfoCardHeader = ({ sale, amountInfoOpen, handleToggleAmountInfo }) 
   </CardContent>
 );
 
+// AmountInfoCardHeader PropTypes 驗證
+AmountInfoCardHeader.propTypes = {
+  sale: PropTypes.object.isRequired,
+  amountInfoOpen: PropTypes.bool.isRequired,
+  handleToggleAmountInfo: PropTypes.func.isRequired
+};
+
 // 金額信息內容元件
 const AmountInfoContent = ({ sale, fifoLoading, fifoError, fifoData }) => {
   if (fifoLoading) {
@@ -181,6 +189,14 @@ const AmountInfoContent = ({ sale, fifoLoading, fifoError, fifoData }) => {
   );
 };
 
+// AmountInfoContent PropTypes 驗證
+AmountInfoContent.propTypes = {
+  sale: PropTypes.object.isRequired,
+  fifoLoading: PropTypes.bool.isRequired,
+  fifoError: PropTypes.string,
+  fifoData: PropTypes.object
+};
+
 // 銷售項目表格元件
 const SalesItemsTable = ({ sale, fifoLoading, fifoData, showSalesProfitColumns }) => (
   <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
@@ -216,6 +232,14 @@ const SalesItemsTable = ({ sale, fifoLoading, fifoData, showSalesProfitColumns }
   </TableContainer>
 );
 
+// SalesItemsTable PropTypes 驗證
+SalesItemsTable.propTypes = {
+  sale: PropTypes.object.isRequired,
+  fifoLoading: PropTypes.bool.isRequired,
+  fifoData: PropTypes.object,
+  showSalesProfitColumns: PropTypes.bool.isRequired
+};
+
 // 銷售項目行元件
 const SalesItemRow = ({ item, fifoLoading, fifoData, showSalesProfitColumns }) => {
   const fifoItem = !fifoLoading && fifoData?.items?.find(fi => fi.product?._id === item.product?._id);
@@ -240,6 +264,14 @@ const SalesItemRow = ({ item, fifoLoading, fifoData, showSalesProfitColumns }) =
       )}
     </TableRow>
   );
+};
+
+// SalesItemRow PropTypes 驗證
+SalesItemRow.propTypes = {
+  item: PropTypes.object.isRequired,
+  fifoLoading: PropTypes.bool.isRequired,
+  fifoData: PropTypes.object,
+  showSalesProfitColumns: PropTypes.bool.isRequired
 };
 
 // 基本信息側邊欄元件
@@ -271,6 +303,11 @@ const SaleInfoSidebar = ({ sale }) => (
     </CardContent>
   </Card>
 );
+
+// SaleInfoSidebar PropTypes 驗證
+SaleInfoSidebar.propTypes = {
+  sale: PropTypes.object.isRequired
+};
 
 // 主要內容元件
 const MainContent = ({ sale, fifoLoading, fifoError, fifoData, amountInfoOpen, handleToggleAmountInfo, showSalesProfitColumns, handleToggleSalesProfitColumns }) => (
@@ -321,6 +358,18 @@ const MainContent = ({ sale, fifoLoading, fifoError, fifoData, amountInfoOpen, h
     )}
   </Stack>
 );
+
+// MainContent PropTypes 驗證
+MainContent.propTypes = {
+  sale: PropTypes.object,
+  fifoLoading: PropTypes.bool.isRequired,
+  fifoError: PropTypes.string,
+  fifoData: PropTypes.object,
+  amountInfoOpen: PropTypes.bool.isRequired,
+  handleToggleAmountInfo: PropTypes.func.isRequired,
+  showSalesProfitColumns: PropTypes.bool.isRequired,
+  handleToggleSalesProfitColumns: PropTypes.func.isRequired
+};
 
 // 主元件
 const SalesDetailPage = () => {
