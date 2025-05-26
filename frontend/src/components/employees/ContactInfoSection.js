@@ -1,8 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Grid, 
-  TextField,
-  FormHelperText
+  TextField
 } from '@mui/material';
 
 /**
@@ -44,6 +44,16 @@ const ContactInfoSection = ({ formData, errors, onChange }) => {
       </Grid>
     </Grid>
   );
+};
+
+// 添加 PropTypes 驗證
+ContactInfoSection.propTypes = {
+  formData: PropTypes.shape({
+    address: PropTypes.string,
+    phone: PropTypes.string
+  }).isRequired,
+  errors: PropTypes.objectOf(PropTypes.string),
+  onChange: PropTypes.func.isRequired
 };
 
 export default ContactInfoSection;

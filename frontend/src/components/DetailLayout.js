@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   CircularProgress,
   Box,
@@ -130,5 +131,19 @@ const DetailLayout = ({
   );
 };
 
-export default DetailLayout;
+// 添加 PropTypes 驗證
+DetailLayout.propTypes = {
+  pageTitle: PropTypes.string,
+  recordIdentifier: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  listPageUrl: PropTypes.string,
+  editPageUrl: PropTypes.string,
+  printPageUrl: PropTypes.string,
+  additionalActions: PropTypes.arrayOf(PropTypes.node),
+  mainContent: PropTypes.node,
+  sidebarContent: PropTypes.node,
+  isLoading: PropTypes.bool,
+  loadingText: PropTypes.string,
+  errorContent: PropTypes.node
+};
 
+export default DetailLayout;
