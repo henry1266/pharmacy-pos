@@ -20,16 +20,10 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DownloadIcon from '@mui/icons-material/Download';
 import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
   getMonth, 
-  getYear, 
   parseISO, 
   getDaysInMonth,
-  getDate,
-  isSameDay,
-  addDays
+  getDate
 } from 'date-fns';
 import { 
   BarChart, 
@@ -259,7 +253,7 @@ const AllCategoriesDetail = () => {
         <Grid container sx={{ border: '1px solid #e0e0e0', borderRadius: '4px' }}>
           {/* 星期標題 */}
           {weekdays.map((day, index) => (
-            <Grid item xs={12/7} key={`header-${index}`} sx={{ 
+            <Grid item xs={12/7} key={`weekday-${day}`} sx={{ 
               p: 1, 
               textAlign: 'center',
               borderBottom: '1px solid #e0e0e0',
@@ -277,7 +271,7 @@ const AllCategoriesDetail = () => {
             const dayAmount = isCurrentMonth ? dailyData[selectedMonth][dayOffset] : 0;
             
             return (
-              <Grid item xs={12/7} key={`day-${index}`} sx={{ 
+              <Grid item xs={12/7} key={`day-${dayOffset}-${isCurrentMonth}`} sx={{ 
                 height: '70px', // 稍微縮小高度
                 p: 1, 
                 border: '1px solid #e0e0e0',
@@ -330,7 +324,6 @@ const AllCategoriesDetail = () => {
   // 生成數據可視化圖表
   const generateDataVisualization = () => {
     const data = prepareChartData();
-    const maxValue = Math.max(...Object.values(monthlyData));
     
     // 圖表顏色
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
@@ -406,7 +399,7 @@ const AllCategoriesDetail = () => {
                   label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <RechartsTooltip formatter={(value) => [`$${value}`, '金額']} />
@@ -516,7 +509,7 @@ const AllCategoriesDetail = () => {
                 >
                   {monthNames.map((month, index) => (
                     <ListItem 
-                      key={index} 
+                      key={`month-${month}`} 
                       disablePadding 
                       divider
                       sx={{
