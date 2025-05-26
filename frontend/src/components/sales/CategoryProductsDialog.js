@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -82,9 +83,7 @@ const CategoryProductsDialog = ({
 
   // 處理選擇產品
   const handleSelectProduct = (product) => {
-    if (onSelectProduct) {
-      onSelectProduct(product);
-    }
+    onSelectProduct?.(product);
     onClose();
   };
 
@@ -163,6 +162,14 @@ const CategoryProductsDialog = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+CategoryProductsDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  products: PropTypes.array.isRequired,
+  category: PropTypes.string.isRequired,
+  onSelectProduct: PropTypes.func.isRequired
 };
 
 export default CategoryProductsDialog;
