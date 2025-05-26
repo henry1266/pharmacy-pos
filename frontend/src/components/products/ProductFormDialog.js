@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import {
   Dialog,
   DialogTitle,
@@ -47,10 +48,19 @@ const ProductFormDialog = ({
     }
   }, [open]);
 
+  // 將巢狀三元運算子拆解為獨立陳述式
+  const getDialogTitle = () => {
+    if (editMode) {
+      return productType === 'product' ? '編輯商品' : '編輯藥品';
+    } else {
+      return productType === 'product' ? '新增商品' : '新增藥品';
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {editMode ? (productType === 'product' ? '編輯商品' : '編輯藥品') : (productType === 'product' ? '新增商品' : '新增藥品')}
+        {getDialogTitle()}
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -58,7 +68,7 @@ const ProductFormDialog = ({
             <TextField
               name="code"
               label="編號"
-              value={currentProduct.code}
+              value={currentProduct?.code}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -69,7 +79,7 @@ const ProductFormDialog = ({
             <TextField
               name="shortCode"
               label="簡碼"
-              value={currentProduct.shortCode}
+              value={currentProduct?.shortCode}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -80,7 +90,7 @@ const ProductFormDialog = ({
             <TextField
               name="name"
               label="名稱"
-              value={currentProduct.name}
+              value={currentProduct?.name}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -93,7 +103,7 @@ const ProductFormDialog = ({
               <TextField
                 name="barcode"
                 label="國際條碼"
-                value={currentProduct.barcode}
+                value={currentProduct?.barcode}
                 onChange={handleInputChange}
                 fullWidth
                 margin="dense"
@@ -105,7 +115,7 @@ const ProductFormDialog = ({
                 <TextField
                   name="barcode"
                   label="國際條碼"
-                  value={currentProduct.barcode}
+                  value={currentProduct?.barcode}
                   onChange={handleInputChange}
                   fullWidth
                   margin="dense"
@@ -115,7 +125,7 @@ const ProductFormDialog = ({
                 <TextField
                   name="healthInsuranceCode"
                   label="健保碼"
-                  value={currentProduct.healthInsuranceCode}
+                  value={currentProduct?.healthInsuranceCode}
                   onChange={handleInputChange}
                   fullWidth
                   margin="dense"
@@ -126,7 +136,7 @@ const ProductFormDialog = ({
                   name="healthInsurancePrice"
                   label="健保價"
                   type="number"
-                  value={currentProduct.healthInsurancePrice}
+                  value={currentProduct?.healthInsurancePrice}
                   onChange={handleInputChange}
                   fullWidth
                   margin="dense"
@@ -144,7 +154,7 @@ const ProductFormDialog = ({
                 <Select
                   labelId="category-label"
                   name="category"
-                  value={currentProduct.category || ''}
+                  value={currentProduct?.category || ''}
                   onChange={handleInputChange}
                   label="分類"
                 >
@@ -164,7 +174,7 @@ const ProductFormDialog = ({
             <TextField
               name="unit"
               label="單位"
-              value={currentProduct.unit}
+              value={currentProduct?.unit}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -175,7 +185,7 @@ const ProductFormDialog = ({
               name="purchasePrice"
               label="進貨價"
               type="number"
-              value={currentProduct.purchasePrice}
+              value={currentProduct?.purchasePrice}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -186,7 +196,7 @@ const ProductFormDialog = ({
               name="sellingPrice"
               label="售價"
               type="number"
-              value={currentProduct.sellingPrice}
+              value={currentProduct?.sellingPrice}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -197,7 +207,7 @@ const ProductFormDialog = ({
               name="minStock"
               label="最低庫存"
               type="number"
-              value={currentProduct.minStock}
+              value={currentProduct?.minStock}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -209,14 +219,14 @@ const ProductFormDialog = ({
               <Select
                 labelId="supplier-label"
                 name="supplier"
-                value={currentProduct.supplier}
+                value={currentProduct?.supplier}
                 onChange={handleInputChange}
                 label="供應商"
               >
                 <MenuItem value="">
                   <em>無</em>
                 </MenuItem>
-                {suppliers.map(supplier => (
+                {suppliers?.map(supplier => (
                   <MenuItem key={supplier._id} value={supplier._id}>
                     {supplier.name}
                   </MenuItem>
@@ -228,7 +238,7 @@ const ProductFormDialog = ({
             <TextField
               name="description"
               label="描述"
-              value={currentProduct.description}
+              value={currentProduct?.description}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -248,6 +258,37 @@ const ProductFormDialog = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+// 添加 ProductFormDialog 的 PropTypes 驗證
+ProductFormDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  currentProduct: PropTypes.shape({
+    code: PropTypes.string,
+    shortCode: PropTypes.string,
+    name: PropTypes.string,
+    barcode: PropTypes.string,
+    healthInsuranceCode: PropTypes.string,
+    healthInsurancePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    category: PropTypes.string,
+    unit: PropTypes.string,
+    purchasePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    sellingPrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    minStock: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    supplier: PropTypes.string,
+    description: PropTypes.string
+  }),
+  editMode: PropTypes.bool,
+  productType: PropTypes.string,
+  suppliers: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      name: PropTypes.string
+    })
+  ),
+  handleInputChange: PropTypes.func.isRequired,
+  handleSave: PropTypes.func.isRequired
 };
 
 export default ProductFormDialog;
