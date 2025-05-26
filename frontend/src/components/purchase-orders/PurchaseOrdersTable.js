@@ -1,8 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Box, 
-  IconButton,
-  Chip
+  IconButton
 } from '@mui/material';
 import { 
   Edit as EditIcon,
@@ -193,6 +193,35 @@ const PurchaseOrdersTable = ({
       />
     </Box>
   );
+};
+
+// Props 驗證
+PurchaseOrdersTable.propTypes = {
+  purchaseOrders: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      poid: PropTypes.string,
+      pobill: PropTypes.string,
+      pobilldate: PropTypes.string,
+      posupplier: PropTypes.string,
+      totalAmount: PropTypes.number,
+      status: PropTypes.string,
+      paymentStatus: PropTypes.string
+    })
+  ).isRequired,
+  filteredRows: PropTypes.array.isRequired,
+  paginationModel: PropTypes.shape({
+    page: PropTypes.number.isRequired,
+    pageSize: PropTypes.number.isRequired
+  }).isRequired,
+  setPaginationModel: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  handleView: PropTypes.func.isRequired,
+  handleEdit: PropTypes.func.isRequired,
+  handleDeleteClick: PropTypes.func.isRequired,
+  handlePreviewMouseEnter: PropTypes.func.isRequired,
+  handlePreviewMouseLeave: PropTypes.func.isRequired,
+  renderSupplierHeader: PropTypes.func.isRequired
 };
 
 export default PurchaseOrdersTable;
