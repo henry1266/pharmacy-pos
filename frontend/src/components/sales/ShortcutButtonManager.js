@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import axios from 'axios'; // Import axios
 import { getApiBaseUrl } from '../../utils/apiConfig'; // Import the base URL utility
 import {
@@ -47,12 +48,12 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
       setFilteredProducts([]);
     } else {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      const results = allProducts.filter(p =>
-        (p.name && p.name.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (p.code && p.code.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (p.barcode && p.barcode.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (p.healthInsuranceCode && p.healthInsuranceCode.toLowerCase().includes(lowerCaseSearchTerm))
-      ).slice(0, 50);
+      const results = allProducts?.filter(p =>
+        (p?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (p?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (p?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (p?.healthInsuranceCode?.toLowerCase().includes(lowerCaseSearchTerm))
+      ).slice(0, 50) || [];
       setFilteredProducts(results);
     }
   }, [searchTerm, allProducts]);
@@ -70,12 +71,12 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
   };
 
   const handleSave = () => {
-    onSave(shortcut.id, selectedProductIds);
+    onSave(shortcut?.id, selectedProductIds);
     onClose();
   };
 
   const getProductDetails = (productId) => {
-    return allProducts.find(p => p._id === productId);
+    return allProducts?.find(p => p?._id === productId);
   };
 
   return (
@@ -96,7 +97,7 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
             fullWidth
             freeSolo
             options={filteredProducts}
-            getOptionLabel={(option) => option.name || ''}
+            getOptionLabel={(option) => option?.name || ''}
             filterOptions={(x) => x}
             value={null}
             onChange={(event, newValue) => {
@@ -121,9 +122,9 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
               />
             )}
             renderOption={(props, option) => (
-              <li {...props} key={option._id}>
+              <li {...props} key={option?._id}>
                 <Typography variant="body2">
-                  {option.name} ({option.code || 'N/A'}) - ${option.sellingPrice?.toFixed(2) || 'N/A'}
+                  {option?.name} ({option?.code || 'N/A'}) - ${option?.sellingPrice?.toFixed(2) || 'N/A'}
                 </Typography>
               </li>
             )}
@@ -149,7 +150,7 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
                   >
                     <ListItemText
                       primary={product?.name || '藥品資料遺失'}
-                      secondary={product ? `代碼: ${product.code || 'N/A'}, 價格: $${product.sellingPrice?.toFixed(2) || 'N/A'}` : `ID: ${productId}`}
+                      secondary={product ? `代碼: ${product?.code || 'N/A'}, 價格: $${product?.sellingPrice?.toFixed(2) || 'N/A'}` : `ID: ${productId}`}
                     />
                   </ListItem>
                 );
@@ -164,6 +165,28 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
       </DialogActions>
     </Dialog>
   );
+};
+
+// 添加 EditShortcutItemsDialog 的 PropTypes 驗證
+EditShortcutItemsDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  shortcut: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    productIds: PropTypes.arrayOf(PropTypes.string)
+  }),
+  allProducts: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      name: PropTypes.string,
+      code: PropTypes.string,
+      barcode: PropTypes.string,
+      healthInsuranceCode: PropTypes.string,
+      sellingPrice: PropTypes.number
+    })
+  ),
+  onSave: PropTypes.func.isRequired
 };
 
 // --- Shortcut Button Manager --- (Main Component - Modified for API integration)
@@ -309,14 +332,14 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
       {/* Display Shortcut Buttons */}
       {shortcuts.map((shortcut) => (
         <Button
-          key={shortcut.id}
+          key={shortcut?.id}
           variant="contained"
           color="info"
           onClick={() => onShortcutSelect(shortcut)}
           sx={{ ml: 1, height: 56, textTransform: 'none' }}
           disabled={!!error} // Disable if there was an error loading/saving
         >
-          {shortcut.name}
+          {shortcut?.name}
         </Button>
       ))}
       {/* Button to open the management dialog */}
@@ -335,19 +358,19 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
           <List sx={{ mb: 2 }}>
             {shortcuts.map((shortcut) => (
               <ListItem
-                key={shortcut.id}
+                key={shortcut?.id}
                 secondaryAction={
                   <Box>
                     <IconButton edge="end" aria-label="edit items" onClick={() => handleOpenEditItemsDialog(shortcut)} sx={{ mr: 0.5 }}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton edge="end" aria-label="delete shortcut" onClick={() => handleRemoveShortcut(shortcut.id)}>
+                    <IconButton edge="end" aria-label="delete shortcut" onClick={() => handleRemoveShortcut(shortcut?.id)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Box>
                 }
               >
-                <ListItemText primary={shortcut.name} secondary={`${shortcut.productIds.length} 個項目`} />
+                <ListItemText primary={shortcut?.name} secondary={`${shortcut?.productIds?.length} 個項目`} />
               </ListItem>
             ))}
           </List>
@@ -392,5 +415,19 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
   );
 };
 
-export default ShortcutButtonManager;
+// 添加 ShortcutButtonManager 的 PropTypes 驗證
+ShortcutButtonManager.propTypes = {
+  onShortcutSelect: PropTypes.func.isRequired,
+  allProducts: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      name: PropTypes.string,
+      code: PropTypes.string,
+      barcode: PropTypes.string,
+      healthInsuranceCode: PropTypes.string,
+      sellingPrice: PropTypes.number
+    })
+  ).isRequired
+};
 
+export default ShortcutButtonManager;
