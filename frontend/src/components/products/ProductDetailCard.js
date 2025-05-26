@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Card,
   CardHeader,
@@ -104,6 +105,40 @@ const ProductDetailCard = ({
       </CardContent>
     </Card>
   );
+};
+
+ProductDetailCard.propTypes = {
+  product: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    code: PropTypes.string,
+    shortCode: PropTypes.string,
+    unit: PropTypes.string,
+    barcode: PropTypes.string,
+    healthInsuranceCode: PropTypes.string,
+    supplier: PropTypes.string,
+    category: PropTypes.string,
+    minStock: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    purchasePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    sellingPrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    healthInsurancePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    description: PropTypes.string,
+    productType: PropTypes.string
+  }),
+  suppliers: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      name: PropTypes.string
+    })
+  ),
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      name: PropTypes.string
+    })
+  ),
+  handleEditProduct: PropTypes.func.isRequired,
+  handleDeleteProduct: PropTypes.func.isRequired
 };
 
 export default ProductDetailCard;
