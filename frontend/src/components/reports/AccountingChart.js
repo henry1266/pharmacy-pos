@@ -220,6 +220,70 @@ const AccountingChart = () => {
     }).format(amount);
   };
 
+  // 處理按日期分組的數據
+  const processDateGroupData = () => {
+    return accountingData.map(item => {
+      const result = { name: item.date };
+      
+      // 如果是按類別過濾，則需要從items中提取
+      if (selectedCategories.length > 0) {
+        selectedCategories.forEach(category => {
+          const categoryItems = item.items.filter(i => i.category === category);
+          result[category] = viewMode === 'amount'
+            ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
+            : categoryItems.length;
+        });
+      } else {
+        // 否則直接使用總金額或總數量
+        result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
+      }
+      
+      return result;
+    }).sort((a, b) => a.name.localeCompare(b.name));
+  };
+
+  // 處理按班別分組的數據
+  const processShiftGroupData = () => {
+    return accountingData.map(item => {
+      const result = { name: item.shift };
+      
+      // 如果是按類別過濾，則需要從items中提取
+      if (selectedCategories.length > 0) {
+        selectedCategories.forEach(category => {
+          const categoryItems = item.items.filter(i => i.category === category);
+          result[category] = viewMode === 'amount'
+            ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
+            : categoryItems.length;
+        });
+      } else {
+        // 否則直接使用總金額或總數量
+        result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
+      }
+      
+      return result;
+    }).sort((a, b) => {
+      const shiftOrder = { '早班': 1, '中班': 2, '晚班': 3 };
+      return shiftOrder[a.name] - shiftOrder[b.name];
+    });
+  };
+
+  // 處理按類別分組的數據
+  const processCategoryGroupData = () => {
+    if (selectedCategories.length > 0) {
+      return summaryData.categoryStats
+        .filter(item => selectedCategories.includes(item.category))
+        .map(item => ({
+          name: item.category,
+          value: viewMode === 'amount' ? item.totalAmount : item.count
+        }));
+    } else {
+      return summaryData.categoryStats.map(item => ({
+        name: item.category,
+        value: viewMode === 'amount' ? item.totalAmount : item.count
+      }));
+    }
+  };
+
   // 處理圖表數據
   const processChartData = () => {
     if (!accountingData || accountingData.length === 0) {
@@ -228,63 +292,11 @@ const AccountingChart = () => {
 
     // 根據分組方式處理數據
     if (groupBy === 'date') {
-      // 按日期分組的數據已經從API獲取
-      return accountingData.map(item => {
-        const result = { name: item.date };
-        
-        // 如果是按類別過濾，則需要從items中提取
-        if (selectedCategories.length > 0) {
-          selectedCategories.forEach(category => {
-            const categoryItems = item.items.filter(i => i.category === category);
-            result[category] = viewMode === 'amount'
-              ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
-              : categoryItems.length;
-          });
-        } else {
-          // 否則直接使用總金額或總數量
-          result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
-        }
-        
-        return result;
-      }).sort((a, b) => a.name.localeCompare(b.name));
+      return processDateGroupData();
     } else if (groupBy === 'shift') {
-      // 按班別分組的數據已經從API獲取
-      return accountingData.map(item => {
-        const result = { name: item.shift };
-        
-        // 如果是按類別過濾，則需要從items中提取
-        if (selectedCategories.length > 0) {
-          selectedCategories.forEach(category => {
-            const categoryItems = item.items.filter(i => i.category === category);
-            result[category] = viewMode === 'amount'
-              ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
-              : categoryItems.length;
-          });
-        } else {
-          // 否則直接使用總金額或總數量
-          result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
-        }
-        
-        return result;
-      }).sort((a, b) => {
-        const shiftOrder = { '早班': 1, '中班': 2, '晚班': 3 };
-        return shiftOrder[a.name] - shiftOrder[b.name];
-      });
+      return processShiftGroupData();
     } else if (groupBy === 'category') {
-      // 按類別分組的數據
-      if (selectedCategories.length > 0) {
-        return summaryData.categoryStats
-          .filter(item => selectedCategories.includes(item.category))
-          .map(item => ({
-            name: item.category,
-            value: viewMode === 'amount' ? item.totalAmount : item.count
-          }));
-      } else {
-        return summaryData.categoryStats.map(item => ({
-          name: item.category,
-          value: viewMode === 'amount' ? item.totalAmount : item.count
-        }));
-      }
+      return processCategoryGroupData();
     }
 
     return [];
@@ -404,7 +416,7 @@ const AccountingChart = () => {
             ) : (
               selectedCategories.map((category, index) => (
                 <Bar 
-                  key={category} 
+                  key={`bar-${category}`} 
                   dataKey={category} 
                   name={category} 
                   fill={COLORS[index % COLORS.length]} 
@@ -461,7 +473,7 @@ const AccountingChart = () => {
             ) : (
               selectedCategories.map((category, index) => (
                 <Line 
-                  key={category} 
+                  key={`line-${category}`} 
                   type="monotone"
                   dataKey={category} 
                   name={category} 
@@ -488,7 +500,7 @@ const AccountingChart = () => {
               dataKey="value"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip 
@@ -535,9 +547,9 @@ const AccountingChart = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {accountingData.map((row, index) => (
+              {accountingData.map((row) => (
                 <TableRow
-                  key={index}
+                  key={`date-row-${row.date}`}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell component="th" scope="row">
@@ -546,9 +558,9 @@ const AccountingChart = () => {
                   <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
                   <TableCell align="right">{row.items.length}</TableCell>
                   <TableCell>
-                    {row.items.slice(0, 3).map((item, i) => (
+                    {row.items.slice(0, 3).map((item) => (
                       <Chip 
-                        key={i} 
+                        key={`item-${item._id || `${item.category}-${item.amount}`}`} 
                         label={`${item.category}: ${formatCurrency(item.amount)}`} 
                         size="small" 
                         sx={{ mr: 0.5, mb: 0.5 }} 
@@ -556,6 +568,7 @@ const AccountingChart = () => {
                     ))}
                     {row.items.length > 3 && (
                       <Chip 
+                        key={`date-more-${row.date}`}
                         label={`+${row.items.length - 3}項`} 
                         size="small" 
                         variant="outlined" 
@@ -581,9 +594,9 @@ const AccountingChart = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {accountingData.map((row, index) => (
+              {accountingData.map((row) => (
                 <TableRow
-                  key={index}
+                  key={`shift-row-${row.shift}`}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell component="th" scope="row">
@@ -592,9 +605,9 @@ const AccountingChart = () => {
                   <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
                   <TableCell align="right">{row.items.length}</TableCell>
                   <TableCell>
-                    {row.items.slice(0, 3).map((item, i) => (
+                    {row.items.slice(0, 3).map((item) => (
                       <Chip 
-                        key={i} 
+                        key={`shift-item-${item._id || `${item.category}-${item.amount}`}`} 
                         label={`${item.category}: ${formatCurrency(item.amount)}`} 
                         size="small" 
                         sx={{ mr: 0.5, mb: 0.5 }} 
@@ -602,6 +615,7 @@ const AccountingChart = () => {
                     ))}
                     {row.items.length > 3 && (
                       <Chip 
+                        key={`shift-more-${row.shift}`}
                         label={`+${row.items.length - 3}項`} 
                         size="small" 
                         variant="outlined" 
@@ -627,9 +641,9 @@ const AccountingChart = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {summaryData.categoryStats.map((row, index) => (
+              {summaryData.categoryStats.map((row) => (
                 <TableRow
-                  key={index}
+                  key={`category-row-${row.category}`}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell component="th" scope="row">
@@ -652,188 +666,190 @@ const AccountingChart = () => {
   };
 
   return (
-    <Card sx={{ 
-      borderRadius: 'var(--border-radius)',
-      boxShadow: 'var(--card-shadow)',
-      mb: 4
-    }}>
+    <Card>
       <CardContent>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          mb: 3
-        }}>
-          <Typography variant="h6" fontWeight="600" color="var(--text-primary)">
-            記帳系統報表
-          </Typography>
-          
-          <Button
-            variant="outlined"
-            startIcon={<DownloadOutlined />}
-            onClick={exportToCSV}
-            sx={{ 
-              borderColor: 'var(--border-color)',
-              color: 'var(--text-primary)',
-              '&:hover': {
-                borderColor: 'var(--primary-color)',
-                backgroundColor: 'rgba(98, 75, 255, 0.04)'
-              }
-            }}
-          >
-            導出CSV
-          </Button>
-        </Box>
+        <Typography variant="h6" gutterBottom>
+          記帳報表
+        </Typography>
 
-        {/* 篩選和控制區域 */}
+        {/* 過濾器 */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* 日期範圍選擇 */}
           <Grid item xs={12} md={6}>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                日期範圍
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {dateRangeOptions.map((option) => (
-                  <Chip
-                    key={option.value}
-                    label={option.label}
-                    onClick={() => handleDateRangeChange(option)}
-                    color={
-                      option.value === 'custom' &&
-                      dateRange.startDate !== dateRangeOptions.find(o => o.value === 'custom').start
-                        ? 'primary'
-                        : dateRange.startDate === option.start && dateRange.endDate === option.end
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+              {dateRangeOptions.map((option) => (
+                <Chip
+                  key={option.value}
+                  label={option.label}
+                  onClick={() => handleDateRangeChange(option)}
+                  color={
+                    option.value === 'custom' 
+                      ? 'default'
+                      : (dateRange.startDate === option.start && dateRange.endDate === option.end)
                         ? 'primary'
                         : 'default'
-                    }
-                    sx={{ mb: 1 }}
-                  />
-                ))}
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker
-                    label="開始日期"
-                    value={dateRange.startDate}
-                    onChange={handleStartDateChange}
-                    slotProps={{ textField: { size: 'small', fullWidth: true } }}
-                  />
-                  <DatePicker
-                    label="結束日期"
-                    value={dateRange.endDate}
-                    onChange={handleEndDateChange}
-                    slotProps={{ textField: { size: 'small', fullWidth: true } }}
-                  />
-                </LocalizationProvider>
-              </Box>
+                  }
+                  sx={{ mb: 1 }}
+                />
+              ))}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="開始日期"
+                  value={dateRange.startDate}
+                  onChange={handleStartDateChange}
+                  renderInput={(params) => <TextField {...params} size="small" fullWidth />}
+                />
+                <DatePicker
+                  label="結束日期"
+                  value={dateRange.endDate}
+                  onChange={handleEndDateChange}
+                  renderInput={(params) => <TextField {...params} size="small" fullWidth />}
+                />
+              </LocalizationProvider>
             </Box>
           </Grid>
 
-          {/* 類別選擇 */}
+          {/* 分組和視圖選項 */}
           <Grid item xs={12} md={6}>
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>選擇類別</InputLabel>
-              <Select
-                multiple
-                value={selectedCategories}
-                onChange={handleCategoryChange}
-                renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((value) => (
-                      <Chip key={value} label={value} />
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>分組方式</InputLabel>
+                  <Select
+                    value={groupBy}
+                    onChange={handleGroupByChange}
+                    label="分組方式"
+                  >
+                    {groupByOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
                     ))}
-                  </Box>
-                )}
-              >
-                {availableCategories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* 圖表控制 */}
-          <Grid item xs={12} sm={4}>
-            <FormControl fullWidth>
-              <InputLabel>圖表類型</InputLabel>
-              <Select
-                value={chartType}
-                onChange={handleChartTypeChange}
-                disabled={viewTab === 1}
-              >
-                {chartTypeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <FormControl fullWidth>
-              <InputLabel>分組方式</InputLabel>
-              <Select
-                value={groupBy}
-                onChange={handleGroupByChange}
-                disabled={chartType === 'pie' && viewTab === 0}
-              >
-                {groupByOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <FormControl fullWidth>
-              <InputLabel>視圖模式</InputLabel>
-              <Select
-                value={viewMode}
-                onChange={handleViewModeChange}
-              >
-                {viewModeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>視圖模式</InputLabel>
+                  <Select
+                    value={viewMode}
+                    onChange={handleViewModeChange}
+                    label="視圖模式"
+                  >
+                    {viewModeOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>圖表類型</InputLabel>
+                  <Select
+                    value={chartType}
+                    onChange={handleChartTypeChange}
+                    label="圖表類型"
+                  >
+                    {chartTypeOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>類別</InputLabel>
+                  <Select
+                    multiple
+                    value={selectedCategories}
+                    onChange={handleCategoryChange}
+                    label="類別"
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {selected.map((value) => (
+                          <Chip key={`category-chip-${value}`} label={value} size="small" />
+                        ))}
+                      </Box>
+                    )}
+                  >
+                    {availableCategories.map((category) => (
+                      <MenuItem key={`category-menu-${category}`} value={category}>
+                        {category}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
 
         {/* 摘要信息 */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6}>
-            <Box sx={{ p: 2, bgcolor: 'var(--bg-secondary)', borderRadius: 'var(--border-radius-sm)' }}>
-              <Typography variant="body2" color="var(--text-secondary)" gutterBottom>
-                總金額
-              </Typography>
-              <Typography variant="h4" fontWeight="600" color="var(--text-primary)">
-                {formatCurrency(summaryData.totalAmount)}
-              </Typography>
-            </Box>
+        <Box sx={{ mb: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  總金額
+                </Typography>
+                <Typography variant="h5" sx={{ mt: 1 }}>
+                  {formatCurrency(summaryData.totalAmount)}
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  總項目數
+                </Typography>
+                <Typography variant="h5" sx={{ mt: 1 }}>
+                  {summaryData.totalCount}
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  平均金額
+                </Typography>
+                <Typography variant="h5" sx={{ mt: 1 }}>
+                  {formatCurrency(summaryData.totalCount > 0 ? summaryData.totalAmount / summaryData.totalCount : 0)}
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  類別數
+                </Typography>
+                <Typography variant="h5" sx={{ mt: 1 }}>
+                  {summaryData.categoryStats.length}
+                </Typography>
+              </Paper>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Box sx={{ p: 2, bgcolor: 'var(--bg-secondary)', borderRadius: 'var(--border-radius-sm)' }}>
-              <Typography variant="body2" color="var(--text-secondary)" gutterBottom>
-                總數量
-              </Typography>
-              <Typography variant="h4" fontWeight="600" color="var(--text-primary)">
-                {summaryData.totalCount}
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
+        </Box>
+
+        {/* 錯誤信息 */}
+        {error && (
+          <Box sx={{ mb: 3 }}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        )}
 
         {/* 視圖切換 */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-          <Tabs value={viewTab} onChange={handleViewTabChange} aria-label="視圖切換">
+          <Tabs 
+            value={viewTab} 
+            onChange={handleViewTabChange}
+            aria-label="視圖切換"
+          >
             <Tab 
               icon={<BarChartOutlined />} 
               label="圖表" 
@@ -849,17 +865,22 @@ const AccountingChart = () => {
           </Tabs>
         </Box>
 
-        {/* 圖表/表格區域 */}
-        {error ? (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color="error">{error}</Typography>
-          </Box>
-        ) : (
-          <Box role="tabpanel" hidden={viewTab !== 0} id="tabpanel-0" aria-labelledby="tab-0">
-            {viewTab === 0 && renderChart()}
-          </Box>
-        )}
+        {/* 導出按鈕 */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadOutlined />}
+            onClick={exportToCSV}
+            disabled={accountingData.length === 0}
+          >
+            導出CSV
+          </Button>
+        </Box>
 
+        {/* 視圖內容 */}
+        <Box role="tabpanel" hidden={viewTab !== 0} id="tabpanel-0" aria-labelledby="tab-0">
+          {viewTab === 0 && renderChart()}
+        </Box>
         <Box role="tabpanel" hidden={viewTab !== 1} id="tabpanel-1" aria-labelledby="tab-1">
           {viewTab === 1 && renderTable()}
         </Box>
