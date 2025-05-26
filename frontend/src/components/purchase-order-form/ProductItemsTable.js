@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Box,
   Table,
@@ -206,5 +207,31 @@ const ProductItemsTable = ({
   );
 };
 
-export default ProductItemsTable;
+// 新增缺少的 props validation
+ProductItemsTable.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      did: PropTypes.string,
+      dname: PropTypes.string,
+      dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    })
+  ).isRequired,
+  editingItemIndex: PropTypes.number,
+  editingItem: PropTypes.shape({
+    did: PropTypes.string,
+    dname: PropTypes.string,
+    dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  }),
+  handleEditItem: PropTypes.func.isRequired,
+  handleSaveEditItem: PropTypes.func.isRequired,
+  handleCancelEditItem: PropTypes.func.isRequired,
+  handleRemoveItem: PropTypes.func.isRequired,
+  handleMoveItem: PropTypes.func.isRequired,
+  handleEditingItemChange: PropTypes.func.isRequired,
+  totalAmount: PropTypes.number.isRequired
+};
 
+export default ProductItemsTable;
