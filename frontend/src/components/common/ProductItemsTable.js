@@ -19,8 +19,148 @@ import {
   Visibility,
   VisibilityOff
 } from '@mui/icons-material';
+import PropTypes from 'prop-types';
 import ProductCodeLink from './ProductCodeLink';
-import GrossProfitCell from './GrossProfitCell'; // Added import
+import GrossProfitCell from './GrossProfitCell';
+
+/**
+ * 計算單價的輔助函數
+ * @param {Object} item 項目
+ * @param {string} priceField 單價欄位名稱
+ * @param {string} quantityField 數量欄位名稱
+ * @param {string} totalCostField 總金額欄位名稱
+ * @returns {string} 格式化的單價
+ */
+const calculateUnitPrice = (item, priceField, quantityField, totalCostField) => {
+  const price = Number(item[priceField]);
+  if (!isNaN(price)) {
+    return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  
+  const quantity = Number(item[quantityField]);
+  const totalCost = Number(item[totalCostField]);
+  return quantity > 0
+    ? (totalCost / quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '0.00';
+};
+
+/**
+ * 計算小計的輔助函數
+ * @param {Object} item 項目
+ * @param {string} totalCostField 總金額欄位名稱
+ * @param {string} quantityField 數量欄位名稱
+ * @param {string} priceField 單價欄位名稱
+ * @returns {string} 格式化的小計
+ */
+const calculateItemSubtotal = (item, totalCostField, quantityField, priceField) => {
+  const total = Number(item[totalCostField]);
+  if (!isNaN(total)) {
+    return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  
+  const quantity = Number(item[quantityField]);
+  const price = Number(item[priceField]);
+  return (!isNaN(quantity) && !isNaN(price))
+    ? (quantity * price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '0.00';
+};
+
+/**
+ * 檢查是否有毛利數據的輔助函數
+ * @param {Array} items 項目數組
+ * @param {string} profitField 毛利欄位名稱
+ * @param {string} profitMarginField 毛利率欄位名稱
+ * @returns {boolean} 是否有毛利數據
+ */
+const checkHasProfitData = (items, profitField, profitMarginField) => {
+  return items.some(item => 
+    (item.hasOwnProperty(profitField) && typeof item[profitField] === 'number') || 
+    item.hasOwnProperty(profitMarginField)
+  );
+};
+
+/**
+ * 渲染表格標題行的輔助函數
+ * @param {boolean} showHealthInsuranceCode 是否顯示健保代碼
+ * @param {boolean} showProfitColumns 是否顯示毛利欄位
+ * @param {boolean} hasProfitData 是否有毛利數據
+ * @returns {React.ReactElement} 表格標題行
+ */
+const renderTableHeader = (showHealthInsuranceCode, showProfitColumns, hasProfitData) => (
+  <TableHead>
+    <TableRow>
+      <TableCell width="1%">#</TableCell>
+      <TableCell width="1%">編號</TableCell>
+      {showHealthInsuranceCode && (
+        <TableCell width="1%">健保代碼</TableCell>
+      )}
+      <TableCell width={showHealthInsuranceCode ? "20%" : "25%"}>名稱</TableCell>
+      <TableCell width="4%" align="right">數量</TableCell>
+      <TableCell width="4%" align="right">單價</TableCell>
+      <TableCell width="4%" align="right">小計</TableCell>
+      {showProfitColumns && hasProfitData && (
+        <>
+          <TableCell width="4%" align="right">毛利</TableCell>
+          <TableCell width="4%" align="right">毛利率</TableCell>
+        </>
+      )}
+    </TableRow>
+  </TableHead>
+);
+
+/**
+ * 渲染表格內容的輔助函數
+ * @param {Array} items 項目數組
+ * @param {Object} productDetails 產品詳細資料映射
+ * @param {boolean} showHealthInsuranceCode 是否顯示健保代碼
+ * @param {boolean} showProfitColumns 是否顯示毛利欄位
+ * @param {boolean} hasProfitData 是否有毛利數據
+ * @param {Object} fields 欄位名稱映射
+ * @returns {React.ReactElement[]} 表格內容行
+ */
+const renderTableRows = (items, productDetails, showHealthInsuranceCode, showProfitColumns, hasProfitData, fields) => {
+  const { codeField, nameField, quantityField, priceField, totalCostField, profitField, profitMarginField } = fields;
+  
+  return items.map((item, index) => {
+    const productCode = item[codeField];
+    const productDetail = productDetails[productCode] || {};
+    const healthInsuranceCode = productDetail.healthInsuranceCode || 'N/A';
+    
+    // 構建毛利數據
+    const fifoProfitData = {
+      grossProfit: item.hasOwnProperty(profitField) ? Number(item[profitField]) : undefined
+    };
+    const itemProfitMargin = item[profitMarginField];
+
+    // 決定毛利率顯示顏色
+    let profitMarginColor = 'text.primary';
+    if (fifoProfitData.grossProfit !== undefined) {
+      profitMarginColor = fifoProfitData.grossProfit >= 0 ? 'success.main' : 'error.main';
+    }
+
+    return (
+      <TableRow key={index}>
+        <TableCell>{index + 1}</TableCell>
+        <TableCell><ProductCodeLink product={{ _id: productDetail._id, code: productCode }} /></TableCell>
+        {showHealthInsuranceCode && (
+          <TableCell>{healthInsuranceCode}</TableCell>
+        )}
+        <TableCell>{item[nameField] || productDetail.name || 'N/A'}</TableCell>
+        <TableCell align="right">{item[quantityField] || 0}</TableCell>
+        <TableCell align="right">{calculateUnitPrice(item, priceField, quantityField, totalCostField)}</TableCell>
+        <TableCell align="right">{calculateItemSubtotal(item, totalCostField, quantityField, priceField)}</TableCell>
+        {showProfitColumns && hasProfitData && (
+          <>
+            <GrossProfitCell fifoProfit={fifoProfitData} />
+            <TableCell align="right" sx={{ color: profitMarginColor }}>
+              {itemProfitMargin !== undefined ? itemProfitMargin : 'N/A'}
+            </TableCell>
+          </>
+        )}
+      </TableRow>
+    );
+  });
+};
 
 /**
  * 產品項目表格組件 (純 UI)
@@ -52,7 +192,7 @@ const ProductItemsTable = ({
   title = '項目',
   isLoading = false,
   defaultShowProfit = true,
-  profitField = 'profit', // This will be used to get the gross profit value
+  profitField = 'profit',
   profitMarginField = 'profitMargin'
 }) => {
   const [showProfitColumns, setShowProfitColumns] = useState(defaultShowProfit);
@@ -61,38 +201,11 @@ const ProductItemsTable = ({
     setShowProfitColumns(!showProfitColumns);
   };
 
-  const getUnitPrice = (item) => {
-    const price = Number(item[priceField]);
-    if (!isNaN(price)) {
-        return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    const quantity = Number(item[quantityField]);
-    const totalCost = Number(item[totalCostField]);
-    return quantity > 0
-      ? (totalCost / quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-      : '0.00';
-  };
-
-  const getItemSubtotal = (item) => {
-      const total = Number(item[totalCostField]);
-      if (!isNaN(total)) {
-          return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      }
-      const quantity = Number(item[quantityField]);
-      const price = Number(item[priceField]);
-      return (!isNaN(quantity) && !isNaN(price))
-        ? (quantity * price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        : '0.00';
-  };
-
   const showHealthInsuranceCode = Object.keys(productDetails).length > 0;
-  
-  // Check if any item has data for the specified profitField or profitMarginField
-  const hasProfitData = items.some(item => 
-    (item.hasOwnProperty(profitField) && typeof item[profitField] === 'number') || 
-    item.hasOwnProperty(profitMarginField)
-  );
+  const hasProfitData = checkHasProfitData(items, profitField, profitMarginField);
+  const fields = { codeField, nameField, quantityField, priceField, totalCostField, profitField, profitMarginField };
 
+  // 計算 colspan 基數
   let colspanBase = 5;
   if (showHealthInsuranceCode) colspanBase++;
 
@@ -118,59 +231,10 @@ const ProductItemsTable = ({
         ) : (
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell width="1%">#</TableCell>
-                  <TableCell width="1%">編號</TableCell>
-                  {showHealthInsuranceCode && (
-                    <TableCell width="1%">健保代碼</TableCell>
-                  )}
-                  <TableCell width={showHealthInsuranceCode ? "20%" : "25%"}>名稱</TableCell>
-                  <TableCell width="4%" align="right">數量</TableCell>
-                  <TableCell width="4%" align="right">單價</TableCell>
-                  <TableCell width="4%" align="right">小計</TableCell>
-                  {showProfitColumns && hasProfitData && (
-                    <>
-                      <TableCell width="4%" align="right">毛利</TableCell>
-                      <TableCell width="4%" align="right">毛利率</TableCell>
-                    </>
-                  )}
-                </TableRow>
-              </TableHead>
+              {renderTableHeader(showHealthInsuranceCode, showProfitColumns, hasProfitData)}
               <TableBody>
                 {items && items.length > 0 ? (
-                  items.map((item, index) => {
-                    const productCode = item[codeField];
-                    const productDetail = productDetails[productCode] || {};
-                    const healthInsuranceCode = productDetail.healthInsuranceCode || 'N/A';
-                    // Construct fifoProfit object for GrossProfitCell
-                    const fifoProfitData = {
-                      grossProfit: item.hasOwnProperty(profitField) ? Number(item[profitField]) : undefined
-                    };
-                    const itemProfitMargin = item[profitMarginField];
-
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell><ProductCodeLink product={{ _id: productDetail._id, code: productCode }} /></TableCell>
-                        {showHealthInsuranceCode && (
-                          <TableCell>{healthInsuranceCode}</TableCell>
-                        )}
-                        <TableCell>{item[nameField] || productDetail.name || 'N/A'}</TableCell>
-                        <TableCell align="right">{item[quantityField] || 0}</TableCell>
-                        <TableCell align="right">{getUnitPrice(item)}</TableCell>
-                        <TableCell align="right">{getItemSubtotal(item)}</TableCell>
-                        {showProfitColumns && hasProfitData && (
-                          <>
-                            <GrossProfitCell fifoProfit={fifoProfitData} />
-                            <TableCell align="right" sx={{ color: fifoProfitData.grossProfit !== undefined && fifoProfitData.grossProfit >= 0 ? 'success.main' : (fifoProfitData.grossProfit !== undefined && fifoProfitData.grossProfit < 0 ? 'error.main' : 'text.primary') }}>
-                              {itemProfitMargin !== undefined ? itemProfitMargin : 'N/A'}
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    );
-                  })
+                  renderTableRows(items, productDetails, showHealthInsuranceCode, showProfitColumns, hasProfitData, fields)
                 ) : (
                   <TableRow>
                     <TableCell colSpan={colspanBase + (showProfitColumns && hasProfitData ? 2 : 0)} align="center">
@@ -196,5 +260,21 @@ const ProductItemsTable = ({
   );
 };
 
-export default ProductItemsTable;
+// 新增 props validation
+ProductItemsTable.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.object).isRequired,
+  productDetails: PropTypes.object,
+  codeField: PropTypes.string,
+  nameField: PropTypes.string,
+  quantityField: PropTypes.string,
+  priceField: PropTypes.string,
+  totalCostField: PropTypes.string,
+  totalAmount: PropTypes.number,
+  title: PropTypes.string,
+  isLoading: PropTypes.bool,
+  defaultShowProfit: PropTypes.bool,
+  profitField: PropTypes.string,
+  profitMarginField: PropTypes.string
+};
 
+export default ProductItemsTable;
