@@ -1,8 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Box, 
-  IconButton,
-  Chip
+  IconButton
 } from '@mui/material';
 import { 
   Edit as EditIcon,
@@ -106,6 +106,12 @@ const ShippingOrdersTable = ({
   // Removed internal rows calculation
   // const rows = shippingOrders.map(so => ({ ... }));
   
+  // 重構巢狀樣板字串
+  const getLocalizedPaginationText = (from, to, count) => {
+    const totalCount = count !== -1 ? count : `超過 ${to}`;
+    return `${from}-${to} / ${totalCount}`;
+  };
+  
   return (
     <Box sx={{ width: '100%' }}>
       <DataGrid
@@ -163,16 +169,39 @@ const ShippingOrdersTable = ({
           toolbarQuickFilterDeleteIconLabel: '清除',
           paginationRowsPerPage: '每頁行數:',
           paginationPageSize: '頁面大小',
-          paginationLabelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count !== -1 ? count : `超過 ${to}`}`,
+          paginationLabelDisplayedRows: ({ from, to, count }) => getLocalizedPaginationText(from, to, count),
           paginationLabelRowsPerPage: '每頁行數:',
           MuiTablePagination: {
-            labelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count}`,
+            labelDisplayedRows: ({ from, to, count }) => getLocalizedPaginationText(from, to, count),
             labelRowsPerPage: '每頁行數:'
           }
         }}
       />
     </Box>
   );
+};
+
+// 新增 props validation
+ShippingOrdersTable.propTypes = {
+  filteredRows: PropTypes.array,
+  paginationModel: PropTypes.shape({
+    page: PropTypes.number,
+    pageSize: PropTypes.number
+  }),
+  setPaginationModel: PropTypes.func,
+  loading: PropTypes.bool,
+  handleView: PropTypes.func,
+  handleEdit: PropTypes.func,
+  handleDeleteClick: PropTypes.func,
+  handlePreviewMouseEnter: PropTypes.func,
+  handlePreviewMouseLeave: PropTypes.func,
+  renderSupplierHeader: PropTypes.func
+};
+
+// 設定默認值
+ShippingOrdersTable.defaultProps = {
+  filteredRows: [],
+  loading: false
 };
 
 export default ShippingOrdersTable;
