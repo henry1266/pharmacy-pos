@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Grid, 
   TextField, 
@@ -122,6 +123,27 @@ const PersonalInfoSection = ({ formData, errors, onChange }) => {
       </Grid>
     </Grid>
   );
+};
+
+// 新增缺少的 props validation
+PersonalInfoSection.propTypes = {
+  formData: PropTypes.shape({
+    name: PropTypes.string,
+    gender: PropTypes.string,
+    birthDate: PropTypes.string,
+    idNumber: PropTypes.string,
+    education: PropTypes.string,
+    nativePlace: PropTypes.string
+  }).isRequired,
+  errors: PropTypes.shape({
+    name: PropTypes.string,
+    gender: PropTypes.string,
+    birthDate: PropTypes.string,
+    idNumber: PropTypes.string,
+    education: PropTypes.string,
+    nativePlace: PropTypes.string
+  }).isRequired,
+  onChange: PropTypes.func.isRequired
 };
 
 export default PersonalInfoSection;
