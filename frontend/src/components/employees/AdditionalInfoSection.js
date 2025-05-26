@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Grid, 
   TextField,
@@ -100,6 +101,25 @@ const AdditionalInfoSection = ({ formData, errors, onChange }) => {
       </Grid>
     </Grid>
   );
+};
+
+// 添加 PropTypes 驗證
+AdditionalInfoSection.propTypes = {
+  formData: PropTypes.shape({
+    experience: PropTypes.string,
+    rewards: PropTypes.string,
+    injuries: PropTypes.string,
+    additionalInfo: PropTypes.string,
+    signDate: PropTypes.string
+  }).isRequired,
+  errors: PropTypes.shape({
+    experience: PropTypes.string,
+    rewards: PropTypes.string,
+    injuries: PropTypes.string,
+    additionalInfo: PropTypes.string,
+    signDate: PropTypes.string
+  }).isRequired,
+  onChange: PropTypes.func.isRequired
 };
 
 export default AdditionalInfoSection;
