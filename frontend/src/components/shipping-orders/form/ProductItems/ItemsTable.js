@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Box,
   Table,
@@ -192,6 +193,19 @@ const ItemsTable = ({
       </Table>
     </TableContainer>
   );
+};
+
+ItemsTable.propTypes = {
+  items: PropTypes.array.isRequired,
+  editingItemIndex: PropTypes.number,
+  editingItem: PropTypes.object,
+  handleEditItem: PropTypes.func.isRequired,
+  handleSaveEditItem: PropTypes.func.isRequired,
+  handleCancelEditItem: PropTypes.func.isRequired,
+  handleRemoveItem: PropTypes.func.isRequired,
+  handleMoveItem: PropTypes.func.isRequired,
+  handleEditingItemChange: PropTypes.func.isRequired,
+  totalAmount: PropTypes.number.isRequired
 };
 
 export default ItemsTable;
