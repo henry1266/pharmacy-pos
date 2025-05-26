@@ -168,6 +168,11 @@ router.put('/:id', auth, async (req, res) => {
 
     // 檢查身分證號碼是否與其他員工重複
     if (req.body.idNumber && req.body.idNumber !== employee.idNumber) {
+      // 驗證身分證號碼格式，確保只包含合法字符
+      if (!/^[A-Z][12]\d{8}$/.test(req.body.idNumber)) {
+        return res.status(400).json({ msg: '身分證號碼格式不正確' });
+      }
+      
       const existingEmployee = await Employee.findOne({ idNumber: req.body.idNumber });
       if (existingEmployee) {
         return res.status(400).json({ msg: '此身分證號碼已存在' });

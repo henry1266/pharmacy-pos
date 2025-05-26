@@ -124,7 +124,7 @@ const AmountInfoContent = ({ sale, fifoLoading, fifoError, fifoData }) => {
     return <Typography color="error" variant="body2">{fifoError}</Typography>;
   }
   
-  if (!fifoData || !fifoData.summary) {
+  if (!fifoData?.summary) {
     return <Typography variant="body2" color="text.secondary">無毛利數據</Typography>;
   }
   
@@ -226,7 +226,7 @@ const SalesItemsTable = ({ sale, fifoLoading, fifoData, showSalesProfitColumns }
       <TableBody>
         {sale.items.map((item, index) => (
           <SalesItemRow 
-            key={index} 
+            key={item.product?._id || `item-${index}`} 
             item={item} 
             fifoLoading={fifoLoading} 
             fifoData={fifoData} 
