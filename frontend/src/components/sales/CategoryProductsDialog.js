@@ -45,7 +45,7 @@ const CategoryProductsDialog = ({
     if (products && products.length > 0) {
       // 過濾指定類別的產品
       const categoryProducts = products.filter(product => 
-        product.category && product.category.toLowerCase() === category.toLowerCase()
+        product.category?.toLowerCase() === category.toLowerCase()
       );
       setFilteredProducts(categoryProducts);
     } else {
@@ -61,20 +61,19 @@ const CategoryProductsDialog = ({
     if (term.trim() === '') {
       // 如果搜索詞為空，顯示所有指定類別的產品
       const categoryProducts = products.filter(product => 
-        product.category && product.category.toLowerCase() === category.toLowerCase()
+        product.category?.toLowerCase() === category.toLowerCase()
       );
       setFilteredProducts(categoryProducts);
     } else {
       // 否則，在指定類別的產品中搜索
       const searchResults = products.filter(product => 
-        product.category && 
-        product.category.toLowerCase() === category.toLowerCase() &&
+        product.category?.toLowerCase() === category.toLowerCase() &&
         (
-          (product.name && product.name.toLowerCase().includes(term.toLowerCase())) ||
-          (product.code && product.code.toLowerCase().includes(term.toLowerCase())) ||
-          (product.shortCode && product.shortCode.toLowerCase().includes(term.toLowerCase())) ||
-          (product.barcode && product.barcode.toLowerCase().includes(term.toLowerCase())) ||
-          (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(term.toLowerCase()))
+          product.name?.toLowerCase().includes(term.toLowerCase()) ||
+          product.code?.toLowerCase().includes(term.toLowerCase()) ||
+          product.shortCode?.toLowerCase().includes(term.toLowerCase()) ||
+          product.barcode?.toLowerCase().includes(term.toLowerCase()) ||
+          product.healthInsuranceCode?.toLowerCase().includes(term.toLowerCase())
         )
       );
       setFilteredProducts(searchResults);

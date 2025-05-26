@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Card,
   CardContent,
@@ -127,6 +128,12 @@ const SaleEditDetailsCard = ({
       </CardContent>
     </Card>
   );
+};
+
+SaleEditDetailsCard.propTypes = {
+  customers: PropTypes.array.isRequired,
+  currentSale: PropTypes.object.isRequired,
+  handleInputChange: PropTypes.func.isRequired
 };
 
 export default SaleEditDetailsCard;
