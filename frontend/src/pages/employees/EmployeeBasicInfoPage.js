@@ -98,10 +98,9 @@ const EmployeeBasicInfoPage = () => {
         }
       };
 
-      let response;
       if (isEditMode) {
         // 更新員工資料
-        response = await axios.put(`/api/employees/${id}`, employeeData, config);
+        await axios.put(`/api/employees/${id}`, employeeData, config);
         setSnackbar({
           open: true,
           message: '員工資料已成功更新！',
@@ -109,7 +108,7 @@ const EmployeeBasicInfoPage = () => {
         });
       } else {
         // 新增員工資料
-        response = await axios.post('/api/employees', employeeData, config);
+        await axios.post('/api/employees', employeeData, config);
         setSnackbar({
           open: true,
           message: '員工資料已成功新增！',

@@ -58,7 +58,6 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
   // 表單狀態
   const [formData, setFormData] = useState(initialData || initialFormData);
   const [errors, setErrors] = useState({});
-  const [localSubmitting, setLocalSubmitting] = useState(false);
 
   // 當初始資料變更時更新表單
   useEffect(() => {
@@ -143,8 +142,6 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
     e.preventDefault();
     
     if (validateForm()) {
-      setLocalSubmitting(true);
-      
       // 準備 API 提交資料
       const apiData = {
         ...formData,
