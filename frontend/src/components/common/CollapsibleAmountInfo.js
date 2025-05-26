@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Typography,
@@ -61,6 +62,73 @@ const CollapsibleAmountInfo = ({
   const TitleIconComponent = titleIcon || <DefaultTitleIcon sx={{ verticalAlign: 'middle', mr: 1 }} />;
   const MainAmountIconComponent = mainAmountIcon || <DefaultMainAmountIcon color="primary" fontSize="small" />;
 
+  // 處理主要金額顯示
+  const formattedMainAmount = typeof mainAmountValue === 'number' 
+    ? mainAmountValue.toFixed(2) 
+    : mainAmountValue;
+
+  // 處理可收合區域內容
+  const renderCollapsibleContent = () => {
+    // 載入中狀態
+    if (isLoading) {
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={24} sx={{ mr: 1 }} />
+          <Typography variant="body2" color="text.secondary">{loadingText}</Typography>
+        </Box>
+      );
+    }
+    
+    // 錯誤狀態
+    if (error) {
+      return (
+        <Typography color="error" variant="body2" sx={{ p: 2, textAlign: 'center' }}>{error}</Typography>
+      );
+    }
+    
+    // 有明細資料狀態
+    const filteredDetails = collapsibleDetails.filter(
+      detail => typeof detail.condition === 'function' ? detail.condition() : detail.condition !== false
+    );
+    
+    if (filteredDetails.length > 0) {
+      return (
+        <Grid container spacing={2} alignItems="flex-start">
+          {filteredDetails.map((detail, index) => {
+            const DetailIconComponent = detail.icon;
+
+            return (
+              <Grid item xs={6} sm={4} md={3} key={index}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  {DetailIconComponent && React.cloneElement(DetailIconComponent, { 
+                    sx: { fontSize: 'small', color: 'action', ...DetailIconComponent.props.sx } 
+                  })}
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">{detail.label}</Typography>
+                    <Typography 
+                      variant="body1" 
+                      color={detail.color || 'text.primary'} 
+                      fontWeight={detail.fontWeight || 'normal'}
+                    >
+                      {typeof detail.value === 'number' ? detail.value.toFixed(2) : detail.value}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Grid>
+            );
+          })}
+        </Grid>
+      );
+    }
+    
+    // 無明細資料狀態
+    return (
+      <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
+        {noDetailsText}
+      </Typography>
+    );
+  };
+
   return (
     <Card variant="outlined">
       <CardContent sx={{ pb: '16px !important' }}>
@@ -80,7 +148,7 @@ const CollapsibleAmountInfo = ({
               <Box textAlign="right">
                 <Typography variant="subtitle2" color="text.secondary">{mainAmountLabel}</Typography>
                 <Typography variant="h6" color="primary.main" fontWeight="bold">
-                  {typeof mainAmountValue === 'number' ? mainAmountValue.toFixed(2) : mainAmountValue}
+                  {formattedMainAmount}
                 </Typography>
               </Box>
             </Stack>
@@ -90,48 +158,45 @@ const CollapsibleAmountInfo = ({
       <Collapse in={isOpen} timeout="auto" unmountOnExit>
         <Divider />
         <CardContent>
-          {isLoading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-              <CircularProgress size={24} sx={{ mr: 1 }} />
-              <Typography variant="body2" color="text.secondary">{loadingText}</Typography>
-            </Box>
-          ) : error ? (
-            <Typography color="error" variant="body2" sx={{ p: 2, textAlign: 'center' }}>{error}</Typography>
-          ) : collapsibleDetails && collapsibleDetails.filter(detail => typeof detail.condition === 'function' ? detail.condition() : detail.condition !== false).length > 0 ? (
-            <Grid container spacing={2} alignItems="flex-start">
-              {collapsibleDetails.map((detail, index) => {
-                const shouldRender = typeof detail.condition === 'function' ? detail.condition() : detail.condition !== false;
-                if (!shouldRender) return null;
-
-                const DetailIconComponent = detail.icon;
-
-                return (
-                  <Grid item xs={6} sm={4} md={3} key={index}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      {DetailIconComponent && React.cloneElement(DetailIconComponent, { sx: { fontSize: 'small', color: 'action', ...DetailIconComponent.props.sx } })}
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">{detail.label}</Typography>
-                        <Typography 
-                          variant="body1" 
-                          color={detail.color || 'text.primary'} 
-                          fontWeight={detail.fontWeight || 'normal'}
-                        >
-                          {typeof detail.value === 'number' ? detail.value.toFixed(2) : detail.value}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>{noDetailsText}</Typography>
-          )}
+          {renderCollapsibleContent()}
         </CardContent>
       </Collapse>
     </Card>
   );
 };
 
-export default CollapsibleAmountInfo;
+// Props 驗證
+CollapsibleAmountInfo.propTypes = {
+  title: PropTypes.string.isRequired,
+  titleIcon: PropTypes.element,
+  mainAmountLabel: PropTypes.string.isRequired,
+  mainAmountValue: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  mainAmountIcon: PropTypes.element,
+  collapsibleDetails: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+      icon: PropTypes.element,
+      color: PropTypes.string,
+      fontWeight: PropTypes.string,
+      condition: PropTypes.oneOfType([PropTypes.bool, PropTypes.func])
+    })
+  ),
+  initialOpenState: PropTypes.bool,
+  isLoading: PropTypes.bool,
+  loadingText: PropTypes.string,
+  error: PropTypes.string,
+  noDetailsText: PropTypes.string
+};
 
+// 預設值
+CollapsibleAmountInfo.defaultProps = {
+  collapsibleDetails: [],
+  initialOpenState: true,
+  isLoading: false,
+  loadingText: '載入中...',
+  error: null,
+  noDetailsText: '無詳細資料'
+};
+
+export default CollapsibleAmountInfo;
