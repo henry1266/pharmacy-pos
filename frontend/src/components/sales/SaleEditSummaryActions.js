@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Grid,
   Card,
@@ -103,3 +104,16 @@ const SaleEditSummaryActions = ({
 };
 
 export default SaleEditSummaryActions;
+
+SaleEditSummaryActions.propTypes = {
+  currentSale: PropTypes.shape({
+    discount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    paymentMethod: PropTypes.string,
+    paymentStatus: PropTypes.string,
+    note: PropTypes.string,
+    totalAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    items: PropTypes.arrayOf(PropTypes.object)
+  }).isRequired,
+  handleInputChange: PropTypes.func.isRequired,
+  handleUpdateSale: PropTypes.func.isRequired
+};
