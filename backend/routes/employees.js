@@ -3,6 +3,7 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const auth = require('../middleware/auth');
 const Employee = require('../models/Employee');
+const mongoose = require('mongoose');
 
 // @route   GET api/employees
 // @desc    Get all employees with pagination and search
@@ -52,6 +53,11 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.get('/:id', auth, async (req, res) => {
   try {
+    // 驗證ID格式是否為有效的ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ msg: '無效的員工ID格式' });
+    }
+
     const employee = await Employee.findById(req.params.id);
 
     if (!employee) {
@@ -160,6 +166,11 @@ router.post(
 // @access  Private
 router.put('/:id', auth, async (req, res) => {
   try {
+    // 驗證ID格式是否為有效的ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ msg: '無效的員工ID格式' });
+    }
+
     const employee = await Employee.findById(req.params.id);
 
     if (!employee) {
@@ -173,16 +184,26 @@ router.put('/:id', auth, async (req, res) => {
         return res.status(400).json({ msg: '身分證號碼格式不正確' });
       }
       
-      const existingEmployee = await Employee.findOne({ idNumber: req.body.idNumber });
+      // 使用參數化查詢，避免直接將用戶輸入傳入查詢
+      const idNumberToCheck = String(req.body.idNumber).trim();
+      const existingEmployee = await Employee.findOne({ idNumber: idNumberToCheck });
       if (existingEmployee) {
         return res.status(400).json({ msg: '此身分證號碼已存在' });
       }
     }
 
-    // 更新資料
+    // 更新資料 - 安全地處理用戶輸入
     const updatedFields = {};
+    const allowedFields = [
+      'name', 'gender', 'birthDate', 'idNumber', 'education', 
+      'nativePlace', 'address', 'phone', 'position', 'department', 
+      'hireDate', 'salary', 'insuranceDate', 'experience', 'rewards', 
+      'injuries', 'additionalInfo', 'idCardFront', 'idCardBack'
+    ];
+    
+    // 只允許更新預定義的欄位，避免惡意注入其他欄位
     for (const [key, value] of Object.entries(req.body)) {
-      if (value !== undefined) {
+      if (value !== undefined && allowedFields.includes(key)) {
         updatedFields[key] = value;
       }
     }
@@ -190,10 +211,11 @@ router.put('/:id', auth, async (req, res) => {
     // 設定更新時間
     updatedFields.updatedAt = Date.now();
 
+    // 使用參數化查詢和安全的更新操作
     const updatedEmployee = await Employee.findByIdAndUpdate(
       req.params.id,
       { $set: updatedFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.json(updatedEmployee);
@@ -211,6 +233,11 @@ router.put('/:id', auth, async (req, res) => {
 // @access  Private
 router.delete('/:id', auth, async (req, res) => {
   try {
+    // 驗證ID格式是否為有效的ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ msg: '無效的員工ID格式' });
+    }
+
     const employee = await Employee.findById(req.params.id);
 
     if (!employee) {
