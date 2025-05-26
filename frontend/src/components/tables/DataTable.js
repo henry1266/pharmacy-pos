@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { DataGrid, GridColumnMenuProps, GridColumnMenu, useGridApiContext } from '@mui/x-data-grid';
+import { DataGrid, GridColumnMenu, useGridApiContext } from '@mui/x-data-grid';
 import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import PropTypes from 'prop-types';
 
-// 自定義列菜單組件
-function CustomColumnMenu(props) {
+// 自定義列菜單組件 - 移出父組件
+const CustomColumnMenu = (props) => {
   const { hideMenu, colDef } = props;
   const [open, setOpen] = useState(false);
-  const [width, setWidth] = useState(colDef.width || 100);
+  const [width, setWidth] = useState(colDef?.width || 100);
   const apiRef = useGridApiContext();
 
   const handleOpen = () => {
@@ -18,13 +19,9 @@ function CustomColumnMenu(props) {
   };
 
   const handleSave = () => {
-    // 使用apiRef.current更新列寬
-    if (apiRef && apiRef.current) {
-      apiRef.current.setColumnWidth(colDef.field, width);
-      console.log(`Setting column ${colDef.field} width to ${width}px`);
-    } else {
-      console.error('apiRef is not available');
-    }
+    // 使用可選鏈運算符替代條件判斷
+    apiRef?.current?.setColumnWidth(colDef?.field, width);
+    console.log(`Setting column ${colDef?.field} width to ${width}px`);
     setOpen(false);
     hideMenu();
   };
@@ -71,7 +68,16 @@ function CustomColumnMenu(props) {
       </Dialog>
     </>
   );
-}
+};
+
+// 為 CustomColumnMenu 添加 PropTypes 驗證
+CustomColumnMenu.propTypes = {
+  hideMenu: PropTypes.func.isRequired,
+  colDef: PropTypes.shape({
+    field: PropTypes.string.isRequired,
+    width: PropTypes.number
+  }).isRequired
+};
 
 /**
  * 自定義數據表格組件
@@ -105,21 +111,22 @@ const DataTable = ({
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
       
-      let newIndex = selectedIndex;
+      // 移除無用的變數賦值
+      let updatedIndex = selectedIndex;
       
       if (event.key === 'ArrowUp') {
         // 上鍵：選擇上一行，如果已經是第一行則不變
-        newIndex = Math.max(0, selectedIndex - 1);
+        updatedIndex = Math.max(0, selectedIndex - 1);
       } else {
         // 下鍵：選擇下一行，如果已經是最後一行則不變
-        newIndex = Math.min(rows.length - 1, selectedIndex + 1);
+        updatedIndex = Math.min(rows.length - 1, selectedIndex + 1);
       }
       
       // 如果索引變化了，觸發行點擊事件
-      if (newIndex !== selectedIndex) {
-        setSelectedIndex(newIndex);
-        if (onRowClick && rows[newIndex]) {
-          onRowClick({ row: rows[newIndex] });
+      if (updatedIndex !== selectedIndex) {
+        setSelectedIndex(updatedIndex);
+        if (onRowClick && rows[updatedIndex]) {
+          onRowClick({ row: rows[updatedIndex] });
         }
       }
     }
@@ -205,6 +212,27 @@ const DataTable = ({
       </Box>
     </Paper>
   );
+};
+
+// 為 DataTable 添加 PropTypes 驗證
+DataTable.propTypes = {
+  columns: PropTypes.arrayOf(
+    PropTypes.shape({
+      field: PropTypes.string.isRequired,
+      headerName: PropTypes.string,
+      width: PropTypes.number
+    })
+  ).isRequired,
+  rows: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired
+    })
+  ).isRequired,
+  title: PropTypes.string,
+  loading: PropTypes.bool,
+  pageSize: PropTypes.number,
+  checkboxSelection: PropTypes.bool,
+  onRowClick: PropTypes.func
 };
 
 export default DataTable;
