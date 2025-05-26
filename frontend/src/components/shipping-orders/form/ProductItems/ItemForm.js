@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Grid, 
   TextField, 
@@ -43,8 +44,8 @@ const ItemForm = ({
   const isInventorySufficient = () => {
     if (!currentItem.product || !currentItem.dquantity) return true;
     
-    // 移除庫存數量檢查，允許負數庫存
-    return true;
+    // 由於允許負數庫存，直接檢查是否有產品和數量
+    return Boolean(currentItem.product && currentItem.dquantity);
   };
 
   // 獲取當前選中產品的進貨價
@@ -177,7 +178,8 @@ const ItemForm = ({
         </Button>
       </Grid>
       
-      {false && (
+      {/* 移除冗餘的 boolean literal */}
+      {currentItem.dquantity && !isInventorySufficient() && (
         <Grid item xs={12}>
           <Alert severity="error">
             庫存不足！當前庫存: {getInventoryQuantity()}, 需要: {currentItem.dquantity}
@@ -188,17 +190,43 @@ const ItemForm = ({
   );
 };
 
-const filterProducts = (options, inputValue) => {
-  const filterValue = inputValue?.toLowerCase() || '';
-  return options.filter(option =>
-    option.name.toLowerCase().includes(filterValue) ||
-    option.code.toLowerCase().includes(filterValue) ||
-    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
-    (option.productType === 'medicine' && option.healthInsuranceCode &&
-     option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
-    (option.barcode && option.barcode.toLowerCase().includes(filterValue))
-  );
-};
+  const filterProducts = (options, inputValue) => {
+    const filterValue = inputValue?.toLowerCase() || '';
+    return options?.filter(option =>
+      option.name.toLowerCase().includes(filterValue) ||
+      option.code.toLowerCase().includes(filterValue) ||
+      (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
+      (option.productType === 'medicine' && option.healthInsuranceCode &&
+       option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
+      (option.barcode && option.barcode.toLowerCase().includes(filterValue))
+    ) || [];
+  };
 
 export default ItemForm;
+
+ItemForm.propTypes = {
+  currentItem: PropTypes.shape({
+    product: PropTypes.string,
+    did: PropTypes.string,
+    dname: PropTypes.string,
+    dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  }).isRequired,
+  handleItemInputChange: PropTypes.func.isRequired,
+  handleProductChange: PropTypes.func.isRequired,
+  handleAddItem: PropTypes.func.isRequired,
+  products: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      code: PropTypes.string,
+      name: PropTypes.string,
+      shortCode: PropTypes.string,
+      barcode: PropTypes.string,
+      healthInsuranceCode: PropTypes.string,
+      purchasePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      healthInsurancePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      productType: PropTypes.string
+    })
+  )
+};
 
