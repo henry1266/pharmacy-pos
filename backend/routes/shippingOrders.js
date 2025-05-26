@@ -150,7 +150,12 @@ router.post('/', [
         return res.status(400).json({ msg: '藥品項目資料不完整' });
       }
 
-      // 嘗試查找藥品
+      // 嘗試查找藥品 - 加強安全性驗證，防止 NoSQL 注入
+      // 驗證 item.did 是否為有效的藥品代碼格式
+      if (typeof item.did !== 'string' || !item.did.match(/^[A-Za-z0-9_-]+$/)) {
+        return res.status(400).json({ msg: `無效的藥品代碼格式: ${item.did}` });
+      }
+      
       const product = await BaseProduct.findOne({ code: item.did });
       if (!product) {
         return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
