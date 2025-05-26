@@ -42,7 +42,7 @@ import {
   Visibility, // Added for profit toggle
   VisibilityOff // Added for profit toggle
 } from '@mui/icons-material';
-import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { format, isValid } from 'date-fns'; // Import isValid from date-fns
 import { zhTW } from 'date-fns/locale';
 
@@ -432,71 +432,63 @@ const SalesDetailPage = () => {
     }
   };
 
-  // 初始化資料
+  // 初始化數據
   useEffect(() => {
-    fetchSaleData();
-    fetchFifoData();
+    if (id) {
+      fetchSaleData();
+      fetchFifoData();
+    }
   }, [id]);
 
-  // 事件處理函數
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
+  // 處理金額信息展開/收起
   const handleToggleAmountInfo = () => {
     setAmountInfoOpen(!amountInfoOpen);
   };
 
-  const handleToggleItemProfit = (index) => {
-    setItemProfitOpen(prev => ({ ...prev, [index]: !prev[index] }));
-  };
-
+  // 處理毛利欄位顯示/隱藏
   const handleToggleSalesProfitColumns = () => {
     setShowSalesProfitColumns(!showSalesProfitColumns);
   };
 
-  // 渲染側邊欄內容
-  const sidebarContent = (
-    <Stack spacing={3}>
-      {sale && <SaleInfoSidebar sale={sale} />}
-    </Stack>
-  );
+  // 處理項目毛利展開/收起
+  const handleToggleItemProfit = (itemId) => {
+    setItemProfitOpen(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
+  };
 
-  // 渲染主要內容
-  const mainContent = (
-    <MainContent 
-      sale={sale}
-      fifoLoading={fifoLoading}
-      fifoError={fifoError}
-      fifoData={fifoData}
-      amountInfoOpen={amountInfoOpen}
-      handleToggleAmountInfo={handleToggleAmountInfo}
-      showSalesProfitColumns={showSalesProfitColumns}
-      handleToggleSalesProfitColumns={handleToggleSalesProfitColumns}
-    />
-  );
+  // 處理Snackbar關閉
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
+  // 渲染頁面
   return (
-    <>
-      <DetailLayout
-        pageTitle="銷售單詳情"
-        recordIdentifier={sale?.saleNumber}
-        listPageUrl="/sales"
-        editPageUrl={`/sales/edit/${id}`}
-        printPageUrl={null}
-        mainContent={mainContent}
-        sidebarContent={sidebarContent}
-        isLoading={loading}
-        errorContent={error ? <Typography color="error" variant="h6">{error}</Typography> : null}
-        noDataContent={!loading && !sale && !error ? <Typography variant="h6">找不到銷售單數據</Typography> : null}
-      />
-      
-      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </>
+    <DetailLayout
+      title="銷售詳情"
+      loading={loading}
+      error={error}
+      backPath="/sales"
+      mainContent={
+        sale && (
+          <MainContent
+            sale={sale}
+            fifoLoading={fifoLoading}
+            fifoError={fifoError}
+            fifoData={fifoData}
+            amountInfoOpen={amountInfoOpen}
+            handleToggleAmountInfo={handleToggleAmountInfo}
+            showSalesProfitColumns={showSalesProfitColumns}
+            handleToggleSalesProfitColumns={handleToggleSalesProfitColumns}
+          />
+        )
+      }
+      sidebarContent={
+        sale && <SaleInfoSidebar sale={sale} />
+      }
+    />
   );
 };
 
