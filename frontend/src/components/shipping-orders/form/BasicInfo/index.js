@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
-  Box, 
   TextField, 
   Grid, 
   FormControl, 
@@ -11,6 +10,7 @@ import {
   CardContent, 
   Typography
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import SupplierSelect from '../../../common/SupplierSelect';
 
 
@@ -125,3 +125,17 @@ const BasicInfoForm = ({
 };
 
 export default BasicInfoForm;
+
+BasicInfoForm.propTypes = {
+  formData: PropTypes.shape({
+    soid: PropTypes.string,
+    paymentStatus: PropTypes.string,
+    status: PropTypes.string,
+    notes: PropTypes.string
+  }).isRequired,
+  handleInputChange: PropTypes.func.isRequired,
+  handleSupplierChange: PropTypes.func.isRequired,
+  suppliers: PropTypes.array,
+  selectedSupplier: PropTypes.object,
+  isEditMode: PropTypes.bool
+};
