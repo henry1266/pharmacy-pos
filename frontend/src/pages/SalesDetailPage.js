@@ -102,7 +102,9 @@ const AmountInfoCardHeader = ({ sale, amountInfoOpen, handleToggleAmountInfo }) 
 
 // AmountInfoCardHeader PropTypes 驗證
 AmountInfoCardHeader.propTypes = {
-  sale: PropTypes.object.isRequired,
+  sale: PropTypes.shape({
+    totalAmount: PropTypes.number.isRequired
+  }).isRequired,
   amountInfoOpen: PropTypes.bool.isRequired,
   handleToggleAmountInfo: PropTypes.func.isRequired
 };
@@ -191,7 +193,11 @@ const AmountInfoContent = ({ sale, fifoLoading, fifoError, fifoData }) => {
 
 // AmountInfoContent PropTypes 驗證
 AmountInfoContent.propTypes = {
-  sale: PropTypes.object.isRequired,
+  sale: PropTypes.shape({
+    totalAmount: PropTypes.number.isRequired,
+    discount: PropTypes.number,
+    tax: PropTypes.number
+  }).isRequired,
   fifoLoading: PropTypes.bool.isRequired,
   fifoError: PropTypes.string,
   fifoData: PropTypes.object
