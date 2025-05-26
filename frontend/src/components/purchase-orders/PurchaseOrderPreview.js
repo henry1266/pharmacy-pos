@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import { 
   Box, 
   Typography, 
@@ -24,29 +25,7 @@ import {
  * @returns {React.ReactElement} 進貨單預覽組件
  */
 const PurchaseOrderPreview = ({ purchaseOrder, loading, error }) => {
-  const getStatusChip = (status) => {
-    let color = 'default';
-    let label = '未知';
-    
-    switch (status) {
-      case 'pending':
-        color = 'warning';
-        label = '處理中';
-        break;
-      case 'completed':
-        color = 'success';
-        label = '已完成';
-        break;
-      case 'cancelled':
-        color = 'error';
-        label = '已取消';
-        break;
-      default:
-        break;
-    }
-    
-    return <Chip size="small" color={color} label={label} />;
-  };
+  // 移除未使用的 getStatusChip 變數
   
   if (loading) {
     return (
@@ -94,13 +73,13 @@ const PurchaseOrderPreview = ({ purchaseOrder, loading, error }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {purchaseOrder.items && purchaseOrder.items.length === 0 ? (
+              {purchaseOrder?.items?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} align="center">沒有藥品項目</TableCell>
                 </TableRow>
               ) : (
-                purchaseOrder.items && purchaseOrder.items.slice(0, 5).map((item, index) => (
-                  <TableRow key={index}>
+                purchaseOrder?.items?.slice(0, 5).map((item) => (
+                  <TableRow key={`${item.did}-${item.dname}`}>
                     <TableCell>{item.did}</TableCell>
                     <TableCell>{item.dname}</TableCell>
                     <TableCell align="right">{item.dquantity}</TableCell>
@@ -108,7 +87,7 @@ const PurchaseOrderPreview = ({ purchaseOrder, loading, error }) => {
                   </TableRow>
                 ))
               )}
-              {purchaseOrder.items && purchaseOrder.items.length > 5 && (
+              {purchaseOrder?.items?.length > 5 && (
                 <TableRow>
                   <TableCell colSpan={4} align="center">
                     <Typography variant="body2" color="text.secondary">
@@ -126,7 +105,7 @@ const PurchaseOrderPreview = ({ purchaseOrder, loading, error }) => {
                 <TableCell align="right">
                   <Typography variant="subtitle2" fontWeight="bold">
                     {purchaseOrder.totalAmount?.toLocaleString() || 
-                     (purchaseOrder.items && purchaseOrder.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0).toLocaleString())}
+                     (purchaseOrder?.items?.reduce((sum, item) => sum + Number(item.dtotalCost), 0).toLocaleString())}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -136,6 +115,23 @@ const PurchaseOrderPreview = ({ purchaseOrder, loading, error }) => {
       </CardContent>
     </Card>
   );
+};
+
+// 添加 PurchaseOrderPreview 的 PropTypes 驗證
+PurchaseOrderPreview.propTypes = {
+  purchaseOrder: PropTypes.shape({
+    items: PropTypes.arrayOf(
+      PropTypes.shape({
+        did: PropTypes.string,
+        dname: PropTypes.string,
+        dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      })
+    ),
+    totalAmount: PropTypes.number
+  }),
+  loading: PropTypes.bool,
+  error: PropTypes.string
 };
 
 export default PurchaseOrderPreview;
