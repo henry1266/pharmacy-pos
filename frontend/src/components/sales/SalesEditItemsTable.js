@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Table,
   TableBody,
@@ -97,7 +98,8 @@ const SalesEditItemsTable = ({
                           if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
                             handleQuantityChange(index, 1); // Reset to 1 if invalid
                           }
-                          onQuantityInputComplete && onQuantityInputComplete(); // Trigger focus return
+                          // 使用可選鏈運算符替代條件判斷
+                          onQuantityInputComplete?.(); // Trigger focus return
                           e.target.blur(); // Optional: remove focus from current field
                         }
                       }}
@@ -106,7 +108,8 @@ const SalesEditItemsTable = ({
                         if (item.quantity === '' || isNaN(parseInt(item.quantity)) || parseInt(item.quantity) < 1) {
                           handleQuantityChange(index, 1); // Reset to 1 if invalid
                         }
-                        onQuantityInputComplete && onQuantityInputComplete(); // Trigger focus return
+                        // 使用可選鏈運算符替代條件判斷
+                        onQuantityInputComplete?.(); // Trigger focus return
                       }}
                       InputProps={{
                         inputProps: { min: 1, style: { textAlign: 'center', width: '80px' } } // Increased width
@@ -144,5 +147,22 @@ const SalesEditItemsTable = ({
   );
 };
 
-export default SalesEditItemsTable;
+// 新增缺少的 props validation
+SalesEditItemsTable.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      product: PropTypes.string,
+      name: PropTypes.string,
+      price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      quantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      subtotal: PropTypes.number
+    })
+  ).isRequired,
+  handleQuantityChange: PropTypes.func.isRequired,
+  handlePriceChange: PropTypes.func.isRequired,
+  handlePriceBlur: PropTypes.func.isRequired,
+  handleRemoveItem: PropTypes.func.isRequired,
+  onQuantityInputComplete: PropTypes.func
+};
 
+export default SalesEditItemsTable;

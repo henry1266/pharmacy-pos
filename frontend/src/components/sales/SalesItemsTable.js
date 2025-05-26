@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Table,
   TableBody,
@@ -96,7 +97,8 @@ const SalesItemsTable = ({
                           // 完成輸入，返回到條碼輸入框
                           e.target.blur();
                           setTimeout(() => {
-                            onQuantityInputComplete && onQuantityInputComplete();
+                            // 使用可選鏈運算符替代條件判斷
+                            onQuantityInputComplete?.();
                           }, 50); // 短暫延遲確保狀態更新
                         }
                       }}
@@ -107,7 +109,8 @@ const SalesItemsTable = ({
                         }
                         // 使用 setTimeout 確保狀態更新後再切換焦點
                         setTimeout(() => {
-                          onQuantityInputComplete && onQuantityInputComplete();
+                          // 使用可選鏈運算符替代條件判斷
+                          onQuantityInputComplete?.();
                         }, 50);
                       }}
                       size="small"
@@ -180,5 +183,27 @@ const SalesItemsTable = ({
   );
 };
 
-export default SalesItemsTable;
+// 新增缺少的 props validation
+SalesItemsTable.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      product: PropTypes.string,
+      name: PropTypes.string,
+      code: PropTypes.string,
+      price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      quantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      subtotal: PropTypes.number
+    })
+  ).isRequired,
+  inputModes: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onQuantityChange: PropTypes.func.isRequired,
+  onPriceChange: PropTypes.func.isRequired,
+  onRemoveItem: PropTypes.func.isRequired,
+  onToggleInputMode: PropTypes.func.isRequired,
+  onSubtotalChange: PropTypes.func.isRequired,
+  totalAmount: PropTypes.number,
+  discount: PropTypes.number,
+  onQuantityInputComplete: PropTypes.func
+};
 
+export default SalesItemsTable;
