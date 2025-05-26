@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Box, 
   Button, 
@@ -247,6 +248,12 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
       </Box>
     </Box>
   );
+};
+
+EmployeeForm.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+  initialData: PropTypes.object,
+  isSubmitting: PropTypes.bool
 };
 
 export default EmployeeForm;
