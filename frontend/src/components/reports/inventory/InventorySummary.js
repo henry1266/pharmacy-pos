@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Card,
   CardContent,
   Typography,
   Grid,
-  Tooltip,
   Paper,
 } from '@mui/material';
 import axios from 'axios';
@@ -14,6 +14,45 @@ import {
   Inventory, 
   BarChart 
 } from '@mui/icons-material';
+
+// 自定義懸浮視窗組件 - 移出父組件
+const CustomTooltip = ({ show, position, totalIncome, totalCost, formatCurrency }) => {
+  if (!show) return null;
+  
+  return (
+    <Paper
+      sx={{
+        position: 'fixed',
+        top: `${position.top + 3}px`,
+        left: `${position.left}px`,
+        transform: 'translateX(-50%)',
+        padding: '10px 15px',
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(5px)',
+        borderRadius: 'var(--border-radius)',
+        boxShadow: 'var(--card-shadow)',
+        zIndex: 1500,
+        transition: 'opacity 0.2s ease-in-out',
+      }}
+    >
+      <Typography variant="body2" fontWeight="500">
+        總收入: {formatCurrency(totalIncome)} - 總成本: {formatCurrency(totalCost)}
+      </Typography>
+    </Paper>
+  );
+};
+
+// 新增 CustomTooltip 的 props validation
+CustomTooltip.propTypes = {
+  show: PropTypes.bool.isRequired,
+  position: PropTypes.shape({
+    top: PropTypes.number.isRequired,
+    left: PropTypes.number.isRequired
+  }).isRequired,
+  totalIncome: PropTypes.number.isRequired,
+  totalCost: PropTypes.number.isRequired,
+  formatCurrency: PropTypes.func.isRequired
+};
 
 const InventorySummary = ({ filters }) => {
   const [loading, setLoading] = useState(false);
@@ -33,11 +72,11 @@ const InventorySummary = ({ filters }) => {
       try {
         // 構建查詢參數
         const params = new URLSearchParams();
-        if (filters.supplier) params.append('supplier', filters.supplier);
-        if (filters.category) params.append('category', filters.category);
-        if (filters.productCode) params.append('productCode', filters.productCode);
-        if (filters.productName) params.append('productName', filters.productName);
-        if (filters.productType) params.append('productType', filters.productType);
+        if (filters?.supplier) params.append('supplier', filters.supplier);
+        if (filters?.category) params.append('category', filters.category);
+        if (filters?.productCode) params.append('productCode', filters.productCode);
+        if (filters?.productName) params.append('productName', filters.productName);
+        if (filters?.productType) params.append('productType', filters.productType);
         
         // 添加參數以獲取完整的交易歷史記錄
         params.append('includeTransactionHistory', 'true');
@@ -67,7 +106,6 @@ const InventorySummary = ({ filters }) => {
     const groupedByProduct = {};
     let profitLossSum = 0;
     let inventoryValueSum = 0;
-    let grossProfitSum = 0;
     let incomeSum = 0; // 總收入（出貨和銷售的總和）
     let costSum = 0; // 總成本（進貨的總和）
     
@@ -248,33 +286,6 @@ const InventorySummary = ({ filters }) => {
     setShowTooltip(false);
   };
 
-  // 自定義懸浮視窗樣式
-  const CustomTooltip = () => {
-    if (!showTooltip) return null;
-    
-    return (
-      <Paper
-        sx={{
-          position: 'fixed',
-          top: `${tooltipPosition.top + 3}px`,
-          left: `${tooltipPosition.left}px`,
-          transform: 'translateX(-50%)',
-          padding: '10px 15px',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(5px)',
-          borderRadius: 'var(--border-radius)',
-          boxShadow: 'var(--card-shadow)',
-          zIndex: 1500,
-          transition: 'opacity 0.2s ease-in-out',
-        }}
-      >
-        <Typography variant="body2" fontWeight="500">
-          總收入: {formatCurrency(totalIncome)} - 總成本: {formatCurrency(totalCost)}
-        </Typography>
-      </Paper>
-    );
-  };
-
   // 卡片共用樣式
   const cardStyle = {
     borderRadius: 'var(--border-radius)',
@@ -419,9 +430,31 @@ const InventorySummary = ({ filters }) => {
       </Grid>
       
       {/* 自定義懸浮視窗 */}
-      <CustomTooltip />
+      <CustomTooltip 
+        show={showTooltip}
+        position={tooltipPosition}
+        totalIncome={totalIncome}
+        totalCost={totalCost}
+        formatCurrency={formatCurrency}
+      />
     </Box>
   );
+};
+
+// 新增 InventorySummary 的 props validation
+InventorySummary.propTypes = {
+  filters: PropTypes.shape({
+    supplier: PropTypes.string,
+    category: PropTypes.string,
+    productCode: PropTypes.string,
+    productName: PropTypes.string,
+    productType: PropTypes.string
+  })
+};
+
+// 設定默認值
+InventorySummary.defaultProps = {
+  filters: {}
 };
 
 export default InventorySummary;

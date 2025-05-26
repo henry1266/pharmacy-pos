@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Card,
@@ -24,6 +25,103 @@ import {
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
+
+// 自定義Tooltip - 移出父組件
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  
+  const data = payload[0]?.payload;
+  if (!data) return null;
+  
+  // 圖表顏色
+  const colors = {
+    profit: '#00d97e',  // 綠色 - 正值
+    loss: '#e53f3c',    // 紅色 - 負值
+    stock: '#624bff'    // 藍色 - 庫存
+  };
+  
+  // 格式化金額
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('zh-TW', {
+      style: 'currency',
+      currency: 'TWD',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  return (
+    <Paper sx={{ 
+      p: 2, 
+      boxShadow: 'var(--card-shadow)',
+      border: '1px solid var(--border-color)',
+      bgcolor: 'var(--bg-paper)'
+    }}>
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        貨單號: {label}
+      </Typography>
+      <Typography variant="body2" sx={{ mb: 0.5 }}>
+        商品: {data.productName} ({data.productCode})
+      </Typography>
+      <Typography variant="body2" sx={{ mb: 0.5 }}>
+        類型: {data.type}
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+        <Box
+          component="span"
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            bgcolor: colors.stock,
+            mr: 1
+          }}
+        />
+        <Typography variant="body2">
+          累積庫存: {data.cumulativeStock}
+        </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+        <Box
+          component="span"
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            bgcolor: data.cumulativeProfitLoss >= 0 ? colors.profit : colors.loss,
+            mr: 1
+          }}
+        />
+        <Typography variant="body2">
+          累積損益總和: {formatCurrency(data.cumulativeProfitLoss)}
+        </Typography>
+      </Box>
+      <Typography variant="body2" sx={{ 
+        color: data.profitLoss >= 0 ? colors.profit : colors.loss,
+        fontWeight: 500
+      }}>
+        本次交易損益: {formatCurrency(data.profitLoss)}
+      </Typography>
+    </Paper>
+  );
+};
+
+// 新增 CustomTooltip 的 props validation
+CustomTooltip.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.arrayOf(
+    PropTypes.shape({
+      payload: PropTypes.shape({
+        productName: PropTypes.string,
+        productCode: PropTypes.string,
+        type: PropTypes.string,
+        cumulativeStock: PropTypes.number,
+        cumulativeProfitLoss: PropTypes.number,
+        profitLoss: PropTypes.number
+      })
+    })
+  ),
+  label: PropTypes.string
+};
 
 const InventoryProfitLossChart = ({ groupedData = [] }) => {
   const [chartType, setChartType] = useState('area');
@@ -65,16 +163,16 @@ const InventoryProfitLossChart = ({ groupedData = [] }) => {
   const getAllTransactionsWithCumulativeValues = () => {
     const allTransactions = [];
     
-    // 防護檢查：確保groupedData存在且是數組
-    if (!groupedData || !Array.isArray(groupedData) || groupedData.length === 0) {
+    // 使用可選鏈運算符替代條件判斷
+    if (!groupedData?.length) {
       console.warn('InventoryProfitLossChart: groupedData is undefined, null, or empty');
       return allTransactions;
     }
     
     // 遍歷所有產品
     groupedData.forEach(product => {
-      // 防護檢查：確保product和transactions存在
-      if (!product || !product.transactions || !Array.isArray(product.transactions) || product.transactions.length === 0) {
+      // 使用可選鏈運算符替代條件判斷
+      if (!product?.transactions?.length) {
         return;
       }
       
@@ -90,7 +188,7 @@ const InventoryProfitLossChart = ({ groupedData = [] }) => {
       let cumulativeProfitLoss = 0;
       
       sortedTransactions.forEach(transaction => {
-        // 防護檢查：確保transaction存在且有必要的屬性
+        // 使用可選鏈運算符替代條件判斷
         if (!transaction) return;
         
         // 計算庫存變化
@@ -142,69 +240,6 @@ const InventoryProfitLossChart = ({ groupedData = [] }) => {
 
   // 獲取處理後的圖表數據
   const chartData = getAllTransactionsWithCumulativeValues();
-
-  // 自定義Tooltip
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0]?.payload;
-      
-      return (
-        <Paper sx={{ 
-          p: 2, 
-          boxShadow: 'var(--card-shadow)',
-          border: '1px solid var(--border-color)',
-          bgcolor: 'var(--bg-paper)'
-        }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            貨單號: {label}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 0.5 }}>
-            商品: {data.productName} ({data.productCode})
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 0.5 }}>
-            類型: {data.type}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <Box
-              component="span"
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                bgcolor: colors.stock,
-                mr: 1
-              }}
-            />
-            <Typography variant="body2">
-              累積庫存: {data.cumulativeStock}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <Box
-              component="span"
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                bgcolor: data.cumulativeProfitLoss >= 0 ? colors.profit : colors.loss,
-                mr: 1
-              }}
-            />
-            <Typography variant="body2">
-              累積損益總和: {formatCurrency(data.cumulativeProfitLoss)}
-            </Typography>
-          </Box>
-          <Typography variant="body2" sx={{ 
-            color: data.profitLoss >= 0 ? colors.profit : colors.loss,
-            fontWeight: 500
-          }}>
-            本次交易損益: {formatCurrency(data.profitLoss)}
-          </Typography>
-        </Paper>
-      );
-    }
-    return null;
-  };
 
   // 渲染圖表
   const renderChart = () => {
@@ -382,6 +417,27 @@ const InventoryProfitLossChart = ({ groupedData = [] }) => {
       </CardContent>
     </Card>
   );
+};
+
+// 新增 InventoryProfitLossChart 的 props validation
+InventoryProfitLossChart.propTypes = {
+  groupedData: PropTypes.arrayOf(
+    PropTypes.shape({
+      productId: PropTypes.string,
+      productName: PropTypes.string,
+      productCode: PropTypes.string,
+      transactions: PropTypes.arrayOf(
+        PropTypes.shape({
+          type: PropTypes.string,
+          quantity: PropTypes.number,
+          price: PropTypes.number,
+          purchaseOrderNumber: PropTypes.string,
+          shippingOrderNumber: PropTypes.string,
+          saleNumber: PropTypes.string
+        })
+      )
+    })
+  )
 };
 
 export default InventoryProfitLossChart;
