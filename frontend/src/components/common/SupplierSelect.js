@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Autocomplete,
   TextField
@@ -35,9 +36,9 @@ const SupplierSelect = ({
   const filterSuppliers = (options, inputValue) => {
     const filterValue = inputValue?.toLowerCase() || '';
     return options.filter(option =>
-      option.name.toLowerCase().includes(filterValue) ||
-      (option.code && option.code.toLowerCase().includes(filterValue)) ||
-      (option.shortCode && option.shortCode.toLowerCase().includes(filterValue))
+      option?.name?.toLowerCase().includes(filterValue) ||
+      (option?.code?.toLowerCase().includes(filterValue)) ||
+      (option?.shortCode?.toLowerCase().includes(filterValue))
     );
   };
 
@@ -45,7 +46,7 @@ const SupplierSelect = ({
     <Autocomplete
       id="supplier-select"
       options={suppliers}
-      getOptionLabel={(option) => option.name || ''}
+      getOptionLabel={(option) => option?.name || ''}
       value={selectedSupplier}
       onChange={onChange}
       filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}
@@ -96,6 +97,43 @@ const SupplierSelect = ({
       ) : undefined}
     />
   );
+};
+
+// Props 驗證
+SupplierSelect.propTypes = {
+  suppliers: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      name: PropTypes.string,
+      code: PropTypes.string,
+      shortCode: PropTypes.string
+    })
+  ),
+  selectedSupplier: PropTypes.shape({
+    _id: PropTypes.string,
+    name: PropTypes.string,
+    code: PropTypes.string,
+    shortCode: PropTypes.string
+  }),
+  onChange: PropTypes.func.isRequired,
+  label: PropTypes.string,
+  required: PropTypes.bool,
+  error: PropTypes.bool,
+  helperText: PropTypes.string,
+  size: PropTypes.string,
+  onEnterKeyDown: PropTypes.func,
+  showCode: PropTypes.bool
+};
+
+// 預設值
+SupplierSelect.defaultProps = {
+  suppliers: [],
+  label: "供應商",
+  required: false,
+  error: false,
+  helperText: "",
+  size: "medium",
+  showCode: false
 };
 
 export default SupplierSelect;

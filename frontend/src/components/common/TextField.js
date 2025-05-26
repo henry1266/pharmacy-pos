@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { TextField as MuiTextField } from '@mui/material';
 
 /**
@@ -44,6 +45,31 @@ const TextField = ({
       {...rest}
     />
   );
+};
+
+// Props 驗證
+TextField.propTypes = {
+  label: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number
+  ]),
+  onChange: PropTypes.func.isRequired,
+  type: PropTypes.string,
+  fullWidth: PropTypes.bool,
+  required: PropTypes.bool,
+  error: PropTypes.string,
+  disabled: PropTypes.bool
+};
+
+// 預設值
+TextField.defaultProps = {
+  type: 'text',
+  fullWidth: true,
+  required: false,
+  error: null,
+  disabled: false
 };
 
 export default TextField;
