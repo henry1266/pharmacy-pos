@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   TextField,
@@ -34,11 +35,11 @@ const SalesProductInput = ({
     if (value.trim() !== '') {
       const searchTerm = value.trim().toLowerCase();
       const results = products.filter(product =>
-        (product.name && product.name.toLowerCase().includes(searchTerm)) ||
-        (product.code && product.code.toLowerCase().includes(searchTerm)) ||
-        (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
-        (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
-        (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(searchTerm))
+        product.name?.toLowerCase().includes(searchTerm) ||
+        product.code?.toLowerCase().includes(searchTerm) ||
+        product.shortCode?.toLowerCase().includes(searchTerm) ||
+        product.barcode?.toLowerCase().includes(searchTerm) ||
+        product.healthInsuranceCode?.toLowerCase().includes(searchTerm)
       ).slice(0, 20);
       setFilteredProducts(results);
     } else {
@@ -120,60 +121,62 @@ const SalesProductInput = ({
   );
 
   return (
-    <>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Autocomplete
-          freeSolo
-          fullWidth
-          options={filteredProducts}
-          getOptionLabel={(option) =>
-            typeof option === 'string' ? option : option.name || ''
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+      <Autocomplete
+        freeSolo
+        fullWidth
+        options={filteredProducts}
+        getOptionLabel={(option) =>
+          typeof option === 'string' ? option : option.name || ''
+        }
+        filterOptions={filterOptions} // ✅ enable multi-field match
+        value={barcode}
+        onInputChange={(event, newValue, reason) => {
+          if (reason === 'input') {
+            setBarcode(newValue);
+            handleBarcodeAutocompleteChange({ target: { value: newValue } });
           }
-          filterOptions={filterOptions} // ✅ enable multi-field match
-          value={barcode}
-          onInputChange={(event, newValue, reason) => {
-            if (reason === 'input') {
-              setBarcode(newValue);
-              handleBarcodeAutocompleteChange({ target: { value: newValue } });
-            }
-          }}
-          onChange={(event, newValue) => {
-            if (newValue && typeof newValue !== 'string') {
-              onSelectProduct(newValue);
-              setSelectedProduct(newValue);
-              setBarcode('');
-              setFilteredProducts([]);
-              if (barcodeInputRef.current) {
-                barcodeInputRef.current.focus();
+        }}
+        onChange={(event, newValue) => {
+          if (newValue && typeof newValue !== 'string') {
+            onSelectProduct(newValue);
+            setSelectedProduct(newValue);
+            setBarcode('');
+            setFilteredProducts([]);
+            barcodeInputRef.current?.focus();
+          }
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            inputRef={barcodeInputRef}
+            label="掃描條碼 / 輸入產品名稱、代碼、健保碼"
+            variant="outlined"
+            size="small"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleBarcodeSubmit();
               }
-            }
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              inputRef={barcodeInputRef}
-              label="掃描條碼 / 輸入產品名稱、代碼、健保碼"
-              variant="outlined"
-              size="small"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleBarcodeSubmit();
-                }
-              }}
-            />
-          )}
-          renderOption={renderOption}
-          ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
-          sx={{ flexGrow: 1, mr: 1 }}
-        />
-        <IconButton color="primary" onClick={handleBarcodeSubmit} aria-label="添加產品">
-          <AddIcon />
-        </IconButton>
-      </Box>
-
-    </>
+            }}
+          />
+        )}
+        renderOption={renderOption}
+        ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
+        sx={{ flexGrow: 1, mr: 1 }}
+      />
+      <IconButton color="primary" onClick={handleBarcodeSubmit} aria-label="添加產品">
+        <AddIcon />
+      </IconButton>
+    </Box>
   );
+};
+
+SalesProductInput.propTypes = {
+  products: PropTypes.array.isRequired,
+  barcodeInputRef: PropTypes.object.isRequired,
+  onSelectProduct: PropTypes.func.isRequired,
+  showSnackbar: PropTypes.func.isRequired
 };
 
 export default SalesProductInput;
