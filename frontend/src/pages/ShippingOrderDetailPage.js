@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios'; // Added import
 import { downloadShippingOrderPdf } from '../services/pdf/shippingOrderPdf';
@@ -44,6 +45,11 @@ const StatusChip = ({ status }) => {
     if (status === 'cancelled') { color = 'error'; label = '已取消'; }
     return <Chip size="small" label={label} color={color} />;
 };
+
+StatusChip.propTypes = {
+    status: PropTypes.string
+};
+
 const PaymentStatusChip = ({ status }) => {
     let color = 'default';
     let label = status || '未指定';
@@ -52,9 +58,12 @@ const PaymentStatusChip = ({ status }) => {
     return <Chip size="small" label={label} color={color} />;
 };
 
+PaymentStatusChip.propTypes = {
+    status: PropTypes.string
+};
+
 const ShippingOrderDetailPage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector(state => state.shippingOrders);
@@ -93,7 +102,7 @@ const ShippingOrderDetailPage = () => {
 
   useEffect(() => {
     const fetchProductDetails = async () => {
-      if (!currentShippingOrder || !currentShippingOrder.items || currentShippingOrder.items.length === 0) {
+      if (!currentShippingOrder?.items?.length) {
         setProductDetails({});
         return;
       }
@@ -136,9 +145,9 @@ const ShippingOrderDetailPage = () => {
       // And structure: { product: { code: 'item.did', ... }, fifoProfit: { grossProfit: ..., profitMargin: ... } }
       // Or simpler: { productCode: 'item.did', fifoProfit: { ... } }
       // Let's assume matching based on product code `item.did` with `fi.product.code`
-      const matchedFifoItem = fifoData.items.find(fi => fi.product && fi.product.code === item.did);
+      const matchedFifoItem = fifoData.items.find(fi => fi?.product?.code === item.did);
 
-      if (matchedFifoItem && matchedFifoItem.fifoProfit) {
+      if (matchedFifoItem?.fifoProfit) {
         return {
           ...item,
           profit: matchedFifoItem.fifoProfit.grossProfit, // For ProductItemsTable default 'profitField'
@@ -346,7 +355,15 @@ const ShippingOrderDetailPage = () => {
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={orderLoading || productDetailsLoading || fifoLoading} // Overall loading state
-      errorContent={orderError ? <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography> : (productDetailsError ? <Typography color="error">{productDetailsError}</Typography> : (fifoError && !fifoData ? <Typography color="error">{fifoError}</Typography> : null))}
+      errorContent={
+        orderError ? (
+          <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography>
+        ) : productDetailsError ? (
+          <Typography color="error">{productDetailsError}</Typography>
+        ) : (fifoError && !fifoData) ? (
+          <Typography color="error">{fifoError}</Typography>
+        ) : null
+      }
       noDataContent={!orderLoading && !currentShippingOrder && !orderError ? <Typography variant="h6">找不到出貨單數據</Typography> : null}
     />
   );
