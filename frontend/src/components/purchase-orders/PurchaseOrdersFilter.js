@@ -3,11 +3,7 @@ import {
   Grid, 
   TextField,
   Button,
-  Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
+  Box
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -17,6 +13,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
+import PropTypes from 'prop-types';
 
 /**
  * 進貨單篩選器組件
@@ -102,6 +99,20 @@ const PurchaseOrdersFilter = ({
       </Grid>
     </Grid>
   );
+};
+
+PurchaseOrdersFilter.propTypes = {
+  searchParams: PropTypes.shape({
+    poid: PropTypes.string,
+    pobill: PropTypes.string,
+    startDate: PropTypes.instanceOf(Date),
+    endDate: PropTypes.instanceOf(Date)
+  }).isRequired,
+  handleInputChange: PropTypes.func.isRequired,
+  handleDateChange: PropTypes.func.isRequired,
+  handleSearch: PropTypes.func.isRequired,
+  handleClearSearch: PropTypes.func.isRequired,
+  suppliers: PropTypes.array.isRequired
 };
 
 export default PurchaseOrdersFilter;
