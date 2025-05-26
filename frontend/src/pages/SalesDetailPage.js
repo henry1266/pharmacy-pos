@@ -15,14 +15,11 @@ import {
   TableRow,
   Paper,
   Chip,
-  Snackbar,
-  Alert,
   Divider,
   CircularProgress,
   Stack,
   IconButton,
-  Collapse,
-  Link as MuiLink // Renamed to avoid conflict with RouterLink
+  Collapse
 } from '@mui/material';
 import {
   MonetizationOn as MonetizationOnIcon,
@@ -214,7 +211,7 @@ const SalesItemsTable = ({ sale, fifoLoading, fifoData, showSalesProfitColumns }
           <TableCell align="right">單價</TableCell>
           <TableCell align="right">數量</TableCell>
           <TableCell align="right">小計</TableCell>
-          {!fifoLoading && fifoData && fifoData.items && showSalesProfitColumns && (
+          {!fifoLoading && fifoData?.items && showSalesProfitColumns && (
             <>
               <TableCell align="right">成本</TableCell>
               <TableCell align="right">毛利</TableCell>
@@ -259,7 +256,7 @@ const SalesItemRow = ({ item, fifoLoading, fifoData, showSalesProfitColumns }) =
       <TableCell align="right">{item.price.toFixed(2)}</TableCell>
       <TableCell align="right">{item.quantity}</TableCell>
       <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
-      {!fifoLoading && fifoData && fifoData.items && showSalesProfitColumns && (
+      {!fifoLoading && fifoData?.items && showSalesProfitColumns && (
         <>
           <TableCell align="right">{fifoItem?.fifoProfit ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
           <GrossProfitCell fifoProfit={fifoItem?.fifoProfit} />
@@ -346,7 +343,7 @@ const MainContent = ({ sale, fifoLoading, fifoError, fifoData, amountInfoOpen, h
             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
               <ListAltIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>銷售項目
             </Typography>
-            {!fifoLoading && fifoData && fifoData.items && (
+            {!fifoLoading && fifoData?.items && (
               <IconButton onClick={handleToggleSalesProfitColumns} size="small" aria-label={showSalesProfitColumns ? "隱藏毛利欄位" : "顯示毛利欄位"}>
                 {showSalesProfitColumns ? <VisibilityOff /> : <Visibility />}
               </IconButton>
@@ -388,13 +385,7 @@ const SalesDetailPage = () => {
   const [error, setError] = useState(null);
   const [fifoError, setFifoError] = useState(null);
   const [amountInfoOpen, setAmountInfoOpen] = useState(true);
-  const [itemProfitOpen, setItemProfitOpen] = useState({});
   const [showSalesProfitColumns, setShowSalesProfitColumns] = useState(true);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
 
   // 獲取銷售數據
   const fetchSaleData = async () => {
@@ -407,7 +398,6 @@ const SalesDetailPage = () => {
       console.error('獲取銷售數據失敗:', err);
       const errorMsg = '獲取銷售數據失敗: ' + (err.response?.data?.msg || err.message);
       setError(errorMsg);
-      setSnackbar({ open: true, message: errorMsg, severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -424,9 +414,6 @@ const SalesDetailPage = () => {
       console.error('獲取FIFO毛利數據失敗:', err);
       const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg || err.message);
       setFifoError(errorMsg);
-      if (!error) {
-        setSnackbar({ open: true, message: errorMsg, severity: 'warning' });
-      }
     } finally {
       setFifoLoading(false);
     }
@@ -440,54 +427,49 @@ const SalesDetailPage = () => {
     }
   }, [id]);
 
-  // 處理金額信息展開/收起
+  // 切換金額信息顯示
   const handleToggleAmountInfo = () => {
     setAmountInfoOpen(!amountInfoOpen);
   };
 
-  // 處理毛利欄位顯示/隱藏
+  // 切換銷售項目毛利欄位顯示
   const handleToggleSalesProfitColumns = () => {
     setShowSalesProfitColumns(!showSalesProfitColumns);
   };
 
-  // 處理項目毛利展開/收起
-  const handleToggleItemProfit = (itemId) => {
-    setItemProfitOpen(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }));
-  };
+  // 渲染主要內容
+  const mainContent = (
+    <MainContent 
+      sale={sale} 
+      fifoLoading={fifoLoading} 
+      fifoError={fifoError} 
+      fifoData={fifoData} 
+      amountInfoOpen={amountInfoOpen} 
+      handleToggleAmountInfo={handleToggleAmountInfo} 
+      showSalesProfitColumns={showSalesProfitColumns} 
+      handleToggleSalesProfitColumns={handleToggleSalesProfitColumns} 
+    />
+  );
 
-  // 處理Snackbar關閉
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') return;
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
+  // 渲染側邊欄內容
+  const sidebarContent = sale ? <SaleInfoSidebar sale={sale} /> : null;
 
-  // 渲染頁面
+  // 使用DetailLayout渲染頁面
   return (
     <DetailLayout
-      title="銷售詳情"
-      loading={loading}
-      error={error}
-      backPath="/sales"
-      mainContent={
-        sale && (
-          <MainContent
-            sale={sale}
-            fifoLoading={fifoLoading}
-            fifoError={fifoError}
-            fifoData={fifoData}
-            amountInfoOpen={amountInfoOpen}
-            handleToggleAmountInfo={handleToggleAmountInfo}
-            showSalesProfitColumns={showSalesProfitColumns}
-            handleToggleSalesProfitColumns={handleToggleSalesProfitColumns}
-          />
-        )
-      }
-      sidebarContent={
-        sale && <SaleInfoSidebar sale={sale} />
-      }
+      pageTitle="銷售單詳情"
+      recordIdentifier={sale?.saleNumber}
+      listPageUrl="/sales"
+      editPageUrl={`/sales/edit/${id}`}
+      printPageUrl={`/sales/print/${id}`}
+      mainContent={mainContent}
+      sidebarContent={sidebarContent}
+      isLoading={loading}
+      errorContent={error ? (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography color="error" variant="h6">{error}</Typography>
+        </Box>
+      ) : null}
     />
   );
 };
