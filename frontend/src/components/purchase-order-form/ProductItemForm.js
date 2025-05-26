@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import PriceTooltip from '../form-widgets/PriceTooltip';
+import PropTypes from 'prop-types';
 
 const ProductItemForm = ({
   currentItem,
@@ -34,11 +35,9 @@ const ProductItemForm = ({
     if (pkgQty > 0 || boxQty > 0) {
       const totalQty = pkgQty * boxQty;
       handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
-    } else {
-      // If both sub-quantities are cleared or zero, clear main quantity as well, unless user is actively editing dquantity
-      if (activeInput !== 'dquantity') {
-        handleItemInputChange({ target: { name: 'dquantity', value: '' } });
-      }
+    } else if (activeInput !== 'dquantity') {
+      // 修正 else 區塊中的 if 語句結構
+      handleItemInputChange({ target: { name: 'dquantity', value: '' } });
     }
   };
 
@@ -64,9 +63,8 @@ const ProductItemForm = ({
   };
   
   const getProductPurchasePrice = () => {
-    if (!currentItem.product) return 0;
-    const selectedProduct = products?.find(p => p._id === currentItem.product);
-    return selectedProduct?.purchasePrice || 0;
+    // 使用可選鏈運算符替代條件判斷
+    return currentItem?.product ? products?.find(p => p._id === currentItem.product)?.purchasePrice || 0 : 0;
   };
 
   const calculateTotalCost = (quantity) => {
@@ -78,6 +76,7 @@ const ProductItemForm = ({
   const isInventorySufficient = () => true; 
 
   const filterProducts = (options, inputValue) => {
+    // 使用可選鏈運算符替代條件判斷
     const filterValue = inputValue?.toLowerCase() || '';
     return options.filter(option =>
       option.name.toLowerCase().includes(filterValue) ||
@@ -108,7 +107,7 @@ const ProductItemForm = ({
           id="product-select"
           options={products || []} 
           getOptionLabel={(option) => `${option.code || 'N/A'} - ${option.name}`}
-          value={products && products.find(p => p._id === currentItem.product) || null}
+          value={products?.find(p => p._id === currentItem.product) || null}
           onChange={handleProductChange}
           filterOptions={(options, state) => filterProducts(options, state.inputValue)}
           onKeyDown={(event) => {
@@ -221,5 +220,33 @@ const ProductItemForm = ({
   );
 };
 
-export default ProductItemForm;
+// 新增缺少的 props validation
+ProductItemForm.propTypes = {
+  currentItem: PropTypes.shape({
+    product: PropTypes.string,
+    dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    packageQuantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    boxQuantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  }).isRequired,
+  handleItemInputChange: PropTypes.func.isRequired,
+  handleProductChange: PropTypes.func.isRequired,
+  handleAddItem: PropTypes.func.isRequired,
+  products: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      code: PropTypes.string,
+      shortCode: PropTypes.string,
+      productType: PropTypes.string,
+      healthInsuranceCode: PropTypes.string,
+      barcode: PropTypes.string,
+      purchasePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    })
+  ).isRequired,
+  productInputRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.instanceOf(Element) })
+  ]).isRequired
+};
 
+export default ProductItemForm;
