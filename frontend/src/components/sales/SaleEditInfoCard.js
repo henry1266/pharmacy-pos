@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'; // Removed useRef as it's passed from parent
+import PropTypes from 'prop-types'; // 新增 PropTypes 引入
 import {
   Grid,
   Card,
@@ -48,6 +49,16 @@ const SaleEditInfoCard = ({
       </CardContent>
     </Card>
   );
+};
+
+// 新增 PropTypes 驗證
+SaleEditInfoCard.propTypes = {
+  barcode: PropTypes.string.isRequired,
+  handleBarcodeChange: PropTypes.func.isRequired,
+  handleBarcodeSubmit: PropTypes.func.isRequired,
+  barcodeInputRef: PropTypes.shape({
+    current: PropTypes.any
+  }).isRequired
 };
 
 export default SaleEditInfoCard;

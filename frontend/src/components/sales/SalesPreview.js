@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 新增 PropTypes 引入
 import ItemPreview from '../common/preview/ItemPreview';
 
 /**
@@ -15,13 +16,13 @@ const SalesPreview = ({ sale, loading, error }) => {
     { key: 'name', label: '產品名稱', render: (item) => item.product?.name || item.name },
     { key: 'quantity', label: '數量', align: 'right', render: (item) => item.quantity },
     { key: 'price', label: '單價', align: 'right', render: (item) => item.price?.toFixed(2) || '0.00' },
-    { key: 'amount', label: '金額', align: 'right', render: (item) => (item.amount || (item.price * item.quantity))?.toFixed(2) || '0.00' }
+    { key: 'amount', label: '金額', align: 'right', render: (item) => (item.price * item.quantity)?.toFixed(2) || '0.00' }
   ];
 
   // 計算總計的函數
   const getTotal = (data) => {
     return data.totalAmount || 
-      (data.items && data.items.reduce((sum, item) => sum + (item.amount || (item.price * item.quantity) || 0), 0));
+      (data.items?.reduce((sum, item) => sum + (item.amount || (item.price * item.quantity) || 0), 0));
   };
 
   // 獲取付款方式顯示文本
@@ -89,6 +90,13 @@ const SalesPreview = ({ sale, loading, error }) => {
       }}
     />
   );
+};
+
+// 新增 PropTypes 驗證
+SalesPreview.propTypes = {
+  sale: PropTypes.object,
+  loading: PropTypes.bool,
+  error: PropTypes.string
 };
 
 export default SalesPreview;
