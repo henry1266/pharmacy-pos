@@ -71,13 +71,6 @@ const AccountingChart = () => {
 
   // 顏色配置
   const COLORS = ['#624bff', '#00d97e', '#f5a623', '#e53f3c', '#39afd1', '#6c757d'];
-  
-  // 班別顏色
-  const SHIFT_COLORS = {
-    '早班': '#e3f2fd', // 淺藍色
-    '中班': '#e8f5e9', // 淺綠色
-    '晚班': '#fff8e1'  // 淺黃色
-  };
 
   // 預設日期範圍選項
   const dateRangeOptions = [
