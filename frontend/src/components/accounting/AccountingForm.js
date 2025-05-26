@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Dialog,
   DialogTitle,
@@ -22,8 +23,7 @@ import {
   TableHead, // Add TableHead
   TableRow, // Add TableRow
   TableSortLabel, // Add TableSortLabel
-  Box, // Add Box
-  Alert // Add Alert
+  Box // Add Box
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -42,6 +42,7 @@ import StatusSelect from '../common/form/StatusSelect'; // Import StatusSelect
  * @param {boolean} props.open - 對話框是否開啟
  * @param {Function} props.onClose - 關閉對話框的處理函數
  * @param {Object} props.formData - 表單數據
+ * @param {Array} props.formData.unaccountedSales - 未結算銷售列表
  * @param {Function} props.setFormData - 設置表單數據的函數
  * @param {boolean} props.editMode - 是否為編輯模式
  * @param {Function} props.onSubmit - 提交表單的處理函數
@@ -195,8 +196,8 @@ const AccountingForm = ({
     let valB = b[orderBy];
     if (orderBy.includes(".")) {
       const keys = orderBy.split(".");
-      valA = keys.reduce((obj, key) => obj && obj[key], a);
-      valB = keys.reduce((obj, key) => obj && obj[key], b);
+      valA = keys.reduce((obj, key) => obj?.[key], a);
+      valB = keys.reduce((obj, key) => obj?.[key], b);
     }
     if (orderBy === "lastUpdated") {
       valA = new Date(valA);
@@ -359,7 +360,7 @@ const AccountingForm = ({
           </Grid>
 
           {/* Unaccounted Sales Section (Show in Edit mode if sales were fetched, regardless of current status selection) */}
-          {editMode && formData.unaccountedSales && formData.unaccountedSales.length > 0 && (
+          {editMode && formData.unaccountedSales?.length > 0 && (
             <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
                 <Typography variant="h6" gutterBottom>
@@ -369,7 +370,7 @@ const AccountingForm = ({
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
                     <CircularProgress size={24} />
                   </Box>
-                ) : !formData.unaccountedSales || formData.unaccountedSales.length === 0 ? (
+                ) : !formData.unaccountedSales?.length ? (
                   <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
                     目前無未結算銷售記錄。
                   </Typography>
