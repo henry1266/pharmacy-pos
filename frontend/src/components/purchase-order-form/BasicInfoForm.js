@@ -1,9 +1,10 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import { 
   Box,
   Grid, 
   TextField, 
-  Autocomplete,  
+  // Autocomplete 已移除未使用的 import
   FormControl, 
   InputLabel, 
   Select, 
@@ -38,6 +39,20 @@ const BasicInfoForm = ({
   selectedSupplier,
   isEditMode
 }) => {
+  // 將巢狀三元運算子拆解為獨立陳述式
+  const getPaymentStatusBackgroundColor = () => {
+    if (formData?.paymentStatus === '未付') return '#F8D7DA';
+    if (formData?.paymentStatus === '已下收' || formData?.paymentStatus === '已匯款') return '#D4EDDA';
+    return 'transparent';
+  };
+
+  // 將巢狀三元運算子拆解為獨立陳述式
+  const getStatusBackgroundColor = () => {
+    if (formData?.status === 'pending') return '#FFF3CD';
+    if (formData?.status === 'completed') return '#D4EDDA';
+    return 'transparent';
+  };
+
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent>
@@ -51,7 +66,7 @@ const BasicInfoForm = ({
               fullWidth
               label="進貨單號"
               name="poid"
-              value={formData.poid}
+              value={formData?.poid}
               onChange={handleInputChange}
               variant="outlined"
               disabled={isEditMode}
@@ -63,7 +78,7 @@ const BasicInfoForm = ({
               fullWidth
               label="發票號碼"
               name="pobill"
-              value={formData.pobill}
+              value={formData?.pobill}
               onChange={handleInputChange}
               variant="outlined"
             />
@@ -72,7 +87,7 @@ const BasicInfoForm = ({
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
                 label="發票日期"
-                value={formData.pobilldate}
+                value={formData?.pobilldate}
                 onChange={handleDateChange}
                 renderInput={(params) => <TextField {...params} fullWidth />}
               />
@@ -89,21 +104,17 @@ const BasicInfoForm = ({
           </Grid>
         <Grid item xs={12} sm={6} md={2}>
             <Box
-				    sx={{
-					  backgroundColor:
-            formData.paymentStatus === '未付' ? '#F8D7DA' :     // 紅色（淡）
-            formData.paymentStatus === '已下收' ? '#D4EDDA' :    // 綠色（淡）
-            formData.paymentStatus === '已匯款' ? '#D4EDDA' :    // 綠色（淡）
-            'transparent',
-				    }}
-			  >
-			        <FormControl fullWidth>
+              sx={{
+                backgroundColor: getPaymentStatusBackgroundColor()
+              }}
+            >
+              <FormControl fullWidth>
                <InputLabel id="payment-status-select-label">付款狀態</InputLabel>
                   <Select
                     labelId="payment-status-select-label"
                     id="payment-status-select"
                     name="paymentStatus"
-                    value={formData.paymentStatus}
+                    value={formData?.paymentStatus}
                     label="付款狀態"
                     onChange={handleInputChange}
                   >
@@ -119,7 +130,7 @@ const BasicInfoForm = ({
               fullWidth
               label="備註"
               name="notes"
-              value={formData.notes}
+              value={formData?.notes}
               onChange={handleInputChange}
               variant="outlined"
               multiline
@@ -131,7 +142,7 @@ const BasicInfoForm = ({
               fullWidth
               label="倍率模式 (%)"
               name="multiplierMode"
-              value={formData.multiplierMode}
+              value={formData?.multiplierMode}
               onChange={handleInputChange}
               variant="outlined"
               type="number"
@@ -140,34 +151,51 @@ const BasicInfoForm = ({
             />
           </Grid>
 
-		  <Grid item xs={12} sm={6} md={2}>
+          <Grid item xs={12} sm={6} md={2}>
             <Box
-				sx={{
-					backgroundColor:
-					formData.status === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
-					formData.status === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
-				}}
-			>
-				<FormControl fullWidth>
-					<InputLabel>狀態</InputLabel>
-					<Select
-						name="status"
-						value={formData.status}
-						onChange={handleInputChange}
-						label="狀態"
-						id="status-select"
-					>
-						<MenuItem value="pending">處理中</MenuItem>
-						<MenuItem value="completed">已完成</MenuItem>
-					</Select>
-				</FormControl>
-			      </Box>
+              sx={{
+                backgroundColor: getStatusBackgroundColor()
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel>狀態</InputLabel>
+                <Select
+                  name="status"
+                  value={formData?.status}
+                  onChange={handleInputChange}
+                  label="狀態"
+                  id="status-select"
+                >
+                  <MenuItem value="pending">處理中</MenuItem>
+                  <MenuItem value="completed">已完成</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
           </Grid>
-		</Grid>
+        </Grid>
 
       </CardContent>
     </Card>
   );
+};
+
+// 添加 BasicInfoForm 的 PropTypes 驗證
+BasicInfoForm.propTypes = {
+  formData: PropTypes.shape({
+    poid: PropTypes.string,
+    pobill: PropTypes.string,
+    pobilldate: PropTypes.oneOfType([PropTypes.string, PropTypes.object, PropTypes.instanceOf(Date)]),
+    paymentStatus: PropTypes.string,
+    notes: PropTypes.string,
+    multiplierMode: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    status: PropTypes.string
+  }).isRequired,
+  handleInputChange: PropTypes.func.isRequired,
+  handleDateChange: PropTypes.func.isRequired,
+  handleSupplierChange: PropTypes.func.isRequired,
+  suppliers: PropTypes.array,
+  selectedSupplier: PropTypes.object,
+  isEditMode: PropTypes.bool
 };
 
 const filterSuppliers = (options, inputValue) => {
