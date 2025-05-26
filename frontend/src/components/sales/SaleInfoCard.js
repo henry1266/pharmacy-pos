@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Grid,
   Card,
@@ -116,5 +117,24 @@ const SaleInfoCard = ({
   );
 };
 
-export default SaleInfoCard;
+SaleInfoCard.propTypes = {
+  saleData: PropTypes.shape({
+    saleNumber: PropTypes.string,
+    customer: PropTypes.string,
+    paymentMethod: PropTypes.string,
+    discount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    note: PropTypes.string
+  }).isRequired,
+  customers: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired
+    })
+  ).isRequired,
+  isMobile: PropTypes.bool,
+  expanded: PropTypes.bool.isRequired,
+  onExpandToggle: PropTypes.func.isRequired,
+  onInputChange: PropTypes.func.isRequired
+};
 
+export default SaleInfoCard;
