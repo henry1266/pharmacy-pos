@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Grid, 
   TextField,
@@ -103,6 +104,13 @@ const WorkInfoSection = ({ formData, errors, onChange }) => {
       </Grid>
     </Grid>
   );
+};
+
+// 新增 PropTypes 驗證
+WorkInfoSection.propTypes = {
+  formData: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired
 };
 
 export default WorkInfoSection;
