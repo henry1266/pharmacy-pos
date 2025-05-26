@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Grid,
   Card,
@@ -77,6 +78,19 @@ const SummaryCard = ({ title, value, trend, trendText, icon, iconBgColor, iconCo
   </Card>
 );
 
+SummaryCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  trend: PropTypes.oneOf(['up', 'down']),
+  trendText: PropTypes.shape({
+    percentage: PropTypes.string,
+    period: PropTypes.string
+  }),
+  icon: PropTypes.node,
+  iconBgColor: PropTypes.string,
+  iconColor: PropTypes.string
+};
+
 const DashboardSummaryCards = ({ summaryData }) => {
   const salesSummary = summaryData?.salesSummary || {};
   const orderCount = summaryData?.counts?.orders || 0;
@@ -133,6 +147,19 @@ const DashboardSummaryCards = ({ summaryData }) => {
       </Grid>
     </Grid>
   );
+};
+
+DashboardSummaryCards.propTypes = {
+  summaryData: PropTypes.shape({
+    salesSummary: PropTypes.shape({
+      total: PropTypes.number,
+      today: PropTypes.number,
+      month: PropTypes.number
+    }),
+    counts: PropTypes.shape({
+      orders: PropTypes.number
+    })
+  })
 };
 
 export default DashboardSummaryCards;
