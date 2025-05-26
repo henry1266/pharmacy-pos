@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import {
   Dialog,
   DialogTitle,
@@ -43,16 +44,16 @@ const CustomProductsDialog = ({
     }
 
     // 1. Get the products matching the IDs
-    let productsInShortcut = allProducts.filter(p => productIdsToShow.includes(p._id));
+    let productsInShortcut = allProducts?.filter(p => productIdsToShow?.includes(p?._id));
 
     // 2. Filter by search term if applicable
     if (searchTerm.trim() !== '') {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       productsInShortcut = productsInShortcut.filter(product =>
-        (product.name && product.name.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (product.code && product.code.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (product.barcode && product.barcode.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (product.healthInsuranceCode && product.healthInsuranceCode.toLowerCase().includes(lowerCaseSearchTerm))
+        (product?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (product?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (product?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (product?.healthInsuranceCode?.toLowerCase().includes(lowerCaseSearchTerm))
       );
     }
 
@@ -111,7 +112,7 @@ const CustomProductsDialog = ({
           ) : (
             <Grid container spacing={2}>
               {displayProducts.map((product) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={product._id}>
+                <Grid item xs={12} sm={6} md={4} lg={3} key={product?._id}>
                   <Paper
                     elevation={1}
                     sx={{
@@ -130,13 +131,13 @@ const CustomProductsDialog = ({
                   >
                     <Box>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold', pr: 3 }}>
-                        {product.name}
+                        {product?.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
-                        編號: {product.code || '無'} | 價格: {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無'}
+                        編號: {product?.code || '無'} | 價格: {product?.sellingPrice ? `$${product?.sellingPrice.toFixed(2)}` : '無'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
-                        庫存: {getTotalInventory(product._id)}
+                        庫存: {getTotalInventory(product?._id)}
                       </Typography>
                     </Box>
                     <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
@@ -144,7 +145,7 @@ const CustomProductsDialog = ({
                         size="small"
                         color="primary"
                         onClick={(e) => { e.stopPropagation(); handleSelect(product); }} // Prevent card click, handle select directly
-                        aria-label={`選擇 ${product.name}`}
+                        aria-label={`選擇 ${product?.name}`}
                       >
                         <AddIcon />
                       </IconButton>
@@ -165,5 +166,23 @@ const CustomProductsDialog = ({
   );
 };
 
-export default CustomProductsDialog;
+// 添加 CustomProductsDialog 的 PropTypes 驗證
+CustomProductsDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  allProducts: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      name: PropTypes.string,
+      code: PropTypes.string,
+      barcode: PropTypes.string,
+      healthInsuranceCode: PropTypes.string,
+      sellingPrice: PropTypes.number
+    })
+  ),
+  productIdsToShow: PropTypes.arrayOf(PropTypes.string),
+  shortcutName: PropTypes.string,
+  onSelectProduct: PropTypes.func
+};
 
+export default CustomProductsDialog;
