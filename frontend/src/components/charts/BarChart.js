@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Bar } from 'react-chartjs-2';
 import { Paper, Box, Typography } from '@mui/material';
 import {
@@ -62,6 +63,13 @@ const BarChart = ({
       <Bar data={data} options={mergedOptions} {...rest} />
     </Paper>
   );
+};
+
+// 添加 PropTypes 驗證
+BarChart.propTypes = {
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object,
+  title: PropTypes.string
 };
 
 export default BarChart;

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import { Paper, Box, Typography } from '@mui/material';
 import {
@@ -64,6 +65,13 @@ const LineChart = ({
       <Line data={data} options={mergedOptions} {...rest} />
     </Paper>
   );
+};
+
+// 添加 PropTypes 驗證
+LineChart.propTypes = {
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object,
+  title: PropTypes.string
 };
 
 export default LineChart;

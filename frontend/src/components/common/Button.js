@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Button as MuiButton } from '@mui/material';
 
 /**
@@ -33,6 +34,16 @@ const Button = ({
       {children}
     </MuiButton>
   );
+};
+
+// 添加 PropTypes 驗證
+Button.propTypes = {
+  variant: PropTypes.string,
+  color: PropTypes.string,
+  size: PropTypes.string,
+  fullWidth: PropTypes.bool,
+  onClick: PropTypes.func,
+  children: PropTypes.node
 };
 
 export default Button;

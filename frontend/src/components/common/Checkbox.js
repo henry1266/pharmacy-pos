@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Checkbox as MuiCheckbox, FormControlLabel, FormControl, FormHelperText } from '@mui/material';
 
 /**
@@ -39,6 +40,16 @@ const Checkbox = ({
       {error && <FormHelperText>{error}</FormHelperText>}
     </FormControl>
   );
+};
+
+// 添加 PropTypes 驗證
+Checkbox.propTypes = {
+  label: PropTypes.string,
+  name: PropTypes.string,
+  checked: PropTypes.bool,
+  onChange: PropTypes.func,
+  disabled: PropTypes.bool,
+  error: PropTypes.string
 };
 
 export default Checkbox;
