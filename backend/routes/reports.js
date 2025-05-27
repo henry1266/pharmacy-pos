@@ -148,8 +148,8 @@ function groupSalesByDay(sales) {
     salesByDay[dateStr].orderCount += 1;
     sale.items.forEach(item => {
       salesByDay[dateStr].items.push({
-        productId: safeToString(item.product._id),
-        productName: safeToString(item.product.name),
+        productId: safeToString(item.product?._id),
+        productName: safeToString(item.product?.name),
         quantity: item.quantity,
         price: item.price,
         subtotal: item.subtotal
@@ -179,8 +179,8 @@ function groupSalesByMonth(sales) {
     salesByMonth[monthStr].orderCount += 1;
     sale.items.forEach(item => {
       salesByMonth[monthStr].items.push({
-        productId: safeToString(item.product._id),
-        productName: safeToString(item.product.name),
+        productId: safeToString(item.product?._id),
+        productName: safeToString(item.product?.name),
         quantity: item.quantity,
         price: item.price,
         subtotal: item.subtotal
@@ -197,12 +197,12 @@ function groupSalesByProduct(sales) {
   
   sales.forEach(sale => {
     sale.items.forEach(item => {
-      const productId = safeToString(item.product._id);
+      const productId = safeToString(item.product?._id);
       if (!salesByProduct[productId]) {
         salesByProduct[productId] = {
           productId,
-          productCode: safeToString(item.product.code),
-          productName: safeToString(item.product.name),
+          productCode: safeToString(item.product?.code),
+          productName: safeToString(item.product?.name),
           quantity: 0,
           revenue: 0,
           orderCount: 0
@@ -251,7 +251,7 @@ function groupSalesByCustomer(sales) {
 function formatSalesData(sales) {
   return sales.map(sale => {
     let customerName = '一般客戶';
-    if (sale.customer && sale.customer.name) {
+    if (sale.customer?.name) {
       customerName = safeToString(sale.customer.name);
     }
     
@@ -266,8 +266,8 @@ function formatSalesData(sales) {
       paymentMethod: safeToString(sale.paymentMethod),
       paymentStatus: safeToString(sale.paymentStatus),
       items: sale.items.map(item => ({
-        productId: safeToString(item.product._id),
-        productName: safeToString(item.product.name),
+        productId: safeToString(item.product?._id),
+        productName: safeToString(item.product?.name),
         quantity: item.quantity,
         price: item.price,
         discount: item.discount,
