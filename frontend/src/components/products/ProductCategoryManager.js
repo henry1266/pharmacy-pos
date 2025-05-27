@@ -210,6 +210,128 @@ const ProductCategoryManager = () => {
     });
   };
   
+  // 提取嵌套的三元運算符為獨立函數
+  const renderCategoryList = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+    
+    if (error) {
+      return <Alert severity="error">{error}</Alert>;
+    }
+    
+    if (categories.length === 0) {
+      return (
+        <Typography align="center" sx={{ p: 2 }}>
+          尚無分類，請新增分類
+        </Typography>
+      );
+    }
+    
+    return (
+      <Box>
+        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+          拖動項目可調整順序。順序將影響產品表單中的顯示順序。
+        </Typography>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <StrictModeDroppable droppableId="categories">
+            {(provided) => (
+              <List
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+              >
+                {categories.map((category, index) => (
+                  <Draggable
+                    key={category._id}
+                    draggableId={category._id}
+                    index={index}
+                  >
+                    {(provided) => (
+                      <ListItem
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        onClick={() => navigate(`/product-categories/${category._id}`)}
+                        secondaryAction={
+                          <Box>
+                            <IconButton
+                              edge="end"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/product-categories/${category._id}`);
+                              }}
+                              title="查看分類詳情"
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditDialog(category);
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCategory(category._id);
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        }
+                        sx={{ 
+                          border: '1px solid #eee',
+                          borderRadius: 1,
+                          mb: 1,
+                          bgcolor: 'background.paper',
+                          cursor: 'pointer',
+                          color: 'text.primary',
+                          '& .MuiListItemText-primary': {
+                            color: 'text.primary',
+                            fontWeight: 500
+                          },
+                          '& .MuiListItemText-secondary': {
+                            color: 'text.secondary'
+                          }
+                        }}
+                      >
+                        <IconButton
+                          {...provided.dragHandleProps}
+                          sx={{ mr: 1 }}
+                        >
+                          <DragHandleIcon />
+                        </IconButton>
+                        <ListItemText
+                          primary={category.name}
+                          secondary={category.description || '無描述'}
+                          primaryTypographyProps={{
+                            sx: { color: '#000000 !important', fontWeight: 500 }
+                          }}
+                          secondaryTypographyProps={{
+                            sx: { color: 'rgba(0, 0, 0, 0.7) !important' }
+                          }}
+                        />
+                      </ListItem>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </List>
+            )}
+          </StrictModeDroppable>
+        </DragDropContext>
+      </Box>
+    );
+  };
+  
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -225,114 +347,7 @@ const ProductCategoryManager = () => {
       </Box>
       
       <Paper sx={{ p: 2 }}>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : categories.length === 0 ? (
-          <Typography align="center" sx={{ p: 2 }}>
-            尚無分類，請新增分類
-          </Typography>
-        ) : (
-          <Box>
-            <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-              拖動項目可調整順序。順序將影響產品表單中的顯示順序。
-            </Typography>
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <StrictModeDroppable droppableId="categories">
-                {(provided) => (
-                  <List
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                  >
-                    {categories.map((category, index) => (
-                      <Draggable
-                        key={category._id}
-                        draggableId={category._id}
-                        index={index}
-                      >
-                        {(provided) => (
-                          <ListItem
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            onClick={() => navigate(`/product-categories/${category._id}`)}
-                            secondaryAction={
-                              <Box>
-                                <IconButton
-                                  edge="end"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/product-categories/${category._id}`);
-                                  }}
-                                  title="查看分類詳情"
-                                >
-                                  <VisibilityIcon />
-                                </IconButton>
-                                <IconButton
-                                  edge="end"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenEditDialog(category);
-                                  }}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                                <IconButton
-                                  edge="end"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteCategory(category._id);
-                                  }}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Box>
-                            }
-                            sx={{ 
-                              border: '1px solid #eee',
-                              borderRadius: 1,
-                              mb: 1,
-                              bgcolor: 'background.paper',
-                              cursor: 'pointer',
-                              color: 'text.primary',
-                              '& .MuiListItemText-primary': {
-                                color: 'text.primary',
-                                fontWeight: 500
-                              },
-                              '& .MuiListItemText-secondary': {
-                                color: 'text.secondary'
-                              }
-                            }}
-                          >
-                            <IconButton
-                              {...provided.dragHandleProps}
-                              sx={{ mr: 1 }}
-                            >
-                              <DragHandleIcon />
-                            </IconButton>
-                            <ListItemText
-                              primary={category.name}
-                              secondary={category.description || '無描述'}
-                              primaryTypographyProps={{
-                                sx: { color: '#000000 !important', fontWeight: 500 }
-                              }}
-                              secondaryTypographyProps={{
-                                sx: { color: 'rgba(0, 0, 0, 0.7) !important' }
-                              }}
-                            />
-                          </ListItem>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </List>
-                )}
-              </StrictModeDroppable>
-            </DragDropContext>
-          </Box>
-        )}
+        {renderCategoryList()}
       </Paper>
       
       {/* 新增/編輯對話框 */}

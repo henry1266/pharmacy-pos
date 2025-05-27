@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
+import PropTypes from 'prop-types'; // 添加 PropTypes 引入
 
 const InventoryList = ({ productId }) => {
   const [inventories, setInventories] = useState([]);
@@ -135,8 +136,8 @@ const InventoryList = ({ productId }) => {
             // 出貨記錄：使用實際交易價格（總金額/數量）
             const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
             price = unitPrice;
-          } else if (inv.product && inv.product.sellingPrice) {
-            // 其他記錄：使用產品售價
+          } else if (inv.product?.sellingPrice) {
+            // 其他記錄：使用產品售價 (使用可選鏈表達式)
             price = inv.product.sellingPrice;
           }
           
@@ -181,7 +182,8 @@ const InventoryList = ({ productId }) => {
           let price = 0;
           if (inv.totalAmount && inv.totalQuantity) {
             price = inv.totalAmount / Math.abs(inv.totalQuantity);
-          } else if (inv.product && inv.product.sellingPrice) {
+          } else if (inv.product?.sellingPrice) {
+            // 使用可選鏈表達式
             price = inv.product.sellingPrice;
           }
           
@@ -239,6 +241,20 @@ const InventoryList = ({ productId }) => {
     }
     
     return '';
+  };
+
+  // 修復條件操作返回相同值的問題
+  const getTypeDisplay = (type) => {
+    switch(type) {
+      case 'sale':
+        return { text: '銷售', color: 'error.main' };
+      case 'purchase':
+        return { text: '進貨', color: 'primary.main' };
+      case 'ship':
+        return { text: '出貨', color: 'error.main' };
+      default:
+        return { text: '其他', color: 'text.secondary' };
+    }
   };
 
   if (loading) {
@@ -310,54 +326,41 @@ const InventoryList = ({ productId }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {inventories.map((inv, index) => {
-              let orderNumber, orderLink, typeText, typeColor;
+            {inventories.map((inv) => {
+              let orderNumber, orderLink;
+              const typeDisplay = getTypeDisplay(inv.type);
               
               if (inv.type === 'sale') {
                 orderNumber = inv.saleNumber;
                 const saleId = extractOidFromMongoId(inv.saleId) || extractOidFromMongoId(inv._id) || '';
                 orderLink = `/sales/${saleId}`;
-                typeText = '銷售';
-                typeColor = 'error.main';
               } else if (inv.type === 'purchase') {
                 orderNumber = inv.purchaseOrderNumber;
                 const purchaseId = extractOidFromMongoId(inv.purchaseOrderId) || extractOidFromMongoId(inv._id) || '';
                 orderLink = `/purchase-orders/${purchaseId}`;
-                typeText = '進貨';
-                typeColor = 'primary.main';
               } else if (inv.type === 'ship') {
                 orderNumber = inv.shippingOrderNumber;
                 // 修復出貨超連結問題：正確處理MongoDB格式的對象ID
                 const shippingId = extractOidFromMongoId(inv.shippingOrderId) || extractOidFromMongoId(inv._id) || '';
                 orderLink = `/shipping-orders/${shippingId}`;
-                typeText = '出貨';
-                typeColor = 'error.main';
               }
               
-              const quantity = (inv.type === 'sale' || inv.type === 'ship') ? inv.totalQuantity : inv.totalQuantity;
+              const quantity = inv.totalQuantity;
               
               // 計算實際交易價格
               let price = '0.00';
-              if (inv.type === 'purchase' && inv.totalAmount && inv.totalQuantity) {
-                // 進貨記錄：使用實際交易價格（總金額/數量）
+              if (inv.totalAmount && inv.totalQuantity) {
+                // 使用實際交易價格（總金額/數量）
                 const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
                 price = unitPrice.toFixed(2);
-              } else if (inv.type === 'ship' && inv.totalAmount && inv.totalQuantity) {
-                // 出貨記錄：使用實際交易價格（總金額/數量）
-                const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-                price = unitPrice.toFixed(2);
-              } else if (inv.type === 'sale' && inv.totalAmount && inv.totalQuantity) {
-                // 出貨記錄：使用實際交易價格（總金額/數量）
-                const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-                price = unitPrice.toFixed(2);
-              }else if (inv.product && inv.product.sellingPrice) {
-                // 其他記錄：使用產品售價
+              } else if (inv.product?.sellingPrice) {
+                // 使用可選鏈表達式
                 price = inv.product.sellingPrice.toFixed(2);
               }
               
               return (
                 <TableRow 
-                  key={index}
+                  key={`${inv.type}-${orderNumber}-${inv._id || Math.random().toString(36).substr(2, 9)}`}
                   sx={{ 
                     '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
                     '&:hover': { backgroundColor: '#f1f1f1' }
@@ -376,16 +379,16 @@ const InventoryList = ({ productId }) => {
                   <TableCell 
                     align="center" 
                     sx={{ 
-                      color: typeColor,
+                      color: typeDisplay.color,
                       fontWeight: 'medium'
                     }}
                   >
-                    {typeText}
+                    {typeDisplay.text}
                   </TableCell>
                   <TableCell 
                     align="center"
                     sx={{ 
-                      color: typeColor,
+                      color: typeDisplay.color,
                       fontWeight: 'medium'
                     }}
                   >
@@ -401,6 +404,11 @@ const InventoryList = ({ productId }) => {
       </TableContainer>
     </Box>
   );
+};
+
+// 添加 PropTypes 驗證
+InventoryList.propTypes = {
+  productId: PropTypes.string.isRequired
 };
 
 export default InventoryList;
