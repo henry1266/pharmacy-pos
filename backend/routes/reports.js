@@ -124,8 +124,19 @@ router.get('/sales', async (req, res) => {
       // 按客戶分組
       const salesByCustomer = {};
       sales.forEach(sale => {
-        const customerId = sale.customer ? sale.customer._id.toString() : 'anonymous'; // 修正：確保轉換為字串
-        const customerName = sale.customer ? (sale.customer.name ? sale.customer.name.toString() : '一般客戶') : '一般客戶'; // 修正：確保轉換為字串
+        // 修正：提取巢狀三元運算子為獨立陳述式
+        let customerId = 'anonymous';
+        if (sale.customer) {
+          customerId = sale.customer._id.toString();
+        }
+        
+        // 修正：提取巢狀三元運算子為獨立陳述式
+        let customerName = '一般客戶';
+        if (sale.customer) {
+          if (sale.customer.name) {
+            customerName = sale.customer.name.toString();
+          }
+        }
         
         if (!salesByCustomer[customerId]) {
           salesByCustomer[customerId] = {
@@ -142,25 +153,35 @@ router.get('/sales', async (req, res) => {
       groupedData = Object.values(salesByCustomer).sort((a, b) => b.totalAmount - a.totalAmount);
     } else {
       // 不分組，返回所有銷售記錄
-      groupedData = sales.map(sale => ({
-        id: sale._id.toString(), // 修正：確保轉換為字串
-        invoiceNumber: sale.invoiceNumber ? sale.invoiceNumber.toString() : "", // 修正：確保轉換為字串
-        date: sale.date,
-        customerName: sale.customer ? (sale.customer.name ? sale.customer.name.toString() : '一般客戶') : '一般客戶', // 修正：確保轉換為字串
-        totalAmount: sale.totalAmount,
-        discount: sale.discount,
-        tax: sale.tax,
-        paymentMethod: sale.paymentMethod ? sale.paymentMethod.toString() : "", // 修正：確保轉換為字串
-        paymentStatus: sale.paymentStatus ? sale.paymentStatus.toString() : "", // 修正：確保轉換為字串
-        items: sale.items.map(item => ({
-          productId: item.product._id.toString(), // 修正：確保轉換為字串
-          productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
-          quantity: item.quantity,
-          price: item.price,
-          discount: item.discount,
-          subtotal: item.subtotal
-        }))
-      }));
+      groupedData = sales.map(sale => {
+        // 修正：提取巢狀三元運算子為獨立陳述式
+        let customerName = '一般客戶';
+        if (sale.customer) {
+          if (sale.customer.name) {
+            customerName = sale.customer.name.toString();
+          }
+        }
+        
+        return {
+          id: sale._id.toString(), // 修正：確保轉換為字串
+          invoiceNumber: sale.invoiceNumber ? sale.invoiceNumber.toString() : "", // 修正：確保轉換為字串
+          date: sale.date,
+          customerName: customerName,
+          totalAmount: sale.totalAmount,
+          discount: sale.discount,
+          tax: sale.tax,
+          paymentMethod: sale.paymentMethod ? sale.paymentMethod.toString() : "", // 修正：確保轉換為字串
+          paymentStatus: sale.paymentStatus ? sale.paymentStatus.toString() : "", // 修正：確保轉換為字串
+          items: sale.items.map(item => ({
+            productId: item.product._id.toString(), // 修正：確保轉換為字串
+            productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
+            quantity: item.quantity,
+            price: item.price,
+            discount: item.discount,
+            subtotal: item.subtotal
+          }))
+        };
+      });
     }
     
     // 計算總計
@@ -386,47 +407,8 @@ router.get('/inventory/profit-loss', async (req, res) => {
       purchaseOrderNumber: { $exists: true, $ne: null }
     }).populate('product');
     
-    // 按照貨單單號分組並計算盈虧
-    const profitLossByPO = {};
-    
-    inventory.forEach(item => {
-      if (!item.product) return;
-      
-      const poNumber = item.purchaseOrderNumber ? item.purchaseOrderNumber.toString() : null; // 修正：確保轉換為字串
-      if (!poNumber) return;
-      
-      if (!profitLossByPO[poNumber]) {
-        profitLossByPO[poNumber] = {
-          purchaseOrderNumber: poNumber,
-          totalQuantity: 0,
-          totalCost: 0,
-          totalRevenue: 0,
-          profitLoss: 0,
-          items: []
-        };
-      }
-      
-      const cost = item.quantity * item.product.purchasePrice;
-      const revenue = item.quantity * item.product.sellingPrice;
-      const profit = revenue - cost;
-      
-      profitLossByPO[poNumber].totalQuantity += item.quantity;
-      profitLossByPO[poNumber].totalCost += cost;
-      profitLossByPO[poNumber].totalRevenue += revenue;
-      profitLossByPO[poNumber].profitLoss += profit;
-      
-      profitLossByPO[poNumber].items.push({
-        productId: item.product._id.toString(), // 修正：確保轉換為字串
-        productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
-        productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
-        quantity: item.quantity,
-        purchasePrice: item.product.purchasePrice,
-        sellingPrice: item.product.sellingPrice,
-        cost,
-        revenue,
-        profit
-      });
-    });
+    // 重構：將處理邏輯拆分為更小的函數，降低複雜度
+    const profitLossByPO = processProfitLossByPurchaseOrder(inventory);
     
     // 轉換為數組並排序
     const profitLossData = Object.values(profitLossByPO).sort((a, b) => {
@@ -435,13 +417,7 @@ router.get('/inventory/profit-loss', async (req, res) => {
     });
     
     // 計算總計
-    const summary = {
-      totalPurchaseOrders: profitLossData.length,
-      totalQuantity: profitLossData.reduce((sum, po) => sum + po.totalQuantity, 0),
-      totalCost: profitLossData.reduce((sum, po) => sum + po.totalCost, 0),
-      totalRevenue: profitLossData.reduce((sum, po) => sum + po.totalRevenue, 0),
-      totalProfitLoss: profitLossData.reduce((sum, po) => sum + po.profitLoss, 0)
-    };
+    const summary = calculateProfitLossSummary(profitLossData);
     
     res.json({
       data: profitLossData,
@@ -452,5 +428,62 @@ router.get('/inventory/profit-loss', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
+// 輔助函數：處理按照貨單單號分組並計算盈虧
+function processProfitLossByPurchaseOrder(inventory) {
+  const profitLossByPO = {};
+  
+  inventory.forEach(item => {
+    if (!item.product) return;
+    
+    const poNumber = item.purchaseOrderNumber ? item.purchaseOrderNumber.toString() : null; // 修正：確保轉換為字串
+    if (!poNumber) return;
+    
+    if (!profitLossByPO[poNumber]) {
+      profitLossByPO[poNumber] = {
+        purchaseOrderNumber: poNumber,
+        totalQuantity: 0,
+        totalCost: 0,
+        totalRevenue: 0,
+        profitLoss: 0,
+        items: []
+      };
+    }
+    
+    const cost = item.quantity * item.product.purchasePrice;
+    const revenue = item.quantity * item.product.sellingPrice;
+    const profit = revenue - cost;
+    
+    profitLossByPO[poNumber].totalQuantity += item.quantity;
+    profitLossByPO[poNumber].totalCost += cost;
+    profitLossByPO[poNumber].totalRevenue += revenue;
+    profitLossByPO[poNumber].profitLoss += profit;
+    
+    profitLossByPO[poNumber].items.push({
+      productId: item.product._id.toString(), // 修正：確保轉換為字串
+      productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
+      productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
+      quantity: item.quantity,
+      purchasePrice: item.product.purchasePrice,
+      sellingPrice: item.product.sellingPrice,
+      cost,
+      revenue,
+      profit
+    });
+  });
+  
+  return profitLossByPO;
+}
+
+// 輔助函數：計算盈虧總計
+function calculateProfitLossSummary(profitLossData) {
+  return {
+    totalPurchaseOrders: profitLossData.length,
+    totalQuantity: profitLossData.reduce((sum, po) => sum + po.totalQuantity, 0),
+    totalCost: profitLossData.reduce((sum, po) => sum + po.totalCost, 0),
+    totalRevenue: profitLossData.reduce((sum, po) => sum + po.totalRevenue, 0),
+    totalProfitLoss: profitLossData.reduce((sum, po) => sum + po.profitLoss, 0)
+  };
+}
 
 module.exports = router;
