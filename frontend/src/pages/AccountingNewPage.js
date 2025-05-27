@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box,
   Grid,
@@ -62,7 +62,7 @@ const AccountingNewPage = () => {
     submitSuccess,
     submitAccountingRecord,
     setSubmitError, // For clearing error on snackbar close
-    setSubmitSuccess // For resetting success state
+    // 移除未使用的 setSubmitSuccess
   } = useAccountingFormData();
 
   // Local UI state (snackbar, sorting)
@@ -161,8 +161,9 @@ const AccountingNewPage = () => {
 
     if (orderBy.includes('.')) {
       const keys = orderBy.split('.');
-      valA = keys.reduce((obj, key) => obj && obj[key], a);
-      valB = keys.reduce((obj, key) => obj && obj[key], b);
+      // 使用 optional chaining 替代巢狀 && 運算
+      valA = keys.reduce((obj, key) => obj?.[key], a);
+      valB = keys.reduce((obj, key) => obj?.[key], b);
     }
 
     if (orderBy === 'lastUpdated') {
@@ -187,6 +188,101 @@ const AccountingNewPage = () => {
     { id: 'totalAmount', label: '金額', numeric: true },
     { id: 'saleNumber', label: '銷售單號', numeric: false },
   ];
+
+  // 渲染未結算銷售區塊
+  const renderUnaccountedSalesSection = () => {
+    if (loadingSales) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      );
+    }
+    
+    if (salesError) {
+      return <Alert severity="error">{salesError}</Alert>;
+    }
+    
+    if (sortedSales.length === 0) {
+      return (
+        <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
+          今日尚無已設定監測產品的未結算銷售記錄，或未設定監測產品。
+        </Typography>
+      );
+    }
+    
+    return (
+      <TableContainer sx={{ maxHeight: 300 }}>
+        <Table size="small" stickyHeader>
+          <TableHead>
+            <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  align={headCell.numeric ? 'right' : 'left'}
+                  sortDirection={orderBy === headCell.id ? order : false}
+                >
+                  <TableSortLabel
+                    active={orderBy === headCell.id}
+                    direction={orderBy === headCell.id ? order : 'asc'}
+                    onClick={() => handleRequestSort(headCell.id)}
+                  >
+                    {headCell.label}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedSales.map((row) => (
+              <TableRow hover key={row._id || `${row.saleNumber}-${row.product?._id}`}>
+                <TableCell>{new Date(row.lastUpdated).toLocaleTimeString('zh-TW')}</TableCell>
+                <TableCell>{row.product?.code}</TableCell>
+                <TableCell>{row.product?.name}</TableCell>
+                <TableCell align="right">{row.quantity}</TableCell>
+                <TableCell align="right">{row.totalAmount?.toLocaleString()}</TableCell>
+                <TableCell>{row.saleNumber}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  // 渲染類別選擇下拉選單內容
+  const renderCategoryOptions = () => {
+    if (loadingCategories) {
+      return (
+        <MenuItem disabled>
+          <CircularProgress size={20} sx={{ mr: 1 }} />
+          載入中...
+        </MenuItem>
+      );
+    }
+    
+    if (errorCategories) {
+      return (
+        <MenuItem disabled>
+          <Typography color="error" variant="body2">無法載入名目</Typography>
+        </MenuItem>
+      );
+    }
+    
+    if (categories.length > 0) {
+      return categories.map(category => (
+        <MenuItem key={category._id} value={category.name}>
+          {category.name}
+        </MenuItem>
+      ));
+    }
+    
+    return (
+      <MenuItem disabled>
+        無可用名目
+      </MenuItem>
+    );
+  };
 
   return (
     <Container maxWidth="lg">
@@ -246,7 +342,7 @@ const AccountingNewPage = () => {
               </Typography>
               
               {formData.items.map((item, index) => (
-                <Grid container spacing={2} key={index} sx={{ mb: 2, alignItems: 'center' }}>
+                <Grid container spacing={2} key={`item-${item.id || index}`} sx={{ mb: 2, alignItems: 'center' }}>
                   <Grid item xs={12} sm={3}>
                     <TextField
                       label="金額"
@@ -281,26 +377,7 @@ const AccountingNewPage = () => {
                         onChange={(e) => handleItemChange(index, 'category', e.target.value)}
                         disabled={loadingCategories || submitting}
                       >
-                        {loadingCategories ? (
-                          <MenuItem disabled>
-                            <CircularProgress size={20} sx={{ mr: 1 }} />
-                            載入中...
-                          </MenuItem>
-                        ) : errorCategories ? (
-                          <MenuItem disabled>
-                            <Typography color="error" variant="body2">無法載入名目</Typography>
-                          </MenuItem>
-                        ) : categories.length > 0 ? (
-                          categories.map(category => (
-                            <MenuItem key={category._id} value={category.name}>
-                              {category.name}
-                            </MenuItem>
-                          ))
-                        ) : (
-                          <MenuItem disabled>
-                            無可用名目
-                          </MenuItem>
-                        )}
+                        {renderCategoryOptions()}
                       </Select>
                     </FormControl>
                   </Grid>
@@ -351,53 +428,7 @@ const AccountingNewPage = () => {
                     監測產品 - 當日未結算銷售
                   </Typography>
                 </Box>
-                {loadingSales ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : salesError ? (
-                  <Alert severity="error">{salesError}</Alert>
-                ) : sortedSales.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-                    今日尚無已設定監測產品的未結算銷售記錄，或未設定監測產品。
-                  </Typography>
-                ) : (
-                  <TableContainer sx={{ maxHeight: 300 }}>
-                    <Table size="small" stickyHeader>
-                      <TableHead>
-                        <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
-                          {headCells.map((headCell) => (
-                            <TableCell
-                              key={headCell.id}
-                              align={headCell.numeric ? 'right' : 'left'}
-                              sortDirection={orderBy === headCell.id ? order : false}
-                            >
-                              <TableSortLabel
-                                active={orderBy === headCell.id}
-                                direction={orderBy === headCell.id ? order : 'asc'}
-                                onClick={() => handleRequestSort(headCell.id)}
-                              >
-                                {headCell.label}
-                              </TableSortLabel>
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {sortedSales.map((row) => (
-                          <TableRow hover key={row._id || row.saleNumber + row.product?._id}>
-                            <TableCell>{new Date(row.lastUpdated).toLocaleTimeString('zh-TW')}</TableCell>
-                            <TableCell>{row.product?.code}</TableCell>
-                            <TableCell>{row.product?.name}</TableCell>
-                            <TableCell align="right">{row.quantity}</TableCell>
-                            <TableCell align="right">{row.totalAmount?.toLocaleString()}</TableCell>
-                            <TableCell>{row.saleNumber}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
+                {renderUnaccountedSalesSection()}
               </Paper>
             </Grid>
 
@@ -432,4 +463,3 @@ const AccountingNewPage = () => {
 };
 
 export default AccountingNewPage;
-
