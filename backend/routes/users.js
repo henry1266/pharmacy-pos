@@ -27,7 +27,8 @@ router.post(
 
     try {
       // 檢查用戶是否已存在
-      let user = await User.findOne({ email });
+      // 修正：將 email 參數轉換為字串
+      let user = await User.findOne({ email: email.toString() });
 
       if (user) {
         return res.status(400).json({ msg: '用戶已存在' });
