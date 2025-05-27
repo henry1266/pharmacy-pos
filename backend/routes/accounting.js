@@ -21,7 +21,7 @@ router.get("/", auth, async (req, res) => {
       if (startDate) query.date.$gte = new Date(startDate);
       if (endDate) query.date.$lte = new Date(endDate);
     }
-    if (shift) query.shift = shift;
+    if (shift) query.shift = shift.toString();
     const accountingRecords = await Accounting.find(query).sort({ date: -1, shift: 1 });
     res.json(accountingRecords);
   } catch (err) {
@@ -162,7 +162,10 @@ router.post(
       const accountingDate = new Date(date);
 
       // 檢查是否已存在相同日期和班別的記錄
-      const existingRecord = await Accounting.findOne({ date: accountingDate, shift });
+      const existingRecord = await Accounting.findOne({ 
+        date: accountingDate, 
+        shift: shift.toString() 
+      });
       if (existingRecord) {
         return res.status(400).json({ msg: "該日期和班別已有記帳記錄" });
       }
@@ -278,7 +281,7 @@ router.put(
 
       const existingRecord = await Accounting.findOne({
         date: accountingDate,
-        shift,
+        shift: shift.toString(),
         _id: { $ne: req.params.id },
       });
 
