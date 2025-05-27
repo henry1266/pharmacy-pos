@@ -26,7 +26,13 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+// 設置上傳限制為 8MB，符合安全編碼實踐建議
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 8000000 // 8MB 限制
+  }
+});
 
 // @route   GET api/shipping-orders
 // @desc    獲取所有出貨單
@@ -543,42 +549,32 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
               continue;
             }
 
-            // 準備出貨單數據
-            const shippingOrderData = {
+            // 創建新出貨單
+            const shippingOrder = new ShippingOrder({
               soid: row['出貨單號'],
-              sobill: row['發票號'] || '',
-              socustomer: row['客戶'],
-              paymentStatus: row['付款狀態'] || '未收',
+              orderNumber: await generateUniqueOrderNumber(row['出貨單號']),
+              sosupplier: row['客戶'],
               items: [],
-              status: 'pending'
-            };
+              status: 'pending',
+              paymentStatus: row['付款狀態'] || '未收'
+            });
 
-            // 嘗試查找客戶
-            const customerDoc = await Customer.findOne({ name: row['客戶'] });
-            if (customerDoc) {
-              shippingOrderData.customer = customerDoc._id;
-            }
-
-            // 創建出貨單
-            const shippingOrder = new ShippingOrder(shippingOrderData);
             await shippingOrder.save();
             successCount++;
           } catch (err) {
-            console.error(`處理行 ${results.indexOf(row) + 1} 時出錯:`, err);
             errors.push(`行 ${results.indexOf(row) + 1}: ${err.message}`);
           }
         }
 
-        // 返回結果
         res.json({
-          msg: `成功導入 ${successCount} 筆出貨單基本資訊${errors.length > 0 ? '，但有部分錯誤' : ''}`,
-          success: successCount,
-          errors: errors
+          success: true,
+          msg: `成功導入 ${successCount} 筆出貨單基本資訊`,
+          errors: errors.length > 0 ? errors : null
         });
       });
   } catch (err) {
-    console.error('CSV導入錯誤:', err);
-    res.status(500).json({ msg: '伺服器錯誤' });
+    console.error(err.message);
+    res.status(500).send('伺服器錯誤');
   }
 });
 

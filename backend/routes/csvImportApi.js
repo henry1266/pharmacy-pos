@@ -33,7 +33,13 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+// 設置上傳限制為 8MB，符合安全編碼實踐建議
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 8000000 // 8MB 限制
+  }
+});
 
 /**
  * 為出貨單創建庫存記錄
