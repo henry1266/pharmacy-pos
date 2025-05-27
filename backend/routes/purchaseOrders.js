@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const purchaseOrder = await PurchaseOrder.findById(req.params.id)
+    const purchaseOrder = await PurchaseOrder.findOne({ _id: req.params.id.toString() })
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
@@ -76,7 +76,7 @@ async function generateUniqueOrderNumber(poid) {
   
   // 檢查訂單號是否已存在，如果存在則添加計數器
   while (!isUnique) {
-    const existingOrder = await PurchaseOrder.findOne({ orderNumber });
+    const existingOrder = await PurchaseOrder.findOne({ orderNumber: orderNumber.toString() });
     if (!existingOrder) {
       isUnique = true;
     } else {
@@ -112,7 +112,7 @@ router.post('/', [
       poid = await OrderNumberService.generatePurchaseOrderNumber();
     } else {
       // 檢查進貨單號是否已存在
-      const existingPO = await PurchaseOrder.findOne({ poid });
+      const existingPO = await PurchaseOrder.findOne({ poid: poid.toString() });
       if (existingPO) {
         return res.status(400).json({ msg: '該進貨單號已存在' });
       }
@@ -128,7 +128,7 @@ router.post('/', [
       }
 
       // 嘗試查找藥品
-      const product = await BaseProduct.findOne({ code: item.did });
+      const product = await BaseProduct.findOne({ code: item.did.toString() });
       if (product) {
         item.product = product._id;
       }
@@ -137,9 +137,9 @@ router.post('/', [
     // 嘗試查找供應商
     let supplierId = null;
     if (supplier) {
-      supplierId = supplier;
+      supplierId = supplier.toString();
     } else {
-      const supplierDoc = await Supplier.findOne({ name: posupplier });
+      const supplierDoc = await Supplier.findOne({ name: posupplier.toString() });
       if (supplierDoc) {
         supplierId = supplierDoc._id;
       }
@@ -147,16 +147,16 @@ router.post('/', [
 
     // 創建新進貨單
     const purchaseOrder = new PurchaseOrder({
-      poid,
-      orderNumber, // 設置唯一訂單號
-      pobill,
+      poid: poid.toString(),
+      orderNumber: orderNumber.toString(), // 設置唯一訂單號
+      pobill: pobill ? pobill.toString() : '',
       pobilldate,
-      posupplier,
+      posupplier: posupplier.toString(),
       supplier: supplierId,
       items,
-      notes,
-      status: status || 'pending',
-      paymentStatus: paymentStatus || '未付'
+      notes: notes ? notes.toString() : '',
+      status: status ? status.toString() : 'pending',
+      paymentStatus: paymentStatus ? paymentStatus.toString() : '未付'
     });
 
     await purchaseOrder.save();
@@ -181,42 +181,42 @@ router.put('/:id', async (req, res) => {
     const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 檢查進貨單是否存在
-    let purchaseOrder = await PurchaseOrder.findById(req.params.id);
+    let purchaseOrder = await PurchaseOrder.findOne({ _id: req.params.id.toString() });
     if (!purchaseOrder) {
       return res.status(404).json({ msg: '找不到該進貨單' });
     }
 
     // 如果更改了進貨單號，檢查新號碼是否已存在
     if (poid && poid !== purchaseOrder.poid) {
-      const existingPO = await PurchaseOrder.findOne({ poid });
-      if (existingPO && existingPO._id.toString() !== req.params.id) {
+      const existingPO = await PurchaseOrder.findOne({ poid: poid.toString() });
+      if (existingPO && existingPO._id.toString() !== req.params.id.toString()) {
         return res.status(400).json({ msg: '該進貨單號已存在' });
       }
       
       // 如果進貨單號變更，生成新的唯一訂單號
-      const orderNumber = await generateUniqueOrderNumber(poid);
+      const orderNumber = await generateUniqueOrderNumber(poid.toString());
       purchaseOrder.orderNumber = orderNumber;
     }
 
     // 準備更新數據
     const updateData = {};
-    if (poid) updateData.poid = poid;
-    if (purchaseOrder.orderNumber) updateData.orderNumber = purchaseOrder.orderNumber;
-    if (pobill) updateData.pobill = pobill;
+    if (poid) updateData.poid = poid.toString();
+    if (purchaseOrder.orderNumber) updateData.orderNumber = purchaseOrder.orderNumber.toString();
+    if (pobill) updateData.pobill = pobill.toString();
     if (pobilldate) updateData.pobilldate = pobilldate;
-    if (posupplier) updateData.posupplier = posupplier;
-    if (supplier) updateData.supplier = supplier;
-    if (notes !== undefined) updateData.notes = notes;
-    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    if (posupplier) updateData.posupplier = posupplier.toString();
+    if (supplier) updateData.supplier = supplier.toString();
+    if (notes !== undefined) updateData.notes = notes ? notes.toString() : '';
+    if (paymentStatus) updateData.paymentStatus = paymentStatus.toString();
     
     // 處理狀態變更
     const oldStatus = purchaseOrder.status;
     if (status && status !== oldStatus) {
-      updateData.status = status;
+      updateData.status = status.toString();
       
       // 如果狀態從已完成改為其他狀態，刪除相關庫存記錄
       if (oldStatus === 'completed' && status !== 'completed') {
-        await deleteInventoryRecords(purchaseOrder._id);
+        await deleteInventoryRecords(purchaseOrder._id.toString());
       }
     }
 
@@ -230,7 +230,7 @@ router.put('/:id', async (req, res) => {
 
         // 嘗試查找藥品
         if (!item.product) {
-          const product = await BaseProduct.findOne({ code: item.did });
+          const product = await BaseProduct.findOne({ code: item.did.toString() });
           if (product) {
             item.product = product._id;
           }
@@ -241,7 +241,7 @@ router.put('/:id', async (req, res) => {
 
     // 更新進貨單
     // 先更新基本字段
-    purchaseOrder = await PurchaseOrder.findById(req.params.id);
+    purchaseOrder = await PurchaseOrder.findOne({ _id: req.params.id.toString() });
     
     // 應用更新
     Object.keys(updateData).forEach(key => {
@@ -274,7 +274,7 @@ router.put('/:id', async (req, res) => {
 // @access  Public
 router.delete('/:id', async (req, res) => {
   try {
-    const purchaseOrder = await PurchaseOrder.findById(req.params.id);
+    const purchaseOrder = await PurchaseOrder.findOne({ _id: req.params.id.toString() });
     if (!purchaseOrder) {
       return res.status(404).json({ msg: '找不到該進貨單' });
     }
@@ -320,9 +320,9 @@ router.get('/search/query', async (req, res) => {
     const { poid, pobill, posupplier, startDate, endDate } = req.query;
     
     const query = {};
-    if (poid) query.poid = { $regex: poid, $options: 'i' };
-    if (pobill) query.pobill = { $regex: pobill, $options: 'i' };
-    if (posupplier) query.posupplier = { $regex: posupplier, $options: 'i' };
+    if (poid) query.poid = { $regex: poid.toString(), $options: 'i' };
+    if (pobill) query.pobill = { $regex: pobill.toString(), $options: 'i' };
+    if (posupplier) query.posupplier = { $regex: posupplier.toString(), $options: 'i' };
     
     if (startDate || endDate) {
       query.pobilldate = {};
@@ -348,7 +348,7 @@ router.get('/search/query', async (req, res) => {
 router.get('/product/:productId', async (req, res) => {
   try {
     const purchaseOrders = await PurchaseOrder.find({
-      'items.product': req.params.productId,
+      'items.product': req.params.productId.toString(),
       'status': 'completed'
     })
       .sort({ pobilldate: -1 })
@@ -389,25 +389,24 @@ async function updateInventory(purchaseOrder) {
       // 為每個進貨單項目創建新的庫存記錄，而不是更新現有記錄
       // 這樣可以保留每個批次的信息
       const inventory = new Inventory({
-        product: item.product,
+        product: item.product.toString(),
         quantity: parseInt(item.dquantity),
         totalAmount: Number(item.dtotalCost), // 添加totalAmount字段
-        purchaseOrderId: purchaseOrder._id, // 保存進貨單ID
-        purchaseOrderNumber: purchaseOrder.orderNumber // 保存進貨單號
+        purchaseOrderId: purchaseOrder._id.toString(), // 保存進貨單ID
+        purchaseOrderNumber: purchaseOrder.orderNumber.toString() // 保存進貨單號
       });
       
       await inventory.save();
       console.log(`已為產品 ${item.product} 創建新庫存記錄，進貨單號: ${purchaseOrder.orderNumber}, 數量: ${item.dquantity}, 總金額: ${item.dtotalCost}`);
       
       // 更新藥品的採購價格
-      await BaseProduct.findByIdAndUpdate(
-        item.product,
-        { 
-          $set: { 
-            purchasePrice: item.unitPrice || (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0)
-          } 
-        }
-      );
+      await BaseProduct.findOne({ _id: item.product.toString() })
+        .then(product => {
+          if (product) {
+            product.purchasePrice = item.unitPrice || (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0);
+            return product.save();
+          }
+        });
     } catch (err) {
       console.error(`更新庫存時出錯: ${err.message}`);
       // 繼續處理其他項目
@@ -418,7 +417,7 @@ async function updateInventory(purchaseOrder) {
 // 刪除與進貨單相關的庫存記錄
 async function deleteInventoryRecords(purchaseOrderId) {
   try {
-    const result = await Inventory.deleteMany({ purchaseOrderId });
+    const result = await Inventory.deleteMany({ purchaseOrderId: purchaseOrderId.toString() });
     console.log(`已刪除 ${result.deletedCount} 筆與進貨單 ${purchaseOrderId} 相關的庫存記錄`);
     return result;
   } catch (err) {
@@ -458,7 +457,7 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
             }
 
             // 檢查進貨單號是否已存在
-            const existingPO = await PurchaseOrder.findOne({ poid: row['進貨單號'] });
+            const existingPO = await PurchaseOrder.findOne({ poid: row['進貨單號'].toString() });
             if (existingPO) {
               errors.push(`行 ${results.indexOf(row) + 1}: 進貨單號 ${row['進貨單號']} 已存在`);
               continue;
@@ -466,19 +465,19 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
 
             // 準備進貨單數據
             const purchaseOrderData = {
-              poid: row['進貨單號'],
-              pobill: row['發票號'] || '',
+              poid: row['進貨單號'].toString(),
+              pobill: row['發票號'] ? row['發票號'].toString() : '',
               pobilldate: row['發票日期'] ? new Date(row['發票日期']) : null,
-              posupplier: row['廠商'],
-              paymentStatus: row['付款狀態'] || '未付',
+              posupplier: row['廠商'].toString(),
+              paymentStatus: row['付款狀態'] ? row['付款狀態'].toString() : '未付',
               items: [],
               status: 'pending'
             };
 
             // 嘗試查找供應商
-            const supplierDoc = await Supplier.findOne({ name: row['廠商'] });
+            const supplierDoc = await Supplier.findOne({ name: row['廠商'].toString() });
             if (supplierDoc) {
-              purchaseOrderData.supplier = supplierDoc._id;
+              purchaseOrderData.supplier = supplierDoc._id.toString();
             }
 
             // 創建進貨單
@@ -539,14 +538,14 @@ router.post('/import/items', upload.single('file'), async (req, res) => {
                   }
 
                   // 檢查進貨單是否存在
-                  const purchaseOrder = await PurchaseOrder.findOne({ poid: row['進貨單號'] });
+                  const purchaseOrder = await PurchaseOrder.findOne({ poid: row['進貨單號'].toString() });
                   if (!purchaseOrder) {
                     errors.push(`行 ${results.indexOf(row) + 1}: 進貨單號 ${row['進貨單號']} 不存在`);
                     continue;
                   }
 
                   // 檢查藥品是否存在
-                  const product = await BaseProduct.findOne({ code: row['藥品代碼'] });
+                  const product = await BaseProduct.findOne({ code: row['藥品代碼'].toString() });
                   if (!product) {
                     errors.push(`行 ${results.indexOf(row) + 1}: 藥品代碼 ${row['藥品代碼']} 不存在`);
                     continue;
@@ -554,8 +553,8 @@ router.post('/import/items', upload.single('file'), async (req, res) => {
 
                   // 準備進貨品項數據
                   const itemData = {
-                    product: product._id,
-                    did: row['藥品代碼'],
+                    product: product._id.toString(),
+                    did: row['藥品代碼'].toString(),
                     dname: product.name,
                     dquantity: parseInt(row['數量']),
                     dtotalCost: parseFloat(row['金額'])
@@ -563,7 +562,7 @@ router.post('/import/items', upload.single('file'), async (req, res) => {
 
                   // 檢查是否已有相同藥品的項目
                   const existingItemIndex = purchaseOrder.items.findIndex(
-                    item => item.did === row['藥品代碼']
+                    item => item.did === row['藥品代碼'].toString()
                   );
 
                   if (existingItemIndex >= 0) {
@@ -597,26 +596,22 @@ router.post('/import/items', upload.single('file'), async (req, res) => {
             } catch (error) {
               reject(error);
             }
-          })
-          .on('error', (error) => {
-            reject(error);
           });
       });
     };
 
-    // 執行CSV處理並等待完成
     await processCSV();
 
     // 返回結果
     res.json({
-      msg: `成功導入 ${successCount} 筆進貨品項，更新了 ${updatedPOs.size} 個進貨單${errors.length > 0 ? '，但有部分錯誤' : ''}`,
+      msg: `成功導入 ${successCount} 筆進貨品項${errors.length > 0 ? '，但有部分錯誤' : ''}`,
       success: successCount,
-      updatedPOs: updatedPOs.size,
-      errors: errors
+      errors: errors,
+      updatedPOs: Array.from(updatedPOs)
     });
   } catch (err) {
     console.error('CSV導入錯誤:', err);
-    res.status(500).json({ msg: '伺服器錯誤: ' + err.message });
+    res.status(500).json({ msg: '伺服器錯誤' });
   }
 });
 
