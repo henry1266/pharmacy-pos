@@ -210,12 +210,93 @@ router.post('/', [
   }
 });
 
+/**
+ * 檢查進貨單號變更並處理
+ * @param {string} poid - 新進貨單號
+ * @param {Object} purchaseOrder - 進貨單對象
+ * @returns {Promise<Object>} - 處理結果
+ */
+async function handlePurchaseOrderIdChange(poid, purchaseOrder) {
+  if (!poid || poid === purchaseOrder.poid) {
+    return { success: true };
+  }
+  
+  // 檢查新號碼是否已存在
+  const existingPO = await PurchaseOrder.findOne({ poid: poid.toString() });
+  if (existingPO && existingPO._id.toString() !== purchaseOrder._id.toString()) {
+    return { 
+      success: false, 
+      error: '該進貨單號已存在'
+    };
+  }
+  
+  // 生成新的唯一訂單號
+  const orderNumber = await generateUniqueOrderNumber(poid.toString());
+  return {
+    success: true,
+    orderNumber
+  };
+}
+
+/**
+ * 準備進貨單更新數據
+ * @param {Object} data - 請求數據
+ * @param {Object} purchaseOrder - 進貨單對象
+ * @returns {Object} - 更新數據
+ */
+function prepareUpdateData(data, purchaseOrder) {
+  const { poid, pobill, pobilldate, posupplier, supplier, notes, paymentStatus } = data;
+  
+  const updateData = {};
+  if (poid) updateData.poid = poid.toString();
+  if (purchaseOrder.orderNumber) updateData.orderNumber = purchaseOrder.orderNumber.toString();
+  if (pobill) updateData.pobill = pobill.toString();
+  if (pobilldate) updateData.pobilldate = pobilldate;
+  if (posupplier) updateData.posupplier = posupplier.toString();
+  if (supplier) updateData.supplier = supplier.toString();
+  if (notes !== undefined) updateData.notes = notes ? notes.toString() : '';
+  if (paymentStatus) updateData.paymentStatus = paymentStatus.toString();
+  
+  return updateData;
+}
+
+/**
+ * 處理進貨單狀態變更
+ * @param {string} newStatus - 新狀態
+ * @param {string} oldStatus - 舊狀態
+ * @param {string} purchaseOrderId - 進貨單ID
+ * @returns {Promise<Object>} - 處理結果
+ */
+async function handleStatusChange(newStatus, oldStatus, purchaseOrderId) {
+  if (!newStatus || newStatus === oldStatus) {
+    return { statusChanged: false };
+  }
+  
+  const result = { 
+    statusChanged: true,
+    status: newStatus.toString()
+  };
+  
+  // 如果狀態從已完成改為其他狀態，刪除相關庫存記錄
+  if (oldStatus === 'completed' && newStatus !== 'completed') {
+    await deleteInventoryRecords(purchaseOrderId);
+    result.inventoryDeleted = true;
+  }
+  
+  // 如果狀態從非完成變為完成，標記需要更新庫存
+  if (oldStatus !== 'completed' && newStatus === 'completed') {
+    result.needUpdateInventory = true;
+  }
+  
+  return result;
+}
+
 // @route   PUT api/purchase-orders/:id
 // @desc    更新進貨單
 // @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus } = req.body;
+    const { poid, status, items } = req.body;
 
     // 檢查進貨單是否存在
     let purchaseOrder = await PurchaseOrder.findOne({ _id: req.params.id.toString() });
@@ -223,38 +304,23 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ msg: '找不到該進貨單' });
     }
 
-    // 如果更改了進貨單號，檢查新號碼是否已存在
-    if (poid && poid !== purchaseOrder.poid) {
-      const existingPO = await PurchaseOrder.findOne({ poid: poid.toString() });
-      if (existingPO && existingPO._id.toString() !== req.params.id.toString()) {
-        return res.status(400).json({ msg: '該進貨單號已存在' });
-      }
-      
-      // 如果進貨單號變更，生成新的唯一訂單號
-      const orderNumber = await generateUniqueOrderNumber(poid.toString());
-      purchaseOrder.orderNumber = orderNumber;
+    // 處理進貨單號變更
+    const idChangeResult = await handlePurchaseOrderIdChange(poid, purchaseOrder);
+    if (!idChangeResult.success) {
+      return res.status(400).json({ msg: idChangeResult.error });
+    }
+    if (idChangeResult.orderNumber) {
+      purchaseOrder.orderNumber = idChangeResult.orderNumber;
     }
 
     // 準備更新數據
-    const updateData = {};
-    if (poid) updateData.poid = poid.toString();
-    if (purchaseOrder.orderNumber) updateData.orderNumber = purchaseOrder.orderNumber.toString();
-    if (pobill) updateData.pobill = pobill.toString();
-    if (pobilldate) updateData.pobilldate = pobilldate;
-    if (posupplier) updateData.posupplier = posupplier.toString();
-    if (supplier) updateData.supplier = supplier.toString();
-    if (notes !== undefined) updateData.notes = notes ? notes.toString() : '';
-    if (paymentStatus) updateData.paymentStatus = paymentStatus.toString();
+    const updateData = prepareUpdateData(req.body, purchaseOrder);
     
     // 處理狀態變更
     const oldStatus = purchaseOrder.status;
-    if (status && status !== oldStatus) {
-      updateData.status = status.toString();
-      
-      // 如果狀態從已完成改為其他狀態，刪除相關庫存記錄
-      if (oldStatus === 'completed' && status !== 'completed') {
-        await deleteInventoryRecords(purchaseOrder._id.toString());
-      }
+    const statusResult = await handleStatusChange(status, oldStatus, purchaseOrder._id.toString());
+    if (statusResult.statusChanged) {
+      updateData.status = statusResult.status;
     }
 
     // 處理項目更新
@@ -282,8 +348,8 @@ router.put('/:id', async (req, res) => {
     // 保存更新後的進貨單，這樣會觸發pre-save中間件
     await purchaseOrder.save();
 
-    // 如果狀態從非完成變為完成，則更新庫存
-    if (oldStatus !== 'completed' && purchaseOrder.status === 'completed') {
+    // 如果需要更新庫存
+    if (statusResult.needUpdateInventory) {
       await updateInventory(purchaseOrder);
     }
 
