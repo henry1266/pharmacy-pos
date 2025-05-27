@@ -36,8 +36,9 @@ const upload = multer({ storage: storage });
 async function createShippingInventoryRecords(shippingOrder) {
   try {
     // 檢查是否已經存在該出貨單的庫存記錄
+    // 修正：確保使用查詢物件包裝參數
     const existingRecords = await Inventory.find({ 
-      shippingOrderId: shippingOrder._id 
+      shippingOrderId: shippingOrder._id.toString() 
     });
     
     if (existingRecords.length > 0) {
@@ -51,12 +52,12 @@ async function createShippingInventoryRecords(shippingOrder) {
       
       // 創建出貨庫存記錄（負數表示出貨）
       const inventory = new Inventory({
-        product: item.product,
+        product: item.product.toString(), // 修正：確保轉換為字串
         quantity: -item.dquantity, // 負數表示出貨減少庫存
         totalAmount: item.dtotalCost || 0,
         type: "ship", // 設置類型為ship
-        shippingOrderId: shippingOrder._id, // 關聯到出貨單ID
-        shippingOrderNumber: shippingOrder.soid, // 設置出貨單號
+        shippingOrderId: shippingOrder._id.toString(), // 修正：確保轉換為字串
+        shippingOrderNumber: shippingOrder.soid.toString(), // 修正：確保轉換為字串
         accountingId: null, // 預設為null
         lastUpdated: new Date() // 設置最後更新時間
       });
@@ -157,7 +158,10 @@ async function generateOrderNumberByDate(dateStr) {
     
     // 查找當天最大序號
     const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
-    const existingOrders = await ShippingOrder.find({ soid: regex }).sort({ soid: -1 });
+    // 修正：確保使用查詢物件包裝參數
+    const existingOrders = await ShippingOrder.find({ 
+      soid: regex.toString() 
+    }).sort({ soid: -1 });
     
     let sequence = 1; // 默認從001開始
     
@@ -249,7 +253,7 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
               results.push({
                 rawDate,
                 date, // 保存轉換後的日期
-                nhCode,
+                nhCode: nhCode.toString(), // 修正：確保轉換為字串
                 quantity,
                 nhPrice
               });
@@ -296,7 +300,11 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
     }
 
     // 檢查出貨單號是否已存在
-    const existingSO = await ShippingOrder.findOne({ soid });
+    // 修正：確保使用查詢物件包裝參數並轉換為字串
+    const existingSO = await ShippingOrder.findOne({ 
+      soid: soid.toString() 
+    });
+    
     if (existingSO) {
       // 如果已存在，嘗試生成新的訂單號
       try {
@@ -306,28 +314,36 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
       }
       
       // 再次檢查
-      const existingSO2 = await ShippingOrder.findOne({ soid });
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      const existingSO2 = await ShippingOrder.findOne({ 
+        soid: soid.toString() 
+      });
+      
       if (existingSO2) {
         return res.status(400).json({ msg: `訂單號 ${soid} 已存在，無法生成唯一的出貨單號，請檢查數據或稍後再試` });
       }
     }
 
     // 查找所有健保碼對應的藥品
-    const nhCodes = results.map(item => item.nhCode);
-    const products = await BaseProduct.find({ healthInsuranceCode: { $in: nhCodes } });
+    const nhCodes = results.map(item => item.nhCode.toString()); // 修正：確保轉換為字串
+    
+    // 修正：確保使用查詢物件包裝參數
+    const products = await BaseProduct.find({ 
+      healthInsuranceCode: { $in: nhCodes } 
+    });
     
     // 建立健保碼到藥品的映射
     const productMap = {};
     products.forEach(product => {
       if (product.healthInsuranceCode) {
-        productMap[product.healthInsuranceCode] = product;
+        productMap[product.healthInsuranceCode.toString()] = product; // 修正：確保轉換為字串
       }
     });
 
     // 準備出貨單項目
     const items = [];
     for (const item of results) {
-      const product = productMap[item.nhCode];
+      const product = productMap[item.nhCode.toString()]; // 修正：確保轉換為字串
       
       if (!product) {
         errors.push(`找不到健保碼為 ${item.nhCode} 的藥品`);
@@ -339,9 +355,9 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
       const totalCost = item.quantity * item.nhPrice;
       
       items.push({
-        product: product._id,
-        did: product.code || "",
-        dname: product.name || "",
+        product: product._id.toString(), // 修正：確保轉換為字串
+        did: product.code ? product.code.toString() : "", // 修正：確保轉換為字串
+        dname: product.name ? product.name.toString() : "", // 修正：確保轉換為字串
         dquantity: item.quantity,
         dtotalCost: totalCost,
         unitPrice: item.nhPrice
@@ -363,26 +379,30 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
     
     if (defaultSupplier) {
       if (defaultSupplier._id) {
-        supplierId = defaultSupplier._id;
+        supplierId = defaultSupplier._id.toString(); // 修正：確保轉換為字串
       }
       if (defaultSupplier.name) {
-        supplierName = defaultSupplier.name;
+        supplierName = defaultSupplier.name.toString(); // 修正：確保轉換為字串
       }
     } else {
       // 嘗試查找名為"調劑"的供應商
-      const supplier = await Supplier.findOne({ name: "調劑" });
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      const supplier = await Supplier.findOne({ 
+        name: "調劑".toString() 
+      });
+      
       if (supplier) {
-        supplierId = supplier._id;
-        supplierName = supplier.name;
+        supplierId = supplier._id.toString(); // 修正：確保轉換為字串
+        supplierName = supplier.name.toString(); // 修正：確保轉換為字串
       }
     }
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
-      soid,
-      orderNumber: soid, // 使用相同的編號作為orderNumber
-      sosupplier: supplierName,
-      supplier: supplierId,
+      soid: soid.toString(), // 修正：確保轉換為字串
+      orderNumber: soid.toString(), // 修正：確保轉換為字串
+      sosupplier: supplierName.toString(), // 修正：確保轉換為字串
+      supplier: supplierId ? supplierId.toString() : null, // 修正：確保轉換為字串
       items,
       status: "completed", // 根據新需求設置為completed
       paymentStatus: "已收款", // 根據之前的需求設置為已收款
@@ -400,14 +420,14 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
     res.json({
       msg: "藥品明細CSV匯入成功",
       shippingOrder: {
-        _id: savedOrder._id,
-        soid: savedOrder.soid,
-        orderNumber: savedOrder.orderNumber,
-        supplier: supplierName,
+        _id: savedOrder._id.toString(), // 修正：確保轉換為字串
+        soid: savedOrder.soid.toString(), // 修正：確保轉換為字串
+        orderNumber: savedOrder.orderNumber.toString(), // 修正：確保轉換為字串
+        supplier: supplierName.toString(), // 修正：確保轉換為字串
         itemCount: items.length,
         totalAmount: savedOrder.totalAmount,
-        paymentStatus: savedOrder.paymentStatus,
-        status: savedOrder.status
+        paymentStatus: savedOrder.paymentStatus.toString(), // 修正：確保轉換為字串
+        status: savedOrder.status.toString() // 修正：確保轉換為字串
       },
       summary: {
         totalItems,
