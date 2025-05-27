@@ -88,12 +88,16 @@ function convertToWesternDate(dateStr) {
   if (!dateStr) return null;
   
   // 如果已經是西元年格式 YYYY-MM-DD，直接返回
-  if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+  const westernDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  const westernDateMatch = westernDateRegex.exec(dateStr);
+  if (westernDateMatch) {
     return dateStr;
   }
   
   // 檢查是否是民國年格式 YYYMMDD (例如1140407)
-  if (dateStr.match(/^\d{7}$/)) {
+  const rocDateRegex = /^\d{7}$/;
+  const rocDateMatch = rocDateRegex.exec(dateStr);
+  if (rocDateMatch) {
     try {
       // 提取民國年、月、日
       const rocYear = parseInt(dateStr.substring(0, 3), 10);
@@ -142,7 +146,8 @@ async function generateOrderNumberByDate(dateStr) {
     
     // 解析日期
     let dateObj;
-    if (westernDateStr && westernDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const validDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (westernDateStr && validDateRegex.exec(westernDateStr)) {
       dateObj = new Date(westernDateStr);
       if (isNaN(dateObj.getTime())) {
         throw new Error(`無效的日期格式: ${dateStr}`);
@@ -183,6 +188,73 @@ async function generateOrderNumberByDate(dateStr) {
 }
 
 /**
+ * 處理CSV數據並準備出貨單項目
+ * @param {Array} results - CSV解析結果
+ * @param {Object} productMap - 健保碼到藥品的映射
+ * @returns {Object} 處理結果，包含items和errors
+ */
+function processShippingItems(results, productMap) {
+  const items = [];
+  const errors = [];
+  let successCount = 0;
+  let failCount = 0;
+  
+  for (const item of results) {
+    const product = productMap[item.nhCode];
+    
+    if (!product) {
+      errors.push(`找不到健保碼為 ${item.nhCode} 的藥品`);
+      failCount++;
+      continue;
+    }
+
+    // 計算總成本
+    const totalCost = item.quantity * item.nhPrice;
+    
+    items.push({
+      product: product._id,
+      did: product.code || "",
+      dname: product.name || "",
+      dquantity: item.quantity,
+      dtotalCost: totalCost,
+      unitPrice: item.nhPrice
+    });
+    
+    successCount++;
+  }
+  
+  return { items, errors, successCount, failCount };
+}
+
+/**
+ * 查找或確定供應商
+ * @param {string} defaultSupplierId - 預設供應商ID
+ * @returns {Promise<Object>} 供應商信息
+ */
+async function determineSupplier(defaultSupplierId) {
+  let supplierId = null;
+  let supplierName = "預設供應商";
+  
+  if (defaultSupplierId) {
+    // 嘗試查找指定的供應商
+    const supplier = await Supplier.findById(defaultSupplierId);
+    if (supplier) {
+      supplierId = supplier._id;
+      supplierName = supplier.name;
+    }
+  } else {
+    // 嘗試查找名為"調劑"的供應商
+    const supplier = await Supplier.findOne({ name: "調劑" });
+    if (supplier) {
+      supplierId = supplier._id;
+      supplierName = supplier.name;
+    }
+  }
+  
+  return { supplierId, supplierName };
+}
+
+/**
  * @api {post} /api/csv-import/shipping-orders 匯入出貨單CSV
  * @apiName ImportShippingOrderCSV
  * @apiGroup CSV匯入
@@ -213,7 +285,6 @@ router.post("/shipping-orders", upload.single("file"), async (req, res) => {
 
     // 獲取請求中的預設供應商ID
     const { defaultSupplierId } = req.body;
-    let defaultSupplier = null;
     
     // 處理結果與錯誤收集
     const results = [];
@@ -337,31 +408,12 @@ router.post("/shipping-orders", upload.single("file"), async (req, res) => {
       }
     });
 
-    // 準備出貨單項目
-    const items = [];
-    for (const item of results) {
-      const product = productMap[item.nhCode];
-      
-      if (!product) {
-        errors.push(`找不到健保碼為 ${item.nhCode} 的藥品`);
-        failCount++;
-        continue;
-      }
-
-      // 計算總成本
-      const totalCost = item.quantity * item.nhPrice;
-      
-      items.push({
-        product: product._id,
-        did: product.code || "",
-        dname: product.name || "",
-        dquantity: item.quantity,
-        dtotalCost: totalCost,
-        unitPrice: item.nhPrice
-      });
-      
-      successCount++;
-    }
+    // 處理出貨單項目
+    const processResult = processShippingItems(results, productMap);
+    const items = processResult.items;
+    errors.push(...processResult.errors);
+    successCount += processResult.successCount;
+    failCount += processResult.failCount;
 
     if (items.length === 0) {
       return res.status(400).json({ 
@@ -372,24 +424,8 @@ router.post("/shipping-orders", upload.single("file"), async (req, res) => {
     }
 
     // 確定供應商
-    let supplierId = null;
-    let supplierName = "預設供應商";
-    
-    if (defaultSupplierId) {
-      // 嘗試查找指定的供應商
-      const supplier = await Supplier.findById(defaultSupplierId);
-      if (supplier) {
-        supplierId = supplier._id;
-        supplierName = supplier.name;
-      }
-    } else {
-      // 嘗試查找名為"調劑"的供應商
-      const supplier = await Supplier.findOne({ name: "調劑" });
-      if (supplier) {
-        supplierId = supplier._id;
-        supplierName = supplier.name;
-      }
-    }
+    const supplierInfo = await determineSupplier(defaultSupplierId);
+    const { supplierId, supplierName } = supplierInfo;
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
