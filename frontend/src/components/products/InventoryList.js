@@ -326,7 +326,7 @@ const InventoryList = ({ productId }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {inventories.map((inv) => {
+            {inventories.map((inv, index) => {
               let orderNumber, orderLink;
               const typeDisplay = getTypeDisplay(inv.type);
               
@@ -358,9 +358,12 @@ const InventoryList = ({ productId }) => {
                 price = inv.product.sellingPrice.toFixed(2);
               }
               
+              // 使用穩定的唯一識別符作為 key
+              const stableKey = `${inv.type}-${orderNumber}-${inv._id || `no-id-${index}`}`;
+              
               return (
                 <TableRow 
-                  key={`${inv.type}-${orderNumber}-${inv._id || Math.random().toString(36).substr(2, 9)}`}
+                  key={stableKey}
                   sx={{ 
                     '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
                     '&:hover': { backgroundColor: '#f1f1f1' }
