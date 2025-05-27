@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 // @access  Public (已改為公開)
 router.get('/:id', async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findOne({ _id: req.params.id.toString() });
 
     if (!customer) {
       return res.status(404).json({ msg: '會員不存在' });
@@ -78,7 +78,7 @@ router.post(
     try {
       // 檢查會員編號是否已存在
       if (code) {
-        let customer = await Customer.findOne({ code });
+        let customer = await Customer.findOne({ code: code.toString() });
         if (customer) {
           return res.status(400).json({ msg: '會員編號已存在' });
         }
@@ -151,22 +151,22 @@ router.put('/:id', async (req, res) => {
   if (note !== undefined) customerFields.note = note; // <<< Add note here
 
   try {
-    let customer = await Customer.findById(req.params.id);
+    let customer = await Customer.findOne({ _id: req.params.id.toString() });
     if (!customer) {
       return res.status(404).json({ msg: '會員不存在' });
     }
 
     // 若編號被修改，檢查是否重複
     if (code && code !== customer.code) {
-      const existingCustomer = await Customer.findOne({ code });
+      const existingCustomer = await Customer.findOne({ code: code.toString() });
       if (existingCustomer) {
         return res.status(400).json({ msg: '會員編號已存在' });
       }
     }
 
     // 更新
-    customer = await Customer.findByIdAndUpdate(
-      req.params.id,
+    customer = await Customer.findOneAndUpdate(
+      { _id: req.params.id.toString() },
       { $set: customerFields },
       { new: true }
     );
@@ -188,14 +188,14 @@ router.put('/:id', async (req, res) => {
 // @access  Public (已改為公開)
 router.delete('/:id', async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findOne({ _id: req.params.id.toString() });
 
     if (!customer) {
       return res.status(404).json({ msg: '會員不存在' });
     }
 
-    // 使用 findByIdAndDelete 替代已棄用的 remove() 方法
-    await Customer.findByIdAndDelete(req.params.id);
+    // 使用 findOneAndDelete 替代已棄用的 remove() 方法
+    await Customer.findOneAndDelete({ _id: req.params.id.toString() });
 
     res.json({ msg: '會員已刪除' });
   } catch (err) {
