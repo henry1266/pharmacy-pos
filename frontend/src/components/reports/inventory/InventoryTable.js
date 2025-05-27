@@ -559,8 +559,8 @@ const InventoryTable = ({ filters }) => {
         <TableBody>
           {groupedData
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((item, index) => (
-              <ExpandableRow key={index} item={item} formatCurrency={formatCurrency} />
+            .map((item) => (
+              <ExpandableRow key={item.productId} item={item} formatCurrency={formatCurrency} />
             ))}
         </TableBody>
       </Table>

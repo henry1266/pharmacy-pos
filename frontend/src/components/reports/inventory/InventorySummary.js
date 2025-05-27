@@ -55,8 +55,6 @@ CustomTooltip.propTypes = {
 };
 
 const InventorySummary = ({ filters }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [totalProfitLoss, setTotalProfitLoss] = useState(0);
   const [totalInventoryValue, setTotalInventoryValue] = useState(0);
   const [totalGrossProfit, setTotalGrossProfit] = useState(0);
@@ -68,7 +66,6 @@ const InventorySummary = ({ filters }) => {
   // 獲取庫存數據
   useEffect(() => {
     const fetchInventoryData = async () => {
-      setLoading(true);
       try {
         // 構建查詢參數
         const params = new URLSearchParams();
@@ -84,16 +81,12 @@ const InventorySummary = ({ filters }) => {
         
         const response = await axios.get(`/api/reports/inventory?${params.toString()}`);
         
-        if (response.data && response.data.data) {
+        if (response.data?.data) {
           // 處理數據分組和計算損益總和
           processInventoryData(response.data.data);
         }
-        setError(null);
       } catch (err) {
         console.error('獲取庫存數據失敗:', err);
-        setError('獲取庫存數據失敗');
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -146,6 +139,16 @@ const InventorySummary = ({ filters }) => {
         transactionType = '銷售';
       }
       
+      // 計算交易價格
+      let itemPrice;
+      if (item.totalAmount && item.quantity) {
+        itemPrice = Math.abs(item.totalAmount / item.quantity);
+      } else if (item.type === 'purchase') {
+        itemPrice = item.price || item.purchasePrice;
+      } else {
+        itemPrice = item.price || item.sellingPrice;
+      }
+      
       // 添加交易記錄
       const transaction = {
         purchaseOrderNumber: item.purchaseOrderNumber || '-',
@@ -154,9 +157,7 @@ const InventorySummary = ({ filters }) => {
         type: transactionType,
         quantity: item.quantity,
         currentStock: item.currentStock || 0,
-        price: item.totalAmount && item.quantity ? Math.abs(item.totalAmount / item.quantity) : 
-               (item.type === 'purchase' ? item.price || item.purchasePrice : 
-               (item.type === 'ship' ? item.price || item.sellingPrice : item.price || item.sellingPrice)),
+        price: itemPrice,
         date: item.date || item.lastUpdated || new Date(),
         orderNumber: item.orderNumber || ''
       };
@@ -236,14 +237,13 @@ const InventorySummary = ({ filters }) => {
           if (index !== -1) {
             // 計算到該交易為止的累積損益
             let latestCumulativeProfitLoss = 0;
-            for (let i = 0; i <= index; i++) {
-              const transaction = sortedTransactions[i];
-              if (transaction.type === '進貨') {
-                latestCumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
-              } else if (transaction.type === '銷售' || transaction.type === '出貨') {
-                latestCumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
-              }
-            }
+            
+            // 提取計算累積損益的邏輯到單獨的函數以降低認知複雜度
+            latestCumulativeProfitLoss = calculateCumulativeProfitLoss(
+              sortedTransactions, 
+              index, 
+              calculateTransactionProfitLoss
+            );
             
             // 將貨單號最大的交易的累積損益加入總損益
             profitLossSum += latestCumulativeProfitLoss;
@@ -260,6 +260,20 @@ const InventorySummary = ({ filters }) => {
     // 更新總收入和總成本
     setTotalIncome(incomeSum);
     setTotalCost(costSum);
+  };
+
+  // 計算累積損益的輔助函數，用於降低認知複雜度
+  const calculateCumulativeProfitLoss = (transactions, endIndex, profitLossCalculator) => {
+    let result = 0;
+    for (let i = 0; i <= endIndex; i++) {
+      const transaction = transactions[i];
+      if (transaction.type === '進貨') {
+        result += profitLossCalculator(transaction);
+      } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+        result -= profitLossCalculator(transaction);
+      }
+    }
+    return result;
   };
 
   // 格式化金額
@@ -303,6 +317,11 @@ const InventorySummary = ({ filters }) => {
     height: '100%'
   };
 
+  // 計算顯示的顏色
+  const getProfitLossColor = (value) => {
+    return value >= 0 ? 'success.main' : 'error.main';
+  };
+
   return (
     <Box>
       <Grid container spacing={2} alignItems="center">
@@ -329,7 +348,7 @@ const InventorySummary = ({ filters }) => {
               <TrendingUp 
                 sx={{ 
                   fontSize: 40, 
-                  color: totalGrossProfit >= 0 ? 'success.main' : 'error.main',
+                  color: getProfitLossColor(totalGrossProfit),
                   mr: 2
                 }} 
               />
@@ -341,7 +360,7 @@ const InventorySummary = ({ filters }) => {
                   variant="h5" 
                   component="div" 
                   fontWeight="600" 
-                  color={totalGrossProfit >= 0 ? 'success.main' : 'error.main'}
+                  color={getProfitLossColor(totalGrossProfit)}
                 >
                   {formatCurrency(totalGrossProfit)}
                 </Typography>
@@ -407,7 +426,7 @@ const InventorySummary = ({ filters }) => {
               <BarChart 
                 sx={{ 
                   fontSize: 40, 
-                  color: totalProfitLoss >= 0 ? 'success.main' : 'error.main',
+                  color: getProfitLossColor(totalProfitLoss),
                   mr: 2
                 }} 
               />
@@ -419,7 +438,7 @@ const InventorySummary = ({ filters }) => {
                   variant="h5" 
                   component="div" 
                   fontWeight="600" 
-                  color={totalProfitLoss >= 0 ? 'success.main' : 'error.main'}
+                  color={getProfitLossColor(totalProfitLoss)}
                 >
                   {formatCurrency(totalProfitLoss)}
                 </Typography>
