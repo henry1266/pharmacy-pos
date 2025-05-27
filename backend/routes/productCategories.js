@@ -24,7 +24,8 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const category = await ProductCategory.findById(req.params.id);
+    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    const category = await ProductCategory.findOne({ _id: req.params.id.toString() });
       
     if (!category) {
       return res.status(404).json({ msg: '找不到產品分類' });
@@ -58,7 +59,8 @@ router.post('/', [
     const { name, description } = req.body;
     
     // 檢查是否已存在相同名稱的類別
-    const existingCategory = await ProductCategory.findOne({ name });
+    // 修正：將 name 參數轉換為字串
+    const existingCategory = await ProductCategory.findOne({ name: name.toString() });
     
     if (existingCategory) {
       return res.status(400).json({ msg: '該產品分類已存在' });
@@ -95,16 +97,18 @@ router.put('/:id', [
     const { name, description, isActive, order } = req.body;
     
     // 檢查是否存在相同名稱的其他類別
+    // 修正：將 name 和 id 參數轉換為字串
     const existingCategory = await ProductCategory.findOne({
-      name,
-      _id: { $ne: req.params.id }
+      name: name.toString(),
+      _id: { $ne: req.params.id.toString() }
     });
     
     if (existingCategory) {
       return res.status(400).json({ msg: '該產品分類已存在' });
     }
     
-    let category = await ProductCategory.findById(req.params.id);
+    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    let category = await ProductCategory.findOne({ _id: req.params.id.toString() });
     
     if (!category) {
       return res.status(404).json({ msg: '找不到產品分類' });
@@ -136,7 +140,8 @@ router.put('/:id', [
 // @access  Private
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const category = await ProductCategory.findById(req.params.id);
+    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    const category = await ProductCategory.findOne({ _id: req.params.id.toString() });
     
     if (!category) {
       return res.status(404).json({ msg: '找不到產品分類' });
