@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { 
   Dialog,
   DialogTitle,
@@ -15,15 +14,15 @@ import {
   MenuItem,
   IconButton,
   CircularProgress,
-  Paper, // Add Paper
-  Table, // Add Table
-  TableBody, // Add TableBody
-  TableCell, // Add TableCell
-  TableContainer, // Add TableContainer
-  TableHead, // Add TableHead
-  TableRow, // Add TableRow
-  TableSortLabel, // Add TableSortLabel
-  Box // Add Box
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Box
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -33,7 +32,8 @@ import AddIcon from '@mui/icons-material/Add';
 import zhTW from 'date-fns/locale/zh-TW';
 import { format } from 'date-fns';
 import { getAccountingCategories } from '../../services/accountingCategoryService';
-import StatusSelect from '../common/form/StatusSelect'; // Import StatusSelect
+import StatusSelect from '../common/form/StatusSelect';
+import PropTypes from 'prop-types';
 
 /**
  * 記帳表單對話框組件
@@ -55,7 +55,7 @@ const AccountingForm = ({
   setFormData,
   editMode,
   onSubmit,
-  loadingSales // Add loadingSales prop
+  loadingSales
 }) => {
   // 記帳名目類別狀態
   const [categories, setCategories] = useState([]);
@@ -102,25 +102,23 @@ const AccountingForm = ({
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...formData.items];
     
-    // 如果是類別變更為"退押金"，確保金額為負數
+    // 處理類別變更為"退押金"的情況
     if (field === 'category' && value === '退押金') {
       // 如果當前金額為正數或為空，則將其轉為負數
       const currentAmount = updatedItems[index].amount;
       if (currentAmount > 0) {
         updatedItems[index].amount = -Math.abs(currentAmount);
-      } else if (currentAmount === '' || currentAmount === 0) {
-        // 如果為空或為0，暫時不處理，等待用戶輸入金額
       }
     }
     
-    // 如果是金額變更且類別為"退押金"，確保金額為負數
+    // 處理金額變更且類別為"退押金"的情況
     if (field === 'amount' && updatedItems[index].category === '退押金' && value !== '') {
       updatedItems[index][field] = -Math.abs(parseFloat(value));
     } else {
       updatedItems[index][field] = field === 'amount' ? (value === '' ? '' : parseFloat(value)) : value;
     }
     
-    // 如果是類別變更，同時更新categoryId
+    // 處理類別變更，同時更新categoryId
     if (field === 'category' && categories.length > 0) {
       const selectedCategory = categories.find(cat => cat.name === value);
       if (selectedCategory) {
@@ -156,12 +154,14 @@ const AccountingForm = ({
   // 計算總金額 (僅用於顯示，後端會重新計算)
   const calculateTotal = (items, unaccountedSales = []) => {
     const manualTotal = items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-    // If in edit mode and unaccounted sales were fetched (meaning it was initially pending), include them in the displayed total
-    const salesTotal = (editMode && unaccountedSales && unaccountedSales.length > 0)
-      ? unaccountedSales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0)
-      : 0;
+    
+    // 計算銷售總額
+    let salesTotal = 0;
+    if (editMode && unaccountedSales && unaccountedSales.length > 0) {
+      salesTotal = unaccountedSales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0);
+    }
       
-    // Always add manual and sales total for preview in edit mode if sales were fetched
+    // 總是加上手動和銷售總額以在編輯模式下預覽
     return manualTotal + salesTotal; 
   };
 
@@ -208,8 +208,8 @@ const AccountingForm = ({
     return 0;
   };
 
+  // 排序未結算銷售
   const sortedSales = formData.unaccountedSales ? stableSort(formData.unaccountedSales, getComparator(order, orderBy)) : [];
-  // --- End Sorting Logic ---
 
   // Table Headers (Copied from AccountingNewPage)
   const headCells = [
@@ -220,6 +220,77 @@ const AccountingForm = ({
     { id: "totalAmount", label: "金額", numeric: true },
     { id: "saleNumber", label: "銷售單號", numeric: false },
   ];
+
+  // 渲染未結算銷售區塊
+  const renderUnaccountedSalesSection = () => {
+    if (!editMode || !formData.unaccountedSales || formData.unaccountedSales.length === 0) {
+      return null;
+    }
+
+    let content;
+    if (loadingSales) {
+      content = (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      );
+    } else if (!formData.unaccountedSales.length) {
+      content = (
+        <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
+          目前無未結算銷售記錄。
+        </Typography>
+      );
+    } else {
+      content = (
+        <TableContainer sx={{ maxHeight: 300 }}>
+          <Table size="small" stickyHeader>
+            <TableHead>
+              <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
+                {headCells.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    align={headCell.numeric ? 'right' : 'left'}
+                    sortDirection={orderBy === headCell.id ? order : false}
+                  >
+                    <TableSortLabel
+                      active={orderBy === headCell.id}
+                      direction={orderBy === headCell.id ? order : 'asc'}
+                      onClick={() => handleRequestSort(headCell.id)}
+                    >
+                      {headCell.label}
+                    </TableSortLabel>
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedSales.map((sale) => (
+                <TableRow hover key={sale._id}>
+                  <TableCell>{format(new Date(sale.lastUpdated), 'HH:mm:ss')}</TableCell>
+                  <TableCell>{sale.product?.code || 'N/A'}</TableCell>
+                  <TableCell>{sale.product?.name || '未知產品'}</TableCell>
+                  <TableCell align="right">{Math.abs(sale.quantity || 0)}</TableCell>
+                  <TableCell align="right">${sale.totalAmount || 0}</TableCell>
+                  <TableCell>{sale.saleNumber}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      );
+    }
+
+    return (
+      <Grid item xs={12}>
+        <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
+          <Typography variant="h6" gutterBottom>
+            監測產品 - 當日未結算銷售 (將於完成時自動加入)
+          </Typography>
+          {content}
+        </Paper>
+      </Grid>
+    );
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -359,61 +430,8 @@ const AccountingForm = ({
             </Button>
           </Grid>
 
-          {/* Unaccounted Sales Section (Show in Edit mode if sales were fetched, regardless of current status selection) */}
-          {editMode && formData.unaccountedSales?.length > 0 && (
-            <Grid item xs={12}>
-              <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
-                <Typography variant="h6" gutterBottom>
-                  監測產品 - 當日未結算銷售 (將於完成時自動加入)
-                </Typography>
-                {loadingSales ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : !formData.unaccountedSales?.length ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-                    目前無未結算銷售記錄。
-                  </Typography>
-                ) : (
-                  <TableContainer sx={{ maxHeight: 300 }}>
-                    <Table size="small" stickyHeader>
-                      <TableHead>
-                        <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
-                          {headCells.map((headCell) => (
-                            <TableCell
-                              key={headCell.id}
-                              align={headCell.numeric ? 'right' : 'left'}
-                              sortDirection={orderBy === headCell.id ? order : false}
-                            >
-                              <TableSortLabel
-                                active={orderBy === headCell.id}
-                                direction={orderBy === headCell.id ? order : 'asc'}
-                                onClick={() => handleRequestSort(headCell.id)}
-                              >
-                                {headCell.label}
-                              </TableSortLabel>
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {sortedSales.map((sale) => (
-                          <TableRow hover key={sale._id}>
-                            <TableCell>{format(new Date(sale.lastUpdated), 'HH:mm:ss')}</TableCell>
-                            <TableCell>{sale.product?.code || 'N/A'}</TableCell>
-                            <TableCell>{sale.product?.name || '未知產品'}</TableCell>
-                            <TableCell align="right">{Math.abs(sale.quantity || 0)}</TableCell>
-                            <TableCell align="right">${sale.totalAmount || 0}</TableCell>
-                            <TableCell>{sale.saleNumber}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </Paper>
-            </Grid>
-          )}
+          {/* 未結算銷售區塊 */}
+          {renderUnaccountedSalesSection()}
           
           <Grid item xs={12}>
             <Typography variant="h6" align="right">
@@ -430,6 +448,42 @@ const AccountingForm = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+// Props 驗證
+AccountingForm.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  formData: PropTypes.shape({
+    date: PropTypes.instanceOf(Date),
+    shift: PropTypes.string,
+    items: PropTypes.arrayOf(
+      PropTypes.shape({
+        amount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+        category: PropTypes.string,
+        categoryId: PropTypes.string,
+        note: PropTypes.string
+      })
+    ),
+    status: PropTypes.string,
+    unaccountedSales: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.string,
+        lastUpdated: PropTypes.string,
+        product: PropTypes.shape({
+          code: PropTypes.string,
+          name: PropTypes.string
+        }),
+        quantity: PropTypes.number,
+        totalAmount: PropTypes.number,
+        saleNumber: PropTypes.string
+      })
+    )
+  }).isRequired,
+  setFormData: PropTypes.func.isRequired,
+  editMode: PropTypes.bool.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  loadingSales: PropTypes.bool
 };
 
 export default AccountingForm;
