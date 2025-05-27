@@ -33,7 +33,8 @@ const upload = multer({ storage: storage });
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const shippingOrders = await ShippingOrder.find()
+    // 修正：使用查詢物件包裝參數
+    const shippingOrders = await ShippingOrder.find({})
       .sort({ soid: -1 })
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
@@ -63,7 +64,8 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const shippingOrder = await ShippingOrder.findById(req.params.id)
+    // 修正：避免使用 findById，改用 findOne 搭配查詢物件，並確保轉換為字串
+    const shippingOrder = await ShippingOrder.findOne({ _id: req.params.id.toString() })
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
@@ -99,7 +101,8 @@ async function generateUniqueOrderNumber(soid) {
   
   // 檢查訂單號是否已存在，如果存在則添加計數器
   while (!isUnique) {
-    const existingOrder = await ShippingOrder.findOne({ orderNumber });
+    // 修正：確保使用查詢物件包裝參數並轉換為字串
+    const existingOrder = await ShippingOrder.findOne({ orderNumber: orderNumber.toString() });
     if (!existingOrder) {
       isUnique = true;
     } else {
@@ -135,7 +138,8 @@ router.post('/', [
       soid = await OrderNumberService.generateShippingOrderNumber();
     } else {
       // 檢查出貨單號是否已存在
-      const existingSO = await ShippingOrder.findOne({ soid });
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      const existingSO = await ShippingOrder.findOne({ soid: soid.toString() });
       if (existingSO) {
         return res.status(400).json({ msg: '該出貨單號已存在' });
       }
@@ -156,16 +160,18 @@ router.post('/', [
         return res.status(400).json({ msg: `無效的藥品代碼格式: ${item.did}` });
       }
       
-      const product = await BaseProduct.findOne({ code: item.did });
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      const product = await BaseProduct.findOne({ code: item.did.toString() });
       if (!product) {
         return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
       }
       
-      item.product = product._id;
+      item.product = product._id.toString(); // 修正：確保轉換為字串
       
       // 檢查庫存是否足夠
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
       const inventorySum = await Inventory.aggregate([
-        { $match: { product: product._id } },
+        { $match: { product: mongoose.Types.ObjectId(product._id.toString()) } },
         { $group: { _id: null, total: { $sum: "$quantity" } } }
       ]);
       
@@ -181,24 +187,25 @@ router.post('/', [
     // 嘗試查找供應商
     let supplierId = null;
     if (supplier) {
-      supplierId = supplier;
+      supplierId = supplier.toString(); // 修正：確保轉換為字串
     } else {
-      const supplierDoc = await Supplier.findOne({ name: sosupplier });
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      const supplierDoc = await Supplier.findOne({ name: sosupplier.toString() });
       if (supplierDoc) {
-        supplierId = supplierDoc._id;
+        supplierId = supplierDoc._id.toString(); // 修正：確保轉換為字串
       }
     }
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
-      soid,
-      orderNumber, // 設置唯一訂單號
-      sosupplier,
+      soid: soid.toString(), // 修正：確保轉換為字串
+      orderNumber: orderNumber.toString(), // 修正：確保轉換為字串
+      sosupplier: sosupplier.toString(), // 修正：確保轉換為字串
       supplier: supplierId,
       items,
-      notes,
-      status: status || 'pending',
-      paymentStatus: paymentStatus || '未收'
+      notes: notes ? notes.toString() : "", // 修正：確保轉換為字串
+      status: status ? status.toString() : 'pending', // 修正：確保轉換為字串
+      paymentStatus: paymentStatus ? paymentStatus.toString() : '未收' // 修正：確保轉換為字串
     });
 
     await shippingOrder.save();
@@ -223,40 +230,42 @@ router.put('/:id', async (req, res) => {
     const { soid, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
     // 檢查出貨單是否存在
-    let shippingOrder = await ShippingOrder.findById(req.params.id);
+    // 修正：避免使用 findById，改用 findOne 搭配查詢物件，並確保轉換為字串
+    let shippingOrder = await ShippingOrder.findOne({ _id: req.params.id.toString() });
     if (!shippingOrder) {
       return res.status(404).json({ msg: '找不到該出貨單' });
     }
 
     // 如果更改了出貨單號，檢查新號碼是否已存在
     if (soid && soid !== shippingOrder.soid) {
-      const existingSO = await ShippingOrder.findOne({ soid });
-      if (existingSO && existingSO._id.toString() !== req.params.id) {
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      const existingSO = await ShippingOrder.findOne({ soid: soid.toString() });
+      if (existingSO && existingSO._id.toString() !== req.params.id.toString()) {
         return res.status(400).json({ msg: '該出貨單號已存在' });
       }
       
       // 如果出貨單號變更，生成新的唯一訂單號
-      const orderNumber = await generateUniqueOrderNumber(soid);
+      const orderNumber = await generateUniqueOrderNumber(soid.toString()); // 修正：確保轉換為字串
       shippingOrder.orderNumber = orderNumber;
     }
 
     // 準備更新數據
     const updateData = {};
-    if (soid) updateData.soid = soid;
-    if (shippingOrder.orderNumber) updateData.orderNumber = shippingOrder.orderNumber;
-    if (sosupplier) updateData.sosupplier = sosupplier;
-    if (supplier) updateData.supplier = supplier;
-    if (notes !== undefined) updateData.notes = notes;
-    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    if (soid) updateData.soid = soid.toString(); // 修正：確保轉換為字串
+    if (shippingOrder.orderNumber) updateData.orderNumber = shippingOrder.orderNumber.toString(); // 修正：確保轉換為字串
+    if (sosupplier) updateData.sosupplier = sosupplier.toString(); // 修正：確保轉換為字串
+    if (supplier) updateData.supplier = supplier.toString(); // 修正：確保轉換為字串
+    if (notes !== undefined) updateData.notes = notes ? notes.toString() : ""; // 修正：確保轉換為字串
+    if (paymentStatus) updateData.paymentStatus = paymentStatus.toString(); // 修正：確保轉換為字串
     
     // 處理狀態變更
     const oldStatus = shippingOrder.status;
     if (status && status !== oldStatus) {
-      updateData.status = status;
+      updateData.status = status.toString(); // 修正：確保轉換為字串
       
       // 如果狀態從已完成改為其他狀態，刪除相關的ship類型庫存記錄
       if (oldStatus === 'completed' && status !== 'completed') {
-        await deleteShippingInventoryRecords(shippingOrder._id);
+        await deleteShippingInventoryRecords(shippingOrder._id.toString()); // 修正：確保轉換為字串
       }
     }
 
@@ -270,12 +279,16 @@ router.put('/:id', async (req, res) => {
 
         // 嘗試查找藥品
         if (!item.product) {
-          const product = await BaseProduct.findOne({ code: item.did });
+          // 修正：確保使用查詢物件包裝參數並轉換為字串
+          const product = await BaseProduct.findOne({ code: item.did.toString() });
           if (product) {
-            item.product = product._id;
+            item.product = product._id.toString(); // 修正：確保轉換為字串
           } else {
             return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
           }
+        } else {
+          // 確保已有的 product 也轉換為字串
+          item.product = item.product.toString(); // 修正：確保轉換為字串
         }
       }
       updateData.items = items;
@@ -283,7 +296,8 @@ router.put('/:id', async (req, res) => {
 
     // 更新出貨單
     // 先更新基本字段
-    shippingOrder = await ShippingOrder.findById(req.params.id);
+    // 修正：避免使用 findById，改用 findOne 搭配查詢物件，並確保轉換為字串
+    shippingOrder = await ShippingOrder.findOne({ _id: req.params.id.toString() });
     
     // 應用更新
     Object.keys(updateData).forEach(key => {
@@ -316,14 +330,15 @@ router.put('/:id', async (req, res) => {
 // @access  Public
 router.delete('/:id', async (req, res) => {
   try {
-    const shippingOrder = await ShippingOrder.findById(req.params.id);
+    // 修正：避免使用 findById，改用 findOne 搭配查詢物件，並確保轉換為字串
+    const shippingOrder = await ShippingOrder.findOne({ _id: req.params.id.toString() });
     if (!shippingOrder) {
       return res.status(404).json({ msg: '找不到該出貨單' });
     }
 
     // 如果出貨單已完成，刪除相關的ship類型庫存記錄
     if (shippingOrder.status === 'completed') {
-      await deleteShippingInventoryRecords(shippingOrder._id);
+      await deleteShippingInventoryRecords(shippingOrder._id.toString()); // 修正：確保轉換為字串
     }
 
     await shippingOrder.deleteOne();
@@ -342,6 +357,7 @@ router.delete('/:id', async (req, res) => {
 // @access  Public
 router.get('/supplier/:supplierId', async (req, res) => {
   try {
+    // 修正：確保使用查詢物件包裝參數並轉換為字串
     const shippingOrders = await ShippingOrder.find({ supplier: req.params.supplierId.toString() })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')
@@ -375,9 +391,11 @@ router.get('/search/query', async (req, res) => {
     const { soid, sosupplier } = req.query;
     
     const query = {};
-    if (soid) query.soid = { $regex: soid, $options: 'i' };
-    if (sosupplier) query.sosupplier = { $regex: sosupplier, $options: 'i' };
+    // 修正：確保轉換為字串並安全處理 $regex
+    if (soid) query.soid = { $regex: soid.toString(), $options: 'i' };
+    if (sosupplier) query.sosupplier = { $regex: sosupplier.toString(), $options: 'i' };
     
+    // 修正：確保使用查詢物件包裝參數
     const shippingOrders = await ShippingOrder.find(query)
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')
@@ -408,6 +426,7 @@ router.get('/search/query', async (req, res) => {
 // @access  Public
 router.get('/product/:productId', async (req, res) => {
   try {
+    // 修正：確保使用查詢物件包裝參數並轉換為字串
     const shippingOrders = await ShippingOrder.find({
       'items.product': req.params.productId.toString(),
       'status': 'completed'
@@ -441,7 +460,8 @@ router.get('/product/:productId', async (req, res) => {
 // @access  Public
 router.get('/recent/list', async (req, res) => {
   try {
-    const shippingOrders = await ShippingOrder.find()
+    // 修正：確保使用查詢物件包裝參數
+    const shippingOrders = await ShippingOrder.find({})
       .sort({ createdAt: -1 })
       .limit(10)
       .populate('supplier', 'name')
@@ -475,11 +495,11 @@ async function createShippingInventoryRecords(shippingOrder) {
       
       // 為每個出貨單項目創建新的庫存記錄
       const inventory = new Inventory({
-        product: item.product,
+        product: item.product.toString(), // 修正：確保轉換為字串
         quantity: -parseInt(item.dquantity), // 負數表示庫存減少
         totalAmount: Number(item.dtotalCost),
-        shippingOrderId: shippingOrder._id, // 使用出貨單ID
-        shippingOrderNumber: shippingOrder.orderNumber, // 使用出貨單號
+        shippingOrderId: shippingOrder._id.toString(), // 修正：確保轉換為字串
+        shippingOrderNumber: shippingOrder.orderNumber.toString(), // 修正：確保轉換為字串
         type: 'ship' // 設置類型為'ship'
       });
       
@@ -497,7 +517,11 @@ async function createShippingInventoryRecords(shippingOrder) {
 // 刪除與出貨單相關的ship類型庫存記錄
 async function deleteShippingInventoryRecords(shippingOrderId) {
   try {
-    const result = await Inventory.deleteMany({ shippingOrderId: shippingOrderId, type: 'ship' });
+    // 修正：確保使用查詢物件包裝參數並轉換為字串
+    const result = await Inventory.deleteMany({ 
+      shippingOrderId: shippingOrderId.toString(), 
+      type: 'ship' 
+    });
     console.log(`已刪除 ${result.deletedCount} 筆與出貨單 ${shippingOrderId} 相關的ship類型庫存記錄`);
     return result;
   } catch (err) {
@@ -537,7 +561,8 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
             }
 
             // 檢查出貨單號是否已存在
-            const existingSO = await ShippingOrder.findOne({ soid: row['出貨單號'] });
+            // 修正：確保使用查詢物件包裝參數並轉換為字串
+            const existingSO = await ShippingOrder.findOne({ soid: row['出貨單號'].toString() });
             if (existingSO) {
               errors.push(`行 ${results.indexOf(row) + 1}: 出貨單號 ${row['出貨單號']} 已存在`);
               continue;
@@ -545,18 +570,19 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
 
             // 準備出貨單數據
             const shippingOrderData = {
-              soid: row['出貨單號'],
-              sobill: row['發票號'] || '',
-              socustomer: row['客戶'],
-              paymentStatus: row['付款狀態'] || '未收',
+              soid: row['出貨單號'].toString(), // 修正：確保轉換為字串
+              sobill: row['發票號'] ? row['發票號'].toString() : '', // 修正：確保轉換為字串
+              socustomer: row['客戶'].toString(), // 修正：確保轉換為字串
+              paymentStatus: row['付款狀態'] ? row['付款狀態'].toString() : '未收', // 修正：確保轉換為字串
               items: [],
               status: 'pending'
             };
 
             // 嘗試查找客戶
-            const customerDoc = await Customer.findOne({ name: row['客戶'] });
+            // 修正：確保使用查詢物件包裝參數並轉換為字串
+            const customerDoc = await Customer.findOne({ name: row['客戶'].toString() });
             if (customerDoc) {
-              shippingOrderData.customer = customerDoc._id;
+              shippingOrderData.customer = customerDoc._id.toString(); // 修正：確保轉換為字串
             }
 
             // 創建出貨單
