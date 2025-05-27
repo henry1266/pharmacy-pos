@@ -24,7 +24,7 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.get('/:id', auth, async (req, res) => {
   try {
-    const category = await AccountingCategory.findById(req.params.id.toString());
+    const category = await AccountingCategory.findOne({ _id: req.params.id.toString() });
       
     if (!category) {
       return res.status(404).json({ msg: '找不到記帳名目類別' });
@@ -58,7 +58,7 @@ router.post('/', [
     const { name, description } = req.body;
     
     // 檢查是否已存在相同名稱的類別
-    const existingCategory = await AccountingCategory.findOne({ name });
+    const existingCategory = await AccountingCategory.findOne({ name: name.toString() });
     
     if (existingCategory) {
       return res.status(400).json({ msg: '該名目類別已存在' });
@@ -104,7 +104,7 @@ router.put('/:id', [
       return res.status(400).json({ msg: '該名目類別已存在' });
     }
     
-    let category = await AccountingCategory.findById(req.params.id.toString());
+    let category = await AccountingCategory.findOne({ _id: req.params.id.toString() });
     
     if (!category) {
       return res.status(404).json({ msg: '找不到記帳名目類別' });
@@ -136,7 +136,7 @@ router.put('/:id', [
 // @access  Private
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const category = await AccountingCategory.findById(req.params.id);
+    const category = await AccountingCategory.findOne({ _id: req.params.id.toString() });
     
     if (!category) {
       return res.status(404).json({ msg: '找不到記帳名目類別' });
