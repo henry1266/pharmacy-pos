@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Typography,
@@ -93,5 +94,40 @@ const CommonListPageLayout = ({
   );
 };
 
-export default CommonListPageLayout;
+// PropTypes 驗證
+CommonListPageLayout.propTypes = {
+  title: PropTypes.string.isRequired,
+  actionButtons: PropTypes.node,
+  columns: PropTypes.arrayOf(
+    PropTypes.shape({
+      field: PropTypes.string.isRequired,
+      headerName: PropTypes.string,
+      width: PropTypes.number,
+      // 其他可能的欄位屬性
+      renderCell: PropTypes.func,
+      valueGetter: PropTypes.func,
+      type: PropTypes.string
+    })
+  ).isRequired,
+  rows: PropTypes.arrayOf(PropTypes.object).isRequired,
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  onRowClick: PropTypes.func,
+  detailPanel: PropTypes.node,
+  tableGridWidth: PropTypes.number,
+  detailGridWidth: PropTypes.number,
+  dataTableProps: PropTypes.object
+};
 
+// 預設值
+CommonListPageLayout.defaultProps = {
+  tableGridWidth: 9,
+  detailGridWidth: 3,
+  dataTableProps: {},
+  error: null,
+  onRowClick: () => {},
+  actionButtons: null,
+  detailPanel: null
+};
+
+export default CommonListPageLayout;
