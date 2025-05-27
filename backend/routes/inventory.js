@@ -26,7 +26,8 @@ router.get('/', async (req, res) => {
 // @access  Public (已改為公開)
 router.get('/:id', async (req, res) => {
   try {
-    const inventory = await Inventory.findById(req.params.id)
+    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    const inventory = await Inventory.findOne({ _id: req.params.id.toString() })
       .populate('product')
       .populate('purchaseOrderId', 'poid orderNumber pobill');
     if (!inventory) {
@@ -68,7 +69,8 @@ router.post(
     } = req.body;
     try {
       // 檢查藥品是否存在
-      const productExists = await BaseProduct.findById(product);
+      // 修正：使用 findOne 替代 findById，並將 product 轉換為字串
+      const productExists = await BaseProduct.findOne({ _id: product.toString() });
       if (!productExists) {
         return res.status(404).json({ msg: '藥品不存在' });
       }
@@ -76,12 +78,14 @@ router.post(
       // 檢查是否已有該藥品的庫存記錄
       let existingInventory = null;
       if (purchaseOrderId) {
+        // 修正：將 product 和 purchaseOrderId 參數轉換為字串
         existingInventory = await Inventory.findOne({ 
-          product, 
-          purchaseOrderId 
+          product: product.toString(), 
+          purchaseOrderId: purchaseOrderId.toString() 
         });
       } else {
-        existingInventory = await Inventory.findOne({ product });
+        // 修正：將 product 參數轉換為字串
+        existingInventory = await Inventory.findOne({ product: product.toString() });
       }
       
       if (existingInventory) {
@@ -130,22 +134,25 @@ router.put('/:id', async (req, res) => {
   inventoryFields.lastUpdated = Date.now();
   
   try {
-    let inventory = await Inventory.findById(req.params.id);
+    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    let inventory = await Inventory.findOne({ _id: req.params.id.toString() });
     if (!inventory) {
       return res.status(404).json({ msg: '庫存記錄不存在' });
     }
     
     // 如果更改了藥品，檢查新藥品是否存在
     if (product && product !== inventory.product.toString()) {
-      const productExists = await BaseProduct.findById(product);
+      // 修正：使用 findOne 替代 findById，並將 product 轉換為字串
+      const productExists = await BaseProduct.findOne({ _id: product.toString() });
       if (!productExists) {
         return res.status(404).json({ msg: '藥品不存在' });
       }
     }
     
     // 更新
-    inventory = await Inventory.findByIdAndUpdate(
-      req.params.id,
+    // 修正：使用 findOneAndUpdate 替代 findByIdAndUpdate，並將 id 轉換為字串
+    inventory = await Inventory.findOneAndUpdate(
+      { _id: req.params.id.toString() },
       { $set: inventoryFields },
       { new: true }
     );
@@ -164,7 +171,8 @@ router.put('/:id', async (req, res) => {
 // @access  Public (已改為公開)
 router.delete('/:id', async (req, res) => {
   try {
-    const inventory = await Inventory.findById(req.params.id);
+    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    const inventory = await Inventory.findOne({ _id: req.params.id.toString() });
     if (!inventory) {
       return res.status(404).json({ msg: '庫存記錄不存在' });
     }
