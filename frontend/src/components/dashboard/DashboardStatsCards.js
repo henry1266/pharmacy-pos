@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Grid,
   Card,
@@ -48,6 +49,15 @@ const StatCard = ({ title, value, icon, iconBgColor, iconColor }) => (
   </Card>
 );
 
+// 添加 StatCard 的 PropTypes 驗證
+StatCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  icon: PropTypes.element.isRequired,
+  iconBgColor: PropTypes.string.isRequired,
+  iconColor: PropTypes.string.isRequired
+};
+
 const DashboardStatsCards = ({ countsData }) => {
   const counts = countsData || {};
 
@@ -93,5 +103,14 @@ const DashboardStatsCards = ({ countsData }) => {
   );
 };
 
-export default DashboardStatsCards;
+// 添加 DashboardStatsCards 的 PropTypes 驗證
+DashboardStatsCards.propTypes = {
+  countsData: PropTypes.shape({
+    products: PropTypes.number,
+    customers: PropTypes.number,
+    suppliers: PropTypes.number,
+    orders: PropTypes.number
+  }).isRequired
+};
 
+export default DashboardStatsCards;

@@ -1,9 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Card,
   CardContent,
   Typography,
-  Box,
   useTheme
 } from '@mui/material';
 import {
@@ -22,6 +22,20 @@ const formatCurrency = (amount) => {
     currency: 'TWD',
     minimumFractionDigits: 0
   }).format(amount || 0); // Ensure amount is not null/undefined
+};
+
+// 將 Cell 元件定義移出父元件
+const PieChartCell = ({ entry, index, colors }) => (
+  <Cell key={`cell-${entry.category}`} fill={colors[index % colors.length]} />
+);
+
+PieChartCell.propTypes = {
+  entry: PropTypes.shape({
+    category: PropTypes.string.isRequired,
+    totalSales: PropTypes.number.isRequired
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  colors: PropTypes.arrayOf(PropTypes.string).isRequired
 };
 
 const CategorySalesChart = ({ categorySalesData }) => {
@@ -60,7 +74,12 @@ const CategorySalesChart = ({ categorySalesData }) => {
               nameKey="category"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <PieChartCell 
+                  key={entry.category || `category-${index}`} 
+                  entry={entry} 
+                  index={index} 
+                  colors={COLORS} 
+                />
               ))}
             </Pie>
             <Tooltip 
@@ -90,5 +109,13 @@ const CategorySalesChart = ({ categorySalesData }) => {
   );
 };
 
-export default CategorySalesChart;
+CategorySalesChart.propTypes = {
+  categorySalesData: PropTypes.arrayOf(
+    PropTypes.shape({
+      category: PropTypes.string.isRequired,
+      totalSales: PropTypes.number.isRequired
+    })
+  ).isRequired
+};
 
+export default CategorySalesChart;

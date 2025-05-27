@@ -1,9 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Card,
   CardContent,
-  Typography,
-  Box
+  Typography
 } from '@mui/material';
 import {
   LineChart,
@@ -84,5 +84,14 @@ const SalesTrendChart = ({ salesTrendData }) => {
   );
 };
 
-export default SalesTrendChart;
+// 添加 SalesTrendChart 的 PropTypes 驗證
+SalesTrendChart.propTypes = {
+  salesTrendData: PropTypes.arrayOf(
+    PropTypes.shape({
+      date: PropTypes.string.isRequired,
+      totalSales: PropTypes.number.isRequired
+    })
+  ).isRequired
+};
 
+export default SalesTrendChart;
