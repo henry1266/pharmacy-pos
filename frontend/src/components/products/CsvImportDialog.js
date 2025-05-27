@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -23,6 +24,27 @@ const CsvImportDialog = ({
   handleCsvFileChange,
   handleCsvImport
 }) => {
+  // 處理顯示的提示訊息
+  const renderAlert = () => {
+    if (csvImportSuccess) {
+      return (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          匯入成功！
+        </Alert>
+      );
+    }
+    
+    if (csvImportError) {
+      return (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {csvImportError}
+        </Alert>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <Dialog open={open} onClose={() => !csvImportLoading && onClose()} maxWidth="sm" fullWidth>
       <DialogTitle>
@@ -30,15 +52,7 @@ const CsvImportDialog = ({
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
-          {csvImportSuccess ? (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              匯入成功！
-            </Alert>
-          ) : csvImportError ? (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {csvImportError}
-            </Alert>
-          ) : null}
+          {renderAlert()}
           
           <Typography variant="body2" gutterBottom>
             請選擇CSV文件進行匯入。CSV文件應包含以下欄位：
@@ -127,6 +141,19 @@ const CsvImportDialog = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+// PropTypes 驗證
+CsvImportDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  tabValue: PropTypes.number.isRequired,
+  csvFile: PropTypes.object,
+  csvImportLoading: PropTypes.bool.isRequired,
+  csvImportError: PropTypes.string,
+  csvImportSuccess: PropTypes.bool.isRequired,
+  handleCsvFileChange: PropTypes.func.isRequired,
+  handleCsvImport: PropTypes.func.isRequired
 };
 
 export default CsvImportDialog;
