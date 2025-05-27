@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, CardContent, Typography, Grid, Box } from '@mui/material';
+import { Card, CardContent, Typography, Grid } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 供應商基本資訊卡片
@@ -73,5 +74,15 @@ const SupplierInfoCard = ({ supplier }) => {
   );
 };
 
-export default SupplierInfoCard;
+SupplierInfoCard.propTypes = {
+  supplier: PropTypes.shape({
+    name: PropTypes.string,
+    contactPerson: PropTypes.string,
+    phone: PropTypes.string,
+    email: PropTypes.string,
+    address: PropTypes.string,
+    notes: PropTypes.string
+  }).isRequired
+};
 
+export default SupplierInfoCard;

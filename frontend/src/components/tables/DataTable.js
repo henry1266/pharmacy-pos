@@ -3,7 +3,7 @@ import { DataGrid, GridColumnMenu, useGridApiContext } from '@mui/x-data-grid';
 import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import PropTypes from 'prop-types';
 
-// 自定義列菜單組件 - 移出父組件
+// 自定義列菜單組件 - 已移出父組件
 const CustomColumnMenu = (props) => {
   const { hideMenu, colDef } = props;
   const [open, setOpen] = useState(false);
@@ -112,21 +112,21 @@ const DataTable = ({
       event.preventDefault();
       
       // 移除無用的變數賦值
-      let updatedIndex = selectedIndex;
+      let newIndex = selectedIndex;
       
       if (event.key === 'ArrowUp') {
         // 上鍵：選擇上一行，如果已經是第一行則不變
-        updatedIndex = Math.max(0, selectedIndex - 1);
+        newIndex = Math.max(0, selectedIndex - 1);
       } else {
         // 下鍵：選擇下一行，如果已經是最後一行則不變
-        updatedIndex = Math.min(rows.length - 1, selectedIndex + 1);
+        newIndex = Math.min(rows.length - 1, selectedIndex + 1);
       }
       
       // 如果索引變化了，觸發行點擊事件
-      if (updatedIndex !== selectedIndex) {
-        setSelectedIndex(updatedIndex);
-        if (onRowClick && rows[updatedIndex]) {
-          onRowClick({ row: rows[updatedIndex] });
+      if (newIndex !== selectedIndex) {
+        setSelectedIndex(newIndex);
+        if (onRowClick && rows[newIndex]) {
+          onRowClick({ row: rows[newIndex] });
         }
       }
     }
