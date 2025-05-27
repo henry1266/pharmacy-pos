@@ -342,7 +342,7 @@ router.delete('/:id', async (req, res) => {
 // @access  Public
 router.get('/supplier/:supplierId', async (req, res) => {
   try {
-    const shippingOrders = await ShippingOrder.find({ supplier: req.params.supplierId })
+    const shippingOrders = await ShippingOrder.find({ supplier: req.params.supplierId.toString() })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
@@ -409,7 +409,7 @@ router.get('/search/query', async (req, res) => {
 router.get('/product/:productId', async (req, res) => {
   try {
     const shippingOrders = await ShippingOrder.find({
-      'items.product': req.params.productId,
+      'items.product': req.params.productId.toString(),
       'status': 'completed'
     })
       .sort({ createdAt: -1 })

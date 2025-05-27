@@ -434,7 +434,7 @@ router.get('/latest-number/:prefix', async (req, res) => {
 // @access  Public
 router.get('/customer/:customerId', async (req, res) => {
   try {
-    const sales = await Sale.find({ customer: req.params.customerId })
+    const sales = await Sale.find({ customer: req.params.customerId.toString() })
       .populate('customer')
       .populate('items.product')
       .populate('cashier')

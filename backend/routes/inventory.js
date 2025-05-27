@@ -184,7 +184,7 @@ router.delete('/:id', async (req, res) => {
 // @access  Public (已改為公開)
 router.get('/product/:productId', async (req, res) => {
   try {
-    const inventory = await Inventory.find({ product: req.params.productId })
+    const inventory = await Inventory.find({ product: req.params.productId.toString() })
       .populate('product')
       .populate('purchaseOrderId', 'poid orderNumber pobill')
       .populate('saleId', 'saleNumber');

@@ -300,7 +300,7 @@ router.delete('/:id', async (req, res) => {
 // @access  Public
 router.get('/supplier/:supplierId', async (req, res) => {
   try {
-    const purchaseOrders = await PurchaseOrder.find({ supplier: req.params.supplierId })
+    const purchaseOrders = await PurchaseOrder.find({ supplier: req.params.supplierId.toString() })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');

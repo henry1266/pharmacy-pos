@@ -10,7 +10,7 @@ const { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } = requ
 // @access  Public
 router.get('/product/:productId', async (req, res) => {
   try {
-    const inventories = await Inventory.find({ product: req.params.productId })
+    const inventories = await Inventory.find({ product: req.params.productId.toString() })
       .populate('product')
       .sort({ lastUpdated: 1 });
     
@@ -43,7 +43,7 @@ router.get('/sale/:saleId', async (req, res) => {
     let totalCost = 0;
     
     for (const item of sale.items) {
-      const inventories = await Inventory.find({ product: item.product._id })
+      const inventories = await Inventory.find({ product: item.product._id.toString() })
         .populate('product')
         .sort({ lastUpdated: 1 });
       
@@ -148,7 +148,7 @@ router.get('/shipping-order/:shippingOrderId', async (req, res) => {
         continue;
       }
 
-      const inventories = await Inventory.find({ product: productId })
+      const inventories = await Inventory.find({ product: productId.toString() })
         .populate('product') // This might be redundant if item.product is already populated
         .sort({ lastUpdated: 1 });
       
@@ -233,7 +233,7 @@ router.get('/all', async (req, res) => {
     const productIds = await Inventory.distinct('product');
     const results = [];
     for (const productId of productIds) {
-      const inventories = await Inventory.find({ product: productId })
+      const inventories = await Inventory.find({ product: productId.toString() })
         .populate('product')
         .sort({ lastUpdated: 1 });
       if (inventories.length > 0) {
