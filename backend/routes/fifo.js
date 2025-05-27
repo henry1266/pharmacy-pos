@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose'); // 新增：導入 mongoose
 const Inventory = require('../models/Inventory');
 const Sale = require('../models/Sale');
 const ShippingOrder = require('../models/ShippingOrder'); // Added ShippingOrder model
@@ -10,7 +11,7 @@ const { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } = requ
 // @access  Public
 router.get('/product/:productId', async (req, res) => {
   try {
-    const inventories = await Inventory.find({ product: req.params.productId.toString() })
+    const inventories = await Inventory.find({ product: new mongoose.Types.ObjectId(req.params.productId) })
       .populate('product')
       .sort({ lastUpdated: 1 });
     
@@ -31,8 +32,8 @@ router.get('/product/:productId', async (req, res) => {
 // @access  Public
 router.get('/sale/:saleId', async (req, res) => {
   try {
-    // 修正：使用 findOne 搭配查詢物件，並進行型態轉換
-    const sale = await Sale.findOne({ _id: req.params.saleId.toString() })
+    // 修正：使用 findOne 搭配查詢物件，並使用 new mongoose.Types.ObjectId
+    const sale = await Sale.findOne({ _id: new mongoose.Types.ObjectId(req.params.saleId) })
       .populate('items.product');
     
     if (!sale) {
@@ -44,7 +45,7 @@ router.get('/sale/:saleId', async (req, res) => {
     let totalCost = 0;
     
     for (const item of sale.items) {
-      const inventories = await Inventory.find({ product: item.product._id.toString() })
+      const inventories = await Inventory.find({ product: new mongoose.Types.ObjectId(item.product._id) })
         .populate('product')
         .sort({ lastUpdated: 1 });
       
@@ -63,7 +64,7 @@ router.get('/sale/:saleId', async (req, res) => {
       const fifoResult = calculateProductFIFO(inventories);
       const profitRecord = fifoResult.profitMargins.find(p => 
         p.orderType === 'sale' && 
-        p.orderId === req.params.saleId.toString() // 修正：進行型態轉換
+        p.orderId === req.params.saleId // 不需要轉換，因為 profitRecord 中的 orderId 已經是字串
       );
       
       if (profitRecord) {
@@ -116,8 +117,8 @@ router.get('/sale/:saleId', async (req, res) => {
 // @access  Public
 router.get('/shipping-order/:shippingOrderId', async (req, res) => {
   try {
-    // 修正：使用 findOne 搭配查詢物件，並進行型態轉換
-    const shippingOrder = await ShippingOrder.findOne({ _id: req.params.shippingOrderId.toString() })
+    // 修正：使用 findOne 搭配查詢物件，並使用 new mongoose.Types.ObjectId
+    const shippingOrder = await ShippingOrder.findOne({ _id: new mongoose.Types.ObjectId(req.params.shippingOrderId) })
       .populate('items.product'); // Assuming items.product exists and needs population
     
     if (!shippingOrder) {
@@ -150,7 +151,7 @@ router.get('/shipping-order/:shippingOrderId', async (req, res) => {
         continue;
       }
 
-      const inventories = await Inventory.find({ product: productId.toString() })
+      const inventories = await Inventory.find({ product: new mongoose.Types.ObjectId(productId) })
         .populate('product') // This might be redundant if item.product is already populated
         .sort({ lastUpdated: 1 });
       
@@ -171,7 +172,7 @@ router.get('/shipping-order/:shippingOrderId', async (req, res) => {
       // For shipping orders, orderType should be 'shipping' (or 'ship' as seen in prepareInventoryForFIFO)
       const profitRecord = fifoResult.profitMargins.find(p => 
         (p.orderType === 'shipping' || p.orderType === 'ship') && 
-        p.orderId === req.params.shippingOrderId.toString() // 修正：進行型態轉換
+        p.orderId === req.params.shippingOrderId // 不需要轉換，因為 profitRecord 中的 orderId 已經是字串
       );
       
       if (profitRecord) {
@@ -235,7 +236,7 @@ router.get('/all', async (req, res) => {
     const productIds = await Inventory.distinct('product');
     const results = [];
     for (const productId of productIds) {
-      const inventories = await Inventory.find({ product: productId.toString() })
+      const inventories = await Inventory.find({ product: new mongoose.Types.ObjectId(productId) })
         .populate('product')
         .sort({ lastUpdated: 1 });
       if (inventories.length > 0) {
@@ -277,8 +278,8 @@ router.post('/simulate', async (req, res) => {
       return res.status(400).json({ msg: '請提供產品ID和數量' });
     }
     
-    // 修正：確保 productId 進行型態轉換
-    const allInventories = await Inventory.find({ product: productId.toString() })
+    // 修正：使用 new mongoose.Types.ObjectId
+    const allInventories = await Inventory.find({ product: new mongoose.Types.ObjectId(productId) })
       .populate('product')
       .sort({ lastUpdated: 1 });
       
@@ -306,7 +307,7 @@ router.post('/simulate', async (req, res) => {
     const simulatedStockOut = [{
       timestamp: new Date(),
       quantity: parseInt(quantity),
-      drug_id: productId.toString(), // 修正：進行型態轉換
+      drug_id: productId, // 不需要轉換，因為這裡只是用於標識
       source_id: 'simulation',
       type: 'simulation',
       orderNumber: 'SIMULATION',
@@ -327,7 +328,7 @@ router.post('/simulate', async (req, res) => {
     const availableQuantity = availableStockIn.reduce((sum, batch) => sum + batch.quantity, 0);
     res.json({
       success: true,
-      productId: productId.toString(), // 修正：進行型態轉換
+      productId, // 不需要轉換，因為這裡只是用於回傳
       productName: productInfo.name,
       productCode: productInfo.code,
       quantity: parseInt(quantity),
