@@ -27,7 +27,7 @@ class OrderNumberService {
       const generator = new OrderNumberGenerator({
         Model: PurchaseOrder,
         field: 'poid',
-        prefix: options.prefix || '',
+        prefix: options.prefix ? options.prefix.toString() : '',
         useShortYear: options.useShortYear || false, // 默認使用YYYY格式
         sequenceDigits: options.sequenceDigits || 3,  // 默認3位數序號
         sequenceStart: options.sequenceStart || 1
@@ -55,7 +55,7 @@ class OrderNumberService {
       const generator = new OrderNumberGenerator({
         Model: ShippingOrder,
         field: 'soid',
-        prefix: options.prefix || '',
+        prefix: options.prefix ? options.prefix.toString() : '',
         useShortYear: options.useShortYear || false, // 默認使用YYYY格式
         sequenceDigits: options.sequenceDigits || 3,  // 默認3位數序號
         sequenceStart: options.sequenceStart || 1
@@ -83,7 +83,7 @@ class OrderNumberService {
       const generator = new OrderNumberGenerator({
         Model: Sale,
         field: 'saleNumber',
-        prefix: options.prefix || '',
+        prefix: options.prefix ? options.prefix.toString() : '',
         useShortYear: options.useShortYear || false, // 默認使用YYYY格式
         sequenceDigits: options.sequenceDigits || 3,  // 默認3位數序號
         sequenceStart: options.sequenceStart || 1
@@ -104,7 +104,7 @@ class OrderNumberService {
    * @returns {Promise<string>} 生成的訂單號
    */
   static async generateOrderNumber(type, options = {}) {
-    switch (type.toLowerCase()) {
+    switch (type.toString().toLowerCase()) {
       case 'purchase':
         return await this.generatePurchaseOrderNumber(options);
       case 'shipping':
@@ -112,7 +112,7 @@ class OrderNumberService {
       case 'sale':
         return await this.generateSaleOrderNumber(options);
       default:
-        throw new Error(`不支持的訂單類型: ${type}`);
+        throw new Error(`不支持的訂單類型: ${type.toString()}`);
     }
   }
 
@@ -127,7 +127,7 @@ class OrderNumberService {
       let Model;
       let field;
       
-      switch (type.toLowerCase()) {
+      switch (type.toString().toLowerCase()) {
         case 'purchase':
           Model = mongoose.model('purchaseorder');
           field = 'poid';
@@ -141,11 +141,11 @@ class OrderNumberService {
           field = 'saleNumber';
           break;
         default:
-          throw new Error(`不支持的訂單類型: ${type}`);
+          throw new Error(`不支持的訂單類型: ${type.toString()}`);
       }
       
       const query = {};
-      query[field] = orderNumber;
+      query[field] = orderNumber.toString();
       
       const existingOrder = await Model.findOne(query);
       return !existingOrder;
@@ -162,14 +162,14 @@ class OrderNumberService {
    * @returns {Promise<string>} 唯一的訂單號
    */
   static async generateUniqueOrderNumber(type, baseOrderNumber) {
-    let orderNumber = baseOrderNumber;
+    let orderNumber = baseOrderNumber.toString();
     let counter = 1;
     let isUnique = false;
     
     while (!isUnique) {
-      isUnique = await this.isOrderNumberUnique(type, orderNumber);
+      isUnique = await this.isOrderNumberUnique(type.toString(), orderNumber);
       if (!isUnique) {
-        orderNumber = `${baseOrderNumber}-${counter}`;
+        orderNumber = `${baseOrderNumber.toString()}-${counter}`;
         counter++;
       }
     }
