@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Dialog, 
   DialogTitle, 
@@ -150,6 +151,19 @@ const MedicineCsvImportDialog = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+// PropTypes 驗證
+MedicineCsvImportDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  csvFile: PropTypes.object,
+  onFileChange: PropTypes.func.isRequired,
+  onImport: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  success: PropTypes.bool.isRequired,
+  previewData: PropTypes.array
 };
 
 export default MedicineCsvImportDialog;
