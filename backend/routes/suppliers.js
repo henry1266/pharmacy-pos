@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
 // @access  Public (已改為公開)
 router.get('/:id', async (req, res) => {
   try {
-    const supplier = await Supplier.findById(req.params.id);
+    const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
     if (!supplier) {
       return res.status(404).json({ msg: '供應商不存在' });
     }
@@ -108,7 +108,7 @@ router.post(
     try {
       // 檢查供應商編號是否已存在
       if (code) {
-        let supplier = await Supplier.findOne({ code });
+        let supplier = await Supplier.findOne({ code: code.toString() });
         if (supplier) {
           return res.status(400).json({ msg: '供應商編號已存在' });
         }
@@ -116,19 +116,19 @@ router.post(
 
       // 建立供應商欄位物件
       const supplierFields = {
-        name,
-        shortCode
+        name: name.toString(),
+        shortCode: shortCode.toString()
       };
 
       // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
-      if (code !== undefined) supplierFields.code = code;
-      if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson;
-      if (phone !== undefined) supplierFields.phone = phone;
-      if (email !== undefined) supplierFields.email = email;
-      if (address !== undefined) supplierFields.address = address;
-      if (taxId !== undefined) supplierFields.taxId = taxId;
-      if (paymentTerms !== undefined) supplierFields.paymentTerms = paymentTerms;
-      if (notes !== undefined) supplierFields.notes = notes;
+      if (code !== undefined) supplierFields.code = code.toString();
+      if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson.toString();
+      if (phone !== undefined) supplierFields.phone = phone.toString();
+      if (email !== undefined) supplierFields.email = email.toString();
+      if (address !== undefined) supplierFields.address = address.toString();
+      if (taxId !== undefined) supplierFields.taxId = taxId.toString();
+      if (paymentTerms !== undefined) supplierFields.paymentTerms = paymentTerms.toString();
+      if (notes !== undefined) supplierFields.notes = notes.toString();
 
       // 若沒提供供應商編號，系統自動生成
       if (!code) {
@@ -166,37 +166,38 @@ router.put('/:id', async (req, res) => {
   // 建立更新欄位物件
   const supplierFields = {};
   // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
-  if (code !== undefined) supplierFields.code = code;
-  if (shortCode !== undefined) supplierFields.shortCode = shortCode;
-  if (name !== undefined) supplierFields.name = name;
-  if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson;
-  if (phone !== undefined) supplierFields.phone = phone;
-  if (email !== undefined) supplierFields.email = email;
-  if (address !== undefined) supplierFields.address = address;
-  if (taxId !== undefined) supplierFields.taxId = taxId;
-  if (paymentTerms !== undefined) supplierFields.paymentTerms = paymentTerms;
-  if (notes !== undefined) supplierFields.notes = notes;
+  if (code !== undefined) supplierFields.code = code.toString();
+  if (shortCode !== undefined) supplierFields.shortCode = shortCode.toString();
+  if (name !== undefined) supplierFields.name = name.toString();
+  if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson.toString();
+  if (phone !== undefined) supplierFields.phone = phone.toString();
+  if (email !== undefined) supplierFields.email = email.toString();
+  if (address !== undefined) supplierFields.address = address.toString();
+  if (taxId !== undefined) supplierFields.taxId = taxId.toString();
+  if (paymentTerms !== undefined) supplierFields.paymentTerms = paymentTerms.toString();
+  if (notes !== undefined) supplierFields.notes = notes.toString();
 
   try {
-    let supplier = await Supplier.findById(req.params.id);
+    let supplier = await Supplier.findOne({ _id: req.params.id.toString() });
     if (!supplier) {
       return res.status(404).json({ msg: '供應商不存在' });
     }
 
     // 若編號被修改，檢查是否重複
     if (code && code !== supplier.code) {
-      const existingSupplier = await Supplier.findOne({ code });
+      const existingSupplier = await Supplier.findOne({ code: code.toString() });
       if (existingSupplier) {
         return res.status(400).json({ msg: '供應商編號已存在' });
       }
     }
 
     // 更新
-    supplier = await Supplier.findByIdAndUpdate(
-      req.params.id,
-      { $set: supplierFields },
-      { new: true }
-    );
+    // 應用更新
+    Object.keys(supplierFields).forEach(key => {
+      supplier[key] = supplierFields[key];
+    });
+    
+    await supplier.save();
 
     res.json(supplier);
   } catch (err) {
@@ -213,13 +214,13 @@ router.put('/:id', async (req, res) => {
 // @access  Public (已改為公開)
 router.delete('/:id', async (req, res) => {
   try {
-    const supplier = await Supplier.findById(req.params.id);
+    const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
     if (!supplier) {
       return res.status(404).json({ msg: '供應商不存在' });
     }
 
-    // 修復：使用 findByIdAndDelete 替代 supplier.remove()
-    await Supplier.findByIdAndDelete(req.params.id);
+    // 修復：使用 deleteOne 替代 findByIdAndDelete
+    await Supplier.deleteOne({ _id: req.params.id.toString() });
     res.json({ msg: '供應商已刪除' });
   } catch (err) {
     console.error(err.message);
@@ -272,11 +273,11 @@ router.post('/import-csv', upload.single('file'), async (req, res) => {
 
             // 檢查供應商編號是否已存在
             if (row.code) {
-              const existingSupplier = await Supplier.findOne({ code: row.code });
+              const existingSupplier = await Supplier.findOne({ code: row.code.toString() });
               if (existingSupplier) {
                 duplicates.push({
                   row,
-                  existingId: existingSupplier._id
+                  existingId: existingSupplier._id.toString()
                 });
                 importResults.duplicates++;
                 continue;
@@ -285,19 +286,19 @@ router.post('/import-csv', upload.single('file'), async (req, res) => {
 
             // 建立供應商欄位物件
             const supplierFields = {
-              name: row.name,
-              shortCode: row.shortCode
+              name: row.name.toString(),
+              shortCode: row.shortCode.toString()
             };
 
             // 處理可選欄位
-            if (row.code) supplierFields.code = row.code;
-            if (row.contactPerson) supplierFields.contactPerson = row.contactPerson;
-            if (row.phone) supplierFields.phone = row.phone;
-            if (row.email) supplierFields.email = row.email;
-            if (row.address) supplierFields.address = row.address;
-            if (row.taxId) supplierFields.taxId = row.taxId;
-            if (row.paymentTerms) supplierFields.paymentTerms = row.paymentTerms;
-            if (row.notes) supplierFields.notes = row.notes;
+            if (row.code) supplierFields.code = row.code.toString();
+            if (row.contactPerson) supplierFields.contactPerson = row.contactPerson.toString();
+            if (row.phone) supplierFields.phone = row.phone.toString();
+            if (row.email) supplierFields.email = row.email.toString();
+            if (row.address) supplierFields.address = row.address.toString();
+            if (row.taxId) supplierFields.taxId = row.taxId.toString();
+            if (row.paymentTerms) supplierFields.paymentTerms = row.paymentTerms.toString();
+            if (row.notes) supplierFields.notes = row.notes.toString();
 
             // 若沒提供供應商編號，系統自動生成
             if (!row.code) {
