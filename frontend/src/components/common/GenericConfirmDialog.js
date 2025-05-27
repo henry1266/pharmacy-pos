@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogActions,
@@ -75,5 +76,35 @@ const GenericConfirmDialog = ({
   );
 };
 
-export default GenericConfirmDialog;
+// 添加 PropTypes 驗證
+GenericConfirmDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired,
+  message: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
+  confirmText: PropTypes.string,
+  cancelText: PropTypes.string,
+  dialogProps: PropTypes.object,
+  titleProps: PropTypes.object,
+  contentProps: PropTypes.object,
+  contentTextProps: PropTypes.object,
+  actionsProps: PropTypes.object,
+  confirmButtonProps: PropTypes.object,
+  cancelButtonProps: PropTypes.object
+};
 
+// 添加預設值
+GenericConfirmDialog.defaultProps = {
+  confirmText: '確認',
+  cancelText: '取消',
+  dialogProps: {},
+  titleProps: {},
+  contentProps: {},
+  contentTextProps: {},
+  actionsProps: {},
+  confirmButtonProps: {},
+  cancelButtonProps: {}
+};
+
+export default GenericConfirmDialog;
