@@ -96,7 +96,7 @@ router.put('/:id', [
     
     // 檢查是否存在相同名稱的其他類別
     const existingCategory = await AccountingCategory.findOne({
-      name,
+      name: name.toString(),
       _id: { $ne: req.params.id.toString() }
     });
     
@@ -111,8 +111,8 @@ router.put('/:id', [
     }
     
     // 更新類別
-    category.name = name;
-    category.description = description || '';
+    category.name = name.toString();
+    category.description = description ? description.toString() : '';
     if (isActive !== undefined) {
       category.isActive = isActive;
     }
