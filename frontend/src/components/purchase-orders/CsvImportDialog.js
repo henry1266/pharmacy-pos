@@ -42,6 +42,60 @@ const CsvImportDialog = ({
   error,
   success
 }) => {
+  // 標籤頁內容配置
+  const tabContents = [
+    {
+      title: "匯入進貨單基本資訊",
+      description: "請上傳包含進貨單基本資訊的CSV文件。文件應包含以下欄位：進貨單號、發票號碼、發票日期、供應商、狀態、付款狀態等。"
+    },
+    {
+      title: "匯入進貨品項",
+      description: "請上傳包含進貨品項的CSV文件。文件應包含以下欄位：進貨單號、藥品代碼、藥品名稱、數量、總成本等。"
+    }
+  ];
+
+  // 渲染標籤頁內容
+  const renderTabContent = (index) => {
+    if (tabValue !== index || index >= tabContents.length) return null;
+    
+    const content = tabContents[index];
+    return (
+      <Box>
+        <Typography variant="subtitle1" gutterBottom>
+          {content.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          {content.description}
+        </Typography>
+      </Box>
+    );
+  };
+
+  // 渲染狀態訊息
+  const renderStatusMessages = () => {
+    return (
+      <>
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {success && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            CSV導入成功！
+          </Alert>
+        )}
+        
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
+      </>
+    );
+  };
+
   return (
     <Dialog
       open={open}
@@ -58,27 +112,8 @@ const CsvImportDialog = ({
           </Tabs>
         </Box>
         
-        {tabValue === 0 && (
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              匯入進貨單基本資訊
-            </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              請上傳包含進貨單基本資訊的CSV文件。文件應包含以下欄位：進貨單號、發票號碼、發票日期、供應商、狀態、付款狀態等。
-            </Typography>
-          </Box>
-        )}
-        
-        {tabValue === 1 && (
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              匯入進貨品項
-            </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              請上傳包含進貨品項的CSV文件。文件應包含以下欄位：進貨單號、藥品代碼、藥品名稱、數量、總成本等。
-            </Typography>
-          </Box>
-        )}
+        {renderTabContent(0)}
+        {renderTabContent(1)}
         
         <Box sx={{ mt: 2 }}>
           <Button
@@ -102,23 +137,7 @@ const CsvImportDialog = ({
           )}
         </Box>
         
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-        
-        {success && (
-          <Alert severity="success" sx={{ mt: 2 }}>
-            CSV導入成功！
-          </Alert>
-        )}
-        
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <CircularProgress size={24} />
-          </Box>
-        )}
+        {renderStatusMessages()}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>取消</Button>
