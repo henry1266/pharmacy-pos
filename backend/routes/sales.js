@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const sale = await Sale.findById(req.params.id)
+    const sale = await Sale.findOne({ _id: req.params.id.toString() })
       .populate('customer')
       .populate({
         path: 'items.product',
@@ -71,7 +71,7 @@ router.post(
     try {
       // 檢查客戶是否存在
       if (customer) {
-        const customerExists = await Customer.findById(customer);
+        const customerExists = await Customer.findOne({ _id: customer.toString() });
         if (!customerExists) {
           return res.status(404).json({ msg: '客戶不存在' });
         }
@@ -79,7 +79,7 @@ router.post(
       
       // 檢查所有產品是否存在
       for (const item of items) {
-        const product = await BaseProduct.findById(item.product);
+        const product = await BaseProduct.findOne({ _id: item.product.toString() });
         if (!product) {
           return res.status(404).json({ msg: `產品ID ${item.product} 不存在` });
         }
@@ -89,7 +89,7 @@ router.post(
         
         try {
           // 獲取所有庫存記錄
-          const inventories = await Inventory.find({ product: item.product }).lean();
+          const inventories = await Inventory.find({ product: item.product.toString() }).lean();
           console.log(`找到 ${inventories.length} 個庫存記錄`);
           
           // 計算總庫存量
@@ -120,16 +120,16 @@ router.post(
       
       // 建立銷售記錄
       const saleFields = {
-        saleNumber: finalSaleNumber,
+        saleNumber: finalSaleNumber ? finalSaleNumber.toString() : '',
         items,
         totalAmount,
       };
-      if (customer) saleFields.customer = customer;
+      if (customer) saleFields.customer = customer.toString();
       if (discount) saleFields.discount = discount;
-      if (paymentMethod) saleFields.paymentMethod = paymentMethod;
-      if (paymentStatus) saleFields.paymentStatus = paymentStatus;
-      if (note) saleFields.note = note;
-      if (cashier) saleFields.cashier = cashier;
+      if (paymentMethod) saleFields.paymentMethod = paymentMethod ? paymentMethod.toString() : '';
+      if (paymentStatus) saleFields.paymentStatus = paymentStatus ? paymentStatus.toString() : '';
+      if (note) saleFields.note = note ? note.toString() : '';
+      if (cashier) saleFields.cashier = cashier ? cashier.toString() : '';
 
       const sale = new Sale(saleFields);
       await sale.save();
@@ -137,12 +137,12 @@ router.post(
       // 為每個銷售項目創建負數庫存記錄
       for (const item of items) {
         const inventoryRecord = new Inventory({
-          product: item.product,
+          product: item.product.toString(),
           quantity: -item.quantity, // 負數表示庫存減少
           totalAmount: Number(item.subtotal), // 添加totalAmount字段
-          saleNumber: finalSaleNumber, // 添加銷貨單號
+          saleNumber: finalSaleNumber.toString(), // 添加銷貨單號
           type: 'sale',
-          saleId: sale._id,
+          saleId: sale._id.toString(),
           lastUpdated: Date.now()
         });
         
@@ -152,7 +152,7 @@ router.post(
       
       // 如果有客戶，更新客戶積分
       if (customer) {
-        const customerToUpdate = await Customer.findById(customer);
+        const customerToUpdate = await Customer.findOne({ _id: customer.toString() });
         if (customerToUpdate) {
           // 假設每消費100元獲得1點積分
           const pointsToAdd = Math.floor(totalAmount / 100);
@@ -197,14 +197,14 @@ router.put('/:id', [
 
   try {
     // 檢查銷售記錄是否存在
-    let sale = await Sale.findById(req.params.id);
+    let sale = await Sale.findOne({ _id: req.params.id.toString() });
     if (!sale) {
       return res.status(404).json({ msg: '銷售記錄不存在' });
     }
 
     // 檢查客戶是否存在
     if (customer) {
-      const customerExists = await Customer.findById(customer);
+      const customerExists = await Customer.findOne({ _id: customer.toString() });
       if (!customerExists) {
         return res.status(404).json({ msg: '客戶不存在' });
       }
@@ -215,7 +215,7 @@ router.put('/:id', [
     
     // 檢查所有產品是否存在並檢查庫存是否足夠
     for (const item of items) {
-      const product = await BaseProduct.findById(item.product);
+      const product = await BaseProduct.findOne({ _id: item.product.toString() });
       if (!product) {
         return res.status(404).json({ msg: `產品ID ${item.product} 不存在` });
       }
@@ -231,7 +231,7 @@ router.put('/:id', [
         
         try {
           // 獲取所有庫存記錄
-          const inventories = await Inventory.find({ product: item.product }).lean();
+          const inventories = await Inventory.find({ product: item.product.toString() }).lean();
           console.log(`找到 ${inventories.length} 個庫存記錄`);
           
           // 計算總庫存量
@@ -256,29 +256,32 @@ router.put('/:id', [
 
     // 更新銷售記錄
     const saleFields = {
-      saleNumber,
+      saleNumber: saleNumber ? saleNumber.toString() : '',
       items,
       totalAmount,
     };
-    if (customer) saleFields.customer = customer;
+    if (customer) saleFields.customer = customer.toString();
     if (discount) saleFields.discount = discount;
-    if (paymentMethod) saleFields.paymentMethod = paymentMethod;
-    if (paymentStatus) saleFields.paymentStatus = paymentStatus;
-    if (note) saleFields.note = note;
-    if (cashier) saleFields.cashier = cashier;
+    if (paymentMethod) saleFields.paymentMethod = paymentMethod ? paymentMethod.toString() : '';
+    if (paymentStatus) saleFields.paymentStatus = paymentStatus ? paymentStatus.toString() : '';
+    if (note) saleFields.note = note ? note.toString() : '';
+    if (cashier) saleFields.cashier = cashier ? cashier.toString() : '';
 
     // 更新銷售記錄
-    sale = await Sale.findByIdAndUpdate(
-      req.params.id,
-      { $set: saleFields },
-      { new: true }
-    );
+    sale = await Sale.findOne({ _id: req.params.id.toString() });
+    
+    // 應用更新
+    Object.keys(saleFields).forEach(key => {
+      sale[key] = saleFields[key];
+    });
+    
+    await sale.save();
 
     // 處理庫存變更
     // 1. 刪除與此銷售相關的所有庫存記錄
     try {
       const deletedRecords = await Inventory.deleteMany({ 
-        saleId: sale._id,
+        saleId: sale._id.toString(),
         type: 'sale'
       });
       console.log(`刪除與銷售 ${sale._id} 相關的所有庫存記錄，刪除數量: ${deletedRecords.deletedCount}`);
@@ -296,12 +299,12 @@ router.put('/:id', [
     try {
       for (const item of items) {
         const inventoryRecord = new Inventory({
-          product: item.product,
+          product: item.product.toString(),
           quantity: -item.quantity, // 負數表示庫存減少
           totalAmount: Number(item.subtotal), // 添加totalAmount字段
-          saleNumber: sale.saleNumber, // 添加銷貨單號
+          saleNumber: sale.saleNumber.toString(), // 添加銷貨單號
           type: 'sale',
-          saleId: sale._id,
+          saleId: sale._id.toString(),
           lastUpdated: Date.now()
         });
         
@@ -318,7 +321,7 @@ router.put('/:id', [
     if (sale.customer || customer) {
       // 如果原始銷售有客戶，扣除原始積分
       if (sale.customer) {
-        const originalCustomer = await Customer.findById(sale.customer);
+        const originalCustomer = await Customer.findOne({ _id: sale.customer.toString() });
         if (originalCustomer) {
           const pointsToDeduct = Math.floor(sale.totalAmount / 100);
           originalCustomer.points = Math.max(0, (originalCustomer.points || 0) - pointsToDeduct);
@@ -329,7 +332,7 @@ router.put('/:id', [
       
       // 如果新銷售有客戶，添加新積分
       if (customer) {
-        const newCustomer = await Customer.findById(customer);
+        const newCustomer = await Customer.findOne({ _id: customer.toString() });
         if (newCustomer) {
           const pointsToAdd = Math.floor(totalAmount / 100);
           newCustomer.points = (newCustomer.points || 0) + pointsToAdd;
@@ -348,9 +351,10 @@ router.put('/:id', [
     res.status(500).send('Server Error');
   }
 });
+
 router.delete('/:id', async (req, res) => {
   try {
-    const sale = await Sale.findById(req.params.id);
+    const sale = await Sale.findOne({ _id: req.params.id.toString() });
     if (!sale) {
       return res.status(404).json({ msg: '銷售記錄不存在' });
     }
@@ -359,22 +363,22 @@ router.delete('/:id', async (req, res) => {
     for (const item of sale.items) {
       // 查找與此銷售相關的庫存記錄
       const saleInventory = await Inventory.findOne({ 
-        saleId: sale._id,
-        product: item.product,
+        saleId: sale._id.toString(),
+        product: item.product.toString(),
         type: 'sale'
       });
       
       // 如果找到相關的銷售庫存記錄，則刪除它
       if (saleInventory) {
-        await Inventory.deleteOne({ _id: saleInventory._id });
+        await Inventory.deleteOne({ _id: saleInventory._id.toString() });
         console.log(`刪除產品 ${item.product} 的銷售庫存記錄`);
       } else {
         // 如果找不到相關的銷售庫存記錄，則創建一個新的庫存記錄來恢復庫存
         const inventoryRecord = new Inventory({
-          product: item.product,
+          product: item.product.toString(),
           quantity: item.quantity, // 正數表示庫存增加
           type: 'return',
-          saleId: sale._id,
+          saleId: sale._id.toString(),
           lastUpdated: Date.now()
         });
         
@@ -385,7 +389,7 @@ router.delete('/:id', async (req, res) => {
     
     // 如果有客戶，扣除積分
     if (sale.customer) {
-      const customer = await Customer.findById(sale.customer);
+      const customer = await Customer.findOne({ _id: sale.customer.toString() });
       if (customer) {
         // 假設每消費100元獲得1點積分
         const pointsToDeduct = Math.floor(sale.totalAmount / 100);
@@ -394,7 +398,7 @@ router.delete('/:id', async (req, res) => {
       }
     }
     
-    await Sale.deleteOne({ _id: sale._id });
+    await Sale.deleteOne({ _id: sale._id.toString() });
     console.log(`銷售記錄 ${sale._id} 已刪除`);
     res.json({ msg: '銷售記錄已刪除' });
   } catch (err) {
@@ -415,7 +419,7 @@ router.get('/latest-number/:prefix', async (req, res) => {
     
     // 查找以指定前綴開頭的最新銷貨單號
     const latestSale = await Sale.findOne({
-      saleNumber: { $regex: `^${prefix}` }
+      saleNumber: { $regex: `^${prefix.toString()}` }
     }).sort({ saleNumber: -1 });
     
     if (latestSale && latestSale.saleNumber) {
