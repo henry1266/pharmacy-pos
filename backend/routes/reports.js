@@ -59,8 +59,8 @@ router.get('/sales', async (req, res) => {
         salesByDay[dateStr].orderCount += 1;
         sale.items.forEach(item => {
           salesByDay[dateStr].items.push({
-            productId: item.product._id,
-            productName: item.product.name,
+            productId: item.product._id.toString(), // 修正：確保轉換為字串
+            productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
             quantity: item.quantity,
             price: item.price,
             subtotal: item.subtotal
@@ -87,8 +87,8 @@ router.get('/sales', async (req, res) => {
         salesByMonth[monthStr].orderCount += 1;
         sale.items.forEach(item => {
           salesByMonth[monthStr].items.push({
-            productId: item.product._id,
-            productName: item.product.name,
+            productId: item.product._id.toString(), // 修正：確保轉換為字串
+            productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
             quantity: item.quantity,
             price: item.price,
             subtotal: item.subtotal
@@ -102,12 +102,12 @@ router.get('/sales', async (req, res) => {
       const salesByProduct = {};
       sales.forEach(sale => {
         sale.items.forEach(item => {
-          const productId = item.product._id.toString();
+          const productId = item.product._id.toString(); // 已經正確轉換為字串
           if (!salesByProduct[productId]) {
             salesByProduct[productId] = {
               productId,
-              productCode: item.product.code,
-              productName: item.product.name,
+              productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
+              productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
               quantity: 0,
               revenue: 0,
               orderCount: 0
@@ -124,8 +124,8 @@ router.get('/sales', async (req, res) => {
       // 按客戶分組
       const salesByCustomer = {};
       sales.forEach(sale => {
-        const customerId = sale.customer ? sale.customer._id.toString() : 'anonymous';
-        const customerName = sale.customer ? sale.customer.name : '一般客戶';
+        const customerId = sale.customer ? sale.customer._id.toString() : 'anonymous'; // 修正：確保轉換為字串
+        const customerName = sale.customer ? (sale.customer.name ? sale.customer.name.toString() : '一般客戶') : '一般客戶'; // 修正：確保轉換為字串
         
         if (!salesByCustomer[customerId]) {
           salesByCustomer[customerId] = {
@@ -143,18 +143,18 @@ router.get('/sales', async (req, res) => {
     } else {
       // 不分組，返回所有銷售記錄
       groupedData = sales.map(sale => ({
-        id: sale._id,
-        invoiceNumber: sale.invoiceNumber,
+        id: sale._id.toString(), // 修正：確保轉換為字串
+        invoiceNumber: sale.invoiceNumber ? sale.invoiceNumber.toString() : "", // 修正：確保轉換為字串
         date: sale.date,
-        customerName: sale.customer ? sale.customer.name : '一般客戶',
+        customerName: sale.customer ? (sale.customer.name ? sale.customer.name.toString() : '一般客戶') : '一般客戶', // 修正：確保轉換為字串
         totalAmount: sale.totalAmount,
         discount: sale.discount,
         tax: sale.tax,
-        paymentMethod: sale.paymentMethod,
-        paymentStatus: sale.paymentStatus,
+        paymentMethod: sale.paymentMethod ? sale.paymentMethod.toString() : "", // 修正：確保轉換為字串
+        paymentStatus: sale.paymentStatus ? sale.paymentStatus.toString() : "", // 修正：確保轉換為字串
         items: sale.items.map(item => ({
-          productId: item.product._id,
-          productName: item.product.name,
+          productId: item.product._id.toString(), // 修正：確保轉換為字串
+          productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
           quantity: item.quantity,
           price: item.price,
           discount: item.discount,
@@ -191,27 +191,33 @@ router.get('/inventory', async (req, res) => {
     // 構建產品查詢條件
     const productQuery = {};
     if (productType && (productType === 'product' || productType === 'medicine')) {
-      productQuery.productType = productType;
+      productQuery.productType = productType.toString(); // 修正：確保轉換為字串
     }
     if (category) {
-      productQuery.category = category;
+      productQuery.category = category.toString(); // 修正：確保轉換為字串
     }
     if (supplier) {
-      productQuery.supplier = mongoose.Types.ObjectId(supplier);
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      productQuery.supplier = mongoose.Types.ObjectId(supplier.toString());
     }
     if (productCode) {
-      productQuery.code = { $regex: productCode, $options: 'i' };
+      // 修正：確保轉換為字串並安全處理 $regex
+      productQuery.code = { $regex: productCode.toString(), $options: 'i' };
     }
     if (productName) {
-      productQuery.name = { $regex: productName, $options: 'i' };
+      // 修正：確保轉換為字串並安全處理 $regex
+      productQuery.name = { $regex: productName.toString(), $options: 'i' };
     }
     
     // 獲取符合條件的產品
     const products = await BaseProduct.find(productQuery).populate('supplier');
-    const productIds = products.map(product => product._id);
+    const productIds = products.map(product => product._id.toString()); // 修正：確保轉換為字串
     
     // 獲取這些產品的庫存數據
-    const inventory = await Inventory.find({ product: { $in: productIds } }).populate({
+    // 修正：確保使用查詢物件包裝參數
+    const inventory = await Inventory.find({ 
+      product: { $in: productIds.map(id => id.toString()) } // 修正：確保轉換為字串
+    }).populate({
       path: 'product',
       populate: { path: 'supplier' }
     });
@@ -223,18 +229,18 @@ router.get('/inventory', async (req, res) => {
       }
       
       return {
-        id: item._id,
-        productId: item.product._id,
-        productCode: item.product.code,
-        productName: item.product.name,
-        category: item.product.category,
-        productType: item.product.productType || 'product',
+        id: item._id.toString(), // 修正：確保轉換為字串
+        productId: item.product._id.toString(), // 修正：確保轉換為字串
+        productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
+        productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
+        category: item.product.category ? item.product.category.toString() : "", // 修正：確保轉換為字串
+        productType: item.product.productType ? item.product.productType.toString() : 'product', // 修正：確保轉換為字串
         supplier: item.product.supplier ? {
-          id: item.product.supplier._id,
-          name: item.product.supplier.name
+          id: item.product.supplier._id.toString(), // 修正：確保轉換為字串
+          name: item.product.supplier.name ? item.product.supplier.name.toString() : "" // 修正：確保轉換為字串
         } : null,
         quantity: item.quantity,
-        unit: item.product.unit,
+        unit: item.product.unit ? item.product.unit.toString() : "", // 修正：確保轉換為字串
         purchasePrice: item.product.purchasePrice,
         sellingPrice: item.product.sellingPrice,
         inventoryValue: item.quantity * item.product.purchasePrice,
@@ -243,14 +249,14 @@ router.get('/inventory', async (req, res) => {
         totalAmount: item.totalAmount || 0, // 添加 totalAmount 欄位
         minStock: item.product.minStock,
         status: item.quantity <= item.product.minStock ? 'low' : 'normal',
-        batchNumber: item.batchNumber,
+        batchNumber: item.batchNumber ? item.batchNumber.toString() : "", // 修正：確保轉換為字串
         expiryDate: item.expiryDate,
-        location: item.location,
+        location: item.location ? item.location.toString() : "", // 修正：確保轉換為字串
         lastUpdated: item.lastUpdated,
-        purchaseOrderNumber: item.purchaseOrderNumber,
-        shippingOrderNumber: item.shippingOrderNumber,
-        saleNumber: item.saleNumber, // 添加saleNumber字段
-        type: item.type
+        purchaseOrderNumber: item.purchaseOrderNumber ? item.purchaseOrderNumber.toString() : "", // 修正：確保轉換為字串
+        shippingOrderNumber: item.shippingOrderNumber ? item.shippingOrderNumber.toString() : "", // 修正：確保轉換為字串
+        saleNumber: item.saleNumber ? item.saleNumber.toString() : "", // 修正：確保轉換為字串
+        type: item.type ? item.type.toString() : "" // 修正：確保轉換為字串
       };
     }).filter(Boolean);
     
@@ -351,28 +357,32 @@ router.get('/inventory/profit-loss', async (req, res) => {
     // 構建產品查詢條件
     const productQuery = {};
     if (productType && (productType === 'product' || productType === 'medicine')) {
-      productQuery.productType = productType;
+      productQuery.productType = productType.toString(); // 修正：確保轉換為字串
     }
     if (category) {
-      productQuery.category = category;
+      productQuery.category = category.toString(); // 修正：確保轉換為字串
     }
     if (supplier) {
-      productQuery.supplier = mongoose.Types.ObjectId(supplier);
+      // 修正：確保使用查詢物件包裝參數並轉換為字串
+      productQuery.supplier = mongoose.Types.ObjectId(supplier.toString());
     }
     if (productCode) {
-      productQuery.code = { $regex: productCode, $options: 'i' };
+      // 修正：確保轉換為字串並安全處理 $regex
+      productQuery.code = { $regex: productCode.toString(), $options: 'i' };
     }
     if (productName) {
-      productQuery.name = { $regex: productName, $options: 'i' };
+      // 修正：確保轉換為字串並安全處理 $regex
+      productQuery.name = { $regex: productName.toString(), $options: 'i' };
     }
     
     // 獲取符合條件的產品
     const products = await BaseProduct.find(productQuery);
-    const productIds = products.map(product => product._id);
+    const productIds = products.map(product => product._id.toString()); // 修正：確保轉換為字串
     
     // 獲取這些產品的庫存數據
+    // 修正：確保使用查詢物件包裝參數
     const inventory = await Inventory.find({ 
-      product: { $in: productIds },
+      product: { $in: productIds.map(id => id.toString()) }, // 修正：確保轉換為字串
       purchaseOrderNumber: { $exists: true, $ne: null }
     }).populate('product');
     
@@ -382,7 +392,7 @@ router.get('/inventory/profit-loss', async (req, res) => {
     inventory.forEach(item => {
       if (!item.product) return;
       
-      const poNumber = item.purchaseOrderNumber;
+      const poNumber = item.purchaseOrderNumber ? item.purchaseOrderNumber.toString() : null; // 修正：確保轉換為字串
       if (!poNumber) return;
       
       if (!profitLossByPO[poNumber]) {
@@ -406,9 +416,9 @@ router.get('/inventory/profit-loss', async (req, res) => {
       profitLossByPO[poNumber].profitLoss += profit;
       
       profitLossByPO[poNumber].items.push({
-        productId: item.product._id,
-        productCode: item.product.code,
-        productName: item.product.name,
+        productId: item.product._id.toString(), // 修正：確保轉換為字串
+        productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
+        productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
         quantity: item.quantity,
         purchasePrice: item.product.purchasePrice,
         sellingPrice: item.product.sellingPrice,
