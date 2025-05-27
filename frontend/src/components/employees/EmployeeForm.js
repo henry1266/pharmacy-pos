@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { 
   Box, 
   Button, 
-  Grid, 
   Paper, 
   Typography,
   Divider,
@@ -162,6 +161,14 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
     }
   };
 
+  // 提取嵌套的三元運算符為獨立變數
+  let buttonText;
+  if (isSubmitting) {
+    buttonText = '儲存中...';
+  } else {
+    buttonText = '儲存';
+  }
+
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       <Paper elevation={0} sx={{ p: 2, mb: 3 }}>
@@ -240,7 +247,7 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
           disabled={isSubmitting}
           startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
         >
-          {isSubmitting ? '儲存中...' : '儲存'}
+          {buttonText}
         </Button>
       </Box>
     </Box>

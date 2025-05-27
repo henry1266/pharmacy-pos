@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Grid, 
   Box,
   Typography,
-  Button,
-  Paper
+  Button
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
@@ -178,6 +178,13 @@ const IDCardSection = ({ formData, errors, onFileChange }) => {
       </Grid>
     </Grid>
   );
+};
+
+// 添加 PropTypes 驗證
+IDCardSection.propTypes = {
+  formData: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
+  onFileChange: PropTypes.func.isRequired
 };
 
 export default IDCardSection;

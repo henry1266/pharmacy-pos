@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, Typography, Grid } from '@mui/material';
 
 /**
@@ -73,5 +74,16 @@ const CustomerInfoCard = ({ customer }) => {
   );
 };
 
-export default CustomerInfoCard;
+// 添加 PropTypes 驗證
+CustomerInfoCard.propTypes = {
+  customer: PropTypes.shape({
+    name: PropTypes.string,
+    contactPerson: PropTypes.string,
+    phone: PropTypes.string,
+    email: PropTypes.string,
+    address: PropTypes.string,
+    notes: PropTypes.string
+  }).isRequired
+};
 
+export default CustomerInfoCard;
