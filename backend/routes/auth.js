@@ -14,7 +14,7 @@ const User = require("../models/User");
 router.get("/", auth, async (req, res) => {
   try {
     // Find user by ID from token payload and exclude password
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id.toString()).select("-password");
     if (!user) {
       return res.status(404).json({ msg: "找不到用戶" });
     }
