@@ -1,9 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Button,
   Box,
@@ -132,6 +132,20 @@ const CsvImportDialog = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+// PropTypes 驗證
+CsvImportDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  tabValue: PropTypes.number.isRequired,
+  onTabChange: PropTypes.func.isRequired,
+  csvFile: PropTypes.object,
+  onFileChange: PropTypes.func.isRequired,
+  onImport: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  success: PropTypes.bool.isRequired
 };
 
 export default CsvImportDialog;
