@@ -14,7 +14,7 @@ const User = require("../models/User");
 router.get("/", auth, async (req, res) => {
   try {
     // Find user by ID from token payload and exclude password
-    const user = await User.findById(req.user.id.toString()).select("-password");
+    const user = await User.findOne({ _id: req.user.id.toString() }).select("-password");
     if (!user) {
       return res.status(404).json({ msg: "找不到用戶" });
     }
@@ -44,7 +44,7 @@ router.post(
 
     try {
       // 檢查用戶是否存在
-      let user = await User.findOne({ email });
+      let user = await User.findOne({ email: email.toString() });
 
       if (!user) {
         return res.status(400).json({ msg: "無效的憑證" });
