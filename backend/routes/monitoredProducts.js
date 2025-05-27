@@ -91,13 +91,14 @@ router.post(
         return res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品，無法加入監測` });
       }
       // 2. 檢查是否已存在相同的監測產品編號
-      let monitoredProduct = await MonitoredProduct.findOne({ productCode });
+      // 修正：將 productCode 轉換為字串
+      let monitoredProduct = await MonitoredProduct.findOne({ productCode: productCodeStr });
       if (monitoredProduct) {
         return res.status(400).json({ msg: "該產品編號已在監測列表中" });
       }
       // 3. 新增監測產品
       monitoredProduct = new MonitoredProduct({
-        productCode,
+        productCode: productCodeStr,
         addedBy: req.user.id, // 記錄添加者
       });
       await monitoredProduct.save();
@@ -127,7 +128,8 @@ router.post(
 // @access  Private
 router.delete("/:id", auth, async (req, res) => {
   try {
-    const monitoredProduct = await MonitoredProduct.findById(req.params.id);
+    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    const monitoredProduct = await MonitoredProduct.findOne({ _id: req.params.id.toString() });
     if (!monitoredProduct) {
       return res.status(404).json({ msg: "找不到要刪除的監測產品記錄" });
     }
@@ -135,8 +137,8 @@ router.delete("/:id", auth, async (req, res) => {
     // if (monitoredProduct.addedBy.toString() !== req.user.id) {
     //   return res.status(401).json({ msg: "權限不足" });
     // }
-    // Mongoose 6.x+ uses findByIdAndDelete()
-    await MonitoredProduct.findByIdAndDelete(req.params.id);
+    // 修正：使用 findOneAndDelete 替代 findByIdAndDelete，並將 id 轉換為字串
+    await MonitoredProduct.findOneAndDelete({ _id: req.params.id.toString() });
     // If Mongoose 5.x, use: await monitoredProduct.remove();
     res.json({ msg: "監測產品已刪除" });
   } catch (err) {
