@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
-// const auth = require('../middleware/auth'); // 已移除
+
 const Inventory = require('../models/Inventory');
 const { BaseProduct } = require('../models/BaseProduct');
 const PurchaseOrder = require('../models/PurchaseOrder');
@@ -49,8 +49,6 @@ router.get('/:id', async (req, res) => {
 router.post(
   '/',
   [
-    // 移除 auth
-    // auth,
     [
       check('product', '藥品ID為必填項').not().isEmpty(),
       check('quantity', '數量為必填項').isNumeric()

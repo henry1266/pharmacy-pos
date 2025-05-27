@@ -268,6 +268,93 @@ router.get('/all', async (req, res) => {
   }
 });
 
+/**
+ * 獲取產品庫存記錄
+ * @param {string} productId - 產品ID
+ * @returns {Promise<Array>} - 庫存記錄
+ */
+async function getProductInventories(productId) {
+  return await Inventory.find({ product: new mongoose.Types.ObjectId(productId) })
+    .populate('product')
+    .sort({ lastUpdated: 1 });
+}
+
+/**
+ * 處理庫存記錄並計算可用庫存
+ * @param {Array} allInventories - 所有庫存記錄
+ * @returns {Object} - 處理後的庫存資訊
+ */
+function processInventoryRecords(allInventories) {
+  const { stockIn, stockOut: existingStockOut } = prepareInventoryForFIFO(allInventories);
+  const processedStockIn = [...stockIn];
+  let inIndex = 0;
+  
+  // 處理已存在的出庫記錄
+  for (const out of existingStockOut) {
+    let remaining = out.quantity;
+    while (remaining > 0 && inIndex < processedStockIn.length) {
+      const batch = processedStockIn[inIndex];
+      if (!batch.remainingQty) batch.remainingQty = batch.quantity;
+      if (batch.remainingQty > 0) {
+        const used = Math.min(batch.remainingQty, remaining);
+        batch.remainingQty -= used;
+        remaining -= used;
+      }
+      if (batch.remainingQty === 0) inIndex++;
+    }
+  }
+  
+  // 計算可用庫存
+  const availableStockIn = processedStockIn.filter(batch => !batch.remainingQty || batch.remainingQty > 0)
+    .map(batch => ({ ...batch, quantity: batch.remainingQty || batch.quantity }));
+    
+  return {
+    availableStockIn,
+    availableQuantity: availableStockIn.reduce((sum, batch) => sum + batch.quantity, 0)
+  };
+}
+
+/**
+ * 創建模擬出庫記錄
+ * @param {string} productId - 產品ID
+ * @param {number} quantity - 數量
+ * @returns {Array} - 模擬出庫記錄
+ */
+function createSimulatedStockOut(productId, quantity) {
+  return [{
+    timestamp: new Date(),
+    quantity: parseInt(quantity),
+    drug_id: productId,
+    source_id: 'simulation',
+    type: 'simulation',
+    orderNumber: 'SIMULATION',
+    orderId: null,
+    orderType: 'simulation'
+  }];
+}
+
+/**
+ * 計算FIFO成本
+ * @param {Array} fifoMatches - FIFO匹配結果
+ * @returns {Object} - 成本計算結果
+ */
+function calculateFifoCost(fifoMatches) {
+  if (fifoMatches.length === 0) {
+    return {
+      totalCost: 0,
+      hasNegativeInventory: false,
+      remainingNegativeQuantity: 0
+    };
+  }
+  
+  const match = fifoMatches[0];
+  return {
+    totalCost: match.costParts.reduce((sum, part) => sum + (part.unit_price * part.quantity), 0),
+    hasNegativeInventory: match.hasNegativeInventory,
+    remainingNegativeQuantity: match.remainingNegativeQuantity || 0
+  };
+}
+
 // @route   POST api/fifo/simulate
 // @desc    Simulate FIFO cost for a product with given quantity
 // @access  Public
@@ -278,57 +365,31 @@ router.post('/simulate', async (req, res) => {
       return res.status(400).json({ msg: '請提供產品ID和數量' });
     }
     
-    // 修正：使用 new mongoose.Types.ObjectId
-    const allInventories = await Inventory.find({ product: new mongoose.Types.ObjectId(productId) })
-      .populate('product')
-      .sort({ lastUpdated: 1 });
-      
+    // 獲取產品庫存記錄
+    const allInventories = await getProductInventories(productId);
     if (allInventories.length === 0) {
       return res.status(404).json({ msg: '找不到該產品的庫存記錄' });
     }
-    const { stockIn, stockOut: existingStockOut } = prepareInventoryForFIFO(allInventories);
-    const processedStockIn = [...stockIn];
-    let inIndex = 0;
-    for (const out of existingStockOut) {
-      let remaining = out.quantity;
-      while (remaining > 0 && inIndex < processedStockIn.length) {
-        const batch = processedStockIn[inIndex];
-        if (!batch.remainingQty) batch.remainingQty = batch.quantity;
-        if (batch.remainingQty > 0) {
-          const used = Math.min(batch.remainingQty, remaining);
-          batch.remainingQty -= used;
-          remaining -= used;
-        }
-        if (batch.remainingQty === 0) inIndex++;
-      }
-    }
-    const availableStockIn = processedStockIn.filter(batch => !batch.remainingQty || batch.remainingQty > 0)
-      .map(batch => ({ ...batch, quantity: batch.remainingQty || batch.quantity }));
-    const simulatedStockOut = [{
-      timestamp: new Date(),
-      quantity: parseInt(quantity),
-      drug_id: productId, // 不需要轉換，因為這裡只是用於標識
-      source_id: 'simulation',
-      type: 'simulation',
-      orderNumber: 'SIMULATION',
-      orderId: null,
-      orderType: 'simulation'
-    }];
+    
+    // 處理庫存記錄並計算可用庫存
+    const { availableStockIn, availableQuantity } = processInventoryRecords(allInventories);
+    
+    // 創建模擬出庫記錄
+    const simulatedStockOut = createSimulatedStockOut(productId, quantity);
+    
+    // 匹配FIFO批次
     const fifoMatches = matchFIFOBatches(availableStockIn, simulatedStockOut);
-    let totalCost = 0;
-    let hasNegativeInventory = false;
-    let remainingNegativeQuantity = 0;
-    if (fifoMatches.length > 0) {
-      const match = fifoMatches[0];
-      hasNegativeInventory = match.hasNegativeInventory;
-      remainingNegativeQuantity = match.remainingNegativeQuantity || 0;
-      totalCost = match.costParts.reduce((sum, part) => sum + (part.unit_price * part.quantity), 0);
-    }
+    
+    // 計算FIFO成本
+    const { totalCost, hasNegativeInventory, remainingNegativeQuantity } = calculateFifoCost(fifoMatches);
+    
+    // 獲取產品信息
     const productInfo = allInventories[0].product;
-    const availableQuantity = availableStockIn.reduce((sum, batch) => sum + batch.quantity, 0);
+    
+    // 返回結果
     res.json({
       success: true,
-      productId, // 不需要轉換，因為這裡只是用於回傳
+      productId,
       productName: productInfo.name,
       productCode: productInfo.code,
       quantity: parseInt(quantity),

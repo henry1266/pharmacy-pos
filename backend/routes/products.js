@@ -355,6 +355,94 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+/**
+ * 驗證CSV數據中的必填字段
+ * @param {Array} results - CSV解析結果
+ * @returns {boolean} - 是否有缺失必填字段
+ */
+function validateRequiredFields(results) {
+  const requiredFields = ['shortCode', 'name'];
+  return results.some(item => 
+    requiredFields.some(field => !item[field] || item[field].trim() === '')
+  );
+}
+
+/**
+ * 查找或創建供應商
+ * @param {string} supplierName - 供應商名稱
+ * @returns {Promise<string|null>} - 供應商ID
+ */
+async function findOrCreateSupplier(supplierName) {
+  // 導入Supplier模型
+  const Supplier = require('../models/Supplier');
+  
+  if (!supplierName || supplierName.trim() === '') {
+    return null;
+  }
+  
+  // 先嘗試根據名稱查找供應商
+  let supplier = await Supplier.findOne({ name: supplierName });
+  
+  // 如果找不到供應商，則創建新供應商
+  if (!supplier) {
+    const supplierCount = await Supplier.countDocuments();
+    const newSupplier = new Supplier({
+      code: `S${String(supplierCount + 1).padStart(5, '0')}`,
+      shortCode: supplierName.substring(0, 3).toUpperCase(), // 使用供應商名稱前三個字符作為簡碼
+      name: supplierName
+    });
+    supplier = await newSupplier.save();
+    console.log(`創建新供應商: ${supplier.name}, ID: ${supplier._id}`);
+  }
+  
+  return supplier._id;
+}
+
+/**
+ * 創建產品基本字段
+ * @param {Object} item - CSV項目數據
+ * @param {string} productType - 產品類型
+ * @param {string|null} supplierId - 供應商ID
+ * @returns {Promise<Object>} - 產品基本字段
+ */
+async function createProductFields(item, productType, supplierId) {
+  return {
+    code: item.code || await (productType === 'product' ? generateNextProductCode() : generateNextMedicineCode()),
+    shortCode: item.shortCode,
+    name: item.name,
+    productType,
+    category: item.category || '',
+    unit: item.unit || '',
+    purchasePrice: parseFloat(item.purchasePrice) || 0,
+    sellingPrice: parseFloat(item.sellingPrice) || 0,
+    description: item.description || '',
+    supplier: supplierId, // 使用供應商ID而不是名稱
+    minStock: parseInt(item.minStock) || 10
+  };
+}
+
+/**
+ * 創建產品實例並保存
+ * @param {Object} productFields - 產品基本字段
+ * @param {Object} item - CSV項目數據
+ * @param {string} productType - 產品類型
+ * @returns {Promise<Object>} - 創建的產品
+ */
+async function createAndSaveProduct(productFields, item, productType) {
+  if (productType === 'product') {
+    productFields.barcode = item.barcode || '';
+    const product = new Product(productFields);
+    await product.save();
+    return product;
+  } else {
+    productFields.healthInsuranceCode = item.healthInsuranceCode || '';
+    productFields.healthInsurancePrice = parseFloat(item.healthInsurancePrice) || 0;
+    const medicine = new Medicine(productFields);
+    await medicine.save();
+    return medicine;
+  }
+}
+
 // @route   POST api/products/import
 // @desc    從CSV匯入產品
 // @access  Private
@@ -363,9 +451,6 @@ router.post('/import', [auth, upload.single('file')], async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ msg: '請上傳CSV文件' });
     }
-
-    // 導入Supplier模型
-    const Supplier = require('../models/Supplier');
 
     const productType = req.body.productType || 'product';
     const results = [];
@@ -387,12 +472,7 @@ router.post('/import', [auth, upload.single('file')], async (req, res) => {
         }
         
         // 驗證必填字段
-        const requiredFields = ['shortCode', 'name'];
-        const missingFields = results.some(item => 
-          requiredFields.some(field => !item[field] || item[field].trim() === '')
-        );
-        
-        if (missingFields) {
+        if (validateRequiredFields(results)) {
           return res.status(400).json({ 
             msg: '部分記錄缺少必填字段 (shortCode, name)' 
           });
@@ -404,54 +484,14 @@ router.post('/import', [auth, upload.single('file')], async (req, res) => {
         for (const item of results) {
           try {
             // 處理供應商 - 根據名稱查找或創建供應商
-            let supplierId = null;
-            if (item.supplier && item.supplier.trim() !== '') {
-              // 先嘗試根據名稱查找供應商
-              let supplier = await Supplier.findOne({ name: item.supplier });
-              
-              // 如果找不到供應商，則創建新供應商
-              if (!supplier) {
-                const supplierCount = await Supplier.countDocuments();
-                const newSupplier = new Supplier({
-                  code: `S${String(supplierCount + 1).padStart(5, '0')}`,
-                  shortCode: item.supplier.substring(0, 3).toUpperCase(), // 使用供應商名稱前三個字符作為簡碼
-                  name: item.supplier
-                });
-                supplier = await newSupplier.save();
-                console.log(`創建新供應商: ${supplier.name}, ID: ${supplier._id}`);
-              }
-              
-              supplierId = supplier._id;
-            }
+            const supplierId = await findOrCreateSupplier(item.supplier);
             
-            // 基本產品字段
-            const productFields = {
-              code: item.code || await (productType === 'product' ? generateNextProductCode() : generateNextMedicineCode()),
-              shortCode: item.shortCode,
-              name: item.name,
-              productType,
-              category: item.category || '',
-              unit: item.unit || '',
-              purchasePrice: parseFloat(item.purchasePrice) || 0,
-              sellingPrice: parseFloat(item.sellingPrice) || 0,
-              description: item.description || '',
-              supplier: supplierId, // 使用供應商ID而不是名稱
-              minStock: parseInt(item.minStock) || 10
-            };
+            // 創建產品基本字段
+            const productFields = await createProductFields(item, productType, supplierId);
             
-            // 根據產品類型添加特有字段
-            if (productType === 'product') {
-              productFields.barcode = item.barcode || '';
-              const product = new Product(productFields);
-              await product.save();
-              createdProducts.push(product);
-            } else {
-              productFields.healthInsuranceCode = item.healthInsuranceCode || '';
-              productFields.healthInsurancePrice = parseFloat(item.healthInsurancePrice) || 0;
-              const medicine = new Medicine(productFields);
-              await medicine.save();
-              createdProducts.push(medicine);
-            }
+            // 創建產品實例並保存
+            const product = await createAndSaveProduct(productFields, item, productType);
+            createdProducts.push(product);
           } catch (err) {
             console.error('創建產品錯誤:', err.message);
             errors.push({
