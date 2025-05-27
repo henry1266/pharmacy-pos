@@ -7,6 +7,72 @@ const Inventory = require('../models/Inventory');
 const Supplier = require('../models/Supplier');
 const mongoose = require('mongoose');
 
+// 共用函數：構建產品查詢條件
+function buildProductQuery(queryParams) {
+  const { productType, category, supplier, productCode, productName } = queryParams;
+  
+  const productQuery = {};
+  if (productType && (productType === 'product' || productType === 'medicine')) {
+    productQuery.productType = productType.toString();
+  }
+  if (category) {
+    productQuery.category = category.toString();
+  }
+  if (supplier) {
+    productQuery.supplier = mongoose.Types.ObjectId(supplier.toString());
+  }
+  if (productCode) {
+    productQuery.code = { $regex: productCode.toString(), $options: 'i' };
+  }
+  if (productName) {
+    productQuery.name = { $regex: productName.toString(), $options: 'i' };
+  }
+  
+  return productQuery;
+}
+
+// 共用函數：安全地轉換為字串
+function safeToString(value, defaultValue = "") {
+  if (value === null || value === undefined) return defaultValue;
+  return value.toString();
+}
+
+// 共用函數：處理日期範圍查詢
+function buildDateRangeFilter(startDate, endDate) {
+  const dateFilter = {};
+  if (startDate) {
+    dateFilter.$gte = new Date(startDate);
+  }
+  if (endDate) {
+    dateFilter.$lte = new Date(endDate);
+    // 設置結束日期為當天的最後一毫秒
+    dateFilter.$lte.setHours(23, 59, 59, 999);
+  }
+  return dateFilter;
+}
+
+// 共用函數：從MongoDB格式的對象ID中提取值
+function extractMongoId(mongoId) {
+  if (!mongoId) return '';
+  
+  if (typeof mongoId === 'object' && mongoId.$oid) {
+    return mongoId.$oid;
+  }
+  
+  if (typeof mongoId === 'object' && mongoId._id) {
+    if (typeof mongoId._id === 'object' && mongoId._id.$oid) {
+      return mongoId._id.$oid;
+    }
+    return mongoId._id.toString();
+  }
+  
+  if (typeof mongoId === 'string') {
+    return mongoId;
+  }
+  
+  return '';
+}
+
 // @route   GET api/reports/sales
 // @desc    Get sales report data
 // @access  Public
@@ -16,15 +82,7 @@ router.get('/sales', async (req, res) => {
     const { startDate, endDate, groupBy } = req.query;
     
     // 設置日期範圍
-    const dateFilter = {};
-    if (startDate) {
-      dateFilter.$gte = new Date(startDate);
-    }
-    if (endDate) {
-      dateFilter.$lte = new Date(endDate);
-      // 設置結束日期為當天的最後一毫秒
-      dateFilter.$lte.setHours(23, 59, 59, 999);
-    }
+    const dateFilter = buildDateRangeFilter(startDate, endDate);
     
     // 構建查詢條件
     const query = {};
@@ -43,145 +101,16 @@ router.get('/sales', async (req, res) => {
     let groupedData = [];
     
     if (groupBy === 'day') {
-      // 按日分組
-      const salesByDay = {};
-      sales.forEach(sale => {
-        const dateStr = sale.date.toISOString().split('T')[0];
-        if (!salesByDay[dateStr]) {
-          salesByDay[dateStr] = {
-            date: dateStr,
-            totalAmount: 0,
-            orderCount: 0,
-            items: []
-          };
-        }
-        salesByDay[dateStr].totalAmount += sale.totalAmount;
-        salesByDay[dateStr].orderCount += 1;
-        sale.items.forEach(item => {
-          salesByDay[dateStr].items.push({
-            productId: item.product._id.toString(), // 修正：確保轉換為字串
-            productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
-            quantity: item.quantity,
-            price: item.price,
-            subtotal: item.subtotal
-          });
-        });
-      });
-      
-      groupedData = Object.values(salesByDay);
+      groupedData = groupSalesByDay(sales);
     } else if (groupBy === 'month') {
-      // 按月分組
-      const salesByMonth = {};
-      sales.forEach(sale => {
-        const date = new Date(sale.date);
-        const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        if (!salesByMonth[monthStr]) {
-          salesByMonth[monthStr] = {
-            month: monthStr,
-            totalAmount: 0,
-            orderCount: 0,
-            items: []
-          };
-        }
-        salesByMonth[monthStr].totalAmount += sale.totalAmount;
-        salesByMonth[monthStr].orderCount += 1;
-        sale.items.forEach(item => {
-          salesByMonth[monthStr].items.push({
-            productId: item.product._id.toString(), // 修正：確保轉換為字串
-            productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
-            quantity: item.quantity,
-            price: item.price,
-            subtotal: item.subtotal
-          });
-        });
-      });
-      
-      groupedData = Object.values(salesByMonth);
+      groupedData = groupSalesByMonth(sales);
     } else if (groupBy === 'product') {
-      // 按產品分組
-      const salesByProduct = {};
-      sales.forEach(sale => {
-        sale.items.forEach(item => {
-          const productId = item.product._id.toString(); // 已經正確轉換為字串
-          if (!salesByProduct[productId]) {
-            salesByProduct[productId] = {
-              productId,
-              productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
-              productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
-              quantity: 0,
-              revenue: 0,
-              orderCount: 0
-            };
-          }
-          salesByProduct[productId].quantity += item.quantity;
-          salesByProduct[productId].revenue += item.subtotal;
-          salesByProduct[productId].orderCount += 1;
-        });
-      });
-      
-      groupedData = Object.values(salesByProduct).sort((a, b) => b.revenue - a.revenue);
+      groupedData = groupSalesByProduct(sales);
     } else if (groupBy === 'customer') {
-      // 按客戶分組
-      const salesByCustomer = {};
-      sales.forEach(sale => {
-        // 修正：提取巢狀三元運算子為獨立陳述式
-        let customerId = 'anonymous';
-        if (sale.customer) {
-          customerId = sale.customer._id.toString();
-        }
-        
-        // 修正：提取巢狀三元運算子為獨立陳述式
-        let customerName = '一般客戶';
-        if (sale.customer) {
-          if (sale.customer.name) {
-            customerName = sale.customer.name.toString();
-          }
-        }
-        
-        if (!salesByCustomer[customerId]) {
-          salesByCustomer[customerId] = {
-            customerId,
-            customerName,
-            totalAmount: 0,
-            orderCount: 0
-          };
-        }
-        salesByCustomer[customerId].totalAmount += sale.totalAmount;
-        salesByCustomer[customerId].orderCount += 1;
-      });
-      
-      groupedData = Object.values(salesByCustomer).sort((a, b) => b.totalAmount - a.totalAmount);
+      groupedData = groupSalesByCustomer(sales);
     } else {
       // 不分組，返回所有銷售記錄
-      groupedData = sales.map(sale => {
-        // 修正：提取巢狀三元運算子為獨立陳述式
-        let customerName = '一般客戶';
-        if (sale.customer) {
-          if (sale.customer.name) {
-            customerName = sale.customer.name.toString();
-          }
-        }
-        
-        return {
-          id: sale._id.toString(), // 修正：確保轉換為字串
-          invoiceNumber: sale.invoiceNumber ? sale.invoiceNumber.toString() : "", // 修正：確保轉換為字串
-          date: sale.date,
-          customerName: customerName,
-          totalAmount: sale.totalAmount,
-          discount: sale.discount,
-          tax: sale.tax,
-          paymentMethod: sale.paymentMethod ? sale.paymentMethod.toString() : "", // 修正：確保轉換為字串
-          paymentStatus: sale.paymentStatus ? sale.paymentStatus.toString() : "", // 修正：確保轉換為字串
-          items: sale.items.map(item => ({
-            productId: item.product._id.toString(), // 修正：確保轉換為字串
-            productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
-            quantity: item.quantity,
-            price: item.price,
-            discount: item.discount,
-            subtotal: item.subtotal
-          }))
-        };
-      });
+      groupedData = formatSalesData(sales);
     }
     
     // 計算總計
@@ -201,145 +130,181 @@ router.get('/sales', async (req, res) => {
   }
 });
 
+// 輔助函數：按日分組銷售數據
+function groupSalesByDay(sales) {
+  const salesByDay = {};
+  
+  sales.forEach(sale => {
+    const dateStr = sale.date.toISOString().split('T')[0];
+    if (!salesByDay[dateStr]) {
+      salesByDay[dateStr] = {
+        date: dateStr,
+        totalAmount: 0,
+        orderCount: 0,
+        items: []
+      };
+    }
+    salesByDay[dateStr].totalAmount += sale.totalAmount;
+    salesByDay[dateStr].orderCount += 1;
+    sale.items.forEach(item => {
+      salesByDay[dateStr].items.push({
+        productId: safeToString(item.product._id),
+        productName: safeToString(item.product.name),
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.subtotal
+      });
+    });
+  });
+  
+  return Object.values(salesByDay);
+}
+
+// 輔助函數：按月分組銷售數據
+function groupSalesByMonth(sales) {
+  const salesByMonth = {};
+  
+  sales.forEach(sale => {
+    const date = new Date(sale.date);
+    const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    if (!salesByMonth[monthStr]) {
+      salesByMonth[monthStr] = {
+        month: monthStr,
+        totalAmount: 0,
+        orderCount: 0,
+        items: []
+      };
+    }
+    salesByMonth[monthStr].totalAmount += sale.totalAmount;
+    salesByMonth[monthStr].orderCount += 1;
+    sale.items.forEach(item => {
+      salesByMonth[monthStr].items.push({
+        productId: safeToString(item.product._id),
+        productName: safeToString(item.product.name),
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.subtotal
+      });
+    });
+  });
+  
+  return Object.values(salesByMonth);
+}
+
+// 輔助函數：按產品分組銷售數據
+function groupSalesByProduct(sales) {
+  const salesByProduct = {};
+  
+  sales.forEach(sale => {
+    sale.items.forEach(item => {
+      const productId = safeToString(item.product._id);
+      if (!salesByProduct[productId]) {
+        salesByProduct[productId] = {
+          productId,
+          productCode: safeToString(item.product.code),
+          productName: safeToString(item.product.name),
+          quantity: 0,
+          revenue: 0,
+          orderCount: 0
+        };
+      }
+      salesByProduct[productId].quantity += item.quantity;
+      salesByProduct[productId].revenue += item.subtotal;
+      salesByProduct[productId].orderCount += 1;
+    });
+  });
+  
+  return Object.values(salesByProduct).sort((a, b) => b.revenue - a.revenue);
+}
+
+// 輔助函數：按客戶分組銷售數據
+function groupSalesByCustomer(sales) {
+  const salesByCustomer = {};
+  
+  sales.forEach(sale => {
+    let customerId = 'anonymous';
+    let customerName = '一般客戶';
+    
+    if (sale.customer) {
+      customerId = safeToString(sale.customer._id);
+      if (sale.customer.name) {
+        customerName = safeToString(sale.customer.name);
+      }
+    }
+    
+    if (!salesByCustomer[customerId]) {
+      salesByCustomer[customerId] = {
+        customerId,
+        customerName,
+        totalAmount: 0,
+        orderCount: 0
+      };
+    }
+    salesByCustomer[customerId].totalAmount += sale.totalAmount;
+    salesByCustomer[customerId].orderCount += 1;
+  });
+  
+  return Object.values(salesByCustomer).sort((a, b) => b.totalAmount - a.totalAmount);
+}
+
+// 輔助函數：格式化銷售數據
+function formatSalesData(sales) {
+  return sales.map(sale => {
+    let customerName = '一般客戶';
+    if (sale.customer && sale.customer.name) {
+      customerName = safeToString(sale.customer.name);
+    }
+    
+    return {
+      id: safeToString(sale._id),
+      invoiceNumber: safeToString(sale.invoiceNumber),
+      date: sale.date,
+      customerName: customerName,
+      totalAmount: sale.totalAmount,
+      discount: sale.discount,
+      tax: sale.tax,
+      paymentMethod: safeToString(sale.paymentMethod),
+      paymentStatus: safeToString(sale.paymentStatus),
+      items: sale.items.map(item => ({
+        productId: safeToString(item.product._id),
+        productName: safeToString(item.product.name),
+        quantity: item.quantity,
+        price: item.price,
+        discount: item.discount,
+        subtotal: item.subtotal
+      }))
+    };
+  });
+}
+
 // @route   GET api/reports/inventory
 // @desc    Get inventory report data
 // @access  Public
 router.get('/inventory', async (req, res) => {
   try {
-    // 獲取查詢參數
-    const { productType, category, supplier, productCode, productName } = req.query;
-    
     // 構建產品查詢條件
-    const productQuery = {};
-    if (productType && (productType === 'product' || productType === 'medicine')) {
-      productQuery.productType = productType.toString(); // 修正：確保轉換為字串
-    }
-    if (category) {
-      productQuery.category = category.toString(); // 修正：確保轉換為字串
-    }
-    if (supplier) {
-      // 修正：確保使用查詢物件包裝參數並轉換為字串
-      productQuery.supplier = mongoose.Types.ObjectId(supplier.toString());
-    }
-    if (productCode) {
-      // 修正：確保轉換為字串並安全處理 $regex
-      productQuery.code = { $regex: productCode.toString(), $options: 'i' };
-    }
-    if (productName) {
-      // 修正：確保轉換為字串並安全處理 $regex
-      productQuery.name = { $regex: productName.toString(), $options: 'i' };
-    }
+    const productQuery = buildProductQuery(req.query);
     
     // 獲取符合條件的產品
     const products = await BaseProduct.find(productQuery).populate('supplier');
-    const productIds = products.map(product => product._id.toString()); // 修正：確保轉換為字串
+    const productIds = products.map(product => safeToString(product._id));
     
     // 獲取這些產品的庫存數據
-    // 修正：確保使用查詢物件包裝參數
     const inventory = await Inventory.find({ 
-      product: { $in: productIds.map(id => id.toString()) } // 修正：確保轉換為字串
+      product: { $in: productIds }
     }).populate({
       path: 'product',
       populate: { path: 'supplier' }
     });
     
     // 處理數據
-    const inventoryData = inventory.map(item => {
-      if (!item.product) {
-        return null;
-      }
-      
-      return {
-        id: item._id.toString(), // 修正：確保轉換為字串
-        productId: item.product._id.toString(), // 修正：確保轉換為字串
-        productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
-        productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
-        category: item.product.category ? item.product.category.toString() : "", // 修正：確保轉換為字串
-        productType: item.product.productType ? item.product.productType.toString() : 'product', // 修正：確保轉換為字串
-        supplier: item.product.supplier ? {
-          id: item.product.supplier._id.toString(), // 修正：確保轉換為字串
-          name: item.product.supplier.name ? item.product.supplier.name.toString() : "" // 修正：確保轉換為字串
-        } : null,
-        quantity: item.quantity,
-        unit: item.product.unit ? item.product.unit.toString() : "", // 修正：確保轉換為字串
-        purchasePrice: item.product.purchasePrice,
-        sellingPrice: item.product.sellingPrice,
-        inventoryValue: item.quantity * item.product.purchasePrice,
-        potentialRevenue: item.quantity * item.product.sellingPrice,
-        potentialProfit: item.quantity * (item.product.sellingPrice - item.product.purchasePrice),
-        totalAmount: item.totalAmount || 0, // 添加 totalAmount 欄位
-        minStock: item.product.minStock,
-        status: item.quantity <= item.product.minStock ? 'low' : 'normal',
-        batchNumber: item.batchNumber ? item.batchNumber.toString() : "", // 修正：確保轉換為字串
-        expiryDate: item.expiryDate,
-        location: item.location ? item.location.toString() : "", // 修正：確保轉換為字串
-        lastUpdated: item.lastUpdated,
-        purchaseOrderNumber: item.purchaseOrderNumber ? item.purchaseOrderNumber.toString() : "", // 修正：確保轉換為字串
-        shippingOrderNumber: item.shippingOrderNumber ? item.shippingOrderNumber.toString() : "", // 修正：確保轉換為字串
-        saleNumber: item.saleNumber ? item.saleNumber.toString() : "", // 修正：確保轉換為字串
-        type: item.type ? item.type.toString() : "" // 修正：確保轉換為字串
-      };
-    }).filter(Boolean);
+    const inventoryData = processInventoryData(inventory);
     
     // 計算總計
-    const totalInventoryValue = inventoryData.reduce((sum, item) => sum + item.inventoryValue, 0);
-    const totalPotentialRevenue = inventoryData.reduce((sum, item) => sum + item.potentialRevenue, 0);
-    const totalPotentialProfit = inventoryData.reduce((sum, item) => sum + item.potentialProfit, 0);
-    const lowStockCount = inventoryData.filter(item => item.status === 'low').length;
+    const summary = calculateInventorySummary(inventoryData);
     
-    // 按類別分組
-    const categoryGroups = {};
-    inventoryData.forEach(item => {
-      if (!categoryGroups[item.category]) {
-        categoryGroups[item.category] = {
-          category: item.category,
-          itemCount: 0,
-          totalQuantity: 0,
-          inventoryValue: 0,
-          potentialRevenue: 0,
-          potentialProfit: 0
-        };
-      }
-      
-      categoryGroups[item.category].itemCount += 1;
-      categoryGroups[item.category].totalQuantity += item.quantity;
-      categoryGroups[item.category].inventoryValue += item.inventoryValue;
-      categoryGroups[item.category].potentialRevenue += item.potentialRevenue;
-      categoryGroups[item.category].potentialProfit += item.potentialProfit;
-    });
-    
-    // 按產品類型分組
-    const productTypeGroups = {
-      product: {
-        type: 'product',
-        label: '商品',
-        itemCount: 0,
-        totalQuantity: 0,
-        inventoryValue: 0,
-        potentialRevenue: 0,
-        potentialProfit: 0
-      },
-      medicine: {
-        type: 'medicine',
-        label: '藥品',
-        itemCount: 0,
-        totalQuantity: 0,
-        inventoryValue: 0,
-        potentialRevenue: 0,
-        potentialProfit: 0
-      }
-    };
-    
-    inventoryData.forEach(item => {
-      const type = item.productType || 'product';
-      if (productTypeGroups[type]) {
-        productTypeGroups[type].itemCount += 1;
-        productTypeGroups[type].totalQuantity += item.quantity;
-        productTypeGroups[type].inventoryValue += item.inventoryValue;
-        productTypeGroups[type].potentialRevenue += item.potentialRevenue;
-        productTypeGroups[type].potentialProfit += item.potentialProfit;
-      }
-    });
+    // 按類別和產品類型分組
+    const { categoryGroups, productTypeGroups } = groupInventoryData(inventoryData);
     
     // 獲取所有供應商和類別，用於前端篩選器
     const allSuppliers = await Supplier.find({}, 'name');
@@ -347,13 +312,7 @@ router.get('/inventory', async (req, res) => {
     
     res.json({
       data: inventoryData,
-      summary: {
-        totalItems: inventoryData.length,
-        totalInventoryValue,
-        totalPotentialRevenue,
-        totalPotentialProfit,
-        lowStockCount
-      },
+      summary,
       categoryGroups: Object.values(categoryGroups),
       productTypeGroups: Object.values(productTypeGroups),
       filters: {
@@ -367,47 +326,141 @@ router.get('/inventory', async (req, res) => {
   }
 });
 
+// 輔助函數：處理庫存數據
+function processInventoryData(inventory) {
+  return inventory.map(item => {
+    if (!item.product) {
+      return null;
+    }
+    
+    return {
+      id: safeToString(item._id),
+      productId: safeToString(item.product._id),
+      productCode: safeToString(item.product.code),
+      productName: safeToString(item.product.name),
+      category: safeToString(item.product.category),
+      productType: safeToString(item.product.productType, 'product'),
+      supplier: item.product.supplier ? {
+        id: safeToString(item.product.supplier._id),
+        name: safeToString(item.product.supplier.name)
+      } : null,
+      quantity: item.quantity,
+      unit: safeToString(item.product.unit),
+      purchasePrice: item.product.purchasePrice,
+      sellingPrice: item.product.sellingPrice,
+      inventoryValue: item.quantity * item.product.purchasePrice,
+      potentialRevenue: item.quantity * item.product.sellingPrice,
+      potentialProfit: item.quantity * (item.product.sellingPrice - item.product.purchasePrice),
+      totalAmount: item.totalAmount || 0,
+      minStock: item.product.minStock,
+      status: item.quantity <= item.product.minStock ? 'low' : 'normal',
+      batchNumber: safeToString(item.batchNumber),
+      expiryDate: item.expiryDate,
+      location: safeToString(item.location),
+      lastUpdated: item.lastUpdated,
+      purchaseOrderNumber: safeToString(item.purchaseOrderNumber),
+      shippingOrderNumber: safeToString(item.shippingOrderNumber),
+      saleNumber: safeToString(item.saleNumber),
+      type: safeToString(item.type)
+    };
+  }).filter(Boolean);
+}
+
+// 輔助函數：計算庫存摘要
+function calculateInventorySummary(inventoryData) {
+  const totalInventoryValue = inventoryData.reduce((sum, item) => sum + item.inventoryValue, 0);
+  const totalPotentialRevenue = inventoryData.reduce((sum, item) => sum + item.potentialRevenue, 0);
+  const totalPotentialProfit = inventoryData.reduce((sum, item) => sum + item.potentialProfit, 0);
+  const lowStockCount = inventoryData.filter(item => item.status === 'low').length;
+  
+  return {
+    totalItems: inventoryData.length,
+    totalInventoryValue,
+    totalPotentialRevenue,
+    totalPotentialProfit,
+    lowStockCount
+  };
+}
+
+// 輔助函數：按類別和產品類型分組庫存數據
+function groupInventoryData(inventoryData) {
+  // 按類別分組
+  const categoryGroups = {};
+  
+  // 按產品類型分組
+  const productTypeGroups = {
+    product: {
+      type: 'product',
+      label: '商品',
+      itemCount: 0,
+      totalQuantity: 0,
+      inventoryValue: 0,
+      potentialRevenue: 0,
+      potentialProfit: 0
+    },
+    medicine: {
+      type: 'medicine',
+      label: '藥品',
+      itemCount: 0,
+      totalQuantity: 0,
+      inventoryValue: 0,
+      potentialRevenue: 0,
+      potentialProfit: 0
+    }
+  };
+  
+  inventoryData.forEach(item => {
+    // 按類別分組
+    if (!categoryGroups[item.category]) {
+      categoryGroups[item.category] = {
+        category: item.category,
+        itemCount: 0,
+        totalQuantity: 0,
+        inventoryValue: 0,
+        potentialRevenue: 0,
+        potentialProfit: 0
+      };
+    }
+    
+    categoryGroups[item.category].itemCount += 1;
+    categoryGroups[item.category].totalQuantity += item.quantity;
+    categoryGroups[item.category].inventoryValue += item.inventoryValue;
+    categoryGroups[item.category].potentialRevenue += item.potentialRevenue;
+    categoryGroups[item.category].potentialProfit += item.potentialProfit;
+    
+    // 按產品類型分組
+    const type = item.productType || 'product';
+    if (productTypeGroups[type]) {
+      productTypeGroups[type].itemCount += 1;
+      productTypeGroups[type].totalQuantity += item.quantity;
+      productTypeGroups[type].inventoryValue += item.inventoryValue;
+      productTypeGroups[type].potentialRevenue += item.potentialRevenue;
+      productTypeGroups[type].potentialProfit += item.potentialProfit;
+    }
+  });
+  
+  return { categoryGroups, productTypeGroups };
+}
+
 // @route   GET api/reports/inventory/profit-loss
 // @desc    Get inventory profit-loss data by purchase order
 // @access  Public
 router.get('/inventory/profit-loss', async (req, res) => {
   try {
-    // 獲取查詢參數
-    const { productType, category, supplier, productCode, productName } = req.query;
-    
     // 構建產品查詢條件
-    const productQuery = {};
-    if (productType && (productType === 'product' || productType === 'medicine')) {
-      productQuery.productType = productType.toString(); // 修正：確保轉換為字串
-    }
-    if (category) {
-      productQuery.category = category.toString(); // 修正：確保轉換為字串
-    }
-    if (supplier) {
-      // 修正：確保使用查詢物件包裝參數並轉換為字串
-      productQuery.supplier = mongoose.Types.ObjectId(supplier.toString());
-    }
-    if (productCode) {
-      // 修正：確保轉換為字串並安全處理 $regex
-      productQuery.code = { $regex: productCode.toString(), $options: 'i' };
-    }
-    if (productName) {
-      // 修正：確保轉換為字串並安全處理 $regex
-      productQuery.name = { $regex: productName.toString(), $options: 'i' };
-    }
+    const productQuery = buildProductQuery(req.query);
     
     // 獲取符合條件的產品
     const products = await BaseProduct.find(productQuery);
-    const productIds = products.map(product => product._id.toString()); // 修正：確保轉換為字串
+    const productIds = products.map(product => safeToString(product._id));
     
     // 獲取這些產品的庫存數據
-    // 修正：確保使用查詢物件包裝參數
     const inventory = await Inventory.find({ 
-      product: { $in: productIds.map(id => id.toString()) }, // 修正：確保轉換為字串
+      product: { $in: productIds },
       purchaseOrderNumber: { $exists: true, $ne: null }
     }).populate('product');
     
-    // 重構：將處理邏輯拆分為更小的函數，降低複雜度
+    // 處理按照貨單單號分組並計算盈虧
     const profitLossByPO = processProfitLossByPurchaseOrder(inventory);
     
     // 轉換為數組並排序
@@ -436,7 +489,7 @@ function processProfitLossByPurchaseOrder(inventory) {
   inventory.forEach(item => {
     if (!item.product) return;
     
-    const poNumber = item.purchaseOrderNumber ? item.purchaseOrderNumber.toString() : null; // 修正：確保轉換為字串
+    const poNumber = safeToString(item.purchaseOrderNumber);
     if (!poNumber) return;
     
     if (!profitLossByPO[poNumber]) {
@@ -460,29 +513,35 @@ function processProfitLossByPurchaseOrder(inventory) {
     profitLossByPO[poNumber].profitLoss += profit;
     
     profitLossByPO[poNumber].items.push({
-      productId: item.product._id.toString(), // 修正：確保轉換為字串
-      productCode: item.product.code ? item.product.code.toString() : "", // 修正：確保轉換為字串
-      productName: item.product.name ? item.product.name.toString() : "", // 修正：確保轉換為字串
+      productId: safeToString(item.product._id),
+      productCode: safeToString(item.product.code),
+      productName: safeToString(item.product.name),
       quantity: item.quantity,
       purchasePrice: item.product.purchasePrice,
       sellingPrice: item.product.sellingPrice,
-      cost,
-      revenue,
-      profit
+      cost: cost,
+      revenue: revenue,
+      profit: profit
     });
   });
   
   return profitLossByPO;
 }
 
-// 輔助函數：計算盈虧總計
+// 輔助函數：計算盈虧摘要
 function calculateProfitLossSummary(profitLossData) {
+  const totalQuantity = profitLossData.reduce((sum, item) => sum + item.totalQuantity, 0);
+  const totalCost = profitLossData.reduce((sum, item) => sum + item.totalCost, 0);
+  const totalRevenue = profitLossData.reduce((sum, item) => sum + item.totalRevenue, 0);
+  const totalProfit = profitLossData.reduce((sum, item) => sum + item.profitLoss, 0);
+  
   return {
     totalPurchaseOrders: profitLossData.length,
-    totalQuantity: profitLossData.reduce((sum, po) => sum + po.totalQuantity, 0),
-    totalCost: profitLossData.reduce((sum, po) => sum + po.totalCost, 0),
-    totalRevenue: profitLossData.reduce((sum, po) => sum + po.totalRevenue, 0),
-    totalProfitLoss: profitLossData.reduce((sum, po) => sum + po.profitLoss, 0)
+    totalQuantity,
+    totalCost,
+    totalRevenue,
+    totalProfit,
+    profitMargin: totalCost > 0 ? (totalProfit / totalCost) * 100 : 0
   };
 }
 
