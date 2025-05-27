@@ -58,7 +58,7 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(400).json({ msg: '無效的員工ID格式' });
     }
 
-    const employee = await Employee.findById(req.params.id);
+    const employee = await Employee.findOne({ _id: req.params.id.toString() });
 
     if (!employee) {
       return res.status(404).json({ msg: '找不到此員工資料' });
@@ -100,7 +100,7 @@ router.post(
 
     try {
       // 檢查身分證號碼是否已存在
-      let employee = await Employee.findOne({ idNumber: req.body.idNumber });
+      let employee = await Employee.findOne({ idNumber: req.body.idNumber.toString() });
       if (employee) {
         return res.status(400).json({ msg: '此身分證號碼已存在' });
       }
@@ -171,7 +171,7 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(400).json({ msg: '無效的員工ID格式' });
     }
 
-    const employee = await Employee.findById(req.params.id);
+    const employee = await Employee.findOne({ _id: req.params.id.toString() });
 
     if (!employee) {
       return res.status(404).json({ msg: '找不到此員工資料' });
@@ -186,7 +186,7 @@ router.put('/:id', auth, async (req, res) => {
       
       // 使用參數化查詢，避免直接將用戶輸入傳入查詢
       const idNumberToCheck = String(req.body.idNumber).trim();
-      const existingEmployee = await Employee.findOne({ idNumber: idNumberToCheck });
+      const existingEmployee = await Employee.findOne({ idNumber: idNumberToCheck.toString() });
       if (existingEmployee) {
         return res.status(400).json({ msg: '此身分證號碼已存在' });
       }
@@ -212,8 +212,8 @@ router.put('/:id', auth, async (req, res) => {
     updatedFields.updatedAt = Date.now();
 
     // 使用參數化查詢和安全的更新操作
-    const updatedEmployee = await Employee.findByIdAndUpdate(
-      req.params.id,
+    const updatedEmployee = await Employee.findOneAndUpdate(
+      { _id: req.params.id.toString() },
       { $set: updatedFields },
       { new: true, runValidators: true }
     );
@@ -238,13 +238,13 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(400).json({ msg: '無效的員工ID格式' });
     }
 
-    const employee = await Employee.findById(req.params.id);
+    const employee = await Employee.findOne({ _id: req.params.id.toString() });
 
     if (!employee) {
       return res.status(404).json({ msg: '找不到此員工資料' });
     }
 
-    await Employee.findByIdAndDelete(req.params.id);
+    await Employee.findOneAndDelete({ _id: req.params.id.toString() });
     res.json({ msg: '員工資料已刪除' });
   } catch (err) {
     console.error(err.message);
