@@ -92,49 +92,108 @@ router.post(
   }
 );
 
+// 檢查客戶是否存在
+async function checkCustomerExists(customerId) {
+  if (!customerId) return { exists: true };
+  
+  const customerExists = await Customer.findOne({ _id: customerId.toString() });
+  if (!customerExists) {
+    return { 
+      exists: false, 
+      error: { 
+        success: false, 
+        statusCode: 404, 
+        message: '客戶不存在' 
+      }
+    };
+  }
+  
+  return { exists: true };
+}
+
+// 檢查產品是否存在
+async function checkProductExists(productId) {
+  const product = await BaseProduct.findOne({ _id: productId.toString() });
+  if (!product) {
+    return { 
+      exists: false, 
+      error: { 
+        success: false, 
+        statusCode: 404, 
+        message: `產品ID ${productId} 不存在` 
+      }
+    };
+  }
+  
+  return { exists: true, product };
+}
+
+// 檢查產品庫存
+async function checkProductInventory(product, quantity) {
+  try {
+    // 獲取所有庫存記錄
+    const inventories = await Inventory.find({ product: product._id.toString() }).lean();
+    console.log(`找到 ${inventories.length} 個庫存記錄`);
+    
+    // 計算總庫存量
+    let totalQuantity = calculateTotalInventory(inventories);
+    
+    console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
+    
+    // 不再檢查庫存是否足夠，允許負庫存
+    if (totalQuantity < quantity) {
+      console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
+    }
+    
+    return { success: true };
+  } catch (err) {
+    console.error(`庫存檢查錯誤:`, err);
+    return { 
+      success: false, 
+      error: { 
+        success: false, 
+        statusCode: 500, 
+        message: `庫存檢查錯誤: ${err.message}` 
+      }
+    };
+  }
+}
+
+// 計算總庫存量
+function calculateTotalInventory(inventories) {
+  let totalQuantity = 0;
+  for (const inv of inventories) {
+    totalQuantity += inv.quantity;
+    console.log(`庫存記錄: ${inv._id}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
+  }
+  return totalQuantity;
+}
+
 // 驗證銷售創建請求
 async function validateSaleCreationRequest(requestBody) {
   const { customer, items } = requestBody;
   
   // 檢查客戶是否存在
-  if (customer) {
-    const customerExists = await Customer.findOne({ _id: customer.toString() });
-    if (!customerExists) {
-      return { success: false, statusCode: 404, message: '客戶不存在' };
-    }
+  const customerCheck = await checkCustomerExists(customer);
+  if (!customerCheck.exists) {
+    return customerCheck.error;
   }
   
   // 檢查所有產品是否存在
   for (const item of items) {
-    const product = await BaseProduct.findOne({ _id: item.product.toString() });
-    if (!product) {
-      return { success: false, statusCode: 404, message: `產品ID ${item.product} 不存在` };
+    // 檢查產品是否存在
+    const productCheck = await checkProductExists(item.product);
+    if (!productCheck.exists) {
+      return productCheck.error;
     }
     
     // 記錄當前庫存量，但不限制負庫存
-    console.log(`檢查產品ID: ${item.product}, 名稱: ${product.name}`);
+    console.log(`檢查產品ID: ${item.product}, 名稱: ${productCheck.product.name}`);
     
-    try {
-      // 獲取所有庫存記錄
-      const inventories = await Inventory.find({ product: item.product.toString() }).lean();
-      console.log(`找到 ${inventories.length} 個庫存記錄`);
-      
-      // 計算總庫存量
-      let totalQuantity = 0;
-      for (const inv of inventories) {
-        totalQuantity += inv.quantity;
-        console.log(`庫存記錄: ${inv._id}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
-      }
-      
-      console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，銷售數量: ${item.quantity}`);
-      
-      // 不再檢查庫存是否足夠，允許負庫存
-      if (totalQuantity < item.quantity) {
-        console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${item.quantity}，將允許負庫存`);
-      }
-    } catch (err) {
-      console.error(`庫存檢查錯誤:`, err);
-      return { success: false, statusCode: 500, message: `庫存檢查錯誤: ${err.message}` };
+    // 檢查產品庫存
+    const inventoryCheck = await checkProductInventory(productCheck.product, item.quantity);
+    if (!inventoryCheck.success) {
+      return inventoryCheck.error;
     }
   }
   
@@ -146,61 +205,78 @@ async function createSaleRecord(requestBody) {
   const { saleNumber, customer, items, totalAmount, discount, paymentMethod, paymentStatus, note, cashier } = requestBody;
   
   // 生成銷貨單號（如果未提供）
-  let finalSaleNumber = saleNumber;
-  if (!finalSaleNumber) {
-    // 使用通用訂單單號生成服務
-    finalSaleNumber = await OrderNumberService.generateSaleOrderNumber();
-  }
+  const finalSaleNumber = await generateSaleNumber(saleNumber);
   
   // 建立銷售記錄
-  const saleFields = {
-    saleNumber: finalSaleNumber ? finalSaleNumber.toString() : '',
-    items,
-    totalAmount,
-  };
-  if (customer) saleFields.customer = customer.toString();
-  if (discount) saleFields.discount = discount;
-  if (paymentMethod) saleFields.paymentMethod = paymentMethod ? paymentMethod.toString() : '';
-  if (paymentStatus) saleFields.paymentStatus = paymentStatus ? paymentStatus.toString() : '';
-  if (note) saleFields.note = note ? note.toString() : '';
-  if (cashier) saleFields.cashier = cashier ? cashier.toString() : '';
+  const saleFields = buildSaleFields(finalSaleNumber, customer, items, totalAmount, discount, paymentMethod, paymentStatus, note, cashier);
 
   const sale = new Sale(saleFields);
   await sale.save();
   return sale;
 }
 
+// 生成銷貨單號
+async function generateSaleNumber(saleNumber) {
+  if (saleNumber) return saleNumber;
+  
+  // 使用通用訂單單號生成服務
+  return await OrderNumberService.generateSaleOrderNumber();
+}
+
+// 建立銷售記錄欄位
+function buildSaleFields(saleNumber, customer, items, totalAmount, discount, paymentMethod, paymentStatus, note, cashier) {
+  const saleFields = {
+    saleNumber: saleNumber ? saleNumber.toString() : '',
+    items,
+    totalAmount,
+  };
+  
+  if (customer) saleFields.customer = customer.toString();
+  if (discount) saleFields.discount = discount;
+  if (paymentMethod) saleFields.paymentMethod = paymentMethod ? paymentMethod.toString() : '';
+  if (paymentStatus) saleFields.paymentStatus = paymentStatus ? paymentStatus.toString() : '';
+  if (note) saleFields.note = note ? note.toString() : '';
+  if (cashier) saleFields.cashier = cashier ? cashier.toString() : '';
+  
+  return saleFields;
+}
+
 // 處理新銷售的庫存變更
 async function handleInventoryForNewSale(sale) {
   // 為每個銷售項目創建負數庫存記錄
   for (const item of sale.items) {
-    const inventoryRecord = new Inventory({
-      product: item.product.toString(),
-      quantity: -item.quantity, // 負數表示庫存減少
-      totalAmount: Number(item.subtotal), // 添加totalAmount字段
-      saleNumber: sale.saleNumber.toString(), // 添加銷貨單號
-      type: 'sale',
-      saleId: sale._id.toString(),
-      lastUpdated: Date.now()
-    });
-    
-    await inventoryRecord.save();
-    console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal}`);
+    await createInventoryRecord(item, sale);
   }
+}
+
+// 創建庫存記錄
+async function createInventoryRecord(item, sale) {
+  const inventoryRecord = new Inventory({
+    product: item.product.toString(),
+    quantity: -item.quantity, // 負數表示庫存減少
+    totalAmount: Number(item.subtotal), // 添加totalAmount字段
+    saleNumber: sale.saleNumber.toString(), // 添加銷貨單號
+    type: 'sale',
+    saleId: sale._id.toString(),
+    lastUpdated: Date.now()
+  });
+  
+  await inventoryRecord.save();
+  console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal}`);
 }
 
 // 更新客戶積分
 async function updateCustomerPoints(sale) {
   // 如果有客戶，更新客戶積分
-  if (sale.customer) {
-    const customerToUpdate = await Customer.findOne({ _id: sale.customer.toString() });
-    if (customerToUpdate) {
-      // 假設每消費100元獲得1點積分
-      const pointsToAdd = Math.floor(sale.totalAmount / 100);
-      customerToUpdate.points = (customerToUpdate.points || 0) + pointsToAdd;
-      await customerToUpdate.save();
-    }
-  }
+  if (!sale.customer) return;
+  
+  const customerToUpdate = await Customer.findOne({ _id: sale.customer.toString() });
+  if (!customerToUpdate) return;
+  
+  // 假設每消費100元獲得1點積分
+  const pointsToAdd = Math.floor(sale.totalAmount / 100);
+  customerToUpdate.points = (customerToUpdate.points || 0) + pointsToAdd;
+  await customerToUpdate.save();
 }
 
 // @route   PUT api/sales/:id
@@ -217,7 +293,6 @@ router.put('/:id', [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  // 重構：將複雜函數拆分為更小的部分
   try {
     // 1. 驗證請求和檢查記錄是否存在
     const saleData = await validateSaleUpdateRequest(req);
@@ -244,63 +319,108 @@ router.put('/:id', [
   }
 });
 
+// 檢查銷售記錄是否存在
+async function checkSaleExists(saleId) {
+  const sale = await Sale.findOne({ _id: saleId.toString() });
+  if (!sale) {
+    return { 
+      exists: false, 
+      error: { 
+        success: false, 
+        statusCode: 404, 
+        message: '銷售記錄不存在' 
+      }
+    };
+  }
+  
+  return { exists: true, sale };
+}
+
+// 檢查產品額外庫存
+async function checkAdditionalInventory(product, originalQuantity, newQuantity) {
+  // 如果新數量不大於原始數量，不需要檢查額外庫存
+  if (newQuantity <= originalQuantity) {
+    return { success: true };
+  }
+  
+  const additionalQuantity = newQuantity - originalQuantity;
+  console.log(`產品 ${product.name} 需要額外 ${additionalQuantity} 個庫存`);
+  
+  try {
+    // 獲取所有庫存記錄
+    const inventories = await Inventory.find({ product: product._id.toString() }).lean();
+    console.log(`找到 ${inventories.length} 個庫存記錄`);
+    
+    // 計算總庫存量
+    let totalQuantity = calculateTotalInventory(inventories);
+    
+    console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，需要額外: ${additionalQuantity}`);
+    
+    // 不再檢查庫存是否足夠，允許負庫存
+    if (totalQuantity < additionalQuantity) {
+      console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${additionalQuantity}，將允許負庫存`);
+    }
+    
+    return { success: true };
+  } catch (err) {
+    console.error(`庫存檢查錯誤:`, err);
+    return { 
+      success: false, 
+      error: { 
+        success: false, 
+        statusCode: 500, 
+        message: `庫存檢查錯誤: ${err.message}` 
+      }
+    };
+  }
+}
+
+// 查找原始項目
+function findOriginalItem(originalItems, productId) {
+  const originalItem = originalItems.find(oi => oi.product.toString() === productId.toString());
+  return originalItem ? originalItem.quantity : 0;
+}
+
 // 驗證銷售更新請求
 async function validateSaleUpdateRequest(req) {
   const { customer, items } = req.body;
 
   // 檢查銷售記錄是否存在
-  const sale = await Sale.findOne({ _id: req.params.id.toString() });
-  if (!sale) {
-    return { success: false, statusCode: 404, message: '銷售記錄不存在' };
+  const saleCheck = await checkSaleExists(req.params.id);
+  if (!saleCheck.exists) {
+    return saleCheck.error;
   }
+  
+  const sale = saleCheck.sale;
 
   // 檢查客戶是否存在
-  if (customer) {
-    const customerExists = await Customer.findOne({ _id: customer.toString() });
-    if (!customerExists) {
-      return { success: false, statusCode: 404, message: '客戶不存在' };
-    }
+  const customerCheck = await checkCustomerExists(customer);
+  if (!customerCheck.exists) {
+    return customerCheck.error;
   }
 
   // 檢查所有產品是否存在並檢查庫存
   const originalItems = [...sale.items];
+  
   for (const item of items) {
-    const product = await BaseProduct.findOne({ _id: item.product.toString() });
-    if (!product) {
-      return { success: false, statusCode: 404, message: `產品ID ${item.product} 不存在` };
+    // 檢查產品是否存在
+    const productCheck = await checkProductExists(item.product);
+    if (!productCheck.exists) {
+      return productCheck.error;
     }
     
     // 查找原始項目中是否存在該產品
-    const originalItem = originalItems.find(oi => oi.product.toString() === item.product.toString());
-    const originalQuantity = originalItem ? originalItem.quantity : 0;
+    const originalQuantity = findOriginalItem(originalItems, item.product);
     
-    // 如果新數量大於原始數量，檢查額外庫存
-    if (item.quantity > originalQuantity) {
-      const additionalQuantity = item.quantity - originalQuantity;
-      console.log(`產品 ${product.name} 需要額外 ${additionalQuantity} 個庫存`);
-      
-      try {
-        // 獲取所有庫存記錄
-        const inventories = await Inventory.find({ product: item.product.toString() }).lean();
-        console.log(`找到 ${inventories.length} 個庫存記錄`);
-        
-        // 計算總庫存量
-        let totalQuantity = 0;
-        for (const inv of inventories) {
-          totalQuantity += inv.quantity;
-          console.log(`庫存記錄: ${inv._id}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
-        }
-        
-        console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，需要額外: ${additionalQuantity}`);
-        
-        // 不再檢查庫存是否足夠，允許負庫存
-        if (totalQuantity < additionalQuantity) {
-          console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${additionalQuantity}，將允許負庫存`);
-        }
-      } catch (err) {
-        console.error(`庫存檢查錯誤:`, err);
-        return { success: false, statusCode: 500, message: `庫存檢查錯誤: ${err.message}` };
-      }
+    // 檢查額外庫存
+    const inventoryCheck = await checkAdditionalInventory(
+      productCheck.product, 
+      originalQuantity, 
+      item.quantity
+    );
+    
+    if (!inventoryCheck.success) {
+      return inventoryCheck.error;
     }
   }
 
@@ -321,18 +441,18 @@ async function updateSaleRecord(saleId, requestBody) {
     cashier
   } = requestBody;
 
-  // 更新銷售記錄
-  const saleFields = {
-    saleNumber: saleNumber ? saleNumber.toString() : '',
-    items,
-    totalAmount,
-  };
-  if (customer) saleFields.customer = customer.toString();
-  if (discount) saleFields.discount = discount;
-  if (paymentMethod) saleFields.paymentMethod = paymentMethod ? paymentMethod.toString() : '';
-  if (paymentStatus) saleFields.paymentStatus = paymentStatus ? paymentStatus.toString() : '';
-  if (note) saleFields.note = note ? note.toString() : '';
-  if (cashier) saleFields.cashier = cashier ? cashier.toString() : '';
+  // 建立銷售記錄欄位
+  const saleFields = buildSaleFields(
+    saleNumber, 
+    customer, 
+    items, 
+    totalAmount, 
+    discount, 
+    paymentMethod, 
+    paymentStatus, 
+    note, 
+    cashier
+  );
 
   // 更新銷售記錄
   const sale = await Sale.findOne({ _id: saleId.toString() });
@@ -346,9 +466,8 @@ async function updateSaleRecord(saleId, requestBody) {
   return sale;
 }
 
-// 處理庫存變更
-async function handleInventoryChanges(sale) {
-  // 1. 刪除與此銷售相關的所有庫存記錄
+// 刪除與銷售相關的庫存記錄
+async function deleteRelatedInventoryRecords(sale) {
   try {
     const deletedRecords = await Inventory.deleteMany({ 
       saleId: sale._id.toString(),
@@ -364,22 +483,13 @@ async function handleInventoryChanges(sale) {
     console.error(`刪除庫存記錄時出錯:`, err);
     throw new Error(`刪除庫存記錄時出錯: ${err.message}`);
   }
+}
 
-  // 2. 為每個銷售項目創建新的負數庫存記錄
+// 創建新的庫存記錄
+async function createNewInventoryRecords(sale) {
   try {
     for (const item of sale.items) {
-      const inventoryRecord = new Inventory({
-        product: item.product.toString(),
-        quantity: -item.quantity, // 負數表示庫存減少
-        totalAmount: Number(item.subtotal), // 添加totalAmount字段
-        saleNumber: sale.saleNumber.toString(), // 添加銷貨單號
-        type: 'sale',
-        saleId: sale._id.toString(),
-        lastUpdated: Date.now()
-      });
-      
-      await inventoryRecord.save();
-      console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal}`);
+      await createInventoryRecord(item, sale);
     }
   } catch (err) {
     console.error(`創建新庫存記錄時出錯:`, err);
@@ -387,34 +497,53 @@ async function handleInventoryChanges(sale) {
   }
 }
 
+// 處理庫存變更
+async function handleInventoryChanges(sale) {
+  // 1. 刪除與此銷售相關的所有庫存記錄
+  await deleteRelatedInventoryRecords(sale);
+
+  // 2. 為每個銷售項目創建新的負數庫存記錄
+  await createNewInventoryRecords(sale);
+}
+
+// 扣除原始客戶積分
+async function deductOriginalCustomerPoints(originalCustomerId, originalAmount) {
+  if (!originalCustomerId) return;
+  
+  const originalCustomer = await Customer.findOne({ _id: originalCustomerId.toString() });
+  if (!originalCustomer) return;
+  
+  const pointsToDeduct = Math.floor(originalAmount / 100);
+  originalCustomer.points = Math.max(0, (originalCustomer.points || 0) - pointsToDeduct);
+  await originalCustomer.save();
+  console.log(`從客戶 ${originalCustomer._id} 扣除 ${pointsToDeduct} 積分`);
+}
+
+// 添加新客戶積分
+async function addNewCustomerPoints(newCustomerId, newAmount) {
+  if (!newCustomerId) return;
+  
+  const newCustomer = await Customer.findOne({ _id: newCustomerId.toString() });
+  if (!newCustomer) return;
+  
+  const pointsToAdd = Math.floor(newAmount / 100);
+  newCustomer.points = (newCustomer.points || 0) + pointsToAdd;
+  await newCustomer.save();
+  console.log(`為客戶 ${newCustomer._id} 添加 ${pointsToAdd} 積分`);
+}
+
 // 處理客戶積分變更
 async function handleCustomerPointsChanges(sale, requestBody) {
   const { customer, totalAmount } = requestBody;
   
   // 如果客戶發生變更或總金額發生變更，需要調整積分
-  if (sale.customer || customer) {
-    // 如果原始銷售有客戶，扣除原始積分
-    if (sale.customer) {
-      const originalCustomer = await Customer.findOne({ _id: sale.customer.toString() });
-      if (originalCustomer) {
-        const pointsToDeduct = Math.floor(sale.totalAmount / 100);
-        originalCustomer.points = Math.max(0, (originalCustomer.points || 0) - pointsToDeduct);
-        await originalCustomer.save();
-        console.log(`從客戶 ${originalCustomer._id} 扣除 ${pointsToDeduct} 積分`);
-      }
-    }
-    
-    // 如果新銷售有客戶，添加新積分
-    if (customer) {
-      const newCustomer = await Customer.findOne({ _id: customer.toString() });
-      if (newCustomer) {
-        const pointsToAdd = Math.floor(totalAmount / 100);
-        newCustomer.points = (newCustomer.points || 0) + pointsToAdd;
-        await newCustomer.save();
-        console.log(`為客戶 ${newCustomer._id} 添加 ${pointsToAdd} 積分`);
-      }
-    }
-  }
+  if (!sale.customer && !customer) return;
+  
+  // 如果原始銷售有客戶，扣除原始積分
+  await deductOriginalCustomerPoints(sale.customer, sale.totalAmount);
+  
+  // 如果新銷售有客戶，添加新積分
+  await addNewCustomerPoints(customer, totalAmount);
 }
 
 // @route   DELETE api/sales/:id
