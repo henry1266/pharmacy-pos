@@ -8,9 +8,11 @@
  * 3. 支持不同類型訂單的特定配置
  * 4. 易於維護和擴展
  */
-
 const OrderNumberGenerator = require('./OrderNumberGenerator');
 const mongoose = require('mongoose');
+
+// 定義允許的訂單類型白名單
+const ALLOWED_ORDER_TYPES = ['purchase', 'shipping', 'sale'];
 
 class OrderNumberService {
   /**
@@ -98,13 +100,36 @@ class OrderNumberService {
   }
 
   /**
+   * 驗證訂單類型是否合法
+   * @param {string} type - 訂單類型
+   * @returns {boolean} 是否合法
+   * @private
+   */
+  static _validateOrderType(type) {
+    if (!type || typeof type !== 'string') {
+      return false;
+    }
+    
+    const normalizedType = type.toString().toLowerCase().trim();
+    return ALLOWED_ORDER_TYPES.includes(normalizedType);
+  }
+
+  /**
    * 生成通用訂單號
    * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
    * @param {Object} options - 可選配置參數
    * @returns {Promise<string>} 生成的訂單號
+   * @throws {Error} 如果訂單類型不合法
    */
   static async generateOrderNumber(type, options = {}) {
-    switch (type.toString().toLowerCase()) {
+    // 驗證訂單類型
+    if (!this._validateOrderType(type)) {
+      throw new Error(`不支持的訂單類型: ${type}`);
+    }
+    
+    const normalizedType = type.toString().toLowerCase().trim();
+    
+    switch (normalizedType) {
       case 'purchase':
         return await this.generatePurchaseOrderNumber(options);
       case 'shipping':
@@ -112,7 +137,8 @@ class OrderNumberService {
       case 'sale':
         return await this.generateSaleOrderNumber(options);
       default:
-        throw new Error(`不支持的訂單類型: ${type.toString()}`);
+        // 這裡不應該被執行，因為已經通過了_validateOrderType檢查
+        throw new Error(`不支持的訂單類型: ${normalizedType}`);
     }
   }
 
@@ -121,13 +147,21 @@ class OrderNumberService {
    * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
    * @param {string} orderNumber - 要檢查的訂單號
    * @returns {Promise<boolean>} 是否唯一
+   * @throws {Error} 如果訂單類型不合法
    */
   static async isOrderNumberUnique(type, orderNumber) {
     try {
+      // 驗證訂單類型
+      if (!this._validateOrderType(type)) {
+        throw new Error(`不支持的訂單類型: ${type}`);
+      }
+      
+      const normalizedType = type.toString().toLowerCase().trim();
+      
       let Model;
       let field;
       
-      switch (type.toString().toLowerCase()) {
+      switch (normalizedType) {
         case 'purchase':
           Model = mongoose.model('purchaseorder');
           field = 'poid';
@@ -141,7 +175,8 @@ class OrderNumberService {
           field = 'saleNumber';
           break;
         default:
-          throw new Error(`不支持的訂單類型: ${type.toString()}`);
+          // 這裡不應該被執行，因為已經通過了_validateOrderType檢查
+          throw new Error(`不支持的訂單類型: ${normalizedType}`);
       }
       
       const query = {};
@@ -160,16 +195,25 @@ class OrderNumberService {
    * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
    * @param {string} baseOrderNumber - 基礎訂單號
    * @returns {Promise<string>} 唯一的訂單號
+   * @throws {Error} 如果訂單類型不合法
    */
   static async generateUniqueOrderNumber(type, baseOrderNumber) {
-    let orderNumber = baseOrderNumber.toString();
+    // 驗證訂單類型
+    if (!this._validateOrderType(type)) {
+      throw new Error(`不支持的訂單類型: ${type}`);
+    }
+    
+    const normalizedType = type.toString().toLowerCase().trim();
+    const safeBaseOrderNumber = baseOrderNumber.toString();
+    
+    let orderNumber = safeBaseOrderNumber;
     let counter = 1;
     let isUnique = false;
     
     while (!isUnique) {
-      isUnique = await this.isOrderNumberUnique(type.toString(), orderNumber);
+      isUnique = await this.isOrderNumberUnique(normalizedType, orderNumber);
       if (!isUnique) {
-        orderNumber = `${baseOrderNumber.toString()}-${counter}`;
+        orderNumber = `${safeBaseOrderNumber}-${counter}`;
         counter++;
       }
     }
