@@ -24,7 +24,7 @@ const updateAccountingCategoriesOrder = async () => {
     ];
     
     // 更新現有類別的順序或創建新類別
-    for (const [index, category] of orderedCategories.entries()) {
+    for (const category of orderedCategories) {
       const existingCategory = await AccountingCategory.findOne({ name: category.name });
       
       if (existingCategory) {

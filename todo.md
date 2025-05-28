@@ -11,6 +11,8 @@
   - [x] 使用可選鏈表達式替代冗長的條件判斷
   - [ ] 完成完整的 PropTypes 驗證
   - [ ] 優化巢狀三元運算式
+- [x] 修復 backend/scripts/updateAccountingCategoriesOrder.js 中的問題
+  - [x] 移除未使用的 'index' 變數宣告
 - [ ] 提交並推送變更到 GitHub
 - [ ] 驗證推送成功與專案完整性
 - [ ] 向用戶報告完成情況
