@@ -3,7 +3,9 @@
     "@mui/icons-material": "^7.0.2",
     "axios": "^1.9.0",
     "form-data": "^4.0.2",
-    "mongoose": "^8.15.0"
+    "mongoose": "^8.15.0",
+    "prop-types": "^15.8.1",
+    "react-router-dom": "^7.6.1"
   },
   "devDependencies": {
     "madge": "^8.0.0"

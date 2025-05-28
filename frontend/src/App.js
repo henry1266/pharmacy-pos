@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import MainLayout from './components/layout/MainLayout';
@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import AppRouter from './AppRouter'; // This will contain protected routes
 import axios from 'axios'; // Import axios to set default header
 import './assets/css/dashui-theme.css';
+import PropTypes from 'prop-types'; // Import PropTypes for validation
 
 // 創建自定義主題 (Keep theme definition as is)
 const theme = createTheme({
@@ -97,8 +98,19 @@ const theme = createTheme({
 // Simple check for authentication token
 const isAuthenticated = () => {
   const token = localStorage.getItem('token');
-  // TODO: Add token validation/decoding if necessary
-  return !!token;
+  // Implemented token validation by checking if token exists and is not expired
+  if (token) {
+    try {
+      // Basic check - in production, should use proper JWT validation
+      const tokenData = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = tokenData.exp * 1000; // Convert to milliseconds
+      return Date.now() < expirationTime;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return false;
+    }
+  }
+  return false;
 };
 
 // Component to handle protected routes
@@ -109,6 +121,11 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
   return children;
+};
+
+// Add PropTypes validation for ProtectedRoute
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired
 };
 
 function App() {
@@ -127,7 +144,6 @@ function App() {
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-
   }, []);
 
   return (
@@ -156,4 +172,3 @@ function App() {
 }
 
 export default App;
-
