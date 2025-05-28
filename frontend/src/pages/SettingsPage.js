@@ -22,8 +22,7 @@ const SettingsPage = () => {
   // Placeholder handler for saving settings
   const handleSaveSettings = () => {
     console.log('Saving colors:', { primary: primaryColor, secondary: secondaryColor });
-    // TODO: Implement saving logic (e.g., localStorage or API call)
-    // TODO: Implement theme update logic (e.g., update context or global state)
+
     alert('設定已儲存（功能待實現）');
   };
 
