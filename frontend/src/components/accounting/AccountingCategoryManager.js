@@ -4,10 +4,6 @@ import {
   Typography,
   Paper,
   List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Button,
   TextField,
   Dialog,
   DialogTitle,
@@ -15,15 +11,14 @@ import {
   DialogActions,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Button
 } from '@mui/material';
 import { DragDropContext, Draggable } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { getAccountingCategories, addAccountingCategory, updateAccountingCategory, deleteAccountingCategory } from '../../services/accountingCategoryService';
+import CategoryListItem from './CategoryListItem';
 
 /**
  * 會計名目類別管理組件
@@ -269,55 +264,13 @@ const AccountingCategoryManager = () => {
                         index={index}
                       >
                         {(provided) => (
-                          <ListItem
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            secondaryAction={
-                              <Box>
-                                <IconButton
-                                  edge="end"
-                                  onClick={() => handleEditButtonClick(category)}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                                <IconButton
-                                  edge="end"
-                                  onClick={() => handleDeleteButtonClick(category._id)}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Box>
-                            }
-                            sx={{ 
-                              border: '1px solid #eee',
-                              borderRadius: 1,
-                              mb: 1,
-                              bgcolor: 'background.paper'
-                            }}
-                          >
-                            <IconButton
-                              {...provided.dragHandleProps}
-                              sx={{ mr: 1 }}
-                            >
-                              <DragHandleIcon />
-                            </IconButton>
-                            <ListItemText
-                              primary={
-                                <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
-                                  {category.name}
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{ ml: 2 }}
-                                    onClick={(e) => handleDetailButtonClick(e, category._id)}
-                                  >
-                                    詳細
-                                  </Button>
-                                </Box>
-                              }
-                              secondary={category.description || '無描述'}
-                            />
-                          </ListItem>
+                          <CategoryListItem
+                            category={category}
+                            provided={provided}
+                            onEdit={handleEditButtonClick}
+                            onDelete={handleDeleteButtonClick}
+                            onDetail={handleDetailButtonClick}
+                          />
                         )}
                       </Draggable>
                     ))}
