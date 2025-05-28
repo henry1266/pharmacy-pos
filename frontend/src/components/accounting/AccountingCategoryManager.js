@@ -15,8 +15,7 @@ import {
   DialogActions,
   Snackbar,
   Alert,
-  CircularProgress,
-  Divider
+  CircularProgress
 } from '@mui/material';
 import { DragDropContext, Draggable } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../common/StrictModeDroppable';
@@ -221,17 +220,21 @@ const AccountingCategoryManager = () => {
       </Box>
       
       <Paper sx={{ p: 2 }}>
-        {loading ? (
+        {/* 拆解巢狀三元運算子為獨立條件判斷 */}
+        {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
-        ) : error ? (
+        )}
+        {!loading && error && (
           <Alert severity="error">{error}</Alert>
-        ) : categories.length === 0 ? (
+        )}
+        {!loading && !error && categories.length === 0 && (
           <Typography align="center" sx={{ p: 2 }}>
             尚無類別，請新增類別
           </Typography>
-        ) : (
+        )}
+        {!loading && !error && categories.length > 0 && (
           <Box>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
               拖動項目可調整順序。順序將影響記帳表單中的顯示順序。
@@ -257,13 +260,13 @@ const AccountingCategoryManager = () => {
                               <Box>
                                 <IconButton
                                   edge="end"
-                                  onClick={() => handleOpenEditDialog(category)}
+                                  onClick={function() { handleOpenEditDialog(category); }}
                                 >
                                   <EditIcon />
                                 </IconButton>
                                 <IconButton
                                   edge="end"
-                                  onClick={() => handleDeleteCategory(category._id)}
+                                  onClick={function() { handleDeleteCategory(category._id); }}
                                 >
                                   <DeleteIcon />
                                 </IconButton>
@@ -290,7 +293,7 @@ const AccountingCategoryManager = () => {
                                     size="small"
                                     variant="outlined"
                                     sx={{ ml: 2 }}
-                                    onClick={(e) => {
+                                    onClick={function(e) {
                                       e.stopPropagation();
                                       window.location.href = `/accounting/categories/${category._id}`;
                                     }}
