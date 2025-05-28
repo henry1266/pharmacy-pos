@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { 
   Paper, 
   Grid, 
@@ -17,7 +18,6 @@ import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { Link } from 'react-router-dom';
 import zhTW from 'date-fns/locale/zh-TW';
-
 /**
  * 記帳系統篩選組件
  * 
@@ -103,6 +103,17 @@ const AccountingFilter = ({
       </Grid>
     </Paper>
   );
+};
+
+// 添加 PropTypes 驗證
+AccountingFilter.propTypes = {
+  startDate: PropTypes.instanceOf(Date),
+  setStartDate: PropTypes.func.isRequired,
+  endDate: PropTypes.instanceOf(Date),
+  setEndDate: PropTypes.func.isRequired,
+  filterShift: PropTypes.string.isRequired,
+  setFilterShift: PropTypes.func.isRequired,
+  onAddClick: PropTypes.func.isRequired
 };
 
 export default AccountingFilter;
