@@ -7,13 +7,6 @@ import {
   Button,
   CircularProgress,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Divider,
   Card,
   CardContent,
   Grid,
@@ -30,8 +23,7 @@ import {
   getMonth, 
   parseISO, 
   getDaysInMonth,
-  getDate,
-  addDays
+  getDate
 } from 'date-fns';
 import { 
   BarChart, 
@@ -62,7 +54,6 @@ const AccountingCategoryDetail = () => {
   
   // 狀態
   const [category, setCategory] = useState(null);
-  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [monthlyData, setMonthlyData] = useState({});
@@ -101,7 +92,6 @@ const AccountingCategoryDetail = () => {
         endDate
       });
       
-      setRecords(data);
       processMonthlyData(data);
       processDailyData(data);
       setError(null);
@@ -320,7 +310,7 @@ const AccountingCategoryDetail = () => {
   const renderMonthListItem = (month, index) => {
     return (
       <ListItem 
-        key={`month-${index}`}
+        key={`month-${month}`}
         disablePadding 
         divider
         sx={{
@@ -406,6 +396,7 @@ const AccountingCategoryDetail = () => {
   
   // 渲染日曆格子
   const renderCalendarCell = (index, dayOffset, isCurrentMonth, dayAmount, daysInMonth) => {
+    // 使用日期作為唯一識別符，而非索引
     const cellKey = `day-${currentYear}-${selectedMonth}-${dayOffset}`;
     
     return (
@@ -468,8 +459,8 @@ const AccountingCategoryDetail = () => {
         
         <Grid container sx={{ border: '1px solid #e0e0e0', borderRadius: '4px' }}>
           {/* 星期標題 */}
-          {weekdays.map((day, index) => (
-            <Grid item xs={12/7} key={`header-${index}`} sx={{ 
+          {weekdays.map((day) => (
+            <Grid item xs={12/7} key={`header-${day}`} sx={{ 
               p: 1, 
               textAlign: 'center',
               borderBottom: '1px solid #e0e0e0',
