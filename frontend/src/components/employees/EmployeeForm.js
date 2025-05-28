@@ -162,12 +162,7 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
   };
 
   // 提取嵌套的三元運算符為獨立變數
-  let buttonText;
-  if (isSubmitting) {
-    buttonText = '儲存中...';
-  } else {
-    buttonText = '儲存';
-  }
+  let buttonText = isSubmitting ? '儲存中...' : '儲存';
 
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>

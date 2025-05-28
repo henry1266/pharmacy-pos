@@ -18,7 +18,7 @@ const IDCardSection = ({ formData, errors, onFileChange }) => {
 
   // 處理檔案選擇
   const handleFileSelect = (side) => (event) => {
-    if (event.target.files && event.target.files[0]) {
+    if (event.target.files?.[0]) {
       const file = event.target.files[0];
       
       // 檢查檔案類型
