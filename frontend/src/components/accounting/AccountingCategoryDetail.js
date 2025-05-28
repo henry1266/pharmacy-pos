@@ -7,13 +7,6 @@ import {
   Button,
   CircularProgress,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Divider,
   Card,
   CardContent,
   Grid,
@@ -30,8 +23,7 @@ import {
   getMonth, 
   parseISO, 
   getDaysInMonth,
-  getDate,
-  addDays
+  getDate
 } from 'date-fns';
 import { 
   BarChart, 
@@ -62,7 +54,6 @@ const AccountingCategoryDetail = () => {
   
   // 狀態
   const [category, setCategory] = useState(null);
-  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [monthlyData, setMonthlyData] = useState({});
@@ -101,7 +92,6 @@ const AccountingCategoryDetail = () => {
         endDate
       });
       
-      setRecords(data);
       processMonthlyData(data);
       processDailyData(data);
       setError(null);
@@ -320,7 +310,7 @@ const AccountingCategoryDetail = () => {
   const renderMonthListItem = (month, index) => {
     return (
       <ListItem 
-        key={`month-${index}`}
+        key={`month-${month}`}
         disablePadding 
         divider
         sx={{
@@ -469,7 +459,7 @@ const AccountingCategoryDetail = () => {
         <Grid container sx={{ border: '1px solid #e0e0e0', borderRadius: '4px' }}>
           {/* 星期標題 */}
           {weekdays.map((day, index) => (
-            <Grid item xs={12/7} key={`header-${index}`} sx={{ 
+            <Grid item xs={12/7} key={`header-${day}`} sx={{ 
               p: 1, 
               textAlign: 'center',
               borderBottom: '1px solid #e0e0e0',
@@ -558,8 +548,8 @@ const AccountingCategoryDetail = () => {
                 nameKey="name"
                 label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${entry.name}-${entry.金額}`} fill={COLORS[index % COLORS.length]} />
+                {pieData.map((entry) => (
+                  <Cell key={`cell-${entry.name}`} fill={COLORS[parseInt(entry.月份) % COLORS.length]} />
                 ))}
               </Pie>
               <RechartsTooltip formatter={(value) => [`$${value}`, '金額']} />
@@ -596,107 +586,79 @@ const AccountingCategoryDetail = () => {
           </Tabs>
         </Box>
         
-        <Box sx={{ height: 300, mt: 2 }}>
+        <Box sx={{ height: 400 }}>
           {renderChart(chartType, data, pieData, COLORS)}
         </Box>
       </Box>
     );
   };
   
-  // 渲染頁面標題與操作按鈕
-  const renderPageHeader = () => {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton onClick={handleBack} sx={{ mr: 1 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4">
-            {category ? `${category.name} - 月度統計` : '類別詳情'}
-          </Typography>
-        </Box>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExportCSV}
-            sx={{ ml: 1 }}
-            disabled={!category || loading}
-          >
-            導出CSV
-          </Button>
-        </Box>
-      </Box>
-    );
-  };
-  
-  // 渲染載入中狀態
-  const renderLoading = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-      <CircularProgress />
-    </Box>
-  );
-  
-  // 渲染錯誤狀態
-  const renderError = () => (
-    <Alert severity="error">{error}</Alert>
-  );
-  
-  // 渲染加載中狀態
-  const renderLoadingCategory = () => (
-    <Alert severity="info">正在加載類別資訊...</Alert>
-  );
-  
   // 渲染主要內容
-  const renderMainContent = () => {
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+    
+    if (error) {
+      return (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      );
+    }
+    
+    if (!category) {
+      return (
+        <Alert severity="info" sx={{ mt: 2 }}>
+          正在加載類別資訊...
+        </Alert>
+      );
+    }
+    
     return (
-      <Box>
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={6}>
+      <>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
             {renderCategoryInfoCard()}
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={8}>
             {renderYearlyStatsCard()}
           </Grid>
         </Grid>
         
         {renderYearSelector()}
         
-        <Grid container spacing={2}>
-          {/* 左側月份列表 */}
-          <Grid item xs={12} md={3} lg={2}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={3}>
             {renderMonthList()}
           </Grid>
-          
-          {/* 中間日曆 */}
-          <Grid item xs={12} md={4} lg={5}>
-            <Paper sx={{ p: 1 }}>
-              {generateCalendarGrid()}
-            </Paper>
-          </Grid>
-          
-          {/* 右側數據可視化 */}
-          <Grid item xs={12} md={5} lg={5}>
-            <Paper sx={{ p: 1 }}>
-              {generateDataVisualization()}
-            </Paper>
+          <Grid item xs={12} md={9}>
+            {generateCalendarGrid()}
+            {generateDataVisualization()}
           </Grid>
         </Grid>
-      </Box>
+      </>
     );
-  };
-  
-  // 渲染內容區域
-  const renderContent = () => {
-    if (loading) return renderLoading();
-    if (error) return renderError();
-    if (!category) return renderLoadingCategory();
-    return renderMainContent();
   };
   
   return (
     <Box sx={{ p: 3 }}>
-      {renderPageHeader()}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <IconButton onClick={handleBack}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h5" component="h1">
+          {category ? `${category.name} 類別詳情` : '類別詳情'}
+        </Typography>
+        <IconButton onClick={handleExportCSV} disabled={!category || loading}>
+          <DownloadIcon />
+        </IconButton>
+      </Box>
+      
       {renderContent()}
     </Box>
   );
