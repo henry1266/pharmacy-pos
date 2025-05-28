@@ -45,8 +45,6 @@ function processBatchMatching(stockIn, stockOut, usageLog) {
  */
 function processOutgoingItem(out, stockIn, inIndex) {
   let remaining = out.quantity;
-  const costParts = [];
-  let hasNegativeInventory = false;
   
   // 處理匹配邏輯
   const matchResult = matchOutgoingWithIncoming(remaining, stockIn, inIndex);
