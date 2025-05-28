@@ -436,13 +436,18 @@ const AllCategoriesDetail = () => {
         </Box>
       </Box>
       
-      {loading ? (
+      {/* 使用獨立的條件渲染替代巢狀三元運算子 */}
+      {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
         </Box>
-      ) : error ? (
+      )}
+      
+      {!loading && error && (
         <Alert severity="error">{error}</Alert>
-      ) : (
+      )}
+      
+      {!loading && !error && (
         <Box>
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6}>
