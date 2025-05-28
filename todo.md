@@ -16,6 +16,8 @@
 - [x] 修復 backend/utils/fifoCalculator.js 中的問題
   - [x] 移除未使用的 'batches' 變數宣告 (第29行)
   - [x] 移除未使用的 'matchedRevenue' 變數宣告 (第153行)
+  - [x] 移除未使用的 'matchedQuantity' 變數宣告 (第149行)
+  - [x] 移除多處註解掉的程式碼 (第13-24行)
 - [ ] 提交並推送變更到 GitHub
 - [ ] 驗證推送成功與專案完整性
 - [ ] 向用戶報告完成情況

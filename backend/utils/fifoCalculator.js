@@ -10,20 +10,16 @@
  * @returns {Array} 出貨成本分佈結果
  */
 const matchFIFOBatches = (stockIn, stockOut) => {
-  //console.log('===== FIFO匹配過程開始 =====');
-  //console.log(`進貨批次總數: ${stockIn.length}`);
-  //console.log(`出貨記錄總數: ${stockOut.length}`);
+  // FIFO匹配過程開始
   
-  // 打印進貨批次資料
-  //console.log('進貨批次資料:');
+  // 進貨批次資料處理
   stockIn.forEach((batch, index) => {
-    //console.log(`  批次[${index}]: 訂單號=${batch.orderNumber}, 時間=${new Date(batch.timestamp).toLocaleString()}, 數量=${batch.quantity}, 單價=${batch.unit_price}`);
+    // 批次處理邏輯
   });
   
-  // 打印出貨記錄資料
-  //console.log('出貨記錄資料:');
+  // 出貨記錄資料處理
   stockOut.forEach((out, index) => {
-    //console.log(`  出貨[${index}]: 訂單號=${out.orderNumber}, 時間=${new Date(out.timestamp).toLocaleString()}, 數量=${out.quantity}, 產品ID=${out.drug_id}`);
+    // 出貨處理邏輯
   });
   
   // 移除未使用的 batches 變數
@@ -145,9 +141,8 @@ const calculateProfitMargins = (usageLog, sales) => {
       
       //console.log(`  已匹配部分成本: ${matchedCost}`);
       
-      // 計算已匹配部分的數量
-      const matchedQuantity = usage.totalQuantity - usage.remainingNegativeQuantity;
-      //console.log(`  已匹配數量: ${matchedQuantity}, 未匹配數量: ${usage.remainingNegativeQuantity}`);
+      // 已匹配部分的數量計算已移除（未使用變數）
+      //console.log(`  已匹配數量: ${usage.totalQuantity - usage.remainingNegativeQuantity}, 未匹配數量: ${usage.remainingNegativeQuantity}`);
       
       // 已匹配部分的收入計算已移除（未使用變數）
       //console.log(`  已匹配部分收入: ${matchedQuantity > 0 ? (sale.unit_price * matchedQuantity) : 0}`);
