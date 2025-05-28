@@ -13,6 +13,9 @@
   - [ ] 優化巢狀三元運算式
 - [x] 修復 backend/scripts/updateAccountingCategoriesOrder.js 中的問題
   - [x] 移除未使用的 'index' 變數宣告
+- [x] 修復 backend/utils/fifoCalculator.js 中的問題
+  - [x] 移除未使用的 'batches' 變數宣告 (第29行)
+  - [x] 移除未使用的 'matchedRevenue' 變數宣告 (第153行)
 - [ ] 提交並推送變更到 GitHub
 - [ ] 驗證推送成功與專案完整性
 - [ ] 向用戶報告完成情況

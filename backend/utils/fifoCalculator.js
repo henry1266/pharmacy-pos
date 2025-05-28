@@ -26,7 +26,7 @@ const matchFIFOBatches = (stockIn, stockOut) => {
     //console.log(`  出貨[${index}]: 訂單號=${out.orderNumber}, 時間=${new Date(out.timestamp).toLocaleString()}, 數量=${out.quantity}, 產品ID=${out.drug_id}`);
   });
   
-  const batches = []; // 會被消耗的進貨批次
+  // 移除未使用的 batches 變數
   const usageLog = []; // 每筆出貨成本分佈結果
 
   let inIndex = 0;
@@ -149,9 +149,8 @@ const calculateProfitMargins = (usageLog, sales) => {
       const matchedQuantity = usage.totalQuantity - usage.remainingNegativeQuantity;
       //console.log(`  已匹配數量: ${matchedQuantity}, 未匹配數量: ${usage.remainingNegativeQuantity}`);
       
-      // 計算已匹配部分的收入
-      const matchedRevenue = matchedQuantity > 0 ? (sale.unit_price * matchedQuantity) : 0;
-      //console.log(`  已匹配部分收入: ${matchedRevenue}`);
+      // 已匹配部分的收入計算已移除（未使用變數）
+      //console.log(`  已匹配部分收入: ${matchedQuantity > 0 ? (sale.unit_price * matchedQuantity) : 0}`);
       
       // 對於負庫存部分，成本暫時設為與收入相等，使毛利為0
       const negativeInventoryRevenue = sale.unit_price * usage.remainingNegativeQuantity;
