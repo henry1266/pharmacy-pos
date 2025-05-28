@@ -34,6 +34,26 @@ const upload = multer({
   }
 });
 
+// 將產品的 healthInsuranceCode 添加到 items 中的輔助函數
+function addHealthInsuranceCodeToItems(orders) {
+  if (!orders) return;
+  
+  // 處理單個訂單或訂單陣列
+  const orderArray = Array.isArray(orders) ? orders : [orders];
+  
+  orderArray.forEach(order => {
+    if (order?.items?.length > 0) {
+      order.items.forEach(item => {
+        if (item.product?.healthInsuranceCode) {
+          item.healthInsuranceCode = item.product.healthInsuranceCode;
+        }
+      });
+    }
+  });
+  
+  return orders;
+}
+
 // @route   GET api/shipping-orders
 // @desc    獲取所有出貨單
 // @access  Public
@@ -44,18 +64,8 @@ router.get('/', async (req, res) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach(order => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
+    // 將產品的 healthInsuranceCode 添加到 items 中
+    addHealthInsuranceCodeToItems(shippingOrders);
     
     res.json(shippingOrders);
   } catch (err) {
@@ -77,14 +87,8 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ msg: '找不到該出貨單' });
     }
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrder.items && shippingOrder.items.length > 0) {
-      shippingOrder.items.forEach(item => {
-        if (item.product && item.product.healthInsuranceCode) {
-          item.healthInsuranceCode = item.product.healthInsuranceCode;
-        }
-      });
-    }
+    // 將產品的 healthInsuranceCode 添加到 items 中
+    addHealthInsuranceCodeToItems(shippingOrder);
     
     res.json(shippingOrder);
   } catch (err) {
@@ -121,6 +125,111 @@ async function generateUniqueOrderNumber(soid) {
 // 引入通用訂單單號生成服務
 const OrderNumberService = require('../utils/OrderNumberService');
 
+// 驗證藥品項目的輔助函數
+async function validateMedicineItems(items) {
+  const validationResults = [];
+  
+  for (const item of items) {
+    // 檢查項目資料完整性
+    if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
+      validationResults.push({
+        success: false,
+        message: '藥品項目資料不完整'
+      });
+      continue;
+    }
+
+    // 驗證藥品代碼格式
+    if (typeof item.did !== 'string' || !item.did.match(/^[A-Za-z0-9_-]+$/)) {
+      validationResults.push({
+        success: false,
+        message: `無效的藥品代碼格式: ${item.did}`
+      });
+      continue;
+    }
+    
+    // 查找藥品
+    const product = await BaseProduct.findOne({ code: item.did });
+    if (!product) {
+      validationResults.push({
+        success: false,
+        message: `找不到藥品: ${item.did}`
+      });
+      continue;
+    }
+    
+    // 檢查庫存是否足夠
+    const inventorySum = await Inventory.aggregate([
+      { $match: { product: product._id } },
+      { $group: { _id: null, total: { $sum: "$quantity" } } }
+    ]);
+    
+    const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
+    
+    if (availableQuantity < item.dquantity) {
+      validationResults.push({
+        success: false,
+        message: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}`
+      });
+      continue;
+    }
+    
+    // 項目驗證通過，設置產品ID
+    item.product = product._id;
+    validationResults.push({
+      success: true,
+      item
+    });
+  }
+  
+  // 檢查是否有任何驗證失敗
+  const failedValidation = validationResults.find(result => !result.success);
+  if (failedValidation) {
+    return {
+      success: false,
+      message: failedValidation.message
+    };
+  }
+  
+  return {
+    success: true,
+    items: items
+  };
+}
+
+// 查找供應商的輔助函數
+async function findSupplier(sosupplier, supplier) {
+  let supplierId = null;
+  
+  if (supplier) {
+    supplierId = supplier;
+  } else if (sosupplier) {
+    const supplierDoc = await Supplier.findOne({ name: sosupplier });
+    if (supplierDoc) {
+      supplierId = supplierDoc._id;
+    }
+  }
+  
+  return supplierId;
+}
+
+// 創建出貨單的輔助函數
+async function createShippingOrderRecord(orderData) {
+  const shippingOrder = new ShippingOrder({
+    soid: orderData.soid,
+    orderNumber: orderData.orderNumber,
+    sosupplier: orderData.sosupplier,
+    supplier: orderData.supplierId,
+    items: orderData.items,
+    notes: orderData.notes,
+    status: orderData.status || 'pending',
+    paymentStatus: orderData.paymentStatus || '未收'
+  });
+
+  await shippingOrder.save();
+  return shippingOrder;
+}
+
 // @route   POST api/shipping-orders
 // @desc    創建新出貨單
 // @access  Public
@@ -150,64 +259,26 @@ router.post('/', [
     // 生成唯一訂單號
     const orderNumber = await OrderNumberService.generateUniqueOrderNumber('shipping', soid);
 
-    // 驗證所有藥品ID是否存在，並檢查庫存是否足夠
-    for (const item of items) {
-      if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
-        return res.status(400).json({ msg: '藥品項目資料不完整' });
-      }
-
-      // 嘗試查找藥品 - 加強安全性驗證，防止 NoSQL 注入
-      // 驗證 item.did 是否為有效的藥品代碼格式
-      if (typeof item.did !== 'string' || !item.did.match(/^[A-Za-z0-9_-]+$/)) {
-        return res.status(400).json({ msg: `無效的藥品代碼格式: ${item.did}` });
-      }
-      
-      const product = await BaseProduct.findOne({ code: item.did });
-      if (!product) {
-        return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
-      }
-      
-      item.product = product._id;
-      
-      // 檢查庫存是否足夠
-      const inventorySum = await Inventory.aggregate([
-        { $match: { product: product._id } },
-        { $group: { _id: null, total: { $sum: "$quantity" } } }
-      ]);
-      
-      const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
-      
-      if (availableQuantity < item.dquantity) {
-        return res.status(400).json({ 
-          msg: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}` 
-        });
-      }
+    // 驗證所有藥品項目
+    const itemsValidation = await validateMedicineItems(items);
+    if (!itemsValidation.success) {
+      return res.status(400).json({ msg: itemsValidation.message });
     }
 
-    // 嘗試查找供應商
-    let supplierId = null;
-    if (supplier) {
-      supplierId = supplier;
-    } else {
-      const supplierDoc = await Supplier.findOne({ name: sosupplier });
-      if (supplierDoc) {
-        supplierId = supplierDoc._id;
-      }
-    }
+    // 查找供應商
+    const supplierId = await findSupplier(sosupplier, supplier);
 
     // 創建新出貨單
-    const shippingOrder = new ShippingOrder({
+    const shippingOrder = await createShippingOrderRecord({
       soid,
-      orderNumber, // 設置唯一訂單號
+      orderNumber,
       sosupplier,
-      supplier: supplierId,
+      supplierId,
       items,
       notes,
-      status: status || 'pending',
-      paymentStatus: paymentStatus || '未收'
+      status,
+      paymentStatus
     });
-
-    await shippingOrder.save();
 
     // 如果狀態為已完成，則創建ship類型庫存記錄
     if (shippingOrder.status === 'completed') {
@@ -220,6 +291,37 @@ router.post('/', [
     res.status(500).send('伺服器錯誤');
   }
 });
+
+// 準備更新數據的輔助函數
+function prepareUpdateData(requestBody, orderNumber) {
+  const updateData = {};
+  
+  if (requestBody.soid) updateData.soid = requestBody.soid;
+  if (orderNumber) updateData.orderNumber = orderNumber;
+  if (requestBody.sosupplier) updateData.sosupplier = requestBody.sosupplier;
+  if (requestBody.supplier) updateData.supplier = requestBody.supplier;
+  if (requestBody.notes !== undefined) updateData.notes = requestBody.notes;
+  if (requestBody.paymentStatus) updateData.paymentStatus = requestBody.paymentStatus;
+  if (requestBody.status) updateData.status = requestBody.status;
+  if (requestBody.items && requestBody.items.length > 0) updateData.items = requestBody.items;
+  
+  return updateData;
+}
+
+// 應用更新到出貨單的輔助函數
+async function applyUpdateToShippingOrder(shippingOrder, updateData) {
+  // 應用更新
+  Object.keys(updateData).forEach(key => {
+    shippingOrder[key] = updateData[key];
+  });
+  
+  // 手動計算總金額以確保正確
+  shippingOrder.totalAmount = shippingOrder.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
+  
+  // 保存更新後的出貨單
+  await shippingOrder.save();
+  return shippingOrder;
+}
 
 // @route   PUT api/shipping-orders/:id
 // @desc    更新出貨單
@@ -234,7 +336,8 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ msg: '找不到該出貨單' });
     }
 
-    // 如果更改了出貨單號，檢查新號碼是否已存在
+    // 處理出貨單號變更
+    let orderNumber = null;
     if (soid && soid !== shippingOrder.soid) {
       const existingSO = await ShippingOrder.findOne({ soid });
       if (existingSO && existingSO._id.toString() !== req.params.id) {
@@ -242,68 +345,34 @@ router.put('/:id', async (req, res) => {
       }
       
       // 如果出貨單號變更，生成新的唯一訂單號
-      const orderNumber = await generateUniqueOrderNumber(soid);
-      shippingOrder.orderNumber = orderNumber;
+      orderNumber = await generateUniqueOrderNumber(soid);
+    }
+
+    // 處理狀態變更
+    const oldStatus = shippingOrder.status;
+    
+    // 如果有項目更新，驗證所有藥品
+    if (items && items.length > 0) {
+      const itemsValidation = await validateMedicineItems(items);
+      if (!itemsValidation.success) {
+        return res.status(400).json({ msg: itemsValidation.message });
+      }
     }
 
     // 準備更新數據
-    const updateData = {};
-    if (soid) updateData.soid = soid;
-    if (shippingOrder.orderNumber) updateData.orderNumber = shippingOrder.orderNumber;
-    if (sosupplier) updateData.sosupplier = sosupplier;
-    if (supplier) updateData.supplier = supplier;
-    if (notes !== undefined) updateData.notes = notes;
-    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    const updateData = prepareUpdateData(req.body, orderNumber);
     
-    // 處理狀態變更
-    const oldStatus = shippingOrder.status;
-    if (status && status !== oldStatus) {
-      updateData.status = status;
-      
-      // 如果狀態從已完成改為其他狀態，刪除相關的ship類型庫存記錄
-      if (oldStatus === 'completed' && status !== 'completed') {
-        await deleteShippingInventoryRecords(shippingOrder._id);
-      }
-    }
-
-    // 處理項目更新
-    if (items && items.length > 0) {
-      // 驗證所有藥品ID是否存在
-      for (const item of items) {
-        if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
-          return res.status(400).json({ msg: '藥品項目資料不完整' });
-        }
-
-        // 嘗試查找藥品
-        if (!item.product) {
-          const product = await BaseProduct.findOne({ code: item.did });
-          if (product) {
-            item.product = product._id;
-          } else {
-            return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
-          }
-        }
-      }
-      updateData.items = items;
-    }
-
     // 更新出貨單
-    // 先更新基本字段
     shippingOrder = await ShippingOrder.findById(req.params.id);
-    
-    // 應用更新
-    Object.keys(updateData).forEach(key => {
-      shippingOrder[key] = updateData[key];
-    });
-    
-    // 手動計算總金額以確保正確
-    shippingOrder.totalAmount = shippingOrder.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
-    
-    // 保存更新後的出貨單，這樣會觸發pre-save中間件
-    await shippingOrder.save();
+    shippingOrder = await applyUpdateToShippingOrder(shippingOrder, updateData);
 
+    // 處理庫存記錄
+    // 如果狀態從已完成改為其他狀態，刪除相關的ship類型庫存記錄
+    if (oldStatus === 'completed' && status !== 'completed') {
+      await deleteShippingInventoryRecords(shippingOrder._id);
+    }
     // 如果狀態從非完成變為完成，則創建ship類型庫存記錄
-    if (oldStatus !== 'completed' && shippingOrder.status === 'completed') {
+    else if (oldStatus !== 'completed' && shippingOrder.status === 'completed') {
       await createShippingInventoryRecords(shippingOrder);
     }
 
@@ -353,18 +422,8 @@ router.get('/supplier/:supplierId', async (req, res) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach(order => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
+    // 將產品的 healthInsuranceCode 添加到 items 中
+    addHealthInsuranceCodeToItems(shippingOrders);
     
     res.json(shippingOrders);
   } catch (err) {
@@ -389,18 +448,8 @@ router.get('/search/query', async (req, res) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach(order => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
+    // 將產品的 healthInsuranceCode 添加到 items 中
+    addHealthInsuranceCodeToItems(shippingOrders);
     
     res.json(shippingOrders);
   } catch (err) {
@@ -422,18 +471,8 @@ router.get('/product/:productId', async (req, res) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach(order => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
+    // 將產品的 healthInsuranceCode 添加到 items 中
+    addHealthInsuranceCodeToItems(shippingOrders);
     
     res.json(shippingOrders);
   } catch (err) {
@@ -453,18 +492,8 @@ router.get('/recent/list', async (req, res) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach(order => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
+    // 將產品的 healthInsuranceCode 添加到 items 中
+    addHealthInsuranceCodeToItems(shippingOrders);
     
     res.json(shippingOrders);
   } catch (err) {
@@ -512,6 +541,124 @@ async function deleteShippingInventoryRecords(shippingOrderId) {
   }
 }
 
+// 處理CSV導入的輔助函數
+async function processCsvRow(row, type) {
+  try {
+    // 檢查必要字段
+    if (type === 'basic' && (!row['出貨單號'] || !row['客戶'])) {
+      return {
+        success: false,
+        message: '出貨單號和客戶為必填項'
+      };
+    }
+    
+    if (type === 'items' && (!row['出貨單號'] || !row['藥品代碼'] || !row['藥品名稱'] || !row['數量'] || !row['總金額'])) {
+      return {
+        success: false,
+        message: '出貨單號、藥品代碼、藥品名稱、數量和總金額為必填項'
+      };
+    }
+    
+    // 根據類型處理不同的導入邏輯
+    if (type === 'basic') {
+      // 檢查出貨單號是否已存在
+      const existingSO = await ShippingOrder.findOne({ soid: row['出貨單號'] });
+      if (existingSO) {
+        return {
+          success: false,
+          message: `出貨單號 ${row['出貨單號']} 已存在`
+        };
+      }
+      
+      // 查找供應商
+      let supplierId = null;
+      const supplierName = row['客戶'];
+      const supplier = await Supplier.findOne({ name: supplierName });
+      if (supplier) {
+        supplierId = supplier._id;
+      }
+      
+      // 創建新出貨單
+      const shippingOrder = new ShippingOrder({
+        soid: row['出貨單號'],
+        orderNumber: await OrderNumberService.generateUniqueOrderNumber('shipping', row['出貨單號']),
+        sosupplier: supplierName,
+        supplier: supplierId,
+        notes: row['備註'] || '',
+        status: row['狀態'] || 'pending',
+        paymentStatus: row['付款狀態'] || '未收',
+        items: []
+      });
+      
+      await shippingOrder.save();
+      return {
+        success: true,
+        message: `成功導入出貨單 ${row['出貨單號']}`
+      };
+    } else if (type === 'items') {
+      // 檢查出貨單是否存在
+      const shippingOrder = await ShippingOrder.findOne({ soid: row['出貨單號'] });
+      if (!shippingOrder) {
+        return {
+          success: false,
+          message: `找不到出貨單 ${row['出貨單號']}`
+        };
+      }
+      
+      // 查找藥品
+      const product = await BaseProduct.findOne({ code: row['藥品代碼'] });
+      if (!product) {
+        return {
+          success: false,
+          message: `找不到藥品 ${row['藥品代碼']}`
+        };
+      }
+      
+      // 添加項目到出貨單
+      const newItem = {
+        did: row['藥品代碼'],
+        dname: row['藥品名稱'],
+        dquantity: parseInt(row['數量']),
+        dtotalCost: parseFloat(row['總金額']),
+        product: product._id
+      };
+      
+      // 檢查項目是否已存在
+      const existingItemIndex = shippingOrder.items.findIndex(item => 
+        item.did === newItem.did && item.dname === newItem.dname
+      );
+      
+      if (existingItemIndex >= 0) {
+        // 更新現有項目
+        shippingOrder.items[existingItemIndex] = newItem;
+      } else {
+        // 添加新項目
+        shippingOrder.items.push(newItem);
+      }
+      
+      // 更新總金額
+      shippingOrder.totalAmount = shippingOrder.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
+      
+      await shippingOrder.save();
+      return {
+        success: true,
+        message: `成功將藥品 ${row['藥品名稱']} 添加到出貨單 ${row['出貨單號']}`
+      };
+    }
+    
+    return {
+      success: false,
+      message: '未知的導入類型'
+    };
+  } catch (err) {
+    console.error(`處理CSV行時出錯: ${err.message}`);
+    return {
+      success: false,
+      message: `處理CSV行時出錯: ${err.message}`
+    };
+  }
+}
+
 // @route   POST api/shipping-orders/import/basic
 // @desc    導入出貨單基本資訊CSV
 // @access  Public
@@ -535,40 +682,60 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
 
         // 處理每一行數據
         for (const row of results) {
-          try {
-            // 檢查必要字段
-            if (!row['出貨單號'] || !row['客戶']) {
-              errors.push(`行 ${results.indexOf(row) + 1}: 出貨單號和客戶為必填項`);
-              continue;
-            }
-
-            // 檢查出貨單號是否已存在
-            const existingSO = await ShippingOrder.findOne({ soid: row['出貨單號'] });
-            if (existingSO) {
-              errors.push(`行 ${results.indexOf(row) + 1}: 出貨單號 ${row['出貨單號']} 已存在`);
-              continue;
-            }
-
-            // 創建新出貨單
-            const shippingOrder = new ShippingOrder({
-              soid: row['出貨單號'],
-              orderNumber: await generateUniqueOrderNumber(row['出貨單號']),
-              sosupplier: row['客戶'],
-              items: [],
-              status: 'pending',
-              paymentStatus: row['付款狀態'] || '未收'
-            });
-
-            await shippingOrder.save();
+          const result = await processCsvRow(row, 'basic');
+          if (result.success) {
             successCount++;
-          } catch (err) {
-            errors.push(`行 ${results.indexOf(row) + 1}: ${err.message}`);
+          } else {
+            errors.push(`行 ${results.indexOf(row) + 1}: ${result.message}`);
           }
         }
 
         res.json({
           success: true,
-          msg: `成功導入 ${successCount} 筆出貨單基本資訊`,
+          message: `成功導入 ${successCount} 筆出貨單基本資訊`,
+          errors: errors.length > 0 ? errors : null
+        });
+      });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('伺服器錯誤');
+  }
+});
+
+// @route   POST api/shipping-orders/import/items
+// @desc    導入出貨單項目CSV
+// @access  Public
+router.post('/import/items', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: '請上傳CSV文件' });
+    }
+
+    const results = [];
+    const errors = [];
+    let successCount = 0;
+
+    // 讀取並解析CSV文件
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        // 刪除上傳的文件
+        fs.unlinkSync(req.file.path);
+
+        // 處理每一行數據
+        for (const row of results) {
+          const result = await processCsvRow(row, 'items');
+          if (result.success) {
+            successCount++;
+          } else {
+            errors.push(`行 ${results.indexOf(row) + 1}: ${result.message}`);
+          }
+        }
+
+        res.json({
+          success: true,
+          message: `成功導入 ${successCount} 筆出貨單項目`,
           errors: errors.length > 0 ? errors : null
         });
       });
