@@ -1,11 +1,11 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { DataGrid } from '@mui/x-data-grid';
 import { Paper, IconButton, Box } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { format } from 'date-fns';
 import StatusChip from '../common/StatusChip'; // Import StatusChip
-
 /**
  * 記帳系統數據表格組件
  * 
@@ -22,7 +22,6 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
     '中': '#e8f5e9', // 淺綠色
     '晚': '#fff8e1'  // 淺黃色
   };
-
   // 將記錄轉換為DataGrid所需的行數據格式
   const rows = records.map(record => ({
     id: record._id,
@@ -33,7 +32,6 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
     totalAmount: record.totalAmount,
     rawRecord: record // 保存原始記錄以便編輯時使用
   }));
-
   // 定義列配置
   const columns = [
     { 
@@ -62,8 +60,8 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
       sortable: false,
       renderCell: (params) => (
         <div>
-          {params.value.map((item, index) => (
-            <div key={index}>
+          {params.value.map((item) => (
+            <div key={`${item.category}-${item.amount}-${item.note || ''}`}>
               {item.category}: ${item.amount}
               {item.note && ` (${item.note})`}
             </div>
@@ -104,7 +102,6 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
       )
     }
   ];
-
   // 根據項目數量計算行高
   const getRowHeight = (params) => {
     const itemCount = params.model.items.length || 0;
@@ -113,7 +110,6 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
     const itemHeight = 24;
     return Math.max(baseHeight, baseHeight + (itemCount - 1) * itemHeight);
   };
-
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
       <Box sx={{ height: 540, width: '100%' }}>
@@ -146,6 +142,29 @@ const AccountingDataGrid = ({ records, loading, onEdit, onDelete }) => {
       </Box>
     </Paper>
   );
+};
+
+// 添加 PropTypes 驗證
+AccountingDataGrid.propTypes = {
+  records: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      date: PropTypes.string.isRequired,
+      shift: PropTypes.string.isRequired,
+      status: PropTypes.string.isRequired,
+      items: PropTypes.arrayOf(
+        PropTypes.shape({
+          category: PropTypes.string.isRequired,
+          amount: PropTypes.number.isRequired,
+          note: PropTypes.string
+        })
+      ).isRequired,
+      totalAmount: PropTypes.number.isRequired
+    })
+  ).isRequired,
+  loading: PropTypes.bool.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired
 };
 
 export default AccountingDataGrid;
