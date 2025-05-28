@@ -159,7 +159,6 @@ const useSaleManagement = (showSnackbar) => {
         paymentMethod: currentSale.paymentMethod,
         paymentStatus: currentSale.paymentStatus,
         note: currentSale.note,
-        // TODO: Replace with actual logged-in user ID
       };
       await createSale(saleData);
       showSnackbar('銷售記錄已保存', 'success');
