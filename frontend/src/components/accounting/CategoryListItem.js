@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   ListItem,
@@ -72,6 +73,31 @@ const CategoryListItem = ({
       />
     </ListItem>
   );
+};
+
+// PropTypes 驗證
+CategoryListItem.propTypes = {
+  // 類別資料物件
+  category: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    description: PropTypes.string
+  }).isRequired,
+  
+  // react-beautiful-dnd 提供的拖曳屬性
+  provided: PropTypes.shape({
+    innerRef: PropTypes.oneOfType([
+      PropTypes.func,
+      PropTypes.shape({ current: PropTypes.instanceOf(Element) })
+    ]).isRequired,
+    draggableProps: PropTypes.object.isRequired,
+    dragHandleProps: PropTypes.object.isRequired
+  }).isRequired,
+  
+  // 回調函數
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onDetail: PropTypes.func.isRequired
 };
 
 export default CategoryListItem;
