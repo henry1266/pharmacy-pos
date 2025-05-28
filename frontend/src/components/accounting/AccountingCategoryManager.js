@@ -139,6 +139,22 @@ const AccountingCategoryManager = () => {
     });
   };
   
+  // 處理編輯按鈕點擊
+  const handleEditButtonClick = (category) => {
+    handleOpenEditDialog(category);
+  };
+  
+  // 處理刪除按鈕點擊
+  const handleDeleteButtonClick = (categoryId) => {
+    handleDeleteCategory(categoryId);
+  };
+  
+  // 處理詳細按鈕點擊
+  const handleDetailButtonClick = (e, categoryId) => {
+    e.stopPropagation();
+    window.location.href = `/accounting/categories/${categoryId}`;
+  };
+  
   // 處理對話框提交
   const handleDialogSubmit = async () => {
     try {
@@ -260,13 +276,13 @@ const AccountingCategoryManager = () => {
                               <Box>
                                 <IconButton
                                   edge="end"
-                                  onClick={function() { handleOpenEditDialog(category); }}
+                                  onClick={() => handleEditButtonClick(category)}
                                 >
                                   <EditIcon />
                                 </IconButton>
                                 <IconButton
                                   edge="end"
-                                  onClick={function() { handleDeleteCategory(category._id); }}
+                                  onClick={() => handleDeleteButtonClick(category._id)}
                                 >
                                   <DeleteIcon />
                                 </IconButton>
@@ -293,10 +309,7 @@ const AccountingCategoryManager = () => {
                                     size="small"
                                     variant="outlined"
                                     sx={{ ml: 2 }}
-                                    onClick={function(e) {
-                                      e.stopPropagation();
-                                      window.location.href = `/accounting/categories/${category._id}`;
-                                    }}
+                                    onClick={(e) => handleDetailButtonClick(e, category._id)}
                                   >
                                     詳細
                                   </Button>
