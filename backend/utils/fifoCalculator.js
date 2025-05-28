@@ -10,74 +10,115 @@
  * @returns {Array} 出貨成本分佈結果
  */
 const matchFIFOBatches = (stockIn, stockOut) => {
-  // FIFO匹配過程開始
-  
-  // 進貨批次資料處理
-  stockIn.forEach((batch, index) => {
-    // 批次處理邏輯
-  });
-  
-  // 出貨記錄資料處理
-  stockOut.forEach((out, index) => {
-    // 出貨處理邏輯
-  });
-  
   // 移除未使用的 batches 變數
   const usageLog = []; // 每筆出貨成本分佈結果
 
+  // 重構：將複雜的匹配邏輯拆分為更小的函數
+  return processBatchMatching(stockIn, stockOut, usageLog);
+};
+
+/**
+ * 處理批次匹配的核心邏輯
+ * @param {Array} stockIn - 進貨記錄
+ * @param {Array} stockOut - 出貨記錄
+ * @param {Array} usageLog - 使用記錄
+ * @returns {Array} 更新後的使用記錄
+ */
+function processBatchMatching(stockIn, stockOut, usageLog) {
   let inIndex = 0;
+  
   for (const out of stockOut) {
-    let remaining = out.quantity;
-    const costParts = [];
-    let hasNegativeInventory = false;
-    
-    while (remaining > 0) {
-      // 若還沒進貨或進貨批次都用完，標記為負庫存並跳出循環
-      if (inIndex >= stockIn.length) {
-        hasNegativeInventory = true;
-        break; // 不再拋出錯誤，而是標記為負庫存並繼續處理
-      }
-
-      const batch = stockIn[inIndex];
-      if (!batch.remainingQty) batch.remainingQty = batch.quantity;
-      
-      if (batch.remainingQty > 0) {
-        const used = Math.min(batch.remainingQty, remaining);
-        
-        costParts.push({
-          batchTime: batch.timestamp,
-          unit_price: batch.unit_price,
-          quantity: used,
-          orderNumber: batch.orderNumber,
-          orderId: batch.orderId,
-          orderType: batch.orderType
-        });
-        batch.remainingQty -= used;
-        remaining -= used;
-      }
-
-      if (batch.remainingQty === 0) {
-        inIndex++; // 此批扣完，移至下一批
-      }
-    }
-
-    const outUsage = {
-      outTime: out.timestamp,
-      drug_id: out.drug_id,
-      totalQuantity: out.quantity,
-      costParts, // 此筆出貨的成本分佈（哪幾批扣了多少）
-      orderNumber: out.orderNumber,
-      orderId: out.orderId,
-      orderType: out.orderType,
-      hasNegativeInventory, // 標記是否為負庫存
-      remainingNegativeQuantity: hasNegativeInventory ? remaining : 0 // 記錄尚未匹配的負庫存數量
-    };
-    
-    usageLog.push(outUsage);
+    const outUsage = processOutgoingItem(out, stockIn, inIndex);
+    inIndex = outUsage.newInIndex;
+    usageLog.push(outUsage.result);
   }
 
   return usageLog;
-};
+}
+
+/**
+ * 處理單個出貨項目
+ * @param {Object} out - 出貨記錄
+ * @param {Array} stockIn - 進貨記錄
+ * @param {Number} inIndex - 當前進貨索引
+ * @returns {Object} 處理結果和更新的索引
+ */
+function processOutgoingItem(out, stockIn, inIndex) {
+  let remaining = out.quantity;
+  const costParts = [];
+  let hasNegativeInventory = false;
+  
+  // 處理匹配邏輯
+  const matchResult = matchOutgoingWithIncoming(remaining, stockIn, inIndex);
+  
+  // 構建出貨使用記錄
+  const outUsage = {
+    outTime: out.timestamp,
+    drug_id: out.drug_id,
+    totalQuantity: out.quantity,
+    costParts: matchResult.costParts,
+    orderNumber: out.orderNumber,
+    orderId: out.orderId,
+    orderType: out.orderType,
+    hasNegativeInventory: matchResult.hasNegativeInventory,
+    remainingNegativeQuantity: matchResult.hasNegativeInventory ? matchResult.remaining : 0
+  };
+  
+  return {
+    result: outUsage,
+    newInIndex: matchResult.newInIndex
+  };
+}
+
+/**
+ * 匹配出貨與進貨記錄
+ * @param {Number} remaining - 剩餘數量
+ * @param {Array} stockIn - 進貨記錄
+ * @param {Number} inIndex - 當前進貨索引
+ * @returns {Object} 匹配結果
+ */
+function matchOutgoingWithIncoming(remaining, stockIn, inIndex) {
+  const costParts = [];
+  let hasNegativeInventory = false;
+  let currentInIndex = inIndex;
+  
+  while (remaining > 0) {
+    // 若還沒進貨或進貨批次都用完，標記為負庫存並跳出循環
+    if (currentInIndex >= stockIn.length) {
+      hasNegativeInventory = true;
+      break; // 不再拋出錯誤，而是標記為負庫存並繼續處理
+    }
+
+    const batch = stockIn[currentInIndex];
+    if (!batch.remainingQty) batch.remainingQty = batch.quantity;
+    
+    if (batch.remainingQty > 0) {
+      const used = Math.min(batch.remainingQty, remaining);
+      
+      costParts.push({
+        batchTime: batch.timestamp,
+        unit_price: batch.unit_price,
+        quantity: used,
+        orderNumber: batch.orderNumber,
+        orderId: batch.orderId,
+        orderType: batch.orderType
+      });
+      batch.remainingQty -= used;
+      remaining -= used;
+    }
+
+    if (batch.remainingQty === 0) {
+      currentInIndex++; // 此批扣完，移至下一批
+    }
+  }
+  
+  return {
+    costParts,
+    hasNegativeInventory,
+    remaining,
+    newInIndex: currentInIndex
+  };
+}
 
 /**
  * 計算銷售毛利
@@ -102,61 +143,82 @@ const calculateProfitMargins = (usageLog, sales) => {
     
     // 處理負庫存情況
     if (usage.hasNegativeInventory) {
-      // 計算已匹配部分的成本
-      const matchedCost = usage.costParts.reduce((sum, part) => {
-        return sum + (part.unit_price * part.quantity);
-      }, 0);
-      
-      // 對於負庫存部分，成本暫時設為與收入相等，使毛利為0
-      const negativeInventoryRevenue = sale.unit_price * usage.remainingNegativeQuantity;
-      
-      const totalCost = matchedCost + negativeInventoryRevenue; // 負庫存部分成本等於收入，毛利為0
-      
-      return {
-        drug_id: usage.drug_id,
-        saleTime: usage.outTime,
-        totalQuantity: usage.totalQuantity,
-        totalCost,
-        totalRevenue,
-        grossProfit: 0, // 負庫存情況下，暫時將毛利計為0
-        profitMargin: '0.00%', // 負庫存情況下，暫時將毛利率計為0%
-        costBreakdown: usage.costParts,
-        orderNumber: usage.orderNumber,
-        orderId: usage.orderId,
-        orderType: usage.orderType,
-        hasNegativeInventory: true,
-        remainingNegativeQuantity: usage.remainingNegativeQuantity,
-        pendingProfitCalculation: true // 標記為待計算毛利
-      };
+      return calculateNegativeInventoryProfit(usage, sale, totalRevenue);
     } else {
-      // 正常庫存情況，計算總成本
-      const totalCost = usage.costParts.reduce((sum, part) => {
-        return sum + (part.unit_price * part.quantity);
-      }, 0);
-      
-      // 計算毛利
-      const grossProfit = totalRevenue - totalCost;
-      const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
-      
-      return {
-        drug_id: usage.drug_id,
-        saleTime: usage.outTime,
-        totalQuantity: usage.totalQuantity,
-        totalCost,
-        totalRevenue,
-        grossProfit,
-        profitMargin: profitMargin.toFixed(2) + '%',
-        costBreakdown: usage.costParts,
-        orderNumber: usage.orderNumber,
-        orderId: usage.orderId,
-        orderType: usage.orderType,
-        hasNegativeInventory: false
-      };
+      return calculateNormalProfit(usage, totalRevenue);
     }
   }).filter(result => result !== null);
   
   return results;
 };
+
+/**
+ * 計算負庫存情況下的毛利
+ * @param {Object} usage - 使用記錄
+ * @param {Object} sale - 銷售記錄
+ * @param {Number} totalRevenue - 總收入
+ * @returns {Object} 毛利計算結果
+ */
+function calculateNegativeInventoryProfit(usage, sale, totalRevenue) {
+  // 計算已匹配部分的成本
+  const matchedCost = usage.costParts.reduce((sum, part) => {
+    return sum + (part.unit_price * part.quantity);
+  }, 0);
+  
+  // 對於負庫存部分，成本暫時設為與收入相等，使毛利為0
+  const negativeInventoryRevenue = sale.unit_price * usage.remainingNegativeQuantity;
+  
+  const totalCost = matchedCost + negativeInventoryRevenue; // 負庫存部分成本等於收入，毛利為0
+  
+  return {
+    drug_id: usage.drug_id,
+    saleTime: usage.outTime,
+    totalQuantity: usage.totalQuantity,
+    totalCost,
+    totalRevenue,
+    grossProfit: 0, // 負庫存情況下，暫時將毛利計為0
+    profitMargin: '0.00%', // 負庫存情況下，暫時將毛利率計為0%
+    costBreakdown: usage.costParts,
+    orderNumber: usage.orderNumber,
+    orderId: usage.orderId,
+    orderType: usage.orderType,
+    hasNegativeInventory: true,
+    remainingNegativeQuantity: usage.remainingNegativeQuantity,
+    pendingProfitCalculation: true // 標記為待計算毛利
+  };
+}
+
+/**
+ * 計算正常庫存情況下的毛利
+ * @param {Object} usage - 使用記錄
+ * @param {Number} totalRevenue - 總收入
+ * @returns {Object} 毛利計算結果
+ */
+function calculateNormalProfit(usage, totalRevenue) {
+  // 正常庫存情況，計算總成本
+  const totalCost = usage.costParts.reduce((sum, part) => {
+    return sum + (part.unit_price * part.quantity);
+  }, 0);
+  
+  // 計算毛利
+  const grossProfit = totalRevenue - totalCost;
+  const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+  
+  return {
+    drug_id: usage.drug_id,
+    saleTime: usage.outTime,
+    totalQuantity: usage.totalQuantity,
+    totalCost,
+    totalRevenue,
+    grossProfit,
+    profitMargin: profitMargin.toFixed(2) + '%',
+    costBreakdown: usage.costParts,
+    orderNumber: usage.orderNumber,
+    orderId: usage.orderId,
+    orderType: usage.orderType,
+    hasNegativeInventory: false
+  };
+}
 
 /**
  * 將庫存記錄轉換為FIFO計算所需的格式

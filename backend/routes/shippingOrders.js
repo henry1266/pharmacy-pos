@@ -343,7 +343,7 @@ async function handleInventoryRecordsUpdate(oldStatus, shippingOrder) {
 // @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { soid, items, status } = req.body;
+    const { soid, items } = req.body;
 
     // 檢查出貨單是否存在 - 避免使用 findById，改用 findOne 搭配查詢物件
     let shippingOrder = await ShippingOrder.findOne({ _id: req.params.id.toString() });
