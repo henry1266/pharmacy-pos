@@ -88,12 +88,16 @@ function convertToWesternDate(dateStr) {
   if (!dateStr) return null;
   
   // 如果已經是西元年格式 YYYY-MM-DD，直接返回
-  if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+  const westernDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  const westernDateMatch = westernDateRegex.exec(dateStr);
+  if (westernDateMatch) {
     return dateStr;
   }
   
   // 檢查是否是民國年格式 YYYMMDD (例如1140407)
-  if (dateStr.match(/^\d{7}$/)) {
+  const rocDateRegex = /^\d{7}$/;
+  const rocDateMatch = rocDateRegex.exec(dateStr);
+  if (rocDateMatch) {
     try {
       // 提取民國年、月、日
       const rocYear = parseInt(dateStr.substring(0, 3), 10);
@@ -131,53 +135,83 @@ function convertToWesternDate(dateStr) {
 }
 
 /**
+ * 解析日期並返回日期物件
+ * @param {string} dateStr - 日期字符串
+ * @returns {Date|null} 解析後的日期物件或null
+ */
+function parseDateString(dateStr) {
+  // 先將日期轉換為西元年格式
+  const westernDateStr = convertToWesternDate(dateStr);
+  
+  // 解析日期
+  if (westernDateStr && /^\d{4}-\d{2}-\d{2}$/.test(westernDateStr)) {
+    const dateObj = new Date(westernDateStr);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * 格式化日期為YYYYMMDD格式
+ * @param {Date} dateObj - 日期物件
+ * @returns {string} 格式化後的日期字串
+ */
+function formatDateToYYYYMMDD(dateObj) {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
+}
+
+/**
+ * 查找指定前綴的最大訂單序號
+ * @param {string} prefix - 訂單號前綴
+ * @param {string} suffix - 訂單號後綴
+ * @returns {Promise<number>} 最大序號
+ */
+async function findMaxOrderSequence(prefix, suffix) {
+  const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
+  const existingOrders = await ShippingOrder.find({ 
+    soid: regex.toString() 
+  }).sort({ soid: -1 });
+  
+  let sequence = 1; // 默認從001開始
+  
+  if (existingOrders.length > 0) {
+    const lastOrderNumber = existingOrders[0].soid;
+    // 提取序號部分 (去掉日期前綴和D後綴)
+    const lastSequence = parseInt(lastOrderNumber.substring(prefix.length, lastOrderNumber.length - suffix.length), 10);
+    sequence = lastSequence + 1;
+  }
+  
+  return sequence;
+}
+
+/**
  * 根據日期生成訂單號
  * @param {string} dateStr - 日期字符串，格式為YYYY-MM-DD或民國年格式YYYMMDD
  * @returns {Promise<string>} 生成的訂單號
  */
 async function generateOrderNumberByDate(dateStr) {
   try {
-    // 先將日期轉換為西元年格式
-    const westernDateStr = convertToWesternDate(dateStr);
-    
     // 解析日期
-    let dateObj;
-    // **修正：如果日期無效或未提供，則拋出錯誤，而不是使用當前日期**
-    if (westernDateStr && westernDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      dateObj = new Date(westernDateStr);
-      if (isNaN(dateObj.getTime())) {
-        throw new Error(`無效的日期格式: ${dateStr}`);
-      }
-    } else {
-      throw new Error(`無法從CSV獲取有效日期: ${dateStr}`);
+    const dateObj = parseDateString(dateStr);
+    if (!dateObj) {
+      throw new Error(`無效的日期格式: ${dateStr}`);
     }
     
     // 格式化日期為YYYYMMDD
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const day = String(dateObj.getDate()).padStart(2, "0");
-    const dateFormat = `${year}${month}${day}`;
+    const dateFormat = formatDateToYYYYMMDD(dateObj);
     
     // 訂單號格式: YYYYMMDD+序號+D
-    const prefix = `${dateFormat}`;
+    const prefix = dateFormat;
     const suffix = "D";
     
     // 查找當天最大序號
-    const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
-    // 修正：確保使用查詢物件包裝參數
-    const existingOrders = await ShippingOrder.find({ 
-      soid: regex.toString() 
-    }).sort({ soid: -1 });
-    
-    let sequence = 1; // 默認從001開始
-    
-    if (existingOrders.length > 0) {
-      // **修正：嚴格使用最大序號+1，不再填補空缺**
-      const lastOrderNumber = existingOrders[0].soid;
-      // 提取序號部分 (去掉日期前綴和D後綴)
-      const lastSequence = parseInt(lastOrderNumber.substring(prefix.length, lastOrderNumber.length - suffix.length), 10);
-      sequence = lastSequence + 1;
-    }
+    const sequence = await findMaxOrderSequence(prefix, suffix);
     
     // 生成新訂單號，序號部分固定3位數
     return `${prefix}${String(sequence).padStart(3, "0")}${suffix}`;
@@ -185,6 +219,162 @@ async function generateOrderNumberByDate(dateStr) {
     console.error("根據日期生成訂單號時出錯:", error);
     throw error;
   }
+}
+
+/**
+ * 檢查訂單號是否存在，如存在則生成新的
+ * @param {string} soid - 訂單號
+ * @param {string} dateStr - 日期字符串
+ * @returns {Promise<string>} 唯一的訂單號
+ */
+async function ensureUniqueOrderNumber(soid, dateStr) {
+  // 檢查出貨單號是否已存在
+  const existingSO = await ShippingOrder.findOne({ 
+    soid: soid.toString() 
+  });
+  
+  if (!existingSO) {
+    return soid;
+  }
+  
+  // 如果已存在，嘗試生成新的訂單號
+  const newSoid = await generateOrderNumberByDate(dateStr);
+  
+  // 再次檢查
+  const existingSO2 = await ShippingOrder.findOne({ 
+    soid: newSoid.toString() 
+  });
+  
+  if (existingSO2) {
+    throw new Error(`訂單號 ${newSoid} 已存在，無法生成唯一的出貨單號，請檢查數據或稍後再試`);
+  }
+  
+  return newSoid;
+}
+
+/**
+ * 處理CSV行數據
+ * @param {Object} data - CSV行數據
+ * @param {number} lineIndex - 行索引
+ * @param {Object} result - 處理結果
+ * @returns {Object} 處理結果
+ */
+function processCsvLine(data, lineIndex, result) {
+  const { results, errors, firstValidDate } = result;
+  const keys = Object.keys(data);
+  
+  // 如果CSV沒有標題行，則使用索引位置
+  if (keys.length < 4) {
+    errors.push(`行 ${lineIndex + 1}: CSV格式不正確，應為"日期,健保碼,數量,健保價"`);
+    return { ...result, failCount: result.failCount + 1 };
+  }
+  
+  const rawDate = data[keys[0]] || "";
+  const nhCode = data[keys[1]] || "";
+  const quantity = parseInt(data[keys[2]], 10) || 0;
+  const nhPrice = parseFloat(data[keys[3]]) || 0;
+
+  // 轉換日期格式（支持民國年和西元年）
+  const date = convertToWesternDate(rawDate);
+  
+  // 記錄第一個有效的日期
+  let updatedFirstValidDate = firstValidDate;
+  if (updatedFirstValidDate === null && date) {
+    updatedFirstValidDate = date;
+    console.log(`首個有效日期已轉換: ${rawDate} -> ${date}`);
+  }
+
+  if (nhCode && quantity > 0 && nhPrice > 0) {
+    results.push({
+      rawDate,
+      date,
+      nhCode: nhCode.toString(),
+      quantity,
+      nhPrice
+    });
+    return { 
+      results, 
+      errors, 
+      failCount: result.failCount, 
+      totalItems: result.totalItems + 1,
+      firstValidDate: updatedFirstValidDate
+    };
+  } else {
+    errors.push(`行 ${lineIndex + 1}: 資料不完整或格式錯誤 (健保碼: ${nhCode}, 數量: ${quantity}, 健保價: ${nhPrice})`);
+    return { 
+      results, 
+      errors, 
+      failCount: result.failCount + 1, 
+      totalItems: result.totalItems + 1,
+      firstValidDate: updatedFirstValidDate
+    };
+  }
+}
+
+/**
+ * 準備出貨單項目
+ * @param {Array} results - CSV處理結果
+ * @param {Object} productMap - 健保碼到藥品的映射
+ * @param {Array} errors - 錯誤信息數組
+ * @returns {Object} 處理結果
+ */
+function prepareOrderItems(results, productMap, errors) {
+  const items = [];
+  let successCount = 0;
+  let failCount = 0;
+  
+  for (const item of results) {
+    const product = productMap[item.nhCode.toString()];
+    
+    if (!product) {
+      errors.push(`找不到健保碼為 ${item.nhCode} 的藥品`);
+      failCount++;
+      continue;
+    }
+
+    // 計算總成本
+    const totalCost = item.quantity * item.nhPrice;
+    
+    items.push({
+      product: product._id.toString(),
+      did: product.code?.toString() || "",
+      dname: product.name?.toString() || "",
+      dquantity: item.quantity,
+      dtotalCost: totalCost,
+      unitPrice: item.nhPrice
+    });
+    
+    successCount++;
+  }
+  
+  return { items, successCount, failCount };
+}
+
+/**
+ * 查找或設置供應商
+ * @param {Object} defaultSupplier - 預設供應商
+ * @returns {Promise<Object>} 供應商信息
+ */
+async function findOrSetSupplier(defaultSupplier) {
+  let supplierId = null;
+  let supplierName = "預設供應商";
+  
+  if (defaultSupplier) {
+    supplierId = defaultSupplier._id?.toString();
+    supplierName = defaultSupplier.name?.toString() || supplierName;
+  } else {
+    // 嘗試查找名為"調劑"的供應商
+    const supplier = await Supplier.findOne({ 
+      name: "調劑".toString() 
+    });
+    
+    if (supplier) {
+      supplierId = supplier._id.toString();
+      supplierName = supplier.name.toString();
+    }
+  }
+  
+  return { supplierId, supplierName };
 }
 
 // @route   GET api/shipping-orders/generate-number
@@ -225,53 +415,23 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
       console.error("解析預設供應商數據時出錯:", error);
     }
 
-    const results = [];
-    const errors = [];
-    let successCount = 0;
-    let failCount = 0;
-    let totalItems = 0;
-    let firstValidDate = null; // **修正：變數名更清晰**
+    // 初始化處理結果
+    const result = {
+      results: [],
+      errors: [],
+      successCount: 0,
+      failCount: 0,
+      totalItems: 0,
+      firstValidDate: null
+    };
 
     // 讀取並解析CSV文件
     await new Promise((resolve, reject) => {
       fs.createReadStream(req.file.path)
         .pipe(csv())
         .on("data", (data) => {
-          // 檢查CSV格式是否符合要求
-          const keys = Object.keys(data);
-          // 如果CSV沒有標題行，則使用索引位置
-          if (keys.length >= 4) {
-            const rawDate = data[keys[0]] || "";
-            const nhCode = data[keys[1]] || "";
-            const quantity = parseInt(data[keys[2]], 10) || 0;
-            const nhPrice = parseFloat(data[keys[3]]) || 0;
-
-            // 轉換日期格式（支持民國年和西元年）
-            const date = convertToWesternDate(rawDate);
-            
-            // **修正：記錄第一個有效的日期**
-            if (firstValidDate === null && date) {
-              firstValidDate = date;
-              console.log(`首個有效日期已轉換: ${rawDate} -> ${date}`);
-            }
-
-            if (nhCode && quantity > 0 && nhPrice > 0) {
-              results.push({
-                rawDate,
-                date, // 保存轉換後的日期
-                nhCode: nhCode.toString(), // 修正：確保轉換為字串
-                quantity,
-                nhPrice
-              });
-              totalItems++;
-            } else {
-              errors.push(`行 ${totalItems + 1}: 資料不完整或格式錯誤 (健保碼: ${nhCode}, 數量: ${quantity}, 健保價: ${nhPrice})`);
-              failCount++;
-            }
-          } else {
-            errors.push(`行 ${totalItems + 1}: CSV格式不正確，應為"日期,健保碼,數量,健保價"`);
-            failCount++;
-          }
+          const updatedResult = processCsvLine(data, result.totalItems, result);
+          Object.assign(result, updatedResult);
         })
         .on("end", resolve)
         .on("error", reject);
@@ -280,18 +440,18 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
     // 刪除上傳的文件
     fs.unlinkSync(req.file.path);
 
-    if (results.length === 0) {
+    if (result.results.length === 0) {
       return res.status(400).json({ 
         msg: "CSV文件中沒有有效的藥品明細數據",
-        errors
+        errors: result.errors
       });
     }
     
-    // **修正：如果CSV中沒有找到任何有效日期，則返回錯誤**
-    if (!firstValidDate) {
+    // 如果CSV中沒有找到任何有效日期，則返回錯誤
+    if (!result.firstValidDate) {
       return res.status(400).json({ 
         msg: "CSV文件中缺少有效的日期欄位",
-        errors
+        errors: result.errors
       });
     }
 
@@ -299,41 +459,22 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
     let soid = orderNumber;
     if (!soid) {
       try {
-        soid = await generateOrderNumberByDate(firstValidDate);
+        soid = await generateOrderNumberByDate(result.firstValidDate);
       } catch (genError) {
         return res.status(500).json({ msg: "生成訂單號時出錯", error: genError.message });
       }
     }
 
-    // 檢查出貨單號是否已存在
-    // 修正：確保使用查詢物件包裝參數並轉換為字串
-    const existingSO = await ShippingOrder.findOne({ 
-      soid: soid.toString() 
-    });
-    
-    if (existingSO) {
-      // 如果已存在，嘗試生成新的訂單號
-      try {
-        soid = await generateOrderNumberByDate(firstValidDate);
-      } catch (genError) {
-        return res.status(500).json({ msg: "生成訂單號時出錯", error: genError.message });
-      }
-      
-      // 再次檢查
-      // 修正：確保使用查詢物件包裝參數並轉換為字串
-      const existingSO2 = await ShippingOrder.findOne({ 
-        soid: soid.toString() 
-      });
-      
-      if (existingSO2) {
-        return res.status(400).json({ msg: `訂單號 ${soid} 已存在，無法生成唯一的出貨單號，請檢查數據或稍後再試` });
-      }
+    // 確保訂單號唯一
+    try {
+      soid = await ensureUniqueOrderNumber(soid, result.firstValidDate);
+    } catch (uniqueError) {
+      return res.status(400).json({ msg: uniqueError.message });
     }
 
     // 查找所有健保碼對應的藥品
-    const nhCodes = results.map(item => item.nhCode.toString()); // 修正：確保轉換為字串
+    const nhCodes = result.results.map(item => item.nhCode.toString());
     
-    // 修正：確保使用查詢物件包裝參數
     const products = await BaseProduct.find({ 
       healthInsuranceCode: { $in: nhCodes } 
     });
@@ -342,73 +483,33 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
     const productMap = {};
     products.forEach(product => {
       if (product.healthInsuranceCode) {
-        productMap[product.healthInsuranceCode.toString()] = product; // 修正：確保轉換為字串
+        productMap[product.healthInsuranceCode.toString()] = product;
       }
     });
 
     // 準備出貨單項目
-    const items = [];
-    for (const item of results) {
-      const product = productMap[item.nhCode.toString()]; // 修正：確保轉換為字串
-      
-      if (!product) {
-        errors.push(`找不到健保碼為 ${item.nhCode} 的藥品`);
-        failCount++;
-        continue;
-      }
-
-      // 計算總成本
-      const totalCost = item.quantity * item.nhPrice;
-      
-      items.push({
-        product: product._id.toString(), // 修正：確保轉換為字串
-        did: product.code ? product.code.toString() : "", // 修正：確保轉換為字串
-        dname: product.name ? product.name.toString() : "", // 修正：確保轉換為字串
-        dquantity: item.quantity,
-        dtotalCost: totalCost,
-        unitPrice: item.nhPrice
-      });
-      
-      successCount++;
-    }
+    const { items, successCount, failCount } = prepareOrderItems(
+      result.results, 
+      productMap, 
+      result.errors
+    );
 
     if (items.length === 0) {
       return res.status(400).json({ 
         msg: "無法匹配任何有效的藥品",
-        errors
+        errors: result.errors
       });
     }
 
     // 確定供應商
-    let supplierId = null;
-    let supplierName = "預設供應商";
-    
-    if (defaultSupplier) {
-      if (defaultSupplier._id) {
-        supplierId = defaultSupplier._id.toString(); // 修正：確保轉換為字串
-      }
-      if (defaultSupplier.name) {
-        supplierName = defaultSupplier.name.toString(); // 修正：確保轉換為字串
-      }
-    } else {
-      // 嘗試查找名為"調劑"的供應商
-      // 修正：確保使用查詢物件包裝參數並轉換為字串
-      const supplier = await Supplier.findOne({ 
-        name: "調劑".toString() 
-      });
-      
-      if (supplier) {
-        supplierId = supplier._id.toString(); // 修正：確保轉換為字串
-        supplierName = supplier.name.toString(); // 修正：確保轉換為字串
-      }
-    }
+    const { supplierId, supplierName } = await findOrSetSupplier(defaultSupplier);
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
-      soid: soid.toString(), // 修正：確保轉換為字串
-      orderNumber: soid.toString(), // 修正：確保轉換為字串
-      sosupplier: supplierName.toString(), // 修正：確保轉換為字串
-      supplier: supplierId ? supplierId.toString() : null, // 修正：確保轉換為字串
+      soid: soid.toString(),
+      orderNumber: soid.toString(),
+      sosupplier: supplierName.toString(),
+      supplier: supplierId ? supplierId.toString() : null,
       items,
       status: "completed", // 根據新需求設置為completed
       paymentStatus: "已收款", // 根據之前的需求設置為已收款
@@ -426,20 +527,20 @@ router.post("/import/medicine", upload.single("file"), async (req, res) => {
     res.json({
       msg: "藥品明細CSV匯入成功",
       shippingOrder: {
-        _id: savedOrder._id.toString(), // 修正：確保轉換為字串
-        soid: savedOrder.soid.toString(), // 修正：確保轉換為字串
-        orderNumber: savedOrder.orderNumber.toString(), // 修正：確保轉換為字串
-        supplier: supplierName.toString(), // 修正：確保轉換為字串
+        _id: savedOrder._id.toString(),
+        soid: savedOrder.soid.toString(),
+        orderNumber: savedOrder.orderNumber.toString(),
+        supplier: supplierName.toString(),
         itemCount: items.length,
         totalAmount: savedOrder.totalAmount,
-        paymentStatus: savedOrder.paymentStatus.toString(), // 修正：確保轉換為字串
-        status: savedOrder.status.toString() // 修正：確保轉換為字串
+        paymentStatus: savedOrder.paymentStatus.toString(),
+        status: savedOrder.status.toString()
       },
       summary: {
-        totalItems,
+        totalItems: result.totalItems,
         successCount,
         failCount,
-        errors: errors.length > 0 ? errors : null
+        errors: result.errors.length > 0 ? result.errors : null
       }
     });
   } catch (err) {
