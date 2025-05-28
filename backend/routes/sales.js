@@ -202,13 +202,21 @@ async function validateSaleCreationRequest(requestBody) {
 
 // 創建銷售記錄
 async function createSaleRecord(requestBody) {
-  const { saleNumber, customer, items, totalAmount, discount, paymentMethod, paymentStatus, note, cashier } = requestBody;
-  
   // 生成銷貨單號（如果未提供）
-  const finalSaleNumber = await generateSaleNumber(saleNumber);
+  const finalSaleNumber = await generateSaleNumber(requestBody.saleNumber);
   
   // 建立銷售記錄
-  const saleFields = buildSaleFields(finalSaleNumber, customer, items, totalAmount, discount, paymentMethod, paymentStatus, note, cashier);
+  const saleFields = buildSaleFields({
+    saleNumber: finalSaleNumber,
+    customer: requestBody.customer,
+    items: requestBody.items,
+    totalAmount: requestBody.totalAmount,
+    discount: requestBody.discount,
+    paymentMethod: requestBody.paymentMethod,
+    paymentStatus: requestBody.paymentStatus,
+    note: requestBody.note,
+    cashier: requestBody.cashier
+  });
 
   const sale = new Sale(saleFields);
   await sale.save();
@@ -224,19 +232,19 @@ async function generateSaleNumber(saleNumber) {
 }
 
 // 建立銷售記錄欄位
-function buildSaleFields(saleNumber, customer, items, totalAmount, discount, paymentMethod, paymentStatus, note, cashier) {
+function buildSaleFields(saleData) {
   const saleFields = {
-    saleNumber: saleNumber ? saleNumber.toString() : '',
-    items,
-    totalAmount,
+    saleNumber: saleData.saleNumber ? saleData.saleNumber.toString() : '',
+    items: saleData.items,
+    totalAmount: saleData.totalAmount,
   };
   
-  if (customer) saleFields.customer = customer.toString();
-  if (discount) saleFields.discount = discount;
-  if (paymentMethod) saleFields.paymentMethod = paymentMethod ? paymentMethod.toString() : '';
-  if (paymentStatus) saleFields.paymentStatus = paymentStatus ? paymentStatus.toString() : '';
-  if (note) saleFields.note = note ? note.toString() : '';
-  if (cashier) saleFields.cashier = cashier ? cashier.toString() : '';
+  if (saleData.customer) saleFields.customer = saleData.customer.toString();
+  if (saleData.discount) saleFields.discount = saleData.discount;
+  if (saleData.paymentMethod) saleFields.paymentMethod = saleData.paymentMethod ? saleData.paymentMethod.toString() : '';
+  if (saleData.paymentStatus) saleFields.paymentStatus = saleData.paymentStatus ? saleData.paymentStatus.toString() : '';
+  if (saleData.note) saleFields.note = saleData.note ? saleData.note.toString() : '';
+  if (saleData.cashier) saleFields.cashier = saleData.cashier ? saleData.cashier.toString() : '';
   
   return saleFields;
 }
@@ -429,30 +437,18 @@ async function validateSaleUpdateRequest(req) {
 
 // 更新銷售記錄
 async function updateSaleRecord(saleId, requestBody) {
-  const {
-    saleNumber,
-    customer,
-    items,
-    totalAmount,
-    discount,
-    paymentMethod,
-    paymentStatus,
-    note,
-    cashier
-  } = requestBody;
-
   // 建立銷售記錄欄位
-  const saleFields = buildSaleFields(
-    saleNumber, 
-    customer, 
-    items, 
-    totalAmount, 
-    discount, 
-    paymentMethod, 
-    paymentStatus, 
-    note, 
-    cashier
-  );
+  const saleFields = buildSaleFields({
+    saleNumber: requestBody.saleNumber,
+    customer: requestBody.customer,
+    items: requestBody.items,
+    totalAmount: requestBody.totalAmount,
+    discount: requestBody.discount,
+    paymentMethod: requestBody.paymentMethod,
+    paymentStatus: requestBody.paymentStatus,
+    note: requestBody.note,
+    cashier: requestBody.cashier
+  });
 
   // 更新銷售記錄
   const sale = await Sale.findOne({ _id: saleId.toString() });
