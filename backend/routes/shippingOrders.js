@@ -328,7 +328,7 @@ async function applyUpdateToShippingOrder(shippingOrder, updateData) {
 // @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { soid, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
+    const { soid, items, status } = req.body;
 
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
@@ -541,109 +541,150 @@ async function deleteShippingInventoryRecords(shippingOrderId) {
   }
 }
 
-// 處理CSV導入的輔助函數
+// 驗證CSV基本資訊必填欄位
+function validateBasicCsvFields(row) {
+  if (!row['出貨單號'] || !row['客戶']) {
+    return {
+      success: false,
+      message: '出貨單號和客戶為必填項'
+    };
+  }
+  return { success: true };
+}
+
+// 驗證CSV項目必填欄位
+function validateItemsCsvFields(row) {
+  if (!row['出貨單號'] || !row['藥品代碼'] || !row['藥品名稱'] || !row['數量'] || !row['總金額']) {
+    return {
+      success: false,
+      message: '出貨單號、藥品代碼、藥品名稱、數量和總金額為必填項'
+    };
+  }
+  return { success: true };
+}
+
+// 處理基本資訊CSV行
+async function processBasicCsvRow(row) {
+  // 檢查出貨單號是否已存在
+  const existingSO = await ShippingOrder.findOne({ soid: row['出貨單號'] });
+  if (existingSO) {
+    return {
+      success: false,
+      message: `出貨單號 ${row['出貨單號']} 已存在`
+    };
+  }
+  
+  // 查找供應商
+  let supplierId = null;
+  const supplierName = row['客戶'];
+  const supplier = await Supplier.findOne({ name: supplierName });
+  if (supplier) {
+    supplierId = supplier._id;
+  }
+  
+  // 創建新出貨單
+  const shippingOrder = new ShippingOrder({
+    soid: row['出貨單號'],
+    orderNumber: await OrderNumberService.generateUniqueOrderNumber('shipping', row['出貨單號']),
+    sosupplier: supplierName,
+    supplier: supplierId,
+    notes: row['備註'] || '',
+    status: row['狀態'] || 'pending',
+    paymentStatus: row['付款狀態'] || '未收',
+    items: []
+  });
+  
+  await shippingOrder.save();
+  return {
+    success: true,
+    message: `成功導入出貨單 ${row['出貨單號']}`
+  };
+}
+
+// 處理項目CSV行
+async function processItemsCsvRow(row) {
+  // 檢查出貨單是否存在
+  const shippingOrder = await ShippingOrder.findOne({ soid: row['出貨單號'] });
+  if (!shippingOrder) {
+    return {
+      success: false,
+      message: `找不到出貨單 ${row['出貨單號']}`
+    };
+  }
+  
+  // 查找藥品
+  const product = await BaseProduct.findOne({ code: row['藥品代碼'] });
+  if (!product) {
+    return {
+      success: false,
+      message: `找不到藥品 ${row['藥品代碼']}`
+    };
+  }
+  
+  // 創建新項目
+  const newItem = {
+    did: row['藥品代碼'],
+    dname: row['藥品名稱'],
+    dquantity: parseInt(row['數量']),
+    dtotalCost: parseFloat(row['總金額']),
+    product: product._id
+  };
+  
+  // 更新出貨單項目
+  await updateShippingOrderItems(shippingOrder, newItem);
+  
+  return {
+    success: true,
+    message: `成功將藥品 ${row['藥品名稱']} 添加到出貨單 ${row['出貨單號']}`
+  };
+}
+
+// 更新出貨單項目
+async function updateShippingOrderItems(shippingOrder, newItem) {
+  // 檢查項目是否已存在
+  const existingItemIndex = shippingOrder.items.findIndex(item => 
+    item.did === newItem.did && item.dname === newItem.dname
+  );
+  
+  if (existingItemIndex >= 0) {
+    // 更新現有項目
+    shippingOrder.items[existingItemIndex] = newItem;
+  } else {
+    // 添加新項目
+    shippingOrder.items.push(newItem);
+  }
+  
+  // 更新總金額
+  shippingOrder.totalAmount = shippingOrder.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
+  
+  await shippingOrder.save();
+}
+
+// 處理CSV行數據的輔助函數
 async function processCsvRow(row, type) {
   try {
-    // 檢查必要字段
-    if (type === 'basic' && (!row['出貨單號'] || !row['客戶'])) {
+    // 驗證必填欄位
+    let validation;
+    if (type === 'basic') {
+      validation = validateBasicCsvFields(row);
+    } else if (type === 'items') {
+      validation = validateItemsCsvFields(row);
+    } else {
       return {
         success: false,
-        message: '出貨單號和客戶為必填項'
+        message: '未知的導入類型'
       };
     }
     
-    if (type === 'items' && (!row['出貨單號'] || !row['藥品代碼'] || !row['藥品名稱'] || !row['數量'] || !row['總金額'])) {
-      return {
-        success: false,
-        message: '出貨單號、藥品代碼、藥品名稱、數量和總金額為必填項'
-      };
+    if (!validation.success) {
+      return validation;
     }
     
     // 根據類型處理不同的導入邏輯
     if (type === 'basic') {
-      // 檢查出貨單號是否已存在
-      const existingSO = await ShippingOrder.findOne({ soid: row['出貨單號'] });
-      if (existingSO) {
-        return {
-          success: false,
-          message: `出貨單號 ${row['出貨單號']} 已存在`
-        };
-      }
-      
-      // 查找供應商
-      let supplierId = null;
-      const supplierName = row['客戶'];
-      const supplier = await Supplier.findOne({ name: supplierName });
-      if (supplier) {
-        supplierId = supplier._id;
-      }
-      
-      // 創建新出貨單
-      const shippingOrder = new ShippingOrder({
-        soid: row['出貨單號'],
-        orderNumber: await OrderNumberService.generateUniqueOrderNumber('shipping', row['出貨單號']),
-        sosupplier: supplierName,
-        supplier: supplierId,
-        notes: row['備註'] || '',
-        status: row['狀態'] || 'pending',
-        paymentStatus: row['付款狀態'] || '未收',
-        items: []
-      });
-      
-      await shippingOrder.save();
-      return {
-        success: true,
-        message: `成功導入出貨單 ${row['出貨單號']}`
-      };
+      return await processBasicCsvRow(row);
     } else if (type === 'items') {
-      // 檢查出貨單是否存在
-      const shippingOrder = await ShippingOrder.findOne({ soid: row['出貨單號'] });
-      if (!shippingOrder) {
-        return {
-          success: false,
-          message: `找不到出貨單 ${row['出貨單號']}`
-        };
-      }
-      
-      // 查找藥品
-      const product = await BaseProduct.findOne({ code: row['藥品代碼'] });
-      if (!product) {
-        return {
-          success: false,
-          message: `找不到藥品 ${row['藥品代碼']}`
-        };
-      }
-      
-      // 添加項目到出貨單
-      const newItem = {
-        did: row['藥品代碼'],
-        dname: row['藥品名稱'],
-        dquantity: parseInt(row['數量']),
-        dtotalCost: parseFloat(row['總金額']),
-        product: product._id
-      };
-      
-      // 檢查項目是否已存在
-      const existingItemIndex = shippingOrder.items.findIndex(item => 
-        item.did === newItem.did && item.dname === newItem.dname
-      );
-      
-      if (existingItemIndex >= 0) {
-        // 更新現有項目
-        shippingOrder.items[existingItemIndex] = newItem;
-      } else {
-        // 添加新項目
-        shippingOrder.items.push(newItem);
-      }
-      
-      // 更新總金額
-      shippingOrder.totalAmount = shippingOrder.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
-      
-      await shippingOrder.save();
-      return {
-        success: true,
-        message: `成功將藥品 ${row['藥品名稱']} 添加到出貨單 ${row['出貨單號']}`
-      };
+      return await processItemsCsvRow(row);
     }
     
     return {
@@ -659,10 +700,8 @@ async function processCsvRow(row, type) {
   }
 }
 
-// @route   POST api/shipping-orders/import/basic
-// @desc    導入出貨單基本資訊CSV
-// @access  Public
-router.post('/import/basic', upload.single('file'), async (req, res) => {
+// 處理CSV導入的輔助函數
+async function processCsvImport(req, res, type) {
   try {
     if (!req.file) {
       return res.status(400).json({ msg: '請上傳CSV文件' });
@@ -682,7 +721,7 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
 
         // 處理每一行數據
         for (const row of results) {
-          const result = await processCsvRow(row, 'basic');
+          const result = await processCsvRow(row, type);
           if (result.success) {
             successCount++;
           } else {
@@ -692,7 +731,7 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
 
         res.json({
           success: true,
-          message: `成功導入 ${successCount} 筆出貨單基本資訊`,
+          message: `成功導入 ${successCount} 筆${type === 'basic' ? '出貨單基本資訊' : '出貨單項目'}`,
           errors: errors.length > 0 ? errors : null
         });
       });
@@ -700,49 +739,20 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
     console.error(err.message);
     res.status(500).send('伺服器錯誤');
   }
+}
+
+// @route   POST api/shipping-orders/import/basic
+// @desc    導入出貨單基本資訊CSV
+// @access  Public
+router.post('/import/basic', upload.single('file'), async (req, res) => {
+  await processCsvImport(req, res, 'basic');
 });
 
 // @route   POST api/shipping-orders/import/items
 // @desc    導入出貨單項目CSV
 // @access  Public
 router.post('/import/items', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ msg: '請上傳CSV文件' });
-    }
-
-    const results = [];
-    const errors = [];
-    let successCount = 0;
-
-    // 讀取並解析CSV文件
-    fs.createReadStream(req.file.path)
-      .pipe(csv())
-      .on('data', (data) => results.push(data))
-      .on('end', async () => {
-        // 刪除上傳的文件
-        fs.unlinkSync(req.file.path);
-
-        // 處理每一行數據
-        for (const row of results) {
-          const result = await processCsvRow(row, 'items');
-          if (result.success) {
-            successCount++;
-          } else {
-            errors.push(`行 ${results.indexOf(row) + 1}: ${result.message}`);
-          }
-        }
-
-        res.json({
-          success: true,
-          message: `成功導入 ${successCount} 筆出貨單項目`,
-          errors: errors.length > 0 ? errors : null
-        });
-      });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('伺服器錯誤');
-  }
+  await processCsvImport(req, res, 'items');
 });
 
 module.exports = router;
