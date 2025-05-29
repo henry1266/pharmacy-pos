@@ -511,13 +511,16 @@ const SuppliersPage = () => {
         <DialogTitle>匯入供應商 CSV {isTestMode && "(模擬)"}</DialogTitle>
         <DialogContent>
           <Box sx={{ my: 2 }}>
-            <Typography variant="body2" gutterBottom>
-              請選擇要匯入的CSV文件。文件應包含以下欄位：
-              <code>code</code>, <code>shortCode</code>, <code>name</code>, <code>contactPerson</code>, <code>phone</code>, <code>taxId</code>, <code>paymentTerms</code>, <code>notes</code>.
-            </Typography>
-            <Typography variant="body2" gutterBottom>
-              <code>code</code> 和 <code>name</code> 為必填欄位。
-            </Typography>
+          <Typography variant="body2" gutterBottom>
+  請選擇要匯入的CSV文件。文件應包含以下欄位：{' '}
+  <code>code</code>, <code>shortCode</code>, <code>name</code>,
+  <code>contactPerson</code>, <code>phone</code>, <code>taxId</code>,
+  <code>paymentTerms</code>, <code>notes</code>.
+</Typography>
+
+<Typography variant="body2" gutterBottom>
+  <code>code</code>{' '}和{' '}<code>name</code>{' '}為必填欄位。
+</Typography>
             <Button
               component="label"
               variant="outlined"
