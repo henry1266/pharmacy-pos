@@ -1,5 +1,6 @@
 import React from 'react';
 import { Chip } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 狀態標籤組件
@@ -30,6 +31,17 @@ const StatusChip = ({ status, size = 'small' }) => {
   }
   
   return <Chip size={size} color={color} label={label} />;
+};
+
+// 添加 Props 驗證
+StatusChip.propTypes = {
+  status: PropTypes.string.isRequired,
+  size: PropTypes.string
+};
+
+// 預設值
+StatusChip.defaultProps = {
+  size: 'small'
 };
 
 export default StatusChip;

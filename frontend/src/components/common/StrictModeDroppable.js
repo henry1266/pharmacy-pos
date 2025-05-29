@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Droppable } from 'react-beautiful-dnd';
+import PropTypes from 'prop-types';
 
 /**
  * 嚴格模式下的Droppable組件
@@ -23,4 +24,12 @@ export const StrictModeDroppable = ({ children, ...props }) => {
   }
   
   return <Droppable {...props}>{children}</Droppable>;
+};
+
+// 添加 Props 驗證
+StrictModeDroppable.propTypes = {
+  children: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.node
+  ]).isRequired
 };

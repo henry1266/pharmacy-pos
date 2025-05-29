@@ -58,7 +58,7 @@ const Select = ({
   );
 };
 
-// 添加 Props 驗證
+// 添加 Props 驗證 - 修正 options 的 isRequired 與 defaultProps 衝突
 Select.propTypes = {
   label: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
@@ -69,7 +69,7 @@ Select.propTypes = {
       value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       label: PropTypes.string.isRequired
     })
-  ).isRequired,
+  ), // 移除 isRequired，因為已有 defaultProps
   fullWidth: PropTypes.bool,
   required: PropTypes.bool,
   error: PropTypes.string,
