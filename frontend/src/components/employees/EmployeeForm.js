@@ -177,7 +177,7 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
 
   // 渲染提交按鈕
   const renderSubmitButton = () => {
-    // 按鈕文字
+    // 提取巢狀三元運算符為獨立變數
     let buttonText = '儲存';
     if (isSubmitting) {
       buttonText = '儲存中...';

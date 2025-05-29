@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { 
   TextField, 
   Tooltip,
@@ -186,12 +187,28 @@ const PriceTooltip = ({
         simulationResult={simulationResult}
         loading={loading}
         error={error}
-        onApplyCost={handleApplyCost}
-        handleAddItem={handleAddItem}
+        onApplyCostAndAdd={handleApplyCost}
       />
     </>
   );
 };
 
-export default PriceTooltip;
+// 添加 PropTypes 驗證
+PriceTooltip.propTypes = {
+  currentItem: PropTypes.shape({
+    product: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    dname: PropTypes.string,
+    did: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  }).isRequired,
+  handleItemInputChange: PropTypes.func.isRequired,
+  getProductPurchasePrice: PropTypes.func.isRequired,
+  calculateTotalCost: PropTypes.func.isRequired,
+  healthInsurancePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  healthInsurancePayment: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  isInventorySufficient: PropTypes.func.isRequired,
+  handleAddItem: PropTypes.func.isRequired
+};
 
+export default PriceTooltip;
