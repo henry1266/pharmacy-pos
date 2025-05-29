@@ -1,5 +1,6 @@
 import React from 'react';
 import { Grid, Box } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 通用的兩欄式佈局組件
@@ -29,5 +30,18 @@ const TwoColumnLayout = ({ leftContent, rightContent, leftWidth = 4, rightWidth 
   );
 };
 
-export default TwoColumnLayout;
+// 添加 Props 驗證
+TwoColumnLayout.propTypes = {
+  leftContent: PropTypes.node.isRequired,
+  rightContent: PropTypes.node.isRequired,
+  leftWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  rightWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+};
 
+// 預設值
+TwoColumnLayout.defaultProps = {
+  leftWidth: 4,
+  rightWidth: 8
+};
+
+export default TwoColumnLayout;
