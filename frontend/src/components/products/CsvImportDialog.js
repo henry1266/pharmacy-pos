@@ -97,12 +97,7 @@ const CsvImportDialog = ({
               disabled={csvImportLoading}
             >
               選擇CSV文件
-              <input
-                type="file"
-                accept=".csv"
-                hidden
-                onChange={handleCsvFileChange}
-              />
+              <input type="file" accept=".csv" hidden onChange={handleCsvFileChange} />
             </Button>
             
             {csvFile && (
