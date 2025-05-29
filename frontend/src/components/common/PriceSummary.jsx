@@ -4,6 +4,7 @@ import {
   TableCell,
   Typography
 } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 通用價格加總元件
@@ -44,6 +45,19 @@ const PriceSummary = ({
       <TableCell colSpan={remainingCols}></TableCell>
     </TableRow>
   );
+};
+
+// 添加 Props 驗證
+PriceSummary.propTypes = {
+  totalAmount: PropTypes.number.isRequired,
+  colSpan: PropTypes.number,
+  totalColumns: PropTypes.number
+};
+
+// 預設值
+PriceSummary.defaultProps = {
+  colSpan: 3,
+  totalColumns: 7
 };
 
 export default PriceSummary;

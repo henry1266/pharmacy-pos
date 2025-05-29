@@ -1,5 +1,6 @@
 import React from 'react';
 import { Chip } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 出貨單付款狀態標籤組件
@@ -26,14 +27,26 @@ const PaymentStatusChip = ({ status }) => {
       break;
     case '已匯款':
       color = 'success';
+      break; // 添加缺少的 break 語句
     case '已開立':
       color = 'success';
       break;
     default:
+      // 預設情況已在初始化時處理
       break;
   }
   
   return <Chip size="small" color={color} label={label} />;
+};
+
+// 添加 Props 驗證
+PaymentStatusChip.propTypes = {
+  status: PropTypes.string
+};
+
+// 預設值
+PaymentStatusChip.defaultProps = {
+  status: '未收'
 };
 
 export default PaymentStatusChip;

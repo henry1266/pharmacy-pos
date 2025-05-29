@@ -85,10 +85,10 @@ const ItemPreview = ({
   // 獲取備註
   const noteContent = notes || (notesKey && data[notesKey]);
   
-  // 計算總計
+  // 計算總計 - 修正條件恆真問題
   const total = getTotal ? getTotal(data) : 
     (data.totalAmount || 
-    (items.length > 0 && items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0)));
+    (items.length > 0 ? items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0) : 0));
 
   // 容器默認樣式
   const defaultContainerProps = {
@@ -114,7 +114,7 @@ const ItemPreview = ({
               <TableHead>
                 <TableRow>
                   {columns.map((column, index) => (
-                    <TableCell key={index} align={column.align || 'left'}>
+                    <TableCell key={`header-${column.key || index}`} align={column.align || 'left'}>
                       {column.label}
                     </TableCell>
                   ))}
@@ -130,9 +130,9 @@ const ItemPreview = ({
                 <>
                   {items.slice(0, maxItems).map((item, index) => (
                     renderItem ? renderItem(item, index) : (
-                      <TableRow key={index}>
+                      <TableRow key={`item-${item.id || item.did || index}`}>
                         {columns.map((column, colIndex) => (
-                          <TableCell key={colIndex} align={column.align || 'left'}>
+                          <TableCell key={`cell-${column.key || colIndex}-${index}`} align={column.align || 'left'}>
                             {column.render ? column.render(item) : item[column.key]}
                           </TableCell>
                         ))}
@@ -205,7 +205,7 @@ const ItemPreview = ({
           <>
             {items.slice(0, maxItems).map((item, index) => (
               renderItem ? renderItem(item, index) : (
-                <Box key={index} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
+                <Box key={`list-item-${item.id || item.did || index}`} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
                   <Typography variant="body2">
                     {item.dname || item.name} ({item.did || item.id})
                   </Typography>
