@@ -98,7 +98,7 @@ const AccountingForm = ({
     });
   };
   
-  // 處理項目變更
+  // 處理項目變更 - 重構以降低認知複雜度
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...formData.items];
     
@@ -111,25 +111,47 @@ const AccountingForm = ({
       }
     }
     
-    // 處理金額變更且類別為"退押金"的情況
-    if (field === 'amount' && updatedItems[index].category === '退押金' && value !== '') {
-      updatedItems[index][field] = -Math.abs(parseFloat(value));
+    // 處理金額變更
+    if (field === 'amount') {
+      handleAmountChange(updatedItems, index, value);
     } else {
-      updatedItems[index][field] = field === 'amount' ? (value === '' ? '' : parseFloat(value)) : value;
+      updatedItems[index][field] = value;
     }
     
     // 處理類別變更，同時更新categoryId
-    if (field === 'category' && categories.length > 0) {
-      const selectedCategory = categories.find(cat => cat.name === value);
-      if (selectedCategory) {
-        updatedItems[index].categoryId = selectedCategory._id;
-      }
+    if (field === 'category') {
+      updateCategoryId(updatedItems, index, value);
     }
     
     setFormData({
       ...formData,
       items: updatedItems
     });
+  };
+  
+  // 處理金額變更的輔助函數
+  const handleAmountChange = (items, index, value) => {
+    if (value === '') {
+      items[index].amount = '';
+      return;
+    }
+    
+    const parsedValue = parseFloat(value);
+    if (items[index].category === '退押金') {
+      items[index].amount = -Math.abs(parsedValue);
+    } else {
+      items[index].amount = parsedValue;
+    }
+  };
+  
+  // 更新類別ID的輔助函數
+  const updateCategoryId = (items, index, categoryName) => {
+    if (categories.length > 0) {
+      const selectedCategory = categories.find(cat => cat.name === categoryName);
+      if (selectedCategory) {
+        items[index].categoryId = selectedCategory._id;
+      }
+    }
   };
   
   // 新增項目
@@ -227,57 +249,15 @@ const AccountingForm = ({
       return null;
     }
 
+    // 提取巢狀三元運算子為獨立變數
     let content;
+    
     if (loadingSales) {
-      content = (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-          <CircularProgress size={24} />
-        </Box>
-      );
+      content = renderLoadingContent();
     } else if (!formData.unaccountedSales.length) {
-      content = (
-        <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-          目前無未結算銷售記錄。
-        </Typography>
-      );
+      content = renderEmptyContent();
     } else {
-      content = (
-        <TableContainer sx={{ maxHeight: 300 }}>
-          <Table size="small" stickyHeader>
-            <TableHead>
-              <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
-                {headCells.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    align={headCell.numeric ? 'right' : 'left'}
-                    sortDirection={orderBy === headCell.id ? order : false}
-                  >
-                    <TableSortLabel
-                      active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : 'asc'}
-                      onClick={() => handleRequestSort(headCell.id)}
-                    >
-                      {headCell.label}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedSales.map((sale) => (
-                <TableRow hover key={sale._id}>
-                  <TableCell>{format(new Date(sale.lastUpdated), 'HH:mm:ss')}</TableCell>
-                  <TableCell>{sale.product?.code || 'N/A'}</TableCell>
-                  <TableCell>{sale.product?.name || '未知產品'}</TableCell>
-                  <TableCell align="right">{Math.abs(sale.quantity || 0)}</TableCell>
-                  <TableCell align="right">${sale.totalAmount || 0}</TableCell>
-                  <TableCell>{sale.saleNumber}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      );
+      content = renderSalesTable();
     }
 
     return (
@@ -290,6 +270,86 @@ const AccountingForm = ({
         </Paper>
       </Grid>
     );
+  };
+
+  // 渲染載入中內容
+  const renderLoadingContent = () => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+      <CircularProgress size={24} />
+    </Box>
+  );
+
+  // 渲染空內容
+  const renderEmptyContent = () => (
+    <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
+      目前無未結算銷售記錄。
+    </Typography>
+  );
+
+  // 渲染銷售表格
+  const renderSalesTable = () => (
+    <TableContainer sx={{ maxHeight: 300 }}>
+      <Table size="small" stickyHeader>
+        <TableHead>
+          <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
+            {headCells.map((headCell) => (
+              <TableCell
+                key={headCell.id}
+                align={headCell.numeric ? 'right' : 'left'}
+                sortDirection={orderBy === headCell.id ? order : false}
+              >
+                <TableSortLabel
+                  active={orderBy === headCell.id}
+                  direction={orderBy === headCell.id ? order : 'asc'}
+                  onClick={() => handleRequestSort(headCell.id)}
+                >
+                  {headCell.label}
+                </TableSortLabel>
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {sortedSales.map((sale) => (
+            <TableRow hover key={sale._id || `sale-${sale.saleNumber}-${sale.product?.code}`}>
+              <TableCell>{format(new Date(sale.lastUpdated), 'HH:mm:ss')}</TableCell>
+              <TableCell>{sale.product?.code || 'N/A'}</TableCell>
+              <TableCell>{sale.product?.name || '未知產品'}</TableCell>
+              <TableCell align="right">{Math.abs(sale.quantity || 0)}</TableCell>
+              <TableCell align="right">${sale.totalAmount || 0}</TableCell>
+              <TableCell>{sale.saleNumber}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  // 渲染表單項目的樣式
+  const getItemFieldStyle = (item) => {
+    const isRefundDeposit = item.category === '退押金';
+    
+    if (!isRefundDeposit) {
+      return {};
+    }
+    
+    return {
+      '& .MuiOutlinedInput-root': {
+        '& fieldset': {
+          borderColor: 'red',
+          borderWidth: 2
+        },
+        '&:hover fieldset': {
+          borderColor: 'red'
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: 'red'
+        }
+      },
+      '& .MuiInputBase-input': {
+        color: 'red'
+      }
+    };
   };
 
   return (
@@ -340,7 +400,7 @@ const AccountingForm = ({
             </Typography>
             
             {formData.items.map((item, index) => (
-              <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
+              <Grid container spacing={2} key={`item-${index}-${item.category || 'new'}`} sx={{ mb: 2 }}>
                 <Grid item xs={12} sm={3}>
                   <TextField
                     label="金額"
@@ -349,23 +409,7 @@ const AccountingForm = ({
                     onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
                     fullWidth
                     required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: item.category === '退押金' ? 'red' : 'inherit',
-                          borderWidth: item.category === '退押金' ? 2 : 1
-                        },
-                        '&:hover fieldset': {
-                          borderColor: item.category === '退押金' ? 'red' : 'inherit'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: item.category === '退押金' ? 'red' : 'primary.main'
-                        }
-                      },
-                      '& .MuiInputBase-input': {
-                        color: item.category === '退押金' ? 'red' : 'inherit'
-                      }
-                    }}
+                    sx={getItemFieldStyle(item)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={3}>
