@@ -6,6 +6,7 @@ import {
   MenuItem,
   Box
 } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 狀態選擇組件
@@ -18,12 +19,18 @@ const StatusSelect = ({
   value,
   onChange
 }) => {
+  // 提取巢狀三元運算子為獨立變數
+  let backgroundColor = 'transparent';
+  if (value === 'pending') {
+    backgroundColor = '#FFF3CD'; // 黃色（Bootstrap 較淡的警告色）
+  } else if (value === 'completed') {
+    backgroundColor = '#D4EDDA'; // 綠色（Bootstrap 較淡的成功色）
+  }
+
   return (
     <Box
       sx={{
-        backgroundColor:
-          value === 'pending' ? '#FFF3CD' : // 黃色（Bootstrap 較淡的警告色）
-          value === 'completed' ? '#D4EDDA' : 'transparent', // 綠色（Bootstrap 較淡的成功色）
+        backgroundColor: backgroundColor
       }}
     >
       <FormControl fullWidth>
@@ -71,6 +78,12 @@ const StatusSelect = ({
       </FormControl>
     </Box>
   );
+};
+
+// 添加 Props 驗證
+StatusSelect.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired
 };
 
 export default StatusSelect;

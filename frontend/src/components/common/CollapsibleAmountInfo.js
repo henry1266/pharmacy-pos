@@ -96,9 +96,11 @@ const CollapsibleAmountInfo = ({
         <Grid container spacing={2} alignItems="flex-start">
           {filteredDetails.map((detail, index) => {
             const DetailIconComponent = detail.icon;
+            // 使用更穩定的複合 key 而非純索引
+            const detailKey = `detail-${detail.label}-${index}`;
 
             return (
-              <Grid item xs={6} sm={4} md={3} key={index}>
+              <Grid item xs={6} sm={4} md={3} key={detailKey}>
                 <Stack direction="row" spacing={1} alignItems="center">
                   {DetailIconComponent && React.cloneElement(DetailIconComponent, { 
                     sx: { fontSize: 'small', color: 'action', ...DetailIconComponent.props.sx } 

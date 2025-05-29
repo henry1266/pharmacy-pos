@@ -3,9 +3,9 @@ import {
   Box, 
   Card, 
   CardContent, 
-  Typography,
-  Divider
+  Typography
 } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 通用篩選價格加總元件
@@ -56,6 +56,20 @@ const FilterPriceSummary = ({
       </CardContent>
     </Card>
   );
+};
+
+// 添加 Props 驗證
+FilterPriceSummary.propTypes = {
+  filteredRows: PropTypes.array,
+  totalAmountField: PropTypes.string,
+  title: PropTypes.string
+};
+
+// 預設值
+FilterPriceSummary.defaultProps = {
+  filteredRows: [],
+  totalAmountField: 'totalAmount',
+  title: '篩選結果'
 };
 
 export default FilterPriceSummary;
