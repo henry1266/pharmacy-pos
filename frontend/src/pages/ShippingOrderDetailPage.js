@@ -355,16 +355,24 @@ const ShippingOrderDetailPage = () => {
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={orderLoading || productDetailsLoading || fifoLoading} // Overall loading state
-      errorContent={
-        orderError ? (
-          <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography>
-        ) : productDetailsError ? (
-          <Typography color="error">{productDetailsError}</Typography>
-        ) : (fifoError && !fifoData) ? (
-          <Typography color="error">{fifoError}</Typography>
-        ) : null
-      }
-      noDataContent={!orderLoading && !currentShippingOrder && !orderError ? <Typography variant="h6">找不到出貨單數據</Typography> : null}
+      errorContent={(() => {
+        if (orderError) {
+          return <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography>;
+        }
+        if (productDetailsError) {
+          return <Typography color="error">{productDetailsError}</Typography>;
+        }
+        if (fifoError && !fifoData) {
+          return <Typography color="error">{fifoError}</Typography>;
+        }
+        return null;
+      })()}
+      noDataContent={(() => {
+        if (!orderLoading && !currentShippingOrder && !orderError) {
+          return <Typography variant="h6">找不到出貨單數據</Typography>;
+        }
+        return null;
+      })()}
     />
   );
 };

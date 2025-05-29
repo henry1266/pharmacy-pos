@@ -16,8 +16,8 @@ import {
 
 const SettingsPage = () => {
   // Placeholder states for selected colors
-  const [primaryColor, setPrimaryColor] = useState('#1976d2'); // Default MUI blue
-  const [secondaryColor, setSecondaryColor] = useState('#dc004e'); // Default MUI pink
+  const [primaryColor] = useState('#1976d2'); // Default MUI blue
+  const [secondaryColor] = useState('#dc004e'); // Default MUI pink
 
   // Placeholder handler for saving settings
   const handleSaveSettings = () => {
