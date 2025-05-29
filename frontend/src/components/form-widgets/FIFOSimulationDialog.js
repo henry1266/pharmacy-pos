@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes
 import { 
   Dialog, 
   DialogTitle, 
@@ -136,7 +137,7 @@ const FIFOSimulationDialog = ({
             </TableHead>
             <TableBody>
               {fifoMatch.costParts.map((part, index) => (
-                <TableRow key={index}>
+                <TableRow key={`fifo-part-${part.batchTime}-${index}`}>
                   <TableCell>
                     {part.orderNumber ? (
                       <Link
@@ -215,5 +216,36 @@ const FIFOSimulationDialog = ({
   );
 };
 
-export default FIFOSimulationDialog;
+// 添加 PropTypes 驗證
+FIFOSimulationDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  simulationResult: PropTypes.shape({
+    fifoMatches: PropTypes.arrayOf(
+      PropTypes.shape({
+        costParts: PropTypes.arrayOf(
+          PropTypes.shape({
+            batchTime: PropTypes.string,
+            quantity: PropTypes.number,
+            unit_price: PropTypes.number,
+            orderNumber: PropTypes.string,
+            orderType: PropTypes.string,
+            orderId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          })
+        )
+      })
+    ),
+    productCode: PropTypes.string,
+    productName: PropTypes.string,
+    quantity: PropTypes.number,
+    totalCost: PropTypes.number,
+    hasNegativeInventory: PropTypes.bool,
+    availableQuantity: PropTypes.number,
+    remainingNegativeQuantity: PropTypes.number
+  }),
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  onApplyCostAndAdd: PropTypes.func.isRequired
+};
 
+export default FIFOSimulationDialog;
