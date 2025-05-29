@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Box, 
   Typography, 
@@ -173,6 +174,24 @@ const SupplierCheckboxFilter = ({ suppliers = [], selectedSuppliers = [], onFilt
       </Popover>
     </Box>
   );
+};
+
+// 添加 PropTypes 驗證
+SupplierCheckboxFilter.propTypes = {
+  suppliers: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired
+    })
+  ),
+  selectedSuppliers: PropTypes.arrayOf(PropTypes.string),
+  onFilterChange: PropTypes.func.isRequired
+};
+
+// 添加默認值
+SupplierCheckboxFilter.defaultProps = {
+  suppliers: [],
+  selectedSuppliers: []
 };
 
 export default SupplierCheckboxFilter;

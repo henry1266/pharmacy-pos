@@ -163,6 +163,12 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
 
   // 提取嵌套的三元運算符為獨立變數
   let buttonText = isSubmitting ? '儲存中...' : '儲存';
+  
+  // 提取按鈕圖標為獨立變數
+  let buttonStartIcon = null;
+  if (isSubmitting) {
+    buttonStartIcon = <CircularProgress size={20} color="inherit" />;
+  }
 
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -240,7 +246,7 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
           variant="contained" 
           color="primary"
           disabled={isSubmitting}
-          startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+          startIcon={buttonStartIcon}
         >
           {buttonText}
         </Button>
