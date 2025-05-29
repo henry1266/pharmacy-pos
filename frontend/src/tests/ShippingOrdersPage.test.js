@@ -2,8 +2,9 @@ import React from 'react';
 import { 
   render, 
   screen, 
-  fireEvent, 
-  waitFor 
+  fireEvent
+  // 移除未使用的 import
+  // waitFor 
 } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { Provider } from 'react-redux';

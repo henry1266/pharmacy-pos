@@ -12,12 +12,12 @@ export const convertToWesternDate = (dateStr) => {
   if (!dateStr) return null;
   
   // 如果已經是西元年格式 YYYY-MM-DD，直接返回
-  if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+  if (/^\d{4}-\d{2}-\d{2}$/.exec(dateStr)) {
     return dateStr;
   }
   
   // 檢查是否是民國年格式 YYYMMDD (例如1140407)
-  if (dateStr.match(/^\d{7}$/)) {
+  if (/^\d{7}$/.exec(dateStr)) {
     try {
       // 提取民國年、月、日
       const rocYear = parseInt(dateStr.substring(0, 3), 10);
@@ -122,7 +122,7 @@ export const generateOrderNumberByDate = (dateStr) => {
     
     // 解析日期
     let dateObj;
-    if (westernDateStr && westernDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    if (westernDateStr?.match(/^\d{4}-\d{2}-\d{2}$/)) {
       dateObj = new Date(westernDateStr);
       if (isNaN(dateObj.getTime())) {
         throw new Error(`無效的日期格式: ${dateStr}`);

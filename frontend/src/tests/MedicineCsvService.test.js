@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+// 移除未使用的 import
+// import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { parseMedicineCsvForPreview, importMedicineCsv } from '../services/medicineCsvService';
 
 // 驗證預設供應商資訊是否正確傳遞到API

@@ -1,16 +1,18 @@
 import React from 'react';
 import { 
   render, 
-  screen, 
-  fireEvent, 
-  waitFor 
+  screen
+  // 移除未使用的 import
+  // fireEvent, 
+  // waitFor 
 } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import axios from 'axios';
+// 移除未使用的 import
+// import axios from 'axios';
 
 import ShippingOrderDetailPage from '../pages/ShippingOrderDetailPage';
 

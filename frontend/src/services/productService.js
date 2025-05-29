@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { getProductCategories } from './productCategoryService'; // Keep this import if categories are fetched here, otherwise remove
+// 移除未使用的 import
+// import { getProductCategories } from './productCategoryService';
 
 // Base API URLs
 const PRODUCTS_API_URL = '/api/products';
