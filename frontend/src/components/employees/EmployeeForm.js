@@ -8,6 +8,17 @@ import {
   Divider,
   CircularProgress
 } from '@mui/material';
+
+// 性別轉換函數
+const convertGender = (gender) => {
+  if (gender === '男') {
+    return 'male';
+  } else if (gender === '女') {
+    return 'female';
+  } else {
+    return gender;
+  }
+};
 import PersonalInfoSection from './PersonalInfoSection';
 import ContactInfoSection from './ContactInfoSection';
 import WorkInfoSection from './WorkInfoSection';
@@ -145,7 +156,7 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
       const apiData = {
         ...formData,
         // 將性別轉換為 API 格式
-        gender: formData.gender === '男' ? 'male' : (formData.gender === '女' ? 'female' : formData.gender)
+        gender: convertGender(formData.gender)
       };
       
       // 將表單資料傳給父元件處理

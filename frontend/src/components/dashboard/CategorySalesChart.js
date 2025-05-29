@@ -9,11 +9,11 @@ import {
 import {
   PieChart,
   Pie,
-  Cell,
   Tooltip,
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import PieChartCell from './PieChartCell';
 
 // Helper function to format currency (can be moved to a utils file later)
 const formatCurrency = (amount) => {
@@ -22,20 +22,6 @@ const formatCurrency = (amount) => {
     currency: 'TWD',
     minimumFractionDigits: 0
   }).format(amount || 0); // Ensure amount is not null/undefined
-};
-
-// 將 Cell 元件定義移出父元件
-const PieChartCell = ({ entry, index, colors }) => (
-  <Cell key={`cell-${entry.category}`} fill={colors[index % colors.length]} />
-);
-
-PieChartCell.propTypes = {
-  entry: PropTypes.shape({
-    category: PropTypes.string.isRequired,
-    totalSales: PropTypes.number.isRequired
-  }).isRequired,
-  index: PropTypes.number.isRequired,
-  colors: PropTypes.arrayOf(PropTypes.string).isRequired
 };
 
 const CategorySalesChart = ({ categorySalesData }) => {
