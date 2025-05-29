@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  CircularProgress,
   ListItemText,
   Box,
   Typography,
@@ -551,8 +550,8 @@ const SuppliersPage = () => {
                 <Box sx={{ mt: 1 }}>
                   <Typography variant="body2" color="error.main">錯誤詳情:</Typography>
                   <List dense disablePadding>
-                    {importResult.errors.slice(0, 5).map((err, index) => (
-                      <ListItem key={index} disableGutters sx={{pl:1}}>
+                    {importResult.errors.slice(0, 5).map((err) => (
+                      <ListItem key={`error-${err.row || ''}-${err.error.substring(0, 10)}`} disableGutters sx={{pl:1}}>
                         <ListItemText primary={`行 ${err.row || '-'}: ${err.error}`} sx={{fontSize: '0.8rem'}}/>
                       </ListItem>
                     ))}
