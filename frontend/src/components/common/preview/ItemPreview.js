@@ -85,10 +85,17 @@ const ItemPreview = ({
   // 獲取備註
   const noteContent = notes || (notesKey && data[notesKey]);
   
-  // 計算總計 - 修正條件恆真問題
-  const total = getTotal ? getTotal(data) : 
-    (data.totalAmount || 
-    (items.length > 0 ? items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0) : 0));
+  // 計算總計 - 徹底修正條件恆真問題
+  let total;
+  if (getTotal) {
+    total = getTotal(data);
+  } else if (data.totalAmount !== undefined) {
+    total = data.totalAmount;
+  } else if (items.length > 0) {
+    total = items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  } else {
+    total = 0;
+  }
 
   // 容器默認樣式
   const defaultContainerProps = {
@@ -98,6 +105,23 @@ const ItemPreview = ({
       overflow: 'auto',
       ...containerProps?.sx 
     }
+  };
+  
+  // 提取巢狀三元運算子為獨立函數
+  const renderTableRow = (item, index) => {
+    if (renderItem) {
+      return renderItem(item, index);
+    }
+    
+    return (
+      <TableRow key={`item-${item.id || item.did || index}`}>
+        {columns.map((column, colIndex) => (
+          <TableCell key={`cell-${column.key || colIndex}-${index}`} align={column.align || 'left'}>
+            {column.render ? column.render(item) : item[column.key]}
+          </TableCell>
+        ))}
+      </TableRow>
+    );
   };
   
   // 表格變體
@@ -128,17 +152,7 @@ const ItemPreview = ({
                 </TableRow>
               ) : (
                 <>
-                  {items.slice(0, maxItems).map((item, index) => (
-                    renderItem ? renderItem(item, index) : (
-                      <TableRow key={`item-${item.id || item.did || index}`}>
-                        {columns.map((column, colIndex) => (
-                          <TableCell key={`cell-${column.key || colIndex}-${index}`} align={column.align || 'left'}>
-                            {column.render ? column.render(item) : item[column.key]}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    )
-                  ))}
+                  {items.slice(0, maxItems).map((item, index) => renderTableRow(item, index))}
                   {items.length > maxItems && (
                     <TableRow>
                       <TableCell colSpan={columns.length} align="center">
@@ -183,6 +197,29 @@ const ItemPreview = ({
     </Card>
   );
   
+  // 提取巢狀三元運算子為獨立函數
+  const renderListItem = (item, index) => {
+    if (renderItem) {
+      return renderItem(item, index);
+    }
+    
+    return (
+      <Box key={`list-item-${item.id || item.did || index}`} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
+        <Typography variant="body2">
+          {item.dname || item.name} ({item.did || item.id})
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="body2" color="textSecondary">
+            數量: {item.dquantity || item.quantity}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            金額: {(item.dtotalCost || item.totalCost || 0).toLocaleString()} 元
+          </Typography>
+        </Box>
+      </Box>
+    );
+  };
+  
   // 列表變體
   const renderListVariant = () => (
     <Paper {...defaultContainerProps}>
@@ -203,23 +240,7 @@ const ItemPreview = ({
           </Typography>
         ) : (
           <>
-            {items.slice(0, maxItems).map((item, index) => (
-              renderItem ? renderItem(item, index) : (
-                <Box key={`list-item-${item.id || item.did || index}`} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
-                  <Typography variant="body2">
-                    {item.dname || item.name} ({item.did || item.id})
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="textSecondary">
-                      數量: {item.dquantity || item.quantity}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      金額: {(item.dtotalCost || item.totalCost || 0).toLocaleString()} 元
-                    </Typography>
-                  </Box>
-                </Box>
-              )
-            ))}
+            {items.slice(0, maxItems).map((item, index) => renderListItem(item, index))}
             {items.length > maxItems && (
               <Typography variant="body2" color="text.secondary" align="center">
                 還有 {items.length - maxItems} 個項目...
