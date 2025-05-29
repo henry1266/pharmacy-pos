@@ -96,8 +96,13 @@ const CsvImportDialog = ({
   startIcon={<CloudUploadIcon />}
   disabled={csvImportLoading}
 >
-  選擇CSV文件
-  <input type="file" accept=".csv" hidden onChange={handleCsvFileChange}/>
+選擇CSV文件{' '}
+  <input
+    type="file"
+    accept=".csv"
+    hidden
+    onChange={handleCsvFileChange}
+  />
 </Button>
             {csvFile && (
               <Typography variant="body2" sx={{ mt: 1 }}>
