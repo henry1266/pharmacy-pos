@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios'; // Import axios
 import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Collapse, Popover, Button } from '@mui/material'; // Added Popover, Button
 import MenuIcon from '@mui/icons-material/Menu';
@@ -57,6 +58,16 @@ const NavIconButton = ({ to, tooltip, activeIcon, inactiveIcon, adminOnly, userR
       </IconButton>
     </Tooltip>
   );
+};
+
+// 添加 PropTypes 驗證
+NavIconButton.propTypes = {
+  to: PropTypes.string.isRequired,
+  tooltip: PropTypes.string.isRequired,
+  activeIcon: PropTypes.node.isRequired,
+  inactiveIcon: PropTypes.node.isRequired,
+  adminOnly: PropTypes.bool,
+  userRole: PropTypes.string
 };
 
 const MainLayout = ({ children }) => {
@@ -211,6 +222,7 @@ const MainLayout = ({ children }) => {
     return user && user.role === 'admin';
   });
 
+  // 提取巢狀三元運算符為獨立函數
   const getAvatarContent = () => {
     if (isTestMode) return 'T'; // Test Mode Avatar
     if (!user) return '?';
@@ -227,6 +239,183 @@ const MainLayout = ({ children }) => {
     return user?.role || '未知';
   };
 
+  // 提取複雜的渲染邏輯為獨立函數，降低認知複雜度
+  const renderMenuItem = (item) => {
+    if (item.subItems) {
+      return renderSubMenu(item);
+    } else {
+      return renderSingleMenuItem(item);
+    }
+  };
+
+  // 渲染子選單
+  const renderSubMenu = (item) => {
+    // 確定子選單是否開啟
+    let isOpen;
+    let handleClick;
+    let isActive;
+
+    // 根據選單類型設置對應的狀態和處理函數
+    switch (item.text) {
+      case '記帳管理':
+        isOpen = accountingSubMenuOpen;
+        handleClick = handleAccountingClick;
+        isActive = isAccountingPath(location.pathname);
+        break;
+      case '商品管理':
+        isOpen = productSubMenuOpen;
+        handleClick = handleProductClick;
+        isActive = isProductPath(location.pathname);
+        break;
+      case '系統設定':
+        isOpen = settingSubMenuOpen;
+        handleClick = handleSettingClick;
+        isActive = isSettingPath(location.pathname);
+        break;
+      case '員工管理':
+        isOpen = employeeSubMenuOpen;
+        handleClick = handleEmployeeClick;
+        isActive = isEmployeePath(location.pathname);
+        break;
+      default:
+        isOpen = false;
+        handleClick = () => {};
+        isActive = false;
+    }
+
+    // 過濾子選單項目
+    const filteredSubItems = item.subItems.filter(subItem => 
+      !subItem.adminOnly || (user && user.role === 'admin')
+    );
+    
+    // 如果過濾後沒有子選單項目，則不渲染
+    if (filteredSubItems.length === 0) {
+      return null;
+    }
+
+    return (
+      <React.Fragment key={item.text}>
+        <ListItem 
+          button 
+          onClick={handleClick} 
+          sx={{ 
+            borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent', 
+            pl: 2.5, 
+            py: 1.5, 
+            backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent', 
+            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } 
+          }}
+        >
+          <ListItemIcon 
+            sx={{ 
+              color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', 
+              minWidth: 40 
+            }}
+          >
+            {item.icon}
+          </ListItemIcon>
+          <ListItemText 
+            primary={item.text} 
+            primaryTypographyProps={{ 
+              sx: { 
+                color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', 
+                fontWeight: 500 
+              } 
+            }} 
+          />
+          {isOpen ? 
+            <ExpandLess sx={{ color: 'rgba(255, 255, 255, 0.7)' }} /> : 
+            <ExpandMore sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+          }
+        </ListItem>
+        <Collapse in={isOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {filteredSubItems.map(subItem => renderSubMenuItem(subItem))}
+          </List>
+        </Collapse>
+      </React.Fragment>
+    );
+  };
+
+  // 渲染子選單項目
+  const renderSubMenuItem = (subItem) => {
+    const isActive = location.pathname === subItem.path;
+    
+    return (
+      <ListItem 
+        button 
+        key={subItem.text} 
+        onClick={() => handleNavigation(subItem.path)} 
+        sx={{ 
+          pl: 4, 
+          py: 1, 
+          borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent', 
+          backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent', 
+          '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' } 
+        }}
+      >
+        {subItem.icon && (
+          <ListItemIcon 
+            sx={{ 
+              color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.6)', 
+              minWidth: 30 
+            }}
+          >
+            {subItem.icon}
+          </ListItemIcon>
+        )}
+        <ListItemText 
+          primary={subItem.text} 
+          primaryTypographyProps={{ 
+            sx: { 
+              color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.6)', 
+              fontSize: '0.9rem' 
+            } 
+          }} 
+        />
+      </ListItem>
+    );
+  };
+
+  // 渲染單一選單項目
+  const renderSingleMenuItem = (item) => {
+    const isActive = location.pathname === item.path || 
+                    (item.path !== '/' && location.pathname.startsWith(item.path + '/'));
+    
+    return (
+      <ListItem 
+        button 
+        key={item.text} 
+        onClick={() => handleNavigation(item.path)} 
+        sx={{ 
+          borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent', 
+          pl: 2.5, 
+          py: 1.5, 
+          backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent', 
+          '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } 
+        }}
+      >
+        <ListItemIcon 
+          sx={{ 
+            color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', 
+            minWidth: 40 
+          }}
+        >
+          {item.icon}
+        </ListItemIcon>
+        <ListItemText 
+          primary={item.text} 
+          primaryTypographyProps={{ 
+            sx: { 
+              color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', 
+              fontWeight: 500 
+            } 
+          }} 
+        />
+      </ListItem>
+    );
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
@@ -236,7 +425,7 @@ const MainLayout = ({ children }) => {
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             POS系統 {isTestMode && <Typography component="span" sx={{ fontSize: '0.7em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
-            {timeLeft && <Typography component="span" sx={{ fontSize: '0.7em', color: 'lightcoral', marginLeft: 1 }}>{timeLeft}</Typography>} {/* Display timeLeft */}
+            {timeLeft && <Typography component="span" sx={{ fontSize: '0.7em', color: 'lightcoral', marginLeft: 1 }}>{timeLeft}</Typography>}
           </Typography>
 
           <NavIconButton to="/shipping-orders/new" tooltip="出貨" activeIcon={<LocalShippingIcon />} inactiveIcon={<LocalShippingOutlinedIcon />} adminOnly={true} userRole={user?.role} />
@@ -274,42 +463,7 @@ const MainLayout = ({ children }) => {
           </Box>
           <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
           <List component="nav">
-            {filteredMenuItems.map((item) => {
-              if (item.subItems) {
-                const isOpen = item.text === '記帳管理' ? accountingSubMenuOpen : item.text === '商品管理' ? productSubMenuOpen : item.text === '系統設定' ? settingSubMenuOpen : item.text === '員工管理' ? employeeSubMenuOpen : false;
-                const handleClick = item.text === '記帳管理' ? handleAccountingClick : item.text === '商品管理' ? handleProductClick : item.text === '系統設定' ? handleSettingClick : item.text === '員工管理' ? handleEmployeeClick : undefined;
-                const isActive = item.text === '記帳管理' ? isAccountingPath(location.pathname) : item.text === '商品管理' ? isProductPath(location.pathname) : item.text === '系統設定' ? isSettingPath(location.pathname) : item.text === '員工管理' ? isEmployeePath(location.pathname) : false;
-                const filteredSubItems = item.subItems.filter(subItem => !subItem.adminOnly || (user && user.role === 'admin'));
-                if (filteredSubItems.length === 0 && item.subItems.length > 0) return null;
-                return (
-                  <React.Fragment key={item.text}>
-                    <ListItem button onClick={handleClick} sx={{ borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent', pl: 2.5, py: 1.5, backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
-                      <ListItemIcon sx={{ color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>{item.icon}</ListItemIcon>
-                      <ListItemText primary={item.text} primaryTypographyProps={{ sx: { color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', fontWeight: 500 } }} />
-                      {isOpen ? <ExpandLess sx={{ color: 'rgba(255, 255, 255, 0.7)' }} /> : <ExpandMore sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />}
-                    </ListItem>
-                    <Collapse in={isOpen} timeout="auto" unmountOnExit>
-                      <List component="div" disablePadding>
-                        {filteredSubItems.map((subItem) => (
-                          <ListItem button key={subItem.text} onClick={() => handleNavigation(subItem.path)} sx={{ pl: 4, py: 1, borderLeft: location.pathname === subItem.path ? '3px solid var(--primary-color)' : '3px solid transparent', backgroundColor: location.pathname === subItem.path ? 'rgba(255, 255, 255, 0.08)' : 'transparent', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' } }}>
-                            {subItem.icon && <ListItemIcon sx={{ color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.6)', minWidth: 30 }}>{subItem.icon}</ListItemIcon>}
-                            <ListItemText primary={subItem.text} primaryTypographyProps={{ sx: { color: location.pathname === subItem.path ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' } }} />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Collapse>
-                  </React.Fragment>
-                );
-              } else {
-                const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'));
-                return (
-                  <ListItem button key={item.text} onClick={() => handleNavigation(item.path)} sx={{ borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent', pl: 2.5, py: 1.5, backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
-                    <ListItemIcon sx={{ color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>{item.icon}</ListItemIcon>
-                    <ListItemText primary={item.text} primaryTypographyProps={{ sx: { color: isActive ? 'var(--text-light)' : 'rgba(255, 255, 255, 0.7)', fontWeight: 500 } }} />
-                  </ListItem>
-                );
-              }
-            })}
+            {filteredMenuItems.map(renderMenuItem)}
           </List>
         </Box>
       </Drawer>
@@ -322,5 +476,9 @@ const MainLayout = ({ children }) => {
   );
 };
 
-export default MainLayout;
+// 添加 PropTypes 驗證
+MainLayout.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
+export default MainLayout;
