@@ -4,10 +4,11 @@
  * 
  * 特點：
  * 1. 統一管理所有訂單類型的單號生成邏輯
- * 2. 提供專用API接口，不接受動態類型參數
+ * 2. 提供統一的API接口
  * 3. 支持不同類型訂單的特定配置
  * 4. 易於維護和擴展
  */
+
 const OrderNumberGenerator = require('./OrderNumberGenerator');
 const mongoose = require('mongoose');
 
@@ -26,7 +27,7 @@ class OrderNumberService {
       const generator = new OrderNumberGenerator({
         Model: PurchaseOrder,
         field: 'poid',
-        prefix: options.prefix ? options.prefix.toString() : '',
+        prefix: options.prefix || '',
         useShortYear: options.useShortYear || false, // 默認使用YYYY格式
         sequenceDigits: options.sequenceDigits || 3,  // 默認3位數序號
         sequenceStart: options.sequenceStart || 1
@@ -54,7 +55,7 @@ class OrderNumberService {
       const generator = new OrderNumberGenerator({
         Model: ShippingOrder,
         field: 'soid',
-        prefix: options.prefix ? options.prefix.toString() : '',
+        prefix: options.prefix || '',
         useShortYear: options.useShortYear || false, // 默認使用YYYY格式
         sequenceDigits: options.sequenceDigits || 3,  // 默認3位數序號
         sequenceStart: options.sequenceStart || 1
@@ -82,7 +83,7 @@ class OrderNumberService {
       const generator = new OrderNumberGenerator({
         Model: Sale,
         field: 'saleNumber',
-        prefix: options.prefix ? options.prefix.toString() : '',
+        prefix: options.prefix || '',
         useShortYear: options.useShortYear || false, // 默認使用YYYY格式
         sequenceDigits: options.sequenceDigits || 3,  // 默認3位數序號
         sequenceStart: options.sequenceStart || 1
@@ -97,130 +98,78 @@ class OrderNumberService {
   }
 
   /**
-   * 檢查進貨單號是否唯一
-   * @param {string} orderNumber - 要檢查的訂單號
-   * @returns {Promise<boolean>} 是否唯一
+   * 生成通用訂單號
+   * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
+   * @param {Object} options - 可選配置參數
+   * @returns {Promise<string>} 生成的訂單號
    */
-  static async isPurchaseOrderNumberUnique(orderNumber) {
-    try {
-      const Model = mongoose.model('purchaseorder');
-      const field = 'poid';
-      
-      const query = {};
-      query[field] = orderNumber.toString();
-      
-      const existingOrder = await Model.findOne(query);
-      return !existingOrder;
-    } catch (error) {
-      console.error('檢查進貨單號唯一性時出錯:', error);
-      throw error;
+  static async generateOrderNumber(type, options = {}) {
+    switch (type.toLowerCase()) {
+      case 'purchase':
+        return await this.generatePurchaseOrderNumber(options);
+      case 'shipping':
+        return await this.generateShippingOrderNumber(options);
+      case 'sale':
+        return await this.generateSaleOrderNumber(options);
+      default:
+        throw new Error(`不支持的訂單類型: ${type}`);
     }
   }
 
   /**
-   * 檢查出貨單號是否唯一
+   * 檢查訂單號是否唯一
+   * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
    * @param {string} orderNumber - 要檢查的訂單號
    * @returns {Promise<boolean>} 是否唯一
    */
-  static async isShippingOrderNumberUnique(orderNumber) {
+  static async isOrderNumberUnique(type, orderNumber) {
     try {
-      const Model = mongoose.model('shippingorder');
-      const field = 'soid';
+      let Model;
+      let field;
       
-      const query = {};
-      query[field] = orderNumber.toString();
-      
-      const existingOrder = await Model.findOne(query);
-      return !existingOrder;
-    } catch (error) {
-      console.error('檢查出貨單號唯一性時出錯:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 檢查銷貨單號是否唯一
-   * @param {string} orderNumber - 要檢查的訂單號
-   * @returns {Promise<boolean>} 是否唯一
-   */
-  static async isSaleOrderNumberUnique(orderNumber) {
-    try {
-      const Model = mongoose.model('sale');
-      const field = 'saleNumber';
-      
-      const query = {};
-      query[field] = orderNumber.toString();
-      
-      const existingOrder = await Model.findOne(query);
-      return !existingOrder;
-    } catch (error) {
-      console.error('檢查銷貨單號唯一性時出錯:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 生成唯一的進貨單號
-   * @param {string} baseOrderNumber - 基礎訂單號
-   * @returns {Promise<string>} 唯一的訂單號
-   */
-  static async generateUniquePurchaseOrderNumber(baseOrderNumber) {
-    const safeBaseOrderNumber = baseOrderNumber.toString();
-    
-    let orderNumber = safeBaseOrderNumber;
-    let counter = 1;
-    let isUnique = false;
-    
-    while (!isUnique) {
-      isUnique = await this.isPurchaseOrderNumberUnique(orderNumber);
-      if (!isUnique) {
-        orderNumber = `${safeBaseOrderNumber}-${counter}`;
-        counter++;
+      switch (type.toLowerCase()) {
+        case 'purchase':
+          Model = mongoose.model('purchaseorder');
+          field = 'poid';
+          break;
+        case 'shipping':
+          Model = mongoose.model('shippingorder');
+          field = 'soid';
+          break;
+        case 'sale':
+          Model = mongoose.model('sale');
+          field = 'saleNumber';
+          break;
+        default:
+          throw new Error(`不支持的訂單類型: ${type}`);
       }
+      
+      const query = {};
+      query[field] = orderNumber;
+      
+      const existingOrder = await Model.findOne(query);
+      return !existingOrder;
+    } catch (error) {
+      console.error('檢查訂單號唯一性時出錯:', error);
+      throw error;
     }
-    
-    return orderNumber;
   }
 
   /**
-   * 生成唯一的出貨單號
+   * 生成唯一的訂單號
+   * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
    * @param {string} baseOrderNumber - 基礎訂單號
    * @returns {Promise<string>} 唯一的訂單號
    */
-  static async generateUniqueShippingOrderNumber(baseOrderNumber) {
-    const safeBaseOrderNumber = baseOrderNumber.toString();
-    
-    let orderNumber = safeBaseOrderNumber;
+  static async generateUniqueOrderNumber(type, baseOrderNumber) {
+    let orderNumber = baseOrderNumber;
     let counter = 1;
     let isUnique = false;
     
     while (!isUnique) {
-      isUnique = await this.isShippingOrderNumberUnique(orderNumber);
+      isUnique = await this.isOrderNumberUnique(type, orderNumber);
       if (!isUnique) {
-        orderNumber = `${safeBaseOrderNumber}-${counter}`;
-        counter++;
-      }
-    }
-    
-    return orderNumber;
-  }
-
-  /**
-   * 生成唯一的銷貨單號
-   * @param {string} baseOrderNumber - 基礎訂單號
-   * @returns {Promise<string>} 唯一的訂單號
-   */
-  static async generateUniqueSaleOrderNumber(baseOrderNumber) {
-    const safeBaseOrderNumber = baseOrderNumber.toString();
-    
-    let orderNumber = safeBaseOrderNumber;
-    let counter = 1;
-    let isUnique = false;
-    
-    while (!isUnique) {
-      isUnique = await this.isSaleOrderNumberUnique(orderNumber);
-      if (!isUnique) {
-        orderNumber = `${safeBaseOrderNumber}-${counter}`;
+        orderNumber = `${baseOrderNumber}-${counter}`;
         counter++;
       }
     }
