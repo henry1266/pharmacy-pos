@@ -1,5 +1,6 @@
 import React from 'react';
 import { Select as MuiSelect, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
+import PropTypes from 'prop-types';
 
 /**
  * 自定義下拉選擇框組件
@@ -55,6 +56,33 @@ const Select = ({
       {error && <FormHelperText>{error}</FormHelperText>}
     </FormControl>
   );
+};
+
+// 添加 Props 驗證
+Select.propTypes = {
+  label: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      label: PropTypes.string.isRequired
+    })
+  ).isRequired,
+  fullWidth: PropTypes.bool,
+  required: PropTypes.bool,
+  error: PropTypes.string,
+  disabled: PropTypes.bool
+};
+
+// 預設值
+Select.defaultProps = {
+  options: [],
+  fullWidth: true,
+  required: false,
+  error: null,
+  disabled: false
 };
 
 export default Select;

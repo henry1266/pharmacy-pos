@@ -62,7 +62,7 @@ const ItemPreview = ({
     return (
       <Box sx={{ p: 2 }}>
         <Typography color="error" variant="body2">
-          {error || '載入數據時發生錯誤'}
+          {error}
         </Typography>
       </Box>
     );
@@ -82,10 +82,15 @@ const ItemPreview = ({
   // 獲取項目數據
   const items = data[itemsKey] || [];
   
-  // 獲取備註
-  const noteContent = notes || (notesKey && data[notesKey]);
+  // 獲取備註 - 修正條件恆真問題
+  let noteContent = null;
+  if (notes) {
+    noteContent = notes;
+  } else if (notesKey && data[notesKey]) {
+    noteContent = data[notesKey];
+  }
   
-  // 計算總計 - 徹底修正條件恆真問題
+  // 計算總計
   let total;
   if (getTotal) {
     total = getTotal(data);

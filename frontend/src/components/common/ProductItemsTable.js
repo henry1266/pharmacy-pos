@@ -138,8 +138,11 @@ const renderTableRows = (items, productDetails, showHealthInsuranceCode, showPro
       profitMarginColor = fifoProfitData.grossProfit >= 0 ? 'success.main' : 'error.main';
     }
 
+    // 使用更穩定的 key，避免使用純索引
+    const rowKey = `item-${productCode || 'unknown'}-${item[nameField] || 'unnamed'}-${index}`;
+
     return (
-      <TableRow key={index}>
+      <TableRow key={rowKey}>
         <TableCell>{index + 1}</TableCell>
         <TableCell><ProductCodeLink product={{ _id: productDetail._id, code: productCode }} /></TableCell>
         {showHealthInsuranceCode && (
