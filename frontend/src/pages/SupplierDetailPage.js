@@ -5,7 +5,6 @@ import {
   Box,
   Typography,
   Button,
-  Grid,
   Card,
   CardContent,
   CircularProgress,
@@ -16,7 +15,6 @@ import {
   Edit as EditIcon,
   Print as PrintIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns'; // Keep for potential date formatting
 
 import SupplierInfoCard from '../components/suppliers/SupplierInfoCard';
 import TwoColumnLayout from '../components/common/TwoColumnLayout'; // Use the two-column layout

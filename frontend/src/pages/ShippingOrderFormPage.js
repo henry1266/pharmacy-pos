@@ -15,10 +15,10 @@ import {
 import { 
   fetchShippingOrder, 
   addShippingOrder, 
-  updateShippingOrder 
+  updateShippingOrder,
+  fetchSuppliers,
+  fetchProducts
 } from '../redux/actions';
-import { fetchSuppliers } from '../redux/actions';
-import { fetchProducts } from '../redux/actions';
 
 
 // 導入拆分後的組件

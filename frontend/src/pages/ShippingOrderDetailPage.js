@@ -188,7 +188,7 @@ const ShippingOrderDetailPage = () => {
       });
     }
 
-    if (!fifoLoading && fifoData && fifoData.summary) {
+    if (!fifoLoading && fifoData?.summary) {
         details.push({
             label: '總成本',
             value: fifoData.summary.totalCost,
