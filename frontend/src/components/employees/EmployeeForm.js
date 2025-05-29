@@ -8,6 +8,11 @@ import {
   Divider,
   CircularProgress
 } from '@mui/material';
+import PersonalInfoSection from './PersonalInfoSection';
+import ContactInfoSection from './ContactInfoSection';
+import WorkInfoSection from './WorkInfoSection';
+import IDCardSection from './IDCardSection';
+import AdditionalInfoSection from './AdditionalInfoSection';
 
 // 性別轉換函數
 const convertGender = (gender) => {
@@ -19,11 +24,6 @@ const convertGender = (gender) => {
     return gender;
   }
 };
-import PersonalInfoSection from './PersonalInfoSection';
-import ContactInfoSection from './ContactInfoSection';
-import WorkInfoSection from './WorkInfoSection';
-import IDCardSection from './IDCardSection';
-import AdditionalInfoSection from './AdditionalInfoSection';
 
 /**
  * 員工表單元件
