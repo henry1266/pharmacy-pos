@@ -17,7 +17,7 @@ export const login = async ({ email, password }) => {
       password,
     });
     // The response should contain { token, user }
-    if (response.data && response.data.token && response.data.user) {
+    if (response.data?.token && response.data?.user) {
       return response.data;
     } else {
       throw new Error('登入失敗，未收到完整的驗證資訊。');

@@ -122,7 +122,7 @@ export const generateOrderNumberByDate = (dateStr) => {
     
     // 解析日期
     let dateObj;
-    if (westernDateStr?.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    if (westernDateStr && /^\d{4}-\d{2}-\d{2}$/.exec(westernDateStr)) {
       dateObj = new Date(westernDateStr);
       if (isNaN(dateObj.getTime())) {
         throw new Error(`無效的日期格式: ${dateStr}`);

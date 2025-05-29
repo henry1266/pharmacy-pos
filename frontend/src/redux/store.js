@@ -1,7 +1,6 @@
-import { createStore, combineReducers, applyMiddleware } from 'redux';
+import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 // 使用內建的compose替代redux-devtools-extension
-import { compose } from 'redux';
 import { 
   authReducer, 
   productsReducer, 

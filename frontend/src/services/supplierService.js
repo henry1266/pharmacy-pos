@@ -120,7 +120,7 @@ export const importSuppliersCsv = async (file) => {
     };
     
     const response = await axios.post(`${SUPPLIERS_API_URL}/import-csv`, formData, config);
-    return response.data; // { total, success, failed, duplicates, errors }
+    return response.data;
   } catch (error) {
     console.error('Error importing suppliers CSV:', error.response?.data || error.message);
     throw error;
