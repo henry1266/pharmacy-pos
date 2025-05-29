@@ -352,6 +352,40 @@ const AccountingForm = ({
     };
   };
 
+  // 渲染類別選單項目
+  const renderCategoryMenuItems = () => {
+    if (loading) {
+      return (
+        <MenuItem disabled>
+          <CircularProgress size={20} />
+          載入中...
+        </MenuItem>
+      );
+    }
+    
+    if (error) {
+      return (
+        <MenuItem disabled>
+          無法載入名目類別
+        </MenuItem>
+      );
+    }
+    
+    if (categories.length > 0) {
+      return categories.map(category => (
+        <MenuItem key={category._id} value={category.name}>
+          {category.name}
+        </MenuItem>
+      ));
+    }
+    
+    return (
+      <MenuItem disabled>
+        無可用名目類別
+      </MenuItem>
+    );
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
@@ -421,26 +455,7 @@ const AccountingForm = ({
                       onChange={(e) => handleItemChange(index, 'category', e.target.value)}
                       disabled={loading}
                     >
-                      {loading ? (
-                        <MenuItem disabled>
-                          <CircularProgress size={20} />
-                          載入中...
-                        </MenuItem>
-                      ) : error ? (
-                        <MenuItem disabled>
-                          無法載入名目類別
-                        </MenuItem>
-                      ) : categories.length > 0 ? (
-                        categories.map(category => (
-                          <MenuItem key={category._id} value={category.name}>
-                            {category.name}
-                          </MenuItem>
-                        ))
-                      ) : (
-                        <MenuItem disabled>
-                          無可用名目類別
-                        </MenuItem>
-                      )}
+                      {renderCategoryMenuItems()}
                     </Select>
                   </FormControl>
                 </Grid>
