@@ -90,16 +90,20 @@ const CsvImportDialog = ({
           </Typography>
           
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
-            <Button
-              variant="outlined"
-              component="label"
-              startIcon={<CloudUploadIcon />}
-              disabled={csvImportLoading}
-            >
-              選擇CSV文件
-              <input type="file" accept=".csv" hidden onChange={handleCsvFileChange} />
-            </Button>
-            
+          <Button
+  variant="outlined"
+  component="label"
+  startIcon={<CloudUploadIcon />}
+  disabled={csvImportLoading}
+>
+  選擇CSV文件
+  <input
+    type="file"
+    accept=".csv"
+    hidden
+    onChange={handleCsvFileChange}
+  />
+</Button>
             {csvFile && (
               <Typography variant="body2" sx={{ mt: 1 }}>
                 已選擇: {csvFile.name}
