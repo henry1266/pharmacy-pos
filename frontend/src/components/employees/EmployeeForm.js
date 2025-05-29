@@ -161,14 +161,46 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
     }
   };
 
-  // 提取嵌套的三元運算符為獨立變數
-  let buttonText = isSubmitting ? '儲存中...' : '儲存';
-  
-  // 提取按鈕圖標為獨立變數
-  let buttonStartIcon = null;
-  if (isSubmitting) {
-    buttonStartIcon = <CircularProgress size={20} color="inherit" />;
-  }
+  // 渲染取消按鈕
+  const renderCancelButton = () => {
+    return (
+      <Button 
+        variant="outlined" 
+        sx={{ mr: 2 }}
+        onClick={() => window.history.back()}
+        disabled={isSubmitting}
+      >
+        取消
+      </Button>
+    );
+  };
+
+  // 渲染提交按鈕
+  const renderSubmitButton = () => {
+    // 按鈕文字
+    let buttonText = '儲存';
+    if (isSubmitting) {
+      buttonText = '儲存中...';
+    }
+    
+    // 按鈕圖標
+    let buttonIcon = null;
+    if (isSubmitting) {
+      buttonIcon = <CircularProgress size={20} color="inherit" />;
+    }
+    
+    return (
+      <Button 
+        type="submit" 
+        variant="contained" 
+        color="primary"
+        disabled={isSubmitting}
+        startIcon={buttonIcon}
+      >
+        {buttonText}
+      </Button>
+    );
+  };
 
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -233,23 +265,8 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
       </Paper>
       
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button 
-          variant="outlined" 
-          sx={{ mr: 2 }}
-          onClick={() => window.history.back()}
-          disabled={isSubmitting}
-        >
-          取消
-        </Button>
-        <Button 
-          type="submit" 
-          variant="contained" 
-          color="primary"
-          disabled={isSubmitting}
-          startIcon={buttonStartIcon}
-        >
-          {buttonText}
-        </Button>
+        {renderCancelButton()}
+        {renderSubmitButton()}
       </Box>
     </Box>
   );
