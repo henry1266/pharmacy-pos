@@ -4,7 +4,6 @@ import {
   Box, 
   Typography, 
   Button, 
-  Grid, 
   Card, 
   CardContent,
   Table,
@@ -34,7 +33,6 @@ import {
   Edit as EditIcon,
   Search as SearchIcon,
   Visibility as VisibilityIcon,
-  Print as PrintIcon,
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -323,7 +321,15 @@ const SalesListPage = () => {
       return (
         <TableRow>
           <TableCell colSpan={8} align="center">
-            {searchTerm ? '沒有符合搜索條件的銷售記錄' : (isTestMode ? '尚無模擬銷售記錄 (或篩選後無結果)' : '尚無銷售記錄')}
+            {(() => {
+              if (searchTerm) {
+                return '沒有符合搜索條件的銷售記錄';
+              }
+              if (isTestMode) {
+                return '尚無模擬銷售記錄 (或篩選後無結果)';
+              }
+              return '尚無銷售記錄';
+            })()}
           </TableCell>
         </TableRow>
       );
@@ -347,8 +353,8 @@ const SalesListPage = () => {
           {sale.customer?.name || '一般客戶'}
         </TableCell>
         <TableCell>
-          {sale.items.map((item, index) => (
-            <div key={index}>
+          {sale.items.map((item) => (
+            <div key={`${sale.id}-${item.product?.id || item.name}-${item.quantity}`}>
               {item.product?.name || item.name} x {item.quantity}
             </div>
           ))}

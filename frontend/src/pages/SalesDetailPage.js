@@ -376,7 +376,6 @@ MainContent.propTypes = {
 
 // 主元件
 const SalesDetailPage = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
   const [sale, setSale] = useState(null);
   const [fifoData, setFifoData] = useState(null);
