@@ -183,7 +183,10 @@ const PurchaseOrdersTable = ({
           toolbarQuickFilterDeleteIconLabel: '清除',
           paginationRowsPerPage: '每頁行數:',
           paginationPageSize: '頁面大小',
-          paginationLabelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count !== -1 ? count : `超過 ${to}`}`,
+          paginationLabelDisplayedRows: ({ from, to, count }) => {
+            const countDisplay = count !== -1 ? count.toString() : '超過 ' + to;
+            return `${from}-${to} / ${countDisplay}`;
+          },
           paginationLabelRowsPerPage: '每頁行數:',
           MuiTablePagination: {
             labelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count}`,

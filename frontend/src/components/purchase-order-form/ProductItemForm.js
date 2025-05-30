@@ -64,7 +64,7 @@ const ProductItemForm = ({
   
   const getProductPurchasePrice = () => {
     // 使用可選鏈運算符替代條件判斷
-    return currentItem?.product ? products?.find(p => p._id === currentItem.product)?.purchasePrice || 0 : 0;
+    return currentItem?.product ? products?.find(p => p._id === currentItem.product)?.purchasePrice ?? 0 : 0;
   };
 
   const calculateTotalCost = (quantity) => {

@@ -84,7 +84,7 @@ const ProductItemsTable = ({
         </TableHead>
         <TableBody>
           {items.map((item, index) => (
-            <TableRow key={index}>
+            <TableRow key={`item-${item._id || index}-${index}`}>
               {editingItemIndex === index ? (
                 // 編輯模式
                 <>
