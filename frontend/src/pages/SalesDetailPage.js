@@ -39,7 +39,7 @@ import {
   Visibility, // Added for profit toggle
   VisibilityOff // Added for profit toggle
 } from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { format, isValid } from 'date-fns'; // Import isValid from date-fns
 import { zhTW } from 'date-fns/locale';
 

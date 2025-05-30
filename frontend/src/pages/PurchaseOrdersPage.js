@@ -162,13 +162,14 @@ const PurchaseOrdersPage = ({ initialSupplierId = null }) => {
     setPreviewError(null);
     try {
       const existingPO = purchaseOrders.find(po => po._id === id);
-      if (existingPO && existingPO.items) {
+      if (existingPO?.items) {
         setPreviewPurchaseOrder(existingPO);
       } else {
         const data = await getPurchaseOrderById(id); // Use service
         setPreviewPurchaseOrder(data);
       }
     } catch (err) {
+      console.error('獲取進貨單預覽失敗:', err);
       setPreviewError('獲取進貨單預覽失敗');
     } finally {
       setPreviewLoading(false);
@@ -221,7 +222,7 @@ const PurchaseOrdersPage = ({ initialSupplierId = null }) => {
   };
 
   const handleCsvFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setCsvFile(e.target.files[0]);
       setCsvImportError(null);
     }

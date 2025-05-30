@@ -375,7 +375,6 @@ const ReportsPage = () => {
         {reportType === 'sales' && renderSalesReport()}
         {reportType === 'inventory' && renderInventoryReport()}
         {/* Add other report types here */}
-        {/* {reportType === 'accounting' && renderAccountingReport()} */}
       </Container>
     </LocalizationProvider>
   );
