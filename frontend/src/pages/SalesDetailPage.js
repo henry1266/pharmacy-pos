@@ -336,7 +336,7 @@ const MainContent = ({ sale, fifoLoading, fifoError, fifoData, amountInfoOpen, h
       </Card>
     )}
 
-    {sale && sale.items && (
+    {sale?.items && (
       <Card variant="outlined">
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
