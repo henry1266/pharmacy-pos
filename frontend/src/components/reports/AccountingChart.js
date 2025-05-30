@@ -40,7 +40,7 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subDays, startOfMonth } from 'date-fns';
 import axios from 'axios';
 import { DownloadOutlined, TableChart, BarChartOutlined } from '@mui/icons-material';
 
@@ -120,6 +120,38 @@ const AccountingChart = () => {
     fetchCategories();
   }, []);
 
+  // 處理API請求參數
+  const prepareRequestParams = () => {
+    const params = new URLSearchParams();
+    params.append('startDate', format(dateRange.startDate, 'yyyy-MM-dd'));
+    params.append('endDate', format(dateRange.endDate, 'yyyy-MM-dd'));
+    params.append('groupBy', groupBy);
+    return params;
+  };
+
+  // 處理API回應數據
+  const processApiResponse = (response) => {
+    setAccountingData(response.data.data || []);
+    setSummaryData({
+      totalAmount: response.data.summary.totalAmount || 0,
+      totalCount: response.data.summary.totalCount || 0,
+      categoryStats: response.data.categoryStats || []
+    });
+    setError(null);
+  };
+
+  // 處理API錯誤
+  const handleApiError = (err) => {
+    console.error('獲取記帳數據失敗:', err);
+    setError('獲取記帳數據失敗');
+    setAccountingData([]);
+    setSummaryData({
+      totalAmount: 0,
+      totalCount: 0,
+      categoryStats: []
+    });
+  };
+
   // 獲取記帳數據
   useEffect(() => {
     const fetchAccountingData = async () => {
@@ -127,28 +159,11 @@ const AccountingChart = () => {
 
       setLoading(true);
       try {
-        const params = new URLSearchParams();
-        params.append('startDate', format(dateRange.startDate, 'yyyy-MM-dd'));
-        params.append('endDate', format(dateRange.endDate, 'yyyy-MM-dd'));
-        params.append('groupBy', groupBy);
-        
+        const params = prepareRequestParams();
         const response = await axios.get(`/api/reports/accounting?${params.toString()}`);
-        setAccountingData(response.data.data || []);
-        setSummaryData({
-          totalAmount: response.data.summary.totalAmount || 0,
-          totalCount: response.data.summary.totalCount || 0,
-          categoryStats: response.data.categoryStats || []
-        });
-        setError(null);
+        processApiResponse(response);
       } catch (err) {
-        console.error('獲取記帳數據失敗:', err);
-        setError('獲取記帳數據失敗');
-        setAccountingData([]);
-        setSummaryData({
-          totalAmount: 0,
-          totalCount: 0,
-          categoryStats: []
-        });
+        handleApiError(err);
       } finally {
         setLoading(false);
       }
@@ -282,6 +297,16 @@ const AccountingChart = () => {
         value: viewMode === 'amount' ? item.totalAmount : item.count
       }));
     }
+  };
+
+  // 獲取圖表顏色
+  const getChipColor = (option) => {
+    if (option.value === 'custom') {
+      return 'default';
+    }
+    
+    const isSelected = dateRange.startDate === option.start && dateRange.endDate === option.end;
+    return isSelected ? 'primary' : 'default';
   };
 
   // 處理圖表數據
@@ -560,7 +585,7 @@ const AccountingChart = () => {
                   <TableCell>
                     {row.items.slice(0, 3).map((item) => (
                       <Chip 
-                        key={`item-${item._id || `${item.category}-${item.amount}`}`} 
+                        key={`item-${item._id || item.category + '-' + item.amount}`} 
                         label={`${item.category}: ${formatCurrency(item.amount)}`} 
                         size="small" 
                         sx={{ mr: 0.5, mb: 0.5 }} 
@@ -607,7 +632,7 @@ const AccountingChart = () => {
                   <TableCell>
                     {row.items.slice(0, 3).map((item) => (
                       <Chip 
-                        key={`shift-item-${item._id || `${item.category}-${item.amount}`}`} 
+                        key={`shift-item-${item._id || item.category + '-' + item.amount}`} 
                         label={`${item.category}: ${formatCurrency(item.amount)}`} 
                         size="small" 
                         sx={{ mr: 0.5, mb: 0.5 }} 
@@ -682,13 +707,7 @@ const AccountingChart = () => {
                   key={option.value}
                   label={option.label}
                   onClick={() => handleDateRangeChange(option)}
-                  color={
-                    option.value === 'custom' 
-                      ? 'default'
-                      : (dateRange.startDate === option.start && dateRange.endDate === option.end)
-                        ? 'primary'
-                        : 'default'
-                  }
+                  color={getChipColor(option)}
                   sx={{ mb: 1 }}
                 />
               ))}
