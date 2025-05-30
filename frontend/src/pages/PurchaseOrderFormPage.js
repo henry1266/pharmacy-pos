@@ -311,8 +311,25 @@ const PurchaseOrderFormPage = () => {
   const adjustedTotalAmount = rawTotalAmount * multiplier;
   const totalAmount = Math.round(adjustedTotalAmount);
   
-  // 計算四捨五入後的誤差（用於後續分配到產品項目）
-  const roundingDifference = totalAmount - adjustedTotalAmount;
+  // 四捨五入後的計算已完成
+
+  // 對話框標題獲取函數
+  const getDialogTitle = () => {
+    if (isGlobalTestMode) {
+      return "測試模式確認";
+    }
+    return formData.status === 'completed' ? "確認完成進貨單" : "確認提交";
+  };
+
+  // 對話框訊息獲取函數
+  const getDialogMessage = () => {
+    if (isGlobalTestMode) {
+      return "此為測試模式，操作不會實際儲存。是否繼續？";
+    }
+    return formData.status === 'completed' 
+      ? "您確定要將此進貨單標記為完成嗎？完成後將無法修改。" 
+      : "您確定要提交此進貨單嗎？";
+  };
 
   if (dataLoading && !orderDataLoaded && !isGlobalTestMode) {
     return <Box sx={{ p: 3, textAlign: 'center' }}><CircularProgress /><Typography sx={{mt:1}}>載入中...</Typography></Box>;
@@ -407,8 +424,8 @@ const PurchaseOrderFormPage = () => {
           open={confirmDialogOpen}
           onClose={handleCancelComplete}
           onConfirm={handleConfirmComplete}
-          title={isGlobalTestMode ? "測試模式確認" : (formData.status === 'completed' ? "確認完成進貨單" : "確認提交")}
-          message={isGlobalTestMode ? "此為測試模式，操作不會實際儲存。是否繼續？" : (formData.status === 'completed' ? "您確定要將此進貨單標記為完成嗎？完成後將無法修改。" : "您確定要提交此進貨單嗎？")}
+          title={getDialogTitle()}
+          message={getDialogMessage()}
           confirmText="確認"
           cancelText="取消"
         />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
+import PropTypes from 'prop-types';
 import {
   Button,
   Box,
@@ -413,4 +414,9 @@ const PurchaseOrdersPage = ({ initialSupplierId = null }) => {
 };
 
 export default PurchaseOrdersPage;
+
+// PropTypes 定義
+PurchaseOrdersPage.propTypes = {
+  initialSupplierId: PropTypes.string
+};
 
