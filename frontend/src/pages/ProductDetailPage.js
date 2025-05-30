@@ -15,10 +15,8 @@ import {
   Edit as EditIcon,
   Print as PrintIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns';
 
 import ProductDetailCard from '../components/products/ProductDetailCard';
-import InventoryList from '../components/products/InventoryList';
 import FIFOProfitCalculator from '../components/products/FIFOProfitCalculator';
 import { getProductCategories } from '../services/productCategoryService';
 
