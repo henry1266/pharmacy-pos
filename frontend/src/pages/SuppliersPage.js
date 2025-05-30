@@ -513,7 +513,7 @@ const SuppliersPage = () => {
           <Typography variant="body2" gutterBottom>
   請選擇要匯入的CSV文件。文件應包含以下欄位：{' '}
   <code>code</code>{' '}, {' '}<code>shortCode</code>, <code>name</code>,
-  <code>contactPerson</code>{' '},<code>phone</code>{' '}, <code>taxId</code>{' '},
+  <code>contactPerson</code>{' '},{' '}<code>phone</code>, <code>taxId</code>,
   <code>paymentTerms</code>{' '}, {' '}<code>notes</code>{' '}.
 </Typography>
 
