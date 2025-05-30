@@ -11,7 +11,6 @@ import {
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import PropTypes from 'prop-types';
 
 // Import service functions
 import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService'; // Added addPurchaseOrder
@@ -333,7 +332,7 @@ const PurchaseOrderEditPage = () => {
   };
 
   const handleSaveEditItem = () => {
-    if (!editingItem || !editingItem.product || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
+    if (!editingItem?.product || !editingItem?.dname || !editingItem?.dquantity || editingItem?.dtotalCost === '') {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
       return;
     }

@@ -121,8 +121,7 @@ const ProductsPage = () => {
           medicine.name.toLowerCase().includes(searchParams.name.toLowerCase());
         
         const healthInsuranceCodeMatch = !searchParams.healthInsuranceCode || 
-          (medicine.healthInsuranceCode && 
-           medicine.healthInsuranceCode.toLowerCase().includes(searchParams.healthInsuranceCode.toLowerCase()));
+          medicine.healthInsuranceCode?.toLowerCase().includes(searchParams.healthInsuranceCode.toLowerCase());
         
         return codeMatch && nameMatch && healthInsuranceCodeMatch;
       });
