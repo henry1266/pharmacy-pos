@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import { 
   Box, 
   Button
@@ -40,6 +41,12 @@ const ActionButtons = ({
       </Button>
     </Box>
   );
+};
+
+// 添加 ActionButtons 的 PropTypes 驗證
+ActionButtons.propTypes = {
+  loading: PropTypes.bool,
+  onCancel: PropTypes.func.isRequired // 添加缺失的 onCancel 驗證
 };
 
 export default ActionButtons;

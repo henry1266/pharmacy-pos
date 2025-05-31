@@ -154,7 +154,7 @@ const BasicInfoForm = ({
           <Grid item xs={12} sm={6} md={2}>
             <Box
               sx={{
-                backgroundColor: getStatusBackgroundColor()
+                backgroundColor: formData?.status === 'pending' ? '#FFF3CD' : formData?.status === 'completed' ? '#D4EDDA' : 'transparent'
               }}
             >
               <FormControl fullWidth>

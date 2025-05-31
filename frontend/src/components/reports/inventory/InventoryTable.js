@@ -184,8 +184,8 @@ const ExpandableRow = ({ item, formatCurrency }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {displayTransactions.map((transaction, index) => (
-                    <TableRow key={index}>
+                  {displayTransactions.map((transaction) => (
+                    <TableRow key={`${transaction.type}-${getOrderNumber(transaction)}-${transaction.price}`}>
                       <TableCell>
                         <Typography
                           component="span"
@@ -269,7 +269,7 @@ ExpandableRow.propTypes = {
 };
 
 const InventoryTable = ({ filters }) => {
-  const [inventoryData, setInventoryData] = useState([]);
+  // 移除未使用的 inventoryData 變數
   const [groupedData, setGroupedData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -310,8 +310,6 @@ const InventoryTable = ({ filters }) => {
         console.log('API返回的原始數據:', response.data);
         
         if (response.data && response.data.data) {
-          setInventoryData(response.data.data);
-          
           // 處理數據分組
           processInventoryData(response.data.data);
         }
@@ -475,28 +473,8 @@ const InventoryTable = ({ filters }) => {
         
         // 計算貨單號最大的那筆交易的累積損益
         if (sortedByDescending.length > 0) {
-          // 找到貨單號最大的交易
-          const latestTransaction = sortedByDescending[0];
-          
-          // 找到該交易在原始排序中的位置
-          const index = sortedTransactions.findIndex(t => 
-            getOrderNumber(t) === getOrderNumber(latestTransaction));
-          
-          if (index !== -1) {
-            // 計算到該交易為止的累積損益
-            let latestCumulativeProfitLoss = 0;
-            for (let i = 0; i <= index; i++) {
-              const transaction = sortedTransactions[i];
-              if (transaction.type === '進貨') {
-                latestCumulativeProfitLoss += calculateTransactionProfitLoss(transaction);
-              } else if (transaction.type === '銷售' || transaction.type === '出貨') {
-                latestCumulativeProfitLoss -= calculateTransactionProfitLoss(transaction);
-              }
-            }
-            
-            // 將貨單號最大的交易的累積損益加入總損益
-            profitLossSum += latestCumulativeProfitLoss;
-          }
+          // 將最新交易的損益總和加入總計
+          profitLossSum += cumulativeProfitLoss;
         }
       }
     });
@@ -505,126 +483,121 @@ const InventoryTable = ({ filters }) => {
     setGroupedData(groupedArray);
     setTotalInventoryQuantity(totalQuantity);
     setTotalProfitLoss(profitLossSum);
-    
-    // 移除註解程式碼
   };
 
-  // 處理頁面變更
+  // 處理頁碼變更
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
-  // 處理每頁行數變更
+  // 處理每頁顯示筆數變更
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  // 降低認知複雜度：拆分渲染邏輯為多個函數
-  const renderHeader = () => (
-    <Box sx={{ mb: 2 }}>
-      <Typography variant="h5" component="h2" gutterBottom>
-        庫存報表
-      </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="body1">
-          總庫存數量: <strong>{totalInventoryQuantity}</strong> 件
-        </Typography>
-        <Typography variant="body1">
-          總損益: <strong style={{ color: totalProfitLoss >= 0 ? 'var(--success-color)' : 'var(--danger-color)' }}>
-            {formatCurrency(totalProfitLoss)}
-          </strong>
-        </Typography>
-      </Box>
-    </Box>
-  );
+  // 計算分頁後的數據
+  const paginatedData = groupedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const renderTable = () => (
-    <TableContainer component={Paper} sx={{ mb: 2 }}>
-      <Table aria-label="庫存報表表格">
-        <TableHead>
-          <TableRow sx={{ bgcolor: 'var(--table-header-bg)' }}>
-            <TableCell />
-            <TableCell>產品代碼</TableCell>
-            <TableCell>產品名稱</TableCell>
-            <TableCell>類別</TableCell>
-            <TableCell>供應商</TableCell>
-            <TableCell align="right">數量</TableCell>
-            <TableCell>單位</TableCell>
-            <TableCell align="right">單價</TableCell>
-            <TableCell align="right">庫存價值</TableCell>
-            <TableCell>狀態</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {groupedData
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((item) => (
-              <ExpandableRow key={item.productId} item={item} formatCurrency={formatCurrency} />
-            ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-
-  const renderPagination = () => (
-    <TablePagination
-      rowsPerPageOptions={[5, 10, 25, 50]}
-      component="div"
-      count={groupedData.length}
-      rowsPerPage={rowsPerPage}
-      page={page}
-      onPageChange={handleChangePage}
-      onRowsPerPageChange={handleChangeRowsPerPage}
-      labelRowsPerPage="每頁行數:"
-      labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count}`}
-    />
-  );
-
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-          <CircularProgress />
-        </Box>
-      );
-    }
-
-    if (error) {
-      return (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      );
-    }
-
-    if (groupedData.length === 0) {
-      return (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          沒有符合條件的庫存數據
-        </Alert>
-      );
-    }
-
+  // 如果正在載入，顯示載入中訊息
+  if (loading) {
     return (
-      <>
-        {renderTable()}
-        {renderPagination()}
-      </>
+      <Card sx={{ mb: 4 }}>
+        <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>載入中...</Typography>
+        </CardContent>
+      </Card>
     );
-  };
+  }
 
+  // 如果有錯誤，顯示錯誤訊息
+  if (error) {
+    return (
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 如果沒有數據，顯示無數據訊息
+  if (groupedData.length === 0) {
+    return (
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Alert severity="info">
+            沒有符合條件的庫存數據
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 顯示庫存表格
   return (
-    <Card>
+    <Card sx={{ mb: 4 }}>
       <CardContent>
-        {renderHeader()}
-        {renderContent()}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" component="div">
+            庫存列表
+          </Typography>
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'right' }}>
+              總庫存數量: <strong>{totalInventoryQuantity}</strong>
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'right' }}>
+              總損益: <strong style={{ color: totalProfitLoss >= 0 ? 'var(--success-color)' : 'var(--danger-color)' }}>
+                {formatCurrency(totalProfitLoss)}
+              </strong>
+            </Typography>
+          </Box>
+        </Box>
+        
+        <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 300px)' }}>
+          <Table stickyHeader aria-label="庫存表格">
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell>產品代碼</TableCell>
+                <TableCell>產品名稱</TableCell>
+                <TableCell>類別</TableCell>
+                <TableCell>供應商</TableCell>
+                <TableCell align="right">數量</TableCell>
+                <TableCell>單位</TableCell>
+                <TableCell align="right">單價</TableCell>
+                <TableCell align="right">庫存價值</TableCell>
+                <TableCell>狀態</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedData.map((item) => (
+                <ExpandableRow key={item.productId} item={item} formatCurrency={formatCurrency} />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={groupedData.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="每頁顯示筆數:"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} / 共 ${count} 筆`}
+        />
       </CardContent>
     </Card>
   );
 };
 
-// 新增 InventoryTable 的 props validation
+// 添加 InventoryTable 的 PropTypes 驗證
 InventoryTable.propTypes = {
   filters: PropTypes.shape({
     supplier: PropTypes.string,
@@ -632,12 +605,7 @@ InventoryTable.propTypes = {
     productCode: PropTypes.string,
     productName: PropTypes.string,
     productType: PropTypes.string
-  })
-};
-
-// 設定默認值
-InventoryTable.defaultProps = {
-  filters: {}
+  }).isRequired
 };
 
 export default InventoryTable;
