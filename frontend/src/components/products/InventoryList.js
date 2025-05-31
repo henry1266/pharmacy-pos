@@ -257,6 +257,39 @@ const InventoryList = ({ productId }) => {
     }
   };
 
+  // 輔助函數：獲取訂單號和訂單連結
+  const getOrderInfo = (inv, index) => {
+    let orderNumber = '';
+    let orderLink = '';
+    
+    if (inv.type === 'sale') {
+      orderNumber = inv.saleNumber;
+      const saleId = extractOidFromMongoId(inv.saleId) || extractOidFromMongoId(inv._id) || '';
+      orderLink = `/sales/${saleId}`;
+    } else if (inv.type === 'purchase') {
+      orderNumber = inv.purchaseOrderNumber;
+      const purchaseId = extractOidFromMongoId(inv.purchaseOrderId) || extractOidFromMongoId(inv._id) || '';
+      orderLink = `/purchase-orders/${purchaseId}`;
+    } else if (inv.type === 'ship') {
+      orderNumber = inv.shippingOrderNumber;
+      const shippingId = extractOidFromMongoId(inv.shippingOrderId) || extractOidFromMongoId(inv._id) || '';
+      orderLink = `/shipping-orders/${shippingId}`;
+    }
+    
+    return { orderNumber, orderLink };
+  };
+
+  // 輔助函數：計算實際交易價格
+  const calculatePrice = (inv) => {
+    if (inv.totalAmount && inv.totalQuantity) {
+      const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+      return unitPrice.toFixed(2);
+    } else if (inv.product?.sellingPrice) {
+      return inv.product.sellingPrice.toFixed(2);
+    }
+    return '0.00';
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -327,36 +360,10 @@ const InventoryList = ({ productId }) => {
           </TableHead>
           <TableBody>
             {inventories.map((inv, index) => {
-              let orderNumber, orderLink;
+              const { orderNumber, orderLink } = getOrderInfo(inv, index);
               const typeDisplay = getTypeDisplay(inv.type);
-              
-              if (inv.type === 'sale') {
-                orderNumber = inv.saleNumber;
-                const saleId = extractOidFromMongoId(inv.saleId) || extractOidFromMongoId(inv._id) || '';
-                orderLink = `/sales/${saleId}`;
-              } else if (inv.type === 'purchase') {
-                orderNumber = inv.purchaseOrderNumber;
-                const purchaseId = extractOidFromMongoId(inv.purchaseOrderId) || extractOidFromMongoId(inv._id) || '';
-                orderLink = `/purchase-orders/${purchaseId}`;
-              } else if (inv.type === 'ship') {
-                orderNumber = inv.shippingOrderNumber;
-                // 修復出貨超連結問題：正確處理MongoDB格式的對象ID
-                const shippingId = extractOidFromMongoId(inv.shippingOrderId) || extractOidFromMongoId(inv._id) || '';
-                orderLink = `/shipping-orders/${shippingId}`;
-              }
-              
               const quantity = inv.totalQuantity;
-              
-              // 計算實際交易價格
-              let price = '0.00';
-              if (inv.totalAmount && inv.totalQuantity) {
-                // 使用實際交易價格（總金額/數量）
-                const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-                price = unitPrice.toFixed(2);
-              } else if (inv.product?.sellingPrice) {
-                // 使用可選鏈表達式
-                price = inv.product.sellingPrice.toFixed(2);
-              }
+              const price = calculatePrice(inv);
               
               // 使用穩定的唯一識別符作為 key
               const stableKey = `${inv.type}-${orderNumber}-${inv._id || `no-id-${index}`}`;
