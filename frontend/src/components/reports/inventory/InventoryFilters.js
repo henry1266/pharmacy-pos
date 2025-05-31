@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import {
   Box,
   Grid,
@@ -9,7 +10,6 @@ import {
   TextField,
   Button,
   Typography,
-  Autocomplete,
   Paper
 } from '@mui/material';
 import { FilterAlt } from '@mui/icons-material';
@@ -28,12 +28,10 @@ const InventoryFilters = ({ onFilterChange }) => {
   // 下拉選項數據
   const [suppliers, setSuppliers] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   // 載入供應商和類別數據
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      setLoading(true);
       try {
         // 獲取供應商列表
         const suppliersRes = await axios.get('/api/suppliers');
@@ -41,13 +39,9 @@ const InventoryFilters = ({ onFilterChange }) => {
 
         // 獲取類別列表（從報表API獲取）
         const inventoryRes = await axios.get('/api/reports/inventory');
-        if (inventoryRes.data && inventoryRes.data.filters) {
-          setCategories(inventoryRes.data.filters.categories || []);
-        }
+        setCategories(inventoryRes.data?.filters?.categories || []);
       } catch (err) {
         console.error('獲取篩選選項失敗:', err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -218,6 +212,11 @@ const InventoryFilters = ({ onFilterChange }) => {
       </Box>
     </Paper>
   );
+};
+
+// 添加 InventoryFilters 的 PropTypes 驗證
+InventoryFilters.propTypes = {
+  onFilterChange: PropTypes.func
 };
 
 export default InventoryFilters;
