@@ -355,41 +355,26 @@ const ShippingOrderDetailPage = () => {
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={orderLoading || productDetailsLoading || fifoLoading} // Overall loading state
-      errorContent={<ErrorContent 
-        orderError={orderError} 
-        productDetailsError={productDetailsError} 
-        fifoError={fifoError} 
-        fifoData={fifoData} 
-      />}
-      noDataContent={<NoDataContent 
-        orderLoading={orderLoading} 
-        currentShippingOrder={currentShippingOrder} 
-        orderError={orderError} 
-      />}
+      errorContent={(() => {
+        if (orderError) {
+          return <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography>;
+        }
+        if (productDetailsError) {
+          return <Typography color="error">{productDetailsError}</Typography>;
+        }
+        if (fifoError && !fifoData) {
+          return <Typography color="error">{fifoError}</Typography>;
+        }
+        return null;
+      })()}
+      noDataContent={(() => {
+        if (!orderLoading && !currentShippingOrder && !orderError) {
+          return <Typography variant="h6">找不到出貨單數據</Typography>;
+        }
+        return null;
+      })()}
     />
   );
-};
-
-// 錯誤內容元件
-const ErrorContent = ({ orderError, productDetailsError, fifoError, fifoData }) => {
-  if (orderError) {
-    return <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography>;
-  }
-  if (productDetailsError) {
-    return <Typography color="error">{productDetailsError}</Typography>;
-  }
-  if (fifoError && !fifoData) {
-    return <Typography color="error">{fifoError}</Typography>;
-  }
-  return null;
-};
-
-// 無數據內容元件
-const NoDataContent = ({ orderLoading, currentShippingOrder, orderError }) => {
-  if (!orderLoading && !currentShippingOrder && !orderError) {
-    return <Typography variant="h6">找不到出貨單數據</Typography>;
-  }
-  return null;
 };
 
 export default ShippingOrderDetailPage;
