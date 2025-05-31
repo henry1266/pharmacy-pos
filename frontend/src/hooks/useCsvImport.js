@@ -54,7 +54,7 @@ const useCsvImport = (tabValue, fetchProducts) => {
       return true;
     } catch (err) {
       console.error(err);
-      setCsvImportError(err.response?.data?.msg || '匯入失敗，請檢查CSV格式');
+      setCsvImportError(err.response?.data?.msg ?? '匯入失敗，請檢查CSV格式');
       setCsvImportLoading(false);
       return false;
     }

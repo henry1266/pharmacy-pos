@@ -42,38 +42,29 @@ const useProductData = () => {
   // Fetch all suppliers (using service)
   const fetchSuppliers = useCallback(async () => {
     try {
-      // Assuming suppliers don't change often, maybe load only once or less frequently
-      // setLoading(true); // Optional: manage loading state for suppliers separately if needed
       setError(null);
       const data = await productService.getSuppliers();
       setSuppliers(data);
     } catch (err) {
       console.error('獲取供應商失敗 (hook):', err);
       setError('獲取供應商失敗');
-    } finally {
-      // setLoading(false);
     }
   }, []);
 
   // Fetch all product categories (using service)
   const fetchCategories = useCallback(async () => {
     try {
-      // setLoading(true); // Optional: manage loading state for categories
       setError(null);
       const data = await getProductCategories(); // Using dedicated category service
       setCategories(data);
     } catch (err) {
       console.error('獲取產品分類失敗 (hook):', err);
       setError('獲取產品分類失敗');
-    } finally {
-      // setLoading(false);
     }
   }, []);
 
   // Handle deleting a product (using service)
   const handleDeleteProduct = useCallback(async (id) => {
-    // Keep confirmation dialog logic in the component or move it here if preferred
-    // if (window.confirm('確定要刪除此產品嗎？')) { ... }
     try {
       setLoading(true); // Indicate loading during delete
       setError(null);
@@ -82,14 +73,11 @@ const useProductData = () => {
       // Update local state optimistically or refetch
       setProducts(prev => prev.filter(p => p.id !== id));
       setMedicines(prev => prev.filter(p => p.id !== id));
-      // Or call fetchProducts() again
 
       return true; // Indicate success
     } catch (err) {
       console.error('刪除產品失敗 (hook):', err);
       setError(`刪除產品失敗: ${err.response?.data?.message || err.message}`);
-      // Re-throw the error if the component needs to handle it (e.g., show specific alerts)
-      // throw err;
       return false; // Indicate failure
     } finally {
       setLoading(false);
@@ -112,7 +100,6 @@ const useProductData = () => {
       }
 
       // Refetch products to ensure data consistency
-      // This is simpler than trying to update the state manually and potentially missing edge cases
       await fetchProducts();
 
       return { ...savedProductData, id: savedProductData._id }; // Return the saved product data with mapped id
@@ -138,12 +125,6 @@ const useProductData = () => {
       } catch (err) {
         // Errors are already handled within individual fetch functions and state is set
         console.error("Error loading initial product data:", err)
-      } finally {
-         // Ensure loading is false even if only one part failed initially
-         // However, fetchProducts already sets loading to false at the end.
-         // If suppliers/categories loading is critical, manage a combined loading state.
-         // For simplicity, relying on fetchProducts' loading state might suffice.
-         // setLoading(false); // Might be redundant if fetchProducts is the main indicator
       }
     };
     loadInitialData();
@@ -157,12 +138,9 @@ const useProductData = () => {
     loading, // Primarily reflects product loading state now
     error,
     fetchProducts, // Expose if manual refresh is needed
-    // fetchSuppliers, // Usually not needed by component
-    // fetchCategories, // Usually not needed by component
     handleDeleteProduct,
     handleSaveProduct
   };
 };
 
 export default useProductData;
-
