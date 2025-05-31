@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import {
   Dialog,
   DialogTitle,
@@ -64,8 +65,8 @@ const SettingsModal = ({ open, onClose }) => {
 
   // 處理保存設定
   const handleSave = async () => {
-    // 驗證IP地址格式
-    const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    // 驗證IP地址格式 - 使用 \d 替代 [0-9]
+    const ipRegex = /^(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
     
     if (!ipRegex.test(apiIpAddress)) {
       setSnackbar({
@@ -198,6 +199,12 @@ const SettingsModal = ({ open, onClose }) => {
       </Snackbar>
     </>
   );
+};
+
+// 添加 SettingsModal 的 PropTypes 驗證
+SettingsModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired
 };
 
 export default SettingsModal;
