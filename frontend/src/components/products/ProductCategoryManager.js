@@ -16,8 +16,7 @@ import {
   DialogActions,
   Snackbar,
   Alert,
-  CircularProgress,
-  Divider
+  CircularProgress
 } from '@mui/material';
 import { DragDropContext, Draggable } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../common/StrictModeDroppable';

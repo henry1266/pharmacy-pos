@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import { 
   Paper, 
   TextField, 
@@ -98,6 +99,17 @@ const ProductSearchBar = ({ searchParams, onSearchChange, tabValue }) => {
       </Grid>
     </Paper>
   );
+};
+
+// 添加 ProductSearchBar 的 PropTypes 驗證
+ProductSearchBar.propTypes = {
+  searchParams: PropTypes.shape({
+    code: PropTypes.string,
+    name: PropTypes.string,
+    healthInsuranceCode: PropTypes.string
+  }).isRequired,
+  onSearchChange: PropTypes.func.isRequired,
+  tabValue: PropTypes.number.isRequired
 };
 
 export default ProductSearchBar;

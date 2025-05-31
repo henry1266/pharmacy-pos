@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import { Box } from '@mui/material';
 
 const TabPanel = (props) => {
@@ -19,6 +20,13 @@ const TabPanel = (props) => {
       )}
     </div>
   );
+};
+
+// 添加 TabPanel 的 PropTypes 驗證
+TabPanel.propTypes = {
+  children: PropTypes.node.isRequired,
+  value: PropTypes.number.isRequired,
+  index: PropTypes.number.isRequired
 };
 
 export default TabPanel;
