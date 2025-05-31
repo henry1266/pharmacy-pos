@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, Typography, Paper, Grid, TextField, Button, Snackbar, Alert, CircularProgress, FormControlLabel, Checkbox } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+// 移除未使用的 useNavigate 引入
 // Removed axios import
 import authService from '../services/authService'; // Import the auth service
 
@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  // 移除未使用的 error 變數
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
   const [particlesInit, setParticlesInit] = useState(false);
@@ -52,7 +52,6 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     if (isTestMode) {
@@ -90,7 +89,6 @@ const LoginPage = () => {
 
     } catch (err) {
       const errorMessage = err.message || '登入失敗，請檢查您的憑證或稍後再試。';
-      setError(errorMessage);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setLoading(false);
@@ -231,4 +229,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
