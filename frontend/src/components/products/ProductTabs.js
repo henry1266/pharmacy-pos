@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import {
   Box,
   Button,
@@ -69,6 +70,20 @@ const ProductTabs = ({
       </TabPanel>
     </>
   );
+};
+
+// 添加 ProductTabs 的 PropTypes 驗證
+ProductTabs.propTypes = {
+  tabValue: PropTypes.number.isRequired,
+  handleTabChange: PropTypes.func.isRequired,
+  handleAddProduct: PropTypes.func.isRequired,
+  handleOpenCsvImport: PropTypes.func.isRequired,
+  products: PropTypes.array.isRequired,
+  medicines: PropTypes.array.isRequired,
+  loading: PropTypes.bool,
+  onRowClick: PropTypes.func,
+  productColumns: PropTypes.array.isRequired,
+  medicineColumns: PropTypes.array.isRequired
 };
 
 export default ProductTabs;
