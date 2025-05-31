@@ -103,8 +103,8 @@ const MedicineCsvImportDialog = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {previewData.map((row, index) => (
-                      <TableRow key={index}>
+                    {previewData.map((row) => (
+                      <TableRow key={`${row.date}-${row.nhCode}-${row.quantity}`}>
                         <TableCell>{row.date}</TableCell>
                         <TableCell>{row.nhCode}</TableCell>
                         <TableCell align="right">{row.quantity}</TableCell>

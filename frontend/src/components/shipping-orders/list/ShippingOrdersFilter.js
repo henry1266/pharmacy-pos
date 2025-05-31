@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import { 
   Box, 
   TextField, 
@@ -125,6 +126,26 @@ const ShippingOrdersFilter = ({
       </Grid>
     </Box>
   );
+};
+
+// 添加 ShippingOrdersFilter 的 PropTypes 驗證
+ShippingOrdersFilter.propTypes = {
+  searchParams: PropTypes.shape({
+    soid: PropTypes.string,
+    sosupplier: PropTypes.string,
+    startDate: PropTypes.oneOfType([PropTypes.string, PropTypes.object, PropTypes.instanceOf(Date)]),
+    endDate: PropTypes.oneOfType([PropTypes.string, PropTypes.object, PropTypes.instanceOf(Date)])
+  }).isRequired,
+  handleInputChange: PropTypes.func.isRequired,
+  handleDateChange: PropTypes.func.isRequired,
+  handleSearch: PropTypes.func.isRequired,
+  handleClearSearch: PropTypes.func.isRequired,
+  suppliers: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      find: PropTypes.func // 添加 suppliers.find 的驗證
+    })
+  )
 };
 
 export default ShippingOrdersFilter;
