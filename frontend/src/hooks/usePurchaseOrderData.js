@@ -95,7 +95,7 @@ const usePurchaseOrderData = (isEditMode, orderId, showSnackbar) => {
         }
         const results = await Promise.all(promises);
 
-        if (isEditMode && results[2] && results[2].items) {
+        if (isEditMode && results[2]?.items) {
           await fetchProductDetailsForItems(results[2].items);
         }
       } catch (err) {

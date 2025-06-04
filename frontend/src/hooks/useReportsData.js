@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import reportsService from '../services/reportsService';
-import { format } from 'date-fns';
 
 /**
  * Custom hook for fetching and managing sales report data.

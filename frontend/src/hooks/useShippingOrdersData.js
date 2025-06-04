@@ -103,7 +103,7 @@ const useShippingOrdersData = () => {
     try {
       // Check existing data first
       const existingSO = shippingOrders.find(so => so._id === id);
-      if (existingSO && existingSO.items) {
+      if (existingSO?.items) {
         setPreviewShippingOrder(existingSO);
         setPreviewLoading(false);
         return;

@@ -47,10 +47,11 @@ const CustomColumnMenu = (props) => {
         {...props}
         slots={{
           // 添加自定義菜單項
-          columnMenuUserItem: () => <ColumnMenuUserItemButton onClick={handleOpen} />,
+          columnMenuUserItem: ColumnMenuUserItemButton,
         }}
         slotProps={{
           columnMenuUserItem: {
+            onClick: handleOpen,
             displayOrder: 0, // 顯示在最上方
           },
         }}
