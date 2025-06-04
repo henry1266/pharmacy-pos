@@ -21,6 +21,96 @@ import ProductItemsTable from '../components/purchase-order-form/ProductItemsTab
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog'; // NEW IMPORT
 import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
+// Helper constants for test mode
+const MOCK_PRODUCTS_FOR_TEST_MODE = [
+  { id: 'mockProd1', _id: 'mockProd1', name: '模擬產品A (測試)', unit: '瓶', purchasePrice: 50, stock: 100, did: 'T001', dname: '模擬產品A (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
+  { id: 'mockProd2', _id: 'mockProd2', name: '模擬產品B (測試)', unit: '盒', purchasePrice: 120, stock: 50, did: 'T002', dname: '模擬產品B (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商Y' } },
+  { id: 'mockProd3', _id: 'mockProd3', name: '模擬產品C (測試)', unit: '支', purchasePrice: 75, stock: 200, did: 'T003', dname: '模擬產品C (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
+];
+const MOCK_SUPPLIERS_FOR_TEST_MODE = [
+  { id: 'mockSup1', _id: 'mockSup1', name: '模擬供應商X (測試)' },
+  { id: 'mockSup2', _id: 'mockSup2', name: '模擬供應商Y (測試)' },
+];
+
+// Helper function to adjust purchase order items with multiplier and rounding
+const adjustPurchaseOrderItems = (items, multiplier) => {
+  if (!items || items.length === 0) {
+    return [];
+  }
+
+  let adjustedItems = items.map(item => ({
+    ...item,
+    dtotalCost: parseFloat((Number(item.dtotalCost || 0) * multiplier).toFixed(2))
+  }));
+
+  const rawTotalAmountBeforeMultiplier = items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  const totalAmountAfterMultiplier = rawTotalAmountBeforeMultiplier * multiplier;
+  const roundedTotalAmount = Math.round(totalAmountAfterMultiplier);
+  const roundingDifference = roundedTotalAmount - totalAmountAfterMultiplier;
+
+  if (roundingDifference !== 0 && adjustedItems.length > 0) {
+    const maxCostItemIndex = adjustedItems.reduce((maxIndex, item, currentIndex, arr) => {
+      return Number(item.dtotalCost) > Number(arr[maxIndex].dtotalCost) ? currentIndex : maxIndex;
+    }, 0);
+
+    adjustedItems = adjustedItems.map((item, index) => {
+      if (index === maxCostItemIndex) {
+        return {
+          ...item,
+          dtotalCost: parseFloat((Number(item.dtotalCost) + roundingDifference).toFixed(2))
+        };
+      }
+      return item;
+    });
+  }
+  return adjustedItems;
+};
+
+// Helper component/function to render initial loading or error states
+const RenderInitialState = ({
+  dataLoading,
+  orderDataLoaded,
+  isGlobalTestMode,
+  dataError,
+  isEditMode,
+  orderData,
+  products, // state variable
+  suppliers // state variable
+}) => {
+  if (dataLoading && !orderDataLoaded && !isGlobalTestMode) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 1 }}>載入中...</Typography>
+      </Box>
+    );
+  }
+
+  if (dataError && (!orderData && !isEditMode) && !isGlobalTestMode) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="error">
+          {typeof dataError === 'string' ? dataError : JSON.stringify(dataError)}
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()} sx={{ mt: 2 }}>
+          重試
+        </Button>
+      </Box>
+    );
+  }
+
+  if (isGlobalTestMode && dataError && !(products && products.length > 0 && suppliers && suppliers.length > 0)) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="warning">
+          測試模式：無法載入初始資料，也無法載入模擬資料。請檢查控制台。
+        </Typography>
+      </Box>
+    );
+  }
+  return null;
+};
+
 const PurchaseOrderFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -66,26 +156,19 @@ const PurchaseOrderFormPage = () => {
   let productsLoaded = initialProductsLoaded;
 
   if (isGlobalTestMode) {
-    const mockProducts = [
-      { id: 'mockProd1', _id: 'mockProd1', name: '模擬產品A (測試)', unit: '瓶', purchasePrice: 50, stock: 100, did: 'T001', dname: '模擬產品A (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
-      { id: 'mockProd2', _id: 'mockProd2', name: '模擬產品B (測試)', unit: '盒', purchasePrice: 120, stock: 50, did: 'T002', dname: '模擬產品B (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商Y' } },
-      { id: 'mockProd3', _id: 'mockProd3', name: '模擬產品C (測試)', unit: '支', purchasePrice: 75, stock: 200, did: 'T003', dname: '模擬產品C (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' } },
-    ];
-    const mockSuppliers = [
-      { id: 'mockSup1', _id: 'mockSup1', name: '模擬供應商X (測試)' },
-      { id: 'mockSup2', _id: 'mockSup2', name: '模擬供應商Y (測試)' },
-    ];
+    const currentMockProducts = MOCK_PRODUCTS_FOR_TEST_MODE;
+    const currentMockSuppliers = MOCK_SUPPLIERS_FOR_TEST_MODE;
 
     if (!products || products.length === 0 || (dataError && !productsLoaded)) {
-      products = mockProducts;
+      products = currentMockProducts;
       productsLoaded = true;
     }
     if (!suppliers || suppliers.length === 0 || (dataError && !suppliersLoaded)) {
-      suppliers = mockSuppliers;
+      suppliers = currentMockSuppliers;
       suppliersLoaded = true;
     }
     // If there was an error but we have mock data, clear the error and loading state
-    if (dataError && (products === mockProducts || suppliers === mockSuppliers)) {
+    if (dataError && (products === currentMockProducts || suppliers === currentMockSuppliers)) {
       dataError = null;
     }
     if (dataLoading && (productsLoaded || suppliersLoaded)) {
@@ -153,17 +236,31 @@ const PurchaseOrderFormPage = () => {
   }, [isEditMode, orderDataLoaded, suppliersLoaded, formData.supplier, formData.posupplier, suppliers]);
 
   useEffect(() => {
+    let timerId;
     if (!dataLoading) {
         if (!isEditMode) {
             if (invoiceInputRef.current) {
-                setTimeout(() => invoiceInputRef.current.focus(), 500); 
+                timerId = setTimeout(() => {
+                  if (invoiceInputRef.current) {
+                    invoiceInputRef.current.focus();
+                  }
+                }, 500); 
             }
         } else if (orderDataLoaded) {
             if (productInputRef.current) {
-                setTimeout(() => productInputRef.current.focus(), 500);
+                timerId = setTimeout(() => {
+                  if (productInputRef.current) {
+                    productInputRef.current.focus();
+                  }
+                }, 500);
             }
         }
     }
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
   }, [dataLoading, isEditMode, orderDataLoaded]);
 
   const handleFormInputChange = (e) => {
@@ -213,45 +310,13 @@ const PurchaseOrderFormPage = () => {
       return;
     }
 
-    // 應用倍率到各項目成本
     const multiplier = getMultiplier();
-    
-    // 計算倍率調整後的總金額，並四捨五入為整數
-    const rawTotalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
-    const adjustedTotalAmount = rawTotalAmount * multiplier;
-    const roundedTotalAmount = Math.round(adjustedTotalAmount);
-    
-    // 計算四捨五入後的誤差
-    const roundingDifference = roundedTotalAmount - adjustedTotalAmount;
-    
-    // 先應用倍率到各項目成本
-    let adjustedItems = formData.items.map(item => ({
-      ...item,
-      dtotalCost: parseFloat((Number(item.dtotalCost) * multiplier).toFixed(2))
-    }));
-    
-    // 如果有誤差且有項目，將誤差分配到最後一個項目
-    if (roundingDifference !== 0 && adjustedItems.length > 0) {
-      // 找出金額最大的項目來分配誤差，避免小金額項目變成負數
-      const maxCostItemIndex = adjustedItems.reduce((maxIndex, item, index, array) => 
-        Number(array[maxIndex].dtotalCost) < Number(item.dtotalCost) ? index : maxIndex, 0);
-      
-      // 將誤差加到金額最大的項目上
-      adjustedItems = adjustedItems.map((item, index) => {
-        if (index === maxCostItemIndex) {
-          return {
-            ...item,
-            dtotalCost: parseFloat((Number(item.dtotalCost) + roundingDifference).toFixed(2))
-          };
-        }
-        return item;
-      });
-    }
+    const finalAdjustedItems = adjustPurchaseOrderItems(formData.items, multiplier);
 
     const submitData = {
       ...formData,
       pobilldate: format(formData.pobilldate, 'yyyy-MM-dd'),
-      items: adjustedItems.map(item => ({
+      items: finalAdjustedItems.map(item => ({
         did: item.did,
         dname: item.dname,
         dquantity: item.dquantity,
@@ -303,16 +368,12 @@ const PurchaseOrderFormPage = () => {
     return 1 + (multiplierValue / 100); // 轉換為倍率係數
   };
 
-  // 計算總金額（含倍率調整）
-  const rawTotalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
-  const multiplier = getMultiplier();
+  // 計算總金額（含倍率調整） for display
+  const rawTotalAmountForDisplay = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  const currentMultiplierForDisplay = getMultiplier();
+  const adjustedTotalAmountForDisplay = rawTotalAmountForDisplay * currentMultiplierForDisplay;
+  const totalAmountForDisplay = Math.round(adjustedTotalAmountForDisplay);
   
-  // 計算倍率調整後的總金額，並四捨五入為整數
-  const adjustedTotalAmount = rawTotalAmount * multiplier;
-  const totalAmount = Math.round(adjustedTotalAmount);
-  
-  // 四捨五入後的計算已完成
-
   // 對話框標題獲取函數
   const getDialogTitle = () => {
     if (isGlobalTestMode) {
@@ -331,28 +392,19 @@ const PurchaseOrderFormPage = () => {
       : "您確定要提交此進貨單嗎？";
   };
 
-  if (dataLoading && !orderDataLoaded && !isGlobalTestMode) {
-    return <Box sx={{ p: 3, textAlign: 'center' }}><CircularProgress /><Typography sx={{mt:1}}>載入中...</Typography></Box>;
-  }
+  const initialStateRender = RenderInitialState({
+    dataLoading,
+    orderDataLoaded,
+    isGlobalTestMode,
+    dataError,
+    isEditMode,
+    orderData,
+    products,
+    suppliers,
+  });
 
-  if (dataError && (!orderData && !isEditMode) && !isGlobalTestMode) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error">{typeof dataError === 'string' ? dataError : JSON.stringify(dataError)}</Typography>
-        <Button variant="contained" onClick={() => window.location.reload()} sx={{ mt: 2 }}>
-          重試
-        </Button>
-      </Box>
-    );
-  }
-  
-  if (isGlobalTestMode && dataError && !(products && products.length > 0 && suppliers && suppliers.length > 0)) {
-     // If still error in test mode and mock data didn't load (should not happen with current logic but as a fallback)
-     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="warning">測試模式：無法載入初始資料，也無法載入模擬資料。請檢查控制台。</Typography>
-      </Box>
-    );
+  if (initialStateRender) {
+    return initialStateRender;
   }
 
   return (
@@ -409,8 +461,8 @@ const PurchaseOrderFormPage = () => {
                 handleRemoveItem={handleRemoveItem}
                 handleMoveItem={handleMoveItem}
                 handleEditingItemChange={handleEditingItemChange}
-                totalAmount={totalAmount}
-                productDetails={productDetails} // This might still be an issue if it relies on real product IDs
+                totalAmount={totalAmountForDisplay} 
+                productDetails={productDetails}
                 productDetailsLoading={productDetailsLoading && !isGlobalTestMode}
                 codeField="did"
                 showHealthInsuranceCode={true}
@@ -441,4 +493,3 @@ const PurchaseOrderFormPage = () => {
 };
 
 export default PurchaseOrderFormPage;
-
