@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -109,6 +110,17 @@ const RenderInitialState = ({
     );
   }
   return null;
+};
+
+RenderInitialState.propTypes = {
+  dataLoading: PropTypes.bool.isRequired,
+  orderDataLoaded: PropTypes.bool.isRequired,
+  isGlobalTestMode: PropTypes.bool.isRequired,
+  dataError: PropTypes.any,
+  isEditMode: PropTypes.bool.isRequired,
+  orderData: PropTypes.object,
+  products: PropTypes.array,
+  suppliers: PropTypes.array,
 };
 
 const PurchaseOrderFormPage = () => {
