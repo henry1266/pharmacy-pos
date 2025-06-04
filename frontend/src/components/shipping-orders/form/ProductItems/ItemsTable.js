@@ -86,7 +86,8 @@ const ItemsTable = ({
         </TableHead>
         <TableBody>
           {items.map((item, index) => (
-            <TableRow key={index}>
+            <TableRow key={item.did || index}>
+              {/* Using item.did as key, with index as fallback if did is not yet available for a new item */}
               {editingItemIndex === index ? (
                 // 編輯模式
                 <>
