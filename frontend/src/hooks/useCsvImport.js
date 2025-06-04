@@ -9,7 +9,7 @@ const useCsvImport = (tabValue, fetchProducts) => {
 
   // 處理CSV文件選擇
   const handleCsvFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setCsvFile(e.target.files[0]);
       setCsvImportError(null);
     }

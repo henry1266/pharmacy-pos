@@ -4,6 +4,21 @@ import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogC
 import PropTypes from 'prop-types';
 
 // 自定義列菜單組件 - 已移出父組件
+
+// 新組件：自定義菜單項按鈕
+const ColumnMenuUserItemButton = ({ onClick }) => (
+  <Button
+    onClick={onClick}
+    sx={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', pl: 2 }}
+  >
+    設置列寬
+  </Button>
+);
+
+ColumnMenuUserItemButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+};
+
 const CustomColumnMenu = (props) => {
   const { hideMenu, colDef } = props;
   const [open, setOpen] = useState(false);
@@ -32,14 +47,7 @@ const CustomColumnMenu = (props) => {
         {...props}
         slots={{
           // 添加自定義菜單項
-          columnMenuUserItem: () => (
-            <Button
-              onClick={handleOpen}
-              sx={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left', pl: 2 }}
-            >
-              設置列寬
-            </Button>
-          ),
+          columnMenuUserItem: () => <ColumnMenuUserItemButton onClick={handleOpen} />,
         }}
         slotProps={{
           columnMenuUserItem: {
@@ -112,7 +120,7 @@ const DataTable = ({
       event.preventDefault();
       
       // 移除無用的變數賦值
-      let newIndex = selectedIndex;
+      let newIndex;
       
       if (event.key === 'ArrowUp') {
         // 上鍵：選擇上一行，如果已經是第一行則不變

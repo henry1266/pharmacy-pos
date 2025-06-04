@@ -59,10 +59,8 @@ const calculateProductData = async (productId) => {
     let currentStock = 0;
     const processedInventories = [...mergedInventories].reverse().map(inv => {
       const quantity = inv.totalQuantity;
-      if (inv.type === 'purchase') {
-        currentStock += quantity;
-      } else if (inv.type === 'sale' || inv.type === 'ship') {
-        currentStock += quantity; // ship/sale quantity is negative
+      if (inv.type === 'purchase' || inv.type === 'sale' || inv.type === 'ship') {
+        currentStock += quantity; // ship/sale quantity is negative for sale/ship
       }
       return {
         ...inv,
@@ -78,7 +76,7 @@ const calculateProductData = async (productId) => {
       if ((inv.type === 'purchase' || inv.type === 'ship' || inv.type === 'sale') && inv.totalAmount && inv.totalQuantity) {
         const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
         price = unitPrice;
-      } else if (inv.product && inv.product.sellingPrice) {
+      } else if (inv.product?.sellingPrice) {
         price = inv.product.sellingPrice;
       }
 
