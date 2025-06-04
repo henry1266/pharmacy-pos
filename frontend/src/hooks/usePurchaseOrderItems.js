@@ -1,7 +1,16 @@
 import { useState, useCallback } from 'react';
 import { getProductByCode } from '../services/productService'; // Assuming this service exists
 
-const usePurchaseOrderItems = (initialItems = [], productsData = [], showSnackbar, productInputRef, formData, setFormData, productDetails, setProductDetails) => {
+const usePurchaseOrderItems = ({
+  showSnackbar,
+  productInputRef,
+  formData,
+  setFormData,
+  productDetails,
+  setProductDetails,
+  initialItems = [],
+  productsData = []
+}) => {
   const [currentItem, setCurrentItem] = useState({
     did: '', // product code
     dname: '',
@@ -71,7 +80,7 @@ const usePurchaseOrderItems = (initialItems = [], productsData = [], showSnackba
   }, [formData.items]);
 
   const handleSaveEditItem = useCallback(async () => {
-    if (!editingItem || !editingItem.did || !editingItem.dname || !editingItem.dquantity || editingItem.dtotalCost === '') {
+    if (!editingItem?.did || !editingItem?.dname || !editingItem?.dquantity || editingItem?.dtotalCost === '') {
       showSnackbar('請填寫完整的藥品項目資料', 'error');
       return;
     }
