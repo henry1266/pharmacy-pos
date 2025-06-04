@@ -31,7 +31,7 @@ export const useSalesEditData = (saleId) => {
       // Process sale data
       // Ensure saleRes and saleRes.data are valid before accessing properties
       const saleData = saleRes; // salesService.getSaleById now returns data directly
-      if (saleData && saleData.items) {
+      if (saleData?.items) {
           const formattedItems = saleData.items.map(item => ({
             product: item.product._id || item.product,
             productDetails: item.product,
