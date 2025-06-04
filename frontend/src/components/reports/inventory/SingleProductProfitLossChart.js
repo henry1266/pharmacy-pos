@@ -18,22 +18,91 @@ import {
   Line
 } from 'recharts';
 
-const SingleProductProfitLossChart = ({ transactions = [] }) => {
-  // 圖表顏色
-  const colors = {
-    profit: '#00d97e',  // 綠色 - 正值
-    loss: '#e53f3c',    // 紅色 - 負值
-    stock: '#624bff'    // 藍色 - 庫存
-  };
+// 圖表顏色 (Moved to module scope)
+const colors = {
+  profit: '#00d97e',  // 綠色 - 正值
+  loss: '#e53f3c',    // 紅色 - 負值
+  stock: '#624bff'    // 藍色 - 庫存
+};
 
-  // 格式化金額
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+// 格式化金額 (Moved to module scope)
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('zh-TW', {
+    style: 'currency',
+    currency: 'TWD',
+    minimumFractionDigits: 0
+  }).format(amount);
+};
+
+// 自定義Tooltip (Moved out of SingleProductProfitLossChart)
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload?.length) {
+    const data = payload[0]?.payload;
+    
+    return (
+      <Paper sx={{
+        p: 2,
+        boxShadow: 'var(--card-shadow)',
+        border: '1px solid var(--border-color)',
+        bgcolor: 'var(--bg-paper)'
+      }}>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          貨單號: {data.orderNumber}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          類型: {data.type}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+          <Box
+            component="span"
+            sx={{
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              bgcolor: colors.stock,
+              mr: 1
+            }}
+          />
+          <Typography variant="body2">
+            累積庫存: {data.cumulativeStock}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+          <Box
+            component="span"
+            sx={{
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              bgcolor: data.cumulativeProfitLoss >= 0 ? colors.profit : colors.loss,
+              mr: 1
+            }}
+          />
+          <Typography variant="body2">
+            累積損益總和: {formatCurrency(data.cumulativeProfitLoss)}
+          </Typography>
+        </Box>
+        <Typography variant="body2" sx={{
+          color: data.profitLoss >= 0 ? colors.profit : colors.loss,
+          fontWeight: 500
+        }}>
+          本次交易損益: {formatCurrency(data.profitLoss)}
+        </Typography>
+      </Paper>
+    );
+  }
+  return null;
+};
+
+// 添加 CustomTooltip 的 PropTypes 驗證 (Moved with CustomTooltip)
+CustomTooltip.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.array,
+  label: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+};
+
+const SingleProductProfitLossChart = ({ transactions = [] }) => {
+  // colors and formatCurrency are now in module scope
 
   // 獲取交易的貨單號
   const getOrderNumber = (transaction) => {
@@ -112,72 +181,7 @@ const SingleProductProfitLossChart = ({ transactions = [] }) => {
   // 獲取處理後的圖表數據
   const chartData = getTransactionsWithCumulativeValues();
 
-  // 自定義Tooltip
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0]?.payload;
-      
-      return (
-        <Paper sx={{ 
-          p: 2, 
-          boxShadow: 'var(--card-shadow)',
-          border: '1px solid var(--border-color)',
-          bgcolor: 'var(--bg-paper)'
-        }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            貨單號: {data.orderNumber}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 0.5 }}>
-            類型: {data.type}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <Box
-              component="span"
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                bgcolor: colors.stock,
-                mr: 1
-              }}
-            />
-            <Typography variant="body2">
-              累積庫存: {data.cumulativeStock}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <Box
-              component="span"
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                bgcolor: data.cumulativeProfitLoss >= 0 ? colors.profit : colors.loss,
-                mr: 1
-              }}
-            />
-            <Typography variant="body2">
-              累積損益總和: {formatCurrency(data.cumulativeProfitLoss)}
-            </Typography>
-          </Box>
-          <Typography variant="body2" sx={{ 
-            color: data.profitLoss >= 0 ? colors.profit : colors.loss,
-            fontWeight: 500
-          }}>
-            本次交易損益: {formatCurrency(data.profitLoss)}
-          </Typography>
-        </Paper>
-      );
-    }
-    return null;
-  };
-
-  // 添加 CustomTooltip 的 PropTypes 驗證
-  CustomTooltip.propTypes = {
-    active: PropTypes.bool,
-    payload: PropTypes.array,
-    label: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-  };
+  // CustomTooltip is now defined in module scope
 
   // 渲染圖表
   const renderChart = () => {

@@ -101,7 +101,7 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
             filterOptions={(x) => x}
             value={null}
             onChange={(event, newValue) => {
-              if (newValue && newValue._id) {
+              if (newValue?._id) {
                 handleAddProduct(newValue._id);
               }
             }}

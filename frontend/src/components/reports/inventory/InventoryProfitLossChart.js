@@ -12,19 +12,28 @@ import {
   MenuItem,
   Alert
 } from '@mui/material';
-import { 
-  AreaChart, 
-  Area, 
+import {
+  AreaChart,
+  Area,
   LineChart,
   Line,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
+
+// 格式化金額 (Moved to module scope)
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('zh-TW', {
+    style: 'currency',
+    currency: 'TWD',
+    minimumFractionDigits: 0
+  }).format(amount);
+};
 
 // 自定義Tooltip - 移出父組件
 const CustomTooltip = ({ active, payload, label }) => {
@@ -40,17 +49,10 @@ const CustomTooltip = ({ active, payload, label }) => {
     stock: '#624bff'    // 藍色 - 庫存
   };
   
-  // 格式化金額
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  // formatCurrency is now in module scope
   
   return (
-    <Paper sx={{ 
+    <Paper sx={{
       p: 2, 
       boxShadow: 'var(--card-shadow)',
       border: '1px solid var(--border-color)',
@@ -133,14 +135,7 @@ const InventoryProfitLossChart = ({ groupedData = [] }) => {
     stock: '#624bff'    // 藍色 - 庫存
   };
 
-  // 格式化金額
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  // formatCurrency is now in module scope
 
   // 獲取交易的貨單號
   const getOrderNumber = (transaction) => {

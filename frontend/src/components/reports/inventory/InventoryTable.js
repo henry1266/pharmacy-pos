@@ -23,6 +23,18 @@ import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import axios from 'axios';
 import SingleProductProfitLossChart from './SingleProductProfitLossChart';
 
+// 計算單筆交易的損益 (Moved to module scope)
+const calculateTransactionProfitLoss = (transaction) => {
+  if (transaction.type === '進貨') {
+    // 進貨為負數
+    return -(transaction.quantity * transaction.price);
+  } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+    // 銷售為正數
+    return transaction.quantity * transaction.price;
+  }
+  return 0;
+};
+
 // 展開行組件
 const ExpandableRow = ({ item, formatCurrency }) => {
   const [open, setOpen] = useState(false);
@@ -70,17 +82,7 @@ const ExpandableRow = ({ item, formatCurrency }) => {
     }
   };
 
-  // 計算單筆交易的損益
-  const calculateTransactionProfitLoss = (transaction) => {
-    if (transaction.type === '進貨') {
-      // 進貨為負數
-      return -(transaction.quantity * transaction.price);
-    } else if (transaction.type === '銷售' || transaction.type === '出貨') {
-      // 銷售為正數
-      return transaction.quantity * transaction.price;
-    }
-    return 0;
-  };
+  // calculateTransactionProfitLoss is now in module scope
 
   // 按貨單號排序交易記錄（由小到大）
   const sortedTransactions = [...item.transactions].sort((a, b) => {
@@ -309,7 +311,7 @@ const InventoryTable = ({ filters }) => {
         // 記錄API返回的原始數據到控制台
         console.log('API返回的原始數據:', response.data);
         
-        if (response.data && response.data.data) {
+        if (response?.data?.data) {
           // 處理數據分組
           processInventoryData(response.data.data);
         }
@@ -423,17 +425,7 @@ const InventoryTable = ({ filters }) => {
     // 計算每個商品的損益總和並取貨單號最大的那筆作為最終值
     groupedArray.forEach(product => {
       if (product.transactions.length > 0) {
-        // 根據交易類型計算損益
-        const calculateTransactionProfitLoss = (transaction) => {
-          if (transaction.type === '進貨') {
-            // 進貨為負數
-            return -(transaction.quantity * transaction.price);
-          } else if (transaction.type === '銷售' || transaction.type === '出貨') {
-            // 銷售為正數
-            return transaction.quantity * transaction.price;
-          }
-          return 0;
-        };
+        // calculateTransactionProfitLoss is now in module scope
         
         // 獲取訂單號函數
         const getOrderNumber = (transaction) => {
