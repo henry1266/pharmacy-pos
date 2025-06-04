@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -110,6 +111,16 @@ const CategorySummaryCard = ({ category, loadingProductData, categoryTotalStock,
   </Card>
 );
 
+CategorySummaryCard.propTypes = {
+  category: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    description: PropTypes.string,
+  }).isRequired,
+  loadingProductData: PropTypes.bool.isRequired,
+  categoryTotalStock: PropTypes.number.isRequired,
+  categoryTotalProfitLoss: PropTypes.number.isRequired,
+};
+
 // Helper Component for Products Data Grid
 const ProductsDataGrid = ({ products, loadingProductData, onProductClick, columns }) => {
   if (products.length === 0 && !loadingProductData) {
@@ -139,6 +150,13 @@ const ProductsDataGrid = ({ products, loadingProductData, onProductClick, column
       />
     </Box>
   );
+};
+
+ProductsDataGrid.propTypes = {
+  products: PropTypes.arrayOf(PropTypes.object).isRequired,
+  loadingProductData: PropTypes.bool.isRequired,
+  onProductClick: PropTypes.func.isRequired,
+  columns: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 const CategoryDetailPage = () => {
