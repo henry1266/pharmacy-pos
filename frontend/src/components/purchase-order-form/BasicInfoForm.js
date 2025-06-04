@@ -202,7 +202,7 @@ const filterSuppliers = (options, inputValue) => {
   const filterValue = inputValue?.toLowerCase() || '';
   return options.filter(option =>
     option.name.toLowerCase().includes(filterValue) ||
-    (option.shortCode && option.shortCode.toLowerCase().includes(filterValue))
+    (option.shortCode?.toLowerCase().includes(filterValue))
   );
 };
 
