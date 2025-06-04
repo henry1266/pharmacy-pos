@@ -235,6 +235,12 @@ const AccountingChart = () => {
     }).format(amount);
   };
 
+const calculateCategoryValueForItem = (itemItems, categoryName, currentViewMode) => {
+    const categoryItems = itemItems.filter(i => i.category === categoryName);
+    return currentViewMode === 'amount'
+      ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
+      : categoryItems.length;
+  };
   // 處理按日期分組的數據
   const processDateGroupData = () => {
     return accountingData.map(item => {
@@ -243,10 +249,7 @@ const AccountingChart = () => {
       // 如果是按類別過濾，則需要從items中提取
       if (selectedCategories.length > 0) {
         selectedCategories.forEach(category => {
-          const categoryItems = item.items.filter(i => i.category === category);
-          result[category] = viewMode === 'amount'
-            ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
-            : categoryItems.length;
+          result[category] = calculateCategoryValueForItem(item.items, category, viewMode);
         });
       } else {
         // 否則直接使用總金額或總數量
@@ -265,10 +268,7 @@ const AccountingChart = () => {
       // 如果是按類別過濾，則需要從items中提取
       if (selectedCategories.length > 0) {
         selectedCategories.forEach(category => {
-          const categoryItems = item.items.filter(i => i.category === category);
-          result[category] = viewMode === 'amount'
-            ? categoryItems.reduce((sum, i) => sum + i.amount, 0)
-            : categoryItems.length;
+          result[category] = calculateCategoryValueForItem(item.items, category, viewMode);
         });
       } else {
         // 否則直接使用總金額或總數量

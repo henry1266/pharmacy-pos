@@ -66,7 +66,7 @@ const SettingsModal = ({ open, onClose }) => {
   // 處理保存設定
   const handleSave = async () => {
     // 驗證IP地址格式 - 使用 \d 替代 [0-9]
-    const ipRegex = /^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})$/;
+    const ipRegex = /^(?:(?:2(?:[0-4]\d|5[0-5])|1\d{2}|\d{1,2})\.){3}(?:2(?:[0-4]\d|5[0-5])|1\d{2}|\d{1,2})$/;
     
     if (!ipRegex.test(apiIpAddress)) {
       setSnackbar({

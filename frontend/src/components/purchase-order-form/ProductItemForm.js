@@ -82,10 +82,8 @@ const ProductItemForm = ({
       option.name.toLowerCase().includes(filterValue) ||
       option.code?.toLowerCase().includes(filterValue) ||
       option.shortCode?.toLowerCase().includes(filterValue) ||
-      (option.productType === 'medicine' && option.healthInsuranceCode &&
-       option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
-      (option.productType === 'product' && option.barcode &&
-       option.barcode.toLowerCase().includes(filterValue))
+      (option.productType === 'medicine' && option.healthInsuranceCode?.toLowerCase().includes(filterValue)) ||
+      (option.productType === 'product' && option.barcode?.toLowerCase().includes(filterValue))
     );
   };
 
