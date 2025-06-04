@@ -80,8 +80,8 @@ const ProductItemForm = ({
     const filterValue = inputValue?.toLowerCase() || '';
     return options.filter(option =>
       option.name.toLowerCase().includes(filterValue) ||
-      (option.code && option.code.toLowerCase().includes(filterValue)) ||
-      (option.shortCode && option.shortCode.toLowerCase().includes(filterValue)) ||
+      option.code?.toLowerCase().includes(filterValue) ||
+      option.shortCode?.toLowerCase().includes(filterValue) ||
       (option.productType === 'medicine' && option.healthInsuranceCode &&
        option.healthInsuranceCode.toLowerCase().includes(filterValue)) ||
       (option.productType === 'product' && option.barcode &&
