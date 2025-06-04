@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
 // Import Hook and Service
 import useAccountingData from '../hooks/useAccountingData';
-import { updateAccountingRecord, createAccountingRecord } from '../services/accountingService'; // Import create/update functions
+import { updateAccountingRecord } from '../services/accountingService'; // Import create/update functions
 
 // Import Presentation Components
 import AccountingFilter from '../components/accounting/AccountingFilter';
@@ -216,6 +217,14 @@ const AccountingPage = ({ openAddDialog = false }) => {
       </Snackbar>
     </Box>
   );
+};
+
+AccountingPage.propTypes = {
+  openAddDialog: PropTypes.bool,
+};
+
+AccountingPage.defaultProps = {
+  openAddDialog: false,
 };
 
 export default AccountingPage;

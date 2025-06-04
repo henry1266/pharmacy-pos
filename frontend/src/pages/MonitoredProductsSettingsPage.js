@@ -8,7 +8,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   CircularProgress,
   Alert,
@@ -81,6 +80,78 @@ const MonitoredProductsSettingsPage = () => {
     }
   };
 
+  const renderProductListContent = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+    if (error) {
+      return <Alert severity="error">{error}</Alert>;
+    }
+    if (products.length === 0) {
+      return (
+        <Typography variant="body1" color="text.primary">
+          目前沒有設定任何監測產品。
+        </Typography>
+      );
+    }
+    return (
+      <List>
+        {products.map((product) => (
+          <ListItem
+            key={product._id}
+            divider
+            sx={{
+              backgroundColor: '#f5f5f5',
+              borderRadius: '4px',
+              mb: 1,
+              '&:hover': {
+                backgroundColor: '#e3f2fd',
+              }
+            }}
+            secondaryAction={
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => handleDeleteProduct(product._id)}
+                color="error"
+              >
+                <DeleteIcon />
+              </IconButton>
+            }
+          >
+            <ListItemText
+              primary={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip
+                    label={product.productCode}
+                    color="primary"
+                    size="small"
+                    sx={{ fontWeight: 'bold' }}
+                  />
+                  <Typography
+                    variant="body1"
+                    component="span"
+                    sx={{ color: '#333', fontWeight: 'medium' }}
+                  >
+                    {product.productName || '未知產品'}
+                  </Typography>
+                </Box>
+              }
+              primaryTypographyProps={{
+                color: 'text.primary',
+                fontWeight: 'medium'
+              }}
+            />
+          </ListItem>
+        ))}
+      </List>
+    );
+  };
+
   return (
     <Container maxWidth="md">
       <Paper sx={{ p: 3, my: 3 }}>
@@ -119,68 +190,7 @@ const MonitoredProductsSettingsPage = () => {
           目前監測的產品列表
         </Typography>
         
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : products.length === 0 ? (
-          <Typography variant="body1" color="text.primary">
-            目前沒有設定任何監測產品。
-          </Typography>
-        ) : (
-          <List>
-            {products.map((product) => (
-              <ListItem 
-                key={product._id}
-                divider
-                sx={{
-                  backgroundColor: '#f5f5f5',
-                  borderRadius: '4px',
-                  mb: 1,
-                  '&:hover': {
-                    backgroundColor: '#e3f2fd',
-                  }
-                }}
-                secondaryAction={
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => handleDeleteProduct(product._id)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                }
-              >
-                <ListItemText 
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip 
-                        label={product.productCode} 
-                        color="primary" 
-                        size="small" 
-                        sx={{ fontWeight: 'bold' }}
-                      />
-                      <Typography 
-                        variant="body1" 
-                        component="span" 
-                        sx={{ color: '#333', fontWeight: 'medium' }}
-                      >
-                        {product.productName || '未知產品'}
-                      </Typography>
-                    </Box>
-                  }
-                  primaryTypographyProps={{ 
-                    color: 'text.primary',
-                    fontWeight: 'medium'
-                  }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )}
+        {renderProductListContent()}
       </Paper>
     </Container>
   );
