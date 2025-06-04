@@ -81,9 +81,9 @@ const DashboardPage = () => {
   const isLoading = isTestMode ? false : actualLoading;
   const hasError = isTestMode ? false : actualError; // In test mode, we use mock data on actual error, so effectively no error is shown to user for data loading
 
-  const dashboardData = (isTestMode && actualError) || (isTestMode && !actualDashboardData) ? mockPageData.dashboardData : actualDashboardData;
-  const salesTrend = (isTestMode && actualError) || (isTestMode && !actualSalesTrend) ? mockPageData.salesTrend : actualSalesTrend;
-  const categorySales = (isTestMode && actualError) || (isTestMode && !actualCategorySales) ? mockPageData.categorySales : actualCategorySales;
+  const dashboardData = isTestMode && (actualError || !actualDashboardData) ? mockPageData.dashboardData : actualDashboardData;
+  const salesTrend = isTestMode && (actualError || !actualSalesTrend) ? mockPageData.salesTrend : actualSalesTrend;
+  const categorySales = isTestMode && (actualError || !actualCategorySales) ? mockPageData.categorySales : actualCategorySales;
 
   const handleRefetch = () => {
     if (!isTestMode) {
@@ -96,7 +96,7 @@ const DashboardPage = () => {
   };
 
   // Handle loading state
-  if (isLoading && !((isTestMode && actualError) || (isTestMode && !actualDashboardData))) { // Show loading only if not in test mode overriding with mock data
+  if (isLoading) { // Show loading spinner when actual data is loading and not in test mode (isLoading handles this)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress sx={{ color: 'var(--primary-color)' }} />
@@ -106,7 +106,7 @@ const DashboardPage = () => {
   }
 
   // Handle error state (only if not in test mode or if mock data also fails to load, which it shouldn't here)
-  if (hasError && !isTestMode) { // Show actual error only if not in test mode
+  if (hasError) { // Show error message when actual data fetching failed and not in test mode (hasError handles this)
     return (
       <Box sx={{ mt: 3 }}>
         <Alert severity="error">{actualError}</Alert>
