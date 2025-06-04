@@ -217,7 +217,16 @@ const PurchaseOrderFormPage = () => {
     handleSaveEditItem,
     handleCancelEditItem,
     handleMoveItem,
-  } = usePurchaseOrderItems(formData.items, products, showSnackbar, productInputRef, formData, setFormData, productDetails, setProductDetails);
+  } = usePurchaseOrderItems({
+    initialItems: formData.items,
+    productsData: products,
+    showSnackbar,
+    productInputRef,
+    formData,
+    setFormData,
+    productDetails,
+    setProductDetails
+  });
 
   const [formSubmitLoading, setFormSubmitLoading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
