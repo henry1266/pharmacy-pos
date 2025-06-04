@@ -303,26 +303,32 @@ const ProductCategoryManager = () => {
     );
   };
   
+  // Helper function to map category to Draggable component
+  const mapCategoryToDraggable = (category, index) => {
+    return (
+      <Draggable
+        key={category._id}
+        draggableId={category._id}
+        index={index}
+      >
+        {/* The Draggable's render prop is now nested inside mapCategoryToDraggable, reducing overall depth */}
+        {(draggableProvided) => renderCategoryItem(category, index, draggableProvided)}
+      </Draggable>
+    );
+  };
+  
   // 渲染可拖放的分類列表
   const renderDraggableCategoryList = () => {
     return (
       <DragDropContext onDragEnd={handleDragEnd}>
         <StrictModeDroppable droppableId="categories">
-          {(provided) => (
+          {(droppableProvided) => ( // Renamed 'provided' to 'droppableProvided' for clarity
             <List
-              {...provided.droppableProps}
-              ref={provided.innerRef}
+              {...droppableProvided.droppableProps}
+              ref={droppableProvided.innerRef}
             >
-              {categories.map((category, index) => (
-                <Draggable
-                  key={category._id}
-                  draggableId={category._id}
-                  index={index}
-                >
-                  {(provided) => renderCategoryItem(category, index, provided)}
-                </Draggable>
-              ))}
-              {provided.placeholder}
+              {categories.map(mapCategoryToDraggable)} {/* Use the new helper function */}
+              {droppableProvided.placeholder}
             </List>
           )}
         </StrictModeDroppable>

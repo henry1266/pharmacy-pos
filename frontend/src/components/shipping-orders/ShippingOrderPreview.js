@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types'; // Import PropTypes
 import ItemPreview from '../common/preview/ItemPreview';
 /**
  * 出貨單預覽組件
@@ -19,8 +20,8 @@ const ShippingOrderPreview = ({ shippingOrder, loading, error }) => {
 
   // 計算總計的函數
   const getTotal = (data) => {
-    return data.totalAmount || 
-      (data.items && data.items.reduce((sum, item) => sum + Number(item.dtotalCost || item.totalCost || 0), 0));
+    return data.totalAmount ||
+      (data.items?.reduce((sum, item) => sum + Number(item.dtotalCost || item.totalCost || 0), 0));
   };
 
   return (
@@ -40,6 +41,13 @@ const ShippingOrderPreview = ({ shippingOrder, loading, error }) => {
       }}
     />
   );
+};
+
+// Add prop types validation
+ShippingOrderPreview.propTypes = {
+  shippingOrder: PropTypes.object,
+  loading: PropTypes.bool,
+  error: PropTypes.string,
 };
 
 export default ShippingOrderPreview;
