@@ -289,40 +289,22 @@ router.post('/', [
 // @access  Public
 // 驗證出貨單項目的輔助函數
 async function validateOrderItems(items) {
-  if (!items || items.length === 0) {
-    return { valid: true };
-  }
-
   for (const item of items) {
     if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
       return {
         valid: false,
-        error: '藥品項目資料不完整'
+        message: '藥品項目資料不完整'
       };
     }
 
-    if (!item.product) {
-      // 安全處理：確保did是字符串並去除任何可能的惡意字符
-      if (!item.did || typeof item.did !== 'string') {
-        return {
-          valid: false,
-          error: '無效的藥品代碼'
-        };
-      }
-      
-      const sanitizedCode = item.did.trim();
-      const product = await BaseProduct.findOne({ code: sanitizedCode });
-      if (!product) {
-        return {
-          valid: false,
-          error: `找不到藥品: ${sanitizedCode}`
-        };
-      }
-      item.product = product._id.toString();
+    // 嘗試查找藥品
+    const product = await BaseProduct.findOne({ code: item.did.toString() });
+    if (product) {
+      item.product = product._id;
     }
   }
   
-  return { valid: true, items };
+  return { valid: true };
 }
 
 /**
@@ -437,7 +419,7 @@ router.put('/:id', async (req, res) => {
     if (items && items.length > 0) {
       const itemsValidation = await validateOrderItems(items);
       if (!itemsValidation.valid) {
-        return res.status(400).json({ msg: itemsValidation.error });
+        return res.status(400).json({ msg: itemsValidation.message });
       }
     }
 
