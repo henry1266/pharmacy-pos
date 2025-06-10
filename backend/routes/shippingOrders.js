@@ -214,9 +214,97 @@ router.post('/', [
 // @route   PUT api/shipping-orders/:id
 // @desc    更新出貨單
 // @access  Public
+// 驗證出貨單項目的輔助函數
+async function validateOrderItems(items) {
+  if (!items || items.length === 0) {
+    return { valid: true };
+  }
+
+  for (const item of items) {
+    if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
+      return {
+        valid: false,
+        error: '藥品項目資料不完整'
+      };
+    }
+
+    if (!item.product) {
+      const product = await BaseProduct.findOne({ code: item.did });
+      if (!product) {
+        return {
+          valid: false,
+          error: `找不到藥品: ${item.did}`
+        };
+      }
+      item.product = product._id;
+    }
+  }
+  
+  return { valid: true, items };
+}
+
+// 處理出貨單號變更的輔助函數
+async function handleOrderNumberChange(newSoid, currentSoid, orderId) {
+  if (!newSoid || newSoid === currentSoid) {
+    return { changed: false };
+  }
+  
+  const existingSO = await ShippingOrder.findOne({ soid: newSoid });
+  if (existingSO && existingSO._id.toString() !== orderId) {
+    return {
+      changed: false,
+      error: '該出貨單號已存在'
+    };
+  }
+  
+  const orderNumber = await generateUniqueOrderNumber(newSoid);
+  return {
+    changed: true,
+    orderNumber
+  };
+}
+
+// 處理狀態變更的輔助函數
+async function handleStatusChange(newStatus, oldStatus, orderId) {
+  if (!newStatus || newStatus === oldStatus) {
+    return { changed: false };
+  }
+  
+  // 如果狀態從已完成改為其他狀態，刪除相關的ship類型庫存記錄
+  if (oldStatus === 'completed' && newStatus !== 'completed') {
+    await deleteShippingInventoryRecords(orderId);
+  }
+  
+  return {
+    changed: true,
+    needCreateInventory: oldStatus !== 'completed' && newStatus === 'completed'
+  };
+}
+
+// 準備更新數據的輔助函數
+function prepareUpdateData(requestBody, orderNumberResult) {
+  const { soid, sosupplier, supplier, notes, paymentStatus, status } = requestBody;
+  
+  const updateData = {};
+  if (soid) updateData.soid = soid;
+  if (orderNumberResult && orderNumberResult.orderNumber) {
+    updateData.orderNumber = orderNumberResult.orderNumber;
+  }
+  if (sosupplier) updateData.sosupplier = sosupplier;
+  if (supplier) updateData.supplier = supplier;
+  if (notes !== undefined) updateData.notes = notes;
+  if (paymentStatus) updateData.paymentStatus = paymentStatus;
+  if (status) updateData.status = status;
+  
+  return updateData;
+}
+
+// @route   PUT api/shipping-orders/:id
+// @desc    更新出貨單
+// @access  Public
 router.put('/:id', async (req, res) => {
   try {
-    const { soid, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
+    const { soid, items, status } = req.body;
 
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
@@ -224,61 +312,31 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ msg: '找不到該出貨單' });
     }
 
-    // 如果更改了出貨單號，檢查新號碼是否已存在
-    if (soid && soid !== shippingOrder.soid) {
-      const existingSO = await ShippingOrder.findOne({ soid });
-      if (existingSO && existingSO._id.toString() !== req.params.id) {
-        return res.status(400).json({ msg: '該出貨單號已存在' });
-      }
-      
-      // 如果出貨單號變更，生成新的唯一訂單號
-      const orderNumber = await generateUniqueOrderNumber(soid);
-      shippingOrder.orderNumber = orderNumber;
-    }
-
-    // 準備更新數據
-    const updateData = {};
-    if (soid) updateData.soid = soid;
-    if (shippingOrder.orderNumber) updateData.orderNumber = shippingOrder.orderNumber;
-    if (sosupplier) updateData.sosupplier = sosupplier;
-    if (supplier) updateData.supplier = supplier;
-    if (notes !== undefined) updateData.notes = notes;
-    if (paymentStatus) updateData.paymentStatus = paymentStatus;
-    
-    // 處理狀態變更
-    const oldStatus = shippingOrder.status;
-    if (status && status !== oldStatus) {
-      updateData.status = status;
-      
-      // 如果狀態從已完成改為其他狀態，刪除相關的ship類型庫存記錄
-      if (oldStatus === 'completed' && status !== 'completed') {
-        await deleteShippingInventoryRecords(shippingOrder._id);
-      }
+    // 處理出貨單號變更
+    const orderNumberResult = await handleOrderNumberChange(soid, shippingOrder.soid, req.params.id);
+    if (orderNumberResult.error) {
+      return res.status(400).json({ msg: orderNumberResult.error });
     }
 
     // 處理項目更新
     if (items && items.length > 0) {
-      // 驗證所有藥品ID是否存在
-      for (const item of items) {
-        if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
-          return res.status(400).json({ msg: '藥品項目資料不完整' });
-        }
-
-        // 嘗試查找藥品
-        if (!item.product) {
-          const product = await BaseProduct.findOne({ code: item.did });
-          if (product) {
-            item.product = product._id;
-          } else {
-            return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
-          }
-        }
+      const itemsValidation = await validateOrderItems(items);
+      if (!itemsValidation.valid) {
+        return res.status(400).json({ msg: itemsValidation.error });
       }
+    }
+
+    // 處理狀態變更
+    const oldStatus = shippingOrder.status;
+    const statusChangeResult = await handleStatusChange(status, oldStatus, shippingOrder._id);
+
+    // 準備更新數據
+    const updateData = prepareUpdateData(req.body, orderNumberResult);
+    if (items && items.length > 0) {
       updateData.items = items;
     }
 
     // 更新出貨單
-    // 先更新基本字段
     shippingOrder = await ShippingOrder.findById(req.params.id);
     
     // 應用更新
@@ -287,13 +345,15 @@ router.put('/:id', async (req, res) => {
     });
     
     // 手動計算總金額以確保正確
-    shippingOrder.totalAmount = shippingOrder.items.reduce((total, item) => total + Number(item.dtotalCost), 0);
+    shippingOrder.totalAmount = shippingOrder.items.reduce(
+      (total, item) => total + Number(item.dtotalCost), 0
+    );
     
-    // 保存更新後的出貨單，這樣會觸發pre-save中間件
+    // 保存更新後的出貨單
     await shippingOrder.save();
 
-    // 如果狀態從非完成變為完成，則創建ship類型庫存記錄
-    if (oldStatus !== 'completed' && shippingOrder.status === 'completed') {
+    // 如果需要創建庫存記錄
+    if (statusChangeResult.needCreateInventory) {
       await createShippingInventoryRecords(shippingOrder);
     }
 
