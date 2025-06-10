@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import {
   Typography,
   Paper,
@@ -10,11 +11,26 @@ import {
   Tooltip,
   Alert,
   CircularProgress,
-  Badge
+  Badge,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemButton,
+  Divider,
+  Tabs,
+  Tab,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import TodayIcon from '@mui/icons-material/Today';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import useEmployeeScheduling from '../../hooks/useEmployeeScheduling';
 import ShiftSelectionModal from './ShiftSelectionModal';
 
@@ -26,6 +42,9 @@ const Scheduling = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedCell, setSelectedCell] = useState(null); // 儲存目前選中的日期格子索引
+  const [quickSelectOpen, setQuickSelectOpen] = useState(false);
   const {
     schedulesGroupedByDate,
     loading,
@@ -110,6 +129,81 @@ const Scheduling = () => {
   const handleToday = () => {
     setCurrentDate(new Date());
   };
+
+  // 處理編輯模式切換
+  const toggleEditMode = () => {
+    if (editMode) {
+      // 退出編輯模式
+      setEditMode(false);
+      setSelectedCell(null);
+      setQuickSelectOpen(false);
+    } else {
+      // 進入編輯模式
+      setEditMode(true);
+      // 預設選中當月第一天
+      const firstDayIndex = calendarGrid.findIndex(cell => cell.isCurrentMonth);
+      if (firstDayIndex >= 0) {
+        setSelectedCell(firstDayIndex);
+      }
+    }
+  };
+
+  // 處理鍵盤導航
+  const handleKeyDown = (e) => {
+    if (!editMode || selectedCell === null) return;
+
+    const DAYS_IN_WEEK = 7;
+    const totalCells = calendarGrid.length;
+    let newIndex = selectedCell;
+
+    switch (e.key) {
+      case 'ArrowUp':
+        newIndex = selectedCell - DAYS_IN_WEEK;
+        if (newIndex < 0) newIndex = selectedCell;
+        break;
+      case 'ArrowDown':
+        newIndex = selectedCell + DAYS_IN_WEEK;
+        if (newIndex >= totalCells) newIndex = selectedCell;
+        break;
+      case 'ArrowLeft':
+        newIndex = selectedCell - 1;
+        if (newIndex < 0 || newIndex % DAYS_IN_WEEK === DAYS_IN_WEEK - 1) newIndex = selectedCell;
+        break;
+      case 'ArrowRight':
+        newIndex = selectedCell + 1;
+        if (newIndex >= totalCells || newIndex % DAYS_IN_WEEK === 0) newIndex = selectedCell;
+        break;
+      case 'Enter':
+        if (calendarGrid[selectedCell].isCurrentMonth) {
+          setSelectedDate(calendarGrid[selectedCell].date);
+          setQuickSelectOpen(true);
+        }
+        break;
+      default:
+        return;
+    }
+
+    if (newIndex !== selectedCell) {
+      setSelectedCell(newIndex);
+      if (calendarGrid[newIndex].isCurrentMonth) {
+        setSelectedDate(calendarGrid[newIndex].date);
+        setQuickSelectOpen(true);
+      } else {
+        setQuickSelectOpen(false);
+      }
+    }
+  };
+
+  // 添加鍵盤事件監聽
+  useEffect(() => {
+    if (editMode) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editMode, selectedCell, calendarGrid]);
 
   // 處理日期點擊
   const handleDateClick = (date) => {
@@ -216,6 +310,212 @@ const Scheduling = () => {
     return date.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' });
   };
 
+  // 快速選擇面板元件
+  const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) => {
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    
+    // 班次類型
+    const shifts = ['morning', 'afternoon', 'evening'];
+    const shiftLabels = {
+      morning: '早班',
+      afternoon: '中班',
+      evening: '晚班'
+    };
+
+    // 獲取員工列表
+    useEffect(() => {
+      const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('未登入或權限不足');
+          }
+
+          const config = {
+            headers: {
+              'x-auth-token': token
+            }
+          };
+
+          const response = await axios.get('/api/employees', config);
+          // 過濾掉主管，只保留一般員工
+          const filteredEmployees = response.data.employees.filter(
+            employee => !employee.position.includes('主管') && !employee.position.includes('經理')
+          );
+          setEmployees(filteredEmployees);
+          setError(null);
+        } catch (err) {
+          console.error('獲取員工資料失敗:', err);
+          setError(err.response?.data?.msg || '獲取員工資料失敗');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchEmployees();
+    }, []);
+
+    // 檢查員工是否已被排班在指定班次
+    const isEmployeeScheduled = (employeeId, shift) => {
+      return (schedules[shift] || []).some(
+        schedule => schedule.employee._id === employeeId
+      );
+    };
+
+    // 處理員工選擇
+    const handleEmployeeToggle = async (employee, shift) => {
+      if (isEmployeeScheduled(employee._id, shift)) {
+        // 找到要刪除的排班記錄
+        const scheduleToRemove = schedules[shift].find(
+          schedule => schedule.employee._id === employee._id
+        );
+        
+        if (scheduleToRemove) {
+          await onRemoveSchedule(scheduleToRemove._id);
+        }
+      } else {
+        // 新增排班
+        await onAddSchedule({
+          date,
+          shift: shift,
+          employeeId: employee._id
+        });
+      }
+    };
+
+    // 格式化日期顯示
+    const formatDate = (dateString) => {
+      try {
+        const date = new Date(dateString);
+        // 檢查日期是否有效
+        if (isNaN(date.getTime())) {
+          return dateString; // 如果無效，直接返回原始字串
+        }
+        
+        return date.toLocaleDateString('zh-TW', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long'
+        });
+      } catch (error) {
+        console.error('日期格式化錯誤:', error);
+        return dateString; // 發生錯誤時返回原始字串
+      }
+    };
+
+    return (
+      <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
+        <Typography variant="h6" gutterBottom sx={{ borderBottom: 1, borderColor: 'divider', pb: 1 }}>
+          {formatDate(date)} 快速排班
+        </Typography>
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <Box sx={{ flexGrow: 1, overflow: 'auto', maxHeight: 'calc(80vh - 150px)' }}>
+            {shifts.map((shift) => (
+              <Box key={shift} sx={{ mb: 2 }}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 1,
+                  bgcolor: shift === 'morning' ? 'success.light' : shift === 'afternoon' ? 'info.light' : 'warning.light',
+                  borderRadius: 1,
+                  px: 1,
+                  py: 0.5
+                }}>
+                  <Box sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    bgcolor: shift === 'morning' ? 'success.main' : shift === 'afternoon' ? 'info.main' : 'warning.main',
+                    mr: 1
+                  }} />
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: shift === 'morning' ? 'success.dark' : shift === 'afternoon' ? 'info.dark' : 'warning.dark',
+                    }}
+                  >
+                    {shiftLabels[shift]}
+                  </Typography>
+                </Box>
+                
+                <List dense disablePadding sx={{ maxHeight: '150px', overflow: 'auto' }}>
+                  {employees.length > 0 ? (
+                    employees.map((employee) => {
+                      const isScheduled = isEmployeeScheduled(employee._id, shift);
+                      return (
+                        <ListItem
+                          key={`${shift}-${employee._id}`}
+                          disablePadding
+                          dense
+                          sx={{ py: 0 }}
+                        >
+                          <ListItemButton
+                            onClick={() => handleEmployeeToggle(employee, shift)}
+                            dense
+                            sx={{ py: 0.5 }}
+                          >
+                            <Box
+                              sx={{
+                                width: '12px',
+                                height: '12px',
+                                borderRadius: '50%',
+                                bgcolor: isScheduled ? 'success.main' : 'transparent',
+                                border: isScheduled ? 'none' : '1px solid #ccc',
+                                mr: 1
+                              }}
+                            />
+                            <ListItemText
+                              primary={employee.name}
+                              secondary={`${employee.department}`}
+                              primaryTypographyProps={{
+                                fontWeight: isScheduled ? 'bold' : 'normal',
+                                color: 'text.primary',
+                                fontSize: '0.9rem'
+                              }}
+                              secondaryTypographyProps={{
+                                fontSize: '0.75rem'
+                              }}
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      );
+                    })
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" align="center">
+                      沒有可用的員工資料
+                    </Typography>
+                  )}
+                </List>
+              </Box>
+            ))}
+          </Box>
+        )}
+        
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            提示: 點擊員工名稱可切換該班次的排班狀態
+          </Typography>
+        </Box>
+      </Paper>
+    );
+  };
+
   return (
     <Container maxWidth="lg">
       <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
@@ -242,13 +542,24 @@ const Scheduling = () => {
             </IconButton>
           </Box>
           
-          <Button
-            variant="outlined"
-            startIcon={<TodayIcon />}
-            onClick={handleToday}
-          >
-            今天
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<TodayIcon />}
+              onClick={handleToday}
+            >
+              今天
+            </Button>
+            
+            <Button
+              variant={editMode ? "contained" : "outlined"}
+              color={editMode ? "primary" : "secondary"}
+              startIcon={editMode ? <SaveIcon /> : <EditIcon />}
+              onClick={toggleEditMode}
+            >
+              {editMode ? '儲存' : '編輯模式'}
+            </Button>
+          </Box>
         </Box>
         
         {loading ? (
@@ -256,10 +567,25 @@ const Scheduling = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={1}>
+          <Grid container spacing={2}>
+            {/* 編輯模式下顯示快速選擇面板 */}
+            {editMode && quickSelectOpen && selectedDate && (
+              <Grid item xs={12} md={4}>
+                <QuickSelectPanel
+                  date={formatDateString(selectedDate)}
+                  schedules={getSchedulesForDate(selectedDate)}
+                  onAddSchedule={handleAddSchedule}
+                  onRemoveSchedule={handleRemoveSchedule}
+                />
+              </Grid>
+            )}
+            
+            {/* 日曆部分 */}
+            <Grid item xs={12} md={editMode && quickSelectOpen ? 8 : 12}>
+              <Grid container spacing={1}>
             {/* 星期標題 */}
             {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
-              <Grid item xs={12/7} key={index}>
+              <Grid item xs={12/7} key={`weekday-${day}`}>
                 <Box sx={{
                   p: 1,
                   textAlign: 'center',
@@ -275,22 +601,40 @@ const Scheduling = () => {
             
             {/* 日期格子 */}
             {calendarGrid.map((dateObj, index) => (
-              <Grid item xs={12/7} key={index}>
+              <Grid item xs={12/7} key={`date-${formatDateString(dateObj.date)}-${dateObj.isCurrentMonth}`}>
                 <Paper
                   elevation={1}
                   sx={{
                     p: 1,
                     height: '100px',
                     bgcolor: dateObj.isCurrentMonth ? 'background.paper' : 'action.hover',
-                    border: isToday(dateObj.date) ? '2px solid' : 'none',
-                    borderColor: 'primary.main',
+                    border: isToday(dateObj.date)
+                      ? '2px solid'
+                      : (editMode && selectedCell === index)
+                        ? '2px dashed'
+                        : 'none',
+                    borderColor: isToday(dateObj.date)
+                      ? 'primary.main'
+                      : (editMode && selectedCell === index)
+                        ? 'secondary.main'
+                        : 'primary.main',
                     opacity: dateObj.isCurrentMonth ? 1 : 0.5,
                     cursor: 'pointer',
                     '&:hover': {
                       bgcolor: 'action.selected'
                     }
                   }}
-                  onClick={() => dateObj.isCurrentMonth && handleDateClick(dateObj.date)}
+                  onClick={() => {
+                    if (editMode) {
+                      if (dateObj.isCurrentMonth) {
+                        setSelectedCell(index);
+                        setSelectedDate(dateObj.date);
+                        setQuickSelectOpen(true);
+                      }
+                    } else {
+                      dateObj.isCurrentMonth && handleDateClick(dateObj.date);
+                    }
+                  }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body2">
@@ -317,9 +661,9 @@ const Scheduling = () => {
                           <Box sx={{ color: 'success.main', mb: 0.5, display: 'flex', alignItems: 'center' }}>
                             早:&nbsp;
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
-                              {getSchedulesForDate(dateObj.date).morning.map((schedule, idx) => (
+                              {getSchedulesForDate(dateObj.date).morning.map((schedule) => (
                                 <Box
-                                  key={idx}
+                                  key={`morning-${schedule._id}`}
                                   sx={{
                                     bgcolor: getEmployeeColor(schedule.employee._id),
                                     borderRadius: '50%',
@@ -346,9 +690,9 @@ const Scheduling = () => {
                           <Box sx={{ color: 'info.main', mb: 0.5, display: 'flex', alignItems: 'center' }}>
                             中:&nbsp;
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
-                              {getSchedulesForDate(dateObj.date).afternoon.map((schedule, idx) => (
+                              {getSchedulesForDate(dateObj.date).afternoon.map((schedule) => (
                                 <Box
-                                  key={idx}
+                                  key={`afternoon-${schedule._id}`}
                                   sx={{
                                     bgcolor: getEmployeeColor(schedule.employee._id),
                                     borderRadius: '50%',
@@ -375,9 +719,9 @@ const Scheduling = () => {
                           <Box sx={{ color: 'warning.main', display: 'flex', alignItems: 'center' }}>
                             晚:&nbsp;
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
-                              {getSchedulesForDate(dateObj.date).evening.map((schedule, idx) => (
+                              {getSchedulesForDate(dateObj.date).evening.map((schedule) => (
                                 <Box
-                                  key={idx}
+                                  key={`evening-${schedule._id}`}
                                   sx={{
                                     bgcolor: getEmployeeColor(schedule.employee._id),
                                     borderRadius: '50%',
@@ -403,6 +747,8 @@ const Scheduling = () => {
                 </Paper>
               </Grid>
             ))}
+              </Grid>
+            </Grid>
           </Grid>
         )}
       </Paper>
