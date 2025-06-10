@@ -165,15 +165,12 @@ class OrderNumberService {
       switch (sanitizedType) {
         case 'purchase':
           Model = mongoose.model('purchaseorder');
-          field = 'poid';
           break;
         case 'shipping':
           Model = mongoose.model('shippingorder');
-          field = 'soid';
           break;
         case 'sale':
           Model = mongoose.model('sale');
-          field = 'saleNumber';
           break;
         default:
           throw new Error(`不支持的訂單類型: ${sanitizedType}`);
