@@ -242,7 +242,7 @@ const FIFOProfitCalculator = ({ productId }) => {
   
   // 使用提取的排序函數處理數據
   const sortedData = React.useMemo(() => {
-    if (!fifoData || !fifoData.profitMargins) return [];
+    if (!fifoData?.profitMargins) return [];
     return sortFifoData(fifoData.profitMargins, sortConfig);
   }, [fifoData, sortConfig]);
 
