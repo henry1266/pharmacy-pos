@@ -421,9 +421,7 @@ router.get('/product/:productId', async (req, res) => {
       shippingOrders.forEach(order => {
         if (order.items && order.items.length > 0) {
           order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
+            item.healthInsuranceCode = item.product?.healthInsuranceCode;
           });
         }
       });
@@ -452,9 +450,7 @@ router.get('/recent/list', async (req, res) => {
       shippingOrders.forEach(order => {
         if (order.items && order.items.length > 0) {
           order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
+            item.healthInsuranceCode = item.product?.healthInsuranceCode;
           });
         }
       });
