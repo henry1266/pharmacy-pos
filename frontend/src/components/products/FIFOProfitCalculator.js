@@ -30,7 +30,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 // 提取排序邏輯為獨立函數，降低主函數複雜度
 const sortFifoData = (data, sortConfig) => {
-  if (!data || !data.length) return [];
+  if (!data?.length) return [];
   
   let sortableItems = [...data];
   
@@ -39,8 +39,8 @@ const sortFifoData = (data, sortConfig) => {
       // 處理不同類型的排序
       if (sortConfig.key === 'orderNumber') {
         // 提取數字部分進行比較
-        const aNum = (a.orderNumber && a.orderNumber.replace(/\D/g, '')) || '';
-        const bNum = (b.orderNumber && b.orderNumber.replace(/\D/g, '')) || '';
+        const aNum = a.orderNumber?.replace(/\D/g, '') || '';
+        const bNum = b.orderNumber?.replace(/\D/g, '') || '';
         
         if (aNum && bNum) {
           const numComparison = parseInt(aNum) - parseInt(bNum);
@@ -279,11 +279,13 @@ const FIFOProfitCalculator = ({ productId }) => {
         <Typography color="error" variant="body2">{error}</Typography>
       </Box>
     );
-  }    if (!fifoData || !fifoData.success) {
+  }
+  
+  if (!fifoData?.success) {
     return (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2">
-          {(fifoData && fifoData.error) || '無法計算FIFO數據'}
+          {fifoData?.error || '無法計算FIFO數據'}
         </Typography>
       </Box>
     );
