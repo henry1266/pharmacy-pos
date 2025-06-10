@@ -43,9 +43,7 @@ router.get('/', async (req, res) => {
       shippingOrders.forEach(order => {
         if (order.items && order.items.length > 0) {
           order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
+            item.healthInsuranceCode = item.product?.healthInsuranceCode;
           });
         }
       });
@@ -74,9 +72,7 @@ router.get('/:id', async (req, res) => {
     // 將產品的healthInsuranceCode添加到items中
     if (shippingOrder.items && shippingOrder.items.length > 0) {
       shippingOrder.items.forEach(item => {
-        if (item.product && item.product.healthInsuranceCode) {
-          item.healthInsuranceCode = item.product.healthInsuranceCode;
-        }
+        item.healthInsuranceCode = item.product?.healthInsuranceCode;
       });
     }
     
@@ -352,9 +348,7 @@ router.get('/supplier/:supplierId', async (req, res) => {
       shippingOrders.forEach(order => {
         if (order.items && order.items.length > 0) {
           order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
+            item.healthInsuranceCode = item.product?.healthInsuranceCode;
           });
         }
       });
@@ -388,9 +382,7 @@ router.get('/search/query', async (req, res) => {
       shippingOrders.forEach(order => {
         if (order.items && order.items.length > 0) {
           order.items.forEach(item => {
-            if (item.product && item.product.healthInsuranceCode) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
+            item.healthInsuranceCode = item.product?.healthInsuranceCode;
           });
         }
       });
