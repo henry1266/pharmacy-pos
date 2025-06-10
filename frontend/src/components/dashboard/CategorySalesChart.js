@@ -15,6 +15,16 @@ import {
 } from 'recharts';
 import PieChartCell from './PieChartCell';
 
+// Legend formatter component
+const LegendFormatter = ({ value, color }) => {
+  return <span style={{ color }}>{value}</span>;
+};
+
+LegendFormatter.propTypes = {
+  value: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired
+};
+
 // Helper function to format currency (can be moved to a utils file later)
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('zh-TW', {
@@ -78,15 +88,14 @@ const CategorySalesChart = ({ categorySalesData }) => {
               labelStyle={{ color: 'var(--text-primary)' }}
               itemStyle={{ color: 'var(--text-primary)' }}
             />
-            <Legend 
-              layout="vertical" 
-              verticalAlign="middle" 
-              align="right" 
+            <Legend
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
               wrapperStyle={{ fontSize: '0.875rem', lineHeight: '1.5' }}
-              formatter={(value, entry) => {
-                const { color } = entry;
-                return <span style={{ color }}>{value}</span>;
-              }}
+              formatter={(value, entry) => (
+                <LegendFormatter value={value} color={entry.color} />
+              )}
             />
           </PieChart>
         </ResponsiveContainer>
