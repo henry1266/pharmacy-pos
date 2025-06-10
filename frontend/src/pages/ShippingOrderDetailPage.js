@@ -390,21 +390,23 @@ const ShippingOrderDetailPage = () => {
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={orderLoading || productDetailsLoading || fifoLoading} // Overall loading state
-      errorContent={
-        <ErrorContent
-          orderError={orderError}
-          productDetailsError={productDetailsError}
-          fifoError={fifoError}
-          fifoData={fifoData}
-        />
-      }
-      noDataContent={
-        <NoDataContent
-          orderLoading={orderLoading}
-          currentShippingOrder={currentShippingOrder}
-          orderError={orderError}
-        />
-      }
+      errorContent={(() => {
+        // Execute the ErrorContent component function directly
+        return ErrorContent({
+          orderError,
+          productDetailsError,
+          fifoError,
+          fifoData
+        });
+      })()}
+      noDataContent={(() => {
+        // Execute the NoDataContent component function directly
+        return NoDataContent({
+          orderLoading,
+          currentShippingOrder,
+          orderError
+        });
+      })()}
     />
   );
 };
