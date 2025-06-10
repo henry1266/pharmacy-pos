@@ -28,68 +28,85 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-// 提取排序邏輯為獨立函數，降低主函數複雜度
+// 提取排序邏輯的輔助函數
+// 比較訂單號
+const compareOrderNumbers = (a, b) => {
+  // 提取數字部分進行比較
+  const aNum = a.orderNumber?.replace(/\D/g, '') || '';
+  const bNum = b.orderNumber?.replace(/\D/g, '') || '';
+  
+  // 如果兩者都有數字部分，先比較數字
+  if (aNum && bNum) {
+    return parseInt(aNum) - parseInt(bNum);
+  }
+  
+  // 如果兩者都有訂單號，按字母順序比較
+  if (a.orderNumber && b.orderNumber) {
+    return a.orderNumber.localeCompare(b.orderNumber);
+  }
+  
+  // 處理一方沒有訂單號的情況
+  if (a.orderNumber) return -1;
+  if (b.orderNumber) return 1;
+  
+  // 都沒有訂單號，按時間排序
+  return new Date(a.saleTime) - new Date(b.saleTime);
+};
+
+// 比較日期
+const compareDates = (a, b) => {
+  return new Date(a.saleTime) - new Date(b.saleTime);
+};
+
+// 比較數值
+const compareNumbers = (a, b, key) => {
+  return a[key] - b[key];
+};
+
+// 比較毛利率
+const compareProfitMargins = (a, b) => {
+  return parseFloat(a.profitMargin) - parseFloat(b.profitMargin);
+};
+
+// 應用排序方向
+const applyDirection = (comparison, direction) => {
+  return direction === 'asc' ? comparison : -comparison;
+};
+
+// 主排序函數
 const sortFifoData = (data, sortConfig) => {
   if (!data?.length) return [];
+  if (!sortConfig.key) return [...data];
   
-  let sortableItems = [...data];
+  const sortableItems = [...data];
   
-  if (sortConfig.key) {
-    sortableItems.sort((a, b) => {
-      // 處理不同類型的排序
-      if (sortConfig.key === 'orderNumber') {
-        // 提取數字部分進行比較
-        const aNum = a.orderNumber?.replace(/\D/g, '') || '';
-        const bNum = b.orderNumber?.replace(/\D/g, '') || '';
-        
-        if (aNum && bNum) {
-          const numComparison = parseInt(aNum) - parseInt(bNum);
-          if (numComparison !== 0) {
-            return sortConfig.direction === 'asc' ? numComparison : -numComparison;
-          }
-        }
-        
-        // 如果數字部分相同或無法比較，則按完整貨單號字母順序排序
-        if (a.orderNumber && b.orderNumber) {
-          const strComparison = a.orderNumber.localeCompare(b.orderNumber);
-          return sortConfig.direction === 'asc' ? strComparison : -strComparison;
-        }
-        
-        // 處理一方沒有訂單號的情況
-        if (a.orderNumber) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (b.orderNumber) return sortConfig.direction === 'asc' ? 1 : -1;
-        
-        // 都沒有訂單號，按時間排序
-        return sortConfig.direction === 'asc' 
-          ? new Date(a.saleTime) - new Date(b.saleTime)
-          : new Date(b.saleTime) - new Date(a.saleTime);
-      }
-      
-      if (sortConfig.key === 'saleTime') {
-        return sortConfig.direction === 'asc' 
-          ? new Date(a.saleTime) - new Date(b.saleTime)
-          : new Date(b.saleTime) - new Date(a.saleTime);
-      }
-      
-      if (sortConfig.key === 'totalQuantity' || 
-          sortConfig.key === 'totalCost' || 
-          sortConfig.key === 'totalRevenue' || 
-          sortConfig.key === 'grossProfit') {
-        return sortConfig.direction === 'asc' 
-          ? a[sortConfig.key] - b[sortConfig.key]
-          : b[sortConfig.key] - a[sortConfig.key];
-      }
-      
-      if (sortConfig.key === 'profitMargin') {
-        const aMargin = parseFloat(a.profitMargin);
-        const bMargin = parseFloat(b.profitMargin);
-        return sortConfig.direction === 'asc' ? aMargin - bMargin : bMargin - aMargin;
-      }
-      
-      // 默認排序
-      return 0;
-    });
-  }
+  sortableItems.sort((a, b) => {
+    let comparison = 0;
+    
+    // 根據不同的排序鍵選擇比較方法
+    switch (sortConfig.key) {
+      case 'orderNumber':
+        comparison = compareOrderNumbers(a, b);
+        break;
+      case 'saleTime':
+        comparison = compareDates(a, b);
+        break;
+      case 'profitMargin':
+        comparison = compareProfitMargins(a, b);
+        break;
+      case 'totalQuantity':
+      case 'totalCost':
+      case 'totalRevenue':
+      case 'grossProfit':
+        comparison = compareNumbers(a, b, sortConfig.key);
+        break;
+      default:
+        comparison = 0;
+    }
+    
+    // 應用排序方向
+    return applyDirection(comparison, sortConfig.direction);
+  });
   
   return sortableItems;
 };
@@ -265,6 +282,21 @@ const FIFOProfitCalculator = ({ productId }) => {
     }
   }, [productId]);
 
+  // 提取狀態顯示元件
+  const StatusDisplay = ({ children, isError = false }) => (
+    <Box sx={{ p: 2 }}>
+      <Typography color={isError ? "error" : "textPrimary"} variant="body2">
+        {children}
+      </Typography>
+    </Box>
+  );
+  
+  StatusDisplay.propTypes = {
+    children: PropTypes.node.isRequired,
+    isError: PropTypes.bool
+  };
+  
+  // 條件渲染處理
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -274,29 +306,15 @@ const FIFOProfitCalculator = ({ productId }) => {
   }
 
   if (error) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography color="error" variant="body2">{error}</Typography>
-      </Box>
-    );
+    return <StatusDisplay isError>{error}</StatusDisplay>;
   }
   
   if (!fifoData?.success) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography variant="body2">
-          {fifoData?.error || '無法計算FIFO數據'}
-        </Typography>
-      </Box>
-    );
+    return <StatusDisplay>{fifoData?.error || '無法計算FIFO數據'}</StatusDisplay>;
   }
 
   if (fifoData.profitMargins.length === 0) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography variant="body2">無銷售記錄，無法計算毛利</Typography>
-      </Box>
-    );
+    return <StatusDisplay>無銷售記錄，無法計算毛利</StatusDisplay>;
   }
 
   // 提取巢狀三元運算式為獨立變數
@@ -314,6 +332,152 @@ const FIFOProfitCalculator = ({ productId }) => {
     }
   };
 
+  // 提取摘要項目元件
+  const SummaryItem = ({ label, value, isMonetary = true, isProfit = false }) => {
+    // 判斷是否為正值
+    const isPositive = isProfit ?
+      (isMonetary ? parseFloat(value) >= 0 : parseFloat(value) >= 0) :
+      true;
+    
+    return (
+      <Box sx={{ mr: 3, mb: 1 }}>
+        <Typography variant="body2" color="text.secondary">
+          {label}:
+        </Typography>
+        <Typography
+          variant="body1"
+          fontWeight="medium"
+          color={isProfit ? (isPositive ? 'success.main' : 'error.main') : 'inherit'}
+        >
+          {isMonetary ? `$${parseFloat(value).toFixed(2)}` : value}
+        </Typography>
+      </Box>
+    );
+  };
+  
+  SummaryItem.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    isMonetary: PropTypes.bool,
+    isProfit: PropTypes.bool
+  };
+  
+  // 提取表頭單元格元件
+  const SortableHeaderCell = ({ label, columnKey, sortable = true }) => {
+    const cellStyle = {
+      fontWeight: 'bold',
+      cursor: sortable ? 'pointer' : 'default',
+      '&:hover': sortable ? { backgroundColor: '#e0e0e0' } : {}
+    };
+    
+    return (
+      <TableCell
+        align="center"
+        sx={cellStyle}
+        onClick={sortable ? () => requestSort(columnKey) : undefined}
+      >
+        {sortable ? (
+          <Tooltip title="點擊排序" arrow>
+            <Box>
+              <span>{label}</span>
+              <SortIcon sortConfig={sortConfig} columnKey={columnKey} />
+            </Box>
+          </Tooltip>
+        ) : (
+          <span>{label}</span>
+        )}
+      </TableCell>
+    );
+  };
+  
+  SortableHeaderCell.propTypes = {
+    label: PropTypes.string.isRequired,
+    columnKey: PropTypes.string.isRequired,
+    sortable: PropTypes.bool
+  };
+  
+  // 提取表格行元件
+  const FifoTableRow = ({ item, index }) => {
+    const uniqueKey = `${item.orderNumber || ''}-${item.saleTime}-${index}`;
+    const isExpanded = expandedRows[index];
+    
+    // 計算單價
+    const unitPrice = (item.totalRevenue / item.totalQuantity).toFixed(2);
+    
+    // 判斷是否為正值
+    const isPositiveProfit = item.grossProfit >= 0;
+    const isPositiveMargin = parseFloat(item.profitMargin) >= 0;
+    
+    return (
+      <React.Fragment key={uniqueKey}>
+        <TableRow
+          sx={{
+            '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+            '&:hover': { backgroundColor: '#f1f1f1' }
+          }}
+        >
+          <TableCell>{renderOrderCell(item)}</TableCell>
+          <TableCell align="right">{item.totalQuantity}</TableCell>
+          <TableCell align="right">${unitPrice}</TableCell>
+          <TableCell align="right">${item.totalRevenue.toFixed(2)}</TableCell>
+          <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
+          <TableCell
+            align="right"
+            sx={{
+              color: isPositiveProfit ? 'success.main' : 'error.main',
+              fontWeight: 'medium'
+            }}
+          >
+            ${item.grossProfit.toFixed(2)}
+          </TableCell>
+          <TableCell
+            align="right"
+            sx={{
+              color: isPositiveMargin ? 'success.main' : 'error.main',
+              fontWeight: 'medium'
+            }}
+          >
+            {item.profitMargin}
+          </TableCell>
+          <TableCell align="center">
+            <IconButton
+              size="small"
+              onClick={() => toggleRowExpand(index)}
+              title={isExpanded ? "收起明細" : "展開明細"}
+            >
+              {isExpanded ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+            </IconButton>
+          </TableCell>
+        </TableRow>
+        
+        {/* FIFO明細展開區域 */}
+        <TableRow>
+          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+            <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+              <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
+                <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
+                  成本分佈明細
+                </Typography>
+                <FifoDetailTable
+                  fifoMatches={fifoData.fifoMatches}
+                  saleTime={item.saleTime}
+                />
+              </Box>
+            </Collapse>
+          </TableCell>
+        </TableRow>
+      </React.Fragment>
+    );
+  };
+  
+  FifoTableRow.propTypes = {
+    item: PropTypes.object.isRequired,
+    index: PropTypes.number.isRequired
+  };
+  
+  // 主要渲染
+  const summary = fifoData.summary;
+  
   return (
     <Box sx={{ mt: 2 }}>
       <Typography variant="h6" gutterBottom>
@@ -323,46 +487,15 @@ const FIFOProfitCalculator = ({ productId }) => {
       <Card sx={{ mb: 2 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-            <Box sx={{ mr: 3, mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                總成本:
-              </Typography>
-              <Typography variant="body1" fontWeight="medium">
-                ${fifoData.summary.totalCost.toFixed(2)}
-              </Typography>
-            </Box>
-            <Box sx={{ mr: 3, mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                總收入:
-              </Typography>
-              <Typography variant="body1" fontWeight="medium">
-                ${fifoData.summary.totalRevenue.toFixed(2)}
-              </Typography>
-            </Box>
-            <Box sx={{ mr: 3, mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                總毛利:
-              </Typography>
-              <Typography 
-                variant="body1" 
-                fontWeight="medium"
-                color={fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main'}
-              >
-                ${fifoData.summary.totalProfit.toFixed(2)}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                平均毛利率:
-              </Typography>
-              <Typography 
-                variant="body1" 
-                fontWeight="medium"
-                color={parseFloat(fifoData.summary.averageProfitMargin) >= 0 ? 'success.main' : 'error.main'}
-              >
-                {fifoData.summary.averageProfitMargin}
-              </Typography>
-            </Box>
+            <SummaryItem label="總成本" value={summary.totalCost} />
+            <SummaryItem label="總收入" value={summary.totalRevenue} />
+            <SummaryItem label="總毛利" value={summary.totalProfit} isProfit={true} />
+            <SummaryItem
+              label="平均毛利率"
+              value={summary.averageProfitMargin}
+              isMonetary={false}
+              isProfit={true}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -371,178 +504,20 @@ const FIFOProfitCalculator = ({ productId }) => {
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell 
-                align="center"
-                sx={{ 
-                  fontWeight: 'bold', 
-                  cursor: 'pointer', 
-                  '&:hover': { backgroundColor: '#e0e0e0' } 
-                }}
-                onClick={() => requestSort('orderNumber')}
-              >
-                <Tooltip title="點擊排序" arrow>
-                  <Box>
-                    <span>單號</span>
-                    <SortIcon sortConfig={sortConfig} columnKey="orderNumber" />
-                  </Box>
-                </Tooltip>
-              </TableCell>
-              <TableCell 
-                align="center"
-                sx={{ 
-                  fontWeight: 'bold', 
-                  cursor: 'pointer', 
-                  '&:hover': { backgroundColor: '#e0e0e0' } 
-                }}
-                onClick={() => requestSort('totalQuantity')}
-              >
-                <Tooltip title="點擊排序" arrow>
-                  <Box>
-                    <span>數量</span>
-                    <SortIcon sortConfig={sortConfig} columnKey="totalQuantity" />
-                  </Box>
-                </Tooltip>
-              </TableCell>
-              <TableCell 
-                align="center"
-                sx={{ 
-                  fontWeight: 'bold', 
-                  cursor: 'pointer', 
-                  '&:hover': { backgroundColor: '#e0e0e0' } 
-                }}
-              >
-                <span>單價</span>
-              </TableCell>
-              <TableCell
-                align="center"
-                sx={{ 
-                  fontWeight: 'bold', 
-                  cursor: 'pointer', 
-                  '&:hover': { backgroundColor: '#e0e0e0' } 
-                }}
-                onClick={() => requestSort('totalRevenue')}
-              >
-                <Tooltip title="點擊排序" arrow>
-                  <Box>
-                    <span>收入</span>
-                    <SortIcon sortConfig={sortConfig} columnKey="totalRevenue" />
-                  </Box>
-                </Tooltip>
-              </TableCell>
-              <TableCell 
-                align="center"
-                sx={{ 
-                    fontWeight: 'bold', 
-                    cursor: 'pointer', 
-                    '&:hover': { backgroundColor: '#e0e0e0' } 
-                }}
-                onClick={() => requestSort('totalCost')}
-              >
-                <Tooltip title="點擊排序" arrow>
-                  <Box>
-                    <span>成本</span>
-                    <SortIcon sortConfig={sortConfig} columnKey="totalCost" />
-                  </Box>
-                </Tooltip>
-              </TableCell>
-              <TableCell 
-                sx={{ fontWeight: 'bold',cursor: 'pointer','&:hover': { backgroundColor: '#e0e0e0' }}}
-                onClick={() => requestSort('grossProfit')}
-              >
-                <Tooltip title="點擊排序" arrow>
-                  <Box>
-                    <span>毛利</span>
-                    <SortIcon sortConfig={sortConfig} columnKey="grossProfit" />
-                  </Box>
-                </Tooltip>
-              </TableCell>
-              <TableCell 
-                sx={{ 
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#e0e0e0' }
-                }}
-                onClick={() => requestSort('profitMargin')}
-              >
-                <Tooltip title="點擊排序" arrow>
-                  <Box>
-                    <span>毛利率</span>
-                    <SortIcon sortConfig={sortConfig} columnKey="profitMargin" />
-                  </Box>
-                </Tooltip>
-              </TableCell>
+              <SortableHeaderCell label="單號" columnKey="orderNumber" />
+              <SortableHeaderCell label="數量" columnKey="totalQuantity" />
+              <SortableHeaderCell label="單價" columnKey="unitPrice" sortable={false} />
+              <SortableHeaderCell label="收入" columnKey="totalRevenue" />
+              <SortableHeaderCell label="成本" columnKey="totalCost" />
+              <SortableHeaderCell label="毛利" columnKey="grossProfit" />
+              <SortableHeaderCell label="毛利率" columnKey="profitMargin" />
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>明細</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedData.map((item, index) => {
-              // 使用唯一識別符作為key，而不是索引
-              const uniqueKey = `${item.orderNumber || ''}-${item.saleTime}-${index}`;
-              return (
-                <React.Fragment key={uniqueKey}>
-                  <TableRow 
-                    sx={{ 
-                      '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
-                      '&:hover': { backgroundColor: '#f1f1f1' }
-                    }}
-                  >
-                    <TableCell>
-                      {renderOrderCell(item)}
-                    </TableCell>
-                    <TableCell align="right">{item.totalQuantity}</TableCell>
-                    <TableCell align="right">
-                      ${(item.totalRevenue / item.totalQuantity).toFixed(2)}
-                    </TableCell>
-                    <TableCell align="right">${item.totalRevenue.toFixed(2)}</TableCell>
-                    <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
-                    <TableCell 
-                      align="right"
-                      sx={{ 
-                        color: item.grossProfit >= 0 ? 'success.main' : 'error.main',
-                        fontWeight: 'medium'
-                      }}
-                    >
-                      ${item.grossProfit.toFixed(2)}
-                    </TableCell>
-                    <TableCell 
-                      align="right"
-                      sx={{ 
-                        color: parseFloat(item.profitMargin) >= 0 ? 'success.main' : 'error.main',
-                        fontWeight: 'medium'
-                      }}
-                    >
-                      {item.profitMargin}
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => toggleRowExpand(index)}
-                        title={expandedRows[index] ? "收起明細" : "展開明細"}
-                      >
-                        {expandedRows[index] ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                  
-                  {/* FIFO明細展開區域 */}
-                  <TableRow>
-                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
-                      <Collapse in={expandedRows[index]} timeout="auto" unmountOnExit>
-                        <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
-                          <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
-                            成本分佈明細
-                          </Typography>
-                          <FifoDetailTable 
-                            fifoMatches={fifoData.fifoMatches}
-                            saleTime={item.saleTime}
-                          />
-                        </Box>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
-                </React.Fragment>
-              );
-            })}
+            {sortedData.map((item, index) => (
+              <FifoTableRow key={index} item={item} index={index} />
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
