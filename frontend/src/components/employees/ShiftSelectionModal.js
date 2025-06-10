@@ -68,7 +68,17 @@ const ShiftSelectionModal = ({
         };
 
         const response = await axios.get('/api/employees', config);
-        setEmployees(response.data.employees);
+        // 過濾掉主管，只保留一般員工
+        const filteredEmployees = response.data.employees.filter(employee => {
+          const position = employee.position.toLowerCase();
+          return !position.includes('主管') &&
+                 !position.includes('經理') &&
+                 !position.includes('supervisor') &&
+                 !position.includes('manager') &&
+                 !position.includes('director') &&
+                 !position.includes('長');
+        });
+        setEmployees(filteredEmployees);
         setError(null);
       } catch (err) {
         console.error('獲取員工資料失敗:', err);
@@ -163,8 +173,15 @@ const ShiftSelectionModal = ({
     return employees.filter(employee => !isEmployeeScheduled(employee._id));
   };
 
+  // 全局樣式覆蓋
+  const globalStyles = {
+    '.MuiListItemText-primary': {
+      color: 'black !important'
+    }
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={globalStyles}>
       <DialogTitle>
         <Typography variant="h6" component="div">
           {formatDate(date)} 排班
@@ -216,7 +233,11 @@ const ShiftSelectionModal = ({
                       <em>請選擇員工</em>
                     </MenuItem>
                     {getAvailableEmployees().map((employee) => (
-                      <MenuItem key={employee._id} value={employee._id}>
+                      <MenuItem
+                        key={employee._id}
+                        value={employee._id}
+                        sx={{ color: 'text.primary' }}
+                      >
                         {employee.name} ({employee.department} - {employee.position})
                       </MenuItem>
                     ))}
@@ -254,6 +275,10 @@ const ShiftSelectionModal = ({
                       <ListItemText
                         primary={schedule.employee.name}
                         secondary={`${schedule.employee.department} - ${schedule.employee.position}`}
+                        primaryTypographyProps={{
+                          color: 'text.primary',
+                          fontWeight: 'medium'
+                        }}
                       />
                     </ListItem>
                   ))
