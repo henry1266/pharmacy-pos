@@ -33,7 +33,7 @@ import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settin
 // 員工管理頁面元件
 import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage'; // 員工基本資料頁面
 import EmployeeListPage from './pages/employees/EmployeeListPage'; // 員工列表頁面
-import Scheduling from './components/employees/Scheduling';
+import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage'; // 員工排班頁面
 import Overtime from './components/employees/Overtime';
 
 // Import the AdminRoute guard
@@ -105,9 +105,11 @@ const AppRouter = () => {
         {/* 員工基本資料頁面 - 新增與編輯 */}
         <Route path="basic-info/new" element={<EmployeeBasicInfoPage />} />
         <Route path="basic-info/:id" element={<EmployeeBasicInfoPage />} />
+        {/* 員工排班頁面 */}
+        <Route path="scheduling" element={<EmployeeSchedulingPage />} />
+        {/* 員工加班頁面 */}
+        <Route path="overtime" element={<Overtime />} />
       </Route>
-      <Route path="/employees/scheduling" element={<Scheduling />} />
-      <Route path="/employees/overtime" element={<Overtime />} />
       
       {/* Fallback for any unmatched route within the protected area */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
