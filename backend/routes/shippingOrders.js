@@ -114,6 +114,87 @@ const OrderNumberService = require('../utils/OrderNumberService');
 // @route   POST api/shipping-orders
 // @desc    創建新出貨單
 // @access  Public
+// 處理出貨單號的輔助函數
+async function handleShippingOrderId(soid) {
+  if (!soid || soid.trim() === '') {
+    return {
+      soid: await OrderNumberService.generateShippingOrderNumber()
+    };
+  }
+  
+  // 檢查出貨單號是否已存在
+  const existingSO = await ShippingOrder.findOne({ soid });
+  if (existingSO) {
+    return {
+      error: '該出貨單號已存在'
+    };
+  }
+  
+  return { soid };
+}
+
+// 驗證產品項目並檢查庫存的輔助函數
+async function validateProductsAndInventory(items) {
+  for (const item of items) {
+    // 檢查項目完整性
+    if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
+      return {
+        valid: false,
+        error: '藥品項目資料不完整'
+      };
+    }
+
+    // 驗證藥品代碼格式
+    if (typeof item.did !== 'string' || !item.did.match(/^[A-Za-z0-9_-]+$/)) {
+      return {
+        valid: false,
+        error: `無效的藥品代碼格式: ${item.did}`
+      };
+    }
+    
+    // 查找產品
+    const product = await BaseProduct.findOne({ code: item.did });
+    if (!product) {
+      return {
+        valid: false,
+        error: `找不到藥品: ${item.did}`
+      };
+    }
+    
+    item.product = product._id;
+    
+    // 檢查庫存
+    const inventorySum = await Inventory.aggregate([
+      { $match: { product: product._id } },
+      { $group: { _id: null, total: { $sum: "$quantity" } } }
+    ]);
+    
+    const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
+    
+    if (availableQuantity < item.dquantity) {
+      return {
+        valid: false,
+        error: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}`
+      };
+    }
+  }
+  
+  return { valid: true, items };
+}
+
+// 查找供應商的輔助函數
+async function findSupplier(supplier, sosupplier) {
+  if (supplier) {
+    return supplier;
+  }
+  
+  const supplierDoc = await Supplier.findOne({ name: sosupplier });
+  return supplierDoc ? supplierDoc._id : null;
+}
+
+// @route   POST api/shipping-orders
+// @desc    創建新出貨單
+// @access  Public
 router.post('/', [
   check('sosupplier', '供應商為必填項').not().isEmpty(),
   check('items', '至少需要一個藥品項目').isArray().not().isEmpty()
@@ -126,69 +207,30 @@ router.post('/', [
   try {
     let { soid, sosupplier, supplier, items, notes, status, paymentStatus } = req.body;
 
-    // 如果出貨單號為空，自動生成
-    if (!soid || soid.trim() === '') {
-      soid = await OrderNumberService.generateShippingOrderNumber();
-    } else {
-      // 檢查出貨單號是否已存在
-      const existingSO = await ShippingOrder.findOne({ soid });
-      if (existingSO) {
-        return res.status(400).json({ msg: '該出貨單號已存在' });
-      }
+    // 處理出貨單號
+    const soidResult = await handleShippingOrderId(soid);
+    if (soidResult.error) {
+      return res.status(400).json({ msg: soidResult.error });
     }
+    soid = soidResult.soid;
 
     // 生成唯一訂單號
     const orderNumber = await OrderNumberService.generateUniqueOrderNumber('shipping', soid);
 
-    // 驗證所有藥品ID是否存在，並檢查庫存是否足夠
-    for (const item of items) {
-      if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
-        return res.status(400).json({ msg: '藥品項目資料不完整' });
-      }
-
-      // 嘗試查找藥品 - 加強安全性驗證，防止 NoSQL 注入
-      // 驗證 item.did 是否為有效的藥品代碼格式
-      if (typeof item.did !== 'string' || !item.did.match(/^[A-Za-z0-9_-]+$/)) {
-        return res.status(400).json({ msg: `無效的藥品代碼格式: ${item.did}` });
-      }
-      
-      const product = await BaseProduct.findOne({ code: item.did });
-      if (!product) {
-        return res.status(400).json({ msg: `找不到藥品: ${item.did}` });
-      }
-      
-      item.product = product._id;
-      
-      // 檢查庫存是否足夠
-      const inventorySum = await Inventory.aggregate([
-        { $match: { product: product._id } },
-        { $group: { _id: null, total: { $sum: "$quantity" } } }
-      ]);
-      
-      const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
-      
-      if (availableQuantity < item.dquantity) {
-        return res.status(400).json({ 
-          msg: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}` 
-        });
-      }
+    // 驗證產品並檢查庫存
+    const productsResult = await validateProductsAndInventory(items);
+    if (!productsResult.valid) {
+      return res.status(400).json({ msg: productsResult.error });
     }
+    items = productsResult.items;
 
-    // 嘗試查找供應商
-    let supplierId = null;
-    if (supplier) {
-      supplierId = supplier;
-    } else {
-      const supplierDoc = await Supplier.findOne({ name: sosupplier });
-      if (supplierDoc) {
-        supplierId = supplierDoc._id;
-      }
-    }
+    // 查找供應商
+    const supplierId = await findSupplier(supplier, sosupplier);
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
       soid,
-      orderNumber, // 設置唯一訂單號
+      orderNumber,
       sosupplier,
       supplier: supplierId,
       items,
