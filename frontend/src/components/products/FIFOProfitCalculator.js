@@ -270,8 +270,7 @@ const sortFifoData = (data, sortConfig) => {
       case 'grossProfit':
         comparison = compareNumbers(a, b, sortConfig.key);
         break;
-      default:
-        comparison = 0;
+      // default case is not needed as comparison is already initialized to 0
     }
     
     // 應用排序方向
