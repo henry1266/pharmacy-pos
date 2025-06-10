@@ -205,6 +205,12 @@ async function createSaleRecord(requestBody) {
   // 生成銷貨單號（如果未提供）
   const finalSaleNumber = await generateSaleNumber(requestBody.saleNumber);
   
+  // 確保銷貨單號不為空
+  if (!finalSaleNumber) {
+    console.error('Error: Failed to generate valid sale number');
+    throw new Error('無法生成有效的銷貨單號');
+  }
+  
   // 建立銷售記錄
   const saleFields = buildSaleFields({
     saleNumber: finalSaleNumber,
@@ -225,16 +231,31 @@ async function createSaleRecord(requestBody) {
 
 // 生成銷貨單號
 async function generateSaleNumber(saleNumber) {
-  if (saleNumber) return saleNumber;
+  // 如果提供了有效的銷貨單號，直接使用
+  if (saleNumber && saleNumber.trim() !== '') return saleNumber;
   
   // 使用通用訂單單號生成服務
-  return await OrderNumberService.generateSaleOrderNumber();
+  const generatedNumber = await OrderNumberService.generateSaleOrderNumber();
+  
+  // 確保生成的銷貨單號不為空
+  if (!generatedNumber || generatedNumber.trim() === '') {
+    console.error('Error: OrderNumberService returned empty sale number');
+    throw new Error('系統無法生成銷貨單號，請稍後再試或手動指定銷貨單號');
+  }
+  
+  return generatedNumber;
 }
 
 // 建立銷售記錄欄位
 function buildSaleFields(saleData) {
+  // Ensure saleNumber is never empty to prevent duplicate key errors
+  if (!saleData.saleNumber) {
+    console.error('Warning: Attempted to create sale with empty saleNumber');
+    throw new Error('Sale number cannot be empty');
+  }
+  
   const saleFields = {
-    saleNumber: saleData.saleNumber ? saleData.saleNumber.toString() : '',
+    saleNumber: saleData.saleNumber.toString(),
     items: saleData.items,
     totalAmount: saleData.totalAmount,
   };
@@ -437,9 +458,23 @@ async function validateSaleUpdateRequest(req) {
 
 // 更新銷售記錄
 async function updateSaleRecord(saleId, requestBody) {
+  // 確保銷貨單號不為空
+  let saleNumber = requestBody.saleNumber;
+  
+  // 如果沒有提供銷貨單號或為空，獲取原始銷售記錄的單號
+  if (!saleNumber || saleNumber.trim() === '') {
+    const originalSale = await Sale.findOne({ _id: saleId.toString() });
+    saleNumber = originalSale.saleNumber;
+    
+    // 如果原始銷售記錄也沒有有效的銷貨單號，生成一個新的
+    if (!saleNumber || saleNumber.trim() === '') {
+      saleNumber = await generateSaleNumber();
+    }
+  }
+  
   // 建立銷售記錄欄位
   const saleFields = buildSaleFields({
-    saleNumber: requestBody.saleNumber,
+    saleNumber: saleNumber,
     customer: requestBody.customer,
     items: requestBody.items,
     totalAmount: requestBody.totalAmount,
@@ -664,6 +699,60 @@ router.get('/customer/:customerId', async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
+  }
+});
+
+// @route   POST api/sales/fix-empty-sale-numbers
+// @desc    Fix sales with empty sale numbers
+// @access  Admin only (should be protected in production)
+router.post('/fix-empty-sale-numbers', async (req, res) => {
+  try {
+    // 查找所有銷貨單號為空的銷售記錄
+    const salesWithEmptyNumbers = await Sale.find({
+      $or: [
+        { saleNumber: "" },
+        { saleNumber: null },
+        { saleNumber: { $exists: false } }
+      ]
+    });
+    
+    console.log(`找到 ${salesWithEmptyNumbers.length} 個銷貨單號為空的銷售記錄`);
+    
+    if (salesWithEmptyNumbers.length === 0) {
+      return res.json({ message: '沒有找到銷貨單號為空的銷售記錄' });
+    }
+    
+    // 修復每個銷售記錄
+    const results = [];
+    for (const sale of salesWithEmptyNumbers) {
+      // 生成新的銷貨單號
+      const newSaleNumber = await OrderNumberService.generateSaleOrderNumber();
+      
+      // 更新銷售記錄
+      sale.saleNumber = newSaleNumber;
+      await sale.save();
+      
+      // 更新相關的庫存記錄
+      await Inventory.updateMany(
+        { saleId: sale._id.toString() },
+        { $set: { saleNumber: newSaleNumber } }
+      );
+      
+      results.push({
+        saleId: sale._id.toString(),
+        newSaleNumber
+      });
+      
+      console.log(`已修復銷售記錄 ${sale._id}，新銷貨單號: ${newSaleNumber}`);
+    }
+    
+    res.json({
+      message: `成功修復 ${results.length} 個銷售記錄`,
+      fixedRecords: results
+    });
+  } catch (err) {
+    console.error('修復銷貨單號錯誤:', err.message);
+    res.status(500).json({ error: '修復銷貨單號時發生錯誤' });
   }
 });
 

@@ -90,10 +90,30 @@ class OrderNumberService {
       });
       
       // 生成銷貨單號
-      return await generator.generate();
+      const generatedNumber = await generator.generate();
+      
+      // 確保生成的銷貨單號不為空
+      if (!generatedNumber || generatedNumber.trim() === '') {
+        console.error('警告: 生成了空的銷貨單號');
+        
+        // 生成一個基於時間戳的備用單號
+        const timestamp = Date.now();
+        const fallbackNumber = `SALE-${timestamp}`;
+        console.log(`使用備用銷貨單號: ${fallbackNumber}`);
+        
+        return fallbackNumber;
+      }
+      
+      return generatedNumber;
     } catch (error) {
       console.error('生成銷貨單號時出錯:', error);
-      throw error;
+      
+      // 發生錯誤時，生成一個基於時間戳的備用單號
+      const timestamp = Date.now();
+      const fallbackNumber = `SALE-${timestamp}`;
+      console.log(`發生錯誤，使用備用銷貨單號: ${fallbackNumber}`);
+      
+      return fallbackNumber;
     }
   }
 
