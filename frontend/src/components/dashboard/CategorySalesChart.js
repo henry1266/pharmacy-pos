@@ -14,16 +14,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import PieChartCell from './PieChartCell';
-
-// Legend formatter component
-const LegendFormatter = ({ value, color }) => {
-  return <span style={{ color }}>{value}</span>;
-};
-
-LegendFormatter.propTypes = {
-  value: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired
-};
+import LegendFormatter from './LegendFormatter';
 
 // Helper function to format currency (can be moved to a utils file later)
 const formatCurrency = (amount) => {
@@ -33,6 +24,14 @@ const formatCurrency = (amount) => {
     minimumFractionDigits: 0
   }).format(amount || 0); // Ensure amount is not null/undefined
 };
+
+// Formatter functions - moved outside of component
+const renderLegendFormatter = (value, entry) => (
+  <LegendFormatter value={value} color={entry.color} />
+);
+
+// Tooltip formatter function
+const formatTooltipValue = (value, name) => [formatCurrency(value), name];
 
 const CategorySalesChart = ({ categorySalesData }) => {
   const theme = useTheme();
@@ -78,8 +77,8 @@ const CategorySalesChart = ({ categorySalesData }) => {
                 />
               ))}
             </Pie>
-            <Tooltip 
-              formatter={(value, name) => [formatCurrency(value), name]}
+            <Tooltip
+              formatter={formatTooltipValue}
               contentStyle={{ 
                 backgroundColor: 'var(--background-paper)', 
                 borderColor: 'var(--border-color)',
@@ -93,9 +92,7 @@ const CategorySalesChart = ({ categorySalesData }) => {
               verticalAlign="middle"
               align="right"
               wrapperStyle={{ fontSize: '0.875rem', lineHeight: '1.5' }}
-              formatter={(value, entry) => (
-                <LegendFormatter value={value} color={entry.color} />
-              )}
+              formatter={renderLegendFormatter}
             />
           </PieChart>
         </ResponsiveContainer>
