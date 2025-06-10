@@ -523,26 +523,16 @@ router.get('/supplier/:supplierId', async (req, res) => {
 // @access  Public
 router.get('/search/query', async (req, res) => {
   try {
-    const { soid, sosupplier } = req.query;
+    const { soid, sosupplier, startDate, endDate } = req.query;
     
     const query = {};
+    if (soid) query.soid = { $regex: soid.toString(), $options: 'i' };
+    if (sosupplier) query.sosupplier = { $regex: sosupplier.toString(), $options: 'i' };
     
-    // 安全處理：使用安全的方式構建查詢條件
-    if (soid && typeof soid === 'string') {
-      // 使用字符串精確匹配而非正則表達式，或者使用受控的正則表達式
-      const sanitizedSoid = soid.trim();
-      // 使用精確匹配而非正則表達式
-      query.soid = sanitizedSoid;
-      // 如果需要模糊查詢，可以使用以下方式，但要確保輸入已經被驗證和清理
-      // query.soid = new RegExp('^' + sanitizedSoid.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
-    }
-    
-    if (sosupplier && typeof sosupplier === 'string') {
-      const sanitizedSupplier = sosupplier.trim();
-      // 使用精確匹配而非正則表達式
-      query.sosupplier = sanitizedSupplier;
-      // 如果需要模糊查詢，可以使用以下方式，但要確保輸入已經被驗證和清理
-      // query.sosupplier = new RegExp('^' + sanitizedSupplier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
     }
     
     const shippingOrders = await ShippingOrder.find(query)
