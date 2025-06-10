@@ -105,11 +105,9 @@ const InventoryList = ({ productId }) => {
         let stock = 0;
         const processedInventories = [...mergedInventories].reverse().map(inv => {
           const quantity = inv.totalQuantity;
-          if (inv.type === 'purchase') {
-            stock += quantity;
-          } else if (inv.type === 'sale' || inv.type === 'ship') {
-            stock += quantity; // ship類型的quantity已經是負數，直接加即可
-          }
+          // All transaction types use the same stock calculation
+          // ship and sale types already have negative quantities
+          stock += quantity;
           return {
             ...inv,
             currentStock: stock
@@ -124,16 +122,9 @@ const InventoryList = ({ productId }) => {
         processedInventories.forEach(inv => {
           // 計算實際交易價格
           let price = 0;
-          if (inv.type === 'purchase' && inv.totalAmount && inv.totalQuantity) {
-            // 進貨記錄：使用實際交易價格（總金額/數量）
-            const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-            price = unitPrice;
-          } else if (inv.type === 'ship' && inv.totalAmount && inv.totalQuantity) {
-            // 出貨記錄：使用實際交易價格（總金額/數量）
-            const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-            price = unitPrice;
-          } else if (inv.type === 'sale' && inv.totalAmount && inv.totalQuantity) {
-            // 出貨記錄：使用實際交易價格（總金額/數量）
+          // Calculate unit price for any transaction type with totalAmount and totalQuantity
+          if (inv.totalAmount && inv.totalQuantity) {
+            // 使用實際交易價格（總金額/數量）
             const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
             price = unitPrice;
           } else if (inv.product?.sellingPrice) {
