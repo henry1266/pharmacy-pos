@@ -114,6 +114,20 @@ const OrderNumberService = require('../utils/OrderNumberService');
 // @route   POST api/shipping-orders
 // @desc    創建新出貨單
 // @access  Public
+/**
+ * 檢查出貨單號是否已存在
+ * @param {string} soid - 出貨單號
+ * @returns {Promise<boolean>} - 是否存在
+ */
+async function checkShippingOrderExists(soid) {
+  if (!soid || soid.trim() === '') {
+    return false;
+  }
+  
+  const existingSO = await ShippingOrder.findOne({ soid: soid.toString() });
+  return !!existingSO;
+}
+
 // 處理出貨單號的輔助函數
 async function handleShippingOrderId(soid) {
   if (!soid || soid.trim() === '') {
@@ -123,8 +137,7 @@ async function handleShippingOrderId(soid) {
   }
   
   // 檢查出貨單號是否已存在
-  const existingSO = await ShippingOrder.findOne({ soid });
-  if (existingSO) {
+  if (await checkShippingOrderExists(soid)) {
     return {
       error: '該出貨單號已存在'
     };
@@ -285,18 +298,28 @@ async function validateOrderItems(items) {
   return { valid: true, items };
 }
 
-// 處理出貨單號變更的輔助函數
+/**
+ * 處理出貨單號變更的輔助函數
+ * @param {string} newSoid - 新出貨單號
+ * @param {string} currentSoid - 當前出貨單號
+ * @param {string} orderId - 出貨單ID
+ * @returns {Promise<Object>} - 處理結果
+ */
 async function handleOrderNumberChange(newSoid, currentSoid, orderId) {
   if (!newSoid || newSoid === currentSoid) {
     return { changed: false };
   }
   
-  const existingSO = await ShippingOrder.findOne({ soid: newSoid });
-  if (existingSO && existingSO._id.toString() !== orderId) {
-    return {
-      changed: false,
-      error: '該出貨單號已存在'
-    };
+  // 檢查新出貨單號是否已存在
+  if (await checkShippingOrderExists(newSoid)) {
+    // 需要確認是否是同一個訂單
+    const existingSO = await ShippingOrder.findOne({ soid: newSoid.toString() });
+    if (existingSO && existingSO._id.toString() !== orderId) {
+      return {
+        changed: false,
+        error: '該出貨單號已存在'
+      };
+    }
   }
   
   const orderNumber = await generateUniqueOrderNumber(newSoid);
