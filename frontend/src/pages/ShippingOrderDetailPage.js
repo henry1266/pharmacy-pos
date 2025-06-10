@@ -62,6 +62,41 @@ PaymentStatusChip.propTypes = {
     status: PropTypes.string
 };
 
+// Error content component extracted from parent component
+const ErrorContent = ({ orderError, productDetailsError, fifoError, fifoData }) => {
+  if (orderError) {
+    return <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography>;
+  }
+  if (productDetailsError) {
+    return <Typography color="error">{productDetailsError}</Typography>;
+  }
+  if (fifoError && !fifoData) {
+    return <Typography color="error">{fifoError}</Typography>;
+  }
+  return null;
+};
+
+ErrorContent.propTypes = {
+  orderError: PropTypes.string,
+  productDetailsError: PropTypes.string,
+  fifoError: PropTypes.string,
+  fifoData: PropTypes.object
+};
+
+// No data content component extracted from parent component
+const NoDataContent = ({ orderLoading, currentShippingOrder, orderError }) => {
+  if (!orderLoading && !currentShippingOrder && !orderError) {
+    return <Typography variant="h6">找不到出貨單數據</Typography>;
+  }
+  return null;
+};
+
+NoDataContent.propTypes = {
+  orderLoading: PropTypes.bool,
+  currentShippingOrder: PropTypes.object,
+  orderError: PropTypes.string
+};
+
 const ShippingOrderDetailPage = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -355,24 +390,21 @@ const ShippingOrderDetailPage = () => {
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={orderLoading || productDetailsLoading || fifoLoading} // Overall loading state
-      errorContent={(() => {
-        if (orderError) {
-          return <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography>;
-        }
-        if (productDetailsError) {
-          return <Typography color="error">{productDetailsError}</Typography>;
-        }
-        if (fifoError && !fifoData) {
-          return <Typography color="error">{fifoError}</Typography>;
-        }
-        return null;
-      })()}
-      noDataContent={(() => {
-        if (!orderLoading && !currentShippingOrder && !orderError) {
-          return <Typography variant="h6">找不到出貨單數據</Typography>;
-        }
-        return null;
-      })()}
+      errorContent={
+        <ErrorContent
+          orderError={orderError}
+          productDetailsError={productDetailsError}
+          fifoError={fifoError}
+          fifoData={fifoData}
+        />
+      }
+      noDataContent={
+        <NoDataContent
+          orderLoading={orderLoading}
+          currentShippingOrder={currentShippingOrder}
+          orderError={orderError}
+        />
+      }
     />
   );
 };
