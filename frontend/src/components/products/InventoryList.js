@@ -357,7 +357,8 @@ const InventoryList = ({ productId }) => {
               const price = calculatePrice(inv);
               
               // 使用穩定的唯一識別符作為 key
-              const stableKey = `${inv.type}-${orderNumber}-${inv._id || `no-id-${index}`}`;
+              const idSuffix = inv._id || ('no-id-' + index);
+              const stableKey = `${inv.type}-${orderNumber}-${idSuffix}`;
               
               return (
                 <TableRow 
