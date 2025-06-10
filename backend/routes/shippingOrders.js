@@ -585,8 +585,7 @@ router.get('/product/:productId', async (req, res) => {
       if (!order.items || !Array.isArray(order.items)) return false;
       
       return order.items.some(item =>
-        item.product && item.product._id &&
-        item.product._id.toString() === sanitizedProductId
+        item.product?._id?.toString() === sanitizedProductId
       );
     })
       .sort({ createdAt: -1 })
