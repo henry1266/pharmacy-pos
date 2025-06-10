@@ -650,8 +650,7 @@ router.post('/import/basic', upload.single('file'), async (req, res) => {
             }
 
             // 檢查出貨單號是否已存在
-            const existingSO = await ShippingOrder.findOne({ soid: row['出貨單號'] });
-            if (existingSO) {
+            if (await checkShippingOrderExists(row['出貨單號'])) {
               errors.push(`行 ${results.indexOf(row) + 1}: 出貨單號 ${row['出貨單號']} 已存在`);
               continue;
             }
