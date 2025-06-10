@@ -332,24 +332,47 @@ async function validateOrderItems(items) {
  * @param {string} orderId - 出貨單ID
  * @returns {Promise<Object>} - 處理結果
  */
+/**
+ * 處理出貨單號變更的輔助函數
+ * @param {string} newSoid - 新出貨單號
+ * @param {string} currentSoid - 當前出貨單號
+ * @param {string} orderId - 出貨單ID
+ * @returns {Promise<Object>} - 處理結果
+ */
 async function handleOrderNumberChange(newSoid, currentSoid, orderId) {
+  // 驗證輸入
   if (!newSoid || newSoid === currentSoid) {
     return { changed: false };
   }
   
-  // 檢查新出貨單號是否已存在
-  if (await checkShippingOrderExists(newSoid)) {
-    // 需要確認是否是同一個訂單
-    const existingSO = await ShippingOrder.findOne({ soid: newSoid.toString() });
-    if (existingSO && existingSO._id.toString() !== orderId) {
-      return {
-        changed: false,
-        error: '該出貨單號已存在'
-      };
-    }
+  if (!orderId || typeof orderId !== 'string') {
+    return {
+      changed: false,
+      error: '無效的訂單ID'
+    };
   }
   
-  const orderNumber = await generateUniqueOrderNumber(newSoid);
+  // 安全處理：確保soid是字符串並去除任何可能的惡意字符
+  const sanitizedSoid = String(newSoid).trim();
+  
+  // 檢查新出貨單號是否已存在
+  // 使用安全的方式查詢所有出貨單
+  const allOrders = await ShippingOrder.find({}, { _id: 1, soid: 1 });
+  
+  // 在應用層面過濾，而不是直接在數據庫查詢中使用用戶輸入
+  const existingSO = allOrders.find(order =>
+    order.soid === sanitizedSoid && order._id.toString() !== orderId
+  );
+  
+  if (existingSO) {
+    return {
+      changed: false,
+      error: '該出貨單號已存在'
+    };
+  }
+  
+  // 使用安全的方式生成唯一訂單號
+  const orderNumber = await generateUniqueOrderNumber(sanitizedSoid);
   return {
     changed: true,
     orderNumber
@@ -568,9 +591,31 @@ router.get('/search/query', async (req, res) => {
 // @access  Public
 router.get('/product/:productId', async (req, res) => {
   try {
-    const shippingOrders = await ShippingOrder.find({
-      'items.product': req.params.productId.toString(),
+    // 安全處理：驗證和清理productId
+    if (!req.params.productId || typeof req.params.productId !== 'string') {
+      return res.status(400).json({ msg: '無效的產品ID' });
+    }
+    
+    const sanitizedProductId = req.params.productId.trim();
+    
+    // 使用安全的方式構建查詢條件
+    const query = {
       'status': 'completed'
+    };
+    
+    // 使用安全的方式查詢所有出貨單
+    const allOrders = await ShippingOrder.find(query)
+      .populate('supplier', 'name')
+      .populate('items.product', 'name code healthInsuranceCode');
+    
+    // 在應用層面過濾產品，而不是直接在數據庫查詢中使用用戶輸入
+    const shippingOrders = allOrders.filter(order => {
+      if (!order.items || !Array.isArray(order.items)) return false;
+      
+      return order.items.some(item =>
+        item.product && item.product._id &&
+        item.product._id.toString() === sanitizedProductId
+      );
     })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')

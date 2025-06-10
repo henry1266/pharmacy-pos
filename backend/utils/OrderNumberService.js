@@ -182,12 +182,17 @@ class OrderNumberService {
       // 安全處理：清理訂單號
       const sanitizedOrderNumber = orderNumber.trim();
       
-      // 使用安全的方式構建查詢條件
-      const query = {};
-      query[field] = sanitizedOrderNumber;
+      // 使用更安全的方式查詢
+      let existingOrder = null;
       
-      // 執行查詢
-      const existingOrder = await Model.findOne(query);
+      // 根據不同的訂單類型使用不同的查詢方式，避免動態構建查詢
+      if (sanitizedType === 'purchase') {
+        existingOrder = await Model.findOne({ poid: sanitizedOrderNumber });
+      } else if (sanitizedType === 'shipping') {
+        existingOrder = await Model.findOne({ soid: sanitizedOrderNumber });
+      } else if (sanitizedType === 'sale') {
+        existingOrder = await Model.findOne({ saleNumber: sanitizedOrderNumber });
+      }
       return !existingOrder;
     } catch (error) {
       console.error('檢查訂單號唯一性時出錯:', error);
