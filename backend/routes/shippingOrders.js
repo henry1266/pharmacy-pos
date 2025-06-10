@@ -329,7 +329,7 @@ function prepareUpdateData(requestBody, orderNumberResult) {
   
   const updateData = {};
   if (soid) updateData.soid = soid;
-  if (orderNumberResult && orderNumberResult.orderNumber) {
+  if (orderNumberResult?.orderNumber) {
     updateData.orderNumber = orderNumberResult.orderNumber;
   }
   if (sosupplier) updateData.sosupplier = sosupplier;
