@@ -28,6 +28,176 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
+// 提取狀態顯示元件
+const StatusDisplay = ({ children, isError = false }) => (
+  <Box sx={{ p: 2 }}>
+    <Typography color={isError ? "error" : "textPrimary"} variant="body2">
+      {children}
+    </Typography>
+  </Box>
+);
+
+StatusDisplay.propTypes = {
+  children: PropTypes.node.isRequired,
+  isError: PropTypes.bool
+};
+
+// 提取摘要項目元件
+const SummaryItem = ({ label, value, isMonetary = true, isProfit = false }) => {
+  // 解決巢狀三元運算式問題
+  let isPositive = true;
+  if (isProfit) {
+    isPositive = parseFloat(value) >= 0;
+  }
+  
+  // 解決另一個巢狀三元運算式問題
+  let textColor = 'inherit';
+  if (isProfit) {
+    textColor = isPositive ? 'success.main' : 'error.main';
+  }
+  
+  return (
+    <Box sx={{ mr: 3, mb: 1 }}>
+      <Typography variant="body2" color="text.secondary">
+        {label}:
+      </Typography>
+      <Typography
+        variant="body1"
+        fontWeight="medium"
+        color={textColor}
+      >
+        {isMonetary ? `$${parseFloat(value).toFixed(2)}` : value}
+      </Typography>
+    </Box>
+  );
+};
+
+SummaryItem.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  isMonetary: PropTypes.bool,
+  isProfit: PropTypes.bool
+};
+
+// 提取表頭單元格元件
+const SortableHeaderCell = ({ label, columnKey, sortable = true, sortConfig, onSort }) => {
+  const cellStyle = {
+    fontWeight: 'bold',
+    cursor: sortable ? 'pointer' : 'default',
+    '&:hover': sortable ? { backgroundColor: '#e0e0e0' } : {}
+  };
+  
+  return (
+    <TableCell
+      align="center"
+      sx={cellStyle}
+      onClick={sortable ? () => onSort(columnKey) : undefined}
+    >
+      {sortable ? (
+        <Tooltip title="點擊排序" arrow>
+          <Box>
+            <span>{label}</span>
+            <SortIcon sortConfig={sortConfig} columnKey={columnKey} />
+          </Box>
+        </Tooltip>
+      ) : (
+        <span>{label}</span>
+      )}
+    </TableCell>
+  );
+};
+
+SortableHeaderCell.propTypes = {
+  label: PropTypes.string.isRequired,
+  columnKey: PropTypes.string.isRequired,
+  sortable: PropTypes.bool,
+  sortConfig: PropTypes.object.isRequired,
+  onSort: PropTypes.func.isRequired
+};
+
+// 提取表格行元件
+const FifoTableRow = ({ item, index, isExpanded, onToggleExpand, renderOrderCell, fifoMatches }) => {
+  // 使用更好的唯一識別符作為key
+  const uniqueKey = `${item.orderNumber || ''}-${item.saleTime}-${index}`;
+  
+  // 計算單價
+  const unitPrice = (item.totalRevenue / item.totalQuantity).toFixed(2);
+  
+  // 判斷是否為正值
+  const isPositiveProfit = item.grossProfit >= 0;
+  const isPositiveMargin = parseFloat(item.profitMargin) >= 0;
+  
+  return (
+    <React.Fragment key={uniqueKey}>
+      <TableRow
+        sx={{
+          '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+          '&:hover': { backgroundColor: '#f1f1f1' }
+        }}
+      >
+        <TableCell>{renderOrderCell(item)}</TableCell>
+        <TableCell align="right">{item.totalQuantity}</TableCell>
+        <TableCell align="right">${unitPrice}</TableCell>
+        <TableCell align="right">${item.totalRevenue.toFixed(2)}</TableCell>
+        <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
+        <TableCell
+          align="right"
+          sx={{
+            color: isPositiveProfit ? 'success.main' : 'error.main',
+            fontWeight: 'medium'
+          }}
+        >
+          ${item.grossProfit.toFixed(2)}
+        </TableCell>
+        <TableCell
+          align="right"
+          sx={{
+            color: isPositiveMargin ? 'success.main' : 'error.main',
+            fontWeight: 'medium'
+          }}
+        >
+          {item.profitMargin}
+        </TableCell>
+        <TableCell align="center">
+          <IconButton
+            size="small"
+            onClick={() => onToggleExpand(index)}
+            title={isExpanded ? "收起明細" : "展開明細"}
+          >
+            {isExpanded ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+          </IconButton>
+        </TableCell>
+      </TableRow>
+      
+      {/* FIFO明細展開區域 */}
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+            <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
+                成本分佈明細
+              </Typography>
+              <FifoDetailTable
+                fifoMatches={fifoMatches}
+                saleTime={item.saleTime}
+              />
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+  );
+};
+
+FifoTableRow.propTypes = {
+  item: PropTypes.object.isRequired,
+  index: PropTypes.number.isRequired,
+  isExpanded: PropTypes.bool.isRequired,
+  onToggleExpand: PropTypes.func.isRequired,
+  renderOrderCell: PropTypes.func.isRequired,
+  fifoMatches: PropTypes.array.isRequired
+};
+
 // 提取排序邏輯的輔助函數
 // 比較訂單號
 const compareOrderNumbers = (a, b) => {
@@ -282,19 +452,6 @@ const FIFOProfitCalculator = ({ productId }) => {
     }
   }, [productId]);
 
-  // 提取狀態顯示元件
-  const StatusDisplay = ({ children, isError = false }) => (
-    <Box sx={{ p: 2 }}>
-      <Typography color={isError ? "error" : "textPrimary"} variant="body2">
-        {children}
-      </Typography>
-    </Box>
-  );
-  
-  StatusDisplay.propTypes = {
-    children: PropTypes.node.isRequired,
-    isError: PropTypes.bool
-  };
   
   // 條件渲染處理
   if (loading) {
@@ -332,148 +489,7 @@ const FIFOProfitCalculator = ({ productId }) => {
     }
   };
 
-  // 提取摘要項目元件
-  const SummaryItem = ({ label, value, isMonetary = true, isProfit = false }) => {
-    // 判斷是否為正值
-    const isPositive = isProfit ?
-      (isMonetary ? parseFloat(value) >= 0 : parseFloat(value) >= 0) :
-      true;
-    
-    return (
-      <Box sx={{ mr: 3, mb: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          {label}:
-        </Typography>
-        <Typography
-          variant="body1"
-          fontWeight="medium"
-          color={isProfit ? (isPositive ? 'success.main' : 'error.main') : 'inherit'}
-        >
-          {isMonetary ? `$${parseFloat(value).toFixed(2)}` : value}
-        </Typography>
-      </Box>
-    );
-  };
-  
-  SummaryItem.propTypes = {
-    label: PropTypes.string.isRequired,
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-    isMonetary: PropTypes.bool,
-    isProfit: PropTypes.bool
-  };
-  
-  // 提取表頭單元格元件
-  const SortableHeaderCell = ({ label, columnKey, sortable = true }) => {
-    const cellStyle = {
-      fontWeight: 'bold',
-      cursor: sortable ? 'pointer' : 'default',
-      '&:hover': sortable ? { backgroundColor: '#e0e0e0' } : {}
-    };
-    
-    return (
-      <TableCell
-        align="center"
-        sx={cellStyle}
-        onClick={sortable ? () => requestSort(columnKey) : undefined}
-      >
-        {sortable ? (
-          <Tooltip title="點擊排序" arrow>
-            <Box>
-              <span>{label}</span>
-              <SortIcon sortConfig={sortConfig} columnKey={columnKey} />
-            </Box>
-          </Tooltip>
-        ) : (
-          <span>{label}</span>
-        )}
-      </TableCell>
-    );
-  };
-  
-  SortableHeaderCell.propTypes = {
-    label: PropTypes.string.isRequired,
-    columnKey: PropTypes.string.isRequired,
-    sortable: PropTypes.bool
-  };
-  
-  // 提取表格行元件
-  const FifoTableRow = ({ item, index }) => {
-    const uniqueKey = `${item.orderNumber || ''}-${item.saleTime}-${index}`;
-    const isExpanded = expandedRows[index];
-    
-    // 計算單價
-    const unitPrice = (item.totalRevenue / item.totalQuantity).toFixed(2);
-    
-    // 判斷是否為正值
-    const isPositiveProfit = item.grossProfit >= 0;
-    const isPositiveMargin = parseFloat(item.profitMargin) >= 0;
-    
-    return (
-      <React.Fragment key={uniqueKey}>
-        <TableRow
-          sx={{
-            '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
-            '&:hover': { backgroundColor: '#f1f1f1' }
-          }}
-        >
-          <TableCell>{renderOrderCell(item)}</TableCell>
-          <TableCell align="right">{item.totalQuantity}</TableCell>
-          <TableCell align="right">${unitPrice}</TableCell>
-          <TableCell align="right">${item.totalRevenue.toFixed(2)}</TableCell>
-          <TableCell align="right">${item.totalCost.toFixed(2)}</TableCell>
-          <TableCell
-            align="right"
-            sx={{
-              color: isPositiveProfit ? 'success.main' : 'error.main',
-              fontWeight: 'medium'
-            }}
-          >
-            ${item.grossProfit.toFixed(2)}
-          </TableCell>
-          <TableCell
-            align="right"
-            sx={{
-              color: isPositiveMargin ? 'success.main' : 'error.main',
-              fontWeight: 'medium'
-            }}
-          >
-            {item.profitMargin}
-          </TableCell>
-          <TableCell align="center">
-            <IconButton
-              size="small"
-              onClick={() => toggleRowExpand(index)}
-              title={isExpanded ? "收起明細" : "展開明細"}
-            >
-              {isExpanded ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
-            </IconButton>
-          </TableCell>
-        </TableRow>
-        
-        {/* FIFO明細展開區域 */}
-        <TableRow>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
-            <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-              <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
-                <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
-                  成本分佈明細
-                </Typography>
-                <FifoDetailTable
-                  fifoMatches={fifoData.fifoMatches}
-                  saleTime={item.saleTime}
-                />
-              </Box>
-            </Collapse>
-          </TableCell>
-        </TableRow>
-      </React.Fragment>
-    );
-  };
-  
-  FifoTableRow.propTypes = {
-    item: PropTypes.object.isRequired,
-    index: PropTypes.number.isRequired
-  };
+  // 使用外部定義的元件，不再重複定義
   
   // 主要渲染
   const summary = fifoData.summary;
@@ -504,20 +520,32 @@ const FIFOProfitCalculator = ({ productId }) => {
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <SortableHeaderCell label="單號" columnKey="orderNumber" />
-              <SortableHeaderCell label="數量" columnKey="totalQuantity" />
-              <SortableHeaderCell label="單價" columnKey="unitPrice" sortable={false} />
-              <SortableHeaderCell label="收入" columnKey="totalRevenue" />
-              <SortableHeaderCell label="成本" columnKey="totalCost" />
-              <SortableHeaderCell label="毛利" columnKey="grossProfit" />
-              <SortableHeaderCell label="毛利率" columnKey="profitMargin" />
+              <SortableHeaderCell label="單號" columnKey="orderNumber" sortConfig={sortConfig} onSort={requestSort} />
+              <SortableHeaderCell label="數量" columnKey="totalQuantity" sortConfig={sortConfig} onSort={requestSort} />
+              <SortableHeaderCell label="單價" columnKey="unitPrice" sortable={false} sortConfig={sortConfig} onSort={requestSort} />
+              <SortableHeaderCell label="收入" columnKey="totalRevenue" sortConfig={sortConfig} onSort={requestSort} />
+              <SortableHeaderCell label="成本" columnKey="totalCost" sortConfig={sortConfig} onSort={requestSort} />
+              <SortableHeaderCell label="毛利" columnKey="grossProfit" sortConfig={sortConfig} onSort={requestSort} />
+              <SortableHeaderCell label="毛利率" columnKey="profitMargin" sortConfig={sortConfig} onSort={requestSort} />
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>明細</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedData.map((item, index) => (
-              <FifoTableRow key={index} item={item} index={index} />
-            ))}
+            {sortedData.map((item, index) => {
+              // 使用唯一識別符作為key，而不是索引
+              const uniqueId = `${item.orderNumber || ''}-${item.saleTime}-${item.totalQuantity}`;
+              return (
+                <FifoTableRow
+                  key={uniqueId}
+                  item={item}
+                  index={index}
+                  isExpanded={expandedRows[index]}
+                  onToggleExpand={toggleRowExpand}
+                  renderOrderCell={renderOrderCell}
+                  fifoMatches={fifoData.fifoMatches}
+                />
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
