@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -13,7 +14,6 @@ import {
   MenuItem,
   Tabs,
   Tab,
-  Chip,
   List,
   ListItem,
   ListItemText,
@@ -29,13 +29,13 @@ import axios from 'axios';
  * 班次選擇對話框元件
  * 用於選擇特定日期的早中晚班員工
  */
-const ShiftSelectionModal = ({ 
-  open, 
-  onClose, 
-  date, 
-  schedules, 
-  onAddSchedule, 
-  onRemoveSchedule 
+const ShiftSelectionModal = ({
+  open,
+  onClose,
+  date,
+  schedules,
+  onAddSchedule,
+  onRemoveSchedule
 }) => {
   const [tabValue, setTabValue] = useState(0);
   const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -131,13 +131,23 @@ const ShiftSelectionModal = ({
 
   // 格式化日期顯示
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-TW', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long'
-    });
+    try {
+      const date = new Date(dateString);
+      // 檢查日期是否有效
+      if (isNaN(date.getTime())) {
+        return dateString; // 如果無效，直接返回原始字串
+      }
+      
+      return date.toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      });
+    } catch (error) {
+      console.error('日期格式化錯誤:', error);
+      return dateString; // 發生錯誤時返回原始字串
+    }
   };
 
   // 檢查員工是否已被排班在當前班次
@@ -265,6 +275,50 @@ const ShiftSelectionModal = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+// PropTypes validation
+ShiftSelectionModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  date: PropTypes.string.isRequired,
+  schedules: PropTypes.shape({
+    morning: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        employee: PropTypes.shape({
+          _id: PropTypes.string.isRequired,
+          name: PropTypes.string.isRequired,
+          department: PropTypes.string,
+          position: PropTypes.string
+        }).isRequired
+      })
+    ),
+    afternoon: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        employee: PropTypes.shape({
+          _id: PropTypes.string.isRequired,
+          name: PropTypes.string.isRequired,
+          department: PropTypes.string,
+          position: PropTypes.string
+        }).isRequired
+      })
+    ),
+    evening: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        employee: PropTypes.shape({
+          _id: PropTypes.string.isRequired,
+          name: PropTypes.string.isRequired,
+          department: PropTypes.string,
+          position: PropTypes.string
+        }).isRequired
+      })
+    )
+  }).isRequired,
+  onAddSchedule: PropTypes.func.isRequired,
+  onRemoveSchedule: PropTypes.func.isRequired
 };
 
 export default ShiftSelectionModal;
