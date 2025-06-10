@@ -159,7 +159,6 @@ class OrderNumberService {
       const sanitizedType = type.toLowerCase().trim();
       
       let Model;
-      let field;
       
       // 使用白名單方式處理訂單類型
       switch (sanitizedType) {
