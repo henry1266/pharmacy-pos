@@ -142,12 +142,27 @@ class OrderNumberService {
    * @param {string} orderNumber - 要檢查的訂單號
    * @returns {Promise<boolean>} 是否唯一
    */
+  /**
+   * 檢查訂單號是否唯一
+   * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
+   * @param {string} orderNumber - 要檢查的訂單號
+   * @returns {Promise<boolean>} 是否唯一
+   */
   static async isOrderNumberUnique(type, orderNumber) {
     try {
+      // 安全處理：驗證輸入參數
+      if (!type || typeof type !== 'string' || !orderNumber || typeof orderNumber !== 'string') {
+        throw new Error('無效的參數');
+      }
+      
+      // 安全處理：清理和驗證訂單類型
+      const sanitizedType = type.toLowerCase().trim();
+      
       let Model;
       let field;
       
-      switch (type.toLowerCase()) {
+      // 使用白名單方式處理訂單類型
+      switch (sanitizedType) {
         case 'purchase':
           Model = mongoose.model('purchaseorder');
           field = 'poid';
@@ -161,12 +176,17 @@ class OrderNumberService {
           field = 'saleNumber';
           break;
         default:
-          throw new Error(`不支持的訂單類型: ${type}`);
+          throw new Error(`不支持的訂單類型: ${sanitizedType}`);
       }
       
-      const query = {};
-      query[field] = orderNumber;
+      // 安全處理：清理訂單號
+      const sanitizedOrderNumber = orderNumber.trim();
       
+      // 使用安全的方式構建查詢條件
+      const query = {};
+      query[field] = sanitizedOrderNumber;
+      
+      // 執行查詢
       const existingOrder = await Model.findOne(query);
       return !existingOrder;
     } catch (error) {
@@ -181,17 +201,45 @@ class OrderNumberService {
    * @param {string} baseOrderNumber - 基礎訂單號
    * @returns {Promise<string>} 唯一的訂單號
    */
+  /**
+   * 生成唯一的訂單號
+   * @param {string} type - 訂單類型 ('purchase', 'shipping', 'sale')
+   * @param {string} baseOrderNumber - 基礎訂單號
+   * @returns {Promise<string>} 唯一的訂單號
+   */
   static async generateUniqueOrderNumber(type, baseOrderNumber) {
-    let orderNumber = baseOrderNumber;
+    // 安全處理：驗證輸入參數
+    if (!type || typeof type !== 'string') {
+      throw new Error('無效的訂單類型');
+    }
+    
+    if (!baseOrderNumber || typeof baseOrderNumber !== 'string') {
+      throw new Error('無效的基礎訂單號');
+    }
+    
+    // 安全處理：清理輸入
+    const sanitizedType = type.toLowerCase().trim();
+    const sanitizedBaseOrderNumber = baseOrderNumber.trim();
+    
+    let orderNumber = sanitizedBaseOrderNumber;
     let counter = 1;
     let isUnique = false;
     
-    while (!isUnique) {
-      isUnique = await this.isOrderNumberUnique(type, orderNumber);
+    // 設置最大嘗試次數，防止無限循環
+    const MAX_ATTEMPTS = 100;
+    let attempts = 0;
+    
+    while (!isUnique && attempts < MAX_ATTEMPTS) {
+      isUnique = await this.isOrderNumberUnique(sanitizedType, orderNumber);
       if (!isUnique) {
-        orderNumber = `${baseOrderNumber}-${counter}`;
+        orderNumber = `${sanitizedBaseOrderNumber}-${counter}`;
         counter++;
+        attempts++;
       }
+    }
+    
+    if (attempts >= MAX_ATTEMPTS) {
+      throw new Error('無法生成唯一訂單號，已達到最大嘗試次數');
     }
     
     return orderNumber;

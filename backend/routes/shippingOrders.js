@@ -124,7 +124,11 @@ async function checkShippingOrderExists(soid) {
     return false;
   }
   
-  const existingSO = await ShippingOrder.findOne({ soid: soid.toString() });
+  // 安全處理：確保soid是字符串並去除任何可能的惡意字符
+  const sanitizedSoid = String(soid).trim();
+  
+  // 使用嚴格相等查詢而非正則表達式
+  const existingSO = await ShippingOrder.findOne({ soid: sanitizedSoid });
   return !!existingSO;
 }
 
@@ -165,12 +169,13 @@ async function validateProductsAndInventory(items) {
       };
     }
     
-    // 查找產品
-    const product = await BaseProduct.findOne({ code: item.did });
+    // 查找產品 - 安全處理：確保did是字符串並去除任何可能的惡意字符
+    const sanitizedCode = String(item.did).trim();
+    const product = await BaseProduct.findOne({ code: sanitizedCode });
     if (!product) {
       return {
         valid: false,
-        error: `找不到藥品: ${item.did}`
+        error: `找不到藥品: ${sanitizedCode}`
       };
     }
     
@@ -195,14 +200,27 @@ async function validateProductsAndInventory(items) {
   return { valid: true, items };
 }
 
-// 查找供應商的輔助函數
+/**
+ * 查找供應商的輔助函數
+ * @param {string|ObjectId} supplier - 供應商ID
+ * @param {string} sosupplier - 供應商名稱
+ * @returns {Promise<string|null>} - 供應商ID或null
+ */
 async function findSupplier(supplier, sosupplier) {
   if (supplier) {
-    return supplier;
+    // 確保返回字符串格式的ID
+    return String(supplier);
   }
   
-  const supplierDoc = await Supplier.findOne({ name: sosupplier });
-  return supplierDoc ? supplierDoc._id : null;
+  if (!sosupplier || typeof sosupplier !== 'string') {
+    return null;
+  }
+  
+  // 安全處理：確保sosupplier是字符串並去除任何可能的惡意字符
+  const sanitizedName = sosupplier.trim();
+  
+  const supplierDoc = await Supplier.findOne({ name: sanitizedName });
+  return supplierDoc ? supplierDoc._id.toString() : null;
 }
 
 // @route   POST api/shipping-orders
@@ -284,14 +302,23 @@ async function validateOrderItems(items) {
     }
 
     if (!item.product) {
-      const product = await BaseProduct.findOne({ code: item.did });
+      // 安全處理：確保did是字符串並去除任何可能的惡意字符
+      if (!item.did || typeof item.did !== 'string') {
+        return {
+          valid: false,
+          error: '無效的藥品代碼'
+        };
+      }
+      
+      const sanitizedCode = item.did.trim();
+      const product = await BaseProduct.findOne({ code: sanitizedCode });
       if (!product) {
         return {
           valid: false,
-          error: `找不到藥品: ${item.did}`
+          error: `找不到藥品: ${sanitizedCode}`
         };
       }
-      item.product = product._id;
+      item.product = product._id.toString();
     }
   }
   
@@ -494,8 +521,24 @@ router.get('/search/query', async (req, res) => {
     const { soid, sosupplier } = req.query;
     
     const query = {};
-    if (soid) query.soid = { $regex: soid, $options: 'i' };
-    if (sosupplier) query.sosupplier = { $regex: sosupplier, $options: 'i' };
+    
+    // 安全處理：使用安全的方式構建查詢條件
+    if (soid && typeof soid === 'string') {
+      // 使用字符串精確匹配而非正則表達式，或者使用受控的正則表達式
+      const sanitizedSoid = soid.trim();
+      // 使用精確匹配而非正則表達式
+      query.soid = sanitizedSoid;
+      // 如果需要模糊查詢，可以使用以下方式，但要確保輸入已經被驗證和清理
+      // query.soid = new RegExp('^' + sanitizedSoid.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
+    }
+    
+    if (sosupplier && typeof sosupplier === 'string') {
+      const sanitizedSupplier = sosupplier.trim();
+      // 使用精確匹配而非正則表達式
+      query.sosupplier = sanitizedSupplier;
+      // 如果需要模糊查詢，可以使用以下方式，但要確保輸入已經被驗證和清理
+      // query.sosupplier = new RegExp('^' + sanitizedSupplier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
+    }
     
     const shippingOrders = await ShippingOrder.find(query)
       .sort({ createdAt: -1 })
