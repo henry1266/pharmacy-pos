@@ -11,26 +11,16 @@ import {
   Tooltip,
   Alert,
   CircularProgress,
-  Badge,
   List,
   ListItem,
   ListItemText,
-  ListItemButton,
-  Divider,
-  Tabs,
-  Tab,
-  Checkbox,
-  FormControlLabel
+  ListItemButton
 } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import TodayIcon from '@mui/icons-material/Today';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import useEmployeeScheduling from '../../hooks/useEmployeeScheduling';
 import ShiftSelectionModal from './ShiftSelectionModal';
 
@@ -284,10 +274,10 @@ const Scheduling = () => {
       return char.charCodeAt(0) + ((acc << 5) - acc);
     }, 0);
     
-    // 生成柔和的顏色
+    // 生成較深的顏色
     const h = Math.abs(hash) % 360;
-    const s = 25 + (Math.abs(hash) % 30); // 25-55% 飽和度
-    const l = 65 + (Math.abs(hash) % 15); // 65-80% 亮度
+    const s = 40 + (Math.abs(hash) % 30); // 40-70% 飽和度
+    const l = 45 + (Math.abs(hash) % 15); // 45-60% 亮度
     
     return `hsl(${h}, ${s}%, ${l}%)`;
   };
@@ -437,7 +427,7 @@ const Scheduling = () => {
                   display: 'flex',
                   alignItems: 'center',
                   mb: 1,
-                  bgcolor: shift === 'morning' ? 'success.light' : shift === 'afternoon' ? 'info.light' : 'warning.light',
+                  bgcolor: shift === 'morning' ? '#e7f5e7' : shift === 'afternoon' ? '#e3f2fd' : '#fff8e1',
                   borderRadius: 1,
                   px: 1,
                   py: 0.5
@@ -446,7 +436,7 @@ const Scheduling = () => {
                     width: 16,
                     height: 16,
                     borderRadius: '50%',
-                    bgcolor: shift === 'morning' ? 'success.main' : shift === 'afternoon' ? 'info.main' : 'warning.main',
+                    bgcolor: shift === 'morning' ? 'success.dark' : shift === 'afternoon' ? 'info.dark' : 'warning.dark',
                     mr: 1
                   }} />
                   <Typography
@@ -532,22 +522,24 @@ const Scheduling = () => {
   return (
     <Container maxWidth="lg" sx={globalStyles}>
       <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          員工排班系統
-        </Typography>
+
         
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, flexWrap: 'wrap' }}>
+          <Typography variant="h5" component="h5" sx={{ mr: 3 }}>
+            員工排班系統
+          </Typography>
+          
+          {error && (
+            <Alert severity="error" sx={{ my: 1, flexBasis: '100%' }}>
+              {error}
+            </Alert>
+          )}
+          
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton onClick={handlePrevMonth}>
               <ArrowBackIosIcon />
             </IconButton>
-            <Typography variant="h6" sx={{ mx: 2 }}>
+            <Typography variant="h5" sx={{ mx: 2 }}>
               {formatMonth(currentDate)}
             </Typography>
             <IconButton onClick={handleNextMonth}>
@@ -555,7 +547,7 @@ const Scheduling = () => {
             </IconButton>
           </Box>
           
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, ml: 'auto' }}>
             <Button
               variant="outlined"
               startIcon={<TodayIcon />}
@@ -605,7 +597,8 @@ const Scheduling = () => {
                   fontWeight: 'bold',
                   bgcolor: 'primary.main',
                   color: 'white',
-                  borderRadius: '4px 4px 0 0'
+                  borderRadius: '4px 4px 0 0',
+                  fontSize: '1.1rem'
                 }}>
                   {day}
                 </Box>
@@ -619,12 +612,12 @@ const Scheduling = () => {
                   elevation={1}
                   sx={{
                     p: 1,
-                    height: '120px',
+                    height: '130px',
                     bgcolor: dateObj.isCurrentMonth ? 'background.paper' : 'action.hover',
                     border: isToday(dateObj.date)
-                      ? '2px solid'
+                      ? '1px solid'
                       : (editMode && selectedCell === index)
-                        ? '2px dashed'
+                        ? '1px dashed'
                         : 'none',
                     borderColor: isToday(dateObj.date)
                       ? 'primary.main'
@@ -650,15 +643,15 @@ const Scheduling = () => {
                   }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2">
+                    <Typography variant="body1" sx={{ fontSize: '1.1rem', fontWeight: 'medium' }}>
                       {dateObj.day}
                     </Typography>
                     
                     {dateObj.isCurrentMonth && getScheduleCount(dateObj.date) > 0 && (
                       <Box
                         sx={{
-                          width: '8px',
-                          height: '8px',
+                          width: '10px',
+                          height: '10px',
                           borderRadius: '50%',
                           bgcolor: 'primary.main',
                           mr: 1
@@ -668,25 +661,27 @@ const Scheduling = () => {
                   </Box>
                   
                   {dateObj.isCurrentMonth && (
-                    <Box sx={{ mt: 1, fontSize: '0.85rem' }}>
+                    <Box sx={{ alignItems: 'center' }}>
                       {getSchedulesForDate(dateObj.date).morning.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).morning.map(s => s.employee.name).join(', ')}>
-                          <Box sx={{ color: 'success.main', mb: 0.5, display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>早:&nbsp;</Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
+                          <Box sx={{ color: 'success.dark', display: 'flex', alignItems: 'center' }}>
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>早:&nbsp;</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                               {getSchedulesForDate(dateObj.date).morning.map((schedule) => (
                                 <Box
                                   key={`morning-${schedule._id}`}
                                   sx={{
-                                    bgcolor: getEmployeeColor(schedule.employee._id),
+                                    bgcolor: 'transparent',
+                                    border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
+                                    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
-                                    width: '22px',
-                                    height: '22px',
+                                    width: '26px',
+                                    height: '26px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '0.85rem',
-                                    color: '#000',
+                                    fontSize: '1rem',
+                                    color: 'text.primary',
                                     fontWeight: 'bold'
                                   }}
                                 >
@@ -700,22 +695,24 @@ const Scheduling = () => {
                       
                       {getSchedulesForDate(dateObj.date).afternoon.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).afternoon.map(s => s.employee.name).join(', ')}>
-                          <Box sx={{ color: 'info.main', mb: 0.5, display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>中:&nbsp;</Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
+                          <Box sx={{ color: 'info.dark', display: 'flex', alignItems: 'center' }}>
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>中:&nbsp;</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                               {getSchedulesForDate(dateObj.date).afternoon.map((schedule) => (
                                 <Box
                                   key={`afternoon-${schedule._id}`}
                                   sx={{
-                                    bgcolor: getEmployeeColor(schedule.employee._id),
+                                    bgcolor: 'transparent',
+                                    border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
+                                    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
-                                    width: '22px',
-                                    height: '22px',
+                                    width: '26px',
+                                    height: '26px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '0.85rem',
-                                    color: '#000',
+                                    fontSize: '1rem',
+                                    color: 'text.primary',
                                     fontWeight: 'bold'
                                   }}
                                 >
@@ -729,22 +726,24 @@ const Scheduling = () => {
                       
                       {getSchedulesForDate(dateObj.date).evening.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).evening.map(s => s.employee.name).join(', ')}>
-                          <Box sx={{ color: 'warning.main', display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>晚:&nbsp;</Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
+                          <Box sx={{ color: 'warning.dark', display: 'flex', alignItems: 'center' }}>
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>晚:&nbsp;</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                               {getSchedulesForDate(dateObj.date).evening.map((schedule) => (
                                 <Box
                                   key={`evening-${schedule._id}`}
                                   sx={{
-                                    bgcolor: getEmployeeColor(schedule.employee._id),
+                                    bgcolor: 'transparent',
+                                    border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
+                                    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
-                                    width: '22px',
-                                    height: '22px',
+                                    width: '26px',
+                                    height: '26px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '0.85rem',
-                                    color: '#000',
+                                    fontSize: '1rem',
+                                    color: 'text.primary',
                                     fontWeight: 'bold'
                                   }}
                                 >
