@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import {
@@ -139,49 +139,63 @@ const Scheduling = () => {
     }
   };
 
+  // 計算新的選中格子索引
+  const calculateNewIndex = useCallback((key, currentIndex, totalCells, daysInWeek) => {
+    switch (key) {
+      case 'ArrowUp':
+        const upIndex = currentIndex - daysInWeek;
+        return upIndex < 0 ? currentIndex : upIndex;
+        
+      case 'ArrowDown':
+        const downIndex = currentIndex + daysInWeek;
+        return downIndex >= totalCells ? currentIndex : downIndex;
+        
+      case 'ArrowLeft':
+        const leftIndex = currentIndex - 1;
+        return leftIndex < 0 || leftIndex % daysInWeek === daysInWeek - 1 ? currentIndex : leftIndex;
+        
+      case 'ArrowRight':
+        const rightIndex = currentIndex + 1;
+        return rightIndex >= totalCells || rightIndex % daysInWeek === 0 ? currentIndex : rightIndex;
+        
+      default:
+        return currentIndex;
+    }
+  }, []);
+
+  // 更新選中格子狀態
+  const updateSelectedCell = useCallback((newIndex) => {
+    setSelectedCell(newIndex);
+    
+    if (calendarGrid[newIndex].isCurrentMonth) {
+      setSelectedDate(calendarGrid[newIndex].date);
+      setQuickSelectOpen(true);
+    } else {
+      setQuickSelectOpen(false);
+    }
+  }, [calendarGrid, setSelectedCell, setSelectedDate, setQuickSelectOpen]);
+
   // 處理鍵盤導航
   const handleKeyDown = (e) => {
     if (!editMode || selectedCell === null) return;
 
     const DAYS_IN_WEEK = 7;
     const totalCells = calendarGrid.length;
-    let newIndex = selectedCell;
-
-    switch (e.key) {
-      case 'ArrowUp':
-        newIndex = selectedCell - DAYS_IN_WEEK;
-        if (newIndex < 0) newIndex = selectedCell;
-        break;
-      case 'ArrowDown':
-        newIndex = selectedCell + DAYS_IN_WEEK;
-        if (newIndex >= totalCells) newIndex = selectedCell;
-        break;
-      case 'ArrowLeft':
-        newIndex = selectedCell - 1;
-        if (newIndex < 0 || newIndex % DAYS_IN_WEEK === DAYS_IN_WEEK - 1) newIndex = selectedCell;
-        break;
-      case 'ArrowRight':
-        newIndex = selectedCell + 1;
-        if (newIndex >= totalCells || newIndex % DAYS_IN_WEEK === 0) newIndex = selectedCell;
-        break;
-      case 'Enter':
-        if (calendarGrid[selectedCell].isCurrentMonth) {
-          setSelectedDate(calendarGrid[selectedCell].date);
-          setQuickSelectOpen(true);
-        }
-        break;
-      default:
-        return;
-    }
-
-    if (newIndex !== selectedCell) {
-      setSelectedCell(newIndex);
-      if (calendarGrid[newIndex].isCurrentMonth) {
-        setSelectedDate(calendarGrid[newIndex].date);
+    
+    // 處理Enter鍵
+    if (e.key === 'Enter') {
+      if (calendarGrid[selectedCell].isCurrentMonth) {
+        setSelectedDate(calendarGrid[selectedCell].date);
         setQuickSelectOpen(true);
-      } else {
-        setQuickSelectOpen(false);
       }
+      return;
+    }
+    
+    // 處理方向鍵
+    const newIndex = calculateNewIndex(e.key, selectedCell, totalCells, DAYS_IN_WEEK);
+    
+    if (newIndex !== selectedCell) {
+      updateSelectedCell(newIndex);
     }
   };
 
@@ -194,7 +208,7 @@ const Scheduling = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [editMode, selectedCell, calendarGrid]);
+  }, [editMode, selectedCell, calendarGrid, updateSelectedCell, calculateNewIndex]);
 
   // 處理日期點擊
   const handleDateClick = (date) => {
@@ -325,6 +339,22 @@ const Scheduling = () => {
     }
   };
 
+  // 獲取主要文字樣式
+  const getPrimaryTypographyProps = (isScheduled) => {
+    return {
+      fontWeight: isScheduled ? 'bold' : 'normal',
+      color: 'text.primary',
+      fontSize: '0.9rem'
+    };
+  };
+
+  // 獲取次要文字樣式
+  const getSecondaryTypographyProps = () => {
+    return {
+      fontSize: '0.75rem'
+    };
+  };
+
   // 快速選擇面板元件
   const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) => {
     const [employees, setEmployees] = useState([]);
@@ -401,10 +431,7 @@ const Scheduling = () => {
       fetchEmployees();
     }, []);
 
-    // 使用外部函數檢查員工是否已被排班在指定班次
-    const checkEmployeeScheduled = (employeeId, shift) => {
-      return isEmployeeScheduled(employeeId, shift, schedules);
-    };
+    // Note: checkEmployeeScheduled function moved outside component
 
     // 格式化日期顯示
     const formatDate = (dateString) => {
@@ -477,7 +504,7 @@ const Scheduling = () => {
                 <List dense disablePadding sx={{ maxHeight: '150px', overflow: 'auto' }}>
                   {employees.length > 0 ? (
                     employees.map((employee) => {
-                      const isScheduled = checkEmployeeScheduled(employee._id, shift);
+                      const isScheduled = isEmployeeScheduled(employee._id, shift, schedules);
                       return (
                         <ListItem
                           key={`${shift}-${employee._id}`}
@@ -503,14 +530,8 @@ const Scheduling = () => {
                             <ListItemText
                               primary={employee.name}
                               secondary={`${employee.department}`}
-                              primaryTypographyProps={{
-                                fontWeight: isScheduled ? 'bold' : 'normal',
-                                color: 'text.primary',
-                                fontSize: '0.9rem'
-                              }}
-                              secondaryTypographyProps={{
-                                fontSize: '0.75rem'
-                              }}
+                              primaryTypographyProps={getPrimaryTypographyProps(isScheduled)}
+                              secondaryTypographyProps={getSecondaryTypographyProps()}
                             />
                           </ListItemButton>
                         </ListItem>
