@@ -141,22 +141,24 @@ const Scheduling = () => {
 
   // 計算新的選中格子索引
   const calculateNewIndex = useCallback((key, currentIndex, totalCells, daysInWeek) => {
+    let newIndex = currentIndex;
+    
     switch (key) {
       case 'ArrowUp':
-        const upIndex = currentIndex - daysInWeek;
-        return upIndex < 0 ? currentIndex : upIndex;
+        newIndex = currentIndex - daysInWeek;
+        return newIndex < 0 ? currentIndex : newIndex;
         
       case 'ArrowDown':
-        const downIndex = currentIndex + daysInWeek;
-        return downIndex >= totalCells ? currentIndex : downIndex;
+        newIndex = currentIndex + daysInWeek;
+        return newIndex >= totalCells ? currentIndex : newIndex;
         
       case 'ArrowLeft':
-        const leftIndex = currentIndex - 1;
-        return leftIndex < 0 || leftIndex % daysInWeek === daysInWeek - 1 ? currentIndex : leftIndex;
+        newIndex = currentIndex - 1;
+        return newIndex < 0 || newIndex % daysInWeek === daysInWeek - 1 ? currentIndex : newIndex;
         
       case 'ArrowRight':
-        const rightIndex = currentIndex + 1;
-        return rightIndex >= totalCells || rightIndex % daysInWeek === 0 ? currentIndex : rightIndex;
+        newIndex = currentIndex + 1;
+        return newIndex >= totalCells || newIndex % daysInWeek === 0 ? currentIndex : newIndex;
         
       default:
         return currentIndex;
@@ -311,6 +313,27 @@ const Scheduling = () => {
     return date.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' });
   };
 
+  // 格式化日期顯示 - 提取到外部以減少嵌套層級
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      // 檢查日期是否有效
+      if (isNaN(date.getTime())) {
+        return dateString; // 如果無效，直接返回原始字串
+      }
+      
+      return date.toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      });
+    } catch (error) {
+      console.error('日期格式化錯誤:', error);
+      return dateString; // 發生錯誤時返回原始字串
+    }
+  };
+
   // 檢查員工是否已被排班在指定班次 - 提取到外部以便重用
   const isEmployeeScheduled = (employeeId, shift, schedules) => {
     return (schedules[shift] || []).some(
@@ -355,6 +378,149 @@ const Scheduling = () => {
     };
   };
 
+  // 獲取班次顏色
+  const getShiftColor = (shift) => {
+    if (shift === 'morning') {
+      return 'success.dark';
+    } else if (shift === 'afternoon') {
+      return 'info.dark';
+    } else {
+      return 'warning.dark';
+    }
+  };
+
+  // 獲取班次背景顏色
+  const getShiftBgColor = (shift) => {
+    if (shift === 'morning') {
+      return '#e7f5e7';
+    } else if (shift === 'afternoon') {
+      return '#e3f2fd';
+    } else {
+      return '#fff8e1';
+    }
+  };
+
+  // 獲取員工列表函數 - 提取到外部以減少嵌套層級
+  const fetchEmployeesList = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登入或權限不足');
+      }
+
+      const config = {
+        headers: {
+          'x-auth-token': token
+        }
+      };
+
+      const response = await axios.get('/api/employees', config);
+      // 過濾掉主管，只保留一般員工
+      const filteredEmployees = response.data.employees.filter(employee => {
+        const department = employee.department.toLowerCase();
+        return !department.includes('主管') &&
+               !department.includes('經理') &&
+               !department.includes('supervisor') &&
+               !department.includes('manager') &&
+               !department.includes('director') &&
+               !department.includes('長');
+      });
+      
+      return { employees: filteredEmployees, error: null };
+    } catch (err) {
+      console.error('獲取員工資料失敗:', err);
+      return { employees: [], error: err.response?.data?.msg || '獲取員工資料失敗' };
+    }
+  };
+
+  // 班次區塊元件
+  const ShiftSection = ({ shift, shiftLabel, employees, schedules, date, onAddSchedule, onRemoveSchedule }) => {
+    return (
+      <Box sx={{ mb: 2 }}>
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          mb: 1,
+          bgcolor: getShiftBgColor(shift),
+          borderRadius: 1,
+          px: 1,
+          py: 0.5
+        }}>
+          <Box sx={{
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            bgcolor: getShiftColor(shift),
+            mr: 1
+          }} />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: 'bold',
+              color: getShiftColor(shift),
+            }}
+          >
+            {shiftLabel}
+          </Typography>
+        </Box>
+        
+        <List dense disablePadding sx={{ maxHeight: '150px', overflow: 'auto' }}>
+          {employees.length > 0 ? (
+            employees.map((employee) => {
+              const isScheduled = isEmployeeScheduled(employee._id, shift, schedules);
+              return (
+                <ListItem
+                  key={`${shift}-${employee._id}`}
+                  disablePadding
+                  dense
+                  sx={{ py: 0 }}
+                >
+                  <ListItemButton
+                    onClick={() => handleQuickPanelEmployeeToggle(employee, shift, date, schedules, onAddSchedule, onRemoveSchedule)}
+                    dense
+                    sx={{ py: 0.5 }}
+                  >
+                    <Box
+                      sx={{
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        bgcolor: isScheduled ? 'success.main' : 'transparent',
+                        border: isScheduled ? 'none' : '1px solid #ccc',
+                        mr: 1
+                      }}
+                    />
+                    <ListItemText
+                      primary={employee.name}
+                      secondary={`${employee.department}`}
+                      primaryTypographyProps={getPrimaryTypographyProps(isScheduled)}
+                      secondaryTypographyProps={getSecondaryTypographyProps()}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              );
+            })
+          ) : (
+            <Typography variant="body2" color="text.secondary" align="center">
+              沒有可用的員工資料
+            </Typography>
+          )}
+        </List>
+      </Box>
+    );
+  };
+
+  // PropTypes for ShiftSection
+  ShiftSection.propTypes = {
+    shift: PropTypes.string.isRequired,
+    shiftLabel: PropTypes.string.isRequired,
+    employees: PropTypes.array.isRequired,
+    schedules: PropTypes.object.isRequired,
+    date: PropTypes.string.isRequired,
+    onAddSchedule: PropTypes.func.isRequired,
+    onRemoveSchedule: PropTypes.func.isRequired
+  };
+
   // 快速選擇面板元件
   const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) => {
     const [employees, setEmployees] = useState([]);
@@ -369,90 +535,24 @@ const Scheduling = () => {
       evening: '晚班'
     };
 
-    // 獲取班次顏色
-    const getShiftColor = (shift) => {
-      if (shift === 'morning') {
-        return 'success.dark';
-      } else if (shift === 'afternoon') {
-        return 'info.dark';
-      } else {
-        return 'warning.dark';
-      }
-    };
+    // Note: Using global getShiftColor and getShiftBgColor functions
 
-    // 獲取班次背景顏色
-    const getShiftBgColor = (shift) => {
-      if (shift === 'morning') {
-        return '#e7f5e7';
-      } else if (shift === 'afternoon') {
-        return '#e3f2fd';
-      } else {
-        return '#fff8e1';
-      }
-    };
-
-    // 獲取員工列表
+    // 獲取員工列表 - 使用外部函數
     useEffect(() => {
-      const fetchEmployees = async () => {
+      const loadEmployees = async () => {
         setLoading(true);
-        try {
-          const token = localStorage.getItem('token');
-          if (!token) {
-            throw new Error('未登入或權限不足');
-          }
-
-          const config = {
-            headers: {
-              'x-auth-token': token
-            }
-          };
-
-          const response = await axios.get('/api/employees', config);
-          // 過濾掉主管，只保留一般員工
-          const filteredEmployees = response.data.employees.filter(employee => {
-            const department = employee.department.toLowerCase();
-            return !department.includes('主管') &&
-                   !department.includes('經理') &&
-                   !department.includes('supervisor') &&
-                   !department.includes('manager') &&
-                   !department.includes('director') &&
-                   !department.includes('長');
-          });
-          setEmployees(filteredEmployees);
-          setError(null);
-        } catch (err) {
-          console.error('獲取員工資料失敗:', err);
-          setError(err.response?.data?.msg || '獲取員工資料失敗');
-        } finally {
-          setLoading(false);
-        }
+        const result = await fetchEmployeesList();
+        setEmployees(result.employees);
+        setError(result.error);
+        setLoading(false);
       };
-
-      fetchEmployees();
+      
+      loadEmployees();
     }, []);
 
     // Note: checkEmployeeScheduled function moved outside component
 
-    // 格式化日期顯示
-    const formatDate = (dateString) => {
-      try {
-        const date = new Date(dateString);
-        // 檢查日期是否有效
-        if (isNaN(date.getTime())) {
-          return dateString; // 如果無效，直接返回原始字串
-        }
-        
-        return date.toLocaleDateString('zh-TW', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          weekday: 'long'
-        });
-      } catch (error) {
-        console.error('日期格式化錯誤:', error);
-        return dateString; // 發生錯誤時返回原始字串
-      }
-    };
+    // Note: Using global formatDate function
 
     return (
       <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
@@ -473,77 +573,16 @@ const Scheduling = () => {
         ) : (
           <Box sx={{ flexGrow: 1, overflow: 'auto', maxHeight: 'calc(80vh - 150px)' }}>
             {shifts.map((shift) => (
-              <Box key={shift} sx={{ mb: 2 }}>
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  mb: 1,
-                  bgcolor: getShiftBgColor(shift),
-                  borderRadius: 1,
-                  px: 1,
-                  py: 0.5
-                }}>
-                  <Box sx={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    bgcolor: getShiftColor(shift),
-                    mr: 1
-                  }} />
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: getShiftColor(shift),
-                    }}
-                  >
-                    {shiftLabels[shift]}
-                  </Typography>
-                </Box>
-                
-                <List dense disablePadding sx={{ maxHeight: '150px', overflow: 'auto' }}>
-                  {employees.length > 0 ? (
-                    employees.map((employee) => {
-                      const isScheduled = isEmployeeScheduled(employee._id, shift, schedules);
-                      return (
-                        <ListItem
-                          key={`${shift}-${employee._id}`}
-                          disablePadding
-                          dense
-                          sx={{ py: 0 }}
-                        >
-                          <ListItemButton
-                            onClick={() => handleQuickPanelEmployeeToggle(employee, shift, date, schedules, onAddSchedule, onRemoveSchedule)}
-                            dense
-                            sx={{ py: 0.5 }}
-                          >
-                            <Box
-                              sx={{
-                                width: '12px',
-                                height: '12px',
-                                borderRadius: '50%',
-                                bgcolor: isScheduled ? 'success.main' : 'transparent',
-                                border: isScheduled ? 'none' : '1px solid #ccc',
-                                mr: 1
-                              }}
-                            />
-                            <ListItemText
-                              primary={employee.name}
-                              secondary={`${employee.department}`}
-                              primaryTypographyProps={getPrimaryTypographyProps(isScheduled)}
-                              secondaryTypographyProps={getSecondaryTypographyProps()}
-                            />
-                          </ListItemButton>
-                        </ListItem>
-                      );
-                    })
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" align="center">
-                      沒有可用的員工資料
-                    </Typography>
-                  )}
-                </List>
-              </Box>
+              <ShiftSection
+                key={shift}
+                shift={shift}
+                shiftLabel={shiftLabels[shift]}
+                employees={employees}
+                schedules={schedules}
+                date={date}
+                onAddSchedule={onAddSchedule}
+                onRemoveSchedule={onRemoveSchedule}
+              />
             ))}
           </Box>
         )}
