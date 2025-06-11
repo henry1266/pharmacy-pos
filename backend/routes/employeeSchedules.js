@@ -9,27 +9,57 @@ const mongoose = require('mongoose');
 // @route   GET api/employee-schedules
 // @desc    Get employee schedules with date range filter
 // @access  Private
-router.get('/', auth, async (req, res) => {
+router.get('/', [
+  auth,
+  [
+    check('startDate').optional().isISO8601().withMessage('開始日期格式無效'),
+    check('endDate').optional().isISO8601().withMessage('結束日期格式無效'),
+    check('employeeId').optional().custom(value => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error('員工ID格式無效');
+      }
+      return true;
+    })
+  ]
+], async (req, res) => {
   try {
+    // Validate request parameters
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { startDate, endDate, employeeId } = req.query;
     
-    // Build filter object
+    // Build filter object with validated data
     const filter = {};
     
     // Add date range filter if provided
     if (startDate && endDate) {
-      filter.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
+      try {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        
+        // Additional validation to ensure dates are valid
+        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+          return res.status(400).json({ msg: '無效的日期格式' });
+        }
+        
+        filter.date = {
+          $gte: startDateObj,
+          $lte: endDateObj
+        };
+      } catch (error) {
+        return res.status(400).json({ msg: '日期轉換錯誤' });
+      }
     }
     
-    // Add employee filter if provided
-    if (employeeId) {
-      filter.employeeId = employeeId;
+    // Add employee filter if provided and validated
+    if (employeeId && mongoose.Types.ObjectId.isValid(employeeId)) {
+      filter.employeeId = mongoose.Types.ObjectId(employeeId);
     }
     
-    const schedules = await EmployeeSchedule.find(filter.toString())
+    const schedules = await EmployeeSchedule.find(filter)
       .populate('employeeId', 'name department position')
       .sort({ date: 1, shift: 1 });
     
@@ -202,18 +232,44 @@ router.delete('/:id', auth, async (req, res) => {
 // @route   GET api/employee-schedules/by-date
 // @desc    Get schedules grouped by date
 // @access  Private
-router.get('/by-date', auth, async (req, res) => {
+router.get('/by-date', [
+  auth,
+  [
+    check('startDate').isISO8601().withMessage('開始日期格式無效'),
+    check('endDate').isISO8601().withMessage('結束日期格式無效')
+  ]
+], async (req, res) => {
   try {
+    // Validate request parameters
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { startDate, endDate } = req.query;
     
     if (!startDate || !endDate) {
       return res.status(400).json({ msg: '請提供開始和結束日期' });
     }
     
+    // Validate and convert dates
+    let startDateObj, endDateObj;
+    try {
+      startDateObj = new Date(startDate);
+      endDateObj = new Date(endDate);
+      
+      // Additional validation to ensure dates are valid
+      if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+        return res.status(400).json({ msg: '無效的日期格式' });
+      }
+    } catch (error) {
+      return res.status(400).json({ msg: '日期轉換錯誤' });
+    }
+    
     const schedules = await EmployeeSchedule.find({
       date: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        $gte: startDateObj,
+        $lte: endDateObj
       }
     }).populate('employeeId', 'name department position');
     
