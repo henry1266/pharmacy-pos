@@ -258,14 +258,10 @@ const Scheduling = () => {
 
   // 獲取員工姓名的最後一個字作為縮寫
   const getEmployeeAbbreviation = (employee) => {
-    if (!employee || !employee.name) return '';
-    return employee.name.charAt(employee.name.length - 1);
+    return employee?.name?.charAt(employee?.name?.length - 1) || '';
   };
 
-  // 獲取員工縮寫列表
-  const getEmployeeAbbreviations = (schedules) => {
-    return schedules.map(schedule => getEmployeeAbbreviation(schedule.employee));
-  };
+  // Note: Removed unused getEmployeeAbbreviations function
 
   // 生成隨機顏色 (基於員工ID)
   const getEmployeeColor = (employeeId) => {
@@ -298,6 +294,34 @@ const Scheduling = () => {
   // 格式化月份顯示
   const formatMonth = (date) => {
     return date.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' });
+  };
+
+  // 檢查員工是否已被排班在指定班次 - 提取到外部以便重用
+  const isEmployeeScheduled = (employeeId, shift, schedules) => {
+    return (schedules[shift] || []).some(
+      schedule => schedule.employee._id === employeeId
+    );
+  };
+
+  // 處理員工選擇 - 提取到外部以減少嵌套層級
+  const handleQuickPanelEmployeeToggle = async (employee, shift, date, schedules, onAddSchedule, onRemoveSchedule) => {
+    if (isEmployeeScheduled(employee._id, shift, schedules)) {
+      // 找到要刪除的排班記錄
+      const scheduleToRemove = schedules[shift].find(
+        schedule => schedule.employee._id === employee._id
+      );
+      
+      if (scheduleToRemove) {
+        await onRemoveSchedule(scheduleToRemove._id);
+      }
+    } else {
+      // 新增排班
+      await onAddSchedule({
+        date,
+        shift: shift,
+        employeeId: employee._id
+      });
+    }
   };
 
   // 快速選擇面板元件
@@ -354,32 +378,9 @@ const Scheduling = () => {
       fetchEmployees();
     }, []);
 
-    // 檢查員工是否已被排班在指定班次
-    const isEmployeeScheduled = (employeeId, shift) => {
-      return (schedules[shift] || []).some(
-        schedule => schedule.employee._id === employeeId
-      );
-    };
-
-    // 處理員工選擇
-    const handleEmployeeToggle = async (employee, shift) => {
-      if (isEmployeeScheduled(employee._id, shift)) {
-        // 找到要刪除的排班記錄
-        const scheduleToRemove = schedules[shift].find(
-          schedule => schedule.employee._id === employee._id
-        );
-        
-        if (scheduleToRemove) {
-          await onRemoveSchedule(scheduleToRemove._id);
-        }
-      } else {
-        // 新增排班
-        await onAddSchedule({
-          date,
-          shift: shift,
-          employeeId: employee._id
-        });
-      }
+    // 使用外部函數檢查員工是否已被排班在指定班次
+    const checkEmployeeScheduled = (employeeId, shift) => {
+      return isEmployeeScheduled(employeeId, shift, schedules);
     };
 
     // 格式化日期顯示
@@ -453,7 +454,7 @@ const Scheduling = () => {
                 <List dense disablePadding sx={{ maxHeight: '150px', overflow: 'auto' }}>
                   {employees.length > 0 ? (
                     employees.map((employee) => {
-                      const isScheduled = isEmployeeScheduled(employee._id, shift);
+                      const isScheduled = checkEmployeeScheduled(employee._id, shift);
                       return (
                         <ListItem
                           key={`${shift}-${employee._id}`}
@@ -462,7 +463,7 @@ const Scheduling = () => {
                           sx={{ py: 0 }}
                         >
                           <ListItemButton
-                            onClick={() => handleEmployeeToggle(employee, shift)}
+                            onClick={() => handleQuickPanelEmployeeToggle(employee, shift, date, schedules, onAddSchedule, onRemoveSchedule)}
                             dense
                             sx={{ py: 0.5 }}
                           >
@@ -510,6 +511,28 @@ const Scheduling = () => {
         </Box>
       </Paper>
     );
+  };
+
+  // 獲取日期格子的邊框樣式
+  const getBorderStyle = (date, editMode, selectedCell, index) => {
+    if (isToday(date)) {
+      return '1px solid';
+    } else if (editMode && selectedCell === index) {
+      return '1px dashed';
+    } else {
+      return 'none';
+    }
+  };
+
+  // 獲取日期格子的邊框顏色
+  const getBorderColor = (date, editMode, selectedCell, index) => {
+    if (isToday(date)) {
+      return 'primary.main';
+    } else if (editMode && selectedCell === index) {
+      return 'secondary.main';
+    } else {
+      return 'primary.main';
+    }
   };
 
   // 全局樣式覆蓋
@@ -614,16 +637,8 @@ const Scheduling = () => {
                     p: 1,
                     height: '130px',
                     bgcolor: dateObj.isCurrentMonth ? 'background.paper' : 'action.hover',
-                    border: isToday(dateObj.date)
-                      ? '1px solid'
-                      : (editMode && selectedCell === index)
-                        ? '1px dashed'
-                        : 'none',
-                    borderColor: isToday(dateObj.date)
-                      ? 'primary.main'
-                      : (editMode && selectedCell === index)
-                        ? 'secondary.main'
-                        : 'primary.main',
+                    border: getBorderStyle(dateObj.date, editMode, selectedCell, index),
+                    borderColor: getBorderColor(dateObj.date, editMode, selectedCell, index),
                     opacity: dateObj.isCurrentMonth ? 1 : 0.5,
                     cursor: 'pointer',
                     '&:hover': {
