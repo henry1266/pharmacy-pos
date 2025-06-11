@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios';
 import {
   Typography,
@@ -338,6 +339,28 @@ const Scheduling = () => {
       evening: '晚班'
     };
 
+    // 獲取班次顏色
+    const getShiftColor = (shift) => {
+      if (shift === 'morning') {
+        return 'success.dark';
+      } else if (shift === 'afternoon') {
+        return 'info.dark';
+      } else {
+        return 'warning.dark';
+      }
+    };
+
+    // 獲取班次背景顏色
+    const getShiftBgColor = (shift) => {
+      if (shift === 'morning') {
+        return '#e7f5e7';
+      } else if (shift === 'afternoon') {
+        return '#e3f2fd';
+      } else {
+        return '#fff8e1';
+      }
+    };
+
     // 獲取員工列表
     useEffect(() => {
       const fetchEmployees = async () => {
@@ -428,7 +451,7 @@ const Scheduling = () => {
                   display: 'flex',
                   alignItems: 'center',
                   mb: 1,
-                  bgcolor: shift === 'morning' ? '#e7f5e7' : shift === 'afternoon' ? '#e3f2fd' : '#fff8e1',
+                  bgcolor: getShiftBgColor(shift),
                   borderRadius: 1,
                   px: 1,
                   py: 0.5
@@ -437,14 +460,14 @@ const Scheduling = () => {
                     width: 16,
                     height: 16,
                     borderRadius: '50%',
-                    bgcolor: shift === 'morning' ? 'success.dark' : shift === 'afternoon' ? 'info.dark' : 'warning.dark',
+                    bgcolor: getShiftColor(shift),
                     mr: 1
                   }} />
                   <Typography
                     variant="subtitle1"
                     sx={{
                       fontWeight: 'bold',
-                      color: shift === 'morning' ? 'success.dark' : shift === 'afternoon' ? 'info.dark' : 'warning.dark',
+                      color: getShiftColor(shift),
                     }}
                   >
                     {shiftLabels[shift]}
@@ -511,6 +534,18 @@ const Scheduling = () => {
         </Box>
       </Paper>
     );
+  };
+
+  // PropTypes for QuickSelectPanel
+  QuickSelectPanel.propTypes = {
+    date: PropTypes.string.isRequired,
+    schedules: PropTypes.shape({
+      morning: PropTypes.array,
+      afternoon: PropTypes.array,
+      evening: PropTypes.array
+    }).isRequired,
+    onAddSchedule: PropTypes.func.isRequired,
+    onRemoveSchedule: PropTypes.func.isRequired
   };
 
   // 獲取日期格子的邊框樣式
