@@ -29,7 +29,7 @@ router.get('/', auth, async (req, res) => {
       filter.employeeId = employeeId;
     }
     
-    const schedules = await EmployeeSchedule.find(filter)
+    const schedules = await EmployeeSchedule.find(filter.toString())
       .populate('employeeId', 'name department position')
       .sort({ date: 1, shift: 1 });
     
