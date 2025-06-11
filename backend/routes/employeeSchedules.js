@@ -36,22 +36,18 @@ router.get('/', [
     
     // Add date range filter if provided
     if (startDate && endDate) {
-      try {
-        const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate);
-        
-        // Additional validation to ensure dates are valid
-        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-          return res.status(400).json({ msg: '無效的日期格式' });
-        }
-        
-        filter.date = {
-          $gte: startDateObj,
-          $lte: endDateObj
-        };
-      } catch (error) {
-        return res.status(400).json({ msg: '日期轉換錯誤' });
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(endDate);
+      
+      // Additional validation to ensure dates are valid
+      if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+        return res.status(400).json({ msg: '無效的日期格式' });
       }
+      
+      filter.date = {
+        $gte: startDateObj,
+        $lte: endDateObj
+      };
     }
     
     // Add employee filter if provided and validated
@@ -253,17 +249,12 @@ router.get('/by-date', [
     }
     
     // Validate and convert dates
-    let startDateObj, endDateObj;
-    try {
-      startDateObj = new Date(startDate);
-      endDateObj = new Date(endDate);
-      
-      // Additional validation to ensure dates are valid
-      if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-        return res.status(400).json({ msg: '無效的日期格式' });
-      }
-    } catch (error) {
-      return res.status(400).json({ msg: '日期轉換錯誤' });
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    
+    // Additional validation to ensure dates are valid
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      return res.status(400).json({ msg: '無效的日期格式' });
     }
     
     const schedules = await EmployeeSchedule.find({
