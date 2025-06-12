@@ -559,8 +559,20 @@ body {
   color: var(--text-light) !important;
 }
 
-.MuiListItemText-primary {
+/* Sidebar specific styling */
+.MuiDrawer-paper .MuiListItemText-primary {
   color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 500 !important;
+}
+
+/* Selected items in sidebar */
+.MuiDrawer-paper .Mui-selected .MuiListItemText-primary {
+  color: var(--text-light) !important;
+}
+
+/* All other MuiListItemText-primary elements outside the sidebar */
+.MuiListItemText-primary:not(.MuiDrawer-paper .MuiListItemText-primary) {
+  color: #000000 !important;
   font-weight: 500 !important;
 }
 

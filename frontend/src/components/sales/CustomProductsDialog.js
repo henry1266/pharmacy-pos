@@ -38,13 +38,33 @@ const CustomProductsDialog = ({
 
   // Filter products based on productIdsToShow and searchTerm
   useEffect(() => {
+    console.log("CustomProductsDialog - Props received:", {
+      allProductsCount: allProducts?.length || 0,
+      productIdsToShow: productIdsToShow || [],
+      shortcutName
+    });
+
     if (!allProducts || !productIdsToShow) {
+      console.log("Missing required data, cannot display products");
       setDisplayProducts([]);
       return;
     }
 
+    // Log product IDs for debugging
+    console.log("Product IDs to show:", productIdsToShow);
+    
+    // Check if all product IDs exist in allProducts
+    const missingProductIds = productIdsToShow.filter(id =>
+      !allProducts.some(p => p?._id === id)
+    );
+    
+    if (missingProductIds.length > 0) {
+      console.warn("Some product IDs are missing from allProducts:", missingProductIds);
+    }
+
     // 1. Get the products matching the IDs
     let productsInShortcut = allProducts?.filter(p => productIdsToShow?.includes(p?._id));
+    console.log("Found matching products:", productsInShortcut.length);
 
     // 2. Filter by search term if applicable
     if (searchTerm.trim() !== '') {
@@ -59,7 +79,7 @@ const CustomProductsDialog = ({
 
     setDisplayProducts(productsInShortcut);
 
-  }, [allProducts, productIdsToShow, searchTerm]);
+  }, [allProducts, productIdsToShow, searchTerm, shortcutName]);
 
   // Handle search input change
   const handleSearch = (e) => {
@@ -108,6 +128,11 @@ const CustomProductsDialog = ({
               <Typography variant="body1" color="textSecondary">
                 {searchTerm ? '沒有找到符合條件的商品' : '此快捷清單中沒有商品'}
               </Typography>
+              {productIdsToShow && productIdsToShow.length > 0 && (
+                <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                  注意: 有 {productIdsToShow.length} 個商品ID，但無法找到對應的商品資料
+                </Typography>
+              )}
             </Box>
           ) : (
             <Grid container spacing={2}>

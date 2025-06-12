@@ -91,6 +91,13 @@ const EditShortcutItemsDialog = ({ open, onClose, shortcut, allProducts, onSave 
           <CloseIcon />
         </IconButton>
       </DialogTitle>
+      <style>
+        {`
+          .MuiListItemText-primary {
+            color: #000000;
+          }
+        `}
+      </style>
       <DialogContent dividers>
         <Box sx={{ display: 'flex', mb: 2 }}>
           <Autocomplete
@@ -189,11 +196,12 @@ EditShortcutItemsDialog.propTypes = {
   onSave: PropTypes.func.isRequired
 };
 
-// --- Shortcut Button Manager --- (Main Component - Modified for API integration)
-const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
-  const [shortcuts, setShortcuts] = useState([]); // Initialize as empty, load from API
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
+// --- Shortcut Button Manager --- (Main Component - Using only default shortcuts)
+const ShortcutButtonManager = ({ onShortcutSelect, allProducts, isTestMode }) => {
+  // Always use default shortcuts instead of loading from API
+  const [shortcuts, setShortcuts] = useState(defaultShortcuts);
+  const [loading, setLoading] = useState(false); // No loading needed
+  const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
@@ -201,69 +209,41 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
   const [currentEditingShortcut, setCurrentEditingShortcut] = useState(null);
   const [newShortcutName, setNewShortcutName] = useState('');
 
-  // Function to save shortcuts to the backend
-  const saveShortcutsToBackend = useCallback(async (updatedShortcuts) => {
+  // Local storage key for shortcuts
+  const SHORTCUTS_STORAGE_KEY = 'pharmacy_pos_shortcuts';
+
+  // Function to save shortcuts to local storage instead of backend
+  const saveShortcutsToLocalStorage = useCallback((updatedShortcuts) => {
     try {
-      // The API expects the entire settings object. We only manage 'shortcuts' here.
-      // We should fetch the current settings, update the shortcuts part, and save.
-      // For simplicity now, we assume settings only contain shortcuts.
-      // A better approach would involve a global state or fetching current settings first.
-      const settingsToSave = { shortcuts: updatedShortcuts }; 
-      await axios.put(`${getApiBaseUrl()}/settings`, settingsToSave); 
+      localStorage.setItem(SHORTCUTS_STORAGE_KEY, JSON.stringify(updatedShortcuts));
       setSnackbar({ open: true, message: '快捷按鈕設定已儲存', severity: 'success' });
     } catch (err) {
-      console.error("Failed to save shortcuts to backend", err);
+      console.error("Failed to save shortcuts to local storage", err);
       setError('儲存快捷按鈕設定失敗');
       setSnackbar({ open: true, message: '儲存快捷按鈕設定失敗', severity: 'error' });
-      // Optionally revert state if save fails, or implement retry logic
     }
   }, []);
 
-  // Load shortcuts from backend on component mount
+  // Load shortcuts from local storage on component mount
   useEffect(() => {
-    const fetchSettings = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get(`${getApiBaseUrl()}/settings`);
-        // Assuming the settings object has a 'shortcuts' key
-        const loadedShortcuts = response.data?.shortcuts;
-        if (Array.isArray(loadedShortcuts) && loadedShortcuts.length > 0) {
-          setShortcuts(loadedShortcuts);
-        } else {
-          // If no shortcuts found or format is wrong, set default and save it
-          setShortcuts(defaultShortcuts);
-          // Save the default to backend if nothing existed
-          if (!loadedShortcuts) { 
-            await saveShortcutsToBackend(defaultShortcuts);
-          }
+    try {
+      const savedShortcuts = localStorage.getItem(SHORTCUTS_STORAGE_KEY);
+      if (savedShortcuts) {
+        const parsedShortcuts = JSON.parse(savedShortcuts);
+        if (Array.isArray(parsedShortcuts) && parsedShortcuts.length > 0) {
+          console.log("Using saved shortcuts from local storage");
+          setShortcuts(parsedShortcuts);
         }
-      } catch (err) {
-        console.error("Failed to load shortcuts from backend", err);
-        setError('無法載入快捷按鈕設定');
-        setSnackbar({ open: true, message: '無法載入快捷按鈕設定', severity: 'error' });
-        setShortcuts(defaultShortcuts); // Fallback to default on error
-      } finally {
-        setLoading(false);
+      } else {
+        console.log("No saved shortcuts found, using defaults");
       }
-    };
-
-    // Check if token exists before fetching (basic check)
-    const token = localStorage.getItem('token');
-    if (token) {
-        // Ensure axios default header is set (might be redundant if set globally on login)
-        axios.defaults.headers.common['x-auth-token'] = token;
-        fetchSettings();
-    } else {
-        // Handle case where user is not logged in (e.g., show message, disable component)
-        setError('用戶未登入，無法載入設定');
-        setLoading(false);
-        setShortcuts(defaultShortcuts); // Show default but maybe disable?
+    } catch (err) {
+      console.error("Error loading shortcuts from local storage", err);
+      // Keep using default shortcuts on error
     }
+  }, []);
 
-  }, [saveShortcutsToBackend]); // Add saveShortcutsToBackend dependency
-
-  // --- Handlers for managing shortcuts --- 
+  // --- Handlers for managing shortcuts ---
 
   const handleOpenManageDialog = () => {
     setManageDialogOpen(true);
@@ -283,7 +263,7 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
       };
       const updatedShortcuts = [...shortcuts, newShortcut];
       setShortcuts(updatedShortcuts);
-      saveShortcutsToBackend(updatedShortcuts); // Save to backend
+      saveShortcutsToLocalStorage(updatedShortcuts); // Save to local storage
       setNewShortcutName('');
     }
   };
@@ -291,7 +271,7 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
   const handleRemoveShortcut = (idToRemove) => {
     const updatedShortcuts = shortcuts.filter(s => s.id !== idToRemove);
     setShortcuts(updatedShortcuts);
-    saveShortcutsToBackend(updatedShortcuts); // Save to backend
+    saveShortcutsToLocalStorage(updatedShortcuts); // Save to local storage
   };
 
   const handleOpenEditItemsDialog = (shortcut) => {
@@ -309,7 +289,7 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
       s.id === shortcutId ? { ...s, productIds: updatedProductIds } : s
     );
     setShortcuts(updatedShortcuts);
-    saveShortcutsToBackend(updatedShortcuts); // Save to backend
+    saveShortcutsToLocalStorage(updatedShortcuts); // Save to local storage
   };
 
   const handleCloseSnackbar = () => {
@@ -354,6 +334,13 @@ const ShortcutButtonManager = ({ onShortcutSelect, allProducts }) => {
       {/* Dialog to Manage Shortcut Buttons */}
       <Dialog open={manageDialogOpen} onClose={handleCloseManageDialog} maxWidth="xs" fullWidth>
         <DialogTitle>管理快捷按鈕</DialogTitle>
+        <style>
+          {`
+            .MuiListItemText-primary {
+              color: #000000;
+            }
+          `}
+        </style>
         <DialogContent>
           <List sx={{ mb: 2 }}>
             {shortcuts.map((shortcut) => (
@@ -427,7 +414,13 @@ ShortcutButtonManager.propTypes = {
       healthInsuranceCode: PropTypes.string,
       sellingPrice: PropTypes.number
     })
-  ).isRequired
+  ).isRequired,
+  isTestMode: PropTypes.bool
+};
+
+// Default props
+ShortcutButtonManager.defaultProps = {
+  isTestMode: false
 };
 
 export default ShortcutButtonManager;

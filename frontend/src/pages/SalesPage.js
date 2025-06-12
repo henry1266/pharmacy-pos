@@ -140,7 +140,41 @@ const SalesPage = () => {
   };
 
   const handleShortcutSelect = (shortcut) => {
-    setSelectedShortcut(shortcut);
+    console.log("Shortcut selected:", shortcut);
+    
+    if (!shortcut || !shortcut.productIds || shortcut.productIds.length === 0) {
+      console.warn("Selected shortcut has no product IDs");
+      showSnackbar('此快捷按鈕沒有包含任何商品', 'warning');
+      return;
+    }
+    
+    // Check if products are loaded
+    if (!products || products.length === 0) {
+      console.warn("Products not loaded yet");
+      showSnackbar('產品資料尚未載入完成，請稍後再試', 'warning');
+      return;
+    }
+    
+    // Verify product IDs exist in the products array
+    const validProductIds = shortcut.productIds.filter(id =>
+      products.some(p => p._id === id)
+    );
+    
+    if (validProductIds.length === 0) {
+      console.warn("None of the shortcut product IDs match available products");
+      showSnackbar('找不到此快捷按鈕中的任何商品', 'error');
+      return;
+    }
+    
+    if (validProductIds.length < shortcut.productIds.length) {
+      console.warn(`Only ${validProductIds.length} of ${shortcut.productIds.length} products found`);
+      showSnackbar(`只找到 ${validProductIds.length} 個商品，部分商品可能已不存在`, 'warning');
+    }
+    
+    setSelectedShortcut({
+      ...shortcut,
+      productIds: validProductIds // Use only valid product IDs
+    });
     setCustomDialogOpen(true);
   };
 

@@ -15,9 +15,12 @@ module.exports = function (req, res, next) {
   
   // 從請求頭獲取 token
   const token = req.header("x-auth-token");
+  
+  console.log(`Auth middleware - Request path: ${req.originalUrl}`);
 
   // 檢查是否有 token
   if (!token) {
+    console.log("No token provided in request");
     // Allow access without token for specific routes if needed, but settings requires auth
     return res.status(401).json({ msg: "沒有權限，請先登入" });
   }
@@ -25,13 +28,23 @@ module.exports = function (req, res, next) {
   try {
     // 驗證 token
     // Use the correct config key for jwtSecret
+    console.log("Verifying token...");
     const decoded = jwt.verify(token, config.get("jwtSecret"));
+    
+    // Log decoded token information (excluding sensitive parts)
+    console.log("Token verified successfully. User ID:", decoded.user?.id);
+    
+    if (!decoded.user || !decoded.user.id) {
+      console.error("Token payload missing user ID");
+      return res.status(401).json({ msg: "Token 格式無效" });
+    }
 
     // 將用戶信息添加到請求對象
     req.user = decoded.user; // decoded.user should contain { id: userId }
     next();
   } catch (err) {
     console.error("Token 驗證失敗:", err.message); // Log the error for debugging
+    console.error("Token verification error details:", err);
     res.status(401).json({ msg: "Token 無效或已過期" });
   }
   

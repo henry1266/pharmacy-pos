@@ -44,14 +44,20 @@ const useSaleManagement = (showSnackbar) => {
   const handleSelectProduct = useCallback((product) => {
     if (!product) return;
     setCurrentSale(prevSale => {
-      const existingItemIndex = prevSale.items.findIndex(item => item.product === product._id);
+      // 確保使用嚴格比較並檢查產品代碼以避免影響其他產品
+      const existingItemIndex = prevSale.items.findIndex(item =>
+        item.product === product._id && item.code === product.code
+      );
+      
       let updatedItems;
       if (existingItemIndex >= 0) {
+        // 只修改匹配的產品項目
         updatedItems = [...prevSale.items];
         updatedItems[existingItemIndex].quantity += 1;
         updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
         showSnackbar(`已增加 ${product.name} 的數量`, 'success');
       } else {
+        // 添加新項目，不影響其他項目
         const newItem = {
           product: product._id,
           productDetails: product, // Keep details for reference if needed

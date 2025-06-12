@@ -92,6 +92,13 @@ const theme = createTheme({
         },
       },
     },
+    MuiListItemText: {
+      styleOverrides: {
+        primary: {
+          color: '#000000', // Set text color to black
+        },
+      },
+    },
   },
 });
 
