@@ -18,10 +18,10 @@ import {
   CircularProgress,
   Divider,
   Grid,
-  IconButton,
   Tooltip,
   Chip
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -694,6 +694,12 @@ const EmployeeAccountManager = ({ employeeId, employeeName, onAccountChange }) =
       </Dialog>
     </Paper>
   );
+};
+
+EmployeeAccountManager.propTypes = {
+  employeeId: PropTypes.string.isRequired,
+  employeeName: PropTypes.string.isRequired,
+  onAccountChange: PropTypes.func
 };
 
 export default EmployeeAccountManager;
