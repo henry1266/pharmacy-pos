@@ -28,8 +28,10 @@ import ShiftSelectionModal from './ShiftSelectionModal';
 /**
  * 員工排班系統元件
  * 以月曆方式顯示排班，點擊日期可選擇早中晚班人員
+ * @param {Object} props - 元件屬性
+ * @param {boolean} props.isAdmin - 是否為管理員
  */
-const Scheduling = () => {
+const Scheduling = ({ isAdmin = false }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -214,6 +216,11 @@ const Scheduling = () => {
 
   // 處理日期點擊
   const handleDateClick = (date) => {
+    // 只有管理員可以開啟編輯模式
+    if (!isAdmin) {
+      return;
+    }
+    
     // 創建一個新的日期對象，設置為當天的中午 (避免時區問題)
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
     setSelectedDate(normalizedDate);
@@ -647,6 +654,12 @@ const Scheduling = () => {
             員工排班系統
           </Typography>
           
+          {!isAdmin && (
+            <Alert severity="info" sx={{ my: 1, flexBasis: '100%' }}>
+              您正在以檢視模式查看排班表。如需修改排班，請聯繫管理員。
+            </Alert>
+          )}
+          
           {error && (
             <Alert severity="error" sx={{ my: 1, flexBasis: '100%' }}>
               {error}
@@ -674,14 +687,16 @@ const Scheduling = () => {
               今天
             </Button>
             
-            <Button
-              variant={editMode ? "contained" : "outlined"}
-              color={editMode ? "primary" : "secondary"}
-              startIcon={editMode ? <SaveIcon /> : <EditIcon />}
-              onClick={toggleEditMode}
-            >
-              {editMode ? '儲存' : '編輯模式'}
-            </Button>
+            {isAdmin && (
+              <Button
+                variant={editMode ? "contained" : "outlined"}
+                color={editMode ? "primary" : "secondary"}
+                startIcon={editMode ? <SaveIcon /> : <EditIcon />}
+                onClick={toggleEditMode}
+              >
+                {editMode ? '儲存' : '編輯模式'}
+              </Button>
+            )}
           </Box>
         </Box>
         
@@ -741,13 +756,13 @@ const Scheduling = () => {
                     }
                   }}
                   onClick={() => {
-                    if (editMode) {
+                    if (editMode && isAdmin) {
                       if (dateObj.isCurrentMonth) {
                         setSelectedCell(index);
                         setSelectedDate(dateObj.date);
                         setQuickSelectOpen(true);
                       }
-                    } else {
+                    } else if (isAdmin) {
                       dateObj.isCurrentMonth && handleDateClick(dateObj.date);
                     }
                   }}
@@ -888,6 +903,11 @@ const Scheduling = () => {
       )}
     </Container>
   );
+};
+
+// PropTypes for Scheduling
+Scheduling.propTypes = {
+  isAdmin: PropTypes.bool
 };
 
 export default Scheduling;

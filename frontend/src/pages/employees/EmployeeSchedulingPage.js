@@ -54,22 +54,6 @@ const EmployeeSchedulingPage = () => {
     );
   }
 
-  // 如果非管理員，顯示無權限訊息
-  if (!isAdmin) {
-    return (
-      <Container maxWidth="lg">
-        <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            您沒有權限訪問此頁面。只有管理員可以管理員工排班。
-          </Alert>
-          <Button variant="contained" color="primary" onClick={() => navigate('/dashboard')}>
-            返回儀表板
-          </Button>
-        </Paper>
-      </Container>
-    );
-  }
-
   // 如果有錯誤，顯示錯誤訊息
   if (error) {
     return (
@@ -86,7 +70,7 @@ const EmployeeSchedulingPage = () => {
     );
   }
 
-  // 管理員可見的內容
+  // 所有已登入用戶可見的內容
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 3, mb: 2 }}>
@@ -101,7 +85,7 @@ const EmployeeSchedulingPage = () => {
         </Breadcrumbs>
       </Box>
       
-      <Scheduling />
+      <Scheduling isAdmin={isAdmin} />
     </Container>
   );
 };

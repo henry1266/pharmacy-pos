@@ -29,6 +29,8 @@ import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settings page
+import AccountSettingsPage from './pages/settings/AccountSettingsPage'; // Import the account settings page
+import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage'; // Import the employee accounts management page
 
 // 員工管理頁面元件
 import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage'; // 員工基本資料頁面
@@ -81,6 +83,10 @@ const AppRouter = () => {
       
       {/* Settings routes (assuming they require login) */}
       <Route path="/settings/ip" element={<SettingsIpPage />} /> {/* Add the new IP settings route */}
+      <Route path="/settings/account" element={<AccountSettingsPage />} /> {/* Add the account settings route */}
+      <Route path="/settings/employee-accounts" element={<AdminRoute />}>
+        <Route path="" element={<EmployeeAccountsPage />} /> {/* Add the employee accounts management route */}
+      </Route>
       <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
       {/* Purchase Order routes - Protected by AdminRoute */}
@@ -98,15 +104,16 @@ const AppRouter = () => {
       <Route path="/shipping-orders/edit/:id" element={<ShippingOrderFormPage />} />
       <Route path="/shipping-orders/:id" element={<ShippingOrderDetailPage />} />
       
-      {/* 員工管理路由 - 受 AdminRoute 保護 */}
+      {/* 員工排班頁面 - 所有已認證用戶可訪問 */}
+      <Route path="/employees/scheduling" element={<EmployeeSchedulingPage />} />
+      
+      {/* 其他員工管理路由 - 受 AdminRoute 保護 */}
       <Route path="/employees" element={<AdminRoute />}>
         {/* 員工列表頁面 */}
         <Route path="" element={<EmployeeListPage />} />
         {/* 員工基本資料頁面 - 新增與編輯 */}
         <Route path="basic-info/new" element={<EmployeeBasicInfoPage />} />
         <Route path="basic-info/:id" element={<EmployeeBasicInfoPage />} />
-        {/* 員工排班頁面 */}
-        <Route path="scheduling" element={<EmployeeSchedulingPage />} />
         {/* 員工加班頁面 */}
         <Route path="overtime" element={<Overtime />} />
       </Route>

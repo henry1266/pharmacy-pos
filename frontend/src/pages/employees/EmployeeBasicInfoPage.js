@@ -14,6 +14,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import EmployeeForm from '../../components/employees/EmployeeForm';
+import EmployeeAccountManager from '../../components/employees/EmployeeAccountManager';
 
 /**
  * 員工基本資料頁面
@@ -207,12 +208,28 @@ const EmployeeBasicInfoPage = () => {
           請填寫員工基本資料表，所有標記 * 的欄位為必填項目。
         </Typography>
         
-        <EmployeeForm 
-          onSubmit={handleSubmit} 
-          initialData={employee} 
+        <EmployeeForm
+          onSubmit={handleSubmit}
+          initialData={employee}
           isSubmitting={submitting}
         />
       </Paper>
+
+      {/* 只在編輯模式下顯示帳號管理元件 */}
+      {isEditMode && employee && (
+        <EmployeeAccountManager
+          employeeId={employee._id}
+          employeeName={employee.name}
+          onAccountChange={() => {
+            // 當帳號變更時，可以在這裡處理相關邏輯
+            setSnackbar({
+              open: true,
+              message: '員工帳號已更新',
+              severity: 'success'
+            });
+          }}
+        />
+      )}
 
       {/* 提示訊息 */}
       <Snackbar

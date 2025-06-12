@@ -1,5 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Typography, Paper, Grid, TextField, Button, Snackbar, Alert, CircularProgress, FormControlLabel, Checkbox } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  TextField,
+  Button,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  FormControlLabel,
+  Checkbox,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
 // 移除未使用的 useNavigate 引入
 // Removed axios import
 import authService from '../services/authService'; // Import the auth service
@@ -9,7 +25,12 @@ import { loadSlim } from "@tsparticles/slim";
 import { motion, AnimatePresence } from "framer-motion";
 
 const LoginPage = () => {
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [credentials, setCredentials] = useState({
+    loginType: 'username', // 'username' 或 'email'
+    username: '',
+    email: '',
+    password: ''
+  });
   // 移除未使用的 error 變數
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
@@ -59,8 +80,13 @@ const LoginPage = () => {
       setFormVisible(false);
       setTimeout(() => {
         // In test mode, set mock token and user info for dashboard access
-        localStorage.setItem('token', 'test-mode-token'); 
-        localStorage.setItem('user', JSON.stringify({ name: 'Test User', email: 'test@example.com', role: '測試模式' })); // Role set to Test Mode
+        localStorage.setItem('token', 'test-mode-token');
+        localStorage.setItem('user', JSON.stringify({
+          name: 'Test User',
+          username: 'test',
+          email: 'test@example.com',
+          role: '測試模式'
+        })); // Role set to Test Mode
         localStorage.setItem('isTestMode', 'true'); // Indicate test mode is active
         localStorage.setItem('loginTime', Math.floor(Date.now() / 1000).toString()); // Store login time
         window.location.replace('/dashboard');
@@ -155,18 +181,51 @@ const LoginPage = () => {
                 <form onSubmit={handleSubmit}>
                   <Grid container spacing={2}>
                     <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="電子郵件"
-                        name="email"
-                        type="email"
-                        value={credentials.email}
-                        onChange={handleChange}
-                        required={!isTestMode} // Not required in test mode
-                        disabled={loading || isTestMode} // Disabled in test mode
-                        InputProps={{ sx: { color: '#fff' } }}
-                        InputLabelProps={{ sx: { color: '#bbb' } }}
-                      />
+                      <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel id="login-type-label" sx={{ color: '#bbb' }}>登入方式</InputLabel>
+                        <Select
+                          labelId="login-type-label"
+                          name="loginType"
+                          value={credentials.loginType}
+                          onChange={handleChange}
+                          disabled={loading || isTestMode}
+                          label="登入方式"
+                          sx={{ color: '#fff' }}
+                        >
+                          <MenuItem value="username">用戶名</MenuItem>
+                          <MenuItem value="email">電子郵件</MenuItem>
+                        </Select>
+                      </FormControl>
+                      
+                      {credentials.loginType === 'username' ? (
+                        <TextField
+                          fullWidth
+                          label="用戶名"
+                          name="username"
+                          type="text"
+                          value={credentials.username}
+                          onChange={handleChange}
+                          required={!isTestMode && credentials.loginType === 'username'}
+                          disabled={loading || isTestMode || credentials.loginType !== 'username'}
+                          InputProps={{ sx: { color: '#fff' } }}
+                          InputLabelProps={{ sx: { color: '#bbb' } }}
+                          sx={{ mb: 2 }}
+                        />
+                      ) : (
+                        <TextField
+                          fullWidth
+                          label="電子郵件"
+                          name="email"
+                          type="text"
+                          value={credentials.email}
+                          onChange={handleChange}
+                          required={!isTestMode && credentials.loginType === 'email'}
+                          disabled={loading || isTestMode || credentials.loginType !== 'email'}
+                          InputProps={{ sx: { color: '#fff' } }}
+                          InputLabelProps={{ sx: { color: '#bbb' } }}
+                          sx={{ mb: 2 }}
+                        />
+                      )}
                     </Grid>
                     <Grid item xs={12}>
                       <TextField
