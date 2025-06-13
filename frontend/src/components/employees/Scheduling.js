@@ -15,7 +15,10 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemButton
+  ListItemButton,
+  Dialog,
+  DialogActions,
+  DialogContent
 } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -38,6 +41,14 @@ const Scheduling = ({ isAdmin = false }) => {
   const [editMode, setEditMode] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null); // 儲存目前選中的日期格子索引
   const [quickSelectOpen, setQuickSelectOpen] = useState(false);
+  const [quickSelectDialogOpen, setQuickSelectDialogOpen] = useState(false);
+  
+  // 班次時間定義
+  const shiftTimes = {
+    morning: { start: '08:30', end: '12:00' },
+    afternoon: { start: '15:00', end: '18:00' },
+    evening: { start: '19:00', end: '20:30' }
+  };
   const {
     schedulesGroupedByDate,
     loading,
@@ -173,7 +184,7 @@ const Scheduling = ({ isAdmin = false }) => {
     
     if (calendarGrid[newIndex].isCurrentMonth) {
       setSelectedDate(calendarGrid[newIndex].date);
-      setQuickSelectOpen(true);
+      setQuickSelectDialogOpen(true);
     } else {
       setQuickSelectOpen(false);
     }
@@ -190,7 +201,7 @@ const Scheduling = ({ isAdmin = false }) => {
     if (e.key === 'Enter') {
       if (calendarGrid[selectedCell].isCurrentMonth) {
         setSelectedDate(calendarGrid[selectedCell].date);
-        setQuickSelectOpen(true);
+        setQuickSelectDialogOpen(true);
       }
       return;
     }
@@ -528,6 +539,40 @@ const Scheduling = ({ isAdmin = false }) => {
     onRemoveSchedule: PropTypes.func.isRequired
   };
 
+  // 一鍵排班功能 - 自動將所有可用員工排入早班和午班
+  const handleQuickScheduleAllEmployees = async (date, schedules, employees, addScheduleFunc) => {
+    if (!employees || employees.length === 0) return;
+    
+    try {
+      // 獲取目前尚未排班的員工
+      const morningShift = 'morning';
+      const afternoonShift = 'afternoon';
+      
+      // 為每個尚未排班的員工添加早班和午班
+      for (const employee of employees) {
+        // 檢查員工是否已經被排入早班
+        if (!isEmployeeScheduled(employee._id, morningShift, schedules)) {
+          await addScheduleFunc({
+            date,
+            shift: morningShift,
+            employeeId: employee._id
+          });
+        }
+        
+        // 檢查員工是否已經被排入午班
+        if (!isEmployeeScheduled(employee._id, afternoonShift, schedules)) {
+          await addScheduleFunc({
+            date,
+            shift: afternoonShift,
+            employeeId: employee._id
+          });
+        }
+      }
+    } catch (err) {
+      console.error('一鍵排班失敗:', err);
+    }
+  };
+
   // 快速選擇面板元件
   const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) => {
     const [employees, setEmployees] = useState([]);
@@ -563,9 +608,19 @@ const Scheduling = ({ isAdmin = false }) => {
 
     return (
       <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
-        <Typography variant="h6" gutterBottom sx={{ borderBottom: 1, borderColor: 'divider', pb: 1 }}>
-          {formatDate(date)} 快速排班
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 1, borderColor: 'divider', pb: 1 }}>
+          <Typography variant="h6">
+            {formatDate(date)} 快速排班
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={() => handleQuickScheduleAllEmployees(date, schedules, employees, onAddSchedule)}
+          >
+            一鍵排班
+          </Button>
+        </Box>
         
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -637,6 +692,58 @@ const Scheduling = ({ isAdmin = false }) => {
     }
   };
 
+  // 計算班次工時
+  const calculateShiftHours = (shift) => {
+    const { start, end } = shiftTimes[shift];
+    const [startHour, startMinute] = start.split(':').map(Number);
+    const [endHour, endMinute] = end.split(':').map(Number);
+    
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = endHour * 60 + endMinute;
+    
+    return (endTimeInMinutes - startTimeInMinutes) / 60;
+  };
+  
+  // 計算每位員工的本月工時
+  const calculateEmployeeMonthlyHours = () => {
+    // 創建一個對象來存儲每位員工的工時
+    const employeeHours = {};
+    const employeeNames = {};
+    
+    // 遍歷所有排班記錄
+    Object.keys(schedulesGroupedByDate).forEach(dateStr => {
+      const schedules = schedulesGroupedByDate[dateStr];
+      
+      // 遍歷每個班次
+      ['morning', 'afternoon', 'evening'].forEach(shift => {
+        if (schedules[shift] && schedules[shift].length > 0) {
+          // 計算該班次的工時
+          const shiftHours = calculateShiftHours(shift);
+          
+          // 為每位排班的員工添加工時
+          schedules[shift].forEach(schedule => {
+            const employeeId = schedule.employee._id;
+            const employeeName = schedule.employee.name;
+            
+            if (!employeeHours[employeeId]) {
+              employeeHours[employeeId] = 0;
+              employeeNames[employeeId] = employeeName;
+            }
+            
+            employeeHours[employeeId] += shiftHours;
+          });
+        }
+      });
+    });
+    
+    // 將結果轉換為數組格式
+    return Object.keys(employeeHours).map(employeeId => ({
+      employeeId,
+      name: employeeNames[employeeId],
+      hours: employeeHours[employeeId].toFixed(1)
+    })).sort((a, b) => b.hours - a.hours); // 按工時降序排序
+  };
+
   // 全局樣式覆蓋
   const globalStyles = {
     '.MuiListItemText-primary': {
@@ -645,11 +752,11 @@ const Scheduling = ({ isAdmin = false }) => {
   };
 
   return (
-    <Container maxWidth="lg" sx={globalStyles}>
-      <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
+    <Container maxWidth={false} sx={{...globalStyles, px: { xs: 1, sm: 2, md: 3 }}}>
+      <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
 
         
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
           <Typography variant="h5" component="h5" sx={{ mr: 3 }}>
             員工排班系統
           </Typography>
@@ -705,33 +812,56 @@ const Scheduling = ({ isAdmin = false }) => {
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={2}>
-            {/* 編輯模式下顯示快速選擇面板 */}
-            {editMode && quickSelectOpen && selectedDate && (
-              <Grid item xs={12} md={4}>
-                <QuickSelectPanel
-                  date={formatDateString(selectedDate)}
-                  schedules={getSchedulesForDate(selectedDate)}
-                  onAddSchedule={handleAddSchedule}
-                  onRemoveSchedule={handleRemoveSchedule}
-                />
-              </Grid>
-            )}
+          <Grid container spacing={0.5}>
+            {/* 左側員工工時統計 */}
+            <Grid item xs={12} md={1.5} lg={1.2}>
+              <Paper elevation={2} sx={{ p: 1, height: '100%' }}>
+                <Typography variant="h6" gutterBottom>本月員工工時</Typography>
+                <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5,
+                  maxHeight: 'calc(100vh - 250px)',
+                  overflow: 'auto'
+                }}>
+                  {calculateEmployeeMonthlyHours().map(({ employeeId, name, hours }) => (
+                    <Box
+                      key={employeeId}
+                      sx={{
+                        p: 1.5,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Typography variant="body2">{name}</Typography>
+                      <Typography variant="body1" fontWeight="bold">{hours} 小時</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Paper>
+            </Grid>
             
-            {/* 日曆部分 */}
-            <Grid item xs={12} md={editMode && quickSelectOpen ? 8 : 12}>
-              <Grid container spacing={1}>
+            {/* 右側內容區域 */}
+            <Grid item xs={12} md={10.5} lg={10.8}>
+              {/* 編輯模式下不再顯示內嵌的快速選擇面板，改為彈出框 */}
+              
+              {/* 日曆部分 */}
+              <Grid container spacing={0.3}>
             {/* 星期標題 */}
             {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
               <Grid item xs={12/7} key={`weekday-${day}`}>
                 <Box sx={{
-                  p: 1,
+                  p: 0.5,
                   textAlign: 'center',
                   fontWeight: 'bold',
                   bgcolor: 'primary.main',
                   color: 'white',
                   borderRadius: '4px 4px 0 0',
-                  fontSize: '1.1rem'
+                  fontSize: '1rem'
                 }}>
                   {day}
                 </Box>
@@ -744,8 +874,8 @@ const Scheduling = ({ isAdmin = false }) => {
                 <Paper
                   elevation={1}
                   sx={{
-                    p: 1,
-                    height: '130px',
+                    p: 0.5,
+                    height: '115px',
                     bgcolor: dateObj.isCurrentMonth ? 'background.paper' : 'action.hover',
                     border: getBorderStyle(dateObj.date, editMode, selectedCell, index),
                     borderColor: getBorderColor(dateObj.date, editMode, selectedCell, index),
@@ -760,7 +890,7 @@ const Scheduling = ({ isAdmin = false }) => {
                       if (dateObj.isCurrentMonth) {
                         setSelectedCell(index);
                         setSelectedDate(dateObj.date);
-                        setQuickSelectOpen(true);
+                        setQuickSelectDialogOpen(true);
                       }
                     } else if (isAdmin) {
                       dateObj.isCurrentMonth && handleDateClick(dateObj.date);
@@ -768,7 +898,7 @@ const Scheduling = ({ isAdmin = false }) => {
                   }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body1" sx={{ fontSize: '1.1rem', fontWeight: 'medium' }}>
+                    <Typography variant="body1" sx={{ fontSize: '1rem', fontWeight: 'medium' }}>
                       {dateObj.day}
                     </Typography>
                     
@@ -790,7 +920,7 @@ const Scheduling = ({ isAdmin = false }) => {
                       {getSchedulesForDate(dateObj.date).morning.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).morning.map(s => s.employee.name).join(', ')}>
                           <Box sx={{ color: 'success.dark', display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>早:&nbsp;</Typography>
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>早:&nbsp;</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                               {getSchedulesForDate(dateObj.date).morning.map((schedule) => (
                                 <Box
@@ -800,12 +930,12 @@ const Scheduling = ({ isAdmin = false }) => {
                                     border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
-                                    width: '26px',
-                                    height: '26px',
+                                    width: '24px',
+                                    height: '24px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '1rem',
+                                    fontSize: '0.9rem',
                                     color: 'text.primary',
                                     fontWeight: 'bold'
                                   }}
@@ -821,7 +951,7 @@ const Scheduling = ({ isAdmin = false }) => {
                       {getSchedulesForDate(dateObj.date).afternoon.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).afternoon.map(s => s.employee.name).join(', ')}>
                           <Box sx={{ color: 'info.dark', display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>中:&nbsp;</Typography>
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>中:&nbsp;</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                               {getSchedulesForDate(dateObj.date).afternoon.map((schedule) => (
                                 <Box
@@ -831,12 +961,12 @@ const Scheduling = ({ isAdmin = false }) => {
                                     border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
-                                    width: '26px',
-                                    height: '26px',
+                                    width: '24px',
+                                    height: '24px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '1rem',
+                                    fontSize: '0.9rem',
                                     color: 'text.primary',
                                     fontWeight: 'bold'
                                   }}
@@ -852,7 +982,7 @@ const Scheduling = ({ isAdmin = false }) => {
                       {getSchedulesForDate(dateObj.date).evening.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).evening.map(s => s.employee.name).join(', ')}>
                           <Box sx={{ color: 'warning.dark', display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>晚:&nbsp;</Typography>
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>晚:&nbsp;</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                               {getSchedulesForDate(dateObj.date).evening.map((schedule) => (
                                 <Box
@@ -862,12 +992,12 @@ const Scheduling = ({ isAdmin = false }) => {
                                     border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
-                                    width: '26px',
-                                    height: '26px',
+                                    width: '24px',
+                                    height: '24px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '1rem',
+                                    fontSize: '0.9rem',
                                     color: 'text.primary',
                                     fontWeight: 'bold'
                                   }}
@@ -900,6 +1030,30 @@ const Scheduling = ({ isAdmin = false }) => {
           onAddSchedule={handleAddSchedule}
           onRemoveSchedule={handleRemoveSchedule}
         />
+      )}
+      
+      {/* 快速排班彈出框 */}
+      {selectedDate && (
+        <Dialog
+          open={quickSelectDialogOpen}
+          onClose={() => setQuickSelectDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogContent sx={{ p: 0 }}>
+            <QuickSelectPanel
+              date={formatDateString(selectedDate)}
+              schedules={getSchedulesForDate(selectedDate)}
+              onAddSchedule={handleAddSchedule}
+              onRemoveSchedule={handleRemoveSchedule}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setQuickSelectDialogOpen(false)} color="primary">
+              關閉
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
     </Container>
   );

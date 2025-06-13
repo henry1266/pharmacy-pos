@@ -50,6 +50,13 @@ const ShiftSelectionModal = ({
     afternoon: '中班',
     evening: '晚班'
   };
+  
+  // 班次時間定義
+  const shiftTimes = {
+    morning: { start: '08:30', end: '12:00' },
+    afternoon: { start: '15:00', end: '18:00' },
+    evening: { start: '19:00', end: '20:30' }
+  };
 
   // 獲取員工列表
   useEffect(() => {
@@ -203,14 +210,14 @@ const ShiftSelectionModal = ({
           textColor="primary"
           sx={{ mb: 2 }}
         >
-          <Tab label="早班" />
-          <Tab label="中班" />
-          <Tab label="晚班" />
+          <Tab label={`早班 (${shiftTimes.morning.start}-${shiftTimes.morning.end})`} />
+          <Tab label={`中班 (${shiftTimes.afternoon.start}-${shiftTimes.afternoon.end})`} />
+          <Tab label={`晚班 (${shiftTimes.evening.start}-${shiftTimes.evening.end})`} />
         </Tabs>
         
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            {shiftLabels[shifts[tabValue]]}排班人員
+            {shiftLabels[shifts[tabValue]]} ({shiftTimes[shifts[tabValue]].start}-{shiftTimes[shifts[tabValue]].end}) 排班人員
           </Typography>
           
           {loading ? (
