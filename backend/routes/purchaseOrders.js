@@ -119,7 +119,7 @@ async function checkPurchaseOrderExists(poid) {
  */
 async function validateAndSetProductIds(items) {
   for (const item of items) {
-    if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
+    if (!item.did || !item.dname || item.dquantity === undefined || item.dquantity === null || item.dquantity === '' || item.dtotalCost === undefined || item.dtotalCost === null || item.dtotalCost === '') {
       return { valid: false, message: '藥品項目資料不完整' };
     }
 

@@ -32,7 +32,7 @@ const ProductItemForm = ({
   const calculateAndUpdateDQuantity = () => {
     const pkgQty = parseFloat(currentItem.packageQuantity) || 0;
     const boxQty = parseFloat(currentItem.boxQuantity) || 0;
-    if (pkgQty > 0 || boxQty > 0) {
+    if (pkgQty >= 0 || boxQty >= 0) {
       const totalQty = pkgQty * boxQty;
       handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
     } else if (activeInput !== 'dquantity') {
@@ -44,7 +44,7 @@ const ProductItemForm = ({
   const handleMainQuantityChange = (e) => {
     const { value } = e.target;
     handleItemInputChange({ target: { name: 'dquantity', value } });
-    if (value !== '' && parseFloat(value) > 0) {
+    if (value !== '') {
       handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
       handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
     }
@@ -151,7 +151,7 @@ const ProductItemForm = ({
               onChange={handleMainQuantityChange}
               onFocus={handleFocus}
               onKeyDown={handleQuantityKeyDown}
-              inputProps={{ min: "0.01", step: "0.01" }}
+              inputProps={{ min: "0", step: "0.01" }}
               disabled={mainQuantityDisabled}
             />
           </Grid>
@@ -166,7 +166,7 @@ const ProductItemForm = ({
               onFocus={handleFocus}
               onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
               onKeyDown={handleQuantityKeyDown}
-              inputProps={{ min: "1" }}
+              inputProps={{ min: "0" }}
               disabled={subQuantitiesDisabled}
               size="small"
             />
@@ -185,7 +185,7 @@ const ProductItemForm = ({
               onFocus={handleFocus}
               onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
               onKeyDown={handleQuantityKeyDown}
-              inputProps={{ min: "1" }}
+              inputProps={{ min: "0" }}
               disabled={subQuantitiesDisabled}
               size="small"
             />

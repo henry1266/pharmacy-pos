@@ -43,7 +43,7 @@ const usePurchaseOrderItems = ({
   }, []);
 
   const handleAddItem = useCallback(async () => {
-    if (!currentItem.did || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
+    if (!currentItem.did || !currentItem.dname || currentItem.dquantity === undefined || currentItem.dquantity === null || currentItem.dquantity === '' || currentItem.dtotalCost === '') {
       showSnackbar('請填寫完整的藥品項目資料', 'error');
       return;
     }
@@ -80,7 +80,7 @@ const usePurchaseOrderItems = ({
   }, [formData.items]);
 
   const handleSaveEditItem = useCallback(async () => {
-    if (!editingItem?.did || !editingItem?.dname || !editingItem?.dquantity || editingItem?.dtotalCost === '') {
+    if (!editingItem?.did || !editingItem?.dname || editingItem?.dquantity === undefined || editingItem?.dquantity === null || editingItem?.dquantity === '' || editingItem?.dtotalCost === '') {
       showSnackbar('請填寫完整的藥品項目資料', 'error');
       return;
     }

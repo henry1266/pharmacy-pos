@@ -42,7 +42,7 @@ const PriceTooltip = ({
 
   // 生成進價提示文本
   const getPriceTooltipText = () => {
-    if (!currentItem.product || !currentItem.dquantity) return "請先選擇產品並輸入數量";
+    if (!currentItem.product || currentItem.dquantity === undefined || currentItem.dquantity === null || currentItem.dquantity === '') return "請先選擇產品並輸入數量";
     
     const purchasePrice = getProductPurchasePrice();
     const totalCost = Math.round(calculateTotalCost(currentItem.dquantity));
@@ -62,7 +62,7 @@ const PriceTooltip = ({
   // 處理FIFO模擬按鈕點擊
   const handleSimulateFIFO = async () => {
     // 檢查是否已選擇產品和輸入數量
-    if (!currentItem.product || !currentItem.dquantity) {
+    if (!currentItem.product || currentItem.dquantity === undefined || currentItem.dquantity === null || currentItem.dquantity === '') {
       setError('請先選擇產品並輸入數量');
       setSimulationDialogOpen(true);
       return;
@@ -121,7 +121,7 @@ const PriceTooltip = ({
             onClick={handleSimulateFIFO}
             fullWidth
             sx={{ mb: 1 }}
-            disabled={!currentItem.product || !currentItem.dquantity}
+            disabled={!currentItem.product || currentItem.dquantity === undefined || currentItem.dquantity === null || currentItem.dquantity === ''}
           >
             FIFO模擬計算
           </Button>
@@ -150,14 +150,14 @@ const PriceTooltip = ({
                   event.preventDefault();
                   
                   // 如果總成本為空且已選擇產品和輸入數量，則觸發FIFO模擬按鈕的點擊
-                  if (currentItem.dtotalCost === '' && currentItem.product && currentItem.dquantity) {
+                  if (currentItem.dtotalCost === '' && currentItem.product && (currentItem.dquantity !== undefined && currentItem.dquantity !== null && currentItem.dquantity !== '')) {
                     console.log('總成本為空，觸發FIFO模擬按鈕點擊');
                     handleSimulateFIFO();
                     return;
                   }
                   
                   // 如果所有必填欄位都已填寫，則添加項目
-                  if (currentItem.did && currentItem.dname && currentItem.dquantity && currentItem.dtotalCost !== '' && isInventorySufficient()) {
+                  if (currentItem.did && currentItem.dname && (currentItem.dquantity !== undefined && currentItem.dquantity !== null && currentItem.dquantity !== '') && currentItem.dtotalCost !== '' && isInventorySufficient()) {
                     handleAddItem();
                     // 添加項目後，將焦點移回商品選擇欄位
                     setTimeout(() => {

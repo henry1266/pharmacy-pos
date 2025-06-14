@@ -195,7 +195,7 @@ const PurchaseOrderEditPage = () => {
   };
 
   const handleAddItem = () => {
-    if (!currentItem.product || !currentItem.dname || !currentItem.dquantity || currentItem.dtotalCost === '') {
+    if (!currentItem.product || !currentItem.dname || currentItem.dquantity === undefined || currentItem.dquantity === null || currentItem.dquantity === '' || currentItem.dtotalCost === '') {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料 (藥品、數量、總成本)', severity: 'error' });
       return;
     }
@@ -332,7 +332,7 @@ const PurchaseOrderEditPage = () => {
   };
 
   const handleSaveEditItem = () => {
-    if (!editingItem?.product || !editingItem?.dname || !editingItem?.dquantity || editingItem?.dtotalCost === '') {
+    if (!editingItem?.product || !editingItem?.dname || editingItem?.dquantity === undefined || editingItem?.dquantity === null || editingItem?.dquantity === '' || editingItem?.dtotalCost === '') {
       setSnackbar({ open: true, message: '請填寫完整的藥品項目資料', severity: 'error' });
       return;
     }

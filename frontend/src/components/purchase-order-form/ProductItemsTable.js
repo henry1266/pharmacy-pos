@@ -116,7 +116,7 @@ const ProductItemsTable = ({
                       type="number"
                       value={editingItem.dquantity}
                       onChange={handleEditingItemChange}
-                      inputProps={{ min: 1 }}
+                      inputProps={{ min: 0 }}
                     />
                   </TableCell>
                   <TableCell align="right">
