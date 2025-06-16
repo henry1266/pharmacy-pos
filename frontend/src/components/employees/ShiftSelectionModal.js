@@ -125,12 +125,19 @@ const ShiftSelectionModal = ({
     const currentShift = shifts[tabValue];
     
     try {
-      await onAddSchedule({
+      // 創建排班數據對象
+      const scheduleData = {
         date,
         shift: currentShift,
-        employeeId: selectedEmployee,
-        leaveType: selectedLeaveType
-      });
+        employeeId: selectedEmployee
+      };
+      
+      // 只有在 selectedLeaveType 不為 null 時才添加 leaveType 屬性
+      if (selectedLeaveType) {
+        scheduleData.leaveType = selectedLeaveType;
+      }
+      
+      await onAddSchedule(scheduleData);
       
       // 重置選擇
       setSelectedEmployee('');
@@ -276,13 +283,13 @@ const ShiftSelectionModal = ({
                         <em>正常排班</em>
                       </MenuItem>
                       <MenuItem value="sick">
-                        病假 (計入工時)
+                        病假 (獨立計算)
                       </MenuItem>
                       <MenuItem value="personal">
-                        事假 (不計入工時)
+                        特休 (獨立計算)
                       </MenuItem>
                       <MenuItem value="overtime">
-                        加班 (單獨計算)
+                        加班 (獨立計算)
                       </MenuItem>
                     </Select>
                   </FormControl>
@@ -334,7 +341,7 @@ const ShiftSelectionModal = ({
                                        schedule.leaveType === 'personal' ? 'warning.dark' : 'purple.dark'
                               }}>
                                 {schedule.leaveType === 'sick' ? '病假' :
-                                 schedule.leaveType === 'personal' ? '事假' : '加班'}
+                                 schedule.leaveType === 'personal' ? '特休' : '加班'}
                               </Box>
                             )}
                           </>
