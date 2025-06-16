@@ -215,7 +215,7 @@ const EmployeeAccountsPage = () => {
     try {
       // 確保選擇的員工沒有帳號
       const employee = employees.find(emp => emp._id === formData.employeeId);
-      if (employee && employee.account) {
+      if (employee?.account) {
         setError('此員工已有帳號，請選擇其他員工');
         setSubmitting(false);
         return;
@@ -411,8 +411,7 @@ const EmployeeAccountsPage = () => {
             <Typography sx={{ ml: 2 }}>載入中...</Typography>
           </Box>
         ) : (
-          <>
-            <TableContainer>
+          <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -491,7 +490,6 @@ const EmployeeAccountsPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-          </>
         )}
       </Paper>
 

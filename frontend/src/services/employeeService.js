@@ -101,11 +101,17 @@ export const getEmployeesWithAccountStatus = async () => {
           account: response.data
         });
       } catch (error) {
-        // 如果獲取帳號失敗，表示該員工沒有帳號
-        employeesWithAccounts.push({
-          ...employee,
-          account: null
-        });
+        // 只有當錯誤是 404 Not Found（表示員工沒有帳號）時才處理
+        if (error.response && error.response.status === 404) {
+          employeesWithAccounts.push({
+            ...employee,
+            account: null
+          });
+        } else {
+          // 其他錯誤需要記錄並重新拋出
+          console.error(`獲取員工 ${employee.name} (${employee._id}) 帳號時發生錯誤:`, error);
+          throw error;
+        }
       }
     }
     
