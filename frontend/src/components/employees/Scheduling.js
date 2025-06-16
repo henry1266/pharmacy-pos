@@ -409,127 +409,19 @@ const Scheduling = ({ isAdmin = false }) => {
 
 
   // ShiftSection 組件已移至獨立檔案
-
-  // 一鍵排班功能 - 自動將所有可用員工排入早班和午班
-  const handleQuickScheduleAllEmployees = async (date, schedules, employees, addScheduleFunc, leaveType = null) => {
-    if (!employees || employees.length === 0) return false;
-    
-    try {
-      console.log('開始一鍵排班，日期:', date, '請假類型:', leaveType);
-      
-      // 解析日期並獲取月份資訊
-      const { year, month, day } = parseDateString(date);
-      
-      // 為員工添加排班
-      const addedSchedules = await scheduleEmployeesForShifts(
-        employees,
-        schedules,
-        date,
-        addScheduleFunc,
-        leaveType
-      );
-      
-      // 重新獲取排班資料
-      await refreshScheduleData(year, month);
-      
-      return addedSchedules.length > 0;
-    } catch (err) {
-      console.error('一鍵排班失敗:', err);
-      return false;
-    }
-  };
-
-  // 解析日期字符串
-  const parseDateString = (dateStr) => {
-    const dateParts = dateStr.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]) - 1; // 月份從0開始
-    const day = parseInt(dateParts[2]);
-    
-    console.log(`日期解析: 年=${year}, 月=${month + 1}, 日=${day}`);
-    return { year, month, day };
-  };
-
-  // 為員工添加排班
-  const scheduleEmployeesForShifts = async (employees, schedules, date, addScheduleFunc, leaveType) => {
-    const morningShift = 'morning';
-    const afternoonShift = 'afternoon';
-    const addedSchedules = [];
-    
-    for (const employee of employees) {
-      // 添加早班
-      if (!isEmployeeScheduled(employee._id, morningShift, schedules)) {
-        const success = await addShiftForEmployee(
-          employee,
-          date,
-          morningShift,
-          addScheduleFunc,
-          leaveType
-        );
-        if (success) {
-          addedSchedules.push({ employee: employee.name, shift: morningShift });
-        }
-      }
-      
-      // 添加午班
-      if (!isEmployeeScheduled(employee._id, afternoonShift, schedules)) {
-        const success = await addShiftForEmployee(
-          employee,
-          date,
-          afternoonShift,
-          addScheduleFunc,
-          leaveType
-        );
-        if (success) {
-          addedSchedules.push({ employee: employee.name, shift: afternoonShift });
-        }
-      }
-    }
-    
-    console.log(`一鍵排班完成，共添加 ${addedSchedules.length} 個排班記錄`);
-    return addedSchedules;
-  };
-
-  // 為單個員工添加單個班次
-  const addShiftForEmployee = async (employee, date, shift, addScheduleFunc, leaveType) => {
-    const scheduleData = {
-      date,
-      shift,
-      employeeId: employee._id
-    };
-    
-    // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
-    if (leaveType) {
-      scheduleData.leaveType = leaveType;
-      console.log(`為員工 ${employee.name} 添加${shift === 'morning' ? '早班' : '午班'}，請假類型: ${leaveType}`);
+  
+  // 根據請假類型獲取邊框顏色
+  const getBorderColorByLeaveType = (schedule) => {
+    if (schedule.leaveType === 'sick') {
+      return 'info.main';
+    } else if (schedule.leaveType === 'personal') {
+      return 'warning.main';
     } else {
-      console.log(`為員工 ${employee.name} 添加${shift === 'morning' ? '早班' : '午班'}，正常排班`);
+      return getEmployeeColor(schedule.employee._id);
     }
-    
-    return await addScheduleFunc(scheduleData);
   };
 
-  // 重新獲取排班資料
-  const refreshScheduleData = async (year, month) => {
-    console.log('一鍵排班完成，重新獲取排班資料');
-    
-    // 獲取當前月份的完整日期範圍
-    const monthStartDate = new Date(year, month, 1);
-    const monthEndDate = new Date(year, month + 1, 0);
-    
-    const startDateStr = formatDateString(monthStartDate);
-    const endDateStr = formatDateString(monthEndDate);
-    
-    console.log(`重新獲取排班資料: ${startDateStr} 至 ${endDateStr}`);
-    await fetchSchedulesByDate(startDateStr, endDateStr);
-    
-    // 等待一段時間，確保資料已經更新
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // 再次獲取排班資料，確保資料最新
-    console.log(`再次獲取排班資料，確保資料最新`);
-    await fetchSchedulesByDate(startDateStr, endDateStr);
-  };
+
 
   // QuickSelectPanel 組件已移至獨立檔案
 
@@ -843,11 +735,7 @@ const Scheduling = ({ isAdmin = false }) => {
                                       if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
                                       return 'transparent'; // 加班不填滿背景
                                     })(),
-                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${
-                                      schedule.leaveType === 'sick' ? 'info.main' :
-                                      schedule.leaveType === 'personal' ? 'warning.main' :
-                                      getEmployeeColor(schedule.employee._id)
-                                    }`,
+                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
                                     width: '24px',
@@ -885,11 +773,7 @@ const Scheduling = ({ isAdmin = false }) => {
                                       if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
                                       return 'transparent'; // 加班不填滿背景
                                     })(),
-                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${
-                                      schedule.leaveType === 'sick' ? 'info.main' :
-                                      schedule.leaveType === 'personal' ? 'warning.main' :
-                                      getEmployeeColor(schedule.employee._id)
-                                    }`,
+                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
                                     width: '24px',
@@ -929,11 +813,7 @@ const Scheduling = ({ isAdmin = false }) => {
                                     })(),
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
-                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${
-                                      schedule.leaveType === 'sick' ? 'info.main' :
-                                      schedule.leaveType === 'personal' ? 'warning.main' :
-                                      getEmployeeColor(schedule.employee._id)
-                                    }`,
+                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
                                     width: '24px',
                                     height: '24px',
                                     display: 'flex',
