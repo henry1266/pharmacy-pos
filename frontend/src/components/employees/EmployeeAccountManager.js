@@ -319,6 +319,117 @@ const EmployeeAccountManager = ({ employeeId, employeeName, onAccountChange }) =
     }
   };
 
+  // 渲染提示訊息內容
+  const renderAlertContent = () => {
+    if (error && !error.includes('尚未建立帳號')) {
+      return (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      );
+    } else if (successMessage) {
+      return (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {successMessage}
+        </Alert>
+      );
+    }
+    return null;
+  };
+
+  // 渲染帳號內容
+  const renderAccountContent = () => {
+    if (loading) {
+      return null;
+    }
+    
+    if (!account) {
+      return (
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography color="textSecondary" sx={{ mb: 2 }}>
+            {employeeName} 目前沒有系統帳號
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+            建立帳號後，員工可以使用電子郵件和密碼登入系統
+          </Typography>
+        </Box>
+      );
+    }
+    
+    return (
+      <Box>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="textSecondary">
+              帳號名稱
+            </Typography>
+            <Typography variant="body1">{account.name}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="textSecondary">
+              用戶名
+            </Typography>
+            <Typography variant="body1">{account.username}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="textSecondary">
+              角色
+            </Typography>
+            <Chip
+              label={getRoleName(account.role)}
+              color={getRoleColor(account.role)}
+              size="small"
+              sx={{ mt: 0.5 }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle2" color="textSecondary">
+              創建日期
+            </Typography>
+            <Typography variant="body1">
+              {new Date(account.date).toLocaleDateString()}
+            </Typography>
+          </Grid>
+        </Grid>
+
+        <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+          <Tooltip title="編輯帳號">
+            <Button
+              variant="outlined"
+              startIcon={<EditIcon />}
+              onClick={handleOpenEditDialog}
+              size="small"
+            >
+              編輯
+            </Button>
+          </Tooltip>
+          <Tooltip title="重設密碼">
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<LockResetIcon />}
+              onClick={handleOpenResetPasswordDialog}
+              size="small"
+            >
+              重設密碼
+            </Button>
+          </Tooltip>
+          <Tooltip title="刪除帳號">
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleOpenDeleteDialog}
+              size="small"
+            >
+              刪除
+            </Button>
+          </Tooltip>
+        </Box>
+      </Box>
+    );
+  };
+
   return (
     <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -344,97 +455,11 @@ const EmployeeAccountManager = ({ employeeId, employeeName, onAccountChange }) =
           <CircularProgress size={24} />
           <Typography sx={{ ml: 2 }}>載入中...</Typography>
         </Box>
-      ) : error && !error.includes('尚未建立帳號') ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      ) : successMessage ? (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {successMessage}
-        </Alert>
-      ) : null}
+      ) : (
+        renderAlertContent()
+      )}
 
-      {!loading && !account ? (
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography color="textSecondary" sx={{ mb: 2 }}>
-            {employeeName} 目前沒有系統帳號
-          </Typography>
-          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-            建立帳號後，員工可以使用電子郵件和密碼登入系統
-          </Typography>
-        </Box>
-      ) : !loading && account ? (
-        <Box>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" color="textSecondary">
-                帳號名稱
-              </Typography>
-              <Typography variant="body1">{account.name}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" color="textSecondary">
-                用戶名
-              </Typography>
-              <Typography variant="body1">{account.username}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" color="textSecondary">
-                角色
-              </Typography>
-              <Chip 
-                label={getRoleName(account.role)} 
-                color={getRoleColor(account.role)} 
-                size="small" 
-                sx={{ mt: 0.5 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" color="textSecondary">
-                創建日期
-              </Typography>
-              <Typography variant="body1">
-                {new Date(account.date).toLocaleDateString()}
-              </Typography>
-            </Grid>
-          </Grid>
-
-          <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
-            <Tooltip title="編輯帳號">
-              <Button
-                variant="outlined"
-                startIcon={<EditIcon />}
-                onClick={handleOpenEditDialog}
-                size="small"
-              >
-                編輯
-              </Button>
-            </Tooltip>
-            <Tooltip title="重設密碼">
-              <Button
-                variant="outlined"
-                color="warning"
-                startIcon={<LockResetIcon />}
-                onClick={handleOpenResetPasswordDialog}
-                size="small"
-              >
-                重設密碼
-              </Button>
-            </Tooltip>
-            <Tooltip title="刪除帳號">
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={handleOpenDeleteDialog}
-                size="small"
-              >
-                刪除
-              </Button>
-            </Tooltip>
-          </Box>
-        </Box>
-      ) : null}
+      {renderAccountContent()}
 
       {/* 創建帳號對話框 */}
       <Dialog open={createDialogOpen} onClose={handleCloseDialogs} maxWidth="sm" fullWidth>

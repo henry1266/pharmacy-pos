@@ -390,6 +390,14 @@ const Scheduling = ({ isAdmin = false }) => {
     return date.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' });
   };
 
+  // 獲取請假類型的顯示文字
+  const getLeaveTypeText = (leaveType) => {
+    if (!leaveType) return '';
+    if (leaveType === 'sick') return ' (病假)';
+    if (leaveType === 'personal') return ' (特休)';
+    return ' (加班)';
+  };
+
   // 格式化日期顯示 - 提取到外部以減少嵌套層級
   const formatDate = (dateString) => {
     try {
@@ -632,99 +640,123 @@ const Scheduling = ({ isAdmin = false }) => {
 
   // 一鍵排班功能 - 自動將所有可用員工排入早班和午班
   const handleQuickScheduleAllEmployees = async (date, schedules, employees, addScheduleFunc, leaveType = null) => {
-    if (!employees || employees.length === 0) return;
+    if (!employees || employees.length === 0) return false;
     
     try {
       console.log('開始一鍵排班，日期:', date, '請假類型:', leaveType);
       
-      // 解析日期字符串，獲取年、月、日
-      const dateParts = date.split('-');
-      const year = parseInt(dateParts[0]);
-      const month = parseInt(dateParts[1]) - 1; // 月份從0開始
-      const day = parseInt(dateParts[2]);
+      // 解析日期並獲取月份資訊
+      const { year, month, day } = parseDateString(date);
       
-      console.log(`一鍵排班日期解析: 年=${year}, 月=${month + 1}, 日=${day}`);
+      // 為員工添加排班
+      const addedSchedules = await scheduleEmployeesForShifts(
+        employees,
+        schedules,
+        date,
+        addScheduleFunc,
+        leaveType
+      );
       
-      // 獲取目前尚未排班的員工
-      const morningShift = 'morning';
-      const afternoonShift = 'afternoon';
-      
-      // 為每個尚未排班的員工添加早班和午班
-      const addedSchedules = [];
-      
-      for (const employee of employees) {
-        // 檢查員工是否已經被排入早班
-        if (!isEmployeeScheduled(employee._id, morningShift, schedules)) {
-          const morningScheduleData = {
-            date,
-            shift: morningShift,
-            employeeId: employee._id
-          };
-          
-          // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
-          if (leaveType) {
-            morningScheduleData.leaveType = leaveType;
-            console.log(`為員工 ${employee.name} 添加早班，請假類型: ${leaveType}`);
-          } else {
-            console.log(`為員工 ${employee.name} 添加早班，正常排班`);
-          }
-          
-          const result = await addScheduleFunc(morningScheduleData);
-          if (result) {
-            addedSchedules.push({ employee: employee.name, shift: 'morning' });
-          }
-        }
-        
-        // 檢查員工是否已經被排入午班
-        if (!isEmployeeScheduled(employee._id, afternoonShift, schedules)) {
-          const afternoonScheduleData = {
-            date,
-            shift: afternoonShift,
-            employeeId: employee._id
-          };
-          
-          // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
-          if (leaveType) {
-            afternoonScheduleData.leaveType = leaveType;
-            console.log(`為員工 ${employee.name} 添加午班，請假類型: ${leaveType}`);
-          } else {
-            console.log(`為員工 ${employee.name} 添加午班，正常排班`);
-          }
-          
-          const result = await addScheduleFunc(afternoonScheduleData);
-          if (result) {
-            addedSchedules.push({ employee: employee.name, shift: 'afternoon' });
-          }
-        }
-      }
-      
-      console.log(`一鍵排班完成，共添加 ${addedSchedules.length} 個排班記錄`);
-      
-      // 一鍵排班完成後，強制重新獲取排班資料
-      console.log('一鍵排班完成，重新獲取排班資料');
-      
-      // 獲取當前月份的完整日期範圍
-      const monthStartDate = new Date(year, month, 1);
-      const monthEndDate = new Date(year, month + 1, 0);
-      
-      const startDateStr = formatDateString(monthStartDate);
-      const endDateStr = formatDateString(monthEndDate);
-      
-      console.log(`重新獲取排班資料: ${startDateStr} 至 ${endDateStr}`);
-      await fetchSchedulesByDate(startDateStr, endDateStr);
-      
-      // 等待一段時間，確保資料已經更新
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // 再次獲取排班資料，確保資料最新
-      console.log(`再次獲取排班資料，確保資料最新`);
-      await fetchSchedulesByDate(startDateStr, endDateStr);
+      // 重新獲取排班資料
+      await refreshScheduleData(year, month);
       
       return addedSchedules.length > 0;
     } catch (err) {
       console.error('一鍵排班失敗:', err);
       return false;
     }
+  };
+
+  // 解析日期字符串
+  const parseDateString = (dateStr) => {
+    const dateParts = dateStr.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]) - 1; // 月份從0開始
+    const day = parseInt(dateParts[2]);
+    
+    console.log(`日期解析: 年=${year}, 月=${month + 1}, 日=${day}`);
+    return { year, month, day };
+  };
+
+  // 為員工添加排班
+  const scheduleEmployeesForShifts = async (employees, schedules, date, addScheduleFunc, leaveType) => {
+    const morningShift = 'morning';
+    const afternoonShift = 'afternoon';
+    const addedSchedules = [];
+    
+    for (const employee of employees) {
+      // 添加早班
+      if (!isEmployeeScheduled(employee._id, morningShift, schedules)) {
+        const success = await addShiftForEmployee(
+          employee,
+          date,
+          morningShift,
+          addScheduleFunc,
+          leaveType
+        );
+        if (success) {
+          addedSchedules.push({ employee: employee.name, shift: morningShift });
+        }
+      }
+      
+      // 添加午班
+      if (!isEmployeeScheduled(employee._id, afternoonShift, schedules)) {
+        const success = await addShiftForEmployee(
+          employee,
+          date,
+          afternoonShift,
+          addScheduleFunc,
+          leaveType
+        );
+        if (success) {
+          addedSchedules.push({ employee: employee.name, shift: afternoonShift });
+        }
+      }
+    }
+    
+    console.log(`一鍵排班完成，共添加 ${addedSchedules.length} 個排班記錄`);
+    return addedSchedules;
+  };
+
+  // 為單個員工添加單個班次
+  const addShiftForEmployee = async (employee, date, shift, addScheduleFunc, leaveType) => {
+    const scheduleData = {
+      date,
+      shift,
+      employeeId: employee._id
+    };
+    
+    // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
+    if (leaveType) {
+      scheduleData.leaveType = leaveType;
+      console.log(`為員工 ${employee.name} 添加${shift === 'morning' ? '早班' : '午班'}，請假類型: ${leaveType}`);
+    } else {
+      console.log(`為員工 ${employee.name} 添加${shift === 'morning' ? '早班' : '午班'}，正常排班`);
+    }
+    
+    return await addScheduleFunc(scheduleData);
+  };
+
+  // 重新獲取排班資料
+  const refreshScheduleData = async (year, month) => {
+    console.log('一鍵排班完成，重新獲取排班資料');
+    
+    // 獲取當前月份的完整日期範圍
+    const monthStartDate = new Date(year, month, 1);
+    const monthEndDate = new Date(year, month + 1, 0);
+    
+    const startDateStr = formatDateString(monthStartDate);
+    const endDateStr = formatDateString(monthEndDate);
+    
+    console.log(`重新獲取排班資料: ${startDateStr} 至 ${endDateStr}`);
+    await fetchSchedulesByDate(startDateStr, endDateStr);
+    
+    // 等待一段時間，確保資料已經更新
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 再次獲取排班資料，確保資料最新
+    console.log(`再次獲取排班資料，確保資料最新`);
+    await fetchSchedulesByDate(startDateStr, endDateStr);
   };
 
   // 快速選擇面板元件
@@ -1147,10 +1179,7 @@ const Scheduling = ({ isAdmin = false }) => {
                     <Box sx={{ alignItems: 'center' }}>
                       {getSchedulesForDate(dateObj.date).morning.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).morning.map(s =>
-                          `${s.employee.name}${s.leaveType ?
-                            (s.leaveType === 'sick' ? ' (病假)' :
-                             s.leaveType === 'personal' ? ' (特休)' :
-                             ' (加班)') : ''}`
+                          `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
                         ).join(', ')}>
                           <Box sx={{ color: 'success.dark', display: 'flex', alignItems: 'center' }}>
                             <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>早:&nbsp;</Typography>
@@ -1192,10 +1221,7 @@ const Scheduling = ({ isAdmin = false }) => {
                       
                       {getSchedulesForDate(dateObj.date).afternoon.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).afternoon.map(s =>
-                          `${s.employee.name}${s.leaveType ?
-                            (s.leaveType === 'sick' ? ' (病假)' :
-                             s.leaveType === 'personal' ? ' (特休)' :
-                             ' (加班)') : ''}`
+                          `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
                         ).join(', ')}>
                           <Box sx={{ color: 'info.dark', display: 'flex', alignItems: 'center' }}>
                             <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>中:&nbsp;</Typography>
@@ -1237,10 +1263,7 @@ const Scheduling = ({ isAdmin = false }) => {
                       
                       {getSchedulesForDate(dateObj.date).evening.length > 0 && (
                         <Tooltip title={getSchedulesForDate(dateObj.date).evening.map(s =>
-                          `${s.employee.name}${s.leaveType ?
-                            (s.leaveType === 'sick' ? ' (病假)' :
-                             s.leaveType === 'personal' ? ' (特休)' :
-                             ' (加班)') : ''}`
+                          `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
                         ).join(', ')}>
                           <Box sx={{ color: 'warning.dark', display: 'flex', alignItems: 'center' }}>
                             <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>晚:&nbsp;</Typography>
