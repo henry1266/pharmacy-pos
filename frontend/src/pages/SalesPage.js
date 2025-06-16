@@ -142,7 +142,7 @@ const SalesPage = () => {
   const handleShortcutSelect = (shortcut) => {
     console.log("Shortcut selected:", shortcut);
     
-    if (!shortcut || !shortcut.productIds || shortcut.productIds.length === 0) {
+    if (!shortcut?.productIds?.length) {
       console.warn("Selected shortcut has no product IDs");
       showSnackbar('此快捷按鈕沒有包含任何商品', 'warning');
       return;

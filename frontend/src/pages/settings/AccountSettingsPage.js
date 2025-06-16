@@ -31,6 +31,148 @@ const AccountSettingsPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [alert, setAlert] = useState({ show: false, message: '', severity: 'info' });
 
+  // 渲染 Paper 內容
+  const renderPaperContent = () => {
+    if (isLoading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress size={24} />
+          <Typography sx={{ ml: 2 }}>載入中...</Typography>
+        </Box>
+      );
+    }
+    
+    if (!currentUser) {
+      return (
+        <Alert severity="warning">
+          無法獲取用戶資訊，請確認您已登入系統
+        </Alert>
+      );
+    }
+    
+    return (
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Typography variant="h6" gutterBottom>基本資訊</Typography>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            姓名
+          </Typography>
+          <Typography variant="body1">
+            {currentUser.name}
+          </Typography>
+        </Grid>
+        
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            角色
+          </Typography>
+          <Chip
+            label={getRoleName(currentUser.role)}
+            color={getRoleColor(currentUser.role)}
+            size="small"
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="h6" gutterBottom>帳號設定</Typography>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="用戶名"
+            variant="outlined"
+            name="username"
+            value={formData.username}
+            onChange={handleInputChange}
+            error={!!formErrors.username}
+            helperText={formErrors.username || "用於系統登入的用戶名"}
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="電子郵件 (選填)"
+            variant="outlined"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            error={!!formErrors.email}
+            helperText={formErrors.email}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="h6" gutterBottom>變更密碼</Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            如不需變更密碼，請留空以下欄位
+          </Typography>
+        </Grid>
+        
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="當前密碼"
+            variant="outlined"
+            name="currentPassword"
+            type="password"
+            value={formData.currentPassword}
+            onChange={handleInputChange}
+            error={!!formErrors.currentPassword}
+            helperText={formErrors.currentPassword}
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="新密碼"
+            variant="outlined"
+            name="newPassword"
+            type="password"
+            value={formData.newPassword}
+            onChange={handleInputChange}
+            error={!!formErrors.newPassword}
+            helperText={formErrors.newPassword || "密碼長度至少需要6個字符"}
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="確認新密碼"
+            variant="outlined"
+            name="confirmPassword"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            error={!!formErrors.confirmPassword}
+            helperText={formErrors.confirmPassword}
+          />
+        </Grid>
+
+        <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSaveAccount}
+            disabled={isSaving}
+            startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isSaving ? '保存中...' : '保存設定'}
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  };
+
   // 獲取當前用戶資訊
   useEffect(() => {
     fetchCurrentUser();
@@ -211,136 +353,7 @@ const AccountSettingsPage = () => {
       )}
 
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress size={24} />
-            <Typography sx={{ ml: 2 }}>載入中...</Typography>
-          </Box>
-        ) : currentUser ? (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>基本資訊</Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                姓名
-              </Typography>
-              <Typography variant="body1">
-                {currentUser.name}
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                角色
-              </Typography>
-              <Chip 
-                label={getRoleName(currentUser.role)} 
-                color={getRoleColor(currentUser.role)} 
-                size="small" 
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>帳號設定</Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="用戶名"
-                variant="outlined"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                error={!!formErrors.username}
-                helperText={formErrors.username || "用於系統登入的用戶名"}
-              />
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="電子郵件 (選填)"
-                variant="outlined"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                error={!!formErrors.email}
-                helperText={formErrors.email}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>變更密碼</Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                如不需變更密碼，請留空以下欄位
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="當前密碼"
-                variant="outlined"
-                name="currentPassword"
-                type="password"
-                value={formData.currentPassword}
-                onChange={handleInputChange}
-                error={!!formErrors.currentPassword}
-                helperText={formErrors.currentPassword}
-              />
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="新密碼"
-                variant="outlined"
-                name="newPassword"
-                type="password"
-                value={formData.newPassword}
-                onChange={handleInputChange}
-                error={!!formErrors.newPassword}
-                helperText={formErrors.newPassword || "密碼長度至少需要6個字符"}
-              />
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="確認新密碼"
-                variant="outlined"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                error={!!formErrors.confirmPassword}
-                helperText={formErrors.confirmPassword}
-              />
-            </Grid>
-
-            <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button 
-                variant="contained" 
-                color="primary"
-                onClick={handleSaveAccount}
-                disabled={isSaving}
-                startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
-              >
-                {isSaving ? '保存中...' : '保存設定'}
-              </Button>
-            </Grid>
-          </Grid>
-        ) : (
-          <Alert severity="warning">
-            無法獲取用戶資訊，請確認您已登入系統
-          </Alert>
-        )}
+        {renderPaperContent()}
       </Paper>
     </Box>
   );
