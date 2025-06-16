@@ -407,60 +407,6 @@ const Scheduling = ({ isAdmin = false }) => {
     };
   };
 
-  // 獲取班次顏色
-  const getShiftColor = (shift) => {
-    if (shift === 'morning') {
-      return 'success.dark';
-    } else if (shift === 'afternoon') {
-      return 'info.dark';
-    } else {
-      return 'warning.dark';
-    }
-  };
-
-  // 獲取班次背景顏色
-  const getShiftBgColor = (shift) => {
-    if (shift === 'morning') {
-      return '#e7f5e7';
-    } else if (shift === 'afternoon') {
-      return '#e3f2fd';
-    } else {
-      return '#fff8e1';
-    }
-  };
-
-  // 獲取員工列表函數 - 提取到外部以減少嵌套層級
-  const fetchEmployeesList = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('未登入或權限不足');
-      }
-
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-
-      const response = await axios.get('/api/employees', config);
-      // 過濾掉主管，只保留一般員工
-      const filteredEmployees = response.data.employees.filter(employee => {
-        const department = employee.department.toLowerCase();
-        return !department.includes('主管') &&
-               !department.includes('經理') &&
-               !department.includes('supervisor') &&
-               !department.includes('manager') &&
-               !department.includes('director') &&
-               !department.includes('長');
-      });
-      
-      return { employees: filteredEmployees, error: null };
-    } catch (err) {
-      console.error('獲取員工資料失敗:', err);
-      return { employees: [], error: err.response?.data?.msg || '獲取員工資料失敗' };
-    }
-  };
 
   // ShiftSection 組件已移至獨立檔案
 
