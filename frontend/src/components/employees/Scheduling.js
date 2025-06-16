@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import axios from 'axios';
 import {
   Typography,
   Paper,
@@ -392,20 +391,6 @@ const Scheduling = ({ isAdmin = false }) => {
   };
 
 
-  // 檢查員工是否已被排班在指定班次 - 提取到外部以便重用
-  const isEmployeeScheduled = (employeeId, shift, schedules) => {
-    return (schedules[shift] || []).some(
-      schedule => schedule.employee._id === employeeId
-    );
-  };
-
-
-  // 獲取次要文字樣式
-  const getSecondaryTypographyProps = () => {
-    return {
-      fontSize: '0.75rem'
-    };
-  };
 
 
   // ShiftSection 組件已移至獨立檔案
