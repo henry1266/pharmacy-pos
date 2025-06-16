@@ -33,27 +33,7 @@ const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) 
     evening: '晚班'
   };
 
-  // 獲取班次顏色
-  const getShiftColor = (shift) => {
-    if (shift === 'morning') {
-      return 'success.dark';
-    } else if (shift === 'afternoon') {
-      return 'info.dark';
-    } else {
-      return 'warning.dark';
-    }
-  };
-
-  // 獲取班次背景顏色
-  const getShiftBgColor = (shift) => {
-    if (shift === 'morning') {
-      return '#e7f5e7';
-    } else if (shift === 'afternoon') {
-      return '#e3f2fd';
-    } else {
-      return '#fff8e1';
-    }
-  };
+  // 這些函數已移至 ShiftSection 組件中，這裡不再需要
 
   // 獲取員工列表函數
   const fetchEmployeesList = async () => {
@@ -105,7 +85,7 @@ const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) 
       console.log('開始一鍵排班，日期:', date, '請假類型:', leaveType);
       
       // 解析日期並獲取月份資訊
-      const { year, month, day } = parseDateString(date);
+      const { year, month } = parseDateString(date);
       
       // 為員工添加排班
       const addedSchedules = await scheduleEmployeesForShifts(
