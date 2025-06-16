@@ -374,12 +374,15 @@ const SettingsModal = ({ open, onClose }) => {
                 管理您的系統帳號資訊
               </Typography>
               
-              {isLoadingUser ? (
+              {/* 使用獨立的條件判斷替代巢狀三元運算子 */}
+              {isLoadingUser && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                   <CircularProgress size={24} />
                   <Typography sx={{ ml: 2 }}>載入中...</Typography>
                 </Box>
-              ) : currentUser ? (
+              )}
+              
+              {!isLoadingUser && currentUser && (
                 <>
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -471,7 +474,9 @@ const SettingsModal = ({ open, onClose }) => {
                     sx={{ mb: 2 }}
                   />
                 </>
-              ) : (
+              )}
+              
+              {!isLoadingUser && !currentUser && (
                 <Alert severity="warning">
                   無法獲取用戶資訊，請確認您已登入系統
                 </Alert>

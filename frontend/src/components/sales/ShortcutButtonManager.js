@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import axios from 'axios'; // Import axios
-import { getApiBaseUrl } from '../../utils/apiConfig'; // Import the base URL utility
 import {
   Button,
   Dialog,
@@ -200,7 +199,7 @@ EditShortcutItemsDialog.propTypes = {
 const ShortcutButtonManager = ({ onShortcutSelect, allProducts, isTestMode }) => {
   // Always use default shortcuts instead of loading from API
   const [shortcuts, setShortcuts] = useState(defaultShortcuts);
-  const [loading, setLoading] = useState(false); // No loading needed
+  const [loading] = useState(false); // No loading needed
   const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
