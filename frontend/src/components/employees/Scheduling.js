@@ -399,42 +399,6 @@ const Scheduling = ({ isAdmin = false }) => {
     );
   };
 
-  // 處理員工選擇 - 提取到外部以減少嵌套層級
-  const handleQuickPanelEmployeeToggle = async (employee, shift, date, schedules, onAddSchedule, onRemoveSchedule, leaveType = null) => {
-    if (isEmployeeScheduled(employee._id, shift, schedules)) {
-      // 找到要刪除的排班記錄
-      const scheduleToRemove = schedules[shift].find(
-        schedule => schedule.employee._id === employee._id
-      );
-      
-      if (scheduleToRemove) {
-        await onRemoveSchedule(scheduleToRemove._id);
-      }
-    } else {
-      // 新增排班
-      const scheduleData = {
-        date,
-        shift: shift,
-        employeeId: employee._id
-      };
-      
-      // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
-      if (leaveType) {
-        scheduleData.leaveType = leaveType;
-      }
-      
-      await onAddSchedule(scheduleData);
-    }
-  };
-
-  // 獲取主要文字樣式
-  const getPrimaryTypographyProps = (isScheduled) => {
-    return {
-      fontWeight: isScheduled ? 'bold' : 'normal',
-      color: 'text.primary',
-      fontSize: '0.9rem'
-    };
-  };
 
   // 獲取次要文字樣式
   const getSecondaryTypographyProps = () => {

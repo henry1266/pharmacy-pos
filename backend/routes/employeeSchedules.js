@@ -134,30 +134,64 @@ router.post(
   }
 );
 
+// 驗證排班ID
+const validateScheduleId = async (id, res) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return { valid: false, error: { status: 400, msg: '無效的排班ID格式' } };
+  }
+
+  const schedule = await EmployeeSchedule.findById(id);
+  if (!schedule) {
+    return { valid: false, error: { status: 404, msg: '找不到此排班資料' } };
+  }
+
+  return { valid: true, schedule };
+};
+
+// 驗證員工ID
+const validateEmployeeId = async (employeeId, res) => {
+  if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+    return { valid: false, error: { status: 400, msg: '無效的員工ID格式' } };
+  }
+
+  const employee = await Employee.findById(employeeId);
+  if (!employee) {
+    return { valid: false, error: { status: 404, msg: '找不到此員工資料' } };
+  }
+
+  return { valid: true };
+};
+
+// 檢查排班衝突
+const checkScheduleConflict = async (scheduleId, date, shift, employeeId) => {
+  const conflictQuery = {
+    _id: { $ne: scheduleId },
+    date,
+    shift,
+    employeeId
+  };
+  
+  const conflictingSchedule = await EmployeeSchedule.findOne(conflictQuery);
+  return conflictingSchedule !== null;
+};
+
 // @route   PUT api/employee-schedules/:id
 // @desc    Update an employee schedule
 // @access  Private
 router.put('/:id', auth, async (req, res) => {
   try {
-    // 驗證ID格式是否為有效的ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ msg: '無效的排班ID格式' });
+    // 驗證排班ID
+    const scheduleValidation = await validateScheduleId(req.params.id);
+    if (!scheduleValidation.valid) {
+      return res.status(scheduleValidation.error.status).json({ msg: scheduleValidation.error.msg });
     }
-
-    const schedule = await EmployeeSchedule.findById(req.params.id);
-    if (!schedule) {
-      return res.status(404).json({ msg: '找不到此排班資料' });
-    }
+    const schedule = scheduleValidation.schedule;
 
     // 如果要更新員工ID，先檢查員工是否存在
     if (req.body.employeeId) {
-      if (!mongoose.Types.ObjectId.isValid(req.body.employeeId)) {
-        return res.status(400).json({ msg: '無效的員工ID格式' });
-      }
-
-      const employee = await Employee.findById(req.body.employeeId);
-      if (!employee) {
-        return res.status(404).json({ msg: '找不到此員工資料' });
+      const employeeValidation = await validateEmployeeId(req.body.employeeId);
+      if (!employeeValidation.valid) {
+        return res.status(employeeValidation.error.status).json({ msg: employeeValidation.error.msg });
       }
     }
 
@@ -175,15 +209,14 @@ router.put('/:id', auth, async (req, res) => {
 
     // 檢查更新後是否會與現有排班衝突
     if (updatedFields.date || updatedFields.shift || updatedFields.employeeId) {
-      const conflictQuery = {
-        _id: { $ne: req.params.id },
-        date: updatedFields.date || schedule.date,
-        shift: updatedFields.shift || schedule.shift,
-        employeeId: updatedFields.employeeId || schedule.employeeId
-      };
+      const hasConflict = await checkScheduleConflict(
+        req.params.id,
+        updatedFields.date || schedule.date,
+        updatedFields.shift || schedule.shift,
+        updatedFields.employeeId || schedule.employeeId
+      );
       
-      const conflictingSchedule = await EmployeeSchedule.findOne(conflictQuery);
-      if (conflictingSchedule) {
+      if (hasConflict) {
         return res.status(400).json({ msg: '此員工在該日期和班次已有排班' });
       }
     }
