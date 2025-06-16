@@ -95,33 +95,7 @@ const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) 
     );
   };
 
-  // 處理員工選擇
-  const handleQuickPanelEmployeeToggle = async (employee, shift, date, schedules, onAddSchedule, onRemoveSchedule, leaveType = null) => {
-    if (isEmployeeScheduled(employee._id, shift, schedules)) {
-      // 找到要刪除的排班記錄
-      const scheduleToRemove = schedules[shift].find(
-        schedule => schedule.employee._id === employee._id
-      );
-      
-      if (scheduleToRemove) {
-        await onRemoveSchedule(scheduleToRemove._id);
-      }
-    } else {
-      // 新增排班
-      const scheduleData = {
-        date,
-        shift: shift,
-        employeeId: employee._id
-      };
-      
-      // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
-      if (leaveType) {
-        scheduleData.leaveType = leaveType;
-      }
-      
-      await onAddSchedule(scheduleData);
-    }
-  };
+  // 注意：此函數已移至 ShiftSection 組件中，這裡不再需要
 
   // 一鍵排班功能 - 自動將所有可用員工排入早班和午班
   const handleQuickScheduleAllEmployees = async (date, schedules, employees, addScheduleFunc, leaveType = null) => {
@@ -157,10 +131,9 @@ const QuickSelectPanel = ({ date, schedules, onAddSchedule, onRemoveSchedule }) 
     const dateParts = dateStr.split('-');
     const year = parseInt(dateParts[0]);
     const month = parseInt(dateParts[1]) - 1; // 月份從0開始
-    const day = parseInt(dateParts[2]);
     
-    console.log(`日期解析: 年=${year}, 月=${month + 1}, 日=${day}`);
-    return { year, month, day };
+    console.log(`日期解析: 年=${year}, 月=${month + 1}`);
+    return { year, month };
   };
 
   // 為員工添加排班
