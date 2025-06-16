@@ -78,7 +78,31 @@ const Scheduling = ({ isAdmin = false }) => {
     // 使用一致的日期格式，避免時區問題
     const startDate = formatDateString(firstDayOfMonth);
     const endDate = formatDateString(lastDayOfMonth);
-    fetchSchedulesByDate(startDate, endDate);
+    
+    // 檢查是否為特殊月份 (6-9月)
+    const currentMonth = firstDayOfMonth.getMonth();
+    const isSpecialMonth = currentMonth >= 5 && currentMonth <= 8; // 6-9月 (索引5-8)
+    
+    console.log(`獲取排班資料: ${startDate} 至 ${endDate}, 當前月份: ${currentMonth + 1}月`);
+    console.log(`原始日期對象: 開始=${firstDayOfMonth.toISOString()}, 結束=${lastDayOfMonth.toISOString()}`);
+    
+    // 如果是特殊月份，添加特殊處理
+    if (isSpecialMonth) {
+      const monthStr = String(currentMonth + 1).padStart(2, '0');
+      const monthNames = ['六', '七', '八', '九'];
+      const monthName = monthNames[currentMonth - 5];
+      console.log(`正在處理${monthName}月的排班資料，使用特殊處理`);
+      
+      // 確保日期範圍正確
+      const specialStartDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-01`;
+      const daysInMonth = new Date(firstDayOfMonth.getFullYear(), currentMonth + 1, 0).getDate();
+      const specialEndDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-${daysInMonth}`;
+      
+      console.log(`${monthName}月特殊處理: ${specialStartDate} 至 ${specialEndDate}`);
+      fetchSchedulesByDate(specialStartDate, specialEndDate);
+    } else {
+      fetchSchedulesByDate(startDate, endDate);
+    }
   }, [firstDayOfMonth, lastDayOfMonth, fetchSchedulesByDate]);
 
   // 生成日曆網格資料
@@ -127,11 +151,15 @@ const Scheduling = ({ isAdmin = false }) => {
 
   // 處理月份變更
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    console.log(`切換到上個月: ${newDate.toISOString().split('T')[0]}`);
+    setCurrentDate(newDate);
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    console.log(`切換到下個月: ${newDate.toISOString().split('T')[0]}`);
+    setCurrentDate(newDate);
   };
 
   const handleToday = () => {
@@ -248,12 +276,32 @@ const Scheduling = ({ isAdmin = false }) => {
   // 處理新增排班
   const handleAddSchedule = async (scheduleData) => {
     try {
+      console.log('新增排班:', scheduleData);
       await addSchedule(scheduleData);
       
       // 重新獲取排班資料，使用一致的日期格式
       const startDate = formatDateString(firstDayOfMonth);
       const endDate = formatDateString(lastDayOfMonth);
-      await fetchSchedulesByDate(startDate, endDate);
+      
+      // 檢查是否為特殊月份
+      const currentMonth = firstDayOfMonth.getMonth();
+      const isSpecialMonth = currentMonth >= 5 && currentMonth <= 8; // 6-9月 (索引5-8)
+      
+      if (isSpecialMonth) {
+        const monthStr = String(currentMonth + 1).padStart(2, '0');
+        const monthName = ['六', '七', '八', '九'][currentMonth - 5];
+        console.log(`新增排班後重新獲取${monthName}月資料 (特殊處理)`);
+        
+        const specialStartDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-01`;
+        const daysInMonth = new Date(firstDayOfMonth.getFullYear(), currentMonth + 1, 0).getDate();
+        const specialEndDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-${daysInMonth}`;
+        
+        console.log(`特殊日期範圍: ${specialStartDate} 至 ${specialEndDate}`);
+        await fetchSchedulesByDate(specialStartDate, specialEndDate);
+      } else {
+        console.log(`新增排班後重新獲取資料: ${startDate} 至 ${endDate}`);
+        await fetchSchedulesByDate(startDate, endDate);
+      }
       
       return true;
     } catch (err) {
@@ -324,7 +372,17 @@ const Scheduling = ({ isAdmin = false }) => {
 
   // 格式化日期為 YYYY-MM-DD 格式
   const formatDateString = (date) => {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // 月份從0開始，所以要+1
+    const day = date.getDate();
+    
+    // 特別處理七月的情況
+    if (month === 7) {
+      console.log(`特別處理七月日期: ${year}-07-${String(day).padStart(2, '0')}`);
+    }
+    
+    const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return formattedDate;
   };
 
   // 格式化月份顯示
@@ -577,11 +635,23 @@ const Scheduling = ({ isAdmin = false }) => {
     if (!employees || employees.length === 0) return;
     
     try {
+      console.log('開始一鍵排班，日期:', date, '請假類型:', leaveType);
+      
+      // 解析日期字符串，獲取年、月、日
+      const dateParts = date.split('-');
+      const year = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]) - 1; // 月份從0開始
+      const day = parseInt(dateParts[2]);
+      
+      console.log(`一鍵排班日期解析: 年=${year}, 月=${month + 1}, 日=${day}`);
+      
       // 獲取目前尚未排班的員工
       const morningShift = 'morning';
       const afternoonShift = 'afternoon';
       
       // 為每個尚未排班的員工添加早班和午班
+      const addedSchedules = [];
+      
       for (const employee of employees) {
         // 檢查員工是否已經被排入早班
         if (!isEmployeeScheduled(employee._id, morningShift, schedules)) {
@@ -594,9 +664,15 @@ const Scheduling = ({ isAdmin = false }) => {
           // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
           if (leaveType) {
             morningScheduleData.leaveType = leaveType;
+            console.log(`為員工 ${employee.name} 添加早班，請假類型: ${leaveType}`);
+          } else {
+            console.log(`為員工 ${employee.name} 添加早班，正常排班`);
           }
           
-          await addScheduleFunc(morningScheduleData);
+          const result = await addScheduleFunc(morningScheduleData);
+          if (result) {
+            addedSchedules.push({ employee: employee.name, shift: 'morning' });
+          }
         }
         
         // 檢查員工是否已經被排入午班
@@ -610,13 +686,44 @@ const Scheduling = ({ isAdmin = false }) => {
           // 只有在 leaveType 不為 null 時才添加 leaveType 屬性
           if (leaveType) {
             afternoonScheduleData.leaveType = leaveType;
+            console.log(`為員工 ${employee.name} 添加午班，請假類型: ${leaveType}`);
+          } else {
+            console.log(`為員工 ${employee.name} 添加午班，正常排班`);
           }
           
-          await addScheduleFunc(afternoonScheduleData);
+          const result = await addScheduleFunc(afternoonScheduleData);
+          if (result) {
+            addedSchedules.push({ employee: employee.name, shift: 'afternoon' });
+          }
         }
       }
+      
+      console.log(`一鍵排班完成，共添加 ${addedSchedules.length} 個排班記錄`);
+      
+      // 一鍵排班完成後，強制重新獲取排班資料
+      console.log('一鍵排班完成，重新獲取排班資料');
+      
+      // 獲取當前月份的完整日期範圍
+      const monthStartDate = new Date(year, month, 1);
+      const monthEndDate = new Date(year, month + 1, 0);
+      
+      const startDateStr = formatDateString(monthStartDate);
+      const endDateStr = formatDateString(monthEndDate);
+      
+      console.log(`重新獲取排班資料: ${startDateStr} 至 ${endDateStr}`);
+      await fetchSchedulesByDate(startDateStr, endDateStr);
+      
+      // 等待一段時間，確保資料已經更新
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 再次獲取排班資料，確保資料最新
+      console.log(`再次獲取排班資料，確保資料最新`);
+      await fetchSchedulesByDate(startDateStr, endDateStr);
+      
+      return addedSchedules.length > 0;
     } catch (err) {
       console.error('一鍵排班失敗:', err);
+      return false;
     }
   };
 
@@ -682,7 +789,15 @@ const Scheduling = ({ isAdmin = false }) => {
               variant="contained"
               color="primary"
               size="small"
-              onClick={() => handleQuickScheduleAllEmployees(date, schedules, employees, onAddSchedule, globalLeaveType)}
+              onClick={async () => {
+                console.log('點擊一鍵排班按鈕，日期:', date);
+                const success = await handleQuickScheduleAllEmployees(date, schedules, employees, onAddSchedule, globalLeaveType);
+                
+                if (success) {
+                  // 關閉快速排班面板，以便用戶可以看到更新後的排班資料
+                  setQuickSelectDialogOpen(false);
+                }
+              }}
             >
               一鍵排班
             </Button>
@@ -780,6 +895,13 @@ const Scheduling = ({ isAdmin = false }) => {
     const employeeSickLeaveHours = {};
     const employeeNames = {};
     
+    // 用於調試的計數器
+    let totalSchedules = 0;
+    let sickLeaveCount = 0;
+    
+    console.log('開始計算工時，當前月份:', currentDate.toISOString().split('T')[0]);
+    console.log('排班資料鍵值:', Object.keys(schedulesGroupedByDate));
+    
     // 遍歷所有排班記錄
     Object.keys(schedulesGroupedByDate).forEach(dateStr => {
       const schedules = schedulesGroupedByDate[dateStr];
@@ -792,8 +914,12 @@ const Scheduling = ({ isAdmin = false }) => {
           
           // 為每位排班的員工添加工時
           schedules[shift].forEach(schedule => {
+            totalSchedules++;
             const employeeId = schedule.employee._id;
             const employeeName = schedule.employee.name;
+            
+            // 調試輸出
+            console.log(`排班記錄: ${dateStr} ${shift}, 員工: ${employeeName}, 請假類型: ${schedule.leaveType || '正常排班'}`);
             
             if (!employeeHours[employeeId]) {
               employeeHours[employeeId] = 0;
@@ -804,22 +930,44 @@ const Scheduling = ({ isAdmin = false }) => {
             }
             
             // 根據請假類型計算工時
-            if (schedule.leaveType === 'overtime') {
+            // 檢查 leaveType 的具體值和類型
+            console.log(`  leaveType: ${schedule.leaveType}, 類型: ${typeof schedule.leaveType}`);
+            
+            // 將 leaveType 轉換為小寫字符串並去除空格，以便更寬鬆的比較
+            const leaveTypeStr = schedule.leaveType ? String(schedule.leaveType).toLowerCase().trim() : '';
+            console.log(`  轉換後的 leaveType: "${leaveTypeStr}"`);
+            
+            // 使用更寬鬆的條件檢查
+            if (leaveTypeStr.includes('overtime') || leaveTypeStr === 'ot') {
               // 加班時數單獨計算
               employeeOvertimeHours[employeeId] += shiftHours;
-            } else if (schedule.leaveType === 'personal') {
+              console.log(`  加班時數 +${shiftHours}，累計: ${employeeOvertimeHours[employeeId]}`);
+            } else if (leaveTypeStr.includes('personal') || leaveTypeStr === 'pl') {
               // 特休時數單獨計算
               employeePersonalLeaveHours[employeeId] += shiftHours;
-            } else if (schedule.leaveType === 'sick') {
+              console.log(`  特休時數 +${shiftHours}，累計: ${employeePersonalLeaveHours[employeeId]}`);
+            } else if (leaveTypeStr.includes('sick') || leaveTypeStr === 'sl') {
               // 病假時數單獨計算
               employeeSickLeaveHours[employeeId] += shiftHours;
-            } else if (!schedule.leaveType) {
-              // 只有正常排班計入工時
+              sickLeaveCount++;
+              console.log(`  病假時數 +${shiftHours}，累計: ${employeeSickLeaveHours[employeeId]}`);
+            } else {
+              // 只有正常排班計入工時 (包括 leaveType 為 null、undefined 或其他值的情況)
               employeeHours[employeeId] += shiftHours;
+              console.log(`  正常工時 +${shiftHours}，累計: ${employeeHours[employeeId]}, leaveType: ${schedule.leaveType}`);
             }
           });
         }
       });
+    });
+    
+    // 調試輸出
+    console.log(`總排班記錄: ${totalSchedules}, 病假記錄: ${sickLeaveCount}`);
+    console.log('工時統計結果:', {
+      employeeHours,
+      employeeOvertimeHours,
+      employeePersonalLeaveHours,
+      employeeSickLeaveHours
     });
     
     // 將結果轉換為數組格式
@@ -1166,6 +1314,46 @@ const Scheduling = ({ isAdmin = false }) => {
         onClose={() => setWorkHoursDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        onEnter={async () => {
+          console.log('工時統計視窗開啟，當前月份:', currentDate.toISOString().split('T')[0]);
+          console.log('排班資料鍵值:', Object.keys(schedulesGroupedByDate));
+          
+          // 重新獲取排班資料，確保數據最新
+          const currentMonth = currentDate.getMonth();
+          const isSpecialMonth = currentMonth >= 5 && currentMonth <= 8; // 6-9月 (索引5-8)
+          
+          if (isSpecialMonth) {
+            const monthStr = String(currentMonth + 1).padStart(2, '0');
+            const monthNames = ['六', '七', '八', '九'];
+            const monthName = monthNames[currentMonth - 5];
+            
+            const specialStartDate = `${currentDate.getFullYear()}-${monthStr}-01`;
+            const daysInMonth = new Date(currentDate.getFullYear(), currentMonth + 1, 0).getDate();
+            const specialEndDate = `${currentDate.getFullYear()}-${monthStr}-${daysInMonth}`;
+            
+            console.log(`工時統計前重新獲取${monthName}月資料: ${specialStartDate} 至 ${specialEndDate}`);
+            await fetchSchedulesByDate(specialStartDate, specialEndDate);
+            
+            // 等待一段時間，確保資料已經更新
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // 再次獲取排班資料，確保資料最新
+            console.log(`再次獲取排班資料，確保資料最新`);
+            await fetchSchedulesByDate(specialStartDate, specialEndDate);
+          } else {
+            const startDate = formatDateString(firstDayOfMonth);
+            const endDate = formatDateString(lastDayOfMonth);
+            console.log(`工時統計前重新獲取資料: ${startDate} 至 ${endDate}`);
+            await fetchSchedulesByDate(startDate, endDate);
+            
+            // 等待一段時間，確保資料已經更新
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // 再次獲取排班資料，確保資料最新
+            console.log(`再次獲取排班資料，確保資料最新`);
+            await fetchSchedulesByDate(startDate, endDate);
+          }
+        }}
       >
         <DialogContent>
           <Box sx={{ p: 2 }}>
@@ -1200,8 +1388,17 @@ const Scheduling = ({ isAdmin = false }) => {
                   const totalOvertimeHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.overtimeHours), 0).toFixed(1);
                   const totalPersonalLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.personalLeaveHours), 0).toFixed(1);
                   const totalSickLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.sickLeaveHours), 0).toFixed(1);
+                  
+                  console.log('總計時數明細:', {
+                    totalRegularHours,
+                    totalOvertimeHours,
+                    totalPersonalLeaveHours,
+                    totalSickLeaveHours
+                  });
+                  
+                  // 總工時不包含病假時數
                   const grandTotal = (parseFloat(totalRegularHours) + parseFloat(totalOvertimeHours) +
-                                     parseFloat(totalPersonalLeaveHours) + parseFloat(totalSickLeaveHours)).toFixed(1);
+                                     parseFloat(totalPersonalLeaveHours)).toFixed(1);
                   
                   return (
                     <>
@@ -1383,7 +1580,8 @@ const Scheduling = ({ isAdmin = false }) => {
                           總計時數
                         </Typography>
                         <Typography variant="h6" fontWeight="bold" color="success.main">
-                          {(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)} 小時
+                          {/* 個人總工時不包含病假時數 */}
+                          {(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours)).toFixed(1)} 小時
                         </Typography>
                       </Box>
                     </Box>
