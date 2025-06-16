@@ -34,7 +34,7 @@ module.exports = function (req, res, next) {
     // Log decoded token information (excluding sensitive parts)
     console.log("Token verified successfully. User ID:", decoded.user?.id);
     
-    if (!decoded.user || !decoded.user.id) {
+    if (!decoded.user?.id) {
       console.error("Token payload missing user ID");
       return res.status(401).json({ msg: "Token 格式無效" });
     }

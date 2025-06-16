@@ -103,6 +103,74 @@ router.post(
   }
 );
 
+// 驗證用戶存在
+const validateUserExists = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    return { valid: false, error: "找不到用戶" };
+  }
+  return { valid: true, user };
+};
+
+// 更新密碼
+const updatePassword = async (user, currentPassword, newPassword) => {
+  if (!currentPassword) {
+    return { success: false, error: "請提供當前密碼" };
+  }
+
+  // 驗證當前密碼
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    return { success: false, error: "當前密碼不正確" };
+  }
+
+  // 加密新密碼
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(newPassword, salt);
+  return { success: true };
+};
+
+// 更新用戶名
+const updateUsername = async (user, newUsername) => {
+  if (!newUsername || newUsername === user.username) {
+    return { success: true };
+  }
+
+  const existingUser = await User.findOne({ username: newUsername });
+  if (existingUser) {
+    return { success: false, error: "此用戶名已被使用" };
+  }
+  
+  user.username = newUsername;
+  return { success: true };
+};
+
+// 更新電子郵件
+const updateEmail = async (user, newEmail) => {
+  if (newEmail === undefined || newEmail === user.email) {
+    return { success: true };
+  }
+
+  if (newEmail && newEmail.trim() !== '') {
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser) {
+      return { success: false, error: "此電子郵件已被使用" };
+    }
+    user.email = newEmail;
+  } else {
+    // 如果email為空或空字符串，則從用戶文檔中移除email字段
+    user.email = undefined;
+    if (user.email !== undefined) {
+      await User.updateOne(
+        { _id: user._id },
+        { $unset: { email: 1 } }
+      );
+    }
+  }
+  
+  return { success: true };
+};
+
 // @route   PUT api/auth/update
 // @desc    更新當前用戶資訊
 // @access  Private
@@ -125,56 +193,32 @@ router.put(
     const { username, email, currentPassword, newPassword } = req.body;
 
     try {
-      // 獲取當前用戶
-      const user = await User.findById(req.user.id);
-      if (!user) {
-        return res.status(404).json({ msg: "找不到用戶" });
+      // 驗證用戶存在
+      const userValidation = await validateUserExists(req.user.id);
+      if (!userValidation.valid) {
+        return res.status(404).json({ msg: userValidation.error });
       }
+      
+      const user = userValidation.user;
 
-      // 如果要更新密碼，需要驗證當前密碼
+      // 更新密碼
       if (newPassword) {
-        if (!currentPassword) {
-          return res.status(400).json({ msg: "請提供當前密碼" });
+        const passwordUpdate = await updatePassword(user, currentPassword, newPassword);
+        if (!passwordUpdate.success) {
+          return res.status(400).json({ msg: passwordUpdate.error });
         }
-
-        // 驗證當前密碼
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) {
-          return res.status(400).json({ msg: "當前密碼不正確" });
-        }
-
-        // 加密新密碼
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
       }
 
-      // 如果要更新用戶名，檢查是否已被使用
-      if (username && username !== user.username) {
-        const existingUser = await User.findOne({ username });
-        if (existingUser) {
-          return res.status(400).json({ msg: "此用戶名已被使用" });
-        }
-        user.username = username;
+      // 更新用戶名
+      const usernameUpdate = await updateUsername(user, username);
+      if (!usernameUpdate.success) {
+        return res.status(400).json({ msg: usernameUpdate.error });
       }
 
-      // 如果要更新電子郵件，檢查是否已被使用
-      if (email !== undefined && email !== user.email) {
-        if (email && email.trim() !== '') {
-          const existingUser = await User.findOne({ email });
-          if (existingUser) {
-            return res.status(400).json({ msg: "此電子郵件已被使用" });
-          }
-          user.email = email;
-        } else {
-          // 如果email為空或空字符串，則從用戶文檔中移除email字段
-          user.email = undefined;
-          if (user.email !== undefined) {
-            await User.updateOne(
-              { _id: user._id },
-              { $unset: { email: 1 } }
-            );
-          }
-        }
+      // 更新電子郵件
+      const emailUpdate = await updateEmail(user, email);
+      if (!emailUpdate.success) {
+        return res.status(400).json({ msg: emailUpdate.error });
       }
 
       // 保存更新
