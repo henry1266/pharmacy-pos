@@ -14,11 +14,7 @@ import {
   CircularProgress,
   Dialog,
   DialogActions,
-  DialogContent,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
+  DialogContent
 } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -28,7 +24,6 @@ import SaveIcon from '@mui/icons-material/Save';
 import useEmployeeScheduling from '../../hooks/useEmployeeScheduling';
 import ShiftSelectionModal from './ShiftSelectionModal';
 import QuickSelectPanel from './QuickSelectPanel';
-import ShiftSection from './ShiftSection';
 
 /**
  * 員工排班系統元件
@@ -396,26 +391,6 @@ const Scheduling = ({ isAdmin = false }) => {
     return ' (加班)';
   };
 
-  // 格式化日期顯示 - 提取到外部以減少嵌套層級
-  const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      // 檢查日期是否有效
-      if (isNaN(date.getTime())) {
-        return dateString; // 如果無效，直接返回原始字串
-      }
-      
-      return date.toLocaleDateString('zh-TW', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long'
-      });
-    } catch (error) {
-      console.error('日期格式化錯誤:', error);
-      return dateString; // 發生錯誤時返回原始字串
-    }
-  };
 
   // 檢查員工是否已被排班在指定班次 - 提取到外部以便重用
   const isEmployeeScheduled = (employeeId, shift, schedules) => {
