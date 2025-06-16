@@ -1013,7 +1013,7 @@ const Scheduling = ({ isAdmin = false }) => {
                                         getEmployeeColor(schedule.employee._id)
                                     }`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                                    borderRadius: '50%',
+                                    borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
                                     width: '24px',
                                     height: '24px',
                                     display: 'flex',
@@ -1059,7 +1059,7 @@ const Scheduling = ({ isAdmin = false }) => {
                                         getEmployeeColor(schedule.employee._id)
                                     }`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                                    borderRadius: '50%',
+                                    borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
                                     width: '24px',
                                     height: '24px',
                                     display: 'flex',
@@ -1105,7 +1105,7 @@ const Scheduling = ({ isAdmin = false }) => {
                                         getEmployeeColor(schedule.employee._id)
                                     }`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                                    borderRadius: '50%',
+                                    borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
                                     width: '24px',
                                     height: '24px',
                                     display: 'flex',
