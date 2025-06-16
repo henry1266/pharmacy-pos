@@ -129,21 +129,6 @@ const EmployeeAccountsPage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // 開啟創建帳號對話框
-  const handleOpenCreateDialog = (employee = null) => {
-    setSelectedEmployee(employee);
-    setFormData({
-      employeeId: employee ? employee._id : '',
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: 'staff'
-    });
-    setFormErrors({});
-    setCreateDialogOpen(true);
-  };
-
   // 開啟編輯帳號對話框
   const handleOpenEditDialog = (employee, account) => {
     setSelectedEmployee(employee);

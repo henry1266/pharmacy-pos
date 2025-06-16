@@ -502,6 +502,22 @@ const Scheduling = ({ isAdmin = false }) => {
     sickLeaveCount: 0
   };
   
+  // 處理特定日期的所有班次排班
+  const processDateSchedules = (dateStr, schedules) => {
+    // 遍歷每個班次
+    ['morning', 'afternoon', 'evening'].forEach(shift => {
+      if (schedules[shift] && schedules[shift].length > 0) {
+        // 計算該班次的工時
+        const shiftHours = calculateShiftHours(shift);
+        
+        // 為每位排班的員工添加工時
+        schedules[shift].forEach(schedule => {
+          processScheduleHours(schedule, dateStr, shift, shiftHours);
+        });
+      }
+    });
+  };
+  
   // 計算每位員工的本月工時
   const calculateEmployeeMonthlyHours = () => {
     // 重置數據
@@ -518,20 +534,7 @@ const Scheduling = ({ isAdmin = false }) => {
     
     // 遍歷所有排班記錄
     Object.keys(schedulesGroupedByDate).forEach(dateStr => {
-      const schedules = schedulesGroupedByDate[dateStr];
-      
-      // 遍歷每個班次
-      ['morning', 'afternoon', 'evening'].forEach(shift => {
-        if (schedules[shift] && schedules[shift].length > 0) {
-          // 計算該班次的工時
-          const shiftHours = calculateShiftHours(shift);
-          
-          // 為每位排班的員工添加工時
-          schedules[shift].forEach(schedule => {
-            processScheduleHours(schedule, dateStr, shift, shiftHours);
-          });
-        }
-      });
+      processDateSchedules(dateStr, schedulesGroupedByDate[dateStr]);
     });
     
     // 調試輸出
