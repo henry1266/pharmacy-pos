@@ -182,6 +182,27 @@ const ShiftSelectionModal = ({
       return dateString; // 發生錯誤時返回原始字串
     }
   };
+  
+  // 根據請假類型獲取背景顏色
+  const getBgColorByLeaveType = (leaveType) => {
+    if (leaveType === 'sick') return 'info.light';
+    if (leaveType === 'personal') return 'warning.light';
+    return 'purple.light';
+  };
+  
+  // 根據請假類型獲取文字顏色
+  const getTextColorByLeaveType = (leaveType) => {
+    if (leaveType === 'sick') return 'info.dark';
+    if (leaveType === 'personal') return 'warning.dark';
+    return 'purple.dark';
+  };
+  
+  // 獲取請假類型標籤
+  const getLeaveTypeLabel = (leaveType) => {
+    if (leaveType === 'sick') return '病假';
+    if (leaveType === 'personal') return '特休';
+    return '加班';
+  };
 
   // 檢查員工是否已被排班在當前班次
   const isEmployeeScheduled = (employeeId) => {
@@ -335,13 +356,10 @@ const ShiftSelectionModal = ({
                                 py: 0.3,
                                 borderRadius: 1,
                                 fontSize: '0.75rem',
-                                bgcolor: schedule.leaveType === 'sick' ? 'info.light' :
-                                         schedule.leaveType === 'personal' ? 'warning.light' : 'purple.light',
-                                color: schedule.leaveType === 'sick' ? 'info.dark' :
-                                       schedule.leaveType === 'personal' ? 'warning.dark' : 'purple.dark'
+                                bgcolor: getBgColorByLeaveType(schedule.leaveType),
+                                color: getTextColorByLeaveType(schedule.leaveType)
                               }}>
-                                {schedule.leaveType === 'sick' ? '病假' :
-                                 schedule.leaveType === 'personal' ? '特休' : '加班'}
+                                {getLeaveTypeLabel(schedule.leaveType)}
                               </Box>
                             )}
                           </>

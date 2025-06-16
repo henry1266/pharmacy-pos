@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
-import axios from 'axios'; // Import axios
 import {
   Button,
   Dialog,
