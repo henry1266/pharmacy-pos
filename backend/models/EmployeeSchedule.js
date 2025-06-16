@@ -15,6 +15,11 @@ const EmployeeScheduleSchema = new mongoose.Schema({
     ref: 'employee',
     required: true
   },
+  leaveType: {
+    type: String,
+    enum: [null, "sick", "personal", "overtime"],
+    default: null
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user'

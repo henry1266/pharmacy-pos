@@ -39,6 +39,7 @@ const ShiftSelectionModal = ({
 }) => {
   const [tabValue, setTabValue] = useState(0);
   const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedLeaveType, setSelectedLeaveType] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -104,11 +105,17 @@ const ShiftSelectionModal = ({
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
     setSelectedEmployee('');
+    setSelectedLeaveType(null);
   };
 
   // 處理員工選擇變更
   const handleEmployeeChange = (event) => {
     setSelectedEmployee(event.target.value);
+  };
+  
+  // 處理請假類型選擇變更
+  const handleLeaveTypeChange = (event) => {
+    setSelectedLeaveType(event.target.value || null);
   };
 
   // 處理新增排班
@@ -121,11 +128,13 @@ const ShiftSelectionModal = ({
       await onAddSchedule({
         date,
         shift: currentShift,
-        employeeId: selectedEmployee
+        employeeId: selectedEmployee,
+        leaveType: selectedLeaveType
       });
       
       // 重置選擇
       setSelectedEmployee('');
+      setSelectedLeaveType(null);
     } catch (err) {
       console.error('新增排班失敗:', err);
     }
@@ -226,39 +235,68 @@ const ShiftSelectionModal = ({
             </Box>
           ) : (
             <>
-              <Box sx={{ display: 'flex', mb: 2 }}>
-                <FormControl fullWidth sx={{ mr: 1 }}>
-                  <InputLabel id="employee-select-label">選擇員工</InputLabel>
-                  <Select
-                    labelId="employee-select-label"
-                    value={selectedEmployee}
-                    onChange={handleEmployeeChange}
-                    label="選擇員工"
-                    disabled={loading}
-                  >
-                    <MenuItem value="">
-                      <em>請選擇員工</em>
-                    </MenuItem>
-                    {getAvailableEmployees().map((employee) => (
-                      <MenuItem
-                        key={employee._id}
-                        value={employee._id}
-                        sx={{ color: 'text.primary' }}
-                      >
-                        {employee.name} ({employee.department} - {employee.position})
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', mb: 2 }}>
+                  <FormControl fullWidth sx={{ mr: 1 }}>
+                    <InputLabel id="employee-select-label">選擇員工</InputLabel>
+                    <Select
+                      labelId="employee-select-label"
+                      value={selectedEmployee}
+                      onChange={handleEmployeeChange}
+                      label="選擇員工"
+                      disabled={loading}
+                    >
+                      <MenuItem value="">
+                        <em>請選擇員工</em>
                       </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                      {getAvailableEmployees().map((employee) => (
+                        <MenuItem
+                          key={employee._id}
+                          value={employee._id}
+                          sx={{ color: 'text.primary' }}
+                        >
+                          {employee.name} ({employee.department} - {employee.position})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
                 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleAddSchedule}
-                  disabled={!selectedEmployee || loading}
-                >
-                  新增
-                </Button>
+                <Box sx={{ display: 'flex', mb: 2 }}>
+                  <FormControl sx={{ width: '50%', mr: 1 }}>
+                    <InputLabel id="leave-type-select-label">請假類型</InputLabel>
+                    <Select
+                      labelId="leave-type-select-label"
+                      value={selectedLeaveType || ''}
+                      onChange={handleLeaveTypeChange}
+                      label="請假類型"
+                      disabled={loading}
+                    >
+                      <MenuItem value="">
+                        <em>正常排班</em>
+                      </MenuItem>
+                      <MenuItem value="sick">
+                        病假 (計入工時)
+                      </MenuItem>
+                      <MenuItem value="personal">
+                        事假 (不計入工時)
+                      </MenuItem>
+                      <MenuItem value="overtime">
+                        加班 (單獨計算)
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleAddSchedule}
+                    disabled={!selectedEmployee || loading}
+                    sx={{ height: 'fit-content', alignSelf: 'center' }}
+                  >
+                    新增
+                  </Button>
+                </Box>
               </Box>
               
               <Divider sx={{ my: 2 }} />
@@ -280,7 +318,27 @@ const ShiftSelectionModal = ({
                       }
                     >
                       <ListItemText
-                        primary={schedule.employee.name}
+                        primary={
+                          <>
+                            {schedule.employee.name}
+                            {schedule.leaveType && (
+                              <Box component="span" sx={{
+                                ml: 1,
+                                px: 1,
+                                py: 0.3,
+                                borderRadius: 1,
+                                fontSize: '0.75rem',
+                                bgcolor: schedule.leaveType === 'sick' ? 'info.light' :
+                                         schedule.leaveType === 'personal' ? 'warning.light' : 'purple.light',
+                                color: schedule.leaveType === 'sick' ? 'info.dark' :
+                                       schedule.leaveType === 'personal' ? 'warning.dark' : 'purple.dark'
+                              }}>
+                                {schedule.leaveType === 'sick' ? '病假' :
+                                 schedule.leaveType === 'personal' ? '事假' : '加班'}
+                              </Box>
+                            )}
+                          </>
+                        }
                         secondary={`${schedule.employee.department} - ${schedule.employee.position}`}
                         primaryTypographyProps={{
                           color: 'text.primary',

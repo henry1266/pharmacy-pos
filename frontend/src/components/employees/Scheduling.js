@@ -18,7 +18,11 @@ import {
   ListItemButton,
   Dialog,
   DialogActions,
-  DialogContent
+  DialogContent,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -360,7 +364,7 @@ const Scheduling = ({ isAdmin = false }) => {
   };
 
   // 處理員工選擇 - 提取到外部以減少嵌套層級
-  const handleQuickPanelEmployeeToggle = async (employee, shift, date, schedules, onAddSchedule, onRemoveSchedule) => {
+  const handleQuickPanelEmployeeToggle = async (employee, shift, date, schedules, onAddSchedule, onRemoveSchedule, leaveType = null) => {
     if (isEmployeeScheduled(employee._id, shift, schedules)) {
       // 找到要刪除的排班記錄
       const scheduleToRemove = schedules[shift].find(
@@ -375,7 +379,8 @@ const Scheduling = ({ isAdmin = false }) => {
       await onAddSchedule({
         date,
         shift: shift,
-        employeeId: employee._id
+        employeeId: employee._id,
+        leaveType: leaveType
       });
     }
   };
@@ -453,6 +458,12 @@ const Scheduling = ({ isAdmin = false }) => {
 
   // 班次區塊元件
   const ShiftSection = ({ shift, shiftLabel, employees, schedules, date, onAddSchedule, onRemoveSchedule }) => {
+    const [selectedLeaveType, setSelectedLeaveType] = useState(null);
+    
+    // 處理請假類型變更
+    const handleLeaveTypeChange = (event) => {
+      setSelectedLeaveType(event.target.value || null);
+    };
     return (
       <Box sx={{ mb: 2 }}>
         <Box sx={{
@@ -480,6 +491,25 @@ const Scheduling = ({ isAdmin = false }) => {
           >
             {shiftLabel}
           </Typography>
+          
+          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <Select
+                value={selectedLeaveType || ''}
+                onChange={handleLeaveTypeChange}
+                displayEmpty
+                variant="outlined"
+                size="small"
+              >
+                <MenuItem value="">
+                  <em>正常排班</em>
+                </MenuItem>
+                <MenuItem value="sick">病假 (計入工時)</MenuItem>
+                <MenuItem value="personal">事假 (不計入工時)</MenuItem>
+                <MenuItem value="overtime">加班 (單獨計算)</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
         
         <List dense disablePadding sx={{ maxHeight: '150px', overflow: 'auto' }}>
@@ -494,7 +524,7 @@ const Scheduling = ({ isAdmin = false }) => {
                   sx={{ py: 0 }}
                 >
                   <ListItemButton
-                    onClick={() => handleQuickPanelEmployeeToggle(employee, shift, date, schedules, onAddSchedule, onRemoveSchedule)}
+                    onClick={() => handleQuickPanelEmployeeToggle(employee, shift, date, schedules, onAddSchedule, onRemoveSchedule, selectedLeaveType)}
                     dense
                     sx={{ py: 0.5 }}
                   >
@@ -540,7 +570,7 @@ const Scheduling = ({ isAdmin = false }) => {
   };
 
   // 一鍵排班功能 - 自動將所有可用員工排入早班和午班
-  const handleQuickScheduleAllEmployees = async (date, schedules, employees, addScheduleFunc) => {
+  const handleQuickScheduleAllEmployees = async (date, schedules, employees, addScheduleFunc, leaveType = null) => {
     if (!employees || employees.length === 0) return;
     
     try {
@@ -555,7 +585,8 @@ const Scheduling = ({ isAdmin = false }) => {
           await addScheduleFunc({
             date,
             shift: morningShift,
-            employeeId: employee._id
+            employeeId: employee._id,
+            leaveType: leaveType
           });
         }
         
@@ -564,7 +595,8 @@ const Scheduling = ({ isAdmin = false }) => {
           await addScheduleFunc({
             date,
             shift: afternoonShift,
-            employeeId: employee._id
+            employeeId: employee._id,
+            leaveType: leaveType
           });
         }
       }
@@ -578,6 +610,7 @@ const Scheduling = ({ isAdmin = false }) => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [globalLeaveType, setGlobalLeaveType] = useState(null);
     
     // 班次類型
     const shifts = ['morning', 'afternoon', 'evening'];
@@ -612,14 +645,33 @@ const Scheduling = ({ isAdmin = false }) => {
           <Typography variant="h6">
             {formatDate(date)} 快速排班
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => handleQuickScheduleAllEmployees(date, schedules, employees, onAddSchedule)}
-          >
-            一鍵排班
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel id="global-leave-type-label">請假類型</InputLabel>
+              <Select
+                labelId="global-leave-type-label"
+                value={globalLeaveType || ''}
+                onChange={(e) => setGlobalLeaveType(e.target.value || null)}
+                label="請假類型"
+                size="small"
+              >
+                <MenuItem value="">
+                  <em>正常排班</em>
+                </MenuItem>
+                <MenuItem value="sick">病假 (計入工時)</MenuItem>
+                <MenuItem value="personal">事假 (不計入工時)</MenuItem>
+                <MenuItem value="overtime">加班 (單獨計算)</MenuItem>
+              </Select>
+            </FormControl>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={() => handleQuickScheduleAllEmployees(date, schedules, employees, onAddSchedule, globalLeaveType)}
+            >
+              一鍵排班
+            </Button>
+          </Box>
         </Box>
         
         {error && (
@@ -706,8 +758,9 @@ const Scheduling = ({ isAdmin = false }) => {
   
   // 計算每位員工的本月工時
   const calculateEmployeeMonthlyHours = () => {
-    // 創建一個對象來存儲每位員工的工時
+    // 創建對象來存儲每位員工的工時和加班時數
     const employeeHours = {};
+    const employeeOvertimeHours = {};
     const employeeNames = {};
     
     // 遍歷所有排班記錄
@@ -727,10 +780,18 @@ const Scheduling = ({ isAdmin = false }) => {
             
             if (!employeeHours[employeeId]) {
               employeeHours[employeeId] = 0;
+              employeeOvertimeHours[employeeId] = 0;
               employeeNames[employeeId] = employeeName;
             }
             
-            employeeHours[employeeId] += shiftHours;
+            // 根據請假類型計算工時
+            if (schedule.leaveType === 'overtime') {
+              // 加班時數單獨計算
+              employeeOvertimeHours[employeeId] += shiftHours;
+            } else if (!schedule.leaveType || schedule.leaveType === 'sick') {
+              // 正常排班和病假計入工時，事假不計入工時
+              employeeHours[employeeId] += shiftHours;
+            }
           });
         }
       });
@@ -740,7 +801,8 @@ const Scheduling = ({ isAdmin = false }) => {
     return Object.keys(employeeHours).map(employeeId => ({
       employeeId,
       name: employeeNames[employeeId],
-      hours: employeeHours[employeeId].toFixed(1)
+      hours: employeeHours[employeeId].toFixed(1),
+      overtimeHours: employeeOvertimeHours[employeeId].toFixed(1)
     })).sort((a, b) => b.hours - a.hours); // 按工時降序排序
   };
 
@@ -824,7 +886,7 @@ const Scheduling = ({ isAdmin = false }) => {
                   maxHeight: 'calc(100vh - 250px)',
                   overflow: 'auto'
                 }}>
-                  {calculateEmployeeMonthlyHours().map(({ employeeId, name, hours }) => (
+                  {calculateEmployeeMonthlyHours().map(({ employeeId, name, hours, overtimeHours }) => (
                     <Box
                       key={employeeId}
                       sx={{
@@ -838,7 +900,14 @@ const Scheduling = ({ isAdmin = false }) => {
                       }}
                     >
                       <Typography variant="body2">{name}</Typography>
-                      <Typography variant="body1" fontWeight="bold">{hours} 小時</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <Typography variant="body1" fontWeight="bold">{hours} 小時</Typography>
+                        {parseFloat(overtimeHours) > 0 && (
+                          <Typography variant="body2" color="purple.main" fontWeight="medium">
+                            加班: {overtimeHours} 小時
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
                   ))}
                 </Box>
@@ -918,7 +987,12 @@ const Scheduling = ({ isAdmin = false }) => {
                   {dateObj.isCurrentMonth && (
                     <Box sx={{ alignItems: 'center' }}>
                       {getSchedulesForDate(dateObj.date).morning.length > 0 && (
-                        <Tooltip title={getSchedulesForDate(dateObj.date).morning.map(s => s.employee.name).join(', ')}>
+                        <Tooltip title={getSchedulesForDate(dateObj.date).morning.map(s =>
+                          `${s.employee.name}${s.leaveType ?
+                            (s.leaveType === 'sick' ? ' (病假)' :
+                             s.leaveType === 'personal' ? ' (事假)' :
+                             ' (加班)') : ''}`
+                        ).join(', ')}>
                           <Box sx={{ color: 'success.dark', display: 'flex', alignItems: 'center' }}>
                             <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>早:&nbsp;</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
@@ -926,8 +1000,18 @@ const Scheduling = ({ isAdmin = false }) => {
                                 <Box
                                   key={`morning-${schedule._id}`}
                                   sx={{
-                                    bgcolor: 'transparent',
-                                    border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
+                                    bgcolor: schedule.leaveType ?
+                                      (schedule.leaveType === 'sick' ? 'rgba(3, 169, 244, 0.1)' :
+                                       schedule.leaveType === 'personal' ? 'rgba(255, 152, 0, 0.1)' :
+                                       'rgba(156, 39, 176, 0.1)') : // 紫色背景用於加班
+                                      'transparent',
+                                    border: `1.95px solid ${
+                                      schedule.leaveType ?
+                                        (schedule.leaveType === 'sick' ? 'info.main' :
+                                         schedule.leaveType === 'personal' ? 'warning.main' :
+                                         'purple.main') : // 紫色邊框用於加班
+                                        getEmployeeColor(schedule.employee._id)
+                                    }`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
                                     width: '24px',
@@ -949,7 +1033,12 @@ const Scheduling = ({ isAdmin = false }) => {
                       )}
                       
                       {getSchedulesForDate(dateObj.date).afternoon.length > 0 && (
-                        <Tooltip title={getSchedulesForDate(dateObj.date).afternoon.map(s => s.employee.name).join(', ')}>
+                        <Tooltip title={getSchedulesForDate(dateObj.date).afternoon.map(s =>
+                          `${s.employee.name}${s.leaveType ?
+                            (s.leaveType === 'sick' ? ' (病假)' :
+                             s.leaveType === 'personal' ? ' (事假)' :
+                             ' (加班)') : ''}`
+                        ).join(', ')}>
                           <Box sx={{ color: 'info.dark', display: 'flex', alignItems: 'center' }}>
                             <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>中:&nbsp;</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
@@ -957,8 +1046,18 @@ const Scheduling = ({ isAdmin = false }) => {
                                 <Box
                                   key={`afternoon-${schedule._id}`}
                                   sx={{
-                                    bgcolor: 'transparent',
-                                    border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
+                                    bgcolor: schedule.leaveType ?
+                                      (schedule.leaveType === 'sick' ? 'rgba(3, 169, 244, 0.1)' :
+                                       schedule.leaveType === 'personal' ? 'rgba(255, 152, 0, 0.1)' :
+                                       'rgba(156, 39, 176, 0.1)') : // 紫色背景用於加班
+                                      'transparent',
+                                    border: `1.95px solid ${
+                                      schedule.leaveType ?
+                                        (schedule.leaveType === 'sick' ? 'info.main' :
+                                         schedule.leaveType === 'personal' ? 'warning.main' :
+                                         'purple.main') : // 紫色邊框用於加班
+                                        getEmployeeColor(schedule.employee._id)
+                                    }`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
                                     width: '24px',
@@ -980,7 +1079,12 @@ const Scheduling = ({ isAdmin = false }) => {
                       )}
                       
                       {getSchedulesForDate(dateObj.date).evening.length > 0 && (
-                        <Tooltip title={getSchedulesForDate(dateObj.date).evening.map(s => s.employee.name).join(', ')}>
+                        <Tooltip title={getSchedulesForDate(dateObj.date).evening.map(s =>
+                          `${s.employee.name}${s.leaveType ?
+                            (s.leaveType === 'sick' ? ' (病假)' :
+                             s.leaveType === 'personal' ? ' (事假)' :
+                             ' (加班)') : ''}`
+                        ).join(', ')}>
                           <Box sx={{ color: 'warning.dark', display: 'flex', alignItems: 'center' }}>
                             <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>晚:&nbsp;</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
@@ -988,8 +1092,18 @@ const Scheduling = ({ isAdmin = false }) => {
                                 <Box
                                   key={`evening-${schedule._id}`}
                                   sx={{
-                                    bgcolor: 'transparent',
-                                    border: `1.95px solid ${getEmployeeColor(schedule.employee._id)}`,
+                                    bgcolor: schedule.leaveType ?
+                                      (schedule.leaveType === 'sick' ? 'rgba(3, 169, 244, 0.1)' :
+                                       schedule.leaveType === 'personal' ? 'rgba(255, 152, 0, 0.1)' :
+                                       'rgba(156, 39, 176, 0.1)') : // 紫色背景用於加班
+                                      'transparent',
+                                    border: `1.95px solid ${
+                                      schedule.leaveType ?
+                                        (schedule.leaveType === 'sick' ? 'info.main' :
+                                         schedule.leaveType === 'personal' ? 'warning.main' :
+                                         'purple.main') : // 紫色邊框用於加班
+                                        getEmployeeColor(schedule.employee._id)
+                                    }`,
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: '50%',
                                     width: '24px',

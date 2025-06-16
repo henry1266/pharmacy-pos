@@ -76,7 +76,8 @@ router.post(
     [
       check('date', '日期為必填欄位').not().isEmpty(),
       check('shift', '班次為必填欄位').isIn(['morning', 'afternoon', 'evening']),
-      check('employeeId', '員工ID為必填欄位').not().isEmpty()
+      check('employeeId', '員工ID為必填欄位').not().isEmpty(),
+      check('leaveType', '請假類型格式無效').optional().isIn(['sick', 'personal', 'overtime'])
     ]
   ],
   async (req, res) => {
@@ -112,6 +113,7 @@ router.post(
         date: req.body.date,
         shift: req.body.shift,
         employeeId: req.body.employeeId,
+        leaveType: req.body.leaveType || null,
         createdBy: req.user.id
       });
 
@@ -161,7 +163,7 @@ router.put('/:id', auth, async (req, res) => {
 
     // 更新資料
     const updatedFields = {};
-    const allowedFields = ['date', 'shift', 'employeeId'];
+    const allowedFields = ['date', 'shift', 'employeeId', 'leaveType'];
     
     for (const [key, value] of Object.entries(req.body)) {
       if (value !== undefined && allowedFields.includes(key)) {
@@ -281,7 +283,8 @@ router.get('/by-date', [
       groupedSchedules[dateStr][schedule.shift].push({
         _id: schedule._id,
         employee: schedule.employeeId,
-        shift: schedule.shift
+        shift: schedule.shift,
+        leaveType: schedule.leaveType
       });
     });
     

@@ -67,6 +67,7 @@ export const getSchedulesByDate = async (startDate, endDate) => {
  * @param {string} scheduleData.date - 日期 (YYYY-MM-DD)
  * @param {string} scheduleData.shift - 班次 (morning, afternoon, evening)
  * @param {string} scheduleData.employeeId - 員工ID
+ * @param {string} scheduleData.leaveType - 請假類型 (sick, personal, overtime, null)
  * @returns {Promise} - 創建的排班資料
  */
 export const createSchedule = async (scheduleData) => {
