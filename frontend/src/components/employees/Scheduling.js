@@ -886,18 +886,74 @@ const Scheduling = ({ isAdmin = false }) => {
     return (endTimeInMinutes - startTimeInMinutes) / 60;
   };
   
+  // 處理單個排班記錄的工時計算
+  const processScheduleHours = (schedule, dateStr, shift, shiftHours) => {
+    const employeeId = schedule.employee._id;
+    const employeeName = schedule.employee.name;
+    
+    // 調試輸出
+    console.log(`排班記錄: ${dateStr} ${shift}, 員工: ${employeeName}, 請假類型: ${schedule.leaveType || '正常排班'}`);
+    
+    // 初始化員工工時記錄
+    if (!employeeHoursData.hours[employeeId]) {
+      employeeHoursData.hours[employeeId] = 0;
+      employeeHoursData.overtimeHours[employeeId] = 0;
+      employeeHoursData.personalLeaveHours[employeeId] = 0;
+      employeeHoursData.sickLeaveHours[employeeId] = 0;
+      employeeHoursData.names[employeeId] = employeeName;
+    }
+    
+    // 檢查 leaveType 的具體值和類型
+    console.log(`  leaveType: ${schedule.leaveType}, 類型: ${typeof schedule.leaveType}`);
+    
+    // 將 leaveType 轉換為小寫字符串並去除空格，以便更寬鬆的比較
+    const leaveTypeStr = schedule.leaveType ? String(schedule.leaveType).toLowerCase().trim() : '';
+    console.log(`  轉換後的 leaveType: "${leaveTypeStr}"`);
+    
+    // 使用更寬鬆的條件檢查
+    if (leaveTypeStr.includes('overtime') || leaveTypeStr === 'ot') {
+      // 加班時數單獨計算
+      employeeHoursData.overtimeHours[employeeId] += shiftHours;
+      console.log(`  加班時數 +${shiftHours}，累計: ${employeeHoursData.overtimeHours[employeeId]}`);
+    } else if (leaveTypeStr.includes('personal') || leaveTypeStr === 'pl') {
+      // 特休時數單獨計算
+      employeeHoursData.personalLeaveHours[employeeId] += shiftHours;
+      console.log(`  特休時數 +${shiftHours}，累計: ${employeeHoursData.personalLeaveHours[employeeId]}`);
+    } else if (leaveTypeStr.includes('sick') || leaveTypeStr === 'sl') {
+      // 病假時數單獨計算
+      employeeHoursData.sickLeaveHours[employeeId] += shiftHours;
+      employeeHoursData.sickLeaveCount++;
+      console.log(`  病假時數 +${shiftHours}，累計: ${employeeHoursData.sickLeaveHours[employeeId]}`);
+    } else {
+      // 只有正常排班計入工時 (包括 leaveType 為 null、undefined 或其他值的情況)
+      employeeHoursData.hours[employeeId] += shiftHours;
+      console.log(`  正常工時 +${shiftHours}，累計: ${employeeHoursData.hours[employeeId]}, leaveType: ${schedule.leaveType}`);
+    }
+    
+    employeeHoursData.totalSchedules++;
+  };
+  
+  // 用於存儲員工工時數據的對象
+  const employeeHoursData = {
+    hours: {},
+    overtimeHours: {},
+    personalLeaveHours: {},
+    sickLeaveHours: {},
+    names: {},
+    totalSchedules: 0,
+    sickLeaveCount: 0
+  };
+  
   // 計算每位員工的本月工時
   const calculateEmployeeMonthlyHours = () => {
-    // 創建對象來存儲每位員工的工時、加班時數、特休時數和病假時數
-    const employeeHours = {};
-    const employeeOvertimeHours = {};
-    const employeePersonalLeaveHours = {};
-    const employeeSickLeaveHours = {};
-    const employeeNames = {};
-    
-    // 用於調試的計數器
-    let totalSchedules = 0;
-    let sickLeaveCount = 0;
+    // 重置數據
+    Object.keys(employeeHoursData).forEach(key => {
+      if (typeof employeeHoursData[key] === 'object') {
+        employeeHoursData[key] = {};
+      } else if (typeof employeeHoursData[key] === 'number') {
+        employeeHoursData[key] = 0;
+      }
+    });
     
     console.log('開始計算工時，當前月份:', currentDate.toISOString().split('T')[0]);
     console.log('排班資料鍵值:', Object.keys(schedulesGroupedByDate));
@@ -914,70 +970,29 @@ const Scheduling = ({ isAdmin = false }) => {
           
           // 為每位排班的員工添加工時
           schedules[shift].forEach(schedule => {
-            totalSchedules++;
-            const employeeId = schedule.employee._id;
-            const employeeName = schedule.employee.name;
-            
-            // 調試輸出
-            console.log(`排班記錄: ${dateStr} ${shift}, 員工: ${employeeName}, 請假類型: ${schedule.leaveType || '正常排班'}`);
-            
-            if (!employeeHours[employeeId]) {
-              employeeHours[employeeId] = 0;
-              employeeOvertimeHours[employeeId] = 0;
-              employeePersonalLeaveHours[employeeId] = 0;
-              employeeSickLeaveHours[employeeId] = 0;
-              employeeNames[employeeId] = employeeName;
-            }
-            
-            // 根據請假類型計算工時
-            // 檢查 leaveType 的具體值和類型
-            console.log(`  leaveType: ${schedule.leaveType}, 類型: ${typeof schedule.leaveType}`);
-            
-            // 將 leaveType 轉換為小寫字符串並去除空格，以便更寬鬆的比較
-            const leaveTypeStr = schedule.leaveType ? String(schedule.leaveType).toLowerCase().trim() : '';
-            console.log(`  轉換後的 leaveType: "${leaveTypeStr}"`);
-            
-            // 使用更寬鬆的條件檢查
-            if (leaveTypeStr.includes('overtime') || leaveTypeStr === 'ot') {
-              // 加班時數單獨計算
-              employeeOvertimeHours[employeeId] += shiftHours;
-              console.log(`  加班時數 +${shiftHours}，累計: ${employeeOvertimeHours[employeeId]}`);
-            } else if (leaveTypeStr.includes('personal') || leaveTypeStr === 'pl') {
-              // 特休時數單獨計算
-              employeePersonalLeaveHours[employeeId] += shiftHours;
-              console.log(`  特休時數 +${shiftHours}，累計: ${employeePersonalLeaveHours[employeeId]}`);
-            } else if (leaveTypeStr.includes('sick') || leaveTypeStr === 'sl') {
-              // 病假時數單獨計算
-              employeeSickLeaveHours[employeeId] += shiftHours;
-              sickLeaveCount++;
-              console.log(`  病假時數 +${shiftHours}，累計: ${employeeSickLeaveHours[employeeId]}`);
-            } else {
-              // 只有正常排班計入工時 (包括 leaveType 為 null、undefined 或其他值的情況)
-              employeeHours[employeeId] += shiftHours;
-              console.log(`  正常工時 +${shiftHours}，累計: ${employeeHours[employeeId]}, leaveType: ${schedule.leaveType}`);
-            }
+            processScheduleHours(schedule, dateStr, shift, shiftHours);
           });
         }
       });
     });
     
     // 調試輸出
-    console.log(`總排班記錄: ${totalSchedules}, 病假記錄: ${sickLeaveCount}`);
+    console.log(`總排班記錄: ${employeeHoursData.totalSchedules}, 病假記錄: ${employeeHoursData.sickLeaveCount}`);
     console.log('工時統計結果:', {
-      employeeHours,
-      employeeOvertimeHours,
-      employeePersonalLeaveHours,
-      employeeSickLeaveHours
+      hours: employeeHoursData.hours,
+      overtimeHours: employeeHoursData.overtimeHours,
+      personalLeaveHours: employeeHoursData.personalLeaveHours,
+      sickLeaveHours: employeeHoursData.sickLeaveHours
     });
     
     // 將結果轉換為數組格式
-    return Object.keys(employeeHours).map(employeeId => ({
+    return Object.keys(employeeHoursData.hours).map(employeeId => ({
       employeeId,
-      name: employeeNames[employeeId],
-      hours: employeeHours[employeeId].toFixed(1),
-      overtimeHours: employeeOvertimeHours[employeeId].toFixed(1),
-      personalLeaveHours: employeePersonalLeaveHours[employeeId].toFixed(1),
-      sickLeaveHours: employeeSickLeaveHours[employeeId].toFixed(1)
+      name: employeeHoursData.names[employeeId],
+      hours: employeeHoursData.hours[employeeId].toFixed(1),
+      overtimeHours: employeeHoursData.overtimeHours[employeeId].toFixed(1),
+      personalLeaveHours: employeeHoursData.personalLeaveHours[employeeId].toFixed(1),
+      sickLeaveHours: employeeHoursData.sickLeaveHours[employeeId].toFixed(1)
     })).sort((a, b) => b.hours - a.hours); // 按工時降序排序
   };
 
@@ -1144,11 +1159,12 @@ const Scheduling = ({ isAdmin = false }) => {
                                 <Box
                                   key={`morning-${schedule._id}`}
                                   sx={{
-                                    bgcolor: schedule.leaveType ?
-                                      (schedule.leaveType === 'sick' ? 'rgba(3, 169, 244, 0.1)' :
-                                       schedule.leaveType === 'personal' ? 'rgba(255, 152, 0, 0.1)' :
-                                       'transparent') : // 加班不填滿背景
-                                      'transparent',
+                                    bgcolor: (() => {
+                                      if (!schedule.leaveType) return 'transparent';
+                                      if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
+                                      if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
+                                      return 'transparent'; // 加班不填滿背景
+                                    })(),
                                     border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${
                                       schedule.leaveType === 'sick' ? 'info.main' :
                                       schedule.leaveType === 'personal' ? 'warning.main' :
@@ -1188,11 +1204,12 @@ const Scheduling = ({ isAdmin = false }) => {
                                 <Box
                                   key={`afternoon-${schedule._id}`}
                                   sx={{
-                                    bgcolor: schedule.leaveType ?
-                                      (schedule.leaveType === 'sick' ? 'rgba(3, 169, 244, 0.1)' :
-                                       schedule.leaveType === 'personal' ? 'rgba(255, 152, 0, 0.1)' :
-                                       'transparent') : // 加班不填滿背景
-                                      'transparent',
+                                    bgcolor: (() => {
+                                      if (!schedule.leaveType) return 'transparent';
+                                      if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
+                                      if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
+                                      return 'transparent'; // 加班不填滿背景
+                                    })(),
                                     border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${
                                       schedule.leaveType === 'sick' ? 'info.main' :
                                       schedule.leaveType === 'personal' ? 'warning.main' :
@@ -1232,11 +1249,12 @@ const Scheduling = ({ isAdmin = false }) => {
                                 <Box
                                   key={`evening-${schedule._id}`}
                                   sx={{
-                                    bgcolor: schedule.leaveType ?
-                                      (schedule.leaveType === 'sick' ? 'rgba(3, 169, 244, 0.1)' :
-                                       schedule.leaveType === 'personal' ? 'rgba(255, 152, 0, 0.1)' :
-                                       'transparent') : // 加班不填滿背景
-                                      'transparent',
+                                    bgcolor: (() => {
+                                      if (!schedule.leaveType) return 'transparent';
+                                      if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
+                                      if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
+                                      return 'transparent'; // 加班不填滿背景
+                                    })(),
                                     boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
                                     borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
                                     border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${
@@ -1396,9 +1414,9 @@ const Scheduling = ({ isAdmin = false }) => {
                     totalSickLeaveHours
                   });
                   
-                  // 總工時不包含病假時數
+                  // 總工時包含病假時數
                   const grandTotal = (parseFloat(totalRegularHours) + parseFloat(totalOvertimeHours) +
-                                     parseFloat(totalPersonalLeaveHours)).toFixed(1);
+                                     parseFloat(totalPersonalLeaveHours) + parseFloat(totalSickLeaveHours)).toFixed(1);
                   
                   return (
                     <>
@@ -1580,8 +1598,8 @@ const Scheduling = ({ isAdmin = false }) => {
                           總計時數
                         </Typography>
                         <Typography variant="h6" fontWeight="bold" color="success.main">
-                          {/* 個人總工時不包含病假時數 */}
-                          {(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours)).toFixed(1)} 小時
+                          {/* 個人總工時包含病假時數 */}
+                          {(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)} 小時
                         </Typography>
                       </Box>
                     </Box>
