@@ -70,34 +70,14 @@ const Scheduling = ({ isAdmin = false }) => {
 
   // 獲取當前月份的排班資料
   useEffect(() => {
-    // 使用一致的日期格式，避免時區問題
+    // 使用一致的日期格式，統一使用台北+8時區
     const startDate = formatDateString(firstDayOfMonth);
     const endDate = formatDateString(lastDayOfMonth);
     
-    // 檢查是否為特殊月份 (6-9月)
-    const currentMonth = firstDayOfMonth.getMonth();
-    const isSpecialMonth = currentMonth >= 5 && currentMonth <= 8; // 6-9月 (索引5-8)
+    console.log(`獲取排班資料: ${startDate} 至 ${endDate}, 當前月份: ${firstDayOfMonth.getMonth() + 1}月`);
     
-    console.log(`獲取排班資料: ${startDate} 至 ${endDate}, 當前月份: ${currentMonth + 1}月`);
-    console.log(`原始日期對象: 開始=${firstDayOfMonth.toISOString()}, 結束=${lastDayOfMonth.toISOString()}`);
-    
-    // 如果是特殊月份，添加特殊處理
-    if (isSpecialMonth) {
-      const monthStr = String(currentMonth + 1).padStart(2, '0');
-      const monthNames = ['六', '七', '八', '九'];
-      const monthName = monthNames[currentMonth - 5];
-      console.log(`正在處理${monthName}月的排班資料，使用特殊處理`);
-      
-      // 確保日期範圍正確
-      const specialStartDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-01`;
-      const daysInMonth = new Date(firstDayOfMonth.getFullYear(), currentMonth + 1, 0).getDate();
-      const specialEndDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-${daysInMonth}`;
-      
-      console.log(`${monthName}月特殊處理: ${specialStartDate} 至 ${specialEndDate}`);
-      fetchSchedulesByDate(specialStartDate, specialEndDate);
-    } else {
-      fetchSchedulesByDate(startDate, endDate);
-    }
+    // 統一處理所有月份
+    fetchSchedulesByDate(startDate, endDate);
   }, [firstDayOfMonth, lastDayOfMonth, fetchSchedulesByDate]);
 
   // 生成日曆網格資料
@@ -278,25 +258,8 @@ const Scheduling = ({ isAdmin = false }) => {
       const startDate = formatDateString(firstDayOfMonth);
       const endDate = formatDateString(lastDayOfMonth);
       
-      // 檢查是否為特殊月份
-      const currentMonth = firstDayOfMonth.getMonth();
-      const isSpecialMonth = currentMonth >= 5 && currentMonth <= 8; // 6-9月 (索引5-8)
-      
-      if (isSpecialMonth) {
-        const monthStr = String(currentMonth + 1).padStart(2, '0');
-        const monthName = ['六', '七', '八', '九'][currentMonth - 5];
-        console.log(`新增排班後重新獲取${monthName}月資料 (特殊處理)`);
-        
-        const specialStartDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-01`;
-        const daysInMonth = new Date(firstDayOfMonth.getFullYear(), currentMonth + 1, 0).getDate();
-        const specialEndDate = `${firstDayOfMonth.getFullYear()}-${monthStr}-${daysInMonth}`;
-        
-        console.log(`特殊日期範圍: ${specialStartDate} 至 ${specialEndDate}`);
-        await fetchSchedulesByDate(specialStartDate, specialEndDate);
-      } else {
-        console.log(`新增排班後重新獲取資料: ${startDate} 至 ${endDate}`);
-        await fetchSchedulesByDate(startDate, endDate);
-      }
+      console.log(`新增排班後重新獲取資料: ${startDate} 至 ${endDate}`);
+      await fetchSchedulesByDate(startDate, endDate);
       
       return true;
     } catch (err) {
@@ -365,16 +328,14 @@ const Scheduling = ({ isAdmin = false }) => {
       date.getFullYear() === today.getFullYear();
   };
 
-  // 格式化日期為 YYYY-MM-DD 格式
+  // 格式化日期為 YYYY-MM-DD 格式 (統一使用台北+8時區)
   const formatDateString = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1; // 月份從0開始，所以要+1
-    const day = date.getDate();
+    // 創建一個新的日期對象，確保使用台北時區
+    const taiwanDate = new Date(date.getTime());
     
-    // 特別處理七月的情況
-    if (month === 7) {
-      console.log(`特別處理七月日期: ${year}-07-${String(day).padStart(2, '0')}`);
-    }
+    const year = taiwanDate.getFullYear();
+    const month = taiwanDate.getMonth() + 1; // 月份從0開始，所以要+1
+    const day = taiwanDate.getDate();
     
     const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return formattedDate;
