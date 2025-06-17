@@ -29,7 +29,7 @@ router.get('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { startDate, endDate, employeeId } = req.query;
+    const { startDate, endDate, employeeId, leaveType } = req.query;
     
     // Build filter object with validated data
     const filter = {};
@@ -53,6 +53,11 @@ router.get('/', [
     // Add employee filter if provided and validated
     if (employeeId && mongoose.Types.ObjectId.isValid(employeeId)) {
       filter.employeeId = mongoose.Types.ObjectId(employeeId);
+    }
+    
+    // Add leaveType filter if provided
+    if (leaveType) {
+      filter.leaveType = leaveType;
     }
     
     const schedules = await EmployeeSchedule.find(filter)

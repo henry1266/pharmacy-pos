@@ -115,8 +115,8 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   // 獲取員工列表
   const fetchEmployees = async () => {
     try {
-      const employeeList = await employeeService.getAllEmployees();
-      setEmployees(employeeList);
+      const response = await employeeService.getEmployees({ limit: 1000 });
+      setEmployees(response.employees);
     } catch (err) {
       setError(err.message);
     }
