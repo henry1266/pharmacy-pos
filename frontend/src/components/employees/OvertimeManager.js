@@ -57,7 +57,6 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState(0);
   const [scheduleOvertimeRecords, setScheduleOvertimeRecords] = useState([]);
   const [scheduleOvertimeLoading, setScheduleOvertimeLoading] = useState(false);
   const [totalOvertimeData, setTotalOvertimeData] = useState([]);
@@ -158,14 +157,12 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   const calculateTotalOvertimeData = async () => {
     setTotalOvertimeLoading(true);
     try {
-      // 確保我們有最新的排班系統加班記錄
-      await fetchScheduleOvertimeRecords();
-      
       // 創建一個映射來存儲每個員工的加班時數
       const employeeOvertimeMap = new Map();
       
       // 處理獨立加班記錄
       overtimeRecords.forEach(record => {
+        // 只計算已核准的獨立加班記錄
         if (record.status === 'approved') {
           const employeeId = record.employeeId._id;
           const employeeName = record.employeeId.name;
@@ -222,13 +219,29 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
         employeeData.totalHours += estimatedHours;
       });
       
+      // 確保所有員工都在映射中
+      employees.forEach(employee => {
+        if (!employeeOvertimeMap.has(employee._id)) {
+          employeeOvertimeMap.set(employee._id, {
+            employeeId: employee._id,
+            employeeName: employee.name,
+            independentHours: 0,
+            scheduleHours: 0,
+            totalHours: 0
+          });
+        }
+      });
+      
       // 將映射轉換為數組
       const result = Array.from(employeeOvertimeMap.values());
       
-      // 按總時數降序排序
-      result.sort((a, b) => b.totalHours - a.totalHours);
+      // 過濾掉總加班時數為 0 的員工
+      const filteredResult = result.filter(employee => employee.totalHours > 0);
       
-      setTotalOvertimeData(result);
+      // 按總時數降序排序
+      filteredResult.sort((a, b) => b.totalHours - a.totalHours);
+      
+      setTotalOvertimeData(filteredResult);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -236,39 +249,22 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
     }
   };
 
-  // 處理標籤頁變更
-  const handleTabChange = async (event, newValue) => {
-    setCurrentTab(newValue);
+  // 初始化和月份變更時加載所有數據
+  useEffect(() => {
+    const loadAllData = async () => {
+      setLoading(true);
+      try {
+        await fetchEmployees();
+        await fetchOvertimeRecords();
+        await fetchScheduleOvertimeRecords();
+        await calculateTotalOvertimeData();
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // 如果切換到排班系統加班記錄標籤頁，則獲取排班系統加班記錄
-    if (newValue === 1) {
-      await fetchScheduleOvertimeRecords();
-    } else if (newValue === 2) {
-      // 如果切換到蓋覽標籤頁，則計算總加班時數
-      await calculateTotalOvertimeData();
-    }
-  };
-  
-  // 處理月份變更
-  useEffect(() => {
-    if (currentTab === 1) {
-      fetchScheduleOvertimeRecords();
-    } else if (currentTab === 2) {
-      calculateTotalOvertimeData();
-    }
-  }, [selectedMonth, selectedYear]);
-
-  useEffect(() => {
-    fetchEmployees();
-    fetchOvertimeRecords();
+    loadAllData();
   }, [employeeId, selectedMonth, selectedYear]);
-  
-  // 當獨立加班記錄更新時，重新計算總加班時數
-  useEffect(() => {
-    if (currentTab === 2) {
-      calculateTotalOvertimeData();
-    }
-  }, [overtimeRecords, currentTab]);
 
   // 處理表單輸入變更
   const handleInputChange = (e) => {
@@ -570,380 +566,262 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
           </FormControl>
         </Box>
 
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          indicatorColor="primary"
-          textColor="primary"
-          sx={{ mb: 2 }}
-        >
-          <Tab label="獨立加班記錄" />
-          <Tab label="排班系統加班記錄" />
-          <Tab label="概覽" />
-        </Tabs>
+        {/* 移除標籤頁，改為統一視圖 */}
 
-        {currentTab === 0 && (
-          <>
-            
-            {/* 加班時數統計 */}
-            <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                {`${selectedYear}年${selectedMonth + 1}月 加班時數統計`}
-              </Typography>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>員工姓名</TableCell>
-                      <TableCell>加班時數</TableCell>
-                      <TableCell>加班次數</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {summaryData.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={3} align="center">
-                          <Typography color="textSecondary">
-                            沒有找到加班記錄
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      summaryData.map((item) => (
-                        <TableRow key={item.employeeId}>
-                          <TableCell>{item.employeeName}</TableCell>
-                          <TableCell>{item.totalHours} 小時</TableCell>
-                          <TableCell>{item.recordCount} 次</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-
-            {/* 加班記錄列表 */}
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                <CircularProgress size={24} />
-                <Typography sx={{ ml: 2 }}>載入中...</Typography>
-              </Box>
-            ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>員工姓名</TableCell>
-                      <TableCell>日期</TableCell>
-                      <TableCell>加班時數</TableCell>
-                      <TableCell>加班原因</TableCell>
-                      <TableCell>狀態</TableCell>
-                      <TableCell>操作</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {overtimeRecords.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">
-                          <Typography color="textSecondary">
-                            沒有找到加班記錄
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      overtimeRecords.map((record) => (
-                        <TableRow key={record._id}>
-                          <TableCell>{record.employeeId.name}</TableCell>
-                          <TableCell>{formatDate(record.date)}</TableCell>
-                          <TableCell>{record.hours} 小時</TableCell>
-                          <TableCell>{record.description || '-'}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={getStatusText(record.status)}
-                              color={getStatusColor(record.status)}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              {isAdmin && (
-                                <>
-                                  <Tooltip title="編輯">
-                                    <IconButton
-                                      size="small"
-                                      color="primary"
-                                      onClick={() => handleOpenEditDialog(record)}
-                                    >
-                                      <EditIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                  {record.status === 'pending' && (
-                                    <>
-                                      <Tooltip title="核准">
-                                        <IconButton
-                                          size="small"
-                                          color="success"
-                                          onClick={() => {
-                                            setSelectedRecord(record);
-                                            overtimeRecordService.updateOvertimeRecord(record._id, {
-                                              status: 'approved'
-                                            }).then(() => {
-                                              setSuccessMessage('加班記錄已核准');
-                                              fetchOvertimeRecords();
-                                            }).catch(err => {
-                                              setError(err.message);
-                                            });
-                                          }}
-                                        >
-                                          <CheckCircleIcon fontSize="small" />
-                                        </IconButton>
-                                      </Tooltip>
-                                      <Tooltip title="拒絕">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() => {
-                                            setSelectedRecord(record);
-                                            overtimeRecordService.updateOvertimeRecord(record._id, {
-                                              status: 'rejected'
-                                            }).then(() => {
-                                              setSuccessMessage('加班記錄已拒絕');
-                                              fetchOvertimeRecords();
-                                            }).catch(err => {
-                                              setError(err.message);
-                                            });
-                                          }}
-                                        >
-                                          <CancelIcon fontSize="small" />
-                                        </IconButton>
-                                      </Tooltip>
-                                    </>
-                                  )}
-                                  <Tooltip title="刪除">
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      onClick={() => handleOpenDeleteDialog(record)}
-                                    >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                </>
-                              )}
+        {/* 統一的加班記錄視圖 */}
+        <Typography variant="subtitle1" gutterBottom>
+          {`${selectedYear}年${selectedMonth + 1}月 加班時數統計`}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          點擊員工姓名可展開/收起詳細記錄，包含獨立加班和排班系統加班記錄
+        </Typography>
+        
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={24} />
+            <Typography sx={{ ml: 2 }}>載入中...</Typography>
+          </Box>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>員工姓名</TableCell>
+                  <TableCell>獨立加班時數</TableCell>
+                  <TableCell>排班加班時數</TableCell>
+                  <TableCell>總加班時數</TableCell>
+                  <TableCell>詳細資訊</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {totalOvertimeData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Typography color="textSecondary">
+                        沒有找到加班記錄
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  totalOvertimeData.map((employee) => {
+                    // 獲取該員工的獨立加班記錄
+                    const independentRecords = overtimeRecords.filter(
+                      record => record.employeeId._id === employee.employeeId
+                    );
+                    
+                    // 獲取該員工的排班系統加班記錄
+                    const scheduleRecords = scheduleOvertimeRecords.filter(
+                      record => record.employeeId._id === employee.employeeId
+                    ).map(record => {
+                      // 計算預估時數
+                      let estimatedHours = 0;
+                      switch(record.shift) {
+                        case 'morning':
+                          estimatedHours = 3.5; // 早班 8:30-12:00
+                          break;
+                        case 'afternoon':
+                          estimatedHours = 3; // 中班 15:00-18:00
+                          break;
+                        case 'evening':
+                          estimatedHours = 1.5; // 晚班 19:00-20:30
+                          break;
+                        default:
+                          estimatedHours = 0;
+                      }
+                      return { ...record, estimatedHours };
+                    });
+                    
+                    return (
+                      <React.Fragment key={employee.employeeId}>
+                        {/* 員工摺疊標題行 */}
+                        <TableRow
+                          sx={{
+                            '& > *': { borderBottom: 'unset' },
+                            cursor: 'pointer',
+                            bgcolor: expandedEmployees.has(employee.employeeId) ? 'rgba(0, 0, 0, 0.04)' : 'inherit',
+                            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' }
+                          }}
+                          onClick={() => handleEmployeeExpand(employee.employeeId)}
+                        >
+                          <TableCell component="th" scope="row">
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              {expandedEmployees.has(employee.employeeId) ?
+                                <ExpandLessIcon fontSize="small" sx={{ mr: 1 }} /> :
+                                <ExpandMoreIcon fontSize="small" sx={{ mr: 1 }} />
+                              }
+                              <Typography fontWeight="medium">{employee.employeeName}</Typography>
                             </Box>
                           </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </>
-        )}
-
-        {currentTab === 1 && (
-          <>
-            <Typography variant="subtitle1" gutterBottom>
-              排班系統中的加班記錄 ({selectedMonth + 1}月)
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              以下顯示排班系統中標記為加班的記錄，點擊員工姓名可展開/收起詳細記錄
-            </Typography>
-            
-            {scheduleOvertimeLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                <CircularProgress size={24} />
-                <Typography sx={{ ml: 2 }}>載入中...</Typography>
-              </Box>
-            ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>員工姓名</TableCell>
-                      <TableCell>加班次數</TableCell>
-                      <TableCell>總預估時數</TableCell>
-                      <TableCell>詳細資訊</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {scheduleOvertimeRecords.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} align="center">
-                          <Typography color="textSecondary">
-                            排班系統中沒有找到加班記錄
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      (() => {
-                        // 按員工分組
-                        const employeeGroups = {};
-                        
-                        scheduleOvertimeRecords.forEach(record => {
-                          const employeeId = record.employeeId._id;
-                          if (!employeeGroups[employeeId]) {
-                            employeeGroups[employeeId] = {
-                              employeeId: employeeId,
-                              employeeName: record.employeeId.name,
-                              records: [],
-                              totalHours: 0,
-                              count: 0
-                            };
-                          }
-                          
-                          // 計算預估時數
-                          let estimatedHours = 0;
-                          switch(record.shift) {
-                            case 'morning':
-                              estimatedHours = 3.5; // 早班 8:30-12:00
-                              break;
-                            case 'afternoon':
-                              estimatedHours = 3; // 中班 15:00-18:00
-                              break;
-                            case 'evening':
-                              estimatedHours = 1.5; // 晚班 19:00-20:30
-                              break;
-                            default:
-                              estimatedHours = 0;
-                          }
-                          
-                          employeeGroups[employeeId].records.push({
-                            ...record,
-                            estimatedHours
-                          });
-                          employeeGroups[employeeId].totalHours += estimatedHours;
-                          employeeGroups[employeeId].count += 1;
-                        });
-                        
-                        // 轉換為數組並排序
-                        return Object.values(employeeGroups)
-                          .sort((a, b) => b.totalHours - a.totalHours)
-                          .map(group => (
-                            <React.Fragment key={group.employeeId}>
-                              {/* 員工摺疊標題行 */}
-                              <TableRow
-                                sx={{
-                                  '& > *': { borderBottom: 'unset' },
-                                  cursor: 'pointer',
-                                  bgcolor: expandedEmployees.has(group.employeeId) ? 'rgba(0, 0, 0, 0.04)' : 'inherit',
-                                  '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' }
-                                }}
-                                onClick={() => handleEmployeeExpand(group.employeeId)}
-                              >
-                                <TableCell component="th" scope="row">
-                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    {expandedEmployees.has(group.employeeId) ?
-                                      <ExpandLessIcon fontSize="small" sx={{ mr: 1 }} /> :
-                                      <ExpandMoreIcon fontSize="small" sx={{ mr: 1 }} />
-                                    }
-                                    <Typography fontWeight="medium">{group.employeeName}</Typography>
-                                  </Box>
-                                </TableCell>
-                                <TableCell>{group.count} 次</TableCell>
-                                <TableCell>{group.totalHours.toFixed(1)} 小時</TableCell>
-                                <TableCell>
-                                  <Button
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEmployeeExpand(group.employeeId);
-                                    }}
-                                  >
-                                    {expandedEmployees.has(group.employeeId) ? '收起' : '展開'}
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                              
-                              {/* 展開的詳細記錄 */}
-                              <TableRow>
-                                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                                  <Collapse in={expandedEmployees.has(group.employeeId)} timeout="auto" unmountOnExit>
-                                    <Box sx={{ margin: 1, mb: 3 }}>
-                                      <Table size="small" aria-label="詳細加班記錄">
-                                        <TableHead>
-                                          <TableRow>
-                                            <TableCell>日期</TableCell>
-                                            <TableCell>班次</TableCell>
-                                            <TableCell>預估時數</TableCell>
-                                          </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                          {group.records.map((record) => (
-                                            <TableRow key={record._id}>
-                                              <TableCell>{formatDate(record.date)}</TableCell>
-                                              <TableCell>{getShiftText(record.shift)}</TableCell>
-                                              <TableCell>{record.estimatedHours} 小時</TableCell>
-                                            </TableRow>
-                                          ))}
-                                        </TableBody>
-                                      </Table>
-                                    </Box>
-                                  </Collapse>
-                                </TableCell>
-                              </TableRow>
-                            </React.Fragment>
-                          ));
-                      })()
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </>
-        )}
-
-        {currentTab === 2 && (
-          <>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              以下顯示每位員工的獨立加班時數與排班加班時數總和。
-            </Typography>
-            
-            {totalOvertimeLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                <CircularProgress size={24} />
-                <Typography sx={{ ml: 2 }}>載入中...</Typography>
-              </Box>
-            ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>員工姓名</TableCell>
-                      <TableCell>獨立加班時數</TableCell>
-                      <TableCell>排班加班時數</TableCell>
-                      <TableCell>總加班時數</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {totalOvertimeData.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} align="center">
-                          <Typography color="textSecondary">
-                            沒有找到加班記錄
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      totalOvertimeData.map((item) => (
-                        <TableRow key={item.employeeId}>
-                          <TableCell>{item.employeeName}</TableCell>
-                          <TableCell>{item.independentHours.toFixed(1)} 小時</TableCell>
-                          <TableCell>{item.scheduleHours.toFixed(1)} 小時</TableCell>
+                          <TableCell>{employee.independentHours.toFixed(1)} 小時</TableCell>
+                          <TableCell>{employee.scheduleHours.toFixed(1)} 小時</TableCell>
                           <TableCell>
                             <Typography fontWeight="bold">
-                              {item.totalHours.toFixed(1)} 小時
+                              {employee.totalHours.toFixed(1)} 小時
                             </Typography>
                           </TableCell>
+                          <TableCell>
+                            <Button
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEmployeeExpand(employee.employeeId);
+                              }}
+                            >
+                              {expandedEmployees.has(employee.employeeId) ? '收起' : '展開'}
+                            </Button>
+                          </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </>
+                        
+                        {/* 展開的詳細記錄 */}
+                        <TableRow>
+                          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+                            <Collapse in={expandedEmployees.has(employee.employeeId)} timeout="auto" unmountOnExit>
+                              <Box sx={{ margin: 1, mb: 3 }}>
+                                {/* 獨立加班記錄 */}
+                                {independentRecords.length > 0 && (
+                                  <>
+                                    <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold', color: 'primary.main' }}>
+                                      獨立加班記錄
+                                    </Typography>
+                                    <Table size="small" aria-label="獨立加班記錄">
+                                      <TableHead>
+                                        <TableRow>
+                                          <TableCell>日期</TableCell>
+                                          <TableCell>加班時數</TableCell>
+                                          <TableCell>加班原因</TableCell>
+                                          <TableCell>狀態</TableCell>
+                                          {isAdmin && <TableCell>操作</TableCell>}
+                                        </TableRow>
+                                      </TableHead>
+                                      <TableBody>
+                                        {independentRecords.map((record) => (
+                                          <TableRow key={record._id}>
+                                            <TableCell>{formatDate(record.date)}</TableCell>
+                                            <TableCell>{record.hours} 小時</TableCell>
+                                            <TableCell>{record.description || '-'}</TableCell>
+                                            <TableCell>
+                                              <Chip
+                                                label={getStatusText(record.status)}
+                                                color={getStatusColor(record.status)}
+                                                size="small"
+                                              />
+                                            </TableCell>
+                                            {isAdmin && (
+                                              <TableCell>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                  <Tooltip title="編輯">
+                                                    <IconButton
+                                                      size="small"
+                                                      color="primary"
+                                                      onClick={() => handleOpenEditDialog(record)}
+                                                    >
+                                                      <EditIcon fontSize="small" />
+                                                    </IconButton>
+                                                  </Tooltip>
+                                                  {record.status === 'pending' && (
+                                                    <>
+                                                      <Tooltip title="核准">
+                                                        <IconButton
+                                                          size="small"
+                                                          color="success"
+                                                          onClick={() => {
+                                                            setSelectedRecord(record);
+                                                            overtimeRecordService.updateOvertimeRecord(record._id, {
+                                                              status: 'approved'
+                                                            }).then(() => {
+                                                              setSuccessMessage('加班記錄已核准');
+                                                              fetchOvertimeRecords();
+                                                            }).catch(err => {
+                                                              setError(err.message);
+                                                            });
+                                                          }}
+                                                        >
+                                                          <CheckCircleIcon fontSize="small" />
+                                                        </IconButton>
+                                                      </Tooltip>
+                                                      <Tooltip title="拒絕">
+                                                        <IconButton
+                                                          size="small"
+                                                          color="error"
+                                                          onClick={() => {
+                                                            setSelectedRecord(record);
+                                                            overtimeRecordService.updateOvertimeRecord(record._id, {
+                                                              status: 'rejected'
+                                                            }).then(() => {
+                                                              setSuccessMessage('加班記錄已拒絕');
+                                                              fetchOvertimeRecords();
+                                                            }).catch(err => {
+                                                              setError(err.message);
+                                                            });
+                                                          }}
+                                                        >
+                                                          <CancelIcon fontSize="small" />
+                                                        </IconButton>
+                                                      </Tooltip>
+                                                    </>
+                                                  )}
+                                                  <Tooltip title="刪除">
+                                                    <IconButton
+                                                      size="small"
+                                                      color="error"
+                                                      onClick={() => handleOpenDeleteDialog(record)}
+                                                    >
+                                                      <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+                                                  </Tooltip>
+                                                </Box>
+                                              </TableCell>
+                                            )}
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </>
+                                )}
+                                
+                                {/* 排班系統加班記錄 */}
+                                {scheduleRecords.length > 0 && (
+                                  <>
+                                    <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold', color: 'secondary.main' }}>
+                                      排班系統加班記錄
+                                    </Typography>
+                                    <Table size="small" aria-label="排班系統加班記錄">
+                                      <TableHead>
+                                        <TableRow>
+                                          <TableCell>日期</TableCell>
+                                          <TableCell>班次</TableCell>
+                                          <TableCell>預估時數</TableCell>
+                                        </TableRow>
+                                      </TableHead>
+                                      <TableBody>
+                                        {scheduleRecords.map((record) => (
+                                          <TableRow key={record._id}>
+                                            <TableCell>{formatDate(record.date)}</TableCell>
+                                            <TableCell>{getShiftText(record.shift)}</TableCell>
+                                            <TableCell>{record.estimatedHours} 小時</TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </>
+                                )}
+                                
+                                {independentRecords.length === 0 && scheduleRecords.length === 0 && (
+                                  <Typography color="textSecondary" sx={{ my: 2 }}>
+                                    沒有找到詳細加班記錄
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Collapse>
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </Paper>
 
