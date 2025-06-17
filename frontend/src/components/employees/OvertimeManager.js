@@ -66,9 +66,9 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   
   // 月份篩選狀態
   const currentDate = new Date();
-  // 預設選擇所有月份
-  const [selectedMonth, setSelectedMonth] = useState(-1); // 所有月份
-  const [selectedYear, setSelectedYear] = useState(2025); // 2025年
+  // 預設選擇當前月份
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth()); // 當前月份
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear()); // 當前年份
   const [formData, setFormData] = useState({
     employeeId: '',
     date: new Date().toISOString().split('T')[0],
@@ -84,24 +84,28 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   const fetchOvertimeRecords = async () => {
     setLoading(true);
     try {
+      // 先獲取所有員工信息，用於後續匹配
+      let allEmployees = [];
+      try {
+        const response = await employeeService.getEmployees({ limit: 1000 });
+        allEmployees = response.employees || [];
+        console.log(`獲取到 ${allEmployees.length} 名員工信息`);
+      } catch (empErr) {
+        console.error('獲取員工信息失敗:', empErr);
+      }
+      
       const params = {};
       if (employeeId) {
         params.employeeId = employeeId;
       }
       
-      // 添加月份篩選 - 使用更可靠的日期格式化方法
+      // 添加月份篩選 - 只查詢特定月份的數據
       let startDate, endDate;
       
-      if (selectedMonth === -1) {
-        // 如果選擇全部月份，查詢整年的數據
-        startDate = new Date(selectedYear, 0, 1); // 1月1日
-        endDate = new Date(selectedYear, 11, 31, 23, 59, 59); // 12月31日
-      } else {
-        // 如果選擇特定月份，只查詢該月的數據
-        startDate = new Date(selectedYear, selectedMonth, 1); // 該月1日
-        // 計算下個月的第0天，即當月的最後一天
-        endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
-      }
+      // 查詢特定月份的數據
+      startDate = new Date(selectedYear, selectedMonth, 1); // 該月1日
+      // 計算下個月的第0天，即當月的最後一天
+      endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
       
       // 使用本地時區格式化日期，避免時區問題
       params.startDate = formatDateToYYYYMMDD(startDate);
@@ -144,13 +148,9 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
         year: selectedYear
       };
       
-      // 處理月份篩選
-      if (selectedMonth !== -1) {
-        statsParams.month = selectedMonth + 1;
-        console.log(`嘗試獲取月度加班統計: 年份=${selectedYear}, 月份=${selectedMonth + 1}`);
-      } else {
-        console.log(`嘗試獲取年度加班統計: 年份=${selectedYear}, 所有月份`);
-      }
+      // 處理月份篩選 - 始終使用特定月份
+      statsParams.month = selectedMonth + 1;
+      console.log(`嘗試獲取月度加班統計: 年份=${selectedYear}, 月份=${selectedMonth + 1}`);
       
       let stats = [];
       try {
@@ -188,20 +188,13 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
       
       // 獲取排班系統加班記錄
       try {
-        // 構建查詢參數 - 使用更可靠的日期格式化方法
+        // 構建查詢參數 - 只查詢特定月份的數據
         let startDate, endDate;
         
-        // 使用與上面相同的月份篩選邏輯
-        if (selectedMonth === -1) {
-          // 如果選擇全部月份，查詢整年的數據
-          startDate = formatDateToYYYYMMDD(new Date(selectedYear, 0, 1)); // 1月1日
-          endDate = formatDateToYYYYMMDD(new Date(selectedYear, 11, 31)); // 12月31日
-        } else {
-          // 如果選擇特定月份，只查詢該月的數據
-          startDate = formatDateToYYYYMMDD(new Date(selectedYear, selectedMonth, 1)); // 該月1日
-          // 計算下個月的第0天，即當月的最後一天
-          endDate = formatDateToYYYYMMDD(new Date(selectedYear, selectedMonth + 1, 0));
-        }
+        // 查詢特定月份的數據
+        startDate = formatDateToYYYYMMDD(new Date(selectedYear, selectedMonth, 1)); // 該月1日
+        // 計算下個月的第0天，即當月的最後一天
+        endDate = formatDateToYYYYMMDD(new Date(selectedYear, selectedMonth + 1, 0));
         
         console.log(`嘗試獲取排班系統加班記錄: ${startDate} 至 ${endDate}, 年份: ${selectedYear}`);
         
@@ -650,7 +643,6 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
               onChange={(e) => setSelectedMonth(e.target.value)}
               size="small"
             >
-              <MenuItem value={-1}>全部月份</MenuItem>
               <MenuItem value={0}>1月</MenuItem>
               <MenuItem value={1}>2月</MenuItem>
               <MenuItem value={2}>3月</MenuItem>
@@ -669,9 +661,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
 
         {/* 加班記錄列表 */}
         <Typography variant="subtitle1" gutterBottom>
-          {selectedMonth === -1
-            ? `${selectedYear}年 全年加班記錄`
-            : `${selectedYear}年 ${selectedMonth + 1}月 加班記錄`}
+          {`${selectedYear}年 ${selectedMonth + 1}月 加班記錄`}
         </Typography>
         
         {loading ? (
@@ -733,10 +723,45 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                       // 從統計數據中獲取員工ID
                       summaryData.forEach(stat => {
                         if (stat.employeeId) {
+                          // 嘗試從API響應中獲取更多員工信息
+                          let employeeName = stat.employeeName || '';
+                          
+                          // 嘗試從員工列表中查找
+                          if (!employeeName) {
+                            const matchingEmployee = employees.find(emp => emp._id === stat.employeeId);
+                            if (matchingEmployee) {
+                              employeeName = matchingEmployee.name;
+                              console.log(`從員工列表中找到員工姓名: ${employeeName}`);
+                            }
+                          }
+                          
+                          // 如果沒有名字，嘗試從其他地方獲取
+                          if (!employeeName) {
+                            // 嘗試從overtimeRecords中查找匹配的員工
+                            const matchingRecord = overtimeRecords.find(r =>
+                              r.employeeId && r.employeeId._id === stat.employeeId
+                            );
+                            
+                            if (matchingRecord && matchingRecord.employeeId.name) {
+                              employeeName = matchingRecord.employeeId.name;
+                              console.log(`從overtimeRecords中找到員工姓名: ${employeeName}`);
+                            }
+                          }
+                          
+                          // 如果還是沒有名字，使用更有意義的臨時名稱
+                          if (!employeeName) {
+                            // 只使用月份作為臨時名稱，避免隨機數字
+                            const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+                            employeeName = `員工${monthStr}`;
+                            console.log(`生成臨時員工名稱: ${employeeName}`);
+                          }
+                          
                           initialGroups[stat.employeeId] = {
                             employee: {
                               _id: stat.employeeId,
-                              name: stat.employeeName || '未知員工'
+                              name: employeeName,
+                              position: '員工',
+                              department: '員工'
                             },
                             records: [],
                             independentHours: 0,
@@ -751,45 +776,78 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                       // 從排班系統加班記錄中獲取員工ID
                       Object.keys(scheduleOvertimeRecords).forEach(empId => {
                         if (!initialGroups[empId]) {
-                          // 嘗試從排班記錄中獲取員工信息
+                          // 嘗試從排班記錄中獲取員工信息 - 增強版
                           const scheduleRecords = scheduleOvertimeRecords[empId];
-                          let employeeName = '未知員工';
+                          let employeeName = '';
                           let employeeObj = null;
                           
-                          // 遍歷所有記錄尋找員工信息
-                          for (const record of scheduleRecords) {
-                            // 檢查記錄中的employeeId字段
-                            if (record.employeeId) {
-                              if (typeof record.employeeId === 'object') {
-                                // 如果employeeId是對象
-                                if (record.employeeId.name) {
-                                  employeeName = record.employeeId.name;
-                                  employeeObj = record.employeeId;
-                                  console.log(`從排班記錄對象中獲取到員工姓名: ${employeeName}`);
-                                  break;
+                          // 首先從員工列表中查找
+                          const matchingEmployee = employees.find(emp =>
+                            emp._id === empId ||
+                            (typeof empId === 'string' && empId.includes(emp._id))
+                          );
+                          
+                          if (matchingEmployee) {
+                            employeeName = matchingEmployee.name;
+                            employeeObj = matchingEmployee;
+                            console.log(`從員工列表中找到員工姓名: ${employeeName}`);
+                          } else {
+                            // 如果員工列表中沒有，遍歷所有記錄尋找員工信息
+                            for (const record of scheduleRecords) {
+                              // 檢查記錄中的employeeId字段
+                              if (record.employeeId) {
+                                if (typeof record.employeeId === 'object') {
+                                  // 如果employeeId是對象
+                                  if (record.employeeId.name) {
+                                    employeeName = record.employeeId.name;
+                                    employeeObj = record.employeeId;
+                                    console.log(`從排班記錄對象中獲取到員工姓名: ${employeeName}`);
+                                    break;
+                                  }
                                 }
+                              }
+                              
+                              // 檢查記錄中的employee字段
+                              if (record.employee && record.employee.name) {
+                                employeeName = record.employee.name;
+                                employeeObj = record.employee;
+                                console.log(`從排班記錄employee字段獲取到員工姓名: ${employeeName}`);
+                                break;
                               }
                             }
                             
-                            // 檢查記錄中的employee字段
-                            if (record.employee && record.employee.name) {
-                              employeeName = record.employee.name;
-                              employeeObj = record.employee;
-                              console.log(`從排班記錄employee字段獲取到員工姓名: ${employeeName}`);
-                              break;
+                            // 如果還是沒找到，嘗試從summaryData中查找
+                            if (!employeeName) {
+                              const matchingStat = summaryData.find(stat =>
+                                stat.employeeId === empId ||
+                                (stat.employeeName && empId.includes(stat.employeeName))
+                              );
+                              
+                              if (matchingStat && matchingStat.employeeName) {
+                                employeeName = matchingStat.employeeName;
+                                console.log(`從summaryData中獲取到員工姓名: ${employeeName}`);
+                              }
                             }
-                          }
-                          
-                          // 如果還是沒找到，嘗試從summaryData中查找
-                          if (employeeName === '未知員工') {
-                            const matchingStat = summaryData.find(stat =>
-                              stat.employeeId === empId ||
-                              (stat.employeeName && empId.includes(stat.employeeName))
-                            );
                             
-                            if (matchingStat && matchingStat.employeeName) {
-                              employeeName = matchingStat.employeeName;
-                              console.log(`從summaryData中獲取到員工姓名: ${employeeName}`);
+                            // 如果還是沒找到，嘗試從overtimeRecords中查找
+                            if (!employeeName) {
+                              const matchingRecord = overtimeRecords.find(r =>
+                                r.employeeId && r.employeeId._id === empId
+                              );
+                              
+                              if (matchingRecord && matchingRecord.employeeId.name) {
+                                employeeName = matchingRecord.employeeId.name;
+                                employeeObj = matchingRecord.employeeId;
+                                console.log(`從overtimeRecords中找到員工姓名: ${employeeName}`);
+                              }
+                            }
+                            
+                            // 如果還是沒有名字，使用更有意義的臨時名稱
+                            if (!employeeName) {
+                              // 只使用月份作為臨時名稱，保持一致性
+                              const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+                              employeeName = `員工${monthStr}`;
+                              console.log(`生成臨時員工名稱: ${employeeName}`);
                             }
                           }
                           
@@ -904,7 +962,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                           </TableCell>
                           <TableCell component="th" scope="row">
                             <Typography variant="subtitle1" fontWeight="bold">
-                              {group.employee.name}
+                              {group.employee.name || `員工${(selectedMonth + 1).toString().padStart(2, '0')}`}
                             </Typography>
                           </TableCell>
                           <TableCell>{group.independentHours.toFixed(1)} 小時</TableCell>
