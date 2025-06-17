@@ -112,11 +112,29 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
       const records = await overtimeRecordService.getOvertimeRecords(params);
       setOvertimeRecords(records);
       
-      // 初始化展開狀態
+      // 初始化展開狀態 - 同時考慮獨立加班記錄和排班系統加班記錄
       const expandedState = {};
+      
+      // 處理獨立加班記錄
       records.forEach(record => {
-        expandedState[record.employeeId._id] = false;
+        if (record.employeeId && record.employeeId._id) {
+          expandedState[record.employeeId._id] = false;
+        }
       });
+      
+      // 處理排班系統加班記錄
+      Object.keys(scheduleOvertimeRecords).forEach(empId => {
+        expandedState[empId] = false;
+      });
+      
+      // 處理統計數據中的員工ID
+      summaryData.forEach(stat => {
+        if (stat.employeeId) {
+          expandedState[stat.employeeId] = false;
+        }
+      });
+      
+      console.log("初始化展開狀態:", expandedState);
       setExpandedEmployees(expandedState);
       
       // 獲取加班時數統計（包含排班系統加班記錄）- 添加更詳細的錯誤處理
@@ -202,10 +220,25 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
           
           const response = await axios.get(url, config);
           console.log(`API響應狀態: ${response.status}`);
-          console.log(`API響應數據:`, response.data);
+          
+          // 詳細記錄每條數據的結構
+          if (response.data && Array.isArray(response.data)) {
+            console.log(`獲取到排班記錄數量: ${response.data.length}`);
+            response.data.forEach((record, idx) => {
+              console.log(`排班記錄 ${idx + 1}:`, record);
+              if (record.employeeId) {
+                console.log(`  - employeeId類型: ${typeof record.employeeId}`);
+                if (typeof record.employeeId === 'object') {
+                  console.log(`  - employeeId內容:`, record.employeeId);
+                  if (record.employeeId.name) {
+                    console.log(`  - 員工姓名: ${record.employeeId.name}`);
+                  }
+                }
+              }
+            });
+          }
           
           scheduleRecords = response.data;
-          console.log(`獲取到排班記錄數量: ${scheduleRecords.length}`, scheduleRecords);
         } catch (scheduleError) {
           console.error('獲取排班記錄失敗:', scheduleError);
           console.error('錯誤詳情:', scheduleError.response?.data || scheduleError.message);
@@ -263,45 +296,52 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
           // 不提前返回，繼續處理其他邏輯
         }
         
-        // 按員工ID分組 - 處理不同的employeeId格式
+        // 按員工ID分組 - 處理不同的employeeId格式，增強健壯性
         const groupedSchedules = overtimeSchedules.reduce((groups, record) => {
           console.log(`處理加班記錄:`, record);
           
-          // 獲取員工ID，處理不同的格式
-          let employeeIdValue;
-          
-          if (!record.employeeId) {
-            console.error(`記錄 ${record._id} 沒有employeeId字段`);
-            return groups;
-          }
-          
-          if (typeof record.employeeId === 'string') {
-            // 如果employeeId是字符串，直接使用
-            employeeIdValue = record.employeeId;
-            console.log(`記錄 ${record._id} 的employeeId是字符串: ${employeeIdValue}`);
-          } else if (typeof record.employeeId === 'object') {
-            if (record.employeeId._id) {
-              // 如果employeeId是對象且有_id字段，使用_id
-              employeeIdValue = record.employeeId._id;
-              console.log(`記錄 ${record._id} 的employeeId是對象，_id: ${employeeIdValue}`);
-            } else if (record.employeeId.$oid) {
-              // 如果employeeId是MongoDB格式的對象，使用$oid
-              employeeIdValue = record.employeeId.$oid;
-              console.log(`記錄 ${record._id} 的employeeId是MongoDB格式，$oid: ${employeeIdValue}`);
-            } else {
-              console.error(`記錄 ${record._id} 的employeeId是對象，但沒有_id或$oid字段:`, record.employeeId);
+          try {
+            // 獲取員工ID，處理不同的格式
+            let employeeIdValue;
+            
+            if (!record.employeeId) {
+              console.error(`記錄 ${record._id} 沒有employeeId字段`);
               return groups;
             }
-          } else {
-            console.error(`記錄 ${record._id} 的employeeId格式不正確: ${typeof record.employeeId}`);
-            return groups;
+            
+            if (typeof record.employeeId === 'string') {
+              // 如果employeeId是字符串，直接使用
+              employeeIdValue = record.employeeId;
+              console.log(`記錄 ${record._id} 的employeeId是字符串: ${employeeIdValue}`);
+            } else if (typeof record.employeeId === 'object') {
+              if (record.employeeId._id) {
+                // 如果employeeId是對象且有_id字段，使用_id
+                employeeIdValue = record.employeeId._id;
+                console.log(`記錄 ${record._id} 的employeeId是對象，_id: ${employeeIdValue}`);
+              } else if (record.employeeId.$oid) {
+                // 如果employeeId是MongoDB格式的對象，使用$oid
+                employeeIdValue = record.employeeId.$oid;
+                console.log(`記錄 ${record._id} 的employeeId是MongoDB格式，$oid: ${employeeIdValue}`);
+              } else {
+                // 嘗試將整個對象轉為字符串作為ID
+                employeeIdValue = JSON.stringify(record.employeeId);
+                console.log(`記錄 ${record._id} 的employeeId是對象，但沒有_id或$oid字段，使用字符串化值: ${employeeIdValue}`);
+              }
+            } else {
+              // 嘗試將任何類型轉為字符串
+              employeeIdValue = String(record.employeeId);
+              console.log(`記錄 ${record._id} 的employeeId格式不正確: ${typeof record.employeeId}，使用字符串化值: ${employeeIdValue}`);
+            }
+            
+            // 使用獲取的employeeIdValue進行分組
+            if (!groups[employeeIdValue]) {
+              groups[employeeIdValue] = [];
+            }
+            groups[employeeIdValue].push(record);
+          } catch (err) {
+            console.error(`處理記錄 ${record._id || '未知ID'} 時發生錯誤:`, err);
           }
           
-          // 使用獲取的employeeIdValue進行分組
-          if (!groups[employeeIdValue]) {
-            groups[employeeIdValue] = [];
-          }
-          groups[employeeIdValue].push(record);
           return groups;
         }, {});
         
@@ -653,6 +693,15 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
+                {/* 診斷信息 */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    獨立加班記錄: {overtimeRecords.length} 筆,
+                    排班加班記錄: {Object.values(scheduleOvertimeRecords).flat().length} 筆,
+                    統計數據: {summaryData.length} 筆
+                  </Typography>
+                </Box>
+                
                 {overtimeRecords.length === 0 && summaryData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} align="center">
@@ -674,36 +723,152 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  // 合併獨立加班記錄和排班系統加班統計
+                  // 合併獨立加班記錄和排班系統加班統計 - 增強健壯性
                   Object.entries(
-                    // 先處理獨立加班記錄
-                    overtimeRecords.reduce((groups, record) => {
-                      const employeeId = record.employeeId._id;
-                      if (!groups[employeeId]) {
-                        groups[employeeId] = {
-                          employee: record.employeeId,
-                          records: [],
-                          independentHours: 0,
-                          scheduleHours: 0,
-                          totalHours: 0,
-                          scheduleRecords: [],
-                          latestDate: new Date(0)
-                        };
-                      }
-                      groups[employeeId].records.push(record);
-                      groups[employeeId].independentHours += record.hours;
-                      groups[employeeId].totalHours += record.hours;
+                    // 創建一個包含所有員工ID的初始分組
+                    (() => {
+                      // 初始分組對象
+                      const initialGroups = {};
                       
-                      const recordDate = new Date(record.date);
-                      if (recordDate > groups[employeeId].latestDate) {
-                        groups[employeeId].latestDate = recordDate;
-                      }
+                      // 從統計數據中獲取員工ID
+                      summaryData.forEach(stat => {
+                        if (stat.employeeId) {
+                          initialGroups[stat.employeeId] = {
+                            employee: {
+                              _id: stat.employeeId,
+                              name: stat.employeeName || '未知員工'
+                            },
+                            records: [],
+                            independentHours: 0,
+                            scheduleHours: 0,
+                            totalHours: 0,
+                            scheduleRecords: [],
+                            latestDate: new Date(0)
+                          };
+                        }
+                      });
                       
-                      return groups;
-                    }, {})
+                      // 從排班系統加班記錄中獲取員工ID
+                      Object.keys(scheduleOvertimeRecords).forEach(empId => {
+                        if (!initialGroups[empId]) {
+                          // 嘗試從排班記錄中獲取員工信息
+                          const scheduleRecords = scheduleOvertimeRecords[empId];
+                          let employeeName = '未知員工';
+                          let employeeObj = null;
+                          
+                          // 遍歷所有記錄尋找員工信息
+                          for (const record of scheduleRecords) {
+                            // 檢查記錄中的employeeId字段
+                            if (record.employeeId) {
+                              if (typeof record.employeeId === 'object') {
+                                // 如果employeeId是對象
+                                if (record.employeeId.name) {
+                                  employeeName = record.employeeId.name;
+                                  employeeObj = record.employeeId;
+                                  console.log(`從排班記錄對象中獲取到員工姓名: ${employeeName}`);
+                                  break;
+                                }
+                              }
+                            }
+                            
+                            // 檢查記錄中的employee字段
+                            if (record.employee && record.employee.name) {
+                              employeeName = record.employee.name;
+                              employeeObj = record.employee;
+                              console.log(`從排班記錄employee字段獲取到員工姓名: ${employeeName}`);
+                              break;
+                            }
+                          }
+                          
+                          // 如果還是沒找到，嘗試從summaryData中查找
+                          if (employeeName === '未知員工') {
+                            const matchingStat = summaryData.find(stat =>
+                              stat.employeeId === empId ||
+                              (stat.employeeName && empId.includes(stat.employeeName))
+                            );
+                            
+                            if (matchingStat && matchingStat.employeeName) {
+                              employeeName = matchingStat.employeeName;
+                              console.log(`從summaryData中獲取到員工姓名: ${employeeName}`);
+                            }
+                          }
+                          
+                          initialGroups[empId] = {
+                            employee: employeeObj || {
+                              _id: empId,
+                              name: employeeName,
+                              position: '員工',
+                              department: '員工'
+                            },
+                            records: [],
+                            independentHours: 0,
+                            scheduleHours: 0,
+                            totalHours: 0,
+                            scheduleRecords: [],
+                            latestDate: new Date(0)
+                          };
+                        }
+                      });
+                      
+                      // 處理獨立加班記錄
+                      overtimeRecords.forEach(record => {
+                        if (record.employeeId && record.employeeId._id) {
+                          const employeeId = record.employeeId._id;
+                          
+                          if (!initialGroups[employeeId]) {
+                            initialGroups[employeeId] = {
+                              employee: record.employeeId,
+                              records: [],
+                              independentHours: 0,
+                              scheduleHours: 0,
+                              totalHours: 0,
+                              scheduleRecords: [],
+                              latestDate: new Date(0)
+                            };
+                          }
+                          
+                          initialGroups[employeeId].records.push(record);
+                          initialGroups[employeeId].independentHours += record.hours;
+                          initialGroups[employeeId].totalHours += record.hours;
+                          
+                          const recordDate = new Date(record.date);
+                          if (recordDate > initialGroups[employeeId].latestDate) {
+                            initialGroups[employeeId].latestDate = recordDate;
+                          }
+                        }
+                      });
+                      
+                      console.log("初始分組:", initialGroups);
+                      return initialGroups;
+                    })()
                   ).map(([employeeId, group]) => {
-                    // 查找對應的排班系統加班統計
-                    const scheduleStats = summaryData.find(stat => stat.employeeId === employeeId);
+                    // 查找對應的排班系統加班統計 - 增強健壯性
+                    console.log(`嘗試查找員工 ${employeeId} 的加班統計，summaryData:`, summaryData);
+                    
+                    // 嘗試多種方式匹配員工ID
+                    const scheduleStats = summaryData.find(stat => {
+                      // 直接匹配
+                      if (stat.employeeId === employeeId) {
+                        console.log(`找到精確匹配的加班統計: ${stat.employeeId} === ${employeeId}`);
+                        return true;
+                      }
+                      
+                      // 嘗試將stat.employeeId作為對象處理
+                      if (stat.employeeId && typeof stat.employeeId === 'object' && stat.employeeId._id === employeeId) {
+                        console.log(`找到對象匹配的加班統計: ${stat.employeeId._id} === ${employeeId}`);
+                        return true;
+                      }
+                      
+                      // 嘗試將employeeId作為對象的一部分
+                      if (stat.employeeId && employeeId.includes(stat.employeeId)) {
+                        console.log(`找到部分匹配的加班統計: ${employeeId} 包含 ${stat.employeeId}`);
+                        return true;
+                      }
+                      
+                      return false;
+                    });
+                    
+                    console.log(`員工 ${employeeId} 的加班統計:`, scheduleStats);
                     
                     if (scheduleStats) {
                       // 計算排班系統加班時數 (總時數 - 獨立加班時數)
@@ -711,6 +876,8 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                       group.scheduleHours = scheduleHours > 0 ? scheduleHours : 0;
                       group.totalHours = scheduleStats.overtimeHours;
                       group.scheduleRecordCount = scheduleStats.scheduleRecordCount || 0;
+                    } else {
+                      console.log(`警告: 未找到員工 ${employeeId} 的加班統計數據`);
                     }
                     
                     return (
@@ -779,41 +946,73 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                             status: record.status
                                           }));
                                           
-                                          // 準備排班系統加班記錄
-                                          const scheduleRecords = scheduleOvertimeRecords[employeeId]
-                                            ? scheduleOvertimeRecords[employeeId].map(record => {
-                                                // 計算加班時數
-                                                let hours = 0;
-                                                switch(record.shift) {
-                                                  case 'morning': hours = 3.5; break;
-                                                  case 'afternoon': hours = 3; break;
-                                                  case 'evening': hours = 1.5; break;
-                                                  default: hours = 0;
-                                                }
-                                                
-                                                // 班次中文名稱
-                                                const shiftName = {
-                                                  'morning': '早班 (08:30-12:00)',
-                                                  'afternoon': '中班 (15:00-18:00)',
-                                                  'evening': '晚班 (19:00-20:30)'
-                                                }[record.shift];
-                                                
-                                                return {
-                                                  id: `schedule-${record._id}`,
-                                                  type: 'schedule',
-                                                  date: new Date(record.date),
-                                                  originalRecord: record,
-                                                  hours: hours,
-                                                  description: shiftName,
-                                                  status: 'approved',
-                                                  shift: record.shift
-                                                };
-                                              })
-                                            : [];
+                                          // 準備排班系統加班記錄 - 增強健壯性處理
+                                          let scheduleRecords = [];
                                           
-                                          // 合併並按日期排序 (最早的日期在前)
+                                          try {
+                                            if (scheduleOvertimeRecords && scheduleOvertimeRecords[employeeId] && Array.isArray(scheduleOvertimeRecords[employeeId])) {
+                                              scheduleRecords = scheduleOvertimeRecords[employeeId].map(record => {
+                                                try {
+                                                  // 計算加班時數
+                                                  let hours = 0;
+                                                  switch(record.shift) {
+                                                    case 'morning': hours = 3.5; break;
+                                                    case 'afternoon': hours = 3; break;
+                                                    case 'evening': hours = 1.5; break;
+                                                    default: hours = 0;
+                                                  }
+                                                  
+                                                  // 班次中文名稱
+                                                  const shiftName = {
+                                                    'morning': '早班 (08:30-12:00)',
+                                                    'afternoon': '中班 (15:00-18:00)',
+                                                    'evening': '晚班 (19:00-20:30)'
+                                                  }[record.shift] || `${record.shift || '未知班次'}`;
+                                                  
+                                                  // 確保日期是有效的
+                                                  let recordDate;
+                                                  try {
+                                                    recordDate = new Date(record.date);
+                                                    if (isNaN(recordDate.getTime())) {
+                                                      // 如果日期無效，使用當前日期
+                                                      console.error(`記錄 ${record._id} 的日期無效: ${record.date}`);
+                                                      recordDate = new Date();
+                                                    }
+                                                  } catch (dateErr) {
+                                                    console.error(`解析記錄 ${record._id} 的日期時出錯:`, dateErr);
+                                                    recordDate = new Date();
+                                                  }
+                                                  
+                                                  return {
+                                                    id: `schedule-${record._id || 'unknown'}`,
+                                                    type: 'schedule',
+                                                    date: recordDate,
+                                                    originalRecord: record,
+                                                    hours: hours,
+                                                    description: shiftName,
+                                                    status: 'approved',
+                                                    shift: record.shift
+                                                  };
+                                                } catch (recordErr) {
+                                                  console.error(`處理排班記錄時出錯:`, recordErr, record);
+                                                  return null;
+                                                }
+                                              }).filter(item => item !== null); // 過濾掉處理失敗的記錄
+                                            } else {
+                                              console.log(`員工 ${employeeId} 沒有排班加班記錄或格式不正確`);
+                                            }
+                                          } catch (err) {
+                                            console.error(`獲取員工 ${employeeId} 的排班加班記錄時出錯:`, err);
+                                          }
+                                          
+                                          // 合併並按日期排序 (最早的日期在前) - 增加診斷日誌
+                                          console.log(`員工 ${employeeId} 的獨立加班記錄:`, independentRecords);
+                                          console.log(`員工 ${employeeId} 的排班加班記錄:`, scheduleRecords);
+                                          
                                           const allRecords = [...independentRecords, ...scheduleRecords]
                                             .sort((a, b) => new Date(a.date) - new Date(b.date));
+                                          
+                                          console.log(`員工 ${employeeId} 的所有加班記錄 (合併後):`, allRecords);
                                           
                                           // 如果沒有記錄，顯示提示訊息
                                           if (allRecords.length === 0) {
@@ -970,12 +1169,16 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                           });
                                         })()}
                                     
-                                    {/* 如果沒有記錄 */}
+                                    {/* 如果沒有記錄 - 增加更詳細的診斷信息 */}
                                     {group.records.length === 0 && (!scheduleOvertimeRecords[employeeId] || scheduleOvertimeRecords[employeeId].length === 0) && (
                                       <TableRow>
                                         <TableCell colSpan={isAdmin ? 6 : 5} align="center">
                                           <Typography color="textSecondary">
                                             沒有找到加班記錄
+                                          </Typography>
+                                          <Typography variant="caption" color="error">
+                                            診斷信息: 獨立記錄 {group.records.length} 筆,
+                                            排班記錄 {scheduleOvertimeRecords[employeeId] ? scheduleOvertimeRecords[employeeId].length : 0} 筆
                                           </Typography>
                                         </TableCell>
                                       </TableRow>
