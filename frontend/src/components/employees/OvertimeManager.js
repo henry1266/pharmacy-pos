@@ -57,6 +57,8 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   const [currentTab, setCurrentTab] = useState(0);
   const [scheduleOvertimeRecords, setScheduleOvertimeRecords] = useState([]);
   const [scheduleOvertimeLoading, setScheduleOvertimeLoading] = useState(false);
+  const [totalOvertimeData, setTotalOvertimeData] = useState([]);
+  const [totalOvertimeLoading, setTotalOvertimeLoading] = useState(false);
   
   // 月份篩選狀態
   const currentDate = new Date();
@@ -148,13 +150,98 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
     }
   };
   
+  // 計算總加班時數
+  const calculateTotalOvertimeData = async () => {
+    setTotalOvertimeLoading(true);
+    try {
+      // 確保我們有最新的排班系統加班記錄
+      await fetchScheduleOvertimeRecords();
+      
+      // 創建一個映射來存儲每個員工的加班時數
+      const employeeOvertimeMap = new Map();
+      
+      // 處理獨立加班記錄
+      overtimeRecords.forEach(record => {
+        if (record.status === 'approved') {
+          const employeeId = record.employeeId._id;
+          const employeeName = record.employeeId.name;
+          
+          if (!employeeOvertimeMap.has(employeeId)) {
+            employeeOvertimeMap.set(employeeId, {
+              employeeId,
+              employeeName,
+              independentHours: 0,
+              scheduleHours: 0,
+              totalHours: 0
+            });
+          }
+          
+          const employeeData = employeeOvertimeMap.get(employeeId);
+          employeeData.independentHours += record.hours;
+          employeeData.totalHours += record.hours;
+        }
+      });
+      
+      // 處理排班系統加班記錄
+      scheduleOvertimeRecords.forEach(record => {
+        const employeeId = record.employeeId._id;
+        const employeeName = record.employeeId.name;
+        
+        if (!employeeOvertimeMap.has(employeeId)) {
+          employeeOvertimeMap.set(employeeId, {
+            employeeId,
+            employeeName,
+            independentHours: 0,
+            scheduleHours: 0,
+            totalHours: 0
+          });
+        }
+        
+        // 計算預估時數
+        let estimatedHours = 0;
+        switch(record.shift) {
+          case 'morning':
+            estimatedHours = 3.5; // 早班 8:30-12:00
+            break;
+          case 'afternoon':
+            estimatedHours = 3; // 中班 15:00-18:00
+            break;
+          case 'evening':
+            estimatedHours = 1.5; // 晚班 19:00-20:30
+            break;
+          default:
+            estimatedHours = 0;
+        }
+        
+        const employeeData = employeeOvertimeMap.get(employeeId);
+        employeeData.scheduleHours += estimatedHours;
+        employeeData.totalHours += estimatedHours;
+      });
+      
+      // 將映射轉換為數組
+      const result = Array.from(employeeOvertimeMap.values());
+      
+      // 按總時數降序排序
+      result.sort((a, b) => b.totalHours - a.totalHours);
+      
+      setTotalOvertimeData(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setTotalOvertimeLoading(false);
+    }
+  };
+
   // 處理標籤頁變更
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = async (event, newValue) => {
     setCurrentTab(newValue);
     
     // 如果切換到排班系統加班記錄標籤頁，則獲取排班系統加班記錄
     if (newValue === 1) {
-      fetchScheduleOvertimeRecords();
+      await fetchScheduleOvertimeRecords();
+    } else if (newValue === 2) {
+      // 如果切換到蓋覽標籤頁，則計算總加班時數
+      await calculateTotalOvertimeData();
     }
   };
   
@@ -162,6 +249,8 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   useEffect(() => {
     if (currentTab === 1) {
       fetchScheduleOvertimeRecords();
+    } else if (currentTab === 2) {
+      calculateTotalOvertimeData();
     }
   }, [selectedMonth, selectedYear]);
 
@@ -169,6 +258,13 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
     fetchEmployees();
     fetchOvertimeRecords();
   }, [employeeId, selectedMonth, selectedYear]);
+  
+  // 當獨立加班記錄更新時，重新計算總加班時數
+  useEffect(() => {
+    if (currentTab === 2) {
+      calculateTotalOvertimeData();
+    }
+  }, [overtimeRecords, currentTab]);
 
   // 處理表單輸入變更
   const handleInputChange = (e) => {
@@ -367,6 +463,20 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-TW');
   };
+  
+  // 獲取班次顯示文字
+  const getShiftText = (shift) => {
+    switch(shift) {
+      case 'morning':
+        return '早班';
+      case 'afternoon':
+        return '中班';
+      case 'evening':
+        return '晚班';
+      default:
+        return shift;
+    }
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -452,6 +562,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
         >
           <Tab label="獨立加班記錄" />
           <Tab label="排班系統加班記錄" />
+          <Tab label="概覽" />
         </Tabs>
 
         {currentTab === 0 && (
@@ -620,7 +731,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
               排班系統中的加班記錄 ({selectedMonth + 1}月)
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              以下顯示排班系統中標記為加班的記錄，這些記錄是在排班系統中設置的，不是通過加班管理系統創建的。
+              以下顯示排班系統中標記為加班的記錄
             </Typography>
             
             {scheduleOvertimeLoading ? (
@@ -671,14 +782,64 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                             <TableCell>{record.employeeId.name}</TableCell>
                             <TableCell>{formatDate(record.date)}</TableCell>
                             <TableCell>
-                              {record.shift === 'morning' ? '早班' :
-                               record.shift === 'afternoon' ? '中班' :
-                               record.shift === 'evening' ? '晚班' : record.shift}
+                              {getShiftText(record.shift)}
                             </TableCell>
                             <TableCell>{estimatedHours} 小時</TableCell>
                           </TableRow>
                         );
                       })
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </>
+        )}
+
+        {currentTab === 2 && (
+          <>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              以下顯示每位員工的獨立加班時數與排班加班時數總和。
+            </Typography>
+            
+            {totalOvertimeLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress size={24} />
+                <Typography sx={{ ml: 2 }}>載入中...</Typography>
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>員工姓名</TableCell>
+                      <TableCell>獨立加班時數</TableCell>
+                      <TableCell>排班加班時數</TableCell>
+                      <TableCell>總加班時數</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {totalOvertimeData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          <Typography color="textSecondary">
+                            沒有找到加班記錄
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      totalOvertimeData.map((item) => (
+                        <TableRow key={item.employeeId}>
+                          <TableCell>{item.employeeName}</TableCell>
+                          <TableCell>{item.independentHours.toFixed(1)} 小時</TableCell>
+                          <TableCell>{item.scheduleHours.toFixed(1)} 小時</TableCell>
+                          <TableCell>
+                            <Typography fontWeight="bold">
+                              {item.totalHours.toFixed(1)} 小時
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))
                     )}
                   </TableBody>
                 </Table>
