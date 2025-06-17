@@ -29,13 +29,16 @@ import {
   Divider,
   InputAdornment,
   Tabs,
-  Tab
+  Tab,
+  Collapse
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import overtimeRecordService from '../../services/overtimeRecordService';
 import employeeService from '../../services/employeeService';
 
@@ -59,6 +62,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   const [scheduleOvertimeLoading, setScheduleOvertimeLoading] = useState(false);
   const [totalOvertimeData, setTotalOvertimeData] = useState([]);
   const [totalOvertimeLoading, setTotalOvertimeLoading] = useState(false);
+  const [expandedEmployees, setExpandedEmployees] = useState(new Set());
   
   // 月份篩選狀態
   const currentDate = new Date();
@@ -477,6 +481,19 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
         return shift;
     }
   };
+  
+  // 處理員工記錄的展開和收起
+  const handleEmployeeExpand = (employeeId) => {
+    setExpandedEmployees(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(employeeId)) {
+        newSet.delete(employeeId);
+      } else {
+        newSet.add(employeeId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -731,7 +748,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
               排班系統中的加班記錄 ({selectedMonth + 1}月)
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              以下顯示排班系統中標記為加班的記錄
+              以下顯示排班系統中標記為加班的記錄，點擊員工姓名可展開/收起詳細記錄
             </Typography>
             
             {scheduleOvertimeLoading ? (
@@ -745,9 +762,9 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                   <TableHead>
                     <TableRow>
                       <TableCell>員工姓名</TableCell>
-                      <TableCell>日期</TableCell>
-                      <TableCell>班次</TableCell>
-                      <TableCell>預估時數</TableCell>
+                      <TableCell>加班次數</TableCell>
+                      <TableCell>總預估時數</TableCell>
+                      <TableCell>詳細資訊</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -760,34 +777,115 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      scheduleOvertimeRecords.map((record) => {
-                        // 計算預估時數
-                        let estimatedHours = 0;
-                        switch(record.shift) {
-                          case 'morning':
-                            estimatedHours = 3.5; // 早班 8:30-12:00
-                            break;
-                          case 'afternoon':
-                            estimatedHours = 3; // 中班 15:00-18:00
-                            break;
-                          case 'evening':
-                            estimatedHours = 1.5; // 晚班 19:00-20:30
-                            break;
-                          default:
-                            estimatedHours = 0;
-                        }
+                      (() => {
+                        // 按員工分組
+                        const employeeGroups = {};
                         
-                        return (
-                          <TableRow key={record._id}>
-                            <TableCell>{record.employeeId.name}</TableCell>
-                            <TableCell>{formatDate(record.date)}</TableCell>
-                            <TableCell>
-                              {getShiftText(record.shift)}
-                            </TableCell>
-                            <TableCell>{estimatedHours} 小時</TableCell>
-                          </TableRow>
-                        );
-                      })
+                        scheduleOvertimeRecords.forEach(record => {
+                          const employeeId = record.employeeId._id;
+                          if (!employeeGroups[employeeId]) {
+                            employeeGroups[employeeId] = {
+                              employeeId: employeeId,
+                              employeeName: record.employeeId.name,
+                              records: [],
+                              totalHours: 0,
+                              count: 0
+                            };
+                          }
+                          
+                          // 計算預估時數
+                          let estimatedHours = 0;
+                          switch(record.shift) {
+                            case 'morning':
+                              estimatedHours = 3.5; // 早班 8:30-12:00
+                              break;
+                            case 'afternoon':
+                              estimatedHours = 3; // 中班 15:00-18:00
+                              break;
+                            case 'evening':
+                              estimatedHours = 1.5; // 晚班 19:00-20:30
+                              break;
+                            default:
+                              estimatedHours = 0;
+                          }
+                          
+                          employeeGroups[employeeId].records.push({
+                            ...record,
+                            estimatedHours
+                          });
+                          employeeGroups[employeeId].totalHours += estimatedHours;
+                          employeeGroups[employeeId].count += 1;
+                        });
+                        
+                        // 轉換為數組並排序
+                        return Object.values(employeeGroups)
+                          .sort((a, b) => b.totalHours - a.totalHours)
+                          .map(group => (
+                            <React.Fragment key={group.employeeId}>
+                              {/* 員工摺疊標題行 */}
+                              <TableRow
+                                sx={{
+                                  '& > *': { borderBottom: 'unset' },
+                                  cursor: 'pointer',
+                                  bgcolor: expandedEmployees.has(group.employeeId) ? 'rgba(0, 0, 0, 0.04)' : 'inherit',
+                                  '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' }
+                                }}
+                                onClick={() => handleEmployeeExpand(group.employeeId)}
+                              >
+                                <TableCell component="th" scope="row">
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    {expandedEmployees.has(group.employeeId) ?
+                                      <ExpandLessIcon fontSize="small" sx={{ mr: 1 }} /> :
+                                      <ExpandMoreIcon fontSize="small" sx={{ mr: 1 }} />
+                                    }
+                                    <Typography fontWeight="medium">{group.employeeName}</Typography>
+                                  </Box>
+                                </TableCell>
+                                <TableCell>{group.count} 次</TableCell>
+                                <TableCell>{group.totalHours.toFixed(1)} 小時</TableCell>
+                                <TableCell>
+                                  <Button
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEmployeeExpand(group.employeeId);
+                                    }}
+                                  >
+                                    {expandedEmployees.has(group.employeeId) ? '收起' : '展開'}
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                              
+                              {/* 展開的詳細記錄 */}
+                              <TableRow>
+                                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
+                                  <Collapse in={expandedEmployees.has(group.employeeId)} timeout="auto" unmountOnExit>
+                                    <Box sx={{ margin: 1, mb: 3 }}>
+                                      <Table size="small" aria-label="詳細加班記錄">
+                                        <TableHead>
+                                          <TableRow>
+                                            <TableCell>日期</TableCell>
+                                            <TableCell>班次</TableCell>
+                                            <TableCell>預估時數</TableCell>
+                                          </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                          {group.records.map((record) => (
+                                            <TableRow key={record._id}>
+                                              <TableCell>{formatDate(record.date)}</TableCell>
+                                              <TableCell>{getShiftText(record.shift)}</TableCell>
+                                              <TableCell>{record.estimatedHours} 小時</TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    </Box>
+                                  </Collapse>
+                                </TableCell>
+                              </TableRow>
+                            </React.Fragment>
+                          ));
+                      })()
                     )}
                   </TableBody>
                 </Table>
