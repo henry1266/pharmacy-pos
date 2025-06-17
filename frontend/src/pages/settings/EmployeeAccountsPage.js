@@ -23,7 +23,9 @@ import {
   Select,
   MenuItem,
   Chip,
-  Tooltip
+  Tooltip,
+  Tabs,
+  Tab
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -32,6 +34,7 @@ import LockResetIcon from '@mui/icons-material/LockReset';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import employeeAccountService from '../../services/employeeAccountService';
 import employeeService from '../../services/employeeService';
+import OvertimeManager from '../../components/employees/OvertimeManager';
 
 /**
  * 員工帳號管理頁面
@@ -48,6 +51,12 @@ const EmployeeAccountsPage = () => {
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [unbindDialogOpen, setUnbindDialogOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState(0);
+  
+  // 處理標籤頁變更
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+  };
   const [formData, setFormData] = useState({
     employeeId: '',
     username: '',
@@ -390,91 +399,110 @@ const EmployeeAccountsPage = () => {
       )}
 
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress size={24} />
-            <Typography sx={{ ml: 2 }}>載入中...</Typography>
-          </Box>
-        ) : (
-          <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>員工姓名</TableCell>
-                    <TableCell>用戶名</TableCell>
-                    <TableCell>電子郵件</TableCell>
-                    <TableCell>角色</TableCell>
-                    <TableCell>操作</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {employees.map((employee) => (
-                    <TableRow key={employee._id}>
-                      <TableCell>{employee.name}</TableCell>
-                      <TableCell>{employee.account?.username || '未設置'}</TableCell>
-                      <TableCell>{employee.account?.email || '未設置'}</TableCell>
-                      <TableCell>
-                        {employee.account ? (
-                          <Chip 
-                            label={getRoleName(employee.account.role)} 
-                            color={getRoleColor(employee.account.role)} 
-                            size="small" 
-                          />
-                        ) : (
-                          '未設置'
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {employee.account ? (
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Tooltip title="編輯帳號">
-                              <IconButton
-                                size="small"
-                                color="primary"
-                                onClick={() => handleOpenEditDialog(employee, employee.account)}
-                              >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="重設密碼">
-                              <IconButton
-                                size="small"
-                                color="warning"
-                                onClick={() => handleOpenResetPasswordDialog(employee)}
-                              >
-                                <LockResetIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="解除綁定">
-                              <IconButton
-                                size="small"
-                                color="info"
-                                onClick={() => handleOpenUnbindDialog(employee)}
-                              >
-                                <LinkOffIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="刪除帳號">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleOpenDeleteDialog(employee)}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            無帳號
-                          </Typography>
-                        )}
-                      </TableCell>
+        <Tabs
+          value={currentTab}
+          onChange={handleTabChange}
+          indicatorColor="primary"
+          textColor="primary"
+          sx={{ mb: 3 }}
+        >
+          <Tab label="帳號管理" />
+          <Tab label="加班管理" />
+        </Tabs>
+
+        {currentTab === 0 && (
+          <>
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress size={24} />
+                <Typography sx={{ ml: 2 }}>載入中...</Typography>
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>員工姓名</TableCell>
+                      <TableCell>用戶名</TableCell>
+                      <TableCell>電子郵件</TableCell>
+                      <TableCell>角色</TableCell>
+                      <TableCell>操作</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {employees.map((employee) => (
+                      <TableRow key={employee._id}>
+                        <TableCell>{employee.name}</TableCell>
+                        <TableCell>{employee.account?.username || '未設置'}</TableCell>
+                        <TableCell>{employee.account?.email || '未設置'}</TableCell>
+                        <TableCell>
+                          {employee.account ? (
+                            <Chip
+                              label={getRoleName(employee.account.role)}
+                              color={getRoleColor(employee.account.role)}
+                              size="small"
+                            />
+                          ) : (
+                            '未設置'
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {employee.account ? (
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Tooltip title="編輯帳號">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleOpenEditDialog(employee, employee.account)}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="重設密碼">
+                                <IconButton
+                                  size="small"
+                                  color="warning"
+                                  onClick={() => handleOpenResetPasswordDialog(employee)}
+                                >
+                                  <LockResetIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="解除綁定">
+                                <IconButton
+                                  size="small"
+                                  color="info"
+                                  onClick={() => handleOpenUnbindDialog(employee)}
+                                >
+                                  <LinkOffIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="刪除帳號">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleOpenDeleteDialog(employee)}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              無帳號
+                            </Typography>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </>
+        )}
+
+        {currentTab === 1 && (
+          <OvertimeManager isAdmin={true} />
         )}
       </Paper>
 

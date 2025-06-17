@@ -38,6 +38,7 @@ app.use("/api/csv-import", require("./routes/csvImportApi")); // 新增CSV匯入
 app.use("/api/employees", require("./routes/employees")); // 新增員工資料API路由
 app.use("/api/employee-accounts", require("./routes/employeeAccounts")); // 新增員工帳號管理API路由
 app.use("/api/employee-schedules", require("./routes/employeeSchedules")); // 新增員工排班API路由
+app.use("/api/overtime-records", require("./routes/overtimeRecords")); // 新增加班記錄API路由
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {
