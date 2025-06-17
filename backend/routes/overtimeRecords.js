@@ -54,6 +54,116 @@ router.get("/", auth, async (req, res) => {
 });
 
 /**
+ * @route   GET api/overtime-records/monthly-stats
+ * @desc    獲取月度加班統計數據（包含獨立加班記錄和排班系統加班記錄）
+ * @access  Private
+ */
+router.get("/monthly-stats", auth, async (req, res) => {
+  try {
+    const { year, month } = req.query;
+    
+    if (!year || !month) {
+      return res.status(400).json({ msg: '請提供年份和月份' });
+    }
+    
+    // 計算該月的開始和結束日期
+    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+    
+    // 獲取該月的所有已核准獨立加班記錄
+    const overtimeRecords = await OvertimeRecord.find({
+      date: {
+        $gte: startDate,
+        $lte: endDate
+      },
+      status: 'approved'
+    }).populate("employeeId", "name department position");
+    
+    // 獲取該月的所有排班系統加班記錄
+    const EmployeeSchedule = require("../models/EmployeeSchedule");
+    const scheduleOvertimeRecords = await EmployeeSchedule.find({
+      date: {
+        $gte: startDate,
+        $lte: endDate
+      },
+      leaveType: 'overtime'
+    }).populate("employeeId", "name department position");
+    
+    // 按員工分組計算加班時數
+    const employeeStats = {};
+    
+    // 處理獨立加班記錄
+    overtimeRecords.forEach(record => {
+      const employeeId = record.employeeId._id.toString();
+      const employeeName = record.employeeId.name;
+      
+      if (!employeeStats[employeeId]) {
+        employeeStats[employeeId] = {
+          employeeId,
+          name: employeeName,
+          overtimeHours: 0,
+          independentRecordCount: 0,
+          scheduleRecordCount: 0
+        };
+      }
+      
+      employeeStats[employeeId].overtimeHours += record.hours;
+      employeeStats[employeeId].independentRecordCount += 1;
+    });
+    
+    // 處理排班系統加班記錄
+    scheduleOvertimeRecords.forEach(record => {
+      const employeeId = record.employeeId._id.toString();
+      const employeeName = record.employeeId.name;
+      
+      if (!employeeStats[employeeId]) {
+        employeeStats[employeeId] = {
+          employeeId,
+          name: employeeName,
+          overtimeHours: 0,
+          independentRecordCount: 0,
+          scheduleRecordCount: 0
+        };
+      }
+      
+      // 計算預估時數
+      let estimatedHours = 0;
+      switch(record.shift) {
+        case 'morning':
+          estimatedHours = 3.5; // 早班 8:30-12:00
+          break;
+        case 'afternoon':
+          estimatedHours = 3; // 中班 15:00-18:00
+          break;
+        case 'evening':
+          estimatedHours = 1.5; // 晚班 19:00-20:30
+          break;
+        default:
+          estimatedHours = 0;
+      }
+      
+      employeeStats[employeeId].overtimeHours += estimatedHours;
+      employeeStats[employeeId].scheduleRecordCount += 1;
+    });
+    
+    // 轉換為數組格式
+    const result = Object.values(employeeStats).map(stat => ({
+      ...stat,
+      overtimeHours: parseFloat(stat.overtimeHours.toFixed(1)),
+      totalRecordCount: stat.independentRecordCount + stat.scheduleRecordCount
+    }));
+    
+    // 按加班時數降序排序
+    result.sort((a, b) => b.overtimeHours - a.overtimeHours);
+    
+    res.json(result);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("伺服器錯誤");
+  }
+});
+
+/**
  * @route   GET api/overtime-records/:id
  * @desc    獲取指定ID的加班記錄
  * @access  Private
@@ -313,5 +423,6 @@ router.get("/summary/all", auth, async (req, res) => {
     res.status(500).send("伺服器錯誤");
   }
 });
+
 
 module.exports = router;

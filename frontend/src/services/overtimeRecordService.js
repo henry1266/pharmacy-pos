@@ -206,15 +206,15 @@ export const getAllEmployeesOvertimeSummary = async (params = {}) => {
   }
 };
 
+// 移除獲取排班系統中的加班記錄函數
+
 /**
- * 獲取排班系統中的加班記錄
- * @param {Object} params - 查詢參數
- * @param {string} params.startDate - 開始日期 (YYYY-MM-DD) (可選)
- * @param {string} params.endDate - 結束日期 (YYYY-MM-DD) (可選)
- * @param {string} params.employeeId - 員工ID (可選)
- * @returns {Promise} - 排班系統中的加班記錄
+ * 獲取月度加班統計數據
+ * @param {number} year - 年份
+ * @param {number} month - 月份 (1-12)
+ * @returns {Promise} - 月度加班統計數據
  */
-export const getScheduleOvertimeRecords = async (params = {}) => {
+export const getMonthlyOvertimeStats = async (year, month) => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -226,15 +226,15 @@ export const getScheduleOvertimeRecords = async (params = {}) => {
         'x-auth-token': token
       },
       params: {
-        ...params,
-        leaveType: 'overtime'  // 只獲取加班記錄
+        year,
+        month
       }
     };
 
-    const response = await axios.get('/api/employee-schedules', config);
+    const response = await axios.get('/api/overtime-records/monthly-stats', config);
     return response.data;
   } catch (error) {
-    console.error('獲取排班系統加班記錄失敗:', error);
+    console.error('獲取月度加班統計數據失敗:', error);
     throw error;
   }
 };
@@ -248,7 +248,7 @@ const overtimeRecordService = {
   deleteOvertimeRecord,
   getEmployeeOvertimeSummary,
   getAllEmployeesOvertimeSummary,
-  getScheduleOvertimeRecords
+  getMonthlyOvertimeStats
 };
 
 export default overtimeRecordService;
