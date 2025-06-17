@@ -658,7 +658,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                           
                                           // 合併並按日期排序 (最早的日期在前)
                                           const allRecords = [...independentRecords, ...scheduleRecords]
-                                            .sort((a, b) => a.date - b.date);
+                                            .sort((a, b) => new Date(a.date) - new Date(b.date));
                                           
                                           // 如果沒有記錄，顯示提示訊息
                                           if (allRecords.length === 0) {
