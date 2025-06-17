@@ -1,0 +1,753 @@
+{
+  "totalRecords": 638,
+  "overtimeRecords": 73,
+  "monthResults": [
+    {
+      "month": 1,
+      "totalRecords": 96,
+      "overtimeRecords": 16,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 2,
+      "totalRecords": 1,
+      "overtimeRecords": 1,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 3,
+      "totalRecords": 89,
+      "overtimeRecords": 16,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 4,
+      "totalRecords": 80,
+      "overtimeRecords": 3,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 5,
+      "totalRecords": 91,
+      "overtimeRecords": 18,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 6,
+      "totalRecords": 93,
+      "overtimeRecords": 17,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 7,
+      "totalRecords": 82,
+      "overtimeRecords": 1,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 8,
+      "totalRecords": 74,
+      "overtimeRecords": 1,
+      "hasData": true,
+      "hasOvertimeData": true
+    },
+    {
+      "month": 9,
+      "totalRecords": 32,
+      "overtimeRecords": 0,
+      "hasData": true,
+      "hasOvertimeData": false
+    },
+    {
+      "month": 10,
+      "totalRecords": 0,
+      "overtimeRecords": 0,
+      "hasData": false,
+      "hasOvertimeData": false
+    },
+    {
+      "month": 11,
+      "totalRecords": 0,
+      "overtimeRecords": 0,
+      "hasData": false,
+      "hasOvertimeData": false
+    },
+    {
+      "month": 12,
+      "totalRecords": 0,
+      "overtimeRecords": 0,
+      "hasData": false,
+      "hasOvertimeData": false
+    }
+  ],
+  "leaveTypeStats": {
+    "withLeaveType": 512,
+    "withoutLeaveType": 126
+  },
+  "allOvertimeRecords": [
+    {
+      "id": "684fbf830b26e26d50cd7dd1",
+      "date": "2025-06-02",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc2a10b26e26d50cd7deb",
+      "date": "2025-06-03",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc3050b26e26d50cd7e2d",
+      "date": "2025-05-08",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc30c0b26e26d50cd7e39",
+      "date": "2025-05-09",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc3f2be78152064a64e03",
+      "date": "2025-05-12",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc416be78152064a64e27",
+      "date": "2025-05-16",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc433be78152064a64e4b",
+      "date": "2025-05-22",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc439be78152064a64e57",
+      "date": "2025-05-23",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc446be78152064a64e63",
+      "date": "2025-05-26",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc44cbe78152064a64e6f",
+      "date": "2025-05-27",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fc463be78152064a64e87",
+      "date": "2025-05-30",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd4bd235983dd0002303c",
+      "date": "2025-06-05",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd4c7235983dd0002304c",
+      "date": "2025-06-06",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd5eb235983dd0002305c",
+      "date": "2025-06-09",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd5f9235983dd0002306c",
+      "date": "2025-06-10",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd603235983dd0002307c",
+      "date": "2025-06-12",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd60b235983dd0002308c",
+      "date": "2025-06-13",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd613235983dd0002309c",
+      "date": "2025-06-16",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd61b235983dd000230ac",
+      "date": "2025-06-17",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd62e235983dd000230cc",
+      "date": "2025-06-19",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd639235983dd000230dc",
+      "date": "2025-06-20",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd641235983dd000230ec",
+      "date": "2025-06-23",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd648235983dd000230fc",
+      "date": "2025-06-24",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd650235983dd0002310c",
+      "date": "2025-06-26",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684fd657235983dd0002311c",
+      "date": "2025-06-27",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff061235983dd00024572",
+      "date": "2025-01-02",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff06d235983dd0002458e",
+      "date": "2025-01-09",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff073235983dd000245a6",
+      "date": "2025-01-16",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff077235983dd000245be",
+      "date": "2025-01-23",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff07c235983dd000245d6",
+      "date": "2025-01-30",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff080235983dd000245ee",
+      "date": "2025-01-31",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff083235983dd00024606",
+      "date": "2025-01-24",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff087235983dd0002461e",
+      "date": "2025-01-17",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff08b235983dd00024636",
+      "date": "2025-01-10",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff09b235983dd0002466a",
+      "date": "2025-01-13",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff09e235983dd00024682",
+      "date": "2025-01-20",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff0a2235983dd0002469a",
+      "date": "2025-01-27",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff0a6235983dd000246b2",
+      "date": "2025-01-28",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff0aa235983dd000246ca",
+      "date": "2025-01-21",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff0ae235983dd000246e2",
+      "date": "2025-01-14",
+      "month": 1,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff187235983dd00024c96",
+      "date": "2025-03-03",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff18c235983dd00024cae",
+      "date": "2025-03-10",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff195235983dd00024cca",
+      "date": "2025-03-17",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff19a235983dd00024ce2",
+      "date": "2025-03-24",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff19e235983dd00024cfa",
+      "date": "2025-03-25",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1a3235983dd00024d12",
+      "date": "2025-03-18",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1a8235983dd00024d2a",
+      "date": "2025-03-11",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1ab235983dd00024d42",
+      "date": "2025-03-04",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1ba235983dd00024d8a",
+      "date": "2025-03-06",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1bf235983dd00024da2",
+      "date": "2025-03-13",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1c3235983dd00024dba",
+      "date": "2025-03-20",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1c7235983dd00024dd2",
+      "date": "2025-03-27",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1cc235983dd00024dea",
+      "date": "2025-03-28",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1d0235983dd00024e02",
+      "date": "2025-03-21",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1d3235983dd00024e1a",
+      "date": "2025-03-14",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "684ff1d7235983dd00024e32",
+      "date": "2025-03-07",
+      "month": 3,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6850e2fabbc8a7e2be344df3",
+      "date": "2025-02-03",
+      "month": 2,
+      "shift": "evening",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "68512f6f3ed66b418b3d4939",
+      "date": "2025-06-30",
+      "month": 6,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "68513b06698d7694bf3d20c8",
+      "date": "2025-05-01",
+      "month": 5,
+      "shift": "morning",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851482597895a5ce6b65740",
+      "date": "2025-05-02",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851484197895a5ce6b65770",
+      "date": "2025-05-05",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851484c97895a5ce6b6577c",
+      "date": "2025-05-06",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851485997895a5ce6b65788",
+      "date": "2025-05-13",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851486497895a5ce6b65794",
+      "date": "2025-05-15",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851487097895a5ce6b657a0",
+      "date": "2025-05-19",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851487a97895a5ce6b657ac",
+      "date": "2025-05-20",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "6851488497895a5ce6b657b8",
+      "date": "2025-05-29",
+      "month": 5,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "68518845fa459aa0c7303ab4",
+      "date": "2025-07-07",
+      "month": 7,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "685188810ebf3d55a11a9a6c",
+      "date": "2025-04-07",
+      "month": 4,
+      "shift": "evening",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "685188ff0ebf3d55a11a9b1c",
+      "date": "2025-04-06",
+      "month": 4,
+      "shift": "morning",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "685189f50ebf3d55a11a9bce",
+      "date": "2025-01-12",
+      "month": 1,
+      "shift": "morning",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "68518c77c1074fdc8e9651d4",
+      "date": "2025-04-13",
+      "month": 4,
+      "shift": "morning",
+      "employeeId": "6848124dc6862fc2a3fda512",
+      "employeeName": "陳珮雯",
+      "leaveType": "overtime"
+    },
+    {
+      "id": "685199e223fa9f80003539ed",
+      "date": "2025-08-03",
+      "month": 8,
+      "shift": "morning",
+      "employeeId": "6831434d29d13d38ebcbc713",
+      "employeeName": "廖麗蓉",
+      "leaveType": "overtime"
+    }
+  ]
+}

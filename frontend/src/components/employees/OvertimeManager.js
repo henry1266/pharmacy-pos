@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 import {
   Box,
   Typography,
@@ -65,8 +66,9 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   
   // 月份篩選狀態
   const currentDate = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  // 預設選擇所有月份
+  const [selectedMonth, setSelectedMonth] = useState(-1); // 所有月份
+  const [selectedYear, setSelectedYear] = useState(2025); // 2025年
   const [formData, setFormData] = useState({
     employeeId: '',
     date: new Date().toISOString().split('T')[0],
@@ -87,13 +89,25 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
         params.employeeId = employeeId;
       }
       
-      // 添加月份篩選
-      const startDate = new Date(selectedYear, selectedMonth, 1);
-      // 確保包含月底最後一天，將時間設為 23:59:59
-      const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
+      // 添加月份篩選 - 使用更可靠的日期格式化方法
+      let startDate, endDate;
       
-      params.startDate = startDate.toISOString().split('T')[0];
-      params.endDate = endDate.toISOString().split('T')[0];
+      if (selectedMonth === -1) {
+        // 如果選擇全部月份，查詢整年的數據
+        startDate = new Date(selectedYear, 0, 1); // 1月1日
+        endDate = new Date(selectedYear, 11, 31, 23, 59, 59); // 12月31日
+      } else {
+        // 如果選擇特定月份，只查詢該月的數據
+        startDate = new Date(selectedYear, selectedMonth, 1); // 該月1日
+        // 計算下個月的第0天，即當月的最後一天
+        endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
+      }
+      
+      // 使用本地時區格式化日期，避免時區問題
+      params.startDate = formatDateToYYYYMMDD(startDate);
+      params.endDate = formatDateToYYYYMMDD(endDate);
+      
+      console.log(`[診斷] 查詢整年數據: startDate=${params.startDate}, endDate=${params.endDate}, 年份=${selectedYear}`);
       
       const records = await overtimeRecordService.getOvertimeRecords(params);
       setOvertimeRecords(records);
@@ -105,8 +119,46 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
       });
       setExpandedEmployees(expandedState);
       
-      // 獲取加班時數統計（包含排班系統加班記錄）
-      const stats = await overtimeRecordService.getMonthlyOvertimeStats(selectedYear, selectedMonth + 1);
+      // 獲取加班時數統計（包含排班系統加班記錄）- 添加更詳細的錯誤處理
+      // 使用現有的 API 路徑
+      const statsUrl = '/api/overtime-records/monthly-stats';
+      let statsParams = {
+        year: selectedYear
+      };
+      
+      // 處理月份篩選
+      if (selectedMonth !== -1) {
+        statsParams.month = selectedMonth + 1;
+        console.log(`嘗試獲取月度加班統計: 年份=${selectedYear}, 月份=${selectedMonth + 1}`);
+      } else {
+        console.log(`嘗試獲取年度加班統計: 年份=${selectedYear}, 所有月份`);
+      }
+      
+      let stats = [];
+      try {
+        // 直接使用axios進行請求，以便獲取完整的響應
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            'x-auth-token': token
+          },
+          params: statsParams
+        };
+        
+        console.log(`直接發送請求: ${statsUrl}`, config.params);
+        
+        const response = await axios.get(statsUrl, config);
+        console.log(`API響應狀態: ${response.status}`);
+        console.log(`API響應數據:`, response.data);
+        
+        stats = response.data;
+        console.log(`獲取到月度加班統計:`, stats);
+      } catch (statsError) {
+        console.error('獲取月度加班統計失敗:', statsError);
+        console.error('錯誤詳情:', statsError.response?.data || statsError.message);
+        setError(`獲取月度加班統計失敗: ${statsError.response?.data?.message || statsError.message}`);
+        stats = []; // 設置為空數組，避免後續處理出錯
+      }
       
       // 如果是特定員工視圖，則過濾出該員工的統計數據
       if (employeeId) {
@@ -118,25 +170,142 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
       
       // 獲取排班系統加班記錄
       try {
-        // 構建查詢參數
-        const startDate = new Date(selectedYear, selectedMonth, 1).toISOString().split('T')[0];
-        const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString().split('T')[0];
+        // 構建查詢參數 - 使用更可靠的日期格式化方法
+        let startDate, endDate;
         
-        // 獲取排班系統加班記錄
-        const scheduleRecords = await getSchedules(startDate, endDate);
+        // 使用與上面相同的月份篩選邏輯
+        if (selectedMonth === -1) {
+          // 如果選擇全部月份，查詢整年的數據
+          startDate = formatDateToYYYYMMDD(new Date(selectedYear, 0, 1)); // 1月1日
+          endDate = formatDateToYYYYMMDD(new Date(selectedYear, 11, 31)); // 12月31日
+        } else {
+          // 如果選擇特定月份，只查詢該月的數據
+          startDate = formatDateToYYYYMMDD(new Date(selectedYear, selectedMonth, 1)); // 該月1日
+          // 計算下個月的第0天，即當月的最後一天
+          endDate = formatDateToYYYYMMDD(new Date(selectedYear, selectedMonth + 1, 0));
+        }
+        
+        console.log(`嘗試獲取排班系統加班記錄: ${startDate} 至 ${endDate}, 年份: ${selectedYear}`);
+        
+        // 獲取排班系統加班記錄 - 添加更詳細的錯誤處理
+        let scheduleRecords = [];
+        try {
+          // 直接使用axios進行請求，以便獲取完整的響應
+          const token = localStorage.getItem('token');
+          const config = {
+            headers: {
+              'x-auth-token': token
+            }
+          };
+          const url = `/api/employee-schedules?startDate=${startDate}&endDate=${endDate}`;
+          console.log(`直接發送請求: ${url}`);
+          
+          const response = await axios.get(url, config);
+          console.log(`API響應狀態: ${response.status}`);
+          console.log(`API響應數據:`, response.data);
+          
+          scheduleRecords = response.data;
+          console.log(`獲取到排班記錄數量: ${scheduleRecords.length}`, scheduleRecords);
+        } catch (scheduleError) {
+          console.error('獲取排班記錄失敗:', scheduleError);
+          console.error('錯誤詳情:', scheduleError.response?.data || scheduleError.message);
+          setError(`獲取排班記錄失敗: ${scheduleError.response?.data?.message || scheduleError.message}`);
+          // 不提前返回，繼續處理其他邏輯
+          scheduleRecords = []; // 設置為空數組，繼續處理
+        }
+        
+        // 檢查是否有排班記錄
+        if (scheduleRecords.length === 0) {
+          console.log(`${startDate} 至 ${endDate} 期間沒有排班記錄`);
+          // 設置空的分組記錄
+          setScheduleOvertimeRecords({});
+          // 不提前返回，繼續處理其他邏輯
+        }
+        
+        // 詳細檢查每條記錄的格式和內容
+        console.log("詳細檢查排班記錄:");
+        scheduleRecords.forEach((record, index) => {
+          console.log(`記錄 ${index + 1}:`, record);
+          console.log(`  - ID: ${record._id}`);
+          console.log(`  - 日期: ${record.date}`);
+          console.log(`  - 班次: ${record.shift}`);
+          console.log(`  - 員工ID: `, record.employeeId);
+          console.log(`  - 請假類型: ${record.leaveType}`);
+        });
         
         // 過濾出加班記錄 (leaveType === 'overtime')
-        const overtimeSchedules = scheduleRecords.filter(record => record.leaveType === 'overtime');
-        
-        // 按員工ID分組
-        const groupedSchedules = overtimeSchedules.reduce((groups, record) => {
-          const employeeId = record.employeeId._id;
-          if (!groups[employeeId]) {
-            groups[employeeId] = [];
+        const overtimeSchedules = scheduleRecords.filter(record => {
+          // 檢查記錄是否有效
+          if (!record || typeof record !== 'object') {
+            console.error(`[診斷] 排班記錄格式不正確:`, record);
+            return false;
           }
-          groups[employeeId].push(record);
+          
+          // 檢查記錄ID
+          if (!record._id) {
+            console.error(`[診斷] 排班記錄缺少_id字段:`, record);
+            return false;
+          }
+          
+          // 檢查 leaveType 字段
+          const isOvertime = record.leaveType === 'overtime';
+          console.log(`[診斷] 記錄 ${record._id} 是否為加班: ${isOvertime}, leaveType: ${record.leaveType || '未設置'}`);
+          
+          return isOvertime;
+        });
+        console.log(`[診斷] 過濾後加班記錄數量: ${overtimeSchedules.length}`, overtimeSchedules);
+        
+        // 檢查是否有加班記錄
+        if (overtimeSchedules.length === 0) {
+          console.log(`${startDate} 至 ${endDate} 期間沒有加班記錄`);
+          // 設置空的分組記錄
+          setScheduleOvertimeRecords({});
+          // 不提前返回，繼續處理其他邏輯
+        }
+        
+        // 按員工ID分組 - 處理不同的employeeId格式
+        const groupedSchedules = overtimeSchedules.reduce((groups, record) => {
+          console.log(`處理加班記錄:`, record);
+          
+          // 獲取員工ID，處理不同的格式
+          let employeeIdValue;
+          
+          if (!record.employeeId) {
+            console.error(`記錄 ${record._id} 沒有employeeId字段`);
+            return groups;
+          }
+          
+          if (typeof record.employeeId === 'string') {
+            // 如果employeeId是字符串，直接使用
+            employeeIdValue = record.employeeId;
+            console.log(`記錄 ${record._id} 的employeeId是字符串: ${employeeIdValue}`);
+          } else if (typeof record.employeeId === 'object') {
+            if (record.employeeId._id) {
+              // 如果employeeId是對象且有_id字段，使用_id
+              employeeIdValue = record.employeeId._id;
+              console.log(`記錄 ${record._id} 的employeeId是對象，_id: ${employeeIdValue}`);
+            } else if (record.employeeId.$oid) {
+              // 如果employeeId是MongoDB格式的對象，使用$oid
+              employeeIdValue = record.employeeId.$oid;
+              console.log(`記錄 ${record._id} 的employeeId是MongoDB格式，$oid: ${employeeIdValue}`);
+            } else {
+              console.error(`記錄 ${record._id} 的employeeId是對象，但沒有_id或$oid字段:`, record.employeeId);
+              return groups;
+            }
+          } else {
+            console.error(`記錄 ${record._id} 的employeeId格式不正確: ${typeof record.employeeId}`);
+            return groups;
+          }
+          
+          // 使用獲取的employeeIdValue進行分組
+          if (!groups[employeeIdValue]) {
+            groups[employeeIdValue] = [];
+          }
+          groups[employeeIdValue].push(record);
           return groups;
         }, {});
+        
+        console.log("分組後的加班記錄:", groupedSchedules);
         
         setScheduleOvertimeRecords(groupedSchedules);
       } catch (err) {
@@ -172,7 +341,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
     };
     
     loadAllData();
-  }, [employeeId, selectedMonth, selectedYear]);
+  }, [employeeId, selectedYear, selectedMonth]);
 
   // 處理表單輸入變更
   const handleInputChange = (e) => {
@@ -366,10 +535,18 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
     }
   };
 
-  // 格式化日期
+  // 格式化日期顯示
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-TW');
+  };
+  
+  // 格式化日期為 YYYY-MM-DD 格式，避免時區問題
+  const formatDateToYYYYMMDD = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -405,32 +582,9 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
           </Alert>
         )}
 
-        {/* 月份篩選器 */}
+        {/* 年份與月份篩選器 */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-          <Typography variant="subtitle2">月份篩選：</Typography>
-          <FormControl sx={{ minWidth: 120 }}>
-            <InputLabel id="month-select-label">月份</InputLabel>
-            <Select
-              labelId="month-select-label"
-              value={selectedMonth}
-              label="月份"
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              size="small"
-            >
-              <MenuItem value={0}>一月</MenuItem>
-              <MenuItem value={1}>二月</MenuItem>
-              <MenuItem value={2}>三月</MenuItem>
-              <MenuItem value={3}>四月</MenuItem>
-              <MenuItem value={4}>五月</MenuItem>
-              <MenuItem value={5}>六月</MenuItem>
-              <MenuItem value={6}>七月</MenuItem>
-              <MenuItem value={7}>八月</MenuItem>
-              <MenuItem value={8}>九月</MenuItem>
-              <MenuItem value={9}>十月</MenuItem>
-              <MenuItem value={10}>十一月</MenuItem>
-              <MenuItem value={11}>十二月</MenuItem>
-            </Select>
-          </FormControl>
+          <Typography variant="subtitle2">篩選：</Typography>
           <FormControl sx={{ minWidth: 120 }}>
             <InputLabel id="year-select-label">年份</InputLabel>
             <Select
@@ -443,13 +597,41 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
               <MenuItem value={2024}>2024</MenuItem>
               <MenuItem value={2025}>2025</MenuItem>
               <MenuItem value={2026}>2026</MenuItem>
+              <MenuItem value={2027}>2027</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel id="month-select-label">月份</InputLabel>
+            <Select
+              labelId="month-select-label"
+              value={selectedMonth}
+              label="月份"
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              size="small"
+            >
+              <MenuItem value={-1}>全部月份</MenuItem>
+              <MenuItem value={0}>1月</MenuItem>
+              <MenuItem value={1}>2月</MenuItem>
+              <MenuItem value={2}>3月</MenuItem>
+              <MenuItem value={3}>4月</MenuItem>
+              <MenuItem value={4}>5月</MenuItem>
+              <MenuItem value={5}>6月</MenuItem>
+              <MenuItem value={6}>7月</MenuItem>
+              <MenuItem value={7}>8月</MenuItem>
+              <MenuItem value={8}>9月</MenuItem>
+              <MenuItem value={9}>10月</MenuItem>
+              <MenuItem value={10}>11月</MenuItem>
+              <MenuItem value={11}>12月</MenuItem>
             </Select>
           </FormControl>
         </Box>
 
         {/* 加班記錄列表 */}
         <Typography variant="subtitle1" gutterBottom>
-          {`${selectedYear}年${selectedMonth + 1}月 加班記錄`}
+          {selectedMonth === -1
+            ? `${selectedYear}年 全年加班記錄`
+            : `${selectedYear}年 ${selectedMonth + 1}月 加班記錄`}
         </Typography>
         
         {loading ? (
@@ -475,7 +657,19 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                   <TableRow>
                     <TableCell colSpan={6} align="center">
                       <Typography color="textSecondary">
-                        沒有找到加班記錄
+                        {error ? (
+                          // 如果有錯誤，顯示錯誤信息
+                          `查詢出錯: ${error}`
+                        ) : (
+                          // 提供更明確的指引
+                          <>
+                            沒有找到加班記錄。請嘗試選擇其他月份（如 1-8 月）查看加班記錄。
+                            <br />
+                            <Typography variant="caption" color="primary" sx={{ mt: 1, display: 'block' }}>
+                              根據系統記錄，2025年1月至8月有加班數據。
+                            </Typography>
+                          </>
+                        )}
                       </Typography>
                     </TableCell>
                   </TableRow>
