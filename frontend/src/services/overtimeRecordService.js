@@ -3,6 +3,7 @@ import axios from 'axios';
 /**
  * 加班記錄服務
  * 提供與加班記錄相關的 API 操作
+ * 包括獨立的加班記錄和排班系統中的加班記錄
  */
 
 /**
@@ -205,6 +206,39 @@ export const getAllEmployeesOvertimeSummary = async (params = {}) => {
   }
 };
 
+/**
+ * 獲取排班系統中的加班記錄
+ * @param {Object} params - 查詢參數
+ * @param {string} params.startDate - 開始日期 (YYYY-MM-DD) (可選)
+ * @param {string} params.endDate - 結束日期 (YYYY-MM-DD) (可選)
+ * @param {string} params.employeeId - 員工ID (可選)
+ * @returns {Promise} - 排班系統中的加班記錄
+ */
+export const getScheduleOvertimeRecords = async (params = {}) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('未登入或權限不足');
+    }
+
+    const config = {
+      headers: {
+        'x-auth-token': token
+      },
+      params: {
+        ...params,
+        leaveType: 'overtime'  // 只獲取加班記錄
+      }
+    };
+
+    const response = await axios.get('/api/employee-schedules', config);
+    return response.data;
+  } catch (error) {
+    console.error('獲取排班系統加班記錄失敗:', error);
+    throw error;
+  }
+};
+
 // 導出所有函數作為默認導出
 const overtimeRecordService = {
   getOvertimeRecords,
@@ -213,7 +247,8 @@ const overtimeRecordService = {
   updateOvertimeRecord,
   deleteOvertimeRecord,
   getEmployeeOvertimeSummary,
-  getAllEmployeesOvertimeSummary
+  getAllEmployeesOvertimeSummary,
+  getScheduleOvertimeRecords
 };
 
 export default overtimeRecordService;
