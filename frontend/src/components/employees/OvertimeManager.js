@@ -468,13 +468,12 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                   <TableCell>排班加班時數</TableCell>
                   <TableCell>加班總時數</TableCell>
                   <TableCell>記錄數量</TableCell>
-                  <TableCell>最近加班日期</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {overtimeRecords.length === 0 && summaryData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={6} align="center">
                       <Typography color="textSecondary">
                         沒有找到加班記錄
                       </Typography>
@@ -553,52 +552,14 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                           <TableCell>
                             {group.records.length} 筆獨立 + {group.scheduleRecordCount} 筆排班
                           </TableCell>
-                          <TableCell>{formatDate(group.latestDate)}</TableCell>
                         </TableRow>
                         
                         {/* 詳細記錄 (可收折) */}
                         <TableRow>
-                          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+                          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                             <Collapse in={expandedEmployees[employeeId]} timeout="auto" unmountOnExit>
                               <Box sx={{ margin: 1, mb: 3 }}>
-                                {/* 加班記錄摘要 */}
-                                <Paper elevation={1} sx={{ p: 2, mb: 2, bgcolor: 'rgba(0, 0, 0, 0.02)' }}>
-                                  <Grid container spacing={2}>
-                                    <Grid item xs={12} md={6}>
-                                      <Typography variant="body2" gutterBottom>
-                                        獨立加班總時數: <strong>{group.independentHours.toFixed(1)} 小時</strong>
-                                      </Typography>
-                                      <Typography variant="body2" gutterBottom>
-                                        排班系統加班總時數: <strong>{group.scheduleHours.toFixed(1)} 小時</strong>
-                                      </Typography>
-                                      <Typography variant="body2" gutterBottom>
-                                        加班總時數: <strong>{group.totalHours.toFixed(1)} 小時</strong>
-                                      </Typography>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                                          <WorkIcon fontSize="small" sx={{ mr: 1, color: 'secondary.main' }} />
-                                          獨立加班記錄 ({group.records.length} 筆)
-                                        </Box>
-                                      </Typography>
-                                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                                          <CalendarMonthIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
-                                          排班系統加班記錄 ({group.scheduleRecordCount} 筆)
-                                        </Box>
-                                      </Typography>
-                                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                                        * 排班系統加班時數: 早班3.5h, 中班3h, 晚班1.5h
-                                      </Typography>
-                                    </Grid>
-                                  </Grid>
-                                </Paper>
-                                
                                 {/* 合併的加班記錄詳細列表 */}
-                                <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold', mt: 2 }}>
-                                  加班記錄明細
-                                </Typography>
                                 <Table size="small" aria-label="加班記錄明細">
                                   <TableHead>
                                     <TableRow>
@@ -840,46 +801,6 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
           </TableContainer>
         )}
 
-        {/* 加班時數統計摘要 */}
-        {summaryData.length > 0 && (
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              {`${selectedYear}年${selectedMonth + 1}月 加班時數統計摘要`}
-            </Typography>
-            <Paper elevation={2} sx={{ p: 2, bgcolor: 'rgba(0, 0, 0, 0.02)' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body1" gutterBottom>
-                    總計加班時數: <strong>
-                      {summaryData.reduce((total, item) => total + item.overtimeHours, 0).toFixed(1)} 小時
-                    </strong>
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    獨立加班記錄: <strong>
-                      {summaryData.reduce((total, item) => total + (item.independentRecordCount || 0), 0)} 筆
-                    </strong>
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    排班系統加班記錄: <strong>
-                      {summaryData.reduce((total, item) => total + (item.scheduleRecordCount || 0), 0)} 筆
-                    </strong>
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    * 點擊員工行可展開查看詳細加班記錄
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    * 獨立加班記錄可在此頁面管理
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    * 排班系統加班記錄請在排班系統中管理
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          </Box>
-        )}
       </Paper>
 
       {/* 創建加班記錄對話框 */}
