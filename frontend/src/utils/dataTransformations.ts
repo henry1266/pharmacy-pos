@@ -1,7 +1,8 @@
 import { parse, format } from 'date-fns';
+import { Sale, Product } from '../types/entities';
 
 /**
- * 銷售記錄介面
+ * 銷售記錄介面 - 使用 Sale 型別但允許更靈活的 items 型別
  */
 interface SaleRecord {
   saleNumber: string;
@@ -11,15 +12,16 @@ interface SaleRecord {
 }
 
 /**
- * 銷售項目介面
+ * 銷售項目介面 - 為了資料轉換的靈活性
  */
 interface SaleItem {
-  product?: {
+  product?: string | Product | {
     category?: string;
     [key: string]: any;
   };
   quantity?: number;
-  sellingPrice?: number;
+  sellingPrice?: number; // 向後相容的屬性名稱
+  price?: number; // 標準屬性名稱
   [key: string]: any;
 }
 
@@ -110,10 +112,24 @@ export const transformSalesForCategory = (salesData: SaleRecord[]): CategorySale
   const salesByCategory: Record<string, number> = salesData.reduce((acc: Record<string, number>, sale: SaleRecord) => {
     if (Array.isArray(sale.items)) {
       sale.items.forEach(item => {
-        // Ensure item and product details exist
-        const category = item.product?.category || '未分類'; // Default category if missing
-        const itemTotal = (typeof item.quantity === 'number' && typeof item.sellingPrice === 'number') 
-                         ? item.quantity * item.sellingPrice 
+        // 安全地取得分類資訊
+        let category = '未分類'; // 預設分類
+        
+        if (item.product) {
+          if (typeof item.product === 'string') {
+            // 如果 product 是字串 ID，無法取得分類資訊
+            category = '未分類';
+          } else if (typeof item.product === 'object' && item.product !== null) {
+            // 如果 product 是物件，嘗試取得 category
+            category = (item.product as any).category || '未分類';
+          }
+        }
+        
+        // 計算項目總額，優先使用 sellingPrice，其次使用 price
+        const price = item.sellingPrice || item.price || 0;
+        const quantity = item.quantity || 0;
+        const itemTotal = (typeof quantity === 'number' && typeof price === 'number')
+                         ? quantity * price
                          : 0;
 
         if (!acc[category]) {
