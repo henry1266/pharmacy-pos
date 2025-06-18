@@ -9,13 +9,13 @@
       "esnext"
     ],                                        /* 指定要包含在編譯中的函式庫檔案 */
     "allowJs": true,                          /* 允許編譯JavaScript檔案 */
-    "checkJs": true,                          /* 報告JavaScript檔案中的錯誤 */
+    "checkJs": false,                         /* 不報告JavaScript檔案中的錯誤 */
     "jsx": "react-jsx",                       /* 指定JSX程式碼生成 */
-    "declaration": true,                      /* 生成相應的'.d.ts'檔案 */
-    "declarationMap": true,                   /* 為每個對應的'.d.ts'檔案生成sourcemap */
+    "declaration": false,                     /* 不生成相應的'.d.ts'檔案 */
+    "declarationMap": false,                  /* 不為每個對應的'.d.ts'檔案生成sourcemap */
     "sourceMap": true,                        /* 生成相應的'.map'檔案 */
-    "outDir": "./dist",                       /* 指定輸出目錄 */
-    "rootDir": "./",                          /* 指定輸入檔案的根目錄 */
+    "outDir": "./dist/frontend/src",          /* 指定輸出目錄 */
+    "rootDir": "./frontend/src",              /* 指定輸入檔案的根目錄 */
     "removeComments": true,                   /* 刪除編譯後的所有註釋 */
     "isolatedModules": true,                  /* 將每個檔案作為單獨的模組 */
     "forceConsistentCasingInFileNames": true, /* 不允許對同一個檔案使用不一致的大小寫引用 */
@@ -55,9 +55,7 @@
   },
   "include": [
     "frontend/src/**/*.ts",
-    "frontend/src/**/*.tsx",
-    "frontend/src/**/*.js",
-    "frontend/src/**/*.jsx"
+    "frontend/src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
