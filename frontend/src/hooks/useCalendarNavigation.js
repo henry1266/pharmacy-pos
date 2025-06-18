@@ -127,7 +127,7 @@ const useCalendarNavigation = () => {
   const updateSelectedCell = useCallback((newIndex) => {
     setSelectedCell(newIndex);
     
-    if (calendarGrid[newIndex] && calendarGrid[newIndex].isCurrentMonth) {
+    if (calendarGrid[newIndex]?.isCurrentMonth) {
       setSelectedDate(calendarGrid[newIndex].date);
     }
   }, [calendarGrid]);
@@ -141,7 +141,7 @@ const useCalendarNavigation = () => {
     
     // 處理Enter鍵
     if (e.key === 'Enter') {
-      if (calendarGrid[selectedCell] && calendarGrid[selectedCell].isCurrentMonth) {
+      if (calendarGrid[selectedCell]?.isCurrentMonth) {
         setSelectedDate(calendarGrid[selectedCell].date);
       }
       return;

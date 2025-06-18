@@ -74,7 +74,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }) => {
       // 初始化展開狀態
       const expandedState = {};
       records.forEach(record => {
-        if (record.employeeId && record.employeeId._id) {
+        if (record.employeeId?._id) {
           expandedState[record.employeeId._id] = false;
         }
       });

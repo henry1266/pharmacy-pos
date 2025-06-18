@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import {
@@ -82,6 +82,74 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
   const handleDeleteRecordClick = (record) => {
     handleOpenDeleteDialog(record);
   };
+
+  const handleApproveClick = (record) => {
+    setSelectedRecord(record);
+    handleApproveRecord(record);
+  };
+
+  const handleRejectClick = (record) => {
+    setSelectedRecord(record);
+    handleRejectRecord(record);
+  };
+
+  // 提取的員工查找邏輯，降低認知複雜度
+  const findEmployeeInfo = useCallback((empId, employees, scheduleRecords, summaryData, overtimeRecords, selectedMonth) => {
+    let employeeName = '';
+    let employeeObj = null;
+    
+    // 首先從員工列表中查找
+    const matchingEmployee = employees.find(emp =>
+      emp._id === empId || (typeof empId === 'string' && empId.includes(emp._id))
+    );
+    
+    if (matchingEmployee) {
+      employeeName = matchingEmployee.name;
+      employeeObj = matchingEmployee;
+      return { employeeName, employeeObj };
+    }
+    
+    // 從排班記錄中查找
+    for (const record of scheduleRecords || []) {
+      if (record.employeeId?.name) {
+        employeeName = record.employeeId.name;
+        employeeObj = record.employeeId;
+        break;
+      }
+      if (record.employee?.name) {
+        employeeName = record.employee.name;
+        employeeObj = record.employee;
+        break;
+      }
+    }
+    
+    // 從統計數據中查找
+    if (!employeeName) {
+      const matchingStat = summaryData.find(stat =>
+        stat.employeeId === empId || (stat?.employeeName && empId.includes(stat.employeeName))
+      );
+      if (matchingStat?.employeeName) {
+        employeeName = matchingStat.employeeName;
+      }
+    }
+    
+    // 從加班記錄中查找
+    if (!employeeName) {
+      const matchingRecord = overtimeRecords.find(r => r.employeeId?._id === empId);
+      if (matchingRecord?.employeeId?.name) {
+        employeeName = matchingRecord.employeeId.name;
+        employeeObj = matchingRecord.employeeId;
+      }
+    }
+    
+    // 生成臨時名稱
+    if (!employeeName) {
+      const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+      employeeName = `員工${monthStr}`;
+    }
+    
+    return { employeeName, employeeObj };
+  }, []);
   // 狀態
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -119,7 +187,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
       let allEmployees = [];
       try {
         const response = await employeeService.getEmployees({ limit: 1000 });
-        allEmployees = response.employees || [];
+        allEmployees = response?.employees || [];
         console.log(`獲取到 ${allEmployees.length} 名員工信息`);
       } catch (empErr) {
         console.error('獲取員工信息失敗:', empErr);
@@ -807,80 +875,11 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                       // 從排班系統加班記錄中獲取員工ID
                       Object.keys(scheduleOvertimeRecords).forEach(empId => {
                         if (!initialGroups[empId]) {
-                          // 嘗試從排班記錄中獲取員工信息 - 增強版
-                          const scheduleRecords = scheduleOvertimeRecords[empId];
-                          let employeeName = '';
-                          let employeeObj = null;
-                          
-                          // 首先從員工列表中查找
-                          const matchingEmployee = employees.find(emp =>
-                            emp._id === empId ||
-                            (typeof empId === 'string' && empId.includes(emp._id))
+                          // 使用提取的函數查找員工信息
+                          const scheduleRecords = scheduleOvertimeRecords?.[empId];
+                          const { employeeName, employeeObj } = findEmployeeInfo(
+                            empId, employees, scheduleRecords, summaryData, overtimeRecords, selectedMonth
                           );
-                          
-                          if (matchingEmployee) {
-                            employeeName = matchingEmployee.name;
-                            employeeObj = matchingEmployee;
-                            console.log(`從員工列表中找到員工姓名: ${employeeName}`);
-                          } else {
-                            // 如果員工列表中沒有，遍歷所有記錄尋找員工信息
-                            for (const record of scheduleRecords) {
-                              // 檢查記錄中的employeeId字段
-                              if (record.employeeId) {
-                                if (typeof record.employeeId === 'object') {
-                                  // 如果employeeId是對象
-                                  if (record.employeeId.name) {
-                                    employeeName = record.employeeId.name;
-                                    employeeObj = record.employeeId;
-                                    console.log(`從排班記錄對象中獲取到員工姓名: ${employeeName}`);
-                                    break;
-                                  }
-                                }
-                              }
-                              
-                              // 檢查記錄中的employee字段
-                              if (record.employee && record.employee.name) {
-                                employeeName = record.employee.name;
-                                employeeObj = record.employee;
-                                console.log(`從排班記錄employee字段獲取到員工姓名: ${employeeName}`);
-                                break;
-                              }
-                            }
-                            
-                            // 如果還是沒找到，嘗試從summaryData中查找
-                            if (!employeeName) {
-                              const matchingStat = summaryData.find(stat =>
-                                stat.employeeId === empId ||
-                                (stat.employeeName && empId.includes(stat.employeeName))
-                              );
-                              
-                              if (matchingStat?.employeeName) {
-                                employeeName = matchingStat.employeeName;
-                                console.log(`從summaryData中獲取到員工姓名: ${employeeName}`);
-                              }
-                            }
-                            
-                            // 如果還是沒找到，嘗試從overtimeRecords中查找
-                            if (!employeeName) {
-                              const matchingRecord = overtimeRecords.find(r =>
-                                r.employeeId?._id === empId
-                              );
-                              
-                              if (matchingRecord?.employeeId?.name) {
-                                employeeName = matchingRecord.employeeId.name;
-                                employeeObj = matchingRecord.employeeId;
-                                console.log(`從overtimeRecords中找到員工姓名: ${employeeName}`);
-                              }
-                            }
-                            
-                            // 如果還是沒有名字，使用更有意義的臨時名稱
-                            if (!employeeName) {
-                              // 只使用月份作為臨時名稱，保持一致性
-                              const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
-                              employeeName = `員工${monthStr}`;
-                              console.log(`生成臨時員工名稱: ${employeeName}`);
-                            }
-                          }
                           
                           initialGroups[empId] = {
                             employee: employeeObj || {
@@ -1073,7 +1072,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                   }
                                                   
                                                   return {
-                                                    id: `schedule-${record._id || 'unknown'}`,
+                                                    id: `schedule-${record?._id || 'unknown'}`,
                                                     type: 'schedule',
                                                     date: recordDate,
                                                     originalRecord: record,
@@ -1168,10 +1167,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                               <IconButton
                                                                 size="small"
                                                                 color="success"
-                                                                onClick={() => {
-                                                                  setSelectedRecord(record.originalRecord);
-                                                                  handleApproveRecord(record.originalRecord);
-                                                                }}
+                                                                onClick={() => handleApproveClick(record.originalRecord)}
                                                               >
                                                                 <CheckCircleIcon fontSize="small" />
                                                               </IconButton>
@@ -1180,10 +1176,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                               <IconButton
                                                                 size="small"
                                                                 color="error"
-                                                                onClick={() => {
-                                                                  setSelectedRecord(record.originalRecord);
-                                                                  handleRejectRecord(record.originalRecord);
-                                                                }}
+                                                                onClick={() => handleRejectClick(record.originalRecord)}
                                                               >
                                                                 <CancelIcon fontSize="small" />
                                                               </IconButton>
