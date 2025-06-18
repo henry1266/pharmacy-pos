@@ -12,29 +12,27 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 
-// 定義員工介面
-interface Employee {
+// 定義與 QuickSelectPanel.tsx 兼容的類型
+export interface Employee {
   _id: string;
   name: string;
-  department: string;
+  department?: string;
+  position?: string;
   [key: string]: any;
 }
 
-// 定義排班記錄介面
-interface Schedule {
+export interface Schedule {
   _id: string;
-  employee: Employee;
+  employee?: Employee;
   leaveType?: string | null;
   [key: string]: any;
 }
 
-// 定義排班資料介面
-interface Schedules {
+export interface Schedules {
   [shift: string]: Schedule[];
 }
 
-// 定義排班資料提交介面
-interface ScheduleData {
+export interface ScheduleData {
   date: string;
   shift: string;
   employeeId: string;
@@ -43,14 +41,14 @@ interface ScheduleData {
 }
 
 // 定義元件 Props 介面
-interface ShiftSectionProps {
+export interface ShiftSectionProps {
   shift: string;
   shiftLabel: string;
   employees: Employee[];
   schedules: Schedules;
   date: string;
-  onAddSchedule: (scheduleData: ScheduleData) => Promise<void>;
-  onRemoveSchedule: (scheduleId: string) => Promise<void>;
+  onAddSchedule: (scheduleData: ScheduleData) => Promise<boolean>;
+  onRemoveSchedule: (scheduleId: string) => Promise<boolean>;
 }
 
 /**
@@ -167,13 +165,14 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
         </Typography>
         
         <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
+          <FormControl size="small" sx={{ minWidth: 120 }} {...({} as any)}>
             <Select
               value={selectedLeaveType || ''}
               onChange={handleLeaveTypeChange}
               displayEmpty
               variant="outlined"
               size="small"
+              {...({} as any)}
             >
               <MenuItem value="">
                 <em>正常排班</em>
@@ -214,7 +213,7 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
                   />
                   <ListItemText
                     primary={employee.name}
-                    secondary={`${employee.department}`}
+                    secondary={`${employee.department || ''}`}
                     primaryTypographyProps={getPrimaryTypographyProps(isScheduled)}
                     secondaryTypographyProps={getSecondaryTypographyProps()}
                   />
