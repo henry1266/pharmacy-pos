@@ -74,6 +74,14 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
       setError(err.message);
     }
   };
+
+  const handleEditRecordClick = (record) => {
+    handleOpenEditDialog(record);
+  };
+
+  const handleDeleteRecordClick = (record) => {
+    handleOpenDeleteDialog(record);
+  };
   // 狀態
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -846,7 +854,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                 (stat.employeeName && empId.includes(stat.employeeName))
                               );
                               
-                              if (matchingStat && matchingStat.employeeName) {
+                              if (matchingStat?.employeeName) {
                                 employeeName = matchingStat.employeeName;
                                 console.log(`從summaryData中獲取到員工姓名: ${employeeName}`);
                               }
@@ -855,10 +863,10 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                             // 如果還是沒找到，嘗試從overtimeRecords中查找
                             if (!employeeName) {
                               const matchingRecord = overtimeRecords.find(r =>
-                                r.employeeId && r.employeeId._id === empId
+                                r.employeeId?._id === empId
                               );
                               
-                              if (matchingRecord && matchingRecord.employeeId.name) {
+                              if (matchingRecord?.employeeId?.name) {
                                 employeeName = matchingRecord.employeeId.name;
                                 employeeObj = matchingRecord.employeeId;
                                 console.log(`從overtimeRecords中找到員工姓名: ${employeeName}`);
@@ -893,7 +901,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                       
                       // 處理獨立加班記錄
                       overtimeRecords.forEach(record => {
-                        if (record.employeeId && record.employeeId._id) {
+                        if (record.employeeId?._id) {
                           const employeeId = record.employeeId._id;
                           
                           if (!initialGroups[employeeId]) {
@@ -1054,7 +1062,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                   let recordDate;
                                                   try {
                                                     recordDate = new Date(record.date);
-                                                    if (isNaN(recordDate.getTime())) {
+                                                    if (isNaN(recordDate?.getTime())) {
                                                       // 如果日期無效，使用當前日期
                                                       console.error(`記錄 ${record._id} 的日期無效: ${record.date}`);
                                                       recordDate = new Date();
@@ -1149,7 +1157,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                           <IconButton
                                                             size="small"
                                                             color="primary"
-                                                            onClick={() => handleOpenEditDialog(record.originalRecord)}
+                                                            onClick={() => handleEditRecordClick(record.originalRecord)}
                                                           >
                                                             <EditIcon fontSize="small" />
                                                           </IconButton>
@@ -1186,7 +1194,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                           <IconButton
                                                             size="small"
                                                             color="error"
-                                                            onClick={() => handleOpenDeleteDialog(record.originalRecord)}
+                                                            onClick={() => handleDeleteRecordClick(record.originalRecord)}
                                                           >
                                                             <DeleteIcon fontSize="small" />
                                                           </IconButton>
