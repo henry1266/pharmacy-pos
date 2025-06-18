@@ -4,16 +4,6 @@ import {
   Typography,
   Paper,
   Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Alert,
   CircularProgress,
   Divider,
@@ -27,6 +17,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import employeeAccountService from '../../services/employeeAccountService';
+import FormField from './account/FormField';
+import AccountDialog from './account/AccountDialog';
 
 /**
  * 員工帳號管理元件
@@ -50,6 +42,13 @@ const EmployeeAccountManager = ({ employeeId, employeeName, onAccountChange }) =
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // 角色選項
+  const roleOptions = [
+    { value: 'admin', label: '管理員' },
+    { value: 'pharmacist', label: '藥師' },
+    { value: 'staff', label: '員工' }
+  ];
 
   // 獲取員工帳號資訊
   const fetchAccountInfo = async () => {
@@ -462,261 +461,171 @@ const EmployeeAccountManager = ({ employeeId, employeeName, onAccountChange }) =
       {renderAccountContent()}
 
       {/* 創建帳號對話框 */}
-      <Dialog open={createDialogOpen} onClose={handleCloseDialogs} maxWidth="sm" fullWidth>
-        <DialogTitle>建立員工帳號</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            為 {employeeName} 建立系統登入帳號，帳號建立後員工可以使用電子郵件和密碼登入系統。
-          </DialogContentText>
-          <TextField
-            margin="dense"
-            label="用戶名"
-            type="text"
-            fullWidth
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            error={!!formErrors.username}
-            helperText={formErrors.username}
-            required
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="電子郵件 (選填)"
-            type="email"
-            fullWidth
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            error={!!formErrors.email}
-            helperText={formErrors.email}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="密碼"
-            type="password"
-            fullWidth
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            error={!!formErrors.password}
-            helperText={formErrors.password}
-            required
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="確認密碼"
-            type="password"
-            fullWidth
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            error={!!formErrors.confirmPassword}
-            helperText={formErrors.confirmPassword}
-            required
-            sx={{ mb: 2 }}
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="role-label">角色</InputLabel>
-            <Select
-              labelId="role-label"
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              label="角色"
-              error={!!formErrors.role}
-            >
-              <MenuItem value="admin">管理員</MenuItem>
-              <MenuItem value="pharmacist">藥師</MenuItem>
-              <MenuItem value="staff">員工</MenuItem>
-            </Select>
-            {formErrors.role && (
-              <Typography color="error" variant="caption">
-                {formErrors.role}
-              </Typography>
-            )}
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialogs}>取消</Button>
-          <Button
-            onClick={handleCreateAccount}
-            disabled={submitting}
-            variant="contained"
-            color="primary"
-            startIcon={submitting ? <CircularProgress size={20} /> : null}
-          >
-            {submitting ? '處理中...' : '建立'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AccountDialog
+        open={createDialogOpen}
+        onClose={handleCloseDialogs}
+        title="建立員工帳號"
+        description={`為 ${employeeName} 建立系統登入帳號，帳號建立後員工可以使用電子郵件和密碼登入系統。`}
+        onConfirm={handleCreateAccount}
+        confirmText="建立"
+        submitting={submitting}
+      >
+        <FormField
+          name="username"
+          label="用戶名"
+          value={formData.username}
+          onChange={handleInputChange}
+          error={!!formErrors.username}
+          helperText={formErrors.username}
+          required
+        />
+        <FormField
+          name="email"
+          label="電子郵件 (選填)"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          error={!!formErrors.email}
+          helperText={formErrors.email}
+        />
+        <FormField
+          name="password"
+          label="密碼"
+          type="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          error={!!formErrors.password}
+          helperText={formErrors.password}
+          required
+        />
+        <FormField
+          name="confirmPassword"
+          label="確認密碼"
+          type="password"
+          value={formData.confirmPassword}
+          onChange={handleInputChange}
+          error={!!formErrors.confirmPassword}
+          helperText={formErrors.confirmPassword}
+          required
+        />
+        <FormField
+          type="select"
+          name="role"
+          label="角色"
+          value={formData.role}
+          onChange={handleInputChange}
+          error={!!formErrors.role}
+          helperText={formErrors.role}
+          options={roleOptions}
+        />
+      </AccountDialog>
 
       {/* 編輯帳號對話框 */}
-      <Dialog open={editDialogOpen} onClose={handleCloseDialogs} maxWidth="sm" fullWidth>
-        <DialogTitle>編輯員工帳號</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            編輯 {employeeName} 的系統帳號資訊。如果不需要更改密碼，請留空密碼欄位。
-          </DialogContentText>
-          <TextField
-            margin="dense"
-            label="用戶名"
-            type="text"
-            fullWidth
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            error={!!formErrors.username}
-            helperText={formErrors.username}
-            required
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="電子郵件 (選填)"
-            type="email"
-            fullWidth
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            error={!!formErrors.email}
-            helperText={formErrors.email}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="新密碼 (選填)"
-            type="password"
-            fullWidth
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            error={!!formErrors.password}
-            helperText={formErrors.password}
-            sx={{ mb: 2 }}
-          />
-          {formData.password && (
-            <TextField
-              margin="dense"
-              label="確認新密碼"
-              type="password"
-              fullWidth
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              error={!!formErrors.confirmPassword}
-              helperText={formErrors.confirmPassword}
-              required={!!formData.password}
-              sx={{ mb: 2 }}
-            />
-          )}
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="role-label">角色</InputLabel>
-            <Select
-              labelId="role-label"
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              label="角色"
-              error={!!formErrors.role}
-            >
-              <MenuItem value="admin">管理員</MenuItem>
-              <MenuItem value="pharmacist">藥師</MenuItem>
-              <MenuItem value="staff">員工</MenuItem>
-            </Select>
-            {formErrors.role && (
-              <Typography color="error" variant="caption">
-                {formErrors.role}
-              </Typography>
-            )}
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialogs}>取消</Button>
-          <Button
-            onClick={handleUpdateAccount}
-            disabled={submitting}
-            variant="contained"
-            color="primary"
-            startIcon={submitting ? <CircularProgress size={20} /> : null}
-          >
-            {submitting ? '處理中...' : '更新'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* 重設密碼對話框 */}
-      <Dialog open={resetPasswordDialogOpen} onClose={handleCloseDialogs} maxWidth="sm" fullWidth>
-        <DialogTitle>重設密碼</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            為 {employeeName} 重設系統帳號密碼。
-          </DialogContentText>
-          <TextField
-            margin="dense"
-            label="新密碼"
-            type="password"
-            fullWidth
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            error={!!formErrors.password}
-            helperText={formErrors.password}
-            required
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
+      <AccountDialog
+        open={editDialogOpen}
+        onClose={handleCloseDialogs}
+        title="編輯員工帳號"
+        description={`編輯 ${employeeName} 的系統帳號資訊。如果不需要更改密碼，請留空密碼欄位。`}
+        onConfirm={handleUpdateAccount}
+        confirmText="更新"
+        submitting={submitting}
+      >
+        <FormField
+          name="username"
+          label="用戶名"
+          value={formData.username}
+          onChange={handleInputChange}
+          error={!!formErrors.username}
+          helperText={formErrors.username}
+          required
+        />
+        <FormField
+          name="email"
+          label="電子郵件 (選填)"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          error={!!formErrors.email}
+          helperText={formErrors.email}
+        />
+        <FormField
+          name="password"
+          label="新密碼 (選填)"
+          type="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          error={!!formErrors.password}
+          helperText={formErrors.password}
+        />
+        {formData.password && (
+          <FormField
+            name="confirmPassword"
             label="確認新密碼"
             type="password"
-            fullWidth
-            name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleInputChange}
             error={!!formErrors.confirmPassword}
             helperText={formErrors.confirmPassword}
             required
-            sx={{ mb: 2 }}
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialogs}>取消</Button>
-          <Button
-            onClick={handleResetPassword}
-            disabled={submitting}
-            variant="contained"
-            color="warning"
-            startIcon={submitting ? <CircularProgress size={20} /> : null}
-          >
-            {submitting ? '處理中...' : '重設密碼'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        )}
+        <FormField
+          type="select"
+          name="role"
+          label="角色"
+          value={formData.role}
+          onChange={handleInputChange}
+          error={!!formErrors.role}
+          helperText={formErrors.role}
+          options={roleOptions}
+        />
+      </AccountDialog>
+
+      {/* 重設密碼對話框 */}
+      <AccountDialog
+        open={resetPasswordDialogOpen}
+        onClose={handleCloseDialogs}
+        title="重設密碼"
+        description={`為 ${employeeName} 重設系統帳號密碼。`}
+        onConfirm={handleResetPassword}
+        confirmText="重設密碼"
+        confirmColor="warning"
+        submitting={submitting}
+      >
+        <FormField
+          name="password"
+          label="新密碼"
+          type="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          error={!!formErrors.password}
+          helperText={formErrors.password}
+          required
+        />
+        <FormField
+          name="confirmPassword"
+          label="確認新密碼"
+          type="password"
+          value={formData.confirmPassword}
+          onChange={handleInputChange}
+          error={!!formErrors.confirmPassword}
+          helperText={formErrors.confirmPassword}
+          required
+        />
+      </AccountDialog>
 
       {/* 刪除帳號對話框 */}
-      <Dialog open={deleteDialogOpen} onClose={handleCloseDialogs}>
-        <DialogTitle>刪除員工帳號</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            您確定要刪除 {employeeName} 的系統帳號嗎？此操作無法復原，刪除後員工將無法登入系統。
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialogs}>取消</Button>
-          <Button
-            onClick={handleDeleteAccount}
-            disabled={submitting}
-            variant="contained"
-            color="error"
-            startIcon={submitting ? <CircularProgress size={20} /> : null}
-          >
-            {submitting ? '處理中...' : '確認刪除'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AccountDialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDialogs}
+        title="刪除員工帳號"
+        description={`您確定要刪除 ${employeeName} 的系統帳號嗎？此操作無法復原，刪除後員工將無法登入系統。`}
+        onConfirm={handleDeleteAccount}
+        confirmText="確認刪除"
+        confirmColor="error"
+        submitting={submitting}
+        maxWidth="xs"
+      />
     </Paper>
   );
 };
