@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -10,25 +10,75 @@ import {
   Paper,
   CircularProgress
 } from '@mui/material';
-import HoursStatBlock from './HoursStatBlock';
+import overtimeRecordService from '../../../services/overtimeRecordService';
+import WorkHoursStatCard from './WorkHoursStatCard';
 
 /**
  * 工時統計對話框組件
- * 顯示員工的月度工時統計
+ * 顯示當月員工工時統計，包含正常工時、加班時數、特休和病假
  */
 const WorkHoursDialog = ({
   open,
   onClose,
   currentDate,
+  firstDayOfMonth,
+  lastDayOfMonth,
   calculateEmployeeMonthlyHours,
-  overtimeStats,
-  loadingOvertimeStats,
+  fetchSchedulesByDate,
+  formatDateString,
   formatMonth
 }) => {
-  // 格式化月份顯示
-  const getFormattedMonth = () => {
-    return formatMonth ? formatMonth(currentDate) : currentDate.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' });
+  const [overtimeStats, setOvertimeStats] = useState([]);
+  const [loadingOvertimeStats, setLoadingOvertimeStats] = useState(false);
+
+  // 當對話框打開時載入數據
+  useEffect(() => {
+    if (open) {
+      loadOvertimeStats();
+    }
+  }, [open, currentDate]);
+
+  const loadOvertimeStats = async () => {
+    try {
+      setLoadingOvertimeStats(true);
+      
+      // 獲取當前月份的排班資料
+      const startDate = formatDateString(firstDayOfMonth);
+      const endDate = formatDateString(lastDayOfMonth);
+      await fetchSchedulesByDate(startDate, endDate);
+      
+      // 從 API 獲取加班統計數據
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const stats = await overtimeRecordService.getMonthlyOvertimeStats(year, month);
+      setOvertimeStats(stats);
+    } catch (error) {
+      console.error('獲取加班統計數據失敗:', error);
+    } finally {
+      setLoadingOvertimeStats(false);
+    }
   };
+
+  // 計算總計統計
+  const calculateTotalStats = () => {
+    const employeeStats = calculateEmployeeMonthlyHours;
+    const totalRegularHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.hours), 0).toFixed(1);
+    const totalPersonalLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.personalLeaveHours), 0).toFixed(1);
+    const totalSickLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.sickLeaveHours), 0).toFixed(1);
+    const totalOvertimeHours = overtimeStats.reduce((sum, emp) => sum + emp.overtimeHours, 0).toFixed(1);
+    const grandTotal = (parseFloat(totalRegularHours) + parseFloat(totalOvertimeHours) +
+                       parseFloat(totalPersonalLeaveHours) + parseFloat(totalSickLeaveHours)).toFixed(1);
+
+    return {
+      totalRegularHours,
+      totalPersonalLeaveHours,
+      totalSickLeaveHours,
+      totalOvertimeHours,
+      grandTotal
+    };
+  };
+
+  const totalStats = calculateTotalStats();
 
   return (
     <Dialog
@@ -40,7 +90,7 @@ const WorkHoursDialog = ({
       <DialogContent>
         <Box sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            {getFormattedMonth()} 員工工時統計
+            {formatMonth(currentDate)} 員工工時統計
           </Typography>
           
           {/* 總計區域 */}
@@ -63,51 +113,36 @@ const WorkHoursDialog = ({
               gap: 3,
               justifyContent: 'space-between'
             }}>
-              {(() => {
-                // 計算所有員工的總時數
-                const employeeStats = calculateEmployeeMonthlyHours();
-                const totalRegularHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.hours), 0).toFixed(1);
-                const totalPersonalLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.personalLeaveHours), 0).toFixed(1);
-                const totalSickLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.sickLeaveHours), 0).toFixed(1);
-                
-                // 從 API 獲取的加班時數
-                const totalOvertimeHours = overtimeStats.reduce((sum, emp) => sum + emp.overtimeHours, 0).toFixed(1);
-                
-                // 總工時包含病假時數
-                const grandTotal = (parseFloat(totalRegularHours) + parseFloat(totalOvertimeHours) +
-                                   parseFloat(totalPersonalLeaveHours) + parseFloat(totalSickLeaveHours)).toFixed(1);
-                
-                return (
-                  <>
-                    <HoursStatBlock
-                      label="正常工時"
-                      value={totalRegularHours}
-                      color="text.primary"
-                    />
-                    <HoursStatBlock
-                      label="加班時數"
-                      value={totalOvertimeHours}
-                      color="purple.main"
-                      subtitle={`(獨立:${overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount || 0), 0)} 排班:${overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount || 0), 0)})`}
-                    />
-                    <HoursStatBlock
-                      label="特休時數"
-                      value={totalPersonalLeaveHours}
-                      color="warning.main"
-                    />
-                    <HoursStatBlock
-                      label="病假時數"
-                      value={totalSickLeaveHours}
-                      color="info.main"
-                    />
-                    <HoursStatBlock
-                      label="總計時數"
-                      value={grandTotal}
-                      color="success.main"
-                    />
-                  </>
-                );
-              })()}
+              <WorkHoursStatCard
+                label="正常工時"
+                value={parseFloat(totalStats.totalRegularHours)}
+                color="text.primary"
+              />
+              
+              <WorkHoursStatCard
+                label="加班時數"
+                value={parseFloat(totalStats.totalOvertimeHours)}
+                color="purple.main"
+                subtitle={`(獨立:${overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount || 0), 0)} 排班:${overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount || 0), 0)})`}
+              />
+              
+              <WorkHoursStatCard
+                label="特休時數"
+                value={parseFloat(totalStats.totalPersonalLeaveHours)}
+                color="warning.main"
+              />
+              
+              <WorkHoursStatCard
+                label="病假時數"
+                value={parseFloat(totalStats.totalSickLeaveHours)}
+                color="info.main"
+              />
+              
+              <WorkHoursStatCard
+                label="總計時數"
+                value={parseFloat(totalStats.grandTotal)}
+                color="success.main"
+              />
             </Box>
           </Paper>
           
@@ -128,12 +163,9 @@ const WorkHoursDialog = ({
                 <Typography sx={{ ml: 2 }}>載入加班統計數據中...</Typography>
               </Box>
             ) : (
-              calculateEmployeeMonthlyHours().map(({ employeeId, name, hours, personalLeaveHours, sickLeaveHours }) => {
-                // 從 API 獲取的加班時數
+              calculateEmployeeMonthlyHours.map(({ employeeId, name, hours, personalLeaveHours, sickLeaveHours }) => {
                 const overtimeStat = overtimeStats.find(stat => stat.employeeId === employeeId);
                 const overtimeHours = overtimeStat ? overtimeStat.overtimeHours.toFixed(1) : '0.0';
-                
-                // 獲取加班記錄數量
                 const independentRecordCount = overtimeStat ? overtimeStat.independentRecordCount || 0 : 0;
                 const scheduleRecordCount = overtimeStat ? overtimeStat.scheduleRecordCount || 0 : 0;
                 
@@ -163,30 +195,34 @@ const WorkHoursDialog = ({
                         justifyContent: 'flex-end',
                         flex: 1
                       }}>
-                        <HoursStatBlock
+                        <WorkHoursStatCard
                           label="正常工時"
-                          value={hours}
+                          value={`${hours} 小時`}
                           color="text.primary"
                         />
-                        <HoursStatBlock
+                        
+                        <WorkHoursStatCard
                           label="加班時數"
-                          value={overtimeHours}
+                          value={`${overtimeHours} 小時`}
                           color="purple.main"
                           subtitle={`(獨立:${independentRecordCount} 排班:${scheduleRecordCount})`}
                         />
-                        <HoursStatBlock
+                        
+                        <WorkHoursStatCard
                           label="特休時數"
-                          value={personalLeaveHours}
+                          value={`${personalLeaveHours} 小時`}
                           color="warning.main"
                         />
-                        <HoursStatBlock
+                        
+                        <WorkHoursStatCard
                           label="病假時數"
-                          value={sickLeaveHours}
+                          value={`${sickLeaveHours} 小時`}
                           color="info.main"
                         />
-                        <HoursStatBlock
+                        
+                        <WorkHoursStatCard
                           label="總計時數"
-                          value={(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)}
+                          value={`${(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)} 小時`}
                           color="success.main"
                         />
                       </Box>
@@ -211,10 +247,12 @@ WorkHoursDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   currentDate: PropTypes.instanceOf(Date).isRequired,
-  calculateEmployeeMonthlyHours: PropTypes.func.isRequired,
-  overtimeStats: PropTypes.array.isRequired,
-  loadingOvertimeStats: PropTypes.bool.isRequired,
-  formatMonth: PropTypes.func
+  firstDayOfMonth: PropTypes.instanceOf(Date).isRequired,
+  lastDayOfMonth: PropTypes.instanceOf(Date).isRequired,
+  calculateEmployeeMonthlyHours: PropTypes.array.isRequired,
+  fetchSchedulesByDate: PropTypes.func.isRequired,
+  formatDateString: PropTypes.func.isRequired,
+  formatMonth: PropTypes.func.isRequired
 };
 
 export default WorkHoursDialog;
