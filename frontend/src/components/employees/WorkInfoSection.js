@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Grid, 
-  TextField
-} from '@mui/material';
+import { Grid } from '@mui/material';
+import EmployeeFormField from './shared/EmployeeFormField';
 
 /**
  * 工作資訊區塊
@@ -12,95 +10,59 @@ import {
 const WorkInfoSection = ({ formData, errors, onChange }) => {
   return (
     <Grid container spacing={2}>
-      {/* 任職職務 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          required
-          fullWidth
-          id="position"
-          name="position"
-          label="任職職務"
-          value={formData.position}
-          onChange={onChange}
-          error={!!errors.position}
-          helperText={errors.position}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        name="position"
+        label="任職職務"
+        value={formData.position}
+        onChange={onChange}
+        error={!!errors.position}
+        helperText={errors.position}
+        required
+      />
       
-      {/* 所屬部門 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          required
-          fullWidth
-          id="department"
-          name="department"
-          label="所屬部門"
-          value={formData.department}
-          onChange={onChange}
-          error={!!errors.department}
-          helperText={errors.department}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        name="department"
+        label="所屬部門"
+        value={formData.department}
+        onChange={onChange}
+        error={!!errors.department}
+        helperText={errors.department}
+        required
+      />
       
-      {/* 到職年月日 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          required
-          fullWidth
-          id="hireDate"
-          name="hireDate"
-          label="到職年月日"
-          type="date"
-          value={formData.hireDate}
-          onChange={onChange}
-          error={!!errors.hireDate}
-          helperText={errors.hireDate}
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-      </Grid>
+      <EmployeeFormField
+        type="date"
+        name="hireDate"
+        label="到職年月日"
+        value={formData.hireDate}
+        onChange={onChange}
+        error={!!errors.hireDate}
+        helperText={errors.hireDate}
+        required
+      />
       
-      {/* 約定工資 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          fullWidth
-          id="salary"
-          name="salary"
-          label="約定工資"
-          type="number"
-          value={formData.salary}
-          onChange={onChange}
-          error={!!errors.salary}
-          helperText={errors.salary}
-          margin="normal"
-          InputProps={{
-            startAdornment: <span style={{ marginRight: 8 }}>NT$</span>,
-          }}
-        />
-      </Grid>
+      <EmployeeFormField
+        type="number"
+        name="salary"
+        label="約定工資"
+        value={formData.salary}
+        onChange={onChange}
+        error={!!errors.salary}
+        helperText={errors.salary}
+        InputProps={{
+          startAdornment: <span style={{ marginRight: 8 }}>NT$</span>,
+        }}
+      />
       
-      {/* 勞保投保日期 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          fullWidth
-          id="insuranceDate"
-          name="insuranceDate"
-          label="勞保投保日期"
-          type="date"
-          value={formData.insuranceDate}
-          onChange={onChange}
-          error={!!errors.insuranceDate}
-          helperText={errors.insuranceDate}
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-      </Grid>
+      <EmployeeFormField
+        type="date"
+        name="insuranceDate"
+        label="勞保投保日期"
+        value={formData.insuranceDate}
+        onChange={onChange}
+        error={!!errors.insuranceDate}
+        helperText={errors.insuranceDate}
+      />
     </Grid>
   );
 };

@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Box, 
-  Button, 
-  Paper, 
-  Typography,
-  Divider,
+import {
+  Box,
+  Button,
   CircularProgress
 } from '@mui/material';
 import PersonalInfoSection from './PersonalInfoSection';
@@ -13,6 +10,7 @@ import ContactInfoSection from './ContactInfoSection';
 import WorkInfoSection from './WorkInfoSection';
 import IDCardSection from './IDCardSection';
 import AdditionalInfoSection from './AdditionalInfoSection';
+import FormSection from './shared/FormSection';
 
 // 性別轉換函數
 const convertGender = (gender) => {
@@ -215,65 +213,45 @@ const EmployeeForm = ({ onSubmit, initialData = null, isSubmitting = false }) =>
 
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
-      <Paper elevation={0} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          個人基本資料
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        <PersonalInfoSection 
-          formData={formData} 
-          errors={errors} 
-          onChange={handleChange('personal')} 
+      <FormSection title="個人基本資料">
+        <PersonalInfoSection
+          formData={formData}
+          errors={errors}
+          onChange={handleChange('personal')}
         />
-      </Paper>
+      </FormSection>
       
-      <Paper elevation={0} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          聯絡資訊
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        <ContactInfoSection 
-          formData={formData} 
-          errors={errors} 
-          onChange={handleChange('contact')} 
+      <FormSection title="聯絡資訊">
+        <ContactInfoSection
+          formData={formData}
+          errors={errors}
+          onChange={handleChange('contact')}
         />
-      </Paper>
+      </FormSection>
       
-      <Paper elevation={0} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          工作資訊
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        <WorkInfoSection 
-          formData={formData} 
-          errors={errors} 
-          onChange={handleChange('work')} 
+      <FormSection title="工作資訊">
+        <WorkInfoSection
+          formData={formData}
+          errors={errors}
+          onChange={handleChange('work')}
         />
-      </Paper>
+      </FormSection>
       
-      <Paper elevation={0} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          身分證影像
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        <IDCardSection 
-          formData={formData} 
-          errors={errors} 
-          onFileChange={handleFileChange} 
+      <FormSection title="身分證影像">
+        <IDCardSection
+          formData={formData}
+          errors={errors}
+          onFileChange={handleFileChange}
         />
-      </Paper>
+      </FormSection>
       
-      <Paper elevation={0} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          其他資訊
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-        <AdditionalInfoSection 
-          formData={formData} 
-          errors={errors} 
-          onChange={handleChange('additional')} 
+      <FormSection title="其他資訊">
+        <AdditionalInfoSection
+          formData={formData}
+          errors={errors}
+          onChange={handleChange('additional')}
         />
-      </Paper>
+      </FormSection>
       
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
         {renderCancelButton()}

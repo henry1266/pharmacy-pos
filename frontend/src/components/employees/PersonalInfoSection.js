@@ -1,15 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Grid, 
-  TextField, 
-  FormControl, 
-  FormLabel, 
-  RadioGroup, 
-  FormControlLabel, 
-  Radio,
-  FormHelperText
-} from '@mui/material';
+import { Grid } from '@mui/material';
+import EmployeeFormField from './shared/EmployeeFormField';
 
 /**
  * 個人基本資料區塊
@@ -18,109 +10,69 @@ import {
 const PersonalInfoSection = ({ formData, errors, onChange }) => {
   return (
     <Grid container spacing={2}>
-      {/* 姓名 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          required
-          fullWidth
-          id="name"
-          name="name"
-          label="姓名"
-          value={formData.name}
-          onChange={onChange}
-          error={!!errors.name}
-          helperText={errors.name}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        name="name"
+        label="姓名"
+        value={formData.name}
+        onChange={onChange}
+        error={!!errors.name}
+        helperText={errors.name}
+        required
+      />
       
-      {/* 性別 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <FormControl 
-          required 
-          error={!!errors.gender} 
-          component="fieldset" 
-          margin="normal"
-        >
-          <FormLabel component="legend">性別</FormLabel>
-          <RadioGroup
-            row
-            name="gender"
-            value={formData.gender}
-            onChange={onChange}
-          >
-            <FormControlLabel value="male" control={<Radio />} label="男" />
-            <FormControlLabel value="female" control={<Radio />} label="女" />
-          </RadioGroup>
-          {errors.gender && <FormHelperText>{errors.gender}</FormHelperText>}
-        </FormControl>
-      </Grid>
+      <EmployeeFormField
+        type="radio"
+        name="gender"
+        label="性別"
+        value={formData.gender}
+        onChange={onChange}
+        error={!!errors.gender}
+        helperText={errors.gender}
+        required
+        options={[
+          { value: 'male', label: '男' },
+          { value: 'female', label: '女' }
+        ]}
+      />
       
-      {/* 出生年月日 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          required
-          fullWidth
-          id="birthDate"
-          name="birthDate"
-          label="出生年月日"
-          type="date"
-          value={formData.birthDate}
-          onChange={onChange}
-          error={!!errors.birthDate}
-          helperText={errors.birthDate}
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-      </Grid>
+      <EmployeeFormField
+        type="date"
+        name="birthDate"
+        label="出生年月日"
+        value={formData.birthDate}
+        onChange={onChange}
+        error={!!errors.birthDate}
+        helperText={errors.birthDate}
+        required
+      />
       
-      {/* 身分證統一號碼 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          required
-          fullWidth
-          id="idNumber"
-          name="idNumber"
-          label="身分證統一號碼"
-          value={formData.idNumber}
-          onChange={onChange}
-          error={!!errors.idNumber}
-          helperText={errors.idNumber}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        name="idNumber"
+        label="身分證統一號碼"
+        value={formData.idNumber}
+        onChange={onChange}
+        error={!!errors.idNumber}
+        helperText={errors.idNumber}
+        required
+      />
       
-      {/* 教育程度 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          fullWidth
-          id="education"
-          name="education"
-          label="教育程度"
-          value={formData.education}
-          onChange={onChange}
-          error={!!errors.education}
-          helperText={errors.education}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        name="education"
+        label="教育程度"
+        value={formData.education}
+        onChange={onChange}
+        error={!!errors.education}
+        helperText={errors.education}
+      />
       
-      {/* 籍貫 */}
-      <Grid item xs={12} sm={6} md={4}>
-        <TextField
-          fullWidth
-          id="nativePlace"
-          name="nativePlace"
-          label="籍貫"
-          value={formData.nativePlace}
-          onChange={onChange}
-          error={!!errors.nativePlace}
-          helperText={errors.nativePlace}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        name="nativePlace"
+        label="籍貫"
+        value={formData.nativePlace}
+        onChange={onChange}
+        error={!!errors.nativePlace}
+        helperText={errors.nativePlace}
+      />
     </Grid>
   );
 };

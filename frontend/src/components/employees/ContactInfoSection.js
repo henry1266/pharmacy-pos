@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Grid, 
-  TextField
-} from '@mui/material';
+import { Grid } from '@mui/material';
+import EmployeeFormField from './shared/EmployeeFormField';
 
 /**
  * 聯絡資訊區塊
@@ -12,36 +10,27 @@ import {
 const ContactInfoSection = ({ formData, errors, onChange }) => {
   return (
     <Grid container spacing={2}>
-      {/* 住址 */}
-      <Grid item xs={12} sm={8}>
-        <TextField
-          required
-          fullWidth
-          id="address"
-          name="address"
-          label="住址"
-          value={formData.address}
-          onChange={onChange}
-          error={!!errors.address}
-          helperText={errors.address}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        name="address"
+        label="住址"
+        value={formData.address}
+        onChange={onChange}
+        error={!!errors.address}
+        helperText={errors.address}
+        required
+        gridSize={{ xs: 12, sm: 8 }}
+      />
       
-      {/* 電話 */}
-      <Grid item xs={12} sm={4}>
-        <TextField
-          fullWidth
-          id="phone"
-          name="phone"
-          label="電話"
-          value={formData.phone}
-          onChange={onChange}
-          error={!!errors.phone}
-          helperText={errors.phone}
-          margin="normal"
-        />
-      </Grid>
+      <EmployeeFormField
+        type="tel"
+        name="phone"
+        label="電話"
+        value={formData.phone}
+        onChange={onChange}
+        error={!!errors.phone}
+        helperText={errors.phone}
+        gridSize={{ xs: 12, sm: 4 }}
+      />
     </Grid>
   );
 };
