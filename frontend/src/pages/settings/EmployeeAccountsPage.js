@@ -17,15 +17,8 @@ import {
   Select,
   MenuItem,
   Tabs,
-  Tab,
-  Chip,
-  Tooltip,
-  IconButton
+  Tab
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import LockResetIcon from '@mui/icons-material/LockReset';
-import LinkOffIcon from '@mui/icons-material/LinkOff';
 import AddIcon from '@mui/icons-material/Add';
 import OvertimeManager from '../../components/employees/OvertimeManager';
 import AccountDialog from '../../components/employees/account/AccountDialog';

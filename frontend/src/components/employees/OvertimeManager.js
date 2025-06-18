@@ -6,7 +6,6 @@ import {
   Typography,
   Paper,
   Button,
-  TextField,
   FormControl,
   InputLabel,
   Select,
@@ -22,23 +21,14 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Chip,
   Alert,
   CircularProgress,
-  Tooltip,
   Divider,
   Collapse
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import WorkIcon from '@mui/icons-material/Work';
-import EventNoteIcon from '@mui/icons-material/EventNote';
 import overtimeRecordService from '../../services/overtimeRecordService';
 import employeeService from '../../services/employeeService';
 import OvertimeRecordDialog from './overtime/OvertimeRecordDialog';

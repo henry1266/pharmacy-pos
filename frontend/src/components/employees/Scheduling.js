@@ -70,7 +70,7 @@ const Scheduling = ({ isAdmin = false }) => {
   };
 
   // 使用鍵盤導航 Hook
-  const { selectedCell, setSelectedCell } = useKeyboardNavigation(
+  const { selectedCell } = useKeyboardNavigation(
     editMode,
     calendarGrid,
     handleCellSelect
