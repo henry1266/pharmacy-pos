@@ -5,7 +5,7 @@ import { Droppable, DroppableProps } from 'react-beautiful-dnd';
  * 嚴格模式下的Droppable組件
  * 解決React 18嚴格模式與react-beautiful-dnd的兼容性問題
  */
-interface StrictModeDroppableProps extends DroppableProps {
+export interface StrictModeDroppableProps extends DroppableProps {
   children: (provided: any, snapshot: any) => React.ReactElement;
 }
 
