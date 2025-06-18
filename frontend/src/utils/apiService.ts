@@ -1,24 +1,20 @@
 import axios from 'axios';
 
 /**
- * 函數：獲取API基礎URL，優先從localStorage讀取，否則使用默認值
+ * 獲取API基礎URL，優先從localStorage讀取，否則使用默認值
  * @returns {string} API基礎URL
  */
 const getApiBaseUrl = (): string => {
-  const ip: string = localStorage.getItem("apiServerIp") || process.env.REACT_APP_DEFAULT_API_IP || "192.168.68.93";
+  const ip = localStorage.getItem("apiServerIp") || process.env.REACT_APP_DEFAULT_API_IP || "192.168.68.93";
   return `http://${ip}:5000`; // 假設後端運行在5000埠
 };
 
-/**
- * 創建axios實例
- */
+// 創建axios實例
 const apiService = axios.create({
   baseURL: getApiBaseUrl() // 初始baseURL
 });
 
-/**
- * 添加請求攔截器，動態更新baseURL並附加token
- */
+// 添加請求攔截器，動態更新baseURL並附加token
 apiService.interceptors.request.use(
   (config: any): any => {
     // 每次請求前檢查是否有新的IP設定
@@ -35,9 +31,7 @@ apiService.interceptors.request.use(
   }
 );
 
-/**
- * 添加響應攔截器，處理token過期等錯誤
- */
+// 添加響應攔截器，處理token過期等錯誤
 apiService.interceptors.response.use(
   (response: any): any => {
     // 對響應數據做點什麼
