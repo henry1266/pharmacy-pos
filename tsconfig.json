@@ -1,0 +1,73 @@
+{
+  "compilerOptions": {
+    /* 基本選項 */
+    "target": "es5",                          /* 指定ECMAScript目標版本 */
+    "module": "esnext",                       /* 指定模組程式碼生成 */
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],                                        /* 指定要包含在編譯中的函式庫檔案 */
+    "allowJs": true,                          /* 允許編譯JavaScript檔案 */
+    "checkJs": true,                          /* 報告JavaScript檔案中的錯誤 */
+    "jsx": "react-jsx",                       /* 指定JSX程式碼生成 */
+    "declaration": true,                      /* 生成相應的'.d.ts'檔案 */
+    "declarationMap": true,                   /* 為每個對應的'.d.ts'檔案生成sourcemap */
+    "sourceMap": true,                        /* 生成相應的'.map'檔案 */
+    "outDir": "./dist",                       /* 指定輸出目錄 */
+    "rootDir": "./",                          /* 指定輸入檔案的根目錄 */
+    "removeComments": true,                   /* 刪除編譯後的所有註釋 */
+    "isolatedModules": true,                  /* 將每個檔案作為單獨的模組 */
+    "forceConsistentCasingInFileNames": true, /* 不允許對同一個檔案使用不一致的大小寫引用 */
+
+    /* 嚴格型別檢查選項 */
+    "strict": false,                          /* 啟用所有嚴格型別檢查選項 */
+    "noImplicitAny": false,                   /* 在表達式和宣告上有隱含的any型別時報告錯誤 */
+    "strictNullChecks": false,                /* 啟用嚴格的null檢查 */
+    "strictFunctionTypes": false,             /* 啟用嚴格的函式型別檢查 */
+    "strictBindCallApply": false,             /* 啟用嚴格的'bind', 'call', 和'apply'方法的檢查 */
+    "strictPropertyInitialization": false,    /* 啟用類別屬性初始化的嚴格檢查 */
+    "noImplicitThis": false,                  /* 當'this'表達式的值為'any'型別時，生成一個錯誤 */
+    "alwaysStrict": false,                    /* 以嚴格模式解析並為每個原始檔案生成"use strict"語句 */
+
+    /* 額外的檢查 */
+    "noUnusedLocals": false,                  /* 若有未使用的區域變數則報告錯誤 */
+    "noUnusedParameters": false,              /* 若有未使用的參數則報告錯誤 */
+    "noImplicitReturns": false,               /* 不是函式的所有返回路徑都有返回值時報告錯誤 */
+    "noFallthroughCasesInSwitch": false,      /* 報告switch語句的fallthrough錯誤 */
+
+    /* 模組解析選項 */
+    "moduleResolution": "node",               /* 指定模組解析策略 */
+    "baseUrl": "./",                          /* 用於解析非絕對模組名稱的基本目錄 */
+    "paths": {                                /* 模組名稱到基於baseUrl的路徑映射的列表 */
+      "*": ["node_modules/*", "frontend/src/*"]
+    },
+    "esModuleInterop": true,                  /* 啟用CommonJS和ES模組之間的互操作性 */
+    "resolveJsonModule": true,                /* 允許導入.json檔案 */
+
+    /* 實驗性選項 */
+    "experimentalDecorators": true,           /* 啟用實驗性的ES裝飾器 */
+    "emitDecoratorMetadata": true,            /* 為裝飾器提供元數據的支援 */
+
+    /* 進階選項 */
+    "skipLibCheck": true,                     /* 跳過所有聲明檔案（*.d.ts）的型別檢查 */
+    "allowSyntheticDefaultImports": true      /* 允許從沒有設置默認導出的模組中默認導入 */
+  },
+  "include": [
+    "frontend/src/**/*.ts",
+    "frontend/src/**/*.tsx",
+    "frontend/src/**/*.js",
+    "frontend/src/**/*.jsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "scripts",
+    "acceptance-tests",
+    "webpack",
+    "jest",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
+}

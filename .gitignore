@@ -22,3 +22,7 @@ coverage/
 todolist/
 sonar-project.properties
 .scannerwork/
+
+# TypeScript相關檔案
+*.tsbuildinfo
+*.d.ts.map
