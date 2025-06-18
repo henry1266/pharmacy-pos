@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import MainLayout from './components/layout/MainLayout';
-import LoginPage from './pages/LoginPage'; // Import LoginPage
+import LoginPage from './pages/LoginPage.tsx'; // Import LoginPage with explicit extension
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AppRouter from './AppRouter'; // This will contain protected routes
 import axios from 'axios'; // Import axios to set default header
