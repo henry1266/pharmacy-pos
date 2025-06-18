@@ -10,6 +10,7 @@ import {
   Paper,
   CircularProgress
 } from '@mui/material';
+import HoursStatBlock from './HoursStatBlock';
 
 /**
  * 工時統計對話框組件
@@ -78,79 +79,32 @@ const WorkHoursDialog = ({
                 
                 return (
                   <>
-                    <Box sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      minWidth: '100px'
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        正常工時
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color="text.primary">
-                        {totalRegularHours} 小時
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      minWidth: '100px'
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        加班時數
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color="purple.main">
-                        {totalOvertimeHours} 小時
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          (獨立:{overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount || 0), 0)}
-                          排班:{overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount || 0), 0)})
-                        </Typography>
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      minWidth: '100px'
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        特休時數
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color="warning.main">
-                        {totalPersonalLeaveHours} 小時
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      minWidth: '100px'
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        病假時數
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color="info.main">
-                        {totalSickLeaveHours} 小時
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      minWidth: '100px'
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        總計時數
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold" color="success.main">
-                        {grandTotal} 小時
-                      </Typography>
-                    </Box>
+                    <HoursStatBlock
+                      label="正常工時"
+                      value={totalRegularHours}
+                      color="text.primary"
+                    />
+                    <HoursStatBlock
+                      label="加班時數"
+                      value={totalOvertimeHours}
+                      color="purple.main"
+                      subtitle={`(獨立:${overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount || 0), 0)} 排班:${overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount || 0), 0)})`}
+                    />
+                    <HoursStatBlock
+                      label="特休時數"
+                      value={totalPersonalLeaveHours}
+                      color="warning.main"
+                    />
+                    <HoursStatBlock
+                      label="病假時數"
+                      value={totalSickLeaveHours}
+                      color="info.main"
+                    />
+                    <HoursStatBlock
+                      label="總計時數"
+                      value={grandTotal}
+                      color="success.main"
+                    />
                   </>
                 );
               })()}
@@ -209,78 +163,32 @@ const WorkHoursDialog = ({
                         justifyContent: 'flex-end',
                         flex: 1
                       }}>
-                        <Box sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          minWidth: '100px'
-                        }}>
-                          <Typography variant="body2" color="text.secondary">
-                            正常工時
-                          </Typography>
-                          <Typography variant="h6" fontWeight="bold" color="text.primary">
-                            {hours} 小時
-                          </Typography>
-                        </Box>
-                        
-                        <Box sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          minWidth: '100px'
-                        }}>
-                          <Typography variant="body2" color="text.secondary">
-                            加班時數
-                          </Typography>
-                          <Typography variant="h6" fontWeight="bold" color="purple.main">
-                            {overtimeHours} 小時
-                            <Typography variant="caption" display="block" color="text.secondary">
-                              (獨立:{independentRecordCount} 排班:{scheduleRecordCount})
-                            </Typography>
-                          </Typography>
-                        </Box>
-                        
-                        <Box sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          minWidth: '100px'
-                        }}>
-                          <Typography variant="body2" color="text.secondary">
-                            特休時數
-                          </Typography>
-                          <Typography variant="h6" fontWeight="bold" color="warning.main">
-                            {personalLeaveHours} 小時
-                          </Typography>
-                        </Box>
-                        
-                        <Box sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          minWidth: '100px'
-                        }}>
-                          <Typography variant="body2" color="text.secondary">
-                            病假時數
-                          </Typography>
-                          <Typography variant="h6" fontWeight="bold" color="info.main">
-                            {sickLeaveHours} 小時
-                          </Typography>
-                        </Box>
-                        
-                        <Box sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          minWidth: '100px'
-                        }}>
-                          <Typography variant="body2" color="text.secondary">
-                            總計時數
-                          </Typography>
-                          <Typography variant="h6" fontWeight="bold" color="success.main">
-                            {(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)} 小時
-                          </Typography>
-                        </Box>
+                        <HoursStatBlock
+                          label="正常工時"
+                          value={hours}
+                          color="text.primary"
+                        />
+                        <HoursStatBlock
+                          label="加班時數"
+                          value={overtimeHours}
+                          color="purple.main"
+                          subtitle={`(獨立:${independentRecordCount} 排班:${scheduleRecordCount})`}
+                        />
+                        <HoursStatBlock
+                          label="特休時數"
+                          value={personalLeaveHours}
+                          color="warning.main"
+                        />
+                        <HoursStatBlock
+                          label="病假時數"
+                          value={sickLeaveHours}
+                          color="info.main"
+                        />
+                        <HoursStatBlock
+                          label="總計時數"
+                          value={(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)}
+                          color="success.main"
+                        />
                       </Box>
                     </Box>
                   </Paper>

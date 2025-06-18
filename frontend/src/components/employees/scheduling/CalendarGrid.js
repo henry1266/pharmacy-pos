@@ -4,9 +4,9 @@ import {
   Grid,
   Paper,
   Box,
-  Typography,
-  Tooltip
+  Typography
 } from '@mui/material';
+import ShiftBlock from './ShiftBlock';
 
 /**
  * 日曆網格組件
@@ -93,122 +93,27 @@ const CalendarGrid = ({
             
             {dateObj.isCurrentMonth && (
               <Box sx={{ alignItems: 'center' }}>
-                {/* 早班 */}
-                {getSchedulesForDate(dateObj.date).morning.length > 0 && (
-                  <Tooltip title={getSchedulesForDate(dateObj.date).morning.map(s =>
-                    `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
-                  ).join(', ')}>
-                    <Box sx={{ color: 'success.dark', display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>早:&nbsp;</Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                        {getSchedulesForDate(dateObj.date).morning.map((schedule) => (
-                          <Box
-                            key={`morning-${schedule._id}`}
-                            sx={{
-                              bgcolor: (() => {
-                                if (!schedule.leaveType) return 'transparent';
-                                if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
-                                if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
-                                return 'transparent';
-                              })(),
-                              border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
-                              boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                              borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%',
-                              width: '24px',
-                              height: '24px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.9rem',
-                              color: 'text.primary',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {getEmployeeAbbreviation(schedule.employee)}
-                          </Box>
-                        ))}
-                      </Box>
-                    </Box>
-                  </Tooltip>
-                )}
-                
-                {/* 中班 */}
-                {getSchedulesForDate(dateObj.date).afternoon.length > 0 && (
-                  <Tooltip title={getSchedulesForDate(dateObj.date).afternoon.map(s =>
-                    `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
-                  ).join(', ')}>
-                    <Box sx={{ color: 'info.dark', display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>中:&nbsp;</Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                        {getSchedulesForDate(dateObj.date).afternoon.map((schedule) => (
-                          <Box
-                            key={`afternoon-${schedule._id}`}
-                            sx={{
-                              bgcolor: (() => {
-                                if (!schedule.leaveType) return 'transparent';
-                                if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
-                                if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
-                                return 'transparent';
-                              })(),
-                              border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
-                              boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                              borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%',
-                              width: '24px',
-                              height: '24px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.9rem',
-                              color: 'text.primary',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {getEmployeeAbbreviation(schedule.employee)}
-                          </Box>
-                        ))}
-                      </Box>
-                    </Box>
-                  </Tooltip>
-                )}
-                
-                {/* 晚班 */}
-                {getSchedulesForDate(dateObj.date).evening.length > 0 && (
-                  <Tooltip title={getSchedulesForDate(dateObj.date).evening.map(s =>
-                    `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
-                  ).join(', ')}>
-                    <Box sx={{ color: 'warning.dark', display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>晚:&nbsp;</Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                        {getSchedulesForDate(dateObj.date).evening.map((schedule) => (
-                          <Box
-                            key={`evening-${schedule._id}`}
-                            sx={{
-                              bgcolor: (() => {
-                                if (!schedule.leaveType) return 'transparent';
-                                if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
-                                if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
-                                return 'transparent';
-                              })(),
-                              boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                              borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%',
-                              border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
-                              width: '24px',
-                              height: '24px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.9rem',
-                              color: 'text.primary',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {getEmployeeAbbreviation(schedule.employee)}
-                          </Box>
-                        ))}
-                      </Box>
-                    </Box>
-                  </Tooltip>
-                )}
+                <ShiftBlock
+                  shift="morning"
+                  schedules={getSchedulesForDate(dateObj.date).morning}
+                  getEmployeeAbbreviation={getEmployeeAbbreviation}
+                  getBorderColorByLeaveType={getBorderColorByLeaveType}
+                  getLeaveTypeText={getLeaveTypeText}
+                />
+                <ShiftBlock
+                  shift="afternoon"
+                  schedules={getSchedulesForDate(dateObj.date).afternoon}
+                  getEmployeeAbbreviation={getEmployeeAbbreviation}
+                  getBorderColorByLeaveType={getBorderColorByLeaveType}
+                  getLeaveTypeText={getLeaveTypeText}
+                />
+                <ShiftBlock
+                  shift="evening"
+                  schedules={getSchedulesForDate(dateObj.date).evening}
+                  getEmployeeAbbreviation={getEmployeeAbbreviation}
+                  getBorderColorByLeaveType={getBorderColorByLeaveType}
+                  getLeaveTypeText={getLeaveTypeText}
+                />
               </Box>
             )}
           </Paper>
