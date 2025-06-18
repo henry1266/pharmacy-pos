@@ -32,18 +32,12 @@ function formatDateToYYYYMMDD(date) {
 
 // 解析 MongoDB 日期格式
 function parseMongoDate(dateObj) {
-  if (dateObj && dateObj.$date) {
-    return new Date(dateObj.$date);
-  }
-  return new Date(dateObj);
+  return dateObj?.$date ? new Date(dateObj.$date) : new Date(dateObj);
 }
 
 // 解析 MongoDB ObjectId 格式
 function parseMongoId(idObj) {
-  if (idObj && idObj.$oid) {
-    return idObj.$oid;
-  }
-  return String(idObj);
+  return idObj?.$oid || String(idObj);
 }
 
 

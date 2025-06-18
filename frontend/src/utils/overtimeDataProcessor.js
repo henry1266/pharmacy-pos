@@ -4,6 +4,112 @@
  */
 
 /**
+ * 建立基本員工群組
+ * @param {Object} employee - 員工對象
+ * @returns {Object} 員工群組對象
+ */
+const createBasicEmployeeGroup = (employee) => ({
+  employee,
+  records: [],
+  independentHours: 0,
+  scheduleHours: 0,
+  totalHours: 0,
+  scheduleRecords: [],
+  scheduleRecordCount: 0,
+  latestDate: new Date(0)
+});
+
+/**
+ * 從多個來源查找員工姓名
+ * @param {string} empId - 員工ID
+ * @param {Array} scheduleRecords - 排班記錄
+ * @param {Array} employees - 員工列表
+ * @param {Array} summaryData - 統計數據
+ * @param {Array} overtimeRecords - 加班記錄
+ * @param {number} selectedMonth - 選中月份
+ * @returns {Object} 包含員工姓名和對象的結果
+ */
+const findEmployeeInfo = (empId, scheduleRecords, employees, summaryData, overtimeRecords, selectedMonth) => {
+  let employeeName = '';
+  let employeeObj = null;
+  
+  // 首先從員工列表中查找
+  const matchingEmployee = employees.find(emp =>
+    emp._id === empId || (typeof empId === 'string' && empId.includes(emp._id))
+  );
+  
+  if (matchingEmployee) {
+    return { name: matchingEmployee.name, obj: matchingEmployee };
+  }
+  
+  // 從排班記錄中獲取員工信息
+  for (const record of scheduleRecords) {
+    if (record.employeeId?.name) {
+      return { name: record.employeeId.name, obj: record.employeeId };
+    }
+    
+    if (record.employee?.name) {
+      return { name: record.employee.name, obj: record.employee };
+    }
+  }
+  
+  // 從統計數據中查找
+  const matchingStat = summaryData.find(stat =>
+    stat.employeeId === empId || (stat.employeeName && empId.includes(stat.employeeName))
+  );
+  
+  if (matchingStat?.employeeName) {
+    employeeName = matchingStat.employeeName;
+  }
+  
+  // 從加班記錄中查找
+  if (!employeeName) {
+    const matchingRecord = overtimeRecords.find(r => r.employeeId?._id === empId);
+    if (matchingRecord?.employeeId?.name) {
+      return { name: matchingRecord.employeeId.name, obj: matchingRecord.employeeId };
+    }
+  }
+  
+  // 使用臨時名稱
+  if (!employeeName) {
+    const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+    employeeName = `員工${monthStr}`;
+  }
+  
+  return { name: employeeName, obj: employeeObj };
+};
+
+/**
+ * 建立員工群組
+ * @param {string} empId - 員工ID
+ * @param {Array} scheduleRecords - 排班記錄
+ * @param {Array} employees - 員工列表
+ * @param {Array} summaryData - 統計數據
+ * @param {Array} overtimeRecords - 加班記錄
+ * @param {number} selectedMonth - 選中月份
+ * @returns {Object} 員工群組對象
+ */
+const createEmployeeGroup = (empId, scheduleRecords, employees, summaryData, overtimeRecords, selectedMonth) => {
+  const { name, obj } = findEmployeeInfo(empId, scheduleRecords, employees, summaryData, overtimeRecords, selectedMonth);
+  
+  return {
+    employee: obj || {
+      _id: empId,
+      name,
+      position: '員工',
+      department: '員工'
+    },
+    records: [],
+    independentHours: 0,
+    scheduleHours: 0,
+    totalHours: 0,
+    scheduleRecords: [],
+    scheduleRecordCount: 0,
+    latestDate: new Date(0)
+  };
+};
+
+/**
  * 將加班記錄按員工分組並計算統計數據
  * @param {Array} overtimeRecords - 獨立加班記錄
  * @param {Object} scheduleOvertimeRecords - 排班系統加班記錄
@@ -29,20 +135,15 @@ export const groupOvertimeRecords = (
       // 嘗試從員工列表中查找
       if (!employeeName) {
         const matchingEmployee = employees.find(emp => emp._id === stat.employeeId);
-        if (matchingEmployee) {
-          employeeName = matchingEmployee.name;
-        }
+        employeeName = matchingEmployee?.name;
       }
       
       // 如果沒有名字，嘗試從其他地方獲取
       if (!employeeName) {
         const matchingRecord = overtimeRecords.find(r =>
-          r.employeeId && r.employeeId._id === stat.employeeId
+          r.employeeId?._id === stat.employeeId
         );
-        
-        if (matchingRecord && matchingRecord.employeeId.name) {
-          employeeName = matchingRecord.employeeId.name;
-        }
+        employeeName = matchingRecord?.employeeId?.name;
       }
       
       // 如果還是沒有名字，使用臨時名稱
@@ -72,77 +173,23 @@ export const groupOvertimeRecords = (
   // 從排班系統加班記錄中獲取員工ID
   Object.keys(scheduleOvertimeRecords).forEach(empId => {
     if (!initialGroups[empId]) {
-      const scheduleRecords = scheduleOvertimeRecords[empId];
-      let employeeName = '';
-      let employeeObj = null;
-      
-      // 首先從員工列表中查找
-      const matchingEmployee = employees.find(emp =>
-        emp._id === empId || (typeof empId === 'string' && empId.includes(emp._id))
+      initialGroups[empId] = createEmployeeGroup(
+        empId, 
+        scheduleOvertimeRecords[empId], 
+        employees, 
+        summaryData, 
+        overtimeRecords, 
+        selectedMonth
       );
-      
-      if (matchingEmployee) {
-        employeeName = matchingEmployee.name;
-        employeeObj = matchingEmployee;
-      } else {
-        // 從排班記錄中獲取員工信息
-        for (const record of scheduleRecords) {
-          if (record.employeeId) {
-            if (typeof record.employeeId === 'object' && record.employeeId.name) {
-              employeeName = record.employeeId.name;
-              employeeObj = record.employeeId;
-              break;
-            }
-          }
-          
-          if (record.employee && record.employee.name) {
-            employeeName = record.employee.name;
-            employeeObj = record.employee;
-            break;
-          }
-        }
-        
-        // 如果還是沒找到，使用臨時名稱
-        if (!employeeName) {
-          const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
-          employeeName = `員工${monthStr}`;
-        }
-      }
-      
-      initialGroups[empId] = {
-        employee: employeeObj || {
-          _id: empId,
-          name: employeeName,
-          position: '員工',
-          department: '員工'
-        },
-        records: [],
-        independentHours: 0,
-        scheduleHours: 0,
-        totalHours: 0,
-        scheduleRecords: [],
-        scheduleRecordCount: 0,
-        latestDate: new Date(0)
-      };
     }
   });
   
   // 處理獨立加班記錄
   overtimeRecords.forEach(record => {
-    if (record.employeeId && record.employeeId._id) {
-      const employeeId = record.employeeId._id;
-      
+    const employeeId = record.employeeId?._id;
+    if (employeeId) {
       if (!initialGroups[employeeId]) {
-        initialGroups[employeeId] = {
-          employee: record.employeeId,
-          records: [],
-          independentHours: 0,
-          scheduleHours: 0,
-          totalHours: 0,
-          scheduleRecords: [],
-          scheduleRecordCount: 0,
-          latestDate: new Date(0)
-        };
+        initialGroups[employeeId] = createBasicEmployeeGroup(record.employeeId);
       }
       
       initialGroups[employeeId].records.push(record);
@@ -166,12 +213,11 @@ export const groupOvertimeRecords = (
     }
     
     // 查找對應的統計數據
-    const scheduleStats = summaryData.find(stat => {
-      if (stat.employeeId === employeeId) return true;
-      if (stat.employeeId && typeof stat.employeeId === 'object' && stat.employeeId._id === employeeId) return true;
-      if (stat.employeeId && employeeId.includes(stat.employeeId)) return true;
-      return false;
-    });
+    const scheduleStats = summaryData.find(stat => 
+      stat.employeeId === employeeId ||
+      stat.employeeId?._id === employeeId ||
+      (stat.employeeId && employeeId.includes(stat.employeeId))
+    );
     
     if (scheduleStats) {
       // 計算排班系統加班時數 (總時數 - 獨立加班時數)
@@ -230,12 +276,12 @@ export const formatDate = (dateString) => {
  * @returns {string} 狀態顯示文字
  */
 export const getStatusText = (status) => {
-  switch (status) {
-    case 'pending': return '待審核';
-    case 'approved': return '已核准';
-    case 'rejected': return '已拒絕';
-    default: return status;
-  }
+  const statusMap = {
+    pending: '待審核',
+    approved: '已核准',
+    rejected: '已拒絕'
+  };
+  return statusMap[status] || status;
 };
 
 /**
@@ -244,10 +290,10 @@ export const getStatusText = (status) => {
  * @returns {string} 狀態顏色
  */
 export const getStatusColor = (status) => {
-  switch (status) {
-    case 'pending': return 'warning';
-    case 'approved': return 'success';
-    case 'rejected': return 'error';
-    default: return 'default';
-  }
+  const colorMap = {
+    pending: 'warning',
+    approved: 'success',
+    rejected: 'error'
+  };
+  return colorMap[status] || 'default';
 };
