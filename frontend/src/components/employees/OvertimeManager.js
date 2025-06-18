@@ -43,7 +43,6 @@ import WorkIcon from '@mui/icons-material/Work';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import overtimeRecordService from '../../services/overtimeRecordService';
 import employeeService from '../../services/employeeService';
-import { getSchedules } from '../../services/employeeScheduleService';
 
 /**
  * 加班管理組件
@@ -51,6 +50,30 @@ import { getSchedules } from '../../services/employeeScheduleService';
  * 重新設計，移除複雜的加班統計計算邏輯
  */
 const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
+  // 提取的處理函數，避免嵌套過深
+  const handleApproveRecord = async (record) => {
+    try {
+      await overtimeRecordService.updateOvertimeRecord(record._id, {
+        status: 'approved'
+      });
+      setSuccessMessage('加班記錄已核准');
+      fetchOvertimeRecords();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleRejectRecord = async (record) => {
+    try {
+      await overtimeRecordService.updateOvertimeRecord(record._id, {
+        status: 'rejected'
+      });
+      setSuccessMessage('加班記錄已拒絕');
+      fetchOvertimeRecords();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
   // 狀態
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1009,10 +1032,10 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                           
                                           try {
                                             if (scheduleOvertimeRecords && scheduleOvertimeRecords[employeeId] && Array.isArray(scheduleOvertimeRecords[employeeId])) {
-                                              scheduleRecords = scheduleOvertimeRecords[employeeId].map(record => {
+                                              scheduleRecords = scheduleOvertimeRecords[employeeId]?.map(record => {
                                                 try {
                                                   // 計算加班時數
-                                                  let hours = 0;
+                                                  let hours;
                                                   switch(record.shift) {
                                                     case 'morning': hours = 3.5; break;
                                                     case 'afternoon': hours = 3; break;
@@ -1139,14 +1162,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                                 color="success"
                                                                 onClick={() => {
                                                                   setSelectedRecord(record.originalRecord);
-                                                                  overtimeRecordService.updateOvertimeRecord(record.originalRecord._id, {
-                                                                    status: 'approved'
-                                                                  }).then(() => {
-                                                                    setSuccessMessage('加班記錄已核准');
-                                                                    fetchOvertimeRecords();
-                                                                  }).catch(err => {
-                                                                    setError(err.message);
-                                                                  });
+                                                                  handleApproveRecord(record.originalRecord);
                                                                 }}
                                                               >
                                                                 <CheckCircleIcon fontSize="small" />
@@ -1158,14 +1174,7 @@ const OvertimeManager = ({ isAdmin = false, employeeId = null }) => {
                                                                 color="error"
                                                                 onClick={() => {
                                                                   setSelectedRecord(record.originalRecord);
-                                                                  overtimeRecordService.updateOvertimeRecord(record.originalRecord._id, {
-                                                                    status: 'rejected'
-                                                                  }).then(() => {
-                                                                    setSuccessMessage('加班記錄已拒絕');
-                                                                    fetchOvertimeRecords();
-                                                                  }).catch(err => {
-                                                                    setError(err.message);
-                                                                  });
+                                                                  handleRejectRecord(record.originalRecord);
                                                                 }}
                                                               >
                                                                 <CancelIcon fontSize="small" />
