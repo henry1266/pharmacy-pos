@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DashboardPage from './pages/DashboardPage';
+import DashboardPage from './pages/DashboardPage.tsx';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
