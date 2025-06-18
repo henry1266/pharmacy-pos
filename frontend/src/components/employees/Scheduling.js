@@ -24,6 +24,10 @@ import useEmployeeScheduling from '../../hooks/useEmployeeScheduling';
 import ShiftSelectionModal from './ShiftSelectionModal';
 import QuickSelectPanel from './QuickSelectPanel';
 import overtimeRecordService from '../../services/overtimeRecordService';
+import ShiftDisplaySection from './scheduling/ShiftDisplaySection';
+import WorkHoursStatCard from './scheduling/WorkHoursStatCard';
+import CalendarDateCell from './scheduling/CalendarDateCell';
+import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
 
 /**
  * 員工排班系統元件
@@ -41,13 +45,6 @@ const Scheduling = ({ isAdmin = false }) => {
   const [workHoursDialogOpen, setWorkHoursDialogOpen] = useState(false); // 工時統計彈出視窗狀態
   const [overtimeStats, setOvertimeStats] = useState([]); // 加班統計數據
   const [loadingOvertimeStats, setLoadingOvertimeStats] = useState(false); // 加班統計數據載入狀態
-  
-  // 班次時間定義
-  const shiftTimes = {
-    morning: { start: '08:30', end: '12:00' },
-    afternoon: { start: '15:00', end: '18:00' },
-    evening: { start: '19:00', end: '20:30' }
-  };
   const {
     schedulesGroupedByDate,
     loading,
@@ -396,111 +393,14 @@ const Scheduling = ({ isAdmin = false }) => {
     }
   };
 
-  // 計算班次工時
-  const calculateShiftHours = (shift) => {
-    const { start, end } = shiftTimes[shift];
-    const [startHour, startMinute] = start.split(':').map(Number);
-    const [endHour, endMinute] = end.split(':').map(Number);
-    
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const endTimeInMinutes = endHour * 60 + endMinute;
-    
-    return (endTimeInMinutes - startTimeInMinutes) / 60;
-  };
-  
-  // 處理單個排班記錄的工時計算 - 簡化版
-  const processScheduleHours = (schedule, dateStr, shift, shiftHours) => {
-    const employeeId = schedule.employee._id;
-    const employeeName = schedule.employee.name;
-    
-    // 初始化員工工時記錄
-    if (!employeeHoursData.hours[employeeId]) {
-      employeeHoursData.hours[employeeId] = 0;
-      employeeHoursData.overtimeHours[employeeId] = 0;
-      employeeHoursData.personalLeaveHours[employeeId] = 0;
-      employeeHoursData.sickLeaveHours[employeeId] = 0;
-      employeeHoursData.names[employeeId] = employeeName;
-    }
-    
-    // 簡化邏輯：直接根據 leaveType 進行分類
-    if (schedule.leaveType === 'overtime') {
-      // 加班時數
-      employeeHoursData.overtimeHours[employeeId] += shiftHours;
-    } else if (schedule.leaveType === 'personal') {
-      // 特休時數
-      employeeHoursData.personalLeaveHours[employeeId] += shiftHours;
-    } else if (schedule.leaveType === 'sick') {
-      // 病假時數
-      employeeHoursData.sickLeaveHours[employeeId] += shiftHours;
-      employeeHoursData.sickLeaveCount++;
-    } else {
-      // 正常工時
-      employeeHoursData.hours[employeeId] += shiftHours;
-    }
-    
-    employeeHoursData.totalSchedules++;
-  };
-  
-  // 用於存儲員工工時數據的對象
-  const employeeHoursData = {
-    hours: {},
-    overtimeHours: {},
-    personalLeaveHours: {},
-    sickLeaveHours: {},
-    names: {},
-    totalSchedules: 0,
-    sickLeaveCount: 0
-  };
-  
-  // 處理特定日期的所有班次排班
-  const processDateSchedules = (dateStr, schedules) => {
-    // 遍歷每個班次
-    ['morning', 'afternoon', 'evening'].forEach(shift => {
-      if (schedules[shift] && schedules[shift].length > 0) {
-        // 計算該班次的工時
-        const shiftHours = calculateShiftHours(shift);
-        
-        // 為每位排班的員工添加工時
-        schedules[shift].forEach(schedule => {
-          processScheduleHours(schedule, dateStr, shift, shiftHours);
-        });
-      }
-    });
-  };
-  
-  // 計算每位員工的本月工時 - 簡化版
-  const calculateEmployeeMonthlyHours = () => {
-    // 重置數據
-    Object.keys(employeeHoursData).forEach(key => {
-      if (typeof employeeHoursData[key] === 'object') {
-        employeeHoursData[key] = {};
-      } else if (typeof employeeHoursData[key] === 'number') {
-        employeeHoursData[key] = 0;
-      }
-    });
-    
-    // 遍歷所有排班記錄，不再進行特殊日期處理
-    Object.keys(schedulesGroupedByDate).forEach(dateStr => {
-      processDateSchedules(dateStr, schedulesGroupedByDate[dateStr]);
-    });
-    
-    // 將結果轉換為數組格式
-    return Object.keys(employeeHoursData.names).map(employeeId => {
-      // 確保所有數值都有初始值
-      const hours = employeeHoursData.hours[employeeId] || 0;
-      const overtimeHours = employeeHoursData.overtimeHours[employeeId] || 0;
-      const personalLeaveHours = employeeHoursData.personalLeaveHours[employeeId] || 0;
-      const sickLeaveHours = employeeHoursData.sickLeaveHours[employeeId] || 0;
-      
-      return {
-        employeeId,
-        name: employeeHoursData.names[employeeId],
-        hours: hours.toFixed(1),
-        overtimeHours: overtimeHours.toFixed(1),
-        personalLeaveHours: personalLeaveHours.toFixed(1),
-        sickLeaveHours: sickLeaveHours.toFixed(1)
-      };
-    }).sort((a, b) => parseFloat(b.hours) - parseFloat(a.hours)); // 按工時降序排序
+  // 使用工時計算 Hook
+  const { calculateEmployeeMonthlyHours } = useWorkHoursCalculation(schedulesGroupedByDate);
+
+  // 處理格子選擇
+  const handleCellSelect = (index, date) => {
+    setSelectedCell(index);
+    setSelectedDate(date);
+    setQuickSelectDialogOpen(true);
   };
 
   // 全局樣式覆蓋
@@ -606,168 +506,23 @@ const Scheduling = ({ isAdmin = false }) => {
             {/* 日期格子 */}
             {calendarGrid.map((dateObj, index) => (
               <Grid item xs={12/7} key={`date-${formatDateString(dateObj.date)}-${dateObj.isCurrentMonth}`}>
-                <Paper
-                  elevation={1}
-                  sx={{
-                    p: 0.5,
-                    height: '115px',
-                    bgcolor: dateObj.isCurrentMonth ? 'background.paper' : 'action.hover',
-                    border: getBorderStyle(dateObj.date, editMode, selectedCell, index),
-                    borderColor: getBorderColor(dateObj.date, editMode, selectedCell, index),
-                    opacity: dateObj.isCurrentMonth ? 1 : 0.5,
-                    cursor: 'pointer',
-                    '&:hover': {
-                      bgcolor: 'action.selected'
-                    }
-                  }}
-                  onClick={() => {
-                    if (editMode && isAdmin) {
-                      if (dateObj.isCurrentMonth) {
-                        setSelectedCell(index);
-                        setSelectedDate(dateObj.date);
-                        setQuickSelectDialogOpen(true);
-                      }
-                    } else if (isAdmin) {
-                      dateObj.isCurrentMonth && handleDateClick(dateObj.date);
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body1" sx={{ fontSize: '1rem', fontWeight: 'medium' }}>
-                      {dateObj.day}
-                    </Typography>
-                    
-                    {dateObj.isCurrentMonth && getScheduleCount(dateObj.date) > 0 && (
-                      <Box
-                        sx={{
-                          width: '10px',
-                          height: '10px',
-                          borderRadius: '50%',
-                          bgcolor: 'primary.main',
-                          mr: 1
-                        }}
-                      />
-                    )}
-                  </Box>
-                  
-                  {dateObj.isCurrentMonth && (
-                    <Box sx={{ alignItems: 'center' }}>
-                      {getSchedulesForDate(dateObj.date).morning.length > 0 && (
-                        <Tooltip title={getSchedulesForDate(dateObj.date).morning.map(s =>
-                          `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
-                        ).join(', ')}>
-                          <Box sx={{ color: 'success.dark', display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>早:&nbsp;</Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                              {getSchedulesForDate(dateObj.date).morning.map((schedule) => (
-                                <Box
-                                  key={`morning-${schedule._id}`}
-                                  sx={{
-                                    bgcolor: (() => {
-                                      if (!schedule.leaveType) return 'transparent';
-                                      if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
-                                      if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
-                                      return 'transparent'; // 加班不填滿背景
-                                    })(),
-                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
-                                    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                                    borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
-                                    width: '24px',
-                                    height: '24px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '0.9rem',
-                                    color: 'text.primary',
-                                    fontWeight: 'bold'
-                                  }}
-                                >
-                                  {getEmployeeAbbreviation(schedule.employee)}
-                                </Box>
-                              ))}
-                            </Box>
-                          </Box>
-                        </Tooltip>
-                      )}
-                      
-                      {getSchedulesForDate(dateObj.date).afternoon.length > 0 && (
-                        <Tooltip title={getSchedulesForDate(dateObj.date).afternoon.map(s =>
-                          `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
-                        ).join(', ')}>
-                          <Box sx={{ color: 'info.dark', display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>中:&nbsp;</Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                              {getSchedulesForDate(dateObj.date).afternoon.map((schedule) => (
-                                <Box
-                                  key={`afternoon-${schedule._id}`}
-                                  sx={{
-                                    bgcolor: (() => {
-                                      if (!schedule.leaveType) return 'transparent';
-                                      if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
-                                      if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
-                                      return 'transparent'; // 加班不填滿背景
-                                    })(),
-                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
-                                    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                                    borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
-                                    width: '24px',
-                                    height: '24px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '0.9rem',
-                                    color: 'text.primary',
-                                    fontWeight: 'bold'
-                                  }}
-                                >
-                                  {getEmployeeAbbreviation(schedule.employee)}
-                                </Box>
-                              ))}
-                            </Box>
-                          </Box>
-                        </Tooltip>
-                      )}
-                      
-                      {getSchedulesForDate(dateObj.date).evening.length > 0 && (
-                        <Tooltip title={getSchedulesForDate(dateObj.date).evening.map(s =>
-                          `${s.employee.name}${getLeaveTypeText(s.leaveType)}`
-                        ).join(', ')}>
-                          <Box sx={{ color: 'warning.dark', display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>晚:&nbsp;</Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                              {getSchedulesForDate(dateObj.date).evening.map((schedule) => (
-                                <Box
-                                  key={`evening-${schedule._id}`}
-                                  sx={{
-                                    bgcolor: (() => {
-                                      if (!schedule.leaveType) return 'transparent';
-                                      if (schedule.leaveType === 'sick') return 'rgba(3, 169, 244, 0.1)';
-                                      if (schedule.leaveType === 'personal') return 'rgba(255, 152, 0, 0.1)';
-                                      return 'transparent'; // 加班不填滿背景
-                                    })(),
-                                    boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
-                                    borderRadius: schedule.leaveType === 'overtime' ? '4px' : '50%', // 加班使用方形，其他使用圓形
-                                    border: `${schedule.leaveType === 'overtime' ? '3px' : '1.95px'} solid ${getBorderColorByLeaveType(schedule)}`,
-                                    width: '24px',
-                                    height: '24px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '0.9rem',
-                                    color: 'text.primary',
-                                    fontWeight: 'bold'
-                                  }}
-                                >
-                                  {getEmployeeAbbreviation(schedule.employee)}
-                                </Box>
-                              ))}
-                            </Box>
-                          </Box>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  )}
-                </Paper>
+                <CalendarDateCell
+                  dateObj={dateObj}
+                  index={index}
+                  schedules={getSchedulesForDate(dateObj.date)}
+                  scheduleCount={getScheduleCount(dateObj.date)}
+                  editMode={editMode}
+                  selectedCell={selectedCell}
+                  isAdmin={isAdmin}
+                  onDateClick={handleDateClick}
+                  onCellSelect={handleCellSelect}
+                  getBorderStyle={getBorderStyle}
+                  getBorderColor={getBorderColor}
+                  getEmployeeAbbreviation={getEmployeeAbbreviation}
+                  getBorderColorByLeaveType={getBorderColorByLeaveType}
+                  getLeaveTypeText={getLeaveTypeText}
+                  formatDateString={formatDateString}
+                />
               </Grid>
             ))}
               </Grid>
@@ -868,7 +623,7 @@ const Scheduling = ({ isAdmin = false }) => {
               }}>
                 {(() => {
                   // 計算所有員工的總時數
-                  const employeeStats = calculateEmployeeMonthlyHours();
+                  const employeeStats = calculateEmployeeMonthlyHours;
                   const totalRegularHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.hours), 0).toFixed(1);
                   const totalPersonalLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.personalLeaveHours), 0).toFixed(1);
                   const totalSickLeaveHours = employeeStats.reduce((sum, emp) => sum + parseFloat(emp.sickLeaveHours), 0).toFixed(1);
@@ -882,79 +637,36 @@ const Scheduling = ({ isAdmin = false }) => {
                   
                   return (
                     <>
-                      <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        minWidth: '100px'
-                      }}>
-                        <Typography variant="body2" color="text.secondary">
-                          正常工時
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold" color="text.primary">
-                          {totalRegularHours} 小時
-                        </Typography>
-                      </Box>
+                      <WorkHoursStatCard
+                        label="正常工時"
+                        value={parseFloat(totalRegularHours)}
+                        color="text.primary"
+                      />
                       
-                      <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        minWidth: '100px'
-                      }}>
-                        <Typography variant="body2" color="text.secondary">
-                          加班時數
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold" color="purple.main">
-                          {totalOvertimeHours} 小時
-                          <Typography variant="caption" display="block" color="text.secondary">
-                            (獨立:{overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount || 0), 0)}
-                            排班:{overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount || 0), 0)})
-                          </Typography>
-                        </Typography>
-                      </Box>
+                      <WorkHoursStatCard
+                        label="加班時數"
+                        value={parseFloat(totalOvertimeHours)}
+                        color="purple.main"
+                        subtitle={`(獨立:${overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount || 0), 0)} 排班:${overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount || 0), 0)})`}
+                      />
                       
-                      <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        minWidth: '100px'
-                      }}>
-                        <Typography variant="body2" color="text.secondary">
-                          特休時數
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold" color="warning.main">
-                          {totalPersonalLeaveHours} 小時
-                        </Typography>
-                      </Box>
+                      <WorkHoursStatCard
+                        label="特休時數"
+                        value={parseFloat(totalPersonalLeaveHours)}
+                        color="warning.main"
+                      />
                       
-                      <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        minWidth: '100px'
-                      }}>
-                        <Typography variant="body2" color="text.secondary">
-                          病假時數
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold" color="info.main">
-                          {totalSickLeaveHours} 小時
-                        </Typography>
-                      </Box>
+                      <WorkHoursStatCard
+                        label="病假時數"
+                        value={parseFloat(totalSickLeaveHours)}
+                        color="info.main"
+                      />
                       
-                      <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        minWidth: '100px'
-                      }}>
-                        <Typography variant="body2" color="text.secondary">
-                          總計時數
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold" color="success.main">
-                          {grandTotal} 小時
-                        </Typography>
-                      </Box>
+                      <WorkHoursStatCard
+                        label="總計時數"
+                        value={parseFloat(grandTotal)}
+                        color="success.main"
+                      />
                     </>
                   );
                 })()}
@@ -978,7 +690,7 @@ const Scheduling = ({ isAdmin = false }) => {
                   <Typography sx={{ ml: 2 }}>載入加班統計數據中...</Typography>
                 </Box>
               ) : (
-                calculateEmployeeMonthlyHours().map(({ employeeId, name, hours, personalLeaveHours, sickLeaveHours }) => {
+                calculateEmployeeMonthlyHours.map(({ employeeId, name, hours, personalLeaveHours, sickLeaveHours }) => {
                   // 從 API 獲取的加班時數
                   const overtimeStat = overtimeStats.find(stat => stat.employeeId === employeeId);
                   const overtimeHours = overtimeStat ? overtimeStat.overtimeHours.toFixed(1) : '0.0';
@@ -1013,79 +725,36 @@ const Scheduling = ({ isAdmin = false }) => {
                           justifyContent: 'flex-end',
                           flex: 1
                         }}>
-                          <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            minWidth: '100px'
-                          }}>
-                            <Typography variant="body2" color="text.secondary">
-                              正常工時
-                            </Typography>
-                            <Typography variant="h6" fontWeight="bold" color="text.primary">
-                              {hours} 小時
-                            </Typography>
-                          </Box>
+                          <WorkHoursStatCard
+                            label="正常工時"
+                            value={`${hours} 小時`}
+                            color="text.primary"
+                          />
                           
-                          <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            minWidth: '100px'
-                          }}>
-                            <Typography variant="body2" color="text.secondary">
-                              加班時數
-                            </Typography>
-                            <Typography variant="h6" fontWeight="bold" color="purple.main">
-                              {overtimeHours} 小時
-                              <Typography variant="caption" display="block" color="text.secondary">
-                                (獨立:{independentRecordCount} 排班:{scheduleRecordCount})
-                              </Typography>
-                            </Typography>
-                          </Box>
+                          <WorkHoursStatCard
+                            label="加班時數"
+                            value={`${overtimeHours} 小時`}
+                            color="purple.main"
+                            subtitle={`(獨立:${independentRecordCount} 排班:${scheduleRecordCount})`}
+                          />
                           
-                          <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            minWidth: '100px'
-                          }}>
-                            <Typography variant="body2" color="text.secondary">
-                              特休時數
-                            </Typography>
-                            <Typography variant="h6" fontWeight="bold" color="warning.main">
-                              {personalLeaveHours} 小時
-                            </Typography>
-                          </Box>
+                          <WorkHoursStatCard
+                            label="特休時數"
+                            value={`${personalLeaveHours} 小時`}
+                            color="warning.main"
+                          />
                           
-                          <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            minWidth: '100px'
-                          }}>
-                            <Typography variant="body2" color="text.secondary">
-                              病假時數
-                            </Typography>
-                            <Typography variant="h6" fontWeight="bold" color="info.main">
-                              {sickLeaveHours} 小時
-                            </Typography>
-                          </Box>
+                          <WorkHoursStatCard
+                            label="病假時數"
+                            value={`${sickLeaveHours} 小時`}
+                            color="info.main"
+                          />
                           
-                          <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            minWidth: '100px'
-                          }}>
-                            <Typography variant="body2" color="text.secondary">
-                              總計時數
-                            </Typography>
-                            <Typography variant="h6" fontWeight="bold" color="success.main">
-                              {/* 個人總工時包含病假時數 */}
-                              {(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)} 小時
-                            </Typography>
-                          </Box>
+                          <WorkHoursStatCard
+                            label="總計時數"
+                            value={`${(parseFloat(hours) + parseFloat(overtimeHours) + parseFloat(personalLeaveHours) + parseFloat(sickLeaveHours)).toFixed(1)} 小時`}
+                            color="success.main"
+                          />
                         </Box>
                       </Box>
                     </Paper>
