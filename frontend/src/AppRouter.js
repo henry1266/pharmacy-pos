@@ -9,7 +9,7 @@ import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage'; // Import Customer Detail Page
 import SalesPage from './pages/SalesPage.tsx';
 import SalesListPage from './pages/SalesListPage.tsx';
-import SalesEditPage from './pages/SalesEditPage';
+import SalesEditPage from './pages/SalesEditPage.tsx';
 import SalesDetailPage from './pages/SalesDetailPage.tsx';
 import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
