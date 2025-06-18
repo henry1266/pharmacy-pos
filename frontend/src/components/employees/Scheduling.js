@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Typography,
   Paper,
   Box,
   Container,
   Grid,
-  Button,
-  IconButton,
-  Alert,
   CircularProgress,
   Dialog,
   DialogActions,
-  DialogContent
+  DialogContent,
+  Button
 } from '@mui/material';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import TodayIcon from '@mui/icons-material/Today';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
 import useEmployeeScheduling from '../../hooks/useEmployeeScheduling';
 import useCalendarGrid from '../../hooks/useCalendarGrid';
 import useKeyboardNavigation from '../../hooks/useKeyboardNavigation';
 import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
+import useScheduleOperations from '../../hooks/useScheduleOperations';
 import ShiftSelectionModal from './ShiftSelectionModal';
 import QuickSelectPanel from './QuickSelectPanel';
 import CalendarDateCell from './scheduling/CalendarDateCell';
 import WorkHoursDialog from './scheduling/WorkHoursDialog';
+import SchedulingHeader from './scheduling/SchedulingHeader';
+import MonthNavigation from './scheduling/MonthNavigation';
 import {
   formatDateString,
   formatMonth,
@@ -63,6 +58,21 @@ const Scheduling = ({ isAdmin = false }) => {
   // 使用日曆網格 Hook
   const { calendarGrid, firstDayOfMonth, lastDayOfMonth } = useCalendarGrid(currentDate);
 
+  // 使用排班操作 Hook
+  const {
+    handleAddSchedule,
+    handleRemoveSchedule,
+    getSchedulesForDate,
+    getScheduleCount
+  } = useScheduleOperations(
+    schedulesGroupedByDate,
+    addSchedule,
+    removeSchedule,
+    fetchSchedulesByDate,
+    firstDayOfMonth,
+    lastDayOfMonth
+  );
+
   // 處理格子選擇的回調函數
   const handleCellSelect = (index, date) => {
     setSelectedDate(date);
@@ -76,20 +86,19 @@ const Scheduling = ({ isAdmin = false }) => {
     handleCellSelect
   );
 
+  // 使用工時計算 Hook
+  const { calculateEmployeeMonthlyHours } = useWorkHoursCalculation(schedulesGroupedByDate);
+
   // 獲取當前月份的排班資料
   useEffect(() => {
-    // 使用一致的日期格式，統一使用台北+8時區
     const startDate = formatDateString(firstDayOfMonth);
     const endDate = formatDateString(lastDayOfMonth);
     
     console.log(`獲取排班資料: ${startDate} 至 ${endDate}, 當前月份: ${firstDayOfMonth.getMonth() + 1}月`);
-    
-    // 統一處理所有月份
     fetchSchedulesByDate(startDate, endDate);
   }, [firstDayOfMonth, lastDayOfMonth, fetchSchedulesByDate]);
 
-
-  // 處理月份變更
+  // 月份導航處理函數
   const handlePrevMonth = () => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
     console.log(`切換到上個月: ${newDate.toISOString().split('T')[0]}`);
@@ -106,20 +115,14 @@ const Scheduling = ({ isAdmin = false }) => {
     setCurrentDate(new Date());
   };
 
-  // 處理編輯模式切換
   const toggleEditMode = () => {
     setEditMode(!editMode);
   };
 
-
   // 處理日期點擊
   const handleDateClick = (date) => {
-    // 只有管理員可以開啟編輯模式
-    if (!isAdmin) {
-      return;
-    }
+    if (!isAdmin) return;
     
-    // 創建一個新的日期對象，設置為當天的中午 (避免時區問題)
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
     setSelectedDate(normalizedDate);
     setModalOpen(true);
@@ -131,60 +134,6 @@ const Scheduling = ({ isAdmin = false }) => {
     setSelectedDate(null);
   };
 
-  // 處理新增排班
-  const handleAddSchedule = async (scheduleData) => {
-    try {
-      console.log('新增排班:', scheduleData);
-      await addSchedule(scheduleData);
-      
-      // 重新獲取排班資料，使用一致的日期格式
-      const startDate = formatDateString(firstDayOfMonth);
-      const endDate = formatDateString(lastDayOfMonth);
-      
-      console.log(`新增排班後重新獲取資料: ${startDate} 至 ${endDate}`);
-      await fetchSchedulesByDate(startDate, endDate);
-      
-      return true;
-    } catch (err) {
-      console.error('新增排班失敗:', err);
-      return false;
-    }
-  };
-
-  // 處理刪除排班
-  const handleRemoveSchedule = async (scheduleId) => {
-    try {
-      await removeSchedule(scheduleId);
-      
-      // 重新獲取排班資料，使用一致的日期格式
-      const startDate = formatDateString(firstDayOfMonth);
-      const endDate = formatDateString(lastDayOfMonth);
-      await fetchSchedulesByDate(startDate, endDate);
-      
-      return true;
-    } catch (err) {
-      console.error('刪除排班失敗:', err);
-      return false;
-    }
-  };
-
-  // 獲取指定日期的排班資料
-  const getSchedulesForDate = (date) => {
-    // 使用一致的日期格式，避免時區問題
-    const dateStr = formatDateString(date);
-    return schedulesGroupedByDate[dateStr] || { morning: [], afternoon: [], evening: [] };
-  };
-
-  // 計算指定日期的排班數量
-  const getScheduleCount = (date) => {
-    const schedules = getSchedulesForDate(date);
-    return schedules.morning.length + schedules.afternoon.length + schedules.evening.length;
-  };
-
-
-  // 使用工時計算 Hook
-  const { calculateEmployeeMonthlyHours } = useWorkHoursCalculation(schedulesGroupedByDate);
-
   // 全局樣式覆蓋
   const globalStyles = {
     '.MuiListItemText-primary': {
@@ -195,65 +144,20 @@ const Scheduling = ({ isAdmin = false }) => {
   return (
     <Container maxWidth={false} sx={{...globalStyles, px: { xs: 1, sm: 2, md: 3 }}}>
       <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
-
+        <SchedulingHeader isAdmin={isAdmin} error={error} />
         
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
-          <Typography variant="h5" component="h5" sx={{ mr: 3 }}>
-            員工排班系統
-          </Typography>
-          
-          {!isAdmin && (
-            <Alert severity="info" sx={{ my: 1, flexBasis: '100%' }}>
-              您正在以檢視模式查看排班表。如需修改排班，請聯繫管理員。
-            </Alert>
-          )}
-          
-          {error && (
-            <Alert severity="error" sx={{ my: 1, flexBasis: '100%' }}>
-              {error}
-            </Alert>
-          )}
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton onClick={handlePrevMonth}>
-              <ArrowBackIosIcon />
-            </IconButton>
-            <Typography variant="h5" sx={{ mx: 2 }}>
-              {formatMonth(currentDate)}
-            </Typography>
-            <IconButton onClick={handleNextMonth}>
-              <ArrowForwardIosIcon />
-            </IconButton>
-          </Box>
-          
-          <Box sx={{ display: 'flex', gap: 2, ml: 'auto' }}>
-            <Button
-              variant="outlined"
-              startIcon={<TodayIcon />}
-              onClick={handleToday}
-            >
-              今天
-            </Button>
-            
-            <Button
-              variant="outlined"
-              color="info"
-              onClick={() => setWorkHoursDialogOpen(true)}
-            >
-              本月工時統計
-            </Button>
-            
-            {isAdmin && (
-              <Button
-                variant={editMode ? "contained" : "outlined"}
-                color={editMode ? "primary" : "secondary"}
-                startIcon={editMode ? <SaveIcon /> : <EditIcon />}
-                onClick={toggleEditMode}
-              >
-                {editMode ? '儲存' : '編輯模式'}
-              </Button>
-            )}
-          </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
+          <MonthNavigation
+            currentDate={currentDate}
+            formatMonth={formatMonth}
+            onPrevMonth={handlePrevMonth}
+            onNextMonth={handleNextMonth}
+            onToday={handleToday}
+            onWorkHoursClick={() => setWorkHoursDialogOpen(true)}
+            isAdmin={isAdmin}
+            editMode={editMode}
+            onToggleEditMode={toggleEditMode}
+          />
         </Box>
         
         {loading ? (
