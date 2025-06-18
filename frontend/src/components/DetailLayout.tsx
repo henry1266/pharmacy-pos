@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { FC, ReactNode } from 'react';
+import PropTypes from 'prop-types';
 import {
   CircularProgress,
   Box,
   Typography,
   Button,
-  Grid as MuiGrid,
+  Grid,
   Stack,
   useTheme,
   useMediaQuery
@@ -16,30 +17,54 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-// 創建一個 Grid 組件，以便更容易使用
-const Grid = MuiGrid as React.ComponentType<any>;
+/**
+ * Props interface for DetailLayout component
+ */
+interface DetailLayoutProps {
+  /** The title prefix (e.g., "銷售詳情", "採購單詳情") */
+  pageTitle?: string;
+  /** The identifier of the record (e.g., sale number, PO ID) */
+  recordIdentifier?: string | number;
+  /** URL to navigate back to the list page */
+  listPageUrl?: string;
+  /** URL for the edit page (e.g., "/sales/edit/:id"), null if not applicable */
+  editPageUrl?: string | null;
+  /** URL for the print page, or null if not applicable */
+  printPageUrl?: string | null;
+  /** Array of additional action buttons (optional) */
+  additionalActions?: ReactNode[] | null;
+  /** Content for the main (left) column */
+  mainContent?: ReactNode;
+  /** Content for the sidebar (right) column */
+  sidebarContent?: ReactNode;
+  /** If true, shows a loading indicator instead of content */
+  isLoading?: boolean;
+  /** Text to display with the loading indicator */
+  loadingText?: string;
+  /** Content to display if there's an error loading main data */
+  errorContent?: ReactNode | null;
+}
 
 /**
  * Generic Detail Page Layout Component
  *
  * Provides the common structure (Header, Two-Column Grid) for detail pages.
  * Content for header actions, main area, and sidebar are passed as props.
+ *
+ * Props:
+ * - pageTitle: String - The title prefix (e.g., "銷售詳情", "採購單詳情")
+ * - recordIdentifier: String | Number - The identifier of the record (e.g., sale number, PO ID)
+ * - listPageUrl: String - URL to navigate back to the list page
+ * - editPageUrl: String | null - URL for the edit page (e.g., "/sales/edit/:id"), null if not applicable
+ * - printPageUrl: String | null - URL for the print page, or null if not applicable
+ * - additionalActions: Array<ReactNode> | null - Array of additional action buttons (optional)
+ * - mainContent: ReactNode - Content for the main (left) column
+ * - sidebarContent: ReactNode - Content for the sidebar (right) column
+ * - isLoading: Boolean - If true, shows a loading indicator instead of content
+ * - loadingText: String - Text to display with the loading indicator
+ * - errorContent: ReactNode - Content to display if there's an error loading main data
  */
-interface DetailLayoutProps {
-  pageTitle?: string;
-  recordIdentifier?: string | number;
-  listPageUrl: string;
-  editPageUrl?: string | null;
-  printPageUrl?: string | null;
-  additionalActions?: React.ReactNode[] | null;
-  mainContent: React.ReactNode;
-  sidebarContent: React.ReactNode;
-  isLoading?: boolean;
-  loadingText?: string;
-  errorContent?: React.ReactNode | null;
-}
-
-const DetailLayout: React.FC<DetailLayoutProps> = ({
+const DetailLayout: FC<DetailLayoutProps> = ({
   pageTitle,
   recordIdentifier,
   listPageUrl,
@@ -71,7 +96,7 @@ const DetailLayout: React.FC<DetailLayoutProps> = ({
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         {errorContent}
-        <Button variant="contained" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl)} sx={{ mt: 2 }}>
+        <Button variant="contained" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl || '/')} sx={{ mt: 2 }}>
           返回列表
         </Button>
       </Box>
@@ -79,7 +104,7 @@ const DetailLayout: React.FC<DetailLayoutProps> = ({
   }
 
   // --- Default Header Actions --- 
-  const defaultActions: React.ReactNode[] = [];
+  const defaultActions: ReactNode[] = [];
   if (editPageUrl) {
     defaultActions.push(
       <Button key="edit" variant="outlined" color="primary" size="small" startIcon={<EditIcon />} onClick={() => navigate(editPageUrl)}>編輯</Button>
@@ -94,7 +119,7 @@ const DetailLayout: React.FC<DetailLayoutProps> = ({
     defaultActions.push(...additionalActions);
   }
   defaultActions.push(
-    <Button key="back" variant="contained" size="small" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl)}>返回列表</Button>
+    <Button key="back" variant="contained" size="small" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl || '/')}>返回列表</Button>
   );
 
   // --- Component Structure --- 
@@ -119,12 +144,12 @@ const DetailLayout: React.FC<DetailLayoutProps> = ({
       {/* Main Content Grid */}
       <Grid container spacing={3}>
         {/* Left Column (Main Content) */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8} {...({} as any)}>
           {mainContent}
         </Grid>
 
         {/* Right Column (Sidebar) */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} {...({} as any)}>
           {sidebarContent}
         </Grid>
       </Grid>
@@ -133,5 +158,20 @@ const DetailLayout: React.FC<DetailLayoutProps> = ({
     </Box>
   );
 };
+
+// 添加 PropTypes 驗證
+DetailLayout.propTypes = {
+  pageTitle: PropTypes.string,
+  recordIdentifier: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  listPageUrl: PropTypes.string,
+  editPageUrl: PropTypes.string,
+  printPageUrl: PropTypes.string,
+  additionalActions: PropTypes.arrayOf(PropTypes.node),
+  mainContent: PropTypes.node,
+  sidebarContent: PropTypes.node,
+  isLoading: PropTypes.bool,
+  loadingText: PropTypes.string,
+  errorContent: PropTypes.node
+} as any; // TypeScript compatibility
 
 export default DetailLayout;
