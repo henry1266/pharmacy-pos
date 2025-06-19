@@ -24,7 +24,7 @@ import useSaleManagement from '../hooks/useSaleManagement';
 import ShortcutButtonManager from '../components/sales/ShortcutButtonManager.tsx';
 import CustomProductsDialog from '../components/sales/CustomProductsDialog';
 import SaleInfoCard from '../components/sales/SaleInfoCard';
-import SalesProductInput from '../components/sales/SalesProductInput';
+import SalesProductInput from '../components/sales/SalesProductInput.tsx';
 import SalesItemsTable from '../components/sales/SalesItemsTable';
 
 // Import types
