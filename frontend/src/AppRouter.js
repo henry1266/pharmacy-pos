@@ -15,7 +15,7 @@ import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage.tsx';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage.tsx';
-import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
+import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage.tsx';
 import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage.tsx';
 import ShippingOrdersPage from './pages/ShippingOrdersPage.tsx';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage.tsx';
