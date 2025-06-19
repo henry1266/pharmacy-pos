@@ -25,7 +25,7 @@ import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage';
 import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage'; // Import All Categories Detail Page
-import ProductCategoryPage from './pages/ProductCategoryPage';
+import ProductCategoryPage from './pages/ProductCategoryPage.tsx';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
 import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settings page
