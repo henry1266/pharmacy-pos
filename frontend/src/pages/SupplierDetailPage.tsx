@@ -16,7 +16,7 @@ import {
   Print as PrintIcon
 } from '@mui/icons-material';
 
-import SupplierInfoCard from '../components/suppliers/SupplierInfoCard';
+import SupplierInfoCard from '../components/suppliers/SupplierInfoCard.tsx';
 import TwoColumnLayout from '../components/common/TwoColumnLayout.tsx';
 
 // 定義供應商資料介面
