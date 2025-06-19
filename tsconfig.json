@@ -11,8 +11,8 @@
     "allowJs": true,                          /* 允許編譯JavaScript檔案 */
     "checkJs": false,                         /* 不報告JavaScript檔案中的錯誤 */
     "jsx": "react-jsx",                       /* 指定JSX程式碼生成 */
-    "declaration": false,                     /* 不生成相應的'.d.ts'檔案 */
-    "declarationMap": false,                  /* 不為每個對應的'.d.ts'檔案生成sourcemap */
+    "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,                        /* 生成相應的'.map'檔案 */
     "outDir": "./dist/frontend/src",          /* 指定輸出目錄 */
     "rootDir": "./frontend/src",              /* 指定輸入檔案的根目錄 */
