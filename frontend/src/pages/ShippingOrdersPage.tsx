@@ -32,7 +32,7 @@ import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter
 import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable.tsx';
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter.tsx';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
-import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions';
+import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
