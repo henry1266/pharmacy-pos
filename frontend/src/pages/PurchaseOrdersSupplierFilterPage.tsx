@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// 使用 require 語法
-const PurchaseOrdersPage = require('./PurchaseOrdersPage').default;
+import PurchaseOrdersPage from './PurchaseOrdersPage';
 
 /**
  * 供應商篩選的進貨單頁面
