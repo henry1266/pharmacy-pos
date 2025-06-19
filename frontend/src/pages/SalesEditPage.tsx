@@ -20,7 +20,7 @@ import { useSaleEditManagement } from '../hooks/useSaleEditManagement';
 
 // Import sub-components
 import SaleEditInfoCard from '../components/sales/SaleEditInfoCard.tsx';
-import SalesEditItemsTable from '../components/sales/SalesEditItemsTable';
+import SalesEditItemsTable from '../components/sales/SalesEditItemsTable.tsx';
 import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard.tsx';
 
 /**
