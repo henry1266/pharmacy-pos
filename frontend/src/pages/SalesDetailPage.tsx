@@ -44,7 +44,7 @@ import { format, isValid } from 'date-fns'; // Import isValid from date-fns
 import { zhTW } from 'date-fns/locale';
 
 import ProductCodeLink from '../components/common/ProductCodeLink';
-import DetailLayout from '../components/DetailLayout';
+import DetailLayout from '../components/DetailLayout.tsx';
 import GrossProfitCell from '../components/common/GrossProfitCell'; // Added import
 
 // 定義類型

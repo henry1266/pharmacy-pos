@@ -27,7 +27,7 @@ import { zhTW } from 'date-fns/locale';
 
 import { fetchPurchaseOrder } from '../redux/actions';
 import ProductItemsTable from '../components/common/ProductItemsTable';
-import DetailLayout from '../components/DetailLayout';
+import DetailLayout from '../components/DetailLayout.tsx';
 import { getProductByCode } from '../services/productService';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo.tsx';
 import { RootState } from '../types/store';
