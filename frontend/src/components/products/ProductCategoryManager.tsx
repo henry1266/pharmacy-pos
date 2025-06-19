@@ -19,7 +19,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
-import { StrictModeDroppable } from '../common/StrictModeDroppable';
+import { StrictModeDroppable } from '../common/StrictModeDroppable.tsx';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
