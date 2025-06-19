@@ -45,7 +45,7 @@ interface BasicInfoFormProps {
   formData: FormData;
   handleInputChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
   handleDateChange: (date: Date | null) => void;
-  handleSupplierChange: (supplier: Supplier | null) => void;
+  handleSupplierChange: (event: React.SyntheticEvent, supplier: Supplier | null) => void;
   suppliers?: Supplier[];
   selectedSupplier?: Supplier | null;
   isEditMode?: boolean;
@@ -132,12 +132,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             <SupplierSelect
               suppliers={suppliers || []}
               selectedSupplier={selectedSupplier} 
-              onChange={(event, supplier) => {
-                // 使用類型斷言來解決 TypeScript 錯誤
-                if (supplier) {
-                  handleSupplierChange(supplier as Supplier);
-                }
-              }}
+              onChange={handleSupplierChange}
               label={isEditMode ? "進貨商 (僅供查看)" : "進貨商 (可用名稱或簡碼)"}
             />
           </Grid>

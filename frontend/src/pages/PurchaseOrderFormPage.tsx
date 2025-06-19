@@ -379,14 +379,13 @@ const PurchaseOrderFormPage: React.FC = () => {
     setFormData({ ...formData, pobilldate: date || new Date() });
   };
 
-  const handleSupplierChange = (supplier: ISupplier | null) => {
-    if (supplier) {
-      setSelectedSupplier(supplier);
-      setFormData({ ...formData, posupplier: supplier.name, supplier: supplier.id || supplier._id });
-    } else {
-      setSelectedSupplier(null);
-      setFormData({ ...formData, posupplier: '', supplier: '' });
-    }
+  const handleSupplierChange = (_event: React.SyntheticEvent, supplier: ISupplier | null) => {
+    setSelectedSupplier(supplier);
+    setFormData({
+      ...formData,
+      posupplier: supplier ? supplier.name : '',
+      supplier: supplier ? (supplier.id || supplier._id) : ''
+    });
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -421,30 +420,27 @@ const PurchaseOrderFormPage: React.FC = () => {
     const multiplier = getMultiplier();
     const finalAdjustedItems = adjustPurchaseOrderItems(formData.items, multiplier);
 
-    // 將 CurrentItem[] 轉換為 PurchaseOrderItem[] 格式
-    const convertedItems = finalAdjustedItems.map(item => ({
-      product: item.product,
-      quantity: Number(item.dquantity),
-      price: Number(item.dtotalCost) / Number(item.dquantity),
-      subtotal: Number(item.dtotalCost)
-    }));
-
     // 使用類型斷言確保 status 符合 PurchaseOrder 接口的要求
     const status = formData.status as "pending" | "approved" | "received" | "cancelled";
     
+    // 保持原始的 formData 結構，只轉換數據類型
     const submitData = {
       ...formData,
       pobilldate: format(formData.pobilldate, 'yyyy-MM-dd'),
-      items: convertedItems,
+      items: finalAdjustedItems.map(item => ({
+        ...item,
+        dquantity: Number(item.dquantity),
+        dtotalCost: Number(item.dtotalCost),
+      })),
       status: status
     };
 
     try {
       if (isEditMode && id) {
-        await updatePurchaseOrder(id, submitData);
+        await updatePurchaseOrder(id, submitData as unknown as Partial<PurchaseOrder>);
         showSnackbar('進貨單已成功更新', 'success');
       } else {
-        await addPurchaseOrder(submitData);
+        await addPurchaseOrder(submitData as unknown as Partial<PurchaseOrder>);
         showSnackbar('進貨單已成功新增', 'success');
       }
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);

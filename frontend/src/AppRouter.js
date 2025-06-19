@@ -13,7 +13,7 @@ import SalesEditPage from './pages/SalesEditPage.tsx';
 import SalesDetailPage from './pages/SalesDetailPage.tsx';
 import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage.tsx';
-import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
+import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage.tsx';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage.tsx';
 import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage.tsx';
 import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage.tsx';
