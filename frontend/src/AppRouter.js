@@ -20,7 +20,7 @@ import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilt
 import ShippingOrdersPage from './pages/ShippingOrdersPage.tsx';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage.tsx';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage.tsx';
-import AccountingPage from './pages/AccountingPage';
+import AccountingPage from './pages/AccountingPage.tsx';
 import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage';
