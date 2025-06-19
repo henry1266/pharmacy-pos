@@ -4,7 +4,7 @@ import { Paper, IconButton, Box } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { format } from 'date-fns';
-import StatusChip from '../common/StatusChip';
+import StatusChip from '../common/StatusChip.tsx';
 
 // 記帳項目介面
 interface AccountingItem {

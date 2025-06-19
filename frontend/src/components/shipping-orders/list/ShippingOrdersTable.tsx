@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridPaginationModel } from '@mui/x-data-grid';
 
-import StatusChip from '../../common/StatusChip';
+import StatusChip from '../../common/StatusChip.tsx';
 import PaymentStatusChip from '../../common/PaymentStatusChip.tsx';
 
 // 定義出貨單介面

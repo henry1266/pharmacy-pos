@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import { format } from 'date-fns';
-import StatusChip from '../common/StatusChip';
+import StatusChip from '../common/StatusChip.tsx';
 import PaymentStatusChip from '../common/PaymentStatusChip.tsx';
 
 /**
