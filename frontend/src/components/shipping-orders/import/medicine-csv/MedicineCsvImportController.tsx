@@ -1,7 +1,7 @@
 import React, { useState, useCallback, FC, ChangeEvent } from 'react';
 import { Button, Box, Typography, Alert } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import MedicineCsvImportDialog from './MedicineCsvImportDialog';
+import MedicineCsvImportDialog from './MedicineCsvImportDialog.tsx';
 import { parseMedicineCsvForPreview, importMedicineCsv } from '../../../../services/medicineCsvService';
 
 // 定義預覽數據項目的介面
