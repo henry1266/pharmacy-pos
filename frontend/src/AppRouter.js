@@ -24,7 +24,7 @@ import AccountingPage from './pages/AccountingPage.tsx';
 import AccountingNewPage from './pages/AccountingNewPage.tsx';
 import AccountingCategoryPage from './pages/AccountingCategoryPage.tsx';
 import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage.tsx';
-import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage'; // Import All Categories Detail Page
+import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage.tsx'; // Import All Categories Detail Page
 import ProductCategoryPage from './pages/ProductCategoryPage.tsx';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
