@@ -33,7 +33,7 @@ import AccountSettingsPage from './pages/settings/AccountSettingsPage'; // Impor
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage'; // Import the employee accounts management page
 
 // 員工管理頁面元件
-import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage'; // 員工基本資料頁面
+import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage.tsx'; // 員工基本資料頁面
 import EmployeeListPage from './pages/employees/EmployeeListPage.tsx'; // 員工列表頁面
 import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage'; // 員工排班頁面
 import Overtime from './components/employees/Overtime';
