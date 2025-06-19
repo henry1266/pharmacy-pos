@@ -20,7 +20,7 @@ import {
   VisibilityOff
 } from '@mui/icons-material';
 import PropTypes from 'prop-types';
-import ProductCodeLink from './ProductCodeLink';
+import ProductCodeLink from './ProductCodeLink.tsx';
 import GrossProfitCell from './GrossProfitCell.tsx';
 
 /**

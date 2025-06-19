@@ -21,7 +21,7 @@ import {
   Check as CheckIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import ProductCodeLink from '../common/ProductCodeLink'; // ADDED IMPORT
+import ProductCodeLink from '../common/ProductCodeLink.tsx'; // ADDED IMPORT
 
 /**
  * 藥品項目表格組件
