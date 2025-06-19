@@ -15,7 +15,7 @@ import {
   Divider
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
+import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart.tsx';
 import PropTypes from 'prop-types'; // 添加 PropTypes 引入
 
 const InventoryList = ({ productId }) => {

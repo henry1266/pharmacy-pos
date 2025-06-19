@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import axios from 'axios';
-import SingleProductProfitLossChart from './SingleProductProfitLossChart';
+import SingleProductProfitLossChart from './SingleProductProfitLossChart.tsx';
 
 // 定義篩選條件的型別
 interface InventoryFilterValues {

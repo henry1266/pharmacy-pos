@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import axios from 'axios';
-import SingleProductProfitLossChart from './SingleProductProfitLossChart';
+import SingleProductProfitLossChart from './SingleProductProfitLossChart.tsx';
 
 // 計算單筆交易的損益 (Moved to module scope)
 const calculateTransactionProfitLoss = (transaction) => {
