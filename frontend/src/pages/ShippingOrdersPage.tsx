@@ -27,7 +27,7 @@ import { importShippingOrdersBasic, importShippingOrdersItems } from '../service
 import { fetchShippingOrders } from '../redux/actions';
 
 // Import Presentation Components
-import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview';
+import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview.tsx';
 import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
 import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
