@@ -26,7 +26,7 @@ import AccountingCategoryPage from './pages/AccountingCategoryPage.tsx';
 import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage.tsx';
 import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage.tsx'; // Import All Categories Detail Page
 import ProductCategoryPage from './pages/ProductCategoryPage.tsx';
-import CategoryDetailPage from './pages/CategoryDetailPage';
+import CategoryDetailPage from './pages/CategoryDetailPage.tsx';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage.tsx';
 import SettingsIpPage from './pages/SettingsIpPage.tsx'; // Import the new IP settings page
 import SettingsPage from './pages/SettingsPage.tsx'; // Import the theme settings page
