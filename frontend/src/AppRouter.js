@@ -30,8 +30,8 @@ import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage.tsx';
 import SettingsIpPage from './pages/SettingsIpPage.tsx'; // Import the new IP settings page
 import SettingsPage from './pages/SettingsPage.tsx'; // Import the theme settings page
-import AccountSettingsPage from './pages/settings/AccountSettingsPage'; // Import the account settings page
-import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage'; // Import the employee accounts management page
+import AccountSettingsPage from './pages/settings/AccountSettingsPage.tsx'; // Import the account settings page
+import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage.tsx'; // Import the employee accounts management page
 
 // 員工管理頁面元件
 import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage.tsx'; // 員工基本資料頁面
