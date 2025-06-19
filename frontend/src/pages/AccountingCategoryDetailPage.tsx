@@ -1,5 +1,5 @@
 import React from 'react';
-import AccountingCategoryDetail from '../components/accounting/AccountingCategoryDetail';
+import AccountingCategoryDetail from '../components/accounting/AccountingCategoryDetail.tsx';
 
 /**
  * 會計名目類別詳細頁面
