@@ -11,7 +11,7 @@ import {
   Typography
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import SupplierSelect from '../../../common/SupplierSelect';
+import SupplierSelect from '../../../common/SupplierSelect.tsx';
 
 
 /**

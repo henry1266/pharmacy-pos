@@ -12,7 +12,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import SupplierSelect from '../../../common/SupplierSelect';
+import SupplierSelect from '../../../common/SupplierSelect.tsx'; // 假設你有一個供應商選擇組件
 
 // 定義供應商介面
 interface Supplier {

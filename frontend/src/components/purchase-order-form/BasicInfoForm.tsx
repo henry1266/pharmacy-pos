@@ -18,7 +18,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
-import SupplierSelect from '../common/SupplierSelect';
+import SupplierSelect from '../common/SupplierSelect.tsx'; // 假設你有一個供應商選擇組件
 
 // 定義供應商介面
 interface Supplier {
