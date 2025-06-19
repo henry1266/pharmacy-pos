@@ -21,7 +21,7 @@ import ShippingOrdersPage from './pages/ShippingOrdersPage.tsx';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage.tsx';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage.tsx';
 import AccountingPage from './pages/AccountingPage.tsx';
-import AccountingNewPage from './pages/AccountingNewPage';
+import AccountingNewPage from './pages/AccountingNewPage.tsx';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
 import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage';
 import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage'; // Import All Categories Detail Page
