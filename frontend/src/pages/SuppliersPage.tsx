@@ -32,7 +32,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
-import useSupplierData from '../hooks/useSupplierData';
+import useSupplierData from '../hooks/useSupplierData.ts';
 
 // 定義供應商資料介面
 interface SupplierData {
