@@ -38,7 +38,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import SalesPreview from '../components/sales/SalesPreview';
+import SalesPreview from '../components/sales/SalesPreview.tsx'; // Import the SalesPreview component
 import { Customer } from '../types/entities';
 
 // 定義類型
