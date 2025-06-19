@@ -39,6 +39,7 @@ interface BasicInfoFormProps {
   suppliers?: Supplier[];
   selectedSupplier?: Supplier | null;
   isEditMode?: boolean;
+  autoFocus?: boolean;
 }
 
 /**
@@ -52,7 +53,8 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
   handleSupplierChange,
   suppliers,
   selectedSupplier,
-  isEditMode
+  isEditMode,
+  autoFocus
 }) => {
 
   return (
@@ -89,6 +91,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               label="供應商 (可用名稱或簡碼搜索)"
               required={true}
               showCode={true}
+              autoFocus={autoFocus}
             />
           </Grid>
           
@@ -164,5 +167,6 @@ BasicInfoForm.propTypes = {
   handleSupplierChange: PropTypes.func.isRequired,
   suppliers: PropTypes.array,
   selectedSupplier: PropTypes.object,
-  isEditMode: PropTypes.bool
+  isEditMode: PropTypes.bool,
+  autoFocus: PropTypes.bool
 } as any; // 使用 any 類型來避免 TypeScript 錯誤

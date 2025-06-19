@@ -45,6 +45,7 @@ interface ItemFormProps {
   handleProductChange: (event: SyntheticEvent, product: Product | null) => void;
   handleAddItem: () => void;
   products: Product[];
+  autoFocus?: boolean;
 }
 
 /**
@@ -57,7 +58,8 @@ const ItemForm: FC<ItemFormProps> = ({
   handleItemInputChange,
   handleProductChange,
   handleAddItem,
-  products
+  products,
+  autoFocus
 }) => {
   // 使用自定義Hook獲取庫存數據
   const { getTotalInventory } = useInventoryData();
@@ -165,6 +167,7 @@ const ItemForm: FC<ItemFormProps> = ({
               id="product-select-input"
               label="選擇藥品"
               fullWidth
+              autoFocus={autoFocus}
             />
           )}
           renderOption={(props, option) => (
@@ -268,5 +271,6 @@ ItemForm.propTypes = {
       healthInsurancePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       productType: PropTypes.string
     })
-  )
+  ),
+  autoFocus: PropTypes.bool
 } as any; // 使用 any 類型來避免 TypeScript 錯誤

@@ -29,6 +29,7 @@ interface SupplierSelectProps {
   size?: 'small' | 'medium';
   onEnterKeyDown?: (inputValue: string) => void;
   showCode?: boolean;
+  autoFocus?: boolean;
 }
 
 const SupplierSelect: React.FC<SupplierSelectProps> = ({
@@ -41,7 +42,8 @@ const SupplierSelect: React.FC<SupplierSelectProps> = ({
   helperText = "",
   size = "medium",
   onEnterKeyDown,
-  showCode = false
+  showCode = false,
+  autoFocus = false
 }) => {
   // 供應商過濾函數
   const filterSuppliers = (options: Supplier[], inputValue: string): Supplier[] => {
@@ -92,14 +94,15 @@ const SupplierSelect: React.FC<SupplierSelectProps> = ({
         }
       }}
       renderInput={(params) => (
-        <TextField 
-          {...params} 
-          label={label} 
-          fullWidth 
+        <TextField
+          {...params}
+          label={label}
+          fullWidth
           required={required}
           error={error}
           helperText={helperText}
           size={size}
+          autoFocus={autoFocus}
         />
       )}
       renderOption={showCode ? (props, option) => (
