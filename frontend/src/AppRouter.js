@@ -28,7 +28,8 @@ import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage.tsx'; // Im
 import ProductCategoryPage from './pages/ProductCategoryPage.tsx';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
-import SettingsIpPage from './pages/SettingsIpPage'; // Import the new IP settings page
+import SettingsIpPage from './pages/SettingsIpPage.tsx'; // Import the new IP settings page
+import SettingsPage from './pages/SettingsPage.tsx'; // Import the theme settings page
 import AccountSettingsPage from './pages/settings/AccountSettingsPage'; // Import the account settings page
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage'; // Import the employee accounts management page
 
@@ -36,6 +37,7 @@ import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage'; // Imp
 import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage.tsx'; // 員工基本資料頁面
 import EmployeeListPage from './pages/employees/EmployeeListPage.tsx'; // 員工列表頁面
 import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage.tsx'; // 員工排班頁面
+
 import Overtime from './components/employees/Overtime';
 
 // Import the AdminRoute guard
@@ -82,6 +84,7 @@ const AppRouter = () => {
       <Route path="/accounting/categories/:categoryId" element={<AccountingCategoryDetailPage />} />
       
       {/* Settings routes (assuming they require login) */}
+      <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}
       <Route path="/settings/ip" element={<SettingsIpPage />} /> {/* Add the new IP settings route */}
       <Route path="/settings/account" element={<AccountSettingsPage />} /> {/* Add the account settings route */}
       <Route path="/settings/employee-accounts" element={<AdminRoute />}>
