@@ -45,6 +45,7 @@ interface ProductItemsTableProps {
   handleMoveItem: (index: number, direction: 'up' | 'down') => void;
   handleEditingItemChange: (event: ChangeEvent<HTMLInputElement>) => void;
   totalAmount: number;
+  codeField?: string;
 }
 
 /**
@@ -62,7 +63,8 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
   handleRemoveItem,
   handleMoveItem,
   handleEditingItemChange,
-  totalAmount
+  totalAmount,
+  codeField
 }) => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   
@@ -245,7 +247,8 @@ ProductItemsTable.propTypes = {
   handleRemoveItem: PropTypes.func.isRequired,
   handleMoveItem: PropTypes.func.isRequired,
   handleEditingItemChange: PropTypes.func.isRequired,
-  totalAmount: PropTypes.number.isRequired
+  totalAmount: PropTypes.number.isRequired,
+  codeField: PropTypes.string
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 export default ProductItemsTable;

@@ -49,6 +49,8 @@ interface BasicInfoFormProps {
   suppliers?: Supplier[];
   selectedSupplier?: Supplier | null;
   isEditMode?: boolean;
+  invoiceInputRef?: React.RefObject<HTMLInputElement>;
+  isTestMode?: boolean;
 }
 
 /**

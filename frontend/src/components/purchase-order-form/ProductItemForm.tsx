@@ -41,6 +41,7 @@ interface ProductItemFormProps {
   handleAddItem: () => void;
   products: Product[];
   productInputRef: RefObject<HTMLInputElement>;
+  isTestMode?: boolean;
 }
 
 const ProductItemForm: FC<ProductItemFormProps> = ({
@@ -49,7 +50,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   handleProductChange,
   handleAddItem,
   products,
-  productInputRef
+  productInputRef,
+  isTestMode
 }) => {
   const [activeInput, setActiveInput] = useState<string | null>(null);
 
@@ -286,7 +288,8 @@ ProductItemForm.propTypes = {
   productInputRef: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.shape({ current: PropTypes.instanceOf(Element) })
-  ]).isRequired
+  ]).isRequired,
+  isTestMode: PropTypes.bool
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 export default ProductItemForm;
