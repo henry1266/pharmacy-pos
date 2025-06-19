@@ -11,7 +11,7 @@ import SalesPage from './pages/SalesPage.tsx';
 import SalesListPage from './pages/SalesListPage.tsx';
 import SalesEditPage from './pages/SalesEditPage.tsx';
 import SalesDetailPage from './pages/SalesDetailPage.tsx';
-import ReportsPage from './pages/ReportsPage';
+import ReportsPage from './pages/ReportsPage.tsx';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage.tsx';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage.tsx';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage.tsx';
