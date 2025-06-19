@@ -3,8 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage.tsx';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import SuppliersPage from './pages/SuppliersPage';
-import SupplierDetailPage from './pages/SupplierDetailPage'; // Import Supplier Detail Page
+import SuppliersPage from './pages/SuppliersPage.tsx';
+import SupplierDetailPage from './pages/SupplierDetailPage.tsx'; // Import Supplier Detail Page
 import CustomersPage from './pages/CustomersPage.tsx';
 import CustomerDetailPage from './pages/CustomerDetailPage.tsx'; // Import Customer Detail Page
 import SalesPage from './pages/SalesPage.tsx';
