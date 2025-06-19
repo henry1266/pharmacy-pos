@@ -23,8 +23,8 @@ import { RootState } from '../redux/store'; // 假設你有一個 RootState 型�
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
-import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm';
-import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable';
+import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm.tsx';
+import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
 
 // =================================================================
