@@ -5,7 +5,7 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
 import SupplierDetailPage from './pages/SupplierDetailPage'; // Import Supplier Detail Page
-import CustomersPage from './pages/CustomersPage';
+import CustomersPage from './pages/CustomersPage.tsx';
 import CustomerDetailPage from './pages/CustomerDetailPage'; // Import Customer Detail Page
 import SalesPage from './pages/SalesPage.tsx';
 import SalesListPage from './pages/SalesListPage.tsx';
