@@ -30,7 +30,7 @@ import {
 import { format, isValid } from 'date-fns'; // Import isValid
 import { zhTW } from 'date-fns/locale';
 
-import { fetchShippingOrder } from '../redux/actions';
+import { fetchShippingOrder } from '../redux/actions.ts';
 import DetailLayout from '../components/DetailLayout.tsx';
 import ProductItemsTable from '../components/common/ProductItemsTable';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo.tsx';

@@ -1,4 +1,4 @@
-import { ActionTypes } from './actionTypes';
+import { ActionTypes } from './actionTypes.ts';
 import { 
   Product, 
   Supplier, 

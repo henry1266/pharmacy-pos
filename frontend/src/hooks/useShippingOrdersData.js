@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 // Remove direct axios import if no longer needed
 // import axios from 'axios'; 
-import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
+import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions.ts';
 // Import the service function
 import { getShippingOrderById } from '../services/shippingOrdersService';
 

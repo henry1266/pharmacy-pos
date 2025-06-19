@@ -30,8 +30,8 @@ import usePurchaseOrdersData from '../hooks/usePurchaseOrdersData';
 import { getPurchaseOrderById, importPurchaseOrdersBasic, importPurchaseOrderItems } from '../services/purchaseOrdersService';
 
 // Import Redux Actions
-import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders } from '../redux/actions';
-import { RootState } from '../redux/reducers';
+import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders } from '../redux/actions.ts';
+import { RootState } from '../redux/reducers.ts';
 
 // Import Components
 import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';

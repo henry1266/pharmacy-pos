@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
-import store from './redux/store';
+import store from './redux/store.ts';
 // @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import App from './App.tsx';
 import './index.css';

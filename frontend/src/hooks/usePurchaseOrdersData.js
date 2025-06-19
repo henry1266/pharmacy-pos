@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPurchaseOrders, fetchSuppliers } from '../redux/actions'; // Assuming actions handle API calls
+import { fetchPurchaseOrders, fetchSuppliers } from '../redux/actions.ts'; // Assuming actions handle API calls
 
 /**
  * Custom Hook to fetch data required for the Purchase Orders Page (purchase orders and suppliers).

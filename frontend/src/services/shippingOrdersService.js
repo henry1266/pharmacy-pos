@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../redux/actions'; // Assuming API_BASE_URL is exported
+import { API_BASE_URL } from '../redux/actions.ts'; // Assuming API_BASE_URL is exported
 
 const SERVICE_URL = `${API_BASE_URL}/shipping-orders`.replace('/api/api', '/api');
 

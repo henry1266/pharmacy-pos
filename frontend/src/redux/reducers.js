@@ -1,4 +1,4 @@
-import { ActionTypes } from './actionTypes';
+import { ActionTypes } from './actionTypes.ts';
 
 // 初始認證狀態
 const initialAuthState = {

@@ -1,9 +1,9 @@
-import { ActionTypes } from './actionTypes';
+import { ActionTypes } from './actionTypes.ts';
 import axios from 'axios';
-import { getApiBaseUrl } from '../utils/apiConfig';
+import { getApiBaseUrl } from '../utils/apiConfig.ts';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
-import { Action } from './reducers';
-import { RootState } from './reducers';
+import { Action } from './reducers.ts';
+import { RootState } from './reducers.ts';
 import { NavigateFunction } from 'react-router-dom';
 
 // API基礎URL

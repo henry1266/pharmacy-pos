@@ -12,14 +12,14 @@ import {
 } from '@mui/material';
 
 // 假設你的 Redux actions 和 store state 已經有了基本的型別定義
-import { 
-  fetchShippingOrder, 
-  addShippingOrder, 
+import {
+  fetchShippingOrder,
+  addShippingOrder,
   updateShippingOrder,
   fetchSuppliers,
   fetchProducts
-} from '../redux/actions';
-import { RootState } from '../redux/store'; // 假設你有一個 RootState 型別
+} from '../redux/actions.ts';
+import { RootState } from '../redux/store.ts'; // 假設你有一個 RootState 型別
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';

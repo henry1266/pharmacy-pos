@@ -24,7 +24,7 @@ import useShippingOrdersData from '../hooks/useShippingOrdersData';
 
 // Import Service functions for CSV import
 import { importShippingOrdersBasic, importShippingOrdersItems } from '../services/shippingOrdersService';
-import { fetchShippingOrders } from '../redux/actions';
+import { fetchShippingOrders } from '../redux/actions.ts';
 
 // Import Presentation Components
 import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview.tsx';

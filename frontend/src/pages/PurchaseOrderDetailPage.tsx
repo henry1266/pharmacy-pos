@@ -25,7 +25,7 @@ import {
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchPurchaseOrder } from '../redux/actions';
+import { fetchPurchaseOrder } from '../redux/actions.ts';
 import ProductItemsTable from '../components/common/ProductItemsTable';
 import DetailLayout from '../components/DetailLayout.tsx';
 import { getProductByCode } from '../services/productService';

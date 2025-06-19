@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import MainLayout from './components/layout/MainLayout';
+import MainLayout from './components/layout/MainLayout.tsx';
 // @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import LoginPage from './pages/LoginPage.tsx'; // 使用明確的副檔名
 // 使用 JSX 元素類型來避免 React Router 類型問題
