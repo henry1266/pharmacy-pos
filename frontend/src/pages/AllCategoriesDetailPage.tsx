@@ -1,5 +1,5 @@
 import React from 'react';
-import AllCategoriesDetail from '../components/accounting/AllCategoriesDetail';
+import AllCategoriesDetail from '../components/accounting/AllCategoriesDetail.tsx';
 import Layout from '../components/layout/MainLayout';
 
 /**
