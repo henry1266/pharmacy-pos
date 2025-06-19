@@ -8,9 +8,9 @@ import {
   Tooltip,
   Fab,
   Snackbar,
-  Alert
+  Alert,
+  Popover
 } from '@mui/material';
-import PopperComponent from '@mui/material/Popper';
 import {
   Add as AddIcon,
   FilterList as FilterListIcon,
@@ -344,21 +344,38 @@ const ShippingOrdersPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* 暫時使用 div 代替 Popper，在後續優化中再修復 */}
-      {previewOpen && previewAnchorEl && (
-        <div style={{
-          position: 'absolute',
-          zIndex: 1300,
-          top: previewAnchorEl.getBoundingClientRect().top,
-          left: previewAnchorEl.getBoundingClientRect().right
-        }}>
-          <ShippingOrderPreview
-            shippingOrder={previewShippingOrder}
-            loading={previewLoading}
-            error={previewError}
-          />
-        </div>
-      )}
+      {/* 使用 Popover 組件實現預覽功能 */}
+      <Popover
+        open={previewOpen}
+        anchorEl={previewAnchorEl}
+        onClose={handlePreviewMouseLeave}
+        anchorOrigin={{
+          vertical: 'bottom',  // 從底部開始
+          horizontal: 'left',  // 從左側開始
+        }}
+        transformOrigin={{
+          vertical: 'top',     // 轉換原點在頂部
+          horizontal: 'right', // 轉換原點在右側，這樣彈出框會在錨點元素的左側
+        }}
+        // 添加水平偏移，使彈出框再左一點
+        marginThreshold={16}   // 設置邊距閾值
+        sx={{
+          pointerEvents: 'none',  // 避免鼠標事件干擾
+          marginLeft: '0px',   // 添加負的左邊距，使彈出框再左一點
+          '& .MuiPopover-paper': {
+            width: '600px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            borderRadius: '4px',
+            padding: '8px'
+          }
+        }}
+      >
+        <ShippingOrderPreview
+          shippingOrder={previewShippingOrder}
+          loading={previewLoading}
+          error={previewError}
+        />
+      </Popover>
 
       <Box
         sx={{
