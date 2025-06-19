@@ -8,9 +8,9 @@ import useAccountingData from '../hooks/useAccountingData';
 import { updateAccountingRecord } from '../services/accountingService';
 
 // Import Presentation Components
-import AccountingFilter from '../components/accounting/AccountingFilter';
-import AccountingDataGrid from '../components/accounting/AccountingDataGrid';
-import AccountingForm from '../components/accounting/AccountingForm';
+import AccountingFilter from '../components/accounting/AccountingFilter.tsx';
+import AccountingDataGrid from '../components/accounting/AccountingDataGrid.tsx';
+import AccountingForm from '../components/accounting/AccountingForm.tsx';
 
 // Import Types
 import { AccountingRecord as EntityAccountingRecord } from '../types/entities';
