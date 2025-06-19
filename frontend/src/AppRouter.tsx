@@ -41,7 +41,7 @@ import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage.tsx
 import Overtime from './components/employees/Overtime';
 
 // Import the AdminRoute guard
-import AdminRoute from './components/common/AdminRoute';
+import AdminRoute from './components/common/AdminRoute.tsx';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
