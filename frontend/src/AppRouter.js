@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage.tsx';
 import ProductsPage from './pages/ProductsPage.tsx';
-import ProductDetailPage from './pages/ProductDetailPage';
+import ProductDetailPage from './pages/ProductDetailPage.tsx';
 import SuppliersPage from './pages/SuppliersPage.tsx';
 import SupplierDetailPage from './pages/SupplierDetailPage.tsx'; // Import Supplier Detail Page
 import CustomersPage from './pages/CustomersPage.tsx';
