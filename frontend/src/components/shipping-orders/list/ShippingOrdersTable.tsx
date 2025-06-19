@@ -12,7 +12,7 @@ import {
 import { DataGrid, GridColDef, GridRenderCellParams, GridPaginationModel } from '@mui/x-data-grid';
 
 import StatusChip from '../../common/StatusChip';
-import PaymentStatusChip from '../../common/PaymentStatusChip';
+import PaymentStatusChip from '../../common/PaymentStatusChip.tsx';
 
 // 定義出貨單介面
 interface ShippingOrder {

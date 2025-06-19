@@ -12,7 +12,7 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import { format } from 'date-fns';
 import StatusChip from '../common/StatusChip';
-import PaymentStatusChip from '../common/PaymentStatusChip';
+import PaymentStatusChip from '../common/PaymentStatusChip.tsx';
 
 /**
  * 進貨單表格組件
