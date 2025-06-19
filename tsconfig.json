@@ -1,71 +1,82 @@
 {
   "compilerOptions": {
     /* 基本選項 */
-    "target": "es5",                          /* 指定ECMAScript目標版本 */
-    "module": "esnext",                       /* 指定模組程式碼生成 */
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],                                        /* 指定要包含在編譯中的函式庫檔案 */
-    "allowJs": true,                          /* 允許編譯JavaScript檔案 */
-    "checkJs": false,                         /* 不報告JavaScript檔案中的錯誤 */
-    "jsx": "react-jsx",                       /* 指定JSX程式碼生成 */
+    "target": "es5",
+    "module": "esnext",
+    "allowImportingTsExtensions": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "checkJs": false,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,                        /* 生成相應的'.map'檔案 */
-    "outDir": "./dist/frontend/src",          /* 指定輸出目錄 */
-    "rootDir": "./frontend/src",              /* 指定輸入檔案的根目錄 */
-    "removeComments": true,                   /* 刪除編譯後的所有註釋 */
-    "isolatedModules": true,                  /* 將每個檔案作為單獨的模組 */
-    "forceConsistentCasingInFileNames": true, /* 不允許對同一個檔案使用不一致的大小寫引用 */
+    "sourceMap": true,
+    "removeComments": false,
+    "noEmit": true,
 
-    /* 嚴格型別檢查選項 */
-    "strict": false,                          /* 啟用所有嚴格型別檢查選項 */
-    "noImplicitAny": false,                   /* 在表達式和宣告上有隱含的any型別時報告錯誤 */
-    "strictNullChecks": false,                /* 啟用嚴格的null檢查 */
-    "strictFunctionTypes": false,             /* 啟用嚴格的函式型別檢查 */
-    "strictBindCallApply": false,             /* 啟用嚴格的'bind', 'call', 和'apply'方法的檢查 */
-    "strictPropertyInitialization": false,    /* 啟用類別屬性初始化的嚴格檢查 */
-    "noImplicitThis": false,                  /* 當'this'表達式的值為'any'型別時，生成一個錯誤 */
-    "alwaysStrict": false,                    /* 以嚴格模式解析並為每個原始檔案生成"use strict"語句 */
+    /* ==== ❶ 重要：修正路徑 ==== */
+    "rootDir": "./frontend/src",
+    "outDir": "./frontend/build",
 
-    /* 額外的檢查 */
-    "noUnusedLocals": false,                  /* 若有未使用的區域變數則報告錯誤 */
-    "noUnusedParameters": false,              /* 若有未使用的參數則報告錯誤 */
-    "noImplicitReturns": false,               /* 不是函式的所有返回路徑都有返回值時報告錯誤 */
-    "noFallthroughCasesInSwitch": false,      /* 報告switch語句的fallthrough錯誤 */
-
-    /* 模組解析選項 */
-    "moduleResolution": "node",               /* 指定模組解析策略 */
-    "baseUrl": "./",                          /* 用於解析非絕對模組名稱的基本目錄 */
-    "paths": {                                /* 模組名稱到基於baseUrl的路徑映射的列表 */
-      "*": ["node_modules/*", "frontend/src/*"]
+    /* ==== ❷ 重要：啟用絕對／別名匯入 ==== */
+    "baseUrl": "./frontend/src",
+    "paths": {
+      "@/*": ["*"],  // 之後可用 "@/hooks/useAuth"
+      "~/*": ["*"]   // 另一組別名，如有需要
     },
-    "esModuleInterop": true,                  /* 啟用CommonJS和ES模組之間的互操作性 */
-    "resolveJsonModule": true,                /* 允許導入.json檔案 */
 
-    /* 實驗性選項 */
-    "experimentalDecorators": true,           /* 啟用實驗性的ES裝飾器 */
-    "emitDecoratorMetadata": true,            /* 為裝飾器提供元數據的支援 */
+    /* ==== ❸ 重要：TypeScript 編譯選項 ==== */
+    "strict": false,              // 先設為 false，待專案穩定後再開啟
+    "noImplicitAny": false,       // 允許隱含的 any 型別
+    "strictNullChecks": false,    // 不嚴格檢查 null 和 undefined
+    "strictFunctionTypes": false, // 不嚴格檢查函數型別
+    "strictBindCallApply": false, // 不嚴格檢查 bind, call, apply
+    "strictPropertyInitialization": false, // 不嚴格檢查類別屬性初始化
+    "noImplicitThis": false,      // 允許隱含的 this
+    "alwaysStrict": false,        // 不在輸出檔案中加入 "use strict"
 
-    /* 進階選項 */
-    "skipLibCheck": true,                     /* 跳過所有聲明檔案（*.d.ts）的型別檢查 */
-    "allowSyntheticDefaultImports": true      /* 允許從沒有設置默認導出的模組中默認導入 */
+    /* ==== ❹ 其他重要選項 ==== */
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    
+    /* ==== ❺ 額外的寬鬆設定，用於轉型過程 ==== */
+    "noErrorTruncation": true,    // 顯示完整錯誤信息
+    "ignoreDeprecations": "5.0",  // 忽略舊版本的棄用警告
+    "useUnknownInCatchVariables": false, // catch 子句中使用 any 而非 unknown
+    "exactOptionalPropertyTypes": false, // 不要求可選屬性的精確類型匹配
+    "noFallthroughCasesInSwitch": false, // 允許 switch 語句中的 fallthrough
+    "noImplicitOverride": false,  // 不要求顯式標記覆蓋方法
+    "noPropertyAccessFromIndexSignature": false, // 允許從索引簽名訪問屬性
+    "noUncheckedIndexedAccess": false, // 不檢查索引訪問
+    
+    /* ==== ❻ 特別針對 Redux 和 React 的設定 ==== */
+    "allowUnreachableCode": true, // 允許不可達代碼
+    "allowUnusedLabels": true,    // 允許未使用的標籤
+    "noImplicitReturns": false    // 不要求所有代碼路徑都有返回值
   },
   "include": [
     "frontend/src/**/*.ts",
-    "frontend/src/**/*.tsx"
+    "frontend/src/**/*.tsx",
+    "frontend/src/**/*.js",
+    "frontend/src/**/*.jsx"
   ],
   "exclude": [
     "node_modules",
     "build",
     "dist",
     "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
     "**/*.spec.ts",
     "**/*.test.ts"
-  ]
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
 }

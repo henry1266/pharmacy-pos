@@ -1,77 +1,41 @@
-// @ts-nocheck - 禁用整個檔案的類型檢查，解決 React Router 類型問題
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import DashboardPage from './pages/DashboardPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import ProductsPage from './pages/ProductsPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import ProductDetailPage from './pages/ProductDetailPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SuppliersPage from './pages/SuppliersPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SupplierDetailPage from './pages/SupplierDetailPage.tsx'; // Import Supplier Detail Page
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import CustomersPage from './pages/CustomersPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import CustomerDetailPage from './pages/CustomerDetailPage.tsx'; // Import Customer Detail Page
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SalesPage from './pages/SalesPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SalesListPage from './pages/SalesListPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SalesEditPage from './pages/SalesEditPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SalesDetailPage from './pages/SalesDetailPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import ReportsPage from './pages/ReportsPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import ShippingOrdersPage from './pages/ShippingOrdersPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import AccountingPage from './pages/AccountingPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import AccountingNewPage from './pages/AccountingNewPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import AccountingCategoryPage from './pages/AccountingCategoryPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage.tsx'; // Import All Categories Detail Page
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import ProductCategoryPage from './pages/ProductCategoryPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import CategoryDetailPage from './pages/CategoryDetailPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SettingsIpPage from './pages/SettingsIpPage.tsx'; // Import the new IP settings page
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import SettingsPage from './pages/SettingsPage.tsx'; // Import the theme settings page
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import AccountSettingsPage from './pages/settings/AccountSettingsPage.tsx'; // Import the account settings page
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage.tsx'; // Import the employee accounts management page
 
 // 員工管理頁面元件
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage.tsx'; // 員工基本資料頁面
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import EmployeeListPage from './pages/employees/EmployeeListPage.tsx'; // 員工列表頁面
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage.tsx'; // 員工排班頁面
 
 import Overtime from './components/employees/Overtime';
