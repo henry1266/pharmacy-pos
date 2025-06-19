@@ -21,7 +21,7 @@ import { useSaleEditManagement } from '../hooks/useSaleEditManagement';
 // Import sub-components
 import SaleEditInfoCard from '../components/sales/SaleEditInfoCard';
 import SalesEditItemsTable from '../components/sales/SalesEditItemsTable';
-import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard';
+import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard.tsx';
 
 /**
  * 為了解決 Grid 元件的問題，創建一個包裝元件
