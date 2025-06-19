@@ -33,7 +33,7 @@ import { zhTW } from 'date-fns/locale';
 import { fetchShippingOrder } from '../redux/actions';
 import DetailLayout from '../components/DetailLayout';
 import ProductItemsTable from '../components/common/ProductItemsTable';
-import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
+import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo.tsx';
 import { getProductByCode } from '../services/productService';
 
 // 定義出貨單項目類型
