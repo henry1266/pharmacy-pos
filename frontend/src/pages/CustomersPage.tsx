@@ -30,7 +30,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import CommonListPageLayout from '../components/common/CommonListPageLayout';
+import CommonListPageLayout from '../components/common/CommonListPageLayout.tsx';
 import useCustomerData from '../hooks/useCustomerData';
 
 // 定義客戶資料介面
