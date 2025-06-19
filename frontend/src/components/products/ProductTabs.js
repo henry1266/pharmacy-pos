@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import DataTable from '../tables/DataTable';
+import DataTable from '../tables/DataTable.tsx'; // 假設 DataTable 在 ./tables/ 中
 import TabPanel from './TabPanel';
 
 const ProductTabs = ({

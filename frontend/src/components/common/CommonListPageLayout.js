@@ -7,7 +7,7 @@ import {
   Paper,
   CircularProgress
 } from '@mui/material';
-import DataTable from '../tables/DataTable'; // Assuming DataTable is in ./tables/
+import DataTable from '../tables/DataTable.tsx'; // Assuming DataTable is in ./tables/
 
 /**
  * 通用的列表頁面佈局組件
