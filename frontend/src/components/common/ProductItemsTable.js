@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import ProductCodeLink from './ProductCodeLink';
-import GrossProfitCell from './GrossProfitCell';
+import GrossProfitCell from './GrossProfitCell.tsx';
 
 /**
  * 計算單價的輔助函數
