@@ -21,7 +21,7 @@ import useSalesData from '../hooks/useSalesData';
 import useSaleManagement from '../hooks/useSaleManagement';
 
 // Import sub-components
-import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
+import ShortcutButtonManager from '../components/sales/ShortcutButtonManager.tsx';
 import CustomProductsDialog from '../components/sales/CustomProductsDialog';
 import SaleInfoCard from '../components/sales/SaleInfoCard';
 import SalesProductInput from '../components/sales/SalesProductInput';
