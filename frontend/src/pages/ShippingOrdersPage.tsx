@@ -33,7 +33,7 @@ import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrde
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter.tsx';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog.tsx';
 import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions.tsx';
-import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 // 使用通用類型定義

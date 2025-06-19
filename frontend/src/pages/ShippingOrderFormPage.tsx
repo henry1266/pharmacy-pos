@@ -25,7 +25,7 @@ import { RootState } from '../redux/store.ts'; // 假設你有一個 RootState �
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
 import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm.tsx';
 import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable.tsx';
-import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)
