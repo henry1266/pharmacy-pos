@@ -33,7 +33,7 @@ import AddIcon from '@mui/icons-material/Add';
 import zhTW from 'date-fns/locale/zh-TW';
 import { format } from 'date-fns';
 import { getAccountingCategories } from '../../services/accountingCategoryService';
-import StatusSelect from '../common/form/StatusSelect';
+import StatusSelect from '../common/form/StatusSelect.tsx';
 
 // 記帳項目介面
 interface AccountingItem {
