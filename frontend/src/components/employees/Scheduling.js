@@ -14,7 +14,7 @@ import {
 import useEmployeeScheduling from '../../hooks/useEmployeeScheduling';
 import useCalendarGrid from '../../hooks/useCalendarGrid';
 import useKeyboardNavigation from '../../hooks/useKeyboardNavigation';
-import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
+import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation.ts';
 import useScheduleOperations from '../../hooks/useScheduleOperations';
 import ShiftSelectionModal from './ShiftSelectionModal';
 import QuickSelectPanel from './QuickSelectPanel';
