@@ -29,7 +29,7 @@ import { fetchShippingOrders } from '../redux/actions';
 // Import Presentation Components
 import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview.tsx';
 import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
-import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
+import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable.tsx';
 import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
 import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions';
