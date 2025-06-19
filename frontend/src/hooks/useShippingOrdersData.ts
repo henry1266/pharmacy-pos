@@ -119,9 +119,17 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
     if (shippingOrders.length > 0) {
       let filtered = [...shippingOrders];
       if (selectedSuppliers.length > 0) {
-        filtered = filtered.filter(so => 
-          typeof so.sosupplier === 'string' && selectedSuppliers.includes(so.sosupplier)
-        );
+        filtered = filtered.filter(so => {
+          // 處理 sosupplier 是字符串的情況
+          if (typeof so.sosupplier === 'string') {
+            return selectedSuppliers.includes(so.sosupplier);
+          }
+          // 處理 sosupplier 是對象的情況
+          else if (typeof so.sosupplier === 'object' && so.sosupplier && so.sosupplier.name) {
+            return selectedSuppliers.includes(so.sosupplier.name);
+          }
+          return false;
+        });
       }
       const formattedRows = filtered.map(so => ({
         id: so._id,

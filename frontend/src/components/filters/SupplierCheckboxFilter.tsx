@@ -70,6 +70,9 @@ const SupplierCheckboxFilter: React.FC<SupplierCheckboxFilterProps> = ({
     }
     
     setLocalSelectedSuppliers(newSelected);
+    
+    // 立即應用篩選變更
+    onFilterChange(newSelected);
   };
   
   // 處理應用篩選
@@ -87,13 +90,19 @@ const SupplierCheckboxFilter: React.FC<SupplierCheckboxFilterProps> = ({
   
   // 處理全選
   const handleSelectAll = () => {
+    let newSelected: string[] = [];
+    
     if (suppliers.length === localSelectedSuppliers.length) {
       // 如果已經全選，則清除所有選擇
       setLocalSelectedSuppliers([]);
     } else {
       // 否則選擇所有供應商
-      setLocalSelectedSuppliers(suppliers.map(supplier => supplier.name));
+      newSelected = suppliers.map(supplier => supplier.name);
+      setLocalSelectedSuppliers(newSelected);
     }
+    
+    // 立即應用篩選變更
+    onFilterChange(newSelected);
   };
   
   const open = Boolean(anchorEl);

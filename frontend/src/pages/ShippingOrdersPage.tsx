@@ -265,10 +265,9 @@ const ShippingOrdersPage: React.FC = () => {
         suppliers={suppliers}
         selectedSuppliers={selectedSuppliers}
         onFilterChange={handleSupplierFilterChange}
-        {...{ loading: suppliersLoading } as any} // 使用展開運算符和類型斷言
       />
     );
-  }, [suppliers, selectedSuppliers, handleSupplierFilterChange, suppliersLoading]);
+  }, [suppliers, selectedSuppliers, handleSupplierFilterChange]);
 
   return (
     <Box>
@@ -318,6 +317,7 @@ const ShippingOrdersPage: React.FC = () => {
               handleDateChange={handleDateChange}
               handleSearch={handleSearch}
               handleClearSearch={handleClearSearch}
+              suppliers={suppliers}
             />
           )}
 
