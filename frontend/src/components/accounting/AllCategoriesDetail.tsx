@@ -280,51 +280,77 @@ const AllCategoriesDetail: React.FC = () => {
     '7月', '8月', '9月', '10月', '11月', '12月'
   ];
   
+  // 月份列表項目介面
+  interface MonthListItemProps {
+    month: string;
+    index: number;
+    isSelected: boolean;
+    amount: number;
+    onSelect: (index: number) => void;
+  }
+  
+  // 月份列表項目組件
+  const MonthListItem: React.FC<MonthListItemProps> = ({
+    month,
+    index,
+    isSelected,
+    amount,
+    onSelect
+  }) => (
+    <ListItem
+      key={`month-${month}`}
+      disablePadding
+      divider
+      sx={{
+        backgroundColor: isSelected ? '#e3f2fd' : 'transparent',
+        '&:hover': {
+          backgroundColor: isSelected ? '#e3f2fd' : '#f5f5f5'
+        }
+      }}
+    >
+      <ListItemButton
+        onClick={() => onSelect(index)}
+        sx={{ py: 0.5 }}
+      >
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%'
+        }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.primary',
+              fontWeight: isSelected ? 'bold' : 'normal'
+            }}
+          >
+            {month}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: amount > 0 ? 'primary.main' : 'text.secondary',
+              fontWeight: 'bold'
+            }}
+          >
+            ${amount}
+          </Typography>
+        </Box>
+      </ListItemButton>
+    </ListItem>
+  );
+  
   // 渲染月份列表項目
   const renderMonthListItem = (month: string, index: number): React.ReactNode => {
     return (
-      <ListItem 
-        key={`month-${month}`}
-        disablePadding 
-        divider
-        sx={{
-          backgroundColor: selectedMonth === index ? '#e3f2fd' : 'transparent',
-          '&:hover': {
-            backgroundColor: selectedMonth === index ? '#e3f2fd' : '#f5f5f5'
-          }
-        }}
-      >
-        <ListItemButton 
-          onClick={() => handleMonthSelect(index)}
-          sx={{ py: 0.5 }}
-        >
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            width: '100%' 
-          }}>
-            <Typography 
-              variant="body2"
-              sx={{ 
-                color: 'text.primary',
-                fontWeight: selectedMonth === index ? 'bold' : 'normal'
-              }}
-            >
-              {month}
-            </Typography>
-            <Typography 
-              variant="body2"
-              sx={{ 
-                color: monthlyData[index] > 0 ? 'primary.main' : 'text.secondary',
-                fontWeight: 'bold'
-              }}
-            >
-              ${monthlyData[index]}
-            </Typography>
-          </Box>
-        </ListItemButton>
-      </ListItem>
+      <MonthListItem
+        month={month}
+        index={index}
+        isSelected={selectedMonth === index}
+        amount={monthlyData[index]}
+        onSelect={handleMonthSelect}
+      />
     );
   };
   
@@ -368,28 +394,49 @@ const AllCategoriesDetail: React.FC = () => {
     );
   };
   
+  // 日曆格子樣式
+  const calendarCellStyles = {
+    base: {
+      width: 'calc(100% / 7)',
+      height: '70px',
+      p: 1,
+      border: '1px solid #e0e0e0',
+      position: 'relative',
+    },
+    current: {
+      backgroundColor: 'white',
+      '&:hover': {
+        backgroundColor: '#f0f7ff'
+      }
+    },
+    other: {
+      backgroundColor: '#f9f9f9',
+      '&:hover': {
+        backgroundColor: '#f9f9f9'
+      }
+    }
+  };
+  
   // 渲染日曆格子
   const renderCalendarCell = (
-    index: number,
     dayOffset: number,
     isCurrentMonth: boolean,
     dayAmount: number
   ): React.ReactNode => {
+    // 使用日期作為唯一識別符
+    const cellKey = `day-${currentYear}-${selectedMonth}-${dayOffset}`;
+    
     return (
-      <Box key={`day-${dayOffset}-${isCurrentMonth}`} sx={{ 
-        width: 'calc(100% / 7)',
-        height: '70px',
-        p: 1, 
-        border: '1px solid #e0e0e0',
-        backgroundColor: isCurrentMonth ? 'white' : '#f9f9f9',
-        position: 'relative',
-        '&:hover': {
-          backgroundColor: isCurrentMonth ? '#f0f7ff' : '#f9f9f9'
-        }
-      }}>
+      <Box
+        key={cellKey}
+        sx={{
+          ...calendarCellStyles.base,
+          ...(isCurrentMonth ? calendarCellStyles.current : calendarCellStyles.other)
+        }}
+      >
         {isCurrentMonth && (
           <>
-            <Typography variant="body2" sx={{ 
+            <Typography variant="body2" sx={{
               position: 'absolute',
               top: '5px',
               left: '5px'
@@ -403,7 +450,7 @@ const AllCategoriesDetail: React.FC = () => {
                 alignItems: 'center',
                 height: '100%'
               }}>
-                <Typography variant="body1" color={dayAmount > 0 ? 'primary' : 'text.secondary'} sx={{ fontWeight: 'bold' }}>
+                <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
                   ${dayAmount}
                 </Typography>
               </Box>
@@ -455,7 +502,7 @@ const AllCategoriesDetail: React.FC = () => {
             const isCurrentMonth = dayOffset > 0 && dayOffset <= daysInMonth;
             const dayAmount = isCurrentMonth ? dailyData[selectedMonth][dayOffset] : 0;
             
-            return renderCalendarCell(index, dayOffset, isCurrentMonth, dayAmount);
+            return renderCalendarCell(dayOffset, isCurrentMonth, dayAmount);
           })}
         </Box>
       </Box>
@@ -469,6 +516,85 @@ const AllCategoriesDetail: React.FC = () => {
       金額: monthlyData[parseInt(month)],
       月份: parseInt(month) + 1
     }));
+  };
+  
+  // 圖表共用元素
+  const ChartCommonElements = ({ dataKey = "月份" }: { dataKey?: string }) => (
+    <>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey={dataKey} />
+      <YAxis />
+      <RechartsTooltip
+        formatter={(value: number) => [`$${value}`, '金額']}
+        labelFormatter={(label: string) => `${label}月`}
+      />
+      <Legend />
+    </>
+  );
+  
+  // 渲染長條圖
+  const renderBarChart = (data: ChartData[]): React.ReactNode => (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data}>
+        <ChartCommonElements />
+        <Bar dataKey="金額" fill="#8884d8" name="金額" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+  
+  // 渲染折線圖
+  const renderLineChart = (data: ChartData[]): React.ReactNode => (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data}>
+        <ChartCommonElements />
+        <Line
+          type="monotone"
+          dataKey="金額"
+          stroke="#8884d8"
+          activeDot={{ r: 8 }}
+          name="金額"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+  
+  // 渲染圓餅圖
+  const renderPieChart = (pieData: ChartData[], COLORS: string[]): React.ReactNode => (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={pieData}
+          cx="50%"
+          cy="50%"
+          labelLine={true}
+          outerRadius={100}
+          fill="#8884d8"
+          dataKey="金額"
+          nameKey="name"
+          label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+        >
+          {pieData.map((entry, index) => (
+            <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <RechartsTooltip formatter={(value: number) => [`$${value}`, '金額']} />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+  
+  // 渲染圖表 - 根據類型選擇適當的圖表
+  const renderChart = (type: number, data: ChartData[], pieData: ChartData[], COLORS: string[]): React.ReactNode => {
+    switch (type) {
+      case 0: // 長條圖
+        return renderBarChart(data);
+      case 1: // 折線圖
+        return renderLineChart(data);
+      case 2: // 圓餅圖
+        return renderPieChart(pieData, COLORS);
+      default:
+        return null;
+    }
   };
   
   // 生成數據可視化圖表
@@ -496,102 +622,114 @@ const AllCategoriesDetail: React.FC = () => {
         </Box>
         
         <Box sx={{ height: 300, mt: 2 }}>
-          {chartType === 0 && (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="月份" />
-                <YAxis />
-                <RechartsTooltip 
-                  formatter={(value: number) => [`$${value}`, '金額']}
-                  labelFormatter={(label: string) => `${label}月`}
-                />
-                <Legend />
-                <Bar dataKey="金額" fill="#8884d8" name="金額" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-          
-          {chartType === 1 && (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="月份" />
-                <YAxis />
-                <RechartsTooltip 
-                  formatter={(value: number) => [`$${value}`, '金額']}
-                  labelFormatter={(label: string) => `${label}月`}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="金額" 
-                  stroke="#8884d8" 
-                  activeDot={{ r: 8 }} 
-                  name="金額"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-          
-          {chartType === 2 && (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="金額"
-                  nameKey="name"
-                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <RechartsTooltip formatter={(value: number) => [`$${value}`, '金額']} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
+          {renderChart(chartType, data, pieData, COLORS)}
         </Box>
       </Box>
     );
   };
   
+  // 通用資訊卡片組件介面
+  interface InfoCardProps {
+    title: string;
+    content: React.ReactNode;
+  }
+  
+  // 通用資訊卡片組件
+  const InfoCard: React.FC<InfoCardProps> = ({ title, content }) => (
+    <Card>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          {title}
+        </Typography>
+        {content}
+      </CardContent>
+    </Card>
+  );
+  
+  // 頁面標題組件介面
+  interface PageHeaderProps {
+    title: string;
+    onBack: () => void;
+    onExport: () => void;
+    exportDisabled: boolean;
+  }
+  
+  // 頁面標題組件
+  const PageHeader: React.FC<PageHeaderProps> = ({
+    title,
+    onBack,
+    onExport,
+    exportDisabled
+  }) => (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={onBack}
+          sx={{ mr: 1 }}
+        >
+          返回
+        </Button>
+        <Typography variant="h4">
+          {title}
+        </Typography>
+      </Box>
+      <Box>
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={onExport}
+          sx={{ ml: 1 }}
+          disabled={exportDisabled}
+        >
+          導出CSV
+        </Button>
+      </Box>
+    </Box>
+  );
+  
+  // 渲染彙總資訊卡片
+  const renderSummaryInfoCard = (): React.ReactNode => {
+    const content = (
+      <>
+        <Typography variant="body1">
+          <strong>類別數量:</strong> {categories.length}
+        </Typography>
+        <Typography variant="body1">
+          <strong>記錄數量:</strong> {records.length}
+        </Typography>
+      </>
+    );
+    
+    return <InfoCard title="彙總資訊" content={content} />;
+  };
+  
+  // 渲染年度統計卡片
+  const renderYearlyStatsCard = (): React.ReactNode => {
+    const content = (
+      <>
+        <Typography variant="body1">
+          <strong>總金額:</strong> ${calculateYearlyTotal()}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          顯示{currentYear}年度所有類別的月度加總統計
+        </Typography>
+      </>
+    );
+    
+    return <InfoCard title={`${currentYear}年度統計`} content={content} />;
+  };
+  
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-          >
-            返回
-          </Button>
-          <Typography variant="h4">
-            所有類別 - 月度統計
-          </Typography>
-        </Box>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExportCSV}
-            sx={{ ml: 1 }}
-            disabled={loading}
-          >
-            導出CSV
-          </Button>
-        </Box>
-      </Box>
+      <PageHeader
+        title="所有類別 - 月度統計"
+        onBack={handleBack}
+        onExport={handleExportCSV}
+        exportDisabled={loading}
+      />
       
-      {/* 使用獨立的條件渲染替代巢狀三元運算子 */}
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
@@ -606,34 +744,10 @@ const AllCategoriesDetail: React.FC = () => {
         <Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
             <Box sx={{ flex: '1 1 100%', maxWidth: { xs: '100%', md: '48%' } }}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    彙總資訊
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>類別數量:</strong> {categories.length}
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>記錄數量:</strong> {records.length}
-                  </Typography>
-                </CardContent>
-              </Card>
+              {renderSummaryInfoCard()}
             </Box>
             <Box sx={{ flex: '1 1 100%', maxWidth: { xs: '100%', md: '48%' } }}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {currentYear}年度統計
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>總金額:</strong> ${calculateYearlyTotal()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    顯示{currentYear}年度所有類別的月度加總統計
-                  </Typography>
-                </CardContent>
-              </Card>
+              {renderYearlyStatsCard()}
             </Box>
           </Box>
           
