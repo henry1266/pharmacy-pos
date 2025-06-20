@@ -19,14 +19,14 @@ import {
   updateShippingOrder,
   fetchSuppliers,
   fetchProducts
-} from '../redux/actions.ts';
-import { RootState } from '../redux/store.ts'; // 假設你有一個 RootState 型別
+} from '../redux/actions';
+import { RootState } from '../redux/store'; // 假設你有一個 RootState 型別
 
 // 導入拆分後的組件
-import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index.tsx';
-import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm.tsx';
-import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable.tsx';
-import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
+import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index';
+import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm';
+import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable';
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)

@@ -24,17 +24,17 @@ import useShippingOrdersData from '../hooks/useShippingOrdersData';
 
 // Import Service functions for CSV import
 import { importShippingOrdersBasic, importShippingOrdersItems } from '../services/shippingOrdersService';
-import { fetchShippingOrders } from '../redux/actions.ts';
+import { fetchShippingOrders } from '../redux/actions';
 
 // Import Presentation Components
-import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview.tsx';
-import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter.tsx';
-import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable.tsx';
-import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter.tsx';
-import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog.tsx';
-import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions.tsx';
-import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
-import FilterPriceSummary from '../components/common/FilterPriceSummary.tsx';
+import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview';
+import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
+import ShippingOrdersTable from '../components/shipping-orders/list/ShippingOrdersTable';
+import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrdersFilter';
+import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog';
+import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions';
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
+import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 // 使用通用類型定義
 type ShippingOrder = any;

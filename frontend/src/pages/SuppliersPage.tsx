@@ -31,8 +31,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
-import CommonListPageLayout from '../components/common/CommonListPageLayout.tsx';
-import useSupplierData from '../hooks/useSupplierData.ts';
+import CommonListPageLayout from '../components/common/CommonListPageLayout';
+import useSupplierData from '../hooks/useSupplierData';
 
 // 定義供應商資料介面
 interface SupplierData {

@@ -4,12 +4,12 @@ import {
   Button,
   CircularProgress
 } from '@mui/material';
-import PersonalInfoSection from './PersonalInfoSection.tsx';
-import ContactInfoSection from './ContactInfoSection.tsx';
-import WorkInfoSection from './WorkInfoSection.tsx';
-import IDCardSection from './IDCardSection.tsx';
-import AdditionalInfoSection from './AdditionalInfoSection.tsx';
-import FormSection from './shared/FormSection.tsx';
+import PersonalInfoSection from './PersonalInfoSection';
+import ContactInfoSection from './ContactInfoSection';
+import WorkInfoSection from './WorkInfoSection';
+import IDCardSection from './IDCardSection';
+import AdditionalInfoSection from './AdditionalInfoSection';
+import FormSection from './shared/FormSection';
 
 // 定義員工資料介面
 export interface EmployeeFormData {
