@@ -40,7 +40,7 @@ import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTab
 import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter.tsx';
 import CsvImportDialog from '../components/purchase-orders/CsvImportDialog.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
-import FilterPriceSummary from '../components/common/FilterPriceSummary';
+import FilterPriceSummary from '../components/common/FilterPriceSummary.tsx';
 
 // 定義介面
 interface PurchaseOrdersPageProps {

@@ -34,7 +34,7 @@ import ShippingOrdersFilter from '../components/shipping-orders/list/ShippingOrd
 import CsvImportDialog from '../components/shipping-orders/import/CsvImportDialog.tsx';
 import ShippingOrderImportOptions from '../components/shipping-orders/import/ShippingOrderImportOptions.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
-import FilterPriceSummary from '../components/common/FilterPriceSummary';
+import FilterPriceSummary from '../components/common/FilterPriceSummary.tsx';
 
 // 使用通用類型定義
 type ShippingOrder = any;

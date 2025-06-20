@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import useInventoryData from '../../../../hooks/useInventoryData';
-import PriceTooltip from '../../../form-widgets/PriceTooltip';
+import PriceTooltip from '../../../form-widgets/PriceTooltip.tsx';
 
 // 定義產品介面
 interface Product {
