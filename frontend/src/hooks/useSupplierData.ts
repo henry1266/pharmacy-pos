@@ -59,7 +59,7 @@ const useSupplierData = () => {
   // Select supplier
   const selectSupplier = useCallback((id: string): void => {
     const supplier = suppliers.find(s => s._id === id || (s as any).id === id);
-    setSelectedSupplier(supplier || null);
+    setSelectedSupplier(supplier ?? null);
   }, [suppliers]);
 
   // Add supplier
@@ -70,7 +70,7 @@ const useSupplierData = () => {
       return true; // Indicate success
     } catch (err: any) {
       console.error('新增供應商失敗 (hook):', err);
-      setError(`新增供應商失敗: ${err.response?.data?.message || err.message}`);
+      setError(`新增供應商失敗: ${err.response?.data?.message ?? err.message}`);
       return false; // Indicate failure
     }
   }, [fetchSuppliers]);
@@ -83,12 +83,12 @@ const useSupplierData = () => {
       // Update selected supplier if it was the one being edited
       if (selectedSupplier && (selectedSupplier._id === id || (selectedSupplier as any).id === id)) {
         const updatedSelected = suppliers.find(s => s._id === id || (s as any).id === id);
-        setSelectedSupplier(updatedSelected || null);
+        setSelectedSupplier(updatedSelected ?? null);
       }
       return true; // Indicate success
     } catch (err: any) {
       console.error('更新供應商失敗 (hook):', err);
-      setError(`更新供應商失敗: ${err.response?.data?.message || err.message}`);
+      setError(`更新供應商失敗: ${err.response?.data?.message ?? err.message}`);
       return false; // Indicate failure
     }
   }, [fetchSuppliers, selectedSupplier, suppliers]);
@@ -104,7 +104,7 @@ const useSupplierData = () => {
       return true; // Indicate success
     } catch (err: any) {
       console.error('刪除供應商失敗 (hook):', err);
-      setError(`刪除供應商失敗: ${err.response?.data?.message || err.message}`);
+      setError(`刪除供應商失敗: ${err.response?.data?.message ?? err.message}`);
       return false; // Indicate failure
     }
   }, [fetchSuppliers, selectedSupplier]);
@@ -119,15 +119,15 @@ const useSupplierData = () => {
       
       // 將服務返回結果轉換為 ImportResult 格式
       return {
-        total: result.total || 0,
-        success: result.imported || 0,
-        failed: result.failed || 0,
-        duplicates: result.duplicates || 0,
-        errors: result.errors?.map(err => ({ error: typeof err === 'string' ? err : JSON.stringify(err) })) || []
+        total: result.total ?? 0,
+        success: result.imported ?? 0,
+        failed: result.failed ?? 0,
+        duplicates: result.duplicates ?? 0,
+        errors: result.errors?.map(err => ({ error: typeof err === 'string' ? err : JSON.stringify(err) })) ?? []
       };
     } catch (err: any) {
       console.error('匯入供應商 CSV 失敗 (hook):', err);
-      setError(`匯入 CSV 失敗: ${err.response?.data?.message || err.message}`);
+      setError(`匯入 CSV 失敗: ${err.response?.data?.message ?? err.message}`);
       // Return a structured error result
       return { total: 0, success: 0, failed: 0, duplicates: 0, errors: [{ error: err.message }] };
     }

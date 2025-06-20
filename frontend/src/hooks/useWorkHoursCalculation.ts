@@ -5,9 +5,7 @@ import {
   initializeEmployeeHours,
   allocateHoursByLeaveType,
   formatEmployeeHours,
-  ShiftType,
-  HoursData,
-  FormattedEmployeeHours
+  ShiftType
 } from '../utils/workHoursUtils.ts';
 import { SchedulesByDate, EmployeeSchedule } from '../services/employeeScheduleService';
 
@@ -20,7 +18,7 @@ interface Schedule {
     name: string;
     [key: string]: any;
   };
-  leaveType?: 'overtime' | 'personal' | 'sick' | null | undefined;
+  leaveType?: 'overtime' | 'personal' | 'sick' | null;
   [key: string]: any;
 }
 
@@ -89,13 +87,16 @@ const useWorkHoursCalculation = (schedulesGroupedByDate: SchedulesByDate) => {
       allocateHoursByLeaveType(scheduleForAllocation, shiftHours, employeeHoursData);
     };
 
+    // 處理特定日期的排班
+    const processScheduleForShift = (schedule: EmployeeSchedule, shift: string): void => {
+      processScheduleHours(schedule, shift);
+    };
+
     // 處理特定日期的所有班次排班
     const processDateSchedules = (schedules: { [shift: string]: EmployeeSchedule[] }): void => {
       SHIFT_NAMES.forEach(shift => {
         if (schedules[shift]?.length > 0) {
-          schedules[shift].forEach(schedule => {
-            processScheduleHours(schedule, shift);
-          });
+          schedules[shift].forEach(schedule => processScheduleForShift(schedule, shift));
         }
       });
     };

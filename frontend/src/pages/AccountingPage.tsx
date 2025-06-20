@@ -47,10 +47,13 @@ interface FormData {
   unaccountedSales: UnaccountedSale[];
 }
 
+// 定義嚴重性類型別名
+type AlertSeverity = 'success' | 'error' | 'info' | 'warning';
+
 interface SnackbarState {
   open: boolean;
   message: string;
-  severity: 'success' | 'error' | 'info' | 'warning';
+  severity: AlertSeverity;
 }
 
 // 擴展 AccountingRecord 類型，以匹配組件中使用的結構
@@ -82,7 +85,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertSeverity>('success');
   const [editMode, setEditMode] = useState<boolean>(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState<boolean>(false);
@@ -119,7 +122,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       setFormData(result.data);
       setOpenDialog(true);
     } else {
-      showSnackbar(result.error || '載入編輯資料失敗', 'error');
+      showSnackbar(result.error ?? '載入編輯資料失敗', 'error');
       // Reset state if fetch fails
       setEditMode(false);
       setCurrentId(null);
@@ -176,7 +179,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       }
     } catch (err: any) {
       console.error('提交記帳記錄失敗:', err);
-      showSnackbar(err.message || '提交記帳記錄失敗', 'error');
+      showSnackbar(err.message ?? '提交記帳記錄失敗', 'error');
     } finally {
       setFormLoading(false);
     }
@@ -191,14 +194,14 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
         showSnackbar('記帳記錄已刪除', 'success');
         // No need to call fetchRecords here if hook handles optimistic update
       } else {
-        showSnackbar(result.error || '刪除記帳記錄失敗', 'error');
+        showSnackbar(result.error ?? '刪除記帳記錄失敗', 'error');
       }
       setFormLoading(false);
     }
   };
 
   // Show Snackbar utility
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning'): void => {
+  const showSnackbar = (message: string, severity: AlertSeverity): void => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
     setOpenSnackbar(true);

@@ -11,7 +11,6 @@ import {
   CircularProgress,
   Chip
 } from '@mui/material';
-import { Theme, SxProps } from '@mui/material/styles';
 import authService from '../../services/authService';
 
 // 定義用戶介面
@@ -121,7 +120,7 @@ const AccountSettingsPage: React.FC = () => {
             value={formData.username}
             onChange={handleInputChange}
             error={!!formErrors.username}
-            helperText={formErrors.username || "用於系統登入的用戶名"}
+            helperText={formErrors.username ?? "用於系統登入的用戶名"}
           />
         </Grid>
         
@@ -171,7 +170,7 @@ const AccountSettingsPage: React.FC = () => {
             value={formData.newPassword}
             onChange={handleInputChange}
             error={!!formErrors.newPassword}
-            helperText={formErrors.newPassword || "密碼長度至少需要6個字符"}
+            helperText={formErrors.newPassword ?? "密碼長度至少需要6個字符"}
           />
         </Grid>
         
