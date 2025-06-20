@@ -197,7 +197,7 @@ const CustomerFormDialog: FC<CustomerFormDialogProps> = ({
         <TextField name="birthdate" label="出生年月日" type="date" value={currentCustomerState.birthdate ? new Date(currentCustomerState.birthdate).toISOString().split('T')[0] : ''} onChange={onInputChange} fullWidth margin="dense" size="small" InputLabelProps={{ shrink: true }} />
         <TextField name="email" label="電子郵件" value={currentCustomerState.email} onChange={onInputChange} fullWidth margin="dense" size="small" />
         <TextField name="address" label="地址" value={currentCustomerState.address} onChange={onInputChange} fullWidth margin="dense" size="small" />
-        <TextField name="note" label="備註" value={currentCustomerState.note || ''} onChange={onInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
+        <TextField name="note" label="備註" value={currentCustomerState.note ?? ''} onChange={onInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
         <FormControl fullWidth margin="dense" size="small">
           <InputLabel>會員等級</InputLabel>
           <Select name="membershipLevel" value={currentCustomerState.membershipLevel} onChange={onInputChange} label="會員等級">
@@ -248,7 +248,7 @@ const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, h
   return (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
       <CardHeader
-        avatar={<Avatar sx={{ bgcolor: 'secondary.main' }}>{selectedCustomer.name?.charAt(0) || 'C'}</Avatar>}
+        avatar={<Avatar sx={{ bgcolor: 'secondary.main' }}>{selectedCustomer.name?.charAt(0) ?? 'C'}</Avatar>}
         title={<Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>{selectedCustomer.name}</Typography>}
         subheader={`編號: ${selectedCustomer.code}`}
         action={
