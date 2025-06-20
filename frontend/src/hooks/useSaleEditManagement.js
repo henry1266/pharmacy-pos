@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as salesService from '../services/salesService'; // Ensure this path is correct
+import * as salesService from '../services/salesService.ts'; // Ensure this path is correct
 
 export const useSaleEditManagement = (initialSaleData, products, saleId) => {
   const navigate = useNavigate();

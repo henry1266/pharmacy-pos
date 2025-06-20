@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getLatestSaleNumber, createSale } from '../services/salesService';
+import { getLatestSaleNumber, createSale } from '../services/salesService.ts';
 
 const initialSaleState = {
   saleNumber: '',

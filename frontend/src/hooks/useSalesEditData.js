@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import * as salesService from '../services/salesService';
-import * as productService from '../services/productService'; // Corrected: Import from productService
-import * as customerService from '../services/customerService'; // Corrected: Import from customerService
+import * as salesService from '../services/salesService.ts';
+import * as productService from '../services/productService.ts'; // Corrected: Import from productService
+import * as customerService from '../services/customerService.ts'; // Corrected: Import from customerService
 
 export const useSalesEditData = (saleId) => {
   const [initialSaleData, setInitialSaleData] = useState(null);
