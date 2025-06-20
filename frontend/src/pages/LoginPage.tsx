@@ -220,7 +220,7 @@ const LoginPage = () => {
                           name="loginType"
                           value={credentials.loginType}
                           onChange={handleChange}
-                          disabled={loading || isTestMode}
+                          disabled={loading ?? isTestMode}
                           label="登入方式"
                           sx={{ color: '#fff' }}
                         >
@@ -238,7 +238,7 @@ const LoginPage = () => {
                           value={credentials.username}
                           onChange={handleChange}
                           required={!isTestMode && credentials.loginType === 'username'}
-                          disabled={loading || isTestMode || credentials.loginType !== 'username'}
+                          disabled={loading ?? isTestMode ?? credentials.loginType !== 'username'}
                           InputProps={{ sx: { color: '#fff' } }}
                           InputLabelProps={{ sx: { color: '#bbb' } }}
                           sx={{ mb: 2 }}

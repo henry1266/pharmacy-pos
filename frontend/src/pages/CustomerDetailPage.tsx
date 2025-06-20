@@ -37,7 +37,7 @@ const CustomerDetailPage: FC = () => {
   const { id } = useParams<CustomerDetailParams>();
 
   // 使用自定義 hook 進行資料和狀態管理
-  const { customer, loading, error } = useCustomerDetailData(id || '');
+  const { customer, loading, error } = useCustomerDetailData(id ?? '');
 
   // 事件處理函數
   const handleBack = (): void => {

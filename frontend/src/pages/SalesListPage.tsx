@@ -241,10 +241,10 @@ const SalesListPage: FC = () => {
     const saleNumber = sale.saleNumber ?? '';
     const saleDate = sale.date ? format(new Date(sale.date), 'yyyy-MM-dd') : '';
     
-    return customerName.toLowerCase().includes(searchTermLower) ||
-           productNames.toLowerCase().includes(searchTermLower) ||
-           saleId.toLowerCase().includes(searchTermLower) ||
-           saleNumber.toLowerCase().includes(searchTermLower) ||
+    return customerName.toLowerCase().includes(searchTermLower) ??
+           productNames.toLowerCase().includes(searchTermLower) ??
+           saleId.toLowerCase().includes(searchTermLower) ??
+           saleNumber.toLowerCase().includes(searchTermLower) ??
            saleDate.includes(searchTermLower);
   });
 

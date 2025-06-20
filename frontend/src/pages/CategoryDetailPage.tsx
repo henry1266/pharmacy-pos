@@ -118,7 +118,7 @@ const CategorySummaryCard: React.FC<CategorySummaryCardProps> = ({
         {category.name}
       </Typography>
       <Typography variant="body1" color="text.secondary" paragraph>
-        {category.description || '無描述'}
+        {category.description ?? '無描述'}
       </Typography>
       <Divider sx={{ my: 2 }} />
       <Grid container spacing={2}>
@@ -199,7 +199,7 @@ const CategoryDetailPage: React.FC = () => {
     loadingProductData,
     categoryTotalProfitLoss,
     categoryTotalStock,
-  } = useCategoryDetailData(id || '');
+  } = useCategoryDetailData(id ?? '');
 
   const handleBack = (): void => {
     navigate(-1);

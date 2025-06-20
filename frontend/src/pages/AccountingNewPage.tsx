@@ -425,7 +425,7 @@ const AccountingNewPage: React.FC = () => {
                         value={item.category}
                         label="名目"
                         onChange={(e) => handleItemChange(index, 'category', e.target.value)}
-                        disabled={loadingCategories || submitting}
+                        disabled={loadingCategories ?? submitting}
                       >
                         {renderCategoryOptions()}
                       </Select>
