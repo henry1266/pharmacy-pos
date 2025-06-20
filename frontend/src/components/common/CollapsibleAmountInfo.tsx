@@ -17,8 +17,8 @@ import {
   ReceiptLong as DefaultMainAmountIcon
 } from '@mui/icons-material';
 
-// 創建一個 Grid 組件，以便更容易使用
-const Grid = MuiGrid as React.ComponentType<any>;
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 /**
  * 明細項目介面
@@ -30,6 +30,8 @@ interface DetailItem {
   color?: string;
   fontWeight?: string;
   condition?: boolean | (() => boolean);
+  valueFormatter?: (val: any) => string;
+  customContent?: React.ReactNode;
 }
 
 /**
@@ -111,18 +113,25 @@ const CollapsibleAmountInfo: React.FC<CollapsibleAmountInfoProps> = ({
             return (
               <Grid item xs={6} sm={4} md={3} key={detailKey}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  {DetailIconComponent && React.cloneElement(DetailIconComponent, { 
-                    sx: { fontSize: 'small', color: 'action', ...DetailIconComponent.props.sx } 
+                  {DetailIconComponent && React.cloneElement(DetailIconComponent, {
+                    sx: { fontSize: 'small', color: 'action', ...DetailIconComponent.props.sx }
                   })}
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary">{detail.label}</Typography>
-                    <Typography 
-                      variant="body1" 
-                      color={detail.color || 'text.primary'} 
-                      fontWeight={detail.fontWeight || 'normal'}
-                    >
-                      {typeof detail.value === 'number' ? detail.value.toFixed(2) : detail.value}
-                    </Typography>
+                    {detail.customContent ? (
+                      detail.customContent
+                    ) : (
+                      <Typography
+                        variant="body1"
+                        color={detail.color || 'text.primary'}
+                        fontWeight={detail.fontWeight || 'normal'}
+                      >
+                        {detail.valueFormatter
+                          ? detail.valueFormatter(detail.value)
+                          : (typeof detail.value === 'number' ? detail.value.toFixed(2) : detail.value)
+                        }
+                      </Typography>
+                    )}
                   </Box>
                 </Stack>
               </Grid>

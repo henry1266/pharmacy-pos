@@ -144,12 +144,12 @@ const DetailLayout: FC<DetailLayoutProps> = ({
       {/* Main Content Grid */}
       <Grid container spacing={3}>
         {/* Left Column (Main Content) */}
-        <Grid item xs={12} md={8} {...({} as any)}>
+        <Grid item xs={12} md={8}>
           {mainContent}
         </Grid>
 
         {/* Right Column (Sidebar) */}
-        <Grid item xs={12} md={4} {...({} as any)}>
+        <Grid item xs={12} md={4}>
           {sidebarContent}
         </Grid>
       </Grid>

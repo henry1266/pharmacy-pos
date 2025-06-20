@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   Box,
   Typography,
-  Grid as MuiGrid,
+  Grid,
   Card,
   CardContent,
   Table,
@@ -46,6 +46,7 @@ import { zhTW } from 'date-fns/locale';
 import ProductCodeLink from '../components/common/ProductCodeLink';
 import DetailLayout from '../components/DetailLayout';
 import GrossProfitCell from '../components/common/GrossProfitCell'; // Added import
+import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
 
 // 定義類型
 interface Product {
@@ -131,24 +132,6 @@ const getPaymentStatusInfo = (status: string): PaymentStatusInfo => {
 };
 
 // 安全格式化日期的輔助函數
-/**
- * 為了解決 Grid 元件的問題，創建一個包裝元件
- */
-const Grid: FC<{
-  item?: boolean;
-  container?: boolean;
-  xs?: number;
-  sm?: number;
-  md?: number;
-  spacing?: number;
-  sx?: any;
-  onClick?: () => void;
-  alignItems?: string;
-  justifyContent?: string;
-  children: React.ReactNode;
-}> = (props) => {
-  return <MuiGrid {...props} />;
-};
 
 const formatDateSafe = (dateValue: string | Date | undefined, formatString = 'yyyy-MM-dd HH:mm'): string => {
   if (!dateValue) return 'N/A';
@@ -156,126 +139,91 @@ const formatDateSafe = (dateValue: string | Date | undefined, formatString = 'yy
   return isValid(date) ? format(date, formatString, { locale: zhTW }) : 'N/A';
 };
 
-// 金額信息卡片標題元件
-interface AmountInfoCardHeaderProps {
-  sale: Sale;
-  amountInfoOpen: boolean;
-  handleToggleAmountInfo: () => void;
+// 定義明細項目類型，與 CollapsibleAmountInfo 兼容
+interface CollapsibleDetail {
+  label: string;
+  value: any;
+  icon?: React.ReactElement;
+  color?: string;
+  fontWeight?: string;
+  condition: boolean;
+  valueFormatter?: (val: any) => string;
+  customContent?: React.ReactNode;
 }
 
-const AmountInfoCardHeader: FC<AmountInfoCardHeaderProps> = ({ sale, amountInfoOpen, handleToggleAmountInfo }) => (
-  <CardContent sx={{ pb: '16px !important' }}>
-    <Grid container spacing={1} alignItems="center" justifyContent="space-between">
-      <Grid item xs={12} sm={6} onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', flexGrow: { xs: 1, sm: 0 } }}>
-        <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center' }}>
-          <AccountBalanceWalletIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>金額信息
-        </Typography>
-        <IconButton size="small" sx={{ ml: 0.5 }}>
-          <ExpandMoreIcon sx={{ transform: amountInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
-        </IconButton>
-      </Grid>
-      <Grid item xs={12} sm={6} sx={{ mt: { xs: 1, sm: 0 } }}>
-        <Stack direction="row" spacing={1} alignItems="center" justifyContent={{ xs: 'flex-end', sm: 'flex-end' }}>
-          <ReceiptLongIcon color="primary" fontSize="small"/>
-          <Box textAlign="right">
-            <Typography variant="subtitle2" color="text.secondary">總金額</Typography>
-            <Typography variant="h6" color="primary.main" fontWeight="bold">
-              {sale.totalAmount.toFixed(2)}
-            </Typography>
-          </Box>
-        </Stack>
-      </Grid>
-    </Grid>
-  </CardContent>
-);
+// 獲取可收合的明細資料
+const getCollapsibleDetails = (sale: Sale, fifoLoading: boolean, fifoError: string | null, fifoData: FifoData | null): CollapsibleDetail[] => {
+  const details: CollapsibleDetail[] = [];
+  
+  // 小計
+  details.push({
+    label: '小計',
+    value: (sale.totalAmount + (sale.discount || 0) - (sale.tax || 0)),
+    icon: <ReceiptLongIcon color="action" fontSize="small" />,
+    condition: true,
+    valueFormatter: val => val.toFixed(2)
+  });
 
-// 金額信息內容元件
-interface AmountInfoContentProps {
-  sale: Sale;
-  fifoLoading: boolean;
-  fifoError: string | null;
-  fifoData: FifoData | null;
-}
+  // 折扣
+  if (sale.discount && sale.discount > 0) {
+    details.push({
+      label: '折扣',
+      value: -sale.discount,
+      icon: <PercentIcon color="secondary" fontSize="small" />,
+      color: 'secondary.main',
+      condition: true,
+      valueFormatter: val => val.toFixed(2)
+    });
+  }
 
-const AmountInfoContent: FC<AmountInfoContentProps> = ({ sale, fifoLoading, fifoError, fifoData }) => {
-  if (fifoLoading) {
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-        <CircularProgress size={24} sx={{ mr: 1 }} />
-        <Typography variant="body2" color="text.secondary">計算毛利中...</Typography>
-      </Box>
-    );
+  // FIFO 相關資料
+  if (!fifoLoading && fifoData?.summary) {
+    details.push({
+      label: '總成本',
+      value: fifoData.summary.totalCost,
+      icon: <MonetizationOnIcon color="action" fontSize="small" />,
+      condition: true,
+      valueFormatter: val => typeof val === 'number' ? val.toFixed(2) : 'N/A'
+    });
+    details.push({
+      label: '總毛利',
+      value: fifoData.summary.totalProfit,
+      icon: <TrendingUpIcon color={fifoData.summary.totalProfit >= 0 ? 'success' : 'error'} fontSize="small" />,
+      color: fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main',
+      fontWeight: 'bold',
+      condition: true,
+      valueFormatter: val => typeof val === 'number' ? val.toFixed(2) : 'N/A'
+    });
+    details.push({
+      label: '毛利率',
+      value: fifoData.summary.totalProfitMargin,
+      icon: <PercentIcon color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success' : 'error'} fontSize="small" />,
+      color: parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success.main' : 'error.main',
+      fontWeight: 'bold',
+      condition: true
+    });
+  } else if (fifoLoading) {
+    details.push({
+      label: '毛利資訊',
+      value: '',
+      customContent: (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <CircularProgress size={16} sx={{ mr: 1 }} />
+          <Typography variant="body2" color="text.secondary">計算中...</Typography>
+        </Box>
+      ),
+      condition: true
+    });
+  } else if (fifoError) {
+    details.push({
+      label: '毛利資訊',
+      value: '',
+      customContent: <Typography variant="body2" color="error">{fifoError}</Typography>,
+      condition: true
+    });
   }
-  
-  if (fifoError) {
-    return <Typography color="error" variant="body2">{fifoError}</Typography>;
-  }
-  
-  if (!fifoData?.summary) {
-    return <Typography variant="body2" color="text.secondary">無毛利數據</Typography>;
-  }
-  
-  return (
-    <Grid container spacing={2} alignItems="flex-start">
-      <Grid item xs={6} sm={4} md={3}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <ReceiptLongIcon color="action" fontSize="small"/>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">小計</Typography>
-            <Typography variant="body1">
-              {(sale.totalAmount + (sale.discount || 0) - (sale.tax || 0)).toFixed(2)}
-            </Typography>
-          </Box>
-        </Stack>
-      </Grid>
-      {sale.discount && sale.discount > 0 && (
-        <Grid item xs={6} sm={4} md={3}>
-           <Stack direction="row" spacing={1} alignItems="center">
-              <PercentIcon color="secondary" fontSize="small"/>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">折扣</Typography>
-                <Typography variant="body1" color="secondary.main">
-                  -{sale.discount.toFixed(2)}
-                </Typography>
-              </Box>
-            </Stack>
-        </Grid>
-      )}
-      <Grid item xs={6} sm={4} md={3}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <MonetizationOnIcon color="action" fontSize="small"/>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">總成本</Typography>
-            <Typography variant="body1">
-              {fifoData.summary.totalCost.toFixed(2)}
-            </Typography>
-          </Box>
-        </Stack>
-      </Grid>
-      <Grid item xs={6} sm={4} md={3}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TrendingUpIcon color={fifoData.summary.totalProfit >= 0 ? 'success' : 'error'} fontSize="small"/>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">總毛利</Typography>
-            <Typography variant="body1" color={fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main'} fontWeight="bold">
-              {fifoData.summary.totalProfit.toFixed(2)}
-            </Typography>
-          </Box>
-        </Stack>
-      </Grid>
-      <Grid item xs={6} sm={4} md={3}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <PercentIcon color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success' : 'error'} fontSize="small"/>
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">毛利率</Typography>
-            <Typography variant="body1" color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success.main' : 'error.main'} fontWeight="bold">
-              {fifoData.summary.totalProfitMargin}
-            </Typography>
-          </Box>
-        </Stack>
-      </Grid>
-    </Grid>
-  );
+
+  return details;
 };
 
 // 銷售項目行元件
@@ -393,42 +341,30 @@ interface MainContentProps {
   fifoLoading: boolean;
   fifoError: string | null;
   fifoData: FifoData | null;
-  amountInfoOpen: boolean;
-  handleToggleAmountInfo: () => void;
   showSalesProfitColumns: boolean;
   handleToggleSalesProfitColumns: () => void;
 }
 
-const MainContent: FC<MainContentProps> = ({ 
-  sale, 
-  fifoLoading, 
-  fifoError, 
-  fifoData, 
-  amountInfoOpen, 
-  handleToggleAmountInfo, 
-  showSalesProfitColumns, 
-  handleToggleSalesProfitColumns 
+const MainContent: FC<MainContentProps> = ({
+  sale,
+  fifoLoading,
+  fifoError,
+  fifoData,
+  showSalesProfitColumns,
+  handleToggleSalesProfitColumns
 }) => (
   <Stack spacing={3}>
     {sale && (
-      <Card variant="outlined">
-        <AmountInfoCardHeader 
-          sale={sale} 
-          amountInfoOpen={amountInfoOpen} 
-          handleToggleAmountInfo={handleToggleAmountInfo} 
-        />
-        <Collapse in={amountInfoOpen} timeout="auto" unmountOnExit>
-          <Divider />
-          <CardContent>
-            <AmountInfoContent 
-              sale={sale} 
-              fifoLoading={fifoLoading} 
-              fifoError={fifoError} 
-              fifoData={fifoData} 
-            />
-          </CardContent>
-        </Collapse>
-      </Card>
+      <CollapsibleAmountInfo
+        title="金額信息"
+        titleIcon={<AccountBalanceWalletIcon />}
+        mainAmountLabel="總金額"
+        mainAmountValue={sale.totalAmount || 0}
+        mainAmountIcon={<ReceiptLongIcon />}
+        collapsibleDetails={getCollapsibleDetails(sale, fifoLoading, fifoError, fifoData)}
+        initialOpenState={true}
+        isLoading={false}
+      />
     )}
 
     {sale?.items && (
@@ -445,11 +381,11 @@ const MainContent: FC<MainContentProps> = ({
             )}
           </Stack>
           <Divider sx={{ mb: 2 }} />
-          <SalesItemsTable 
-            sale={sale} 
-            fifoLoading={fifoLoading} 
-            fifoData={fifoData} 
-            showSalesProfitColumns={showSalesProfitColumns} 
+          <SalesItemsTable
+            sale={sale}
+            fifoLoading={fifoLoading}
+            fifoData={fifoData}
+            showSalesProfitColumns={showSalesProfitColumns}
           />
         </CardContent>
       </Card>
@@ -466,7 +402,6 @@ const SalesDetailPage: FC = () => {
   const [fifoLoading, setFifoLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [fifoError, setFifoError] = useState<string | null>(null);
-  const [amountInfoOpen, setAmountInfoOpen] = useState<boolean>(true);
   const [showSalesProfitColumns, setShowSalesProfitColumns] = useState<boolean>(true);
 
   // 獲取銷售數據
@@ -509,11 +444,6 @@ const SalesDetailPage: FC = () => {
     }
   }, [id]);
 
-  // 切換金額信息顯示
-  const handleToggleAmountInfo = (): void => {
-    setAmountInfoOpen(!amountInfoOpen);
-  };
-
   // 切換銷售項目毛利欄位顯示
   const handleToggleSalesProfitColumns = (): void => {
     setShowSalesProfitColumns(!showSalesProfitColumns);
@@ -521,15 +451,13 @@ const SalesDetailPage: FC = () => {
 
   // 渲染主要內容
   const mainContent = (
-    <MainContent 
-      sale={sale} 
-      fifoLoading={fifoLoading} 
-      fifoError={fifoError} 
-      fifoData={fifoData} 
-      amountInfoOpen={amountInfoOpen} 
-      handleToggleAmountInfo={handleToggleAmountInfo} 
-      showSalesProfitColumns={showSalesProfitColumns} 
-      handleToggleSalesProfitColumns={handleToggleSalesProfitColumns} 
+    <MainContent
+      sale={sale}
+      fifoLoading={fifoLoading}
+      fifoError={fifoError}
+      fifoData={fifoData}
+      showSalesProfitColumns={showSalesProfitColumns}
+      handleToggleSalesProfitColumns={handleToggleSalesProfitColumns}
     />
   );
 
