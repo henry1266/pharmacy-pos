@@ -163,14 +163,14 @@ const PurchaseOrderEditPage: React.FC = () => {
         posupplier: typeof orderData.supplier === 'object' ? orderData.supplier.name : '',
         items: orderData.items ? orderData.items.map((item: any) => ({ // Ensure items have product ObjectId
           ...item,
-          product: typeof item.product === 'object' ? item.product._id : (item.product || null)
+          product: typeof item.product === 'object' ? item.product._id : (item.product ?? null)
         })) : []
       }));
       setOrderDataLoaded(true);
       return orderData;
     } catch (err: any) {
       setError('獲取進貨單數據失敗');
-      setSnackbar({ open: true, message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'), severity: 'error' });
+      setSnackbar({ open: true, message: '獲取進貨單數據失敗: ' + (err.response?.data?.msg ?? err.message ?? '未知錯誤'), severity: 'error' });
       throw err;
     }
   };
@@ -182,7 +182,7 @@ const PurchaseOrderEditPage: React.FC = () => {
       setProductsLoaded(true);
       return productsData;
     } catch (err: any) {
-      setSnackbar({ open: true, message: '獲取產品數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'), severity: 'error' });
+      setSnackbar({ open: true, message: '獲取產品數據失敗: ' + (err.response?.data?.msg ?? err.message ?? '未知錯誤'), severity: 'error' });
       throw err;
     }
   };
@@ -194,7 +194,7 @@ const PurchaseOrderEditPage: React.FC = () => {
       setSuppliersLoaded(true);
       return suppliersData;
     } catch (err: any) {
-      setSnackbar({ open: true, message: '獲取供應商數據失敗: ' + (err.response?.data?.msg || err.message || '未知錯誤'), severity: 'error' });
+      setSnackbar({ open: true, message: '獲取供應商數據失敗: ' + (err.response?.data?.msg ?? err.message ?? '未知錯誤'), severity: 'error' });
       throw err;
     }
   };
@@ -329,7 +329,7 @@ const PurchaseOrderEditPage: React.FC = () => {
       try {
         const validItems = formData.items.map(item => {
           if (!isValidObjectId(item.product as string)) {
-            throw new Error(`藥品 ${item.dname || '未知藥品'} 的ID格式不正確。`);
+            throw new Error(`藥品 ${item.dname ?? '未知藥品'} 的ID格式不正確。`);
           }
           return {
             product: item.product,
@@ -386,7 +386,7 @@ const PurchaseOrderEditPage: React.FC = () => {
       console.error(isEditMode ? '更新進貨單失敗:' : '新增進貨單失敗:', err);
       setSnackbar({
         open: true,
-        message: (isEditMode ? '更新進貨單失敗: ' : '新增進貨單失敗: ') + (err.response?.data?.msg || err.message || '未知錯誤'),
+        message: (isEditMode ? '更新進貨單失敗: ' : '新增進貨單失敗: ') + (err.response?.data?.msg ?? err.message ?? '未知錯誤'),
         severity: 'error'
       });
     }
@@ -445,7 +445,7 @@ const PurchaseOrderEditPage: React.FC = () => {
 
   const handleCancel = () => navigate('/purchase-orders');
 
-  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
 
   if (loading && !orderDataLoaded && !productsLoaded && !suppliersLoaded) {
     return <Box sx={{ p: 3, textAlign: 'center' }}><Typography>載入中...</Typography></Box>;

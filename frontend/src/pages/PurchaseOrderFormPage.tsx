@@ -122,10 +122,10 @@ const adjustPurchaseOrderItems = (items: CurrentItem[], multiplier: number): Cur
 
   let adjustedItems = items.map(item => ({
     ...item,
-    dtotalCost: String(parseFloat((Number(item.dtotalCost || 0) * multiplier).toFixed(2)))
+    dtotalCost: String(parseFloat((Number(item.dtotalCost ?? 0) * multiplier).toFixed(2)))
   }));
 
-  const rawTotalAmountBeforeMultiplier = items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  const rawTotalAmountBeforeMultiplier = items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
   const totalAmountAfterMultiplier = rawTotalAmountBeforeMultiplier * multiplier;
   const roundedTotalAmount = Math.round(totalAmountAfterMultiplier);
   const roundingDifference = roundedTotalAmount - totalAmountAfterMultiplier;
@@ -231,7 +231,6 @@ const PurchaseOrderFormPage: React.FC = () => {
     products: initialProducts,
     productDetails,
     setProductDetails,
-    productDetailsLoading: initialProductDetailsLoading,
     orderData,
     orderDataLoaded,
     suppliersLoaded: initialSuppliersLoaded,
@@ -494,7 +493,7 @@ const PurchaseOrderFormPage: React.FC = () => {
   };
 
   // 計算總金額（含倍率調整） for display
-  const rawTotalAmountForDisplay = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
+  const rawTotalAmountForDisplay = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
   const currentMultiplierForDisplay = getMultiplier();
   const adjustedTotalAmountForDisplay = rawTotalAmountForDisplay * currentMultiplierForDisplay;
   const totalAmountForDisplay = Math.round(adjustedTotalAmountForDisplay);

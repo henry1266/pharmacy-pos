@@ -212,7 +212,7 @@ const LoginPage = () => {
 
                 <form onSubmit={handleSubmit}>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} {...({} as any)}>
+                    <Grid item xs={12}>
                       <FormControl fullWidth sx={{ mb: 2 }}>
                         <InputLabel id="login-type-label" sx={{ color: '#bbb' }}>登入方式</InputLabel>
                         <Select
@@ -259,7 +259,7 @@ const LoginPage = () => {
                         />
                       )}
                     </Grid>
-                    <Grid item xs={12} {...({} as any)}>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
                         label="密碼"
@@ -273,14 +273,14 @@ const LoginPage = () => {
                         InputLabelProps={{ sx: { color: '#bbb' } }}
                       />
                     </Grid>
-                    <Grid item xs={12} {...({} as any)}>
+                    <Grid item xs={12}>
                       <FormControlLabel
                         control={<Checkbox checked={isTestMode} onChange={handleTestModeChange} sx={{ color: '#00bfff', '&.Mui-checked': { color: '#00ffff' } }} />}
                         label={<Typography sx={{ color: '#e0f7fa' }}>測試模式</Typography>}
                         disabled={loading}
                       />
                     </Grid>
-                    <Grid item xs={12} {...({} as any)}>
+                    <Grid item xs={12}>
                       <Button
                         type="submit"
                         fullWidth

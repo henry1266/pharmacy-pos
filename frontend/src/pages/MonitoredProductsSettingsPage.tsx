@@ -68,8 +68,9 @@ const MonitoredProductsSettingsPage: React.FC = () => {
       await addMonitoredProduct(newProductCode.trim());
       setNewProductCode(''); // Clear input
       fetchProducts(); // Refresh the list
-    } catch (err: any) {
-      setAddError(err.response?.data?.msg || '新增失敗，請檢查產品編號是否存在或已在列表中');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { msg?: string } } };
+      setAddError(error.response?.data?.msg ?? '新增失敗，請檢查產品編號是否存在或已在列表中');
       console.error(err);
     } finally {
       setAdding(false);
@@ -144,7 +145,7 @@ const MonitoredProductsSettingsPage: React.FC = () => {
                     component="span"
                     sx={{ color: '#333', fontWeight: 'medium' }}
                   >
-                    {product.productName || '未知產品'}
+                    {product.productName ?? '未知產品'}
                   </Typography>
                 </Box>
               }

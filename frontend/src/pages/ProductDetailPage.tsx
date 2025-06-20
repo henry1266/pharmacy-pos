@@ -85,14 +85,15 @@ const ProductDetailPage: React.FC = () => {
         const productData: Product = {
           ...productResponse.data,
           id: productResponse.data._id,
-          productType: productResponse.data.productType || 'product'
+          productType: productResponse.data.productType ?? 'product'
         };
         
         setProduct(productData);
         setLoading(false);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('獲取產品詳情失敗:', err);
-        setError(err.response?.data?.message || '獲取產品詳情失敗');
+        const error = err as { response?: { data?: { message?: string } } };
+        setError(error.response?.data?.message ?? '獲取產品詳情失敗');
         setLoading(false);
       }
     };
@@ -116,9 +117,10 @@ const ProductDetailPage: React.FC = () => {
     try {
       await axios.delete(`/api/products/${productId}`);
       navigate('/products');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('刪除產品失敗:', err);
-      setError(err.response?.data?.message || '刪除產品失敗');
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message ?? '刪除產品失敗');
     }
   };
   
@@ -201,7 +203,7 @@ const ProductDetailPage: React.FC = () => {
       
       <Grid container spacing={3}>
         {/* 左側：產品詳情卡片 */}
-        <Grid item xs={12} md={5} lg={4} {...({} as any)}>
+        <Grid item xs={12} md={5} lg={4}>
           <ProductDetailCard
             product={product}
             suppliers={suppliers}
@@ -212,7 +214,7 @@ const ProductDetailPage: React.FC = () => {
         </Grid>
 
         {/* 右側：FIFO毛利計算 */}
-        <Grid item xs={12} md={7} lg={8} {...({} as any)}>
+        <Grid item xs={12} md={7} lg={8}>
           <Card>
             <CardContent>
               <FIFOProfitCalculator productId={product.id} />

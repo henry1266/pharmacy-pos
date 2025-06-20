@@ -67,7 +67,7 @@ interface StatusChipProps {
 // StatusChip 組件
 const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
   let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-  let label = status || '未知';
+  let label = status ?? '未知';
   if (status === 'completed') { color = 'success'; label = '已完成'; }
   if (status === 'pending') { color = 'warning'; label = '待處理'; }
   if (status === 'cancelled') { color = 'error'; label = '已取消'; }
@@ -82,7 +82,7 @@ interface PaymentStatusChipProps {
 // PaymentStatusChip 組件
 const PaymentStatusChip: React.FC<PaymentStatusChipProps> = ({ status }) => {
   let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-  let label = status || '未付';
+  let label = status ?? '未付';
   if (status === 'paid' || status === '已付') { color = 'success'; label = '已付'; }
   if (status === 'unpaid' || status === '未付') { color = 'warning'; label = '未付'; }
   return <Chip size="small" label={label} color={color} />;
@@ -219,8 +219,8 @@ const PurchaseOrderDetailPage: React.FC = () => {
               nameField="dname"
               quantityField="dquantity"
               totalCostField="dtotalCost"
-              totalAmount={currentPurchaseOrder.totalAmount ||
-                          (currentPurchaseOrder.items || []).reduce((sum, item) => sum + Number((item as ExtendedPurchaseOrderItem).dtotalCost || 0), 0)}
+              totalAmount={currentPurchaseOrder.totalAmount ??
+                          (currentPurchaseOrder.items ?? []).reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0)}
               title=""
               isLoading={productDetailsLoading}
             />
