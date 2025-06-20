@@ -17,7 +17,7 @@ import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
 import useScheduleOperations from '../../hooks/useScheduleOperations';
 import { SchedulesByDate } from '../../services/employeeScheduleService';
 import ShiftSelectionModal from './ShiftSelectionModal';
-import QuickSelectPanel from './QuickSelectPanel';
+import QuickSelectPanel from './QuickSelectPanel.tsx';
 import CalendarDateCell from './scheduling/CalendarDateCell';
 import WorkHoursDialog from './scheduling/WorkHoursDialog';
 import SchedulingHeader from './scheduling/SchedulingHeader';

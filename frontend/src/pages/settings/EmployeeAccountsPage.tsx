@@ -21,7 +21,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import OvertimeManager from '../../components/employees/OvertimeManager';
+import OvertimeManager from '../../components/employees/OvertimeManager.tsx';
 import AccountDialog from '../../components/employees/account/AccountDialog';
 import FormField from '../../components/employees/account/FormField';
 import EmployeeAccountRow from '../../components/employees/account/EmployeeAccountRow';
