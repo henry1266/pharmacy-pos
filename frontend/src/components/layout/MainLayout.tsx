@@ -465,7 +465,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Popover id={popoverId} open={openPopover} anchorEl={anchorEl} onClose={handleClosePopover} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} sx={{ mt: 1 }}>
             <Box sx={{ p: 2, minWidth: 200 }}>
               <Typography variant="subtitle1" gutterBottom>
-                {isTestMode ? '測試帳戶' : (user?.username || '使用者')}
+                {isTestMode ? '測試帳戶' : (user?.username ?? '使用者')}
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 角色: {getUserRoleDisplay()}

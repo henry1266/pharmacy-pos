@@ -190,7 +190,7 @@ const FifoTableRow: React.FC<FifoTableRowProps> = ({
   fifoMatches 
 }) => {
   // 使用更好的唯一識別符作為key
-  const uniqueKey = `${item.orderNumber || ''}-${item.saleTime}-${index}`;
+  const uniqueKey = `${item.orderNumber ?? ''}-${item.saleTime}-${index}`;
   
   // 計算單價
   const unitPrice = (item.totalRevenue / item.totalQuantity).toFixed(2);
@@ -420,8 +420,8 @@ const FifoDetailTable: React.FC<FifoDetailTableProps> = ({ fifoMatches, saleTime
             // 對costParts進行排序，按照批次號從大到小排序
             const sortedCostParts = [...match.costParts].sort((a, b) => {
               // 提取數字部分進行比較
-              const aNum = a.orderNumber?.replace(/\D/g, '') || '';
-              const bNum = b.orderNumber?.replace(/\D/g, '') || '';
+              const aNum = a.orderNumber?.replace(/\D/g, '') ?? '';
+              const bNum = b.orderNumber?.replace(/\D/g, '') ?? '';
               
               if (aNum && bNum) {
                 // 從大到小排序
@@ -434,7 +434,7 @@ const FifoDetailTable: React.FC<FifoDetailTableProps> = ({ fifoMatches, saleTime
             
             return sortedCostParts.map((part, partIndex) => {
               // 使用唯一識別符作為key，而不是索引
-              const uniqueKey = `${part.batchTime}-${part.orderNumber || ''}-${partIndex}`;
+              const uniqueKey = `${part.batchTime}-${part.orderNumber ?? ''}-${partIndex}`;
               return (
                 <TableRow key={uniqueKey}>
                   <TableCell>
@@ -503,7 +503,7 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
         setLoading(false);
       } catch (err: any) {
         console.error('獲取FIFO數據失敗:', err);
-        setError(err.response?.data?.message || '獲取FIFO數據失敗');
+        setError(err.response?.data?.message ?? '獲取FIFO數據失敗');
         setLoading(false);
       }
     };
@@ -528,7 +528,7 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
   }
   
   if (!fifoData?.success) {
-    return <StatusDisplay>{fifoData?.error || '無法計算FIFO數據'}</StatusDisplay>;
+    return <StatusDisplay>{fifoData?.error ?? '無法計算FIFO數據'}</StatusDisplay>;
   }
 
   if (fifoData.profitMargins.length === 0) {
@@ -594,13 +594,13 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
           <TableBody>
             {sortedData.map((item, index) => {
               // 使用唯一識別符作為key，而不是索引
-              const uniqueId = `${item.orderNumber || ''}-${item.saleTime}-${item.totalQuantity}`;
+              const uniqueId = `${item.orderNumber ?? ''}-${item.saleTime}-${item.totalQuantity}`;
               return (
                 <FifoTableRow
                   key={uniqueId}
                   item={item}
                   index={index}
-                  isExpanded={expandedRows[index] || false}
+                  isExpanded={expandedRows[index] ?? false}
                   onToggleExpand={toggleRowExpand}
                   renderOrderCell={renderOrderCell}
                   fifoMatches={fifoData.fifoMatches}
