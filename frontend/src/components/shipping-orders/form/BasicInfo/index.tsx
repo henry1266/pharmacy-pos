@@ -12,7 +12,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import SupplierSelect from '../../../common/SupplierSelect.tsx'; // 假設你有一個供應商選擇組件
+import SupplierSelect from '../../../common/SupplierSelect'; // 假設你有一個供應商選擇組件
 
 // 定義供應商介面
 interface Supplier {
@@ -85,7 +85,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
           <Grid item xs={12} sm={6} md={3}>
             {/* @ts-ignore */}
             <SupplierSelect
-              suppliers={suppliers || []}
+              suppliers={suppliers ?? []}
               selectedSupplier={selectedSupplier}
               onChange={(event, supplier) => handleSupplierChange(supplier as Supplier)}
               label="供應商 (可用名稱或簡碼搜索)"

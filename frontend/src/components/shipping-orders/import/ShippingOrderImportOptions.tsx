@@ -88,16 +88,16 @@ const ShippingOrderImportOptions: FC<ShippingOrderImportOptionsProps> = ({
       
       {/* 原有的CSV匯入對話框 */}
       <CsvImportDialog
-        open={openBasicImport || openItemsImport}
+        open={openBasicImport ?? openItemsImport}
         onClose={handleImportClose}
         tabValue={tabValue}
         onTabChange={handleTabChange}
         csvFile={csvFile}
         onFileChange={handleFileChange}
         onImport={handleImport}
-        loading={loading || false}
+        loading={loading ?? false}
         error={error}
-        success={success || false}
+        success={success ?? false}
       />
     </Box>
   );

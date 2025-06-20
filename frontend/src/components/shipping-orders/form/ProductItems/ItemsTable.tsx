@@ -70,7 +70,7 @@ const ItemsTable: FC<ItemsTableProps> = ({
     if (tableContainerRef.current && items.length > 0) {
       // 使用setTimeout確保在DOM更新後執行滾動
       setTimeout(() => {
-        const scrollHeight = tableContainerRef.current?.scrollHeight || 0;
+        const scrollHeight = tableContainerRef.current?.scrollHeight ?? 0;
         tableContainerRef.current.scrollTop = scrollHeight;
       }, 100);
     }
@@ -99,7 +99,7 @@ const ItemsTable: FC<ItemsTableProps> = ({
         </TableHead>
         <TableBody>
           {items.map((item, index) => (
-            <TableRow key={item.did || index}>
+            <TableRow key={item.did ?? index}>
               {/* Using item.did as key, with index as fallback if did is not yet available for a new item */}
               {editingItemIndex === index && editingItem ? (
                 // 編輯模式

@@ -143,9 +143,9 @@ const ItemForm: FC<ItemFormProps> = ({
       <Grid item xs={12} sm={6} md={4}>
         <Autocomplete
           id="product-select"
-          options={products || []}
+          options={products ?? []}
           getOptionLabel={(option) => `${option.code} - ${option.name}`}
-          value={products?.find(p => p._id === currentItem.product) || null}
+          value={products?.find(p => p._id === currentItem.product) ?? null}
           onChange={handleProductChange}
           filterOptions={(options, state) => filterProducts(options, state.inputValue)}
           onKeyDown={(event) => {
@@ -171,7 +171,7 @@ const ItemForm: FC<ItemFormProps> = ({
             />
           )}
           renderOption={(props, option) => (
-            <Box component="li" {...props} key={option._id || option.code}>
+            <Box component="li" {...props} key={option._id ?? option.code}>
               <Grid container direction="column">
                 {/* @ts-ignore */}
                 <Grid item>
@@ -208,7 +208,7 @@ const ItemForm: FC<ItemFormProps> = ({
           getProductPurchasePrice={getProductPurchasePrice}
           calculateTotalCost={calculateTotalCost}
           healthInsurancePrice={getProductHealthInsurancePrice()} // Pass the actual value
-          healthInsurancePayment={calculateHealthInsurancePayment(currentItem.dquantity || 0)} // Pass the calculated value
+          healthInsurancePayment={calculateHealthInsurancePayment(currentItem.dquantity ?? 0)} // Pass the calculated value
           isInventorySufficient={isInventorySufficient}
           handleAddItem={handleAddItem}
         />

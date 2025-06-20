@@ -1,7 +1,7 @@
 import React, { useState, useCallback, FC, ChangeEvent } from 'react';
 import { Button, Box, Typography, Alert } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import MedicineCsvImportDialog from './MedicineCsvImportDialog.tsx';
+import MedicineCsvImportDialog from './MedicineCsvImportDialog';
 import { parseMedicineCsvForPreview, importMedicineCsv } from '../../../../services/medicineCsvService';
 
 // 定義預覽數據項目的介面
@@ -87,7 +87,7 @@ const MedicineCsvImportController: FC = () => {
       setOrderNumber(result.orderNumber || '');
       setLoading(false);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || (err instanceof Error ? err.message : '導入失敗');
+      const errorMessage = err.response?.data?.message ?? (err instanceof Error ? err.message : '導入失敗');
       setError(errorMessage);
       setSuccess(false);
       setLoading(false);

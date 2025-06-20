@@ -50,7 +50,7 @@ const SupplierInfoCard: FC<SupplierInfoCardProps> = ({ supplier }) => {
               聯絡人
             </Typography>
             <Typography variant="body1">
-              {supplier.contactPerson || '-'}
+              {supplier.contactPerson ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -59,7 +59,7 @@ const SupplierInfoCard: FC<SupplierInfoCardProps> = ({ supplier }) => {
               電話
             </Typography>
             <Typography variant="body1">
-              {supplier.phone || '-'}
+              {supplier.phone ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -68,7 +68,7 @@ const SupplierInfoCard: FC<SupplierInfoCardProps> = ({ supplier }) => {
               電子郵件
             </Typography>
             <Typography variant="body1">
-              {supplier.email || '-'}
+              {supplier.email ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -77,7 +77,7 @@ const SupplierInfoCard: FC<SupplierInfoCardProps> = ({ supplier }) => {
               地址
             </Typography>
             <Typography variant="body1">
-              {supplier.address || '-'}
+              {supplier.address ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -86,7 +86,7 @@ const SupplierInfoCard: FC<SupplierInfoCardProps> = ({ supplier }) => {
               備註
             </Typography>
             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-              {supplier.notes || '-'}
+              {supplier.notes ?? '-'}
             </Typography>
           </Grid>
         </Grid>

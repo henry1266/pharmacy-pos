@@ -110,7 +110,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       setMongodbIpAddress(savedMongodbIp);
     } else {
       // 默認值，通常與API伺服器相同
-      setMongodbIpAddress(process.env.REACT_APP_DEFAULT_MONGODB_IP || '192.168.68.90'); // Use env var or fallback
+      setMongodbIpAddress(process.env.REACT_APP_DEFAULT_MONGODB_IP ?? '192.168.68.90'); // Use env var or fallback
     }
   }, [open]);
 
@@ -129,8 +129,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       setCurrentUser(userData);
       setAccountFormData({
         ...accountFormData,
-        username: userData.username || '',
-        email: userData.email || ''
+        username: userData.username ?? '',
+        email: userData.email ?? ''
       });
     } catch (error: any) {
       setSnackbar({
@@ -275,7 +275,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       }
       
       if (currentUser && accountFormData.email !== currentUser.email) {
-        updateData.email = accountFormData.email || undefined;
+        updateData.email = accountFormData.email ?? undefined;
       }
       
       if (accountFormData.newPassword) {
@@ -458,7 +458,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                     value={accountFormData.username}
                     onChange={handleAccountInputChange}
                     error={!!accountFormErrors.username}
-                    helperText={accountFormErrors.username || "用於系統登入的用戶名"}
+                    helperText={accountFormErrors.username ?? "用於系統登入的用戶名"}
                     sx={{ mb: 3 }}
                   />
                   
@@ -503,7 +503,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                     value={accountFormData.newPassword}
                     onChange={handleAccountInputChange}
                     error={!!accountFormErrors.newPassword}
-                    helperText={accountFormErrors.newPassword || "如不變更密碼，請留空"}
+                    helperText={accountFormErrors.newPassword ?? "如不變更密碼，請留空"}
                     sx={{ mb: 2 }}
                   />
                   

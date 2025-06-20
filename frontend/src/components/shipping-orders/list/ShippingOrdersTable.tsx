@@ -11,8 +11,8 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridPaginationModel } from '@mui/x-data-grid';
 
-import StatusChip from '../../common/StatusChip.tsx';
-import PaymentStatusChip from '../../common/PaymentStatusChip.tsx';
+import StatusChip from '../../common/StatusChip';
+import PaymentStatusChip from '../../common/PaymentStatusChip';
 
 // 定義出貨單介面
 interface ShippingOrder {
@@ -180,7 +180,7 @@ const ShippingOrdersTable: FC<ShippingOrdersTableProps> = ({
   return (
     <Box sx={{ width: '100%' }}>
       <DataGrid
-        rows={filteredRows || []} // Directly use filteredRows, provide default empty array
+        rows={filteredRows ?? []} // Directly use filteredRows, provide default empty array
         columns={columns}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}

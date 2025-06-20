@@ -69,9 +69,9 @@ const ShippingOrdersFilter: FC<ShippingOrdersFilterProps> = ({
         {/* @ts-ignore */}
         <Grid item xs={12} sm={6} md={4}>
           <Autocomplete
-            options={suppliers || []}
-            getOptionLabel={(option) => option.name || ''}
-            value={suppliers?.find(s => s.name === searchParams.sosupplier) || null}
+            options={suppliers ?? []}
+            getOptionLabel={(option) => option.name ?? ''}
+            value={suppliers?.find(s => s.name === searchParams.sosupplier) ?? null}
             onChange={(event: SyntheticEvent, newValue: Supplier | null) => {
               handleInputChange({
                 target: {

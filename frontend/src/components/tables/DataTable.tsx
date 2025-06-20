@@ -26,7 +26,7 @@ interface CustomColumnMenuProps {
 const CustomColumnMenu: React.FC<CustomColumnMenuProps> = (props) => {
   const { hideMenu, colDef } = props;
   const [open, setOpen] = useState<boolean>(false);
-  const [width, setWidth] = useState<number>(colDef?.width || 100);
+  const [width, setWidth] = useState<number>(colDef?.width ?? 100);
   const apiRef = useGridApiContext();
 
   const handleOpen = () => {
