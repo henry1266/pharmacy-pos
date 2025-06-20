@@ -19,8 +19,8 @@ import { getProducts } from '../services/productService';
 import { getSuppliers } from '../services/supplierService';
 
 // Import components
-import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
-import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
+import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm.tsx';
+import ProductItemForm from '../components/purchase-order-form/ProductItemForm.tsx';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable.tsx';
 import ActionButtons from '../components/purchase-order-form/ActionButtons.tsx';
 
@@ -241,7 +241,7 @@ const PurchaseOrderEditPage: React.FC = () => {
     setFormData(prev => ({ ...prev, pobilldate: date || new Date() }));
   };
 
-  const handleSupplierChange = (supplier: Supplier | null): void => {
+  const handleSupplierChange = (event: React.SyntheticEvent, supplier: Supplier | null): void => {
     setSelectedSupplier(supplier);
     setFormData(prev => ({
       ...prev,

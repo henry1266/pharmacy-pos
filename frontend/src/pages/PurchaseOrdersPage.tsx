@@ -34,11 +34,11 @@ import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders } from '
 import { RootState } from '../redux/reducers.ts';
 
 // Import Components
-import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
+import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview.tsx';
 import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
 import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTable.tsx';
-import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter';
-import CsvImportDialog from '../components/purchase-orders/CsvImportDialog';
+import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter.tsx';
+import CsvImportDialog from '../components/purchase-orders/CsvImportDialog.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
