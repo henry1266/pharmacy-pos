@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, ChangeEvent, SyntheticEvent } from 'react'; // 添加 TypeScript 類型
+import React, { useState, useEffect, useCallback, ChangeEvent } from 'react'; // 添加 TypeScript 類型
 import PropTypes from 'prop-types';
 import {
   Button,
@@ -110,7 +110,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   const params = useParams<{ id?: string }>();
   
   // 從路由參數或 props 獲取供應商 ID
-  const supplierIdFromRoute = initialSupplierId || params.id;
+  const supplierIdFromRoute = initialSupplierId ?? params.id;
 
   // Use the custom hook to fetch data from Redux
   const { purchaseOrders, suppliers, loading, error } = usePurchaseOrdersData();

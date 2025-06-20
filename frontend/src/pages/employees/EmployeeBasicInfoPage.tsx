@@ -113,7 +113,7 @@ const EmployeeBasicInfoPage: React.FC = () => {
       setError(null);
     } catch (err: any) {
       console.error('獲取員工資料失敗:', err);
-      setError(err.response?.data?.msg || '獲取員工資料失敗');
+      setError(err.response?.data?.msg ?? '獲取員工資料失敗');
     } finally {
       setLoading(false);
     }
@@ -161,7 +161,7 @@ const EmployeeBasicInfoPage: React.FC = () => {
       console.error('儲存員工資料失敗:', err);
       setSnackbar({
         open: true,
-        message: err.response?.data?.msg || '儲存員工資料失敗',
+        message: err.response?.data?.msg ?? '儲存員工資料失敗',
         severity: 'error'
       });
     } finally {

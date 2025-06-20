@@ -268,12 +268,12 @@ const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, h
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>會員資訊</Typography>
         <List dense sx={{ py: 0 }}>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.phone}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber || '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDateToYYYYMMDD(selectedCustomer.birthdate) || '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email || '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDateToYYYYMMDD(selectedCustomer.birthdate) ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email ?? '無'}</Typography></ListItem>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.note || '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.note ?? '無'}</Typography></ListItem>
         </List>
       </CardContent>
     </Card>
@@ -324,8 +324,8 @@ const handleSaveCustomerTestMode = (config: SaveCustomerTestModeConfig): void =>
 
   const newOrUpdatedCustomer: Customer = {
     ...customerData,
-    id: editMode ? currentCustomerState.id! : `mockCust${Date.now()}`,
-    code: editMode ? currentCustomerState.code! : `MKC${Date.now().toString().slice(-4)}`,
+    id: editMode && currentCustomerState.id ? currentCustomerState.id : `mockCust${Date.now()}`,
+    code: editMode && currentCustomerState.code ? currentCustomerState.code : `MKC${Date.now().toString().slice(-4)}`,
     level: mapMembershipLevel(customerData.membershipLevel)
   };
 
@@ -442,7 +442,7 @@ const CustomersPage: FC = () => {
   const pageError = isTestMode ? null : actualError;
 
   // Derived state for the detail panel, ensuring it uses the latest from customersToDisplay
-  const panelSelectedCustomer = customersToDisplay.find(c => c.id === localSelectedCustomer?.id) || null;
+  const panelSelectedCustomer = customersToDisplay.find(c => c.id === localSelectedCustomer?.id) ?? null;
 
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -615,7 +615,7 @@ const CustomersPage: FC = () => {
         currentCustomerState={currentCustomerState}
         onInputChange={handleInputChange}
         onSave={handleSaveCustomer}
-        formError={formError || undefined}
+        formError={formError ?? undefined}
         isTestMode={isTestMode}
         loading={isLoading}
       />
