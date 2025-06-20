@@ -118,10 +118,10 @@ export const transformSalesForCategory = (salesData: SaleRecord[]): CategorySale
         if (item.product) {
           if (typeof item.product === 'string') {
             // 如果 product 是字串 ID，無法取得分類資訊
-            category = '未分類';
+            // 不需要重新賦值，使用預設值
           } else if (typeof item.product === 'object' && item.product !== null) {
             // 如果 product 是物件，嘗試取得 category
-            category = (item.product as any).category || '未分類';
+            category = (item.product as any).category ?? '未分類';
           }
         }
         

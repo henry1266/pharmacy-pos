@@ -21,7 +21,7 @@ export interface RoleOption {
  * @param {Role} role - 角色代碼
  * @returns {string} 角色中文名稱
  */
-export const getRoleName = (role: Role | string): string => {
+export const getRoleName = (role: Role): string => {
   switch (role) {
     case 'admin':
       return '管理員';
@@ -39,7 +39,7 @@ export const getRoleName = (role: Role | string): string => {
  * @param {Role} role - 角色代碼
  * @returns {string} Material-UI 顏色代碼
  */
-export const getRoleColor = (role: Role | string): string => {
+export const getRoleColor = (role: Role): string => {
   switch (role) {
     case 'admin':
       return 'error';

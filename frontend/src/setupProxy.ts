@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 // 使用 TypeScript 類型定義
 dotenv.config({ path: '../.env' }); // Load .env from frontend root
 
-const target = process.env.REACT_APP_API_URL || 'http://localhost:5000'; // Default fallback
+const target = process.env.REACT_APP_API_URL ?? 'http://localhost:5000'; // Default fallback
 
 // 添加 Express 類型
 module.exports = function(app: Express) {

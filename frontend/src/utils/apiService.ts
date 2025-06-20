@@ -5,7 +5,7 @@ import axios from 'axios';
  * @returns {string} API基礎URL
  */
 const getApiBaseUrl = (): string => {
-  const ip = localStorage.getItem("apiServerIp") || process.env.REACT_APP_DEFAULT_API_IP || "192.168.68.93";
+  const ip = localStorage.getItem("apiServerIp") ?? process.env.REACT_APP_DEFAULT_API_IP ?? "192.168.68.93";
   return `http://${ip}:5000`; // 假設後端運行在5000埠
 };
 
@@ -27,7 +27,7 @@ apiService.interceptors.request.use(
     return config;
   },
   (error: any): Promise<any> => {
-    return Promise.reject(error);
+    return Promise.reject(new Error(error.message || 'Request interceptor error'));
   }
 );
 
@@ -54,7 +54,7 @@ apiService.interceptors.response.use(
       }
     }
     // 對於其他錯誤，正常返回Promise拒絕
-    return Promise.reject(error);
+    return Promise.reject(new Error(error.message || 'Response interceptor error'));
   }
 );
 

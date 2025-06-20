@@ -70,9 +70,9 @@ export const getSalesReport = async ({
 
     const response = await axios.get<{ data: SalesReportItem[] }>(`${REPORTS_API_URL}/sales?${queryParams.toString()}`, config);
     // Assuming the API returns data in response.data.data
-    return response.data.data || [];
+    return response.data.data ?? [];
   } catch (error: any) {
-    console.error('Error fetching sales report:', error.response?.data || error.message);
+    console.error('Error fetching sales report:', error.response?.data ?? error.message);
     throw error; // Re-throw for handling in the hook
   }
 };

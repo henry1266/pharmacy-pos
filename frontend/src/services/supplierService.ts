@@ -32,7 +32,7 @@ export const getSuppliers = async (): Promise<Array<Supplier & { id: string }>> 
       id: supplier._id // Map _id to id
     }));
   } catch (error: any) {
-    console.error('Error fetching suppliers:', error.response?.data || error.message);
+    console.error('Error fetching suppliers:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -48,7 +48,7 @@ export const createSupplier = async (supplierData: Partial<Supplier>): Promise<S
     const response = await axios.post<Supplier>(SUPPLIERS_API_URL, supplierData, config);
     return { ...response.data, id: response.data._id }; // Return formatted data
   } catch (error: any) {
-    console.error('Error creating supplier:', error.response?.data || error.message);
+    console.error('Error creating supplier:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -65,7 +65,7 @@ export const updateSupplier = async (id: string, supplierData: Partial<Supplier>
     const response = await axios.put<Supplier>(`${SUPPLIERS_API_URL}/${id}`, supplierData, config);
     return { ...response.data, id: response.data._id }; // Return formatted data
   } catch (error: any) {
-    console.error('Error updating supplier:', error.response?.data || error.message);
+    console.error('Error updating supplier:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -80,7 +80,7 @@ export const deleteSupplier = async (id: string): Promise<void> => {
     const config = getAuthConfig();
     await axios.delete(`${SUPPLIERS_API_URL}/${id}`, config);
   } catch (error: any) {
-    console.error('Error deleting supplier:', error.response?.data || error.message);
+    console.error('Error deleting supplier:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -98,7 +98,7 @@ export const downloadSupplierTemplate = async (): Promise<Blob> => {
     const response = await axios.get<Blob>(`${SUPPLIERS_API_URL}/template/csv`, config);
     return new Blob([response.data], { type: response.headers['content-type'] });
   } catch (error: any) {
-    console.error('Error downloading supplier template:', error.response?.data || error.message);
+    console.error('Error downloading supplier template:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -130,7 +130,7 @@ export const importSuppliersCsv = async (file: File): Promise<{ success: boolean
     );
     return response.data;
   } catch (error: any) {
-    console.error('Error importing suppliers CSV:', error.response?.data || error.message);
+    console.error('Error importing suppliers CSV:', error.response?.data ?? error.message);
     throw error;
   }
 };

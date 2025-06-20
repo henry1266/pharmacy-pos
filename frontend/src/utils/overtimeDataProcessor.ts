@@ -152,7 +152,7 @@ const findEmployeeInfo = (
       typeof r.employeeId === 'object' && r.employeeId?._id === empId
     );
     if (matchingRecord?.employeeId && typeof matchingRecord.employeeId === 'object') {
-      return { name: matchingRecord.employeeId.name, obj: matchingRecord.employeeId as Employee };
+      return { name: matchingRecord.employeeId.name, obj: matchingRecord.employeeId };
     }
   }
   
@@ -289,7 +289,7 @@ export const groupOvertimeRecords = (
     if (typeof record.employeeId === 'object' && record.employeeId?._id) {
       const employeeId = record.employeeId._id;
       if (!initialGroups[employeeId]) {
-        initialGroups[employeeId] = createBasicEmployeeGroup(record.employeeId as Employee);
+        initialGroups[employeeId] = createBasicEmployeeGroup(record.employeeId);
       }
       
       initialGroups[employeeId].records.push(record);

@@ -2,8 +2,6 @@
  * 業務實體型別定義
  */
 
-import { ObjectId } from 'mongodb';
-
 /**
  * 員工相關型別
  */

@@ -102,7 +102,7 @@ export const updateProduct = async (id: string, productData: Partial<Product>): 
     const response = await axios.put<Product>(`${PRODUCTS_API_URL}/${id}`, productData, config);
     return response.data;
   } catch (error: any) {
-    console.error('Error updating product:', error.response?.data || error.message);
+    console.error('Error updating product:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -117,7 +117,7 @@ export const deleteProduct = async (id: string): Promise<void> => {
     const config = getAuthConfig(false); // DELETE doesn't need Content-Type
     await axios.delete(`${PRODUCTS_API_URL}/${id}`, config);
   } catch (error: any) {
-    console.error('Error deleting product:', error.response?.data || error.message);
+    console.error('Error deleting product:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -134,7 +134,7 @@ export const getProductByCode = async (code: string): Promise<Product> => {
     const response = await axios.get<Product>(`${PRODUCTS_API_URL}/code/${code}`, config);
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching product with code ${code}:`, error.response?.data || error.message);
+    console.error(`Error fetching product with code ${code}:`, error.response?.data ?? error.message);
     throw error;
   }
 };
