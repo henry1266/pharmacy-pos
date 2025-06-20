@@ -147,7 +147,7 @@ interface StatusChipProps {
 
 const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
     let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-    let label = status || '未知';
+    let label = status ?? '未知';
     if (status === 'shipped') { color = 'success'; label = '已出貨'; }
     if (status === 'pending') { color = 'warning'; label = '待處理'; }
     if (status === 'cancelled') { color = 'error'; label = '已取消'; }
@@ -161,7 +161,7 @@ interface PaymentStatusChipProps {
 
 const PaymentStatusChip: React.FC<PaymentStatusChipProps> = ({ status }) => {
     let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-    let label = status || '未指定';
+    let label = status ?? '未指定';
     if (status === 'paid') { color = 'success'; label = '已付款'; }
     if (status === 'unpaid') { color = 'warning'; label = '未付款'; }
     return <Chip size="small" label={label} color={color} />;
@@ -237,7 +237,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       setFifoError(null);
     } catch (err) {
       console.error('獲取FIFO毛利數據失敗 (出貨單):', err);
-      const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg || err.message);
+      const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg ?? err.message);
       setFifoError(errorMsg);
     } finally {
       setFifoLoading(false);
@@ -336,7 +336,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   const getCollapsibleDetails = (): CollapsibleDetail[] => {
     if (!currentShippingOrder) return [];
     const details = [];
-    const subtotal = (currentShippingOrder.totalAmount || 0) + (currentShippingOrder.discountAmount || 0);
+    const subtotal = (currentShippingOrder.totalAmount ?? 0) + (currentShippingOrder.discountAmount ?? 0);
 
     details.push({
       label: '小計',
@@ -413,7 +413,7 @@ const ShippingOrderDetailPage: React.FC = () => {
           title="金額信息"
           titleIcon={<AccountBalanceWalletIcon />}
           mainAmountLabel="總金額"
-          mainAmountValue={currentShippingOrder.totalAmount || 0}
+          mainAmountValue={currentShippingOrder.totalAmount ?? 0}
           mainAmountIcon={<ReceiptLongIcon />}
           collapsibleDetails={getCollapsibleDetails()} // Updated to include profit summary
           initialOpenState={true}
@@ -437,7 +437,7 @@ const ShippingOrderDetailPage: React.FC = () => {
               quantityField="dquantity"
               priceField="dprice"
               totalCostField="dtotalCost"
-              totalAmount={currentShippingOrder.totalAmount || 0}
+              totalAmount={currentShippingOrder.totalAmount ?? 0}
               title="" // Already has default title "項目"
               isLoading={productDetailsLoading || orderLoading || fifoLoading} // Include fifoLoading
               // profitField and profitMarginField use defaults 'profit' and 'profitMargin'
@@ -458,14 +458,14 @@ const ShippingOrderDetailPage: React.FC = () => {
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <ReceiptIcon fontSize="small" color="action"/>
-                <Typography variant="body2">單號: {currentShippingOrder.soid || 'N/A'}</Typography>
+                <Typography variant="body2">單號: {currentShippingOrder.soid ?? 'N/A'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PersonIcon fontSize="small" color="action"/>
                 <Typography variant="body2">客戶: {
                   typeof currentShippingOrder.customer === 'object'
                     ? currentShippingOrder.customer?.name
-                    : currentShippingOrder.customer || currentShippingOrder.sosupplier || '未指定'
+                    : currentShippingOrder.customer ?? currentShippingOrder.sosupplier ?? '未指定'
                 }</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -485,7 +485,7 @@ const ShippingOrderDetailPage: React.FC = () => {
                 <Typography variant="body2">更新日期: {formatDateSafe(currentShippingOrder.updatedAt)}</Typography>
               </Stack>
               <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{currentShippingOrder.notes || '無'}</Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{currentShippingOrder.notes ?? '無'}</Typography>
             </Stack>
           </CardContent>
         </Card>
@@ -525,7 +525,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   return (
     <DetailLayout
       pageTitle="出貨單詳情"
-      recordIdentifier={currentShippingOrder?.soid || id}
+      recordIdentifier={currentShippingOrder?.soid ?? id}
       listPageUrl="/shipping-orders"
       mainContent={mainContent}
       sidebarContent={sidebarContent}

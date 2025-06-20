@@ -88,7 +88,7 @@ const Grid: FC<{
   xs?: number;
   sm?: number;
   spacing?: number;
-  sx?: any;
+  sx?: Record<string, unknown>;
   children: React.ReactNode;
 }> = (props) => {
   return <MuiGrid {...props} />;
@@ -187,20 +187,20 @@ const SuppliersPage: FC<{}> = () => {
         setLocalSuppliers(actualSuppliers as unknown as SupplierData[]);
       }
     } else {
-      setLocalSuppliers(actualSuppliers as unknown as SupplierData[] || []);
+      setLocalSuppliers((actualSuppliers as unknown as SupplierData[]) ?? []);
     }
   }, [isTestMode, actualSuppliers, actualError]);
 
   useEffect(() => {
     if (isTestMode) {
-      setLocalSelectedSupplier(actualSelectedSupplier ? localSuppliers.find(s => s.id === (actualSelectedSupplier as any).id) ?? null : null);
+      setLocalSelectedSupplier(actualSelectedSupplier ? localSuppliers.find(s => s.id === (actualSelectedSupplier as unknown as SupplierData).id) ?? null : null);
     } else {
       setLocalSelectedSupplier(actualSelectedSupplier as unknown as SupplierData);
     }
   }, [isTestMode, actualSelectedSupplier, localSuppliers]);
 
 
-  const suppliers = isTestMode ? localSuppliers : (actualSuppliers as unknown as SupplierData[]) || [];
+  const suppliers = isTestMode ? localSuppliers : (actualSuppliers as unknown as SupplierData[]) ?? [];
   const loading = isTestMode ? false : actualLoading;
   const error = isTestMode ? null : actualError;
   const selectedSupplier = isTestMode ? localSelectedSupplier : (actualSelectedSupplier as unknown as SupplierData);
@@ -236,7 +236,7 @@ const SuppliersPage: FC<{}> = () => {
       field: 'actions',
       headerName: '操作',
       width: 120,
-      renderCell: (params: any) => (
+      renderCell: (params: { row: SupplierData }) => (
         <Box>
           <Tooltip title="編輯">
             <IconButton
@@ -310,29 +310,33 @@ const SuppliersPage: FC<{}> = () => {
 
   const handleCloseDialog = (): void => setOpenDialog(false);
   const handleCloseImportDialog = (): void => { setOpenImportDialog(false); setCsvFile(null); setImportResult(null); };
-  const handleRowClick = (params: any): void => selectSupplier(params.row.id);
+  const handleRowClick = (params: { row: SupplierData }): void => selectSupplier(params.row.id);
 
-  const handleSaveSupplier = async (): Promise<void> => {
-    if (isTestMode) {
-      const newSupplier: SupplierData = {
-        ...currentSupplierState,
-        id: currentSupplierState.id ?? `mockSup${Date.now()}`,
-        code: currentSupplierState.code ?? `MKSUP${Date.now().toString().slice(-4)}`
-      };
-      if (editMode) {
-        setLocalSuppliers(prev => prev.map(s => s.id === newSupplier.id ? newSupplier : s));
-        if(localSelectedSupplier && localSelectedSupplier.id === newSupplier.id) {
-          setLocalSelectedSupplier(newSupplier);
-        }
-      } else {
-        setLocalSuppliers(prev => [...prev, newSupplier]);
+  // 處理測試模式下的供應商保存
+  const handleTestModeSaveSupplier = (): void => {
+    const newSupplier: SupplierData = {
+      ...currentSupplierState,
+      id: currentSupplierState.id ?? `mockSup${Date.now()}`,
+      code: currentSupplierState.code ?? `MKSUP${Date.now().toString().slice(-4)}`
+    };
+    
+    if (editMode) {
+      setLocalSuppliers(prev => prev.map(s => s.id === newSupplier.id ? newSupplier : s));
+      if(localSelectedSupplier && localSelectedSupplier.id === newSupplier.id) {
+        setLocalSelectedSupplier(newSupplier);
       }
-      setOpenDialog(false);
-      showSnackbar(editMode ? '測試模式：供應商已模擬更新' : '測試模式：供應商已模擬新增', 'info');
-      return;
+    } else {
+      setLocalSuppliers(prev => [...prev, newSupplier]);
     }
+    
+    setOpenDialog(false);
+    showSnackbar(editMode ? '測試模式：供應商已模擬更新' : '測試模式：供應商已模擬新增', 'info');
+  };
 
+  // 處理實際模式下的供應商保存
+  const handleActualSaveSupplier = async (): Promise<void> => {
     let success = false;
+    
     if (editMode && currentSupplierState.id) {
       success = await actualUpdateSupplier(currentSupplierState.id, currentSupplierState);
     } else {
@@ -342,7 +346,16 @@ const SuppliersPage: FC<{}> = () => {
     if (success) {
       setOpenDialog(false);
       showSnackbar(editMode ? '供應商已更新' : '供應商已新增', 'success');
-    } 
+    }
+  };
+
+  // 主要的保存供應商函數
+  const handleSaveSupplier = async (): Promise<void> => {
+    if (isTestMode) {
+      handleTestModeSaveSupplier();
+    } else {
+      await handleActualSaveSupplier();
+    }
   };
 
   const handleOpenImportDialog = (): void => { setOpenImportDialog(true); setImportResult(null); setCsvFile(null); };
@@ -391,31 +404,44 @@ const SuppliersPage: FC<{}> = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
       } 
-    } catch (err: any) {
-      console.error('下載CSV模板失敗 (component):', err);
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      console.error('下載CSV模板失敗 (component):', error);
       showSnackbar('下載CSV模板失敗，請稍後再試', 'error');
     } finally {
       setTemplateDownloading(false);
     }
   };
 
-  const handleImportCsv = async (): Promise<void> => {
-    if (!csvFile) { showSnackbar('請先選擇CSV文件', 'warning'); return; }
-    if (isTestMode) {
-      setImportLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate import
-      const mockResult: ImportResult = { total: 5, success: 3, failed: 1, duplicates: 1, errors: [{ row: 4, error: '模擬錯誤：欄位格式不符'}] };
-      setImportResult(mockResult);
-      showSnackbar(`測試模式：模擬匯入完成。成功 ${mockResult.success}, 失敗 ${mockResult.failed}, 重複 ${mockResult.duplicates}`, 'info');
-      setImportLoading(false);
-      // Optionally add mock data to localSuppliers if needed for further testing
-      // setLocalSuppliers(prev => [...prev, ...mockSuppliersData.slice(0,1)]); // Example
-      return;
-    }
+  // 處理測試模式下的CSV匯入
+  const handleTestModeImportCsv = async (): Promise<void> => {
+    setImportLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 模擬匯入延遲
+    
+    const mockResult: ImportResult = {
+      total: 5,
+      success: 3,
+      failed: 1,
+      duplicates: 1,
+      errors: [{ row: 4, error: '模擬錯誤：欄位格式不符'}]
+    };
+    
+    setImportResult(mockResult);
+    showSnackbar(
+      `測試模式：模擬匯入完成。成功 ${mockResult.success}, 失敗 ${mockResult.failed}, 重複 ${mockResult.duplicates}`,
+      'info'
+    );
+    setImportLoading(false);
+  };
+
+  // 處理實際模式下的CSV匯入
+  const handleActualImportCsv = async (file: File): Promise<void> => {
     try {
       setImportLoading(true);
-      const result = await actualImportCsv(csvFile);
+      const result = await actualImportCsv(file);
       setImportResult(result);
+      
+      // 根據結果顯示不同的提示訊息
       if (result.success > 0) {
         showSnackbar(`成功匯入 ${result.success} 筆供應商資料`, 'success');
       } else if (result.failed > 0 || result.duplicates > 0) {
@@ -423,12 +449,33 @@ const SuppliersPage: FC<{}> = () => {
       } else {
         showSnackbar('未匯入任何資料', 'info');
       }
-    } catch (err: any) {
-      console.error('匯入CSV失敗 (component):', err);
-      setImportResult({ total: 0, success: 0, failed: 0, duplicates: 0, errors: [{ error: err.message }] });
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      console.error('匯入CSV失敗 (component):', error);
+      setImportResult({
+        total: 0,
+        success: 0,
+        failed: 0,
+        duplicates: 0,
+        errors: [{ error: error.message ?? '未知錯誤' }]
+      });
       showSnackbar('匯入CSV失敗', 'error');
     } finally {
       setImportLoading(false);
+    }
+  };
+
+  // 主要的CSV匯入函數
+  const handleImportCsv = async (): Promise<void> => {
+    if (!csvFile) {
+      showSnackbar('請先選擇CSV文件', 'warning');
+      return;
+    }
+    
+    if (isTestMode) {
+      await handleTestModeImportCsv();
+    } else {
+      await handleActualImportCsv(csvFile);
     }
   };
 

@@ -37,9 +37,21 @@ import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
 import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 // 使用通用類型定義
-type ShippingOrder = any;
-type Supplier = any;
-type SearchParams = any;
+interface ShippingOrder {
+  _id: string;
+  soid?: string;
+  [key: string]: any;
+}
+
+interface Supplier {
+  _id: string;
+  name: string;
+  [key: string]: any;
+}
+
+interface SearchParams {
+  [key: string]: any;
+}
 
 interface SnackbarState {
   open: boolean;
@@ -66,7 +78,7 @@ const ShippingOrdersPage: React.FC = () => {
     suppliers,
     filteredRows,
     listLoading,
-    suppliersLoading,
+    // suppliersLoading, // 移除未使用的變數
     previewLoading,
     listError,
     suppliersError,
@@ -82,7 +94,7 @@ const ShippingOrdersPage: React.FC = () => {
     fetchPreviewData,
     clearPreviewData,
     handleDelete,
-  } = useShippingOrdersData() as any; // 使用 any 類型暫時繞過類型檢查
+  } = useShippingOrdersData(); // 移除不必要的型別斷言
 
   // --- Local UI State ---
   const [showFilters, setShowFilters] = useState<boolean>(false);
@@ -110,7 +122,7 @@ const ShippingOrdersPage: React.FC = () => {
 
   // Show snackbar on list or supplier fetch error
   useEffect(() => {
-    const error = listError || suppliersError;
+    const error = listError ?? suppliersError;
     if (error) {
       setSnackbar({
         open: true,
@@ -246,9 +258,10 @@ const ShippingOrdersPage: React.FC = () => {
         setCsvImportDialogOpen(false);
         setCsvImportSuccess(false);
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('CSV導入錯誤:', err);
-      setCsvImportError(err.response?.data?.msg ?? err.message ?? '導入失敗，請檢查CSV格式或聯繫管理員');
+      const error = err as { response?: { data?: { msg?: string } }, message?: string };
+      setCsvImportError(error.response?.data?.msg ?? error.message ?? '導入失敗，請檢查CSV格式或聯繫管理員');
       setCsvImportLoading(false);
     }
   }, [csvFile, csvType, dispatch]);

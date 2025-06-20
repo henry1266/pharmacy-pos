@@ -16,8 +16,8 @@ import {
 
 const SettingsPage: React.FC = () => {
   // Placeholder states for selected colors
-  const [primaryColor, setPrimaryColor] = useState<string>('#1976d2'); // Default MUI blue
-  const [secondaryColor, setSecondaryColor] = useState<string>('#dc004e'); // Default MUI pink
+  const [primaryColor] = useState<string>('#1976d2'); // Default MUI blue
+  const [secondaryColor] = useState<string>('#dc004e'); // Default MUI pink
 
   // Placeholder handler for saving settings
   const handleSaveSettings = (): void => {
