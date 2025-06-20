@@ -30,7 +30,7 @@ import {
   getLeaveTypeText,
   getBorderStyle,
   getBorderColor
-} from '../../utils/calendarUtils';
+} from '../../utils/calendarUtils.ts';
 
 /**
  * 員工排班系統元件

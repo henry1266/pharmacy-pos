@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { transformSalesForTrend, transformSalesForCategory } from '../utils/dataTransformations';
+import { transformSalesForTrend, transformSalesForCategory } from '../utils/dataTransformations.ts';
 // Import the function to get all sales data
 import { getAllSales } from './salesService'; // Assuming salesService is in the same directory
 
