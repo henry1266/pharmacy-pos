@@ -22,7 +22,7 @@ import {
 import { RootState } from '../redux/store.ts'; // 假設你有一個 RootState 型別
 
 // 導入拆分後的組件
-import BasicInfoForm from '../components/shipping-orders/form/BasicInfo';
+import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index.tsx';
 import ProductItemForm from '../components/shipping-orders/form/ProductItems/ItemForm.tsx';
 import ItemsTable from '../components/shipping-orders/form/ProductItems/ItemsTable.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
