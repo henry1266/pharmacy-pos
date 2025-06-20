@@ -19,8 +19,8 @@ import {
 import useCustomerDetailData from '../hooks/useCustomerDetailData';
 
 // Import Presentation Components
-import CustomerInfoCard from '../components/customers/CustomerInfoCard.tsx';
-import TwoColumnLayout from '../components/common/TwoColumnLayout.tsx';
+import CustomerInfoCard from '../components/customers/CustomerInfoCard';
+import TwoColumnLayout from '../components/common/TwoColumnLayout';
 
 // 定義路由參數介面
 interface CustomerDetailParams {

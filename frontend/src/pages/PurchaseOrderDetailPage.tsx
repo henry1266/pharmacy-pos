@@ -26,11 +26,11 @@ import {
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-import { fetchPurchaseOrder } from '../redux/actions.ts';
-import ProductItemsTable from '../components/common/ProductItemsTable.tsx';
-import DetailLayout from '../components/DetailLayout.tsx';
+import { fetchPurchaseOrder } from '../redux/actions';
+import ProductItemsTable from '../components/common/ProductItemsTable';
+import DetailLayout from '../components/DetailLayout';
 import { getProductByCode } from '../services/productService';
-import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo.tsx';
+import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
 import { RootState } from '../types/store';
 import { Product, PurchaseOrder, PurchaseOrderItem } from '../types/entities';
 

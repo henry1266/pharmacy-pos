@@ -14,15 +14,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 
 // Import service functions
-import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService.ts';
-import { getProducts } from '../services/productService.ts';
-import { getSuppliers } from '../services/supplierService.ts';
+import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService';
+import { getProducts } from '../services/productService';
+import { getSuppliers } from '../services/supplierService';
 
 // Import components
-import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm.tsx';
-import ProductItemForm from '../components/purchase-order-form/ProductItemForm.tsx';
-import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable.tsx';
-import ActionButtons from '../components/purchase-order-form/ActionButtons.tsx';
+import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
+import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
+import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
+import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
 // 定義介面
 interface Supplier {

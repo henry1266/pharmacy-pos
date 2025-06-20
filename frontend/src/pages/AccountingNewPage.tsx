@@ -32,7 +32,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import zhTW from 'date-fns/locale/zh-TW';
 import { useNavigate } from 'react-router-dom';
-import StatusSelect from '../components/common/form/StatusSelect.tsx';
+import StatusSelect from '../components/common/form/StatusSelect';
 import useAccountingFormData from '../hooks/useAccountingFormData';
 
 // TypeScript interfaces

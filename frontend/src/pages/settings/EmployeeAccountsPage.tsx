@@ -21,12 +21,12 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import OvertimeManager from '../../components/employees/OvertimeManager.tsx';
-import AccountDialog from '../../components/employees/account/AccountDialog.tsx';
-import FormField from '../../components/employees/account/FormField.tsx';
-import EmployeeAccountRow from '../../components/employees/account/EmployeeAccountRow.tsx';
+import OvertimeManager from '../../components/employees/OvertimeManager';
+import AccountDialog from '../../components/employees/account/AccountDialog';
+import FormField from '../../components/employees/account/FormField';
+import EmployeeAccountRow from '../../components/employees/account/EmployeeAccountRow';
 import useEmployeeAccounts from '../../hooks/useEmployeeAccounts';
-import { getRoleName, getRoleColor, roleOptions } from '../../utils/roleUtils.ts';
+import { getRoleName, getRoleColor, roleOptions } from '../../utils/roleUtils';
 
 // 定義員工介面
 interface Employee {

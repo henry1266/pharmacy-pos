@@ -12,10 +12,10 @@ import {
 import useDashboardData from '../hooks/useDashboardData';
 
 // Import Presentation Components
-import DashboardSummaryCards from '../components/dashboard/DashboardSummaryCards.tsx';
-import DashboardStatsCards from '../components/dashboard/DashboardStatsCards.tsx';
-import SalesTrendChart from '../components/dashboard/SalesTrendChart.tsx';
-import CategorySalesChart from '../components/dashboard/CategorySalesChart.tsx';
+import DashboardSummaryCards from '../components/dashboard/DashboardSummaryCards';
+import DashboardStatsCards from '../components/dashboard/DashboardStatsCards';
+import SalesTrendChart from '../components/dashboard/SalesTrendChart';
+import CategorySalesChart from '../components/dashboard/CategorySalesChart';
 
 // Import Types
 import { DashboardSummary, SalesTrend, CategorySales } from '../services/dashboardService';
