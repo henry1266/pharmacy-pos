@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import PropTypes from 'prop-types'; // Import PropTypes
-import ItemPreview from '../common/preview/ItemPreview';
+import ItemPreview from '../common/preview/ItemPreview.tsx';
 
 // 定義項目介面
 interface Item {
