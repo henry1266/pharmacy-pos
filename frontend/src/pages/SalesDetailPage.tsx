@@ -3,7 +3,6 @@ import axios from 'axios';
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   Table,
@@ -18,7 +17,6 @@ import {
   CircularProgress,
   Stack,
   IconButton,
-  Collapse,
   ChipProps
 } from '@mui/material';
 import {
@@ -26,7 +24,6 @@ import {
   TrendingUp as TrendingUpIcon,
   ReceiptLong as ReceiptLongIcon,
   Percent as PercentIcon,
-  ExpandMore as ExpandMoreIcon,
   Info as InfoIcon,
   Person as PersonIcon,
   CalendarToday as CalendarTodayIcon,
@@ -242,7 +239,7 @@ const SalesItemRow: FC<SalesItemRowProps> = ({ item, fifoLoading, fifoData, show
       <TableCell>
         <ProductCodeLink product={item.product} />
       </TableCell>
-      <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
+      <TableCell>{item.product?.name ?? item.name ?? 'N/A'}</TableCell>
       <TableCell align="right">{item.price.toFixed(2)}</TableCell>
       <TableCell align="right">{item.quantity}</TableCell>
       <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
@@ -289,7 +286,7 @@ const SalesItemsTable: FC<SalesItemsTableProps> = ({ sale, fifoLoading, fifoData
       <TableBody>
         {sale.items.map((item, index) => (
           <SalesItemRow 
-            key={item.product?._id || `item-${index}`} 
+            key={item.product?._id ?? `item-${index}`}
             item={item} 
             fifoLoading={fifoLoading} 
             fifoData={fifoData} 
@@ -314,11 +311,11 @@ const SaleInfoSidebar: FC<SaleInfoSidebarProps> = ({ sale }) => (
       <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} alignItems="center">
           <CalendarTodayIcon fontSize="small" color="action"/>
-          <Typography variant="body2">銷售單號: {sale.saleNumber || 'N/A'}</Typography>
+          <Typography variant="body2">銷售單號: {sale.saleNumber ?? 'N/A'}</Typography>
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center">
           <PersonIcon fontSize="small" color="action"/>
-          <Typography variant="body2">客戶: {sale.customer?.name || '一般客戶'}</Typography>
+          <Typography variant="body2">客戶: {sale.customer?.name ?? '一般客戶'}</Typography>
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center">
           <PaymentIcon fontSize="small" color="action"/>
@@ -329,7 +326,7 @@ const SaleInfoSidebar: FC<SaleInfoSidebarProps> = ({ sale }) => (
           <Typography variant="body2">付款狀態: <Chip label={getPaymentStatusInfo(sale.paymentStatus).text} color={getPaymentStatusInfo(sale.paymentStatus).color} size="small" /></Typography>
         </Stack>
         <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
-        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note || '無'}</Typography>
+        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note ?? '無'}</Typography>
       </Stack>
     </CardContent>
   </Card>
@@ -359,7 +356,7 @@ const MainContent: FC<MainContentProps> = ({
         title="金額信息"
         titleIcon={<AccountBalanceWalletIcon />}
         mainAmountLabel="總金額"
-        mainAmountValue={sale.totalAmount || 0}
+        mainAmountValue={sale.totalAmount ?? 0}
         mainAmountIcon={<ReceiptLongIcon />}
         collapsibleDetails={getCollapsibleDetails(sale, fifoLoading, fifoError, fifoData)}
         initialOpenState={true}
@@ -413,7 +410,7 @@ const SalesDetailPage: FC = () => {
       setError(null);
     } catch (err: any) {
       console.error('獲取銷售數據失敗:', err);
-      const errorMsg = '獲取銷售數據失敗: ' + (err.response?.data?.msg || err.message);
+      const errorMsg = '獲取銷售數據失敗: ' + (err.response?.data?.msg ?? err.message);
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -429,7 +426,7 @@ const SalesDetailPage: FC = () => {
       setFifoError(null);
     } catch (err: any) {
       console.error('獲取FIFO毛利數據失敗:', err);
-      const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg || err.message);
+      const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg ?? err.message);
       setFifoError(errorMsg);
     } finally {
       setFifoLoading(false);
