@@ -23,8 +23,8 @@ export const login = async (credentials: LoginRequest): Promise<AuthResponse> =>
     console.error('登入失敗 (service):', err);
     // Re-throw a more specific error message if available
     const errorMessage =
-      err.response?.data?.msg ||
-      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ||
+      err.response?.data?.msg ??
+      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ??
       '登入失敗，請檢查您的憑證或稍後再試。';
     throw new Error(errorMessage);
   }
@@ -53,7 +53,7 @@ export const getCurrentUser = async (): Promise<any> => {
   } catch (err: any) {
     console.error('獲取當前用戶資訊失敗:', err);
     throw new Error(
-      err.response?.data?.msg ||
+      err.response?.data?.msg ??
       '獲取用戶資訊失敗，請確認您已登入系統'
     );
   }
@@ -83,8 +83,8 @@ export const updateCurrentUser = async (updateData: UpdateUserRequest): Promise<
   } catch (err: any) {
     console.error('更新用戶資訊失敗:', err);
     throw new Error(
-      err.response?.data?.msg ||
-      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ||
+      err.response?.data?.msg ??
+      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ??
       '更新用戶資訊失敗，請稍後再試'
     );
   }

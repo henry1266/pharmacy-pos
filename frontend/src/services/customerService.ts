@@ -32,7 +32,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const response = await axios.get<Customer[]>(API_URL, config);
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching customers:', error.response?.data || error.message);
+    console.error('Error fetching customers:', error.response?.data ?? error.message);
     throw error; // Re-throw for handling in the hook/component
   }
 };
@@ -50,9 +50,9 @@ export const getCustomerById = async (id: string): Promise<Customer> => {
     const response = await axios.get<Customer>(`${API_URL}/${id}`, config);
     return response.data;
   } catch (error: any) {
-    console.error(`Error fetching customer ${id}:`, error.response?.data || error.message);
+    console.error(`Error fetching customer ${id}:`, error.response?.data ?? error.message);
     // Throw a more specific error message
-    throw new Error(error.response?.data?.message || `獲取客戶 ${id} 詳情失敗`);
+    throw new Error(error.response?.data?.message ?? `獲取客戶 ${id} 詳情失敗`);
   }
 };
 
@@ -73,7 +73,7 @@ export const addCustomer = async (customerData: Partial<Customer>): Promise<Cust
     const response = await axios.post<Customer>(API_URL, dataToSend, config);
     return response.data;
   } catch (error: any) {
-    console.error('Error adding customer:', error.response?.data || error.message);
+    console.error('Error adding customer:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -96,7 +96,7 @@ export const updateCustomer = async (id: string, customerData: Partial<Customer>
     const response = await axios.put<Customer>(`${API_URL}/${id}`, dataToSend, config);
     return response.data;
   } catch (error: any) {
-    console.error('Error updating customer:', error.response?.data || error.message);
+    console.error('Error updating customer:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -114,7 +114,7 @@ export const deleteCustomer = async (id: string): Promise<void> => {
     const config = { headers: { 'x-auth-token': token } };
     await axios.delete(`${API_URL}/${id}`, config);
   } catch (error: any) {
-    console.error('Error deleting customer:', error.response?.data || error.message);
+    console.error('Error deleting customer:', error.response?.data ?? error.message);
     throw error;
   }
 };

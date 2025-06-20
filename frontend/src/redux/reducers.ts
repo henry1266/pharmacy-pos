@@ -15,7 +15,7 @@ import {
 export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
-  user: any | null;
+  user: Record<string, unknown> | null;
   loading: boolean;
   error: string | null;
 }
@@ -69,7 +69,7 @@ export interface SalesState {
  * 儀表板狀態介面
  */
 export interface DashboardState {
-  data: any | null;
+  data: Record<string, unknown> | null;
   loading: boolean;
   error: string | null;
 }
@@ -78,7 +78,7 @@ export interface DashboardState {
  * 報表狀態介面
  */
 export interface ReportsState {
-  data: any | null;
+  data: Record<string, unknown> | null;
   loading: boolean;
   error: string | null;
 }

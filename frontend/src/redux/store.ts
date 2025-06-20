@@ -1,5 +1,6 @@
-import { createStore, combineReducers, applyMiddleware, compose, Store, Dispatch } from 'redux';
+import { createStore, combineReducers, applyMiddleware, compose, Store } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
+// 導入 thunk 中間件
 import thunk from 'redux-thunk';
 // 使用內建的compose替代redux-devtools-extension
 import {
@@ -46,10 +47,12 @@ export type AppStore = Store<RootState> & {
 };
 
 // 創建Redux store
+
+
 const store = createStore(
   rootReducer,
   composeEnhancers(applyMiddleware(thunk))
-) as AppStore;
+);
 
 // 導出 RootState 類型
 export type { RootState };

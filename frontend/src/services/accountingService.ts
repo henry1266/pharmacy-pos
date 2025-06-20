@@ -35,7 +35,7 @@ export const getAccountingRecords = async (filters: AccountingFilters = {}): Pro
     return response.data;
   } catch (err: any) {
     console.error('獲取記帳記錄失敗 (service):', err);
-    throw new Error(err.response?.data?.msg || '獲取記帳記錄失敗');
+    throw new Error(err.response?.data?.msg ?? '獲取記帳記錄失敗');
   }
 };
 
@@ -50,13 +50,13 @@ export const createAccountingRecord = async (recordData: Partial<AccountingRecor
     // Ensure date is formatted correctly before sending
     const dataToSend = {
       ...recordData,
-      date: format(new Date(recordData.date as string | Date), 'yyyy-MM-dd')
+      date: format(new Date(recordData.date), 'yyyy-MM-dd')
     };
     const response = await axios.post<AccountingRecord>(API_URL, dataToSend);
     return response.data;
   } catch (err: any) {
     console.error('創建記帳記錄失敗 (service):', err);
-    throw new Error(err.response?.data?.msg || '創建記帳記錄失敗');
+    throw new Error(err.response?.data?.msg ?? '創建記帳記錄失敗');
   }
 };
 
@@ -72,13 +72,13 @@ export const updateAccountingRecord = async (id: string, recordData: Partial<Acc
     // Ensure date is formatted correctly before sending
     const dataToSend = {
       ...recordData,
-      date: format(new Date(recordData.date as string | Date), 'yyyy-MM-dd')
+      date: format(new Date(recordData.date), 'yyyy-MM-dd')
     };
     const response = await axios.put<AccountingRecord>(`${API_URL}/${id}`, dataToSend);
     return response.data;
   } catch (err: any) {
     console.error(`更新記帳記錄 ${id} 失敗 (service):`, err);
-    throw new Error(err.response?.data?.msg || '更新記帳記錄失敗');
+    throw new Error(err.response?.data?.msg ?? '更新記帳記錄失敗');
   }
 };
 
@@ -94,7 +94,7 @@ export const deleteAccountingRecord = async (id: string): Promise<{ success: boo
     return response.data; // Usually an empty object or success message
   } catch (err: any) {
     console.error(`刪除記帳記錄 ${id} 失敗 (service):`, err);
-    throw new Error(err.response?.data?.msg || '刪除記帳記錄失敗');
+    throw new Error(err.response?.data?.msg ?? '刪除記帳記錄失敗');
   }
 };
 
@@ -131,7 +131,7 @@ export const getUnaccountedSales = async (date: string): Promise<UnaccountedSale
     return response.data;
   } catch (err: any) {
     console.error('獲取未結算銷售記錄失敗 (service):', err);
-    throw new Error(err.response?.data?.msg || '獲取未結算銷售記錄失敗');
+    throw new Error(err.response?.data?.msg ?? '獲取未結算銷售記錄失敗');
   }
 };
 
