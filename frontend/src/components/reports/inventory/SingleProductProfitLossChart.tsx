@@ -6,17 +6,16 @@ import {
   Paper,
   Alert
 } from '@mui/material';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  Line,
-  TooltipProps
+  Line
 } from 'recharts';
 
 // 定義交易記錄的型別

@@ -132,18 +132,27 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
           return false;
         });
       }
-      const formattedRows = filtered.map(so => ({
-        id: so._id,
-        _id: so._id,
-        soid: so.soid || '',
-        sobill: so.sobill || '',
-        sobilldate: so.sobilldate || new Date(),
-        sosupplier: typeof so.sosupplier === 'string' ? so.sosupplier : 
-                   (typeof so.sosupplier === 'object' && so.sosupplier ? so.sosupplier._id : ''),
-        totalAmount: so.totalAmount || 0,
-        status: so.status || '',
-        paymentStatus: so.paymentStatus || ''
-      }));
+      const formattedRows = filtered.map(so => {
+        // 提取供應商ID邏輯為獨立語句
+        let supplierValue = '';
+        if (typeof so.sosupplier === 'string') {
+          supplierValue = so.sosupplier;
+        } else if (typeof so.sosupplier === 'object' && so.sosupplier) {
+          supplierValue = so.sosupplier._id;
+        }
+
+        return {
+          id: so._id,
+          _id: so._id,
+          soid: so.soid || '',
+          sobill: so.sobill || '',
+          sobilldate: so.sobilldate || new Date(),
+          sosupplier: supplierValue,
+          totalAmount: so.totalAmount || 0,
+          status: so.status || '',
+          paymentStatus: so.paymentStatus || ''
+        };
+      });
       setFilteredRows(formattedRows);
     } else {
       setFilteredRows([]);

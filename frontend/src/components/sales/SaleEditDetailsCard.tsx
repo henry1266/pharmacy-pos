@@ -54,7 +54,7 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
               <InputLabel>客戶</InputLabel>
               <Select
                 name="customer"
-                value={currentSale.customer || ''} // Ensure value is controlled
+                value={currentSale.customer ?? ''} // Ensure value is controlled
                 onChange={handleInputChange}
                 label="客戶"
               >

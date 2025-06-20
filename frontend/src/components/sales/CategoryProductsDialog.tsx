@@ -129,7 +129,7 @@ const CategoryProductsDialog: React.FC<CategoryProductsDialogProps> = ({
           ) : (
             <Grid container spacing={2}>
               {filteredProducts.map((product, index) => (
-                <Grid item xs={12} sm={6} key={product._id || index} {...({} as any)}>
+                <Grid item xs={12} sm={6} key={product._id ?? index} {...({} as any)}>
                   <Paper 
                     elevation={1} 
                     sx={{ 

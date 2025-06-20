@@ -57,8 +57,8 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
   // Filter products based on productIdsToShow and searchTerm
   useEffect(() => {
     console.log("CustomProductsDialog - Props received:", {
-      allProductsCount: allProducts?.length || 0,
-      productIdsToShow: productIdsToShow || [],
+      allProductsCount: allProducts?.length ?? 0,
+      productIdsToShow: productIdsToShow ?? [],
       shortcutName
     });
 
@@ -177,7 +177,7 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
                         {product?.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
-                        編號: {product?.code || '無'} | 價格: {product?.sellingPrice ? `$${product?.sellingPrice.toFixed(2)}` : '無'}
+                        編號: {product?.code ?? '無'} | 價格: {product?.sellingPrice ? `$${product?.sellingPrice.toFixed(2)}` : '無'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
                         庫存: {getTotalInventory(product?._id)}

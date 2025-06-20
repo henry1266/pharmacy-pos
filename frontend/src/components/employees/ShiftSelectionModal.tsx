@@ -99,7 +99,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
         // 過濾掉主管，只保留一般員工
         const filteredEmployees = response.data.employees.filter(employee => {
-          const position = employee.position?.toLowerCase() || '';
+          const position = employee.position?.toLowerCase() ?? '';
           return !position.includes('主管') &&
                  !position.includes('經理') &&
                  !position.includes('supervisor') &&
@@ -111,7 +111,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         setError(null);
       } catch (err: any) {
         console.error('獲取員工資料失敗:', err);
-        setError(err.response?.data?.msg || '獲取員工資料失敗');
+        setError(err.response?.data?.msg ?? '獲取員工資料失敗');
       } finally {
         setLoading(false);
       }

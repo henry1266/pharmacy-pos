@@ -75,13 +75,21 @@ export const useSalesEditData = (saleId: string) => {
             productType: typeof item.product === 'object' ? (item.product as any).productType : undefined
           }));
 
+          // 確定付款狀態
+          let paymentStatus: 'paid' | 'pending' | 'cancelled' = 'pending';
+          if (saleData.status === 'completed') {
+            paymentStatus = 'paid';
+          } else if (saleData.status === 'cancelled') {
+            paymentStatus = 'cancelled';
+          }
+
           setInitialSaleData({
             customer: typeof saleData.customer === 'object' ? saleData.customer._id : (saleData.customer || ''),
             items: formattedItems,
             totalAmount: saleData.totalAmount,
             discount: 0, // 在 Sale 介面中沒有 discount 屬性，設為 0
             paymentMethod: saleData.paymentMethod || 'cash',
-            paymentStatus: saleData.status === 'completed' ? 'paid' : (saleData.status === 'cancelled' ? 'cancelled' : 'pending'),
+            paymentStatus: paymentStatus,
             note: saleData.notes || ''
           });
       } else {

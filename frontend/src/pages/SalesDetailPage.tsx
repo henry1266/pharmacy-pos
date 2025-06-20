@@ -245,7 +245,7 @@ const SalesItemRow: FC<SalesItemRowProps> = ({ item, fifoLoading, fifoData, show
       <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
       {!fifoLoading && fifoData?.items && showSalesProfitColumns && (
         <>
-          <TableCell align="right">{fifoItem?.fifoProfit ? fifoItem.fifoProfit.totalCost.toFixed(2) : 'N/A'}</TableCell>
+          <TableCell align="right">{fifoItem?.fifoProfit?.totalCost.toFixed(2) ?? 'N/A'}</TableCell>
           <GrossProfitCell fifoProfit={fifoItem?.fifoProfit as any} />
           <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
             {fifoItem?.fifoProfit ? fifoItem.fifoProfit.profitMargin : 'N/A'}

@@ -125,22 +125,22 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           <Grid item xs={12} sm={3} {...({} as any)}>
             <Typography variant="subtitle2">分類: {
               product.category ? 
-                categories.find(c => c._id === product.category)?.name || product.category 
+                categories.find(c => c._id === product.category)?.name ?? product.category
                 : '無'
             }</Typography>
           </Grid>
           <Grid item xs={12} sm={3} {...({} as any)}>
-            <Typography variant="subtitle2">最低庫存: {product.minStock || '0'}</Typography>
+            <Typography variant="subtitle2">最低庫存: {product.minStock ?? '0'}</Typography>
           </Grid>
           
           <Grid item xs={12} sm={3} {...({} as any)}>
-            <Typography variant="subtitle2">進貨價: {product.purchasePrice || '0'}</Typography>
+            <Typography variant="subtitle2">進貨價: {product.purchasePrice ?? '0'}</Typography>
           </Grid>
           <Grid item xs={12} sm={3} {...({} as any)}>
-            <Typography variant="subtitle2">售價: {product.sellingPrice || '0'}</Typography>
+            <Typography variant="subtitle2">售價: {product.sellingPrice ?? '0'}</Typography>
           </Grid>
           <Grid item xs={12} sm={3} {...({} as any)}>
-            <Typography variant="subtitle2">健保價: {product.healthInsurancePrice || '0'}</Typography>
+            <Typography variant="subtitle2">健保價: {product.healthInsurancePrice ?? '0'}</Typography>
           </Grid>
         </Grid>
         
@@ -148,7 +148,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
 
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} {...({} as any)}>
-            <Typography variant="subtitle2">備註: {product.description || '無'}</Typography>
+            <Typography variant="subtitle2">備註: {product.description ?? '無'}</Typography>
           </Grid>
         </Grid>
         

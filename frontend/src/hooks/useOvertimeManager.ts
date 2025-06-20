@@ -6,7 +6,6 @@ import { Employee } from '../types/entities';
 import {
   OvertimeRecord,
   OvertimeRecordCreateData,
-  OvertimeRecordQueryParams,
   OvertimeRecordStatus
 } from '../services/overtimeRecordService';
 
