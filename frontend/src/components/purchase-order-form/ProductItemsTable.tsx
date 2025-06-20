@@ -21,7 +21,7 @@ import {
   Check as CheckIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import ProductCodeLink from '../common/ProductCodeLink'; // ADDED IMPORT
+import ProductCodeLink from '../common/ProductCodeLink.tsx'; // ADDED IMPORT
 
 // 定義項目介面
 interface Item {

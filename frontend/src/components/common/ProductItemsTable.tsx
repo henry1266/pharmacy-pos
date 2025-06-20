@@ -19,8 +19,8 @@ import {
   Visibility,
   VisibilityOff
 } from '@mui/icons-material';
-import ProductCodeLink from './ProductCodeLink';
-import GrossProfitCell from './GrossProfitCell';
+import ProductCodeLink from './ProductCodeLink.tsx';
+import GrossProfitCell from './GrossProfitCell.tsx';
 
 /**
  * 產品項目介面

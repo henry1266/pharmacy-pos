@@ -18,7 +18,7 @@ import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
-import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
+import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
 import ActionButtons from '../components/purchase-order-form/ActionButtons';
 

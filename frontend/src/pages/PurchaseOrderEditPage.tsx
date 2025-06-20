@@ -21,7 +21,7 @@ import { getSuppliers } from '../services/supplierService';
 // Import components
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
-import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
+import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable.tsx';
 import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
 // 定義介面
