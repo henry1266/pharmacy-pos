@@ -370,7 +370,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
         } catch (scheduleError: any) {
           console.error('獲取排班記錄失敗:', scheduleError);
           console.error('錯誤詳情:', scheduleError.response?.data || scheduleError.message);
-          setError(`獲取排班記錄失敗: ${scheduleError.response?.data?.message || scheduleError.message}`);
+          setError(`獲取排班記錄失敗: ${scheduleError.response?.data?.message ?? scheduleError.message}`);
           // 不提前返回，繼續處理其他邏輯
           scheduleRecords = []; // 設置為空數組，繼續處理
         }
@@ -410,7 +410,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
           
           // 檢查 leaveType 字段
           const isOvertime = record.leaveType === 'overtime';
-          console.log(`[診斷] 記錄 ${record._id} 是否為加班: ${isOvertime}, leaveType: ${record.leaveType || '未設置'}`);
+          console.log(`[診斷] 記錄 ${record._id} 是否為加班: ${isOvertime}, leaveType: ${record.leaveType ?? '未設置'}`);
           
           return isOvertime;
         });
@@ -467,7 +467,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
             }
             groups[employeeIdValue].push(record);
           } catch (err) {
-            console.error(`處理記錄 ${record._id || '未知ID'} 時發生錯誤:`, err);
+            console.error(`處理記錄 ${record._id ?? '未知ID'} 時發生錯誤:`, err);
           }
           
           return groups;
