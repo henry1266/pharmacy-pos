@@ -144,7 +144,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
         fullWidth
         options={filteredProducts}
         getOptionLabel={(option) =>
-          typeof option === 'string' ? option : option.name || ''
+          typeof option === 'string' ? option : option.name ?? ''
         }
         filterOptions={filterOptions} // ✅ enable multi-field match
         value={barcode}

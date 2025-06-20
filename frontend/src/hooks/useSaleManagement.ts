@@ -191,7 +191,7 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
       }
       const saleData = {
         saleNumber: finalSaleNumber,
-        customer: currentSale.customer || null,
+        customer: currentSale.customer ?? null,
         items: currentSale.items.map(item => ({ 
           product: item.product, 
           quantity: item.quantity, 
@@ -212,7 +212,7 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
       return true; // Indicate success
     } catch (err: any) {
       console.error('保存銷售記錄失敗:', err);
-      showSnackbar('保存銷售記錄失敗: ' + (err.response?.data?.msg || err.message), 'error');
+      showSnackbar('保存銷售記錄失敗: ' + (err.response?.data?.msg ?? err.message), 'error');
       return false; // Indicate failure
     }
   }, [currentSale, showSnackbar]);

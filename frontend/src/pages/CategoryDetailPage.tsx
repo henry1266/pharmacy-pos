@@ -69,7 +69,7 @@ const productGridColumns: GridColDef[] = [
       const color = value < 10 ? 'error.main' : 'text.primary';
       return (
         <Typography variant="body2" sx={{ color, fontWeight: value < 10 ? 'bold' : 'medium' }}>
-          {value != null ? value : '計算中...'}
+          {value ?? '計算中...'}
         </Typography>
       );
     }

@@ -252,7 +252,7 @@ const LoginPage = () => {
                           value={credentials.email}
                           onChange={handleChange}
                           required={!isTestMode && credentials.loginType === 'email'}
-                          disabled={loading || isTestMode || credentials.loginType !== 'email'}
+                          disabled={loading ?? isTestMode ?? credentials.loginType !== 'email'}
                           InputProps={{ sx: { color: '#fff' } }}
                           InputLabelProps={{ sx: { color: '#bbb' } }}
                           sx={{ mb: 2 }}
@@ -268,7 +268,7 @@ const LoginPage = () => {
                         value={credentials.password}
                         onChange={handleChange}
                         required={!isTestMode}
-                        disabled={loading || isTestMode}
+                        disabled={loading ?? isTestMode}
                         InputProps={{ sx: { color: '#fff' } }}
                         InputLabelProps={{ sx: { color: '#bbb' } }}
                       />

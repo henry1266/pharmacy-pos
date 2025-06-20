@@ -547,7 +547,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               onClick={handleSaveAccount}
               color="primary"
               variant="contained"
-              disabled={isSaving || isLoadingUser || !currentUser}
+              disabled={isSaving ?? isLoadingUser ?? !currentUser}
               startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
             >
               {isSaving ? '保存中...' : '保存帳號設定'}

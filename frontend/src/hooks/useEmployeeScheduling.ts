@@ -33,7 +33,7 @@ const useEmployeeScheduling = () => {
       const data = await getSchedules(startDate, endDate, employeeId);
       setSchedules(data);
     } catch (err: any) {
-      setError(err.response?.data?.msg || '獲取排班資料失敗');
+      setError(err.response?.data?.msg ?? '獲取排班資料失敗');
       console.error('獲取排班資料失敗:', err);
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ const useEmployeeScheduling = () => {
       const data = await getSchedulesByDate(startDate, endDate);
       setSchedulesGroupedByDate(data);
     } catch (err: any) {
-      setError(err.response?.data?.msg || '獲取排班資料失敗');
+      setError(err.response?.data?.msg ?? '獲取排班資料失敗');
       console.error('獲取排班資料失敗:', err);
     } finally {
       setLoading(false);
@@ -72,7 +72,7 @@ const useEmployeeScheduling = () => {
       setSchedules(prev => [...prev, newSchedule]);
       return newSchedule;
     } catch (err: any) {
-      setError(err.response?.data?.msg || '創建排班失敗');
+      setError(err.response?.data?.msg ?? '創建排班失敗');
       console.error('創建排班失敗:', err);
       throw err;
     } finally {
@@ -98,7 +98,7 @@ const useEmployeeScheduling = () => {
       );
       return updatedSchedule;
     } catch (err: any) {
-      setError(err.response?.data?.msg || '更新排班失敗');
+      setError(err.response?.data?.msg ?? '更新排班失敗');
       console.error('更新排班失敗:', err);
       throw err;
     } finally {
@@ -119,7 +119,7 @@ const useEmployeeScheduling = () => {
       setSchedules(prev => prev.filter(schedule => schedule._id !== id));
       return result;
     } catch (err: any) {
-      setError(err.response?.data?.msg || '刪除排班失敗');
+      setError(err.response?.data?.msg ?? '刪除排班失敗');
       console.error('刪除排班失敗:', err);
       throw err;
     } finally {

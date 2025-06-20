@@ -234,7 +234,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       {/* Data Grid Component */}
       <AccountingDataGrid
         records={records as any}
-        loading={loadingRecords || formLoading}
+        loading={loadingRecords ?? formLoading}
         onEdit={handleOpenEditDialog as any}
         onDelete={handleDelete}
       />

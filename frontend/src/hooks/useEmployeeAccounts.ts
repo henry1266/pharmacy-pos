@@ -134,7 +134,7 @@ const useEmployeeAccounts = () => {
     setFormData({
       employeeId: employee._id,
       username: account.username,
-      email: account.email || '',
+      email: account.email ?? '',
       password: '',
       confirmPassword: '',
       role: account.role
@@ -206,7 +206,7 @@ const useEmployeeAccounts = () => {
       await employeeAccountService.createEmployeeAccount({
         employeeId: formData.employeeId,
         username: formData.username,
-        email: formData.email || undefined,
+        email: formData.email ?? undefined,
         password: formData.password,
         role: formData.role
       });
@@ -226,7 +226,7 @@ const useEmployeeAccounts = () => {
 
     const updateData: Record<string, any> = {};
     if (formData.username) updateData.username = formData.username;
-    if (formData.email !== undefined) updateData.email = formData.email || undefined;
+    if (formData.email !== undefined) updateData.email = formData.email ?? undefined;
     if (formData.role) updateData.role = formData.role;
     if (formData.password) updateData.password = formData.password;
 
