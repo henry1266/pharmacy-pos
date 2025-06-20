@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, FC, ChangeEvent } from 'react';
+import React, { useRef, useEffect, useCallback, FC } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -51,7 +51,7 @@ const SalesEditPage: FC = () => {
   const barcodeInputRef = useRef<HTMLInputElement>(null); // Create ref for barcode input
 
   // --- Data Fetching Hook ---
-  const { initialSaleData, products, customers, loading, error } = useSalesEditData(id || '');
+  const { initialSaleData, products, customers, loading, error } = useSalesEditData(id ?? '');
 
   // --- State Management and Actions Hook ---
   const {
@@ -67,7 +67,7 @@ const SalesEditPage: FC = () => {
     handleUpdateSale,
     snackbar,
     handleCloseSnackbar
-  } = useSaleEditManagement(initialSaleData, products, id || '');
+  } = useSaleEditManagement(initialSaleData, products, id ?? '');
 
   // --- Focus Management --- 
   // Function to focus the barcode input
