@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '../hooks/redux';
 import axios from 'axios'; // Added import
 import { downloadShippingOrderPdf } from '../services/pdf/shippingOrderPdf';
 import {
@@ -209,7 +210,7 @@ const NoDataContent: React.FC<NoDataContentProps> = ({ orderLoading, currentShip
 const ShippingOrderDetailPage: React.FC = () => {
   const { id } = useParams<RouteParams>();
   // 使用更通用的 dispatch 類型
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector(
     (state: RootState) => state.shippingOrders

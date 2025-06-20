@@ -138,7 +138,7 @@ const Grid: FC<{
   item?: boolean;
   container?: boolean;
   xs?: number;
-  sm?: number | string;
+  sm?: number;
   md?: number;
   spacing?: number;
   sx?: any;
@@ -166,7 +166,7 @@ interface AmountInfoCardHeaderProps {
 const AmountInfoCardHeader: FC<AmountInfoCardHeaderProps> = ({ sale, amountInfoOpen, handleToggleAmountInfo }) => (
   <CardContent sx={{ pb: '16px !important' }}>
     <Grid container spacing={1} alignItems="center" justifyContent="space-between">
-      <Grid item xs={12} sm="auto" onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', flexGrow: { xs: 1, sm: 0 } }}>
+      <Grid item xs={12} sm={6} onClick={handleToggleAmountInfo} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', flexGrow: { xs: 1, sm: 0 } }}>
         <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center' }}>
           <AccountBalanceWalletIcon sx={{ verticalAlign: 'middle', mr: 1 }}/>金額信息
         </Typography>
@@ -174,7 +174,7 @@ const AmountInfoCardHeader: FC<AmountInfoCardHeaderProps> = ({ sale, amountInfoO
           <ExpandMoreIcon sx={{ transform: amountInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
         </IconButton>
       </Grid>
-      <Grid item xs={12} sm="auto" sx={{ mt: { xs: 1, sm: 0 } }}>
+      <Grid item xs={12} sm={6} sx={{ mt: { xs: 1, sm: 0 } }}>
         <Stack direction="row" spacing={1} alignItems="center" justifyContent={{ xs: 'flex-end', sm: 'flex-end' }}>
           <ReceiptLongIcon color="primary" fontSize="small"/>
           <Box textAlign="right">

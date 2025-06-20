@@ -162,7 +162,7 @@ const ReportsPage: React.FC = () => {
   };
   
   const handleGroupByChange = (event: SelectChangeEvent): void => {
-    setGroupBy(event.target.value);
+    setGroupBy(event.target.value as 'day' | 'week' | 'month' | 'year');
   };
   
   const handleDateRangePresetChange = (event: SelectChangeEvent): void => {

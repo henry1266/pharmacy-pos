@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '../hooks/redux';
 import { useParams } from 'react-router-dom';
 import {
   Typography,
@@ -41,7 +42,7 @@ interface ExtendedPurchaseOrder extends PurchaseOrder {
   posupplier?: string;     // 供應商名稱
   paymentStatus?: string;  // 付款狀態
   discountAmount?: number; // 折扣金額
-  items?: ExtendedPurchaseOrderItem[]; // 擴展的項目
+  items: ExtendedPurchaseOrderItem[]; // 擴展的項目 - 保持必需以符合基礎介面
 }
 
 // 擴展 PurchaseOrderItem 類型以包含實際使用的欄位
@@ -98,7 +99,7 @@ interface CollapsibleDetail {
 
 // 主組件
 const PurchaseOrderDetailPage: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
   
   const { currentPurchaseOrder, loading: orderLoading, error: orderError } = useSelector((state: RootState) => state.purchaseOrders) as {

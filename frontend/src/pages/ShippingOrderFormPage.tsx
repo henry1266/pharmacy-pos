@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '../hooks/redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   Box, 
@@ -78,7 +79,7 @@ interface ISnackbarState {
 // =================================================================
 
 const ShippingOrderFormPage: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
@@ -139,18 +140,27 @@ const ShippingOrderFormPage: React.FC = () => {
     if (isEditMode && currentShippingOrder && suppliers.length > 0) {
       // 將從 Redux 來的資料設定到表單中
       setFormData({
-        ...currentShippingOrder,
-        supplier: typeof currentShippingOrder.supplier === 'object' 
-          ? (currentShippingOrder.supplier as ISupplier)._id 
-          : currentShippingOrder.supplier,
+        soid: (currentShippingOrder as any).soid || currentShippingOrder.orderNumber || '',
+        sosupplier: typeof (currentShippingOrder as any).customer === 'string'
+          ? (currentShippingOrder as any).customer
+          : (currentShippingOrder as any).customer?.name || '',
+        supplier: typeof (currentShippingOrder as any).customer === 'string'
+          ? (currentShippingOrder as any).customer
+          : (currentShippingOrder as any).customer?._id || '',
+        items: (currentShippingOrder as any).items || [],
+        notes: (currentShippingOrder as any).notes || '',
+        status: (currentShippingOrder.status === 'shipped' || currentShippingOrder.status === 'delivered')
+          ? 'completed'
+          : (currentShippingOrder.status as 'pending' | 'completed' | 'cancelled') || 'pending',
+        paymentStatus: (currentShippingOrder as any).paymentStatus || '未收'
       });
       
       // 找到並設置當前選中的供應商物件，以正確顯示在 Autocomplete 中
-      const supplierId = typeof currentShippingOrder.supplier === 'object' 
-        ? (currentShippingOrder.supplier as ISupplier)._id 
-        : currentShippingOrder.supplier;
+      const customerId = typeof (currentShippingOrder as any).customer === 'string'
+        ? (currentShippingOrder as any).customer
+        : (currentShippingOrder as any).customer?._id;
         
-      const foundSupplier = suppliers.find(s => s._id === supplierId);
+      const foundSupplier = suppliers.find(s => s._id === customerId);
       if (foundSupplier) {
         setSelectedSupplier(foundSupplier);
       }
@@ -174,7 +184,7 @@ const ShippingOrderFormPage: React.FC = () => {
     });
   };
   
-  const handleSupplierChange = (_event: React.SyntheticEvent, newValue: ISupplier | null) => {
+  const handleSupplierChange = (newValue: ISupplier | null) => {
     setSelectedSupplier(newValue);
     setFormData({
       ...formData,

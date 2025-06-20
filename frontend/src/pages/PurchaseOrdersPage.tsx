@@ -19,7 +19,7 @@ import {
   CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../hooks/redux';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 
@@ -108,7 +108,7 @@ interface PaginationModel {
  * 進貨單管理頁面 (Refactored)
  */
 const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplierId = null }) => {
-  const dispatch = useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const params = useParams<{ id?: string }>();
   
@@ -175,18 +175,21 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
     if (purchaseOrders && purchaseOrders.length > 0) {
       let filtered = [...purchaseOrders];
       if (selectedSuppliers.length > 0) {
-        filtered = filtered.filter(po => selectedSuppliers.includes(po.posupplier));
+        filtered = filtered.filter(po => {
+          const supplierName = typeof po.supplier === 'string' ? po.supplier : po.supplier?.name || '';
+          return selectedSuppliers.includes(supplierName);
+        });
       }
       const formattedRows = filtered.map(po => ({
         id: po._id,
         _id: po._id,
-        poid: po.poid,
-        pobill: po.pobill,
-        pobilldate: po.pobilldate,
-        posupplier: po.posupplier,
-        totalAmount: po.totalAmount,
-        status: po.status,
-        paymentStatus: po.paymentStatus
+        poid: (po as any).poid || po.orderNumber || '',
+        pobill: (po as any).pobill || '',
+        pobilldate: (po as any).pobilldate || po.orderDate || '',
+        posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name || '',
+        totalAmount: po.totalAmount || 0,
+        status: po.status || '',
+        paymentStatus: (po as any).paymentStatus || ''
       }));
       setFilteredRows(formattedRows);
     } else {
@@ -227,10 +230,10 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
     try {
       const existingPO = purchaseOrders.find(po => po._id === id);
       if (existingPO?.items) {
-        setPreviewPurchaseOrder(existingPO as PurchaseOrder);
+        setPreviewPurchaseOrder(existingPO as unknown as PurchaseOrder);
       } else {
         const data = await getPurchaseOrderById(id);
-        setPreviewPurchaseOrder(data as PurchaseOrder);
+        setPreviewPurchaseOrder(data as unknown as PurchaseOrder);
       }
     } catch (err: any) {
       console.error('獲取進貨單預覽失敗:', err);
@@ -387,7 +390,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
           )}
 
           <PurchaseOrdersTable
-            purchaseOrders={purchaseOrders}
+            purchaseOrders={purchaseOrders as unknown as PurchaseOrder[]}
             filteredRows={filteredRows}
             paginationModel={paginationModel}
             setPaginationModel={setPaginationModel}

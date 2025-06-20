@@ -1,18 +1,20 @@
-import { createStore, combineReducers, applyMiddleware, compose, Store } from 'redux';
+import { createStore, combineReducers, applyMiddleware, compose, Store, Dispatch } from 'redux';
+import { ThunkDispatch } from 'redux-thunk';
 import thunk from 'redux-thunk';
 // 使用內建的compose替代redux-devtools-extension
-import { 
-  authReducer, 
-  productsReducer, 
-  suppliersReducer, 
-  customersReducer, 
-  inventoryReducer, 
-  salesReducer, 
-  dashboardReducer, 
+import {
+  authReducer,
+  productsReducer,
+  suppliersReducer,
+  customersReducer,
+  inventoryReducer,
+  salesReducer,
+  dashboardReducer,
   reportsReducer,
   purchaseOrdersReducer,
   shippingOrdersReducer,
-  RootState
+  RootState,
+  Action
 } from './reducers';
 
 // 使用 Redux DevTools 擴展（如果可用）
@@ -35,11 +37,21 @@ const rootReducer = combineReducers({
   shippingOrders: shippingOrdersReducer
 });
 
+// 定義 AppDispatch 類型
+export type AppDispatch = ThunkDispatch<RootState, unknown, Action>;
+
+// 定義 store 類型
+export type AppStore = Store<RootState> & {
+  dispatch: AppDispatch;
+};
 
 // 創建Redux store
-const store: Store<RootState> = createStore(
+const store = createStore(
   rootReducer,
   composeEnhancers(applyMiddleware(thunk))
-);
+) as AppStore;
+
+// 導出 RootState 類型
+export type { RootState };
 
 export default store;

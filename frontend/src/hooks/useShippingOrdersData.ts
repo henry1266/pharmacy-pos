@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from './redux';
 import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
 import { getShippingOrderById } from '../services/shippingOrdersService';
 import { RootState, ShippingOrdersState, SuppliersState } from '../types/store';
@@ -80,7 +81,7 @@ interface ShippingOrdersDataResult {
  * 獲取出貨單和供應商，處理過濾、搜尋、預覽和刪除。
  */
 const useShippingOrdersData = (): ShippingOrdersDataResult => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { shippingOrders: rawShippingOrders, loading: listLoading, error: listError } = useSelector<RootState, ShippingOrdersState>(
     state => state.shippingOrders
   );

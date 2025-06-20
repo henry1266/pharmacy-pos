@@ -17,7 +17,7 @@ import {
   CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../hooks/redux';
 
 // Import Hook
 import useShippingOrdersData from '../hooks/useShippingOrdersData';
@@ -59,7 +59,7 @@ interface PaginationModel {
  */
 const ShippingOrdersPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   // Use the custom hook to get data and handlers
   const {

@@ -174,7 +174,7 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
         }}
         pageSizeOptions={[10]}
         onRowClick={onProductClick}
-        disableSelectionOnClick
+        disableRowSelectionOnClick
         loading={loadingProductData}
         sx={{
           '& .MuiDataGrid-row:hover': {

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from './redux';
 import { fetchPurchaseOrders, fetchSuppliers } from '../redux/actions'; // 假設 actions 處理 API 調用
 import { RootState, PurchaseOrdersState, SuppliersState } from '../types/store';
 import { PurchaseOrder, Supplier } from '../types/entities';
@@ -21,7 +22,7 @@ interface PurchaseOrdersDataResult {
  * @returns 包含從 Redux store 中獲取的採購訂單、供應商、加載狀態和錯誤狀態。
  */
 const usePurchaseOrdersData = (): PurchaseOrdersDataResult => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   // 從 Redux store 中選擇數據、加載和錯誤狀態
   const { purchaseOrders, loading, error } = useSelector<RootState, PurchaseOrdersState>(
