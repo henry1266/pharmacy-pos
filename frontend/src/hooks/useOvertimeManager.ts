@@ -271,11 +271,11 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
     try {
       // 將擴展格式轉換為 API 需要的格式
       const apiData: OvertimeRecordCreateData = {
-        employeeId: typeof recordData.employeeId === 'object' ? recordData.employeeId._id : recordData.employeeId as string,
-        date: typeof recordData.date === 'string' ? recordData.date : formatDateToYYYYMMDD(recordData.date as Date),
+        employeeId: typeof recordData.employeeId === 'object' ? recordData.employeeId._id : recordData.employeeId,
+        date: typeof recordData.date === 'string' ? recordData.date : formatDateToYYYYMMDD(recordData.date),
         hours: recordData.hours || 0,
         description: recordData.description,
-        status: recordData.status as OvertimeRecordStatus
+        status: recordData.status
       };
       
       await overtimeRecordService.createOvertimeRecord(apiData);
@@ -295,11 +295,11 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
       const apiData: Partial<OvertimeRecordCreateData> = {};
       
       if (recordData.employeeId) {
-        apiData.employeeId = typeof recordData.employeeId === 'object' ? recordData.employeeId._id : recordData.employeeId as string;
+        apiData.employeeId = typeof recordData.employeeId === 'object' ? recordData.employeeId._id : recordData.employeeId;
       }
       
       if (recordData.date) {
-        apiData.date = typeof recordData.date === 'string' ? recordData.date : formatDateToYYYYMMDD(recordData.date as Date);
+        apiData.date = typeof recordData.date === 'string' ? recordData.date : formatDateToYYYYMMDD(recordData.date);
       }
       
       if (recordData.hours !== undefined) {
@@ -311,7 +311,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
       }
       
       if (recordData.status) {
-        apiData.status = recordData.status as OvertimeRecordStatus;
+        apiData.status = recordData.status;
       }
       
       await overtimeRecordService.updateOvertimeRecord(recordId, apiData);

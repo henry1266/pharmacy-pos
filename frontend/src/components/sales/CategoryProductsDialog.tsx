@@ -146,7 +146,7 @@ const CategoryProductsDialog: React.FC<CategoryProductsDialogProps> = ({
                         {product.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{fontSize: '1rem'}}>
-                        編號 : {product.code || '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}  |  庫存 : {getTotalInventory(product._id)}
+                        編號 : {product.code ?? '無'}  |  價格 : {product.sellingPrice ? `$${product.sellingPrice.toFixed(2)}` : '無價格'}  |  庫存 : {getTotalInventory(product._id)}
                       </Typography>
 
                     </Box>
