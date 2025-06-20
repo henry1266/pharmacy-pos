@@ -260,7 +260,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     if (isTestMode) return '測試模式';
     if (user?.role === 'admin') return '管理員';
     if (user?.role === 'stuff') return '員工';
-    return user?.role || '未知';
+    return user?.role ?? '未知';
   };
 
   // 提取複雜的渲染邏輯為獨立函數，降低認知複雜度
@@ -411,7 +411,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <ListItem
         key={item.text}
-        onClick={() => handleNavigation(item.path!)}
+        onClick={() => handleNavigation(item.path)}
         sx={{
           borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent',
           pl: 2.5,

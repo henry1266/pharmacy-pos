@@ -147,7 +147,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         // 排序：將saleNumber、purchaseOrderNumber和shippingOrderNumber從值大到小排序
         mergedInventories.sort((a, b) => {
           const aValue = a.saleNumber || a.purchaseOrderNumber || a.shippingOrderNumber || '';
-          const bValue = b.saleNumber ?? b.purchaseOrderNumber ?? b.shippingOrderNumber ?? '';
+          const bValue = b.saleNumber || b.purchaseOrderNumber || b.shippingOrderNumber || '';
           return bValue.localeCompare(aValue);
         });
         

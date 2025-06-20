@@ -136,7 +136,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   
   // 處理請假類型選擇變更
   const handleLeaveTypeChange = (event: SelectChangeEvent<string>) => {
-    setSelectedLeaveType(event.target.value || null);
+    setSelectedLeaveType(event.target.value ?? null);
   };
 
   // 處理新增排班
@@ -180,7 +180,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 獲取當前標籤對應的班次排班資料
   const getCurrentShiftSchedules = (): Schedule[] => {
     const currentShift = shifts[tabValue];
-    return schedules[currentShift] || [];
+    return schedules[currentShift] ?? [];
   };
 
   // 格式化日期顯示
@@ -228,7 +228,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 檢查員工是否已被排班在當前班次
   const isEmployeeScheduled = (employeeId: string): boolean => {
     const currentShift = shifts[tabValue];
-    return (schedules[currentShift] || []).some(
+    return (schedules[currentShift] ?? []).some(
       schedule => schedule.employee._id === employeeId
     );
   };
@@ -317,7 +317,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                     <InputLabel id="leave-type-select-label">請假類型</InputLabel>
                     <Select
                       labelId="leave-type-select-label"
-                      value={selectedLeaveType || ''}
+                      value={selectedLeaveType ?? ''}
                       onChange={handleLeaveTypeChange}
                       label="請假類型"
                       disabled={loading}

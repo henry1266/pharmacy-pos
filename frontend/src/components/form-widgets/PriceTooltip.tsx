@@ -98,7 +98,7 @@ const PriceTooltip: React.FC<PriceTooltipProps> = ({
       setSimulationResult(response.data);
     } catch (err: any) {
       console.error('FIFO模擬錯誤:', err);
-      setError(err.response?.data?.msg || '模擬FIFO成本失敗');
+      setError(err.response?.data?.msg ?? '模擬FIFO成本失敗');
     } finally {
       setLoading(false);
     }
@@ -210,7 +210,7 @@ const PriceTooltip: React.FC<PriceTooltipProps> = ({
         onClose={handleCloseSimulationDialog}
         simulationResult={simulationResult}
         loading={loading}
-        error={error || undefined}
+        error={error ?? undefined}
         onApplyCostAndAdd={handleApplyCost}
       />
     </>
