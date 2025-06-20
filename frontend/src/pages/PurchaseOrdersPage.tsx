@@ -30,17 +30,17 @@ import usePurchaseOrdersData from '../hooks/usePurchaseOrdersData';
 import { getPurchaseOrderById, importPurchaseOrdersBasic, importPurchaseOrderItems } from '../services/purchaseOrdersService';
 
 // Import Redux Actions
-import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders } from '../redux/actions.ts';
+import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders } from '../redux/actions';
 import { RootState } from '../redux/reducers.ts';
 
 // Import Components
-import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview.tsx';
-import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter.tsx';
-import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTable.tsx';
-import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter.tsx';
-import CsvImportDialog from '../components/purchase-orders/CsvImportDialog.tsx';
-import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
-import FilterPriceSummary from '../components/common/FilterPriceSummary.tsx';
+import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
+import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
+import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTable';
+import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter';
+import CsvImportDialog from '../components/purchase-orders/CsvImportDialog';
+import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
+import FilterPriceSummary from '../components/common/FilterPriceSummary';
 
 // 定義介面
 interface PurchaseOrdersPageProps {

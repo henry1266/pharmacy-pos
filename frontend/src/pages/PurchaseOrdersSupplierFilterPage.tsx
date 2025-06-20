@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
-import PurchaseOrdersPage from './PurchaseOrdersPage.tsx';
+import PurchaseOrdersPage from './PurchaseOrdersPage';
 
 /**
  * 供應商篩選的進貨單頁面

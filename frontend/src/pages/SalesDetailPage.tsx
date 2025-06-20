@@ -43,9 +43,9 @@ import { useParams } from 'react-router-dom';
 import { format, isValid } from 'date-fns'; // Import isValid from date-fns
 import { zhTW } from 'date-fns/locale';
 
-import ProductCodeLink from '../components/common/ProductCodeLink.tsx';
-import DetailLayout from '../components/DetailLayout.tsx';
-import GrossProfitCell from '../components/common/GrossProfitCell.tsx'; // Added import
+import ProductCodeLink from '../components/common/ProductCodeLink';
+import DetailLayout from '../components/DetailLayout';
+import GrossProfitCell from '../components/common/GrossProfitCell'; // Added import
 
 // 定義類型
 interface Product {

@@ -11,7 +11,7 @@ import {
   Divider,
   CircularProgress
 } from '@mui/material';
-import { syncMongoDBConfig } from '../utils/configSync.ts';
+import { syncMongoDBConfig } from '../utils/configSync';
 
 // 定義 Snackbar 狀態的介面
 interface SnackbarState {

@@ -19,9 +19,9 @@ import { useSalesEditData } from '../hooks/useSalesEditData';
 import { useSaleEditManagement } from '../hooks/useSaleEditManagement';
 
 // Import sub-components
-import SaleEditInfoCard from '../components/sales/SaleEditInfoCard.tsx';
-import SalesEditItemsTable from '../components/sales/SalesEditItemsTable.tsx';
-import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard.tsx';
+import SaleEditInfoCard from '../components/sales/SaleEditInfoCard';
+import SalesEditItemsTable from '../components/sales/SalesEditItemsTable';
+import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard';
 
 /**
  * 為了解決 Grid 元件的問題，創建一個包裝元件

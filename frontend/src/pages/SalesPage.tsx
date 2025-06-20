@@ -21,11 +21,11 @@ import useSalesData from '../hooks/useSalesData';
 import useSaleManagement from '../hooks/useSaleManagement';
 
 // Import sub-components
-import ShortcutButtonManager from '../components/sales/ShortcutButtonManager.tsx';
-import CustomProductsDialog from '../components/sales/CustomProductsDialog.tsx';
-import SaleInfoCard from '../components/sales/SaleInfoCard.tsx';
-import SalesProductInput from '../components/sales/SalesProductInput.tsx';
-import SalesItemsTable from '../components/sales/SalesItemsTable.tsx';
+import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
+import CustomProductsDialog from '../components/sales/CustomProductsDialog';
+import SaleInfoCard from '../components/sales/SaleInfoCard';
+import SalesProductInput from '../components/sales/SalesProductInput';
+import SalesItemsTable from '../components/sales/SalesItemsTable';
 
 // Import types
 import { Product, Customer } from '../types/entities';
