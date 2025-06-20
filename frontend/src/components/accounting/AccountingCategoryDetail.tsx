@@ -155,60 +155,84 @@ const AccountingCategoryDetail: React.FC = () => {
     }
   };
   
-  // 處理月度數據
-  const processMonthlyData = (data: LocalAccountingRecord[]): void => {
-    // 初始化月度數據結構
-    const monthlyTotals: MonthlyData = {};
-    for (let month = 0; month < 12; month++) {
-      monthlyTotals[month] = 0;
-    }
+  // 通用資料處理函數
+  const processAccountingData = <T extends Record<string, any>>(
+    data: LocalAccountingRecord[],
+    initializer: () => T,
+    aggregator: (totals: T, record: LocalAccountingRecord, date: Date) => void
+  ): T => {
+    // 初始化數據結構
+    const totals = initializer();
     
-    // 計算每月總額
+    // 計算總額
     data.forEach(record => {
       const recordDate = parseISO(record.date);
-      const month = getMonth(recordDate);
       
       // 尋找指定類別的項目
       record.items.forEach(item => {
         if (item.category === category?.name) {
-          monthlyTotals[month] += item.amount;
+          aggregator(totals, record, recordDate);
         }
       });
     });
+    
+    return totals;
+  };
+  
+  // 處理月度數據
+  const processMonthlyData = (data: LocalAccountingRecord[]): void => {
+    const monthlyTotals = processAccountingData<MonthlyData>(
+      data,
+      // 初始化函數
+      () => {
+        const totals: MonthlyData = {};
+        for (let month = 0; month < 12; month++) {
+          totals[month] = 0;
+        }
+        return totals;
+      },
+      // 聚合函數
+      (totals, record, date) => {
+        const month = getMonth(date);
+        record.items.forEach(item => {
+          if (item.category === category?.name) {
+            totals[month] += item.amount;
+          }
+        });
+      }
+    );
     
     setMonthlyData(monthlyTotals);
   };
   
   // 處理日度數據
   const processDailyData = (data: LocalAccountingRecord[]): void => {
-    // 初始化日度數據結構
-    const dailyTotals: DailyData = {};
-    
-    // 為每個月初始化日期數據
-    for (let month = 0; month < 12; month++) {
-      dailyTotals[month] = {};
-      const daysInMonth = getDaysInMonth(new Date(currentYear, month));
-      
-      for (let day = 1; day <= daysInMonth; day++) {
-        dailyTotals[month][day] = 0;
-      }
-    }
-    
-    // 計算每日總額
-    data.forEach(record => {
-      const recordDate = parseISO(record.date);
-      const month = getMonth(recordDate);
-      const day = getDate(recordDate);
-      
-      // 尋找指定類別的項目
-      record.items.forEach(item => {
-        if (item.category === category?.name) {
-          if (dailyTotals[month] && dailyTotals[month][day] !== undefined) {
-            dailyTotals[month][day] += item.amount;
+    const dailyTotals = processAccountingData<DailyData>(
+      data,
+      // 初始化函數
+      () => {
+        const totals: DailyData = {};
+        for (let month = 0; month < 12; month++) {
+          totals[month] = {};
+          const daysInMonth = getDaysInMonth(new Date(currentYear, month));
+          
+          for (let day = 1; day <= daysInMonth; day++) {
+            totals[month][day] = 0;
           }
         }
-      });
-    });
+        return totals;
+      },
+      // 聚合函數
+      (totals, record, date) => {
+        const month = getMonth(date);
+        const day = getDate(date);
+        record.items.forEach(item => {
+          if (item.category === category?.name && totals[month] && totals[month][day] !== undefined) {
+            totals[month][day] += item.amount;
+          }
+        });
+      }
+    );
     
     setDailyData(dailyTotals);
   };
@@ -291,19 +315,22 @@ const AccountingCategoryDetail: React.FC = () => {
     '7月', '8月', '9月', '10月', '11月', '12月'
   ];
   
-  // 渲染資訊卡片
-  const renderInfoCard = (title: string, content: React.ReactNode): React.ReactNode => {
-    return (
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {title}
-          </Typography>
-          {content}
-        </CardContent>
-      </Card>
-    );
-  };
+  // 通用資訊卡片組件
+  interface InfoCardProps {
+    title: string;
+    content: React.ReactNode;
+  }
+  
+  const InfoCard: React.FC<InfoCardProps> = ({ title, content }) => (
+    <Card>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          {title}
+        </Typography>
+        {content}
+      </CardContent>
+    </Card>
+  );
   
   // 渲染類別資訊卡片
   const renderCategoryInfoCard = (): React.ReactNode => {
@@ -322,7 +349,7 @@ const AccountingCategoryDetail: React.FC = () => {
       </>
     );
     
-    return renderInfoCard('類別資訊', content);
+    return <InfoCard title="類別資訊" content={content} />;
   };
   
   // 渲染年度統計卡片
@@ -340,7 +367,7 @@ const AccountingCategoryDetail: React.FC = () => {
       </>
     );
     
-    return renderInfoCard(`${currentYear}年度統計`, content);
+    return <InfoCard title={`${currentYear}年度統計`} content={content} />;
   };
   
   // 渲染年份選擇按鈕
@@ -362,51 +389,77 @@ const AccountingCategoryDetail: React.FC = () => {
     );
   };
   
+  // 月份列表項目介面
+  interface MonthListItemProps {
+    month: string;
+    index: number;
+    isSelected: boolean;
+    amount: number;
+    onSelect: (index: number) => void;
+  }
+  
+  // 月份列表項目組件
+  const MonthListItem: React.FC<MonthListItemProps> = ({
+    month,
+    index,
+    isSelected,
+    amount,
+    onSelect
+  }) => (
+    <ListItem
+      key={`month-${month}`}
+      disablePadding
+      divider
+      sx={{
+        backgroundColor: isSelected ? '#e3f2fd' : 'transparent',
+        '&:hover': {
+          backgroundColor: isSelected ? '#e3f2fd' : '#f5f5f5'
+        }
+      }}
+    >
+      <ListItemButton
+        onClick={() => onSelect(index)}
+        sx={{ py: 0.5 }}
+      >
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%'
+        }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.primary',
+              fontWeight: isSelected ? 'bold' : 'normal'
+            }}
+          >
+            {month}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: amount > 0 ? 'primary.main' : 'text.secondary',
+              fontWeight: 'bold'
+            }}
+          >
+            ${amount}
+          </Typography>
+        </Box>
+      </ListItemButton>
+    </ListItem>
+  );
+  
   // 渲染月份列表項目
   const renderMonthListItem = (month: string, index: number): React.ReactNode => {
     return (
-      <ListItem 
-        key={`month-${month}`}
-        disablePadding 
-        divider
-        sx={{
-          backgroundColor: selectedMonth === index ? '#e3f2fd' : 'transparent',
-          '&:hover': {
-            backgroundColor: selectedMonth === index ? '#e3f2fd' : '#f5f5f5'
-          }
-        }}
-      >
-        <ListItemButton 
-          onClick={() => handleMonthSelect(index)}
-          sx={{ py: 0.5 }}
-        >
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            width: '100%' 
-          }}>
-            <Typography 
-              variant="body2"
-              sx={{ 
-                color: 'text.primary',
-                fontWeight: selectedMonth === index ? 'bold' : 'normal'
-              }}
-            >
-              {month}
-            </Typography>
-            <Typography 
-              variant="body2"
-              sx={{ 
-                color: monthlyData[index] > 0 ? 'primary.main' : 'text.secondary',
-                fontWeight: 'bold'
-              }}
-            >
-              ${monthlyData[index]}
-            </Typography>
-          </Box>
-        </ListItemButton>
-      </ListItem>
+      <MonthListItem
+        month={month}
+        index={index}
+        isSelected={selectedMonth === index}
+        amount={monthlyData[index]}
+        onSelect={handleMonthSelect}
+      />
     );
   };
   
@@ -450,29 +503,46 @@ const AccountingCategoryDetail: React.FC = () => {
     );
   };
   
+  // 日曆格子樣式
+  const calendarCellStyles = {
+    base: {
+      width: 'calc(100% / 7)',
+      height: '70px',
+      p: 1,
+      border: '1px solid #e0e0e0',
+      position: 'relative',
+    },
+    current: {
+      backgroundColor: 'white',
+      '&:hover': {
+        backgroundColor: '#f0f7ff'
+      }
+    },
+    other: {
+      backgroundColor: '#f9f9f9',
+      '&:hover': {
+        backgroundColor: '#f9f9f9'
+      }
+    }
+  };
+  
   // 渲染日曆格子
   const renderCalendarCell = (
-    index: number,
     dayOffset: number,
     isCurrentMonth: boolean,
-    dayAmount: number,
-    daysInMonth: number
+    dayAmount: number
   ): React.ReactNode => {
-    // 使用日期作為唯一識別符，而非索引
+    // 使用日期作為唯一識別符
     const cellKey = `day-${currentYear}-${selectedMonth}-${dayOffset}`;
     
     return (
-      <Box key={cellKey} sx={{
-        width: 'calc(100% / 7)',
-        height: '70px',
-        p: 1,
-        border: '1px solid #e0e0e0',
-        backgroundColor: isCurrentMonth ? 'white' : '#f9f9f9',
-        position: 'relative',
-        '&:hover': {
-          backgroundColor: isCurrentMonth ? '#f0f7ff' : '#f9f9f9'
-        }
-      }}>
+      <Box
+        key={cellKey}
+        sx={{
+          ...calendarCellStyles.base,
+          ...(isCurrentMonth ? calendarCellStyles.current : calendarCellStyles.other)
+        }}
+      >
         {isCurrentMonth && (
           <>
             <Typography variant="body2" sx={{
@@ -541,7 +611,7 @@ const AccountingCategoryDetail: React.FC = () => {
             const isCurrentMonth = dayOffset > 0 && dayOffset <= daysInMonth;
             const dayAmount = isCurrentMonth ? dailyData[selectedMonth][dayOffset] : 0;
             
-            return renderCalendarCell(index, dayOffset, isCurrentMonth, dayAmount, daysInMonth);
+            return renderCalendarCell(dayOffset, isCurrentMonth, dayAmount);
           })}
         </Box>
       </Box>
@@ -557,71 +627,80 @@ const AccountingCategoryDetail: React.FC = () => {
     }));
   };
   
-  // 渲染圖表
+  // 圖表共用元素
+  const ChartCommonElements = ({ dataKey = "月份" }: { dataKey?: string }) => (
+    <>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey={dataKey} />
+      <YAxis />
+      <RechartsTooltip
+        formatter={(value: number) => [`$${value}`, '金額']}
+        labelFormatter={(label: string) => `${label}月`}
+      />
+      <Legend />
+    </>
+  );
+  
+  // 渲染長條圖
+  const renderBarChart = (data: ChartData[]): React.ReactNode => (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data}>
+        <ChartCommonElements />
+        <Bar dataKey="金額" fill="#8884d8" name="金額" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+  
+  // 渲染折線圖
+  const renderLineChart = (data: ChartData[]): React.ReactNode => (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data}>
+        <ChartCommonElements />
+        <Line
+          type="monotone"
+          dataKey="金額"
+          stroke="#8884d8"
+          activeDot={{ r: 8 }}
+          name="金額"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+  
+  // 渲染圓餅圖
+  const renderPieChart = (pieData: ChartData[], COLORS: string[]): React.ReactNode => (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={pieData}
+          cx="50%"
+          cy="50%"
+          labelLine={true}
+          outerRadius={100}
+          fill="#8884d8"
+          dataKey="金額"
+          nameKey="name"
+          label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+        >
+          {pieData.map((entry, index) => (
+            <Cell key={`cell-${entry.name}-${entry.金額}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <RechartsTooltip formatter={(value: number) => [`$${value}`, '金額']} />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+  
+  // 渲染圖表 - 根據類型選擇適當的圖表
   const renderChart = (type: number, data: ChartData[], pieData: ChartData[], COLORS: string[]): React.ReactNode => {
     switch (type) {
       case 0: // 長條圖
-        return (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="月份" />
-              <YAxis />
-              <RechartsTooltip 
-                formatter={(value: number) => [`$${value}`, '金額']}
-                labelFormatter={(label: string) => `${label}月`}
-              />
-              <Legend />
-              <Bar dataKey="金額" fill="#8884d8" name="金額" />
-            </BarChart>
-          </ResponsiveContainer>
-        );
+        return renderBarChart(data);
       case 1: // 折線圖
-        return (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="月份" />
-              <YAxis />
-              <RechartsTooltip 
-                formatter={(value: number) => [`$${value}`, '金額']}
-                labelFormatter={(label: string) => `${label}月`}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="金額" 
-                stroke="#8884d8" 
-                activeDot={{ r: 8 }} 
-                name="金額"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        );
+        return renderLineChart(data);
       case 2: // 圓餅圖
-        return (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                labelLine={true}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="金額"
-                nameKey="name"
-                label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${entry.name}-${entry.金額}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <RechartsTooltip formatter={(value: number) => [`$${value}`, '金額']} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        );
+        return renderPieChart(pieData, COLORS);
       default:
         return null;
     }
@@ -658,84 +737,162 @@ const AccountingCategoryDetail: React.FC = () => {
     );
   };
   
+  // 頁面標題組件介面
+  interface PageHeaderProps {
+    title: string;
+    onBack: () => void;
+    onExport: () => void;
+    exportDisabled: boolean;
+  }
+  
+  // 頁面標題組件
+  const PageHeader: React.FC<PageHeaderProps> = ({
+    title,
+    onBack,
+    onExport,
+    exportDisabled
+  }) => (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <IconButton onClick={onBack} sx={{ mr: 1 }}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h4">
+          {title}
+        </Typography>
+      </Box>
+      <Box>
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={onExport}
+          sx={{ ml: 1 }}
+          disabled={exportDisabled}
+        >
+          導出CSV
+        </Button>
+      </Box>
+    </Box>
+  );
+  
   // 渲染頁面標題與操作按鈕
   const renderPageHeader = (): React.ReactNode => {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton onClick={handleBack} sx={{ mr: 1 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4">
-            {category ? `${category.name} - 月度統計` : '類別詳情'}
-          </Typography>
-        </Box>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExportCSV}
-            sx={{ ml: 1 }}
-            disabled={!category || loading}
-          >
-            導出CSV
-          </Button>
-        </Box>
-      </Box>
+      <PageHeader
+        title={category ? `${category.name} - 月度統計` : '類別詳情'}
+        onBack={handleBack}
+        onExport={handleExportCSV}
+        exportDisabled={!category || loading}
+      />
     );
+  };
+  
+  // 狀態顯示組件介面
+  interface StatusDisplayProps {
+    type: 'loading' | 'error' | 'info';
+    message?: string;
+  }
+  
+  // 狀態顯示組件
+  const StatusDisplay: React.FC<StatusDisplayProps> = ({ type, message }) => {
+    switch (type) {
+      case 'loading':
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        );
+      case 'error':
+        return <Alert severity="error">{message}</Alert>;
+      case 'info':
+        return <Alert severity="info">{message}</Alert>;
+      default:
+        return null;
+    }
   };
   
   // 渲染載入中狀態
   const renderLoading = (): React.ReactNode => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-      <CircularProgress />
-    </Box>
+    <StatusDisplay type="loading" />
   );
   
   // 渲染錯誤狀態
   const renderError = (): React.ReactNode => (
-    <Alert severity="error">{error}</Alert>
+    <StatusDisplay type="error" message={error || '發生錯誤'} />
   );
   
   // 渲染加載中狀態
   const renderLoadingCategory = (): React.ReactNode => (
-    <Alert severity="info">正在加載類別資訊...</Alert>
+    <StatusDisplay type="info" message="正在加載類別資訊..." />
   );
+  
+  // 內容區塊介面
+  interface ContentSectionProps {
+    children: React.ReactNode;
+    maxWidth?: Record<string, string>;
+    withPaper?: boolean;
+  }
+  
+  // 內容區塊組件
+  const ContentSection: React.FC<ContentSectionProps> = ({
+    children,
+    maxWidth,
+    withPaper = false
+  }) => {
+    const content = withPaper ? <Paper sx={{ p: 1 }}>{children}</Paper> : children;
+    
+    return (
+      <Box
+        sx={{
+          flex: '1 1 100%',
+          maxWidth: maxWidth || { xs: '100%' }
+        }}
+      >
+        {content}
+      </Box>
+    );
+  };
   
   // 渲染主要內容
   const renderMainContent = (): React.ReactNode => {
+    // 定義各區塊的最大寬度
+    const sectionWidths = {
+      half: { xs: '100%', md: '48%' },
+      monthList: { xs: '100%', md: '23%', lg: '15%' },
+      calendar: { xs: '100%', md: '31%', lg: '42%' },
+      visualization: { xs: '100%', md: '40%', lg: '40%' }
+    };
+  
     return (
       <Box>
+        {/* 資訊卡片區域 */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
-          <Box sx={{ flex: '1 1 100%', maxWidth: { xs: '100%', md: '48%' } }}>
+          <ContentSection maxWidth={sectionWidths.half}>
             {renderCategoryInfoCard()}
-          </Box>
-          <Box sx={{ flex: '1 1 100%', maxWidth: { xs: '100%', md: '48%' } }}>
+          </ContentSection>
+          <ContentSection maxWidth={sectionWidths.half}>
             {renderYearlyStatsCard()}
-          </Box>
+          </ContentSection>
         </Box>
         
         {renderYearSelector()}
         
+        {/* 主要數據顯示區域 */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           {/* 左側月份列表 */}
-          <Box sx={{ flex: '1 1 100%', maxWidth: { xs: '100%', md: '23%', lg: '15%' } }}>
+          <ContentSection maxWidth={sectionWidths.monthList}>
             {renderMonthList()}
-          </Box>
+          </ContentSection>
           
           {/* 中間日曆 */}
-          <Box sx={{ flex: '1 1 100%', maxWidth: { xs: '100%', md: '31%', lg: '42%' } }}>
-            <Paper sx={{ p: 1 }}>
-              {generateCalendarGrid()}
-            </Paper>
-          </Box>
+          <ContentSection maxWidth={sectionWidths.calendar} withPaper>
+            {generateCalendarGrid()}
+          </ContentSection>
           
           {/* 右側數據可視化 */}
-          <Box sx={{ flex: '1 1 100%', maxWidth: { xs: '100%', md: '40%', lg: '40%' } }}>
-            <Paper sx={{ p: 1 }}>
-              {generateDataVisualization()}
-            </Paper>
-          </Box>
+          <ContentSection maxWidth={sectionWidths.visualization} withPaper>
+            {generateDataVisualization()}
+          </ContentSection>
         </Box>
       </Box>
     );
@@ -743,10 +900,11 @@ const AccountingCategoryDetail: React.FC = () => {
   
   // 渲染內容區域
   const renderContent = (): React.ReactNode => {
-    if (loading) return renderLoading();
-    if (error) return renderError();
-    if (!category) return renderLoadingCategory();
-    return renderMainContent();
+    // 使用條件鏈來決定要顯示的內容
+    return loading ? renderLoading()
+         : error ? renderError()
+         : !category ? renderLoadingCategory()
+         : renderMainContent();
   };
   
   return (
