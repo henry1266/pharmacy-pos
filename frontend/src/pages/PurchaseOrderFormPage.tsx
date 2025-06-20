@@ -20,7 +20,7 @@ import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable.tsx';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog.tsx';
-import ActionButtons from '../components/purchase-order-form/ActionButtons';
+import ActionButtons from '../components/purchase-order-form/ActionButtons.tsx';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)

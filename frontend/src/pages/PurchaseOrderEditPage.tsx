@@ -22,7 +22,7 @@ import { getSuppliers } from '../services/supplierService';
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable.tsx';
-import ActionButtons from '../components/purchase-order-form/ActionButtons';
+import ActionButtons from '../components/purchase-order-form/ActionButtons.tsx';
 
 // 定義介面
 interface Supplier {
