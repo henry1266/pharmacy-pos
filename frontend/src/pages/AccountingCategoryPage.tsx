@@ -2,7 +2,7 @@ import React from 'react';
 import { Container, Paper, Box, Typography, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
-import AccountingCategoryManager from '../components/accounting/AccountingCategoryManager.tsx';
+import AccountingCategoryManager from '../components/accounting/AccountingCategoryManager';
 
 /**
  * 會計名目類別管理頁面
