@@ -113,7 +113,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSubmit, initialData = nul
   };
 
   // 表單狀態
-  const [formData, setFormData] = useState<EmployeeFormData>(initialData || initialFormData);
+  const [formData, setFormData] = useState<EmployeeFormData>(initialData ?? initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
 
   // 當初始資料變更時更新表單

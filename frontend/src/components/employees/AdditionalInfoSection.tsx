@@ -20,7 +20,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ formData,
   return (
     <Grid container spacing={2}>
       {/* 相關學經歷 */}
-      <Grid item xs={12} {...({} as any)}>
+      <Grid item xs={12}>
         <TextField
           fullWidth
           id="experience"
@@ -37,7 +37,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ formData,
       </Grid>
       
       {/* 獎懲 */}
-      <Grid item xs={12} sm={6} {...({} as any)}>
+      <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
           id="rewards"
@@ -54,7 +54,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ formData,
       </Grid>
       
       {/* 傷病 */}
-      <Grid item xs={12} sm={6} {...({} as any)}>
+      <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
           id="injuries"
@@ -71,7 +71,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ formData,
       </Grid>
       
       {/* 其他應記載事項 */}
-      <Grid item xs={12} {...({} as any)}>
+      <Grid item xs={12}>
         <TextField
           fullWidth
           id="additionalInfo"
@@ -88,7 +88,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ formData,
       </Grid>
       
       {/* 簽署日期提示 */}
-      <Grid item xs={12} {...({} as any)}>
+      <Grid item xs={12}>
         <TextField
           fullWidth
           id="signDate"
@@ -98,7 +98,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ formData,
           value={formData.signDate}
           onChange={onChange}
           error={!!errors.signDate}
-          helperText={errors.signDate || "已確認以上資料無誤，於此日期親自填寫"}
+          helperText={errors.signDate ?? "已確認以上資料無誤，於此日期親自填寫"}
           margin="normal"
           InputLabelProps={{
             shrink: true,

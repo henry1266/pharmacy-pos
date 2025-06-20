@@ -41,8 +41,8 @@ const EmployeeAccountRow: React.FC<EmployeeAccountRowProps> = ({
   return (
     <TableRow key={employee._id}>
       <TableCell>{employee.name}</TableCell>
-      <TableCell>{employee.account?.username || '未設置'}</TableCell>
-      <TableCell>{employee.account?.email || '未設置'}</TableCell>
+      <TableCell>{employee.account?.username ?? '未設置'}</TableCell>
+      <TableCell>{employee.account?.email ?? '未設置'}</TableCell>
       <TableCell>
         {employee.account ? (
           <Chip
@@ -61,7 +61,7 @@ const EmployeeAccountRow: React.FC<EmployeeAccountRowProps> = ({
               <IconButton
                 size="small"
                 color="primary"
-                onClick={() => onEdit(employee, employee.account!)}
+                onClick={() => onEdit(employee, employee.account)}
               >
                 <EditIcon fontSize="small" />
               </IconButton>

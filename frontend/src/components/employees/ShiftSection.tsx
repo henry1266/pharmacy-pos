@@ -60,7 +60,7 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
   
   // 處理請假類型變更
   const handleLeaveTypeChange = (event: SelectChangeEvent<string>) => {
-    setSelectedLeaveType(event.target.value || null);
+    setSelectedLeaveType(event.target.value === '' ? null : event.target.value);
   };
 
   // 獲取班次顏色
@@ -87,7 +87,7 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
 
   // 檢查員工是否已被排班在指定班次
   const isEmployeeScheduled = (employeeId: string): boolean => {
-    return (schedules[shift] || []).some(
+    return (schedules[shift] ?? []).some(
       schedule => schedule.employee._id === employeeId
     );
   };
@@ -165,14 +165,13 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
         </Typography>
         
         <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-          <FormControl size="small" sx={{ minWidth: 120 }} {...({} as any)}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
             <Select
-              value={selectedLeaveType || ''}
+              value={selectedLeaveType ?? ''}
               onChange={handleLeaveTypeChange}
               displayEmpty
               variant="outlined"
               size="small"
-              {...({} as any)}
             >
               <MenuItem value="">
                 <em>正常排班</em>
@@ -213,7 +212,7 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
                   />
                   <ListItemText
                     primary={employee.name}
-                    secondary={`${employee.department || ''}`}
+                    secondary={`${employee.department ?? ''}`}
                     primaryTypographyProps={getPrimaryTypographyProps(isScheduled)}
                     secondaryTypographyProps={getSecondaryTypographyProps()}
                   />

@@ -15,7 +15,6 @@ import {
 import axios from 'axios';
 import ShiftSection, {
   Employee,
-  Schedule,
   Schedules,
   ScheduleData
 } from './ShiftSection';
@@ -85,13 +84,13 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
       return { employees: filteredEmployees, error: null };
     } catch (err: any) {
       console.error('獲取員工資料失敗:', err);
-      return { employees: [], error: err.response?.data?.msg || '獲取員工資料失敗' };
+      return { employees: [], error: err.response?.data?.msg ?? '獲取員工資料失敗' };
     }
   };
 
   // 檢查員工是否已被排班在指定班次
   const isEmployeeScheduled = (employeeId: string, shift: string, schedules: Schedules): boolean => {
-    return (schedules[shift] || []).some(
+    return (schedules[shift] ?? []).some(
       schedule => schedule.employee._id === employeeId
     );
   };
@@ -280,15 +279,14 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
           {formatDate(date)} 快速排班
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FormControl size="small" sx={{ minWidth: 120 }} {...({} as any)}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel id="global-leave-type-label">請假類型</InputLabel>
             <Select
               labelId="global-leave-type-label"
-              value={globalLeaveType || ''}
-              onChange={(e: SelectChangeEvent<string>) => setGlobalLeaveType(e.target.value || null)}
+              value={globalLeaveType ?? ''}
+              onChange={(e: SelectChangeEvent<string>) => setGlobalLeaveType(e.target.value === '' ? null : e.target.value)}
               label="請假類型"
               size="small"
-              {...({} as any)}
             >
               <MenuItem value="">
                 <em>正常排班</em>

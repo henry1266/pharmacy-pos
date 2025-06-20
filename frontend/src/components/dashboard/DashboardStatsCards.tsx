@@ -69,7 +69,7 @@ const StatCard: FC<StatCardProps> = ({ title, value, icon, iconBgColor, iconColo
       </Box>
       <Box>
         <Typography variant="h5" component="div" fontWeight="600" color="var(--text-primary)">
-          {value || 0} {/* Ensure value is not null/undefined */}
+          {value ?? 0} {/* Ensure value is not null/undefined */}
         </Typography>
         <Typography color="var(--text-secondary)" fontSize="0.875rem">
           {title}
@@ -106,7 +106,7 @@ interface DashboardStatsCardsProps {
  * 儀表板統計卡片元件
  */
 const DashboardStatsCards: FC<DashboardStatsCardsProps> = ({ countsData }) => {
-  const counts = countsData || {};
+  const counts = countsData ?? {};
 
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>

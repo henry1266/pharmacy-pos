@@ -167,7 +167,7 @@ const WorkHoursDialog: React.FC<WorkHoursDialogProps> = ({
                 label="加班時數"
                 value={parseFloat(totalStats.totalOvertimeHours)}
                 color="purple.main"
-                subtitle={`(獨立:${overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount || 0), 0)} 排班:${overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount || 0), 0)})`}
+                subtitle={`(獨立:${overtimeStats.reduce((sum, emp) => sum + (emp.independentRecordCount ?? 0), 0)} 排班:${overtimeStats.reduce((sum, emp) => sum + (emp.scheduleRecordCount ?? 0), 0)})`}
               />
               
               <WorkHoursStatCard
@@ -210,8 +210,8 @@ const WorkHoursDialog: React.FC<WorkHoursDialogProps> = ({
               calculateEmployeeMonthlyHours.map(({ employeeId, name, hours, personalLeaveHours, sickLeaveHours }) => {
                 const overtimeStat = overtimeStats.find(stat => stat.employeeId === employeeId);
                 const overtimeHours = overtimeStat ? overtimeStat.overtimeHours.toFixed(1) : '0.0';
-                const independentRecordCount = overtimeStat ? overtimeStat.independentRecordCount || 0 : 0;
-                const scheduleRecordCount = overtimeStat ? overtimeStat.scheduleRecordCount || 0 : 0;
+                const independentRecordCount = overtimeStat ? overtimeStat.independentRecordCount ?? 0 : 0;
+                const scheduleRecordCount = overtimeStat ? overtimeStat.scheduleRecordCount ?? 0 : 0;
                 
                 return (
                   <Paper

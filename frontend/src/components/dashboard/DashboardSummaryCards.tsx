@@ -36,7 +36,7 @@ const formatCurrency = (amount?: number): string => {
     style: 'currency',
     currency: 'TWD',
     minimumFractionDigits: 0
-  }).format(amount || 0); // Ensure amount is not null/undefined
+  }).format(amount ?? 0); // Ensure amount is not null/undefined
 };
 
 /**
@@ -85,10 +85,10 @@ const SummaryCard: FC<SummaryCardProps> = ({ title, value, trend, trendText, ico
                 <TrendingDown sx={{ color: 'var(--danger-color)', fontSize: '0.875rem', mr: 0.5 }} />
               }
               <Typography variant="body2" color={trend === 'up' ? 'var(--success-color)' : 'var(--danger-color)'} fontSize="0.75rem" fontWeight="500">
-                {trendText?.percentage || ''} 
+                {trendText?.percentage ?? ''}
               </Typography>
               <Typography variant="body2" color="var(--text-secondary)" fontSize="0.75rem" ml={0.5}>
-                {trendText?.period || ''}
+                {trendText?.period ?? ''}
               </Typography>
             </Box>
           )} 
@@ -154,8 +154,8 @@ interface DashboardSummaryCardsProps {
  * 儀表板摘要卡片元件
  */
 const DashboardSummaryCards: FC<DashboardSummaryCardsProps> = ({ summaryData }) => {
-  const salesSummary = summaryData?.salesSummary || {};
-  const orderCount = summaryData?.counts?.orders || 0;
+  const salesSummary = summaryData?.salesSummary ?? {};
+  const orderCount = summaryData?.counts?.orders ?? 0;
 
   // Dummy trend data - replace with actual data if available
   const todayTrend = { percentage: '+2.5%', period: '較昨日' };

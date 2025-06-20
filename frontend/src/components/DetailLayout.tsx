@@ -96,7 +96,7 @@ const DetailLayout: FC<DetailLayoutProps> = ({
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         {errorContent}
-        <Button variant="contained" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl || '/')} sx={{ mt: 2 }}>
+        <Button variant="contained" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl ?? '/')} sx={{ mt: 2 }}>
           返回列表
         </Button>
       </Box>
@@ -119,7 +119,7 @@ const DetailLayout: FC<DetailLayoutProps> = ({
     defaultActions.push(...additionalActions);
   }
   defaultActions.push(
-    <Button key="back" variant="contained" size="small" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl || '/')}>返回列表</Button>
+    <Button key="back" variant="contained" size="small" startIcon={<ArrowBackIcon />} onClick={() => navigate(listPageUrl ?? '/')}>返回列表</Button>
   );
 
   // --- Component Structure --- 
@@ -134,7 +134,7 @@ const DetailLayout: FC<DetailLayoutProps> = ({
         sx={{ mb: 3 }}
       >
         <Typography variant={isSmallScreen ? 'h5' : 'h4'} component="h1" gutterBottom={false} noWrap sx={{ flexShrink: 0 }}>
-          {pageTitle} #{recordIdentifier || 'N/A'}
+          {pageTitle} #{recordIdentifier ?? 'N/A'}
         </Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}>
           {defaultActions}
@@ -172,6 +172,6 @@ DetailLayout.propTypes = {
   isLoading: PropTypes.bool,
   loadingText: PropTypes.string,
   errorContent: PropTypes.node
-} as any; // TypeScript compatibility
+} as any; // TypeScript compatibility - PropTypes 與 React 型別定義不完全匹配
 
 export default DetailLayout;

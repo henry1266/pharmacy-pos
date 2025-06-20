@@ -37,7 +37,7 @@ const formatCurrency = (amount?: number): string => {
     style: 'currency',
     currency: 'TWD',
     minimumFractionDigits: 0
-  }).format(amount || 0); // Ensure amount is not null/undefined
+  }).format(amount ?? 0); // Ensure amount is not null/undefined
 };
 
 // Formatter functions - moved outside of component
@@ -87,11 +87,11 @@ const CategorySalesChart: FC<CategorySalesChartProps> = ({ categorySalesData }) 
               nameKey="category"
             >
               {data.map((entry, index) => (
-                <PieChartCell 
-                  key={entry.category || `category-${index}`} 
-                  entry={entry} 
-                  index={index} 
-                  colors={COLORS} 
+                <PieChartCell
+                  key={entry.category ?? `category-${index}`}
+                  entry={entry}
+                  index={index}
+                  colors={COLORS}
                 />
               ))}
             </Pie>
