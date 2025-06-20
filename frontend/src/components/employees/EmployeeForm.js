@@ -10,7 +10,7 @@ import ContactInfoSection from './ContactInfoSection.tsx';
 import WorkInfoSection from './WorkInfoSection.tsx';
 import IDCardSection from './IDCardSection.tsx';
 import AdditionalInfoSection from './AdditionalInfoSection.tsx';
-import FormSection from './shared/FormSection';
+import FormSection from './shared/FormSection.tsx';
 
 // 性別轉換函數
 const convertGender = (gender) => {

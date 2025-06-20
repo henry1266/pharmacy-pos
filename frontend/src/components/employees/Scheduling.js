@@ -16,7 +16,7 @@ import useCalendarGrid from '../../hooks/useCalendarGrid';
 import useKeyboardNavigation from '../../hooks/useKeyboardNavigation';
 import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation.ts';
 import useScheduleOperations from '../../hooks/useScheduleOperations';
-import ShiftSelectionModal from './ShiftSelectionModal';
+import ShiftSelectionModal from './ShiftSelectionModal.tsx';
 import QuickSelectPanel from './QuickSelectPanel';
 import CalendarDateCell from './scheduling/CalendarDateCell';
 import WorkHoursDialog from './scheduling/WorkHoursDialog';

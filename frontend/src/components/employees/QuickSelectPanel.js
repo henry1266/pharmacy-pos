@@ -13,7 +13,7 @@ import {
   Button
 } from '@mui/material';
 import axios from 'axios';
-import ShiftSection from './ShiftSection';
+import ShiftSection from './ShiftSection.tsx';
 
 /**
  * 快速選擇面板元件
