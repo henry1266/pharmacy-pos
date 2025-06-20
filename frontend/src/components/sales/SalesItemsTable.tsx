@@ -198,7 +198,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
             <TableCell align="right"><Typography variant="subtitle1">折扣:</Typography></TableCell>
             <TableCell align="right" colSpan={isMobile ? 1 : 2}>
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                ${discount?.toFixed(2) || '0.00'}
+                ${discount?.toFixed(2) ?? '0.00'}
               </Typography>
             </TableCell>
           </TableRow>
@@ -207,7 +207,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
             <TableCell align="right"><Typography variant="h6">總計:</Typography></TableCell>
             <TableCell align="right" colSpan={isMobile ? 1 : 2}>
               <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                ${totalAmount?.toFixed(2) || '0.00'}
+                ${totalAmount?.toFixed(2) ?? '0.00'}
               </Typography>
             </TableCell>
           </TableRow>

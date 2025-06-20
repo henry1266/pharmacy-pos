@@ -52,10 +52,10 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
     if (value.trim() !== '') {
       const searchTerm = value.trim().toLowerCase();
       const results = products.filter(product =>
-        product.name?.toLowerCase().includes(searchTerm) ||
-        product.code?.toLowerCase().includes(searchTerm) ||
-        product.shortCode?.toLowerCase().includes(searchTerm) ||
-        product.barcode?.toLowerCase().includes(searchTerm) ||
+        product.name?.toLowerCase().includes(searchTerm) ??
+        product.code?.toLowerCase().includes(searchTerm) ??
+        product.shortCode?.toLowerCase().includes(searchTerm) ??
+        product.barcode?.toLowerCase().includes(searchTerm) ??
         product.healthInsuranceCode?.toLowerCase().includes(searchTerm)
       ).slice(0, 20);
       setFilteredProducts(results);

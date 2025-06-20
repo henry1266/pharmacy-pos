@@ -136,7 +136,7 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
            <Grid item xs={12} {...({} as any)}>
             <Box sx={{ mt: 2, textAlign: 'right' }}>
               <Typography variant="h6">
-                總金額: ${(currentSale.totalAmount || 0).toFixed(2)}
+                總金額: ${(currentSale.totalAmount ?? 0).toFixed(2)}
               </Typography>
             </Box>
           </Grid>

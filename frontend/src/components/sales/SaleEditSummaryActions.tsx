@@ -54,7 +54,7 @@ const SaleEditSummaryActions: React.FC<SaleEditSummaryActionsProps> = ({
               label="折扣金額"
               type="number"
               name="discount"
-              value={currentSale.discount || ''}
+              value={currentSale.discount ?? ''}
               onChange={handleInputChange}
               InputProps={{ inputProps: { min: 0, step: 0.01 } }}
             />
@@ -98,7 +98,7 @@ const SaleEditSummaryActions: React.FC<SaleEditSummaryActionsProps> = ({
               name="note"
               multiline
               rows={3}
-              value={currentSale.note || ''}
+              value={currentSale.note ?? ''}
               onChange={handleInputChange}
             />
           </Grid>

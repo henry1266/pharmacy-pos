@@ -70,12 +70,12 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
   allProducts, 
   onSave 
 }) => {
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(shortcut?.productIds || []);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(shortcut?.productIds ?? []);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    setSelectedProductIds(shortcut?.productIds || []);
+    setSelectedProductIds(shortcut?.productIds ?? []);
   }, [shortcut]);
 
   useEffect(() => {
@@ -84,11 +84,11 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
     } else {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       const results = allProducts?.filter(p =>
-        (p?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (p?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (p?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (p?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ??
+        (p?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ??
+        (p?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ??
         (p?.healthInsuranceCode?.toLowerCase().includes(lowerCaseSearchTerm))
-      ).slice(0, 50) || [];
+      ).slice(0, 50) ?? [];
       setFilteredProducts(results);
     }
   }, [searchTerm, allProducts]);
@@ -141,7 +141,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             fullWidth
             freeSolo
             options={filteredProducts}
-            getOptionLabel={(option) => (typeof option === 'string' ? option : option?.name || '')}
+            getOptionLabel={(option) => (typeof option === 'string' ? option : option?.name ?? '')}
             filterOptions={(x) => x}
             value={null}
             onChange={(event, newValue) => {
@@ -168,7 +168,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             renderOption={(props, option) => (
               <li {...props} key={option?._id}>
                 <Typography variant="body2">
-                  {option?.name} ({option?.code || 'N/A'}) - ${option?.sellingPrice?.toFixed(2) || 'N/A'}
+                  {option?.name} ({option?.code ?? 'N/A'}) - ${option?.sellingPrice?.toFixed(2) ?? 'N/A'}
                 </Typography>
               </li>
             )}

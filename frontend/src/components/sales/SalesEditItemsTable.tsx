@@ -144,7 +144,7 @@ const SalesEditItemsTable: React.FC<SalesEditItemsTableProps> = ({
                   </Box>
                 </TableCell>
                 <TableCell align="right">
-                  ${(item.subtotal || 0).toFixed(2)}
+                  ${(item.subtotal ?? 0).toFixed(2)}
                 </TableCell>
                 <TableCell align="center">
                   <IconButton
