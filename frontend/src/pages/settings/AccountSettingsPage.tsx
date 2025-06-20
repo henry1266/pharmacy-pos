@@ -216,8 +216,8 @@ const AccountSettingsPage: React.FC = () => {
       setCurrentUser(userData);
       setFormData({
         ...formData,
-        username: userData.username || '',
-        email: userData.email || ''
+        username: userData.username ?? '',
+        email: userData.email ?? ''
       });
     } catch (error: any) {
       setAlert({
@@ -290,7 +290,7 @@ const AccountSettingsPage: React.FC = () => {
       }
       
       if (currentUser && formData.email !== currentUser.email) {
-        updateData.email = formData.email || undefined;
+        updateData.email = formData.email ?? undefined;
       }
       
       if (formData.newPassword) {

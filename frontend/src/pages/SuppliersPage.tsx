@@ -666,7 +666,7 @@ const SuppliersPage: FC<{}> = () => {
                   <List dense disablePadding>
                     {importResult.errors.slice(0, 5).map((err, index) => (
                       <ListItem key={`error-${index}-${err.row ?? ''}-${err.error.substring(0, 10)}`} disableGutters sx={{pl:1}}>
-                        <ListItemText primary={`行 ${err.row || '-'}: ${err.error}`} sx={{fontSize: '0.8rem'}}/>
+                        <ListItemText primary={`行 ${err.row ?? '-'}: ${err.error}`} sx={{fontSize: '0.8rem'}}/>
                       </ListItem>
                     ))}
                     {importResult.errors.length > 5 && <ListItemText primary={`...還有 ${importResult.errors.length - 5} 個錯誤`} sx={{fontSize: '0.8rem', pl:1}}/>}
