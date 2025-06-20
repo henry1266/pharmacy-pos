@@ -8,7 +8,7 @@ import {
   ShiftType,
   HoursData,
   FormattedEmployeeHours
-} from '../utils/workHoursUtils';
+} from '../utils/workHoursUtils.ts';
 import { SchedulesByDate, EmployeeSchedule } from '../services/employeeScheduleService';
 
 /**

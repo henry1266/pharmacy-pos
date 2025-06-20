@@ -26,7 +26,7 @@ import AccountDialog from '../../components/employees/account/AccountDialog.tsx'
 import FormField from '../../components/employees/account/FormField.tsx';
 import EmployeeAccountRow from '../../components/employees/account/EmployeeAccountRow.tsx';
 import useEmployeeAccounts from '../../hooks/useEmployeeAccounts';
-import { getRoleName, getRoleColor, roleOptions } from '../../utils/roleUtils';
+import { getRoleName, getRoleColor, roleOptions } from '../../utils/roleUtils.ts';
 
 // 定義員工介面
 interface Employee {
