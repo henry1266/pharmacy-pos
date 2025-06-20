@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { EmployeeAccount } from '../types/entities';
-import { Role } from '../types/entities';
+import { EmployeeAccount, Role } from '../types/entities';
 
 const API_URL = '/api/employee-accounts';
 
@@ -27,7 +26,7 @@ export const getEmployeeAccount = async (employeeId: string): Promise<EmployeeAc
   } catch (err: any) {
     console.error('獲取員工帳號資訊失敗:', err);
     throw new Error(
-      err.response?.data?.msg || 
+      err.response?.data?.msg ??
       '獲取員工帳號資訊失敗，請稍後再試'
     );
   }
@@ -67,8 +66,8 @@ export const createEmployeeAccount = async (accountData: CreateEmployeeAccountDa
   } catch (err: any) {
     console.error('創建員工帳號失敗:', err);
     throw new Error(
-      err.response?.data?.msg || 
-      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ||
+      err.response?.data?.msg ??
+      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ??
       '創建員工帳號失敗，請稍後再試'
     );
   }
@@ -108,8 +107,8 @@ export const updateEmployeeAccount = async (employeeId: string, updateData: Upda
   } catch (err: any) {
     console.error('更新員工帳號失敗:', err);
     throw new Error(
-      err.response?.data?.msg || 
-      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ||
+      err.response?.data?.msg ??
+      (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ??
       '更新員工帳號失敗，請稍後再試'
     );
   }
@@ -138,7 +137,7 @@ export const deleteEmployeeAccount = async (employeeId: string): Promise<any> =>
   } catch (err: any) {
     console.error('刪除員工帳號失敗:', err);
     throw new Error(
-      err.response?.data?.msg || 
+      err.response?.data?.msg ??
       '刪除員工帳號失敗，請稍後再試'
     );
   }
@@ -167,7 +166,7 @@ export const unbindEmployeeAccount = async (employeeId: string): Promise<any> =>
   } catch (err: any) {
     console.error('解除員工帳號綁定失敗:', err);
     throw new Error(
-      err.response?.data?.msg ||
+      err.response?.data?.msg ??
       '解除員工帳號綁定失敗，請稍後再試'
     );
   }

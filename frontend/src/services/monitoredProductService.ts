@@ -24,7 +24,7 @@ export const getMonitoredProducts = async (): Promise<MonitoredProduct[]> => {
     const response = await axios.get<MonitoredProduct[]>(API_URL);
     return response.data;
   } catch (error: any) {
-    console.error('獲取監測產品失敗:', error.response?.data?.msg || error.message);
+    console.error('獲取監測產品失敗:', error.response?.data?.msg ?? error.message);
     throw error;
   }
 };
@@ -39,7 +39,7 @@ export const addMonitoredProduct = async (productCode: string): Promise<Monitore
     const response = await axios.post<MonitoredProduct>(API_URL, { productCode });
     return response.data;
   } catch (error: any) {
-    console.error('新增監測產品失敗:', error.response?.data?.msg || error.message);
+    console.error('新增監測產品失敗:', error.response?.data?.msg ?? error.message);
     throw error;
   }
 };
@@ -54,7 +54,7 @@ export const deleteMonitoredProduct = async (id: string): Promise<{ success: boo
     const response = await axios.delete<{ success: boolean; message?: string }>(`${API_URL}/${id}`);
     return response.data;
   } catch (error: any) {
-    console.error('刪除監測產品失敗:', error.response?.data?.msg || error.message);
+    console.error('刪除監測產品失敗:', error.response?.data?.msg ?? error.message);
     throw error;
   }
 };

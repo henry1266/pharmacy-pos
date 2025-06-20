@@ -50,7 +50,7 @@ export const getEmployees = async (params: EmployeeQueryParams = {}): Promise<Em
   } catch (err: any) {
     console.error('獲取員工資訊失敗:', err);
     throw new Error(
-      err.response?.data?.msg || 
+      err.response?.data?.msg ??
       '獲取員工資訊失敗，請稍後再試'
     );
   }
@@ -79,7 +79,7 @@ export const getEmployee = async (id: string): Promise<Employee> => {
   } catch (err: any) {
     console.error('獲取員工資訊失敗:', err);
     throw new Error(
-      err.response?.data?.msg || 
+      err.response?.data?.msg ??
       '獲取員工資訊失敗，請稍後再試'
     );
   }
@@ -145,7 +145,7 @@ export const getEmployeesWithAccountStatus = async (): Promise<EmployeeWithAccou
   } catch (err: any) {
     console.error('獲取員工帳號狀態失敗:', err);
     throw new Error(
-      err.response?.data?.msg ||
+      err.response?.data?.msg ??
       '獲取員工帳號狀態失敗，請稍後再試'
     );
   }

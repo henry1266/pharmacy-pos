@@ -15,7 +15,7 @@ export const getInventoryByProduct = async (productId: string): Promise<Inventor
     return response.data;
   } catch (err: any) {
     console.error(`獲取產品 ${productId} 的庫存記錄失敗 (service):`, err);
-    throw new Error(err.response?.data?.msg || `獲取產品 ${productId} 的庫存記錄失敗`);
+    throw new Error(err.response?.data?.msg ?? `獲取產品 ${productId} 的庫存記錄失敗`);
   }
 };
 

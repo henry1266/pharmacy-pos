@@ -27,7 +27,7 @@ apiService.interceptors.request.use(
     return config;
   },
   (error: any): Promise<any> => {
-    return Promise.reject(new Error(error.message || 'Request interceptor error'));
+    return Promise.reject(new Error(error.message ?? 'Request interceptor error'));
   }
 );
 
@@ -54,7 +54,7 @@ apiService.interceptors.response.use(
       }
     }
     // 對於其他錯誤，正常返回Promise拒絕
-    return Promise.reject(new Error(error.message || 'Response interceptor error'));
+    return Promise.reject(new Error(error.message ?? 'Response interceptor error'));
   }
 );
 

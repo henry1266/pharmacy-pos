@@ -43,7 +43,7 @@ export const getProducts = async (): Promise<Product[]> => {
     const response = await axios.get<Product[]>(PRODUCTS_API_URL, config);
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching products:', error.response?.data || error.message);
+    console.error('Error fetching products:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -58,7 +58,7 @@ export const getSuppliers = async (): Promise<Supplier[]> => {
     const response = await axios.get<Supplier[]>(SUPPLIERS_API_URL, config);
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching suppliers:', error.response?.data || error.message);
+    console.error('Error fetching suppliers:', error.response?.data ?? error.message);
     throw error;
   }
 };
@@ -85,7 +85,7 @@ export const addProduct = async (productData: Partial<Product>, productType: Pro
     const response = await axios.post<Product>(endpoint, { ...productData, productType }, config);
     return response.data;
   } catch (error: any) {
-    console.error(`Error adding ${productType}:`, error.response?.data || error.message);
+    console.error(`Error adding ${productType}:`, error.response?.data ?? error.message);
     throw error;
   }
 };
