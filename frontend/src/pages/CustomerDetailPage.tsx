@@ -19,7 +19,7 @@ import {
 import useCustomerDetailData from '../hooks/useCustomerDetailData';
 
 // Import Presentation Components
-import CustomerInfoCard from '../components/customers/CustomerInfoCard';
+import CustomerInfoCard from '../components/customers/CustomerInfoCard.tsx';
 import TwoColumnLayout from '../components/common/TwoColumnLayout.tsx';
 
 // 定義路由參數介面
