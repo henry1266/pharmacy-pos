@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import supplierService from '../services/supplierService';
+import supplierService from '../services/supplierService.ts';
 import { Supplier } from '../types/entities';
 
 /**

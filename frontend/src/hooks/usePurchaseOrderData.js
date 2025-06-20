@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSuppliers } from '../services/supplierService';
-import { getProducts, getProductByCode } from '../services/productService';
-import { getPurchaseOrderById } from '../services/purchaseOrdersService';
+import { getSuppliers } from '../services/supplierService.ts';
+import { getProducts, getProductByCode } from '../services/productService.ts';
+import { getPurchaseOrderById } from '../services/purchaseOrdersService.ts';
 
 const usePurchaseOrderData = (isEditMode, orderId, showSnackbar) => {
   const [loading, setLoading] = useState(true);

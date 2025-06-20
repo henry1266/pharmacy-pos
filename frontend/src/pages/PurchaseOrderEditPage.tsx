@@ -14,9 +14,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 
 // Import service functions
-import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService';
-import { getProducts } from '../services/productService';
-import { getSuppliers } from '../services/supplierService';
+import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService.ts';
+import { getProducts } from '../services/productService.ts';
+import { getSuppliers } from '../services/supplierService.ts';
 
 // Import components
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm.tsx';
