@@ -115,7 +115,7 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>
-        {shortcutName || '選擇商品'}
+        {shortcutName ?? '選擇商品'}
         <IconButton
           aria-label="close"
           onClick={onClose}

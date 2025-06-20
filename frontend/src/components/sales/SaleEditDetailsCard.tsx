@@ -77,7 +77,7 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
               label="折扣金額"
               type="number"
               name="discount"
-              value={currentSale.discount || ''}
+              value={currentSale.discount ?? ''}
               onChange={handleInputChange}
               InputProps={{ inputProps: { min: 0, step: 0.01 } }}
             />
@@ -127,7 +127,7 @@ const SaleEditDetailsCard: React.FC<SaleEditDetailsCardProps> = ({
               name="note"
               multiline
               rows={isMobile ? 2 : 3} // Adjust rows for mobile
-              value={currentSale.note || ''}
+              value={currentSale.note ?? ''}
               onChange={handleInputChange}
             />
           </Grid>
