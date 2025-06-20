@@ -13,8 +13,8 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import PieChartCell from './PieChartCell';
-import LegendFormatter from './LegendFormatter';
+import PieChartCell from './PieChartCell.tsx';
+import LegendFormatter from './LegendFormatter.tsx';
 
 /**
  * 類別銷售資料項目介面
