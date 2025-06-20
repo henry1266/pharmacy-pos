@@ -35,7 +35,7 @@ import { RootState } from '../redux/reducers.ts';
 
 // Import Components
 import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview.tsx';
-import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter';
+import SupplierCheckboxFilter from '../components/filters/SupplierCheckboxFilter.tsx';
 import PurchaseOrdersTable from '../components/purchase-orders/PurchaseOrdersTable.tsx';
 import PurchaseOrdersFilter from '../components/purchase-orders/PurchaseOrdersFilter.tsx';
 import CsvImportDialog from '../components/purchase-orders/CsvImportDialog.tsx';
