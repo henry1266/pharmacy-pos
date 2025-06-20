@@ -89,7 +89,7 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
   const shippingOrders = rawShippingOrders as unknown as ShippingOrderExtended[];
   
   const { suppliers, loading: suppliersLoading, error: suppliersError } = useSelector<RootState, SuppliersState>(
-    state => state.suppliers || { suppliers: [], loading: false, error: null }
+    state => state.suppliers ?? { suppliers: [], loading: false, error: null }
   );
 
   const [searchParams, setSearchParams] = useState<SearchParams>({
@@ -126,7 +126,7 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
             return selectedSuppliers.includes(so.sosupplier);
           }
           // 處理 sosupplier 是對象的情況
-          else if (typeof so.sosupplier === 'object' && so.sosupplier && so.sosupplier.name) {
+          else if (typeof so.sosupplier === 'object' && so.sosupplier?.name) {
             return selectedSuppliers.includes(so.sosupplier.name);
           }
           return false;

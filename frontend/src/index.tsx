@@ -7,7 +7,7 @@ import './index.css';
 
 // 使用 TypeScript 類型定義
 const root = ReactDOM.createRoot(
-  document.getElementById('root')!
+  document.getElementById('root')
 );
 
 root.render(

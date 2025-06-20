@@ -95,7 +95,7 @@ export const useSalesEditData = (saleId: string) => {
       
     } catch (err: any) {
       console.error('Failed to fetch data for sales edit:', err);
-      const errorMessage = err.response?.data?.msg || err.message || 'Failed to load necessary data.';
+      const errorMessage = err.response?.data?.msg ?? err.message ?? 'Failed to load necessary data.';
       setError(errorMessage);
     } finally {
       setLoading(false);
