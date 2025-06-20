@@ -11,7 +11,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
-import { Product, PurchaseOrder, PurchaseOrderItem } from '../types/entities';
+import { Product, PurchaseOrder } from '../types/entities';
 
 import { addPurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrdersService';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
@@ -193,6 +193,17 @@ const RenderInitialState: React.FC<RenderInitialStateProps> = ({
   return null;
 };
 
+// 輔助函數，用於從產品對象中獲取產品ID
+const getProductId = (product: any): string | null => {
+  if (typeof product === 'string') {
+    return product;
+  }
+  if (product && typeof product === 'object') {
+    return product._id;
+  }
+  return null;
+};
+
 const PurchaseOrderFormPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -232,7 +243,7 @@ const PurchaseOrderFormPage: React.FC = () => {
   let dataError = initialDataError;
   let suppliers = initialSuppliers as ISupplier[];
   let products = initialProducts as unknown as ExtendedProduct[];
-  let productDetailsLoading = initialProductDetailsLoading;
+  // 移除未使用的變數賦值
   let suppliersLoaded = initialSuppliersLoaded;
   let productsLoaded = initialProductsLoaded;
 
@@ -297,7 +308,7 @@ const PurchaseOrderFormPage: React.FC = () => {
     setProductDetails
   });
 
-  const [formSubmitLoading, setFormSubmitLoading] = useState<boolean>(false);
+  // 移除未使用的變數賦值
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
 
@@ -307,24 +318,24 @@ const PurchaseOrderFormPage: React.FC = () => {
       // 確保設置的對象包含所有 IFormData 所需的屬性
       const mappedItems = Array.isArray(orderData.items)
         ? orderData.items.map(item => ({
-            did: item.product && typeof item.product === 'object' ? item.product.code || '' : '',
-            dname: item.product && typeof item.product === 'object' ? item.product.name || '' : '',
-            dquantity: String(item.quantity || ''),
-            dtotalCost: String(item.subtotal || ''),
-            product: typeof item.product === 'string' ? item.product :
-                     item.product && typeof item.product === 'object' ? item.product._id : null
+            did: item.product && typeof item.product === 'object' ? item.product.code ?? '' : '',
+            dname: item.product && typeof item.product === 'object' ? item.product.name ?? '' : '',
+            dquantity: String(item.quantity ?? ''),
+            dtotalCost: String(item.subtotal ?? ''),
+            // 提取嵌套的三元運算符為更清晰的條件語句
+            product: getProductId(item.product)
           }))
         : [];
         
       setFormData({
-        poid: orderData.orderNumber || '',
+        poid: orderData.orderNumber ?? '',
         pobill: '',
         pobilldate: (orderData as ExtendedPurchaseOrder).pobilldate ? new Date((orderData as ExtendedPurchaseOrder).pobilldate) : new Date(),
         posupplier: orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : '',
         supplier: supplierId,
         items: mappedItems,
-        notes: orderData.notes || '',
-        status: orderData.status || 'pending',
+        notes: orderData.notes ?? '',
+        status: orderData.status ?? 'pending',
         paymentStatus: '未付',
         multiplierMode: ''
       });
@@ -406,13 +417,13 @@ const PurchaseOrderFormPage: React.FC = () => {
   };
 
   const submitForm = async () => {
-    setFormSubmitLoading(true);
+    // 移除對未使用變數的賦值
 
     if (isGlobalTestMode) {
       console.log('TEST MODE: Simulating form submission with data:', formData);
       showSnackbar(`進貨單已在測試模式下模擬${isEditMode ? '更新' : '新增'}成功`, 'success');
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);
-      setFormSubmitLoading(false);
+      // 移除對未使用變數的賦值
       setConfirmDialogOpen(false);
       return;
     }
@@ -444,11 +455,12 @@ const PurchaseOrderFormPage: React.FC = () => {
         showSnackbar('進貨單已成功新增', 'success');
       }
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('提交進貨單失敗:', err);
-      showSnackbar('提交進貨單失敗: ' + (err.response?.data?.msg || err.message), 'error');
+      const error = err as { response?: { data?: { msg?: string } }, message?: string };
+      showSnackbar('提交進貨單失敗: ' + (error.response?.data?.msg ?? error.message ?? '未知錯誤'), 'error');
     } finally {
-      setFormSubmitLoading(false);
+      // 移除對未使用變數的賦值
       setConfirmDialogOpen(false);
     }
   };

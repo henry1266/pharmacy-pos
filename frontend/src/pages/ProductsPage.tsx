@@ -147,7 +147,7 @@ const ProductsPage: React.FC = () => {
     const product = params.row;
     setSelectedProduct({
       ...product,
-      id: product.id || product._id,
+      id: product.id ?? product._id,
       productType: tabValue === 0 ? 'product' : 'medicine'
     });
   };
@@ -182,7 +182,7 @@ const ProductsPage: React.FC = () => {
           medicine.name.toLowerCase().includes(searchParams.name.toLowerCase());
         
         const healthInsuranceCodeMatch = !searchParams.healthInsuranceCode || 
-          (medicine as any).healthInsuranceCode?.toLowerCase().includes(searchParams.healthInsuranceCode?.toLowerCase() || '');
+          (medicine as { healthInsuranceCode?: string }).healthInsuranceCode?.toLowerCase().includes(searchParams.healthInsuranceCode?.toLowerCase() ?? '');
         
         return codeMatch && nameMatch && healthInsuranceCodeMatch;
       });
@@ -227,19 +227,19 @@ const ProductsPage: React.FC = () => {
     if (product) {
       setCurrentProduct({
         id: product.id,
-        code: product.code || '',
-        shortCode: (product as any).shortCode || '',
-        name: product.name || '',
-        category: product.category || '',
-        unit: product.unit || '',
-        purchasePrice: (product as any).purchasePrice || 0,
-        sellingPrice: (product as any).sellingPrice || 0,
-        description: product.description || '',
-        supplier: product.supplier || '',
-        minStock: (product as any).minStock || 10,
-        barcode: product.barcode || '',
-        healthInsuranceCode: (product as any).healthInsuranceCode || '',
-        healthInsurancePrice: (product as any).healthInsurancePrice || 0
+        code: product.code ?? '',
+        shortCode: (product as { shortCode?: string }).shortCode ?? '',
+        name: product.name ?? '',
+        category: product.category ?? '',
+        unit: product.unit ?? '',
+        purchasePrice: (product as { purchasePrice?: number }).purchasePrice ?? 0,
+        sellingPrice: (product as { sellingPrice?: number }).sellingPrice ?? 0,
+        description: product.description ?? '',
+        supplier: product.supplier ?? '',
+        minStock: (product as { minStock?: number }).minStock ?? 10,
+        barcode: product.barcode ?? '',
+        healthInsuranceCode: (product as { healthInsuranceCode?: string }).healthInsuranceCode ?? '',
+        healthInsurancePrice: (product as { healthInsurancePrice?: number }).healthInsurancePrice ?? 0
       });
       setOpenDialog(true);
     }
@@ -306,7 +306,7 @@ const ProductsPage: React.FC = () => {
         // 關閉對話框
         setOpenDialog(false);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
     }
   };
@@ -332,7 +332,7 @@ const ProductsPage: React.FC = () => {
       
       <Grid container spacing={2}>
         {/* 左側表格區域 */}
-        <Grid item xs={12} md={8} {...({} as any)}>
+        <Grid item xs={12} md={8}>
           <ProductTabs 
             tabValue={tabValue} 
             handleTabChange={handleTabChange}
@@ -348,7 +348,7 @@ const ProductsPage: React.FC = () => {
         </Grid>
         
         {/* 右側詳情區域 */}
-        <Grid item xs={12} md={4} {...({} as any)} sx={{
+        <Grid item xs={12} md={4} sx={{
           position: 'sticky',
           top: 80,
           height: 'fit-content',

@@ -144,8 +144,9 @@ const LoginPage = () => {
         }
       }, 600);
 
-    } catch (err: any) {
-      const errorMessage = err.message || '登入失敗，請檢查您的憑證或稍後再試。';
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      const errorMessage = error.message ?? '登入失敗，請檢查您的憑證或稍後再試。';
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setLoading(false);
