@@ -1,8 +1,7 @@
 import { createStore, combineReducers, applyMiddleware, compose, Store } from 'redux';
-import { ThunkDispatch } from 'redux-thunk';
-// 導入 thunk 中間件
-import thunk from 'redux-thunk';
-// 使用內建的compose替代redux-devtools-extension
+import thunk, { ThunkDispatch } from 'redux-thunk';
+
+/* 專案內的 reducer 與型別 */
 import {
   authReducer,
   productsReducer,

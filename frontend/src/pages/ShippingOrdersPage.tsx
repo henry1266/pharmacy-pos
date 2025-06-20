@@ -237,7 +237,7 @@ const ShippingOrdersPage: React.FC = () => {
 
       setSnackbar({
         open: true,
-        message: response.msg || 'CSV導入成功',
+        message: response.msg ?? 'CSV導入成功',
         severity: 'success'
       });
 
@@ -248,7 +248,7 @@ const ShippingOrdersPage: React.FC = () => {
       }, 3000);
     } catch (err: any) {
       console.error('CSV導入錯誤:', err);
-      setCsvImportError(err.response?.data?.msg || err.message || '導入失敗，請檢查CSV格式或聯繫管理員');
+      setCsvImportError(err.response?.data?.msg ?? err.message ?? '導入失敗，請檢查CSV格式或聯繫管理員');
       setCsvImportLoading(false);
     }
   }, [csvFile, csvType, dispatch]);
@@ -406,7 +406,7 @@ const ShippingOrdersPage: React.FC = () => {
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="確認刪除出貨單"
-        message={`您確定要刪除出貨單 ${shippingOrderToDelete?.soid || ''} 嗎？此操作無法撤銷。`}
+        message={`您確定要刪除出貨單 ${shippingOrderToDelete?.soid ?? ''} 嗎？此操作無法撤銷。`}
         confirmText="確認刪除"
         cancelText="取消"
       />

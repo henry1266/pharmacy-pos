@@ -193,7 +193,7 @@ const SuppliersPage: FC<{}> = () => {
 
   useEffect(() => {
     if (isTestMode) {
-      setLocalSelectedSupplier(actualSelectedSupplier ? localSuppliers.find(s => s.id === (actualSelectedSupplier as any).id) || null : null);
+      setLocalSelectedSupplier(actualSelectedSupplier ? localSuppliers.find(s => s.id === (actualSelectedSupplier as any).id) ?? null : null);
     } else {
       setLocalSelectedSupplier(actualSelectedSupplier as unknown as SupplierData);
     }
@@ -208,7 +208,7 @@ const SuppliersPage: FC<{}> = () => {
   const selectSupplier = (id: string): void => {
     if (isTestMode) {
       const supplier = localSuppliers.find(s => s.id === id);
-      setLocalSelectedSupplier(supplier || null);
+      setLocalSelectedSupplier(supplier ?? null);
     } else {
       actualSelectSupplier(id);
     }
@@ -271,14 +271,14 @@ const SuppliersPage: FC<{}> = () => {
     if (supplierToEdit) {
       setCurrentSupplierState({
         id: supplierToEdit.id,
-        code: supplierToEdit.code || '',
-        shortCode: supplierToEdit.shortCode || '',
-        name: supplierToEdit.name || '',
-        contactPerson: supplierToEdit.contactPerson || '',
-        phone: supplierToEdit.phone || '',
-        taxId: supplierToEdit.taxId || '',
-        paymentTerms: supplierToEdit.paymentTerms || '',
-        notes: supplierToEdit.notes || ''
+        code: supplierToEdit.code ?? '',
+        shortCode: supplierToEdit.shortCode ?? '',
+        name: supplierToEdit.name ?? '',
+        contactPerson: supplierToEdit.contactPerson ?? '',
+        phone: supplierToEdit.phone ?? '',
+        taxId: supplierToEdit.taxId ?? '',
+        paymentTerms: supplierToEdit.paymentTerms ?? '',
+        notes: supplierToEdit.notes ?? ''
       });
       setEditMode(true);
       setOpenDialog(true);
@@ -314,10 +314,10 @@ const SuppliersPage: FC<{}> = () => {
 
   const handleSaveSupplier = async (): Promise<void> => {
     if (isTestMode) {
-      const newSupplier: SupplierData = { 
-        ...currentSupplierState, 
-        id: currentSupplierState.id || `mockSup${Date.now()}`, 
-        code: currentSupplierState.code || `MKSUP${Date.now().toString().slice(-4)}` 
+      const newSupplier: SupplierData = {
+        ...currentSupplierState,
+        id: currentSupplierState.id ?? `mockSup${Date.now()}`,
+        code: currentSupplierState.code ?? `MKSUP${Date.now().toString().slice(-4)}`
       };
       if (editMode) {
         setLocalSuppliers(prev => prev.map(s => s.id === newSupplier.id ? newSupplier : s));
@@ -457,9 +457,9 @@ const SuppliersPage: FC<{}> = () => {
   const detailPanel = selectedSupplier ? (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
       <CardHeader
-        avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>{selectedSupplier.shortCode?.charAt(0) || selectedSupplier.name?.charAt(0) || 'S'}</Avatar>}
+        avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>{selectedSupplier.shortCode?.charAt(0) ?? selectedSupplier.name?.charAt(0) ?? 'S'}</Avatar>}
         title={<Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>{selectedSupplier.name}</Typography>}
-        subheader={`簡碼: ${selectedSupplier.shortCode || '無'}`}
+        subheader={`簡碼: ${selectedSupplier.shortCode ?? '無'}`}
         action={
           <Box>
             <Tooltip title="編輯">
@@ -477,10 +477,10 @@ const SuppliersPage: FC<{}> = () => {
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>供應商資訊</Typography>
         <List dense sx={{ py: 0 }}>
           <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>供應商編號:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.code}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>聯絡人:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.contactPerson || '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.phone || '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>稅號:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.taxId || '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>付款條件:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.paymentTerms || '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>聯絡人:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.contactPerson ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.phone ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>稅號:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.taxId ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, display: 'flex', justifyContent: 'space-between' }}><Typography variant="body2" sx={{ width: '40%', color: 'text.secondary' }}>付款條件:</Typography><Typography variant="body2" sx={{ width: '60%', fontWeight: 500 }}>{selectedSupplier.paymentTerms ?? '無'}</Typography></ListItem>
           {selectedSupplier.notes && (
             <ListItem sx={{ py: 0.5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography>
@@ -618,7 +618,7 @@ const SuppliersPage: FC<{}> = () => {
                   <Typography variant="body2" color="error.main">錯誤詳情:</Typography>
                   <List dense disablePadding>
                     {importResult.errors.slice(0, 5).map((err, index) => (
-                      <ListItem key={`error-${index}-${err.row || ''}-${err.error.substring(0, 10)}`} disableGutters sx={{pl:1}}>
+                      <ListItem key={`error-${index}-${err.row ?? ''}-${err.error.substring(0, 10)}`} disableGutters sx={{pl:1}}>
                         <ListItemText primary={`行 ${err.row || '-'}: ${err.error}`} sx={{fontSize: '0.8rem'}}/>
                       </ListItem>
                     ))}

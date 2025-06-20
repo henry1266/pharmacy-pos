@@ -57,7 +57,7 @@ const SupplierDetailPage: FC = () => {
         setLoading(false);
       } catch (err: any) {
         console.error('獲取供應商詳情失敗:', err);
-        setError(err.response?.data?.message || '獲取供應商詳情失敗');
+        setError(err.response?.data?.message ?? '獲取供應商詳情失敗');
         setLoading(false);
       }
     };

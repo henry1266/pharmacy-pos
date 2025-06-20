@@ -2,8 +2,7 @@ import { ActionTypes } from './actionTypes.ts';
 import axios from 'axios';
 import { getApiBaseUrl } from '../utils/apiConfig.ts';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
-import { Action } from './reducers.ts';
-import { RootState } from './reducers.ts';
+import { Action, RootState } from './reducers.ts';
 import { NavigateFunction } from 'react-router-dom';
 
 // API基礎URL
@@ -55,7 +54,7 @@ export const login = (username: string, password: string): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.LOGIN_FAILURE,
-      payload: err.response?.data?.msg || '登入失敗'
+      payload: err.response?.data?.msg ?? '登入失敗'
     });
   }
 };
@@ -88,7 +87,7 @@ export const fetchProducts = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PRODUCTS_FAILURE,
-      payload: err.response?.data?.msg || '獲取藥品失敗'
+      payload: err.response?.data?.msg ?? '獲取藥品失敗'
     });
   }
 };
@@ -113,7 +112,7 @@ export const addProduct = (productData: any): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_PRODUCT_FAILURE,
-      payload: err.response?.data?.msg || '添加藥品失敗'
+      payload: err.response?.data?.msg ?? '添加藥品失敗'
     });
   }
 };
@@ -133,7 +132,7 @@ export const updateProduct = (id: string, productData: any): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_PRODUCT_FAILURE,
-      payload: err.response?.data?.msg || '更新藥品失敗'
+      payload: err.response?.data?.msg ?? '更新藥品失敗'
     });
   }
 };
@@ -153,7 +152,7 @@ export const deleteProduct = (id: string): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_PRODUCT_FAILURE,
-      payload: err.response?.data?.msg || '刪除藥品失敗'
+      payload: err.response?.data?.msg ?? '刪除藥品失敗'
     });
   }
 };
@@ -174,7 +173,7 @@ export const fetchSuppliers = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SUPPLIERS_FAILURE,
-      payload: err.response?.data?.msg || '獲取供應商失敗'
+      payload: err.response?.data?.msg ?? '獲取供應商失敗'
     });
   }
 };
@@ -195,7 +194,7 @@ export const fetchCustomers = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_CUSTOMERS_FAILURE,
-      payload: err.response?.data?.msg || '獲取會員失敗'
+      payload: err.response?.data?.msg ?? '獲取會員失敗'
     });
   }
 };
@@ -217,7 +216,7 @@ export const fetchInventory = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_INVENTORY_FAILURE,
-      payload: err.response?.data?.msg || '獲取庫存失敗'
+      payload: err.response?.data?.msg ?? '獲取庫存失敗'
     });
   }
 };
@@ -238,7 +237,7 @@ export const fetchSales = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SALES_FAILURE,
-      payload: err.response?.data?.msg || '獲取銷售訂單失敗'
+      payload: err.response?.data?.msg ?? '獲取銷售訂單失敗'
     });
   }
 };
@@ -259,7 +258,7 @@ export const fetchDashboardData = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_DASHBOARD_DATA_FAILURE,
-      payload: err.response?.data?.msg || '獲取儀表板數據失敗'
+      payload: err.response?.data?.msg ?? '獲取儀表板數據失敗'
     });
   }
 };
@@ -280,7 +279,7 @@ export const fetchReportsData = (reportType: string, params: any): AppThunk => a
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_REPORTS_DATA_FAILURE,
-      payload: err.response?.data?.msg || '獲取報表數據失敗'
+      payload: err.response?.data?.msg ?? '獲取報表數據失敗'
     });
   }
 };
@@ -304,7 +303,7 @@ export const fetchPurchaseOrders = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.msg || '獲取進貨單失敗'
+      payload: err.response?.data?.msg ?? '獲取進貨單失敗'
     });
   }
 };
@@ -325,7 +324,7 @@ export const fetchPurchaseOrder = (id: string): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '獲取進貨單詳情失敗'
+      payload: err.response?.data?.msg ?? '獲取進貨單詳情失敗'
     });
   }
 };
@@ -357,7 +356,7 @@ export const addPurchaseOrder = (formData: any, navigate?: NavigateFunction): Ap
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '添加進貨單失敗'
+      payload: err.response?.data?.msg ?? '添加進貨單失敗'
     });
   }
 };
@@ -389,7 +388,7 @@ export const updatePurchaseOrder = (id: string, formData: any, navigate?: Naviga
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '更新進貨單失敗'
+      payload: err.response?.data?.msg ?? '更新進貨單失敗'
     });
   }
 };
@@ -410,7 +409,7 @@ export const deletePurchaseOrder = (id: string): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '刪除進貨單失敗'
+      payload: err.response?.data?.msg ?? '刪除進貨單失敗'
     });
   }
 };
@@ -439,7 +438,7 @@ export const searchPurchaseOrders = (searchParams: Record<string, string>): AppT
   } catch (err: any) {
     dispatch({
       type: ActionTypes.SEARCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.msg || '搜索進貨單失敗'
+      payload: err.response?.data?.msg ?? '搜索進貨單失敗'
     });
   }
 };
@@ -462,7 +461,7 @@ export const fetchShippingOrders = (): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDERS_FAILURE,
-      payload: err.response?.data?.msg || '獲取出貨單失敗'
+      payload: err.response?.data?.msg ?? '獲取出貨單失敗'
     });
   }
 };
@@ -483,7 +482,7 @@ export const fetchShippingOrder = (id: string): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '獲取出貨單詳情失敗'
+      payload: err.response?.data?.msg ?? '獲取出貨單詳情失敗'
     });
   }
 };
@@ -515,7 +514,7 @@ export const addShippingOrder = (formData: any, navigate?: NavigateFunction): Ap
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '添加出貨單失敗'
+      payload: err.response?.data?.msg ?? '添加出貨單失敗'
     });
   }
 };
@@ -547,7 +546,7 @@ export const updateShippingOrder = (id: string, formData: any, navigate?: Naviga
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '更新出貨單失敗'
+      payload: err.response?.data?.msg ?? '更新出貨單失敗'
     });
   }
 };
@@ -568,7 +567,7 @@ export const deleteShippingOrder = (id: string): AppThunk => async (
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg || '刪除出貨單失敗'
+      payload: err.response?.data?.msg ?? '刪除出貨單失敗'
     });
   }
 };
@@ -597,7 +596,7 @@ export const searchShippingOrders = (searchParams: Record<string, string>): AppT
   } catch (err: any) {
     dispatch({
       type: ActionTypes.SEARCH_SHIPPING_ORDERS_FAILURE,
-      payload: err.response?.data?.msg || '搜索出貨單失敗'
+      payload: err.response?.data?.msg ?? '搜索出貨單失敗'
     });
   }
 };
