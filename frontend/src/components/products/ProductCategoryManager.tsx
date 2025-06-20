@@ -182,7 +182,7 @@ const ProductCategoryManager: React.FC = () => {
     } catch (err: any) {
       console.error('操作分類失敗:', err);
       showSnackbar(
-        err.response?.data?.msg || '操作分類失敗',
+        err.response?.data?.msg ?? '操作分類失敗',
         'error'
       );
     }
@@ -199,7 +199,7 @@ const ProductCategoryManager: React.FC = () => {
     } catch (err: any) {
       console.error('刪除分類失敗:', err);
       showSnackbar(
-        err.response?.data?.msg || '刪除分類失敗',
+        err.response?.data?.msg ?? '刪除分類失敗',
         'error'
       );
     }

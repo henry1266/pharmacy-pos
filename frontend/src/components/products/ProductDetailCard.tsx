@@ -92,8 +92,8 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
         title={product.name}
           subheader={
         <>
-          編號: {product.code}  | 簡碼: {product.shortCode} | 單位: {product.unit || '無'}<br />
-          國際條碼: {product.barcode || '無'} | 健保碼: {product.healthInsuranceCode || '無'}
+          編號: {product.code}  | 簡碼: {product.shortCode} | 單位: {product.unit ?? '無'}<br />
+          國際條碼: {product.barcode ?? '無'} | 健保碼: {product.healthInsuranceCode ?? '無'}
         </>
         }
         action={
@@ -119,7 +119,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
         <Grid container spacing={2}>
           <Grid item xs={12} sm={3} {...({} as any)}>
             <Typography variant="subtitle2">供應商: {product.supplier ? 
-                suppliers.find(s => s._id === product.supplier)?.name || product.supplier 
+                suppliers.find(s => s._id === product.supplier)?.name ?? product.supplier
                 : '無'}</Typography>
           </Grid>
           <Grid item xs={12} sm={3} {...({} as any)}>
