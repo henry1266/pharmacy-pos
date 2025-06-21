@@ -106,7 +106,7 @@ export const useSaleEditManagement = (
         }
 
         if (product) {
-          const existingItemIndex = currentSale.items.findIndex(item => item.product === product!._id);
+          const existingItemIndex = currentSale.items.findIndex(item => item.product === product._id);
           let updatedItems;
 
           if (existingItemIndex >= 0) {

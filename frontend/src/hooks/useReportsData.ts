@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import reportsService from '../services/reportsService';
-import { ReportParams } from '../types/api';
 
 /**
  * 銷售報表參數介面
@@ -41,7 +40,7 @@ const useReportsData = () => {
       setSalesData(data);
     } catch (err: any) {
       console.error('獲取銷售報表數據失敗 (hook):', err);
-      setError(`獲取銷售報表數據失敗: ${err.response?.data?.message || err.message}`);
+      setError(`獲取銷售報表數據失敗: ${err.response?.data?.message ?? err.message}`);
       setSalesData([]); // Clear data on error
     } finally {
       setLoading(false);
