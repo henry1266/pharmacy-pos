@@ -174,7 +174,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
     
     setFormData({
       username: account.username,
-      email: account.email || '',
+      email: account.email ?? '',
       password: '',
       confirmPassword: '',
       role: account.role
@@ -216,7 +216,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
       await employeeAccountService.createEmployeeAccount({
         employeeId,
         username: formData.username,
-        email: formData.email || undefined,
+        email: formData.email ?? undefined,
         password: formData.password,
         role: formData.role
       });
@@ -239,7 +239,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
 
     const updateData: Record<string, any> = {};
     if (formData.username !== account.username) updateData.username = formData.username;
-    if (formData.email !== (account.email || '')) updateData.email = formData.email || undefined;
+    if (formData.email !== (account.email ?? '')) updateData.email = formData.email ?? undefined;
     if (formData.role !== account.role) updateData.role = formData.role;
     if (formData.password) updateData.password = formData.password;
 

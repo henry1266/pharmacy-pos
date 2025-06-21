@@ -22,7 +22,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import WorkIcon from '@mui/icons-material/Work';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import EventNoteIcon from '@mui/icons-material/EventNote';
-import { OvertimeRecord, OvertimeRecordType } from './OvertimeRecordRow';
+import { OvertimeRecord, OvertimeRecordType, OvertimeRecordStatus } from './OvertimeRecordRow';
 
 /**
  * 加班記錄原始數據接口
@@ -105,7 +105,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
   onRejectRecord
 }) => {
   // 獲取狀態顯示文字
-  const getStatusText = (status: string): string => {
+  const getStatusText = (status: OvertimeRecordStatus): string => {
     switch (status) {
       case 'pending': return '待審核';
       case 'approved': return '已核准';
@@ -115,7 +115,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
   };
 
   // 獲取狀態顏色
-  const getStatusColor = (status: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+  const getStatusColor = (status: OvertimeRecordStatus): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
     switch (status) {
       case 'pending': return 'warning';
       case 'approved': return 'success';
@@ -141,7 +141,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
         originalRecord: record,
         hours: record.hours,
         description: record.description || '-',
-        status: record.status
+        status: record.status as OvertimeRecordStatus
       })),
       // 排班系統加班記錄
       ...group.scheduleRecords.map(record => {
@@ -164,7 +164,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
           originalRecord: record,
           hours: hours,
           description: shiftName,
-          status: 'approved',
+          status: 'approved' as OvertimeRecordStatus,
           shift: record.shift
         };
       })
@@ -372,7 +372,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
                 </TableCell>
                 <TableCell component="th" scope="row">
                   <Typography variant="subtitle1" fontWeight="bold">
-                    {group.employee.name || `員工${(selectedMonth + 1).toString().padStart(2, '0')}`}
+                    {group.employee.name ?? `員工${(selectedMonth + 1).toString().padStart(2, '0')}`}
                   </Typography>
                 </TableCell>
                 <TableCell>{group.independentHours.toFixed(1)} 小時</TableCell>

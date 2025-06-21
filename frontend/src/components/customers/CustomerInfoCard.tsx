@@ -50,7 +50,7 @@ const CustomerInfoCard: FC<CustomerInfoCardProps> = ({ customer }) => {
               聯絡人
             </Typography>
             <Typography variant="body1">
-              {customer.contactPerson || '-'}
+              {customer.contactPerson ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -59,7 +59,7 @@ const CustomerInfoCard: FC<CustomerInfoCardProps> = ({ customer }) => {
               電話
             </Typography>
             <Typography variant="body1">
-              {customer.phone || '-'}
+              {customer.phone ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -68,7 +68,7 @@ const CustomerInfoCard: FC<CustomerInfoCardProps> = ({ customer }) => {
               電子郵件
             </Typography>
             <Typography variant="body1">
-              {customer.email || '-'}
+              {customer.email ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -77,7 +77,7 @@ const CustomerInfoCard: FC<CustomerInfoCardProps> = ({ customer }) => {
               地址
             </Typography>
             <Typography variant="body1">
-              {customer.address || '-'}
+              {customer.address ?? '-'}
             </Typography>
           </Grid>
           {/* @ts-ignore */}
@@ -86,7 +86,7 @@ const CustomerInfoCard: FC<CustomerInfoCardProps> = ({ customer }) => {
               備註
             </Typography>
             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-              {customer.notes || '-'}
+              {customer.notes ?? '-'}
             </Typography>
           </Grid>
         </Grid>

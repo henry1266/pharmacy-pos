@@ -4,10 +4,8 @@ import { Chip, ChipProps } from '@mui/material';
 /**
  * 狀態標籤組件
  */
-type StatusType = string;
-
 interface StatusChipProps {
-  status: StatusType;
+  status: string;
   size?: 'small' | 'medium';
 }
 

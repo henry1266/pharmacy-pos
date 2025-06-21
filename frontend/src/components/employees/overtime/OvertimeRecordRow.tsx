@@ -24,7 +24,7 @@ export type OvertimeRecordType = 'independent' | 'schedule';
 /**
  * 加班記錄狀態
  */
-type OvertimeRecordStatus = 'pending' | 'approved' | 'rejected';
+export type OvertimeRecordStatus = 'pending' | 'approved' | 'rejected' | string;
 
 /**
  * 加班記錄接口
@@ -36,7 +36,7 @@ export interface OvertimeRecord {
   originalRecord: any; // 原始記錄對象
   hours: string | number;
   description: string;
-  status: OvertimeRecordStatus | string;
+  status: OvertimeRecordStatus;
 }
 
 /**
@@ -58,6 +58,23 @@ interface OvertimeRecordRowProps {
  * 加班記錄行組件
  * 統一處理加班記錄表格行的顯示邏輯，消除重複的表格結構
  */
+/**
+ * 獲取行背景顏色
+ */
+const getRowBackgroundColor = (isIndependent: boolean, status: string): string => {
+  if (isIndependent) {
+    return status === 'approved' ? 'rgba(76, 175, 80, 0.08)' : 'inherit';
+  }
+  return 'rgba(25, 118, 210, 0.05)';
+};
+
+/**
+ * 獲取行文字顏色
+ */
+const getRowTextColor = (isIndependent: boolean, status: string): string => {
+  return isIndependent && status === 'approved' ? 'text.primary' : 'text.secondary';
+};
+
 const OvertimeRecordRow: React.FC<OvertimeRecordRowProps> = ({
   record,
   isAdmin,
@@ -75,11 +92,9 @@ const OvertimeRecordRow: React.FC<OvertimeRecordRowProps> = ({
   return (
     <TableRow
       sx={{
-        bgcolor: isIndependent 
-          ? (record.status === 'approved' ? 'rgba(76, 175, 80, 0.08)' : 'inherit')
-          : 'rgba(25, 118, 210, 0.05)',
+        bgcolor: getRowBackgroundColor(isIndependent, record.status),
         '& td': {
-          color: isIndependent && record.status === 'approved' ? 'text.primary' : 'text.secondary'
+          color: getRowTextColor(isIndependent, record.status)
         }
       }}
     >
