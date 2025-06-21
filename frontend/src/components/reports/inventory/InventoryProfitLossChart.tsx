@@ -1,17 +1,15 @@
-import React, { useState, FC } from 'react';
+import React, { FC } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
   Card,
   CardContent,
   Typography,
-  Paper,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Alert,
-  SelectChangeEvent
+  Alert
 } from '@mui/material';
 import {
   AreaChart,
@@ -26,148 +24,21 @@ import {
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
-
-// 定義分組後的產品數據型別
-interface GroupedProduct {
-  productId: string;
-  productName: string;
-  productCode: string;
-  transactions: Transaction[];
-}
-
-// 定義交易記錄的型別
-interface Transaction {
-  type: string;
-  quantity: number;
-  price: number;
-  purchaseOrderNumber: string;
-  shippingOrderNumber: string;
-  saleNumber: string;
-}
-
-// 定義圖表數據項目的型別
-interface ChartDataItem {
-  productId?: string;
-  productName?: string;
-  productCode?: string;
-  orderNumber: string;
-  type: string;
-  quantity: number;
-  price: number;
-  profitLoss: number;
-  cumulativeStock: number;
-  cumulativeProfitLoss: number;
-  positiveProfitLoss: number;
-  negativeProfitLoss: number;
-}
-
-// 格式化金額 (Moved to module scope)
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('zh-TW', {
-    style: 'currency',
-    currency: 'TWD',
-    minimumFractionDigits: 0
-  }).format(amount);
-};
-
-// 自定義Tooltip props 型別
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    payload: ChartDataItem;
-  }>;
-  label?: string;
-}
-
-// 自定義Tooltip - 移出父組件
-const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  
-  const data = payload[0]?.payload;
-  if (!data) return null;
-  
-  // 圖表顏色
-  const colors = {
-    profit: '#00d97e',  // 綠色 - 正值
-    loss: '#e53f3c',    // 紅色 - 負值
-    stock: '#624bff'    // 藍色 - 庫存
-  };
-  
-  // formatCurrency is now in module scope
-  
-  return (
-    <Paper sx={{
-      p: 2, 
-      boxShadow: 'var(--card-shadow)',
-      border: '1px solid var(--border-color)',
-      bgcolor: 'var(--bg-paper)'
-    }}>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        貨單號: {label}
-      </Typography>
-      <Typography variant="body2" sx={{ mb: 0.5 }}>
-        商品: {data.productName} ({data.productCode})
-      </Typography>
-      <Typography variant="body2" sx={{ mb: 0.5 }}>
-        類型: {data.type}
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-        <Box
-          component="span"
-          sx={{
-            width: 12,
-            height: 12,
-            borderRadius: '50%',
-            bgcolor: colors.stock,
-            mr: 1
-          }}
-        />
-        <Typography variant="body2">
-          累積庫存: {data.cumulativeStock}
-        </Typography>
-      </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-        <Box
-          component="span"
-          sx={{
-            width: 12,
-            height: 12,
-            borderRadius: '50%',
-            bgcolor: data.cumulativeProfitLoss >= 0 ? colors.profit : colors.loss,
-            mr: 1
-          }}
-        />
-        <Typography variant="body2">
-          累積損益總和: {formatCurrency(data.cumulativeProfitLoss)}
-        </Typography>
-      </Box>
-      <Typography variant="body2" sx={{ 
-        color: data.profitLoss >= 0 ? colors.profit : colors.loss,
-        fontWeight: 500
-      }}>
-        本次交易損益: {formatCurrency(data.profitLoss)}
-      </Typography>
-    </Paper>
-  );
-};
-
-// 新增 CustomTooltip 的 props validation
-CustomTooltip.propTypes = {
-  active: PropTypes.bool,
-  payload: PropTypes.arrayOf(
-    PropTypes.shape({
-      payload: PropTypes.shape({
-        productName: PropTypes.string,
-        productCode: PropTypes.string,
-        type: PropTypes.string,
-        cumulativeStock: PropTypes.number,
-        cumulativeProfitLoss: PropTypes.number,
-        profitLoss: PropTypes.number
-      })
-    })
-  ),
-  label: PropTypes.string
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
+import {
+  GroupedProduct,
+  ChartDataItem
+} from './shared/types';
+import {
+  formatCurrency,
+  getOrderNumber
+} from './shared/utils';
+import {
+  CHART_COLORS,
+  CHART_MARGINS,
+  CHART_HEIGHT
+} from './shared/constants';
+import { ChartCustomTooltip } from './shared/components';
+import { useChartType } from './shared/hooks';
 
 // InventoryProfitLossChart props 型別
 interface InventoryProfitLossChartProps {
@@ -175,33 +46,7 @@ interface InventoryProfitLossChartProps {
 }
 
 const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedData = [] }) => {
-  const [chartType, setChartType] = useState<'area' | 'line'>('area');
-  
-  // 圖表顏色
-  const colors = {
-    profit: '#00d97e',  // 綠色 - 正值
-    loss: '#e53f3c',    // 紅色 - 負值
-    stock: '#624bff'    // 藍色 - 庫存
-  };
-
-  // formatCurrency is now in module scope
-
-  // 獲取交易的貨單號
-  const getOrderNumber = (transaction: Transaction): string => {
-    if (transaction.type === '進貨') {
-      return transaction.purchaseOrderNumber || '-';
-    } else if (transaction.type === '出貨') {
-      return transaction.shippingOrderNumber || '-';
-    } else if (transaction.type === '銷售') {
-      return transaction.saleNumber || '-';
-    }
-    return '-';
-  };
-
-  // 處理圖表類型變更
-  const handleChartTypeChange = (event: SelectChangeEvent) => {
-    setChartType(event.target.value as 'area' | 'line');
-  };
+  const { chartType, handleChartTypeChange } = useChartType('area');
 
   // 處理交易數據，獲取所有產品的交易記錄
   const getAllTransactionsWithCumulativeValues = (): ChartDataItem[] => {
@@ -302,62 +147,57 @@ const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedDa
 
     if (chartType === 'area') {
       return (
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
           <AreaChart
             data={chartData}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 60,
-            }}
+            margin={CHART_MARGINS}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="orderNumber" 
+            <XAxis
+              dataKey="orderNumber"
               angle={-45}
               textAnchor="end"
               height={60}
               interval={0}
               tick={{ fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               yAxisId="left"
               tickFormatter={(value) => formatCurrency(value)}
             />
-            <YAxis 
+            <YAxis
               yAxisId="right"
               orientation="right"
               domain={['auto', 'auto']}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<ChartCustomTooltip />} />
             <Legend />
             <ReferenceLine y={0} stroke="#000" yAxisId="left" />
             <defs>
               <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={colors.profit} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={colors.profit} stopOpacity={0.2}/>
+                <stop offset="5%" stopColor={CHART_COLORS.profit} stopOpacity={0.8}/>
+                <stop offset="95%" stopColor={CHART_COLORS.profit} stopOpacity={0.2}/>
               </linearGradient>
               <linearGradient id="colorLoss" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={colors.loss} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={colors.loss} stopOpacity={0.2}/>
+                <stop offset="5%" stopColor={CHART_COLORS.loss} stopOpacity={0.8}/>
+                <stop offset="95%" stopColor={CHART_COLORS.loss} stopOpacity={0.2}/>
               </linearGradient>
             </defs>
-            <Area 
+            <Area
               yAxisId="left"
-              type="monotone" 
-              dataKey="positiveProfitLoss" 
-              name="盈利" 
-              stroke={colors.profit} 
+              type="monotone"
+              dataKey="positiveProfitLoss"
+              name="盈利"
+              stroke={CHART_COLORS.profit}
               fillOpacity={1}
               fill="url(#colorProfit)"
             />
-            <Area 
+            <Area
               yAxisId="left"
-              type="monotone" 
-              dataKey="negativeProfitLoss" 
-              name="虧損" 
-              stroke={colors.loss} 
+              type="monotone"
+              dataKey="negativeProfitLoss"
+              name="虧損"
+              stroke={CHART_COLORS.loss}
               fillOpacity={1}
               fill="url(#colorLoss)"
             />
@@ -366,7 +206,7 @@ const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedDa
               type="monotone"
               dataKey="cumulativeStock"
               name="庫存"
-              stroke={colors.stock}
+              stroke={CHART_COLORS.stock}
               dot={{ r: 4 }}
               activeDot={{ r: 8 }}
             />
@@ -375,43 +215,38 @@ const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedDa
       );
     } else {
       return (
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
           <LineChart
             data={chartData}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 60,
-            }}
+            margin={CHART_MARGINS}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="orderNumber" 
+            <XAxis
+              dataKey="orderNumber"
               angle={-45}
               textAnchor="end"
               height={60}
               interval={0}
               tick={{ fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               yAxisId="left"
               tickFormatter={(value) => formatCurrency(value)}
             />
-            <YAxis 
+            <YAxis
               yAxisId="right"
               orientation="right"
               domain={['auto', 'auto']}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<ChartCustomTooltip />} />
             <Legend />
             <ReferenceLine y={0} stroke="#000" yAxisId="left" />
-            <Line 
+            <Line
               yAxisId="left"
-              type="monotone" 
-              dataKey="cumulativeProfitLoss" 
-              name="累積損益總和" 
-              stroke={colors.profit} 
+              type="monotone"
+              dataKey="cumulativeProfitLoss"
+              name="累積損益總和"
+              stroke={CHART_COLORS.profit}
               activeDot={{ r: 8 }}
               dot={{ r: 4 }}
             />
@@ -420,7 +255,7 @@ const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedDa
               type="monotone"
               dataKey="cumulativeStock"
               name="庫存"
-              stroke={colors.stock}
+              stroke={CHART_COLORS.stock}
               dot={{ r: 4 }}
               activeDot={{ r: 8 }}
             />
@@ -463,7 +298,7 @@ const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedDa
   );
 };
 
-// 新增 InventoryProfitLossChart 的 props validation
+// PropTypes 驗證
 InventoryProfitLossChart.propTypes = {
   groupedData: PropTypes.arrayOf(
     PropTypes.shape({
@@ -482,6 +317,6 @@ InventoryProfitLossChart.propTypes = {
       )
     })
   )
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
+} as any;
 
 export default InventoryProfitLossChart;
