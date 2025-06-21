@@ -212,7 +212,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
                   labelId="category-label"
                   name="category"
                   value={currentProduct?.category ?? ''}
-                  onChange={handleInputChange as any}
+                  onChange={handleInputChange}
                   label="分類"
                   {...({} as any)}
                 >
@@ -278,7 +278,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
                 labelId="supplier-label"
                 name="supplier"
                 value={currentProduct?.supplier ?? ''}
-                onChange={handleInputChange as any}
+                onChange={handleInputChange}
                 label="供應商"
                 {...({} as any)}
               >
