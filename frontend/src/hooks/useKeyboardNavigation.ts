@@ -88,22 +88,29 @@ const useKeyboardNavigation = (
   }, [editMode, selectedCell, calendarGrid, calculateNewIndex, updateSelectedCell, onCellSelect]);
 
   // 初始化編輯模式時的選中格子
-  const initializeEditMode = useCallback((): void => {
-    if (editMode && calendarGrid.length > 0) {
-      // 預設選中當月第一天
+  // 選中當月第一天
+  const selectFirstDayOfMonth = useCallback((): void => {
+    if (calendarGrid.length > 0) {
       const firstDayIndex = calendarGrid.findIndex(cell => cell.isCurrentMonth);
       if (firstDayIndex >= 0) {
         setSelectedCell(firstDayIndex);
       }
-    } else {
-      setSelectedCell(null);
     }
-  }, [editMode, calendarGrid]);
+  }, [calendarGrid]);
+
+  // 清除選擇
+  const clearSelection = useCallback((): void => {
+    setSelectedCell(null);
+  }, []);
 
   // 監聽編輯模式變化
   useEffect(() => {
-    initializeEditMode();
-  }, [initializeEditMode]);
+    if (editMode) {
+      selectFirstDayOfMonth();
+    } else {
+      clearSelection();
+    }
+  }, [editMode, selectFirstDayOfMonth, clearSelection]);
 
   // 添加鍵盤事件監聽
   useEffect(() => {
@@ -123,7 +130,9 @@ const useKeyboardNavigation = (
   return {
     selectedCell,
     setSelectedCell,
-    updateSelectedCell
+    updateSelectedCell,
+    selectFirstDayOfMonth,
+    clearSelection
   };
 };
 

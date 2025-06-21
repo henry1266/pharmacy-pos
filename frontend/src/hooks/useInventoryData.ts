@@ -79,7 +79,7 @@ const useInventoryData = (productId?: string) => {
       
       if (groupedByPO.has(poNumber)) {
         // 如果已有該進貨單號的記錄，加總數量
-        const existingItem = groupedByPO.get(poNumber)!;
+        const existingItem = groupedByPO.get(poNumber);
         existingItem.quantity = (parseInt(existingItem.quantity.toString()) || 0) + (parseInt(item.quantity.toString()) || 0);
       } else {
         // 如果是新的進貨單號，創建新記錄
