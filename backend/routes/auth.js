@@ -136,8 +136,9 @@ const updateUsername = async (user, newUsername) => {
     return { success: true };
   }
 
-  // 檢查用戶名是否已被使用
-  const existingUser = await User.findOne({ username: newUsername });
+  // 檢查用戶名是否已被使用 - 使用參數化查詢
+  const usernameQuery = { username: newUsername };
+  const existingUser = await User.findOne(usernameQuery);
   if (existingUser) {
     return { success: false, error: "此用戶名已被使用" };
   }
@@ -154,8 +155,9 @@ const updateEmail = async (user, newEmail) => {
   }
 
   if (newEmail && newEmail.trim() !== '') {
-    // 檢查電子郵件是否已被使用
-    const existingUser = await User.findOne({ email: newEmail });
+    // 檢查電子郵件是否已被使用 - 使用參數化查詢
+    const emailQuery = { email: newEmail };
+    const existingUser = await User.findOne(emailQuery);
     if (existingUser) {
       return { success: false, error: "此電子郵件已被使用" };
     }

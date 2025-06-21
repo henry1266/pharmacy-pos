@@ -91,6 +91,58 @@ const getEmployeeAccount = async (employeeId) => {
  * @param {Object} updateData - 更新數據
  * @returns {Promise<Object>} 更新結果
  */
+/**
+ * 更新用戶名
+ * @param {Object} user - 用戶對象
+ * @param {string} newUsername - 新用戶名
+ * @returns {Promise<void>}
+ */
+const updateUsername = async (user, newUsername) => {
+  if (!newUsername || newUsername === user.username) {
+    return; // 如果沒有提供新用戶名或與當前用戶名相同，則不更新
+  }
+  
+  if (await isUsernameExists(newUsername, user.id)) {
+    throw new Error('此用戶名已被使用');
+  }
+  
+  user.username = newUsername;
+};
+
+/**
+ * 更新電子郵件
+ * @param {Object} user - 用戶對象
+ * @param {string} newEmail - 新電子郵件
+ * @returns {Promise<void>}
+ */
+const updateEmail = async (user, newEmail) => {
+  if (newEmail === undefined || newEmail === user.email) {
+    return; // 如果沒有提供新電子郵件或與當前電子郵件相同，則不更新
+  }
+  
+  if (newEmail && newEmail.trim() !== '') {
+    if (await isEmailExists(newEmail, user.id)) {
+      throw new Error('此電子郵件已被使用');
+    }
+    user.email = newEmail;
+  } else {
+    // 如果email為空或空字符串，則從用戶文檔中移除email字段
+    user.email = undefined;
+    if (user.email !== undefined) {
+      await User.updateOne(
+        { _id: user._id },
+        { $unset: { email: 1 } }
+      );
+    }
+  }
+};
+
+/**
+ * 更新員工帳號
+ * @param {string} employeeId - 員工ID
+ * @param {Object} updateData - 更新數據
+ * @returns {Promise<Object>} 更新結果
+ */
 const updateEmployeeAccount = async (employeeId, updateData) => {
   const { username, email, password, role } = updateData;
 
@@ -100,32 +152,11 @@ const updateEmployeeAccount = async (employeeId, updateData) => {
   // 獲取用戶資訊
   let user = await getEmployeeUser(employee, true);
 
-  // 檢查用戶名是否已被使用
-  if (username && username !== user.username) {
-    if (await isUsernameExists(username, user.id)) {
-      throw new Error('此用戶名已被使用');
-    }
-    user.username = username;
-  }
-
-  // 處理電子郵件更新
-  if (email !== undefined && email !== user.email) {
-    if (email && email.trim() !== '') {
-      if (await isEmailExists(email, user.id)) {
-        throw new Error('此電子郵件已被使用');
-      }
-      user.email = email;
-    } else {
-      // 如果email為空或空字符串，則從用戶文檔中移除email字段
-      user.email = undefined;
-      if (user.email !== undefined) {
-        await User.updateOne(
-          { _id: user._id },
-          { $unset: { email: 1 } }
-        );
-      }
-    }
-  }
+  // 更新用戶名
+  await updateUsername(user, username);
+  
+  // 更新電子郵件
+  await updateEmail(user, email);
 
   // 更新角色
   if (role) {

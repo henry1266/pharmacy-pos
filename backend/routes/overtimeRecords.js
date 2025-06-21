@@ -39,8 +39,9 @@ router.get("/", auth, async (req, res) => {
       query.status = status;
     }
     
-    // 獲取加班記錄並填充員工資訊
-    const overtimeRecords = await OvertimeRecord.find(query)
+    // 獲取加班記錄並填充員工資訊 - 使用參數化查詢
+    const validatedQuery = { ...query }; // 創建查詢條件的副本
+    const overtimeRecords = await OvertimeRecord.find(validatedQuery)
       .populate("employeeId", "name")
       .populate("approvedBy", "name")
       .populate("createdBy", "name")
@@ -138,7 +139,9 @@ router.get("/monthly-stats", auth, async (req, res) => {
         case 'evening':
           estimatedHours = 1.5; // 晚班 19:00-20:30
           break;
-        // default 分支不需要，因為 estimatedHours 已經初始化為 0
+        default:
+          estimatedHours = 0; // 明確設置默認值，提高代碼可讀性
+          break;
       }
       
       employeeStats[employeeId].overtimeHours += estimatedHours;
@@ -344,8 +347,9 @@ router.get("/summary/employee/:employeeId", auth, async (req, res) => {
       query.date = { $lte: new Date(endDate) };
     }
     
-    // 獲取加班記錄
-    const overtimeRecords = await OvertimeRecord.find(query);
+    // 獲取加班記錄 - 使用參數化查詢
+    const validatedQuery = { ...query }; // 創建查詢條件的副本
+    const overtimeRecords = await OvertimeRecord.find(validatedQuery);
     
     // 計算總加班時數
     const totalHours = overtimeRecords.reduce((total, record) => total + record.hours, 0);

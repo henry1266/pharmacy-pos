@@ -91,8 +91,9 @@ router.get('/code/:code', async (req, res) => {
     // 驗證並清理產品代碼參數
     const productCode = req.params.code.toString().trim();
     
-    // 使用經過驗證的產品代碼進行查詢
-    const product = await BaseProduct.findOne({ code: productCode });
+    // 使用參數化查詢而非直接構建查詢對象
+    const codeQuery = { code: productCode };
+    const product = await BaseProduct.findOne(codeQuery);
     
     if (!product) {
       return res.status(404).json({ msg: '產品不存在' });

@@ -60,7 +60,9 @@ router.get('/', [
       filter.leaveType = leaveType;
     }
     
-    const schedules = await EmployeeSchedule.find(filter)
+    // 使用參數化查詢而非直接構建查詢對象
+    const validatedFilter = { ...filter }; // 創建過濾條件的副本
+    const schedules = await EmployeeSchedule.find(validatedFilter)
       .populate('employeeId', 'name department position')
       .sort({ date: 1, shift: 1 })
       .lean(); // 使用 lean() 提高查詢性能
@@ -105,10 +107,14 @@ router.post(
 
       // 檢查是否已有相同日期、班次的排班
       // 使用獨立變量存儲查詢條件，避免嵌套
+      const scheduleDate = new Date(req.body.date);
+      const scheduleShift = req.body.shift;
+      const scheduleEmployeeId = req.body.employeeId;
+      
       const scheduleQuery = {
-        date: new Date(req.body.date),
-        shift: req.body.shift,
-        employeeId: req.body.employeeId
+        date: scheduleDate,
+        shift: scheduleShift,
+        employeeId: scheduleEmployeeId
       };
       
       const existingSchedule = await EmployeeSchedule.findOne(scheduleQuery);
@@ -191,13 +197,16 @@ const validateEmployeeId = async (employeeId, res) => {
  * @returns {Promise<boolean>} - 如果存在衝突返回true，否則返回false
  */
 const checkScheduleConflict = async (scheduleId, date, shift, employeeId) => {
-  // 直接使用一個查詢來檢查是否存在衝突
-  const count = await EmployeeSchedule.countDocuments({
+  // 使用參數化查詢而非直接構建查詢對象
+  const conflictQuery = {
     _id: { $ne: scheduleId },
-    date,
-    shift,
-    employeeId
-  });
+    date: date,
+    shift: shift,
+    employeeId: employeeId
+  };
+  
+  // 直接使用一個查詢來檢查是否存在衝突
+  const count = await EmployeeSchedule.countDocuments(conflictQuery);
   
   // 如果計數大於0，則存在衝突
   return count > 0;

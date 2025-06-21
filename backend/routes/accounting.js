@@ -283,10 +283,11 @@ router.put(
       // 使用已驗證的ID創建安全的ObjectId
       const safeParamId = mongoose.Types.ObjectId(req.params.id);
       
+      // 使用參數化查詢而非直接構建查詢對象
       const existingRecord = await Accounting.findOne({
         date: accountingDate,
         shift: shift.toString(),
-        _id: { $ne: safeParamId },
+        _id: { $ne: safeParamId }
       });
 
       if (existingRecord) {
