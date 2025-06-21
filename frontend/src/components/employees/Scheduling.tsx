@@ -245,7 +245,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
                   getBorderStyle={getBorderStyle}
                   getBorderColor={getBorderColor}
                   getEmployeeAbbreviation={getEmployeeAbbreviation}
-                  getBorderColorByLeaveType={(schedule) => getBorderColorByLeaveType(schedule as any)}
+                  getBorderColorByLeaveType={(schedule) => getBorderColorByLeaveType(schedule as { leaveType?: 'sick' | 'personal' | 'overtime' | null | undefined; employee: { _id: string; name: string; }; })}
                   getLeaveTypeText={getLeaveTypeText}
                   formatDateString={formatDateString}
                 />

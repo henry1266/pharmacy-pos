@@ -15,10 +15,10 @@ import {
   Button
 } from '@mui/material';
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
-import { StrictModeDroppable } from '../common/StrictModeDroppable.tsx';
+import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import AddIcon from '@mui/icons-material/Add';
 import { getAccountingCategories, addAccountingCategory, updateAccountingCategory, deleteAccountingCategory } from '../../services/accountingCategoryService';
-import CategoryListItem, { AccountingCategory } from './CategoryListItem.tsx';
+import CategoryListItem, { AccountingCategory } from './CategoryListItem';
 
 // 對話框模式類型
 type DialogMode = 'add' | 'edit';

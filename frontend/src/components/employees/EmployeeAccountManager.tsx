@@ -16,8 +16,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import employeeAccountService from '../../services/employeeAccountService';
-import FormField from './account/FormField.tsx';
-import AccountDialog from './account/AccountDialog.tsx';
+import FormField from './account/FormField';
+import AccountDialog from './account/AccountDialog';
 import { EmployeeAccount, Role } from '../../types/entities';
 
 // 定義表單資料介面

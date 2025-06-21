@@ -193,7 +193,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
       hours: typeof formData.hours === 'string' ? parseFloat(formData.hours) : formData.hours
     };
     
-    const errors = validateOvertimeForm(formDataWithNumberHours as any);
+    const errors = validateOvertimeForm(formDataWithNumberHours);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
@@ -225,7 +225,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
       hours: typeof formData.hours === 'string' ? parseFloat(formData.hours) : formData.hours
     };
     
-    const errors = validateOvertimeForm(formDataWithNumberHours as any);
+    const errors = validateOvertimeForm(formDataWithNumberHours);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
