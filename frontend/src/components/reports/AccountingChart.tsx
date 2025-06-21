@@ -340,13 +340,13 @@ const AccountingChart: FC = () => {
       }
       
       return result;
-    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
   };
 
   // 處理按班別分組的數據
   const processShiftGroupData = (): ChartDataItem[] => {
     return accountingData.map(item => {
-      const result: ChartDataItem = { name: item.shift || '' };
+      const result: ChartDataItem = { name: item.shift ?? '' };
       
       // 如果是按類別過濾，則需要從items中提取
       if (selectedCategories.length > 0) {
@@ -669,7 +669,7 @@ const AccountingChart: FC = () => {
                   <TableCell>
                     {row.items.slice(0, 3).map((item) => (
                       <Chip 
-                        key={`item-${item._id || item.category + '-' + item.amount}`} 
+                        key={`item-${item._id ?? item.category + '-' + item.amount}`}
                         label={`${item.category}: ${formatCurrency(item.amount)}`} 
                         size="small" 
                         sx={{ mr: 0.5, mb: 0.5 }} 
@@ -716,7 +716,7 @@ const AccountingChart: FC = () => {
                   <TableCell>
                     {row.items.slice(0, 3).map((item) => (
                       <Chip 
-                        key={`shift-item-${item._id || item.category + '-' + item.amount}`} 
+                        key={`shift-item-${item._id ?? item.category + '-' + item.amount}`}
                         label={`${item.category}: ${formatCurrency(item.amount)}`} 
                         size="small" 
                         sx={{ mr: 0.5, mb: 0.5 }} 

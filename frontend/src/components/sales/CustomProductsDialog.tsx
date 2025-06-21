@@ -87,12 +87,16 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
     // 2. Filter by search term if applicable
     if (searchTerm.trim() !== '') {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      productsInShortcut = productsInShortcut.filter(product =>
-        (product?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (product?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (product?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (product?.healthInsuranceCode?.toLowerCase().includes(lowerCaseSearchTerm))
-      );
+      productsInShortcut = productsInShortcut.filter(product => {
+        // 使用陣列的 some 方法來檢查是否有任一條件符合
+        return [
+          // 使用空值合併運算子確保即使字段為 null 或 undefined，也能安全調用 includes
+          (product?.name ?? '').toLowerCase(),
+          (product?.code ?? '').toLowerCase(),
+          (product?.barcode ?? '').toLowerCase(),
+          (product?.healthInsuranceCode ?? '').toLowerCase()
+        ].some(field => field.includes(lowerCaseSearchTerm));
+      });
     }
 
     setDisplayProducts(productsInShortcut);

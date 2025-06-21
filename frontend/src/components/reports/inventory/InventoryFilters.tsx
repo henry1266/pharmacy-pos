@@ -51,7 +51,7 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
       try {
         // 獲取供應商列表
         const suppliersRes = await axios.get<Supplier[]>('/api/suppliers');
-        setSuppliers(suppliersRes.data || []);
+        setSuppliers(suppliersRes.data ?? []);
 
         // 獲取類別列表（從報表API獲取）
         interface InventoryResponse {
@@ -60,7 +60,7 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
           };
         }
         const inventoryRes = await axios.get<InventoryResponse>('/api/reports/inventory');
-        setCategories(inventoryRes.data?.filters?.categories || []);
+        setCategories(inventoryRes.data?.filters?.categories ?? []);
       } catch (err) {
         console.error('獲取篩選選項失敗:', err);
       }
