@@ -157,7 +157,7 @@ const renderTableRows = (
     }
 
     // 使用更穩定的 key，避免使用純索引
-    const rowKey = `item-${productCode || 'unknown'}-${item[nameField] || 'unnamed'}-${index}`;
+    const rowKey = `item-${productCode ?? 'unknown'}-${item[nameField] ?? 'unnamed'}-${index}`;
 
     return (
       <TableRow key={rowKey}>
@@ -166,7 +166,7 @@ const renderTableRows = (
         {showHealthInsuranceCode && (
           <TableCell>{healthInsuranceCode}</TableCell>
         )}
-        <TableCell>{item[nameField] || productDetail.name || 'N/A'}</TableCell>
+        <TableCell>{item[nameField] ?? productDetail.name ?? 'N/A'}</TableCell>
         <TableCell align="right">{item[quantityField] || 0}</TableCell>
         <TableCell align="right">{calculateUnitPrice(item, priceField, quantityField, totalCostField)}</TableCell>
         <TableCell align="right">{calculateItemSubtotal(item, totalCostField, quantityField, priceField)}</TableCell>

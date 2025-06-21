@@ -443,8 +443,6 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
 
   // 直接使用傳入的containerProps
   
-  
-  
   // 根據變體類型渲染不同的UI
   return variant === 'table' ? (
     <TableVariantComponent
