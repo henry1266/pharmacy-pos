@@ -429,19 +429,25 @@ const ShippingOrderDetailPage: React.FC = () => {
             {productDetailsError && (
               <Typography color="error" sx={{ mb: 2 }}>{productDetailsError}</Typography>
             )}
-            <ProductItemsTable
-              items={processedItems} // Use processed items with profit data
-              productDetails={productDetails}
-              codeField="did"
-              nameField="dname"
-              quantityField="dquantity"
-              priceField="dprice"
-              totalCostField="dtotalCost"
-              totalAmount={currentShippingOrder.totalAmount ?? 0}
-              title="" // Already has default title "項目"
-              isLoading={productDetailsLoading ? true : (orderLoading ? true : !!fifoLoading)} // Include fifoLoading
-              // profitField and profitMarginField use defaults 'profit' and 'profitMargin'
-            />
+            {/* 提取複雜的載入狀態邏輯為獨立變數 */}
+            {(() => {
+              const isTableLoading = productDetailsLoading || orderLoading || !!fifoLoading;
+              return (
+                <ProductItemsTable
+                  items={processedItems} // Use processed items with profit data
+                  productDetails={productDetails}
+                  codeField="did"
+                  nameField="dname"
+                  quantityField="dquantity"
+                  priceField="dprice"
+                  totalCostField="dtotalCost"
+                  totalAmount={currentShippingOrder.totalAmount ?? 0}
+                  title="" // Already has default title "項目"
+                  isLoading={isTableLoading} // 使用提取的變數
+                  // profitField and profitMarginField use defaults 'profit' and 'profitMargin'
+                />
+              );
+            })()}
           </CardContent>
         </Card>
       )}
@@ -505,19 +511,24 @@ const ShippingOrderDetailPage: React.FC = () => {
   };
 
   // 自定義列印按鈕
-  const printButton = (
-    <Button 
-      key="print" 
-      variant="outlined" 
-      color="secondary" 
-      size="small" 
-      startIcon={<PrintIcon />} 
-      onClick={handlePrintClick}
-      disabled={!currentShippingOrder ? true : (orderLoading ? true : (productDetailsLoading ? true : !!fifoLoading))}
-    >
-      列印
-    </Button>
-  );
+  const printButton = (() => {
+    // 提取複雜的禁用狀態邏輯為獨立變數
+    const isPrintButtonDisabled = !currentShippingOrder || orderLoading || productDetailsLoading || !!fifoLoading;
+    
+    return (
+      <Button
+        key="print"
+        variant="outlined"
+        color="secondary"
+        size="small"
+        startIcon={<PrintIcon />}
+        onClick={handlePrintClick}
+        disabled={isPrintButtonDisabled}
+      >
+        列印
+      </Button>
+    );
+  })();
 
   // 使用原來的 mainContent 和 sidebarContent，移除未使用的變量
   
