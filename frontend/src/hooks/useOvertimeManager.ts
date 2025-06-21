@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import overtimeRecordService, {
   OvertimeRecord,
-  OvertimeRecordCreateData,
-  OvertimeRecordStatus
+  OvertimeRecordCreateData
 } from '../services/overtimeRecordService';
 import employeeService from '../services/employeeService';
 import { Employee } from '../types/entities';

@@ -307,8 +307,8 @@ const useOvertimeData = (
     let scheduleRecords: MergedRecord[] = [];
     
     try {
-      if (scheduleOvertimeRecords && scheduleOvertimeRecords[employeeId] && Array.isArray(scheduleOvertimeRecords[employeeId])) {
-        scheduleRecords = scheduleOvertimeRecords[employeeId]?.map(record => {
+      if (Array.isArray(scheduleOvertimeRecords?.[employeeId])) {
+        scheduleRecords = scheduleOvertimeRecords[employeeId].map(record => {
           try {
             // 計算加班時數
             let hours: number;
@@ -328,13 +328,10 @@ const useOvertimeData = (
             
             // 確保日期是有效的
             let recordDate: Date;
-            try {
-              recordDate = new Date(record.date);
-              if (isNaN(recordDate?.getTime())) {
-                recordDate = new Date();
-              }
-            } catch (dateErr) {
+            recordDate = new Date(record.date);
+            if (isNaN(recordDate?.getTime())) {
               recordDate = new Date();
+              console.warn(`無效的日期格式: ${record.date}，使用當前日期作為替代`);
             }
             
             const result: MergedRecord = {
