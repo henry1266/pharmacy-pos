@@ -78,11 +78,6 @@ interface ISnackbarState {
   severity: 'success' | 'error' | 'warning' | 'info';
 }
 
-// 產品詳情型別
-interface ProductDetails {
-  [code: string]: any;
-}
-
 // 初始狀態渲染 props 型別
 interface RenderInitialStateProps {
   dataLoading: boolean;

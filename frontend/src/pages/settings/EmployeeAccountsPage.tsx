@@ -28,17 +28,6 @@ import EmployeeAccountRow from '../../components/employees/account/EmployeeAccou
 import useEmployeeAccounts from '../../hooks/useEmployeeAccounts';
 import { getRoleName, getRoleColor, roleOptions } from '../../utils/roleUtils';
 
-// 定義員工介面
-interface Employee {
-  _id: string;
-  name: string;
-  account?: {
-    username: string;
-    email?: string;
-    role: string;
-  };
-}
-
 /**
  * 員工帳號管理頁面
  * 允許管理員查看、創建、編輯和刪除員工帳號
