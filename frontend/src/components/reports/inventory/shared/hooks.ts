@@ -6,7 +6,6 @@ import { useState, useEffect, useCallback, MouseEvent } from 'react';
 import axios from 'axios';
 import {
   InventoryFilterValues,
-  TransactionItem,
   GroupedProduct,
   TooltipPosition,
   InventoryApiResponse

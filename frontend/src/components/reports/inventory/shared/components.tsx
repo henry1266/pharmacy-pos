@@ -21,8 +21,7 @@ import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import {
   CustomTooltipProps,
   ChartCustomTooltipProps,
-  ExpandableRowProps,
-  Transaction
+  ExpandableRowProps
 } from './types';
 import {
   CHART_COLORS,
@@ -458,7 +457,7 @@ export const InventoryDataTable: FC<{
           <Typography variant="body2">每頁顯示:</Typography>
           <select
             value={rowsPerPage}
-            onChange={onRowsPerPageChange as any}
+            onChange={(e) => onRowsPerPageChange({ target: { value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}
             style={{ padding: '4px 8px', border: '1px solid #ddd', borderRadius: '4px' }}
           >
             <option value={5}>5</option>
