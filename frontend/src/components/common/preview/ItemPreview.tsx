@@ -441,15 +441,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
     total = 0;
   }
 
-  // 容器默認樣式
-  const defaultContainerProps = {
-    sx: { 
-      width: 550, 
-      maxHeight: 600, 
-      overflow: 'auto',
-      ...containerProps?.sx 
-    }
-  };
+  // 直接使用傳入的containerProps
   
   
   

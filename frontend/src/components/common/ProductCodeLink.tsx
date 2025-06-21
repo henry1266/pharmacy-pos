@@ -27,11 +27,11 @@ const ProductCodeLink: React.FC<ProductCodeLinkProps> = ({ product }) => {
         to={`/products/${product._id}`} 
         sx={{ textDecoration: 'underline', color: 'inherit' }}
       >
-        {product.code || 'N/A'}
+        {product.code ?? 'N/A'}
       </MuiLink>
     );
   }
-  return <>{product?.code || 'N/A'}</>;
+  return <>{product?.code ?? 'N/A'}</>;
 };
 
 export default ProductCodeLink;
