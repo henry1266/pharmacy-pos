@@ -169,6 +169,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       };
 
       if (editMode && currentId) {
+        // 型別斷言在此是必要的，因為 shift 屬性需要是特定的字串字面量聯合型別
         await updateAccountingRecord(currentId, submitData as Partial<EntityAccountingRecord>);
         showSnackbar('記帳記錄已更新', 'success');
         handleCloseDialog();
