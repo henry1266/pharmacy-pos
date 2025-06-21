@@ -215,38 +215,47 @@ export const useOvertimeManagement = (employeeId?: string | null) => {
 
   // 創建加班記錄
   const createOvertimeRecord = useCallback(async (data: any) => {
-    try {
-      // 這裡應該調用實際的 API
-      // await overtimeRecordService.createOvertimeRecord(data);
-      return true;
-    } catch (err: any) {
-      setError(handleApiError(err));
-      return false;
-    }
+    // 這裡應該調用實際的 API
+    // try {
+    //   await overtimeRecordService.createOvertimeRecord(data);
+    //   return true;
+    // } catch (err: any) {
+    //   setError(handleApiError(err));
+    //   return false;
+    // }
+    
+    // 暫時返回 true，等待實際 API 實現
+    return true;
   }, []);
 
   // 更新加班記錄
   const updateOvertimeRecord = useCallback(async (id: string, data: any) => {
-    try {
-      // 這裡應該調用實際的 API
-      // await overtimeRecordService.updateOvertimeRecord(id, data);
-      return true;
-    } catch (err: any) {
-      setError(handleApiError(err));
-      return false;
-    }
+    // 這裡應該調用實際的 API
+    // try {
+    //   await overtimeRecordService.updateOvertimeRecord(id, data);
+    //   return true;
+    // } catch (err: any) {
+    //   setError(handleApiError(err));
+    //   return false;
+    // }
+    
+    // 暫時返回 true，等待實際 API 實現
+    return true;
   }, []);
 
   // 刪除加班記錄
   const deleteOvertimeRecord = useCallback(async (id: string) => {
-    try {
-      // 這裡應該調用實際的 API
-      // await overtimeRecordService.deleteOvertimeRecord(id);
-      return true;
-    } catch (err: any) {
-      setError(handleApiError(err));
-      return false;
-    }
+    // 這裡應該調用實際的 API
+    // try {
+    //   await overtimeRecordService.deleteOvertimeRecord(id);
+    //   return true;
+    // } catch (err: any) {
+    //   setError(handleApiError(err));
+    //   return false;
+    // }
+    
+    // 暫時返回 true，等待實際 API 實現
+    return true;
   }, []);
 
   // 清除訊息

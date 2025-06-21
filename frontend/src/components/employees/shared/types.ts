@@ -132,7 +132,7 @@ export interface FormFieldProps {
   label: string;
   type?: string;
   value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
   error?: boolean;
   helperText?: string;
   required?: boolean;

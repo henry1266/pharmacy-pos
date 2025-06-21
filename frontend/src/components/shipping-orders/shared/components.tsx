@@ -283,8 +283,8 @@ export const StatusChipRenderer: FC<{ status: string }> = ({ status }) => (
 );
 
 // 付款狀態晶片渲染器
-export const PaymentStatusChipRenderer: FC<{ status: string }> = ({ status }) => (
-  <PaymentStatusChip status={status as any} />
+export const PaymentStatusChipRenderer: FC<{ status: '未付' | '未收' | '已收款' | '已下收' | '已匯款' | '已開立' }> = ({ status }) => (
+  <PaymentStatusChip status={status} />
 );
 
 // 金額格式化渲染器

@@ -130,7 +130,7 @@ export const FormField: FC<FormFieldProps> = ({
           name={name}
           value={value}
           label={label}
-          onChange={onChange as any}
+          onChange={onChange}
         >
           {options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
