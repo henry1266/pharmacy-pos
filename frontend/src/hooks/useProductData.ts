@@ -99,7 +99,7 @@ const useProductData = () => {
       return true; // Indicate success
     } catch (err: any) {
       console.error('刪除產品失敗 (hook):', err);
-      setError(`刪除產品失敗: ${err.response?.data?.message || err.message}`);
+      setError(`刪除產品失敗: ${err.response?.data?.message ?? err.message}`);
       return false; // Indicate failure
     } finally {
       setLoading(false);
@@ -122,7 +122,7 @@ const useProductData = () => {
         savedProductData = await productService.updateProduct(productData.id, productData);
       } else {
         // Add new product
-        savedProductData = await productService.addProduct(productData, productType as ProductType);
+        savedProductData = await productService.addProduct(productData, productType);
       }
 
       // Refetch products to ensure data consistency
@@ -132,7 +132,7 @@ const useProductData = () => {
 
     } catch (err: any) {
       console.error('保存產品失敗 (hook):', err);
-      const errorMsg = `保存產品失敗: ${err.response?.data?.message || err.message}`;
+      const errorMsg = `保存產品失敗: ${err.response?.data?.message ?? err.message}`;
       setError(errorMsg);
       // Re-throw the error for the component to handle (e.g., show alert, keep dialog open)
       throw new Error(errorMsg);
