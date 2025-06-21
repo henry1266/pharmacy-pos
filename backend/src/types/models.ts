@@ -111,6 +111,8 @@ export interface ISale {
 
 export interface ISaleDocument extends ISale, Document, ITimestamps {
   _id: Types.ObjectId;
+  calculateTotalAmount(): number;
+  validateItemSubtotals(): boolean;
 }
 
 // PurchaseOrder 模型型別
