@@ -59,7 +59,7 @@ const SupplierSelect: React.FC<SupplierSelectProps> = ({
     <Autocomplete
       id="supplier-select"
       options={suppliers}
-      getOptionLabel={(option) => option?.name || ''}
+      getOptionLabel={(option) => option?.name ?? ''}
       value={selectedSupplier}
       onChange={onChange}
       filterOptions={(options, state) => filterSuppliers(options, state.inputValue)}

@@ -167,7 +167,7 @@ const renderTableRows = (
           <TableCell>{healthInsuranceCode}</TableCell>
         )}
         <TableCell>{item[nameField] ?? productDetail.name ?? 'N/A'}</TableCell>
-        <TableCell align="right">{item[quantityField] || 0}</TableCell>
+        <TableCell align="right">{item[quantityField] ?? 0}</TableCell>
         <TableCell align="right">{calculateUnitPrice(item, priceField, quantityField, totalCostField)}</TableCell>
         <TableCell align="right">{calculateItemSubtotal(item, totalCostField, quantityField, priceField)}</TableCell>
         {showProfitColumns && hasProfitData && (

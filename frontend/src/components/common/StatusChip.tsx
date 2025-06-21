@@ -4,7 +4,7 @@ import { Chip, ChipProps } from '@mui/material';
 /**
  * 狀態標籤組件
  */
-type StatusType = 'pending' | 'completed' | 'cancelled' | string;
+type StatusType = string;
 
 interface StatusChipProps {
   status: StatusType;
