@@ -121,7 +121,7 @@ const PurchaseOrderPreview: FC<PurchaseOrderPreviewProps> = ({ purchaseOrder, lo
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="subtitle2" fontWeight="bold">
-                    {purchaseOrder.totalAmount?.toLocaleString() || 
+                    {purchaseOrder.totalAmount?.toLocaleString() ??
                      (purchaseOrder?.items?.reduce((sum, item) => sum + Number(item.dtotalCost), 0).toLocaleString())}
                   </Typography>
                 </TableCell>

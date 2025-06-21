@@ -71,7 +71,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
   useEffect(() => {
     if (tableContainerRef.current && items.length > 0) {
       setTimeout(() => {
-        const scrollHeight = tableContainerRef.current?.scrollHeight || 0;
+        const scrollHeight = tableContainerRef.current?.scrollHeight ?? 0;
         tableContainerRef.current.scrollTop = scrollHeight;
       }, 100);
     }
@@ -100,7 +100,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
         </TableHead>
         <TableBody>
           {items.map((item, index) => (
-            <TableRow key={`item-${item._id || index}-${index}`}>
+            <TableRow key={`item-${item._id ?? index}-${index}`}>
               {editingItemIndex === index && editingItem ? (
                 // 編輯模式
                 <>
@@ -164,7 +164,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
                     <Typography variant="body2">{index + 1}</Typography>
                   </TableCell>
                   {/* @ts-ignore */}
-                  <TableCell><ProductCodeLink product={{ _id: item._id || '', code: item.did }} /></TableCell> {/* MODIFIED LINE */}
+                  <TableCell><ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} /></TableCell> {/* MODIFIED LINE */}
                   <TableCell>{item.dname}</TableCell>
                   <TableCell align="right">{item.dquantity}</TableCell>
                   <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>

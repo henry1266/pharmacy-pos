@@ -24,11 +24,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
-  TooltipProps
+  ReferenceLine
 } from 'recharts';
-import { Theme } from '@mui/material/styles';
-import { SxProps } from '@mui/system';
 
 // 定義分組後的產品數據型別
 interface GroupedProduct {

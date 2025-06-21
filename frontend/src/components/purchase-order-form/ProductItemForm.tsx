@@ -139,15 +139,15 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
       <Grid item xs={12} sm={6} md={4}>
         <Autocomplete
           id="product-select"
-          options={products || []} 
-          getOptionLabel={(option) => `${option.code || 'N/A'} - ${option.name}`}
-          value={products?.find(p => p._id === currentItem.product) || null}
+          options={products ?? []}
+          getOptionLabel={(option) => `${option.code ?? 'N/A'} - ${option.name}`}
+          value={products?.find(p => p._id === currentItem.product) ?? null}
           onChange={handleProductChange}
           filterOptions={(options, state) => filterProducts(options, state.inputValue)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === 'Tab') {
               if ((event.target as HTMLInputElement).value) {
-                const filteredOptions = filterProducts(products || [], (event.target as HTMLInputElement).value);
+                const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
                 if (filteredOptions.length > 0) {
                   handleProductChange(event, filteredOptions[0]);
                   event.preventDefault(); 
