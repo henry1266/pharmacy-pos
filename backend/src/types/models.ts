@@ -49,6 +49,9 @@ export interface IEmployee {
 
 export interface IEmployeeDocument extends IEmployee, Document, ITimestamps {
   _id: Types.ObjectId;
+  getWorkExperience(): number;
+  hasWorkSchedule(): boolean;
+  getWorkDays(): string[];
 }
 
 // BaseProduct 模型型別
@@ -84,6 +87,10 @@ export interface IMedicine extends IBaseProduct {
 export interface IBaseProductDocument extends IBaseProduct, Document, ITimestamps {
   _id: Types.ObjectId;
 }
+
+// Product 和 Medicine 的 Document 型別
+export interface IProductDocument extends IBaseProductDocument, IProduct {}
+export interface IMedicineDocument extends IBaseProductDocument, IMedicine {}
 
 // Sale 模型型別
 export interface ISaleItem {
@@ -139,6 +146,10 @@ export interface IPurchaseOrder {
 
 export interface IPurchaseOrderDocument extends IPurchaseOrder, Document, ITimestamps {
   _id: Types.ObjectId;
+  calculateTotalAmount(): number;
+  validateItemSubtotals(): boolean;
+  updateStatus(newStatus: string, deliveryDate?: Date): void;
+  isOverdue(): boolean;
 }
 
 // ShippingOrder 模型型別
