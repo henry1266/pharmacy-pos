@@ -6,7 +6,7 @@ import {
   allocateHoursByLeaveType,
   formatEmployeeHours,
   ShiftType
-} from '../utils/workHoursUtils.ts';
+} from '../utils/workHoursUtils';
 import { SchedulesByDate, EmployeeSchedule } from '../services/employeeScheduleService';
 
 /**
