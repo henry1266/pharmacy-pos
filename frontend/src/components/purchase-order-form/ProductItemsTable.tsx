@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, FC, ChangeEvent, SyntheticEvent } from 'react';
+import React, { useEffect, useRef, FC, ChangeEvent } from 'react';
 import PropTypes from 'prop-types';
 import { 
   Box,
@@ -21,7 +21,7 @@ import {
   Check as CheckIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import ProductCodeLink from '../common/ProductCodeLink.tsx'; // ADDED IMPORT
+import ProductCodeLink from '../common/ProductCodeLink';
 
 // 定義項目介面
 interface Item {
