@@ -140,7 +140,7 @@ router.get("/monthly-stats", auth, async (req, res) => {
           estimatedHours = 1.5; // 晚班 19:00-20:30
           break;
         default:
-          estimatedHours = 0; // 明確設置默認值，提高代碼可讀性
+          // 默認值已在初始化時設置，不需要重複賦值
           break;
       }
       

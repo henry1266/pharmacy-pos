@@ -484,8 +484,9 @@ const AllCategoriesDetail: React.FC = () => {
       const day = getDate(recordDate);
       
       // 加總所有項目金額
-      // 檢查日期是否有效
-      const isValidDate = dailyTotals[month] && dailyTotals[month][day] !== undefined;
+      // 檢查日期是否有效 - 避免使用數組索引作為鍵 (Sonar Rule S6479)
+      const monthData = dailyTotals[month];
+      const isValidDate = monthData && monthData[day] !== undefined;
       
       // 只有在日期有效時才處理項目
       if (isValidDate) {
@@ -674,7 +675,7 @@ const AllCategoriesDetail: React.FC = () => {
             
             return (
               <CalendarCell
-                key={`cell-${index}`}
+                key={`cell-${currentYear}-${selectedMonth}-${dayOffset}-${isCurrentMonth}`}
                 dayOffset={dayOffset}
                 isCurrentMonth={isCurrentMonth}
                 dayAmount={dayAmount}

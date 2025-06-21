@@ -87,7 +87,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
             </Button>
           </Box>
         }
-        secondary={category.description || '無描述'}
+        secondary={category.description ?? '無描述'}
       />
     </ListItem>
   );

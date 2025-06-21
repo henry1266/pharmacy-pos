@@ -99,7 +99,7 @@ const ContentSection: FC<ContentSectionProps> = ({
     <Box
       sx={{
         flex: '1 1 100%',
-        maxWidth: maxWidth || { xs: '100%' }
+        maxWidth: maxWidth ?? { xs: '100%' }
       }}
     >
       {content}
@@ -321,7 +321,7 @@ const AccountingCategoryDetail: React.FC = () => {
           shift: apiRecord.shift,
           items: Array.isArray(apiRecord.items) ? apiRecord.items : [],
           totalAmount: typeof apiRecord.totalAmount === 'number' ? apiRecord.totalAmount : 0,
-          status: apiRecord.status || 'pending'
+          status: apiRecord.status ?? 'pending'
         };
       }) as LocalAccountingRecord[];
       
@@ -408,7 +408,7 @@ const AccountingCategoryDetail: React.FC = () => {
         const month = getMonth(date);
         const day = getDate(date);
         record.items.forEach(item => {
-          if (item.category === category?.name && totals[month] && totals[month][day] !== undefined) {
+          if (item.category === category?.name && totals[month]) {
             totals[month][day] += item.amount;
           }
         });
@@ -850,7 +850,7 @@ const AccountingCategoryDetail: React.FC = () => {
   
   // 渲染錯誤狀態
   const renderError = (): React.ReactNode => (
-    <StatusDisplay type="error" message={error || '發生錯誤'} />
+    <StatusDisplay type="error" message={error ?? '發生錯誤'} />
   );
   
   // 渲染加載中狀態

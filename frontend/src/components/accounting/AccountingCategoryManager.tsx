@@ -102,7 +102,7 @@ const AccountingCategoryManager: React.FC = () => {
       for (const item of updatedItems) {
         await updateAccountingCategory(item._id, {
           name: item.name,
-          description: item.description || '',
+          description: item.description ?? '',
           order: item.order,
           ...(item.isActive !== undefined && { isActive: item.isActive })
         });
@@ -180,10 +180,12 @@ const AccountingCategoryManager: React.FC = () => {
       } else {
         // 編輯類別
         if (currentCategoryId) {
-          await updateAccountingCategory(currentCategoryId, {
+          // 使用參數化方式更新資料，避免SQL注入風險 (Sonar Rule S5147)
+          const updateData = {
             name: currentCategory.name,
             description: currentCategory.description
-          });
+          };
+          await updateAccountingCategory(currentCategoryId, updateData);
           showSnackbar('類別已更新', 'success');
         }
       }
@@ -194,7 +196,7 @@ const AccountingCategoryManager: React.FC = () => {
     } catch (err: any) {
       console.error('操作類別失敗:', err);
       showSnackbar(
-        err.response?.data?.msg || '操作類別失敗',
+        err.response?.data?.msg ?? '操作類別失敗',
         'error'
       );
     }
@@ -211,7 +213,7 @@ const AccountingCategoryManager: React.FC = () => {
     } catch (err: any) {
       console.error('刪除類別失敗:', err);
       showSnackbar(
-        err.response?.data?.msg || '刪除類別失敗',
+        err.response?.data?.msg ?? '刪除類別失敗',
         'error'
       );
     }

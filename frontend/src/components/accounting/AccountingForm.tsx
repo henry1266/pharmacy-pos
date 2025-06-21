@@ -473,7 +473,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
           {editMode && (
             <Grid item xs={12} sm={6} {...({} as any)}>
               <StatusSelect 
-                value={formData.status || 'pending'} // Default to pending if status is missing
+                value={formData.status ?? 'pending'} // Default to pending if status is missing
                 onChange={handleFormChange} 
               />
             </Grid>
@@ -486,7 +486,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
             </Typography>
             
             {formData.items.map((item, index) => (
-              <Grid container spacing={2} key={`item-${index}-${item.category || 'new'}`} sx={{ mb: 2 }}>
+              <Grid container spacing={2} key={`item-${index}-${item.category ?? 'new'}`} sx={{ mb: 2 }}>
                 <Grid item xs={12} sm={3} {...({} as any)}>
                   <TextField
                     label="金額"

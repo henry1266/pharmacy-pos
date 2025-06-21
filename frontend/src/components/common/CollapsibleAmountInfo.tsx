@@ -55,6 +55,30 @@ const CollapsibleContent: React.FC<CollapsibleContentProps> = ({
   collapsibleDetails,
   noDetailsText
 }) => {
+  // 渲染詳細值的輔助函數 - 解決嵌套三元運算子問題 (Sonar Rule S3358)
+  const renderDetailValue = (detail: DetailItem): React.ReactNode => {
+    if (detail.customContent) {
+      return detail.customContent;
+    }
+    
+    // 格式化值
+    let displayValue = detail.value;
+    if (detail.valueFormatter) {
+      displayValue = detail.valueFormatter(detail.value);
+    } else if (typeof detail.value === 'number') {
+      displayValue = detail.value.toFixed(2);
+    }
+    
+    return (
+      <Typography
+        variant="body1"
+        color={detail.color ?? 'text.primary'}
+        fontWeight={detail.fontWeight ?? 'normal'}
+      >
+        {displayValue}
+      </Typography>
+    );
+  };
   // 載入中狀態
   if (isLoading) {
     return (
@@ -93,20 +117,7 @@ const CollapsibleContent: React.FC<CollapsibleContentProps> = ({
                 })}
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">{detail.label}</Typography>
-                  {detail.customContent ? (
-                    detail.customContent
-                  ) : (
-                    <Typography
-                      variant="body1"
-                      color={detail.color ?? 'text.primary'}
-                      fontWeight={detail.fontWeight ?? 'normal'}
-                    >
-                      {detail.valueFormatter
-                        ? detail.valueFormatter(detail.value)
-                        : (typeof detail.value === 'number' ? detail.value.toFixed(2) : detail.value)
-                      }
-                    </Typography>
-                  )}
+                  {renderDetailValue(detail)}
                 </Box>
               </Stack>
             </Grid>
@@ -160,8 +171,8 @@ const CollapsibleAmountInfo: React.FC<CollapsibleAmountInfoProps> = ({
     setIsOpen(!isOpen);
   };
 
-  const TitleIconComponent = titleIcon || <DefaultTitleIcon sx={{ verticalAlign: 'middle', mr: 1 }} />;
-  const MainAmountIconComponent = mainAmountIcon || <DefaultMainAmountIcon color="primary" fontSize="small" />;
+  const TitleIconComponent = titleIcon ?? <DefaultTitleIcon sx={{ verticalAlign: 'middle', mr: 1 }} />;
+  const MainAmountIconComponent = mainAmountIcon ?? <DefaultMainAmountIcon color="primary" fontSize="small" />;
 
   // 處理主要金額顯示
   const formattedMainAmount = typeof mainAmountValue === 'number' 

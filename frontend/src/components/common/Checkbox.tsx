@@ -35,7 +35,7 @@ const Checkbox: React.FC<CustomCheckboxProps> = ({
             {...rest}
           />
         }
-        label={label || ''}
+        label={label ?? ''}
       />
       {error && <FormHelperText>{error}</FormHelperText>}
     </FormControl>

@@ -111,13 +111,12 @@ router.post(
       const scheduleShift = req.body.shift;
       const scheduleEmployeeId = req.body.employeeId;
       
-      const scheduleQuery = {
+      // 使用安全的方式構建查詢，避免直接使用用戶輸入
+      const existingSchedule = await EmployeeSchedule.findOne({
         date: scheduleDate,
-        shift: scheduleShift,
-        employeeId: scheduleEmployeeId
-      };
-      
-      const existingSchedule = await EmployeeSchedule.findOne(scheduleQuery);
+        shift: scheduleShift.toString(),
+        employeeId: scheduleEmployeeId.toString()
+      });
 
       // 如果存在排班，返回錯誤
       if (existingSchedule) {
@@ -205,8 +204,13 @@ const checkScheduleConflict = async (scheduleId, date, shift, employeeId) => {
     employeeId: employeeId
   };
   
-  // 直接使用一個查詢來檢查是否存在衝突
-  const count = await EmployeeSchedule.countDocuments(conflictQuery);
+  // 使用安全的方式構建查詢，避免直接使用用戶輸入
+  const count = await EmployeeSchedule.countDocuments({
+    _id: { $ne: scheduleId.toString() },
+    date: date,
+    shift: shift.toString(),
+    employeeId: employeeId.toString()
+  });
   
   // 如果計數大於0，則存在衝突
   return count > 0;
