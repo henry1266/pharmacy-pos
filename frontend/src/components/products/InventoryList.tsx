@@ -413,11 +413,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
             {inventories.map((inv, index) => {
               const { orderNumber, orderLink } = getOrderInfo(inv, index);
               const typeDisplay = getTypeDisplay(inv.type);
-              const quantity = inv.totalQuantity || 0;
+              const quantity = inv.totalQuantity ?? 0;
               const price = calculatePrice(inv);
               
               // 使用穩定的唯一識別符作為 key
-              const idSuffix = inv._id || ('no-id-' + index);
+              const idSuffix = inv._id ?? ('no-id-' + index);
               const stableKey = `${inv.type}-${orderNumber}-${idSuffix}`;
               
               return (

@@ -165,15 +165,13 @@ const ProductCategoryManager: React.FC = () => {
           ...(categories.length > 0 && { order: (categories.length + 1) * 10 }) // 新類別放在最後
         });
         showSnackbar('分類已新增', 'success');
-      } else {
+      } else if (currentCategoryId) {
         // 編輯類別
-        if (currentCategoryId) {
-          await updateProductCategory(currentCategoryId, {
-            name: currentCategory.name,
-            description: currentCategory.description
-          });
-          showSnackbar('分類已更新', 'success');
-        }
+        await updateProductCategory(currentCategoryId, {
+          name: currentCategory.name,
+          description: currentCategory.description
+        });
+        showSnackbar('分類已更新', 'success');
       }
       
       // 重新獲取類別
