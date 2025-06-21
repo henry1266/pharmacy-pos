@@ -1,12 +1,30 @@
 import { useMemo } from 'react';
 
 /**
+ * 日曆網格項目的介面定義
+ */
+interface CalendarGridItem {
+  date: Date;
+  day: number;
+  isCurrentMonth: boolean;
+}
+
+/**
+ * 日曆網格 Hook 返回值的介面定義
+ */
+interface CalendarGridResult {
+  calendarGrid: CalendarGridItem[];
+  firstDayOfMonth: Date;
+  lastDayOfMonth: Date;
+}
+
+/**
  * 日曆網格生成 Hook
  * 生成包含上月末、當月、下月初的完整日曆網格（6週 x 7天 = 42格）
- * @param {Date} currentDate - 當前顯示的月份日期
- * @returns {Object} 包含日曆網格數據和相關計算結果
+ * @param currentDate - 當前顯示的月份日期
+ * @returns 包含日曆網格數據和相關計算結果
  */
-const useCalendarGrid = (currentDate) => {
+const useCalendarGrid = (currentDate: Date): CalendarGridResult => {
   // 計算當前月份的第一天和最後一天
   const firstDayOfMonth = useMemo(() => {
     return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -18,7 +36,7 @@ const useCalendarGrid = (currentDate) => {
 
   // 生成日曆網格資料
   const calendarGrid = useMemo(() => {
-    const grid = [];
+    const grid: CalendarGridItem[] = [];
     
     // 獲取當月第一天是星期幾 (0-6, 0 是星期日)
     const firstDayOfWeek = firstDayOfMonth.getDay();
