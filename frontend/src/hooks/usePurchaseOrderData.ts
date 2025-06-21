@@ -130,7 +130,7 @@ const usePurchaseOrderData = (
       setError(null);
       try {
         // 分別處理不同類型的 Promise，避免類型混合問題
-        const [suppliersData, productsData] = await Promise.all([
+        await Promise.all([
           fetchSuppliersData(),
           fetchProductsData()
         ]);

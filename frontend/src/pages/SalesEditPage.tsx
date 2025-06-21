@@ -23,25 +23,8 @@ import SaleEditInfoCard from '../components/sales/SaleEditInfoCard';
 import SalesEditItemsTable from '../components/sales/SalesEditItemsTable';
 import SaleEditDetailsCard from '../components/sales/SaleEditDetailsCard';
 
-/**
- * 為了解決 Grid 元件的問題，創建一個包裝元件
- */
-const Grid: FC<{
-  item?: boolean;
-  container?: boolean;
-  xs?: number;
-  sm?: number;
-  md?: number;
-  spacing?: number;
-  sx?: any;
-  children: React.ReactNode;
-}> = (props) => {
-  return <MuiGrid {...props} />;
-};
-
-interface RouteParams {
-  id: string;
-}
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 const SalesEditPage: FC = () => {
   const navigate = useNavigate();

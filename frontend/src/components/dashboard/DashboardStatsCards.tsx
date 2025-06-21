@@ -14,21 +14,8 @@ import {
   ShoppingCart
 } from '@mui/icons-material';
 
-/**
- * 為了解決 Grid 元件的問題，創建一個包裝元件
- */
-const Grid: FC<{
-  item?: boolean;
-  container?: boolean;
-  xs?: number;
-  sm?: number;
-  md?: number;
-  spacing?: number;
-  sx?: any;
-  children: React.ReactNode;
-}> = (props) => {
-  return <MuiGrid {...props} />;
-};
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 /**
  * StatCard 元件的 Props 介面

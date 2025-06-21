@@ -11,8 +11,8 @@ import {
   TextFieldProps
 } from '@mui/material';
 
-// 創建一個 Grid 組件，以便更容易使用
-const Grid = MuiGrid as React.ComponentType<any>;
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 /**
  * 選項介面

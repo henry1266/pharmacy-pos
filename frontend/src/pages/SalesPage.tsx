@@ -30,21 +30,8 @@ import SalesItemsTable from '../components/sales/SalesItemsTable';
 // Import types
 import { Product, Customer } from '../types/entities';
 
-/**
- * 為了解決 Grid 元件的問題，創建一個包裝元件
- */
-const Grid: FC<{
-  item?: boolean;
-  container?: boolean;
-  xs?: number;
-  sm?: number;
-  md?: number;
-  spacing?: number;
-  sx?: any;
-  children: React.ReactNode;
-}> = (props) => {
-  return <MuiGrid {...props} />;
-};
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 // 定義快捷按鈕類型 - 與 ShortcutButtonManager 中的定義匹配
 interface Shortcut {

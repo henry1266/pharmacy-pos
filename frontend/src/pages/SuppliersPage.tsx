@@ -30,7 +30,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useSupplierData from '../hooks/useSupplierData';
 
@@ -81,18 +80,8 @@ interface ImportResult {
   }>;
 }
 
-// 為了解決 Grid 元件的問題，創建一個包裝元件
-const Grid: FC<{
-  item?: boolean;
-  container?: boolean;
-  xs?: number;
-  sm?: number;
-  spacing?: number;
-  sx?: Record<string, unknown>;
-  children: React.ReactNode;
-}> = (props) => {
-  return <MuiGrid {...props} />;
-};
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 // Mock data for test mode
 const mockSuppliersData: SupplierData[] = [

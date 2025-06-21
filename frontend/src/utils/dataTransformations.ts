@@ -1,5 +1,5 @@
 import { parse, format } from 'date-fns';
-import { Sale, Product } from '../types/entities';
+import { Product } from '../types/entities';
 
 /**
  * 銷售記錄介面 - 使用 Sale 型別但允許更靈活的 items 型別

@@ -43,16 +43,6 @@ interface ShippingOrder {
   [key: string]: any;
 }
 
-interface Supplier {
-  _id: string;
-  name: string;
-  [key: string]: any;
-}
-
-interface SearchParams {
-  [key: string]: any;
-}
-
 interface SnackbarState {
   open: boolean;
   message: string;

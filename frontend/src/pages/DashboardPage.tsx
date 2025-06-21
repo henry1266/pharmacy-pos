@@ -20,21 +20,8 @@ import CategorySalesChart from '../components/dashboard/CategorySalesChart';
 // Import Types
 import { DashboardSummary, SalesTrend, CategorySales } from '../services/dashboardService';
 
-/**
- * 為了解決 Grid 元件的問題，創建一個包裝元件
- */
-const Grid: FC<{
-  item?: boolean;
-  container?: boolean;
-  xs?: number;
-  sm?: number;
-  md?: number;
-  spacing?: number;
-  sx?: any;
-  children: React.ReactNode;
-}> = (props) => {
-  return <MuiGrid {...props} />;
-};
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 // 模擬數據的類型定義
 interface MockLowStockItem {

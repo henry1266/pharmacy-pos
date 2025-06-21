@@ -6,10 +6,10 @@ import {
   Paper,
   CircularProgress
 } from '@mui/material';
-import DataTable from '../tables/DataTable.tsx'; // Assuming DataTable is in ./tables/
+import DataTable from '../tables/DataTable'; // Assuming DataTable is in ./tables/
 
-// 創建一個 Grid 組件，以便更容易使用
-const Grid = MuiGrid as React.ComponentType<any>;
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 // 定義列的類型
 interface Column {

@@ -2,6 +2,11 @@ import { useMemo, useCallback } from 'react';
 import { Employee } from '../types/entities';
 
 /**
+ * 加班狀態類型
+ */
+type OvertimeStatus = 'pending' | 'approved' | 'rejected';
+
+/**
  * 加班記錄介面
  */
 interface OvertimeRecord {
@@ -91,7 +96,7 @@ interface MergedRecord {
   originalRecord: OvertimeRecord | ScheduleOvertimeRecord;
   hours: number;
   description: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: OvertimeStatus;
   shift?: string;
 }
 
@@ -203,7 +208,7 @@ const useOvertimeData = (
             r.employeeId && r.employeeId._id === stat.employeeId
           );
           
-          if (matchingRecord && matchingRecord.employeeId.name) {
+          if (matchingRecord?.employeeId?.name) {
             employeeName = matchingRecord.employeeId.name;
           }
         }
@@ -240,7 +245,7 @@ const useOvertimeData = (
         );
         
         initialGroups[empId] = {
-          employee: employeeObj || {
+          employee: employeeObj ?? {
             _id: empId,
             name: employeeName,
             position: '員工',

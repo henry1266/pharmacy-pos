@@ -1,8 +1,8 @@
 import React from 'react';
 import { Paper, Typography, Divider, Grid as MuiGrid, SxProps, Theme } from '@mui/material';
 
-// 創建一個 Grid 組件，以便更容易使用
-const Grid = MuiGrid as React.ComponentType<any>;
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 /**
  * 表單區塊包裝組件
