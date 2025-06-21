@@ -44,8 +44,6 @@ import {
 import { format, subDays, startOfMonth } from 'date-fns';
 import axios from 'axios';
 import { DownloadOutlined, TableChart, BarChartOutlined } from '@mui/icons-material';
-import { Theme } from '@mui/material/styles';
-import { SxProps } from '@mui/system';
 
 // 定義日期範圍選項的型別
 interface DateRangeOption {

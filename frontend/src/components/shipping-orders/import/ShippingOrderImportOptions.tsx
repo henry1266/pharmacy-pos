@@ -1,8 +1,8 @@
 import React, { FC, ChangeEvent, SyntheticEvent } from 'react';
 import PropTypes from 'prop-types';
 import { Box, Typography, Divider } from '@mui/material';
-import MedicineCsvImportController from './medicine-csv/MedicineCsvImportController.tsx';
-import CsvImportDialog from './CsvImportDialog.tsx';
+import MedicineCsvImportController from './medicine-csv/MedicineCsvImportController';
+import CsvImportDialog from './CsvImportDialog';
 
 // 定義組件 props 的介面
 interface ShippingOrderImportOptionsProps {
