@@ -167,15 +167,13 @@ export const exportToCSV = (
  */
 export const transformApiDataToLocal = (data: any[]): LocalAccountingRecord[] => {
   return data.map(record => {
-    // 使用類型斷言來處理 API 返回的數據
-    const apiRecord = record as any;
     return {
-      _id: apiRecord._id,
-      date: typeof apiRecord.date === 'string' ? apiRecord.date : apiRecord.date.toString(),
-      shift: apiRecord.shift,
-      items: Array.isArray(apiRecord.items) ? apiRecord.items : [],
-      totalAmount: typeof apiRecord.totalAmount === 'number' ? apiRecord.totalAmount : 0,
-      status: apiRecord.status ?? 'pending'
+      _id: record._id,
+      date: typeof record.date === 'string' ? record.date : record.date.toString(),
+      shift: record.shift,
+      items: Array.isArray(record.items) ? record.items : [],
+      totalAmount: typeof record.totalAmount === 'number' ? record.totalAmount : 0,
+      status: record.status ?? 'pending'
     };
   });
 };
