@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC } from 'react';
+import React, { useState, useEffect, useCallback, FC } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -282,7 +282,7 @@ const AccountingCategoryDetail: React.FC = () => {
   const [chartType, setChartType] = useState<number>(0); // 0: 長條圖, 1: 折線圖, 2: 圓餅圖
   
   // 獲取類別資訊
-  const fetchCategoryInfo = async (): Promise<void> => {
+  const fetchCategoryInfo = useCallback(async (): Promise<void> => {
     try {
       const categories = await getAccountingCategories();
       const foundCategory = categories.find(cat => cat._id === categoryId);
@@ -295,10 +295,93 @@ const AccountingCategoryDetail: React.FC = () => {
       console.error('獲取類別資訊失敗:', err);
       setError('獲取類別資訊失敗');
     }
-  };
+  }, [categoryId]);
+  
+  
+  // 通用資料處理函數
+  const processAccountingData = useCallback(<T extends Record<string, any>>(
+    data: LocalAccountingRecord[],
+    initializer: () => T,
+    aggregator: (totals: T, record: LocalAccountingRecord, date: Date) => void
+  ): T => {
+    // 初始化數據結構
+    const totals = initializer();
+    
+    // 計算總額
+    data.forEach(record => {
+      const recordDate = parseISO(record.date);
+      
+      // 尋找指定類別的項目
+      record.items.forEach(item => {
+        if (item.category === category?.name) {
+          aggregator(totals, record, recordDate);
+        }
+      });
+    });
+    
+    return totals;
+  }, [category?.name]);
+  
+  // 處理月度數據
+  const processMonthlyData = useCallback((data: LocalAccountingRecord[]): void => {
+    const monthlyTotals = processAccountingData<MonthlyData>(
+      data,
+      // 初始化函數
+      () => {
+        const totals: MonthlyData = {};
+        for (let month = 0; month < 12; month++) {
+          totals[month] = 0;
+        }
+        return totals;
+      },
+      // 聚合函數
+      (totals, record, date) => {
+        const month = getMonth(date);
+        record.items.forEach(item => {
+          if (item.category === category?.name) {
+            totals[month] += item.amount;
+          }
+        });
+      }
+    );
+    
+    setMonthlyData(monthlyTotals);
+  }, [category?.name, processAccountingData]);
+  
+  // 處理日度數據
+  const processDailyData = useCallback((data: LocalAccountingRecord[]): void => {
+    const dailyTotals = processAccountingData<DailyData>(
+      data,
+      // 初始化函數
+      () => {
+        const totals: DailyData = {};
+        for (let month = 0; month < 12; month++) {
+          totals[month] = {};
+          const daysInMonth = getDaysInMonth(new Date(currentYear, month));
+          
+          for (let day = 1; day <= daysInMonth; day++) {
+            totals[month][day] = 0;
+          }
+        }
+        return totals;
+      },
+      // 聚合函數
+      (totals, record, date) => {
+        const month = getMonth(date);
+        const day = getDate(date);
+        record.items.forEach(item => {
+          if (item.category === category?.name && totals[month]) {
+            totals[month][day] += item.amount;
+          }
+        });
+      }
+    );
+    
+    setDailyData(dailyTotals);
+  }, [currentYear, category?.name, processAccountingData]);
   
   // 獲取記帳記錄
-  const fetchRecords = async (): Promise<void> => {
+  const fetchRecords = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       
@@ -334,101 +417,19 @@ const AccountingCategoryDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-  
-  // 通用資料處理函數
-  const processAccountingData = <T extends Record<string, any>>(
-    data: LocalAccountingRecord[],
-    initializer: () => T,
-    aggregator: (totals: T, record: LocalAccountingRecord, date: Date) => void
-  ): T => {
-    // 初始化數據結構
-    const totals = initializer();
-    
-    // 計算總額
-    data.forEach(record => {
-      const recordDate = parseISO(record.date);
-      
-      // 尋找指定類別的項目
-      record.items.forEach(item => {
-        if (item.category === category?.name) {
-          aggregator(totals, record, recordDate);
-        }
-      });
-    });
-    
-    return totals;
-  };
-  
-  // 處理月度數據
-  const processMonthlyData = (data: LocalAccountingRecord[]): void => {
-    const monthlyTotals = processAccountingData<MonthlyData>(
-      data,
-      // 初始化函數
-      () => {
-        const totals: MonthlyData = {};
-        for (let month = 0; month < 12; month++) {
-          totals[month] = 0;
-        }
-        return totals;
-      },
-      // 聚合函數
-      (totals, record, date) => {
-        const month = getMonth(date);
-        record.items.forEach(item => {
-          if (item.category === category?.name) {
-            totals[month] += item.amount;
-          }
-        });
-      }
-    );
-    
-    setMonthlyData(monthlyTotals);
-  };
-  
-  // 處理日度數據
-  const processDailyData = (data: LocalAccountingRecord[]): void => {
-    const dailyTotals = processAccountingData<DailyData>(
-      data,
-      // 初始化函數
-      () => {
-        const totals: DailyData = {};
-        for (let month = 0; month < 12; month++) {
-          totals[month] = {};
-          const daysInMonth = getDaysInMonth(new Date(currentYear, month));
-          
-          for (let day = 1; day <= daysInMonth; day++) {
-            totals[month][day] = 0;
-          }
-        }
-        return totals;
-      },
-      // 聚合函數
-      (totals, record, date) => {
-        const month = getMonth(date);
-        const day = getDate(date);
-        record.items.forEach(item => {
-          if (item.category === category?.name && totals[month]) {
-            totals[month][day] += item.amount;
-          }
-        });
-      }
-    );
-    
-    setDailyData(dailyTotals);
-  };
+  }, [currentYear, processMonthlyData, processDailyData]);
   
   // 初始加載
   useEffect(() => {
     fetchCategoryInfo();
-  }, [categoryId]);
+  }, [fetchCategoryInfo]);
   
   // 當類別資訊加載完成後，獲取記帳記錄
   useEffect(() => {
     if (category) {
       fetchRecords();
     }
-  }, [category, currentYear]);
+  }, [category, fetchRecords]);
   
   // 計算年度總額
   const calculateYearlyTotal = (): number => {
