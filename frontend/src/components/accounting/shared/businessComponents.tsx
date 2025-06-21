@@ -16,8 +16,7 @@ import {
 import { getDaysInMonth } from 'date-fns';
 import {
   MonthlyData,
-  DailyData,
-  ChartData
+  DailyData
 } from './types';
 import {
   MonthListItem,
@@ -73,7 +72,7 @@ export const MonthList: FC<MonthListProps> = ({
             month={month}
             index={index}
             isSelected={selectedMonth === index}
-            amount={monthlyData[index] || 0}
+            amount={monthlyData[index] ?? 0}
             onSelect={onMonthSelect}
           />
         ))}
@@ -173,7 +172,7 @@ export const CalendarGrid: FC<CalendarGridProps> = ({
         {Array.from({ length: rows * 7 }).map((_, index) => {
           const dayOffset = index - firstDayOfMonth + 1;
           const isCurrentMonth = dayOffset > 0 && dayOffset <= daysInMonth;
-          const dayAmount = isCurrentMonth ? dailyData[selectedMonth][dayOffset] || 0 : 0;
+          const dayAmount = isCurrentMonth ? dailyData[selectedMonth][dayOffset] ?? 0 : 0;
           
           return (
             <CalendarCell

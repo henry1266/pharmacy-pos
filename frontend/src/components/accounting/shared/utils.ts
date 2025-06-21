@@ -177,7 +177,7 @@ export const transformApiDataToLocal = (data: any[]): LocalAccountingRecord[] =>
       totalAmount: typeof apiRecord.totalAmount === 'number' ? apiRecord.totalAmount : 0,
       status: apiRecord.status ?? 'pending'
     };
-  }) as LocalAccountingRecord[];
+  });
 };
 
 /**

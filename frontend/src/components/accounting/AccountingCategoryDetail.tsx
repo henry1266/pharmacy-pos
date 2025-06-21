@@ -37,10 +37,10 @@ const AccountingCategoryDetail: React.FC = () => {
   // 使用共用 Hooks
   const { currentYear, handleYearChange } = useYearState();
   const { chartType, selectedMonth, handleChartTypeChange, handleMonthSelect } = useChartState();
-  const { categories, findCategoryById } = useAccountingCategories();
+  const { findCategoryById } = useAccountingCategories();
   
   // 找到當前類別
-  const category: AccountingCategory | undefined = findCategoryById(categoryId || '');
+  const category: AccountingCategory | undefined = findCategoryById(categoryId ?? '');
   
   // 使用會計數據 Hook，傳入類別名稱進行過濾
   const { loading, error, monthlyData, dailyData } = useAccountingData(
