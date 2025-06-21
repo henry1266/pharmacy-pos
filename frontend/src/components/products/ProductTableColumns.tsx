@@ -63,7 +63,7 @@ const commonColumns = {
     valueGetter: (params: GridValueGetterParams) => getTotalInventory(params.row.id),
     renderCell: (params: GridRenderCellParams) => {
       const inventoryValue = getTotalInventory(params.row.id);
-      const minStock = params.row.minStock || 0;
+      const minStock = params.row.minStock ?? 0;
       let color = 'success.main';
       
       if (inventoryValue === '0') {
