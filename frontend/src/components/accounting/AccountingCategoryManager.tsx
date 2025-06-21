@@ -18,7 +18,8 @@ import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import AddIcon from '@mui/icons-material/Add';
 import { getAccountingCategories, addAccountingCategory, updateAccountingCategory, deleteAccountingCategory } from '../../services/accountingCategoryService';
-import CategoryListItem, { AccountingCategory } from './CategoryListItem';
+import CategoryListItem from './CategoryListItem';
+import { AccountingCategory } from '../../types/entities';
 
 // 對話框模式類型
 type DialogMode = 'add' | 'edit';
@@ -34,6 +35,31 @@ interface SnackbarState {
 interface CategoryFormData {
   name: string;
   description: string;
+}
+
+// API 錯誤回應介面
+interface ApiErrorResponse {
+  response?: {
+    data?: {
+      msg?: string;
+    };
+  };
+  message?: string;
+}
+
+// 類別更新資料介面
+interface CategoryUpdateData {
+  name: string;
+  description: string;
+  order?: number;
+}
+
+// 類別新增資料介面
+interface CategoryCreateData {
+  name: string;
+  description: string;
+  order: number;
+  isExpense: boolean;
 }
 
 /**
@@ -65,8 +91,9 @@ const AccountingCategoryManager: React.FC = () => {
       const data = await getAccountingCategories();
       setCategories(data);
       setError(null);
-    } catch (err) {
-      console.error('獲取會計名目類別失敗:', err);
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      console.error('獲取會計名目類別失敗:', errorMessage);
       setError('獲取會計名目類別失敗');
     } finally {
       setLoading(false);
@@ -91,7 +118,7 @@ const AccountingCategoryManager: React.FC = () => {
     
     // 更新所有項目的順序
     try {
-      const updatedItems = items.map((item, index) => ({
+      const updatedItems: AccountingCategory[] = items.map((item, index) => ({
         ...item,
         order: (index + 1) * 10 // 每個項目間隔10，方便將來插入新項目
       }));
@@ -100,17 +127,18 @@ const AccountingCategoryManager: React.FC = () => {
       
       // 逐個更新到資料庫
       for (const item of updatedItems) {
-        await updateAccountingCategory(item._id, {
+        const updateData: CategoryUpdateData = {
           name: item.name,
           description: item.description ?? '',
-          order: item.order,
-          ...(item.isActive !== undefined && { isActive: item.isActive })
-        });
+          order: item.order
+        };
+        await updateAccountingCategory(item._id, updateData);
       }
       
       showSnackbar('類別順序已更新', 'success');
-    } catch (err) {
-      console.error('更新類別順序失敗:', err);
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      console.error('更新類別順序失敗:', errorMessage);
       showSnackbar('更新類別順序失敗', 'error');
       // 重新獲取類別，恢復原始順序
       fetchCategories();
@@ -171,16 +199,18 @@ const AccountingCategoryManager: React.FC = () => {
     try {
       if (dialogMode === 'add') {
         // 新增類別
-        await addAccountingCategory({
+        const createData: CategoryCreateData = {
           name: currentCategory.name,
           description: currentCategory.description,
-          order: (categories.length + 1) * 10 // 新類別放在最後
-        });
+          order: (categories.length + 1) * 10, // 新類別放在最後
+          isExpense: false // 預設為收入類別，可根據需求調整
+        };
+        await addAccountingCategory(createData);
         showSnackbar('類別已新增', 'success');
       } else if (currentCategoryId) {
         // 編輯類別
         // 使用參數化方式更新資料，避免SQL注入風險 (Sonar Rule S5147)
-        const updateData = {
+        const updateData: CategoryUpdateData = {
           name: currentCategory.name,
           description: currentCategory.description
         };
@@ -191,12 +221,10 @@ const AccountingCategoryManager: React.FC = () => {
       // 重新獲取類別
       fetchCategories();
       handleCloseDialog();
-    } catch (err: any) {
-      console.error('操作類別失敗:', err);
-      showSnackbar(
-        err.response?.data?.msg ?? '操作類別失敗',
-        'error'
-      );
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      console.error('操作類別失敗:', errorMessage);
+      showSnackbar(errorMessage, 'error');
     }
   };
   
@@ -208,12 +236,10 @@ const AccountingCategoryManager: React.FC = () => {
       await deleteAccountingCategory(categoryId);
       showSnackbar('類別已刪除', 'success');
       fetchCategories();
-    } catch (err: any) {
-      console.error('刪除類別失敗:', err);
-      showSnackbar(
-        err.response?.data?.msg ?? '刪除類別失敗',
-        'error'
-      );
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      console.error('刪除類別失敗:', errorMessage);
+      showSnackbar(errorMessage, 'error');
     }
   };
   
@@ -233,7 +259,24 @@ const AccountingCategoryManager: React.FC = () => {
       open: false
     });
   };
-  
+
+  // 錯誤訊息提取工具函式
+  const getErrorMessage = (err: unknown): string => {
+    if (isApiError(err)) {
+      return err.response?.data?.msg ?? err.message ?? '操作失敗';
+    }
+    if (err instanceof Error) {
+      return err.message;
+    }
+    return '未知錯誤';
+  };
+
+  // 型別守衛：檢查是否為 API 錯誤
+  const isApiError = (err: unknown): err is ApiErrorResponse => {
+    return typeof err === 'object' && err !== null &&
+           ('response' in err || 'message' in err);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

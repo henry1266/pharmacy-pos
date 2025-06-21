@@ -10,15 +10,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { DraggableProvided } from 'react-beautiful-dnd';
-
-// 類別介面
-export interface AccountingCategory {
-  _id: string;
-  name: string;
-  description?: string;
-  order?: number;
-  isActive?: boolean;
-}
+import { AccountingCategory } from '../../types/entities';
 
 // 組件 Props 介面
 interface CategoryListItemProps {
