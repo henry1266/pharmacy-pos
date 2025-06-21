@@ -20,7 +20,7 @@ interface KeyboardNavigationConfig {
 /**
  * 鍵盤導航 Hook
  * 處理日曆網格的鍵盤導航邏輯，支援方向鍵和 Enter 鍵
- * 提供專門的啟用和停用方法，避免使用單一參數控制多種行為
+ * 提供明確的啟用和停用方法，遵循單一職責原則
  * @param config - 鍵盤導航配置
  * @returns 包含選中格子狀態和相關控制方法
  */
@@ -132,14 +132,6 @@ const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
     clearSelection();
   }, [clearSelection]);
 
-  // 切換鍵盤導航狀態
-  const toggleNavigation = useCallback((enabled: boolean): void => {
-    if (enabled) {
-      enableNavigation();
-    } else {
-      disableNavigation();
-    }
-  }, [enableNavigation, disableNavigation]);
 
   // 添加鍵盤事件監聽
   useEffect(() => {
@@ -170,7 +162,6 @@ const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
     // 導航控制方法
     enableNavigation,
     disableNavigation,
-    toggleNavigation,
     
     // 事件處理方法
     handleEnterSelection,
