@@ -38,12 +38,13 @@ interface SchedulesByShift {
 interface CalendarGridProps {
   calendarGrid: DateObject[];
   editMode: boolean;
+  isNavigationActive: boolean;
   selectedCell?: number | null;
   isAdmin: boolean;
   getSchedulesForDate: (date: Date) => SchedulesByShift;
   getScheduleCount: (date: Date) => number;
-  getBorderStyle: (date: Date, editMode: boolean, selectedCell: number | null, index: number) => string;
-  getBorderColor: (date: Date, editMode: boolean, selectedCell: number | null, index: number) => string;
+  getBorderStyle: (date: Date, isNavigationActive: boolean, selectedCell: number | null, index: number) => string;
+  getBorderColor: (date: Date, isNavigationActive: boolean, selectedCell: number | null, index: number) => string;
   getEmployeeAbbreviation: (employee: { name?: string, [key: string]: any }) => string;
   getBorderColorByLeaveType: (schedule: Schedule) => string;
   getLeaveTypeText: (leaveType: string | null | undefined) => string;
@@ -58,6 +59,7 @@ interface CalendarGridProps {
 const CalendarGrid: React.FC<CalendarGridProps> = ({
   calendarGrid,
   editMode,
+  isNavigationActive,
   selectedCell,
   isAdmin,
   getSchedulesForDate,
@@ -98,8 +100,8 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
               p: 0.5,
               height: '115px',
               bgcolor: dateObj.isCurrentMonth ? 'background.paper' : 'action.hover',
-              border: getBorderStyle(dateObj.date, editMode, selectedCell, index),
-              borderColor: getBorderColor(dateObj.date, editMode, selectedCell, index),
+              border: getBorderStyle(dateObj.date, isNavigationActive, selectedCell, index),
+              borderColor: getBorderColor(dateObj.date, isNavigationActive, selectedCell, index),
               opacity: dateObj.isCurrentMonth ? 1 : 0.5,
               cursor: 'pointer',
               '&:hover': {

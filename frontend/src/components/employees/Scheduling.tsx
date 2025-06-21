@@ -120,11 +120,15 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
   };
 
   // 使用鍵盤導航 Hook
-  const { selectedCell } = useKeyboardNavigation(
-    editMode,
+  const {
+    selectedCell,
+    isNavigationActive,
+    enableNavigation,
+    disableNavigation
+  } = useKeyboardNavigation({
     calendarGrid,
-    handleCellSelect
-  );
+    onCellSelect: handleCellSelect
+  });
 
   // 使用工時計算 Hook
   const { calculateEmployeeMonthlyHours } = useWorkHoursCalculation(schedulesGroupedByDate as unknown as SchedulesByDate);
@@ -156,7 +160,15 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
   };
 
   const toggleEditMode = (): void => {
-    setEditMode(!editMode);
+    const newEditMode = !editMode;
+    setEditMode(newEditMode);
+    
+    // 使用專門的方法來控制鍵盤導航
+    if (newEditMode) {
+      enableNavigation();
+    } else {
+      disableNavigation();
+    }
   };
 
   // 處理日期點擊
@@ -238,6 +250,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
                   schedules={getSchedulesForDate(dateObj.date) as unknown as SchedulesByShift}
                   scheduleCount={getScheduleCount(dateObj.date)}
                   editMode={editMode}
+                  isNavigationActive={isNavigationActive}
                   selectedCell={selectedCell}
                   isAdmin={isAdmin}
                   onDateClick={handleDateClick}

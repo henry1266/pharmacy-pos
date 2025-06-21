@@ -122,20 +122,20 @@ export const getBorderColorByLeaveType = (schedule: Schedule): string => {
 /**
  * 獲取日期格子的邊框樣式
  * @param {Date} date - 日期
- * @param {boolean} editMode - 編輯模式
- * @param {number} selectedCell - 選中的格子索引
+ * @param {boolean} isNavigationActive - 鍵盤導航是否啟用
+ * @param {number | null} selectedCell - 選中的格子索引
  * @param {number} index - 當前格子索引
  * @returns {string} 邊框樣式
  */
 export const getBorderStyle = (
   date: Date,
-  editMode: boolean,
-  selectedCell: number,
+  isNavigationActive: boolean,
+  selectedCell: number | null,
   index: number
 ): string => {
   if (isToday(date)) {
     return '1px solid';
-  } else if (editMode && selectedCell === index) {
+  } else if (isNavigationActive && selectedCell === index) {
     return '1px dashed';
   } else {
     return 'none';
@@ -145,20 +145,20 @@ export const getBorderStyle = (
 /**
  * 獲取日期格子的邊框顏色
  * @param {Date} date - 日期
- * @param {boolean} editMode - 編輯模式
- * @param {number} selectedCell - 選中的格子索引
+ * @param {boolean} isNavigationActive - 鍵盤導航是否啟用
+ * @param {number | null} selectedCell - 選中的格子索引
  * @param {number} index - 當前格子索引
  * @returns {string} 邊框顏色
  */
 export const getBorderColor = (
   date: Date,
-  editMode: boolean,
-  selectedCell: number,
+  isNavigationActive: boolean,
+  selectedCell: number | null,
   index: number
 ): string => {
   if (isToday(date)) {
     return 'primary.main';
-  } else if (editMode && selectedCell === index) {
+  } else if (isNavigationActive && selectedCell === index) {
     return 'secondary.main';
   } else {
     return 'primary.main';

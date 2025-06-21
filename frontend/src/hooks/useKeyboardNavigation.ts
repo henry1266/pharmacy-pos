@@ -10,19 +10,24 @@ interface CalendarCell {
 }
 
 /**
+ * 鍵盤導航配置介面
+ */
+interface KeyboardNavigationConfig {
+  calendarGrid: CalendarCell[];
+  onCellSelect?: (index: number, date: Date) => void;
+}
+
+/**
  * 鍵盤導航 Hook
  * 處理日曆網格的鍵盤導航邏輯，支援方向鍵和 Enter 鍵
- * @param editMode - 是否處於編輯模式
- * @param calendarGrid - 日曆網格數據
- * @param onCellSelect - 選中格子時的回調函數
- * @returns 包含選中格子狀態和相關處理函數
+ * 提供專門的啟用和停用方法，避免使用單一參數控制多種行為
+ * @param config - 鍵盤導航配置
+ * @returns 包含選中格子狀態和相關控制方法
  */
-const useKeyboardNavigation = (
-  editMode: boolean,
-  calendarGrid: CalendarCell[],
-  onCellSelect?: (index: number, date: Date) => void
-) => {
+const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
+  const { calendarGrid, onCellSelect } = config;
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
+  const [isNavigationActive, setIsNavigationActive] = useState<boolean>(false);
 
   // 計算新的選中格子索引
   const calculateNewIndex = useCallback((
@@ -64,30 +69,42 @@ const useKeyboardNavigation = (
     }
   }, [calendarGrid, onCellSelect]);
 
-  // 處理鍵盤導航
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLElement> | KeyboardEvent): void => {
-    if (!editMode || selectedCell === null || !calendarGrid.length) return;
+  // 處理 Enter 鍵選擇
+  const handleEnterSelection = useCallback((): void => {
+    if (selectedCell !== null && calendarGrid[selectedCell]?.isCurrentMonth && onCellSelect) {
+      onCellSelect(selectedCell, calendarGrid[selectedCell].date);
+    }
+  }, [selectedCell, calendarGrid, onCellSelect]);
+
+  // 處理方向鍵導航
+  const handleArrowNavigation = useCallback((key: string): void => {
+    if (selectedCell === null || !calendarGrid.length) return;
 
     const DAYS_IN_WEEK = 7;
     const totalCells = calendarGrid.length;
-    
-    // 處理Enter鍵
-    if (e.key === 'Enter') {
-      if (calendarGrid[selectedCell]?.isCurrentMonth && onCellSelect) {
-        onCellSelect(selectedCell, calendarGrid[selectedCell].date);
-      }
-      return;
-    }
-    
-    // 處理方向鍵
-    const newIndex = calculateNewIndex(e.key, selectedCell, totalCells, DAYS_IN_WEEK);
+    const newIndex = calculateNewIndex(key, selectedCell, totalCells, DAYS_IN_WEEK);
     
     if (newIndex !== selectedCell) {
       updateSelectedCell(newIndex);
     }
-  }, [editMode, selectedCell, calendarGrid, calculateNewIndex, updateSelectedCell, onCellSelect]);
+  }, [selectedCell, calendarGrid, calculateNewIndex, updateSelectedCell]);
 
-  // 初始化編輯模式時的選中格子
+  // 處理鍵盤事件
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLElement> | KeyboardEvent): void => {
+    if (!isNavigationActive || selectedCell === null || !calendarGrid.length) return;
+
+    // 處理Enter鍵
+    if (e.key === 'Enter') {
+      handleEnterSelection();
+      return;
+    }
+    
+    // 處理方向鍵
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      handleArrowNavigation(e.key);
+    }
+  }, [isNavigationActive, selectedCell, calendarGrid, handleEnterSelection, handleArrowNavigation]);
+
   // 選中當月第一天
   const selectFirstDayOfMonth = useCallback((): void => {
     if (calendarGrid.length > 0) {
@@ -103,14 +120,26 @@ const useKeyboardNavigation = (
     setSelectedCell(null);
   }, []);
 
-  // 監聽編輯模式變化
-  useEffect(() => {
-    if (editMode) {
-      selectFirstDayOfMonth();
+  // 啟用鍵盤導航
+  const enableNavigation = useCallback((): void => {
+    setIsNavigationActive(true);
+    selectFirstDayOfMonth();
+  }, [selectFirstDayOfMonth]);
+
+  // 停用鍵盤導航
+  const disableNavigation = useCallback((): void => {
+    setIsNavigationActive(false);
+    clearSelection();
+  }, [clearSelection]);
+
+  // 切換鍵盤導航狀態
+  const toggleNavigation = useCallback((enabled: boolean): void => {
+    if (enabled) {
+      enableNavigation();
     } else {
-      clearSelection();
+      disableNavigation();
     }
-  }, [editMode, selectFirstDayOfMonth, clearSelection]);
+  }, [enableNavigation, disableNavigation]);
 
   // 添加鍵盤事件監聽
   useEffect(() => {
@@ -118,21 +147,34 @@ const useKeyboardNavigation = (
       handleKeyDown(e as unknown as KeyboardEvent);
     };
 
-    if (editMode) {
+    if (isNavigationActive) {
       window.addEventListener('keydown', handleGlobalKeyDown);
     }
     
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [editMode, handleKeyDown]);
+  }, [isNavigationActive, handleKeyDown]);
 
   return {
+    // 狀態
     selectedCell,
+    isNavigationActive,
+    
+    // 基本控制方法
     setSelectedCell,
     updateSelectedCell,
     selectFirstDayOfMonth,
-    clearSelection
+    clearSelection,
+    
+    // 導航控制方法
+    enableNavigation,
+    disableNavigation,
+    toggleNavigation,
+    
+    // 事件處理方法
+    handleEnterSelection,
+    handleArrowNavigation
   };
 };
 
