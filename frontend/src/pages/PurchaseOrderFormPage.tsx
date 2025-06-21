@@ -12,7 +12,6 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { Product, PurchaseOrder } from '../types/entities';
-
 import { addPurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrdersService';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
@@ -35,7 +34,6 @@ interface ISupplier {
 }
 
 // 擴展 Product 類型以包含實際使用的欄位
-// 擴展 Product 類型以包含實際使用的欄位
 interface ExtendedProduct extends Omit<Product, 'category' | 'supplier'> {
   id?: string;
   did?: string;
@@ -55,7 +53,6 @@ interface CurrentItem {
   [key: string]: any;
 }
 
-// 表單資料的完整型別 (與 hook 匹配)
 // 表單資料的完整型別 (與 hook 匹配)
 interface IFormData {
   poid: string;
@@ -542,7 +539,6 @@ const PurchaseOrderFormPage: React.FC = () => {
           suppliers={suppliers || []}
           selectedSupplier={selectedSupplier}
           isEditMode={isEditMode}
-          invoiceInputRef={invoiceInputRef}
           isTestMode={isGlobalTestMode}
         />
 

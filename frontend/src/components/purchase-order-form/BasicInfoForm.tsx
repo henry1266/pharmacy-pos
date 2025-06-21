@@ -52,7 +52,6 @@ interface BasicInfoFormProps {
   suppliers?: Supplier[];
   selectedSupplier?: Supplier | null;
   isEditMode?: boolean;
-  invoiceInputRef?: React.RefObject<HTMLInputElement>;
   isTestMode?: boolean;
 }
 
@@ -88,6 +87,23 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent>
+        {isTestMode && (
+          <Typography
+            variant="caption"
+            color="warning.main"
+            sx={{
+              display: 'block',
+              mb: 1,
+              fontWeight: 'bold',
+              backgroundColor: '#fff3cd',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              border: '1px solid #ffeaa7'
+            }}
+          >
+            🧪 測試模式 - 開發環境
+          </Typography>
+        )}
         <Typography variant="h6" gutterBottom>
           基本資訊
         </Typography>
