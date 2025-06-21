@@ -1,49 +1,108 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getProductCategory, getProductsByCategory } from '../services/productCategoryService';
 import { getInventoryByProduct } from '../services/inventoryService';
+import { Category, Product, Inventory } from '../types/entities';
+
+// 擴展 Inventory 類型以包含我們在代碼中使用的額外屬性
+interface ExtendedInventory extends Omit<Inventory, 'type'> {
+  saleNumber?: string;
+  purchaseOrderNumber?: string;
+  shippingOrderNumber?: string;
+  totalAmount?: number;
+  totalQuantity?: number;
+  type: 'purchase' | 'sale' | 'ship' | 'adjustment' | 'return';
+  currentStock?: number;
+}
+
+// 定義合併後的庫存記錄類型
+interface MergedInventory extends ExtendedInventory {
+  totalQuantity: number;
+  totalAmount: number;
+  currentStock?: number;
+}
+
+// 定義產品數據計算結果的類型
+interface ProductCalculationResult {
+  profitLoss: number;
+  currentStock: number;
+}
+
+// 定義擴展的產品類型，包含計算的利潤和庫存
+interface ProductWithData extends Product {
+  id: string;
+  profitLoss: number;
+  currentStock: number;
+}
+
+// 定義 hook 返回值的類型
+interface CategoryDetailData {
+  category: Category | null;
+  products: ProductWithData[];
+  loading: boolean;
+  error: string | null;
+  loadingProductData: boolean;
+  categoryTotalProfitLoss: number;
+  categoryTotalStock: number;
+  refetchData: () => Promise<void>;
+}
 
 /**
  * Helper function to calculate inventory and profit/loss for a single product.
  * This function encapsulates the logic previously in CategoryDetailPage.
  * @param {string} productId - The ID of the product.
- * @returns {Promise<{profitLoss: number, currentStock: number}>} - Calculated profit/loss and current stock.
+ * @returns {Promise<ProductCalculationResult>} - Calculated profit/loss and current stock.
  */
-const calculateProductData = async (productId) => {
+const calculateProductData = async (productId: string): Promise<ProductCalculationResult> => {
   try {
     const inventories = await getInventoryByProduct(productId);
 
     // Filter records (same logic as original)
     const filteredInventories = inventories.filter(inv => {
-      const hasSaleNumber = inv.saleNumber && inv.saleNumber.trim() !== '';
-      const hasPurchaseOrderNumber = inv.purchaseOrderNumber && inv.purchaseOrderNumber.trim() !== '';
-      const hasShippingOrderNumber = inv.shippingOrderNumber && inv.shippingOrderNumber.trim() !== '';
+      const hasSaleNumber = (inv as ExtendedInventory).saleNumber && (inv as ExtendedInventory).saleNumber.trim() !== '';
+      const hasPurchaseOrderNumber = (inv as ExtendedInventory).purchaseOrderNumber && (inv as ExtendedInventory).purchaseOrderNumber.trim() !== '';
+      const hasShippingOrderNumber = (inv as ExtendedInventory).shippingOrderNumber && (inv as ExtendedInventory).shippingOrderNumber.trim() !== '';
       return hasSaleNumber || hasPurchaseOrderNumber || hasShippingOrderNumber;
-    });
+    }) as ExtendedInventory[];
 
     // Merge records (same logic as original)
-    const mergedInventories = [];
-    const saleGroups = {};
-    const purchaseGroups = {};
-    const shipGroups = {};
+    const mergedInventories: MergedInventory[] = [];
+    const saleGroups: Record<string, MergedInventory> = {};
+    const purchaseGroups: Record<string, MergedInventory> = {};
+    const shipGroups: Record<string, MergedInventory> = {};
 
     filteredInventories.forEach(inv => {
       if (inv.saleNumber) {
         if (!saleGroups[inv.saleNumber]) {
-          saleGroups[inv.saleNumber] = { ...inv, type: 'sale', totalQuantity: inv.quantity, totalAmount: inv.totalAmount || 0 };
+          saleGroups[inv.saleNumber] = { 
+            ...inv, 
+            type: 'sale', 
+            totalQuantity: inv.quantity, 
+            totalAmount: inv.totalAmount || 0 
+          };
         } else {
           saleGroups[inv.saleNumber].totalQuantity += inv.quantity;
           saleGroups[inv.saleNumber].totalAmount += (inv.totalAmount || 0);
         }
       } else if (inv.purchaseOrderNumber) {
         if (!purchaseGroups[inv.purchaseOrderNumber]) {
-          purchaseGroups[inv.purchaseOrderNumber] = { ...inv, type: 'purchase', totalQuantity: inv.quantity, totalAmount: inv.totalAmount || 0 };
+          purchaseGroups[inv.purchaseOrderNumber] = { 
+            ...inv, 
+            type: 'purchase', 
+            totalQuantity: inv.quantity, 
+            totalAmount: inv.totalAmount || 0 
+          };
         } else {
           purchaseGroups[inv.purchaseOrderNumber].totalQuantity += inv.quantity;
           purchaseGroups[inv.purchaseOrderNumber].totalAmount += (inv.totalAmount || 0);
         }
       } else if (inv.shippingOrderNumber) {
         if (!shipGroups[inv.shippingOrderNumber]) {
-          shipGroups[inv.shippingOrderNumber] = { ...inv, type: 'ship', totalQuantity: inv.quantity, totalAmount: inv.totalAmount || 0 };
+          shipGroups[inv.shippingOrderNumber] = { 
+            ...inv, 
+            type: 'ship', 
+            totalQuantity: inv.quantity, 
+            totalAmount: inv.totalAmount || 0 
+          };
         } else {
           shipGroups[inv.shippingOrderNumber].totalQuantity += inv.quantity;
           shipGroups[inv.shippingOrderNumber].totalAmount += (inv.totalAmount || 0);
@@ -76,8 +135,8 @@ const calculateProductData = async (productId) => {
       if ((inv.type === 'purchase' || inv.type === 'ship' || inv.type === 'sale') && inv.totalAmount && inv.totalQuantity) {
         const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
         price = unitPrice;
-      } else if (inv.product?.sellingPrice) {
-        price = inv.product.sellingPrice;
+      } else if (typeof inv.product !== 'string' && inv.product?.price) {
+        price = inv.product.price;
       }
 
       const recordCost = price * Math.abs(inv.totalQuantity);
@@ -107,17 +166,18 @@ const calculateProductData = async (productId) => {
 /**
  * Custom hook for managing category detail page data.
  * @param {string} categoryId - The ID of the category.
+ * @returns {CategoryDetailData} - Category detail data and functions.
  */
-const useCategoryDetailData = (categoryId) => {
-  const [category, setCategory] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [loadingProductData, setLoadingProductData] = useState(false);
-  const [categoryTotalProfitLoss, setCategoryTotalProfitLoss] = useState(0);
-  const [categoryTotalStock, setCategoryTotalStock] = useState(0);
+const useCategoryDetailData = (categoryId: string): CategoryDetailData => {
+  const [category, setCategory] = useState<Category | null>(null);
+  const [products, setProducts] = useState<ProductWithData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingProductData, setLoadingProductData] = useState<boolean>(false);
+  const [categoryTotalProfitLoss, setCategoryTotalProfitLoss] = useState<number>(0);
+  const [categoryTotalStock, setCategoryTotalStock] = useState<number>(0);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (): Promise<void> => {
     if (!categoryId) {
       setLoading(false);
       setError('未提供分類 ID');
@@ -158,7 +218,7 @@ const useCategoryDetailData = (categoryId) => {
       setCategoryTotalProfitLoss(totalProfitLoss);
       setCategoryTotalStock(totalStock);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('獲取分類詳情或產品數據失敗 (hook):', err);
       setError(err.message || '獲取分類詳情或產品數據失敗');
       setCategory(null);
@@ -188,4 +248,3 @@ const useCategoryDetailData = (categoryId) => {
 };
 
 export default useCategoryDetailData;
-
