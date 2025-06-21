@@ -1,14 +1,39 @@
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import axios from 'axios';
 
-const useCsvImport = (tabValue, fetchProducts) => {
-  const [csvFile, setCsvFile] = useState(null);
-  const [csvImportLoading, setCsvImportLoading] = useState(false);
-  const [csvImportError, setCsvImportError] = useState(null);
-  const [csvImportSuccess, setCsvImportSuccess] = useState(false);
+interface CsvImportHook {
+  csvFile: File | null;
+  csvImportLoading: boolean;
+  csvImportError: string | null;
+  csvImportSuccess: boolean;
+  handleCsvFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  handleCsvImport: () => Promise<boolean>;
+  resetCsvImport: () => void;
+}
+
+interface ErrorResponse {
+  msg?: string;
+}
+
+interface RequestConfig {
+  headers: {
+    [key: string]: string | undefined;
+  };
+}
+
+/**
+ * CSV 導入功能的自定義 Hook
+ * @param tabValue - 標籤值，用於確定產品類型 (0: 一般產品, 1: 藥品)
+ * @param fetchProducts - 用於更新產品列表的回調函數
+ */
+const useCsvImport = (tabValue: number, fetchProducts: () => void): CsvImportHook => {
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvImportLoading, setCsvImportLoading] = useState<boolean>(false);
+  const [csvImportError, setCsvImportError] = useState<string | null>(null);
+  const [csvImportSuccess, setCsvImportSuccess] = useState<boolean>(false);
 
   // 處理CSV文件選擇
-  const handleCsvFileChange = (e) => {
+  const handleCsvFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setCsvFile(e.target.files[0]);
       setCsvImportError(null);
@@ -16,10 +41,10 @@ const useCsvImport = (tabValue, fetchProducts) => {
   };
 
   // 處理CSV匯入
-  const handleCsvImport = async () => {
+  const handleCsvImport = async (): Promise<boolean> => {
     if (!csvFile) {
       setCsvImportError('請選擇CSV文件');
-      return;
+      return false;
     }
 
     try {
@@ -31,7 +56,7 @@ const useCsvImport = (tabValue, fetchProducts) => {
       formData.append('productType', tabValue === 0 ? 'product' : 'medicine');
       
       const token = localStorage.getItem('token');
-      const config = {
+      const config: RequestConfig = {
         headers: {
           'x-auth-token': token,
           'Content-Type': 'multipart/form-data'
@@ -54,7 +79,8 @@ const useCsvImport = (tabValue, fetchProducts) => {
       return true;
     } catch (err) {
       console.error(err);
-      setCsvImportError(err.response?.data?.msg ?? '匯入失敗，請檢查CSV格式');
+      const error = err as any;
+      setCsvImportError(error.response?.data?.msg ?? '匯入失敗，請檢查CSV格式');
       setCsvImportLoading(false);
       return false;
     }
