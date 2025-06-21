@@ -128,13 +128,6 @@ const getPaymentStatusInfo = (status: string): PaymentStatusInfo => {
   return statusMap[status] || { text: status, color: 'default', icon: <InfoIcon fontSize="small" /> };
 };
 
-// 安全格式化日期的輔助函數
-
-const formatDateSafe = (dateValue: string | Date | undefined, formatString = 'yyyy-MM-dd HH:mm'): string => {
-  if (!dateValue) return 'N/A';
-  const date = new Date(dateValue);
-  return isValid(date) ? format(date, formatString, { locale: zhTW }) : 'N/A';
-};
 
 // 定義明細項目類型，與 CollapsibleAmountInfo 兼容
 interface CollapsibleDetail {
