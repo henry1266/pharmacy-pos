@@ -333,21 +333,21 @@ class MedicineCsvService {
    * @param file - CSV文件
    * @returns 解析後的預覽數據
    */
-  static parseMedicineCsvForPreview = CsvParser.parseMedicineCsvForPreview;
+  static readonly parseMedicineCsvForPreview = CsvParser.parseMedicineCsvForPreview;
 
   /**
    * 根據日期生成訂單號
    * @param dateStr - 日期字符串
    * @returns 生成的訂單號
    */
-  static generateOrderNumberByDate = OrderNumberGenerator.generateByDate;
+  static readonly generateOrderNumberByDate = OrderNumberGenerator.generateByDate;
 
   /**
    * 生成新的出貨單號
    * @param dateStr - 日期字符串
    * @returns 生成的出貨單號
    */
-  static generateShippingOrderNumber = OrderNumberGenerator.generateShippingOrderNumber;
+  static readonly generateShippingOrderNumber = OrderNumberGenerator.generateShippingOrderNumber;
 
   /**
    * 導入藥品CSV文件
@@ -357,7 +357,7 @@ class MedicineCsvService {
   static async importMedicineCsv(file: File): Promise<ImportMedicineCsvResponse> {
     try {
       // 解析CSV以獲取日期
-      const { firstDate, rawFirstDate } = await this.extractDateFromCsv(file);
+      const { firstDate } = await this.extractDateFromCsv(file);
       
       // 生成出貨單號
       const orderNumber = await OrderNumberGenerator.generateShippingOrderNumber(firstDate);
