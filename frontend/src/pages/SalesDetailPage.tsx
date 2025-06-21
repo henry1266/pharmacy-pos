@@ -37,8 +37,6 @@ import {
   VisibilityOff // Added for profit toggle
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
-import { format, isValid } from 'date-fns'; // Import isValid from date-fns
-import { zhTW } from 'date-fns/locale';
 
 import ProductCodeLink from '../components/common/ProductCodeLink';
 import DetailLayout from '../components/DetailLayout';
