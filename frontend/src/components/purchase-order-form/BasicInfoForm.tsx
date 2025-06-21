@@ -10,15 +10,18 @@ import {
   Typography,
   Card,
   CardContent,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Grid as MuiGrid
 } from '@mui/material';
-// 單獨引入 Grid 組件
-import Grid from '@mui/material/Grid';
+
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
 import SupplierSelect from '../common/SupplierSelect'; // 假設你有一個供應商選擇組件
+
+// 直接使用 MuiGrid
+const Grid = MuiGrid;
 
 // 定義供應商介面
 interface Supplier {
@@ -89,7 +92,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
         </Typography>
         
         <Grid container spacing={2}>
-          {/* @ts-ignore */}
           <Grid item md={2} sm={6} xs={12}>
             <TextField
               fullWidth
@@ -102,7 +104,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               helperText="留空將自動生成"
             />
           </Grid>
-          {/* @ts-ignore */}
           <Grid item md={2} sm={6} xs={12}>
             <TextField
               fullWidth
@@ -113,7 +114,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               variant="outlined"
             />
           </Grid>
-          {/* @ts-ignore */}
           <Grid item md={2} sm={6} xs={12}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
@@ -126,9 +126,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               />
             </LocalizationProvider>
           </Grid>
-          {/* @ts-ignore */}
           <Grid item md={2} sm={6} xs={12}>
-            {/* @ts-ignore */}
             <SupplierSelect
               suppliers={suppliers ?? []}
               selectedSupplier={selectedSupplier} 
@@ -136,7 +134,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               label={isEditMode ? "進貨商 (僅供查看)" : "進貨商 (可用名稱或簡碼)"}
             />
           </Grid>
-          {/* @ts-ignore */}
           <Grid item md={2} sm={6} xs={12}>
             <Box
               sx={{
@@ -160,7 +157,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             </FormControl>
             </Box>
           </Grid>
-          {/* @ts-ignore */}
           <Grid item md={6} sm={6} xs={12}>
             <TextField
               fullWidth
@@ -173,7 +169,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               rows={1}
             />
           </Grid>
-          {/* @ts-ignore */}
           <Grid item md={2} sm={2} xs={12}>
             <TextField
               fullWidth
@@ -187,7 +182,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               helperText="正數增加，負數減少"
             />
           </Grid>
-          {/* @ts-ignore */}
           <Grid item md={2} sm={6} xs={12}>
             <Box
               sx={{
@@ -210,7 +204,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             </Box>
           </Grid>
         </Grid>
-
       </CardContent>
     </Card>
   );
