@@ -2,19 +2,15 @@
  * 員工模組共用 Hooks
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { EmployeeAccount, Employee } from '../../../types/entities';
 import { OvertimeRecord } from '../../../services/overtimeRecordService';
 import { FormData, FormErrors } from './types';
 import {
-  validateAccountForm,
-  validateOvertimeForm,
   clearFieldError,
-  getChangedFields,
   handleApiError
 } from './utils';
 import {
-  DEFAULT_FORM_VALUES,
   DIALOG_CONFIG
 } from './constants';
 
@@ -185,8 +181,8 @@ export const useDialogManagement = () => {
  * 加班記錄管理 Hook
  */
 export const useOvertimeManagement = (employeeId?: string | null) => {
-  const [overtimeRecords, setOvertimeRecords] = useState<OvertimeRecord[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [overtimeRecords] = useState<OvertimeRecord[]>([]);
+  const [employees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>('');

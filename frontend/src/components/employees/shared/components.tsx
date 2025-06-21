@@ -23,8 +23,6 @@ import {
   Grid,
   Tooltip,
   IconButton,
-  TableCell,
-  TableRow
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -39,13 +37,10 @@ import {
   MonthFilterProps,
   AccountInfoProps,
   StatusChipProps,
-  OvertimeRecordRowProps
 } from './types';
 import {
-  ROLE_OPTIONS,
   YEAR_OPTIONS,
   MONTH_OPTIONS,
-  DIALOG_CONFIG
 } from './constants';
 import {
   getRoleName,
@@ -241,7 +236,7 @@ export const AccountInfo: FC<AccountInfoProps> = ({
         <Typography variant="subtitle2" color="textSecondary">
           電子郵件
         </Typography>
-        <Typography variant="body1">{account.email || '未設定'}</Typography>
+        <Typography variant="body1">{account.email ?? '未設定'}</Typography>
       </Grid>
       <Grid item xs={12} sm={6}>
         <Typography variant="subtitle2" color="textSecondary">
