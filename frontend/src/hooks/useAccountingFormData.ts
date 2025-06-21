@@ -136,7 +136,7 @@ const useAccountingFormData = () => {
       setUnaccountedSales(transformedData);
     } catch (err: any) {
       console.error('獲取未標記銷售記錄失敗 (hook):', err);
-      setSalesError(err.message || '獲取未標記銷售記錄失敗');
+      setSalesError(err.message ?? '獲取未標記銷售記錄失敗');
       setUnaccountedSales([]);
     } finally {
       setLoadingSales(false);
@@ -237,7 +237,7 @@ const useAccountingFormData = () => {
       return true; // Indicate success
     } catch (err: any) {
       console.error('提交記帳記錄失敗 (hook):', err);
-      setSubmitError(err.message || '提交記帳記錄失敗');
+      setSubmitError(err.message ?? '提交記帳記錄失敗');
       return false; // Indicate failure
     } finally {
       setSubmitting(false);

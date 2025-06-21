@@ -220,7 +220,7 @@ const useCategoryDetailData = (categoryId: string): CategoryDetailData => {
 
     } catch (err: any) {
       console.error('獲取分類詳情或產品數據失敗 (hook):', err);
-      setError(err.message || '獲取分類詳情或產品數據失敗');
+      setError(err.message ?? '獲取分類詳情或產品數據失敗');
       setCategory(null);
       setProducts([]);
       setCategoryTotalProfitLoss(0);

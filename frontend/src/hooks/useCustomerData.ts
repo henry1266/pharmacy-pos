@@ -26,14 +26,17 @@ export interface CustomerDisplay {
   membershipLevel: string;
 }
 
+// 定義客戶資料欄位排除類型
+export type CustomerDisplayOmitFields = 'id' | 'code' | 'level';
+
 // 定義 Hook 返回值介面
 export interface UseCustomerDataReturn {
   customers: CustomerDisplay[];
   loading: boolean;
   error: string | null;
   fetchCustomers: () => Promise<void>;
-  addCustomer: (customerData: Omit<CustomerDisplay, 'id' | 'code' | 'level'>) => Promise<void>;
-  updateCustomer: (id: string, customerData: Omit<CustomerDisplay, 'id' | 'code' | 'level'>) => Promise<void>;
+  addCustomer: (customerData: Omit<CustomerDisplay, CustomerDisplayOmitFields>) => Promise<void>;
+  updateCustomer: (id: string, customerData: Omit<CustomerDisplay, CustomerDisplayOmitFields>) => Promise<void>;
   deleteCustomer: (id: string) => Promise<void>;
   mapMembershipLevel: (level: string) => string;
 }
@@ -113,7 +116,7 @@ const useCustomerData = (): UseCustomerDataReturn => {
       await fetchCustomers(); // Refresh the list after adding
     } catch (err: any) {
       console.error('添加會員失敗 (hook):', err);
-      const errorMsg = `添加會員失敗: ${err.response?.data?.message || err.message}`;
+      const errorMsg = `添加會員失敗: ${err.response?.data?.message ?? err.message}`;
       setError(errorMsg);
       throw new Error(errorMsg); // Re-throw to be caught in the component for alerts
     } finally {
@@ -145,7 +148,7 @@ const useCustomerData = (): UseCustomerDataReturn => {
       await fetchCustomers(); // Refresh the list after updating
     } catch (err: any) {
       console.error('更新會員失敗 (hook):', err);
-      const errorMsg = `更新會員失敗: ${err.response?.data?.message || err.message}`;
+      const errorMsg = `更新會員失敗: ${err.response?.data?.message ?? err.message}`;
       setError(errorMsg);
       throw new Error(errorMsg); // Re-throw for alerts
     } finally {
@@ -164,7 +167,7 @@ const useCustomerData = (): UseCustomerDataReturn => {
       await fetchCustomers(); // Refresh the list after deleting
     } catch (err: any) {
       console.error('刪除會員失敗 (hook):', err);
-      const errorMsg = `刪除會員失敗: ${err.response?.data?.message || err.message}`;
+      const errorMsg = `刪除會員失敗: ${err.response?.data?.message ?? err.message}`;
       setError(errorMsg);
       throw new Error(errorMsg); // Re-throw for alerts
     } finally {

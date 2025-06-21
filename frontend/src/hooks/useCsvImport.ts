@@ -48,42 +48,53 @@ const useCsvImport = (tabValue: number, fetchProducts: () => void): CsvImportHoo
     }
 
     try {
-      setCsvImportLoading(true);
-      setCsvImportError(null);
-      
-      const formData = new FormData();
-      formData.append('file', csvFile);
-      formData.append('productType', tabValue === 0 ? 'product' : 'medicine');
-      
-      const token = localStorage.getItem('token');
-      const config: RequestConfig = {
-        headers: {
-          'x-auth-token': token,
-          'Content-Type': 'multipart/form-data'
-        }
-      };
-      
-      await axios.post('/api/products/import', formData, config);
-      
-      // 更新產品列表
-      fetchProducts();
-      
-      setCsvImportSuccess(true);
-      setCsvImportLoading(false);
-      
-      // 3秒後重置成功狀態
-      setTimeout(() => {
-        setCsvImportSuccess(false);
-      }, 3000);
-      
-      return true;
-    } catch (err) {
-      console.error(err);
-      const error = err as any;
-      setCsvImportError(error.response?.data?.msg ?? '匯入失敗，請檢查CSV格式');
-      setCsvImportLoading(false);
-      return false;
+  setCsvImportLoading(true);
+  setCsvImportError(null);
+
+  const formData = new FormData();
+  formData.append('file', csvFile);
+  formData.append('productType', tabValue === 0 ? 'product' : 'medicine');
+
+  const token = localStorage.getItem('token');
+  const config: RequestConfig = {
+    headers: {
+      'x-auth-token': token,
+      'Content-Type': 'multipart/form-data'
     }
+  };
+
+  await axios.post('/api/products/import', formData, config);
+
+  // 更新產品列表
+  fetchProducts();
+
+  setCsvImportSuccess(true);
+  setCsvImportLoading(false);
+
+  // 3秒後重置成功狀態
+  setTimeout(() => {
+    setCsvImportSuccess(false);
+  }, 3000);
+
+  return true;
+
+} catch (err: unknown) {
+  console.error(err);
+
+  let errorMessage = '匯入失敗，請檢查CSV格式';
+
+  if (typeof err === 'object' && err !== null) {
+    const maybeResponse = (err as { response?: { data?: { msg?: string } } }).response;
+    const msg = maybeResponse?.data?.msg;
+    if (typeof msg === 'string') {
+      errorMessage = msg;
+    }
+  }
+
+  setCsvImportError(errorMessage);
+  setCsvImportLoading(false);
+  return false;
+}
   };
 
   // 重置CSV匯入狀態

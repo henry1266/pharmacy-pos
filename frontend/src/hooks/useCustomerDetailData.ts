@@ -25,7 +25,7 @@ const useCustomerDetailData = (customerId: string | undefined) => {
       setCustomer(customerData);
     } catch (err: any) {
       console.error('獲取客戶詳情失敗 (hook):', err);
-      setError(err.message || '獲取客戶詳情失敗');
+      setError(err.message ?? '獲取客戶詳情失敗');
       setCustomer(null);
     } finally {
       setLoading(false);
