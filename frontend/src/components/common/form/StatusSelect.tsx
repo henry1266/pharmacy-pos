@@ -55,8 +55,8 @@ const StatusSelect: React.FC<StatusSelectProps> = ({
                   }
                   
                   // 嘗試方法2：使用更通用的選擇器
-                  const productInput = document.querySelector('#product-select input') as HTMLElement;
-                  if (productInput) {
+                  const productInput = document.querySelector('#product-select input');
+                  if (productInput && productInput instanceof HTMLElement) {
                     productInput.focus();
                     return;
                   }

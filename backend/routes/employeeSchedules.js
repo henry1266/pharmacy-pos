@@ -200,14 +200,6 @@ const validateEmployeeId = async (employeeId, res) => {
  * @returns {Promise<boolean>} - 如果存在衝突返回true，否則返回false
  */
 const checkScheduleConflict = async (scheduleId, date, shift, employeeId) => {
-  // 使用參數化查詢而非直接構建查詢對象
-  const conflictQuery = {
-    _id: { $ne: scheduleId },
-    date: date,
-    shift: shift,
-    employeeId: employeeId
-  };
-  
   // 使用安全的方式構建查詢，避免直接使用用戶輸入
   // 先將用戶輸入轉換為安全的格式，再用於查詢
   const safeScheduleId = scheduleId.toString();

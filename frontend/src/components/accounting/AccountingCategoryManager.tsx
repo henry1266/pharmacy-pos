@@ -177,17 +177,15 @@ const AccountingCategoryManager: React.FC = () => {
           order: (categories.length + 1) * 10 // 新類別放在最後
         });
         showSnackbar('類別已新增', 'success');
-      } else {
+      } else if (currentCategoryId) {
         // 編輯類別
-        if (currentCategoryId) {
-          // 使用參數化方式更新資料，避免SQL注入風險 (Sonar Rule S5147)
-          const updateData = {
-            name: currentCategory.name,
-            description: currentCategory.description
-          };
-          await updateAccountingCategory(currentCategoryId, updateData);
-          showSnackbar('類別已更新', 'success');
-        }
+        // 使用參數化方式更新資料，避免SQL注入風險 (Sonar Rule S5147)
+        const updateData = {
+          name: currentCategory.name,
+          description: currentCategory.description
+        };
+        await updateAccountingCategory(currentCategoryId, updateData);
+        showSnackbar('類別已更新', 'success');
       }
       
       // 重新獲取類別

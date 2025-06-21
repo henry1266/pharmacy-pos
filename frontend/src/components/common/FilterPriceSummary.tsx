@@ -33,7 +33,7 @@ const FilterPriceSummary: React.FC<FilterPriceSummaryProps> = ({
     if (!filteredRows || filteredRows.length === 0) return 0;
     
     return filteredRows.reduce((sum, row) => {
-      const amount = row[totalAmountField] || 0;
+      const amount = row[totalAmountField] ?? 0;
       return sum + amount;
     }, 0);
   }, [filteredRows, totalAmountField]);
