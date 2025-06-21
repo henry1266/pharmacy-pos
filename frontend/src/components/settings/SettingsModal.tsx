@@ -102,7 +102,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       setApiIpAddress(savedApiIp);
     } else {
       // 默認值，從當前apiService配置中獲取
-      setApiIpAddress(process.env.REACT_APP_DEFAULT_API_IP || '192.168.68.90'); // Use env var or fallback
+      setApiIpAddress(process.env.REACT_APP_DEFAULT_API_IP ?? '192.168.68.90'); // Use env var or fallback
     }
 
     const savedMongodbIp = localStorage.getItem('mongodbServerIp');

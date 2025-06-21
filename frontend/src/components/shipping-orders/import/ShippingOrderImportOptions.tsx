@@ -13,7 +13,7 @@ interface ShippingOrderImportOptionsProps {
   handleImportClose: () => void;
   handleTabChange: (event: SyntheticEvent, newValue: number) => void;
   tabValue: number;
-  csvFile: File | null;
+  csvFile?: File | null;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleImport: () => void;
   loading?: boolean;

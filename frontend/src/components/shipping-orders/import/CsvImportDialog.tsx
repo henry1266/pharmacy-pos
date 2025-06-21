@@ -127,7 +127,7 @@ const CsvImportDialog: FC<CsvImportDialogProps> = ({
         <Button
           onClick={onImport}
           color="primary"
-          disabled={!csvFile || loading || success}
+          disabled={!csvFile || Boolean(loading) || Boolean(success)}
           startIcon={loading ? <CircularProgress size={20} /> : undefined}
         >
           {loading ? '導入中...' : '導入'}
