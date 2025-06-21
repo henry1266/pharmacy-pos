@@ -115,10 +115,6 @@ ShippingOrdersTable.propTypes = {
   renderSupplierHeader: PropTypes.func.isRequired
 } as any;
 
-// 設定默認值
-ShippingOrdersTable.defaultProps = {
-  filteredRows: [],
-  loading: false
-};
+// 移除 defaultProps，因為這些屬性已在 PropTypes 中標記為可選
 
 export default ShippingOrdersTable;

@@ -2,7 +2,7 @@
  * 出貨單模組共用 Hooks
  */
 
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useState, useCallback, ChangeEvent } from 'react';
 import { Item } from './types';
 import { 
   calculateTotalAmount, 

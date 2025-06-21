@@ -3,7 +3,7 @@
  */
 
 import { ChangeEvent, SyntheticEvent, ReactNode } from 'react';
-import { GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid';
+import { GridPaginationModel } from '@mui/x-data-grid';
 
 // 基本項目介面
 export interface Item {
