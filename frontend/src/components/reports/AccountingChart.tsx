@@ -208,11 +208,11 @@ const AccountingChart: FC = () => {
 
   // 處理API回應數據
   const processApiResponse = (response: any) => {
-    setAccountingData(response.data.data || []);
+    setAccountingData(response.data.data ?? []);
     setSummaryData({
-      totalAmount: response.data.summary.totalAmount || 0,
-      totalCount: response.data.summary.totalCount || 0,
-      categoryStats: response.data.categoryStats || []
+      totalAmount: response.data.summary.totalAmount ?? 0,
+      totalCount: response.data.summary.totalCount ?? 0,
+      categoryStats: response.data.categoryStats ?? []
     });
     setError(null);
   };
@@ -327,7 +327,7 @@ const AccountingChart: FC = () => {
   // 處理按日期分組的數據
   const processDateGroupData = (): ChartDataItem[] => {
     return accountingData.map(item => {
-      const result: ChartDataItem = { name: item.date || '' };
+      const result: ChartDataItem = { name: item.date ?? '' };
       
       // 如果是按類別過濾，則需要從items中提取
       if (selectedCategories.length > 0) {

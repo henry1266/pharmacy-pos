@@ -31,8 +31,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import overtimeRecordService, { OvertimeRecord, OvertimeRecordStatus } from '../../services/overtimeRecordService';
 import employeeService from '../../services/employeeService';
-import OvertimeRecordDialog from './overtime/OvertimeRecordDialog.tsx';
-import OvertimeRecordRow from './overtime/OvertimeRecordRow.tsx';
+import OvertimeRecordDialog from './overtime/OvertimeRecordDialog';
+import OvertimeRecordRow from './overtime/OvertimeRecordRow';
 import useOvertimeData from '../../hooks/useOvertimeData';
 import { Employee } from '../../types/entities';
 

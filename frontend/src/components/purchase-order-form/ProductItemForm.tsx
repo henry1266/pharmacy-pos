@@ -8,7 +8,7 @@ import {
 // 單獨引入 Grid 組件
 import Grid from '@mui/material/Grid';
 import { Add as AddIcon } from '@mui/icons-material';
-import PriceTooltip from '../form-widgets/PriceTooltip.tsx';
+import PriceTooltip from '../form-widgets/PriceTooltip';
 import PropTypes from 'prop-types';
 
 // 定義產品介面
