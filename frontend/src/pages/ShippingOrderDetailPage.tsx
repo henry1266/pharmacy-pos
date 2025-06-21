@@ -513,7 +513,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   // 自定義列印按鈕
   const printButton = (() => {
     // 提取複雜的禁用狀態邏輯為獨立變數
-    const isPrintButtonDisabled = !currentShippingOrder || !!(orderLoading ?? false) || !!(productDetailsLoading ?? false) || !!(fifoLoading ?? false);
+    const isPrintButtonDisabled = !!(currentShippingOrder ?? false) === false || !!(orderLoading ?? false) || !!(productDetailsLoading ?? false) || !!(fifoLoading ?? false);
     
     return (
       <Button
