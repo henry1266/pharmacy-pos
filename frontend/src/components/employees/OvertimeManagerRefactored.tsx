@@ -133,7 +133,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
   // 開啟創建加班記錄對話框
   const handleOpenCreateDialog = useCallback(() => {
     setFormData({
-      employeeId: employeeId || '',
+      employeeId: employeeId ?? '',
       date: new Date().toISOString().split('T')[0],
       hours: '',
       description: '',
@@ -153,9 +153,9 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
       if (typeof record.employeeId === 'string') {
         empId = record.employeeId;
       } else if (typeof record.employeeId === 'object' && 'employee' in record && record.employee) {
-        empId = (record.employee as any)._id || '';
+        empId = (record.employee as any)._id ?? '';
       } else if (typeof record.employeeId === 'object') {
-        empId = (record.employeeId as any)._id || '';
+        empId = (record.employeeId as any)._id ?? '';
       }
     }
     

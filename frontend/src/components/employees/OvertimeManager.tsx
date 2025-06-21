@@ -308,8 +308,8 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
         console.log(`獲取到月度加班統計:`, stats);
       } catch (statsError: any) {
         console.error('獲取月度加班統計失敗:', statsError);
-        console.error('錯誤詳情:', statsError.response?.data || statsError.message);
-        setError(`獲取月度加班統計失敗: ${statsError.response?.data?.message || statsError.message}`);
+        console.error('錯誤詳情:', statsError.response?.data ?? statsError.message);
+        setError(`獲取月度加班統計失敗: ${statsError.response?.data?.message ?? statsError.message}`);
         stats = []; // 設置為空數組，避免後續處理出錯
       }
       
@@ -369,7 +369,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
           scheduleRecords = response.data as any[];
         } catch (scheduleError: any) {
           console.error('獲取排班記錄失敗:', scheduleError);
-          console.error('錯誤詳情:', scheduleError.response?.data || scheduleError.message);
+          console.error('錯誤詳情:', scheduleError.response?.data ?? scheduleError.message);
           setError(`獲取排班記錄失敗: ${scheduleError.response?.data?.message ?? scheduleError.message}`);
           // 不提前返回，繼續處理其他邏輯
           scheduleRecords = []; // 設置為空數組，繼續處理
@@ -553,7 +553,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   // 開啟創建加班記錄對話框
   const handleOpenCreateDialog = (): void => {
     setFormData({
-      employeeId: employeeId || '',
+      employeeId: employeeId ?? '',
       date: new Date().toISOString().split('T')[0],
       hours: '',
       description: '',
@@ -873,7 +873,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                       group.scheduleHours = scheduleHours > 0 ? scheduleHours : 0;
                       group.totalHours = scheduleStats.overtimeHours;
                       // 使用 scheduleRecords.length 代替 scheduleRecordCount
-                      const scheduleRecordsCount = scheduleStats.scheduleRecordCount || 0;
+                      const scheduleRecordsCount = scheduleStats.scheduleRecordCount ?? 0;
                       // 添加一個臨時屬性來存儲排班記錄數量
                       (group as any).scheduleRecordCount = scheduleRecordsCount;
                     } else {
@@ -904,7 +904,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                           </TableCell>
                           <TableCell component="th" scope="row">
                             <Typography variant="subtitle1" fontWeight="bold">
-                              {group.employee.name || `員工${(selectedMonth + 1).toString().padStart(2, '0')}`}
+                              {group.employee.name ?? `員工${(selectedMonth + 1).toString().padStart(2, '0')}`}
                             </Typography>
                           </TableCell>
                           <TableCell>{group.independentHours.toFixed(1)} 小時</TableCell>
