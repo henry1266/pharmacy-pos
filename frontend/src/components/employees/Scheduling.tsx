@@ -17,7 +17,7 @@ import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
 import useScheduleOperations from '../../hooks/useScheduleOperations';
 import { SchedulesByDate } from '../../services/employeeScheduleService';
 import ShiftSelectionModal from './ShiftSelectionModal';
-import QuickSelectPanel from './QuickSelectPanel.tsx';
+import QuickSelectPanel from './QuickSelectPanel';
 import CalendarDateCell from './scheduling/CalendarDateCell';
 import WorkHoursDialog from './scheduling/WorkHoursDialog';
 import SchedulingHeader from './scheduling/SchedulingHeader';
@@ -245,7 +245,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
                   getBorderStyle={getBorderStyle}
                   getBorderColor={getBorderColor}
                   getEmployeeAbbreviation={getEmployeeAbbreviation}
-                  getBorderColorByLeaveType={(schedule) => getBorderColorByLeaveType(schedule as { leaveType?: 'sick' | 'personal' | 'overtime' | null | undefined; employee: { _id: string; name: string; }; })}
+                  getBorderColorByLeaveType={(schedule) => getBorderColorByLeaveType(schedule as { leaveType?: 'sick' | 'personal' | 'overtime' | null; employee: { _id: string; name: string; }; })}
                   getLeaveTypeText={getLeaveTypeText}
                   formatDateString={formatDateString}
                 />
