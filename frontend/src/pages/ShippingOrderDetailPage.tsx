@@ -431,7 +431,7 @@ const ShippingOrderDetailPage: React.FC = () => {
             )}
             {/* 提取複雜的載入狀態邏輯為獨立變數 */}
             {(() => {
-              const isTableLoading = productDetailsLoading || orderLoading || !!fifoLoading;
+              const isTableLoading = (productDetailsLoading ?? false) || (orderLoading ?? false) || (fifoLoading ?? false);
               return (
                 <ProductItemsTable
                   items={processedItems} // Use processed items with profit data
@@ -513,7 +513,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   // 自定義列印按鈕
   const printButton = (() => {
     // 提取複雜的禁用狀態邏輯為獨立變數
-    const isPrintButtonDisabled = !currentShippingOrder || orderLoading || productDetailsLoading || !!fifoLoading;
+    const isPrintButtonDisabled = !currentShippingOrder || (orderLoading ?? false) || (productDetailsLoading ?? false) || (fifoLoading ?? false);
     
     return (
       <Button
