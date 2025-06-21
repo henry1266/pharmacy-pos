@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -79,6 +79,291 @@ interface ChartData {
   月份: number;
 }
 
+// 通用資訊卡片組件介面
+interface InfoCardProps {
+  title: string;
+  content: React.ReactNode;
+}
+
+// 通用資訊卡片組件
+const InfoCard: FC<InfoCardProps> = ({ title, content }) => (
+  <Card>
+    <CardContent>
+      <Typography variant="h6" gutterBottom>
+        {title}
+      </Typography>
+      {content}
+    </CardContent>
+  </Card>
+);
+
+// 頁面標題組件介面
+interface PageHeaderProps {
+  title: string;
+  onBack: () => void;
+  onExport: () => void;
+  exportDisabled: boolean;
+}
+
+// 頁面標題組件
+const PageHeader: FC<PageHeaderProps> = ({
+  title,
+  onBack,
+  onExport,
+  exportDisabled
+}) => (
+  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Button
+        variant="outlined"
+        startIcon={<ArrowBackIcon />}
+        onClick={onBack}
+        sx={{ mr: 1 }}
+      >
+        返回
+      </Button>
+      <Typography variant="h4">
+        {title}
+      </Typography>
+    </Box>
+    <Box>
+      <Button
+        variant="outlined"
+        startIcon={<DownloadIcon />}
+        onClick={onExport}
+        sx={{ ml: 1 }}
+        disabled={exportDisabled}
+      >
+        導出CSV
+      </Button>
+    </Box>
+  </Box>
+);
+
+// 月份列表項目介面
+interface MonthListItemProps {
+  month: string;
+  index: number;
+  isSelected: boolean;
+  amount: number;
+  onSelect: (index: number) => void;
+}
+
+// 月份列表項目組件
+const MonthListItem: FC<MonthListItemProps> = ({
+  month,
+  index,
+  isSelected,
+  amount,
+  onSelect
+}) => (
+  <ListItem
+    key={`month-${month}`}
+    disablePadding
+    divider
+    sx={{
+      backgroundColor: isSelected ? '#e3f2fd' : 'transparent',
+      '&:hover': {
+        backgroundColor: isSelected ? '#e3f2fd' : '#f5f5f5'
+      }
+    }}
+  >
+    <ListItemButton
+      onClick={() => onSelect(index)}
+      sx={{ py: 0.5 }}
+    >
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%'
+      }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.primary',
+            fontWeight: isSelected ? 'bold' : 'normal'
+          }}
+        >
+          {month}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: amount > 0 ? 'primary.main' : 'text.secondary',
+            fontWeight: 'bold'
+          }}
+        >
+          ${amount}
+        </Typography>
+      </Box>
+    </ListItemButton>
+  </ListItem>
+);
+
+// 圖表共用元素組件
+interface ChartCommonElementsProps {
+  dataKey?: string;
+}
+
+const ChartCommonElements: FC<ChartCommonElementsProps> = ({ dataKey = "月份" }) => (
+  <>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey={dataKey} />
+    <YAxis />
+    <RechartsTooltip
+      formatter={(value: number) => [`$${value}`, '金額']}
+      labelFormatter={(label: string) => `${label}月`}
+    />
+    <Legend />
+  </>
+);
+
+// 日曆格子樣式
+const calendarCellStyles = {
+  base: {
+    width: 'calc(100% / 7)',
+    height: '70px',
+    p: 1,
+    border: '1px solid #e0e0e0',
+    position: 'relative',
+  },
+  current: {
+    backgroundColor: 'white',
+    '&:hover': {
+      backgroundColor: '#f0f7ff'
+    }
+  },
+  other: {
+    backgroundColor: '#f9f9f9',
+    '&:hover': {
+      backgroundColor: '#f9f9f9'
+    }
+  }
+};
+
+// 日曆格子組件介面
+interface CalendarCellProps {
+  dayOffset: number;
+  isCurrentMonth: boolean;
+  dayAmount: number;
+  year: number;
+  month: number;
+}
+
+// 日曆格子組件
+const CalendarCell: FC<CalendarCellProps> = ({
+  dayOffset,
+  isCurrentMonth,
+  dayAmount,
+  year,
+  month
+}) => {
+  // 使用日期作為唯一識別符
+  const cellKey = `day-${year}-${month}-${dayOffset}`;
+  
+  return (
+    <Box
+      key={cellKey}
+      sx={{
+        ...calendarCellStyles.base,
+        ...(isCurrentMonth ? calendarCellStyles.current : calendarCellStyles.other)
+      }}
+    >
+      {isCurrentMonth && (
+        <>
+          <Typography variant="body2" sx={{
+            position: 'absolute',
+            top: '5px',
+            left: '5px'
+          }}>
+            {dayOffset}
+          </Typography>
+          {dayAmount > 0 && (
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%'
+            }}>
+              <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
+                ${dayAmount}
+              </Typography>
+            </Box>
+          )}
+        </>
+      )}
+    </Box>
+  );
+};
+
+// 長條圖組件介面
+interface BarChartComponentProps {
+  data: ChartData[];
+}
+
+// 長條圖組件
+const BarChartComponent: FC<BarChartComponentProps> = ({ data }) => (
+  <ResponsiveContainer width="100%" height="100%">
+    <BarChart data={data}>
+      <ChartCommonElements />
+      <Bar dataKey="金額" fill="#8884d8" name="金額" />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+// 折線圖組件介面
+interface LineChartComponentProps {
+  data: ChartData[];
+}
+
+// 折線圖組件
+const LineChartComponent: FC<LineChartComponentProps> = ({ data }) => (
+  <ResponsiveContainer width="100%" height="100%">
+    <LineChart data={data}>
+      <ChartCommonElements />
+      <Line
+        type="monotone"
+        dataKey="金額"
+        stroke="#8884d8"
+        activeDot={{ r: 8 }}
+        name="金額"
+      />
+    </LineChart>
+  </ResponsiveContainer>
+);
+
+// 圓餅圖組件介面
+interface PieChartComponentProps {
+  data: ChartData[];
+  colors: string[];
+}
+
+// 圓餅圖組件
+const PieChartComponent: FC<PieChartComponentProps> = ({ data, colors }) => (
+  <ResponsiveContainer width="100%" height="100%">
+    <PieChart>
+      <Pie
+        data={data}
+        cx="50%"
+        cy="50%"
+        labelLine={true}
+        outerRadius={100}
+        fill="#8884d8"
+        dataKey="金額"
+        nameKey="name"
+        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+      >
+        {data.map((entry, index) => (
+          <Cell key={`cell-${entry.name}`} fill={colors[index % colors.length]} />
+        ))}
+      </Pie>
+      <RechartsTooltip formatter={(value: number) => [`$${value}`, '金額']} />
+      <Legend />
+    </PieChart>
+  </ResponsiveContainer>
+);
+
 /**
  * 所有會計類別彙總頁面組件
  * 顯示所有類別的月度加總表格
@@ -124,15 +409,22 @@ const AllCategoriesDetail: React.FC = () => {
       
       // 將API返回的數據轉換為本地定義的類型
       const typedData = data.map(record => {
-        // 使用類型斷言來處理 API 返回的數據
-        const apiRecord = record as any;
+        // 使用更安全的類型處理方式
+        const apiRecord = record as unknown as {
+          _id: string;
+          date: Date | string;
+          shift: string;
+          items: any[];
+          totalAmount: number;
+          status?: string;
+        };
         return {
           _id: apiRecord._id,
           date: typeof apiRecord.date === 'string' ? apiRecord.date : apiRecord.date.toString(),
           shift: apiRecord.shift,
           items: Array.isArray(apiRecord.items) ? apiRecord.items : [],
           totalAmount: typeof apiRecord.totalAmount === 'number' ? apiRecord.totalAmount : 0,
-          status: apiRecord.status || 'pending'
+          status: apiRecord.status ?? 'pending'
         };
       }) as LocalAccountingRecord[];
       
@@ -192,11 +484,15 @@ const AllCategoriesDetail: React.FC = () => {
       const day = getDate(recordDate);
       
       // 加總所有項目金額
-      record.items.forEach(item => {
-        if (dailyTotals[month] && dailyTotals[month][day] !== undefined) {
+      // 檢查日期是否有效
+      const isValidDate = dailyTotals[month] && dailyTotals[month][day] !== undefined;
+      
+      // 只有在日期有效時才處理項目
+      if (isValidDate) {
+        record.items.forEach(item => {
           dailyTotals[month][day] += item.amount;
-        }
-      });
+        });
+      }
     });
     
     setDailyData(dailyTotals);
@@ -280,66 +576,6 @@ const AllCategoriesDetail: React.FC = () => {
     '7月', '8月', '9月', '10月', '11月', '12月'
   ];
   
-  // 月份列表項目介面
-  interface MonthListItemProps {
-    month: string;
-    index: number;
-    isSelected: boolean;
-    amount: number;
-    onSelect: (index: number) => void;
-  }
-  
-  // 月份列表項目組件
-  const MonthListItem: React.FC<MonthListItemProps> = ({
-    month,
-    index,
-    isSelected,
-    amount,
-    onSelect
-  }) => (
-    <ListItem
-      key={`month-${month}`}
-      disablePadding
-      divider
-      sx={{
-        backgroundColor: isSelected ? '#e3f2fd' : 'transparent',
-        '&:hover': {
-          backgroundColor: isSelected ? '#e3f2fd' : '#f5f5f5'
-        }
-      }}
-    >
-      <ListItemButton
-        onClick={() => onSelect(index)}
-        sx={{ py: 0.5 }}
-      >
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <Typography
-            variant="body2"
-            sx={{
-              color: 'text.primary',
-              fontWeight: isSelected ? 'bold' : 'normal'
-            }}
-          >
-            {month}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: amount > 0 ? 'primary.main' : 'text.secondary',
-              fontWeight: 'bold'
-            }}
-          >
-            ${amount}
-          </Typography>
-        </Box>
-      </ListItemButton>
-    </ListItem>
-  );
   
   // 渲染月份列表項目
   const renderMonthListItem = (month: string, index: number): React.ReactNode => {
@@ -394,72 +630,6 @@ const AllCategoriesDetail: React.FC = () => {
     );
   };
   
-  // 日曆格子樣式
-  const calendarCellStyles = {
-    base: {
-      width: 'calc(100% / 7)',
-      height: '70px',
-      p: 1,
-      border: '1px solid #e0e0e0',
-      position: 'relative',
-    },
-    current: {
-      backgroundColor: 'white',
-      '&:hover': {
-        backgroundColor: '#f0f7ff'
-      }
-    },
-    other: {
-      backgroundColor: '#f9f9f9',
-      '&:hover': {
-        backgroundColor: '#f9f9f9'
-      }
-    }
-  };
-  
-  // 渲染日曆格子
-  const renderCalendarCell = (
-    dayOffset: number,
-    isCurrentMonth: boolean,
-    dayAmount: number
-  ): React.ReactNode => {
-    // 使用日期作為唯一識別符
-    const cellKey = `day-${currentYear}-${selectedMonth}-${dayOffset}`;
-    
-    return (
-      <Box
-        key={cellKey}
-        sx={{
-          ...calendarCellStyles.base,
-          ...(isCurrentMonth ? calendarCellStyles.current : calendarCellStyles.other)
-        }}
-      >
-        {isCurrentMonth && (
-          <>
-            <Typography variant="body2" sx={{
-              position: 'absolute',
-              top: '5px',
-              left: '5px'
-            }}>
-              {dayOffset}
-            </Typography>
-            {dayAmount > 0 && (
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%'
-              }}>
-                <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
-                  ${dayAmount}
-                </Typography>
-              </Box>
-            )}
-          </>
-        )}
-      </Box>
-    );
-  };
   
   // 生成日曆格子
   const generateCalendarGrid = (): React.ReactNode => {
@@ -502,7 +672,16 @@ const AllCategoriesDetail: React.FC = () => {
             const isCurrentMonth = dayOffset > 0 && dayOffset <= daysInMonth;
             const dayAmount = isCurrentMonth ? dailyData[selectedMonth][dayOffset] : 0;
             
-            return renderCalendarCell(dayOffset, isCurrentMonth, dayAmount);
+            return (
+              <CalendarCell
+                key={`cell-${index}`}
+                dayOffset={dayOffset}
+                isCurrentMonth={isCurrentMonth}
+                dayAmount={dayAmount}
+                year={currentYear}
+                month={selectedMonth}
+              />
+            );
           })}
         </Box>
       </Box>
@@ -518,80 +697,17 @@ const AllCategoriesDetail: React.FC = () => {
     }));
   };
   
-  // 圖表共用元素
-  const ChartCommonElements = ({ dataKey = "月份" }: { dataKey?: string }) => (
-    <>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey={dataKey} />
-      <YAxis />
-      <RechartsTooltip
-        formatter={(value: number) => [`$${value}`, '金額']}
-        labelFormatter={(label: string) => `${label}月`}
-      />
-      <Legend />
-    </>
-  );
   
-  // 渲染長條圖
-  const renderBarChart = (data: ChartData[]): React.ReactNode => (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data}>
-        <ChartCommonElements />
-        <Bar dataKey="金額" fill="#8884d8" name="金額" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-  
-  // 渲染折線圖
-  const renderLineChart = (data: ChartData[]): React.ReactNode => (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data}>
-        <ChartCommonElements />
-        <Line
-          type="monotone"
-          dataKey="金額"
-          stroke="#8884d8"
-          activeDot={{ r: 8 }}
-          name="金額"
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-  
-  // 渲染圓餅圖
-  const renderPieChart = (pieData: ChartData[], COLORS: string[]): React.ReactNode => (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={pieData}
-          cx="50%"
-          cy="50%"
-          labelLine={true}
-          outerRadius={100}
-          fill="#8884d8"
-          dataKey="金額"
-          nameKey="name"
-          label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-        >
-          {pieData.map((entry, index) => (
-            <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <RechartsTooltip formatter={(value: number) => [`$${value}`, '金額']} />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
-  );
   
   // 渲染圖表 - 根據類型選擇適當的圖表
   const renderChart = (type: number, data: ChartData[], pieData: ChartData[], COLORS: string[]): React.ReactNode => {
     switch (type) {
       case 0: // 長條圖
-        return renderBarChart(data);
+        return <BarChartComponent data={data} />;
       case 1: // 折線圖
-        return renderLineChart(data);
+        return <LineChartComponent data={data} />;
       case 2: // 圓餅圖
-        return renderPieChart(pieData, COLORS);
+        return <PieChartComponent data={pieData} colors={COLORS} />;
       default:
         return null;
     }
@@ -628,66 +744,7 @@ const AllCategoriesDetail: React.FC = () => {
     );
   };
   
-  // 通用資訊卡片組件介面
-  interface InfoCardProps {
-    title: string;
-    content: React.ReactNode;
-  }
   
-  // 通用資訊卡片組件
-  const InfoCard: React.FC<InfoCardProps> = ({ title, content }) => (
-    <Card>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
-        {content}
-      </CardContent>
-    </Card>
-  );
-  
-  // 頁面標題組件介面
-  interface PageHeaderProps {
-    title: string;
-    onBack: () => void;
-    onExport: () => void;
-    exportDisabled: boolean;
-  }
-  
-  // 頁面標題組件
-  const PageHeader: React.FC<PageHeaderProps> = ({
-    title,
-    onBack,
-    onExport,
-    exportDisabled
-  }) => (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={onBack}
-          sx={{ mr: 1 }}
-        >
-          返回
-        </Button>
-        <Typography variant="h4">
-          {title}
-        </Typography>
-      </Box>
-      <Box>
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={onExport}
-          sx={{ ml: 1 }}
-          disabled={exportDisabled}
-        >
-          導出CSV
-        </Button>
-      </Box>
-    </Box>
-  );
   
   // 渲染彙總資訊卡片
   const renderSummaryInfoCard = (): React.ReactNode => {
