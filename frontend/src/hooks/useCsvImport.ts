@@ -89,12 +89,11 @@ const useCsvImport = (tabValue: number, fetchProducts: () => void): CsvImportHoo
     if (typeof msg === 'string') {
       errorMessage = msg;
     }
-  }
-
-  setCsvImportError(errorMessage);
-  setCsvImportLoading(false);
-  return false;
-}
+    }
+      setCsvImportError(errorMessage);
+      setCsvImportLoading(false);
+      return false;
+    }
   };
 
   // 重置CSV匯入狀態
