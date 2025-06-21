@@ -849,9 +849,9 @@ const AccountingCategoryDetail: React.FC = () => {
   );
   
   // 渲染錯誤狀態
-  const renderError = (): React.ReactNode => (
-    <StatusDisplay type="error" message={error ?? '發生錯誤'} />
-  );
+  const renderError = (): React.ReactNode => {
+    return <StatusDisplay type="error" message={error ?? '發生錯誤'} />;
+  };
   
   // 渲染加載中狀態
   const renderLoadingCategory = (): React.ReactNode => (
