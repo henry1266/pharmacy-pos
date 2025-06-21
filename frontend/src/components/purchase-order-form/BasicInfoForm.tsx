@@ -68,7 +68,8 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
   handleSupplierChange,
   suppliers,
   selectedSupplier,
-  isEditMode
+  isEditMode,
+  isTestMode
 }) => {
   // 將巢狀三元運算子拆解為獨立陳述式
   const getPaymentStatusBackgroundColor = () => {
@@ -225,7 +226,8 @@ BasicInfoForm.propTypes = {
   handleSupplierChange: PropTypes.func.isRequired,
   suppliers: PropTypes.array,
   selectedSupplier: PropTypes.object,
-  isEditMode: PropTypes.bool
+  isEditMode: PropTypes.bool,
+  isTestMode: PropTypes.bool
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 // 過濾供應商的函數
