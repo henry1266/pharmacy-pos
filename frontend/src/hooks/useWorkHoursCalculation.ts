@@ -51,6 +51,60 @@ interface EmployeeMonthlyHours {
  * 工時計算 Hook
  * 使用工具函數處理員工排班數據的工時統計計算
  */
+/**
+ * 處理單個排班記錄的工時計算
+ * @param schedule 排班記錄
+ * @param shift 班次
+ * @param employeeHoursData 員工工時數據
+ */
+const processScheduleHours = (
+  schedule: EmployeeSchedule,
+  shift: string,
+  employeeHoursData: EmployeeHoursData
+): void => {
+  // 確保 schedule.employee 存在
+  if (!schedule.employee) {
+    console.warn('排班記錄缺少員工資訊:', schedule);
+    return;
+  }
+  
+  const employeeId = schedule.employee._id;
+  const employeeName = schedule.employee.name;
+  const shiftHours = calculateShiftHours(shift as ShiftType);
+  
+  initializeEmployeeHours(employeeId, employeeName, employeeHoursData);
+  
+  // 將 EmployeeSchedule 轉換為 Schedule 型別
+  const scheduleForAllocation: Schedule = {
+    employee: schedule.employee,
+    leaveType: schedule.leaveType
+  };
+  
+  allocateHoursByLeaveType(scheduleForAllocation, shiftHours, employeeHoursData);
+};
+
+/**
+ * 處理特定日期的所有班次排班
+ * @param schedules 按班次分組的排班記錄
+ * @param employeeHoursData 員工工時數據
+ */
+const processDateSchedules = (
+  schedules: { [shift: string]: EmployeeSchedule[] },
+  employeeHoursData: EmployeeHoursData
+): void => {
+  SHIFT_NAMES.forEach(shift => {
+    if (schedules[shift]?.length > 0) {
+      schedules[shift].forEach(schedule =>
+        processScheduleHours(schedule, shift, employeeHoursData)
+      );
+    }
+  });
+};
+
+/**
+ * 工時計算 Hook
+ * 使用工具函數處理員工排班數據的工時統計計算
+ */
 const useWorkHoursCalculation = (schedulesGroupedByDate: SchedulesByDate) => {
   // 計算每位員工的本月工時
   const calculateEmployeeMonthlyHours = useMemo<EmployeeMonthlyHours[]>(() => {
@@ -64,45 +118,10 @@ const useWorkHoursCalculation = (schedulesGroupedByDate: SchedulesByDate) => {
       sickLeaveCount: 0
     };
 
-    // 處理單個排班記錄的工時計算
-    const processScheduleHours = (schedule: EmployeeSchedule, shift: string): void => {
-      // 確保 schedule.employee 存在
-      if (!schedule.employee) {
-        console.warn('排班記錄缺少員工資訊:', schedule);
-        return;
-      }
-      
-      const employeeId = schedule.employee._id;
-      const employeeName = schedule.employee.name;
-      const shiftHours = calculateShiftHours(shift as ShiftType);
-      
-      initializeEmployeeHours(employeeId, employeeName, employeeHoursData);
-      
-      // 將 EmployeeSchedule 轉換為 Schedule 型別
-      const scheduleForAllocation: Schedule = {
-        employee: schedule.employee,
-        leaveType: schedule.leaveType
-      };
-      
-      allocateHoursByLeaveType(scheduleForAllocation, shiftHours, employeeHoursData);
-    };
-
-    // 處理特定日期的排班
-    const processScheduleForShift = (schedule: EmployeeSchedule, shift: string): void => {
-      processScheduleHours(schedule, shift);
-    };
-
-    // 處理特定日期的所有班次排班
-    const processDateSchedules = (schedules: { [shift: string]: EmployeeSchedule[] }): void => {
-      SHIFT_NAMES.forEach(shift => {
-        if (schedules[shift]?.length > 0) {
-          schedules[shift].forEach(schedule => processScheduleForShift(schedule, shift));
-        }
-      });
-    };
-
     // 遍歷所有排班記錄
-    Object.values(schedulesGroupedByDate).forEach(processDateSchedules);
+    Object.values(schedulesGroupedByDate).forEach(dateSchedules =>
+      processDateSchedules(dateSchedules, employeeHoursData)
+    );
     
     // 將結果轉換為數組格式
     return Object.keys(employeeHoursData.names)

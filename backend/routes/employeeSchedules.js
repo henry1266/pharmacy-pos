@@ -167,16 +167,29 @@ const validateEmployeeId = async (employeeId, res) => {
   return { valid: true };
 };
 
-// 檢查排班衝突
+/**
+ * 檢查排班衝突
+ * 檢查是否存在相同日期、班次和員工的其他排班記錄
+ *
+ * @param {string} scheduleId - 當前排班ID (用於排除自身)
+ * @param {Date} date - 排班日期
+ * @param {string} shift - 班次
+ * @param {string} employeeId - 員工ID
+ * @returns {Promise<boolean>} - 如果存在衝突返回true，否則返回false
+ */
 const checkScheduleConflict = async (scheduleId, date, shift, employeeId) => {
+  // 構建查詢條件：排除當前排班ID，查找相同日期、班次和員工的記錄
   const conflictQuery = {
-    _id: { $ne: scheduleId },
-    date,
-    shift,
-    employeeId
+    _id: { $ne: scheduleId }, // 排除當前排班
+    date,                     // 相同日期
+    shift,                    // 相同班次
+    employeeId                // 相同員工
   };
   
+  // 查詢是否存在符合條件的記錄
   const conflictingSchedule = await EmployeeSchedule.findOne(conflictQuery);
+  
+  // 如果找到記錄，則存在衝突
   return conflictingSchedule !== null;
 };
 

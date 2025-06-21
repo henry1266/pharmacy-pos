@@ -12,12 +12,17 @@ const bcrypt = require('bcryptjs');
  * @returns {Promise<string>} 加密後的密碼
  */
 const hashPassword = async (password, saltRounds = 10) => {
+  if (!password) {
+    throw new Error('密碼不能為空');
+  }
+  
   try {
     const salt = await bcrypt.genSalt(saltRounds);
     const hashedPassword = await bcrypt.hash(password, salt);
     return hashedPassword;
   } catch (error) {
-    throw new Error('密碼加密失敗');
+    console.error('密碼加密失敗:', error);
+    throw new Error(`密碼加密失敗: ${error.message}`);
   }
 };
 
@@ -28,11 +33,16 @@ const hashPassword = async (password, saltRounds = 10) => {
  * @returns {Promise<boolean>} 密碼是否匹配
  */
 const verifyPassword = async (password, hashedPassword) => {
+  if (!password || !hashedPassword) {
+    throw new Error('密碼或雜湊密碼不能為空');
+  }
+  
   try {
     const isMatch = await bcrypt.compare(password, hashedPassword);
     return isMatch;
   } catch (error) {
-    throw new Error('密碼驗證失敗');
+    console.error('密碼驗證失敗:', error);
+    throw new Error(`密碼驗證失敗: ${error.message}`);
   }
 };
 

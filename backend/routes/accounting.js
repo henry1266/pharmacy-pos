@@ -279,10 +279,19 @@ router.put(
       const { date, shift, items, status } = req.body; // Add status here
       const accountingDate = new Date(date);
 
+      // 使用mongoose.Types.ObjectId確保id是有效的ObjectId格式，防止SQL注入
+      const safeParamId = mongoose.Types.ObjectId.isValid(req.params.id)
+        ? mongoose.Types.ObjectId(req.params.id)
+        : null;
+        
+      if (!safeParamId) {
+        return res.status(400).json({ msg: "無效的記帳記錄 ID 格式" });
+      }
+      
       const existingRecord = await Accounting.findOne({
         date: accountingDate,
         shift: shift.toString(),
-        _id: { $ne: req.params.id },
+        _id: { $ne: safeParamId },
       });
 
       if (existingRecord) {

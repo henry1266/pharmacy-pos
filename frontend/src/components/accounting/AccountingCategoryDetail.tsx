@@ -9,7 +9,6 @@ import {
   Alert,
   Card,
   CardContent,
-  Grid,
   IconButton,
   List,
   ListItem,
@@ -900,11 +899,16 @@ const AccountingCategoryDetail: React.FC = () => {
   
   // 渲染內容區域
   const renderContent = (): React.ReactNode => {
-    // 使用條件鏈來決定要顯示的內容
-    return loading ? renderLoading()
-         : error ? renderError()
-         : !category ? renderLoadingCategory()
-         : renderMainContent();
+    // 使用if-else條件判斷來決定要顯示的內容，避免嵌套三元運算符
+    if (loading) {
+      return renderLoading();
+    } else if (error) {
+      return renderError();
+    } else if (!category) {
+      return renderLoadingCategory();
+    } else {
+      return renderMainContent();
+    }
   };
   
   return (

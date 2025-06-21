@@ -136,11 +136,13 @@ const updateUsername = async (user, newUsername) => {
     return { success: true };
   }
 
+  // 檢查用戶名是否已被使用
   const existingUser = await User.findOne({ username: newUsername });
   if (existingUser) {
     return { success: false, error: "此用戶名已被使用" };
   }
   
+  // 設置新用戶名
   user.username = newUsername;
   return { success: true };
 };
@@ -152,10 +154,12 @@ const updateEmail = async (user, newEmail) => {
   }
 
   if (newEmail && newEmail.trim() !== '') {
+    // 檢查電子郵件是否已被使用
     const existingUser = await User.findOne({ email: newEmail });
     if (existingUser) {
       return { success: false, error: "此電子郵件已被使用" };
     }
+    // 設置新電子郵件
     user.email = newEmail;
   } else {
     // 如果email為空或空字符串，則從用戶文檔中移除email字段
