@@ -178,53 +178,62 @@ export interface IShippingOrder {
 
 export interface IShippingOrderDocument extends IShippingOrder, Document, ITimestamps {
   _id: Types.ObjectId;
+  calculateTotalAmount(): number;
+  updateStatus(newStatus: string, date?: Date): void;
+  setTrackingNumber(trackingNumber: string): void;
+  isOverdue(): boolean;
+  getDeliveryDays(): number | null;
 }
 
-// Inventory 模型型別
-export interface IInventoryMovement {
-  type: 'in' | 'out' | 'adjustment';
-  quantity: number;
-  unitPrice?: number;
-  reference?: string;
-  referenceId?: Types.ObjectId;
-  date: Date;
-  notes?: string;
-}
-
+// Inventory 模型型別 (庫存異動記錄)
 export interface IInventory {
   product: Types.ObjectId;
-  currentStock: number;
-  reservedStock: number;
-  availableStock: number;
-  averageCost: number;
-  lastMovement?: Date;
-  movements: IInventoryMovement[];
-  location?: string;
-  batchNumber?: string;
-  expiryDate?: Date;
+  quantity: number;
+  totalAmount: number;
+  purchaseOrderId?: Types.ObjectId;
+  purchaseOrderNumber?: string;
+  type: 'purchase' | 'sale' | 'return' | 'adjustment' | 'ship';
+  saleId?: Types.ObjectId;
+  saleNumber?: string;
+  shippingOrderId?: Types.ObjectId;
+  shippingOrderNumber?: string;
+  accountingId?: Types.ObjectId;
+  lastUpdated: Date;
 }
 
-export interface IInventoryDocument extends IInventory, Document, ITimestamps {
+export interface IInventoryDocument extends IInventory, Document {
   _id: Types.ObjectId;
+  calculateRunningBalance(): Promise<number>;
+  getRelatedTransactions(): Promise<{
+    purchases: number;
+    sales: number;
+    adjustments: number;
+  }>;
 }
 
-// Accounting 模型型別
-export interface IAccounting {
-  transactionNumber: string;
-  category: Types.ObjectId;
-  type: 'income' | 'expense';
+// Accounting 模型型別 (記帳系統)
+export interface IAccountingItem {
   amount: number;
-  description: string;
-  transactionDate: Date;
-  paymentMethod?: 'cash' | 'card' | 'transfer' | 'other';
-  reference?: string;
-  referenceId?: Types.ObjectId;
-  createdBy: Types.ObjectId;
-  tags?: string[];
+  category: string;
+  categoryId?: Types.ObjectId;
+  note?: string;
+}
+
+export interface IAccounting {
+  date: Date;
+  status: 'pending' | 'completed';
+  shift: '早' | '中' | '晚';
+  items: IAccountingItem[];
+  totalAmount: number;
+  createdBy: Types.ObjectId | string; // Mixed type for compatibility
 }
 
 export interface IAccountingDocument extends IAccounting, Document, ITimestamps {
   _id: Types.ObjectId;
+  calculateTotalAmount(): number;
+  addItem(item: IAccountingItem): void;
+  removeItem(index: number): void;
+  updateStatus(status: 'pending' | 'completed'): void;
 }
 
 // Customer 模型型別
@@ -244,71 +253,77 @@ export interface ICustomer {
 
 export interface ICustomerDocument extends ICustomer, Document, ITimestamps {
   _id: Types.ObjectId;
+  updatePurchaseRecord(amount: number): void;
+  getAge(): number | null;
+  isActiveCustomer(days?: number): boolean;
+  getCustomerTier(): string;
 }
 
 // Supplier 模型型別
 export interface ISupplier {
-  supplierCode: string;
+  code: string;
+  shortCode: string;
   name: string;
   contactPerson?: string;
-  email?: string;
   phone?: string;
+  email?: string;
   address?: string;
   taxId?: string;
   paymentTerms?: string;
   notes?: string;
-  isActive: boolean;
-  totalOrders?: number;
-  lastOrderDate?: Date;
+  date: Date;
 }
 
-export interface ISupplierDocument extends ISupplier, Document, ITimestamps {
+export interface ISupplierDocument extends ISupplier, Document {
   _id: Types.ObjectId;
+  updateSupplierInfo(data: Partial<ISupplier>): void;
+  getSupplierSummary(): {
+    code: string;
+    name: string;
+    contactPerson?: string;
+    totalOrders?: number;
+  };
 }
 
 // ProductCategory 模型型別
 export interface IProductCategory {
-  categoryCode: string;
   name: string;
   description?: string;
-  parentCategory?: Types.ObjectId;
+  order: number;
   isActive: boolean;
-  sortOrder?: number;
 }
 
 export interface IProductCategoryDocument extends IProductCategory, Document, ITimestamps {
   _id: Types.ObjectId;
+  updateOrder(newOrder: number): void;
+  toggleActive(): void;
 }
 
 // AccountingCategory 模型型別
 export interface IAccountingCategory {
-  categoryCode: string;
   name: string;
-  type: 'income' | 'expense';
   description?: string;
-  parentCategory?: Types.ObjectId;
+  order: number;
   isActive: boolean;
-  sortOrder?: number;
 }
 
 export interface IAccountingCategoryDocument extends IAccountingCategory, Document, ITimestamps {
   _id: Types.ObjectId;
+  updateOrder(newOrder: number): void;
+  toggleActive(): void;
 }
 
 // MonitoredProduct 模型型別
 export interface IMonitoredProduct {
-  product: Types.ObjectId;
-  minStock: number;
-  maxStock: number;
-  reorderPoint: number;
-  reorderQuantity: number;
-  isActive: boolean;
-  lastChecked?: Date;
-  alertSent?: boolean;
+  productCode: string;
+  addedBy?: Types.ObjectId;
+  addedAt: Date;
 }
 
-export interface IMonitoredProductDocument extends IMonitoredProduct, Document, ITimestamps {
+export interface IMonitoredProductDocument extends IMonitoredProduct, Document {
   _id: Types.ObjectId;
+  isProductCodeValid(): Promise<boolean>;
+  getProductInfo(): Promise<any>;
 }
 
 // EmployeeSchedule 模型型別
