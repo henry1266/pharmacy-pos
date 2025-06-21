@@ -169,7 +169,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       };
 
       if (editMode && currentId) {
-        await updateAccountingRecord(currentId, submitData as any);
+        await updateAccountingRecord(currentId, submitData as Partial<EntityAccountingRecord>);
         showSnackbar('記帳記錄已更新', 'success');
         handleCloseDialog();
         fetchRecords(); // Refetch records after update

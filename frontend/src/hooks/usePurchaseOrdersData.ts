@@ -30,7 +30,7 @@ const usePurchaseOrdersData = (): PurchaseOrdersDataResult => {
   );
   
   const { suppliers } = useSelector<RootState, SuppliersState>(
-    state => state.suppliers || { suppliers: [], loading: false, error: null }
+    state => state.suppliers ?? { suppliers: [], loading: false, error: null }
   ); // 處理初始狀態，如果 suppliers reducer 是獨立的
 
   // 在組件掛載時獲取數據
