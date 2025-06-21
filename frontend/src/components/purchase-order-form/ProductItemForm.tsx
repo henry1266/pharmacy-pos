@@ -55,9 +55,9 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
 }) => {
   const [activeInput, setActiveInput] = useState<string | null>(null);
 
-  const dQuantityValue = currentItem.dquantity || '';
-  const packageQuantityValue = currentItem.packageQuantity || '';
-  const boxQuantityValue = currentItem.boxQuantity || '';
+  const dQuantityValue = currentItem.dquantity ?? '';
+  const packageQuantityValue = currentItem.packageQuantity ?? '';
+  const boxQuantityValue = currentItem.boxQuantity ?? '';
 
   const subQuantitiesDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue as string) > 0 && activeInput !== 'packageQuantity' && activeInput !== 'boxQuantity';
   const mainQuantityDisabled = 

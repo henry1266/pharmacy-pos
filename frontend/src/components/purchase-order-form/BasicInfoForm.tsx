@@ -130,7 +130,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
           <Grid item md={2} sm={6} xs={12}>
             {/* @ts-ignore */}
             <SupplierSelect
-              suppliers={suppliers || []}
+              suppliers={suppliers ?? []}
               selectedSupplier={selectedSupplier} 
               onChange={handleSupplierChange}
               label={isEditMode ? "進貨商 (僅供查看)" : "進貨商 (可用名稱或簡碼)"}
@@ -149,7 +149,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                     labelId="payment-status-select-label"
                     id="payment-status-select"
                     name="paymentStatus"
-                    value={formData?.paymentStatus || ''}
+                    value={formData?.paymentStatus ?? ''}
                     label="付款狀態"
                     onChange={handleInputChange}
                   >
@@ -198,7 +198,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 <InputLabel>狀態</InputLabel>
                 <Select
                   name="status"
-                  value={formData?.status || ''}
+                  value={formData?.status ?? ''}
                   onChange={handleInputChange}
                   label="狀態"
                   id="status-select"
