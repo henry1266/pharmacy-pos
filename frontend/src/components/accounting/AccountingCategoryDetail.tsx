@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -79,6 +79,188 @@ interface ChartData {
   金額: number;
   月份: number;
 }
+
+// 內容區塊介面
+interface ContentSectionProps {
+  children: React.ReactNode;
+  maxWidth?: Record<string, string>;
+  withPaper?: boolean;
+}
+
+// 內容區塊組件
+const ContentSection: FC<ContentSectionProps> = ({
+  children,
+  maxWidth,
+  withPaper = false
+}) => {
+  const content = withPaper ? <Paper sx={{ p: 1 }}>{children}</Paper> : children;
+  
+  return (
+    <Box
+      sx={{
+        flex: '1 1 100%',
+        maxWidth: maxWidth || { xs: '100%' }
+      }}
+    >
+      {content}
+    </Box>
+  );
+};
+
+// 狀態顯示組件介面
+interface StatusDisplayProps {
+  type: 'loading' | 'error' | 'info';
+  message?: string;
+}
+
+// 狀態顯示組件
+const StatusDisplay: FC<StatusDisplayProps> = ({ type, message }) => {
+  switch (type) {
+    case 'loading':
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress />
+        </Box>
+      );
+    case 'error':
+      return <Alert severity="error">{message}</Alert>;
+    case 'info':
+      return <Alert severity="info">{message}</Alert>;
+    default:
+      return null;
+  }
+};
+
+// 頁面標題組件介面
+interface PageHeaderProps {
+  title: string;
+  onBack: () => void;
+  onExport: () => void;
+  exportDisabled: boolean;
+}
+
+// 頁面標題組件
+const PageHeader: FC<PageHeaderProps> = ({
+  title,
+  onBack,
+  onExport,
+  exportDisabled
+}) => (
+  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <IconButton onClick={onBack} sx={{ mr: 1 }}>
+        <ArrowBackIcon />
+      </IconButton>
+      <Typography variant="h4">
+        {title}
+      </Typography>
+    </Box>
+    <Box>
+      <Button
+        variant="outlined"
+        startIcon={<DownloadIcon />}
+        onClick={onExport}
+        sx={{ ml: 1 }}
+        disabled={exportDisabled}
+      >
+        導出CSV
+      </Button>
+    </Box>
+  </Box>
+);
+
+// 圖表共用元素組件
+const ChartCommonElements: FC<{ dataKey?: string }> = ({ dataKey = "月份" }) => (
+  <>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey={dataKey} />
+    <YAxis />
+    <RechartsTooltip
+      formatter={(value: number) => [`$${value}`, '金額']}
+      labelFormatter={(label: string) => `${label}月`}
+    />
+    <Legend />
+  </>
+);
+
+// 月份列表項目介面
+interface MonthListItemProps {
+  month: string;
+  index: number;
+  isSelected: boolean;
+  amount: number;
+  onSelect: (index: number) => void;
+}
+
+// 月份列表項目組件
+const MonthListItem: FC<MonthListItemProps> = ({
+  month,
+  index,
+  isSelected,
+  amount,
+  onSelect
+}) => (
+  <ListItem
+    key={`month-${month}`}
+    disablePadding
+    divider
+    sx={{
+      backgroundColor: isSelected ? '#e3f2fd' : 'transparent',
+      '&:hover': {
+        backgroundColor: isSelected ? '#e3f2fd' : '#f5f5f5'
+      }
+    }}
+  >
+    <ListItemButton
+      onClick={() => onSelect(index)}
+      sx={{ py: 0.5 }}
+    >
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%'
+      }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.primary',
+            fontWeight: isSelected ? 'bold' : 'normal'
+          }}
+        >
+          {month}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: amount > 0 ? 'primary.main' : 'text.secondary',
+            fontWeight: 'bold'
+          }}
+        >
+          ${amount}
+        </Typography>
+      </Box>
+    </ListItemButton>
+  </ListItem>
+);
+
+// 通用資訊卡片組件介面
+interface InfoCardProps {
+  title: string;
+  content: React.ReactNode;
+}
+
+// 通用資訊卡片組件
+const InfoCard: FC<InfoCardProps> = ({ title, content }) => (
+  <Card>
+    <CardContent>
+      <Typography variant="h6" gutterBottom>
+        {title}
+      </Typography>
+      {content}
+    </CardContent>
+  </Card>
+);
 
 /**
  * 會計名目類別詳細頁面組件
@@ -314,22 +496,6 @@ const AccountingCategoryDetail: React.FC = () => {
     '7月', '8月', '9月', '10月', '11月', '12月'
   ];
   
-  // 通用資訊卡片組件
-  interface InfoCardProps {
-    title: string;
-    content: React.ReactNode;
-  }
-  
-  const InfoCard: React.FC<InfoCardProps> = ({ title, content }) => (
-    <Card>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
-        {content}
-      </CardContent>
-    </Card>
-  );
   
   // 渲染類別資訊卡片
   const renderCategoryInfoCard = (): React.ReactNode => {
@@ -388,66 +554,6 @@ const AccountingCategoryDetail: React.FC = () => {
     );
   };
   
-  // 月份列表項目介面
-  interface MonthListItemProps {
-    month: string;
-    index: number;
-    isSelected: boolean;
-    amount: number;
-    onSelect: (index: number) => void;
-  }
-  
-  // 月份列表項目組件
-  const MonthListItem: React.FC<MonthListItemProps> = ({
-    month,
-    index,
-    isSelected,
-    amount,
-    onSelect
-  }) => (
-    <ListItem
-      key={`month-${month}`}
-      disablePadding
-      divider
-      sx={{
-        backgroundColor: isSelected ? '#e3f2fd' : 'transparent',
-        '&:hover': {
-          backgroundColor: isSelected ? '#e3f2fd' : '#f5f5f5'
-        }
-      }}
-    >
-      <ListItemButton
-        onClick={() => onSelect(index)}
-        sx={{ py: 0.5 }}
-      >
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <Typography
-            variant="body2"
-            sx={{
-              color: 'text.primary',
-              fontWeight: isSelected ? 'bold' : 'normal'
-            }}
-          >
-            {month}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: amount > 0 ? 'primary.main' : 'text.secondary',
-              fontWeight: 'bold'
-            }}
-          >
-            ${amount}
-          </Typography>
-        </Box>
-      </ListItemButton>
-    </ListItem>
-  );
   
   // 渲染月份列表項目
   const renderMonthListItem = (month: string, index: number): React.ReactNode => {
@@ -626,19 +732,6 @@ const AccountingCategoryDetail: React.FC = () => {
     }));
   };
   
-  // 圖表共用元素
-  const ChartCommonElements = ({ dataKey = "月份" }: { dataKey?: string }) => (
-    <>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey={dataKey} />
-      <YAxis />
-      <RechartsTooltip
-        formatter={(value: number) => [`$${value}`, '金額']}
-        labelFormatter={(label: string) => `${label}月`}
-      />
-      <Legend />
-    </>
-  );
   
   // 渲染長條圖
   const renderBarChart = (data: ChartData[]): React.ReactNode => (
@@ -736,43 +829,6 @@ const AccountingCategoryDetail: React.FC = () => {
     );
   };
   
-  // 頁面標題組件介面
-  interface PageHeaderProps {
-    title: string;
-    onBack: () => void;
-    onExport: () => void;
-    exportDisabled: boolean;
-  }
-  
-  // 頁面標題組件
-  const PageHeader: React.FC<PageHeaderProps> = ({
-    title,
-    onBack,
-    onExport,
-    exportDisabled
-  }) => (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <IconButton onClick={onBack} sx={{ mr: 1 }}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h4">
-          {title}
-        </Typography>
-      </Box>
-      <Box>
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={onExport}
-          sx={{ ml: 1 }}
-          disabled={exportDisabled}
-        >
-          導出CSV
-        </Button>
-      </Box>
-    </Box>
-  );
   
   // 渲染頁面標題與操作按鈕
   const renderPageHeader = (): React.ReactNode => {
@@ -786,29 +842,6 @@ const AccountingCategoryDetail: React.FC = () => {
     );
   };
   
-  // 狀態顯示組件介面
-  interface StatusDisplayProps {
-    type: 'loading' | 'error' | 'info';
-    message?: string;
-  }
-  
-  // 狀態顯示組件
-  const StatusDisplay: React.FC<StatusDisplayProps> = ({ type, message }) => {
-    switch (type) {
-      case 'loading':
-        return (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
-        );
-      case 'error':
-        return <Alert severity="error">{message}</Alert>;
-      case 'info':
-        return <Alert severity="info">{message}</Alert>;
-      default:
-        return null;
-    }
-  };
   
   // 渲染載入中狀態
   const renderLoading = (): React.ReactNode => (
@@ -825,32 +858,6 @@ const AccountingCategoryDetail: React.FC = () => {
     <StatusDisplay type="info" message="正在加載類別資訊..." />
   );
   
-  // 內容區塊介面
-  interface ContentSectionProps {
-    children: React.ReactNode;
-    maxWidth?: Record<string, string>;
-    withPaper?: boolean;
-  }
-  
-  // 內容區塊組件
-  const ContentSection: React.FC<ContentSectionProps> = ({
-    children,
-    maxWidth,
-    withPaper = false
-  }) => {
-    const content = withPaper ? <Paper sx={{ p: 1 }}>{children}</Paper> : children;
-    
-    return (
-      <Box
-        sx={{
-          flex: '1 1 100%',
-          maxWidth: maxWidth || { xs: '100%' }
-        }}
-      >
-        {content}
-      </Box>
-    );
-  };
   
   // 渲染主要內容
   const renderMainContent = (): React.ReactNode => {
@@ -899,16 +906,19 @@ const AccountingCategoryDetail: React.FC = () => {
   
   // 渲染內容區域
   const renderContent = (): React.ReactNode => {
-    // 使用if-else條件判斷來決定要顯示的內容，避免嵌套三元運算符
     if (loading) {
       return renderLoading();
-    } else if (error) {
-      return renderError();
-    } else if (!category) {
-      return renderLoadingCategory();
-    } else {
-      return renderMainContent();
     }
+    
+    if (error) {
+      return renderError();
+    }
+    
+    if (!category) {
+      return renderLoadingCategory();
+    }
+    
+    return renderMainContent();
   };
   
   return (

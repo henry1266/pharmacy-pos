@@ -1,14 +1,14 @@
 import React from 'react';
 import {
   Paper,
-  Grid,
   Button,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Box,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Grid // 保留Grid導入，因為它在組件中被使用
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -49,7 +49,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
   return (
     <Paper sx={{ p: 2, mb: 3 }}>
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} sm={3} {...({} as any)}>
+        <Grid item xs={12} sm={3}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
             <DatePicker
               label="開始日期"
@@ -63,7 +63,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={3} {...({} as any)}>
+        <Grid item xs={12} sm={3}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
             <DatePicker
               label="結束日期"
@@ -77,7 +77,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={3} {...({} as any)}>
+        <Grid item xs={12} sm={3}>
           <FormControl fullWidth>
             <InputLabel>班別</InputLabel>
             <Select
@@ -92,7 +92,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={3} {...({} as any)}>
+        <Grid item xs={12} sm={3}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               component={Link}
