@@ -35,6 +35,96 @@ interface DetailItem {
 }
 
 /**
+ * 詳細資料項目組件介面
+ */
+interface CollapsibleContentProps {
+  isLoading: boolean;
+  loadingText: string;
+  error: string | null;
+  collapsibleDetails: DetailItem[];
+  noDetailsText: string;
+}
+
+/**
+ * 詳細資料項目組件
+ */
+const CollapsibleContent: React.FC<CollapsibleContentProps> = ({
+  isLoading,
+  loadingText,
+  error,
+  collapsibleDetails,
+  noDetailsText
+}) => {
+  // 載入中狀態
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+        <CircularProgress size={24} sx={{ mr: 1 }} />
+        <Typography variant="body2" color="text.secondary">{loadingText}</Typography>
+      </Box>
+    );
+  }
+  
+  // 錯誤狀態
+  if (error) {
+    return (
+      <Typography color="error" variant="body2" sx={{ p: 2, textAlign: 'center' }}>{error}</Typography>
+    );
+  }
+  
+  // 有明細資料狀態
+  const filteredDetails = collapsibleDetails.filter(
+    detail => typeof detail.condition === 'function' ? detail.condition() : detail.condition !== false
+  );
+  
+  if (filteredDetails.length > 0) {
+    return (
+      <Grid container spacing={2} alignItems="flex-start">
+        {filteredDetails.map((detail, index) => {
+          const DetailIconComponent = detail.icon;
+          // 使用更穩定的複合 key 而非純索引
+          const detailKey = `detail-${detail.label}-${index}`;
+
+          return (
+            <Grid item xs={6} sm={4} md={3} key={detailKey}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                {DetailIconComponent && React.cloneElement(DetailIconComponent, {
+                  sx: { fontSize: 'small', color: 'action', ...DetailIconComponent.props.sx }
+                })}
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">{detail.label}</Typography>
+                  {detail.customContent ? (
+                    detail.customContent
+                  ) : (
+                    <Typography
+                      variant="body1"
+                      color={detail.color ?? 'text.primary'}
+                      fontWeight={detail.fontWeight ?? 'normal'}
+                    >
+                      {detail.valueFormatter
+                        ? detail.valueFormatter(detail.value)
+                        : (typeof detail.value === 'number' ? detail.value.toFixed(2) : detail.value)
+                      }
+                    </Typography>
+                  )}
+                </Box>
+              </Stack>
+            </Grid>
+          );
+        })}
+      </Grid>
+    );
+  }
+  
+  // 無明細資料狀態
+  return (
+    <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
+      {noDetailsText}
+    </Typography>
+  );
+};
+
+/**
  * 可通用的金額訊息收合元件
  */
 interface CollapsibleAmountInfoProps {
@@ -78,76 +168,6 @@ const CollapsibleAmountInfo: React.FC<CollapsibleAmountInfoProps> = ({
     ? mainAmountValue.toFixed(2) 
     : mainAmountValue;
 
-  // 處理可收合區域內容
-  const renderCollapsibleContent = () => {
-    // 載入中狀態
-    if (isLoading) {
-      return (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-          <CircularProgress size={24} sx={{ mr: 1 }} />
-          <Typography variant="body2" color="text.secondary">{loadingText}</Typography>
-        </Box>
-      );
-    }
-    
-    // 錯誤狀態
-    if (error) {
-      return (
-        <Typography color="error" variant="body2" sx={{ p: 2, textAlign: 'center' }}>{error}</Typography>
-      );
-    }
-    
-    // 有明細資料狀態
-    const filteredDetails = collapsibleDetails.filter(
-      detail => typeof detail.condition === 'function' ? detail.condition() : detail.condition !== false
-    );
-    
-    if (filteredDetails.length > 0) {
-      return (
-        <Grid container spacing={2} alignItems="flex-start">
-          {filteredDetails.map((detail, index) => {
-            const DetailIconComponent = detail.icon;
-            // 使用更穩定的複合 key 而非純索引
-            const detailKey = `detail-${detail.label}-${index}`;
-
-            return (
-              <Grid item xs={6} sm={4} md={3} key={detailKey}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  {DetailIconComponent && React.cloneElement(DetailIconComponent, {
-                    sx: { fontSize: 'small', color: 'action', ...DetailIconComponent.props.sx }
-                  })}
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">{detail.label}</Typography>
-                    {detail.customContent ? (
-                      detail.customContent
-                    ) : (
-                      <Typography
-                        variant="body1"
-                        color={detail.color || 'text.primary'}
-                        fontWeight={detail.fontWeight || 'normal'}
-                      >
-                        {detail.valueFormatter
-                          ? detail.valueFormatter(detail.value)
-                          : (typeof detail.value === 'number' ? detail.value.toFixed(2) : detail.value)
-                        }
-                      </Typography>
-                    )}
-                  </Box>
-                </Stack>
-              </Grid>
-            );
-          })}
-        </Grid>
-      );
-    }
-    
-    // 無明細資料狀態
-    return (
-      <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
-        {noDetailsText}
-      </Typography>
-    );
-  };
 
   return (
     <Card variant="outlined">
@@ -178,7 +198,13 @@ const CollapsibleAmountInfo: React.FC<CollapsibleAmountInfoProps> = ({
       <Collapse in={isOpen} timeout="auto" unmountOnExit>
         <Divider />
         <CardContent>
-          {renderCollapsibleContent()}
+          <CollapsibleContent
+            isLoading={isLoading}
+            loadingText={loadingText}
+            error={error}
+            collapsibleDetails={collapsibleDetails}
+            noDetailsText={noDetailsText}
+          />
         </CardContent>
       </Collapse>
     </Card>

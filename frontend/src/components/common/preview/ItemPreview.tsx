@@ -59,6 +59,299 @@ interface ContainerProps {
 }
 
 /**
+ * 表格行組件介面
+ */
+interface TableRowComponentProps {
+  item: DataItem;
+  index: number;
+  columns: Column[];
+  renderItem?: (item: DataItem, index: number) => React.ReactNode;
+}
+
+/**
+ * 表格行組件
+ */
+const TableRowComponent: React.FC<TableRowComponentProps> = ({
+  item,
+  index,
+  columns,
+  renderItem
+}) => {
+  if (renderItem) {
+    return renderItem(item, index);
+  }
+  
+  return (
+    <TableRow key={`item-${item.id ?? item.did ?? index}`}>
+      {columns.map((column, colIndex) => (
+        <TableCell key={`cell-${column.key ?? colIndex}-${index}`} align={column.align ?? 'left'}>
+          {column.render ? column.render(item) : item[column.key ?? '']}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+};
+
+/**
+ * 表格變體組件介面
+ */
+interface TableVariantComponentProps {
+  data: PreviewData;
+  title: string;
+  columns: Column[];
+  itemsKey: string;
+  renderItem?: (item: DataItem, index: number) => React.ReactNode;
+  emptyText: string;
+  maxItems: number;
+  total?: number | string;
+  noteContent: string | null;
+  containerProps: ContainerProps;
+}
+
+/**
+ * 表格變體組件
+ */
+const TableVariantComponent: React.FC<TableVariantComponentProps> = ({
+  data,
+  title,
+  columns,
+  itemsKey,
+  renderItem,
+  emptyText,
+  maxItems,
+  total,
+  noteContent,
+  containerProps
+}) => {
+  const items = data[itemsKey] ?? [];
+  const defaultContainerProps = {
+    sx: {
+      width: 550,
+      maxHeight: 600,
+      overflow: 'auto',
+      ...containerProps?.sx
+    }
+  };
+
+  return (
+    <Card {...defaultContainerProps}>
+      <CardContent sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {title}
+        </Typography>
+
+        <TableContainer component={Paper} variant="outlined" sx={{ mb: 1 }}>
+          <Table size="small">
+            {columns.length > 0 && (
+              <TableHead>
+                <TableRow>
+                  {columns.map((column, index) => (
+                    <TableCell key={`header-${column.key ?? index}`} align={column.align ?? 'left'}>
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+            )}
+            <TableBody>
+              {items.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">{emptyText}</TableCell>
+                </TableRow>
+              ) : (
+                <>
+                  {items.slice(0, maxItems).map((item: DataItem, index: number) => (
+                    <TableRowComponent
+                      key={`row-${item.id ?? item.did ?? index}`}
+                      item={item}
+                      index={index}
+                      columns={columns}
+                      renderItem={renderItem}
+                    />
+                  ))}
+                  {items.length > maxItems && (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} align="center">
+                        <Typography variant="body2" color="text.secondary">
+                          還有 {items.length - maxItems} 個項目...
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              )}
+              {total !== undefined && (
+                <TableRow>
+                  <TableCell colSpan={columns.length - 1} align="right">
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      總計:
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      {typeof total === 'number' ? total.toLocaleString() : total}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        
+        {noteContent && (
+          <>
+            <Divider sx={{ my: 1 }} />
+            <Typography variant="subtitle2" gutterBottom>
+              備註
+            </Typography>
+            <Typography variant="body2">
+              {noteContent}
+            </Typography>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * 列表項目組件介面
+ */
+interface ListItemComponentProps {
+  item: DataItem;
+  index: number;
+  renderItem?: (item: DataItem, index: number) => React.ReactNode;
+}
+
+/**
+ * 列表項目組件
+ */
+const ListItemComponent: React.FC<ListItemComponentProps> = ({
+  item,
+  index,
+  renderItem
+}) => {
+  if (renderItem) {
+    return renderItem(item, index);
+  }
+  
+  return (
+    <Box key={`list-item-${item.id ?? item.did ?? index}`} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
+      <Typography variant="body2">
+        {item.dname ?? item.name} ({item.did ?? item.id})
+      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography variant="body2" color="textSecondary">
+          數量: {item.dquantity ?? item.quantity}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          金額: {(item.dtotalCost ?? item.totalCost ?? 0).toLocaleString()} 元
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+/**
+ * 列表變體組件介面
+ */
+interface ListVariantComponentProps {
+  data: PreviewData;
+  title: string;
+  itemsKey: string;
+  renderItem?: (item: DataItem, index: number) => React.ReactNode;
+  emptyText: string;
+  maxItems: number;
+  total?: number | string;
+  noteContent: string | null;
+  containerProps: ContainerProps;
+}
+
+/**
+ * 列表變體組件
+ */
+const ListVariantComponent: React.FC<ListVariantComponentProps> = ({
+  data,
+  title,
+  itemsKey,
+  renderItem,
+  emptyText,
+  maxItems,
+  total,
+  noteContent,
+  containerProps
+}) => {
+  const items = data[itemsKey] ?? [];
+  const defaultContainerProps = {
+    sx: {
+      width: 550,
+      maxHeight: 600,
+      overflow: 'auto',
+      ...containerProps?.sx
+    }
+  };
+
+  return (
+    <Paper {...defaultContainerProps}>
+      <Box sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {title}
+        </Typography>
+        
+        <Divider sx={{ my: 1 }} />
+        
+        <Typography variant="subtitle2" gutterBottom>
+          項目
+        </Typography>
+        
+        {items.length === 0 ? (
+          <Typography variant="body2" color="textSecondary">
+            {emptyText}
+          </Typography>
+        ) : (
+          <>
+            {items.slice(0, maxItems).map((item: DataItem, index: number) => (
+              <ListItemComponent
+                key={`list-item-${item.id ?? item.did ?? index}`}
+                item={item}
+                index={index}
+                renderItem={renderItem}
+              />
+            ))}
+            {items.length > maxItems && (
+              <Typography variant="body2" color="text.secondary" align="center">
+                還有 {items.length - maxItems} 個項目...
+              </Typography>
+            )}
+          </>
+        )}
+        
+        {total !== undefined && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, pt: 1, borderTop: '1px solid rgba(0, 0, 0, 0.12)' }}>
+            <Typography variant="subtitle2">總計:</Typography>
+            <Typography variant="subtitle2">
+              {typeof total === 'number' ? total.toLocaleString() : total} 元
+            </Typography>
+          </Box>
+        )}
+        
+        {noteContent && (
+          <>
+            <Divider sx={{ my: 1 }} />
+            <Typography variant="subtitle2" gutterBottom>
+              備註
+            </Typography>
+            <Typography variant="body2">
+              {noteContent}
+            </Typography>
+          </>
+        )}
+      </Box>
+    </Paper>
+  );
+};
+
+/**
  * 通用預覽組件
  */
 interface ItemPreviewProps {
@@ -126,7 +419,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
   }
 
   // 獲取項目數據
-  const items = data[itemsKey] || [];
+  const items = data[itemsKey] ?? [];
   
   // 獲取備註 - 修正條件恆真問題
   let noteContent = null;
@@ -143,7 +436,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
   } else if (data.totalAmount !== undefined) {
     total = data.totalAmount;
   } else if (items.length > 0) {
-    total = items.reduce((sum: number, item: DataItem) => sum + Number(item.dtotalCost || 0), 0);
+    total = items.reduce((sum: number, item: DataItem) => sum + Number(item.dtotalCost ?? 0), 0);
   } else {
     total = 0;
   }
@@ -158,174 +451,35 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
     }
   };
   
-  // 提取巢狀三元運算子為獨立函數
-  const renderTableRow = (item: DataItem, index: number) => {
-    if (renderItem) {
-      return renderItem(item, index);
-    }
-    
-    return (
-      <TableRow key={`item-${item.id || item.did || index}`}>
-        {columns.map((column, colIndex) => (
-          <TableCell key={`cell-${column.key || colIndex}-${index}`} align={column.align || 'left'}>
-            {column.render ? column.render(item) : item[column.key || '']}
-          </TableCell>
-        ))}
-      </TableRow>
-    );
-  };
   
-  // 表格變體
-  const renderTableVariant = () => (
-    <Card {...defaultContainerProps}>
-      <CardContent sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
-
-        <TableContainer component={Paper} variant="outlined" sx={{ mb: 1 }}>
-          <Table size="small">
-            {columns.length > 0 && (
-              <TableHead>
-                <TableRow>
-                  {columns.map((column, index) => (
-                    <TableCell key={`header-${column.key || index}`} align={column.align || 'left'}>
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-            )}
-            <TableBody>
-              {items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center">{emptyText}</TableCell>
-                </TableRow>
-              ) : (
-                <>
-                  {items.slice(0, maxItems).map((item: DataItem, index: number) => renderTableRow(item, index))}
-                  {items.length > maxItems && (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} align="center">
-                        <Typography variant="body2" color="text.secondary">
-                          還有 {items.length - maxItems} 個項目...
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </>
-              )}
-              {total !== undefined && (
-                <TableRow>
-                  <TableCell colSpan={columns.length - 1} align="right">
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      總計:
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {typeof total === 'number' ? total.toLocaleString() : total}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        
-        {noteContent && (
-          <>
-            <Divider sx={{ my: 1 }} />
-            <Typography variant="subtitle2" gutterBottom>
-              備註
-            </Typography>
-            <Typography variant="body2">
-              {noteContent}
-            </Typography>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-  
-  // 提取巢狀三元運算子為獨立函數
-  const renderListItem = (item: DataItem, index: number) => {
-    if (renderItem) {
-      return renderItem(item, index);
-    }
-    
-    return (
-      <Box key={`list-item-${item.id || item.did || index}`} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
-        <Typography variant="body2">
-          {item.dname || item.name} ({item.did || item.id})
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="body2" color="textSecondary">
-            數量: {item.dquantity || item.quantity}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            金額: {(item.dtotalCost || item.totalCost || 0).toLocaleString()} 元
-          </Typography>
-        </Box>
-      </Box>
-    );
-  };
-  
-  // 列表變體
-  const renderListVariant = () => (
-    <Paper {...defaultContainerProps}>
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
-        
-        <Divider sx={{ my: 1 }} />
-        
-        <Typography variant="subtitle2" gutterBottom>
-          項目
-        </Typography>
-        
-        {items.length === 0 ? (
-          <Typography variant="body2" color="textSecondary">
-            {emptyText}
-          </Typography>
-        ) : (
-          <>
-            {items.slice(0, maxItems).map((item: DataItem, index: number) => renderListItem(item, index))}
-            {items.length > maxItems && (
-              <Typography variant="body2" color="text.secondary" align="center">
-                還有 {items.length - maxItems} 個項目...
-              </Typography>
-            )}
-          </>
-        )}
-        
-        {total !== undefined && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, pt: 1, borderTop: '1px solid rgba(0, 0, 0, 0.12)' }}>
-            <Typography variant="subtitle2">總計:</Typography>
-            <Typography variant="subtitle2">
-              {typeof total === 'number' ? total.toLocaleString() : total} 元
-            </Typography>
-          </Box>
-        )}
-        
-        {noteContent && (
-          <>
-            <Divider sx={{ my: 1 }} />
-            <Typography variant="subtitle2" gutterBottom>
-              備註
-            </Typography>
-            <Typography variant="body2">
-              {noteContent}
-            </Typography>
-          </>
-        )}
-      </Box>
-    </Paper>
-  );
   
   // 根據變體類型渲染不同的UI
-  return variant === 'table' ? renderTableVariant() : renderListVariant();
+  return variant === 'table' ? (
+    <TableVariantComponent
+      data={data}
+      title={title}
+      columns={columns}
+      itemsKey={itemsKey}
+      renderItem={renderItem}
+      emptyText={emptyText}
+      maxItems={maxItems}
+      total={total}
+      noteContent={noteContent}
+      containerProps={containerProps}
+    />
+  ) : (
+    <ListVariantComponent
+      data={data}
+      title={title}
+      itemsKey={itemsKey}
+      renderItem={renderItem}
+      emptyText={emptyText}
+      maxItems={maxItems}
+      total={total}
+      noteContent={noteContent}
+      containerProps={containerProps}
+    />
+  );
 };
 
 export default ItemPreview;

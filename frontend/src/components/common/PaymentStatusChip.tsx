@@ -4,7 +4,7 @@ import { Chip, ChipProps } from '@mui/material';
 /**
  * 出貨單付款狀態標籤組件
  */
-type PaymentStatusType = '未付' | '未收' | '已收款' | '已下收' | '已匯款' | '已開立' | string;
+type PaymentStatusType = '未付' | '未收' | '已收款' | '已下收' | '已匯款' | '已開立';
 
 interface PaymentStatusChipProps {
   status?: PaymentStatusType;
@@ -12,7 +12,7 @@ interface PaymentStatusChipProps {
 
 const PaymentStatusChip: React.FC<PaymentStatusChipProps> = ({ status = '未收' }) => {
   let color: ChipProps['color'] = 'default';
-  let label = status || '未收';
+  let label = status ?? '未收';
   
   switch (status) {
     case '未付':
