@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Box,
@@ -257,7 +257,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
       
       // 處理獨立加班記錄
       records.forEach(record => {
-        if (record.employee && record.employee._id) {
+        if (record.employee?._id) {
           expandedState[record.employee._id] = false;
         }
       });
