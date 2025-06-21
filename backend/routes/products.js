@@ -88,7 +88,11 @@ router.get('/medicines', async (req, res) => {
 // @access  Public
 router.get('/code/:code', async (req, res) => {
   try {
-    const product = await BaseProduct.findOne({ code: req.params.code });
+    // 驗證並清理產品代碼參數
+    const productCode = req.params.code.toString().trim();
+    
+    // 使用經過驗證的產品代碼進行查詢
+    const product = await BaseProduct.findOne({ code: productCode });
     
     if (!product) {
       return res.status(404).json({ msg: '產品不存在' });

@@ -164,12 +164,11 @@ const updateEmail = async (user, newEmail) => {
   } else {
     // 如果email為空或空字符串，則從用戶文檔中移除email字段
     user.email = undefined;
-    if (user.email !== undefined) {
-      await User.updateOne(
-        { _id: user._id },
-        { $unset: { email: 1 } }
-      );
-    }
+    // 直接從數據庫中移除email字段，不需要檢查user.email是否為undefined
+    await User.updateOne(
+      { _id: user._id },
+      { $unset: { email: 1 } }
+    );
   }
   
   return { success: true };

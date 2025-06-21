@@ -271,22 +271,17 @@ router.put(
       return res.status(400).json({ errors: errors.array() });
     }
     
+    // 驗證ID格式並轉換為安全的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
         return res.status(400).json({ msg: "無效的記帳記錄 ID 格式" });
     }
 
     try {
-      const { date, shift, items, status } = req.body; // Add status here
+      const { date, shift, items, status } = req.body;
       const accountingDate = new Date(date);
 
-      // 使用mongoose.Types.ObjectId確保id是有效的ObjectId格式，防止SQL注入
-      const safeParamId = mongoose.Types.ObjectId.isValid(req.params.id)
-        ? mongoose.Types.ObjectId(req.params.id)
-        : null;
-        
-      if (!safeParamId) {
-        return res.status(400).json({ msg: "無效的記帳記錄 ID 格式" });
-      }
+      // 使用已驗證的ID創建安全的ObjectId
+      const safeParamId = mongoose.Types.ObjectId(req.params.id);
       
       const existingRecord = await Accounting.findOne({
         date: accountingDate,

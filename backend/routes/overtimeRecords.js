@@ -138,8 +138,7 @@ router.get("/monthly-stats", auth, async (req, res) => {
         case 'evening':
           estimatedHours = 1.5; // 晚班 19:00-20:30
           break;
-        default:
-          estimatedHours = 0;
+        // default 分支不需要，因為 estimatedHours 已經初始化為 0
       }
       
       employeeStats[employeeId].overtimeHours += estimatedHours;
