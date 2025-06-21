@@ -239,12 +239,12 @@ const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedDa
         if (!transaction) return;
         
         // 計算庫存變化
-        const quantity = transaction.quantity || 0;
+        const quantity = transaction.quantity ?? 0;
         cumulativeStock += quantity;
         
         // 計算損益變化
         let profitLoss = 0;
-        const price = transaction.price || 0;
+        const price = transaction.price ?? 0;
         
         if (transaction.type === '進貨') {
           profitLoss = -(quantity * price);
@@ -262,11 +262,11 @@ const InventoryProfitLossChart: FC<InventoryProfitLossChartProps> = ({ groupedDa
         const orderNumber = getOrderNumber(transaction);
         
         allTransactions.push({
-          productId: product.productId || '',
-          productName: product.productName || '未知商品',
-          productCode: product.productCode || '未知編碼',
+          productId: product.productId ?? '',
+          productName: product.productName ?? '未知商品',
+          productCode: product.productCode ?? '未知編碼',
           orderNumber: orderNumber,
-          type: transaction.type || '未知類型',
+          type: transaction.type ?? '未知類型',
           quantity: quantity,
           price: price,
           profitLoss: profitLoss,
