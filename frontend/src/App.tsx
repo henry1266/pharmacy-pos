@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import MainLayout from './components/layout/MainLayout.tsx';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
-import LoginPage from './pages/LoginPage.tsx'; // 使用明確的副檔名
+import MainLayout from './components/layout/MainLayout';
+import LoginPage from './pages/LoginPage';
 // 使用 JSX 元素類型來避免 React Router 類型問題
 // 合併 react-router-dom 的導入，避免重複導入
 import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-dom';
-// @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
-import AppRouter from './AppRouter.tsx'; // 這將包含受保護的路由
+import AppRouter from './AppRouter'; // 這將包含受保護的路由
 import axios from 'axios';
 import './assets/css/dashui-theme.css';
 // 在 TypeScript 中不需要 PropTypes，因為我們已經有了類型定義
@@ -136,8 +134,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
   return <>{children}</>;
 };
-
-// 在 TypeScript 中，我們使用介面定義而不是 PropTypes
 
 const App: React.FC = () => {
   // 如果令牌存在，則設置 axios 默認標頭（在初始加載時）
