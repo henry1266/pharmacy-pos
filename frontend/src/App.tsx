@@ -5,9 +5,8 @@ import MainLayout from './components/layout/MainLayout.tsx';
 // @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import LoginPage from './pages/LoginPage.tsx'; // 使用明確的副檔名
 // 使用 JSX 元素類型來避免 React Router 類型問題
-import { BrowserRouter as Router, Navigate } from 'react-router-dom';
-// @ts-ignore - 忽略 React Router 類型問題
-import { Routes, Route } from 'react-router-dom';
+// 合併 react-router-dom 的導入，避免重複導入
+import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-dom';
 // @ts-ignore - 忽略 TypeScript 對 .tsx 副檔名的錯誤
 import AppRouter from './AppRouter.tsx'; // 這將包含受保護的路由
 import axios from 'axios';

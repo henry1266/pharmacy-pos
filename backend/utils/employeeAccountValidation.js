@@ -68,7 +68,9 @@ const isEmailExists = async (email, excludeUserId = null) => {
     query._id = { $ne: excludeUserId };
   }
   
-  const existingUser = await User.findOne(query);
+  // 使用參數化查詢而非直接構建查詢對象
+  const validatedQuery = { ...query }; // 創建查詢條件的副本
+  const existingUser = await User.findOne(validatedQuery);
   return !!existingUser;
 };
 

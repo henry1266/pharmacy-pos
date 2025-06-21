@@ -16,16 +16,10 @@ const hashPassword = async (password, saltRounds = 10) => {
     throw new Error('密碼不能為空');
   }
   
-  // 使用 try-catch 但直接重新拋出原始錯誤，不包裝為新錯誤
-  try {
-    const salt = await bcrypt.genSalt(saltRounds);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
-  } catch (error) {
-    // 只記錄錯誤，然後重新拋出原始錯誤
-    console.error('密碼加密失敗:', error);
-    throw error; // 直接拋出原始錯誤，不創建新的錯誤對象
-  }
+  // 移除不必要的try-catch，讓錯誤自然傳播
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  return hashedPassword;
 };
 
 /**
@@ -39,15 +33,9 @@ const verifyPassword = async (password, hashedPassword) => {
     throw new Error('密碼或雜湊密碼不能為空');
   }
   
-  // 使用 try-catch 但直接重新拋出原始錯誤，不包裝為新錯誤
-  try {
-    const isMatch = await bcrypt.compare(password, hashedPassword);
-    return isMatch;
-  } catch (error) {
-    // 只記錄錯誤，然後重新拋出原始錯誤
-    console.error('密碼驗證失敗:', error);
-    throw error; // 直接拋出原始錯誤，不創建新的錯誤對象
-  }
+  // 移除不必要的try-catch，讓錯誤自然傳播
+  const isMatch = await bcrypt.compare(password, hashedPassword);
+  return isMatch;
 };
 
 /**
