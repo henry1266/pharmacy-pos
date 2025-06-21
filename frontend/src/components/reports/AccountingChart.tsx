@@ -780,10 +780,8 @@ const AccountingChart: FC = () => {
         </Typography>
 
         {/* 過濾器 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* 日期範圍選擇 */}
-          {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
           <Grid item xs={12} md={6}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
               {dateRangeOptions.map((option) => (
@@ -813,11 +811,8 @@ const AccountingChart: FC = () => {
           </Grid>
 
           {/* 分組和視圖選項 */}
-          {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
           <Grid item xs={12} md={6}>
-            {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
             <Grid container spacing={2}>
-              {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel>分組方式</InputLabel>
@@ -834,7 +829,6 @@ const AccountingChart: FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel>視圖模式</InputLabel>
@@ -851,7 +845,6 @@ const AccountingChart: FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel>圖表類型</InputLabel>
@@ -868,7 +861,6 @@ const AccountingChart: FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel>類別</InputLabel>
@@ -899,9 +891,7 @@ const AccountingChart: FC = () => {
 
         {/* 摘要信息 */}
         <Box sx={{ mb: 3 }}>
-          {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
           <Grid container spacing={2}>
-            {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
             <Grid item xs={12} sm={6} md={3}>
               <Paper sx={{ p: 2, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
@@ -912,7 +902,6 @@ const AccountingChart: FC = () => {
                 </Typography>
               </Paper>
             </Grid>
-            {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
             <Grid item xs={12} sm={6} md={3}>
               <Paper sx={{ p: 2, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
@@ -923,7 +912,6 @@ const AccountingChart: FC = () => {
                 </Typography>
               </Paper>
             </Grid>
-            {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
             <Grid item xs={12} sm={6} md={3}>
               <Paper sx={{ p: 2, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
@@ -934,7 +922,6 @@ const AccountingChart: FC = () => {
                 </Typography>
               </Paper>
             </Grid>
-            {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
             <Grid item xs={12} sm={6} md={3}>
               <Paper sx={{ p: 2, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">

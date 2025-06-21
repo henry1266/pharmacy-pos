@@ -53,9 +53,7 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
   suppliers
 }) => {
   return (
-    // @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題
     <Grid container spacing={2} sx={{ mb: 2 }}>
-      {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
       <Grid item xs={12} sm={6} md={3}>
         <TextField
           fullWidth
@@ -67,7 +65,6 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
           size="small"
         />
       </Grid>
-      {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
       <Grid item xs={12} sm={6} md={3}>
         <TextField
           fullWidth
@@ -79,7 +76,6 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
           size="small"
         />
       </Grid>
-      {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
       <Grid item xs={12} sm={6} md={3}>
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
           <DatePicker
@@ -89,7 +85,6 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
           />
         </LocalizationProvider>
       </Grid>
-      {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
       <Grid item xs={12} sm={6} md={3}>
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
           <DatePicker
@@ -99,7 +94,6 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
           />
         </LocalizationProvider>
       </Grid>
-      {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
       <Grid item xs={12} sm={6} md={6}>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button

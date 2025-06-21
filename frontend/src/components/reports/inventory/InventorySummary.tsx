@@ -426,10 +426,8 @@ const InventorySummary: FC<InventorySummaryProps> = ({ filters }) => {
 
   return (
     <Box>
-      {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
       <Grid container spacing={2} alignItems="center">
       {/* 總毛利 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <Grid item xs={12} sm={6} md={3}>
           <Card 
             sx={{ 
@@ -473,7 +471,6 @@ const InventorySummary: FC<InventorySummaryProps> = ({ filters }) => {
           </Card>
         </Grid>
       {/* 插入 "—" 符號 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <Grid item xs={12} sm={6} md={1} sx={connectorStyle as SxProps<Theme>}>
           <Typography variant="h4" fontWeight="700" color="text.secondary">
             —
@@ -481,7 +478,6 @@ const InventorySummary: FC<InventorySummaryProps> = ({ filters }) => {
         </Grid>
 
         {/* 總庫存價值 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ ...cardStyle }}>
             <CardContent sx={{ 
@@ -512,14 +508,12 @@ const InventorySummary: FC<InventorySummaryProps> = ({ filters }) => {
           </Card>
         </Grid>
           {/* 插入 "=" 符號 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <Grid item xs={12} sm={6} md={1} sx={connectorStyle as SxProps<Theme>}>
           <Typography variant="h4" fontWeight="700" color="text.secondary">
             =
           </Typography>
         </Grid>
         {/* 損益總和 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ ...cardStyle }}>
             <CardContent sx={{ 

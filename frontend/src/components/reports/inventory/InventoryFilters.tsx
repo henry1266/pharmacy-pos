@@ -118,10 +118,8 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
         </Typography>
       </Box>
       
-      {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
       <MuiGrid container spacing={2}>
         {/* 供應商篩選 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <MuiGrid item xs={12} sm={6} md={3}>
           <FormControl fullWidth size="small">
             <InputLabel id="supplier-label">供應商</InputLabel>
@@ -143,7 +141,6 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
         </MuiGrid>
         
         {/* 類別篩選 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <MuiGrid item xs={12} sm={6} md={3}>
           <FormControl fullWidth size="small">
             <InputLabel id="category-label">類別</InputLabel>
@@ -165,7 +162,6 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
         </MuiGrid>
         
         {/* 產品類型篩選 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <MuiGrid item xs={12} sm={6} md={2}>
           <FormControl fullWidth size="small">
             <InputLabel id="product-type-label">產品類型</InputLabel>
@@ -184,7 +180,6 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
         </MuiGrid>
         
         {/* 商品編號篩選 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <MuiGrid item xs={12} sm={6} md={2}>
           <TextField
             fullWidth
@@ -198,7 +193,6 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
         </MuiGrid>
         
         {/* 商品名稱篩選 */}
-        {/* @ts-ignore - MUI Grid 組件在 TypeScript 中的型別定義問題 */}
         <MuiGrid item xs={12} sm={6} md={2}>
           <TextField
             fullWidth
