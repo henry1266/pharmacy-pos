@@ -439,7 +439,7 @@ const ShippingOrderDetailPage: React.FC = () => {
               totalCostField="dtotalCost"
               totalAmount={currentShippingOrder.totalAmount ?? 0}
               title="" // Already has default title "項目"
-              isLoading={productDetailsLoading || orderLoading || fifoLoading} // Include fifoLoading
+              isLoading={productDetailsLoading ? true : (orderLoading ? true : !!fifoLoading)} // Include fifoLoading
               // profitField and profitMarginField use defaults 'profit' and 'profitMargin'
             />
           </CardContent>
@@ -513,7 +513,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       size="small" 
       startIcon={<PrintIcon />} 
       onClick={handlePrintClick}
-      disabled={!currentShippingOrder || orderLoading || productDetailsLoading || fifoLoading}
+      disabled={!currentShippingOrder ? true : (orderLoading ? true : (productDetailsLoading ? true : !!fifoLoading))}
     >
       列印
     </Button>
