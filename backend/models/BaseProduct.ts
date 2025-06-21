@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
 import { IBaseProduct, IProduct, IMedicine, IBaseProductDocument } from '../src/types/models';
 
 // BaseProduct Schema 定義
@@ -86,8 +86,8 @@ BaseProductSchema.statics.searchProducts = function(searchTerm: string, options:
   return this.find(query)
     .populate('category', 'name')
     .populate('supplier', 'name')
-    .sort(options.sort || { productName: 1 })
-    .limit(options.limit || 50);
+    .sort(options.sort ?? { productName: 1 })
+    .limit(options.limit ?? 50);
 };
 
 // 虛擬屬性：完整顯示名稱
