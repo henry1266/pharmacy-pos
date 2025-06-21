@@ -1,34 +1,23 @@
-import React, { FC, ChangeEvent, SyntheticEvent } from 'react';
+import React, { FC } from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  Tabs, 
-  Tab, 
-  Box, 
-  Typography, 
-  CircularProgress,
-  Alert,
-  Input
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Tabs,
+  Tab,
+  Box,
+  Typography
 } from '@mui/material';
-import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
-
-// 定義組件 props 的介面
-interface CsvImportDialogProps {
-  open: boolean;
-  onClose: () => void;
-  tabValue: number;
-  onTabChange: (event: SyntheticEvent, newValue: number) => void;
-  csvFile: File | null;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onImport: () => void;
-  loading: boolean;
-  error?: string;
-  success: boolean;
-}
+import {
+  CsvImportDialogProps,
+  FileUpload,
+  StatusMessage,
+  LoadingButton,
+  CSV_IMPORT_TABS
+} from '../shared';
 
 /**
  * CSV導入對話框組件
@@ -68,70 +57,41 @@ const CsvImportDialog: FC<CsvImportDialogProps> = ({
         </Tabs>
         
         <Box sx={{ mt: 2 }}>
-          {tabValue === 0 && (
+          {tabValue === CSV_IMPORT_TABS.basicInfo.index && (
             <Typography variant="body2" gutterBottom>
-              導入出貨單基本資訊，包括出貨單號、發票號碼、發票日期、客戶等。
+              {CSV_IMPORT_TABS.basicInfo.description}
             </Typography>
           )}
           
-          {tabValue === 1 && (
+          {tabValue === CSV_IMPORT_TABS.items.index && (
             <Typography variant="body2" gutterBottom>
-              導入出貨單藥品項目，包括出貨單號、藥品代碼、數量、總金額等。
+              {CSV_IMPORT_TABS.items.description}
             </Typography>
           )}
           
-          <Box sx={{ mt: 2, mb: 2 }}>
-            <Input
-              type="file"
-              inputProps={{ accept: '.csv' }}
-              onChange={onFileChange}
-              disabled={loading}
-              sx={{ display: 'none' }}
-              id="csv-file-input"
-            />
-            <label htmlFor="csv-file-input">
-              <Button
-                variant="outlined"
-                component="span"
-                startIcon={<CloudUploadIcon />}
-                disabled={loading}
-              >
-                選擇CSV文件
-              </Button>
-            </label>
-            
-            {csvFile && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                已選擇: {csvFile.name}
-              </Typography>
-            )}
-          </Box>
+          <FileUpload
+            csvFile={csvFile}
+            onFileChange={onFileChange}
+            loading={loading}
+          />
           
-          {error && (
-            <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          
-          {success && (
-            <Alert severity="success" sx={{ mt: 2, mb: 2 }}>
-              CSV導入成功！
-            </Alert>
-          )}
+          <StatusMessage
+            error={error}
+            success={success}
+          />
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
           取消
         </Button>
-        <Button
+        <LoadingButton
           onClick={onImport}
-          color="primary"
-          disabled={!csvFile || Boolean(loading) || Boolean(success)}
-          startIcon={loading ? <CircularProgress size={20} /> : undefined}
+          loading={loading}
+          disabled={!csvFile || success}
         >
-          {loading ? '導入中...' : '導入'}
-        </Button>
+          導入
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );
@@ -149,6 +109,6 @@ CsvImportDialog.propTypes = {
   loading: PropTypes.bool.isRequired,
   error: PropTypes.string,
   success: PropTypes.bool.isRequired
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
+} as any;
 
 export default CsvImportDialog;
