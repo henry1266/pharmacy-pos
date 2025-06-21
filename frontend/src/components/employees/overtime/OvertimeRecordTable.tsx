@@ -105,17 +105,17 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
   onRejectRecord
 }) => {
   // 獲取狀態顯示文字
-  const getStatusText = (status: OvertimeRecordStatus): string => {
+  const getStatusText = (status: OvertimeRecordStatus | string): string => {
     switch (status) {
       case 'pending': return '待審核';
       case 'approved': return '已核准';
       case 'rejected': return '已拒絕';
-      default: return status;
+      default: return String(status);
     }
   };
 
   // 獲取狀態顏色
-  const getStatusColor = (status: OvertimeRecordStatus): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+  const getStatusColor = (status: OvertimeRecordStatus | string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
     switch (status) {
       case 'pending': return 'warning';
       case 'approved': return 'success';
@@ -141,7 +141,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
         originalRecord: record,
         hours: record.hours,
         description: record.description || '-',
-        status: record.status as OvertimeRecordStatus
+        status: (record.status as OvertimeRecordStatus) || 'pending'
       })),
       // 排班系統加班記錄
       ...group.scheduleRecords.map(record => {

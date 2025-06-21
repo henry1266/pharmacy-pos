@@ -91,7 +91,7 @@ interface MergedRecord {
   originalRecord: OvertimeRecord | ScheduleOvertimeRecord;
   hours: number;
   description: string;
-  status: string;
+  status: 'pending' | 'approved' | 'rejected';
   shift?: string;
 }
 
@@ -300,7 +300,7 @@ const useOvertimeData = (
       originalRecord: record,
       hours: record.hours,
       description: record.description || '-',
-      status: record.status || 'pending'
+      status: (record.status as 'pending' | 'approved' | 'rejected') || 'pending'
     }));
     
     // 準備排班系統加班記錄
@@ -341,7 +341,7 @@ const useOvertimeData = (
               originalRecord: record,
               hours: hours,
               description: shiftName,
-              status: 'approved',
+              status: 'approved' as 'pending' | 'approved' | 'rejected',
               shift: record.shift
             };
             return result;
