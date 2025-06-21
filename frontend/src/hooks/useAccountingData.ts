@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { getUnaccountedSales, AccountingFilters } from '../services/accountingService'; // 引入型別
+import { getUnaccountedSales } from '../services/accountingService';
 import { AccountingRecord } from '../types/entities';
 
 /**

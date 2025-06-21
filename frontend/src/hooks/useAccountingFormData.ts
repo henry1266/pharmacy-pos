@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { format } from 'date-fns';
 import { getAccountingCategories } from '../services/accountingCategoryService';
-import { getUnaccountedSales, createAccountingRecord, UnaccountedSale as ServiceUnaccountedSale } from '../services/accountingService';
+import { getUnaccountedSales, createAccountingRecord } from '../services/accountingService';
 import { AccountingCategory } from '../types/entities';
 
 /**

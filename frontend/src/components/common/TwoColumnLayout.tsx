@@ -1,8 +1,8 @@
 import React from 'react';
-import { Grid as MuiGrid, Box } from '@mui/material';
+import { Grid as MuiGrid, Box, GridSize } from '@mui/material';
 
 // 創建一個 Grid 組件，以便更容易使用
-const Grid = MuiGrid as React.ComponentType<any>;
+const Grid = MuiGrid;
 
 /**
  * 通用的兩欄式佈局組件
@@ -10,8 +10,8 @@ const Grid = MuiGrid as React.ComponentType<any>;
 interface TwoColumnLayoutProps {
   leftContent: React.ReactNode;
   rightContent: React.ReactNode;
-  leftWidth?: number | string;
-  rightWidth?: number | string;
+  leftWidth?: boolean | GridSize;
+  rightWidth?: boolean | GridSize;
 }
 
 const TwoColumnLayout: React.FC<TwoColumnLayoutProps> = ({ 
