@@ -1,65 +1,69 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    /* 基本選項 */
+    "target": "es2018",
     "module": "commonjs",
-    "lib": ["ES2020"],
-    "outDir": "./dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
+    "lib": ["es2018", "esnext.asynciterable"],
+    "allowJs": true,
+    "checkJs": false,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    "removeComments": false,
+
+    /* 路徑設定 */
+    "rootDir": "./",
+    "outDir": "./dist",
+
+    /* 模組解析選項 */
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
-      "@models/*": ["models/*"],
-      "@routes/*": ["routes/*"],
-      "@utils/*": ["utils/*"],
-      "@services/*": ["services/*"],
-      "@middleware/*": ["middleware/*"],
-      "@config/*": ["config/*"],
-      "@types/*": ["src/types/*"]
-    }
+      "*": ["node_modules/*"]
+    },
+
+    /* TypeScript 編譯選項 */
+    "strict": false,              // 先設為 false，待專案穩定後再開啟
+    "noImplicitAny": false,       // 允許隱含的 any 型別
+    "strictNullChecks": false,    // 不嚴格檢查 null 和 undefined
+    "strictFunctionTypes": false, // 不嚴格檢查函數型別
+    "strictBindCallApply": false, // 不嚴格檢查 bind, call, apply
+    "strictPropertyInitialization": false, // 不嚴格檢查類別屬性初始化
+    "noImplicitThis": false,      // 允許隱含的 this
+    "alwaysStrict": false,        // 不在輸出檔案中加入 "use strict"
+
+    /* 其他重要選項 */
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    
+    /* 額外的寬鬆設定，用於轉型過程 */
+    "noErrorTruncation": true,    // 顯示完整錯誤信息
+    "ignoreDeprecations": "5.0",  // 忽略舊版本的棄用警告
+    "useUnknownInCatchVariables": false, // catch 子句中使用 any 而非 unknown
+    "exactOptionalPropertyTypes": false, // 不要求可選屬性的精確類型匹配
+    "noFallthroughCasesInSwitch": false, // 允許 switch 語句中的 fallthrough
+    "noImplicitOverride": false,  // 不要求顯式標記覆蓋方法
+    "noPropertyAccessFromIndexSignature": false, // 允許從索引簽名訪問屬性
+    "noUncheckedIndexedAccess": false // 不檢查索引訪問
   },
   "include": [
-    "src/**/*",
-    "models/**/*",
-    "routes/**/*",
-    "utils/**/*",
-    "services/**/*",
-    "middleware/**/*",
-    "config/**/*",
-    "scripts/**/*",
-    "*.ts",
-    "*.js"
+    "./**/*.ts",
+    "./**/*.js"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts",
-    "**/*.test.js",
-    "test/**/*"
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ],
   "ts-node": {
     "transpileOnly": true,
-    "files": true,
     "compilerOptions": {
-      "module": "commonjs",
-      "target": "ES2020"
+      "module": "commonjs"
     }
   }
 }

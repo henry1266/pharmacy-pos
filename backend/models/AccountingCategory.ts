@@ -1,5 +1,13 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
 import { IAccountingCategoryDocument } from '../src/types/models';
+
+// 定義包含靜態方法的介面
+interface IAccountingCategoryModel extends Model<IAccountingCategoryDocument> {
+  getNextOrder(): Promise<number>;
+  getActiveCategories(): mongoose.Query<IAccountingCategoryDocument[], IAccountingCategoryDocument>;
+  findByName(name: string): mongoose.Query<IAccountingCategoryDocument | null, IAccountingCategoryDocument>;
+  reorderCategories(categoryIds: mongoose.Types.ObjectId[]): Promise<any[]>;
+}
 
 // 記帳名目類別資料模型
 const AccountingCategorySchema = new Schema<IAccountingCategoryDocument>({
@@ -78,4 +86,4 @@ AccountingCategorySchema.index({ name: 1 });
 AccountingCategorySchema.index({ order: 1 });
 AccountingCategorySchema.index({ isActive: 1, order: 1 });
 
-export default mongoose.model<IAccountingCategoryDocument>('AccountingCategory', AccountingCategorySchema);
+export default mongoose.model<IAccountingCategoryDocument, IAccountingCategoryModel>('AccountingCategory', AccountingCategorySchema);
