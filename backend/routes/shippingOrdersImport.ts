@@ -6,10 +6,10 @@ import csv from "csv-parser";
 import fs from "fs";
 import path from "path";
 
-// 使用 require 導入模型，避免型別衝突
-const ShippingOrder = require("../models/ShippingOrder");
-const { BaseProduct } = require("../models/BaseProduct");
-const Inventory = require("../models/Inventory");
+// 使用 ES6 import 導入模型
+import ShippingOrder from "../models/ShippingOrder";
+import BaseProduct from "../models/BaseProduct";
+import Inventory from "../models/Inventory";
 const OrderNumberService = require("../utils/OrderNumberService");
 
 // 使用 ES6 import 導入 TypeScript 模型
@@ -33,7 +33,7 @@ interface ShippingOrderDocument {
   supplier?: Types.ObjectId | string | null;
   items: ShippingOrderItem[];
   notes?: string;
-  status: 'pending' | 'completed';
+  status: 'pending' | 'completed' | 'cancelled';
   paymentStatus: string;
   totalAmount?: number;
   createdAt?: Date;

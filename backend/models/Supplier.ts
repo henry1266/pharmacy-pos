@@ -67,4 +67,6 @@ SupplierSchema.methods.getSupplierSummary = function(): {
 const Supplier: Model<ISupplierDocument> = mongoose.model<ISupplierDocument>('supplier', SupplierSchema);
 
 export default Supplier;
+module.exports = Supplier;
+module.exports.default = Supplier;
 export type { ISupplier, ISupplierDocument };

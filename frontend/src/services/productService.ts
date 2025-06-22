@@ -55,8 +55,8 @@ export const getProducts = async (): Promise<Product[]> => {
 export const getSuppliers = async (): Promise<Supplier[]> => {
   try {
     const config = getAuthConfig(false);
-    const response = await axios.get<Supplier[]>(SUPPLIERS_API_URL, config);
-    return response.data;
+    const response = await axios.get(SUPPLIERS_API_URL, config);
+    return (response.data as any)?.data || [];
   } catch (error: any) {
     console.error('Error fetching suppliers:', error.response?.data ?? error.message);
     throw error;

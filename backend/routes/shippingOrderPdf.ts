@@ -3,10 +3,10 @@ import path from 'path';
 import { Types } from 'mongoose';
 import dayjs from 'dayjs';
 
-// 使用 require 導入模型和PDFKit，避免型別衝突
+// 使用 ES6 import 導入模型和PDFKit
 const PDFDocument = require('pdfkit');
-const ShippingOrder = require('../models/ShippingOrder');
-const { BaseProduct, Medicine } = require('../models/BaseProduct');
+import ShippingOrder from '../models/ShippingOrder';
+import BaseProduct, { Medicine } from '../models/BaseProduct';
 
 // 擴展PDFKit類型
 interface PDFTextOptions {

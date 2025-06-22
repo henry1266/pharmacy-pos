@@ -6,14 +6,12 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 
-// 使用 require 導入所有模型，避免型別衝突
-const PurchaseOrder = require('../models/PurchaseOrder');
-const { BaseProduct } = require('../models/BaseProduct');
-const Inventory = require('../models/Inventory');
-const OrderNumberService = require('../utils/OrderNumberService');
-
-// 使用 ES6 import 導入 TypeScript 模型
+// 使用 ES6 import 導入模型
+import PurchaseOrder from '../models/PurchaseOrder';
+import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
+import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
+const OrderNumberService = require('../utils/OrderNumberService');
 
 // 定義符合實際模型的介面
 interface PurchaseOrderItem {

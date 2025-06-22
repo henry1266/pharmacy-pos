@@ -1,13 +1,11 @@
 import express, { Request, Response } from 'express';
 import mongoose, { Types } from 'mongoose';
 
-// 使用 require 導入模型，避免型別衝突
-const { BaseProduct } = require('../models/BaseProduct');
-const Sale = require('../models/Sale');
-const Customer = require('../models/Customer');
-const Inventory = require('../models/Inventory');
-
-// 使用 ES6 import 導入 TypeScript 模型
+// 使用 ES6 import 導入模型
+import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
+import Sale from '../models/Sale';
+import Customer from '../models/Customer';
+import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
 
 // 定義庫存警告介面

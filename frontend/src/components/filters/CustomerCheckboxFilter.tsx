@@ -32,11 +32,13 @@ interface CustomerCheckboxFilterProps {
   onFilterChange: (selected: string[]) => void;
 }
 
-const CustomerCheckboxFilter: React.FC<CustomerCheckboxFilterProps> = ({ 
-  customers = [], 
-  selectedCustomers = [], 
-  onFilterChange 
+const CustomerCheckboxFilter: React.FC<CustomerCheckboxFilterProps> = ({
+  customers,
+  selectedCustomers = [],
+  onFilterChange
 }) => {
+  // 確保 customers 是陣列
+  const safeCustomers = Array.isArray(customers) ? customers : [];
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [localSelectedCustomers, setLocalSelectedCustomers] = useState<string[]>(selectedCustomers);
   
@@ -84,12 +86,12 @@ const CustomerCheckboxFilter: React.FC<CustomerCheckboxFilterProps> = ({
   
   // 處理全選
   const handleSelectAll = () => {
-    if (customers.length === localSelectedCustomers.length) {
+    if (safeCustomers.length === localSelectedCustomers.length) {
       // 如果已經全選，則清除所有選擇
       setLocalSelectedCustomers([]);
     } else {
       // 否則選擇所有客戶
-      setLocalSelectedCustomers(customers.map(customer => customer.name));
+      setLocalSelectedCustomers(safeCustomers.map(customer => customer.name));
     }
   };
   
@@ -100,7 +102,7 @@ const CustomerCheckboxFilter: React.FC<CustomerCheckboxFilterProps> = ({
   const getFilterIcon = () => {
     if (selectedCustomers.length === 0) {
       return <CheckBoxOutlineBlankIcon fontSize="small" />;
-    } else if (selectedCustomers.length === customers.length) {
+    } else if (selectedCustomers.length === safeCustomers.length) {
       return <CheckBoxIcon fontSize="small" color="primary" />;
     } else {
       return <FilterListIcon fontSize="small" color="primary" />;
@@ -145,15 +147,15 @@ const CustomerCheckboxFilter: React.FC<CustomerCheckboxFilterProps> = ({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={customers.length > 0 && localSelectedCustomers.length === customers.length}
-                  indeterminate={localSelectedCustomers.length > 0 && localSelectedCustomers.length < customers.length}
+                  checked={safeCustomers.length > 0 && localSelectedCustomers.length === safeCustomers.length}
+                  indeterminate={localSelectedCustomers.length > 0 && localSelectedCustomers.length < safeCustomers.length}
                   onChange={handleSelectAll}
                 />
               }
               label="全選"
             />
             
-            {customers.map((customer) => (
+            {safeCustomers.map((customer) => (
               <FormControlLabel
                 key={customer._id}
                 control={

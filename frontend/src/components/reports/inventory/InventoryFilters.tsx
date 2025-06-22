@@ -50,8 +50,8 @@ const InventoryFilters: FC<InventoryFiltersProps> = ({ onFilterChange }) => {
     const fetchFilterOptions = async () => {
       try {
         // 獲取供應商列表
-        const suppliersRes = await axios.get<Supplier[]>('/api/suppliers');
-        setSuppliers(suppliersRes.data ?? []);
+        const suppliersRes = await axios.get('/api/suppliers');
+        setSuppliers((suppliersRes.data as any)?.data ?? []);
 
         // 獲取類別列表（從報表API獲取）
         interface InventoryResponse {

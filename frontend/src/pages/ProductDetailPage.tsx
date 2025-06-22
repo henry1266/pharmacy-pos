@@ -71,8 +71,8 @@ const ProductDetailPage: React.FC = () => {
         setLoading(true);
         
         // 獲取供應商列表
-        const suppliersResponse = await axios.get<Supplier[]>('/api/suppliers');
-        setSuppliers(suppliersResponse.data);
+        const suppliersResponse = await axios.get('/api/suppliers');
+        setSuppliers((suppliersResponse.data as any)?.data || []);
         
         // 獲取產品分類
         const categoriesData = await getProductCategories();

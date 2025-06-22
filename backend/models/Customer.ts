@@ -97,4 +97,7 @@ CustomerSchema.methods.getCustomerTier = function(): string {
   return 'regular';
 };
 
-export default model<ICustomerDocument>('customer', CustomerSchema);
+const Customer = model<ICustomerDocument>('customer', CustomerSchema);
+export default Customer;
+module.exports = Customer;
+module.exports.default = Customer;

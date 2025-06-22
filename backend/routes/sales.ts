@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
+// 使用 ES6 import 導入模型
 import Sale from '../models/Sale';
-import BaseProduct from '../models/BaseProduct';
+import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
 import { AuthenticatedRequest } from '../src/types/express';

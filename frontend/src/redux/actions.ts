@@ -168,7 +168,7 @@ export const fetchSuppliers = (): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_SUPPLIERS_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
@@ -189,7 +189,7 @@ export const fetchCustomers = (): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_CUSTOMERS_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({

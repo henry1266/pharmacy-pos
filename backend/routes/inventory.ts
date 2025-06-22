@@ -3,9 +3,8 @@ import { check, validationResult } from 'express-validator';
 import { Types } from 'mongoose';
 
 import Inventory from '../models/Inventory';
-// 使用require語法導入
-const BaseProductModule = require('../models/BaseProduct');
-const BaseProduct = BaseProductModule.BaseProduct;
+// 使用 ES6 import 導入
+import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
 import PurchaseOrder from '../models/PurchaseOrder';
 import { ApiResponse, ErrorResponse } from '../src/types/api';
 import { IInventory, IInventoryDocument } from '../src/types/models';

@@ -6,52 +6,49 @@ export interface ITimestamps {
   updatedAt: Date;
 }
 
-// User 模型型別
+// User 模型型別 (與實際模型一致)
 export interface IUser {
-  username: string;
-  password: string;
-  role: 'admin' | 'user' | 'employee';
-  isActive: boolean;
-  lastLogin?: Date;
-  settings?: {
-    theme?: string;
-    language?: string;
-    notifications?: boolean;
-  };
-}
-
-export interface IUserDocument extends IUser, Document, ITimestamps {
-  _id: Types.ObjectId;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-}
-
-// Employee 模型型別
-export interface IEmployee {
-  employeeId: string;
   name: string;
-  position: string;
-  department?: string;
+  username: string;
   email?: string;
+  password: string;
+  role: 'admin' | 'pharmacist' | 'staff';
+  settings: Record<string, any>;
+  date: Date;
+}
+
+export interface IUserDocument extends IUser, Document {
+  _id: Types.ObjectId;
+}
+
+// Employee 模型型別 (與實際模型一致)
+export interface IEmployee {
+  name: string;
+  gender: 'male' | 'female';
+  birthDate: Date;
+  idNumber: string;
+  education?: string;
+  nativePlace?: string;
+  address: string;
   phone?: string;
+  position: string;
+  department: string;
   hireDate: Date;
   salary?: number;
-  isActive: boolean;
-  workSchedule?: {
-    monday?: { start: string; end: string; };
-    tuesday?: { start: string; end: string; };
-    wednesday?: { start: string; end: string; };
-    thursday?: { start: string; end: string; };
-    friday?: { start: string; end: string; };
-    saturday?: { start: string; end: string; };
-    sunday?: { start: string; end: string; };
-  };
+  insuranceDate?: Date;
+  experience?: string;
+  rewards?: string;
+  injuries?: string;
+  additionalInfo?: string;
+  idCardFront?: string;
+  idCardBack?: string;
+  userId?: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface IEmployeeDocument extends IEmployee, Document, ITimestamps {
+export interface IEmployeeDocument extends IEmployee, Document {
   _id: Types.ObjectId;
-  getWorkExperience(): number;
-  hasWorkSchedule(): boolean;
-  getWorkDays(): string[];
 }
 
 // BaseProduct 模型型別 (與實際資料庫結構一致)
@@ -118,67 +115,72 @@ export interface ISaleDocument extends ISale, Document, ITimestamps {
   saleDate: Date;
 }
 
-// PurchaseOrder 模型型別
+// PurchaseOrder 模型型別 (與實際模型一致)
 export interface IPurchaseOrderItem {
   product: Types.ObjectId;
-  productName: string;
-  quantity: number;
+  did: string;
+  dname: string;
+  dquantity: number;
+  dtotalCost: number;
   unitPrice: number;
-  subtotal: number;
 }
 
 export interface IPurchaseOrder {
+  poid: string;
   orderNumber: string;
-  supplier: Types.ObjectId;
+  pobill?: string;
+  pobilldate?: Date;
+  posupplier: string;
+  supplier?: Types.ObjectId;
   items: IPurchaseOrderItem[];
   totalAmount: number;
-  status: 'pending' | 'ordered' | 'received' | 'cancelled';
-  orderDate: Date;
-  expectedDeliveryDate?: Date;
-  actualDeliveryDate?: Date;
-  createdBy: Types.ObjectId;
+  status: 'pending' | 'completed' | 'cancelled';
+  paymentStatus: '未付' | '已下收' | '已匯款';
   notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface IPurchaseOrderDocument extends IPurchaseOrder, Document, ITimestamps {
+export interface IPurchaseOrderDocument extends IPurchaseOrder, Document {
   _id: Types.ObjectId;
-  calculateTotalAmount(): number;
-  validateItemSubtotals(): boolean;
-  updateStatus(newStatus: string, deliveryDate?: Date): void;
-  isOverdue(): boolean;
+  items: IPurchaseOrderItemDocument[];
 }
 
-// ShippingOrder 模型型別
+export interface IPurchaseOrderItemDocument extends IPurchaseOrderItem, Document {
+  _id: Types.ObjectId;
+}
+
+// ShippingOrder 模型型別 (與實際模型一致)
 export interface IShippingOrderItem {
   product: Types.ObjectId;
-  productName: string;
-  quantity: number;
-  unitPrice?: number;
-  subtotal?: number;
+  did: string;
+  dname: string;
+  dquantity: number;
+  dtotalCost: number;
+  unitPrice: number;
 }
 
 export interface IShippingOrder {
+  soid: string;
   orderNumber: string;
-  customer?: Types.ObjectId;
-  customerName?: string;
+  sosupplier: string;
+  supplier?: Types.ObjectId;
   items: IShippingOrderItem[];
-  totalAmount?: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  shippingDate?: Date;
-  deliveryDate?: Date;
-  shippingAddress?: string;
-  trackingNumber?: string;
-  createdBy: Types.ObjectId;
+  totalAmount: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  paymentStatus: '未收' | '已收款' | '已開立';
   notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface IShippingOrderDocument extends IShippingOrder, Document, ITimestamps {
+export interface IShippingOrderDocument extends IShippingOrder, Document {
   _id: Types.ObjectId;
-  calculateTotalAmount(): number;
-  updateStatus(newStatus: string, date?: Date): void;
-  setTrackingNumber(trackingNumber: string): void;
-  isOverdue(): boolean;
-  getDeliveryDays(): number | null;
+  items: IShippingOrderItemDocument[];
+}
+
+export interface IShippingOrderItemDocument extends IShippingOrderItem, Document {
+  _id: Types.ObjectId;
 }
 
 // Inventory 模型型別 (庫存異動記錄)
@@ -199,8 +201,8 @@ export interface IInventory {
 
 export interface IInventoryDocument extends IInventory, Document {
   _id: Types.ObjectId;
-  calculateRunningBalance(): Promise<number>;
-  getRelatedTransactions(): Promise<{
+  calculateRunningBalance?(): Promise<number>;
+  getRelatedTransactions?(): Promise<{
     purchases: number;
     sales: number;
     adjustments: number;
@@ -295,8 +297,8 @@ export interface IProductCategory {
 
 export interface IProductCategoryDocument extends IProductCategory, Document, ITimestamps {
   _id: Types.ObjectId;
-  updateOrder(newOrder: number): void;
-  toggleActive(): void;
+  updateOrder?(newOrder: number): void;
+  toggleActive?(): void;
 }
 
 // AccountingCategory 模型型別
@@ -309,8 +311,8 @@ export interface IAccountingCategory {
 
 export interface IAccountingCategoryDocument extends IAccountingCategory, Document, ITimestamps {
   _id: Types.ObjectId;
-  updateOrder(newOrder: number): void;
-  toggleActive(): void;
+  updateOrder?(newOrder: number): void;
+  toggleActive?(): void;
 }
 
 // MonitoredProduct 模型型別
@@ -339,19 +341,24 @@ export interface IEmployeeScheduleDocument extends IEmployeeSchedule, Document, 
   _id: Types.ObjectId;
 }
 
-// OvertimeRecord 模型型別
+// OvertimeRecord 模型型別 (與實際模型一致)
 export interface IOvertimeRecord {
   employee: Types.ObjectId;
   date: Date;
   startTime: string;
   endTime: string;
-  overtimeHours: number;
+  hours: number;
   reason?: string;
-  approvedBy?: Types.ObjectId;
   status: 'pending' | 'approved' | 'rejected';
-  notes?: string;
+  approvedBy?: Types.ObjectId;
+  approvedAt?: Date;
+  rejectionReason?: string;
+  hourlyRate?: number;
+  totalPay?: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface IOvertimeRecordDocument extends IOvertimeRecord, Document, ITimestamps {
+export interface IOvertimeRecordDocument extends IOvertimeRecord, Document {
   _id: Types.ObjectId;
 }

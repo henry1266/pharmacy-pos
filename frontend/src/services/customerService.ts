@@ -29,8 +29,8 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const token = localStorage.getItem('token'); // Get token directly
     if (!token) throw new Error('Authentication required.');
     const config = { headers: { 'x-auth-token': token } }; // Config for GET
-    const response = await axios.get<Customer[]>(API_URL, config);
-    return response.data;
+    const response = await axios.get(API_URL, config);
+    return (response.data as any)?.data || [];
   } catch (error: any) {
     console.error('Error fetching customers:', error.response?.data ?? error.message);
     throw error; // Re-throw for handling in the hook/component
@@ -47,8 +47,8 @@ export const getCustomerById = async (id: string): Promise<Customer> => {
     const token = localStorage.getItem('token'); // Get token directly
     if (!token) throw new Error('Authentication required.');
     const config = { headers: { 'x-auth-token': token } }; // Config for GET
-    const response = await axios.get<Customer>(`${API_URL}/${id}`, config);
-    return response.data;
+    const response = await axios.get(`${API_URL}/${id}`, config);
+    return (response.data as any)?.data;
   } catch (error: any) {
     console.error(`Error fetching customer ${id}:`, error.response?.data ?? error.message);
     // Throw a more specific error message
@@ -70,8 +70,8 @@ export const addCustomer = async (customerData: Partial<Customer>): Promise<Cust
       email: customerData.email === '' ? ' ' : customerData.email, // Keep original logic for now
       address: customerData.address === '' ? ' ' : customerData.address, // Keep original logic for now
     };
-    const response = await axios.post<Customer>(API_URL, dataToSend, config);
-    return response.data;
+    const response = await axios.post(API_URL, dataToSend, config);
+    return (response.data as any)?.data;
   } catch (error: any) {
     console.error('Error adding customer:', error.response?.data ?? error.message);
     throw error;
@@ -93,8 +93,8 @@ export const updateCustomer = async (id: string, customerData: Partial<Customer>
       email: customerData.email === '' ? ' ' : customerData.email, // Keep original logic for now
       address: customerData.address === '' ? ' ' : customerData.address, // Keep original logic for now
     };
-    const response = await axios.put<Customer>(`${API_URL}/${id}`, dataToSend, config);
-    return response.data;
+    const response = await axios.put(`${API_URL}/${id}`, dataToSend, config);
+    return (response.data as any)?.data;
   } catch (error: any) {
     console.error('Error updating customer:', error.response?.data ?? error.message);
     throw error;

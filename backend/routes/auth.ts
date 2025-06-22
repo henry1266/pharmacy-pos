@@ -10,13 +10,13 @@ import User from '../models/User';
 import { IUser, IUserDocument } from '../src/types/models';
 
 // 擴展 IUser 介面以匹配實際的 User 模型
-interface IExtendedUser extends IUser {
+interface IExtendedUser extends Omit<IUser, 'name'> {
   name?: string;
   email?: string;
 }
 
 // 擴展 IUserDocument 介面以匹配實際的 User 模型
-interface IExtendedUserDocument extends IUserDocument, IExtendedUser {}
+interface IExtendedUserDocument extends Omit<IUserDocument, 'name'>, IExtendedUser {}
 
 const router: Router = express.Router();
 
@@ -43,7 +43,7 @@ interface UpdateUserRequest {
 interface UserValidationResult {
   valid: boolean;
   error?: string;
-  user?: IUserDocument;
+  user?: IExtendedUserDocument;
 }
 
 interface PasswordUpdateResult {

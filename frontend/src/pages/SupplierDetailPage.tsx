@@ -53,7 +53,7 @@ const SupplierDetailPage: FC = () => {
       try {
         setLoading(true);
         const response = await axios.get(`/api/suppliers/${id}`);
-        setSupplier(response.data as Supplier);
+        setSupplier((response.data as any)?.data as Supplier);
         setLoading(false);
       } catch (err: any) {
         console.error('獲取供應商詳情失敗:', err);

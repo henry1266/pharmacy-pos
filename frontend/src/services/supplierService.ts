@@ -25,9 +25,11 @@ const getAuthConfig = (includeContentType = false): { headers: Record<string, st
 export const getSuppliers = async (): Promise<Array<Supplier & { id: string }>> => {
   try {
     const config = getAuthConfig();
-    const response = await axios.get<Supplier[]>(SUPPLIERS_API_URL, config);
+    const response = await axios.get(SUPPLIERS_API_URL, config);
+    // Extract data from ApiResponse structure
+    const suppliers = (response.data as any)?.data || [];
     // Format data to match the structure expected by the page (with id)
-    return response.data.map(supplier => ({
+    return suppliers.map((supplier: any) => ({
       ...supplier,
       id: supplier._id // Map _id to id
     }));
@@ -45,8 +47,9 @@ export const getSuppliers = async (): Promise<Array<Supplier & { id: string }>> 
 export const createSupplier = async (supplierData: Partial<Supplier>): Promise<Supplier & { id: string }> => {
   try {
     const config = getAuthConfig(true); // Include Content-Type
-    const response = await axios.post<Supplier>(SUPPLIERS_API_URL, supplierData, config);
-    return { ...response.data, id: response.data._id }; // Return formatted data
+    const response = await axios.post(SUPPLIERS_API_URL, supplierData, config);
+    const supplier = (response.data as any)?.data;
+    return { ...supplier, id: supplier._id }; // Return formatted data
   } catch (error: any) {
     console.error('Error creating supplier:', error.response?.data ?? error.message);
     throw error;
@@ -62,8 +65,9 @@ export const createSupplier = async (supplierData: Partial<Supplier>): Promise<S
 export const updateSupplier = async (id: string, supplierData: Partial<Supplier>): Promise<Supplier & { id: string }> => {
   try {
     const config = getAuthConfig(true); // Include Content-Type
-    const response = await axios.put<Supplier>(`${SUPPLIERS_API_URL}/${id}`, supplierData, config);
-    return { ...response.data, id: response.data._id }; // Return formatted data
+    const response = await axios.put(`${SUPPLIERS_API_URL}/${id}`, supplierData, config);
+    const supplier = (response.data as any)?.data;
+    return { ...supplier, id: supplier._id }; // Return formatted data
   } catch (error: any) {
     console.error('Error updating supplier:', error.response?.data ?? error.message);
     throw error;

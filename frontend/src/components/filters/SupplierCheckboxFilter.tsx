@@ -35,11 +35,13 @@ interface SupplierCheckboxFilterProps {
 /**
  * 供應商勾選篩選器組件
  */
-const SupplierCheckboxFilter: React.FC<SupplierCheckboxFilterProps> = ({ 
-  suppliers = [], 
-  selectedSuppliers = [], 
-  onFilterChange 
+const SupplierCheckboxFilter: React.FC<SupplierCheckboxFilterProps> = ({
+  suppliers,
+  selectedSuppliers = [],
+  onFilterChange
 }) => {
+  // 確保 suppliers 是陣列
+  const safeSuppliers = Array.isArray(suppliers) ? suppliers : [];
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [localSelectedSuppliers, setLocalSelectedSuppliers] = useState<string[]>(selectedSuppliers);
   
@@ -92,12 +94,12 @@ const SupplierCheckboxFilter: React.FC<SupplierCheckboxFilterProps> = ({
   const handleSelectAll = () => {
     let newSelected: string[] = [];
     
-    if (suppliers.length === localSelectedSuppliers.length) {
+    if (safeSuppliers.length === localSelectedSuppliers.length) {
       // 如果已經全選，則清除所有選擇
       setLocalSelectedSuppliers([]);
     } else {
       // 否則選擇所有供應商
-      newSelected = suppliers.map(supplier => supplier.name);
+      newSelected = safeSuppliers.map(supplier => supplier.name);
       setLocalSelectedSuppliers(newSelected);
     }
     
@@ -112,7 +114,7 @@ const SupplierCheckboxFilter: React.FC<SupplierCheckboxFilterProps> = ({
   const getFilterIcon = () => {
     if (selectedSuppliers.length === 0) {
       return <CheckBoxOutlineBlankIcon fontSize="small" />;
-    } else if (selectedSuppliers.length === suppliers.length) {
+    } else if (selectedSuppliers.length === safeSuppliers.length) {
       return <CheckBoxIcon fontSize="small" color="primary" />;
     } else {
       return <FilterListIcon fontSize="small" color="primary" />;
@@ -157,15 +159,15 @@ const SupplierCheckboxFilter: React.FC<SupplierCheckboxFilterProps> = ({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={suppliers.length > 0 && localSelectedSuppliers.length === suppliers.length}
-                  indeterminate={localSelectedSuppliers.length > 0 && localSelectedSuppliers.length < suppliers.length}
+                  checked={safeSuppliers.length > 0 && localSelectedSuppliers.length === safeSuppliers.length}
+                  indeterminate={localSelectedSuppliers.length > 0 && localSelectedSuppliers.length < safeSuppliers.length}
                   onChange={handleSelectAll}
                 />
               }
               label="全選"
             />
             
-            {suppliers.map((supplier) => (
+            {safeSuppliers.map((supplier) => (
               <FormControlLabel
                 key={supplier._id}
                 control={

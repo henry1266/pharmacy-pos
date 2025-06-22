@@ -95,4 +95,6 @@ const Medicine = BaseProduct.discriminator<IMedicineDocument>('medicine', new Sc
 }));
 
 export default BaseProduct;
+module.exports = { BaseProduct, Product, Medicine };
+module.exports.default = BaseProduct;
 export { Product, Medicine };

@@ -89,4 +89,9 @@ SaleSchema.virtual('saleDate').get(function() {
 SaleSchema.set('toJSON', { virtuals: true });
 SaleSchema.set('toObject', { virtuals: true });
 
-export default model<ISaleDocument>('sale', SaleSchema);
+const Sale = model<ISaleDocument>('sale', SaleSchema);
+
+// 同時支持 ES6 和 CommonJS 導入
+export default Sale;
+module.exports = Sale;
+module.exports.default = Sale;
