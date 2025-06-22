@@ -1,56 +1,71 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    /* 基本選項 */
-    "target": "es2018",
-    "module": "commonjs",
-    "lib": ["es2018", "esnext.asynciterable"],
-    "allowJs": true,
-    "checkJs": false,
+    /* Node.js 後端專用設定 */
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["ES2020", "ESNext.AsyncIterable"],
+    
+    /* 輸出設定 */
+    "outDir": "./dist",
+    "rootDir": "./",
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "removeComments": false,
-
-    /* 路徑設定 */
-    "rootDir": "../",
-    "outDir": "./dist",
-
-    /* 模組解析選項 */
+    
+    /* 路徑解析 - 針對 backend */
     "baseUrl": "./",
     "paths": {
-      "*": ["node_modules/*"],
+      "@/*": ["./src/*"],
+      "@models/*": ["./models/*"],
+      "@routes/*": ["./routes/*"],
+      "@services/*": ["./services/*"],
+      "@utils/*": ["./utils/*"],
+      "@middleware/*": ["./middleware/*"],
+      "@config/*": ["./config/*"],
       "@shared/*": ["../shared/*"],
       "@shared": ["../shared"]
     },
-
-    /* TypeScript 編譯選項 - 漸進式嚴格模式 */
-    "strict": false,              // 暫時關閉完全嚴格模式
-    "noImplicitAny": true,        // 啟用：不允許隱含的 any 型別
-    "strictNullChecks": false,    // 暫時關閉：嚴格檢查 null 和 undefined
-    "strictFunctionTypes": false, // 暫時關閉：嚴格檢查函數型別
-    "strictBindCallApply": true,  // 啟用：嚴格檢查 bind, call, apply
-    "strictPropertyInitialization": false, // 暫時關閉：嚴格檢查類別屬性初始化
-    "noImplicitThis": true,       // 啟用：不允許隱含的 this
-    "alwaysStrict": true,         // 啟用：在輸出檔案中加入 "use strict"
-
-    /* 其他重要選項 */
-    "skipLibCheck": true,
+    
+    /* Node.js 環境設定 */
+    "allowJs": true,
+    "checkJs": false,
     "esModuleInterop": true,
-    "isolatedModules": true,
-    "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
     
-    /* 額外的寬鬆設定，用於轉型過程 */
-    "noErrorTruncation": true,    // 顯示完整錯誤信息
-    "ignoreDeprecations": "5.0",  // 忽略舊版本的棄用警告
-    "useUnknownInCatchVariables": false, // catch 子句中使用 any 而非 unknown
-    "exactOptionalPropertyTypes": false, // 不要求可選屬性的精確類型匹配
-    "noFallthroughCasesInSwitch": false, // 允許 switch 語句中的 fallthrough
-    "noImplicitOverride": false,  // 不要求顯式標記覆蓋方法
-    "noPropertyAccessFromIndexSignature": false, // 允許從索引簽名訪問屬性
-    "noUncheckedIndexedAccess": false // 不檢查索引訪問
+    /* 漸進式嚴格模式 - 適合轉型期 */
+    "strict": false,
+    "noImplicitAny": true,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    
+    /* 程式碼品質 */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    
+    /* 進階選項 */
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "noErrorTruncation": true,
+    "useUnknownInCatchVariables": false,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitOverride": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    
+    /* 裝飾器支援 (如使用 TypeORM 等) */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": [
     "./**/*.ts",
@@ -60,9 +75,10 @@
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.spec.ts",
+    "coverage",
     "**/*.test.ts",
-    "./models/**/*.js"  // 排除已經轉換為 TypeScript 的模型 JavaScript 檔案
+    "**/*.spec.ts",
+    "./models/**/*.js"
   ],
   "ts-node": {
     "transpileOnly": true,

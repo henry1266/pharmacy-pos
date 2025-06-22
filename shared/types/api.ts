@@ -608,7 +608,7 @@ export interface FileUploadResponse {
  * CSV 匯入相關型別
  */
 export interface CSVImportRequest {
-  file: File | Express.Multer.File;
+  file: File | any; // 使用 any 來兼容不同環境的 File 型別
   options?: {
     skipHeader?: boolean;
     delimiter?: string;

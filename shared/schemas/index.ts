@@ -3,7 +3,7 @@
  * 統一前後端的資料驗證規則
  */
 
-import { VALIDATION_CONSTANTS, REGEX_PATTERNS } from '../constants';
+import { VALIDATION_CONSTANTS } from '../constants';
 
 /**
  * 基礎驗證規則介面

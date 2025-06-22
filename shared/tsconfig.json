@@ -1,37 +1,51 @@
 {
   "compilerOptions": {
+    /* 基本選項 - 針對共享模組 */
     "target": "ES2020",
     "lib": ["ES2020"],
-    "module": "CommonJS",
+    "module": "ESNext",
     "moduleResolution": "node",
+    
+    /* 輸出設定 */
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./",
+    "composite": true,
+    
+    /* 嚴格性檢查 - 共享模組應保持高標準 */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "noImplicitThis": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
+    "noImplicitThis": true,
     "alwaysStrict": true,
+    
+    /* 程式碼品質檢查 */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": false,
+    
+    /* 模組解析 */
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    
+    /* 裝飾器支援 */
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    
+    /* 進階選項 */
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false
   },
   "include": [
     "./**/*.ts"

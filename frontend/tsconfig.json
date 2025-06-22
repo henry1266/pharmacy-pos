@@ -1,41 +1,70 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es6"
-    ],
+    /* React 專用設定 */
+    "target": "ES5",
+    "lib": ["DOM", "DOM.Iterable", "ES6"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    
+    /* 輸出設定 - 支援 project references */
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    
+    /* 路徑解析 - 針對 frontend */
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"],
+      "@components/*": ["./components/*"],
+      "@pages/*": ["./pages/*"],
+      "@services/*": ["./services/*"],
+      "@utils/*": ["./utils/*"],
+      "@types/*": ["./types/*"],
+      "@redux/*": ["./redux/*"],
+      "@shared/*": ["../../shared/*"],
+      "@shared": ["../../shared"]
+    },
+    
+    /* React 開發設定 */
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": false,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "allowImportingTsExtensions": true,
-    "rootDir": "../",
-    "baseUrl": "./",
-    "paths": {
-      "*": ["node_modules/*"],
-      "@shared/*": ["../shared/*"],
-      "@shared": ["../shared"]
-    }
+    "noFallthroughCasesInSwitch": true,
+    
+    /* 保持寬鬆以利轉型 */
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false
   },
   "include": [
-    "src/**/*",
-    "../shared/**/*"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "src/**/*.jsx"
   ],
   "exclude": [
     "node_modules",
     "build",
-    "../backend",
-    "../node_modules"
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx"
+  ],
+  "references": [
+    { "path": "../shared" }
   ]
 }

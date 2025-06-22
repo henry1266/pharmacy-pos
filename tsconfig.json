@@ -1,85 +1,59 @@
 {
   "compilerOptions": {
     /* 基本選項 */
-    "target": "es5",
-    "module": "esnext",
-    "allowImportingTsExtensions": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "jsx": "react-jsx",
-    "allowJs": true,
-    "checkJs": false,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": false,
-    "noEmit": true,
-
-    /* ==== ❶ 重要：修正路徑 ==== */
-    "rootDir": ".",
-    "outDir": "./frontend/build",
-
-    /* ==== ❷ 重要：啟用絕對／別名匯入 ==== */
-    "baseUrl": "./frontend",
-    "paths": {
-      "@/*": ["src/*"],  // 之後可用 "@/hooks/useAuth"
-      "~/*": ["src/*"],   // 另一組別名，如有需要
-      "@shared/*": ["../shared/*"],
-      "@shared": ["../shared"]
-    },
-
-    /* ==== ❸ 重要：TypeScript 編譯選項 ==== */
-    "strict": false,              // 先設為 false，待專案穩定後再開啟
-    "noImplicitAny": false,       // 允許隱含的 any 型別
-    "strictNullChecks": false,    // 不嚴格檢查 null 和 undefined
-    "strictFunctionTypes": false, // 不嚴格檢查函數型別
-    "strictBindCallApply": false, // 不嚴格檢查 bind, call, apply
-    "strictPropertyInitialization": false, // 不嚴格檢查類別屬性初始化
-    "noImplicitThis": false,      // 允許隱含的 this
-    "alwaysStrict": false,        // 不在輸出檔案中加入 "use strict"
-
-    /* ==== ❹ 其他重要選項 ==== */
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020"],
     "moduleResolution": "node",
     
-    /* ==== ❺ 額外的寬鬆設定，用於轉型過程 ==== */
-    "noErrorTruncation": true,    // 顯示完整錯誤信息
-    "ignoreDeprecations": "5.0",  // 忽略舊版本的棄用警告
-    "useUnknownInCatchVariables": false, // catch 子句中使用 any 而非 unknown
-    "exactOptionalPropertyTypes": false, // 不要求可選屬性的精確類型匹配
-    "noFallthroughCasesInSwitch": false, // 允許 switch 語句中的 fallthrough
-    "noImplicitOverride": false,  // 不要求顯式標記覆蓋方法
-    "noPropertyAccessFromIndexSignature": false, // 允許從索引簽名訪問屬性
-    "noUncheckedIndexedAccess": false, // 不檢查索引訪問
+    /* 輸出選項 */
+    "declaration": false,
+    "sourceMap": false,
+    "noEmit": true,
     
-    /* ==== ❻ 特別針對 Redux 和 React 的設定 ==== */
-    "allowUnreachableCode": true, // 允許不可達代碼
-    "allowUnusedLabels": true,    // 允許未使用的標籤
-    "noImplicitReturns": false    // 不要求所有代碼路徑都有返回值
+    /* 路徑解析 */
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@shared": ["./shared"],
+      "@frontend/*": ["./frontend/src/*"],
+      "@backend/*": ["./backend/src/*"]
+    },
+    
+    /* 嚴格性檢查 - 漸進式啟用 */
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false,
+    
+    /* 模組解析 */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    
+    /* 進階選項 */
+    "noErrorTruncation": true,
+    "useUnknownInCatchVariables": false,
+    "exactOptionalPropertyTypes": false,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitOverride": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "allowUnreachableCode": true,
+    "allowUnusedLabels": true,
+    "noImplicitReturns": false
   },
-  "include": [
-    "frontend/src/**/*.ts",
-    "frontend/src/**/*.tsx",
-    "frontend/src/**/*.js",
-    "frontend/src/**/*.jsx",
-    "shared/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    "scripts",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ],
-  "ts-node": {
-    "transpileOnly": true,
-    "compilerOptions": {
-      "module": "commonjs"
-    }
-  }
+  "files": [],
+  "references": [
+    { "path": "./shared" },
+    { "path": "./frontend" },
+    { "path": "./backend" }
+  ]
 }
