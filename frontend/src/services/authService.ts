@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, LoginRequest, UpdateUserRequest } from '../types/api';
+import { ApiResponse, ErrorResponse, AuthResponse, LoginRequest, UpdateUserRequest, LoginResponse } from '../../../shared/types/api';
 
 const API_URL = '/api/auth';
 
@@ -9,20 +9,25 @@ const API_URL = '/api/auth';
  * @returns {Promise<AuthResponse>} A promise that resolves to the login response data (including token and user info).
  * @throws {Error} If the login request fails.
  */
-export const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
+export const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
   try {
     // 支持用戶名或電子郵件登入
     const response = await axios.post<AuthResponse>(API_URL, credentials);
-    // The response should contain { token, user }
-    if (response.data.token && response.data.user) {
-      return response.data;
+    
+    // 檢查 API 響應格式 - AuthResponse 已經是完整的 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
     } else {
       throw new Error('登入失敗，未收到完整的驗證資訊。');
     }
   } catch (err: any) {
     console.error('登入失敗 (service):', err);
-    // Re-throw a more specific error message if available
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = err.response?.data as ErrorResponse;
     const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
       err.response?.data?.msg ??
       (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ??
       '登入失敗，請檢查您的憑證或稍後再試。';
@@ -48,14 +53,25 @@ export const getCurrentUser = async (): Promise<any> => {
       }
     };
 
-    const response = await axios.get<any>(API_URL, config);
-    return response.data;
+    const response = await axios.get<ApiResponse<any>>(API_URL, config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('獲取用戶資訊失敗');
+    }
   } catch (err: any) {
     console.error('獲取當前用戶資訊失敗:', err);
-    throw new Error(
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = err.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
       err.response?.data?.msg ??
-      '獲取用戶資訊失敗，請確認您已登入系統'
-    );
+      '獲取用戶資訊失敗，請確認您已登入系統';
+    throw new Error(errorMessage);
   }
 };
 
@@ -78,15 +94,26 @@ export const updateCurrentUser = async (updateData: UpdateUserRequest): Promise<
       }
     };
 
-    const response = await axios.put<any>(`${API_URL}/update`, updateData, config);
-    return response.data;
+    const response = await axios.put<ApiResponse<any>>(`${API_URL}/update`, updateData, config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('更新用戶資訊失敗');
+    }
   } catch (err: any) {
     console.error('更新用戶資訊失敗:', err);
-    throw new Error(
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = err.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
       err.response?.data?.msg ??
       (err.response?.data?.errors?.map((e: { msg: string }) => e.msg).join(', ')) ??
-      '更新用戶資訊失敗，請稍後再試'
-    );
+      '更新用戶資訊失敗，請稍後再試';
+    throw new Error(errorMessage);
   }
 };
 

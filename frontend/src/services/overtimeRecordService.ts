@@ -1,4 +1,9 @@
 import axios from 'axios';
+import { ApiResponse, ErrorResponse } from '../../../shared/types/api';
+import { OvertimeRecord } from '../../../shared/types/entities';
+
+// 重新導出 OvertimeRecord 以保持向後兼容
+export type { OvertimeRecord } from '../../../shared/types/entities';
 
 /**
  * 加班記錄服務
@@ -10,27 +15,6 @@ import axios from 'axios';
  * 加班記錄狀態類型
  */
 export type OvertimeRecordStatus = 'pending' | 'approved' | 'rejected';
-
-/**
- * 加班記錄介面
- */
-export interface OvertimeRecord {
-  _id: string;
-  employeeId: string;
-  employee?: {
-    _id: string;
-    name: string;
-    position: string;
-  };
-  date: string | Date;
-  hours: number;
-  description?: string;
-  status: OvertimeRecordStatus;
-  approvedBy?: string;
-  approvedAt?: string | Date;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-}
 
 /**
  * 加班記錄查詢參數介面
@@ -114,11 +98,24 @@ export const getOvertimeRecords = async (params: OvertimeRecordQueryParams = {})
       params
     };
 
-    const response = await axios.get<OvertimeRecord[]>('/api/overtime-records', config);
-    return response.data;
+    const response = await axios.get<ApiResponse<OvertimeRecord[]>>('/api/overtime-records', config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('獲取加班記錄失敗');
+    }
   } catch (error: any) {
     console.error('獲取加班記錄失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '獲取加班記錄失敗';
+    throw new Error(errorMessage);
   }
 };
 
@@ -140,11 +137,24 @@ export const getOvertimeRecordById = async (id: string): Promise<OvertimeRecord>
       }
     };
 
-    const response = await axios.get<OvertimeRecord>(`/api/overtime-records/${id}`, config);
-    return response.data;
+    const response = await axios.get<ApiResponse<OvertimeRecord>>(`/api/overtime-records/${id}`, config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('獲取加班記錄失敗');
+    }
   } catch (error: any) {
     console.error('獲取加班記錄失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '獲取加班記錄失敗';
+    throw new Error(errorMessage);
   }
 };
 
@@ -166,11 +176,24 @@ export const createOvertimeRecord = async (recordData: OvertimeRecordCreateData)
       }
     };
 
-    const response = await axios.post<OvertimeRecord>('/api/overtime-records', recordData, config);
-    return response.data;
+    const response = await axios.post<ApiResponse<OvertimeRecord>>('/api/overtime-records', recordData, config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('創建加班記錄失敗');
+    }
   } catch (error: any) {
     console.error('創建加班記錄失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '創建加班記錄失敗';
+    throw new Error(errorMessage);
   }
 };
 
@@ -196,11 +219,24 @@ export const updateOvertimeRecord = async (
       }
     };
 
-    const response = await axios.put<OvertimeRecord>(`/api/overtime-records/${id}`, recordData, config);
-    return response.data;
+    const response = await axios.put<ApiResponse<OvertimeRecord>>(`/api/overtime-records/${id}`, recordData, config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('更新加班記錄失敗');
+    }
   } catch (error: any) {
     console.error('更新加班記錄失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '更新加班記錄失敗';
+    throw new Error(errorMessage);
   }
 };
 
@@ -222,11 +258,24 @@ export const deleteOvertimeRecord = async (id: string): Promise<{ success: boole
       }
     };
 
-    const response = await axios.delete<{ success: boolean; message?: string }>(`/api/overtime-records/${id}`, config);
-    return response.data;
+    const response = await axios.delete<ApiResponse<null>>(`/api/overtime-records/${id}`, config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success) {
+      return { success: true, message: response.data.message };
+    } else {
+      throw new Error('刪除加班記錄失敗');
+    }
   } catch (error: any) {
     console.error('刪除加班記錄失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '刪除加班記錄失敗';
+    throw new Error(errorMessage);
   }
 };
 
@@ -253,11 +302,24 @@ export const getEmployeeOvertimeSummary = async (
       params
     };
 
-    const response = await axios.get<OvertimeSummary>(`/api/overtime-records/summary/employee/${employeeId}`, config);
-    return response.data;
+    const response = await axios.get<ApiResponse<OvertimeSummary>>(`/api/overtime-records/summary/employee/${employeeId}`, config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('獲取加班時數統計失敗');
+    }
   } catch (error: any) {
     console.error('獲取加班時數統計失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '獲取加班時數統計失敗';
+    throw new Error(errorMessage);
   }
 };
 
@@ -282,11 +344,24 @@ export const getAllEmployeesOvertimeSummary = async (
       params
     };
 
-    const response = await axios.get<EmployeeOvertimeSummary[]>('/api/overtime-records/summary/all', config);
-    return response.data;
+    const response = await axios.get<ApiResponse<EmployeeOvertimeSummary[]>>('/api/overtime-records/summary/all', config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('獲取加班時數統計失敗');
+    }
   } catch (error: any) {
     console.error('獲取加班時數統計失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '獲取加班時數統計失敗';
+    throw new Error(errorMessage);
   }
 };
 
@@ -313,11 +388,24 @@ export const getMonthlyOvertimeStats = async (year: number, month: number): Prom
       }
     };
 
-    const response = await axios.get<MonthlyOvertimeStats>('/api/overtime-records/monthly-stats', config);
-    return response.data;
+    const response = await axios.get<ApiResponse<MonthlyOvertimeStats>>('/api/overtime-records/monthly-stats', config);
+    
+    // 檢查 API 響應格式
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('獲取月度加班統計數據失敗');
+    }
   } catch (error: any) {
     console.error('獲取月度加班統計數據失敗:', error);
-    throw error;
+    
+    // 處理新的錯誤響應格式
+    const errorResponse = error.response?.data as ErrorResponse;
+    const errorMessage =
+      errorResponse?.message ??
+      errorResponse?.error ??
+      '獲取月度加班統計數據失敗';
+    throw new Error(errorMessage);
   }
 };
 

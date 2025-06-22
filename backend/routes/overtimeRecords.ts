@@ -248,17 +248,39 @@ router.get("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
       .populate("createdBy", "name");
     
     if (!overtimeRecord) {
-      return res.status(404).json({ msg: "找不到加班記錄" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(404).json(errorResponse);
     }
     
-    res.json(overtimeRecord);
+    const response: ApiResponse<typeof overtimeRecord> = {
+      success: true,
+      data: overtimeRecord,
+      message: '加班記錄獲取成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     const error = err as Error & { kind?: string };
     console.error(error.message);
     if (error.kind === "ObjectId") {
-      return res.status(404).json({ msg: "找不到加班記錄" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(404).json(errorResponse);
     }
-    res.status(500).send("伺服器錯誤");
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -278,14 +300,25 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        errors: errors.array(),
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
     
     try {
       // 檢查員工是否存在
       const employee = await Employee.findById(req.body.employeeId);
       if (!employee) {
-        return res.status(404).json({ msg: "找不到員工" });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(404).json(errorResponse);
       }
       
       // 創建新的加班記錄
@@ -307,11 +340,23 @@ router.post(
       
       const overtimeRecord = await newOvertimeRecord.save();
       
-      res.json(overtimeRecord);
+      const response: ApiResponse<typeof overtimeRecord> = {
+        success: true,
+        data: overtimeRecord,
+        message: '加班記錄創建成功',
+        timestamp: new Date().toISOString()
+      };
+      res.json(response);
     } catch (err) {
       const error = err as Error;
       console.error(error.message);
-      res.status(500).send("伺服器錯誤");
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+      res.status(500).json(errorResponse);
     }
   }
 );
@@ -327,7 +372,12 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
     let overtimeRecord = await OvertimeRecord.findById(req.params.id);
     
     if (!overtimeRecord) {
-      return res.status(404).json({ msg: "找不到加班記錄" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(404).json(errorResponse);
     }
     
     // 更新加班記錄
@@ -355,14 +405,31 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
     
     await overtimeRecord.save();
     
-    res.json(overtimeRecord);
+    const response: ApiResponse<typeof overtimeRecord> = {
+      success: true,
+      data: overtimeRecord,
+      message: '加班記錄更新成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     const error = err as Error & { kind?: string };
     console.error(error.message);
     if (error.kind === "ObjectId") {
-      return res.status(404).json({ msg: "找不到加班記錄" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(404).json(errorResponse);
     }
-    res.status(500).send("伺服器錯誤");
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -376,19 +443,41 @@ router.delete("/:id", auth, async (req: AuthenticatedRequest, res: Response) => 
     const overtimeRecord = await OvertimeRecord.findById(req.params.id);
     
     if (!overtimeRecord) {
-      return res.status(404).json({ msg: "找不到加班記錄" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(404).json(errorResponse);
     }
     
     await overtimeRecord.deleteOne();
     
-    res.json({ msg: "加班記錄已刪除" });
+    const response: ApiResponse<null> = {
+      success: true,
+      data: null,
+      message: '加班記錄刪除成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     const error = err as Error & { kind?: string };
     console.error(error.message);
     if (error.kind === "ObjectId") {
-      return res.status(404).json({ msg: "找不到加班記錄" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(404).json(errorResponse);
     }
-    res.status(500).send("伺服器錯誤");
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -426,15 +515,29 @@ router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedReque
     // 計算總加班時數
     const totalHours = overtimeRecords.reduce((total, record) => total + record.hours, 0);
     
-    res.json({
+    const summaryData = {
       employeeId: req.params.employeeId,
       totalHours,
       recordCount: overtimeRecords.length
-    });
+    };
+    
+    const response: ApiResponse<typeof summaryData> = {
+      success: true,
+      data: summaryData,
+      message: '員工加班時數統計獲取成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     const error = err as Error;
     console.error(error.message);
-    res.status(500).send("伺服器錯誤");
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -493,11 +596,23 @@ router.get("/summary/all", auth, async (req: AuthenticatedRequest, res: Response
       { $sort: { totalHours: -1 } }
     ]);
     
-    res.json(summary);
+    const response: ApiResponse<typeof summary> = {
+      success: true,
+      data: summary,
+      message: '所有員工加班時數統計獲取成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     const error = err as Error;
     console.error(error.message);
-    res.status(500).send("伺服器錯誤");
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
