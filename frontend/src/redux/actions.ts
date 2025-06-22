@@ -82,7 +82,7 @@ export const fetchProducts = (): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_PRODUCTS_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
@@ -211,7 +211,7 @@ export const fetchInventory = (): AppThunk => async (
     // 不再過濾庫存記錄，保留所有庫存數據
     dispatch({
       type: ActionTypes.FETCH_INVENTORY_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
@@ -232,7 +232,7 @@ export const fetchSales = (): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_SALES_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
@@ -253,7 +253,7 @@ export const fetchDashboardData = (): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_DASHBOARD_DATA_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || {}
     });
   } catch (err: any) {
     dispatch({
@@ -298,7 +298,7 @@ export const fetchPurchaseOrders = (): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDERS_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
@@ -319,7 +319,7 @@ export const fetchPurchaseOrder = (id: string): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDER_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || {}
     });
   } catch (err: any) {
     dispatch({
@@ -456,7 +456,7 @@ export const fetchShippingOrders = (): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDERS_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
@@ -477,7 +477,7 @@ export const fetchShippingOrder = (id: string): AppThunk => async (
     
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || {}
     });
   } catch (err: any) {
     dispatch({
