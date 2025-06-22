@@ -135,7 +135,8 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
         message: '缺少日期參數',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     let datePrefix: string;
@@ -148,7 +149,8 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
         message: '無效的日期格式',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const monitored = await MonitoredProduct.find({}, 'productCode');
@@ -159,7 +161,8 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
         data: [],
         timestamp: new Date()
       };
-      return res.json(response);
+      res.json(response);
+      return;
     }
     
     const monitoredProductCodes = monitored.map((p: any) => p.productCode);
@@ -176,7 +179,8 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
         data: [],
         timestamp: new Date()
       };
-      return res.json(response);
+      res.json(response);
+      return;
     }
     
     const monitoredProductIds = products.map((p: any) => p._id);
@@ -297,7 +301,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
       message: '記帳記錄ID為必填項',
       timestamp: new Date()
     };
-    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    return;
   }
   
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -306,7 +311,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
       message: '無效的記帳記錄 ID 格式',
       timestamp: new Date()
     };
-    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    return;
   }
   
   try {
@@ -317,7 +323,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到記帳記錄',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const response: ApiResponse<any> = {
@@ -363,7 +370,8 @@ router.post(
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     try {
@@ -378,7 +386,8 @@ router.post(
       });
       
       if (existingRecord) {
-        return res.status(400).json({ msg: '該日期和班別已有記帳記錄' });
+        res.status(400).json({ msg: '該日期和班別已有記帳記錄' });
+        return;
       }
 
       // 找出該日期對應銷售單號前綴且尚未標記的 *監測產品* 銷售記錄
@@ -428,7 +437,8 @@ router.post(
 
       // 檢查合併後是否有項目
       if (allItems.length === 0) {
-        return res.status(400).json({ msg: '沒有手動輸入的項目，且當日無自動關聯的銷售記錄' });
+        res.status(400).json({ msg: '沒有手動輸入的項目，且當日無自動關聯的銷售記錄' });
+        return;
       }
 
       // 計算最終總額 (所有項目加總)
@@ -481,18 +491,21 @@ router.put(
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
     
     const { id } = req.params;
     
     if (!id) {
-      return res.status(400).json({ msg: '記帳記錄ID為必填項' });
+      res.status(400).json({ msg: '記帳記錄ID為必填項' });
+      return;
     }
     
     // 驗證ID格式並轉換為安全的ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ msg: '無效的記帳記錄 ID 格式' });
+      res.status(400).json({ msg: '無效的記帳記錄 ID 格式' });
+      return;
     }
 
     try {
@@ -510,7 +523,8 @@ router.put(
       });
 
       if (existingRecord) {
-        return res.status(400).json({ msg: '該日期和班別已有其他記帳記錄' });
+        res.status(400).json({ msg: '該日期和班別已有其他記帳記錄' });
+        return;
       }
 
       let accounting = await Accounting.findById(id);
@@ -520,7 +534,8 @@ router.put(
           message: '找不到記帳記錄',
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+        return;
       }
 
       // --- Start: New logic for handling status change and sales re-linking ---
@@ -620,17 +635,20 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
   const { id } = req.params;
   
   if (!id) {
-    return res.status(400).json({ msg: '記帳記錄ID為必填項' });
+    res.status(400).json({ msg: '記帳記錄ID為必填項' });
+    return;
   }
   
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ msg: '無效的記帳記錄 ID 格式' });
+    res.status(400).json({ msg: '無效的記帳記錄 ID 格式' });
+    return;
   }
 
   try {
     const accounting = await Accounting.findById(id);
     if (!accounting) {
-      return res.status(404).json({ msg: '找不到記帳記錄' });
+      res.status(404).json({ msg: '找不到記帳記錄' });
+      return;
     }
 
     // 1. 取消與此記帳記錄關聯的銷售記錄標記

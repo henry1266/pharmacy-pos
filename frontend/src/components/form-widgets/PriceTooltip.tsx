@@ -3,9 +3,9 @@ import {
   TextField,
   Tooltip,
   Box,
-  Button
+  Button,
+  Grid
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import axios from 'axios';
 import FIFOSimulationDialog, { SimulationResult } from './FIFOSimulationDialog';
@@ -162,7 +162,7 @@ const PriceTooltip: React.FC<PriceTooltipProps> = ({
   return (
     <>
       <Grid container spacing={1}>
-        <Grid xs={12}>
+        <Grid item xs={12}>
           <Button
             variant="outlined"
             size="small"
@@ -175,7 +175,7 @@ const PriceTooltip: React.FC<PriceTooltipProps> = ({
             FIFO模擬計算
           </Button>
         </Grid>
-        <Grid xs={12}>
+        <Grid item xs={12}>
           <Tooltip 
             title={
               <Box component="div" sx={{ whiteSpace: 'pre-line', p: 1 , fontSize: '1.2rem'}}>
