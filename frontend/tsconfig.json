@@ -28,7 +28,9 @@
       "@/services/*": ["services/*"],
       "@/utils/*": ["utils/*"],
       "@/pages/*": ["pages/*"],
-      "@/types/*": ["types/*"]
+      "@/types/*": ["types/*"],
+      "@shared/*": ["../shared/*"],
+      "@shared": ["../shared"]
     }
   },
   "include": [

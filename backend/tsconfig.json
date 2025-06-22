@@ -18,7 +18,9 @@
     /* 模組解析選項 */
     "baseUrl": "./",
     "paths": {
-      "*": ["node_modules/*"]
+      "*": ["node_modules/*"],
+      "@shared/*": ["../shared/*"],
+      "@shared": ["../shared"]
     },
 
     /* TypeScript 編譯選項 - 漸進式嚴格模式 */

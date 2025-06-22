@@ -1,0 +1,48 @@
+{
+  "name": "@pharmacy-pos/shared",
+  "version": "1.0.0",
+  "description": "藥局 POS 系統共享型別定義",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "pharmacy",
+    "pos",
+    "shared"
+  ],
+  "author": "Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.0",
+    "rimraf": "^3.0.0",
+    "typescript": "^4.9.0"
+  },
+  "peerDependencies": {
+    "mongoose": "^6.0.0 || ^7.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/pharmacy-pos.git",
+    "directory": "shared"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/pharmacy-pos/issues"
+  },
+  "homepage": "https://github.com/your-org/pharmacy-pos#readme"
+}
