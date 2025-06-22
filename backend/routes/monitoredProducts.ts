@@ -65,10 +65,23 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: Response): Promise<
       })
     );
     
-    res.json(productsWithDetails);
+    const response: ApiResponse<MonitoredProductResponse[]> = {
+      success: true,
+      message: '成功獲取監測產品列表',
+      data: productsWithDetails,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err: any) {
     console.error('獲取監測產品失敗:', err.message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: err.message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

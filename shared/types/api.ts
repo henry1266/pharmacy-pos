@@ -70,7 +70,7 @@ export interface LoginRequest {
 export interface AuthResponse {
   success: boolean;
   message?: string;
-  data?: {
+  data: {
     token: string;
     user: {
       id: string;
@@ -86,6 +86,9 @@ export interface AuthResponse {
   };
   timestamp?: Date | string;
 }
+
+// 為了向後兼容，添加 LoginResponse 別名
+export type LoginResponse = AuthResponse;
 
 export interface JWTPayload {
   id: string;
@@ -305,6 +308,8 @@ export interface PurchaseOrderResponse {
   updatedAt: Date | string;
 }
 
+export interface PurchaseOrderUpdateRequest extends Partial<PurchaseOrderCreateRequest> {}
+
 /**
  * 出貨訂單相關 API 型別
  */
@@ -364,6 +369,8 @@ export interface ShippingOrderResponse {
   createdAt: Date | string;
   updatedAt: Date | string;
 }
+
+export interface ShippingOrderUpdateRequest extends Partial<ShippingOrderCreateRequest> {}
 
 /**
  * 庫存相關 API 型別
@@ -660,6 +667,12 @@ export interface DashboardStats {
     revenue: number;
   }>;
 }
+
+// 為了向後兼容，添加 DashboardData 別名
+export type DashboardData = DashboardStats;
+
+// 為了向後兼容，添加 ReportData 別名
+export type ReportData = ReportResponse;
 
 export interface ReportParams {
   type?: 'sales' | 'inventory' | 'accounting' | 'employee';

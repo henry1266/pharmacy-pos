@@ -41,6 +41,90 @@ export const API_CONSTANTS = {
 } as const;
 
 /**
+ * API 端點常數
+ */
+export const API_ENDPOINTS = {
+  // 認證相關
+  AUTH: {
+    LOGIN: '/api/auth/login',
+    LOGOUT: '/api/auth/logout',
+    REFRESH: '/api/auth/refresh',
+    PROFILE: '/api/auth/profile'
+  },
+
+  // 產品相關
+  PRODUCTS: {
+    BASE: '/api/products',
+    LIST: '/api/products',
+    SEARCH: '/api/products/search',
+    CATEGORIES: '/api/products/categories',
+    PRODUCT: '/api/products',
+    MEDICINE: '/api/products'
+  },
+
+  // 客戶相關
+  CUSTOMERS: {
+    BASE: '/api/customers',
+    LIST: '/api/customers',
+    SEARCH: '/api/customers/search'
+  },
+
+  // 供應商相關
+  SUPPLIERS: {
+    BASE: '/api/suppliers',
+    LIST: '/api/suppliers',
+    SEARCH: '/api/suppliers/search'
+  },
+
+  // 庫存相關
+  INVENTORY: {
+    BASE: '/api/inventory',
+    LIST: '/api/inventory',
+    SEARCH: '/api/inventory/search',
+    ADJUST: '/api/inventory/adjust'
+  },
+
+  // 銷售相關
+  SALES: {
+    BASE: '/api/sales',
+    LIST: '/api/sales',
+    SEARCH: '/api/sales/search',
+    REPORTS: '/api/sales/reports'
+  },
+
+  // 採購訂單相關
+  PURCHASE_ORDERS: {
+    BASE: '/api/purchase-orders',
+    LIST: '/api/purchase-orders',
+    CREATE: '/api/purchase-orders',
+    SEARCH: '/api/purchase-orders/search'
+  },
+
+  // 出貨訂單相關
+  SHIPPING_ORDERS: {
+    BASE: '/api/shipping-orders',
+    LIST: '/api/shipping-orders',
+    CREATE: '/api/shipping-orders',
+    SEARCH: '/api/shipping-orders/search'
+  },
+
+  // 儀表板相關
+  DASHBOARD: {
+    BASE: '/api/dashboard',
+    DATA: '/api/dashboard',
+    STATS: '/api/dashboard/stats'
+  },
+
+  // 報表相關
+  REPORTS: {
+    BASE: '/api/reports',
+    SALES: '/api/reports/sales',
+    INVENTORY: '/api/reports/inventory',
+    FINANCIAL: '/api/reports/financial'
+  }
+} as const;
+
+/**
  * 驗證相關常數
  */
 export const VALIDATION_CONSTANTS = {
@@ -315,7 +399,32 @@ export const ERROR_MESSAGES = {
     TOO_LARGE: '檔案過大',
     INVALID_TYPE: '不支援的檔案類型',
     UPLOAD_FAILED: '檔案上傳失敗'
-  }
+  },
+
+  // 前端 Redux Actions 錯誤訊息
+  LOGIN_FAILED: '登入失敗',
+  FETCH_PRODUCTS_FAILED: '獲取產品列表失敗',
+  ADD_PRODUCT_FAILED: '新增產品失敗',
+  UPDATE_PRODUCT_FAILED: '更新產品失敗',
+  DELETE_PRODUCT_FAILED: '刪除產品失敗',
+  FETCH_SUPPLIERS_FAILED: '獲取供應商列表失敗',
+  FETCH_CUSTOMERS_FAILED: '獲取客戶列表失敗',
+  FETCH_INVENTORY_FAILED: '獲取庫存資料失敗',
+  FETCH_SALES_FAILED: '獲取銷售資料失敗',
+  FETCH_DASHBOARD_FAILED: '獲取儀表板資料失敗',
+  FETCH_REPORTS_FAILED: '獲取報表資料失敗',
+  FETCH_PURCHASE_ORDERS_FAILED: '獲取採購訂單列表失敗',
+  FETCH_PURCHASE_ORDER_FAILED: '獲取採購訂單詳情失敗',
+  ADD_PURCHASE_ORDER_FAILED: '新增採購訂單失敗',
+  UPDATE_PURCHASE_ORDER_FAILED: '更新採購訂單失敗',
+  DELETE_PURCHASE_ORDER_FAILED: '刪除採購訂單失敗',
+  SEARCH_PURCHASE_ORDERS_FAILED: '搜尋採購訂單失敗',
+  FETCH_SHIPPING_ORDERS_FAILED: '獲取出貨訂單列表失敗',
+  FETCH_SHIPPING_ORDER_FAILED: '獲取出貨訂單詳情失敗',
+  ADD_SHIPPING_ORDER_FAILED: '新增出貨訂單失敗',
+  UPDATE_SHIPPING_ORDER_FAILED: '更新出貨訂單失敗',
+  DELETE_SHIPPING_ORDER_FAILED: '刪除出貨訂單失敗',
+  SEARCH_SHIPPING_ORDERS_FAILED: '搜尋出貨訂單失敗'
 } as const;
 
 /**

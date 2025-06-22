@@ -11,6 +11,10 @@ import {
   unbindEmployeeAccount
 } from '../services/employeeAccountService';
 
+// 導入共享類型和常數
+import { ApiResponse, ErrorResponse } from '../../shared/types/api';
+import { ERROR_MESSAGES, API_CONSTANTS } from '../../shared/constants';
+
 const router = express.Router();
 
 /**
@@ -42,7 +46,13 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        error: JSON.stringify(errors.array()),
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const { employeeId, username, email, password, role } = req.body;
@@ -55,10 +65,21 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
       role
     });
 
-    const response = createSuccessResponse('員工帳號創建成功', result);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '員工帳號創建成功',
+      data: result,
+      timestamp: new Date()
+    };
     res.json(response);
   } catch (error: any) {
-    handleError(res, error, 400);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
 });
 
@@ -70,10 +91,22 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
 router.get('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
     const user = await getEmployeeAccount(req.params.employeeId);
-    res.json(user);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '成功獲取員工帳號資訊',
+      data: user,
+      timestamp: new Date()
+    };
+    res.json(response);
   } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? 404 : 400;
-    handleError(res, error, statusCode);
+    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date()
+    };
+    res.status(statusCode).json(errorResponse);
   }
 });
 
@@ -86,7 +119,13 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        error: JSON.stringify(errors.array()),
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const { username, email, password, role } = req.body;
@@ -98,11 +137,22 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
       role
     });
 
-    const response = createSuccessResponse('員工帳號更新成功', { user: updatedUser });
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '員工帳號更新成功',
+      data: { user: updatedUser },
+      timestamp: new Date()
+    };
     res.json(response);
   } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? 404 : 400;
-    handleError(res, error, statusCode);
+    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date()
+    };
+    res.status(statusCode).json(errorResponse);
   }
 });
 
@@ -115,11 +165,22 @@ router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Respo
   try {
     await deleteEmployeeAccount(req.params.employeeId);
     
-    const response = createSuccessResponse('員工帳號已刪除');
+    const response: ApiResponse<null> = {
+      success: true,
+      message: '員工帳號已刪除',
+      data: null,
+      timestamp: new Date()
+    };
     res.json(response);
   } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? 404 : 400;
-    handleError(res, error, statusCode);
+    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date()
+    };
+    res.status(statusCode).json(errorResponse);
   }
 });
 
@@ -136,11 +197,22 @@ router.put('/:employeeId/unbind', [auth, adminAuth], async (req: Request, res: R
       ? '員工帳號綁定已解除' 
       : '員工帳號綁定已解除（用戶不存在）';
     
-    const response = createSuccessResponse(message, result);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: message,
+      data: result,
+      timestamp: new Date()
+    };
     res.json(response);
   } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? 404 : 400;
-    handleError(res, error, statusCode);
+    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date()
+    };
+    res.status(statusCode).json(errorResponse);
   }
 });
 
