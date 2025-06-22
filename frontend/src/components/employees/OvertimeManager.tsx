@@ -257,7 +257,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
       
       // 處理獨立加班記錄
       records.forEach(record => {
-        if (record.employee?._id) {
+        if (record.employee && typeof record.employee === 'object' && record.employee._id) {
           expandedState[record.employee._id] = false;
         }
       });
@@ -566,7 +566,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   // 開啟編輯加班記錄對話框
   const handleOpenEditDialog = (record: OvertimeRecord): void => {
     setSelectedRecord(record);
-    const empId = record.employee ? record.employee._id : record.employeeId;
+    const empId = record.employee && typeof record.employee === 'object' ? record.employee._id : record.employeeId;
     setFormData({
       employeeId: typeof empId === 'string' ? empId : '',
       date: new Date(record.date).toISOString().split('T')[0],

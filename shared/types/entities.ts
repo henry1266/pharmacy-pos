@@ -403,12 +403,18 @@ export interface EmployeeSchedule {
  */
 export interface OvertimeRecord {
   _id: string;
-  employee: string;
+  employee: string | {
+    _id: string;
+    name: string;
+    [key: string]: any;
+  };
+  employeeId?: string; // 向後兼容前端組件
   date: string | Date;
-  startTime: string;
-  endTime: string;
+  startTime?: string;
+  endTime?: string;
   hours: number;
   reason?: string;
+  description?: string; // 向後兼容前端組件
   status: 'pending' | 'approved' | 'rejected';
   approvedBy?: string;
   approvedAt?: string | Date;

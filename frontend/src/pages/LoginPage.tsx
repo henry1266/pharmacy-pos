@@ -18,7 +18,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import authService from '../services/authService';
-import { LoginRequest, AuthResponse } from '../types/api';
+import { LoginRequest } from '../../../shared/types/api';
 
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
@@ -127,7 +127,8 @@ const LoginPage = () => {
       }
       
       // 使用 authService 進行登入
-      const { token, user }: AuthResponse = await authService.login(loginData);
+      const response = await authService.login(loginData);
+      const { token, user } = response;
 
       // 觸發淡出動畫然後重定向
       setFormVisible(false);
