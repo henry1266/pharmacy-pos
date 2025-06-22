@@ -22,6 +22,13 @@ import accountingCategoriesRoutes from "./routes/accountingCategories";
 import shippingOrdersRoutes from "./routes/shippingOrders";
 import shippingOrderPdfRoutes from "./routes/shippingOrderPdf";
 import shippingOrdersImportRoutes from "./routes/shippingOrdersImport";
+import fifoRoutes from "./routes/fifo";
+import monitoredProductsRoutes from "./routes/monitoredProducts"; // 新增監測產品路由
+import settingsRoutes from "./routes/settings"; // *** 新增設定路由 *** 
+import configRoutes from "./routes/config"; // 新增配置路由
+import csvImportApiRoutes from "./routes/csvImportApi"; // 新增CSV匯入REST API
+import employeeSchedulesRoutes from "./routes/employeeSchedules"; // 新增員工排班API路由
+import overtimeRecordsRoutes from "./routes/overtimeRecords"; // 新增加班記錄API路由
 
 // 連接資料庫
 connectDB();
@@ -49,18 +56,16 @@ app.use("/api/reports", reportsRoutes);
 app.use("/api/employees", employeesRoutes);
 app.use("/api/employee-accounts", employeeAccountsRoutes);
 app.use("/api/accounting-categories", accountingCategoriesRoutes);
-
-// 使用 require 導入的 JavaScript 路由 (尚未轉換)
 app.use("/api/shipping-orders", shippingOrdersRoutes); // 已轉換為 TypeScript
 app.use("/api/shipping-orders", shippingOrderPdfRoutes); // 已轉換為 TypeScript
 app.use("/api/shipping-orders", shippingOrdersImportRoutes); // 已轉換為 TypeScript
-app.use("/api/fifo", require("./routes/fifo"));
-app.use("/api/monitored-products", require("./routes/monitoredProducts")); // 新增監測產品路由
-app.use("/api/settings", require("./routes/settings")); // *** Add the new settings route ***
-app.use("/api/config", require("./routes/config")); // Add the new config route
-app.use("/api/csv-import", require("./routes/csvImportApi")); // 新增CSV匯入REST API
-app.use("/api/employee-schedules", require("./routes/employeeSchedules")); // 新增員工排班API路由
-app.use("/api/overtime-records", require("./routes/overtimeRecords")); // 新增加班記錄API路由
+app.use("/api/fifo", fifoRoutes); // 已轉換為 TypeScript
+app.use("/api/monitored-products", monitoredProductsRoutes); // 新增監測產品路由
+app.use("/api/settings", settingsRoutes); // *** 新增設定路由 ***
+app.use("/api/config", configRoutes); // 新增配置路由
+app.use("/api/csv-import", csvImportApiRoutes); // 新增CSV匯入REST API
+app.use("/api/employee-schedules", employeeSchedulesRoutes); // 新增員工排班API路由
+app.use("/api/overtime-records", overtimeRecordsRoutes); // 新增加班記錄  API路由
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {
