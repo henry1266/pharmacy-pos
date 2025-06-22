@@ -1,17 +1,43 @@
 import express, { Request, Response } from 'express';
-import AccountingCategory from '../models/AccountingCategory';
-import auth from '../middleware/auth';
-import { check, validationResult } from 'express-validator';
-import { AuthenticatedRequest } from '../src/types/express';
-import { IAccountingCategoryDocument } from '../src/types/models';
 import mongoose from 'mongoose';
+import { check, validationResult } from 'express-validator';
+
+// 使用 require 導入模型和中介軟體，避免型別衝突
+const AccountingCategory = require('../models/AccountingCategory');
+const auth = require('../middleware/auth');
+
+// 定義會計類別介面
+interface IAccountingCategory {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  order?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 定義請求介面
+interface AccountingCategoryRequest {
+  name: string;
+  description?: string;
+  isActive?: boolean;
+  order?: number;
+}
+
+// 擴展 Request 介面以包含用戶資訊
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+  };
+}
 
 const router = express.Router();
 
 // @route   GET api/accounting-categories
 // @desc    獲取所有記帳名目類別
 // @access  Private
-router.get('/', auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', auth, async (req: Request, res: Response) => {
   try {
     const categories = await AccountingCategory.find({ isActive: true })
       .sort({ order: 1, name: 1 });
@@ -26,11 +52,15 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: Response) => {
 // @route   GET api/accounting-categories/:id
 // @desc    獲取單筆記帳名目類別
 // @access  Private
-router.get('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:id', auth, async (req: Request, res: Response) => {
   try {
-    const category = await AccountingCategory.findOne({ 
-      _id: req.params.id.toString() 
-    });
+    const { id } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: '無效的類別 ID 格式' });
+    }
+    
+    const category = await AccountingCategory.findById(id);
       
     if (!category) {
       return res.status(404).json({ msg: '找不到記帳名目類別' });
@@ -39,9 +69,6 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     res.json(category);
   } catch (err) {
     console.error((err as Error).message);
-    if ((err as mongoose.Error.CastError).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到記帳名目類別' });
-    }
     res.status(500).send('伺服器錯誤');
   }
 });
@@ -51,7 +78,9 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
 // @access  Private
 router.post('/', [
   auth,
-  check('name', '名稱為必填欄位').not().isEmpty()
+  [
+    check('name', '名稱為必填欄位').not().isEmpty(),
+  ]
 ], async (req: AuthenticatedRequest, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -59,24 +88,18 @@ router.post('/', [
   }
   
   try {
-    const { name, description } = req.body;
+    const { name, description }: AccountingCategoryRequest = req.body;
     
     // 檢查是否已存在相同名稱的類別
-    const existingCategory = await AccountingCategory.findOne({ 
-      name: name.toString() 
-    });
+    const existingCategory = await AccountingCategory.findOne({ name: name.toString() });
     
     if (existingCategory) {
       return res.status(400).json({ msg: '該名目類別已存在' });
     }
     
-    // 獲取下一個排序號
-    const nextOrder = await AccountingCategory.getNextOrder();
-    
     const newCategory = new AccountingCategory({
       name,
-      description: description || '',
-      order: nextOrder
+      description: description || ''
     });
     
     const category = await newCategory.save();
@@ -92,29 +115,34 @@ router.post('/', [
 // @access  Private
 router.put('/:id', [
   auth,
-  check('name', '名稱為必填欄位').not().isEmpty()
-], async (req: AuthenticatedRequest, res: Response) => {
+  [
+    check('name', '名稱為必填欄位').not().isEmpty(),
+  ]
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
   
   try {
-    const { name, description, isActive, order } = req.body;
+    const { id } = req.params;
+    const { name, description, isActive, order }: AccountingCategoryRequest = req.body;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: '無效的類別 ID 格式' });
+    }
     
     // 檢查是否存在相同名稱的其他類別
     const existingCategory = await AccountingCategory.findOne({
       name: name.toString(),
-      _id: { $ne: req.params.id.toString() }
+      _id: { $ne: new mongoose.Types.ObjectId(id) }
     });
     
     if (existingCategory) {
       return res.status(400).json({ msg: '該名目類別已存在' });
     }
     
-    let category = await AccountingCategory.findOne({ 
-      _id: req.params.id.toString() 
-    });
+    let category = await AccountingCategory.findById(id);
     
     if (!category) {
       return res.status(404).json({ msg: '找不到記帳名目類別' });
@@ -123,22 +151,17 @@ router.put('/:id', [
     // 更新類別
     category.name = name.toString();
     category.description = description ? description.toString() : '';
-    
     if (isActive !== undefined) {
-      category.isActive = Boolean(isActive);
+      category.isActive = isActive;
     }
-    
     if (order !== undefined) {
-      category.order = Number(order);
+      category.order = order;
     }
     
     category = await category.save();
     res.json(category);
   } catch (err) {
     console.error((err as Error).message);
-    if ((err as mongoose.Error.CastError).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到記帳名目類別' });
-    }
     res.status(500).send('伺服器錯誤');
   }
 });
@@ -146,11 +169,15 @@ router.put('/:id', [
 // @route   DELETE api/accounting-categories/:id
 // @desc    刪除記帳名目類別
 // @access  Private
-router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', auth, async (req: Request, res: Response) => {
   try {
-    const category = await AccountingCategory.findOne({ 
-      _id: req.params.id.toString() 
-    });
+    const { id } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: '無效的類別 ID 格式' });
+    }
+    
+    const category = await AccountingCategory.findById(id);
     
     if (!category) {
       return res.status(404).json({ msg: '找不到記帳名目類別' });
@@ -163,9 +190,6 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => 
     res.json({ msg: '記帳名目類別已停用' });
   } catch (err) {
     console.error((err as Error).message);
-    if ((err as mongoose.Error.CastError).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到記帳名目類別' });
-    }
     res.status(500).send('伺服器錯誤');
   }
 });

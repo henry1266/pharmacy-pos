@@ -18,6 +18,7 @@ import dashboardRoutes from "./routes/dashboard";
 import reportsRoutes from "./routes/reports";
 import employeesRoutes from "./routes/employees";
 import employeeAccountsRoutes from "./routes/employeeAccounts";
+import accountingCategoriesRoutes from "./routes/accountingCategories";
 
 // 連接資料庫
 connectDB();
@@ -44,12 +45,12 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/employees", employeesRoutes);
 app.use("/api/employee-accounts", employeeAccountsRoutes);
+app.use("/api/accounting-categories", accountingCategoriesRoutes);
 
 // 使用 require 導入的 JavaScript 路由 (尚未轉換)
 app.use("/api/shipping-orders", require("./routes/shippingOrders"));
 app.use("/api/shipping-orders", require("./routes/shippingOrderPdf")); // 新增出貨單PDF生成路由
 app.use("/api/shipping-orders", require("./routes/shippingOrdersImport")); // 新增出貨單CSV匯入路由
-app.use("/api/accounting-categories", require("./routes/accountingCategories"));
 app.use("/api/fifo", require("./routes/fifo"));
 app.use("/api/monitored-products", require("./routes/monitoredProducts")); // 新增監測產品路由
 app.use("/api/settings", require("./routes/settings")); // *** Add the new settings route ***
