@@ -5,9 +5,9 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import Supplier from '../models/Supplier';
-import { ApiResponse, ErrorResponse, CSVImportResponse } from '../src/types/api';
-import { ISupplier, ISupplierDocument } from '../src/types/models';
-import { FileUploadRequest } from '../src/types/express';
+import { ApiResponse, ErrorResponse, CSVImportResponse } from '@shared/types/api';
+import { Supplier as SupplierType } from '@shared/types/entities';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 const router = express.Router();
 
@@ -75,10 +75,25 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const suppliers = await Supplier.find().sort({ name: 1 });
     
-    const response: ApiResponse<ISupplierDocument[]> = {
+    const response: ApiResponse<SupplierType[]> = {
       success: true,
       message: 'Suppliers retrieved successfully',
-      data: suppliers,
+      data: suppliers.map(supplier => ({
+        _id: supplier._id.toString(),
+        code: supplier.code,
+        shortCode: supplier.shortCode,
+        name: supplier.name,
+        contactPerson: supplier.contactPerson,
+        phone: supplier.phone,
+        email: supplier.email,
+        address: supplier.address,
+        taxId: supplier.taxId,
+        paymentTerms: supplier.paymentTerms,
+        notes: supplier.notes,
+        date: supplier.date,
+        createdAt: (supplier as any).createdAt,
+        updatedAt: (supplier as any).updatedAt
+      })),
       timestamp: new Date()
     };
     
@@ -88,11 +103,11 @@ router.get('/', async (req: Request, res: Response) => {
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -105,10 +120,10 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '無效的供應商ID',
+        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
@@ -116,16 +131,31 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (!supplier) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '供應商不存在',
+        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
-    const response: ApiResponse<ISupplierDocument> = {
+    const response: ApiResponse<SupplierType> = {
       success: true,
       message: 'Supplier retrieved successfully',
-      data: supplier,
+      data: {
+        _id: supplier._id.toString(),
+        code: supplier.code,
+        shortCode: supplier.shortCode,
+        name: supplier.name,
+        contactPerson: supplier.contactPerson,
+        phone: supplier.phone,
+        email: supplier.email,
+        address: supplier.address,
+        taxId: supplier.taxId,
+        paymentTerms: supplier.paymentTerms,
+        notes: supplier.notes,
+        date: supplier.date,
+        createdAt: (supplier as any).createdAt,
+        updatedAt: (supplier as any).updatedAt
+      },
       timestamp: new Date()
     };
     
@@ -136,19 +166,19 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (err.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '供應商不存在',
+        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -166,11 +196,11 @@ router.post(
     if (!errors.isEmpty()) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Validation failed',
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     try {
@@ -194,15 +224,15 @@ router.post(
         if (supplier) {
           const errorResponse: ErrorResponse = {
             success: false,
-            message: '供應商編號已存在',
+            message: ERROR_MESSAGES.SUPPLIER.CODE_EXISTS,
             timestamp: new Date()
           };
-          return res.status(400).json(errorResponse);
+          return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
         }
       }
 
       // 建立供應商欄位物件
-      const supplierFields: Partial<ISupplier> = {
+      const supplierFields: Partial<SupplierType> = {
         name: name.toString(),
         shortCode: shortCode.toString()
       };
@@ -229,10 +259,25 @@ router.post(
       let supplier = new Supplier(supplierFields);
       await supplier.save();
       
-      const response: ApiResponse<ISupplierDocument> = {
+      const response: ApiResponse<SupplierType> = {
         success: true,
         message: 'Supplier created successfully',
-        data: supplier,
+        data: {
+          _id: supplier._id.toString(),
+          code: supplier.code,
+          shortCode: supplier.shortCode,
+          name: supplier.name,
+          contactPerson: supplier.contactPerson,
+          phone: supplier.phone,
+          email: supplier.email,
+          address: supplier.address,
+          taxId: supplier.taxId,
+          paymentTerms: supplier.paymentTerms,
+          notes: supplier.notes,
+          date: supplier.date,
+          createdAt: (supplier as any).createdAt,
+          updatedAt: (supplier as any).updatedAt
+        },
         timestamp: new Date()
       };
       
@@ -242,11 +287,11 @@ router.post(
       
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Server Error',
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
         timestamp: new Date()
       };
       
-      res.status(500).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );
@@ -256,7 +301,7 @@ router.post(
  * @param reqBody - 請求體
  * @returns 供應商欄位物件
  */
-function createSupplierFields(reqBody: SupplierUpdateRequest): Partial<ISupplier> {
+function createSupplierFields(reqBody: SupplierUpdateRequest): Partial<SupplierType> {
   const {
     code,
     shortCode,
@@ -271,7 +316,7 @@ function createSupplierFields(reqBody: SupplierUpdateRequest): Partial<ISupplier
   } = reqBody;
 
   // 建立更新欄位物件
-  const supplierFields: Partial<ISupplier> = {};
+  const supplierFields: Partial<SupplierType> = {};
   
   // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
   if (code !== undefined) supplierFields.code = code.toString();
@@ -309,7 +354,7 @@ async function isCodeDuplicate(code: string | undefined, currentCode: string | u
  * @param supplier - 供應商物件
  * @param supplierFields - 供應商欄位物件
  */
-function applyUpdatesToSupplier(supplier: ISupplierDocument, supplierFields: Partial<ISupplier>): void {
+function applyUpdatesToSupplier(supplier: any, supplierFields: Partial<SupplierType>): void {
   Object.keys(supplierFields).forEach(key => {
     (supplier as any)[key] = (supplierFields as any)[key];
   });
@@ -326,10 +371,10 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '無效的供應商ID',
+        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     // 查找供應商
@@ -337,10 +382,10 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (!supplier) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '供應商不存在',
+        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     // 建立更新欄位物件
@@ -350,10 +395,10 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (await isCodeDuplicate(supplierFields.code, supplier.code)) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '供應商編號已存在',
+        message: ERROR_MESSAGES.SUPPLIER.CODE_EXISTS,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     // 應用更新
@@ -362,10 +407,25 @@ router.put('/:id', async (req: Request, res: Response) => {
     // 保存更新
     await supplier.save();
     
-    const response: ApiResponse<ISupplierDocument> = {
+    const response: ApiResponse<SupplierType> = {
       success: true,
       message: 'Supplier updated successfully',
-      data: supplier,
+      data: {
+        _id: supplier._id.toString(),
+        code: supplier.code,
+        shortCode: supplier.shortCode,
+        name: supplier.name,
+        contactPerson: supplier.contactPerson,
+        phone: supplier.phone,
+        email: supplier.email,
+        address: supplier.address,
+        taxId: supplier.taxId,
+        paymentTerms: supplier.paymentTerms,
+        notes: supplier.notes,
+        date: supplier.date,
+        createdAt: (supplier as any).createdAt,
+        updatedAt: (supplier as any).updatedAt
+      },
       timestamp: new Date()
     };
     
@@ -376,19 +436,19 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (err.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '供應商不存在',
+        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -401,20 +461,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '無效的供應商ID',
+        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
     if (!supplier) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '供應商不存在',
+        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     // 修復：使用 deleteOne 替代 findByIdAndDelete
@@ -434,19 +494,19 @@ router.delete('/:id', async (req: Request, res: Response) => {
     if (err.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '供應商不存在',
+        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -491,8 +551,8 @@ async function checkCodeDuplicate(code: string | undefined): Promise<{ isDuplica
  * @param row - CSV行數據
  * @returns 供應商欄位物件
  */
-function createSupplierFieldsFromRow(row: any): Partial<ISupplier> {
-  const supplierFields: Partial<ISupplier> = {
+function createSupplierFieldsFromRow(row: any): Partial<SupplierType> {
+  const supplierFields: Partial<SupplierType> = {
     name: row.name.toString(),
     shortCode: row.shortCode.toString(),
     date: new Date()
@@ -588,10 +648,10 @@ router.post('/import-csv', upload.single('file'), async (req: Request, res: Resp
     if (!fileRequest.file) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '請上傳CSV文件',
+        message: ERROR_MESSAGES.FILE.UPLOAD_FAILED,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const results: any[] = [];
@@ -650,11 +710,11 @@ router.post('/import-csv', upload.single('file'), async (req: Request, res: Resp
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -678,11 +738,11 @@ router.get('/template/csv', (req: Request, res: Response) => {
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

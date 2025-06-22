@@ -1,13 +1,34 @@
 import mongoose, { Schema, Model } from 'mongoose';
-import { IBaseProductDocument, IProductDocument, IMedicineDocument } from '../src/types/models';
+import {
+  BaseProduct as IBaseProduct,
+  Product as IProduct,
+  Medicine as IMedicine
+} from '@shared/types/entities';
+import { ProductType } from '@shared/enums';
+
+// 擴展 Mongoose Document 介面，處理 ObjectId 與 string 的差異
+interface IBaseProductDocument extends Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
+  category?: mongoose.Types.ObjectId;
+  supplier?: mongoose.Types.ObjectId;
+}
+
+interface IProductDocument extends Omit<IProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
+  category?: mongoose.Types.ObjectId;
+  supplier?: mongoose.Types.ObjectId;
+}
+
+interface IMedicineDocument extends Omit<IMedicine, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
+  category?: mongoose.Types.ObjectId;
+  supplier?: mongoose.Types.ObjectId;
+}
 
 // 擴展 Model 介面以包含自定義靜態方法
 interface IBaseProductModel extends Model<IBaseProductDocument> {
   findByCode(code: string): Promise<IBaseProductDocument | null>;
 }
 
-// 基礎產品 Schema (與原始 JavaScript 版本保持一致)
-const BaseProductSchema = new Schema({
+// 基礎產品 Schema (使用 shared 類型定義)
+const BaseProductSchema = new Schema<IBaseProductDocument>({
   code: {
     type: String,
     required: true,
@@ -50,7 +71,7 @@ const BaseProductSchema = new Schema({
   productType: {
     type: String,
     required: true,
-    enum: ['product', 'medicine']
+    enum: Object.values(ProductType)  // 使用 shared 枚舉
   },
   date: {
     type: Date,
@@ -65,26 +86,56 @@ const BaseProductSchema = new Schema({
   timestamps: true
 });
 
-// 靜態方法
-BaseProductSchema.statics.findByCode = function(code: string) {
+// 靜態方法 - 類型安全
+BaseProductSchema.statics.findByCode = function(code: string): Promise<IBaseProductDocument | null> {
   return this.findOne({ code });
 };
 
 // 創建基礎模型
-const BaseProduct = mongoose.model<IBaseProductDocument, IBaseProductModel>('baseproduct', BaseProductSchema);
+const BaseProductModel = mongoose.model<IBaseProductDocument, IBaseProductModel>('baseproduct', BaseProductSchema);
 
 // 商品擴展模型
-const Product = BaseProduct.discriminator<IProductDocument>('product', new Schema({
+const ProductModel = BaseProductModel.discriminator<IProductDocument>(ProductType.PRODUCT, new Schema({
   barcode: {
     type: String
   }
 }));
 
-// 藥品擴展模型
-const Medicine = BaseProduct.discriminator<IMedicineDocument>('medicine', new Schema({
+// 藥品擴展模型 - 使用 shared 類型結構
+const MedicineModel = BaseProductModel.discriminator<IMedicineDocument>(ProductType.MEDICINE, new Schema({
   barcode: {
     type: String
   },
+  medicineInfo: {
+    licenseNumber: {
+      type: String
+    },
+    ingredients: {
+      type: String
+    },
+    dosage: {
+      type: String
+    },
+    sideEffects: {
+      type: String
+    },
+    contraindications: {
+      type: String
+    },
+    storageConditions: {
+      type: String
+    },
+    manufacturer: {
+      type: String
+    },
+    approvalNumber: {
+      type: String
+    },
+    expiryDate: {
+      type: Date
+    }
+  },
+  // 保持向後兼容性的舊欄位
   healthInsuranceCode: {
     type: String
   },
@@ -95,11 +146,11 @@ const Medicine = BaseProduct.discriminator<IMedicineDocument>('medicine', new Sc
 }));
 
 // 雙重導出策略以確保兼容性
-export default BaseProduct;
-export { Product, Medicine };
+export default BaseProductModel;
+export { ProductModel as Product, MedicineModel as Medicine };
 
 // CommonJS 兼容性
-module.exports = BaseProduct;
-module.exports.default = BaseProduct;
-module.exports.Product = Product;
-module.exports.Medicine = Medicine;
+module.exports = BaseProductModel;
+module.exports.default = BaseProductModel;
+module.exports.Product = ProductModel;
+module.exports.Medicine = MedicineModel;

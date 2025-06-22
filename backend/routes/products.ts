@@ -5,40 +5,26 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import { AuthenticatedRequest } from '../src/types/express';
-import { ApiResponse, ProductCreateRequest, ProductResponse } from '../src/types/api';
-import { IBaseProductDocument, IProductDocument, IMedicineDocument } from '../src/types/models';
+import {
+  ApiResponse,
+  ProductCreateRequest,
+  ProductResponse,
+  CSVImportResult,
+  CSVItemData
+} from '@shared/types/api';
+import {
+  IBaseProductDocument,
+  IProductDocument,
+  IMedicineDocument
+} from '../src/types/models';
+import { ProductType } from '@shared/enums';
+import { ERROR_MESSAGES, API_CONSTANTS } from '@shared/constants';
 import auth from '../middleware/auth';
 const BaseProduct = require('../models/BaseProduct');
 const { Product, Medicine } = require('../models/BaseProduct');
 
 const router = express.Router();
 
-// CSV 匯入結果介面
-interface CSVImportResult {
-  success: boolean;
-  count: number;
-  errors?: Array<{
-    item: any;
-    error: string;
-  }>;
-}
-
-// CSV 項目資料介面
-interface CSVItemData {
-  code?: string;
-  shortCode: string;
-  name: string;
-  category?: string;
-  unit?: string;
-  purchasePrice?: string;
-  sellingPrice?: string;
-  description?: string;
-  supplier?: string;
-  minStock?: string;
-  barcode?: string;
-  healthInsuranceCode?: string;
-  healthInsurancePrice?: string;
-}
 
 // 配置 multer 存儲
 const storage = multer.diskStorage({
@@ -92,9 +78,9 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     } as ApiResponse<IBaseProductDocument[]>);
   } catch (err) {
     console.error('獲取產品列表錯誤:', err);
-    res.status(500).json({
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: '伺服器錯誤',
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
       error: err instanceof Error ? err.message : '未知錯誤',
       timestamp: new Date()
     } as ApiResponse);
@@ -114,14 +100,14 @@ router.get('/products', async (req: Request, res: Response): Promise<void> => {
     res.json({
       success: true,
       message: '商品列表獲取成功',
-      data: products as any,
+      data: products,
       timestamp: new Date()
-    });
+    } as ApiResponse<IProductDocument[]>);
   } catch (err) {
     console.error('獲取商品列表錯誤:', err);
-    res.status(500).json({
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: '伺服器錯誤',
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
       error: err instanceof Error ? err.message : '未知錯誤',
       timestamp: new Date()
     } as ApiResponse);
@@ -141,14 +127,14 @@ router.get('/medicines', async (req: Request, res: Response): Promise<void> => {
     res.json({
       success: true,
       message: '藥品列表獲取成功',
-      data: medicines as any,
+      data: medicines,
       timestamp: new Date()
-    });
+    } as ApiResponse<IMedicineDocument[]>);
   } catch (err) {
     console.error('獲取藥品列表錯誤:', err);
-    res.status(500).json({
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: '伺服器錯誤',
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
       error: err instanceof Error ? err.message : '未知錯誤',
       timestamp: new Date()
     } as ApiResponse);
@@ -165,9 +151,9 @@ router.get('/code/:code', async (req: Request, res: Response): Promise<void> => 
     const product = await BaseProduct.findByCode(productCode);
     
     if (!product) {
-      res.status(404).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
         success: false,
-        message: '產品不存在',
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
         timestamp: new Date()
       } as ApiResponse);
       return;
@@ -181,9 +167,9 @@ router.get('/code/:code', async (req: Request, res: Response): Promise<void> => 
     } as ApiResponse<IBaseProductDocument>);
   } catch (err) {
     console.error('根據代碼獲取產品錯誤:', err);
-    res.status(500).json({
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: '伺服器錯誤',
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
       error: err instanceof Error ? err.message : '未知錯誤',
       timestamp: new Date()
     } as ApiResponse);
@@ -200,9 +186,9 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       .populate('supplier', 'name');
     
     if (!product) {
-      res.status(404).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
         success: false,
-        message: '產品不存在',
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
         timestamp: new Date()
       } as ApiResponse);
       return;
@@ -217,16 +203,16 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   } catch (err) {
     console.error('獲取產品錯誤:', err);
     if (err instanceof Error && err.name === 'CastError') {
-      res.status(404).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
         success: false,
-        message: '產品不存在',
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
         timestamp: new Date()
       } as ApiResponse);
       return;
     }
-    res.status(500).json({
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: '伺服器錯誤',
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
       error: err instanceof Error ? err.message : '未知錯誤',
       timestamp: new Date()
     } as ApiResponse);
@@ -250,9 +236,9 @@ router.post(
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
-      res.status(400).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: '驗證失敗',
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         details: errors.array(),
         timestamp: new Date()
       } as ApiResponse);
@@ -277,9 +263,9 @@ router.post(
       if (code) {
         const existingProduct = await BaseProduct.findByCode(code);
         if (existingProduct) {
-          res.status(400).json({
+          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
             success: false,
-            message: '產品代碼已存在',
+            message: ERROR_MESSAGES.PRODUCT.CODE_EXISTS,
             timestamp: new Date()
           } as ApiResponse);
           return;
@@ -299,7 +285,7 @@ router.post(
         supplier,
         minStock: parseInt(minStock) || 10,
         barcode,
-        productType: 'product',
+        productType: ProductType.PRODUCT,
         isActive: true
       });
       
@@ -311,9 +297,9 @@ router.post(
         .populate('supplier', 'name') as unknown as IProductDocument | null;
       
       if (!savedProduct) {
-        res.status(500).json({
+        res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: '創建商品後查詢失敗',
+          message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
           timestamp: new Date()
         } as ApiResponse);
         return;
@@ -327,9 +313,9 @@ router.post(
       } as ApiResponse<IProductDocument>);
     } catch (err) {
       console.error('創建商品錯誤:', err);
-      res.status(500).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: '伺服器錯誤',
+        message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
         error: err instanceof Error ? err.message : '未知錯誤',
         timestamp: new Date()
       } as ApiResponse);
@@ -354,9 +340,9 @@ router.post(
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
-      res.status(400).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: '驗證失敗',
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         details: errors.array(),
         timestamp: new Date()
       } as ApiResponse);
@@ -383,9 +369,9 @@ router.post(
       if (code) {
         const existingProduct = await BaseProduct.findByCode(code);
         if (existingProduct) {
-          res.status(400).json({
+          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
             success: false,
-            message: '產品代碼已存在',
+            message: ERROR_MESSAGES.PRODUCT.CODE_EXISTS,
             timestamp: new Date()
           } as ApiResponse);
           return;
@@ -407,7 +393,7 @@ router.post(
         barcode,
         healthInsuranceCode,
         healthInsurancePrice: parseFloat(healthInsurancePrice) || 0,
-        productType: 'medicine',
+        productType: ProductType.MEDICINE,
         isActive: true
       });
       
@@ -419,9 +405,9 @@ router.post(
         .populate('supplier', 'name') as unknown as IMedicineDocument | null;
       
       if (!savedMedicine) {
-        res.status(500).json({
+        res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: '創建藥品後查詢失敗',
+          message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
           timestamp: new Date()
         } as ApiResponse);
         return;
@@ -435,9 +421,9 @@ router.post(
       } as ApiResponse<IMedicineDocument>);
     } catch (err) {
       console.error('創建藥品錯誤:', err);
-      res.status(500).json({
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: '伺服器錯誤',
+        message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
         error: err instanceof Error ? err.message : '未知錯誤',
         timestamp: new Date()
       } as ApiResponse);
@@ -492,7 +478,7 @@ router.post('/create-test-data', async (req: Request, res: Response): Promise<vo
       sellingPrice: 80,
       description: '這是一個測試商品',
       minStock: 10,
-      productType: 'product',
+      productType: ProductType.PRODUCT,
       isActive: true
     });
 
@@ -505,7 +491,7 @@ router.post('/create-test-data', async (req: Request, res: Response): Promise<vo
       sellingPrice: 50,
       description: '這是另一個測試商品',
       minStock: 5,
-      productType: 'product',
+      productType: ProductType.PRODUCT,
       isActive: true
     });
 
@@ -521,7 +507,7 @@ router.post('/create-test-data', async (req: Request, res: Response): Promise<vo
       minStock: 5,
       healthInsuranceCode: 'HC001',
       healthInsurancePrice: 120,
-      productType: 'medicine',
+      productType: ProductType.MEDICINE,
       isActive: true
     });
 
@@ -536,7 +522,7 @@ router.post('/create-test-data', async (req: Request, res: Response): Promise<vo
       minStock: 3,
       healthInsuranceCode: 'HC002',
       healthInsurancePrice: 100,
-      productType: 'medicine',
+      productType: ProductType.MEDICINE,
       isActive: true
     });
 

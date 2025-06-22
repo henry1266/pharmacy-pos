@@ -613,6 +613,37 @@ export interface CSVImportResponse {
 }
 
 /**
+ * CSV 匯入結果介面
+ */
+export interface CSVImportResult {
+  success: boolean;
+  count: number;
+  errors?: Array<{
+    item: any;
+    error: string;
+  }>;
+}
+
+/**
+ * CSV 項目資料介面
+ */
+export interface CSVItemData {
+  code?: string;
+  shortCode: string;
+  name: string;
+  category?: string;
+  unit?: string;
+  purchasePrice?: string;
+  sellingPrice?: string;
+  description?: string;
+  supplier?: string;
+  minStock?: string;
+  barcode?: string;
+  healthInsuranceCode?: string;
+  healthInsurancePrice?: string;
+}
+
+/**
  * 統計報表相關型別
  */
 export interface DashboardStats {

@@ -269,6 +269,7 @@ export const ERROR_MESSAGES = {
   // 通用錯誤
   GENERIC: {
     INTERNAL_ERROR: '系統內部錯誤',
+    SERVER_ERROR: '伺服器錯誤',
     INVALID_REQUEST: '無效的請求',
     UNAUTHORIZED: '未授權的存取',
     FORBIDDEN: '禁止存取',
@@ -296,6 +297,7 @@ export const ERROR_MESSAGES = {
   // 客戶相關
   CUSTOMER: {
     NOT_FOUND: '找不到客戶',
+    CODE_EXISTS: '客戶編號已存在',
     PHONE_EXISTS: '電話號碼已存在',
     EMAIL_EXISTS: '電子郵件已存在'
   },

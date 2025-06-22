@@ -1,5 +1,9 @@
 import { Schema, model } from 'mongoose';
-import { ICustomer, ICustomerDocument } from '../src/types/models';
+import { Customer as ICustomer } from '@shared/types/entities';
+import mongoose from 'mongoose';
+
+// 擴展 Mongoose Document 介面
+interface ICustomerDocument extends Omit<ICustomer, '_id' | 'createdAt' | 'updatedAt'>, mongoose.Document {}
 
 const CustomerSchema = new Schema<ICustomerDocument>({
   code: {
@@ -48,7 +52,7 @@ const CustomerSchema = new Schema<ICustomerDocument>({
     type: Date,
     default: Date.now
   },
-  note: {
+  notes: {
     type: String
   },
   totalPurchases: {
@@ -98,6 +102,11 @@ CustomerSchema.methods.getCustomerTier = function(): string {
 };
 
 const Customer = model<ICustomerDocument>('customer', CustomerSchema);
+
+// 雙重導出策略以確保兼容性
 export default Customer;
+export type { ICustomer, ICustomerDocument };
+
+// CommonJS 兼容性
 module.exports = Customer;
 module.exports.default = Customer;

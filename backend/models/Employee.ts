@@ -1,34 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { Employee as IEmployee } from '@shared/types/entities';
 
-// 員工介面
-export interface IEmployee {
-  name: string;
-  gender: 'male' | 'female';
-  birthDate: Date;
-  idNumber: string;
-  education?: string;
-  nativePlace?: string;
-  address: string;
-  phone?: string;
-  position: string;
-  department: string;
-  hireDate: Date;
-  salary?: number;
-  insuranceDate?: Date;
-  experience?: string;
-  rewards?: string;
-  injuries?: string;
-  additionalInfo?: string;
-  idCardFront?: string; // 存儲圖片路徑或URL
-  idCardBack?: string; // 存儲圖片路徑或URL
+// 擴展 Mongoose Document 介面
+interface IEmployeeDocument extends Omit<IEmployee, '_id' | 'createdAt' | 'updatedAt'>, mongoose.Document {
   userId?: mongoose.Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// 員工文檔介面
-export interface IEmployeeDocument extends IEmployee, Document {
-  _id: mongoose.Types.ObjectId;
 }
 
 const EmployeeSchema = new Schema<IEmployeeDocument>({
@@ -38,30 +13,25 @@ const EmployeeSchema = new Schema<IEmployeeDocument>({
   },
   gender: {
     type: String,
-    enum: ["male", "female"],
-    required: true
+    enum: ["male", "female", "other", "男", "女", "其他"],
+    required: false
   },
   birthDate: {
     type: Date,
-    required: true
+    required: false
   },
   idNumber: {
     type: String,
-    required: true,
-    unique: true
-  },
-  education: {
-    type: String
-  },
-  nativePlace: {
-    type: String
+    required: false,
+    unique: false
   },
   address: {
     type: String,
-    required: true
+    required: false
   },
   phone: {
-    type: String
+    type: String,
+    required: true
   },
   position: {
     type: String,
@@ -69,52 +39,32 @@ const EmployeeSchema = new Schema<IEmployeeDocument>({
   },
   department: {
     type: String,
-    required: true
+    required: false
   },
   hireDate: {
     type: Date,
     required: true
   },
+  email: {
+    type: String
+  },
   salary: {
     type: Number
-  },
-  insuranceDate: {
-    type: Date
-  },
-  experience: {
-    type: String
-  },
-  rewards: {
-    type: String
-  },
-  injuries: {
-    type: String
-  },
-  additionalInfo: {
-    type: String
-  },
-  idCardFront: {
-    type: String // 存儲圖片路徑或URL
-  },
-  idCardBack: {
-    type: String // 存儲圖片路徑或URL
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  timestamps: true
 });
 
 const Employee = mongoose.model<IEmployeeDocument>("employee", EmployeeSchema);
 
+// 雙重導出策略以確保兼容性
 export default Employee;
+export type { IEmployee, IEmployeeDocument };
+
+// CommonJS 兼容性
 module.exports = Employee;
 module.exports.default = Employee;

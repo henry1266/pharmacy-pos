@@ -1,8 +1,9 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import Customer from '../models/Customer';
-import { ApiResponse, ErrorResponse } from '../src/types/api';
-import { ICustomerDocument } from '../src/types/models';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { Customer as CustomerType } from '@shared/types/entities';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 const router = express.Router();
 
@@ -36,10 +37,29 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const customers = await Customer.find().sort({ name: 1 });
     
-    const response: ApiResponse<ICustomerDocument[]> = {
+    const response: ApiResponse<CustomerType[]> = {
       success: true,
       message: 'Customers retrieved successfully',
-      data: customers,
+      data: customers.map(customer => ({
+        _id: customer._id.toString(),
+        name: customer.name,
+        code: customer.code,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        birthdate: customer.birthdate,
+        gender: customer.gender,
+        notes: customer.notes,
+        idCardNumber: customer.idCardNumber,
+        allergies: customer.allergies,
+        membershipLevel: customer.membershipLevel,
+        medicalHistory: customer.medicalHistory,
+        totalPurchases: customer.totalPurchases,
+        lastPurchaseDate: customer.lastPurchaseDate,
+        date: customer.date,
+        createdAt: (customer as any).createdAt,
+        updatedAt: (customer as any).updatedAt
+      })),
       timestamp: new Date()
     };
     
@@ -49,11 +69,11 @@ router.get('/', async (req: Request, res: Response) => {
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -67,16 +87,35 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (!customer) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '會員不存在',
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
-    const response: ApiResponse<ICustomerDocument> = {
+    const response: ApiResponse<CustomerType> = {
       success: true,
       message: 'Customer retrieved successfully',
-      data: customer,
+      data: {
+        _id: customer._id.toString(),
+        name: customer.name,
+        code: customer.code,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        birthdate: customer.birthdate,
+        gender: customer.gender,
+        notes: customer.notes,
+        idCardNumber: customer.idCardNumber,
+        allergies: customer.allergies,
+        membershipLevel: customer.membershipLevel,
+        medicalHistory: customer.medicalHistory,
+        totalPurchases: customer.totalPurchases,
+        lastPurchaseDate: customer.lastPurchaseDate,
+        date: customer.date,
+        createdAt: (customer as any).createdAt,
+        updatedAt: (customer as any).updatedAt
+      },
       timestamp: new Date()
     };
 
@@ -87,19 +126,19 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (err.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '會員不存在',
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
 
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -124,7 +163,7 @@ async function generateCustomerCode(): Promise<string> {
 /**
  * 從請求中構建會員欄位物件
  */
-function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRequest): Partial<ICustomerDocument> {
+function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRequest): Partial<CustomerType> {
   const {
     code,
     name,
@@ -154,8 +193,8 @@ function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRe
   if (address) customerFields.address = address;
   
   // 處理生日欄位 (支援新舊欄位名稱)
-  if (dateOfBirth) customerFields.dateOfBirth = dateOfBirth;
-  else if (birthdate) customerFields.dateOfBirth = birthdate;
+  if (dateOfBirth) customerFields.birthdate = dateOfBirth;
+  else if (birthdate) customerFields.birthdate = birthdate;
   
   if (gender) customerFields.gender = gender;
   
@@ -174,8 +213,8 @@ function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRe
   
   if (additionalInfo.length > 0) {
     const existingNotes = customerFields.notes || '';
-    customerFields.notes = existingNotes ? 
-      `${existingNotes}\n${additionalInfo.join('\n')}` : 
+    customerFields.notes = existingNotes ?
+      `${existingNotes}\n${additionalInfo.join('\n')}` :
       additionalInfo.join('\n');
   }
   
@@ -196,11 +235,11 @@ router.post(
     if (!errors.isEmpty()) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Validation failed',
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     try {
@@ -210,10 +249,10 @@ router.post(
       if (requestBody.code && await checkCustomerCodeExists(requestBody.code)) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: '會員編號已存在',
+          message: ERROR_MESSAGES.CUSTOMER.CODE_EXISTS,
           timestamp: new Date()
         };
-        return res.status(400).json(errorResponse);
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       }
 
       // 建立會員欄位物件
@@ -227,10 +266,29 @@ router.post(
       const customer = new Customer(customerFields);
       await customer.save();
 
-      const response: ApiResponse<ICustomerDocument> = {
+      const response: ApiResponse<CustomerType> = {
         success: true,
         message: 'Customer created successfully',
-        data: customer,
+        data: {
+          _id: customer._id.toString(),
+          name: customer.name,
+          code: customer.code,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+          birthdate: customer.birthdate,
+          gender: customer.gender,
+          notes: customer.notes,
+          idCardNumber: customer.idCardNumber,
+          allergies: customer.allergies,
+          membershipLevel: customer.membershipLevel,
+          medicalHistory: customer.medicalHistory,
+          totalPurchases: customer.totalPurchases,
+          lastPurchaseDate: customer.lastPurchaseDate,
+          date: customer.date,
+          createdAt: (customer as any).createdAt,
+          updatedAt: (customer as any).updatedAt
+        },
         timestamp: new Date()
       };
 
@@ -240,11 +298,11 @@ router.post(
       
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Server Error',
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
         timestamp: new Date()
       };
       
-      res.status(500).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );
@@ -261,10 +319,10 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (!customer) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '會員不存在',
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     // 若編號被修改，檢查是否重複
@@ -272,10 +330,10 @@ router.put('/:id', async (req: Request, res: Response) => {
       if (await checkCustomerCodeExists(requestBody.code)) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: '會員編號已存在',
+          message: ERROR_MESSAGES.CUSTOMER.CODE_EXISTS,
           timestamp: new Date()
         };
-        return res.status(400).json(errorResponse);
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       }
     }
 
@@ -289,10 +347,29 @@ router.put('/:id', async (req: Request, res: Response) => {
       { new: true }
     );
 
-    const response: ApiResponse<ICustomerDocument> = {
+    const response: ApiResponse<CustomerType> = {
       success: true,
       message: 'Customer updated successfully',
-      data: updatedCustomer!,
+      data: {
+        _id: updatedCustomer!._id.toString(),
+        name: updatedCustomer!.name,
+        code: updatedCustomer!.code,
+        phone: updatedCustomer!.phone,
+        email: updatedCustomer!.email,
+        address: updatedCustomer!.address,
+        birthdate: updatedCustomer!.birthdate,
+        gender: updatedCustomer!.gender,
+        notes: updatedCustomer!.notes,
+        idCardNumber: updatedCustomer!.idCardNumber,
+        allergies: updatedCustomer!.allergies,
+        membershipLevel: updatedCustomer!.membershipLevel,
+        medicalHistory: updatedCustomer!.medicalHistory,
+        totalPurchases: updatedCustomer!.totalPurchases,
+        lastPurchaseDate: updatedCustomer!.lastPurchaseDate,
+        date: updatedCustomer!.date,
+        createdAt: (updatedCustomer as any).createdAt,
+        updatedAt: (updatedCustomer as any).updatedAt
+      },
       timestamp: new Date()
     };
 
@@ -303,19 +380,19 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (err.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '會員不存在',
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
 
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -329,10 +406,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
     if (!customer) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '會員不存在',
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     // 使用 findOneAndDelete 替代已棄用的 remove() 方法
@@ -352,19 +429,19 @@ router.delete('/:id', async (req: Request, res: Response) => {
     if (err.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '會員不存在',
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
 
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

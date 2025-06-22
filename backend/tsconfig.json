@@ -12,7 +12,7 @@
     "removeComments": false,
 
     /* 路徑設定 */
-    "rootDir": "./",
+    "rootDir": "../",
     "outDir": "./dist",
 
     /* 模組解析選項 */
@@ -54,7 +54,8 @@
   },
   "include": [
     "./**/*.ts",
-    "./**/*.js"
+    "./**/*.js",
+    "../shared/**/*.ts"
   ],
   "exclude": [
     "node_modules",

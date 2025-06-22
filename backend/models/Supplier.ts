@@ -1,5 +1,8 @@
 import mongoose, { Schema, Model } from 'mongoose';
-import { ISupplier, ISupplierDocument } from '../src/types/models';
+import { Supplier as ISupplier } from '@shared/types/entities';
+
+// 擴展 Mongoose Document 介面
+interface ISupplierDocument extends Omit<ISupplier, '_id' | 'createdAt' | 'updatedAt'>, mongoose.Document {}
 
 const SupplierSchema = new Schema<ISupplierDocument>({
   code: {
@@ -40,6 +43,8 @@ const SupplierSchema = new Schema<ISupplierDocument>({
     type: Date,
     default: Date.now
   }
+}, {
+  timestamps: true
 });
 
 // 實例方法：更新供應商資訊
@@ -66,7 +71,10 @@ SupplierSchema.methods.getSupplierSummary = function(): {
 // 建立並匯出模型
 const Supplier: Model<ISupplierDocument> = mongoose.model<ISupplierDocument>('supplier', SupplierSchema);
 
+// 雙重導出策略以確保兼容性
 export default Supplier;
+export type { ISupplier, ISupplierDocument };
+
+// CommonJS 兼容性
 module.exports = Supplier;
 module.exports.default = Supplier;
-export type { ISupplier, ISupplierDocument };

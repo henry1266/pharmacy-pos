@@ -5,6 +5,31 @@ import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { Action, RootState } from './reducers.ts';
 import { NavigateFunction } from 'react-router-dom';
 
+// 導入 shared 類型
+import {
+  ApiResponse,
+  Product,
+  Customer,
+  Supplier,
+  Inventory,
+  Sale,
+  PurchaseOrder,
+  ShippingOrder,
+  DashboardData,
+  ReportData,
+  LoginRequest,
+  LoginResponse,
+  ProductCreateRequest,
+  ProductUpdateRequest,
+  PurchaseOrderCreateRequest,
+  PurchaseOrderUpdateRequest,
+  ShippingOrderCreateRequest,
+  ShippingOrderUpdateRequest,
+  ProductType,
+  API_ENDPOINTS,
+  ERROR_MESSAGES
+} from '@shared';
+
 // API基礎URL
 export const API_BASE_URL = getApiBaseUrl();
 
@@ -32,29 +57,29 @@ export const login = (username: string, password: string): AppThunk => async (
   dispatch({ type: ActionTypes.LOGIN_REQUEST });
   
   try {
-    interface LoginResponse {
-      token: string;
-      user: any;
+    const loginData: LoginRequest = { username, password };
+    const res = await axios.post<ApiResponse<LoginResponse>>(`${API_BASE_URL}/auth/login`, loginData);
+    
+    if (res.data.success && res.data.data) {
+      const { token, user } = res.data.data;
+      
+      // 儲存令牌到本地存儲
+      localStorage.setItem('token', token);
+      
+      // 設置認證令牌
+      setAuthToken(token);
+      
+      dispatch({
+        type: ActionTypes.LOGIN_SUCCESS,
+        payload: { token, user }
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.LOGIN_FAILED);
     }
-    
-    const res = await axios.post<LoginResponse>(`${API_BASE_URL}/auth/login`, { username, password });
-    
-    const { token } = res.data;
-    
-    // 儲存令牌到本地存儲
-    localStorage.setItem('token', token);
-    
-    // 設置認證令牌
-    setAuthToken(token);
-    
-    dispatch({
-      type: ActionTypes.LOGIN_SUCCESS,
-      payload: res.data
-    });
   } catch (err: any) {
     dispatch({
       type: ActionTypes.LOGIN_FAILURE,
-      payload: err.response?.data?.msg ?? '登入失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.LOGIN_FAILED
     });
   }
 };
@@ -71,68 +96,80 @@ export const logout = (): AppThunk => (
   dispatch({ type: ActionTypes.LOGOUT });
 };
 
-// 藥品相關動作創建器
+// 產品相關動作創建器
 export const fetchProducts = (): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   dispatch({ type: ActionTypes.FETCH_PRODUCTS_REQUEST });
   
   try {
-    const res = await axios.get('/api/products');
+    const res = await axios.get<ApiResponse<Product[]>>(API_ENDPOINTS.PRODUCTS.LIST);
     
-    dispatch({
-      type: ActionTypes.FETCH_PRODUCTS_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_PRODUCTS_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PRODUCTS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PRODUCTS_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取藥品失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PRODUCTS_FAILED
     });
   }
 };
 
-export const addProduct = (productData: any): AppThunk => async (
+export const addProduct = (productData: ProductCreateRequest): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   dispatch({ type: ActionTypes.ADD_PRODUCT_REQUEST });
   
   try {
     // 根據產品類型選擇正確的API端點
-    const endpoint = productData.productType === 'medicine' 
-      ? '/api/products/medicine' 
-      : '/api/products/product';
+    const endpoint = productData.productType === ProductType.MEDICINE
+      ? API_ENDPOINTS.PRODUCTS.MEDICINE
+      : API_ENDPOINTS.PRODUCTS.PRODUCT;
     
-    const res = await axios.post(endpoint, productData);
+    const res = await axios.post<ApiResponse<Product>>(endpoint, productData);
     
-    dispatch({
-      type: ActionTypes.ADD_PRODUCT_SUCCESS,
-      payload: res.data
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.ADD_PRODUCT_SUCCESS,
+        payload: res.data.data
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.ADD_PRODUCT_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_PRODUCT_FAILURE,
-      payload: err.response?.data?.msg ?? '添加藥品失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.ADD_PRODUCT_FAILED
     });
   }
 };
 
-export const updateProduct = (id: string, productData: any): AppThunk => async (
+export const updateProduct = (id: string, productData: ProductUpdateRequest): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   dispatch({ type: ActionTypes.UPDATE_PRODUCT_REQUEST });
   
   try {
-    const res = await axios.put(`/api/products/${id}`, productData);
+    const res = await axios.put<ApiResponse<Product>>(`${API_ENDPOINTS.PRODUCTS.BASE}/${id}`, productData);
     
-    dispatch({
-      type: ActionTypes.UPDATE_PRODUCT_SUCCESS,
-      payload: res.data
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.UPDATE_PRODUCT_SUCCESS,
+        payload: res.data.data
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.UPDATE_PRODUCT_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_PRODUCT_FAILURE,
-      payload: err.response?.data?.msg ?? '更新藥品失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.UPDATE_PRODUCT_FAILED
     });
   }
 };
@@ -143,16 +180,20 @@ export const deleteProduct = (id: string): AppThunk => async (
   dispatch({ type: ActionTypes.DELETE_PRODUCT_REQUEST });
   
   try {
-    await axios.delete(`/api/products/${id}`);
+    const res = await axios.delete<ApiResponse>(`${API_ENDPOINTS.PRODUCTS.BASE}/${id}`);
     
-    dispatch({
-      type: ActionTypes.DELETE_PRODUCT_SUCCESS,
-      payload: id
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.DELETE_PRODUCT_SUCCESS,
+        payload: id
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.DELETE_PRODUCT_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_PRODUCT_FAILURE,
-      payload: err.response?.data?.msg ?? '刪除藥品失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.DELETE_PRODUCT_FAILED
     });
   }
 };
@@ -164,37 +205,45 @@ export const fetchSuppliers = (): AppThunk => async (
   dispatch({ type: ActionTypes.FETCH_SUPPLIERS_REQUEST });
   
   try {
-    const res = await axios.get('/api/suppliers');
+    const res = await axios.get<ApiResponse<Supplier[]>>(API_ENDPOINTS.SUPPLIERS.LIST);
     
-    dispatch({
-      type: ActionTypes.FETCH_SUPPLIERS_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_SUPPLIERS_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SUPPLIERS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SUPPLIERS_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取供應商失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SUPPLIERS_FAILED
     });
   }
 };
 
-// 會員相關動作創建器
+// 客戶相關動作創建器
 export const fetchCustomers = (): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   dispatch({ type: ActionTypes.FETCH_CUSTOMERS_REQUEST });
   
   try {
-    const res = await axios.get('/api/customers');
+    const res = await axios.get<ApiResponse<Customer[]>>(API_ENDPOINTS.CUSTOMERS.LIST);
     
-    dispatch({
-      type: ActionTypes.FETCH_CUSTOMERS_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_CUSTOMERS_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_CUSTOMERS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_CUSTOMERS_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取會員失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_CUSTOMERS_FAILED
     });
   }
 };
@@ -206,17 +255,20 @@ export const fetchInventory = (): AppThunk => async (
   dispatch({ type: ActionTypes.FETCH_INVENTORY_REQUEST });
   
   try {
-    const res = await axios.get('/api/inventory');
+    const res = await axios.get<ApiResponse<Inventory[]>>(API_ENDPOINTS.INVENTORY.LIST);
     
-    // 不再過濾庫存記錄，保留所有庫存數據
-    dispatch({
-      type: ActionTypes.FETCH_INVENTORY_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_INVENTORY_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_INVENTORY_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_INVENTORY_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取庫存失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_INVENTORY_FAILED
     });
   }
 };
@@ -228,16 +280,20 @@ export const fetchSales = (): AppThunk => async (
   dispatch({ type: ActionTypes.FETCH_SALES_REQUEST });
   
   try {
-    const res = await axios.get('/api/sales');
+    const res = await axios.get<ApiResponse<Sale[]>>(API_ENDPOINTS.SALES.LIST);
     
-    dispatch({
-      type: ActionTypes.FETCH_SALES_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_SALES_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SALES_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SALES_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取銷售訂單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SALES_FAILED
     });
   }
 };
@@ -249,37 +305,45 @@ export const fetchDashboardData = (): AppThunk => async (
   dispatch({ type: ActionTypes.FETCH_DASHBOARD_DATA_REQUEST });
   
   try {
-    const res = await axios.get('/api/dashboard');
+    const res = await axios.get<ApiResponse<DashboardData>>(API_ENDPOINTS.DASHBOARD.DATA);
     
-    dispatch({
-      type: ActionTypes.FETCH_DASHBOARD_DATA_SUCCESS,
-      payload: (res.data as any)?.data || {}
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_DASHBOARD_DATA_SUCCESS,
+        payload: res.data.data || {}
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_DASHBOARD_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_DASHBOARD_DATA_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取儀表板數據失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_DASHBOARD_FAILED
     });
   }
 };
 
 // 報表相關動作創建器
-export const fetchReportsData = (reportType: string, params: any): AppThunk => async (
+export const fetchReportsData = (reportType: string, params: Record<string, any>): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   dispatch({ type: ActionTypes.FETCH_REPORTS_DATA_REQUEST });
   
   try {
-    const res = await axios.get(`/api/reports/${reportType}`, { params });
+    const res = await axios.get<ApiResponse<ReportData>>(`${API_ENDPOINTS.REPORTS.BASE}/${reportType}`, { params });
     
-    dispatch({
-      type: ActionTypes.FETCH_REPORTS_DATA_SUCCESS,
-      payload: (res.data as any)?.data || {}
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_REPORTS_DATA_SUCCESS,
+        payload: res.data.data || {}
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_REPORTS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_REPORTS_DATA_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取報表數據失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_REPORTS_FAILED
     });
   }
 };
@@ -294,16 +358,20 @@ export const fetchPurchaseOrders = (): AppThunk => async (
   try {
     dispatch({ type: ActionTypes.FETCH_PURCHASE_ORDERS_REQUEST });
     
-    const res = await axios.get('/api/purchase-orders');
+    const res = await axios.get<ApiResponse<PurchaseOrder[]>>(API_ENDPOINTS.PURCHASE_ORDERS.LIST);
     
-    dispatch({
-      type: ActionTypes.FETCH_PURCHASE_ORDERS_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_PURCHASE_ORDERS_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取進貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED
     });
   }
 };
@@ -315,22 +383,26 @@ export const fetchPurchaseOrder = (id: string): AppThunk => async (
   try {
     dispatch({ type: ActionTypes.FETCH_PURCHASE_ORDER_REQUEST });
     
-    const res = await axios.get(`/api/purchase-orders/${id}`);
+    const res = await axios.get<ApiResponse<PurchaseOrder>>(`${API_ENDPOINTS.PURCHASE_ORDERS.BASE}/${id}`);
     
-    dispatch({
-      type: ActionTypes.FETCH_PURCHASE_ORDER_SUCCESS,
-      payload: (res.data as any)?.data || {}
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_PURCHASE_ORDER_SUCCESS,
+        payload: res.data.data || {}
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取進貨單詳情失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED
     });
   }
 };
 
 // 添加進貨單
-export const addPurchaseOrder = (formData: any, navigate?: NavigateFunction): AppThunk => async (
+export const addPurchaseOrder = (formData: PurchaseOrderCreateRequest, navigate?: NavigateFunction): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
@@ -342,27 +414,31 @@ export const addPurchaseOrder = (formData: any, navigate?: NavigateFunction): Ap
       }
     };
     
-    const res = await axios.post('/api/purchase-orders', formData, config);
+    const res = await axios.post<ApiResponse<PurchaseOrder>>(API_ENDPOINTS.PURCHASE_ORDERS.CREATE, formData, config);
     
-    dispatch({
-      type: ActionTypes.ADD_PURCHASE_ORDER_SUCCESS,
-      payload: res.data
-    });
-    
-    // 導航到進貨單列表頁面
-    if (navigate) {
-      navigate('/purchase-orders');
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.ADD_PURCHASE_ORDER_SUCCESS,
+        payload: res.data.data
+      });
+      
+      // 導航到進貨單列表頁面
+      if (navigate) {
+        navigate('/purchase-orders');
+      }
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '添加進貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED
     });
   }
 };
 
 // 更新進貨單
-export const updatePurchaseOrder = (id: string, formData: any, navigate?: NavigateFunction): AppThunk => async (
+export const updatePurchaseOrder = (id: string, formData: PurchaseOrderUpdateRequest, navigate?: NavigateFunction): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
@@ -374,21 +450,25 @@ export const updatePurchaseOrder = (id: string, formData: any, navigate?: Naviga
       }
     };
     
-    const res = await axios.put(`/api/purchase-orders/${id}`, formData, config);
+    const res = await axios.put<ApiResponse<PurchaseOrder>>(`${API_ENDPOINTS.PURCHASE_ORDERS.BASE}/${id}`, formData, config);
     
-    dispatch({
-      type: ActionTypes.UPDATE_PURCHASE_ORDER_SUCCESS,
-      payload: res.data
-    });
-    
-    // 導航到進貨單列表頁面
-    if (navigate) {
-      navigate('/purchase-orders');
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.UPDATE_PURCHASE_ORDER_SUCCESS,
+        payload: res.data.data
+      });
+      
+      // 導航到進貨單列表頁面
+      if (navigate) {
+        navigate('/purchase-orders');
+      }
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '更新進貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED
     });
   }
 };
@@ -400,16 +480,20 @@ export const deletePurchaseOrder = (id: string): AppThunk => async (
   try {
     dispatch({ type: ActionTypes.DELETE_PURCHASE_ORDER_REQUEST });
     
-    await axios.delete(`/api/purchase-orders/${id}`);
+    const res = await axios.delete<ApiResponse>(`${API_ENDPOINTS.PURCHASE_ORDERS.BASE}/${id}`);
     
-    dispatch({
-      type: ActionTypes.DELETE_PURCHASE_ORDER_SUCCESS,
-      payload: id
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.DELETE_PURCHASE_ORDER_SUCCESS,
+        payload: id
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '刪除進貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED
     });
   }
 };
@@ -429,16 +513,20 @@ export const searchPurchaseOrders = (searchParams: Record<string, string>): AppT
       }
     }
     
-    const res = await axios.get(`/api/purchase-orders/search/query?${queryParams.toString()}`);
+    const res = await axios.get<ApiResponse<PurchaseOrder[]>>(`${API_ENDPOINTS.PURCHASE_ORDERS.SEARCH}?${queryParams.toString()}`);
     
-    dispatch({
-      type: ActionTypes.SEARCH_PURCHASE_ORDERS_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.SEARCH_PURCHASE_ORDERS_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.SEARCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.msg ?? '搜索進貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED
     });
   }
 };
@@ -452,16 +540,20 @@ export const fetchShippingOrders = (): AppThunk => async (
   try {
     dispatch({ type: ActionTypes.FETCH_SHIPPING_ORDERS_REQUEST });
     
-    const res = await axios.get('/api/shipping-orders');
+    const res = await axios.get<ApiResponse<ShippingOrder[]>>(API_ENDPOINTS.SHIPPING_ORDERS.LIST);
     
-    dispatch({
-      type: ActionTypes.FETCH_SHIPPING_ORDERS_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_SHIPPING_ORDERS_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDERS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDERS_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取出貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SHIPPING_ORDERS_FAILED
     });
   }
 };
@@ -473,22 +565,26 @@ export const fetchShippingOrder = (id: string): AppThunk => async (
   try {
     dispatch({ type: ActionTypes.FETCH_SHIPPING_ORDER_REQUEST });
     
-    const res = await axios.get(`/api/shipping-orders/${id}`);
+    const res = await axios.get<ApiResponse<ShippingOrder>>(`${API_ENDPOINTS.SHIPPING_ORDERS.BASE}/${id}`);
     
-    dispatch({
-      type: ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS,
-      payload: (res.data as any)?.data || {}
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS,
+        payload: res.data.data || {}
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDER_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '獲取出貨單詳情失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SHIPPING_ORDER_FAILED
     });
   }
 };
 
 // 添加出貨單
-export const addShippingOrder = (formData: any, navigate?: NavigateFunction): AppThunk => async (
+export const addShippingOrder = (formData: ShippingOrderCreateRequest, navigate?: NavigateFunction): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
@@ -500,27 +596,31 @@ export const addShippingOrder = (formData: any, navigate?: NavigateFunction): Ap
       }
     };
     
-    const res = await axios.post('/api/shipping-orders', formData, config);
+    const res = await axios.post<ApiResponse<ShippingOrder>>(API_ENDPOINTS.SHIPPING_ORDERS.CREATE, formData, config);
     
-    dispatch({
-      type: ActionTypes.ADD_SHIPPING_ORDER_SUCCESS,
-      payload: res.data
-    });
-    
-    // 導航到出貨單列表頁面
-    if (navigate) {
-      navigate('/shipping-orders');
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.ADD_SHIPPING_ORDER_SUCCESS,
+        payload: res.data.data
+      });
+      
+      // 導航到出貨單列表頁面
+      if (navigate) {
+        navigate('/shipping-orders');
+      }
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.ADD_SHIPPING_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '添加出貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.ADD_SHIPPING_ORDER_FAILED
     });
   }
 };
 
 // 更新出貨單
-export const updateShippingOrder = (id: string, formData: any, navigate?: NavigateFunction): AppThunk => async (
+export const updateShippingOrder = (id: string, formData: ShippingOrderUpdateRequest, navigate?: NavigateFunction): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
@@ -532,21 +632,25 @@ export const updateShippingOrder = (id: string, formData: any, navigate?: Naviga
       }
     };
     
-    const res = await axios.put(`/api/shipping-orders/${id}`, formData, config);
+    const res = await axios.put<ApiResponse<ShippingOrder>>(`${API_ENDPOINTS.SHIPPING_ORDERS.BASE}/${id}`, formData, config);
     
-    dispatch({
-      type: ActionTypes.UPDATE_SHIPPING_ORDER_SUCCESS,
-      payload: res.data
-    });
-    
-    // 導航到出貨單列表頁面
-    if (navigate) {
-      navigate('/shipping-orders');
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.UPDATE_SHIPPING_ORDER_SUCCESS,
+        payload: res.data.data
+      });
+      
+      // 導航到出貨單列表頁面
+      if (navigate) {
+        navigate('/shipping-orders');
+      }
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.UPDATE_SHIPPING_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '更新出貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.UPDATE_SHIPPING_ORDER_FAILED
     });
   }
 };
@@ -558,16 +662,20 @@ export const deleteShippingOrder = (id: string): AppThunk => async (
   try {
     dispatch({ type: ActionTypes.DELETE_SHIPPING_ORDER_REQUEST });
     
-    await axios.delete(`/api/shipping-orders/${id}`);
+    const res = await axios.delete<ApiResponse>(`${API_ENDPOINTS.SHIPPING_ORDERS.BASE}/${id}`);
     
-    dispatch({
-      type: ActionTypes.DELETE_SHIPPING_ORDER_SUCCESS,
-      payload: id
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.DELETE_SHIPPING_ORDER_SUCCESS,
+        payload: id
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.DELETE_SHIPPING_ORDER_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.msg ?? '刪除出貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.DELETE_SHIPPING_ORDER_FAILED
     });
   }
 };
@@ -587,16 +695,20 @@ export const searchShippingOrders = (searchParams: Record<string, string>): AppT
       }
     }
     
-    const res = await axios.get(`/api/shipping-orders/search/query?${queryParams.toString()}`);
+    const res = await axios.get<ApiResponse<ShippingOrder[]>>(`${API_ENDPOINTS.SHIPPING_ORDERS.SEARCH}?${queryParams.toString()}`);
     
-    dispatch({
-      type: ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS,
-      payload: (res.data as any)?.data || []
-    });
+    if (res.data.success) {
+      dispatch({
+        type: ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS,
+        payload: res.data.data || []
+      });
+    } else {
+      throw new Error(res.data.message || ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED);
+    }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.SEARCH_SHIPPING_ORDERS_FAILURE,
-      payload: err.response?.data?.msg ?? '搜索出貨單失敗'
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED
     });
   }
 };
