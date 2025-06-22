@@ -285,4 +285,4 @@ interface IEmployeeModel extends Model<IEmployeeDocument> {
 const Employee = mongoose.model<IEmployeeDocument, IEmployeeModel>('Employee', EmployeeSchema);
 
 export default Employee;
-export { IEmployee, IEmployeeDocument, IEmployeeModel };
+export type { IEmployee, IEmployeeDocument, IEmployeeModel };

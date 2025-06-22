@@ -91,7 +91,7 @@ const createEmployeeAccount = async (accountData: EmployeeAccountData): Promise<
   }
 
   // 創建新用戶
-  const userData = {
+  const userData: any = {
     name: employee.name,
     username,
     password: hashResult.hash,
@@ -102,7 +102,7 @@ const createEmployeeAccount = async (accountData: EmployeeAccountData): Promise<
 
   // 只有當email有值且不為空字符串時才設置
   if (email && email.trim() !== '') {
-    (userData as any).email = email;
+    userData.email = email;
   }
 
   const user = new User(userData);
@@ -300,7 +300,10 @@ export {
   getEmployeeAccount,
   updateEmployeeAccount,
   deleteEmployeeAccount,
-  unbindEmployeeAccount,
+  unbindEmployeeAccount
+};
+
+export type {
   EmployeeAccountData,
   AccountUpdateData,
   CreateAccountResult,

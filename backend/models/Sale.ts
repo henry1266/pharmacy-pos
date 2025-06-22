@@ -305,4 +305,4 @@ interface ISaleModel extends Model<ISaleDocument> {
 const Sale = mongoose.model<ISaleDocument, ISaleModel>('Sale', SaleSchema);
 
 export default Sale;
-export { ISale, ISaleDocument, ISaleItem, ISaleModel };
+export type { ISale, ISaleDocument, ISaleItem, ISaleModel };

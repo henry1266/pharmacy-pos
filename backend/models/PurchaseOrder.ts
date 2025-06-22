@@ -360,4 +360,4 @@ interface IPurchaseOrderModel extends Model<IPurchaseOrderDocument> {
 const PurchaseOrder = mongoose.model<IPurchaseOrderDocument, IPurchaseOrderModel>('PurchaseOrder', PurchaseOrderSchema);
 
 export default PurchaseOrder;
-export { IPurchaseOrder, IPurchaseOrderDocument, IPurchaseOrderItem, IPurchaseOrderModel };
+export type { IPurchaseOrder, IPurchaseOrderDocument, IPurchaseOrderItem, IPurchaseOrderModel };

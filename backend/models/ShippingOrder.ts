@@ -394,4 +394,4 @@ interface IShippingOrderModel extends Model<IShippingOrderDocument> {
 const ShippingOrder = mongoose.model<IShippingOrderDocument, IShippingOrderModel>('ShippingOrder', ShippingOrderSchema);
 
 export default ShippingOrder;
-export { IShippingOrder, IShippingOrderDocument, IShippingOrderItem, IShippingOrderModel };
+export type { IShippingOrder, IShippingOrderDocument, IShippingOrderItem, IShippingOrderModel };

@@ -296,4 +296,4 @@ interface ICustomerModel extends Model<ICustomerDocument> {
 const Customer = mongoose.model<ICustomerDocument, ICustomerModel>('Customer', CustomerSchema);
 
 export default Customer;
-export { ICustomer, ICustomerDocument, ICustomerModel };
+export type { ICustomer, ICustomerDocument, ICustomerModel };

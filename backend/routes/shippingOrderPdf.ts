@@ -1,12 +1,50 @@
-import * as express from 'express';
-import { Request, Response } from 'express';
-import ShippingOrder, { IShippingOrderDocument } from '../models/ShippingOrder';
+import express, { Request, Response } from 'express';
+import ShippingOrder from '../models/ShippingOrder';
+import type { IShippingOrderDocument } from '../models/ShippingOrder';
 import BaseProduct from '../models/BaseProduct';
-import * as path from 'path';
-// 使用我們自定義的 PDFKit 型別定義
-import PDFDocument from 'pdfkit';
-import * as dayjs from 'dayjs';
+import path from 'path';
+import dayjs from 'dayjs';
 import { Types } from 'mongoose';
+
+// PDFKit 型別定義
+interface PDFDocumentOptions {
+  size?: string;
+  margin?: number;
+  info?: {
+    Title?: string;
+    Author?: string;
+    Subject?: string;
+  };
+}
+
+interface PDFDocument {
+  registerFont(name: string, path: string): void;
+  font(name: string): PDFDocument;
+  fontSize(size: number): PDFDocument;
+  text(text: string, options?: any): PDFDocument;
+  text(text: string, x: number, y: number, options?: any): PDFDocument;
+  moveDown(lines?: number): PDFDocument;
+  moveTo(x: number, y: number): PDFDocument;
+  lineTo(x: number, y: number): PDFDocument;
+  stroke(): PDFDocument;
+  addPage(): PDFDocument;
+  switchToPage(pageNumber: number): PDFDocument;
+  bufferedPageRange(): { count: number };
+  end(): void;
+  on(event: string, callback: (chunk: Buffer) => void): void;
+  y: number;
+  page: { width: number; height: number };
+  pipe(stream: any): void;
+  lineWidth(width: number): PDFDocument;
+  strokeColor(color: string): PDFDocument;
+  rect(x: number, y: number, width: number, height: number): PDFDocument;
+}
+
+interface PDFDocumentConstructor {
+  new (options?: PDFDocumentOptions): PDFDocument;
+}
+
+const PDFDocument = require('pdfkit') as PDFDocumentConstructor;
 
 const router = express.Router();
 
@@ -54,31 +92,21 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
       _id: Types.ObjectId;
       __v?: number;
       productCode?: string;
-      [key: string]: any; // 允許任何其他屬性
-    }
-    
-    // 定義藥品型別
-    interface MedicineLean extends ProductLean {
+      productType?: string;
       healthInsuranceCode?: string;
-      productType: 'medicine';
+      [key: string]: any; // 允許任何其他屬性
     }
     
     const productHealthInsuranceMap: Record<string, string> = {};
     products.forEach((product) => {
       // 使用型別斷言來處理動態屬性
-      const productAny = product as any;
+      const productAny = product as ProductLean;
       // 如果是藥品類型且有健保代碼，則記錄健保代碼
-      if (productAny.productType === 'medicine') {
-        const medicineProduct = product as MedicineLean;
-        if (medicineProduct.healthInsuranceCode) {
-          productHealthInsuranceMap[product._id.toString()] = medicineProduct.healthInsuranceCode;
-        } else {
-          // 無健保代碼時，使用產品代碼
-          productHealthInsuranceMap[product._id.toString()] = product.productCode || 'N/A';
-        }
+      if (productAny.productType === 'medicine' && productAny.healthInsuranceCode) {
+        productHealthInsuranceMap[product._id.toString()] = productAny.healthInsuranceCode;
       } else {
-        // 非藥品時，使用產品代碼
-        productHealthInsuranceMap[product._id.toString()] = product.productCode || 'N/A';
+        // 無健保代碼時或非藥品時，使用產品代碼
+        productHealthInsuranceMap[product._id.toString()] = productAny.productCode || 'N/A';
       }
     });
     

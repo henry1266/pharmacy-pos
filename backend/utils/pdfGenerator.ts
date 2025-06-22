@@ -1,46 +1,44 @@
-// 由於缺少型別定義，我們需要聲明這些模組
-declare module 'canvas' {
-  export function createCanvas(width: number, height: number): any;
+// PDFKit 型別定義
+interface PDFDocumentOptions {
+  size?: string;
+  margin?: number;
+  info?: {
+    Title?: string;
+    Author?: string;
+    Subject?: string;
+  };
 }
 
-declare module 'pdfkit' {
-  interface PDFDocumentOptions {
-    size?: string;
-    margin?: number;
-    info?: {
-      Title?: string;
-      Author?: string;
-      Subject?: string;
-    };
-  }
-
-  class PDFDocument {
-    constructor(options?: PDFDocumentOptions);
-    registerFont(name: string, path: string): void;
-    font(name: string): PDFDocument;
-    fontSize(size: number): PDFDocument;
-    text(text: string, options?: any): PDFDocument;
-    text(text: string, x: number, y: number, options?: any): PDFDocument;
-    moveDown(lines?: number): PDFDocument;
-    moveTo(x: number, y: number): PDFDocument;
-    lineTo(x: number, y: number): PDFDocument;
-    stroke(): PDFDocument;
-    addPage(): PDFDocument;
-    switchToPage(pageNumber: number): PDFDocument;
-    bufferedPageRange(): { count: number };
-    end(): void;
-    on(event: string, callback: Function): void;
-    y: number;
-    page: { width: number; height: number };
-  }
-
-  export = PDFDocument;
+interface PDFDocument {
+  registerFont(name: string, path: string): void;
+  font(name: string): PDFDocument;
+  fontSize(size: number): PDFDocument;
+  text(text: string, options?: any): PDFDocument;
+  text(text: string, x: number, y: number, options?: any): PDFDocument;
+  moveDown(lines?: number): PDFDocument;
+  moveTo(x: number, y: number): PDFDocument;
+  lineTo(x: number, y: number): PDFDocument;
+  stroke(): PDFDocument;
+  addPage(): PDFDocument;
+  switchToPage(pageNumber: number): PDFDocument;
+  bufferedPageRange(): { count: number };
+  end(): void;
+  on(event: string, callback: (chunk: Buffer) => void): void;
+  y: number;
+  page: { width: number; height: number };
+  pipe(stream: any): void;
 }
+
+interface PDFDocumentConstructor {
+  new (options?: PDFDocumentOptions): PDFDocument;
+}
+
+// 使用 require 來避免模組宣告問題
+const PDFDocument = require('pdfkit') as PDFDocumentConstructor;
 
 import fs from 'fs';
 import path from 'path';
 import dayjs from 'dayjs';
-import PDFDocument from 'pdfkit';
 import { Types } from 'mongoose';
 
 // PDF 生成相關型別定義

@@ -305,7 +305,16 @@ router.post(
       // 重新查詢以獲取完整的關聯資料
       const savedProduct = await Product.findById(product._id)
         .populate('category', 'name')
-        .populate('supplier', 'name');
+        .populate('supplier', 'name') as unknown as IProductDocument | null;
+      
+      if (!savedProduct) {
+        res.status(500).json({
+          success: false,
+          message: '創建商品後查詢失敗',
+          timestamp: new Date()
+        } as ApiResponse);
+        return;
+      }
       
       res.json({
         success: true,
@@ -416,7 +425,16 @@ router.post(
       // 重新查詢以獲取完整的關聯資料
       const savedMedicine = await Medicine.findById(medicine._id)
         .populate('category', 'name')
-        .populate('supplier', 'name');
+        .populate('supplier', 'name') as unknown as IMedicineDocument | null;
+      
+      if (!savedMedicine) {
+        res.status(500).json({
+          success: false,
+          message: '創建藥品後查詢失敗',
+          timestamp: new Date()
+        } as ApiResponse);
+        return;
+      }
       
       res.json({
         success: true,
@@ -436,20 +454,26 @@ router.post(
   }
 );
 
-// 輔助函數：生成產品代碼（需要實現）
+// 輔助函數：生成產品代碼
 async function generateNextProductCode(): Promise<string> {
-  // 這裡需要實現產品代碼生成邏輯
-  // 暫時返回一個簡單的實現
-  const count = await Product.countDocuments();
-  return `P${String(count + 1).padStart(6, '0')}`;
+  try {
+    const count = await Product.countDocuments();
+    return `P${String(count + 1).padStart(6, '0')}`;
+  } catch (error) {
+    console.error('生成產品代碼錯誤:', error);
+    return `P${String(Date.now()).slice(-6)}`;
+  }
 }
 
-// 輔助函數：生成藥品代碼（需要實現）
+// 輔助函數：生成藥品代碼
 async function generateNextMedicineCode(): Promise<string> {
-  // 這裡需要實現藥品代碼生成邏輯
-  // 暫時返回一個簡單的實現
-  const count = await Medicine.countDocuments();
-  return `M${String(count + 1).padStart(6, '0')}`;
+  try {
+    const count = await Medicine.countDocuments();
+    return `M${String(count + 1).padStart(6, '0')}`;
+  } catch (error) {
+    console.error('生成藥品代碼錯誤:', error);
+    return `M${String(Date.now()).slice(-6)}`;
+  }
 }
 
 export default router;
