@@ -80,10 +80,13 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
     const fetchInventories = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response = await axios.get<InventoryRecord[]>(`/api/inventory/product/${productId}`);
+        const response = await axios.get<{success: boolean, data: InventoryRecord[]}>(`/api/inventory/product/${productId}`);
+        
+        // 處理 ApiResponse 格式
+        const inventoryData = response.data.data || [];
         
         // 篩選條件：至少saleNumber、purchaseOrderNumber或shippingOrderNumber其中之一要有值
-        const filteredInventories = response.data.filter(inv => {
+        const filteredInventories = inventoryData.filter(inv => {
           const hasSaleNumber = inv.saleNumber && inv.saleNumber.trim() !== '';
           const hasPurchaseOrderNumber = inv.purchaseOrderNumber && inv.purchaseOrderNumber.trim() !== '';
           const hasShippingOrderNumber = inv.shippingOrderNumber && inv.shippingOrderNumber.trim() !== '';

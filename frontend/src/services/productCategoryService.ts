@@ -91,7 +91,16 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
     const products = (res.data as any)?.data || [];
     // 在前端過濾屬於該分類的產品
-    return products.filter((product: Product) => product.category === categoryId);
+    // 注意：後端使用 populate 填充 category，所以 category 是物件而不是字串
+    return products.filter((product: Product) => {
+      // 處理 category 可能是字串 ID 或填充後的物件
+      if (typeof product.category === 'string') {
+        return product.category === categoryId;
+      } else if (product.category && typeof product.category === 'object' && '_id' in product.category) {
+        return (product.category as any)._id === categoryId;
+      }
+      return false;
+    });
   } catch (err: any) {
     console.error('獲取分類產品失敗:', err);
     throw err;

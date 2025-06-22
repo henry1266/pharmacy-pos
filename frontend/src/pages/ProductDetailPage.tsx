@@ -31,8 +31,8 @@ interface Product {
   barcode?: string;
   healthInsuranceCode?: string;
   healthInsurancePrice?: number;
-  supplier?: string;
-  category?: string;
+  supplier?: string | Supplier;
+  category?: string | Category;
   minStock?: number;
   purchasePrice?: number;
   sellingPrice?: number;
@@ -79,13 +79,19 @@ const ProductDetailPage: React.FC = () => {
         setCategories(categoriesData);
         
         // 獲取產品詳情
-        const productResponse = await axios.get<Product>(`/api/products/${id}`);
+        const productResponse = await axios.get(`/api/products/${id}`);
+        
+        // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+        const rawProductData = (productResponse.data as any)?.data;
+        if (!rawProductData) {
+          throw new Error('產品資料不存在');
+        }
         
         // 轉換產品數據格式，確保與ProductDetailCard組件兼容
         const productData: Product = {
-          ...productResponse.data,
-          id: productResponse.data._id,
-          productType: productResponse.data.productType ?? 'product'
+          ...rawProductData,
+          id: rawProductData._id,
+          productType: rawProductData.productType ?? 'product'
         };
         
         setProduct(productData);

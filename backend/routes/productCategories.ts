@@ -20,7 +20,7 @@ interface ProductCategoryRequest {
 // @access  Public
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const categories = await ProductCategory.find({ isActive: true })
+    const categories = await ProductCategory.find({ isActive: { $ne: false } })
       .sort({ order: 1, name: 1 });
       
     const response: ApiResponse<IProductCategoryDocument[]> = {
