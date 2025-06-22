@@ -3,16 +3,13 @@ import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
 import adminAuth from '../middleware/adminAuth';
 import { handleError, createSuccessResponse } from '../utils/employeeAccountValidation';
-import { ApiResponse, ErrorResponse } from '../src/types/api';
-
-// 暫時使用 require 導入服務模組，直到轉換為 TypeScript
-const {
+import {
   createEmployeeAccount,
   getEmployeeAccount,
   updateEmployeeAccount,
   deleteEmployeeAccount,
   unbindEmployeeAccount
-} = require('../services/employeeAccountService');
+} from '../services/employeeAccountService';
 
 const router = express.Router();
 
@@ -20,38 +17,6 @@ const router = express.Router();
  * 員工帳號管理路由
  * 提供員工帳號的 CRUD 操作
  */
-
-// 請求介面定義
-interface CreateEmployeeAccountRequest {
-  employeeId: string;
-  username: string;
-  email?: string;
-  password: string;
-  role: 'admin' | 'pharmacist' | 'staff';
-}
-
-interface UpdateEmployeeAccountRequest {
-  username?: string;
-  email?: string;
-  password?: string;
-  role?: 'admin' | 'pharmacist' | 'staff';
-}
-
-// 服務函數型別定義
-interface ServiceAccountData {
-  employeeId: string;
-  username: string;
-  email?: string;
-  password: string;
-  role: 'admin' | 'pharmacist' | 'staff';
-}
-
-interface ServiceUpdateData {
-  username?: string;
-  email?: string;
-  password?: string;
-  role?: 'admin' | 'pharmacist' | 'staff';
-}
 
 // 驗證規則
 const createAccountValidation = [
@@ -77,39 +42,23 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '驗證失敗',
-        error: JSON.stringify(errors.array()),
-        timestamp: new Date()
-      };
-      return res.status(400).json(errorResponse);
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const requestBody = req.body as CreateEmployeeAccountRequest;
-    const { employeeId, username, email, password, role } = requestBody;
+    const { employeeId, username, email, password, role } = req.body;
     
-    const serviceData: ServiceAccountData = {
+    const result = await createEmployeeAccount({
       employeeId,
       username,
       email,
       password,
       role
-    };
+    });
 
-    const result = await createEmployeeAccount(serviceData);
-
-    const response: ApiResponse<any> = {
-      success: true,
-      message: '員工帳號創建成功',
-      data: result,
-      timestamp: new Date()
-    };
-    
+    const response = createSuccessResponse('員工帳號創建成功', result);
     res.json(response);
-  } catch (error) {
-    console.error('創建員工帳號錯誤:', error);
-    handleError(res, error instanceof Error ? error : new Error('未知錯誤'), 400);
+  } catch (error: any) {
+    handleError(res, error, 400);
   }
 });
 
@@ -120,31 +69,11 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
  */
 router.get('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
-    const employeeId = req.params.employeeId;
-    
-    if (!employeeId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '員工ID為必填參數',
-        timestamp: new Date()
-      };
-      return res.status(400).json(errorResponse);
-    }
-
-    const user = await getEmployeeAccount(employeeId);
-    
-    const response: ApiResponse<any> = {
-      success: true,
-      message: '員工帳號資訊獲取成功',
-      data: user,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
-  } catch (error) {
-    console.error('獲取員工帳號錯誤:', error);
-    const statusCode = (error instanceof Error && error.message.includes('找不到')) ? 404 : 400;
-    handleError(res, error instanceof Error ? error : new Error('未知錯誤'), statusCode);
+    const user = await getEmployeeAccount(req.params.employeeId);
+    res.json(user);
+  } catch (error: any) {
+    const statusCode = error.message.includes('找不到') ? 404 : 400;
+    handleError(res, error, statusCode);
   }
 });
 
@@ -157,49 +86,23 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '驗證失敗',
-        error: JSON.stringify(errors.array()),
-        timestamp: new Date()
-      };
-      return res.status(400).json(errorResponse);
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const employeeId = req.params.employeeId;
+    const { username, email, password, role } = req.body;
     
-    if (!employeeId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '員工ID為必填參數',
-        timestamp: new Date()
-      };
-      return res.status(400).json(errorResponse);
-    }
+    const updatedUser = await updateEmployeeAccount(req.params.employeeId, {
+      username,
+      email,
+      password,
+      role
+    });
 
-    const requestBody = req.body as UpdateEmployeeAccountRequest;
-    const { username, email, password, role } = requestBody;
-    
-    const updateData: ServiceUpdateData = {};
-    if (username !== undefined) updateData.username = username;
-    if (email !== undefined) updateData.email = email;
-    if (password !== undefined) updateData.password = password;
-    if (role !== undefined) updateData.role = role;
-
-    const updatedUser = await updateEmployeeAccount(employeeId, updateData);
-
-    const response: ApiResponse<{ user: any }> = {
-      success: true,
-      message: '員工帳號更新成功',
-      data: { user: updatedUser },
-      timestamp: new Date()
-    };
-    
+    const response = createSuccessResponse('員工帳號更新成功', { user: updatedUser });
     res.json(response);
-  } catch (error) {
-    console.error('更新員工帳號錯誤:', error);
-    const statusCode = (error instanceof Error && error.message.includes('找不到')) ? 404 : 400;
-    handleError(res, error instanceof Error ? error : new Error('未知錯誤'), statusCode);
+  } catch (error: any) {
+    const statusCode = error.message.includes('找不到') ? 404 : 400;
+    handleError(res, error, statusCode);
   }
 });
 
@@ -210,31 +113,13 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
  */
 router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
-    const employeeId = req.params.employeeId;
+    await deleteEmployeeAccount(req.params.employeeId);
     
-    if (!employeeId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '員工ID為必填參數',
-        timestamp: new Date()
-      };
-      return res.status(400).json(errorResponse);
-    }
-
-    await deleteEmployeeAccount(employeeId);
-    
-    const response: ApiResponse<null> = {
-      success: true,
-      message: '員工帳號已刪除',
-      data: null,
-      timestamp: new Date()
-    };
-    
+    const response = createSuccessResponse('員工帳號已刪除');
     res.json(response);
-  } catch (error) {
-    console.error('刪除員工帳號錯誤:', error);
-    const statusCode = (error instanceof Error && error.message.includes('找不到')) ? 404 : 400;
-    handleError(res, error instanceof Error ? error : new Error('未知錯誤'), statusCode);
+  } catch (error: any) {
+    const statusCode = error.message.includes('找不到') ? 404 : 400;
+    handleError(res, error, statusCode);
   }
 });
 
@@ -245,35 +130,17 @@ router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Respo
  */
 router.put('/:employeeId/unbind', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
-    const employeeId = req.params.employeeId;
-    
-    if (!employeeId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '員工ID為必填參數',
-        timestamp: new Date()
-      };
-      return res.status(400).json(errorResponse);
-    }
-
-    const result = await unbindEmployeeAccount(employeeId);
+    const result = await unbindEmployeeAccount(req.params.employeeId);
     
     const message = result.user 
       ? '員工帳號綁定已解除' 
       : '員工帳號綁定已解除（用戶不存在）';
     
-    const response: ApiResponse<any> = {
-      success: true,
-      message,
-      data: result,
-      timestamp: new Date()
-    };
-    
+    const response = createSuccessResponse(message, result);
     res.json(response);
-  } catch (error) {
-    console.error('解除員工帳號綁定錯誤:', error);
-    const statusCode = (error instanceof Error && error.message.includes('找不到')) ? 404 : 400;
-    handleError(res, error instanceof Error ? error : new Error('未知錯誤'), statusCode);
+  } catch (error: any) {
+    const statusCode = error.message.includes('找不到') ? 404 : 400;
+    handleError(res, error, statusCode);
   }
 });
 

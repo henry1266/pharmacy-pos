@@ -6,56 +6,27 @@ import {
   isUsernameExists,
   isEmailExists,
   hasEmployeeAccount,
-  getEmployeeUser,
-  IUser as ValidationIUser,
-  IEmployee as ValidationIEmployee
+  getEmployeeUser
 } from '../utils/employeeAccountValidation';
-import { Types } from 'mongoose';
 
 /**
  * 員工帳號服務層
  * 處理員工帳號的業務邏輯
  */
 
-// 定義服務層相關的介面
-interface EmployeeAccountData {
+interface AccountData {
   employeeId: string;
   username: string;
   email?: string;
   password: string;
-  role: 'admin' | 'pharmacist' | 'staff';
+  role: string;
 }
 
-interface AccountUpdateData {
+interface UpdateData {
   username?: string;
   email?: string;
   password?: string;
-  role?: 'admin' | 'pharmacist' | 'staff';
-}
-
-interface CreateAccountResult {
-  employee: {
-    id: string;
-    name: string;
-  };
-  user: {
-    id: string;
-    name: string;
-    username: string;
-    role: string;
-  };
-}
-
-interface UnbindAccountResult {
-  employee: {
-    id: string;
-    name: string;
-  };
-  user?: {
-    id: string;
-    name: string;
-    username: string;
-  };
+  role?: string;
 }
 
 /**
@@ -63,7 +34,7 @@ interface UnbindAccountResult {
  * @param accountData - 帳號數據
  * @returns 創建結果
  */
-const createEmployeeAccount = async (accountData: EmployeeAccountData): Promise<CreateAccountResult> => {
+const createEmployeeAccount = async (accountData: AccountData): Promise<any> => {
   const { employeeId, username, email, password, role } = accountData;
 
   // 檢查員工是否存在
@@ -84,20 +55,12 @@ const createEmployeeAccount = async (accountData: EmployeeAccountData): Promise<
     throw new Error('此電子郵件已被使用');
   }
 
-  // 加密密碼
-  const hashResult = await hashPassword(password);
-  if (!hashResult.success || !hashResult.hash) {
-    throw new Error(hashResult.error || '密碼加密失敗');
-  }
-
   // 創建新用戶
   const userData: any = {
     name: employee.name,
     username,
-    password: hashResult.hash,
-    role,
-    settings: {},
-    date: new Date()
+    password: await hashPassword(password),
+    role
   };
 
   // 只有當email有值且不為空字符串時才設置
@@ -109,20 +72,17 @@ const createEmployeeAccount = async (accountData: EmployeeAccountData): Promise<
   await user.save();
 
   // 更新員工記錄，關聯到新用戶
-  const employeeDoc = await Employee.findById(employeeId);
-  if (employeeDoc) {
-    (employeeDoc as any).userId = user._id;
-    await employeeDoc.save();
-  }
+  employee.userId = user.id;
+  await employee.save();
 
   return {
     employee: {
-      id: employee._id.toString(),
+      id: employee.id,
       name: employee.name
     },
     user: {
-      id: user._id.toString(),
-      name: (user as any).name,
+      id: user.id,
+      name: user.name,
       username: user.username,
       role: user.role
     }
@@ -134,7 +94,7 @@ const createEmployeeAccount = async (accountData: EmployeeAccountData): Promise<
  * @param employeeId - 員工ID
  * @returns 用戶信息
  */
-const getEmployeeAccount = async (employeeId: string): Promise<ValidationIUser | null> => {
+const getEmployeeAccount = async (employeeId: string): Promise<any> => {
   const employee = await findEmployeeById(employeeId);
   const user = await getEmployeeUser(employee, false);
   return user;
@@ -144,13 +104,14 @@ const getEmployeeAccount = async (employeeId: string): Promise<ValidationIUser |
  * 更新用戶名
  * @param user - 用戶對象
  * @param newUsername - 新用戶名
+ * @returns Promise<void>
  */
-const updateUsername = async (user: ValidationIUser, newUsername?: string): Promise<void> => {
+const updateUsername = async (user: any, newUsername?: string): Promise<void> => {
   if (!newUsername || newUsername === user.username) {
     return; // 如果沒有提供新用戶名或與當前用戶名相同，則不更新
   }
   
-  if (await isUsernameExists(newUsername, user._id.toString())) {
+  if (await isUsernameExists(newUsername, user.id)) {
     throw new Error('此用戶名已被使用');
   }
   
@@ -161,24 +122,27 @@ const updateUsername = async (user: ValidationIUser, newUsername?: string): Prom
  * 更新電子郵件
  * @param user - 用戶對象
  * @param newEmail - 新電子郵件
+ * @returns Promise<void>
  */
-const updateEmail = async (user: ValidationIUser, newEmail?: string): Promise<void> => {
+const updateEmail = async (user: any, newEmail?: string): Promise<void> => {
   if (newEmail === undefined || newEmail === user.email) {
     return; // 如果沒有提供新電子郵件或與當前電子郵件相同，則不更新
   }
   
   if (newEmail && newEmail.trim() !== '') {
-    if (await isEmailExists(newEmail, user._id.toString())) {
+    if (await isEmailExists(newEmail, user.id)) {
       throw new Error('此電子郵件已被使用');
     }
     user.email = newEmail;
   } else {
     // 如果email為空或空字符串，則從用戶文檔中移除email字段
-    delete user.email;
-    await User.updateOne(
-      { _id: user._id },
-      { $unset: { email: 1 } }
-    );
+    user.email = undefined;
+    if (user.email !== undefined) {
+      await User.updateOne(
+        { _id: user._id },
+        { $unset: { email: 1 } }
+      );
+    }
   }
 };
 
@@ -188,17 +152,14 @@ const updateEmail = async (user: ValidationIUser, newEmail?: string): Promise<vo
  * @param updateData - 更新數據
  * @returns 更新結果
  */
-const updateEmployeeAccount = async (employeeId: string, updateData: AccountUpdateData): Promise<ValidationIUser | null> => {
+const updateEmployeeAccount = async (employeeId: string, updateData: UpdateData): Promise<any> => {
   const { username, email, password, role } = updateData;
 
   // 檢查員工是否存在
   const employee = await findEmployeeById(employeeId);
   
   // 獲取用戶資訊
-  const user = await getEmployeeUser(employee, true);
-  if (!user) {
-    throw new Error('找不到員工帳號');
-  }
+  let user = await getEmployeeUser(employee, true);
 
   // 更新用戶名
   await updateUsername(user, username);
@@ -213,24 +174,21 @@ const updateEmployeeAccount = async (employeeId: string, updateData: AccountUpda
 
   // 更新密碼
   if (password) {
-    const hashResult = await hashPassword(password);
-    if (!hashResult.success || !hashResult.hash) {
-      throw new Error(hashResult.error || '密碼加密失敗');
-    }
-    user.password = hashResult.hash;
+    user.password = await hashPassword(password);
   }
 
   // 保存更新
-  await User.findByIdAndUpdate(user._id, user);
+  await user.save();
 
   // 返回更新後的用戶資訊（不包含密碼）
-  const updatedUser = await User.findById(user._id).select('-password') as ValidationIUser | null;
+  const updatedUser = await User.findById(user.id).select('-password');
   return updatedUser;
 };
 
 /**
  * 刪除員工帳號
  * @param employeeId - 員工ID
+ * @returns Promise<void>
  */
 const deleteEmployeeAccount = async (employeeId: string): Promise<void> => {
   // 檢查員工是否存在
@@ -238,19 +196,13 @@ const deleteEmployeeAccount = async (employeeId: string): Promise<void> => {
   
   // 獲取用戶資訊
   const user = await getEmployeeUser(employee, false);
-  if (!user) {
-    throw new Error('找不到員工帳號');
-  }
 
   // 刪除用戶
-  await User.findByIdAndDelete(user._id);
+  await User.findByIdAndDelete(user.id);
 
   // 更新員工記錄，移除用戶關聯
-  const employeeDoc = await Employee.findById(employeeId);
-  if (employeeDoc) {
-    (employeeDoc as any).userId = null;
-    await employeeDoc.save();
-  }
+  employee.userId = null;
+  await employee.save();
 };
 
 /**
@@ -258,7 +210,7 @@ const deleteEmployeeAccount = async (employeeId: string): Promise<void> => {
  * @param employeeId - 員工ID
  * @returns 解綁結果
  */
-const unbindEmployeeAccount = async (employeeId: string): Promise<UnbindAccountResult> => {
+const unbindEmployeeAccount = async (employeeId: string): Promise<any> => {
   // 檢查員工是否存在
   const employee = await findEmployeeById(employeeId);
 
@@ -268,29 +220,26 @@ const unbindEmployeeAccount = async (employeeId: string): Promise<UnbindAccountR
   }
 
   // 獲取用戶資訊
-  const user = await User.findById(employee.userId) as ValidationIUser | null;
+  const user = await User.findById(employee.userId);
   
-  const result: UnbindAccountResult = {
+  let result: any = {
     employee: {
-      id: employee._id.toString(),
+      id: employee.id,
       name: employee.name
     }
   };
 
   if (user) {
     result.user = {
-      id: user._id.toString(),
+      id: user.id,
       name: user.name,
       username: user.username
     };
   }
 
   // 解除綁定（不刪除用戶帳號）
-  const employeeDoc = await Employee.findById(employeeId);
-  if (employeeDoc) {
-    (employeeDoc as any).userId = null;
-    await employeeDoc.save();
-  }
+  employee.userId = null;
+  await employee.save();
 
   return result;
 };
@@ -301,11 +250,4 @@ export {
   updateEmployeeAccount,
   deleteEmployeeAccount,
   unbindEmployeeAccount
-};
-
-export type {
-  EmployeeAccountData,
-  AccountUpdateData,
-  CreateAccountResult,
-  UnbindAccountResult
 };

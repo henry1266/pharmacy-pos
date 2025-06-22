@@ -35,7 +35,7 @@ interface TopProduct {
 // 定義最近銷售記錄介面
 interface RecentSale {
   id: Types.ObjectId;
-  invoiceNumber: string;
+  saleNumber?: string;
   customerName: string;
   totalAmount: number;
   date: Date;
@@ -95,7 +95,7 @@ interface SaleItem {
 // 定義銷售記錄介面
 interface SaleRecord {
   _id: Types.ObjectId;
-  invoiceNumber: string;
+  saleNumber?: string;
   customer?: {
     name: string;
   };
@@ -226,7 +226,7 @@ router.get('/summary', async (req: Request, res: Response) => {
     
     const formattedRecentSales: RecentSale[] = recentSales.map(sale => ({
       id: sale._id,
-      invoiceNumber: sale.invoiceNumber,
+      saleNumber: sale.saleNumber,
       customerName: sale.customer ? sale.customer.name : '一般客戶',
       totalAmount: sale.totalAmount,
       date: sale.date,
