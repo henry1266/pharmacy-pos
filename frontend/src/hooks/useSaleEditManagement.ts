@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, ChangeEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as salesService from '../services/salesService';
-import { Product } from '../types/entities';
+import { Product } from '../../../shared/types/entities';
 
 /**
  * 銷售項目介面
@@ -25,7 +25,7 @@ interface SaleData {
   items: SaleItem[];
   totalAmount: number;
   discount: number;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other';
+  paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
   paymentStatus: 'paid' | 'pending' | 'cancelled';
   note: string;
 }

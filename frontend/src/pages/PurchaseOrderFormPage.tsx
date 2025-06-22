@@ -11,7 +11,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
-import { Product, PurchaseOrder } from '../types/entities';
+import { Product, PurchaseOrder } from '../../../shared/types/entities';
 import { addPurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrdersService';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getProducts } from '../services/productService';
 import { getCustomers } from '../services/customerService';
-import { Product, Customer } from '../types/entities';
+import { Product, Customer } from '../../../shared/types/entities';
 
 /**
  * Custom Hook to fetch data required for the Sales Page (products and customers).

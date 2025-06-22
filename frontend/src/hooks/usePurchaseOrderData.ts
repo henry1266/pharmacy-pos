@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSuppliers } from '../services/supplierService';
 import { getProducts, getProductByCode } from '../services/productService';
 import { getPurchaseOrderById } from '../services/purchaseOrdersService';
-import { Supplier, Product, PurchaseOrder } from '../types/entities';
+import { Supplier, Product, PurchaseOrder } from '../../../shared/types/entities';
 
 /**
  * 採購訂單項目介面 (用於處理前端特定的項目格式)
@@ -16,7 +16,7 @@ interface OrderItem {
  * 產品詳情映射介面
  */
 interface ProductDetailsMap {
-  [productCode: string]: Product;
+  [productCode: string]: Product & { stock: number }; // 確保 stock 是必需的
 }
 
 /**
@@ -106,7 +106,10 @@ const usePurchaseOrderData = (
         getProductByCode(item.did)
           .then(productData => {
             if (productData) {
-              detailsMap[item.did] = productData;
+              detailsMap[item.did] = {
+                ...productData,
+                stock: productData.stock || 0  // 確保 stock 欄位存在且為 number
+              };
             }
           })
           .catch(err => {

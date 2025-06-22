@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { ApiResponse, ErrorResponse } from '../../../shared/types/api';
-import { OvertimeRecord } from '../../../shared/types/entities';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { OvertimeRecord } from '@shared/types/entities';
 
 // 重新導出 OvertimeRecord 以保持向後兼容
-export type { OvertimeRecord } from '../../../shared/types/entities';
+export type { OvertimeRecord } from '@shared/types/entities';
 
 /**
  * 加班記錄服務

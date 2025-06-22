@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { getUnaccountedSales } from '../services/accountingService';
-import { AccountingRecord } from '../types/entities';
+import { AccountingRecord } from '../../../shared/types/entities';
 
 /**
  * 擴展的記帳記錄介面，包含前端特定屬性

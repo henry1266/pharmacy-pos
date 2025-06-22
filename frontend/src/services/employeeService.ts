@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Employee, EmployeeAccount } from '../types/entities';
+import { Employee, EmployeeAccount } from '@shared/types/entities';
 import { PaginationParams } from '../types/api';
 
 const API_URL = '/api/employees';

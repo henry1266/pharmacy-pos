@@ -2,7 +2,7 @@ import axios from 'axios';
 import { transformSalesForTrend, transformSalesForCategory } from '../utils/dataTransformations';
 // Import the function to get all sales data
 import { getAllSales } from './salesService'; // Assuming salesService is in the same directory
-import { Sale } from '../types/entities';
+import { Sale } from '@shared/types/entities';
 
 // Base URL for dashboard related APIs
 const API_URL = '/api/dashboard'; // Adjust if your base URL is different

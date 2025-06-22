@@ -39,7 +39,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import SalesPreview from '../components/sales/SalesPreview'; // Import the SalesPreview component
-import { Customer } from '../types/entities';
+import { Customer } from '../../../shared/types/entities';
 
 // API 回應型別定義
 interface ApiResponse<T> {

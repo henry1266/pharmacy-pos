@@ -28,7 +28,7 @@ import SalesProductInput from '../components/sales/SalesProductInput';
 import SalesItemsTable from '../components/sales/SalesItemsTable';
 
 // Import types
-import { Product, Customer } from '../types/entities';
+import { Product, Customer } from '../../../shared/types/entities';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;

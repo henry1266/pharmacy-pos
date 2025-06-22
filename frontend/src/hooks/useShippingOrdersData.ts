@@ -4,17 +4,17 @@ import { useAppDispatch } from './redux';
 import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
 import { getShippingOrderById } from '../services/shippingOrdersService';
 import { RootState, ShippingOrdersState, SuppliersState } from '../types/store';
-import { ShippingOrder, Supplier } from '../types/entities';
+import { ShippingOrder, Supplier } from '../../../shared/types/entities';
 
 /**
  * 擴展的出貨單介面 (包含前端特有屬性)
  */
-interface ShippingOrderExtended extends ShippingOrder {
+interface ShippingOrderExtended extends Omit<ShippingOrder, 'sosupplier' | 'paymentStatus'> {
   soid?: string;
   sobill?: string;
   sobilldate?: string | Date;
   sosupplier?: string | { _id: string; name?: string };
-  paymentStatus?: string;
+  paymentStatus?: string;  // 允許更寬泛的 string 型別
 }
 
 /**
@@ -105,7 +105,7 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
   const [filteredRows, setFilteredRows] = useState<FilteredRow[]>([]);
 
   // 預覽狀態
-  const [previewShippingOrder, setPreviewShippingOrder] = useState<ShippingOrder | null>(null);
+  const [previewShippingOrder, setPreviewShippingOrder] = useState<ShippingOrderExtended | null>(null);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 

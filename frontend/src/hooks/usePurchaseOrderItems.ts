@@ -1,6 +1,6 @@
 import { useState, useCallback, RefObject, ChangeEvent } from 'react';
 import { getProductByCode } from '../services/productService';
-import { Product } from '../types/entities';
+import { Product } from '../../../shared/types/entities';
 
 /**
  * 當前項目介面

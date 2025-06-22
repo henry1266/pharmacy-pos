@@ -15,14 +15,16 @@
     "noEmit": true,
 
     /* ==== ❶ 重要：修正路徑 ==== */
-    "rootDir": "./frontend/src",
+    "rootDir": ".",
     "outDir": "./frontend/build",
 
     /* ==== ❷ 重要：啟用絕對／別名匯入 ==== */
-    "baseUrl": "./frontend/src",
+    "baseUrl": "./frontend",
     "paths": {
-      "@/*": ["*"],  // 之後可用 "@/hooks/useAuth"
-      "~/*": ["*"]   // 另一組別名，如有需要
+      "@/*": ["src/*"],  // 之後可用 "@/hooks/useAuth"
+      "~/*": ["src/*"],   // 另一組別名，如有需要
+      "@shared/*": ["../shared/*"],
+      "@shared": ["../shared"]
     },
 
     /* ==== ❸ 重要：TypeScript 編譯選項 ==== */
@@ -63,7 +65,8 @@
     "frontend/src/**/*.ts",
     "frontend/src/**/*.tsx",
     "frontend/src/**/*.js",
-    "frontend/src/**/*.jsx"
+    "frontend/src/**/*.jsx",
+    "shared/**/*.ts"
   ],
   "exclude": [
     "node_modules",

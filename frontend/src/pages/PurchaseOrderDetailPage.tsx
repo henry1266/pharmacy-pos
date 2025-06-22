@@ -32,15 +32,15 @@ import DetailLayout from '../components/DetailLayout';
 import { getProductByCode } from '../services/productService';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
 import { RootState } from '../types/store';
-import { Product, PurchaseOrder, PurchaseOrderItem } from '../types/entities';
+import { Product, PurchaseOrder, PurchaseOrderItem } from '../../../shared/types/entities';
 
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
-interface ExtendedPurchaseOrder extends PurchaseOrder {
+interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {
+  paymentStatus?: string;  // 允許更寬泛的 string 型別
   poid?: string;           // 進貨單號
   pobill?: string;         // 發票號碼
   pobilldate?: string | Date; // 發票日期
   posupplier?: string;     // 供應商名稱
-  paymentStatus?: string;  // 付款狀態
   discountAmount?: number; // 折扣金額
   items: ExtendedPurchaseOrderItem[]; // 擴展的項目 - 保持必需以符合基礎介面
 }

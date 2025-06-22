@@ -20,24 +20,22 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "allowImportingTsExtensions": true,
-    "baseUrl": "src",
+    "rootDir": "../",
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["*"],
-      "@/components/*": ["components/*"],
-      "@/hooks/*": ["hooks/*"],
-      "@/services/*": ["services/*"],
-      "@/utils/*": ["utils/*"],
-      "@/pages/*": ["pages/*"],
-      "@/types/*": ["types/*"],
+      "*": ["node_modules/*"],
       "@shared/*": ["../shared/*"],
       "@shared": ["../shared"]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../shared/**/*"
   ],
   "exclude": [
     "node_modules",
-    "build"
+    "build",
+    "../backend",
+    "../node_modules"
   ]
 }

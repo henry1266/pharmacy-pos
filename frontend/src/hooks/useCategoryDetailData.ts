@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getProductCategory, getProductsByCategory } from '../services/productCategoryService';
 import { getInventoryByProduct } from '../services/inventoryService';
-import { Category, Product, Inventory } from '../types/entities';
+import { Category, Product, Inventory } from '../../../shared/types/entities';
 
 // 擴展 Inventory 類型以包含我們在代碼中使用的額外屬性
 interface ExtendedInventory extends Omit<Inventory, 'type'> {
@@ -32,6 +32,7 @@ interface ProductWithData extends Product {
   id: string;
   profitLoss: number;
   currentStock: number;
+  stock: number; // 確保 stock 是必需的
 }
 
 // 定義 hook 返回值的類型
@@ -209,7 +210,8 @@ const useCategoryDetailData = (categoryId: string): CategoryDetailData => {
             ...product,
             id: product._id,
             profitLoss,
-            currentStock
+            currentStock,
+            stock: product.stock || currentStock || 0  // 確保 stock 欄位存在
           };
         })
       );

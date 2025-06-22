@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Category, Product } from '../types/entities';
+import { Category, Product } from '@shared/types/entities';
 
 /**
  * 獲取所有產品分類

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ApiResponse, ErrorResponse, AuthResponse, LoginRequest, UpdateUserRequest, LoginResponse } from '../../../shared/types/api';
+import { ApiResponse, ErrorResponse, AuthResponse, LoginRequest, UpdateUserRequest, LoginResponse } from '@shared/types/api';
 
 const API_URL = '/api/auth';
 

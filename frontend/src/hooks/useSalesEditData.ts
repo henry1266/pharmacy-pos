@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import * as salesService from '../services/salesService';
 import * as productService from '../services/productService';
 import * as customerService from '../services/customerService';
-import { Product, Customer } from '../types/entities';
+import { Product, Customer } from '../../../shared/types/entities';
 
 /**
  * 前端使用的銷售項目介面 (與後端 SaleItem 介面有些差異)
@@ -27,7 +27,7 @@ interface SaleData {
   items: SaleItem[];
   totalAmount: number;
   discount: number; // 前端特有，用於處理整體折扣
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other';
+  paymentMethod: 'cash' | 'card' | 'transfer' | 'other' | 'credit_card' | 'debit_card' | 'mobile_payment';
   paymentStatus: 'paid' | 'pending' | 'cancelled'; // 對應後端的 status: 'completed' | 'pending' | 'cancelled'
   note: string; // 對應後端的 notes
 }

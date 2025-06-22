@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import customerService from '../services/customerService';
-import { Customer } from '../types/entities';
+import { Customer } from '../../../shared/types/entities';
 
 // 擴展 Customer 類型以包含前端需要的額外屬性
-export interface ExtendedCustomer extends Omit<Customer, '_id'> {
+export interface ExtendedCustomer extends Omit<Customer, '_id' | 'membershipLevel' | 'birthdate'> {
   _id: string;
   code?: string;
   idCardNumber?: string;
@@ -66,7 +66,7 @@ const useCustomerData = (): UseCustomerDataReturn => {
       setLoading(true);
       setError(null);
       const data = await customerService.getCustomers();
-      const formattedCustomers: CustomerDisplay[] = data.map((customer: ExtendedCustomer) => ({
+      const formattedCustomers: CustomerDisplay[] = data.map((customer: Customer) => ({
         id: customer._id,
         code: customer.code || '',
         name: customer.name,

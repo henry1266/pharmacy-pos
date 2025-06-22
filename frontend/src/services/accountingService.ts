@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { format } from 'date-fns'; // Import format for date handling
-import { AccountingRecord } from '../types/entities';
+import { AccountingRecord } from '@shared/types/entities';
 
 const API_URL = '/api/accounting';
 

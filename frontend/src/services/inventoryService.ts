@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Inventory } from '../types/entities';
+import { Inventory } from '@shared/types/entities';
 
 const API_URL = '/api/inventory';
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { EmployeeAccount, Role } from '../types/entities';
+import { EmployeeAccount, Role } from '@shared/types/entities';
 
 const API_URL = '/api/employee-accounts';
 
