@@ -1,80 +1,49 @@
 import express, { Request, Response } from 'express';
-import ShippingOrder from '../models/ShippingOrder';
-import type { IShippingOrderDocument } from '../models/ShippingOrder';
-import BaseProduct from '../models/BaseProduct';
 import path from 'path';
-import dayjs from 'dayjs';
 import { Types } from 'mongoose';
+import dayjs from 'dayjs';
 
-// PDFKit 型別定義
-interface PDFDocumentOptions {
-  size?: string;
-  margin?: number;
-  info?: {
-    Title?: string;
-    Author?: string;
-    Subject?: string;
-  };
+// 使用 require 導入模型和PDFKit，避免型別衝突
+const PDFDocument = require('pdfkit');
+const ShippingOrder = require('../models/ShippingOrder');
+const { BaseProduct, Medicine } = require('../models/BaseProduct');
+
+// 擴展PDFKit類型
+interface PDFTextOptions {
+  align?: string;
+  continued?: boolean;
+  width?: number;
 }
 
-interface PDFDocument {
-  registerFont(name: string, path: string): void;
-  font(name: string): PDFDocument;
-  fontSize(size: number): PDFDocument;
-  text(text: string, options?: any): PDFDocument;
-  text(text: string, x: number, y: number, options?: any): PDFDocument;
-  moveDown(lines?: number): PDFDocument;
-  moveTo(x: number, y: number): PDFDocument;
-  lineTo(x: number, y: number): PDFDocument;
-  stroke(): PDFDocument;
-  addPage(): PDFDocument;
-  switchToPage(pageNumber: number): PDFDocument;
-  bufferedPageRange(): { count: number };
-  end(): void;
-  on(event: string, callback: (chunk: Buffer) => void): void;
-  y: number;
-  page: { width: number; height: number };
-  pipe(stream: any): void;
-  lineWidth(width: number): PDFDocument;
-  strokeColor(color: string): PDFDocument;
-  rect(x: number, y: number, width: number, height: number): PDFDocument;
-}
-
-interface PDFDocumentConstructor {
-  new (options?: PDFDocumentOptions): PDFDocument;
-}
-
-const PDFDocument = require('pdfkit') as PDFDocumentConstructor;
-
-const router = express.Router();
-
-// 定義 PDF 生成時使用的介面
-interface ShippingOrderPdfItem {
+// 定義介面
+interface ShippingOrderItem {
   product: Types.ObjectId;
-  productName: string;
-  quantity: number;
-  unitPrice?: number;
-  subtotal?: number;
-  healthInsuranceCode?: string;
+  did?: string;
   dname?: string;
   dquantity?: number;
   dtotalCost?: number;
+  healthInsuranceCode?: string;
 }
 
-interface ShippingOrderPdf {
+interface ShippingOrderDocument {
   _id: Types.ObjectId;
   soid: string;
-  sosupplier?: string;
+  orderNumber?: string;
+  sosupplier: string;
+  supplier?: Types.ObjectId;
+  items: ShippingOrderItem[];
   notes?: string;
-  items: ShippingOrderPdfItem[];
+  status?: string;
   totalAmount?: number;
 }
+
+const router = express.Router();
 
 // 生成出貨單PDF - 移除isAuthenticated中間件以解決undefined問題
 router.get('/pdf/:id', async (req: Request, res: Response) => {
   try {
     // 移除populate('customer')以解決schema錯誤
-    const shippingOrder = await ShippingOrder.findById(req.params.id).lean() as unknown as ShippingOrderPdf;
+    const shippingOrder = await ShippingOrder.findById(req.params.id).lean() as ShippingOrderDocument;
     
     if (!shippingOrder) {
       return res.status(404).json({ msg: '找不到出貨單' });
@@ -87,26 +56,14 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     const products = await BaseProduct.find({ _id: { $in: productIds } }).lean();
     
     // 建立產品ID到健保代碼的映射
-    // 定義產品型別
-    interface ProductLean {
-      _id: Types.ObjectId;
-      __v?: number;
-      productCode?: string;
-      productType?: string;
-      healthInsuranceCode?: string;
-      [key: string]: any; // 允許任何其他屬性
-    }
-    
     const productHealthInsuranceMap: Record<string, string> = {};
-    products.forEach((product) => {
-      // 使用型別斷言來處理動態屬性
-      const productAny = product as ProductLean;
+    products.forEach((product: any) => {
       // 如果是藥品類型且有健保代碼，則記錄健保代碼
-      if (productAny.productType === 'medicine' && productAny.healthInsuranceCode) {
-        productHealthInsuranceMap[product._id.toString()] = productAny.healthInsuranceCode;
+      if (product.productType === 'medicine' && product.healthInsuranceCode) {
+        productHealthInsuranceMap[product._id.toString()] = product.healthInsuranceCode;
       } else {
-        // 無健保代碼時或非藥品時，使用產品代碼
-        productHealthInsuranceMap[product._id.toString()] = productAny.productCode || 'N/A';
+        // 非藥品或無健保代碼時，使用產品代碼
+        productHealthInsuranceMap[product._id.toString()] = product.code || 'N/A';
       }
     });
     
@@ -150,20 +107,20 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     }
 
     // 添加標題
-    doc.fontSize(20).text('出貨單', { align: 'center' });
+    doc.fontSize(20).text('出貨單', { align: 'center' } as PDFTextOptions);
     doc.moveDown();
 
     // 添加出貨單基本信息
     doc.fontSize(12);
-    doc.text(`出貨單號: ${shippingOrder.soid || 'N/A'}`, { continued: false });
+    doc.text(`出貨單號: ${shippingOrder.soid || 'N/A'}`, { continued: false } as PDFTextOptions);
     
     // 直接使用sosupplier而非customer.name
-    doc.text(`客戶: ${shippingOrder.sosupplier || '未指定'}`, { continued: false });
+    doc.text(`客戶: ${shippingOrder.sosupplier || '未指定'}`, { continued: false } as PDFTextOptions);
     
     if (shippingOrder.notes) {
       doc.moveDown();
-      doc.text('備註:', { continued: false });
-      doc.text(shippingOrder.notes, { continued: false });
+      doc.text('備註:', { continued: false } as PDFTextOptions);
+      doc.text(shippingOrder.notes, { continued: false } as PDFTextOptions);
     }
     
     doc.moveDown();
@@ -191,8 +148,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     // 繪製表格標題
     tableHeaders.forEach((header, i) => {
       const align = 'center';
-      doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
-      currentX += columnWidths[i] || 0;
+      doc.text(header, currentX, currentY, { width: columnWidths[i], align: align } as PDFTextOptions);
+      currentX += columnWidths[i];
       
       // 繪製垂直分隔線（除了最後一列）
       if (i < tableHeaders.length - 1) {
@@ -223,8 +180,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
           
           tableHeaders.forEach((header, i) => {
             const align = 'center';
-            doc.text(header, currentX, currentY, { width: columnWidths[i], align: align });
-            currentX += columnWidths[i] || 0;
+            doc.text(header, currentX, currentY, { width: columnWidths[i], align: align } as PDFTextOptions);
+            currentX += columnWidths[i];
             
             // 繪製垂直分隔線（除了最後一列）
             if (i < tableHeaders.length - 1) {
@@ -247,8 +204,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         currentX = 50;
         
         // 序號
-        doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'center' });
-        currentX += columnWidths[0] || 0;
+        doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
+        currentX += columnWidths[0];
         
         // 繪製第一條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -257,8 +214,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         
         // 健保代碼
         // 從 item.healthInsuranceCode 取得健保代碼
-        doc.text(item.healthInsuranceCode || 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' });
-        currentX += columnWidths[1] || 0;
+        doc.text(item.healthInsuranceCode || 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
+        currentX += columnWidths[1];
         
         // 繪製第二條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -266,8 +223,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 項目名稱
-        doc.text(item.productName || item.dname || 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' });
-        currentX += columnWidths[2] || 0;
+        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
+        currentX += columnWidths[2];
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -275,8 +232,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 數量置中對齊
-        doc.text(item.quantity?.toString() || item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[3], align: 'center' });
-        currentX += columnWidths[3] || 0;
+        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
+        currentX += columnWidths[3];
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -284,9 +241,9 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 單價靠右對齊，但保留右側空間
-        const dprice = item.unitPrice ?? ((item.dtotalCost || 0) / (item.dquantity || 1));
-        doc.text(formatCurrency(dprice), currentX, currentY, { width: columnWidths[3] , align: 'center' });
-        currentX += columnWidths[3] || 0;
+        const dprice = (item.dtotalCost || 0) / (item.dquantity || 1);
+        doc.text(formatCurrency(dprice), currentX, currentY, { width: columnWidths[3] , align: 'center' } as PDFTextOptions);
+        currentX += columnWidths[3];
         
         // 繪製第四條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -294,8 +251,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 小計靠右對齊，但保留右側空間
-        const subtotal = item.subtotal ?? item.dtotalCost ?? 0;
-        doc.text(formatCurrency(subtotal), currentX, currentY, { width: (columnWidths[4] || 0) - 1, align: 'center' });
+        const subtotal = (item.dtotalCost || 0) ;
+        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[4] - 1, align: 'center' } as PDFTextOptions);
         
         currentY += 20;
       });
@@ -304,7 +261,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
       doc.lineWidth(0.2);
       doc.strokeColor('#c0c0c0');
       doc.rect(50, currentY, doc.page.width - 100, 20).stroke();
-      doc.text('無項目', 50, currentY, { align: 'center', width: doc.page.width - 100 });
+      doc.text('無項目', 50, currentY, { align: 'center', width: doc.page.width - 100 } as PDFTextOptions);
       currentY += 20;
     }
     
@@ -313,7 +270,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     currentY += 20;
     
     // 添加金額信息
-    doc.fontSize(12).text(`總金額: ${formatCurrency(shippingOrder.totalAmount || 0)}`, 50, currentY,  { align: 'right' });
+    doc.fontSize(12).text(`總金額: ${formatCurrency(shippingOrder.totalAmount || 0)}`, 50, currentY,  { align: 'right' } as PDFTextOptions);
     currentY += 20;
     
     doc.moveDown(2);

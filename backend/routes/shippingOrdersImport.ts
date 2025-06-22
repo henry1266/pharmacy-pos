@@ -1,19 +1,55 @@
-import express, { Request, Response } from 'express';
-import { check, validationResult } from 'express-validator';
-import mongoose, { Types } from 'mongoose';
-import ShippingOrder, { IShippingOrderDocument } from '../models/ShippingOrder';
-import BaseProduct, { Medicine } from '../models/BaseProduct';
-import Supplier from '../models/Supplier';
-import Inventory from '../models/Inventory';
-import multer from 'multer';
-import csv from 'csv-parser';
-import * as fs from 'fs';
-import * as path from 'path';
-import OrderNumberService from '../utils/OrderNumberService';
+import express, { Request, Response } from "express";
+import mongoose, { Types } from "mongoose";
+import { check, validationResult } from "express-validator";
+import multer from "multer";
+import csv from "csv-parser";
+import fs from "fs";
+import path from "path";
 
-const router = express.Router();
+// 使用 require 導入模型，避免型別衝突
+const ShippingOrder = require("../models/ShippingOrder");
+const { BaseProduct } = require("../models/BaseProduct");
+const Supplier = require("../models/Supplier");
+const Inventory = require("../models/Inventory");
+const OrderNumberService = require("../utils/OrderNumberService");
 
-// 定義 CSV 處理相關介面
+// 定義介面
+interface ShippingOrderItem {
+  product: Types.ObjectId | string;
+  did: string;
+  dname: string;
+  dquantity: number;
+  dtotalCost: number;
+  unitPrice?: number;
+}
+
+interface ShippingOrderDocument {
+  _id: Types.ObjectId;
+  soid: string;
+  orderNumber: string;
+  sosupplier: string;
+  supplier?: Types.ObjectId | string | null;
+  items: ShippingOrderItem[];
+  notes?: string;
+  status: 'pending' | 'completed';
+  paymentStatus: string;
+  totalAmount?: number;
+  createdAt?: Date;
+  toObject(): any;
+}
+
+interface ProductDocument {
+  _id: Types.ObjectId;
+  code?: string;
+  name?: string;
+  healthInsuranceCode?: string;
+}
+
+interface SupplierDocument {
+  _id: Types.ObjectId;
+  name: string;
+}
+
 interface CsvItem {
   rawDate: string;
   date: string | null;
@@ -22,30 +58,22 @@ interface CsvItem {
   nhPrice: number;
 }
 
-interface CsvProcessResult {
+interface ProcessResult {
   results: CsvItem[];
   errors: string[];
   failCount: number;
   totalItems: number;
   firstValidDate: string | null;
+  successCount: number;
 }
 
-interface ShippingOrderItem {
-  product: string;
-  did?: string;
-  dname?: string;
-  dquantity: number;
-  dtotalCost: number;
-  unitPrice: number;
-}
-
-interface PrepareOrderItemsResult {
+interface OrderItemsResult {
   items: ShippingOrderItem[];
   successCount: number;
   failCount: number;
 }
 
-interface SupplierInfo {
+interface SupplierResult {
   supplierId: string | null;
   supplierName: string;
 }
@@ -75,41 +103,42 @@ const upload = multer({
 
 /**
  * 為出貨單創建庫存記錄
- * @param shippingOrder - 出貨單對象
+ * @param {Object} shippingOrder - 出貨單對象
  */
-async function createShippingInventoryRecords(shippingOrder: IShippingOrderDocument): Promise<void> {
+async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocument): Promise<void> {
   try {
     // 檢查是否已經存在該出貨單的庫存記錄
+    // 修正：確保使用查詢物件包裝參數
     const existingRecords = await Inventory.find({ 
       shippingOrderId: shippingOrder._id.toString() 
     });
     
     if (existingRecords.length > 0) {
-      console.log(`出貨單 ${shippingOrder.orderNumber} 的庫存記錄已存在，跳過創建`);
+      console.log(`出貨單 ${shippingOrder.soid} 的庫存記錄已存在，跳過創建`);
       return;
     }
     
     // 為每個藥品項目創建庫存記錄
     for (const item of shippingOrder.items) {
-      if (!item.product || !item.quantity) continue;
+      if (!item.product || !item.dquantity) continue;
       
       // 創建出貨庫存記錄（負數表示出貨）
       const inventory = new Inventory({
-        product: item.product.toString(), // 確保轉換為字串
-        quantity: -item.quantity, // 負數表示出貨減少庫存
-        totalAmount: item.subtotal || 0,
+        product: item.product.toString(), // 修正：確保轉換為字串
+        quantity: -item.dquantity, // 負數表示出貨減少庫存
+        totalAmount: item.dtotalCost || 0,
         type: "ship", // 設置類型為ship
-        shippingOrderId: shippingOrder._id.toString(), // 確保轉換為字串
-        shippingOrderNumber: shippingOrder.orderNumber.toString(), // 確保轉換為字串
+        shippingOrderId: shippingOrder._id.toString(), // 修正：確保轉換為字串
+        shippingOrderNumber: shippingOrder.soid.toString(), // 修正：確保轉換為字串
         accountingId: null, // 預設為null
         lastUpdated: new Date() // 設置最後更新時間
       });
       
       await inventory.save();
-      console.log(`為產品 ${item.productName} 創建了庫存記錄，數量: ${-item.quantity}`);
+      console.log(`為產品 ${item.dname} 創建了庫存記錄，數量: ${-item.dquantity}`);
     }
     
-    console.log(`成功為出貨單 ${shippingOrder.orderNumber} 創建庫存記錄`);
+    console.log(`成功為出貨單 ${shippingOrder.soid} 創建庫存記錄`);
   } catch (error) {
     console.error(`創建出貨單庫存記錄時出錯:`, error);
     throw error;
@@ -118,10 +147,10 @@ async function createShippingInventoryRecords(shippingOrder: IShippingOrderDocum
 
 /**
  * 將民國年日期轉換為西元年日期
- * @param dateStr - 日期字符串，可能是民國年格式(YYYMMDD)或西元年格式(YYYY-MM-DD)
- * @returns 轉換後的西元年日期，格式為YYYY-MM-DD
+ * @param {string} dateStr - 日期字符串，可能是民國年格式(YYYMMDD)或西元年格式(YYYY-MM-DD)
+ * @returns {string} 轉換後的西元年日期，格式為YYYY-MM-DD
  */
-function convertToWesternDate(dateStr: string | null): string | null {
+function convertToWesternDate(dateStr: string): string | null {
   if (!dateStr) return null;
   
   // 如果已經是西元年格式 YYYY-MM-DD，直接返回
@@ -173,8 +202,8 @@ function convertToWesternDate(dateStr: string | null): string | null {
 
 /**
  * 解析日期並返回日期物件
- * @param dateStr - 日期字符串
- * @returns 解析後的日期物件或null
+ * @param {string} dateStr - 日期字符串
+ * @returns {Date|null} 解析後的日期物件或null
  */
 function parseDateString(dateStr: string): Date | null {
   // 先將日期轉換為西元年格式
@@ -193,8 +222,8 @@ function parseDateString(dateStr: string): Date | null {
 
 /**
  * 格式化日期為YYYYMMDD格式
- * @param dateObj - 日期物件
- * @returns 格式化後的日期字串
+ * @param {Date} dateObj - 日期物件
+ * @returns {string} 格式化後的日期字串
  */
 function formatDateToYYYYMMDD(dateObj: Date): string {
   const year = dateObj.getFullYear();
@@ -205,20 +234,20 @@ function formatDateToYYYYMMDD(dateObj: Date): string {
 
 /**
  * 查找指定前綴的最大訂單序號
- * @param prefix - 訂單號前綴
- * @param suffix - 訂單號後綴
- * @returns 最大序號
+ * @param {string} prefix - 訂單號前綴
+ * @param {string} suffix - 訂單號後綴
+ * @returns {Promise<number>} 最大序號
  */
 async function findMaxOrderSequence(prefix: string, suffix: string): Promise<number> {
   const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
   const existingOrders = await ShippingOrder.find({ 
-    orderNumber: regex 
-  }).sort({ orderNumber: -1 });
+    soid: regex.toString() 
+  }).sort({ soid: -1 });
   
   let sequence = 1; // 默認從001開始
   
   if (existingOrders.length > 0) {
-    const lastOrderNumber = existingOrders[0].orderNumber;
+    const lastOrderNumber = existingOrders[0].soid;
     // 提取序號部分 (去掉日期前綴和D後綴)
     const lastSequence = parseInt(lastOrderNumber.substring(prefix.length, lastOrderNumber.length - suffix.length), 10);
     sequence = lastSequence + 1;
@@ -229,8 +258,8 @@ async function findMaxOrderSequence(prefix: string, suffix: string): Promise<num
 
 /**
  * 根據日期生成訂單號
- * @param dateStr - 日期字符串，格式為YYYY-MM-DD或民國年格式YYYMMDD
- * @returns 生成的訂單號
+ * @param {string} dateStr - 日期字符串，格式為YYYY-MM-DD或民國年格式YYYMMDD
+ * @returns {Promise<string>} 生成的訂單號
  */
 async function generateOrderNumberByDate(dateStr: string): Promise<string> {
   try {
@@ -260,14 +289,14 @@ async function generateOrderNumberByDate(dateStr: string): Promise<string> {
 
 /**
  * 檢查訂單號是否存在，如存在則生成新的
- * @param soid - 訂單號
- * @param dateStr - 日期字符串
- * @returns 唯一的訂單號
+ * @param {string} soid - 訂單號
+ * @param {string} dateStr - 日期字符串
+ * @returns {Promise<string>} 唯一的訂單號
  */
 async function ensureUniqueOrderNumber(soid: string, dateStr: string): Promise<string> {
   // 檢查出貨單號是否已存在
   const existingSO = await ShippingOrder.findOne({ 
-    orderNumber: soid.toString() 
+    soid: soid.toString() 
   });
   
   if (!existingSO) {
@@ -279,7 +308,7 @@ async function ensureUniqueOrderNumber(soid: string, dateStr: string): Promise<s
   
   // 再次檢查
   const existingSO2 = await ShippingOrder.findOne({ 
-    orderNumber: newSoid.toString() 
+    soid: newSoid.toString() 
   });
   
   if (existingSO2) {
@@ -291,19 +320,19 @@ async function ensureUniqueOrderNumber(soid: string, dateStr: string): Promise<s
 
 /**
  * 處理CSV行數據
- * @param data - CSV行數據
- * @param lineIndex - 行索引
- * @param result - 處理結果
- * @returns 處理結果
+ * @param {Object} data - CSV行數據
+ * @param {number} lineIndex - 行索引
+ * @param {Object} result - 處理結果
+ * @returns {Object} 處理結果
  */
-function processCsvLine(data: Record<string, string>, lineIndex: number, result: CsvProcessResult): CsvProcessResult {
-  const { results, errors, failCount, totalItems, firstValidDate } = result;
+function processCsvLine(data: Record<string, string>, lineIndex: number, result: ProcessResult): ProcessResult {
+  const { results, errors, firstValidDate } = result;
   const keys = Object.keys(data);
   
   // 如果CSV沒有標題行，則使用索引位置
   if (keys.length < 4) {
     errors.push(`行 ${lineIndex + 1}: CSV格式不正確，應為"日期,健保碼,數量,健保價"`);
-    return { ...result, failCount: failCount + 1 };
+    return { ...result, failCount: result.failCount + 1 };
   }
   
   const rawDate = data[keys[0]] || "";
@@ -329,37 +358,39 @@ function processCsvLine(data: Record<string, string>, lineIndex: number, result:
       quantity,
       nhPrice
     });
-    return { 
-      results, 
-      errors, 
-      failCount, 
-      totalItems: totalItems + 1,
-      firstValidDate: updatedFirstValidDate
+    return {
+      results,
+      errors,
+      failCount: result.failCount,
+      totalItems: result.totalItems + 1,
+      firstValidDate: updatedFirstValidDate,
+      successCount: result.successCount + 1
     };
   } else {
     errors.push(`行 ${lineIndex + 1}: 資料不完整或格式錯誤 (健保碼: ${nhCode}, 數量: ${quantity}, 健保價: ${nhPrice})`);
-    return { 
-      results, 
-      errors, 
-      failCount: failCount + 1, 
-      totalItems: totalItems + 1,
-      firstValidDate: updatedFirstValidDate
+    return {
+      results,
+      errors,
+      failCount: result.failCount + 1,
+      totalItems: result.totalItems + 1,
+      firstValidDate: updatedFirstValidDate,
+      successCount: result.successCount
     };
   }
 }
 
 /**
  * 準備出貨單項目
- * @param results - CSV處理結果
- * @param productMap - 健保碼到藥品的映射
- * @param errors - 錯誤信息數組
- * @returns 處理結果
+ * @param {Array} results - CSV處理結果
+ * @param {Object} productMap - 健保碼到藥品的映射
+ * @param {Array} errors - 錯誤信息數組
+ * @returns {Object} 處理結果
  */
 function prepareOrderItems(
   results: CsvItem[], 
-  productMap: Record<string, any>, 
+  productMap: Record<string, ProductDocument>, 
   errors: string[]
-): PrepareOrderItemsResult {
+): OrderItemsResult {
   const items: ShippingOrderItem[] = [];
   let successCount = 0;
   let failCount = 0;
@@ -393,30 +424,32 @@ function prepareOrderItems(
 
 /**
  * 查找或設置供應商
- * @param defaultSupplier - 預設供應商
- * @returns 供應商信息
+ * @param {Object} defaultSupplier - 預設供應商
+ * @returns {Promise<Object>} 供應商信息
  */
-async function findOrSetSupplier(defaultSupplier: any): Promise<SupplierInfo> {
+async function findOrSetSupplier(defaultSupplier?: any): Promise<SupplierResult> {
   let supplierId: string | null = null;
   let supplierName = "預設供應商";
   
   if (defaultSupplier) {
-    supplierId = defaultSupplier._id?.toString() || null;
+    supplierId = defaultSupplier._id?.toString();
     supplierName = defaultSupplier.name?.toString() || supplierName;
   } else {
     // 嘗試查找名為"調劑"的供應商
     const supplier = await Supplier.findOne({ 
-      name: "調劑" 
+      name: "調劑".toString() 
     });
     
     if (supplier) {
       supplierId = supplier._id.toString();
-      supplierName = supplier.name;
+      supplierName = supplier.name.toString();
     }
   }
   
   return { supplierId, supplierName };
 }
+
+const router = express.Router();
 
 // @route   GET api/shipping-orders/generate-number
 // @desc    生成新的出貨單號
@@ -457,9 +490,10 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     }
 
     // 初始化處理結果
-    const result: CsvProcessResult = {
+    const result: ProcessResult = {
       results: [],
       errors: [],
+      successCount: 0,
       failCount: 0,
       totalItems: 0,
       firstValidDate: null
@@ -473,8 +507,8 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
           const updatedResult = processCsvLine(data, result.totalItems, result);
           Object.assign(result, updatedResult);
         })
-        .on("end", resolve)
-        .on("error", reject);
+        .on("end", () => resolve())
+        .on("error", (err) => reject(err));
     });
 
     // 刪除上傳的文件
@@ -520,11 +554,10 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     });
     
     // 建立健保碼到藥品的映射
-    const productMap: Record<string, any> = {};
-    products.forEach(product => {
-      const productAny = product as any;
-      if (productAny.healthInsuranceCode) {
-        productMap[productAny.healthInsuranceCode.toString()] = product;
+    const productMap: Record<string, ProductDocument> = {};
+    products.forEach((product: ProductDocument) => {
+      if (product.healthInsuranceCode) {
+        productMap[product.healthInsuranceCode.toString()] = product;
       }
     });
 
@@ -547,42 +580,35 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
+      soid: soid.toString(),
       orderNumber: soid.toString(),
-      soid: soid.toString(), // 保留舊欄位以兼容
-      sosupplier: supplierName.toString(), // 保留舊欄位以兼容
-      supplier: supplierId,
-      items: items.map(item => ({
-        product: item.product,
-        productName: item.dname || '',
-        quantity: item.dquantity,
-        unitPrice: item.unitPrice,
-        subtotal: item.dtotalCost
-      })),
-      status: "shipped", // 根據新需求設置為shipped (原為completed)
-      paymentStatus: "已收款", // 保留舊欄位以兼容
-      notes: `從CSV匯入 (${new Date().toLocaleDateString()})`,
-      createdBy: new Types.ObjectId() // 臨時使用空ID，實際應使用當前用戶ID
+      sosupplier: supplierName.toString(),
+      supplier: supplierId ? supplierId.toString() : null,
+      items,
+      status: "completed", // 根據新需求設置為completed
+      paymentStatus: "已收款", // 根據之前的需求設置為已收款
+      notes: `從CSV匯入 (${new Date().toLocaleDateString()})`
     });
 
     // 保存出貨單
     const savedOrder = await shippingOrder.save();
-    console.log(`出貨單 ${savedOrder.orderNumber} 已保存，狀態: ${savedOrder.status}`);
+    console.log(`出貨單 ${savedOrder.soid} 已保存，狀態: ${savedOrder.status}`);
     
     // 創建庫存記錄
     await createShippingInventoryRecords(savedOrder);
-    console.log(`已為出貨單 ${savedOrder.orderNumber} 創建庫存記錄`);
+    console.log(`已為出貨單 ${savedOrder.soid} 創建庫存記錄`);
 
     res.json({
       msg: "藥品明細CSV匯入成功",
       shippingOrder: {
         _id: savedOrder._id.toString(),
-        orderNumber: savedOrder.orderNumber,
-        soid: savedOrder.orderNumber, // 保留舊欄位以兼容
-        supplier: supplierName,
+        soid: savedOrder.soid.toString(),
+        orderNumber: savedOrder.orderNumber.toString(),
+        supplier: supplierName.toString(),
         itemCount: items.length,
         totalAmount: savedOrder.totalAmount,
-        paymentStatus: "已收款", // 保留舊欄位以兼容
-        status: savedOrder.status
+        paymentStatus: savedOrder.paymentStatus.toString(),
+        status: savedOrder.status.toString()
       },
       summary: {
         totalItems: result.totalItems,
