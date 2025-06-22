@@ -5,7 +5,7 @@ import { check, validationResult } from 'express-validator';
 // 使用 TypeScript import 語法導入模型和中介軟體
 import AccountingCategory from '../models/AccountingCategory';
 import { IAccountingCategoryDocument } from '../src/types/models';
-const auth = require('../middleware/auth');
+import auth from '../middleware/auth';
 
 // 定義會計類別介面
 interface IAccountingCategory {
@@ -77,11 +77,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
 // @route   POST api/accounting-categories
 // @desc    新增記帳名目類別
 // @access  Private
-router.post('/', [
-  auth,
-  [
-    check('name', '名稱為必填欄位').not().isEmpty(),
-  ]
+router.post('/', auth, [
+  check('name', '名稱為必填欄位').not().isEmpty(),
 ], async (req: AuthenticatedRequest, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -114,11 +111,8 @@ router.post('/', [
 // @route   PUT api/accounting-categories/:id
 // @desc    更新記帳名目類別
 // @access  Private
-router.put('/:id', [
-  auth,
-  [
-    check('name', '名稱為必填欄位').not().isEmpty(),
-  ]
+router.put('/:id', auth, [
+  check('name', '名稱為必填欄位').not().isEmpty(),
 ], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

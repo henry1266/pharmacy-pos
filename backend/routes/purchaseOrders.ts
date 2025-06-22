@@ -9,9 +9,11 @@ import path from 'path';
 // 使用 require 導入所有模型，避免型別衝突
 const PurchaseOrder = require('../models/PurchaseOrder');
 const { BaseProduct } = require('../models/BaseProduct');
-const Supplier = require('../models/Supplier');
 const Inventory = require('../models/Inventory');
 const OrderNumberService = require('../utils/OrderNumberService');
+
+// 使用 ES6 import 導入 TypeScript 模型
+import Supplier from '../models/Supplier';
 
 // 定義符合實際模型的介面
 interface PurchaseOrderItem {

@@ -9,10 +9,12 @@ import path from 'path';
 // 使用 require 導入模型和中介軟體，避免型別衝突
 const ShippingOrder = require('../models/ShippingOrder');
 const { BaseProduct } = require('../models/BaseProduct');
-const Supplier = require('../models/Supplier');
 const Inventory = require('../models/Inventory');
 const Customer = require('../models/Customer');
 const OrderNumberService = require('../utils/OrderNumberService');
+
+// 使用 ES6 import 導入 TypeScript 模型
+import Supplier from '../models/Supplier';
 
 // 定義產品介面
 interface ProductDocument {

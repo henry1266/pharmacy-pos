@@ -6,7 +6,9 @@ const { BaseProduct } = require('../models/BaseProduct');
 const Sale = require('../models/Sale');
 const Customer = require('../models/Customer');
 const Inventory = require('../models/Inventory');
-const Supplier = require('../models/Supplier');
+
+// 使用 ES6 import 導入 TypeScript 模型
+import Supplier from '../models/Supplier';
 
 // 定義庫存警告介面
 interface LowStockWarning {

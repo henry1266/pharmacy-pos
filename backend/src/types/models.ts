@@ -54,34 +54,31 @@ export interface IEmployeeDocument extends IEmployee, Document, ITimestamps {
   getWorkDays(): string[];
 }
 
-// BaseProduct 模型型別
+// BaseProduct 模型型別 (與實際資料庫結構一致)
 export interface IBaseProduct {
-  productCode: string;
-  productName: string;
-  category: Types.ObjectId;
+  code: string;
+  shortCode: string;
+  name: string;
+  category?: Types.ObjectId;
+  unit?: string;
+  purchasePrice: number;
+  sellingPrice: number;
   description?: string;
-  unit: string;
+  supplier?: Types.ObjectId;
+  minStock: number;
+  productType: 'product' | 'medicine';
+  date: Date;
   isActive: boolean;
-  tags?: string[];
 }
 
 export interface IProduct extends IBaseProduct {
-  costPrice: number;
-  sellingPrice: number;
-  supplier?: Types.ObjectId;
-  minStock?: number;
-  maxStock?: number;
+  barcode?: string;
 }
 
 export interface IMedicine extends IBaseProduct {
-  activeIngredient?: string;
-  dosageForm?: string;
-  strength?: string;
-  manufacturer?: string;
-  licenseNumber?: string;
-  expiryDate?: Date;
-  storageConditions?: string;
-  prescriptionRequired: boolean;
+  barcode?: string;
+  healthInsuranceCode?: string;
+  healthInsurancePrice: number;
 }
 
 export interface IBaseProductDocument extends IBaseProduct, Document, ITimestamps {
@@ -92,34 +89,33 @@ export interface IBaseProductDocument extends IBaseProduct, Document, ITimestamp
 export interface IProductDocument extends IBaseProductDocument, IProduct {}
 export interface IMedicineDocument extends IBaseProductDocument, IMedicine {}
 
-// Sale 模型型別
+// Sale 模型型別 (與實際資料庫結構一致)
 export interface ISaleItem {
   product: Types.ObjectId;
-  productName: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   subtotal: number;
-  discount?: number;
 }
 
 export interface ISale {
-  saleNumber: string;
+  saleNumber?: string;
   customer?: Types.ObjectId;
   items: ISaleItem[];
   totalAmount: number;
-  discountAmount?: number;
-  finalAmount: number;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'other';
-  paymentStatus: 'pending' | 'paid' | 'refunded';
-  saleDate: Date;
-  cashier: Types.ObjectId;
-  notes?: string;
+  discount: number;
+  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
+  paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
+  note?: string;
+  cashier?: Types.ObjectId;
+  date: Date;
 }
 
 export interface ISaleDocument extends ISale, Document, ITimestamps {
   _id: Types.ObjectId;
   calculateTotalAmount(): number;
   validateItemSubtotals(): boolean;
+  finalAmount: number;
+  saleDate: Date;
 }
 
 // PurchaseOrder 模型型別
@@ -236,17 +232,21 @@ export interface IAccountingDocument extends IAccounting, Document, ITimestamps 
   updateStatus(status: 'pending' | 'completed'): void;
 }
 
-// Customer 模型型別
+// Customer 模型型別 (與實際資料庫結構一致)
 export interface ICustomer {
-  customerCode: string;
+  date: Date;
   name: string;
+  code: string;
+  phone: string;
+  allergies: string[];
+  idCardNumber: string;
+  membershipLevel: "regular" | "silver" | "gold" | "platinum";
   email?: string;
-  phone?: string;
   address?: string;
-  dateOfBirth?: Date;
-  gender?: 'male' | 'female' | 'other';
-  notes?: string;
-  isActive: boolean;
+  birthdate?: Date;
+  gender?: "other" | "male" | "female";
+  medicalHistory?: string;
+  note?: string;
   totalPurchases?: number;
   lastPurchaseDate?: Date;
 }
@@ -326,17 +326,13 @@ export interface IMonitoredProductDocument extends IMonitoredProduct, Document {
   getProductInfo(): Promise<any>;
 }
 
-// EmployeeSchedule 模型型別
+// EmployeeSchedule 模型型別 (與實際資料庫結構一致)
 export interface IEmployeeSchedule {
-  employee: Types.ObjectId;
   date: Date;
-  startTime: string;
-  endTime: string;
-  breakTime?: number;
-  workHours: number;
-  status: 'scheduled' | 'completed' | 'absent' | 'cancelled';
-  notes?: string;
-  createdBy: Types.ObjectId;
+  shift: "morning" | "afternoon" | "evening";
+  employeeId: Types.ObjectId;
+  leaveType?: "sick" | "personal" | "overtime" | null;
+  createdBy?: Types.ObjectId;
 }
 
 export interface IEmployeeScheduleDocument extends IEmployeeSchedule, Document, ITimestamps {

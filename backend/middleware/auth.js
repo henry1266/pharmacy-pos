@@ -50,3 +50,6 @@ module.exports = function (req, res, next) {
   
 };
 
+// 確保正確導出
+module.exports = module.exports;
+

@@ -9,7 +9,7 @@ import Inventory from '../models/Inventory';
 import BaseProduct from '../models/BaseProduct';
 import MonitoredProduct from '../models/MonitoredProduct';
 import { IAccountingDocument, IInventoryDocument } from '../src/types/models';
-const auth = require('../middleware/auth');
+import auth from '../middleware/auth';
 
 // 定義會計記錄狀態型別
 type AccountingStatus = 'pending' | 'completed';
@@ -250,15 +250,13 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
 // @access  Private
 router.post(
   '/',
+  auth,
   [
-    auth,
-    [
-      check('date', '日期為必填欄位').not().isEmpty(),
-      check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
-      check('items', '至少需要一個項目').isArray(), // Allow empty initially, will add sales
-      check('items.*.amount', '金額必須為數字').optional().isFloat(),
-      check('items.*.category', '名目為必填欄位').optional().not().isEmpty()
-    ]
+    check('date', '日期為必填欄位').not().isEmpty(),
+    check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
+    check('items', '至少需要一個項目').isArray(), // Allow empty initially, will add sales
+    check('items.*.amount', '金額必須為數字').optional().isFloat(),
+    check('items.*.category', '名目為必填欄位').optional().not().isEmpty()
   ],
   async (req: AuthenticatedRequest, res: Response) => {
     const errors = validationResult(req);
@@ -369,16 +367,14 @@ router.post(
 // @access  Private
 router.put(
   '/:id',
+  auth,
   [
-    auth,
-    [
-      check('date', '日期為必填欄位').not().isEmpty(),
-      check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
-      check('items', '至少需要一個項目').isArray().not().isEmpty(),
-      check('items.*.amount', '金額必須為數字').isFloat(),
-      check('items.*.category', '名目為必填欄位').not().isEmpty(),
-      check('status', '狀態為必填欄位').optional().isIn(['pending', 'completed']) // Add status validation
-    ]
+    check('date', '日期為必填欄位').not().isEmpty(),
+    check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
+    check('items', '至少需要一個項目').isArray().not().isEmpty(),
+    check('items.*.amount', '金額必須為數字').isFloat(),
+    check('items.*.category', '名目為必填欄位').not().isEmpty(),
+    check('status', '狀態為必填欄位').optional().isIn(['pending', 'completed']) // Add status validation
   ],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);

@@ -2,8 +2,8 @@ import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import mongoose, { Types } from 'mongoose';
 
-// 使用 require 導入模型和中介軟體，避免型別衝突
-const auth = require('../middleware/auth');
+// 使用 TypeScript import 語法導入中介軟體
+import auth from '../middleware/auth';
 const Employee = require('../models/Employee');
 
 // 定義員工性別型別
@@ -171,18 +171,16 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
 // @access  Private
 router.post(
   '/',
+  auth,
   [
-    auth,
-    [
-      check('name', '姓名為必填欄位').not().isEmpty(),
-      check('gender', '性別為必填欄位').isIn(['male', 'female']),
-      check('birthDate', '出生年月日為必填欄位').not().isEmpty(),
-      check('idNumber', '身分證統一號碼為必填欄位').not().isEmpty(),
-      check('address', '住址為必填欄位').not().isEmpty(),
-      check('position', '任職職務為必填欄位').not().isEmpty(),
-      check('department', '所屬部門為必填欄位').not().isEmpty(),
-      check('hireDate', '到職年月日為必填欄位').not().isEmpty()
-    ]
+    check('name', '姓名為必填欄位').not().isEmpty(),
+    check('gender', '性別為必填欄位').isIn(['male', 'female']),
+    check('birthDate', '出生年月日為必填欄位').not().isEmpty(),
+    check('idNumber', '身分證統一號碼為必填欄位').not().isEmpty(),
+    check('address', '住址為必填欄位').not().isEmpty(),
+    check('position', '任職職務為必填欄位').not().isEmpty(),
+    check('department', '所屬部門為必填欄位').not().isEmpty(),
+    check('hireDate', '到職年月日為必填欄位').not().isEmpty()
   ],
   async (req: AuthenticatedRequest, res: Response) => {
     const errors = validationResult(req);

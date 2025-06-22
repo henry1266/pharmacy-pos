@@ -41,6 +41,14 @@ import { zhTW } from 'date-fns/locale';
 import SalesPreview from '../components/sales/SalesPreview'; // Import the SalesPreview component
 import { Customer } from '../types/entities';
 
+// API 回應型別定義
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string;
+}
+
 // 定義類型
 interface SaleItem {
   product?: {
@@ -193,9 +201,11 @@ const SalesListPage: FC = () => {
       await new Promise(resolve => setTimeout(resolve, 500)); 
       // Simulate a potential error even in test mode for fallback to mock
       // if (Math.random() < 0.3) throw new Error("Simulated API error in test mode");
-      const response = await axios.get<Sale[]>('/api/sales'); // Attempt real fetch
-      if (response.data && response.data.length > 0) {
-          setSales(response.data);
+      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales'); // Attempt real fetch
+      // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
+      const salesData = response.data.data || [];
+      if (Array.isArray(salesData) && salesData.length > 0) {
+          setSales(salesData);
       } else {
           console.log("Test Mode: No actual sales data, using mock data.");
           setSales(mockSalesData);
@@ -212,8 +222,15 @@ const SalesListPage: FC = () => {
   // 生產模式下獲取銷售數據
   const fetchProductionSales = async (): Promise<void> => {
     try {
-      const response = await axios.get<Sale[]>('/api/sales');
-      setSales(response.data);
+      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
+      // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
+      const salesData = response.data.data || [];
+      if (Array.isArray(salesData)) {
+        setSales(salesData);
+      } else {
+        console.warn('API 回傳的資料格式不正確:', response.data);
+        setSales([]);
+      }
     } catch (err) {
       console.error('獲取銷售數據失敗:', err);
       setError('獲取銷售數據失敗');
@@ -241,10 +258,10 @@ const SalesListPage: FC = () => {
     const saleNumber = sale.saleNumber ?? '';
     const saleDate = sale.date ? format(new Date(sale.date), 'yyyy-MM-dd') : '';
     
-    return customerName.toLowerCase().includes(searchTermLower) ??
-           productNames.toLowerCase().includes(searchTermLower) ??
-           saleId.toLowerCase().includes(searchTermLower) ??
-           saleNumber.toLowerCase().includes(searchTermLower) ??
+    return customerName.toLowerCase().includes(searchTermLower) ||
+           productNames.toLowerCase().includes(searchTermLower) ||
+           saleId.toLowerCase().includes(searchTermLower) ||
+           saleNumber.toLowerCase().includes(searchTermLower) ||
            saleDate.includes(searchTermLower);
   });
 

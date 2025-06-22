@@ -109,7 +109,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 async function checkCustomerCodeExists(code: string): Promise<boolean> {
   if (!code) return false;
   
-  const customer = await Customer.findOne({ customerCode: code });
+  const customer = await Customer.findOne({ code: code });
   return !!customer;
 }
 
@@ -149,7 +149,7 @@ function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRe
   
   if (name) customerFields.name = name;
   if (phone) customerFields.phone = phone;
-  if (code) customerFields.customerCode = code;
+  if (code) customerFields.code = code;
   if (email) customerFields.email = email;
   if (address) customerFields.address = address;
   
@@ -221,7 +221,7 @@ router.post(
 
       // 若沒提供會員編號，系統自動生成
       if (!requestBody.code) {
-        customerFields.customerCode = await generateCustomerCode();
+        customerFields.code = await generateCustomerCode();
       }
 
       const customer = new Customer(customerFields);
@@ -268,7 +268,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     // 若編號被修改，檢查是否重複
-    if (requestBody.code && requestBody.code !== customer.customerCode) {
+    if (requestBody.code && requestBody.code !== customer.code) {
       if (await checkCustomerCodeExists(requestBody.code)) {
         const errorResponse: ErrorResponse = {
           success: false,

@@ -246,11 +246,11 @@ async function checkProductInventory(product: IBaseProductDocument, quantity: nu
     // 計算總庫存量
     let totalQuantity = calculateTotalInventory(inventories);
     
-    console.log(`產品 ${product.productName} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
+    console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
     
     // 不再檢查庫存是否足夠，允許負庫存
     if (totalQuantity < quantity) {
-      console.log(`警告: 產品 ${product.productName} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
+      console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
     }
     
     return { success: true };
@@ -296,7 +296,7 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
     }
     
     // 記錄當前庫存量，但不限制負庫存
-    console.log(`檢查產品ID: ${item.product}, 名稱: ${productCheck.product!.productName}`);
+    console.log(`檢查產品ID: ${item.product}, 名稱: ${productCheck.product!.name}`);
     
     // 檢查產品庫存
     const inventoryCheck = await checkProductInventory(productCheck.product!, item.quantity);
