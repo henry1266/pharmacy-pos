@@ -37,8 +37,6 @@ const useProductData = () => {
       setError(null);
       const data = await productService.getProducts();
 
-      console.log('Fetched products data:', data); // 調試日誌
-
       // Separate products and medicines
       const productsList: ProductWithId[] = [];
       const medicinesList: ProductWithId[] = [];
@@ -46,14 +44,7 @@ const useProductData = () => {
       data.forEach(item => {
         // 將 item 轉換為 ExtendedProduct 型別
         const extendedItem = item as ExtendedProduct;
-        const product = { ...extendedItem, id: item._id || item.id }; // Map _id to id
-        
-        console.log('Processing item:', {
-          name: extendedItem.name,
-          productType: extendedItem.productType,
-          _id: item._id,
-          id: item.id
-        }); // 調試日誌
+        const product = { ...extendedItem, id: item._id || (item as any).id }; // Map _id to id
         
         if (extendedItem.productType === 'product') {
           productsList.push(product);
@@ -70,8 +61,6 @@ const useProductData = () => {
           }
         }
       });
-
-      console.log('Products list:', productsList.length, 'Medicines list:', medicinesList.length); // 調試日誌
 
       setProducts(productsList);
       setMedicines(medicinesList);

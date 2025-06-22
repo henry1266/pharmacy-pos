@@ -167,10 +167,9 @@ const DataTable: React.FC<DataTableProps> = ({
     }
   }, [rows, selectedIndex]);
 
-  // 確保所有列都可調整大小
+  // 確保所有列都有最小寬度（移除 resizable 因為使用的是 MIT 版本）
   const columnsWithResizing = columns.map(column => ({
     ...column,
-    resizable: true, // 啟用列寬調整
     minWidth: 50, // 設置最小寬度
   }));
 

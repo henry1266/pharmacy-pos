@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Inventory, Product } from '../types/entities';
 
@@ -32,8 +32,8 @@ const useInventoryData = (productId?: string) => {
         }
       };
       
-      const res = await axios.get<InventoryRecord[]>('/api/inventory', config);
-      setInventory(res.data);
+      const res = await axios.get<{success: boolean, data: InventoryRecord[]}>('/api/inventory', config);
+      setInventory(res.data.data || []);
       setLoading(false);
     } catch (err: any) {
       console.error(err);
@@ -43,7 +43,7 @@ const useInventoryData = (productId?: string) => {
   };
 
   // 獲取特定產品的庫存
-  const fetchProductInventory = async (id?: string): Promise<void> => {
+  const fetchProductInventory = useCallback(async (id?: string): Promise<void> => {
     if (!id) return;
     
     try {
@@ -55,10 +55,10 @@ const useInventoryData = (productId?: string) => {
         }
       };
       
-      const res = await axios.get<InventoryRecord[]>(`/api/inventory/product/${id}`, config);
+      const res = await axios.get<{success: boolean, data: InventoryRecord[]}>(`/api/inventory/product/${id}`, config);
       
       // 合併相同進貨單號的記錄
-      const mergedInventory = mergeInventoryByPurchaseOrder(res.data);
+      const mergedInventory = mergeInventoryByPurchaseOrder(res.data.data || []);
       setProductInventory(mergedInventory);
       setLoading(false);
     } catch (err: any) {
@@ -66,7 +66,7 @@ const useInventoryData = (productId?: string) => {
       setError('獲取產品庫存失敗');
       setLoading(false);
     }
-  };
+  }, []);
   
   // 合併相同進貨單號的庫存記錄
   const mergeInventoryByPurchaseOrder = (inventoryData: InventoryRecord[]): InventoryRecord[] => {
@@ -133,7 +133,7 @@ const useInventoryData = (productId?: string) => {
     if (productId) {
       fetchProductInventory(productId);
     }
-  }, [productId]);
+  }, [productId, fetchProductInventory]);
 
   return {
     inventory,

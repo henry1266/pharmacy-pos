@@ -8,7 +8,8 @@ import { AuthenticatedRequest } from '../src/types/express';
 import { ApiResponse, ProductCreateRequest, ProductResponse } from '../src/types/api';
 import { IBaseProductDocument, IProductDocument, IMedicineDocument } from '../src/types/models';
 import auth from '../middleware/auth';
-import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
+const BaseProduct = require('../models/BaseProduct');
+const { Product, Medicine } = require('../models/BaseProduct');
 
 const router = express.Router();
 
@@ -76,10 +77,12 @@ const upload = multer({
 // @access  Public
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const products = await BaseProduct.find({ isActive: true })
+    // 使用 $ne: false 查詢條件來獲取活躍產品
+    // 注意：直接使用 isActive: true 在此資料庫中有查詢問題
+    const products = await BaseProduct.find({ isActive: { $ne: false } })
       .populate('category', 'name')
       .populate('supplier', 'name')
-      .sort({ productCode: 1 });
+      .sort({ code: 1 });
     
     res.json({
       success: true,
@@ -103,10 +106,10 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // @access  Public
 router.get('/products', async (req: Request, res: Response): Promise<void> => {
   try {
-    const products = await Product.find({ isActive: true })
+    const products = await Product.find({ isActive: { $ne: false } })
       .populate('category', 'name')
       .populate('supplier', 'name')
-      .sort({ productCode: 1 });
+      .sort({ code: 1 });
     
     res.json({
       success: true,
@@ -130,10 +133,10 @@ router.get('/products', async (req: Request, res: Response): Promise<void> => {
 // @access  Public
 router.get('/medicines', async (req: Request, res: Response): Promise<void> => {
   try {
-    const medicines = await Medicine.find({ isActive: true })
+    const medicines = await Medicine.find({ isActive: { $ne: false } })
       .populate('category', 'name')
       .populate('supplier', 'name')
-      .sort({ productCode: 1 });
+      .sort({ code: 1 });
     
     res.json({
       success: true,
@@ -237,9 +240,9 @@ router.post(
   '/product',
   auth,
   [
-    check('productName', '產品名稱為必填項目').not().isEmpty(),
+    check('name', '產品名稱為必填項目').not().isEmpty(),
     check('unit', '單位為必填項目').not().isEmpty(),
-    check('costPrice', '成本價格必須是數字').optional().isNumeric(),
+    check('purchasePrice', '進貨價格必須是數字').optional().isNumeric(),
     check('sellingPrice', '售價必須是數字').optional().isNumeric()
   ],
   async (req: Request, res: Response): Promise<void> => {
@@ -258,22 +261,21 @@ router.post(
     
     try {
       const {
-        productCode,
-        productName,
+        code,
+        name,
         category,
         unit,
-        costPrice,
+        purchasePrice,
         sellingPrice,
         description,
         supplier,
         minStock,
-        maxStock,
-        tags
+        barcode
       } = req.body;
       
       // 檢查產品代碼是否已存在
-      if (productCode) {
-        const existingProduct = await BaseProduct.findByCode(productCode);
+      if (code) {
+        const existingProduct = await BaseProduct.findByCode(code);
         if (existingProduct) {
           res.status(400).json({
             success: false,
@@ -286,17 +288,18 @@ router.post(
       
       // 創建商品
       const product = new Product({
-        productCode: productCode || await generateNextProductCode(),
-        productName,
+        code: code || await generateNextProductCode(),
+        shortCode: code || await generateNextProductCode(),
+        name,
         category,
         unit,
-        costPrice: parseFloat(costPrice) || 0,
+        purchasePrice: parseFloat(purchasePrice) || 0,
         sellingPrice: parseFloat(sellingPrice) || 0,
         description,
         supplier,
-        minStock: parseInt(minStock) || 0,
-        maxStock: parseInt(maxStock) || undefined,
-        tags: tags || [],
+        minStock: parseInt(minStock) || 10,
+        barcode,
+        productType: 'product',
         isActive: true
       });
       
@@ -341,9 +344,9 @@ router.post(
   '/medicine',
   auth,
   [
-    check('productName', '產品名稱為必填項目').not().isEmpty(),
+    check('name', '產品名稱為必填項目').not().isEmpty(),
     check('unit', '單位為必填項目').not().isEmpty(),
-    check('costPrice', '成本價格必須是數字').optional().isNumeric(),
+    check('purchasePrice', '進貨價格必須是數字').optional().isNumeric(),
     check('sellingPrice', '售價必須是數字').optional().isNumeric()
   ],
   async (req: Request, res: Response): Promise<void> => {
@@ -362,30 +365,23 @@ router.post(
     
     try {
       const {
-        productCode,
-        productName,
+        code,
+        name,
         category,
         unit,
-        costPrice,
+        purchasePrice,
         sellingPrice,
         description,
         supplier,
         minStock,
-        maxStock,
-        tags,
-        activeIngredient,
-        dosageForm,
-        strength,
-        manufacturer,
-        licenseNumber,
-        expiryDate,
-        storageConditions,
-        prescriptionRequired
+        barcode,
+        healthInsuranceCode,
+        healthInsurancePrice
       } = req.body;
       
       // 檢查產品代碼是否已存在
-      if (productCode) {
-        const existingProduct = await BaseProduct.findByCode(productCode);
+      if (code) {
+        const existingProduct = await BaseProduct.findByCode(code);
         if (existingProduct) {
           res.status(400).json({
             success: false,
@@ -398,26 +394,21 @@ router.post(
       
       // 創建藥品
       const medicine = new Medicine({
-        productCode: productCode || await generateNextMedicineCode(),
-        productName,
+        code: code || await generateNextMedicineCode(),
+        shortCode: code || await generateNextMedicineCode(),
+        name,
         category,
         unit,
-        costPrice: parseFloat(costPrice) || 0,
+        purchasePrice: parseFloat(purchasePrice) || 0,
         sellingPrice: parseFloat(sellingPrice) || 0,
         description,
         supplier,
-        minStock: parseInt(minStock) || 0,
-        maxStock: parseInt(maxStock) || undefined,
-        tags: tags || [],
-        isActive: true,
-        activeIngredient,
-        dosageForm,
-        strength,
-        manufacturer,
-        licenseNumber,
-        expiryDate: expiryDate ? new Date(expiryDate) : undefined,
-        storageConditions,
-        prescriptionRequired: Boolean(prescriptionRequired)
+        minStock: parseInt(minStock) || 10,
+        barcode,
+        healthInsuranceCode,
+        healthInsurancePrice: parseFloat(healthInsurancePrice) || 0,
+        productType: 'medicine',
+        isActive: true
       });
       
       await medicine.save();
@@ -475,5 +466,104 @@ async function generateNextMedicineCode(): Promise<string> {
     return `M${String(Date.now()).slice(-6)}`;
   }
 }
+
+// 臨時測試端點：創建測試數據（僅用於開發測試）
+router.post('/create-test-data', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // 檢查是否已有數據
+    const existingCount = await BaseProduct.countDocuments();
+    if (existingCount > 0) {
+      res.json({
+        success: true,
+        message: '測試數據已存在',
+        data: { count: existingCount },
+        timestamp: new Date()
+      });
+      return;
+    }
+
+    // 創建測試商品
+    const testProduct = new Product({
+      code: 'P000001',
+      shortCode: 'P001',
+      name: '測試商品A',
+      unit: '個',
+      purchasePrice: 50,
+      sellingPrice: 80,
+      description: '這是一個測試商品',
+      minStock: 10,
+      productType: 'product',
+      isActive: true
+    });
+
+    const testProduct2 = new Product({
+      code: 'P000002',
+      shortCode: 'P002',
+      name: '測試商品B',
+      unit: '盒',
+      purchasePrice: 30,
+      sellingPrice: 50,
+      description: '這是另一個測試商品',
+      minStock: 5,
+      productType: 'product',
+      isActive: true
+    });
+
+    // 創建測試藥品
+    const testMedicine = new Medicine({
+      code: 'M000001',
+      shortCode: 'M001',
+      name: '測試藥品A',
+      unit: '盒',
+      purchasePrice: 100,
+      sellingPrice: 150,
+      description: '這是一個測試藥品',
+      minStock: 5,
+      healthInsuranceCode: 'HC001',
+      healthInsurancePrice: 120,
+      productType: 'medicine',
+      isActive: true
+    });
+
+    const testMedicine2 = new Medicine({
+      code: 'M000002',
+      shortCode: 'M002',
+      name: '測試藥品B',
+      unit: '瓶',
+      purchasePrice: 80,
+      sellingPrice: 120,
+      description: '這是另一個測試藥品',
+      minStock: 3,
+      healthInsuranceCode: 'HC002',
+      healthInsurancePrice: 100,
+      productType: 'medicine',
+      isActive: true
+    });
+
+    await testProduct.save();
+    await testProduct2.save();
+    await testMedicine.save();
+    await testMedicine2.save();
+
+    res.json({
+      success: true,
+      message: '測試數據創建成功',
+      data: {
+        created: 4,
+        products: 2,
+        medicines: 2
+      },
+      timestamp: new Date()
+    });
+  } catch (err) {
+    console.error('創建測試數據錯誤:', err);
+    res.status(500).json({
+      success: false,
+      message: '創建測試數據失敗',
+      error: err instanceof Error ? err.message : '未知錯誤',
+      timestamp: new Date()
+    });
+  }
+});
 
 export default router;
