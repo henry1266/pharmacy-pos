@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import auth from "../middleware/auth";
 import OvertimeRecord from "../models/OvertimeRecord";
 import Employee from "../models/Employee";
+import EmployeeSchedule from "../models/EmployeeSchedule";
 import { AuthenticatedRequest } from "../src/types/express";
 import { IOvertimeRecord } from "../src/types/models";
 
@@ -112,7 +113,7 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     }).populate("employeeId", "name department position");
     
     // 獲取該月的所有排班系統加班記錄
-    const EmployeeSchedule = require("../models/EmployeeSchedule");
+    // 獲取該月的所有排班系統加班記錄
     const scheduleOvertimeRecords = await EmployeeSchedule.find({
       date: {
         $gte: startDate,
