@@ -12,15 +12,14 @@ import multer from "multer";
 import csv from "csv-parser";
 import fs from "fs";
 import path from "path";
-import mongoose from "mongoose";
-import BaseProduct, { IBaseProductDocument } from "../models/BaseProduct";
-import ShippingOrder, { IShippingOrderDocument } from "../models/ShippingOrder";
+import BaseProduct from "../models/BaseProduct";
+import ShippingOrder from "../models/ShippingOrder";
 import Supplier from "../models/Supplier";
 import Inventory from "../models/Inventory";
+import { IShippingOrderDocument, ISupplier, IBaseProductDocument, IInventory } from "../src/types/models";
 
 const router = express.Router();
 
-// 定義 CSV 項目介面
 interface CSVItem {
   rawDate: string;
   date: string | null;
@@ -29,17 +28,15 @@ interface CSVItem {
   nhPrice: number;
 }
 
-// 定義出貨單項目介面
 interface ShippingItem {
-  product: mongoose.Types.ObjectId;
-  did?: string;
-  dname?: string;
+  product: string;
+  did: string;
+  dname: string;
   dquantity: number;
-  dtotalCost?: number;
-  unitPrice?: number;
+  dtotalCost: number;
+  unitPrice: number;
 }
 
-// 定義處理結果介面
 interface ProcessResult {
   items: ShippingItem[];
   errors: string[];
@@ -47,15 +44,28 @@ interface ProcessResult {
   failCount: number;
 }
 
-// 定義供應商資訊介面
 interface SupplierInfo {
-  supplierId: mongoose.Types.ObjectId | null;
+  supplierId: string | null;
   supplierName: string;
+}
+
+interface ImportSummary {
+  totalItems: number;
+  successCount: number;
+  failCount: number;
+  errors: string[] | null;
+}
+
+interface FileUploadRequest extends Request {
+  file?: Express.Multer.File;
+  body: {
+    defaultSupplierId?: string;
+  };
 }
 
 // 設置文件上傳
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
     const uploadDir = path.join(__dirname, "../uploads");
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
@@ -63,7 +73,7 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
+  filename: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
@@ -79,9 +89,8 @@ const upload = multer({
 /**
  * 為出貨單創建庫存記錄
  * @param shippingOrder - 出貨單對象
- * @returns Promise<void>
  */
-async function createShippingInventoryRecords(shippingOrder: IShippingOrderDocument): Promise<void> {
+async function createShippingInventoryRecords(shippingOrder: any): Promise<void> {
   try {
     // 檢查是否已經存在該出貨單的庫存記錄
     const existingRecords = await Inventory.find({ 
@@ -89,31 +98,31 @@ async function createShippingInventoryRecords(shippingOrder: IShippingOrderDocum
     });
     
     if (existingRecords.length > 0) {
-      console.log(`出貨單 ${shippingOrder.orderNumber} 的庫存記錄已存在，跳過創建`);
+      console.log(`出貨單 ${shippingOrder.soid} 的庫存記錄已存在，跳過創建`);
       return;
     }
     
     // 為每個藥品項目創建庫存記錄
     for (const item of shippingOrder.items) {
-      if (!item.product || !item.quantity) continue;
+      if (!item.product || !item.dquantity) continue;
       
       // 創建出貨庫存記錄（負數表示出貨）
       const inventory = new Inventory({
         product: item.product,
-        quantity: -item.quantity, // 負數表示出貨減少庫存
-        totalAmount: item.subtotal || 0,
+        quantity: -item.dquantity, // 負數表示出貨減少庫存
+        totalAmount: item.dtotalCost || 0,
         type: "ship", // 設置類型為ship
         shippingOrderId: shippingOrder._id, // 關聯到出貨單ID
-        shippingOrderNumber: shippingOrder.orderNumber, // 設置出貨單號
+        shippingOrderNumber: shippingOrder.soid, // 設置出貨單號
         accountingId: null, // 預設為null
         lastUpdated: new Date() // 設置最後更新時間
       });
       
       await inventory.save();
-      console.log(`為產品 ${item.productName} 創建了庫存記錄，數量: ${-item.quantity}`);
+      console.log(`為產品 ${item.dname} 創建了庫存記錄，數量: ${-item.dquantity}`);
     }
     
-    console.log(`成功為出貨單 ${shippingOrder.orderNumber} 創建庫存記錄`);
+    console.log(`成功為出貨單 ${shippingOrder.soid} 創建庫存記錄`);
   } catch (error) {
     console.error(`創建出貨單庫存記錄時出錯:`, error);
     throw error;
@@ -209,12 +218,12 @@ async function generateOrderNumberByDate(dateStr: string): Promise<string> {
     
     // 查找當天最大序號
     const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
-    const existingOrders = await ShippingOrder.find({ orderNumber: regex }).sort({ orderNumber: -1 });
+    const existingOrders = await ShippingOrder.find({ soid: regex }).sort({ soid: -1 });
     
     let sequence = 1; // 默認從001開始
     
     if (existingOrders.length > 0) {
-      const lastOrderNumber = existingOrders[0].orderNumber;
+      const lastOrderNumber = (existingOrders[0] as any).soid;
       // 提取序號部分 (去掉日期前綴和D後綴)
       const lastSequence = parseInt(lastOrderNumber.substring(prefix.length, lastOrderNumber.length - suffix.length), 10);
       sequence = lastSequence + 1;
@@ -234,10 +243,7 @@ async function generateOrderNumberByDate(dateStr: string): Promise<string> {
  * @param productMap - 健保碼到藥品的映射
  * @returns 處理結果，包含items和errors
  */
-function processShippingItems(
-  results: CSVItem[], 
-  productMap: Record<string, IBaseProductDocument>
-): ProcessResult {
+function processShippingItems(results: CSVItem[], productMap: { [key: string]: any }): ProcessResult {
   const items: ShippingItem[] = [];
   const errors: string[] = [];
   let successCount = 0;
@@ -256,9 +262,9 @@ function processShippingItems(
     const totalCost = item.quantity * item.nhPrice;
     
     items.push({
-      product: product._id,
-      did: product.productCode || "",
-      dname: product.productName || "",
+      product: product._id.toString(),
+      did: product.code || "",
+      dname: product.name || "",
       dquantity: item.quantity,
       dtotalCost: totalCost,
       unitPrice: item.nhPrice
@@ -276,21 +282,21 @@ function processShippingItems(
  * @returns 供應商信息
  */
 async function determineSupplier(defaultSupplierId?: string): Promise<SupplierInfo> {
-  let supplierId: mongoose.Types.ObjectId | null = null;
+  let supplierId: string | null = null;
   let supplierName = "預設供應商";
   
   if (defaultSupplierId) {
     // 嘗試查找指定的供應商
     const supplier = await Supplier.findById(defaultSupplierId);
     if (supplier) {
-      supplierId = supplier._id;
+      supplierId = supplier._id.toString();
       supplierName = supplier.name;
     }
   } else {
     // 嘗試查找名為"調劑"的供應商
     const supplier = await Supplier.findOne({ name: "調劑" });
     if (supplier) {
-      supplierId = supplier._id;
+      supplierId = supplier._id.toString();
       supplierName = supplier.name;
     }
   }
@@ -316,7 +322,7 @@ async function determineSupplier(defaultSupplierId?: string): Promise<SupplierIn
  * @apiError {String} msg 錯誤訊息
  * @apiError {String} error 詳細錯誤資訊
  */
-router.post("/shipping-orders", upload.single("file"), async (req: Request, res: Response) => {
+router.post("/shipping-orders", upload.single("file"), async (req: FileUploadRequest, res: Response) => {
   try {
     // 驗證請求
     if (!req.file) {
@@ -342,7 +348,7 @@ router.post("/shipping-orders", upload.single("file"), async (req: Request, res:
     await new Promise<void>((resolve, reject) => {
       fs.createReadStream(req.file!.path)
         .pipe(csv())
-        .on("data", (data: Record<string, string>) => {
+        .on("data", (data: any) => {
           // 檢查CSV格式是否符合要求
           const keys = Object.keys(data);
           // 如果CSV沒有標題行，則使用索引位置
@@ -405,37 +411,39 @@ router.post("/shipping-orders", upload.single("file"), async (req: Request, res:
     }
 
     // 根據CSV首行日期生成訂單號
-    let orderNumber: string;
+    let soid: string;
     try {
-      orderNumber = await generateOrderNumberByDate(firstValidDate);
+      soid = await generateOrderNumberByDate(firstValidDate);
     } catch (genError) {
+      const error = genError as Error;
       return res.status(500).json({ 
         success: false,
         msg: "生成訂單號時出錯", 
-        error: (genError as Error).message 
+        error: error.message 
       });
     }
 
     // 檢查出貨單號是否已存在
-    const existingSO = await ShippingOrder.findOne({ orderNumber });
+    const existingSO = await ShippingOrder.findOne({ soid });
     if (existingSO) {
       // 如果已存在，嘗試生成新的訂單號
       try {
-        orderNumber = await generateOrderNumberByDate(firstValidDate);
+        soid = await generateOrderNumberByDate(firstValidDate);
       } catch (genError) {
+        const error = genError as Error;
         return res.status(500).json({ 
           success: false,
           msg: "生成訂單號時出錯", 
-          error: (genError as Error).message 
+          error: error.message 
         });
       }
       
       // 再次檢查
-      const existingSO2 = await ShippingOrder.findOne({ orderNumber });
+      const existingSO2 = await ShippingOrder.findOne({ soid });
       if (existingSO2) {
         return res.status(400).json({ 
           success: false,
-          msg: `訂單號 ${orderNumber} 已存在，無法生成唯一的出貨單號，請檢查數據或稍後再試` 
+          msg: `訂單號 ${soid} 已存在，無法生成唯一的出貨單號，請檢查數據或稍後再試` 
         });
       }
     }
@@ -445,11 +453,10 @@ router.post("/shipping-orders", upload.single("file"), async (req: Request, res:
     const products = await BaseProduct.find({ healthInsuranceCode: { $in: nhCodes } });
     
     // 建立健保碼到藥品的映射
-    const productMap: Record<string, IBaseProductDocument> = {};
+    const productMap: { [key: string]: any } = {};
     products.forEach(product => {
-      const healthInsuranceCode = (product as any).healthInsuranceCode;
-      if (healthInsuranceCode) {
-        productMap[healthInsuranceCode] = product;
+      if ((product as any).healthInsuranceCode) {
+        productMap[(product as any).healthInsuranceCode] = product;
       }
     });
 
@@ -474,17 +481,11 @@ router.post("/shipping-orders", upload.single("file"), async (req: Request, res:
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
-      orderNumber,
-      soid: orderNumber, // 使用相同的編號作為soid
+      soid,
+      orderNumber: soid, // 使用相同的編號作為orderNumber
       sosupplier: supplierName,
       supplier: supplierId,
-      items: items.map(item => ({
-        product: item.product,
-        productName: item.dname || "",
-        quantity: item.dquantity,
-        unitPrice: item.unitPrice,
-        subtotal: item.dtotalCost
-      })),
+      items,
       status: "completed", // 設置為completed
       paymentStatus: "已收款", // 設置為已收款
       notes: `從CSV匯入API匯入 (${new Date().toLocaleDateString()})`
@@ -492,11 +493,11 @@ router.post("/shipping-orders", upload.single("file"), async (req: Request, res:
 
     // 保存出貨單
     const savedOrder = await shippingOrder.save();
-    console.log(`出貨單 ${savedOrder.orderNumber} 已保存，狀態: ${savedOrder.status}`);
+    console.log(`出貨單 ${(savedOrder as any).soid} 已保存，狀態: ${(savedOrder as any).status}`);
     
     // 創建庫存記錄
     await createShippingInventoryRecords(savedOrder);
-    console.log(`已為出貨單 ${savedOrder.orderNumber} 創建庫存記錄`);
+    console.log(`已為出貨單 ${(savedOrder as any).soid} 創建庫存記錄`);
 
     // 返回標準化的成功回應
     res.status(201).json({
@@ -504,10 +505,12 @@ router.post("/shipping-orders", upload.single("file"), async (req: Request, res:
       msg: "藥品明細CSV匯入成功",
       shippingOrder: {
         _id: savedOrder._id,
+        soid: (savedOrder as any).soid,
         orderNumber: savedOrder.orderNumber,
         supplier: supplierName,
         itemCount: items.length,
         totalAmount: savedOrder.totalAmount,
+        paymentStatus: (savedOrder as any).paymentStatus,
         status: savedOrder.status,
         createdAt: savedOrder.createdAt
       },
@@ -516,17 +519,18 @@ router.post("/shipping-orders", upload.single("file"), async (req: Request, res:
         successCount,
         failCount,
         errors: errors.length > 0 ? errors : null
-      }
+      } as ImportSummary
     });
   } catch (err) {
-    console.error("匯入藥品明細CSV時出錯:", (err as Error).message);
+    const error = err as Error;
+    console.error("匯入藥品明細CSV時出錯:", error.message);
     
     // 返回標準化的錯誤回應
     res.status(500).json({ 
       success: false,
       msg: "伺服器錯誤", 
-      error: (err as Error).message,
-      stack: process.env.NODE_ENV === "production" ? null : (err as Error).stack
+      error: error.message,
+      stack: process.env.NODE_ENV === "production" ? null : error.stack
     });
   }
 });

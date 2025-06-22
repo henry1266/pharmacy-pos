@@ -4,21 +4,21 @@ import path from 'path';
 
 const router = express.Router();
 
-// 定義 MongoDB 配置介面
 interface MongoDBConfig {
   host: string;
-  port: number | string;
+  port: string | number;
   database: string;
-  [key: string]: any; // 允許其他配置選項
 }
 
-/**
- * @route   POST api/config/mongodb
- * @desc    Update MongoDB configuration (currently logs received config)
- * @access  Private (should add auth middleware later)
- */
-router.post("/mongodb", async (req: Request, res: Response) => {
-  const { host, port, database } = req.body as MongoDBConfig;
+interface MongoDBConfigRequest extends Request {
+  body: MongoDBConfig;
+}
+
+// @route   POST api/config/mongodb
+// @desc    Update MongoDB configuration (currently logs received config)
+// @access  Private (should add auth middleware later)
+router.post("/mongodb", async (req: MongoDBConfigRequest, res: Response) => {
+  const { host, port, database } = req.body;
 
   console.log("Received MongoDB config update request:", req.body);
 

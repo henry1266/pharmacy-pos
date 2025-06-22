@@ -1,19 +1,39 @@
 import express, { Request, Response } from "express";
 import { check, validationResult } from "express-validator";
+import { Types } from "mongoose";
 import auth from "../middleware/auth";
-import OvertimeRecord, { IOvertimeRecordDocument } from "../models/OvertimeRecord";
+import OvertimeRecord from "../models/OvertimeRecord";
 import Employee from "../models/Employee";
-import EmployeeSchedule, { IEmployeeScheduleDocument } from "../models/EmployeeSchedule";
-import mongoose from "mongoose";
-
-// 擴展 Request 介面，添加 user 屬性
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../src/types/express";
+import { IOvertimeRecord } from "../src/types/models";
 
 const router = express.Router();
+
+interface OvertimeQueryParams {
+  employeeId?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+}
+
+interface MonthlyStatsParams {
+  year?: string;
+  month?: string;
+}
+
+interface EmployeeOvertimeStats {
+  employeeId: string;
+  name: string;
+  overtimeHours: number;
+  independentRecordCount: number;
+  scheduleRecordCount: number;
+  totalRecordCount: number;
+}
+
+interface SummaryQueryParams {
+  startDate?: string;
+  endDate?: string;
+}
 
 /**
  * @route   GET api/overtime-records
@@ -22,31 +42,31 @@ const router = express.Router();
  */
 router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { employeeId, startDate, endDate, status } = req.query;
+    const { employeeId, startDate, endDate, status } = req.query as OvertimeQueryParams;
     
     // 構建查詢條件
-    const query: Record<string, any> = {};
+    const query: any = {};
     
     // 如果指定了員工ID，則只獲取該員工的加班記錄
     if (employeeId) {
-      query.employeeId = employeeId as string;
+      query.employeeId = employeeId;
     }
     
     // 如果指定了日期範圍，則只獲取該日期範圍內的加班記錄
     if (startDate && endDate) {
       query.date = {
-        $gte: new Date(startDate as string),
-        $lte: new Date(endDate as string)
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
       };
     } else if (startDate) {
-      query.date = { $gte: new Date(startDate as string) };
+      query.date = { $gte: new Date(startDate) };
     } else if (endDate) {
-      query.date = { $lte: new Date(endDate as string) };
+      query.date = { $lte: new Date(endDate) };
     }
     
     // 如果指定了狀態，則只獲取該狀態的加班記錄
     if (status) {
-      query.status = status as string;
+      query.status = status;
     }
     
     // 獲取加班記錄並填充員工資訊 - 使用參數化查詢
@@ -59,7 +79,8 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     
     res.json(overtimeRecords);
   } catch (err) {
-    console.error((err as Error).message);
+    const error = err as Error;
+    console.error(error.message);
     res.status(500).send("伺服器錯誤");
   }
 });
@@ -71,15 +92,15 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
  */
 router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { year, month } = req.query;
+    const { year, month } = req.query as MonthlyStatsParams;
     
     if (!year || !month) {
       return res.status(400).json({ msg: '請提供年份和月份' });
     }
     
     // 計算該月的開始和結束日期
-    const startDate = new Date(parseInt(year as string), parseInt(month as string) - 1, 1);
-    const endDate = new Date(parseInt(year as string), parseInt(month as string), 0, 23, 59, 59);
+    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
     
     // 獲取該月的所有已核准獨立加班記錄
     const overtimeRecords = await OvertimeRecord.find({
@@ -91,6 +112,7 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     }).populate("employeeId", "name department position");
     
     // 獲取該月的所有排班系統加班記錄
+    const EmployeeSchedule = require("../models/EmployeeSchedule");
     const scheduleOvertimeRecords = await EmployeeSchedule.find({
       date: {
         $gte: startDate,
@@ -100,24 +122,12 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     }).populate("employeeId", "name department position");
     
     // 按員工分組計算加班時數
-    interface EmployeeStats {
-      [key: string]: {
-        employeeId: string;
-        name: string;
-        overtimeHours: number;
-        independentRecordCount: number;
-        scheduleRecordCount: number;
-        totalRecordCount?: number;
-      };
-    }
-    
-    const employeeStats: EmployeeStats = {};
+    const employeeStats: { [key: string]: EmployeeOvertimeStats } = {};
     
     // 處理獨立加班記錄
-    overtimeRecords.forEach((record: IOvertimeRecordDocument) => {
-      const employeeDoc = record.employeeId as any;
-      const employeeId = employeeDoc._id.toString();
-      const employeeName = employeeDoc.name;
+    overtimeRecords.forEach((record: any) => {
+      const employeeId = record.employeeId._id.toString();
+      const employeeName = record.employeeId.name;
       
       if (!employeeStats[employeeId]) {
         employeeStats[employeeId] = {
@@ -125,7 +135,8 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
           name: employeeName,
           overtimeHours: 0,
           independentRecordCount: 0,
-          scheduleRecordCount: 0
+          scheduleRecordCount: 0,
+          totalRecordCount: 0
         };
       }
       
@@ -134,10 +145,9 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     });
     
     // 處理排班系統加班記錄
-    scheduleOvertimeRecords.forEach((record: IEmployeeScheduleDocument) => {
-      const employeeDoc = record.employeeId as any;
-      const employeeId = employeeDoc._id.toString();
-      const employeeName = employeeDoc.name;
+    scheduleOvertimeRecords.forEach((record: any) => {
+      const employeeId = record.employeeId._id.toString();
+      const employeeName = record.employeeId.name;
       
       if (!employeeStats[employeeId]) {
         employeeStats[employeeId] = {
@@ -145,7 +155,8 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
           name: employeeName,
           overtimeHours: 0,
           independentRecordCount: 0,
-          scheduleRecordCount: 0
+          scheduleRecordCount: 0,
+          totalRecordCount: 0
         };
       }
       
@@ -181,7 +192,8 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     
     res.json(result);
   } catch (err) {
-    console.error((err as Error).message);
+    const error = err as Error;
+    console.error(error.message);
     res.status(500).send("伺服器錯誤");
   }
 });
@@ -204,8 +216,9 @@ router.get("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
     
     res.json(overtimeRecord);
   } catch (err) {
-    console.error((err as Error).message);
-    if ((err as any).kind === "ObjectId") {
+    const error = err as Error & { kind?: string };
+    console.error(error.message);
+    if (error.kind === "ObjectId") {
       return res.status(404).json({ msg: "找不到加班記錄" });
     }
     res.status(500).send("伺服器錯誤");
@@ -250,7 +263,7 @@ router.post(
       
       // 如果狀態為已核准，則設置審核人員和審核日期
       if (newOvertimeRecord.status === "approved") {
-        newOvertimeRecord.approvedBy = req.user?.id ? new mongoose.Types.ObjectId(req.user.id) : undefined;
+        newOvertimeRecord.approvedBy = new Types.ObjectId(req.user?.id);
         newOvertimeRecord.approvedAt = new Date();
         newOvertimeRecord.approvalNote = req.body.approvalNote;
       }
@@ -259,7 +272,8 @@ router.post(
       
       res.json(overtimeRecord);
     } catch (err) {
-      console.error((err as Error).message);
+      const error = err as Error;
+      console.error(error.message);
       res.status(500).send("伺服器錯誤");
     }
   }
@@ -292,7 +306,7 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
       overtimeRecord.status = status;
       
       if (status === "approved" && overtimeRecord.status !== "approved") {
-        overtimeRecord.approvedBy = req.user?.id ? new mongoose.Types.ObjectId(req.user.id) : undefined;
+        overtimeRecord.approvedBy = new Types.ObjectId(req.user?.id);
         overtimeRecord.approvedAt = new Date();
       }
     }
@@ -306,8 +320,9 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
     
     res.json(overtimeRecord);
   } catch (err) {
-    console.error((err as Error).message);
-    if ((err as any).kind === "ObjectId") {
+    const error = err as Error & { kind?: string };
+    console.error(error.message);
+    if (error.kind === "ObjectId") {
       return res.status(404).json({ msg: "找不到加班記錄" });
     }
     res.status(500).send("伺服器錯誤");
@@ -331,8 +346,9 @@ router.delete("/:id", auth, async (req: AuthenticatedRequest, res: Response) => 
     
     res.json({ msg: "加班記錄已刪除" });
   } catch (err) {
-    console.error((err as Error).message);
-    if ((err as any).kind === "ObjectId") {
+    const error = err as Error & { kind?: string };
+    console.error(error.message);
+    if (error.kind === "ObjectId") {
       return res.status(404).json({ msg: "找不到加班記錄" });
     }
     res.status(500).send("伺服器錯誤");
@@ -346,10 +362,10 @@ router.delete("/:id", auth, async (req: AuthenticatedRequest, res: Response) => 
  */
 router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query as SummaryQueryParams;
     
     // 構建查詢條件
-    const query: Record<string, any> = {
+    const query: any = {
       employeeId: req.params.employeeId,
       status: "approved" // 只計算已核准的加班
     };
@@ -357,13 +373,13 @@ router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedReque
     // 如果指定了日期範圍，則只獲取該日期範圍內的加班記錄
     if (startDate && endDate) {
       query.date = {
-        $gte: new Date(startDate as string),
-        $lte: new Date(endDate as string)
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
       };
     } else if (startDate) {
-      query.date = { $gte: new Date(startDate as string) };
+      query.date = { $gte: new Date(startDate) };
     } else if (endDate) {
-      query.date = { $lte: new Date(endDate as string) };
+      query.date = { $lte: new Date(endDate) };
     }
     
     // 獲取加班記錄 - 使用參數化查詢
@@ -379,7 +395,8 @@ router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedReque
       recordCount: overtimeRecords.length
     });
   } catch (err) {
-    console.error((err as Error).message);
+    const error = err as Error;
+    console.error(error.message);
     res.status(500).send("伺服器錯誤");
   }
 });
@@ -391,23 +408,23 @@ router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedReque
  */
 router.get("/summary/all", auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query as SummaryQueryParams;
     
     // 構建查詢條件
-    const query: Record<string, any> = {
+    const query: any = {
       status: "approved" // 只計算已核准的加班
     };
     
     // 如果指定了日期範圍，則只獲取該日期範圍內的加班記錄
     if (startDate && endDate) {
       query.date = {
-        $gte: new Date(startDate as string),
-        $lte: new Date(endDate as string)
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
       };
     } else if (startDate) {
-      query.date = { $gte: new Date(startDate as string) };
+      query.date = { $gte: new Date(startDate) };
     } else if (endDate) {
-      query.date = { $lte: new Date(endDate as string) };
+      query.date = { $lte: new Date(endDate) };
     }
     
     // 使用聚合管道計算每位員工的加班時數
@@ -441,7 +458,8 @@ router.get("/summary/all", auth, async (req: AuthenticatedRequest, res: Response
     
     res.json(summary);
   } catch (err) {
-    console.error((err as Error).message);
+    const error = err as Error;
+    console.error(error.message);
     res.status(500).send("伺服器錯誤");
   }
 });

@@ -1,39 +1,31 @@
-import express, { Request, Response } from "express";
+import express, { Response } from "express";
 import auth from "../middleware/auth";
-import User, { IUserDocument } from "../models/User";
-import mongoose from "mongoose";
-
-// 擴展 Request 介面，添加 user 屬性
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
-
-// 定義用戶設定介面
-interface UserSettings {
-  theme?: string;
-  language?: string;
-  notifications?: boolean;
-  [key: string]: any; // 允許其他自定義設定
-}
+import User from "../models/User";
+import { AuthenticatedRequest } from "../src/types/express";
 
 const router = express.Router();
 
-/**
- * @route   GET api/settings
- * @desc    Get current user's settings
- * @access  Private
- */
+interface UserSettings {
+  [key: string]: any;
+}
+
+interface ValidationError extends Error {
+  name: 'ValidationError';
+  errors: any;
+}
+
+// @route   GET api/settings
+// @desc    Get current user's settings
+// @access  Private
 router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    console.log("Settings GET request from user ID:", req.user?.id);
+    console.log("Settings GET request from user ID:", req.user.id);
     
     // req.user.id is available from the auth middleware
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user.id);
     
     if (!user) {
-      console.error("User not found for ID:", req.user?.id);
+      console.error("User not found for ID:", req.user.id);
       return res.status(404).json({ msg: "找不到用戶" });
     }
     
@@ -48,40 +40,39 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     
     res.json(settings);
   } catch (err) {
-    console.error("獲取用戶設定失敗:", (err as Error).message);
-    console.error("Error stack:", (err as Error).stack);
+    const error = err as Error;
+    console.error("獲取用戶設定失敗:", error.message);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       msg: "伺服器錯誤",
-      error: (err as Error).message,
+      error: error.message,
       userId: req.user?.id || 'unknown'
     });
   }
 });
 
-/**
- * @route   PUT api/settings
- * @desc    Update current user's settings
- * @access  Private
- */
+// @route   PUT api/settings
+// @desc    Update current user's settings
+// @access  Private
 router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
-  console.log("Settings PUT request from user ID:", req.user?.id);
+  console.log("Settings PUT request from user ID:", req.user.id);
   
   // We expect the entire settings object to be sent in the body
-  const newSettings = req.body as UserSettings;
+  const newSettings: UserSettings = req.body;
   console.log("New settings received:", newSettings);
 
   // Basic validation: ensure req.body is an object
   if (typeof newSettings !== 'object' || newSettings === null) {
-    console.error("Invalid settings format received");
-    return res.status(400).json({ msg: "無效的設定格式，應為一個物件。" });
+      console.error("Invalid settings format received");
+      return res.status(400).json({ msg: "無效的設定格式，應為一個物件。" });
   }
 
   try {
     // Find the user by ID from the token
-    let user = await User.findById(req.user?.id);
+    let user = await User.findById(req.user.id);
 
     if (!user) {
-      console.error("User not found for ID:", req.user?.id);
+      console.error("User not found for ID:", req.user.id);
       return res.status(404).json({ msg: "找不到用戶" });
     }
 
@@ -100,21 +91,23 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     res.json(user.settings);
 
   } catch (err) {
-    console.error("更新用戶設定失敗:", (err as Error).message);
-    console.error("Error stack:", (err as Error).stack);
+    const error = err as Error;
+    console.error("更新用戶設定失敗:", error.message);
+    console.error("Error stack:", error.stack);
     
     // Handle potential validation errors if schema evolves
-    if ((err as any).name === 'ValidationError') {
-      return res.status(400).json({
-        msg: "設定資料驗證失敗",
-        errors: (err as any).errors,
-        userId: req.user?.id || 'unknown'
-      });
+    if (error.name === 'ValidationError') {
+        const validationError = error as ValidationError;
+        return res.status(400).json({
+          msg: "設定資料驗證失敗",
+          errors: validationError.errors,
+          userId: req.user?.id || 'unknown'
+        });
     }
     
     res.status(500).json({
       msg: "伺服器錯誤",
-      error: (err as Error).message,
+      error: error.message,
       userId: req.user?.id || 'unknown'
     });
   }
