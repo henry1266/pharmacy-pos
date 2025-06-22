@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
 import { ICustomer, ICustomerDocument } from '../src/types/models';
 
 // Customer Schema 定義
@@ -36,7 +36,7 @@ const CustomerSchema = new Schema<ICustomerDocument>({
     validate: {
       validator: function(phone: string) {
         if (!phone) return true; // 允許空值
-        const phoneRegex = /^[\d\-\+\(\)\s]+$/;
+        const phoneRegex = /^[\d\-+()s]+$/;
         return phoneRegex.test(phone);
       },
       message: '請提供有效的電話號碼'
@@ -126,8 +126,8 @@ CustomerSchema.statics.searchCustomers = function(searchTerm: string, options: a
   };
 
   return this.find(query)
-    .sort(options.sort || { name: 1 })
-    .limit(options.limit || 50);
+    .sort(options.sort ?? { name: 1 })
+    .limit(options.limit ?? 50);
 };
 
 // 靜態方法：獲取客戶統計
@@ -147,7 +147,7 @@ CustomerSchema.statics.getCustomerStats = async function() {
     }
   ]);
 
-  return stats[0] || {
+  return stats[0] ?? {
     totalCustomers: 0,
     totalPurchases: 0,
     averagePurchases: 0,
@@ -180,7 +180,7 @@ CustomerSchema.statics.getHighValueCustomers = function(minAmount: number = 1000
 
 // 實例方法：更新購買記錄
 CustomerSchema.methods.updatePurchaseRecord = function(amount: number): void {
-  this.totalPurchases = (this.totalPurchases || 0) + amount;
+  this.totalPurchases = (this.totalPurchases ?? 0) + amount;
   this.lastPurchaseDate = new Date();
 };
 
@@ -212,7 +212,7 @@ CustomerSchema.methods.isActiveCustomer = function(days: number = 90): boolean {
 
 // 實例方法：獲取客戶等級
 CustomerSchema.methods.getCustomerTier = function(): string {
-  const totalPurchases = this.totalPurchases || 0;
+  const totalPurchases = this.totalPurchases ?? 0;
   
   if (totalPurchases >= 100000) return 'VIP';
   if (totalPurchases >= 50000) return 'Gold';
@@ -269,7 +269,7 @@ CustomerSchema.pre<ICustomerDocument>('save', function(next) {
 // 中間件：驗證客戶代碼唯一性
 CustomerSchema.pre<ICustomerDocument>('save', async function(next) {
   if (this.isNew || this.isModified('customerCode')) {
-    const existingCustomer = await (this.constructor as any).findOne({
+    const existingCustomer = await (this.constructor as ICustomerModel).findOne({
       customerCode: this.customerCode,
       _id: { $ne: this._id }
     });

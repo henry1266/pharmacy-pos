@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IAccounting, IAccountingDocument, IAccountingItem } from '../src/types/models';
+import { IAccountingDocument, IAccountingItem } from '../src/types/models';
 
 // 記帳系統資料模型
 const AccountingSchema = new Schema<IAccountingDocument>({
