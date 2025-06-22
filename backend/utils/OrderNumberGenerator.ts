@@ -1,18 +1,3 @@
-import { Model, Document, SortOrder } from 'mongoose';
-import { OrderNumberResult } from '../src/types/business';
-
-/**
- * OrderNumberGenerator選項介面
- */
-export interface OrderNumberGeneratorOptions {
-  Model: Model<any>;
-  field: string;
-  prefix?: string;
-  useShortYear?: boolean;
-  sequenceDigits?: number;
-  sequenceStart?: number;
-}
-
 /**
  * 通用訂單單號生成器
  * 用於生成進貨單、出貨單和銷貨單的單號
@@ -24,6 +9,19 @@ export interface OrderNumberGeneratorOptions {
  * 4. 處理序號進位和錯誤情況
  * 5. 提供統一的API接口
  */
+
+import { Model, Document, SortOrder } from 'mongoose';
+
+// 訂單號生成器配置介面
+export interface OrderNumberGeneratorOptions {
+  Model: Model<any>;
+  field: string;
+  prefix?: string;
+  useShortYear?: boolean;
+  sequenceDigits?: number;
+  sequenceStart?: number;
+}
+
 class OrderNumberGenerator {
   private Model: Model<any>;
   private field: string;
@@ -35,6 +33,12 @@ class OrderNumberGenerator {
   /**
    * 創建訂單單號生成器
    * @param options - 配置選項
+   * @param options.Model - Mongoose模型實例
+   * @param options.field - 單號字段名稱（例如：'poid', 'soid', 'saleNumber'）
+   * @param options.prefix - 單號前綴（可選，例如：'SO'）
+   * @param options.useShortYear - 是否使用短年份（例如：true表示使用YY，false表示使用YYYY）
+   * @param options.sequenceDigits - 序號位數（例如：3表示001-999，5表示00001-99999）
+   * @param options.sequenceStart - 序號起始值（默認為1）
    */
   constructor(options: OrderNumberGeneratorOptions) {
     this.Model = options.Model;
@@ -88,7 +92,7 @@ class OrderNumberGenerator {
       sort[this.field] = -1;
       
       // 查找當天最後一個訂單號
-      const latestOrder = await this.Model.findOne(query).sort(sort);
+      const latestOrder = await this.Model.findOne(query).sort(sort).lean() as Record<string, any> | null;
       console.log(`最後一個訂單: ${latestOrder ? latestOrder[this.field] : '無'}`);
       
       // 設置默認序號
@@ -96,7 +100,7 @@ class OrderNumberGenerator {
       
       // 如果找到了當天的訂單，提取序號部分
       if (latestOrder) {
-        const orderNumber = latestOrder[this.field];
+        const orderNumber = latestOrder[this.field] as string;
         
         // 提取序號部分 - 從日期前綴後開始
         const sequencePart = orderNumber.substring(datePrefix.length);
@@ -108,7 +112,7 @@ class OrderNumberGenerator {
         const match = sequencePart.match(regex);
         
         if (match) {
-          const sequence = parseInt(match[0]);
+          const sequence = parseInt(match[0], 10);
           if (!isNaN(sequence)) {
             sequenceNumber = sequence + 1;
             console.log(`下一個序號: ${sequenceNumber}`);
@@ -130,7 +134,7 @@ class OrderNumberGenerator {
       
       return finalOrderNumber;
     } catch (error) {
-      console.error('生成訂單單號時出錯:', error);
+      console.error('生成訂單單號時出錯:', error instanceof Error ? error.message : error);
       throw error;
     }
   }
@@ -145,10 +149,10 @@ class OrderNumberGenerator {
       const query: Record<string, any> = {};
       query[this.field] = orderNumber;
       
-      const existingOrder = await this.Model.findOne(query);
+      const existingOrder = await this.Model.findOne(query).lean() as Record<string, any> | null;
       return !!existingOrder;
     } catch (error) {
-      console.error('檢查訂單單號是否存在時出錯:', error);
+      console.error('檢查訂單單號是否存在時出錯:', error instanceof Error ? error.message : error);
       throw error;
     }
   }
@@ -163,36 +167,26 @@ class OrderNumberGenerator {
     let counter = 1;
     let isUnique = false;
     
-    while (!isUnique) {
+    // 設置最大嘗試次數，防止無限循環
+    const MAX_ATTEMPTS = 100;
+    let attempts = 0;
+    
+    while (!isUnique && attempts < MAX_ATTEMPTS) {
       const exists = await this.exists(orderNumber);
       if (!exists) {
         isUnique = true;
       } else {
         orderNumber = `${baseOrderNumber}-${counter}`;
         counter++;
+        attempts++;
       }
     }
     
+    if (attempts >= MAX_ATTEMPTS) {
+      throw new Error('無法生成唯一訂單號，已達到最大嘗試次數');
+    }
+    
     return orderNumber;
-  }
-
-  /**
-   * 生成訂單單號結果（包含更多信息）
-   * @returns 訂單單號結果
-   */
-  async generateWithDetails(): Promise<OrderNumberResult> {
-    const orderNumber = await this.generate();
-    
-    // 提取序號部分
-    const datePrefix = this.generateDatePrefix();
-    const sequencePart = orderNumber.substring(datePrefix.length);
-    const sequence = parseInt(sequencePart);
-    
-    return {
-      orderNumber,
-      sequence,
-      generatedAt: new Date()
-    };
   }
 }
 
