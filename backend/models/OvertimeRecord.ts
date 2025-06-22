@@ -102,4 +102,11 @@ OvertimeRecordSchema.index({ employeeId: 1, date: 1 });
 OvertimeRecordSchema.index({ status: 1 });
 OvertimeRecordSchema.index({ createdAt: -1 });
 
-export default mongoose.model<IOvertimeRecordDocument>("overtimeRecord", OvertimeRecordSchema);
+const OvertimeRecord = mongoose.model<IOvertimeRecordDocument>("overtimeRecord", OvertimeRecordSchema);
+
+// 雙重導出策略以確保兼容性
+export default OvertimeRecord;
+
+// CommonJS 兼容性
+module.exports = OvertimeRecord;
+module.exports.default = OvertimeRecord;

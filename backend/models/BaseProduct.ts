@@ -94,7 +94,12 @@ const Medicine = BaseProduct.discriminator<IMedicineDocument>('medicine', new Sc
   }
 }));
 
+// 雙重導出策略以確保兼容性
 export default BaseProduct;
-module.exports = { BaseProduct, Product, Medicine };
-module.exports.default = BaseProduct;
 export { Product, Medicine };
+
+// CommonJS 兼容性
+module.exports = BaseProduct;
+module.exports.default = BaseProduct;
+module.exports.Product = Product;
+module.exports.Medicine = Medicine;

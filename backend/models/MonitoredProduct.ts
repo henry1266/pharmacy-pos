@@ -33,4 +33,11 @@ const MonitoredProductSchema = new Schema<IMonitoredProductDocument>({
   }
 });
 
-export default mongoose.model<IMonitoredProductDocument>("MonitoredProduct", MonitoredProductSchema);
+const MonitoredProduct = mongoose.model<IMonitoredProductDocument>("MonitoredProduct", MonitoredProductSchema);
+
+// 雙重導出策略以確保兼容性
+export default MonitoredProduct;
+
+// CommonJS 兼容性
+module.exports = MonitoredProduct;
+module.exports.default = MonitoredProduct;

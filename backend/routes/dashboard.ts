@@ -96,7 +96,7 @@ interface SaleItem {
 interface SaleRecord {
   _id: Types.ObjectId;
   saleNumber?: string;
-  customer?: {
+  customer?: Types.ObjectId | {
     name: string;
   };
   totalAmount: number;
@@ -227,7 +227,7 @@ router.get('/summary', async (req: Request, res: Response) => {
     const formattedRecentSales: RecentSale[] = recentSales.map(sale => ({
       id: sale._id,
       saleNumber: sale.saleNumber,
-      customerName: sale.customer ? sale.customer.name : '一般客戶',
+      customerName: sale.customer && typeof sale.customer === 'object' && 'name' in sale.customer ? sale.customer.name : '一般客戶',
       totalAmount: sale.totalAmount,
       date: sale.date,
       paymentStatus: sale.paymentStatus

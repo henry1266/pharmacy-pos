@@ -45,4 +45,11 @@ const AccountingCategorySchema = new Schema<IAccountingCategoryDocument>({
   }
 }, { timestamps: true });
 
-export default mongoose.model<IAccountingCategoryDocument>('AccountingCategory', AccountingCategorySchema);
+const AccountingCategory = mongoose.model<IAccountingCategoryDocument>('AccountingCategory', AccountingCategorySchema);
+
+// 雙重導出策略以確保兼容性
+export default AccountingCategory;
+
+// CommonJS 兼容性
+module.exports = AccountingCategory;
+module.exports.default = AccountingCategory;

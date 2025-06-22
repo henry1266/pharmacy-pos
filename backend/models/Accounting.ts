@@ -161,4 +161,11 @@ AccountingSchema.index({ date: 1, shift: 1 }, { unique: true });
 AccountingSchema.index({ status: 1, date: -1 });
 AccountingSchema.index({ createdBy: 1 });
 
-export default mongoose.model<IAccountingDocument>("Accounting", AccountingSchema);
+const Accounting = mongoose.model<IAccountingDocument>("Accounting", AccountingSchema);
+
+// 雙重導出策略以確保兼容性
+export default Accounting;
+
+// CommonJS 兼容性
+module.exports = Accounting;
+module.exports.default = Accounting;

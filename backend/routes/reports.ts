@@ -39,29 +39,27 @@ interface Product {
 
 // 定義銷售項目介面
 interface SaleItem {
-  product?: Product;
+  product?: Types.ObjectId | Product;
   quantity: number;
   price: number;
-  discount: number;
   subtotal: number;
 }
 
 // 定義銷售記錄介面
 interface SaleRecord {
   _id: Types.ObjectId;
-  invoiceNumber: string;
+  saleNumber?: string;
   date: Date;
-  customer?: {
+  customer?: Types.ObjectId | {
     _id: Types.ObjectId;
     name: string;
   };
   totalAmount: number;
   discount: number;
-  tax: number;
   paymentMethod: string;
   paymentStatus: string;
   items: SaleItem[];
-  cashier?: {
+  cashier?: Types.ObjectId | {
     _id: Types.ObjectId;
     name: string;
   };
@@ -215,6 +213,15 @@ function safeToString(value: any, defaultValue: string = ""): string {
   return value.toString();
 }
 
+// 類型守衛函數
+function isPopulatedProduct(product: any): product is Product {
+  return product && typeof product === 'object' && 'name' in product && 'code' in product;
+}
+
+function isPopulatedCustomer(customer: any): customer is { _id: Types.ObjectId; name: string } {
+  return customer && typeof customer === 'object' && 'name' in customer;
+}
+
 // 共用函數：處理日期範圍查詢
 function buildDateRangeFilter(startDate?: string, endDate?: string): Record<string, Date> {
   const dateFilter: Record<string, Date> = {};
@@ -330,7 +337,7 @@ function groupSalesByDay(sales: SaleRecord[]): GroupedSalesData[] {
         if (salesByDay[dateStr] && salesByDay[dateStr].items) {
           salesByDay[dateStr].items!.push({
             productId: safeToString(item.product?._id),
-            productName: safeToString(item.product?.name),
+            productName: isPopulatedProduct(item.product) ? safeToString(item.product.name) : '',
             quantity: item.quantity,
             price: item.price,
             subtotal: item.subtotal
@@ -364,7 +371,7 @@ function groupSalesByMonth(sales: SaleRecord[]): GroupedSalesData[] {
       if (salesByMonth[monthStr] && salesByMonth[monthStr].items) {
         salesByMonth[monthStr].items!.push({
           productId: safeToString(item.product?._id),
-          productName: safeToString(item.product?.name),
+          productName: isPopulatedProduct(item.product) ? safeToString(item.product.name) : '',
           quantity: item.quantity,
           price: item.price,
           subtotal: item.subtotal
@@ -386,8 +393,8 @@ function groupSalesByProduct(sales: SaleRecord[]): GroupedSalesData[] {
       if (!salesByProduct[productId]) {
         salesByProduct[productId] = {
           productId,
-          productCode: safeToString(item.product?.code),
-          productName: safeToString(item.product?.name),
+          productCode: isPopulatedProduct(item.product) ? safeToString(item.product.code) : '',
+          productName: isPopulatedProduct(item.product) ? safeToString(item.product.name) : '',
           quantity: 0,
           revenue: 0,
           orderCount: 0,
@@ -414,7 +421,7 @@ function groupSalesByCustomer(sales: SaleRecord[]): GroupedSalesData[] {
     
     if (sale.customer) {
       customerId = safeToString(sale.customer._id);
-      if (sale.customer.name) {
+      if (isPopulatedCustomer(sale.customer)) {
         customerName = safeToString(sale.customer.name);
       }
     }
@@ -442,7 +449,7 @@ function groupSalesByCustomer(sales: SaleRecord[]): GroupedSalesData[] {
 function formatSalesData(sales: SaleRecord[]): GroupedSalesData[] {
   return sales.map(sale => {
     let customerName = '一般客戶';
-    if (sale.customer?.name) {
+    if (sale.customer && isPopulatedCustomer(sale.customer)) {
       customerName = safeToString(sale.customer.name);
     }
     
@@ -454,7 +461,7 @@ function formatSalesData(sales: SaleRecord[]): GroupedSalesData[] {
       orderCount: 1,
       items: sale.items.map(item => ({
         productId: safeToString(item.product?._id),
-        productName: safeToString(item.product?.name),
+        productName: isPopulatedProduct(item.product) ? safeToString(item.product.name) : '',
         quantity: item.quantity,
         price: item.price,
         subtotal: item.subtotal
@@ -472,11 +479,11 @@ router.get('/inventory', async (req: Request, res: Response) => {
     const productQuery = buildProductQuery(req.query as ReportQueryParams);
     
     // 獲取符合條件的產品
-    const products: Product[] = await BaseProduct.find(productQuery).populate('supplier');
+    const products: any[] = await BaseProduct.find(productQuery).populate('supplier');
     const productIds = products.map(product => safeToString(product._id));
     
     // 獲取這些產品的庫存數據
-    const inventory: InventoryRecord[] = await Inventory.find({ 
+    const inventory: any[] = await Inventory.find({
       product: { $in: productIds }
     }).populate({
       path: 'product',
@@ -638,7 +645,7 @@ router.get('/inventory/profit-loss', async (req: Request, res: Response) => {
     const productIds = products.map(product => safeToString(product._id));
     
     // 獲取這些產品的庫存數據
-    const inventory: InventoryRecord[] = await Inventory.find({ 
+    const inventory: any[] = await Inventory.find({
       product: { $in: productIds },
       purchaseOrderNumber: { $exists: true, $ne: null }
     }).populate('product');

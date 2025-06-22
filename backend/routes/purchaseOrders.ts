@@ -426,7 +426,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     
     // 應用更新
     Object.keys(updateData).forEach(key => {
-      purchaseOrder[key] = updateData[key];
+      (purchaseOrder as any)[key] = updateData[key];
     });
     
     // 手動計算總金額以確保正確

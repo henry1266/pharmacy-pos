@@ -45,4 +45,11 @@ const ProductCategorySchema = new Schema<IProductCategoryDocument>({
   }
 }, { timestamps: true });
 
-export default mongoose.model<IProductCategoryDocument>('ProductCategory', ProductCategorySchema);
+const ProductCategory = mongoose.model<IProductCategoryDocument>('ProductCategory', ProductCategorySchema);
+
+// 雙重導出策略以確保兼容性
+export default ProductCategory;
+
+// CommonJS 兼容性
+module.exports = ProductCategory;
+module.exports.default = ProductCategory;

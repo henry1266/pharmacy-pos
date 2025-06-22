@@ -70,4 +70,11 @@ const UserSchema = new Schema<IUserDocument>({
   }
 });
 
-export default mongoose.model<IUserDocument>("user", UserSchema);
+const User = mongoose.model<IUserDocument>("user", UserSchema);
+
+// 雙重導出策略以確保兼容性
+export default User;
+
+// CommonJS 兼容性
+module.exports = User;
+module.exports.default = User;

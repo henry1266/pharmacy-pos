@@ -40,7 +40,7 @@ interface ShippingOrderDocument {
   supplier?: Types.ObjectId;
   items: ShippingOrderItem[];
   notes?: string;
-  status: 'pending' | 'completed';
+  status: 'pending' | 'completed' | 'cancelled';
   paymentStatus: string;
   totalAmount?: number;
   createdAt: Date;
