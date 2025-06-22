@@ -500,7 +500,8 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
         message: "請上傳CSV文件",
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // 獲取請求中的出貨單號和預設供應商
@@ -547,7 +548,8 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
         errors: result.errors.map(err => ({ msg: err })),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     
     // 如果CSV中沒有找到任何有效日期，則返回錯誤
@@ -558,7 +560,8 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
         errors: result.errors.map(err => ({ msg: err })),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // 根據CSV首行日期生成訂單號
@@ -573,7 +576,8 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
           error: (genError as Error).message,
           timestamp: new Date()
         };
-        return res.status(500).json(errorResponse);
+        res.status(500).json(errorResponse);
+      return;
       }
     }
 
@@ -586,7 +590,8 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
         message: (uniqueError as Error).message,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // 查找所有健保碼對應的藥品
@@ -618,7 +623,8 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
         errors: result.errors.map(err => ({ msg: err })),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // 確定供應商

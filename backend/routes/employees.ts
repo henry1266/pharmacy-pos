@@ -104,7 +104,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
         message: '無效的員工ID格式',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const employee = await Employee.findOne({ _id: req.params.id.toString() });
@@ -115,7 +116,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到此員工資料',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     // 轉換 Mongoose Document 到 shared 類型
@@ -155,7 +157,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到此員工資料',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
@@ -191,7 +194,8 @@ router.post(
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     try {
@@ -203,7 +207,8 @@ router.post(
           message: '此身分證號碼已存在',
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
       }
 
       // 建立新員工資料
@@ -308,7 +313,8 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
         message: '無效的員工ID格式',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const employee = await Employee.findOne({ _id: req.params.id.toString() });
@@ -319,7 +325,8 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到此員工資料',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     // 檢查身分證號碼是否與其他員工重複
@@ -331,7 +338,8 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
           message: '身分證號碼格式不正確',
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
       }
       
       // 使用參數化查詢，避免直接將用戶輸入傳入查詢
@@ -343,7 +351,8 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
           message: '此身分證號碼已存在',
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
       }
     }
 
@@ -410,7 +419,8 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到此員工資料',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
@@ -433,7 +443,8 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         message: '無效的員工ID格式',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const employee = await Employee.findOne({ _id: req.params.id.toString() });
@@ -444,7 +455,8 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到此員工資料',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     await Employee.findOneAndDelete({ _id: req.params.id.toString() });
@@ -465,7 +477,8 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到此員工資料',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,

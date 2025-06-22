@@ -140,7 +140,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     
     const response: ApiResponse<any> = {
@@ -159,7 +160,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
@@ -265,7 +267,8 @@ router.post('/', [
       errors: errors.array(),
       timestamp: new Date()
     };
-    return res.status(400).json(errorResponse);
+    res.status(400).json(errorResponse);
+      return;
   }
 
   try {
@@ -281,7 +284,8 @@ router.post('/', [
         message: ERROR_MESSAGES.GENERIC.DUPLICATE_ENTRY,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     } else {
       finalPoid = poid;
     }
@@ -297,7 +301,8 @@ router.post('/', [
         message: validationResult.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // 嘗試查找供應商
@@ -445,19 +450,22 @@ router.put('/:id', async (req: Request, res: Response) => {
     const id = req.params.id;
 
     if (!id) {
-      return res.status(400).json({ msg: '進貨單ID為必填項' });
+      res.status(400).json({ msg: '進貨單ID為必填項' });
+      return;
     }
 
     // 檢查進貨單是否存在
     let purchaseOrder = await PurchaseOrder.findOne({ _id: id });
     if (!purchaseOrder) {
-      return res.status(404).json({ msg: '找不到該進貨單' });
+      res.status(404).json({ msg: '找不到該進貨單' });
+      return;
     }
 
     // 處理進貨單號變更
     const idChangeResult = await handlePurchaseOrderIdChange(poid, purchaseOrder);
     if (!idChangeResult.success) {
-      return res.status(400).json({ msg: idChangeResult.error });
+      res.status(400).json({ msg: idChangeResult.error });
+      return;
     }
     if (idChangeResult.orderNumber) {
       purchaseOrder.orderNumber = idChangeResult.orderNumber;
@@ -478,7 +486,8 @@ router.put('/:id', async (req: Request, res: Response) => {
       // 驗證所有藥品ID是否存在
       const validationResult = await validateAndSetProductIds(items);
       if (!validationResult.valid) {
-        return res.status(400).json({ msg: validationResult.message });
+        res.status(400).json({ msg: validationResult.message });
+      return;
       }
       updateData.items = items;
     }
@@ -488,7 +497,8 @@ router.put('/:id', async (req: Request, res: Response) => {
     purchaseOrder = await PurchaseOrder.findOne({ _id: id });
     
     if (!purchaseOrder) {
-      return res.status(404).json({ msg: '找不到該進貨單' });
+      res.status(404).json({ msg: '找不到該進貨單' });
+      return;
     }
     
     // 應用更新
@@ -514,7 +524,8 @@ router.put('/:id', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('更新進貨單錯誤:', (err as Error).message);
     if ((err as any).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到該進貨單' });
+      res.status(404).json({ msg: '找不到該進貨單' });
+      return;
     }
     res.status(500).send('伺服器錯誤');
   }
@@ -527,17 +538,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     if (!id) {
-      return res.status(400).json({ msg: '進貨單ID為必填項' });
+      res.status(400).json({ msg: '進貨單ID為必填項' });
+      return;
     }
 
     const purchaseOrder = await PurchaseOrder.findOne({ _id: id });
     if (!purchaseOrder) {
-      return res.status(404).json({ msg: '找不到該進貨單' });
+      res.status(404).json({ msg: '找不到該進貨單' });
+      return;
     }
 
     // 如果進貨單已完成，不允許刪除
     if (purchaseOrder.status === 'completed') {
-      return res.status(400).json({ msg: '已完成的進貨單不能刪除' });
+      res.status(400).json({ msg: '已完成的進貨單不能刪除' });
+      return;
     }
 
     await purchaseOrder.deleteOne();
@@ -545,7 +559,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
   } catch (err) {
     console.error((err as Error).message);
     if ((err as any).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到該進貨單' });
+      res.status(404).json({ msg: '找不到該進貨單' });
+      return;
     }
     res.status(500).send('伺服器錯誤');
   }
@@ -558,7 +573,8 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
   try {
     const supplierId = req.params.supplierId;
     if (!supplierId) {
-      return res.status(400).json({ msg: '供應商ID為必填項' });
+      res.status(400).json({ msg: '供應商ID為必填項' });
+      return;
     }
 
     const purchaseOrders = await PurchaseOrder.find({ supplier: supplierId })
@@ -610,7 +626,8 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
     const productId = req.params.productId;
     if (!productId) {
-      return res.status(400).json({ msg: '產品ID為必填項' });
+      res.status(400).json({ msg: '產品ID為必填項' });
+      return;
     }
 
     const purchaseOrders = await PurchaseOrder.find({

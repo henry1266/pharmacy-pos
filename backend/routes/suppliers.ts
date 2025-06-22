@@ -123,7 +123,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
@@ -134,7 +135,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const response: ApiResponse<SupplierType> = {
@@ -169,7 +171,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -200,7 +203,8 @@ router.post(
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     try {
@@ -227,7 +231,8 @@ router.post(
             message: ERROR_MESSAGES.SUPPLIER.CODE_EXISTS,
             timestamp: new Date()
           };
-          return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
         }
       }
 
@@ -374,7 +379,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     // 查找供應商
@@ -385,7 +391,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     // 建立更新欄位物件
@@ -398,7 +405,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.SUPPLIER.CODE_EXISTS,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     // 應用更新
@@ -439,7 +447,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -464,7 +473,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
@@ -474,7 +484,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     // 修復：使用 deleteOne 替代 findByIdAndDelete
@@ -497,7 +508,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -651,7 +663,8 @@ router.post('/import-csv', upload.single('file'), async (req: Request, res: Resp
         message: ERROR_MESSAGES.FILE.UPLOAD_FAILED,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const results: any[] = [];

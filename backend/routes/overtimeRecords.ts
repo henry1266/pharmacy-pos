@@ -120,7 +120,8 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
         message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     
     // 計算該月的開始和結束日期
@@ -253,7 +254,8 @@ router.get("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date().toISOString()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     
     const response: ApiResponse<typeof overtimeRecord> = {
@@ -272,7 +274,8 @@ router.get("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date().toISOString()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
@@ -306,7 +309,8 @@ router.post(
         errors: errors.array(),
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     
     try {
@@ -318,7 +322,8 @@ router.post(
           message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
           timestamp: new Date().toISOString()
         };
-        return res.status(404).json(errorResponse);
+        res.status(404).json(errorResponse);
+      return;
       }
       
       // 創建新的加班記錄
@@ -377,7 +382,8 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date().toISOString()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     
     // 更新加班記錄
@@ -421,7 +427,8 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date().toISOString()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
@@ -448,7 +455,8 @@ router.delete("/:id", auth, async (req: AuthenticatedRequest, res: Response) => 
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date().toISOString()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     
     await overtimeRecord.deleteOne();
@@ -469,7 +477,8 @@ router.delete("/:id", auth, async (req: AuthenticatedRequest, res: Response) => 
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date().toISOString()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,

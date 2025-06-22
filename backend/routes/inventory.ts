@@ -97,7 +97,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '無效的庫存記錄ID',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
@@ -111,7 +112,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     // 轉換 Mongoose Document 到 shared 類型
@@ -155,7 +157,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -186,7 +189,8 @@ router.post(
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     try {
@@ -209,7 +213,8 @@ router.post(
           message: '藥品不存在',
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
       }
       
       // 檢查是否已有該藥品的庫存記錄
@@ -263,7 +268,8 @@ router.post(
           timestamp: new Date()
         };
         
-        return res.json(response);
+        res.json(response);
+      return;
       }
       
       // 建立新庫存記錄
@@ -345,7 +351,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: '無效的庫存記錄ID',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const requestBody = req.body as InventoryUpdateRequest;
@@ -385,7 +392,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     // 如果更改了藥品，檢查新藥品是否存在
@@ -398,7 +406,8 @@ router.put('/:id', async (req: Request, res: Response) => {
           message: '藥品不存在',
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
       }
     }
     
@@ -451,7 +460,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -476,7 +486,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: '無效的庫存記錄ID',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
@@ -487,7 +498,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     await inventory.deleteOne();
@@ -509,7 +521,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -534,7 +547,8 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
         message: '無效的產品ID',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const inventory = await Inventory.find({ product: req.params.productId.toString() })

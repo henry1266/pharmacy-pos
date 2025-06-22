@@ -96,7 +96,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     
     const response: ApiResponse<any> = {
@@ -115,7 +116,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -145,7 +147,8 @@ router.post(
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     
     try {
@@ -157,7 +160,8 @@ router.post(
           message: validationResult.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
           timestamp: new Date()
         };
-        return res.status(validationResult.statusCode || 400).json(errorResponse);
+        res.status(validationResult.statusCode || 400).json(errorResponse);
+      return;
       }
       
       // 2. 創建銷售記錄

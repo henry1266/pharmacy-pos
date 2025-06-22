@@ -216,7 +216,8 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Pr
     
     // 可選：權限檢查，例如只允許添加者刪除
     // if (monitoredProduct.addedBy.toString() !== req.user.id) {
-    //   return res.status(401).json({ msg: "權限不足" });
+    //   res.status(401).json({ msg: "權限不足" });
+      return;
     // }
     
     // 修正：使用 findOneAndDelete 替代 findByIdAndDelete，並將 id 轉換為字串

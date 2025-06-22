@@ -31,7 +31,8 @@ router.post("/mongodb", async (req: MongoDBConfigRequest, res: Response) => {
       message: "請提供完整的 MongoDB 設定 (host, port, database)",
       timestamp: new Date()
     };
-    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
   }
 
   // Respond that the config was received (but not yet fully applied dynamically)

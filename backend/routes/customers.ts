@@ -90,7 +90,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     const response: ApiResponse<CustomerType> = {
@@ -129,7 +130,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     const errorResponse: ErrorResponse = {
@@ -239,7 +241,8 @@ router.post(
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     try {
@@ -252,7 +255,8 @@ router.post(
           message: ERROR_MESSAGES.CUSTOMER.CODE_EXISTS,
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
       }
 
       // 建立會員欄位物件
@@ -322,7 +326,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     // 若編號被修改，檢查是否重複
@@ -333,7 +338,8 @@ router.put('/:id', async (req: Request, res: Response) => {
           message: ERROR_MESSAGES.CUSTOMER.CODE_EXISTS,
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
       }
     }
 
@@ -383,7 +389,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     const errorResponse: ErrorResponse = {
@@ -409,7 +416,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     // 使用 findOneAndDelete 替代已棄用的 remove() 方法
@@ -432,7 +440,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     const errorResponse: ErrorResponse = {

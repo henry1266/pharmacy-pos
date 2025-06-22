@@ -58,7 +58,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const response: ApiResponse<any> = {
@@ -78,7 +79,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -108,7 +110,8 @@ router.post('/',
       error: JSON.stringify(errors.array()),
       timestamp: new Date()
     };
-    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
   }
   
   try {
@@ -124,7 +127,8 @@ router.post('/',
         message: '該產品分類已存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const newCategory = new ProductCategory({
@@ -172,7 +176,8 @@ router.put('/:id',
       error: JSON.stringify(errors.array()),
       timestamp: new Date()
     };
-    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
   }
   
   try {
@@ -191,7 +196,8 @@ router.put('/:id',
         message: '該產品分類已存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     // 使用 findOne 替代 findById，並將 id 轉換為字串
@@ -203,7 +209,8 @@ router.put('/:id',
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     // 更新類別
@@ -235,7 +242,8 @@ router.put('/:id',
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {
@@ -262,7 +270,8 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     // 軟刪除 - 將isActive設為false
@@ -286,7 +295,8 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {

@@ -63,7 +63,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
         error: '無效的類別 ID 格式',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const category = await AccountingCategory.findById(id);
@@ -75,7 +76,8 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
         error: '找不到記帳名目類別',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     const response: ApiResponse<any> = {
@@ -112,7 +114,8 @@ router.post('/', auth, [
       error: JSON.stringify(errors.array()),
       timestamp: new Date()
     };
-    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
   }
   
   try {
@@ -128,7 +131,8 @@ router.post('/', auth, [
         error: '該名目類別已存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const newCategory = new AccountingCategory({
@@ -172,7 +176,8 @@ router.put('/:id', auth, [
       error: JSON.stringify(errors.array()),
       timestamp: new Date()
     };
-    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
   }
   
   try {
@@ -186,7 +191,8 @@ router.put('/:id', auth, [
         error: '無效的類別 ID 格式',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     // 檢查是否存在相同名稱的其他類別
@@ -202,7 +208,8 @@ router.put('/:id', auth, [
         error: '該名目類別已存在',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     let category = await AccountingCategory.findById(id);
@@ -214,7 +221,8 @@ router.put('/:id', auth, [
         error: '找不到記帳名目類別',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     // 更新類別
@@ -263,7 +271,8 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         error: '無效的類別 ID 格式',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const category = await AccountingCategory.findById(id);
@@ -275,7 +284,8 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         error: '找不到記帳名目類別',
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     // 軟刪除 - 將isActive設為false

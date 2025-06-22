@@ -33,7 +33,8 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
         message: "找不到用戶",
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
     
     // Log the user object (excluding password) for debugging
@@ -87,7 +88,8 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
         message: "無效的設定格式，應為一個物件。",
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
   }
 
   try {
@@ -101,7 +103,8 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
         message: "找不到用戶",
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
     }
 
     console.log("Current user settings before update:", user.settings);
@@ -139,7 +142,8 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
           error: JSON.stringify(validationError.errors),
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
     
     const errorResponse: ErrorResponse = {

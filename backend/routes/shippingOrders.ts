@@ -150,7 +150,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     
     // 將產品的healthInsuranceCode添加到items中
@@ -178,7 +179,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
@@ -335,7 +337,8 @@ router.post('/', [
       errors: errors.array(),
       timestamp: new Date()
     };
-    return res.status(400).json(errorResponse);
+    res.status(400).json(errorResponse);
+      return;
   }
 
   try {
@@ -349,7 +352,8 @@ router.post('/', [
         message: soidResult.error,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     soid = soidResult.soid;
 
@@ -364,7 +368,8 @@ router.post('/', [
         message: productsResult.error || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     items = productsResult.items!;
 
@@ -521,20 +526,23 @@ router.put('/:id', async (req: Request, res: Response) => {
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
     if (!shippingOrder) {
-      return res.status(404).json({ msg: '找不到該出貨單' });
+      res.status(404).json({ msg: '找不到該出貨單' });
+      return;
     }
 
     // 處理出貨單號變更
     const orderNumberResult = await handleOrderNumberChange(soid, shippingOrder.soid, req.params.id);
     if (orderNumberResult.error) {
-      return res.status(400).json({ msg: orderNumberResult.error });
+      res.status(400).json({ msg: orderNumberResult.error });
+      return;
     }
 
     // 處理項目更新
     if (items && items.length > 0) {
       const itemsValidation = await validateOrderItems(items);
       if (!itemsValidation.valid) {
-        return res.status(400).json({ msg: itemsValidation.message });
+        res.status(400).json({ msg: itemsValidation.message });
+      return;
       }
     }
 
@@ -573,7 +581,8 @@ router.put('/:id', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('更新出貨單錯誤:', (err as Error).message);
     if ((err as any).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到該出貨單' });
+      res.status(404).json({ msg: '找不到該出貨單' });
+      return;
     }
     res.status(500).send('伺服器錯誤');
   }
@@ -586,7 +595,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const shippingOrder = await ShippingOrder.findById(req.params.id);
     if (!shippingOrder) {
-      return res.status(404).json({ msg: '找不到該出貨單' });
+      res.status(404).json({ msg: '找不到該出貨單' });
+      return;
     }
 
     // 如果出貨單已完成，刪除相關的ship類型庫存記錄
@@ -599,7 +609,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
   } catch (err) {
     console.error((err as Error).message);
     if ((err as any).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到該出貨單' });
+      res.status(404).json({ msg: '找不到該出貨單' });
+      return;
     }
     res.status(500).send('伺服器錯誤');
   }
@@ -684,7 +695,8 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
     // 安全處理：驗證和清理productId
     if (!req.params.productId || typeof req.params.productId !== 'string') {
-      return res.status(400).json({ msg: '無效的產品ID' });
+      res.status(400).json({ msg: '無效的產品ID' });
+      return;
     }
     
     const sanitizedProductId = req.params.productId.trim();
@@ -805,7 +817,8 @@ async function deleteShippingInventoryRecords(shippingOrderId?: Types.ObjectId):
 router.post('/import/basic', upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ msg: '請上傳CSV文件' });
+      res.status(400).json({ msg: '請上傳CSV文件' });
+      return;
     }
 
     const results: any[] = [];

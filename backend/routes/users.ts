@@ -43,7 +43,8 @@ router.post(
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const { name, email, password, role } = req.body as UserRegistrationRequest;
@@ -59,7 +60,8 @@ router.post(
           message: ERROR_MESSAGES.GENERIC.DUPLICATE_ENTRY,
           timestamp: new Date()
         };
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
       }
 
       // 創建新用戶 (使用 name 作為 username)

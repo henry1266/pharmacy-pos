@@ -326,11 +326,12 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
   try {
     // 驗證請求
     if (!req.file) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         msg: "請上傳CSV文件",
         error: "未找到上傳的文件"
       });
+      return;
     }
 
     // 獲取請求中的預設供應商ID
@@ -394,20 +395,22 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
 
     // 驗證解析結果
     if (results.length === 0) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         success: false,
         msg: "CSV文件中沒有有效的藥品明細數據",
         errors
       });
+      return;
     }
     
     // 如果CSV中沒有找到任何有效日期，則返回錯誤
     if (!firstValidDate) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         success: false,
         msg: "CSV文件中缺少有效的日期欄位",
         errors
       });
+      return;
     }
 
     // 根據CSV首行日期生成訂單號
@@ -416,11 +419,12 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
       soid = await generateOrderNumberByDate(firstValidDate);
     } catch (genError) {
       const error = genError as Error;
-      return res.status(500).json({ 
+      res.status(500).json({ 
         success: false,
         msg: "生成訂單號時出錯", 
         error: error.message 
       });
+      return;
     }
 
     // 檢查出貨單號是否已存在
@@ -431,20 +435,22 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
         soid = await generateOrderNumberByDate(firstValidDate);
       } catch (genError) {
         const error = genError as Error;
-        return res.status(500).json({ 
+        res.status(500).json({ 
           success: false,
           msg: "生成訂單號時出錯", 
           error: error.message 
         });
+      return;
       }
       
       // 再次檢查
       const existingSO2 = await ShippingOrder.findOne({ soid });
       if (existingSO2) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           success: false,
           msg: `訂單號 ${soid} 已存在，無法生成唯一的出貨單號，請檢查數據或稍後再試` 
         });
+      return;
       }
     }
 
@@ -468,11 +474,12 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
     failCount += processResult.failCount;
 
     if (items.length === 0) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         success: false,
         msg: "無法匹配任何有效的藥品",
         errors
       });
+      return;
     }
 
     // 確定供應商

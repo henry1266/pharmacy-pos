@@ -39,7 +39,8 @@ router.get('/', [
         errors: errors.array(),
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     const { startDate, endDate, employeeId, leaveType } = req.query;
@@ -59,7 +60,8 @@ router.get('/', [
           message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
           timestamp: new Date().toISOString()
         };
-        return res.status(400).json(errorResponse);
+        res.status(400).json(errorResponse);
+      return;
       }
       
       filter.date = {
@@ -125,7 +127,8 @@ router.post(
         errors: errors.array(),
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     try {
@@ -136,7 +139,8 @@ router.post(
           message: ERROR_MESSAGES.GENERIC.INVALID_ID,
           timestamp: new Date().toISOString()
         };
-        return res.status(400).json(errorResponse);
+        res.status(400).json(errorResponse);
+      return;
       }
 
       const employee = await Employee.findById(req.body.employeeId);
@@ -146,7 +150,8 @@ router.post(
           message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
           timestamp: new Date().toISOString()
         };
-        return res.status(404).json(errorResponse);
+        res.status(404).json(errorResponse);
+      return;
       }
 
       // 檢查是否已有相同日期、班次的排班
@@ -173,7 +178,8 @@ router.post(
           message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
           timestamp: new Date().toISOString()
         };
-        return res.status(400).json(errorResponse);
+        res.status(400).json(errorResponse);
+      return;
       }
 
       // 建立新排班
@@ -206,7 +212,8 @@ router.post(
           message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
           timestamp: new Date().toISOString()
         };
-        return res.status(400).json(errorResponse);
+        res.status(400).json(errorResponse);
+      return;
       }
       const errorResponse: ErrorResponse = {
         success: false,
@@ -308,7 +315,8 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
         message: scheduleValidation.error!.msg,
         timestamp: new Date().toISOString()
       };
-      return res.status(scheduleValidation.error!.status).json(errorResponse);
+      res.status(scheduleValidation.error!.status).json(errorResponse);
+      return;
     }
     const schedule = scheduleValidation.schedule!;
 
@@ -321,7 +329,8 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
           message: employeeValidation.error!.msg,
           timestamp: new Date().toISOString()
         };
-        return res.status(employeeValidation.error!.status).json(errorResponse);
+        res.status(employeeValidation.error!.status).json(errorResponse);
+      return;
       }
     }
 
@@ -352,7 +361,8 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
           message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
           timestamp: new Date().toISOString()
         };
-        return res.status(400).json(errorResponse);
+        res.status(400).json(errorResponse);
+      return;
       }
     }
 
@@ -377,7 +387,8 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
         message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     const errorResponse: ErrorResponse = {
       success: false,
@@ -401,7 +412,8 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => 
         message: ERROR_MESSAGES.GENERIC.INVALID_ID,
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     const schedule = await EmployeeSchedule.findById(req.params.id);
@@ -411,7 +423,8 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => 
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date().toISOString()
       };
-      return res.status(404).json(errorResponse);
+      res.status(404).json(errorResponse);
+      return;
     }
 
     await EmployeeSchedule.findByIdAndDelete(req.params.id);
@@ -452,7 +465,8 @@ router.get('/by-date', [
         errors: errors.array(),
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
 
     const { startDate, endDate } = req.query;
@@ -463,7 +477,8 @@ router.get('/by-date', [
         message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     
     // Validate and convert dates
@@ -477,7 +492,8 @@ router.get('/by-date', [
         message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
         timestamp: new Date().toISOString()
       };
-      return res.status(400).json(errorResponse);
+      res.status(400).json(errorResponse);
+      return;
     }
     
     const schedules = await EmployeeSchedule.find({

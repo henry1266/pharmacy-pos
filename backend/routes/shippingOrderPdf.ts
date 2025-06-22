@@ -46,7 +46,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     const shippingOrder = await ShippingOrder.findById(req.params.id).lean() as ShippingOrderDocument;
     
     if (!shippingOrder) {
-      return res.status(404).json({ msg: '找不到出貨單' });
+      res.status(404).json({ msg: '找不到出貨單' });
+      return;
     }
     
     // 收集所有產品ID

@@ -52,7 +52,8 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const { employeeId, username, email, password, role } = req.body;
@@ -125,7 +126,8 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
     }
 
     const { username, email, password, role } = req.body;
