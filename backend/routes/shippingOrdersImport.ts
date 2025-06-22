@@ -15,6 +15,11 @@ const OrderNumberService = require("../utils/OrderNumberService");
 // 使用 ES6 import 導入 TypeScript 模型
 import Supplier from '../models/Supplier';
 
+// 使用 shared 架構的類型
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { ShippingOrder as SharedShippingOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@shared/types/entities';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
+
 // 定義介面
 interface ShippingOrderItem {
   product: Types.ObjectId | string;
@@ -463,10 +468,24 @@ router.get("/generate-number", async (req: Request, res: Response) => {
     // 暫時使用當前日期，但這可能與CSV匯入邏輯不一致
     const todayStr = new Date().toISOString().split("T")[0];
     const orderNumber = await generateOrderNumberByDate(todayStr);
-    res.json({ orderNumber });
+    
+    const response: ApiResponse<{ orderNumber: string }> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: { orderNumber },
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error("生成出貨單號時出錯:", (err as Error).message);
-    res.status(500).json({ msg: "伺服器錯誤", error: (err as Error).message });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -476,7 +495,12 @@ router.get("/generate-number", async (req: Request, res: Response) => {
 router.post("/import/medicine", upload.single("file"), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ msg: "請上傳CSV文件" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "請上傳CSV文件",
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     // 獲取請求中的出貨單號和預設供應商
@@ -517,18 +541,24 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     fs.unlinkSync(req.file.path);
 
     if (result.results.length === 0) {
-      return res.status(400).json({ 
-        msg: "CSV文件中沒有有效的藥品明細數據",
-        errors: result.errors
-      });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "CSV文件中沒有有效的藥品明細數據",
+        errors: result.errors.map(err => ({ msg: err })),
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
     
     // 如果CSV中沒有找到任何有效日期，則返回錯誤
     if (!result.firstValidDate) {
-      return res.status(400).json({ 
-        msg: "CSV文件中缺少有效的日期欄位",
-        errors: result.errors
-      });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "CSV文件中缺少有效的日期欄位",
+        errors: result.errors.map(err => ({ msg: err })),
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     // 根據CSV首行日期生成訂單號
@@ -537,7 +567,13 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
       try {
         soid = await generateOrderNumberByDate(result.firstValidDate);
       } catch (genError) {
-        return res.status(500).json({ msg: "生成訂單號時出錯", error: (genError as Error).message });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: "生成訂單號時出錯",
+          error: (genError as Error).message,
+          timestamp: new Date()
+        };
+        return res.status(500).json(errorResponse);
       }
     }
 
@@ -545,7 +581,12 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     try {
       soid = await ensureUniqueOrderNumber(soid, result.firstValidDate);
     } catch (uniqueError) {
-      return res.status(400).json({ msg: (uniqueError as Error).message });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: (uniqueError as Error).message,
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     // 查找所有健保碼對應的藥品
@@ -557,7 +598,7 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     
     // 建立健保碼到藥品的映射
     const productMap: Record<string, ProductDocument> = {};
-    products.forEach((product: ProductDocument) => {
+    products.forEach((product: any) => {
       if (product.healthInsuranceCode) {
         productMap[product.healthInsuranceCode.toString()] = product;
       }
@@ -571,10 +612,13 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     );
 
     if (items.length === 0) {
-      return res.status(400).json({ 
-        msg: "無法匹配任何有效的藥品",
-        errors: result.errors
-      });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "無法匹配任何有效的藥品",
+        errors: result.errors.map(err => ({ msg: err })),
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     // 確定供應商
@@ -600,32 +644,41 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
     await createShippingInventoryRecords(savedOrder);
     console.log(`已為出貨單 ${savedOrder.soid} 創建庫存記錄`);
 
-    res.json({
-      msg: "藥品明細CSV匯入成功",
-      shippingOrder: {
-        _id: savedOrder._id.toString(),
-        soid: savedOrder.soid.toString(),
-        orderNumber: savedOrder.orderNumber.toString(),
-        supplier: supplierName.toString(),
-        itemCount: items.length,
-        totalAmount: savedOrder.totalAmount,
-        paymentStatus: savedOrder.paymentStatus.toString(),
-        status: savedOrder.status.toString()
+    const response: ApiResponse<any> = {
+      success: true,
+      message: SUCCESS_MESSAGES.FILE.IMPORT_SUCCESS,
+      data: {
+        shippingOrder: {
+          _id: savedOrder._id.toString(),
+          soid: savedOrder.soid.toString(),
+          orderNumber: savedOrder.orderNumber.toString(),
+          supplier: supplierName.toString(),
+          itemCount: items.length,
+          totalAmount: savedOrder.totalAmount,
+          paymentStatus: savedOrder.paymentStatus.toString(),
+          status: savedOrder.status.toString()
+        },
+        summary: {
+          totalItems: result.totalItems,
+          successCount,
+          failCount,
+          errors: result.errors.length > 0 ? result.errors : null
+        }
       },
-      summary: {
-        totalItems: result.totalItems,
-        successCount,
-        failCount,
-        errors: result.errors.length > 0 ? result.errors : null
-      }
-    });
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error("匯入藥品明細CSV時出錯:", (err as Error).message);
-    res.status(500).json({ 
-      msg: "伺服器錯誤", 
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       error: (err as Error).message,
-      stack: process.env.NODE_ENV === "production" ? null : (err as Error).stack
-    });
+      details: process.env.NODE_ENV === "production" ? null : (err as Error).stack,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 

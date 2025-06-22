@@ -14,6 +14,11 @@ import Customer from '../models/Customer';
 import Supplier from '../models/Supplier';
 const OrderNumberService = require('../utils/OrderNumberService');
 
+// 使用 shared 架構的類型
+import { ApiResponse, ErrorResponse, ShippingOrderCreateRequest, ShippingOrderResponse } from '@shared/types/api';
+import { ShippingOrder as SharedShippingOrder, Product as SharedProduct, Customer as SharedCustomer, Supplier as SharedSupplier } from '@shared/types/entities';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
+
 // 定義產品介面
 interface ProductDocument {
   _id: Types.ObjectId;
@@ -111,10 +116,22 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
     
-    res.json(shippingOrders);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: shippingOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -128,7 +145,12 @@ router.get('/:id', async (req: Request, res: Response) => {
       .populate('items.product', 'name code healthInsuranceCode');
     
     if (!shippingOrder) {
-      return res.status(404).json({ msg: '找不到該出貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      return res.status(404).json(errorResponse);
     }
     
     // 將產品的healthInsuranceCode添加到items中
@@ -140,13 +162,30 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     }
     
-    res.json(shippingOrder);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: shippingOrder,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     if ((err as any).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到該出貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      return res.status(404).json(errorResponse);
     }
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -237,7 +276,7 @@ async function validateProductsAndInventory(items: ShippingOrderItem[]): Promise
       };
     }
     
-    item.product = product._id;
+    item.product = product._id as Types.ObjectId;
     
     // 檢查庫存
     const inventorySum = await Inventory.aggregate([
@@ -290,7 +329,13 @@ router.post('/', [
 ], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      errors: errors.array(),
+      timestamp: new Date()
+    };
+    return res.status(400).json(errorResponse);
   }
 
   try {
@@ -299,7 +344,12 @@ router.post('/', [
     // 處理出貨單號
     const soidResult = await handleShippingOrderId(soid);
     if (soidResult.error) {
-      return res.status(400).json({ msg: soidResult.error });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: soidResult.error,
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
     soid = soidResult.soid;
 
@@ -309,7 +359,12 @@ router.post('/', [
     // 驗證產品並檢查庫存
     const productsResult = await validateProductsAndInventory(items);
     if (!productsResult.valid) {
-      return res.status(400).json({ msg: productsResult.error });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: productsResult.error || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
     items = productsResult.items!;
 
@@ -335,10 +390,22 @@ router.post('/', [
       await createShippingInventoryRecords(shippingOrder);
     }
 
-    res.json(shippingOrder);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.CREATED,
+      data: shippingOrder,
+      timestamp: new Date()
+    };
+
+    res.json(response);
   } catch (err) {
     console.error('創建出貨單錯誤:', (err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -355,7 +422,7 @@ async function validateOrderItems(items: ShippingOrderItem[]): Promise<{ valid: 
     // 嘗試查找藥品
     const product = await BaseProduct.findOne({ code: item.did.toString() });
     if (product) {
-      item.product = product._id;
+      item.product = product._id as Types.ObjectId;
     }
   }
   

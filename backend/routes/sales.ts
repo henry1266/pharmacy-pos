@@ -6,8 +6,10 @@ import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
 import { AuthenticatedRequest } from '../src/types/express';
-import { ApiResponse, ErrorResponse } from '../src/types/api';
-import { ISaleDocument, ICustomerDocument, IBaseProductDocument, IInventoryDocument } from '../src/types/models';
+// 使用 shared 架構的 API 類型
+import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@shared/types/api';
+import { Sale as SharedSale, Product as SharedProduct, Customer as SharedCustomer, Inventory as SharedInventory } from '@shared/types/entities';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
 
 // 引入通用訂單單號生成服務
 const OrderNumberService = require('../utils/OrderNumberService');
@@ -15,32 +17,18 @@ const OrderNumberService = require('../utils/OrderNumberService');
 const router = express.Router();
 
 // 型別定義
-interface SaleCreationRequest {
-  saleNumber?: string;
-  customer?: string;
-  items: Array<{
-    product: string;
-    productName: string;
-    quantity: number;
-    unitPrice: number;
-    subtotal: number;
-    discount?: number;
-  }>;
-  totalAmount: number;
-  discountAmount?: number;
+// 使用 shared 的 SaleCreateRequest，並擴展本地需要的欄位
+interface SaleCreationRequest extends SaleCreateRequest {
+  productName?: string; // 向後兼容
   finalAmount?: number;
-  paymentMethod?: 'cash' | 'card' | 'transfer' | 'other';
-  paymentStatus?: 'pending' | 'paid' | 'refunded';
-  note?: string;
   cashier?: string;
-  discount?: number;
 }
 
 interface ValidationResult {
   success: boolean;
   statusCode?: number;
   message?: string;
-  sale?: ISaleDocument;
+  sale?: any; // 使用 any 避免複雜的 Document 類型問題
 }
 
 interface CustomerCheckResult {
@@ -50,7 +38,7 @@ interface CustomerCheckResult {
 
 interface ProductCheckResult {
   exists: boolean;
-  product?: IBaseProductDocument;
+  product?: any; // 使用 any 避免複雜的 Document 類型問題
   error?: ValidationResult;
 }
 
@@ -70,9 +58,9 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('cashier')
       .sort({ saleNumber: -1 });
     
-    const response: ApiResponse<ISaleDocument[]> = {
+    const response: ApiResponse<any[]> = {
       success: true,
-      message: 'Sales retrieved successfully',
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: sales,
       timestamp: new Date()
     };
@@ -82,7 +70,7 @@ router.get('/', async (req: Request, res: Response) => {
     console.error(err.message);
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     res.status(500).json(errorResponse);
@@ -105,15 +93,15 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (!sale) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '銷售記錄不存在',
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
       return res.status(404).json(errorResponse);
     }
     
-    const response: ApiResponse<ISaleDocument> = {
+    const response: ApiResponse<any> = {
       success: true,
-      message: 'Sale retrieved successfully',
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: sale,
       timestamp: new Date()
     };
@@ -124,7 +112,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (err.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '銷售記錄不存在',
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
         timestamp: new Date()
       };
       return res.status(404).json(errorResponse);
@@ -132,7 +120,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     res.status(500).json(errorResponse);
@@ -153,7 +141,7 @@ router.post(
     if (!errors.isEmpty()) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Validation failed',
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
@@ -166,7 +154,7 @@ router.post(
       if (!validationResult.success) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: validationResult.message || 'Validation failed',
+          message: validationResult.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
           timestamp: new Date()
         };
         return res.status(validationResult.statusCode || 400).json(errorResponse);
@@ -181,9 +169,9 @@ router.post(
       // 4. 處理客戶積分
       await updateCustomerPoints(sale);
       
-      const response: ApiResponse<ISaleDocument> = {
+      const response: ApiResponse<any> = {
         success: true,
-        message: 'Sale created successfully',
+        message: SUCCESS_MESSAGES.GENERIC.CREATED,
         data: sale,
         timestamp: new Date()
       };
@@ -193,7 +181,7 @@ router.post(
       console.error(err.message);
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Server Error',
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
         timestamp: new Date()
       };
       res.status(500).json(errorResponse);
@@ -238,7 +226,7 @@ async function checkProductExists(productId: string): Promise<ProductCheckResult
 }
 
 // 檢查產品庫存
-async function checkProductInventory(product: IBaseProductDocument, quantity: number): Promise<InventoryCheckResult> {
+async function checkProductInventory(product: any, quantity: number): Promise<InventoryCheckResult> {
   try {
     // 獲取所有庫存記錄
     const inventories = await Inventory.find({ product: product._id }).lean();
@@ -310,7 +298,7 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
 }
 
 // 創建銷售記錄
-async function createSaleRecord(requestBody: SaleCreationRequest): Promise<ISaleDocument> {
+async function createSaleRecord(requestBody: SaleCreationRequest): Promise<any> {
   // 生成銷貨單號（如果未提供）
   const finalSaleNumber = await generateSaleNumber(requestBody.saleNumber);
   
@@ -329,7 +317,7 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<ISale
     discount: requestBody.discount,
     paymentMethod: requestBody.paymentMethod,
     paymentStatus: requestBody.paymentStatus,
-    note: requestBody.note,
+    notes: requestBody.notes,
     cashier: requestBody.cashier
   };
   
@@ -375,7 +363,7 @@ function buildSaleFields(saleData: any): any {
   if (saleData.discount) saleFields.discountAmount = saleData.discount;
   if (saleData.paymentMethod) saleFields.paymentMethod = saleData.paymentMethod;
   if (saleData.paymentStatus) saleFields.paymentStatus = saleData.paymentStatus;
-  if (saleData.note) saleFields.notes = saleData.note;
+  if (saleData.notes) saleFields.notes = saleData.notes;
   if (saleData.cashier) saleFields.cashier = saleData.cashier;
   
   // 計算最終金額
@@ -385,7 +373,7 @@ function buildSaleFields(saleData: any): any {
 }
 
 // 處理新銷售的庫存變更
-async function handleInventoryForNewSale(sale: ISaleDocument): Promise<void> {
+async function handleInventoryForNewSale(sale: any): Promise<void> {
   // 為每個銷售項目創建負數庫存記錄
   for (const item of sale.items) {
     await createInventoryRecord(item, sale);
@@ -393,7 +381,7 @@ async function handleInventoryForNewSale(sale: ISaleDocument): Promise<void> {
 }
 
 // 創建庫存記錄
-async function createInventoryRecord(item: any, sale: ISaleDocument): Promise<void> {
+async function createInventoryRecord(item: any, sale: any): Promise<void> {
   const inventoryRecord = new Inventory({
     product: item.product,
     quantity: -item.quantity, // 負數表示庫存減少
@@ -409,7 +397,7 @@ async function createInventoryRecord(item: any, sale: ISaleDocument): Promise<vo
 }
 
 // 更新客戶積分
-async function updateCustomerPoints(sale: ISaleDocument): Promise<void> {
+async function updateCustomerPoints(sale: any): Promise<void> {
   // 如果有客戶，更新客戶積分
   if (!sale.customer) return;
   

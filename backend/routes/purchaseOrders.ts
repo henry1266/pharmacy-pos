@@ -13,6 +13,11 @@ import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
 const OrderNumberService = require('../utils/OrderNumberService');
 
+// 使用 shared 架構的類型
+import { ApiResponse, ErrorResponse, PurchaseOrderCreateRequest, PurchaseOrderResponse } from '@shared/types/api';
+import { PurchaseOrder as SharedPurchaseOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@shared/types/entities';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
+
 // 定義符合實際模型的介面
 interface PurchaseOrderItem {
   product: Types.ObjectId;
@@ -101,10 +106,22 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
-    res.json(purchaseOrders);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: purchaseOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -118,16 +135,38 @@ router.get('/:id', async (req: Request, res: Response) => {
       .populate('items.product', 'name code');
     
     if (!purchaseOrder) {
-      return res.status(404).json({ msg: '找不到該進貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      return res.status(404).json(errorResponse);
     }
     
-    res.json(purchaseOrder);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: purchaseOrder,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     if ((err as any).kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到該進貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      return res.status(404).json(errorResponse);
     }
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -183,7 +222,7 @@ async function validateAndSetProductIds(items: PurchaseOrderRequest['items']): P
     // 嘗試查找藥品
     const product = await BaseProduct.findOne({ code: item.did.toString() });
     if (product) {
-      item.product = product._id;
+      item.product = product._id as Types.ObjectId;
     }
   }
   
@@ -220,7 +259,13 @@ router.post('/', [
 ], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      errors: errors.array(),
+      timestamp: new Date()
+    };
+    return res.status(400).json(errorResponse);
   }
 
   try {
@@ -231,7 +276,12 @@ router.post('/', [
     if (!poid || poid.trim() === '') {
       finalPoid = await OrderNumberService.generatePurchaseOrderNumber();
     } else if (await checkPurchaseOrderExists(poid)) {
-      return res.status(400).json({ msg: '該進貨單號已存在' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.DUPLICATE_ENTRY,
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     } else {
       finalPoid = poid;
     }
@@ -242,7 +292,12 @@ router.post('/', [
     // 驗證所有藥品ID是否存在
     const validationResult = await validateAndSetProductIds(items);
     if (!validationResult.valid) {
-      return res.status(400).json({ msg: validationResult.message });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: validationResult.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        timestamp: new Date()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     // 嘗試查找供應商
@@ -269,10 +324,22 @@ router.post('/', [
       await updateInventory(purchaseOrder);
     }
 
-    res.json(purchaseOrder);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.CREATED,
+      data: purchaseOrder,
+      timestamp: new Date()
+    };
+
+    res.json(response);
   } catch (err) {
     console.error('創建進貨單錯誤:', (err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
