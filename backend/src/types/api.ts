@@ -1,87 +1,42 @@
 import { Types } from 'mongoose';
 
-// 基礎 API 回應型別
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-  timestamp: Date;
-}
-
-export interface ErrorResponse {
-  success: false;
-  message: string;
-  error?: string;
-  details?: any;
-  timestamp: Date;
-}
-
-// 分頁相關型別
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface PaginatedResponse<T> {
-  success: boolean;
-  message: string;
-  data: T[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-  timestamp: Date;
-}
-
-// 認證相關型別
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    token: string;
-    user: {
-      id: string;
-      username: string;
-      role: string;
-      isAdmin?: boolean;
-    };
-    expiresIn: string;
-  };
-  timestamp: Date;
-}
-
-export interface JWTPayload {
-  id: string;
-  username: string;
-  role: string;
-  isAdmin?: boolean;
-  iat?: number;
-  exp?: number;
-}
-
-// 查詢參數型別
-export interface QueryParams {
-  search?: string;
-  category?: string;
-  status?: string;
-  startDate?: string;
-  endDate?: string;
-  isActive?: boolean;
-  [key: string]: any;
-}
-
-export interface FilterParams extends QueryParams, PaginationParams {}
+// 從 shared 模組匯入共用型別
+export {
+  ApiResponse,
+  ErrorResponse,
+  PaginationParams,
+  PaginatedResponse,
+  LoginRequest,
+  AuthResponse,
+  JWTPayload,
+  QueryParams,
+  FilterParams,
+  ProductCreateRequest,
+  ProductUpdateRequest,
+  ProductResponse,
+  SaleCreateRequest,
+  SaleResponse,
+  PurchaseOrderCreateRequest,
+  PurchaseOrderResponse,
+  ShippingOrderCreateRequest,
+  ShippingOrderResponse,
+  InventoryResponse,
+  InventoryMovementRequest,
+  AccountingCreateRequest,
+  AccountingResponse,
+  EmployeeCreateRequest,
+  EmployeeResponse,
+  CustomerCreateRequest,
+  CustomerResponse,
+  SupplierCreateRequest,
+  SupplierResponse,
+  FileUploadResponse,
+  CSVImportRequest,
+  CSVImportResponse,
+  DashboardStats,
+  ReportParams,
+  ReportResponse
+} from '@shared/types/api';
 
 // 產品相關 API 型別
 export interface ProductCreateRequest {

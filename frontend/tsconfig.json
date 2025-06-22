@@ -7,13 +7,8 @@
     "moduleResolution": "node",
     "jsx": "react-jsx",
     
-    /* 輸出設定 - 支援 project references */
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    /* 輸出設定 - React 開發模式 */
+    "noEmit": true,
     
     /* 路徑解析 - 針對 frontend */
     "baseUrl": "./src",
@@ -38,6 +33,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noFallthroughCasesInSwitch": true,
+    "allowImportingTsExtensions": true,
     
     /* 保持寬鬆以利轉型 */
     "strict": false,
