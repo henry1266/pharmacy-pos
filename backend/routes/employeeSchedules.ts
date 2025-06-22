@@ -6,6 +6,13 @@ import Employee from '../models/Employee';
 import auth from '../middleware/auth';
 import { AuthenticatedRequest } from '../src/types/express';
 
+// 導入 shared 類型和常量
+import {
+  ApiResponse,
+  ErrorResponse,
+  ERROR_MESSAGES
+} from '../../shared';
+
 const router = express.Router();
 
 // @route   GET api/employee-schedules
@@ -26,7 +33,13 @@ router.get('/', [
     // Validate request parameters
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        errors: errors.array(),
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     const { startDate, endDate, employeeId, leaveType } = req.query;
@@ -41,7 +54,12 @@ router.get('/', [
       
       // Additional validation to ensure dates are valid
       if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-        return res.status(400).json({ msg: '無效的日期格式' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(400).json(errorResponse);
       }
       
       filter.date = {
@@ -67,10 +85,22 @@ router.get('/', [
       .sort({ date: 1, shift: 1 })
       .lean(); // 使用 lean() 提高查詢性能
     
-    res.json(schedules);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      data: schedules,
+      message: '員工排班資料獲取成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -89,18 +119,34 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        errors: errors.array(),
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     try {
       // 驗證員工ID是否存在
       if (!mongoose.Types.ObjectId.isValid(req.body.employeeId)) {
-        return res.status(400).json({ msg: '無效的員工ID格式' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.INVALID_ID,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(400).json(errorResponse);
       }
 
       const employee = await Employee.findById(req.body.employeeId);
       if (!employee) {
-        return res.status(404).json({ msg: '找不到此員工資料' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(404).json(errorResponse);
       }
 
       // 檢查是否已有相同日期、班次的排班
@@ -122,7 +168,12 @@ router.post(
 
       // 如果存在排班，返回錯誤
       if (existingSchedule) {
-        return res.status(400).json({ msg: '此員工在該日期和班次已有排班' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(400).json(errorResponse);
       }
 
       // 建立新排班
@@ -140,13 +191,30 @@ router.post(
       const populatedSchedule = await EmployeeSchedule.findById(savedSchedule._id)
         .populate('employeeId', 'name department position');
       
-      res.json(populatedSchedule);
+      const response: ApiResponse<any> = {
+        success: true,
+        data: populatedSchedule,
+        message: '員工排班建立成功',
+        timestamp: new Date().toISOString()
+      };
+      res.json(response);
     } catch (err) {
       console.error((err as Error).message);
       if ((err as any).code === 11000) {
-        return res.status(400).json({ msg: '此員工在該日期和班次已有排班' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(400).json(errorResponse);
       }
-      res.status(500).send('Server Error');
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        error: (err as Error).message,
+        timestamp: new Date().toISOString()
+      };
+      res.status(500).json(errorResponse);
     }
   }
 );
@@ -235,7 +303,12 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     // 驗證排班ID
     const scheduleValidation = await validateScheduleId(req.params.id);
     if (!scheduleValidation.valid) {
-      return res.status(scheduleValidation.error!.status).json({ msg: scheduleValidation.error!.msg });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: scheduleValidation.error!.msg,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(scheduleValidation.error!.status).json(errorResponse);
     }
     const schedule = scheduleValidation.schedule!;
 
@@ -243,7 +316,12 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     if (req.body.employeeId) {
       const employeeValidation = await validateEmployeeId(req.body.employeeId);
       if (!employeeValidation.valid) {
-        return res.status(employeeValidation.error!.status).json({ msg: employeeValidation.error!.msg });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: employeeValidation.error!.msg,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(employeeValidation.error!.status).json(errorResponse);
       }
     }
 
@@ -269,7 +347,12 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       );
       
       if (hasConflict) {
-        return res.status(400).json({ msg: '此員工在該日期和班次已有排班' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+          timestamp: new Date().toISOString()
+        };
+        return res.status(400).json(errorResponse);
       }
     }
 
@@ -279,13 +362,30 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       { new: true, runValidators: true }
     ).populate('employeeId', 'name department position');
 
-    res.json(updatedSchedule);
+    const response: ApiResponse<any> = {
+      success: true,
+      data: updatedSchedule,
+      message: '員工排班更新成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     if ((err as any).code === 11000) {
-      return res.status(400).json({ msg: '此員工在該日期和班次已有排班' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -296,19 +396,41 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => 
   try {
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ msg: '無效的排班ID格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INVALID_ID,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     const schedule = await EmployeeSchedule.findById(req.params.id);
     if (!schedule) {
-      return res.status(404).json({ msg: '找不到此排班資料' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(404).json(errorResponse);
     }
 
     await EmployeeSchedule.findByIdAndDelete(req.params.id);
-    res.json({ msg: '排班資料已刪除' });
+    const response: ApiResponse<null> = {
+      success: true,
+      data: null,
+      message: '排班資料已刪除',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -324,13 +446,24 @@ router.get('/by-date', [
     // Validate request parameters
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        errors: errors.array(),
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
 
     const { startDate, endDate } = req.query;
     
     if (!startDate || !endDate) {
-      return res.status(400).json({ msg: '請提供開始和結束日期' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
     
     // Validate and convert dates
@@ -339,7 +472,12 @@ router.get('/by-date', [
     
     // Additional validation to ensure dates are valid
     if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-      return res.status(400).json({ msg: '無效的日期格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
     
     const schedules = await EmployeeSchedule.find({
@@ -379,10 +517,22 @@ router.get('/by-date', [
       });
     });
     
-    res.json(groupedSchedules);
+    const response: ApiResponse<any> = {
+      success: true,
+      data: groupedSchedules,
+      message: '按日期分組的排班資料獲取成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 

@@ -8,6 +8,13 @@ import EmployeeSchedule from "../models/EmployeeSchedule";
 import { AuthenticatedRequest } from "../src/types/express";
 import { IOvertimeRecord } from "../src/types/models";
 
+// 導入 shared 類型和常量
+import {
+  ApiResponse,
+  ErrorResponse,
+  ERROR_MESSAGES
+} from '../../shared';
+
 const router = express.Router();
 
 interface OvertimeQueryParams {
@@ -78,11 +85,23 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
       .populate("createdBy", "name")
       .sort({ date: -1 });
     
-    res.json(overtimeRecords);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      data: overtimeRecords,
+      message: '加班記錄獲取成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     const error = err as Error;
     console.error(error.message);
-    res.status(500).send("伺服器錯誤");
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -96,7 +115,12 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     const { year, month } = req.query as MonthlyStatsParams;
     
     if (!year || !month) {
-      return res.status(400).json({ msg: '請提供年份和月份' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
+        timestamp: new Date().toISOString()
+      };
+      return res.status(400).json(errorResponse);
     }
     
     // 計算該月的開始和結束日期
@@ -191,11 +215,23 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     // 按加班時數降序排序
     result.sort((a, b) => b.overtimeHours - a.overtimeHours);
     
-    res.json(result);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      data: result,
+      message: '月度加班統計獲取成功',
+      timestamp: new Date().toISOString()
+    };
+    res.json(response);
   } catch (err) {
     const error = err as Error;
     console.error(error.message);
-    res.status(500).send("伺服器錯誤");
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 

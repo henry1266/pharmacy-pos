@@ -54,6 +54,11 @@ interface IOrderItem {
   dquantity: number | string; // 允許輸入時為 string
   dtotalCost: number | string; // 允許輸入時為 string
   product: string | null; // 儲存 product ID
+  quantity: number; // API 期望的屬性
+  price?: number;
+  unitPrice?: number;
+  subtotal?: number;
+  notes?: string;
 }
 
 // 表單資料的完整型別
@@ -104,7 +109,8 @@ const ShippingOrderFormPage: React.FC = () => {
     dname: '',
     dquantity: '',
     dtotalCost: '',
-    product: null
+    product: null,
+    quantity: 0
   });
   
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
@@ -230,7 +236,7 @@ const ShippingOrderFormPage: React.FC = () => {
     });
     
     // 清空當前項目
-    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
+    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null, quantity: 0 });
     
     // FIX: 聚焦操作應該由 ProductItemForm 組件內部處理，而不是在這裡直接操作 DOM
   };
@@ -298,14 +304,22 @@ const ShippingOrderFormPage: React.FC = () => {
   };
   
   const submitForm = () => {
-    // 確保提交的數據型別正確
-    const submitData: IShippingOrderForm = {
-      ...formData,
+    // 轉換為 API 期望的格式
+    const submitData = {
+      orderNumber: formData.soid,
+      customer: formData.supplier,
+      customerName: formData.sosupplier,
       items: formData.items.map(item => ({
-        ...item,
-        dquantity: Number(item.dquantity),
-        dtotalCost: Number(item.dtotalCost),
-      }))
+        product: item.product || '',
+        quantity: Number(item.dquantity),
+        price: Number(item.dtotalCost),
+        unitPrice: Number(item.dtotalCost) / Number(item.dquantity),
+        subtotal: Number(item.dtotalCost),
+        notes: item.notes || ''
+      })),
+      totalAmount: formData.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0),
+      status: formData.status,
+      notes: formData.notes
     };
     
     if (isEditMode && id) {

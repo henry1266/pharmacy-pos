@@ -88,7 +88,20 @@ export interface AuthResponse {
 }
 
 // 為了向後兼容，添加 LoginResponse 別名
-export type LoginResponse = AuthResponse;
+export type LoginResponse = {
+  token: string;
+  user: {
+    id: string;
+    username: string;
+    email?: string;
+    role: string;
+    isAdmin?: boolean;
+    permissions?: string[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+  expiresIn?: string;
+};
 
 export interface JWTPayload {
   id: string;
