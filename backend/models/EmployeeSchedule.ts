@@ -35,4 +35,6 @@ EmployeeScheduleSchema.index({ date: 1, shift: 1, employeeId: 1 }, { unique: tru
 const EmployeeSchedule: Model<IEmployeeScheduleDocument> = mongoose.model<IEmployeeScheduleDocument>("employeeSchedule", EmployeeScheduleSchema);
 
 export default EmployeeSchedule;
+module.exports = EmployeeSchedule;
+module.exports.default = EmployeeSchedule;
 export type { IEmployeeScheduleDocument };

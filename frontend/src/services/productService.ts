@@ -40,8 +40,9 @@ const getAuthConfig = (includeContentType = true): AuthConfig => {
 export const getProducts = async (): Promise<Product[]> => {
   try {
     const config = getAuthConfig(false); // GET request doesn't need Content-Type
-    const response = await axios.get<Product[]>(PRODUCTS_API_URL, config);
-    return response.data;
+    const response = await axios.get(PRODUCTS_API_URL, config);
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (response.data as any)?.data || [];
   } catch (error: any) {
     console.error('Error fetching products:', error.response?.data ?? error.message);
     throw error;
@@ -82,8 +83,9 @@ export const addProduct = async (productData: Partial<Product>, productType: Pro
     const endpoint = productType === 'medicine'
         ? `${PRODUCTS_API_URL}/medicine`
         : `${PRODUCTS_API_URL}/product`;
-    const response = await axios.post<Product>(endpoint, { ...productData, productType }, config);
-    return response.data;
+    const response = await axios.post(endpoint, { ...productData, productType }, config);
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (response.data as any)?.data;
   } catch (error: any) {
     console.error(`Error adding ${productType}:`, error.response?.data ?? error.message);
     throw error;
@@ -99,8 +101,9 @@ export const addProduct = async (productData: Partial<Product>, productType: Pro
 export const updateProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
   try {
     const config = getAuthConfig();
-    const response = await axios.put<Product>(`${PRODUCTS_API_URL}/${id}`, productData, config);
-    return response.data;
+    const response = await axios.put(`${PRODUCTS_API_URL}/${id}`, productData, config);
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (response.data as any)?.data;
   } catch (error: any) {
     console.error('Error updating product:', error.response?.data ?? error.message);
     throw error;
@@ -131,8 +134,9 @@ export const getProductByCode = async (code: string): Promise<Product> => {
   try {
     const config = getAuthConfig(false);
     // Assuming the API endpoint is /api/products/code/:code
-    const response = await axios.get<Product>(`${PRODUCTS_API_URL}/code/${code}`, config);
-    return response.data;
+    const response = await axios.get(`${PRODUCTS_API_URL}/code/${code}`, config);
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (response.data as any)?.data;
   } catch (error: any) {
     console.error(`Error fetching product with code ${code}:`, error.response?.data ?? error.message);
     throw error;

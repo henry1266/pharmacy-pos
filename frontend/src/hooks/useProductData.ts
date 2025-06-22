@@ -37,19 +37,41 @@ const useProductData = () => {
       setError(null);
       const data = await productService.getProducts();
 
+      console.log('Fetched products data:', data); // 調試日誌
+
       // Separate products and medicines
       const productsList: ProductWithId[] = [];
       const medicinesList: ProductWithId[] = [];
+      
       data.forEach(item => {
         // 將 item 轉換為 ExtendedProduct 型別
         const extendedItem = item as ExtendedProduct;
-        const product = { ...extendedItem, id: item._id }; // Map _id to id
+        const product = { ...extendedItem, id: item._id || item.id }; // Map _id to id
+        
+        console.log('Processing item:', {
+          name: extendedItem.name,
+          productType: extendedItem.productType,
+          _id: item._id,
+          id: item.id
+        }); // 調試日誌
+        
         if (extendedItem.productType === 'product') {
           productsList.push(product);
         } else if (extendedItem.productType === 'medicine') {
           medicinesList.push(product);
+        } else {
+          // 如果沒有 productType，根據其他欄位判斷或預設為 product
+          console.warn('Product without productType:', extendedItem);
+          // 檢查是否有藥品特有的欄位
+          if ((extendedItem as any).healthInsuranceCode || (extendedItem as any).healthInsurancePrice) {
+            medicinesList.push({ ...product, productType: 'medicine' });
+          } else {
+            productsList.push({ ...product, productType: 'product' });
+          }
         }
       });
+
+      console.log('Products list:', productsList.length, 'Medicines list:', medicinesList.length); // 調試日誌
 
       setProducts(productsList);
       setMedicines(medicinesList);

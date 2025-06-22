@@ -7,8 +7,9 @@ import { Category, Product } from '../types/entities';
  */
 export const getProductCategories = async (): Promise<Category[]> => {
   try {
-    const res = await axios.get<Category[]>('/api/product-categories');
-    return res.data;
+    const res = await axios.get('/api/product-categories');
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (res.data as any)?.data || [];
   } catch (err: any) {
     console.error('獲取產品分類失敗:', err);
     throw err;
@@ -22,8 +23,9 @@ export const getProductCategories = async (): Promise<Category[]> => {
  */
 export const addProductCategory = async (categoryData: Partial<Category>): Promise<Category> => {
   try {
-    const res = await axios.post<Category>('/api/product-categories', categoryData);
-    return res.data;
+    const res = await axios.post('/api/product-categories', categoryData);
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (res.data as any)?.data;
   } catch (err: any) {
     console.error('新增產品分類失敗:', err);
     throw err;
@@ -38,8 +40,9 @@ export const addProductCategory = async (categoryData: Partial<Category>): Promi
  */
 export const updateProductCategory = async (id: string, categoryData: Partial<Category>): Promise<Category> => {
   try {
-    const res = await axios.put<Category>(`/api/product-categories/${id}`, categoryData);
-    return res.data;
+    const res = await axios.put(`/api/product-categories/${id}`, categoryData);
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (res.data as any)?.data;
   } catch (err: any) {
     console.error('更新產品分類失敗:', err);
     throw err;
@@ -68,8 +71,9 @@ export const deleteProductCategory = async (id: string): Promise<{ success: bool
  */
 export const getProductCategory = async (id: string): Promise<Category> => {
   try {
-    const res = await axios.get<Category>(`/api/product-categories/${id}`);
-    return res.data;
+    const res = await axios.get(`/api/product-categories/${id}`);
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    return (res.data as any)?.data;
   } catch (err: any) {
     console.error('獲取產品分類失敗:', err);
     throw err;
@@ -83,9 +87,11 @@ export const getProductCategory = async (id: string): Promise<Category> => {
  */
 export const getProductsByCategory = async (categoryId: string): Promise<Product[]> => {
   try {
-    const res = await axios.get<Product[]>('/api/products');
+    const res = await axios.get('/api/products');
+    // 後端返回的是 ApiResponse 格式，需要取 data 屬性
+    const products = (res.data as any)?.data || [];
     // 在前端過濾屬於該分類的產品
-    return res.data.filter(product => product.category === categoryId);
+    return products.filter((product: Product) => product.category === categoryId);
   } catch (err: any) {
     console.error('獲取分類產品失敗:', err);
     throw err;
