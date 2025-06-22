@@ -1,31 +1,18 @@
 import mongoose from "mongoose";
 
-// Replace <db_password> with the actual password
-const uri = "mongodb+srv://zxh1266:DUhR2kSuhX5hx2Jo@cluster0.vjlmtk2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+// Using local MongoDB server
+const uri = "mongodb://192.168.68.73:27017";
 
-interface ClientOptions {
-  serverApi: {
-    version: string;
-    strict: boolean;
-    deprecationErrors: boolean;
-  };
-  connectTimeoutMS: number;
-  serverSelectionTimeoutMS: number;
-}
+import { ConnectOptions } from 'mongoose';
 
-const clientOptions: ClientOptions = {
-  serverApi: { 
-    version: "1", 
-    strict: true, 
-    deprecationErrors: true 
-  },
+const clientOptions: ConnectOptions = {
   connectTimeoutMS: 30000, // Keep increased timeout
   serverSelectionTimeoutMS: 30000 // Keep increased timeout
 };
 
 async function run(): Promise<void> {
   try {
-    console.log("🔄 Attempting to connect using Mongoose with serverApi options...");
+    console.log("🔄 Attempting to connect using Mongoose to local MongoDB...");
     
     // Create a Mongoose client with a MongoClientOptions object to set the Stable API version
     await mongoose.connect(uri, clientOptions);
@@ -33,7 +20,7 @@ async function run(): Promise<void> {
     
     // Send a ping to confirm a successful connection
     await mongoose.connection.db.admin().command({ ping: 1 });
-    console.log("🏓 Pinged your deployment. You successfully connected to MongoDB via Mongoose!");
+    console.log("🏓 Pinged your local MongoDB. You successfully connected to MongoDB via Mongoose!");
     
     // Additional connection info
     const connectionState = mongoose.connection.readyState;
