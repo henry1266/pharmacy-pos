@@ -274,7 +274,7 @@ export const fetchReportsData = (reportType: string, params: any): AppThunk => a
     
     dispatch({
       type: ActionTypes.FETCH_REPORTS_DATA_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || {}
     });
   } catch (err: any) {
     dispatch({
@@ -433,7 +433,7 @@ export const searchPurchaseOrders = (searchParams: Record<string, string>): AppT
     
     dispatch({
       type: ActionTypes.SEARCH_PURCHASE_ORDERS_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
@@ -591,7 +591,7 @@ export const searchShippingOrders = (searchParams: Record<string, string>): AppT
     
     dispatch({
       type: ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS,
-      payload: res.data
+      payload: (res.data as any)?.data || []
     });
   } catch (err: any) {
     dispatch({
