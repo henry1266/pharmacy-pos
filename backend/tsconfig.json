@@ -58,7 +58,8 @@
     "node_modules",
     "dist",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "./models/**/*.js"  // 排除已經轉換為 TypeScript 的模型 JavaScript 檔案
   ],
   "ts-node": {
     "transpileOnly": true,
