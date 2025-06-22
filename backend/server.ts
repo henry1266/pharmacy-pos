@@ -9,6 +9,7 @@ import usersRoutes from "./routes/users";
 import suppliersRoutes from "./routes/suppliers";
 import inventoryRoutes from "./routes/inventory";
 import purchaseOrdersRoutes from "./routes/purchaseOrders";
+import productCategoriesRoutes from "./routes/productCategories";
 
 // 連接資料庫
 connectDB();
@@ -26,6 +27,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/suppliers", suppliersRoutes);
 app.use("/api/purchase-orders", purchaseOrdersRoutes);
+app.use("/api/product-categories", productCategoriesRoutes);
 
 // 使用 require 導入的 JavaScript 路由
 app.use("/api/products", require("./routes/products"));
@@ -36,7 +38,6 @@ app.use("/api/shipping-orders", require("./routes/shippingOrdersImport")); // �
 app.use("/api/sales", require("./routes/sales"));
 app.use("/api/accounting", require("./routes/accounting"));
 app.use("/api/accounting-categories", require("./routes/accountingCategories"));
-app.use("/api/product-categories", require("./routes/productCategories"));
 app.use("/api/dashboard", require("./routes/dashboard"));
 app.use("/api/reports", require("./routes/reports"));
 app.use("/api/fifo", require("./routes/fifo"));
