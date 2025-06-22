@@ -2,8 +2,9 @@ import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { check, validationResult } from 'express-validator';
 
-// 使用 require 導入模型和中介軟體，避免型別衝突
-const AccountingCategory = require('../models/AccountingCategory');
+// 使用 TypeScript import 語法導入模型和中介軟體
+import AccountingCategory from '../models/AccountingCategory';
+import { IAccountingCategoryDocument } from '../src/types/models';
 const auth = require('../middleware/auth');
 
 // 定義會計類別介面

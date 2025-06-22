@@ -3,11 +3,12 @@ import mongoose, { Types } from 'mongoose';
 import { check, validationResult } from 'express-validator';
 import { startOfDay, endOfDay, format } from 'date-fns';
 
-// 使用 require 導入模型和中介軟體，避免型別衝突
-const Accounting = require('../models/Accounting');
-const Inventory = require('../models/Inventory');
-const { BaseProduct } = require('../models/BaseProduct');
-const MonitoredProduct = require('../models/MonitoredProduct');
+// 使用 TypeScript import 語法導入模型和中介軟體
+import Accounting from '../models/Accounting';
+import Inventory from '../models/Inventory';
+import BaseProduct from '../models/BaseProduct';
+import MonitoredProduct from '../models/MonitoredProduct';
+import { IAccountingDocument, IInventoryDocument } from '../src/types/models';
 const auth = require('../middleware/auth');
 
 // 定義會計記錄狀態型別
@@ -62,18 +63,7 @@ interface DailySummary {
   dailyTotal: number;
 }
 
-// 定義銷售記錄介面
-interface SaleRecord {
-  _id: Types.ObjectId;
-  product: Types.ObjectId;
-  type: string;
-  accountingId: Types.ObjectId | null;
-  saleNumber: string;
-  quantity: number;
-  totalAmount: number;
-  lastUpdated: Date;
-  toObject(): any;
-}
+// 使用 IInventoryDocument 型別，不需要自定義 SaleRecord 介面
 
 // 定義產品詳情介面
 interface ProductDetails {
@@ -165,7 +155,7 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
     }).sort({ lastUpdated: 1 });
 
     // Manually add product details to sales records
-    const salesWithProductDetails = sales.map((sale: SaleRecord) => {
+    const salesWithProductDetails = sales.map((sale: any) => {
       const productDetails = productMap[sale.product.toString()];
       return {
         ...sale.toObject(), // Convert Mongoose doc to plain object
