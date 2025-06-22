@@ -1,4 +1,4 @@
-import express, { Response } from "express";
+import express, { Request, Response } from "express";
 import auth from "../middleware/auth";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../src/types/express";
@@ -30,7 +30,7 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     }
     
     // Log the user object (excluding password) for debugging
-    const userForLog = { ...user.toObject() };
+    const userForLog: any = { ...user.toObject() };
     delete userForLog.password;
     console.log("User found:", userForLog);
     
@@ -46,7 +46,7 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     res.status(500).json({
       msg: "伺服器錯誤",
       error: error.message,
-      userId: req.user?.id || 'unknown'
+      userId: req.user.id
     });
   }
 });
@@ -58,7 +58,7 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
   console.log("Settings PUT request from user ID:", req.user.id);
   
   // We expect the entire settings object to be sent in the body
-  const newSettings: UserSettings = req.body;
+  const newSettings: UserSettings = req.body as UserSettings;
   console.log("New settings received:", newSettings);
 
   // Basic validation: ensure req.body is an object
@@ -101,14 +101,14 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
         return res.status(400).json({
           msg: "設定資料驗證失敗",
           errors: validationError.errors,
-          userId: req.user?.id || 'unknown'
+          userId: req.user.id
         });
     }
     
     res.status(500).json({
       msg: "伺服器錯誤",
       error: error.message,
-      userId: req.user?.id || 'unknown'
+      userId: req.user.id
     });
   }
 });

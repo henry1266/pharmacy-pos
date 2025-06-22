@@ -328,7 +328,7 @@ router.post(
       const salesItems: AccountingItem[] = unaccountedSales.map((sale: any) => ({
         amount: sale.totalAmount || 0,
         category: '其他自費', // *** 將名目設為 其他自費 ***
-        categoryId: null, // Find the ID for '其他自費' category if needed
+        categoryId: null as Types.ObjectId | null, // Find the ID for '其他自費' category if needed
         note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`, // *** 加入數量 ***
         isAutoLinked: true // Add a flag to differentiate if needed
       }));
@@ -483,7 +483,7 @@ router.put(
       const newSalesItems: AccountingItem[] = currentUnaccountedSales.map((sale: any) => ({
         amount: sale.totalAmount || 0,
         category: '其他自費',
-        categoryId: null, 
+        categoryId: null as Types.ObjectId | null,
         note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`,
         isAutoLinked: true
       }));

@@ -21,15 +21,15 @@
       "*": ["node_modules/*"]
     },
 
-    /* TypeScript 編譯選項 */
-    "strict": false,              // 先設為 false，待專案穩定後再開啟
-    "noImplicitAny": false,       // 允許隱含的 any 型別
-    "strictNullChecks": false,    // 不嚴格檢查 null 和 undefined
-    "strictFunctionTypes": false, // 不嚴格檢查函數型別
-    "strictBindCallApply": false, // 不嚴格檢查 bind, call, apply
-    "strictPropertyInitialization": false, // 不嚴格檢查類別屬性初始化
-    "noImplicitThis": false,      // 允許隱含的 this
-    "alwaysStrict": false,        // 不在輸出檔案中加入 "use strict"
+    /* TypeScript 編譯選項 - 漸進式嚴格模式 */
+    "strict": false,              // 暫時關閉完全嚴格模式
+    "noImplicitAny": true,        // 啟用：不允許隱含的 any 型別
+    "strictNullChecks": false,    // 暫時關閉：嚴格檢查 null 和 undefined
+    "strictFunctionTypes": false, // 暫時關閉：嚴格檢查函數型別
+    "strictBindCallApply": true,  // 啟用：嚴格檢查 bind, call, apply
+    "strictPropertyInitialization": false, // 暫時關閉：嚴格檢查類別屬性初始化
+    "noImplicitThis": true,       // 啟用：不允許隱含的 this
+    "alwaysStrict": true,         // 啟用：在輸出檔案中加入 "use strict"
 
     /* 其他重要選項 */
     "skipLibCheck": true,
