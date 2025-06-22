@@ -5,6 +5,10 @@ import auth from '../middleware/auth';
 import { check, validationResult } from 'express-validator';
 import { AuthenticatedRequest } from '../src/types/express';
 
+// 導入共享類型和常數
+import { ApiResponse, ErrorResponse } from '../../shared/types/api';
+import { ERROR_MESSAGES, API_CONSTANTS } from '../../shared/constants';
+
 const router = express.Router();
 
 // 定義介面
@@ -80,7 +84,13 @@ router.post(
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        error: JSON.stringify(errors.array()),
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       return;
     }
     
@@ -102,7 +112,13 @@ router.post(
         '未找到產品');
         
       if (!productExists) {
-        res.status(404).json({ msg: `找不到產品編號為 ${productCode} 的產品，無法加入監測` });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+          error: `找不到產品編號為 ${productCode} 的產品，無法加入監測`,
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
         return;
       }
       
@@ -110,7 +126,13 @@ router.post(
       // 修正：將 productCode 轉換為字串
       let monitoredProduct = await MonitoredProduct.findOne({ productCode: productCodeStr });
       if (monitoredProduct) {
-        res.status(400).json({ msg: '該產品編號已在監測列表中' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+          error: '該產品編號已在監測列表中',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
         return;
       }
       
@@ -129,15 +151,34 @@ router.post(
         addedBy: (monitoredProduct as any).addedBy
       };
       
-      res.json(responseData);
+      const response: ApiResponse<MonitoredProductResponse> = {
+        success: true,
+        message: '監測產品新增成功',
+        data: responseData,
+        timestamp: new Date()
+      };
+      
+      res.json(response);
     } catch (err: any) {
       console.error('新增監測產品失敗:', err.message);
       // Handle potential duplicate key error during save, although findOne should catch it first
       if (err.code === 11000) {
-         res.status(400).json({ msg: '該產品編號已在監測列表中' });
-         return;
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+          error: '該產品編號已在監測列表中',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        return;
       }
-      res.status(500).send('伺服器錯誤');
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        error: err.message,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );
@@ -150,7 +191,13 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Pr
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
     const monitoredProduct = await MonitoredProduct.findOne({ _id: req.params.id.toString() });
     if (!monitoredProduct) {
-      res.status(404).json({ msg: '找不到要刪除的監測產品記錄' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        error: '找不到要刪除的監測產品記錄',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
       return;
     }
     
@@ -162,14 +209,33 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Pr
     // 修正：使用 findOneAndDelete 替代 findByIdAndDelete，並將 id 轉換為字串
     await MonitoredProduct.findOneAndDelete({ _id: req.params.id.toString() });
     
-    res.json({ msg: '監測產品已刪除' });
+    const response: ApiResponse<null> = {
+      success: true,
+      message: '監測產品已刪除',
+      data: null,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err: any) {
     console.error('刪除監測產品失敗:', err.message);
     if (err.kind === 'ObjectId') {
-      res.status(404).json({ msg: '找不到要刪除的監測產品記錄' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        error: '找不到要刪除的監測產品記錄',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
       return;
     }
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: err.message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

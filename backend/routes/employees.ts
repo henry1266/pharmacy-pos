@@ -3,6 +3,9 @@ import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
 import Employee from '../models/Employee';
 import mongoose from 'mongoose';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { Employee as SharedEmployee } from '@shared/types/entities';
+import { ERROR_MESSAGES, API_CONSTANTS } from '@shared/constants';
 
 const router = express.Router();
 
@@ -37,15 +40,55 @@ router.get('/', auth, async (req: Request, res: Response) => {
       .skip(page * limit)
       .limit(limit);
 
-    res.json({
-      employees,
-      totalCount,
-      page,
-      limit
+    // 轉換 Mongoose Document 到 shared 類型
+    const employeeList: SharedEmployee[] = employees.map(emp => {
+      const empAny = emp as any;
+      return {
+        _id: emp._id.toString(),
+        name: emp.name,
+        phone: emp.phone,
+        email: emp.email,
+        address: emp.address,
+        position: emp.position,
+        hireDate: emp.hireDate,
+        birthDate: emp.birthDate,
+        idNumber: emp.idNumber,
+        gender: emp.gender,
+        department: emp.department,
+        salary: emp.salary,
+        emergencyContact: empAny.emergencyContact,
+        notes: empAny.notes,
+        createdAt: empAny.createdAt,
+        updatedAt: empAny.updatedAt
+      };
     });
+
+    const response: ApiResponse<{
+      employees: SharedEmployee[];
+      totalCount: number;
+      page: number;
+      limit: number;
+    }> = {
+      success: true,
+      message: '員工列表獲取成功',
+      data: {
+        employees: employeeList,
+        totalCount,
+        page,
+        limit
+      },
+      timestamp: new Date()
+    };
+
+    res.json(response);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -56,22 +99,70 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
   try {
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ msg: '無效的員工ID格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的員工ID格式',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const employee = await Employee.findOne({ _id: req.params.id.toString() });
 
     if (!employee) {
-      return res.status(404).json({ msg: '找不到此員工資料' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到此員工資料',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
-    res.json(employee);
+    // 轉換 Mongoose Document 到 shared 類型
+    const empAny = employee as any;
+    const employeeData: SharedEmployee = {
+      _id: employee._id.toString(),
+      name: employee.name,
+      phone: employee.phone,
+      email: employee.email,
+      address: employee.address,
+      position: employee.position,
+      hireDate: employee.hireDate,
+      birthDate: employee.birthDate,
+      idNumber: employee.idNumber,
+      gender: employee.gender,
+      department: employee.department,
+      salary: employee.salary,
+      emergencyContact: empAny.emergencyContact,
+      notes: empAny.notes,
+      createdAt: empAny.createdAt,
+      updatedAt: empAny.updatedAt
+    };
+
+    const response: ApiResponse<SharedEmployee> = {
+      success: true,
+      message: '員工資料獲取成功',
+      data: employeeData,
+      timestamp: new Date()
+    };
+
+    res.json(response);
   } catch (err: any) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到此員工資料' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到此員工資料',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -94,14 +185,25 @@ router.post(
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '驗證失敗',
+        error: JSON.stringify(errors.array()),
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     try {
       // 檢查身分證號碼是否已存在
       let employee = await Employee.findOne({ idNumber: req.body.idNumber.toString() });
       if (employee) {
-        return res.status(400).json({ msg: '此身分證號碼已存在' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '此身分證號碼已存在',
+          timestamp: new Date()
+        };
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       }
 
       // 建立新員工資料
@@ -152,10 +254,44 @@ router.post(
       });
 
       const savedEmployee = await newEmployee.save();
-      res.json(savedEmployee);
+      
+      // 轉換 Mongoose Document 到 shared 類型
+      const savedEmpAny = savedEmployee as any;
+      const employeeData: SharedEmployee = {
+        _id: savedEmployee._id.toString(),
+        name: savedEmployee.name,
+        phone: savedEmployee.phone,
+        email: savedEmployee.email,
+        address: savedEmployee.address,
+        position: savedEmployee.position,
+        hireDate: savedEmployee.hireDate,
+        birthDate: savedEmployee.birthDate,
+        idNumber: savedEmployee.idNumber,
+        gender: savedEmployee.gender,
+        department: savedEmployee.department,
+        salary: savedEmployee.salary,
+        emergencyContact: savedEmpAny.emergencyContact,
+        notes: savedEmpAny.notes,
+        createdAt: savedEmpAny.createdAt as Date,
+        updatedAt: savedEmpAny.updatedAt as Date
+      };
+
+      const response: ApiResponse<SharedEmployee> = {
+        success: true,
+        message: '員工創建成功',
+        data: employeeData,
+        timestamp: new Date()
+      };
+
+      res.json(response);
     } catch (err: any) {
       console.error(err.message);
-      res.status(500).send('Server Error');
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );
@@ -167,27 +303,47 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
   try {
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ msg: '無效的員工ID格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的員工ID格式',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const employee = await Employee.findOne({ _id: req.params.id.toString() });
 
     if (!employee) {
-      return res.status(404).json({ msg: '找不到此員工資料' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到此員工資料',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     // 檢查身分證號碼是否與其他員工重複
     if (req.body.idNumber && req.body.idNumber !== employee.idNumber) {
       // 驗證身分證號碼格式，確保只包含合法字符
       if (!/^[A-Z][12]\d{8}$/.test(req.body.idNumber)) {
-        return res.status(400).json({ msg: '身分證號碼格式不正確' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '身分證號碼格式不正確',
+          timestamp: new Date()
+        };
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       }
       
       // 使用參數化查詢，避免直接將用戶輸入傳入查詢
       const idNumberToCheck = String(req.body.idNumber).trim();
       const existingEmployee = await Employee.findOne({ idNumber: idNumberToCheck.toString() });
       if (existingEmployee) {
-        return res.status(400).json({ msg: '此身分證號碼已存在' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '此身分證號碼已存在',
+          timestamp: new Date()
+        };
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       }
     }
 
@@ -217,13 +373,51 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
       { new: true, runValidators: true }
     );
 
-    res.json(updatedEmployee);
+    // 轉換 Mongoose Document 到 shared 類型
+    const updatedEmpAny = updatedEmployee as any;
+    const employeeData: SharedEmployee = {
+      _id: updatedEmployee!._id.toString(),
+      name: updatedEmployee!.name,
+      phone: updatedEmployee!.phone,
+      email: updatedEmployee!.email,
+      address: updatedEmployee!.address,
+      position: updatedEmployee!.position,
+      hireDate: updatedEmployee!.hireDate,
+      birthDate: updatedEmployee!.birthDate,
+      idNumber: updatedEmployee!.idNumber,
+      gender: updatedEmployee!.gender,
+      department: updatedEmployee!.department,
+      salary: updatedEmployee!.salary,
+      emergencyContact: updatedEmpAny.emergencyContact,
+      notes: updatedEmpAny.notes,
+      createdAt: updatedEmpAny.createdAt,
+      updatedAt: updatedEmpAny.updatedAt
+    };
+
+    const response: ApiResponse<SharedEmployee> = {
+      success: true,
+      message: '員工資料更新成功',
+      data: employeeData,
+      timestamp: new Date()
+    };
+
+    res.json(response);
   } catch (err: any) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到此員工資料' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到此員工資料',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -234,23 +428,51 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
   try {
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ msg: '無效的員工ID格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的員工ID格式',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const employee = await Employee.findOne({ _id: req.params.id.toString() });
 
     if (!employee) {
-      return res.status(404).json({ msg: '找不到此員工資料' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到此員工資料',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     await Employee.findOneAndDelete({ _id: req.params.id.toString() });
-    res.json({ msg: '員工資料已刪除' });
+    
+    const response: ApiResponse<null> = {
+      success: true,
+      message: '員工資料已刪除',
+      data: null,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err: any) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: '找不到此員工資料' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到此員工資料',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
-    res.status(500).send('Server Error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

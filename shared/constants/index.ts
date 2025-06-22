@@ -275,7 +275,9 @@ export const ERROR_MESSAGES = {
     FORBIDDEN: '禁止存取',
     NOT_FOUND: '找不到資源',
     VALIDATION_FAILED: '資料驗證失敗',
-    DUPLICATE_ENTRY: '資料重複'
+    DUPLICATE_ENTRY: '資料重複',
+    INVALID_ID: '無效的ID格式',
+    ALREADY_EXISTS: '資料已存在'
   },
 
   // 認證相關

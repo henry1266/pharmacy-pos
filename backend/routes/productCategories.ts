@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
-import { ApiResponse, ErrorResponse } from '../src/types/api';
-import { IProductCategoryDocument } from '../src/types/models';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 import ProductCategory from '../models/ProductCategory';
 import auth from '../middleware/auth';
 
@@ -23,7 +23,7 @@ router.get('/', async (req: Request, res: Response) => {
     const categories = await ProductCategory.find({ isActive: { $ne: false } })
       .sort({ order: 1, name: 1 });
       
-    const response: ApiResponse<IProductCategoryDocument[]> = {
+    const response: ApiResponse<any[]> = {
       success: true,
       message: '成功獲取產品分類',
       data: categories,
@@ -36,11 +36,11 @@ router.get('/', async (req: Request, res: Response) => {
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: '伺服器錯誤',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -58,10 +58,10 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
-    const response: ApiResponse<IProductCategoryDocument> = {
+    const response: ApiResponse<any> = {
       success: true,
       message: '成功獲取產品分類',
       data: category,
@@ -78,7 +78,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
@@ -87,7 +87,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -104,11 +104,11 @@ router.post('/',
   if (!errors.isEmpty()) {
     const errorResponse: ErrorResponse = {
       success: false,
-      message: '驗證失敗',
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
       error: JSON.stringify(errors.array()),
       timestamp: new Date()
     };
-    return res.status(400).json(errorResponse);
+    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
   
   try {
@@ -124,7 +124,7 @@ router.post('/',
         message: '該產品分類已存在',
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const newCategory = new ProductCategory({
@@ -134,7 +134,7 @@ router.post('/',
     
     const category = await newCategory.save();
     
-    const response: ApiResponse<IProductCategoryDocument> = {
+    const response: ApiResponse<any> = {
       success: true,
       message: '產品分類新增成功',
       data: category,
@@ -151,7 +151,7 @@ router.post('/',
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -168,11 +168,11 @@ router.put('/:id',
   if (!errors.isEmpty()) {
     const errorResponse: ErrorResponse = {
       success: false,
-      message: '驗證失敗',
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
       error: JSON.stringify(errors.array()),
       timestamp: new Date()
     };
-    return res.status(400).json(errorResponse);
+    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
   
   try {
@@ -191,7 +191,7 @@ router.put('/:id',
         message: '該產品分類已存在',
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     // 使用 findOne 替代 findById，並將 id 轉換為字串
@@ -203,7 +203,7 @@ router.put('/:id',
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     // 更新類別
@@ -218,7 +218,7 @@ router.put('/:id',
     
     category = await category.save();
     
-    const response: ApiResponse<IProductCategoryDocument> = {
+    const response: ApiResponse<any> = {
       success: true,
       message: '產品分類更新成功',
       data: category,
@@ -235,7 +235,7 @@ router.put('/:id',
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
@@ -244,7 +244,7 @@ router.put('/:id',
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -262,16 +262,17 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     // 軟刪除 - 將isActive設為false
     category.isActive = false;
     await category.save();
     
-    const response: ApiResponse = {
+    const response: ApiResponse<null> = {
       success: true,
       message: '產品分類已停用',
+      data: null,
       timestamp: new Date()
     };
     
@@ -285,7 +286,7 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
         message: '找不到產品分類',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
@@ -294,7 +295,7 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

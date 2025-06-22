@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import { check, validationResult } from 'express-validator';
-import { ApiResponse, ErrorResponse, JWTPayload } from '../src/types/api';
-import { IUserDocument } from '../src/types/models';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 import User from '../models/User';
 
 const router = express.Router();
@@ -15,6 +15,13 @@ interface UserRegistrationRequest {
   email: string;
   password: string;
   role?: string;
+}
+
+interface JWTPayload {
+  id: string;
+  username: string;
+  role: string;
+  isAdmin: boolean;
 }
 
 // @route   POST api/users
@@ -32,11 +39,11 @@ router.post(
     if (!errors.isEmpty()) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '驗證失敗',
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const { name, email, password, role } = req.body as UserRegistrationRequest;
@@ -49,10 +56,10 @@ router.post(
       if (user) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: '用戶已存在',
+          message: ERROR_MESSAGES.GENERIC.DUPLICATE_ENTRY,
           timestamp: new Date()
         };
-        return res.status(400).json(errorResponse);
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       }
 
       // 創建新用戶 (使用 name 作為 username)
@@ -105,11 +112,11 @@ router.post(
       
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '伺服器錯誤',
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
         timestamp: new Date()
       };
       
-      res.status(500).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );

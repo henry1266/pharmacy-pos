@@ -8,7 +8,8 @@ import Accounting from '../models/Accounting';
 import Inventory from '../models/Inventory';
 import BaseProduct from '../models/BaseProduct';
 import MonitoredProduct from '../models/MonitoredProduct';
-import { IAccountingDocument, IInventoryDocument } from '../src/types/models';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 import auth from '../middleware/auth';
 
 // 定義會計記錄狀態型別
@@ -99,10 +100,25 @@ router.get('/', auth, async (req: Request, res: Response) => {
     if (shift) query.shift = shift.toString();
     
     const accountingRecords = await Accounting.find(query).sort({ date: -1, shift: 1 });
-    res.json(accountingRecords);
+    
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: '記帳記錄獲取成功',
+      data: accountingRecords,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -114,7 +130,12 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
     const { date } = req.query as AccountingQueryParams;
     
     if (!date) {
-      return res.status(400).json({ msg: '缺少日期參數' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少日期參數',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     let datePrefix: string;
@@ -122,12 +143,23 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
       datePrefix = format(new Date(date), 'yyyyMMdd');
     } catch (formatError) {
       console.error('日期格式化錯誤:', formatError);
-      return res.status(400).json({ msg: '無效的日期格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的日期格式',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     const monitored = await MonitoredProduct.find({}, 'productCode');
     if (!monitored || monitored.length === 0) {
-      return res.json([]);
+      const response: ApiResponse<any[]> = {
+        success: true,
+        message: '無監測產品',
+        data: [],
+        timestamp: new Date()
+      };
+      return res.json(response);
     }
     
     const monitoredProductCodes = monitored.map((p: any) => p.productCode);
@@ -138,7 +170,13 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
     );
     
     if (!products || products.length === 0) {
-      return res.json([]);
+      const response: ApiResponse<any[]> = {
+        success: true,
+        message: '無相關產品',
+        data: [],
+        timestamp: new Date()
+      };
+      return res.json(response);
     }
     
     const monitoredProductIds = products.map((p: any) => p._id);
@@ -165,10 +203,24 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
       };
     });
 
-    res.json(salesWithProductDetails);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: '未標記銷售記錄獲取成功',
+      data: salesWithProductDetails,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error('查詢未標記銷售記錄失敗:', (err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -212,10 +264,24 @@ router.get('/summary/daily', auth, async (req: Request, res: Response) => {
       { $sort: { _id: -1 } }
     ]);
     
-    res.json(summary);
+    const response: ApiResponse<DailySummary[]> = {
+      success: true,
+      message: '每日記帳摘要獲取成功',
+      data: summary,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -226,22 +292,52 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
   const { id } = req.params;
   
   if (!id) {
-    return res.status(400).json({ msg: '記帳記錄ID為必填項' });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: '記帳記錄ID為必填項',
+      timestamp: new Date()
+    };
+    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
   
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ msg: '無效的記帳記錄 ID 格式' });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: '無效的記帳記錄 ID 格式',
+      timestamp: new Date()
+    };
+    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
   
   try {
     const accounting = await Accounting.findById(id);
     if (!accounting) {
-      return res.status(404).json({ msg: '找不到記帳記錄' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到記帳記錄',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
-    res.json(accounting);
+    
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '記帳記錄獲取成功',
+      data: accounting,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -261,7 +357,13 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        error: JSON.stringify(errors.array()),
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
 
     try {
@@ -413,7 +515,12 @@ router.put(
 
       let accounting = await Accounting.findById(id);
       if (!accounting) {
-        return res.status(404).json({ msg: '找不到記帳記錄' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '找不到記帳記錄',
+          timestamp: new Date()
+        };
+        return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
       }
 
       // --- Start: New logic for handling status change and sales re-linking ---

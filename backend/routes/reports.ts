@@ -7,6 +7,8 @@ import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
 import Customer from '../models/Customer';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 // 定義查詢參數介面
 interface ReportQueryParams {
@@ -306,13 +308,30 @@ router.get('/sales', async (req: Request, res: Response) => {
       averageOrderValue: sales.length > 0 ? sales.reduce((sum, sale) => sum + sale.totalAmount, 0) / sales.length : 0
     };
     
-    res.json({
-      data: groupedData,
-      summary
-    });
+    const response: ApiResponse<{
+      data: GroupedSalesData[];
+      summary: SalesSummary;
+    }> = {
+      success: true,
+      message: '銷售報表數據獲取成功',
+      data: {
+        data: groupedData,
+        summary
+      },
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -503,19 +522,42 @@ router.get('/inventory', async (req: Request, res: Response) => {
     const allSuppliers = await Supplier.find({}, 'name');
     const allCategories = [...new Set(products.map(product => product.category))].filter(Boolean);
     
-    res.json({
-      data: inventoryData,
-      summary,
-      categoryGroups: Object.values(categoryGroups),
-      productTypeGroups: Object.values(productTypeGroups),
+    const response: ApiResponse<{
+      data: InventoryData[];
+      summary: InventorySummary;
+      categoryGroups: any[];
+      productTypeGroups: any[];
       filters: {
-        suppliers: allSuppliers,
-        categories: allCategories
-      }
-    });
+        suppliers: any[];
+        categories: string[];
+      };
+    }> = {
+      success: true,
+      message: '庫存報表數據獲取成功',
+      data: {
+        data: inventoryData,
+        summary,
+        categoryGroups: Object.values(categoryGroups),
+        productTypeGroups: Object.values(productTypeGroups),
+        filters: {
+          suppliers: allSuppliers,
+          categories: allCategories
+        }
+      },
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -662,13 +704,30 @@ router.get('/inventory/profit-loss', async (req: Request, res: Response) => {
     // 計算總計
     const summary = calculateProfitLossSummary(profitLossData);
     
-    res.json({
-      data: profitLossData,
-      summary
-    });
+    const response: ApiResponse<{
+      data: ProfitLossData[];
+      summary: ProfitLossSummary;
+    }> = {
+      success: true,
+      message: '盈虧報表數據獲取成功',
+      data: {
+        data: profitLossData,
+        summary
+      },
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

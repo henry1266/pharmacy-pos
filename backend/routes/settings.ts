@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import auth from "../middleware/auth";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../src/types/express";
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 const router = express.Router();
 
@@ -26,7 +28,12 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     
     if (!user) {
       console.error("User not found for ID:", req.user.id);
-      return res.status(404).json({ msg: "找不到用戶" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "找不到用戶",
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     // Log the user object (excluding password) for debugging
@@ -38,16 +45,27 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     const settings: UserSettings = user.settings || {};
     console.log("Returning settings:", settings);
     
-    res.json(settings);
+    const response: ApiResponse<UserSettings> = {
+      success: true,
+      message: "用戶設定獲取成功",
+      data: settings,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     const error = err as Error;
     console.error("獲取用戶設定失敗:", error.message);
     console.error("Error stack:", error.stack);
-    res.status(500).json({
-      msg: "伺服器錯誤",
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       error: error.message,
-      userId: req.user.id
-    });
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -64,7 +82,12 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
   // Basic validation: ensure req.body is an object
   if (typeof newSettings !== 'object' || newSettings === null) {
       console.error("Invalid settings format received");
-      return res.status(400).json({ msg: "無效的設定格式，應為一個物件。" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "無效的設定格式，應為一個物件。",
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
 
   try {
@@ -73,7 +96,12 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
 
     if (!user) {
       console.error("User not found for ID:", req.user.id);
-      return res.status(404).json({ msg: "找不到用戶" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "找不到用戶",
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
 
     console.log("Current user settings before update:", user.settings);
@@ -88,7 +116,14 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     console.log("User settings updated successfully");
 
     // Return the updated settings
-    res.json(user.settings);
+    const response: ApiResponse<UserSettings> = {
+      success: true,
+      message: "用戶設定更新成功",
+      data: user.settings,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
 
   } catch (err) {
     const error = err as Error;
@@ -98,18 +133,23 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     // Handle potential validation errors if schema evolves
     if (error.name === 'ValidationError') {
         const validationError = error as ValidationError;
-        return res.status(400).json({
-          msg: "設定資料驗證失敗",
-          errors: validationError.errors,
-          userId: req.user.id
-        });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+          error: JSON.stringify(validationError.errors),
+          timestamp: new Date()
+        };
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
-    res.status(500).json({
-      msg: "伺服器錯誤",
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       error: error.message,
-      userId: req.user.id
-    });
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

@@ -6,8 +6,9 @@ import Inventory from '../models/Inventory';
 // 使用 ES6 import 導入
 import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
 import PurchaseOrder from '../models/PurchaseOrder';
-import { ApiResponse, ErrorResponse } from '../src/types/api';
-import { IInventory, IInventoryDocument } from '../src/types/models';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { Inventory as SharedInventory } from '@shared/types/entities';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 const router = express.Router();
 
@@ -37,10 +38,36 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('product')
       .populate('purchaseOrderId', 'poid orderNumber pobill');
     
-    const response: ApiResponse<IInventoryDocument[]> = {
+    // 轉換 Mongoose Document 到 shared 類型
+    const inventoryList: SharedInventory[] = inventory.map(inv => {
+      const invAny = inv as any;
+      return {
+        _id: inv._id.toString(),
+        product: invAny.product,
+        quantity: inv.quantity,
+        totalAmount: invAny.totalAmount,
+        type: invAny.type || 'purchase',
+        referenceId: invAny.referenceId,
+        purchaseOrderId: invAny.purchaseOrderId,
+        purchaseOrderNumber: invAny.purchaseOrderNumber,
+        saleId: invAny.saleId,
+        saleNumber: invAny.saleNumber,
+        shippingOrderId: invAny.shippingOrderId,
+        shippingOrderNumber: invAny.shippingOrderNumber,
+        accountingId: invAny.accountingId,
+        date: invAny.date || new Date(),
+        lastUpdated: invAny.lastUpdated,
+        notes: invAny.notes,
+        createdBy: invAny.createdBy,
+        createdAt: invAny.createdAt,
+        updatedAt: invAny.updatedAt
+      };
+    });
+
+    const response: ApiResponse<SharedInventory[]> = {
       success: true,
-      message: 'Inventory items retrieved successfully',
-      data: inventory,
+      message: '庫存項目獲取成功',
+      data: inventoryList,
       timestamp: new Date()
     };
     
@@ -50,11 +77,11 @@ router.get('/', async (req: Request, res: Response) => {
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -70,7 +97,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '無效的庫存記錄ID',
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
@@ -84,13 +111,37 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
-    const response: ApiResponse<IInventoryDocument> = {
+    // 轉換 Mongoose Document 到 shared 類型
+    const invAny = inventory as any;
+    const inventoryData: SharedInventory = {
+      _id: inventory._id.toString(),
+      product: invAny.product,
+      quantity: inventory.quantity,
+      totalAmount: invAny.totalAmount,
+      type: invAny.type || 'purchase',
+      referenceId: invAny.referenceId,
+      purchaseOrderId: invAny.purchaseOrderId,
+      purchaseOrderNumber: invAny.purchaseOrderNumber,
+      saleId: invAny.saleId,
+      saleNumber: invAny.saleNumber,
+      shippingOrderId: invAny.shippingOrderId,
+      shippingOrderNumber: invAny.shippingOrderNumber,
+      accountingId: invAny.accountingId,
+      date: invAny.date || new Date(),
+      lastUpdated: invAny.lastUpdated,
+      notes: invAny.notes,
+      createdBy: invAny.createdBy,
+      createdAt: invAny.createdAt,
+      updatedAt: invAny.updatedAt
+    };
+
+    const response: ApiResponse<SharedInventory> = {
       success: true,
-      message: 'Inventory item retrieved successfully',
-      data: inventory,
+      message: '庫存項目獲取成功',
+      data: inventoryData,
       timestamp: new Date()
     };
     
@@ -104,16 +155,16 @@ router.get('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -131,11 +182,11 @@ router.post(
     if (!errors.isEmpty()) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Validation failed',
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
         error: JSON.stringify(errors.array()),
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     try {
@@ -158,11 +209,11 @@ router.post(
           message: '藥品不存在',
           timestamp: new Date()
         };
-        return res.status(404).json(errorResponse);
+        return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
       }
       
       // 檢查是否已有該藥品的庫存記錄
-      let existingInventory: IInventoryDocument | null = null;
+      let existingInventory: any = null;
       if (purchaseOrderId) {
         // 修正：將 product 和 purchaseOrderId 參數轉換為字串
         existingInventory = await Inventory.findOne({ 
@@ -181,10 +232,34 @@ router.post(
         
         await existingInventory.save();
         
-        const response: ApiResponse<IInventoryDocument> = {
+        // 轉換 Mongoose Document 到 shared 類型
+        const existingInvAny = existingInventory as any;
+        const inventoryData: SharedInventory = {
+          _id: existingInventory._id.toString(),
+          product: existingInvAny.product,
+          quantity: existingInventory.quantity,
+          totalAmount: existingInvAny.totalAmount,
+          type: existingInvAny.type || 'purchase',
+          referenceId: existingInvAny.referenceId,
+          purchaseOrderId: existingInvAny.purchaseOrderId,
+          purchaseOrderNumber: existingInvAny.purchaseOrderNumber,
+          saleId: existingInvAny.saleId,
+          saleNumber: existingInvAny.saleNumber,
+          shippingOrderId: existingInvAny.shippingOrderId,
+          shippingOrderNumber: existingInvAny.shippingOrderNumber,
+          accountingId: existingInvAny.accountingId,
+          date: existingInvAny.date || new Date(),
+          lastUpdated: existingInvAny.lastUpdated,
+          notes: existingInvAny.notes,
+          createdBy: existingInvAny.createdBy,
+          createdAt: existingInvAny.createdAt,
+          updatedAt: existingInvAny.updatedAt
+        };
+
+        const response: ApiResponse<SharedInventory> = {
           success: true,
-          message: 'Inventory item updated successfully',
-          data: existingInventory,
+          message: '庫存項目更新成功',
+          data: inventoryData,
           timestamp: new Date()
         };
         
@@ -192,11 +267,12 @@ router.post(
       }
       
       // 建立新庫存記錄
-      const inventoryFields: Partial<IInventory> = {
+      const inventoryFields: any = {
         product: new Types.ObjectId(product),
         quantity,
         type,
         totalAmount,
+        date: new Date(),
         lastUpdated: new Date()
       };
       
@@ -211,10 +287,34 @@ router.post(
       const inventory = new Inventory(inventoryFields);
       await inventory.save();
       
-      const response: ApiResponse<IInventoryDocument> = {
+      // 轉換 Mongoose Document 到 shared 類型
+      const savedInvAny = inventory as any;
+      const inventoryData: SharedInventory = {
+        _id: inventory._id.toString(),
+        product: savedInvAny.product,
+        quantity: inventory.quantity,
+        totalAmount: savedInvAny.totalAmount,
+        type: savedInvAny.type || 'purchase',
+        referenceId: savedInvAny.referenceId,
+        purchaseOrderId: savedInvAny.purchaseOrderId,
+        purchaseOrderNumber: savedInvAny.purchaseOrderNumber,
+        saleId: savedInvAny.saleId,
+        saleNumber: savedInvAny.saleNumber,
+        shippingOrderId: savedInvAny.shippingOrderId,
+        shippingOrderNumber: savedInvAny.shippingOrderNumber,
+        accountingId: savedInvAny.accountingId,
+        date: savedInvAny.date || new Date(),
+        lastUpdated: savedInvAny.lastUpdated,
+        notes: savedInvAny.notes,
+        createdBy: savedInvAny.createdBy,
+        createdAt: savedInvAny.createdAt as Date,
+        updatedAt: savedInvAny.updatedAt as Date
+      };
+
+      const response: ApiResponse<SharedInventory> = {
         success: true,
-        message: 'Inventory item created successfully',
-        data: inventory,
+        message: '庫存項目創建成功',
+        data: inventoryData,
         timestamp: new Date()
       };
       
@@ -224,11 +324,11 @@ router.post(
       
       const errorResponse: ErrorResponse = {
         success: false,
-        message: 'Server Error',
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
         timestamp: new Date()
       };
       
-      res.status(500).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );
@@ -245,7 +345,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: '無效的庫存記錄ID',
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const requestBody = req.body as InventoryUpdateRequest;
@@ -257,7 +357,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     } = requestBody;
     
     // 建立更新欄位物件
-    const inventoryFields: Partial<IInventory> = {
+    const inventoryFields: any = {
       lastUpdated: new Date()
     };
     
@@ -285,7 +385,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     // 如果更改了藥品，檢查新藥品是否存在
@@ -298,7 +398,7 @@ router.put('/:id', async (req: Request, res: Response) => {
           message: '藥品不存在',
           timestamp: new Date()
         };
-        return res.status(404).json(errorResponse);
+        return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
       }
     }
     
@@ -310,10 +410,34 @@ router.put('/:id', async (req: Request, res: Response) => {
       { new: true }
     );
     
-    const response: ApiResponse<IInventoryDocument> = {
+    // 轉換 Mongoose Document 到 shared 類型
+    const updatedInvAny = inventory as any;
+    const inventoryData: SharedInventory = {
+      _id: inventory!._id.toString(),
+      product: updatedInvAny.product,
+      quantity: inventory!.quantity,
+      totalAmount: updatedInvAny.totalAmount,
+      type: updatedInvAny.type || 'purchase',
+      referenceId: updatedInvAny.referenceId,
+      purchaseOrderId: updatedInvAny.purchaseOrderId,
+      purchaseOrderNumber: updatedInvAny.purchaseOrderNumber,
+      saleId: updatedInvAny.saleId,
+      saleNumber: updatedInvAny.saleNumber,
+      shippingOrderId: updatedInvAny.shippingOrderId,
+      shippingOrderNumber: updatedInvAny.shippingOrderNumber,
+      accountingId: updatedInvAny.accountingId,
+      date: updatedInvAny.date || new Date(),
+      lastUpdated: updatedInvAny.lastUpdated,
+      notes: updatedInvAny.notes,
+      createdBy: updatedInvAny.createdBy,
+      createdAt: updatedInvAny.createdAt,
+      updatedAt: updatedInvAny.updatedAt
+    };
+
+    const response: ApiResponse<SharedInventory> = {
       success: true,
-      message: 'Inventory item updated successfully',
-      data: inventory!,
+      message: '庫存項目更新成功',
+      data: inventoryData,
       timestamp: new Date()
     };
     
@@ -327,16 +451,16 @@ router.put('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -352,7 +476,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: '無效的庫存記錄ID',
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
@@ -363,7 +487,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     await inventory.deleteOne();
@@ -385,16 +509,16 @@ router.delete('/:id', async (req: Request, res: Response) => {
         message: '庫存記錄不存在',
         timestamp: new Date()
       };
-      return res.status(404).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -410,7 +534,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
         message: '無效的產品ID',
         timestamp: new Date()
       };
-      return res.status(400).json(errorResponse);
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const inventory = await Inventory.find({ product: req.params.productId.toString() })
@@ -418,10 +542,36 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
       .populate('purchaseOrderId', 'poid orderNumber pobill')
       .populate('saleId', 'saleNumber');
     
-    const response: ApiResponse<IInventoryDocument[]> = {
+    // 轉換 Mongoose Document 到 shared 類型
+    const inventoryList: SharedInventory[] = inventory.map(inv => {
+      const invAny = inv as any;
+      return {
+        _id: inv._id.toString(),
+        product: invAny.product,
+        quantity: inv.quantity,
+        totalAmount: invAny.totalAmount,
+        type: invAny.type || 'purchase',
+        referenceId: invAny.referenceId,
+        purchaseOrderId: invAny.purchaseOrderId,
+        purchaseOrderNumber: invAny.purchaseOrderNumber,
+        saleId: invAny.saleId,
+        saleNumber: invAny.saleNumber,
+        shippingOrderId: invAny.shippingOrderId,
+        shippingOrderNumber: invAny.shippingOrderNumber,
+        accountingId: invAny.accountingId,
+        date: invAny.date || new Date(),
+        lastUpdated: invAny.lastUpdated,
+        notes: invAny.notes,
+        createdBy: invAny.createdBy,
+        createdAt: invAny.createdAt,
+        updatedAt: invAny.updatedAt
+      };
+    });
+
+    const response: ApiResponse<SharedInventory[]> = {
       success: true,
-      message: 'Inventory items retrieved successfully',
-      data: inventory,
+      message: '產品庫存項目獲取成功',
+      data: inventoryList,
       timestamp: new Date()
     };
     
@@ -431,11 +581,11 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
     
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Server Error',
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       timestamp: new Date()
     };
     
-    res.status(500).json(errorResponse);
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

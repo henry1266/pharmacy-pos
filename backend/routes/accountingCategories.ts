@@ -4,19 +4,12 @@ import { check, validationResult } from 'express-validator';
 
 // 使用 TypeScript import 語法導入模型和中介軟體
 import AccountingCategory from '../models/AccountingCategory';
-import { IAccountingCategoryDocument } from '../src/types/models';
 import auth from '../middleware/auth';
 
-// 定義會計類別介面
-interface IAccountingCategory {
-  _id: mongoose.Types.ObjectId;
-  name: string;
-  description?: string;
-  isActive: boolean;
-  order?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// 導入共享類型和常數
+import { ApiResponse, ErrorResponse } from '../../shared/types/api';
+import { ERROR_MESSAGES, API_CONSTANTS } from '../../shared/constants';
+import { AuthenticatedRequest } from '../src/types/express';
 
 // 定義請求介面
 interface AccountingCategoryRequest {
@@ -24,13 +17,6 @@ interface AccountingCategoryRequest {
   description?: string;
   isActive?: boolean;
   order?: number;
-}
-
-// 擴展 Request 介面以包含用戶資訊
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
 }
 
 const router = express.Router();
@@ -42,11 +28,24 @@ router.get('/', auth, async (req: Request, res: Response) => {
   try {
     const categories = await AccountingCategory.find({ isActive: true })
       .sort({ order: 1, name: 1 });
-      
-    res.json(categories);
+    
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: '成功獲取記帳名目類別',
+      data: categories,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -58,19 +57,44 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
     const { id } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ msg: '無效的類別 ID 格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INVALID_ID,
+        error: '無效的類別 ID 格式',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const category = await AccountingCategory.findById(id);
       
     if (!category) {
-      return res.status(404).json({ msg: '找不到記帳名目類別' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        error: '找不到記帳名目類別',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
-    res.json(category);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '成功獲取記帳名目類別',
+      data: category,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -82,7 +106,13 @@ router.post('/', auth, [
 ], async (req: AuthenticatedRequest, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      error: JSON.stringify(errors.array()),
+      timestamp: new Date()
+    };
+    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
   
   try {
@@ -92,7 +122,13 @@ router.post('/', auth, [
     const existingCategory = await AccountingCategory.findOne({ name: name.toString() });
     
     if (existingCategory) {
-      return res.status(400).json({ msg: '該名目類別已存在' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+        error: '該名目類別已存在',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const newCategory = new AccountingCategory({
@@ -101,10 +137,24 @@ router.post('/', auth, [
     });
     
     const category = await newCategory.save();
-    res.json(category);
+    
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '記帳名目類別創建成功',
+      data: category,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -116,7 +166,13 @@ router.put('/:id', auth, [
 ], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      error: JSON.stringify(errors.array()),
+      timestamp: new Date()
+    };
+    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
   
   try {
@@ -124,7 +180,13 @@ router.put('/:id', auth, [
     const { name, description, isActive, order }: AccountingCategoryRequest = req.body;
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ msg: '無效的類別 ID 格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INVALID_ID,
+        error: '無效的類別 ID 格式',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     // 檢查是否存在相同名稱的其他類別
@@ -134,13 +196,25 @@ router.put('/:id', auth, [
     });
     
     if (existingCategory) {
-      return res.status(400).json({ msg: '該名目類別已存在' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+        error: '該名目類別已存在',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     let category = await AccountingCategory.findById(id);
     
     if (!category) {
-      return res.status(404).json({ msg: '找不到記帳名目類別' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        error: '找不到記帳名目類別',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     // 更新類別
@@ -154,10 +228,24 @@ router.put('/:id', auth, [
     }
     
     category = await category.save();
-    res.json(category);
+    
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '記帳名目類別更新成功',
+      data: category,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -169,23 +257,48 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
     const { id } = req.params;
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ msg: '無效的類別 ID 格式' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INVALID_ID,
+        error: '無效的類別 ID 格式',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
     }
     
     const category = await AccountingCategory.findById(id);
     
     if (!category) {
-      return res.status(404).json({ msg: '找不到記帳名目類別' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        error: '找不到記帳名目類別',
+        timestamp: new Date()
+      };
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
     }
     
     // 軟刪除 - 將isActive設為false
     category.isActive = false;
     await category.save();
     
-    res.json({ msg: '記帳名目類別已停用' });
+    const response: ApiResponse<null> = {
+      success: true,
+      message: '記帳名目類別已停用',
+      data: null,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: (err as Error).message,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

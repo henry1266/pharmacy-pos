@@ -7,6 +7,8 @@ import Sale from '../models/Sale';
 import Customer from '../models/Customer';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 // 定義庫存警告介面
 interface LowStockWarning {
@@ -251,10 +253,24 @@ router.get('/summary', async (req: Request, res: Response) => {
       recentSales: formattedRecentSales
     };
     
-    res.json(response);
+    const apiResponse: ApiResponse<DashboardSummaryResponse> = {
+      success: true,
+      message: '儀表板摘要數據獲取成功',
+      data: response,
+      timestamp: new Date()
+    };
+    
+    res.json(apiResponse);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -331,10 +347,24 @@ router.get('/sales-trend', async (req: Request, res: Response) => {
       categorySales
     };
     
-    res.json(response);
+    const apiResponse: ApiResponse<SalesTrendResponse> = {
+      success: true,
+      message: '銷售趨勢數據獲取成功',
+      data: response,
+      timestamp: new Date()
+    };
+    
+    res.json(apiResponse);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server Error');
+    
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 

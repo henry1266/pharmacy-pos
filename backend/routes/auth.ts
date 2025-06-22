@@ -5,18 +5,18 @@ import config from 'config';
 import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
 import mongoose, { Document } from 'mongoose';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 import User from '../models/User';
-import { IUser, IUserDocument } from '../src/types/models';
 
-// 擴展 IUser 介面以匹配實際的 User 模型
-interface IExtendedUser extends Omit<IUser, 'name'> {
-  name?: string;
+// 用戶相關介面
+interface IExtendedUser {
+  username: string;
   email?: string;
+  role: string;
+  password: string;
 }
-
-// 擴展 IUserDocument 介面以匹配實際的 User 模型
-interface IExtendedUserDocument extends Omit<IUserDocument, 'name'>, IExtendedUser {}
 
 const router: Router = express.Router();
 
@@ -43,7 +43,7 @@ interface UpdateUserRequest {
 interface UserValidationResult {
   valid: boolean;
   error?: string;
-  user?: IExtendedUserDocument;
+  user?: any;
 }
 
 interface PasswordUpdateResult {
@@ -69,13 +69,30 @@ router.get('/', auth, async (req: AuthRequest, res: Response): Promise<void> => 
     // Find user by ID from token payload and exclude password
     const user = await User.findOne({ _id: req.user!.id.toString() }).select('-password');
     if (!user) {
-      res.status(404).json({ msg: '找不到用戶' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到用戶',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
       return;
     }
-    res.json(user);
+    
+    const response: ApiResponse<any> = {
+      success: true,
+      message: '用戶資料獲取成功',
+      data: user,
+      timestamp: new Date()
+    };
+    res.json(response);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 });
 
@@ -90,20 +107,31 @@ router.post(
   async (req: Request<{}, {}, LoginRequest>, res: Response): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        error: JSON.stringify(errors.array()),
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       return;
     }
 
     const { username, email, password } = req.body;
 
     if (!username && !email) {
-      res.status(400).json({ msg: '請提供用戶名或電子郵件' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '請提供用戶名或電子郵件',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       return;
     }
 
     try {
       // 檢查用戶是否存在 - 支持用戶名或電子郵件登入
-      let user: IUserDocument | null = null;
+      let user: any = null;
       
       if (username) {
         user = await User.findOne({ username: username.toString() });
@@ -112,7 +140,12 @@ router.post(
       }
 
       if (!user) {
-        res.status(400).json({ msg: '無效的憑證' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
         return;
       }
 
@@ -120,7 +153,12 @@ router.post(
       const isMatch = await bcrypt.compare(password, user.password);
 
       if (!isMatch) {
-        res.status(400).json({ msg: '無效的憑證' });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
         return;
       }
 
@@ -141,23 +179,43 @@ router.post(
         { expiresIn: config.get('jwtExpiration') },
         (err: Error | null, token?: string) => {
           if (err) throw err;
-          // 返回 token 和用戶資訊 (不含密碼)
-          res.json({ 
-            token,
+          
+          const response: ApiResponse<{
+            token: string;
             user: {
-              id: user!.id,
-              name: (user as any).name,
-              username: user!.username,
-              email: (user as any).email,
-              role: user!.role,
-              // Include other non-sensitive fields if needed
-            }
-          });
+              id: string;
+              name?: string;
+              username: string;
+              email?: string;
+              role: string;
+            };
+          }> = {
+            success: true,
+            message: '登入成功',
+            data: {
+              token: token!,
+              user: {
+                id: user!.id,
+                name: (user as any).name,
+                username: user!.username,
+                email: (user as any).email,
+                role: user!.role,
+              }
+            },
+            timestamp: new Date()
+          };
+          
+          res.json(response);
         }
       );
     } catch (err: any) {
       console.error(err.message);
-      res.status(500).send('伺服器錯誤');
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );
@@ -168,12 +226,12 @@ const validateUserExists = async (userId: string): Promise<UserValidationResult>
   if (!user) {
     return { valid: false, error: '找不到用戶' };
   }
-  return { valid: true, user: user as IExtendedUserDocument };
+  return { valid: true, user: user };
 };
 
 // 更新密碼
 const updatePassword = async (
-  user: IExtendedUserDocument,
+  user: any,
   currentPassword?: string, 
   newPassword?: string
 ): Promise<PasswordUpdateResult> => {
@@ -199,7 +257,7 @@ const updatePassword = async (
 
 // 更新用戶名
 const updateUsername = async (
-  user: IExtendedUserDocument,
+  user: any,
   newUsername?: string
 ): Promise<UsernameUpdateResult> => {
   if (!newUsername || newUsername === user.username) {
@@ -222,7 +280,7 @@ const updateUsername = async (
 
 // 更新電子郵件
 const updateEmail = async (
-  user: IExtendedUserDocument,
+  user: any,
   newEmail?: string
 ): Promise<EmailUpdateResult> => {
   if (newEmail === undefined || newEmail === (user as any).email) {
@@ -267,7 +325,13 @@ router.put(
   async (req: AuthRequest & Request<{}, {}, UpdateUserRequest>, res: Response): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        error: JSON.stringify(errors.array()),
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       return;
     }
 
@@ -277,7 +341,12 @@ router.put(
       // 驗證用戶存在
       const userValidation = await validateUserExists(req.user!.id);
       if (!userValidation.valid) {
-        res.status(404).json({ msg: userValidation.error });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: userValidation.error || '找不到用戶',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
         return;
       }
       
@@ -287,7 +356,12 @@ router.put(
       if (newPassword) {
         const passwordUpdate = await updatePassword(user, currentPassword, newPassword);
         if (!passwordUpdate.success) {
-          res.status(400).json({ msg: passwordUpdate.error });
+          const errorResponse: ErrorResponse = {
+            success: false,
+            message: passwordUpdate.error || '密碼更新失敗',
+            timestamp: new Date()
+          };
+          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
           return;
         }
       }
@@ -295,14 +369,24 @@ router.put(
       // 更新用戶名
       const usernameUpdate = await updateUsername(user, username);
       if (!usernameUpdate.success) {
-        res.status(400).json({ msg: usernameUpdate.error });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: usernameUpdate.error || '用戶名更新失敗',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
         return;
       }
 
       // 更新電子郵件
       const emailUpdate = await updateEmail(user, email);
       if (!emailUpdate.success) {
-        res.status(400).json({ msg: emailUpdate.error });
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: emailUpdate.error || '電子郵件更新失敗',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
         return;
       }
 
@@ -311,10 +395,23 @@ router.put(
 
       // 返回更新後的用戶資訊（不含密碼）
       const updatedUser = await User.findById(user.id).select('-password');
-      res.json(updatedUser);
+      
+      const response: ApiResponse<any> = {
+        success: true,
+        message: '用戶資料更新成功',
+        data: updatedUser,
+        timestamp: new Date()
+      };
+      
+      res.json(response);
     } catch (err: any) {
       console.error(err.message);
-      res.status(500).send('伺服器錯誤');
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
     }
   }
 );

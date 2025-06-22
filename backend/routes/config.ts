@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
 import fs from 'fs';
 import path from 'path';
+import { ApiResponse, ErrorResponse } from '@shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
 
 const router = express.Router();
 
@@ -24,11 +26,23 @@ router.post("/mongodb", async (req: MongoDBConfigRequest, res: Response) => {
 
   // Basic validation
   if (!host || !port || !database) {
-    return res.status(400).json({ msg: "請提供完整的 MongoDB 設定 (host, port, database)" });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: "請提供完整的 MongoDB 設定 (host, port, database)",
+      timestamp: new Date()
+    };
+    return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
   }
 
   // Respond that the config was received (but not yet fully applied dynamically)
-  res.json({ msg: "MongoDB 設定已接收，但目前僅記錄，尚未動態套用。" });
+  const response: ApiResponse<null> = {
+    success: true,
+    message: "MongoDB 設定已接收，但目前僅記錄，尚未動態套用。",
+    data: null,
+    timestamp: new Date()
+  };
+  
+  res.json(response);
 });
 
 export default router;
