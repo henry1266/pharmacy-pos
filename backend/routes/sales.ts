@@ -1,20 +1,27 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
+import mongoose from 'mongoose';
 // 使用 ES6 import 導入模型
 import Sale from '../models/Sale';
-import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
+import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
-import { AuthenticatedRequest } from '../src/types/express';
 // 使用 shared 架構的 API 類型
 import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
-import { Sale as SharedSale, Product as SharedProduct, Customer as SharedCustomer, Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 引入通用訂單單號生成服務
 const OrderNumberService = require('../utils/OrderNumberService');
 
 const router: express.Router = express.Router();
+
+/**
+ * 驗證 MongoDB ObjectId 是否有效
+ * 防止 NoSQL 注入攻擊
+ */
+function isValidObjectId(id: string): boolean {
+  return mongoose.Types.ObjectId.isValid(id);
+}
 
 // 型別定義
 // 使用 shared 的 SaleCreateRequest，並擴展本地需要的欄位
@@ -24,11 +31,15 @@ interface SaleCreationRequest extends SaleCreateRequest {
   cashier?: string;
 }
 
+// 定義更具體的型別
+// 使用 Record<string, any> 來避免 _id 型別衝突
+type SaleDocument = mongoose.Document & Record<string, any>;
+
 interface ValidationResult {
   success: boolean;
   statusCode?: number;
   message?: string;
-  sale?: any; // 使用 any 避免複雜的 Document 類型問題
+  sale?: SaleDocument;
 }
 
 interface CustomerCheckResult {
@@ -38,13 +49,18 @@ interface CustomerCheckResult {
 
 interface ProductCheckResult {
   exists: boolean;
-  product?: any; // 使用 any 避免複雜的 Document 類型問題
+  product?: mongoose.Document;
   error?: ValidationResult;
 }
 
 interface InventoryCheckResult {
   success: boolean;
   error?: ValidationResult;
+}
+
+// 定義錯誤型別
+interface MongooseError extends Error {
+  kind?: string;
 }
 
 // @route   GET api/sales
@@ -58,16 +74,23 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('cashier')
       .sort({ saleNumber: -1 });
     
+    // 使用型別斷言解決型別不匹配問題
     const response: ApiResponse<any[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sales,
+      data: sales.map(sale => ({
+        ...sale.toObject(),
+        _id: sale._id.toString(),
+        createdAt: sale.createdAt,
+        updatedAt: sale.updatedAt
+      })),
       timestamp: new Date()
     };
     
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err: unknown) {
+    const mongoError = err as MongooseError;
+    console.error(err instanceof Error ? err.message : 'Unknown error');
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -82,6 +105,17 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 格式，防止 NoSQL 注入
+    if (!isValidObjectId(req.params.id)) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
     const sale = await Sale.findById(req.params.id)
       .populate('customer')
       .populate({
@@ -100,17 +134,24 @@ router.get('/:id', async (req: Request, res: Response) => {
       return;
     }
     
+    // 使用型別斷言解決型別不匹配問題
     const response: ApiResponse<any> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: sale,
+      data: {
+        ...sale.toObject(),
+        _id: sale._id.toString(),
+        createdAt: sale.createdAt,
+        updatedAt: sale.updatedAt
+      },
       timestamp: new Date()
     };
     
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
+  } catch (err: unknown) {
+    const mongoError = err as MongooseError;
+    console.error(err instanceof Error ? err.message : 'Unknown error');
+    if (mongoError.kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
@@ -173,16 +214,23 @@ router.post(
       // 4. 處理客戶積分
       await updateCustomerPoints(sale);
       
+      // 使用型別斷言解決型別不匹配問題
       const response: ApiResponse<any> = {
         success: true,
         message: SUCCESS_MESSAGES.GENERIC.CREATED,
-        data: sale,
+        data: {
+          ...sale.toObject(),
+          _id: sale._id.toString(),
+          createdAt: sale.createdAt,
+          updatedAt: sale.updatedAt
+        },
         timestamp: new Date()
       };
       
       res.json(response);
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err: unknown) {
+      const mongoError = err as MongooseError;
+      console.error(err instanceof Error ? err.message : 'Unknown error');
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -196,6 +244,18 @@ router.post(
 // 檢查客戶是否存在
 async function checkCustomerExists(customerId?: string): Promise<CustomerCheckResult> {
   if (!customerId) return { exists: true };
+  
+  // 驗證 ID 格式，防止 NoSQL 注入
+  if (!isValidObjectId(customerId)) {
+    return {
+      exists: false,
+      error: {
+        success: false,
+        statusCode: 404,
+        message: '客戶ID格式無效'
+      }
+    };
+  }
   
   const customerExists = await Customer.findById(customerId);
   if (!customerExists) {
@@ -214,6 +274,18 @@ async function checkCustomerExists(customerId?: string): Promise<CustomerCheckRe
 
 // 檢查產品是否存在
 async function checkProductExists(productId: string): Promise<ProductCheckResult> {
+  // 驗證 ID 格式，防止 NoSQL 注入
+  if (!isValidObjectId(productId)) {
+    return {
+      exists: false,
+      error: {
+        success: false,
+        statusCode: 404,
+        message: `產品ID ${productId} 格式無效`
+      }
+    };
+  }
+  
   const product = await BaseProduct.findById(productId);
   if (!product) {
     return { 
@@ -230,42 +302,65 @@ async function checkProductExists(productId: string): Promise<ProductCheckResult
 }
 
 // 檢查產品庫存
-async function checkProductInventory(product: any, quantity: number): Promise<InventoryCheckResult> {
+async function checkProductInventory(product: mongoose.Document, quantity: number): Promise<InventoryCheckResult> {
   try {
     // 獲取所有庫存記錄
+    // 確保 _id 是有效的 ObjectId
+    if (!isValidObjectId(product._id.toString())) {
+      return {
+        success: false,
+        error: {
+          success: false,
+          statusCode: 400,
+          message: '產品ID格式無效'
+        }
+      };
+    }
+    
     const inventories = await Inventory.find({ product: product._id }).lean();
     console.log(`找到 ${inventories.length} 個庫存記錄`);
     
     // 計算總庫存量
     let totalQuantity = calculateTotalInventory(inventories);
     
-    console.log(`產品 ${product.name} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
+    // 安全地訪問產品屬性
+    const productDoc = product as any;
+    console.log(`產品 ${productDoc.name || '未知'} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
     
     // 不再檢查庫存是否足夠，允許負庫存
     if (totalQuantity < quantity) {
-      console.log(`警告: 產品 ${product.name} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
+      console.log(`警告: 產品 ${(product as any).name || '未知'} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
     }
     
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const mongoError = err as MongooseError;
     console.error(`庫存檢查錯誤:`, err);
     return { 
       success: false, 
       error: { 
         success: false, 
         statusCode: 500, 
-        message: `庫存檢查錯誤: ${err.message}` 
+        message: `庫存檢查錯誤: ${mongoError.message}`
       }
     };
   }
 }
 
 // 計算總庫存量
+interface InventoryRecord {
+  _id: mongoose.Types.ObjectId | string;
+  quantity: number;
+  type?: string;
+}
+
 function calculateTotalInventory(inventories: any[]): number {
   let totalQuantity = 0;
   for (const inv of inventories) {
     totalQuantity += inv.quantity;
-    console.log(`庫存記錄: ${inv._id}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
+    // 安全地處理 _id，可能是 ObjectId 或字串
+    const recordId = inv._id ? (typeof inv._id === 'object' ? inv._id.toString() : inv._id) : '未知';
+    console.log(`庫存記錄: ${recordId}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
   }
   return totalQuantity;
 }
@@ -289,7 +384,11 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
     }
     
     // 記錄當前庫存量，但不限制負庫存
-    console.log(`檢查產品ID: ${item.product}, 名稱: ${productCheck.product!.name}`);
+    // 安全地訪問產品名稱，避免使用非空斷言
+    const productName = productCheck.product && 'name' in productCheck.product
+      ? (productCheck.product as any).name
+      : '未知產品';
+    console.log(`檢查產品ID: ${item.product}, 名稱: ${productName}`);
     
     // 檢查產品庫存
     const inventoryCheck = await checkProductInventory(productCheck.product, item.quantity);
@@ -302,7 +401,7 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
 }
 
 // 創建銷售記錄
-async function createSaleRecord(requestBody: SaleCreationRequest): Promise<any> {
+async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleDocument> {
   // 生成銷貨單號（如果未提供）
   const finalSaleNumber = await generateSaleNumber(requestBody.saleNumber);
   
@@ -350,42 +449,93 @@ async function generateSaleNumber(saleNumber?: string): Promise<string> {
 }
 
 // 建立銷售記錄欄位
-function buildSaleFields(saleData: any): any {
+// 更靈活的銷售項目型別
+interface SaleItemInput {
+  product: string;
+  quantity: number;
+  price?: number;
+  unitPrice?: number;
+  discount?: number;
+  subtotal?: number;
+  notes?: string;
+}
+
+interface SaleFieldsInput {
+  saleNumber: string;
+  customer?: string;
+  items: SaleItemInput[];
+  totalAmount: number;
+  discount?: number;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  notes?: string;
+  cashier?: string;
+}
+
+function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> {
   // Ensure saleNumber is never empty to prevent duplicate key errors
   if (!saleData.saleNumber) {
     console.error('Warning: Attempted to create sale with empty saleNumber');
     throw new Error('Sale number cannot be empty');
   }
   
-  const saleFields: any = {
+  const saleFields: Record<string, any> = {
     saleNumber: saleData.saleNumber,
     items: saleData.items,
     totalAmount: saleData.totalAmount,
   };
   
   if (saleData.customer) saleFields.customer = saleData.customer;
-  if (saleData.discount) saleFields.discountAmount = saleData.discount;
-  if (saleData.paymentMethod) saleFields.paymentMethod = saleData.paymentMethod;
-  if (saleData.paymentStatus) saleFields.paymentStatus = saleData.paymentStatus;
+  if (saleData.discount) saleFields.discount = saleData.discount;
+  if (saleData.paymentMethod) saleFields.paymentMethod = saleData.paymentMethod as any;
+  if (saleData.paymentStatus) saleFields.paymentStatus = saleData.paymentStatus as any;
   if (saleData.notes) saleFields.notes = saleData.notes;
   if (saleData.cashier) saleFields.cashier = saleData.cashier;
   
   // 計算最終金額
-  saleFields.finalAmount = saleFields.totalAmount - (saleFields.discountAmount || 0);
+  saleFields.finalAmount = saleFields.totalAmount - (saleFields.discount || 0);
   
   return saleFields;
 }
 
 // 處理新銷售的庫存變更
-async function handleInventoryForNewSale(sale: any): Promise<void> {
+async function handleInventoryForNewSale(sale: SaleDocument): Promise<void> {
   // 為每個銷售項目創建負數庫存記錄
-  for (const item of sale.items) {
-    await createInventoryRecord(item, sale);
+  if (!sale.items || !Array.isArray(sale.items)) {
+    console.error('銷售記錄缺少有效的項目陣列');
+    return;
+  }
+  
+  const items = sale.items as any[];
+  for (const item of items) {
+    try {
+      await createInventoryRecord(item, sale);
+    } catch (err) {
+      console.error(`處理庫存記錄時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+      // 繼續處理其他項目，不中斷流程
+    }
   }
 }
 
 // 創建庫存記錄
-async function createInventoryRecord(item: any, sale: any): Promise<void> {
+interface SaleItem {
+  product: string | any;
+  quantity: number;
+  subtotal?: number;
+}
+
+async function createInventoryRecord(item: SaleItem, sale: SaleDocument): Promise<void> {
+  // 確保產品ID有效
+  if (!item.product) {
+    console.error('銷售項目缺少產品ID');
+    return;
+  }
+  
+  // 確保數量有效
+  if (typeof item.quantity !== 'number') {
+    console.error(`產品 ${item.product} 的數量無效`);
+    return;
+  }
   const inventoryRecord = new Inventory({
     product: item.product,
     quantity: -item.quantity, // 負數表示庫存減少
@@ -397,13 +547,19 @@ async function createInventoryRecord(item: any, sale: any): Promise<void> {
   });
   
   await inventoryRecord.save();
-  console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal}`);
+  console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal || 0}`);
 }
 
 // 更新客戶積分
-async function updateCustomerPoints(sale: any): Promise<void> {
+async function updateCustomerPoints(sale: SaleDocument): Promise<void> {
   // 如果有客戶，更新客戶積分
   if (!sale.customer) return;
+  
+  // 驗證客戶ID格式，防止 NoSQL 注入
+  if (!isValidObjectId(sale.customer.toString())) {
+    console.error(`客戶ID格式無效: ${sale.customer}`);
+    return;
+  }
   
   const customerToUpdate = await Customer.findOne({ _id: sale.customer });
   if (!customerToUpdate) return;

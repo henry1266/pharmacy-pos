@@ -1,11 +1,20 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
+import mongoose from 'mongoose';
 import Customer from '../models/Customer';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { Customer as CustomerType } from '@pharmacy-pos/shared/types/entities';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 const router: express.Router = express.Router();
+
+/**
+ * 驗證 MongoDB ObjectId 是否有效
+ * 防止 NoSQL 注入攻擊
+ */
+function isValidObjectId(id: string): boolean {
+  return mongoose.Types.ObjectId.isValid(id);
+}
 
 // 型別定義
 interface CustomerCreationRequest {
@@ -82,6 +91,17 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 格式，防止 NoSQL 注入
+    if (!isValidObjectId(req.params.id)) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
@@ -150,7 +170,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 async function checkCustomerCodeExists(code: string): Promise<boolean> {
   if (!code) return false;
   
-  const customer = await Customer.findOne({ code });
+  // 使用嚴格的查詢條件，防止 NoSQL 注入
+  const customer = await Customer.findOne({ code: String(code) });
   return !!customer;
 }
 
@@ -165,55 +186,93 @@ async function generateCustomerCode(): Promise<string> {
 /**
  * 從請求中構建會員欄位物件
  */
+/**
+ * 從請求中構建會員欄位物件
+ * 重構以降低認知複雜度
+ */
 function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRequest): Partial<CustomerType> {
-  const {
-    code,
-    name,
-    phone,
-    email,
-    address,
-    birthdate,
-    dateOfBirth,
-    gender,
-    notes,
-    note,
-    isActive,
-    // 舊欄位相容性 - 現在正確分離存儲
-    medicalHistory,
-    allergies,
-    membershipLevel,
-    points,
-    idCardNumber
-  } = reqBody;
+  // 使用明確的型別而非 any
+  const customerFields: Partial<CustomerType> = {};
+  
+  // 基本欄位處理
+  assignBasicFields(reqBody, customerFields);
+  
+  // 處理生日欄位 (支援新舊欄位名稱)
+  handleBirthdateField(reqBody, customerFields);
+  
+  // 處理備註欄位 (支援新舊欄位名稱)
+  handleNotesField(reqBody, customerFields);
+  
+  // 處理其他欄位
+  assignAdditionalFields(reqBody, customerFields);
+  
+  return customerFields;
+}
 
-  const customerFields: any = {};
+/**
+ * 處理基本欄位
+ */
+function assignBasicFields(
+  reqBody: CustomerCreationRequest | CustomerUpdateRequest,
+  customerFields: Partial<CustomerType>
+): void {
+  const { name, phone, code, email, address, gender, isActive } = reqBody;
   
   if (name) customerFields.name = name;
   if (phone) customerFields.phone = phone;
   if (code) customerFields.code = code;
   if (email) customerFields.email = email;
   if (address) customerFields.address = address;
-  
-  // 處理生日欄位 (支援新舊欄位名稱)
-  if (dateOfBirth) customerFields.birthdate = dateOfBirth;
-  else if (birthdate) customerFields.birthdate = birthdate;
-  
   if (gender) customerFields.gender = gender;
+  if (isActive !== undefined) (customerFields as any).isActive = isActive;
+}
+
+/**
+ * 處理生日欄位
+ */
+function handleBirthdateField(
+  reqBody: CustomerCreationRequest | CustomerUpdateRequest,
+  customerFields: Partial<CustomerType>
+): void {
+  const { dateOfBirth, birthdate } = reqBody;
   
-  // 處理備註欄位 (支援新舊欄位名稱) - 只存儲真正的備註
-  if (notes !== undefined) customerFields.notes = notes;
-  else if (note !== undefined) customerFields.notes = note;
+  if (dateOfBirth) {
+    customerFields.birthdate = dateOfBirth;
+  } else if (birthdate) {
+    customerFields.birthdate = birthdate;
+  }
+}
+
+/**
+ * 處理備註欄位
+ */
+function handleNotesField(
+  reqBody: CustomerCreationRequest | CustomerUpdateRequest,
+  customerFields: Partial<CustomerType>
+): void {
+  const { notes, note } = reqBody;
   
-  if (isActive !== undefined) customerFields.isActive = isActive;
+  if (notes !== undefined) {
+    customerFields.notes = notes;
+  } else if (note !== undefined) {
+    customerFields.notes = note;
+  }
+}
+
+/**
+ * 處理其他欄位
+ */
+function assignAdditionalFields(
+  reqBody: CustomerCreationRequest | CustomerUpdateRequest,
+  customerFields: Partial<CustomerType>
+): void {
+  const { medicalHistory, allergies, membershipLevel, idCardNumber, points } = reqBody;
   
-  // 正確處理各個專屬欄位，不要混入備註中
   if (medicalHistory !== undefined) customerFields.medicalHistory = medicalHistory;
-  if (allergies !== undefined) customerFields.allergies = allergies;
-  if (membershipLevel !== undefined) customerFields.membershipLevel = membershipLevel;
+  if (allergies !== undefined) customerFields.allergies = Array.isArray(allergies) ? allergies : [allergies];
+  if (membershipLevel !== undefined) customerFields.membershipLevel = membershipLevel as 'regular' | 'silver' | 'gold' | 'platinum';
   if (idCardNumber !== undefined) customerFields.idCardNumber = idCardNumber;
-  if (points !== undefined) customerFields.points = points;
-  
-  return customerFields;
+  if (points !== undefined) (customerFields as any).points = points;
 }
 
 // @route   POST api/customers
@@ -311,6 +370,17 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const requestBody = req.body as CustomerUpdateRequest;
     
+    // 驗證 ID 格式，防止 NoSQL 注入
+    if (!isValidObjectId(req.params.id)) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+    
     // 檢查會員是否存在
     let customer = await Customer.findById(req.params.id);
     if (!customer) {
@@ -339,7 +409,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     // 建立更新欄位物件
     const customerFields = buildCustomerFields(requestBody);
 
-    // 更新
+    // 更新 - 使用已驗證的 ID
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
       { $set: customerFields },
@@ -401,6 +471,17 @@ router.put('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 格式，防止 NoSQL 注入
+    if (!isValidObjectId(req.params.id)) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
@@ -414,6 +495,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
 
     // 使用 findOneAndDelete 替代已棄用的 remove() 方法
+    // 使用已驗證的 ID
     await Customer.findByIdAndDelete(req.params.id);
 
     const response: ApiResponse<null> = {
