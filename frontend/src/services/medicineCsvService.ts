@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../redux/actions';
-import { Supplier } from '@shared/types/entities';
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 const SERVICE_URL = `${API_BASE_URL}/shipping-orders`.replace('/api/api', '/api');
 
@@ -58,7 +58,7 @@ export const convertToWesternDate = (dateStr: string): string | null => {
       const westernYear = rocYear + 1911;
       
       // 格式化為 YYYY-MM-DD
-      return `${westernYear}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      return `${westernYear}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day}`;
     } catch (error) {
       console.error(`轉換民國年日期時出錯: ${dateStr}`, error);
       return null;
@@ -157,8 +157,10 @@ export const generateOrderNumberByDate = (dateStr: string | null): string => {
     
     // 格式化日期為YYYYMMDD
     const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const day = String(dateObj.getDate()).padStart(2, "0");
+    const monthNum = dateObj.getMonth() + 1;
+    const dayNum = dateObj.getDate();
+    const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
+    const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
     const dateFormat = `${year}${month}${day}`;
     
     // 訂單號格式: YYYYMMDD+序號+D
@@ -167,14 +169,17 @@ export const generateOrderNumberByDate = (dateStr: string | null): string => {
     const sequence = 1; // 默認從001開始
     
     // 生成新訂單號，序號部分固定3位數
-    return `${dateFormat}${String(sequence).padStart(3, "0")}D`;
+    const sequenceStr = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
+    return `${dateFormat}${sequenceStr}D`;
   } catch (error) {
     console.error("根據日期生成訂單號時出錯:", error);
     // 如果無法生成，返回一個帶有當前日期的臨時訂單號
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
+    const monthNum = now.getMonth() + 1;
+    const dayNum = now.getDate();
+    const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
+    const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
     return `${year}${month}${day}001D`;
   }
 };
@@ -184,7 +189,7 @@ export const generateOrderNumberByDate = (dateStr: string | null): string => {
  * @param {string | null} dateStr - 日期字符串，格式為YYYY-MM-DD或民國年格式YYYMMDD
  * @returns {Promise<string>} 生成的出貨單號
  */
-export const generateShippingOrderNumber = async (dateStr: string | null): Promise<string> => {
+export const generateShippingOrderNumber = async (dateStr: string | null = null): Promise<string> => {
   try {
     const token = localStorage.getItem('token');
     const config = { headers: { 'x-auth-token': token } };

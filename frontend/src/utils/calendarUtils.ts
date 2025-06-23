@@ -16,7 +16,9 @@ export const formatDateString = (date: Date): string => {
   const month = taiwanDate.getMonth() + 1; // 月份從0開始，所以要+1
   const day = taiwanDate.getDate();
   
-  const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const monthStr = month < 10 ? '0' + month : month.toString();
+  const dayStr = day < 10 ? '0' + day : day.toString();
+  const formattedDate = `${year}-${monthStr}-${dayStr}`;
   return formattedDate;
 };
 

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ApiResponse, ErrorResponse, AuthResponse, LoginRequest, UpdateUserRequest, LoginResponse } from '../types/api';
+import { EmployeeAccount } from '../types/entities';
 
 const API_URL = '/api/auth';
 
@@ -40,7 +41,7 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
  * @returns {Promise<object>} 當前用戶資訊
  * @throws {Error} 如果請求失敗或用戶未登入
  */
-export const getCurrentUser = async (): Promise<any> => {
+export const getCurrentUser = async (): Promise<EmployeeAccount> => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -81,7 +82,7 @@ export const getCurrentUser = async (): Promise<any> => {
  * @returns {Promise<object>} 更新結果
  * @throws {Error} 如果請求失敗或用戶未登入
  */
-export const updateCurrentUser = async (updateData: UpdateUserRequest): Promise<any> => {
+export const updateCurrentUser = async (updateData: UpdateUserRequest): Promise<EmployeeAccount> => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {

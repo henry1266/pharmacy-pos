@@ -15,7 +15,7 @@ export const getApiBaseUrl = (): string => {
   }
   
   // 默認值
-  return process.env.REACT_APP_API_URL ?? `http://${process.env.REACT_APP_DEFAULT_API_IP ?? '192.168.68.93'}:5000/api`; // Use env var or fallback
+  return `http://192.168.68.93:5000/api`; // 使用固定的預設值避免 process.env 問題
 };
 
 const apiConfig = {

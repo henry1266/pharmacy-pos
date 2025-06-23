@@ -14,6 +14,7 @@ export interface ApiResponse<T = any> {
 export interface ErrorResponse {
   success: false;
   message: string;
+  error?: string; // 添加 error 欄位以支援不同的錯誤回應格式
   errors?: {
     msg: string;
     param?: string;
@@ -55,7 +56,9 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface AuthResponse {
+export interface AuthResponse extends ApiResponse<LoginResponse> {}
+
+export interface LoginResponse {
   token: string;
   user: {
     id: string;

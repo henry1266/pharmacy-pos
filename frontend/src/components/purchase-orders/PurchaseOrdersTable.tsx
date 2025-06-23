@@ -1,18 +1,18 @@
 import React, { FC, MouseEvent } from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Box, 
+import {
+  Box,
   IconButton
 } from '@mui/material';
-import { 
+import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as VisibilityIcon
 } from '@mui/icons-material';
-import { DataGrid, GridColDef, GridRenderCellParams, GridPaginationModel } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, GridLocaleText } from '@mui/x-data-grid';
 import { format } from 'date-fns';
-import StatusChip from '../common/StatusChip.tsx';
-import PaymentStatusChip from '../common/PaymentStatusChip.tsx';
+import StatusChip from '../common/StatusChip';
+import PaymentStatusChip from '../common/PaymentStatusChip';
 
 // 定義進貨單的介面
 interface PurchaseOrder {
@@ -31,12 +31,18 @@ interface PurchaseOrderRow extends PurchaseOrder {
   id: string; // DataGrid需要唯一的id字段
 }
 
+// 定義分頁模型介面
+interface PaginationModel {
+  page: number;
+  pageSize: number;
+}
+
 // 定義組件 props 的介面
 interface PurchaseOrdersTableProps {
   purchaseOrders: PurchaseOrder[];
   filteredRows: PurchaseOrderRow[];
-  paginationModel: GridPaginationModel;
-  setPaginationModel: (model: GridPaginationModel) => void;
+  paginationModel: PaginationModel;
+  setPaginationModel: (model: PaginationModel) => void;
   loading: boolean;
   handleView: (id: string) => void;
   handleEdit: (id: string) => void;
@@ -151,19 +157,14 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
       <DataGrid
         rows={filteredRows.length > 0 ? filteredRows : rows}
         columns={columns}
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        pageSizeOptions={[5, 10, 25, 50]}
         checkboxSelection={false}
-        disableRowSelectionOnClick
+        disableSelectionOnClick
         loading={loading}
         autoHeight
-        density="standard"
         getRowId={(row) => row.id}
-        // 使用 as any 來繞過 TypeScript 的類型檢查
         localeText={{
           noRowsLabel: '沒有進貨單記錄',
-          footerRowSelected: (count) => `已選擇 ${count} 個項目`,
+          footerRowSelected: (count: number) => `已選擇 ${count} 個項目`,
           columnMenuLabel: '選單',
           columnMenuShowColumns: '顯示欄位',
           columnMenuFilter: '篩選',
@@ -204,16 +205,12 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
           toolbarQuickFilterDeleteIconLabel: '清除',
           paginationRowsPerPage: '每頁行數:',
           paginationPageSize: '頁面大小',
-          paginationLabelDisplayedRows: ({ from, to, count }) => {
+          paginationLabelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) => {
             const countDisplay = count !== -1 ? count.toString() : '超過 ' + to;
             return `${from}-${to} / ${countDisplay}`;
           },
-          paginationLabelRowsPerPage: '每頁行數:',
-          MuiTablePagination: {
-            labelDisplayedRows: ({ from, to, count }) => `${from}-${to} / ${count}`,
-            labelRowsPerPage: '每頁行數:'
-          }
-        } as any}
+          paginationLabelRowsPerPage: '每頁行數:'
+        } as Partial<GridLocaleText>}
       />
     </Box>
   );
@@ -246,6 +243,6 @@ PurchaseOrdersTable.propTypes = {
   handlePreviewMouseEnter: PropTypes.func.isRequired,
   handlePreviewMouseLeave: PropTypes.func.isRequired,
   renderSupplierHeader: PropTypes.func.isRequired
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
+};
 
 export default PurchaseOrdersTable;

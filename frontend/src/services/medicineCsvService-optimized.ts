@@ -88,7 +88,7 @@ class DateUtils {
 
       // 民國年轉西元年 (民國年+1911=西元年)
       const westernYear = rocYear + 1911;
-      const formattedDate = `${westernYear}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const formattedDate = `${westernYear}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day}`;
       const date = new Date(formattedDate);
 
       return {
@@ -128,8 +128,10 @@ class DateUtils {
    */
   static formatDateToYYYYMMDD(date: Date): string {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
+    const monthNum = date.getMonth() + 1;
+    const dayNum = date.getDate();
+    const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
+    const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
     return `${year}${month}${day}`;
   }
 
@@ -169,7 +171,8 @@ class OrderNumberGenerator {
       const dateFormat = DateUtils.formatDateToYYYYMMDD(dateToUse);
       const sequence = 1; // 默認從001開始，實際序號由後端決定
       
-      return `${dateFormat}${String(sequence).padStart(3, "0")}D`;
+      const sequenceStr = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
+      return `${dateFormat}${sequenceStr}D`;
     } catch (error) {
       console.error("根據日期生成訂單號時出錯:", error);
       // 如果無法生成，返回一個帶有當前日期的臨時訂單號

@@ -1,11 +1,11 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 /**
  * 獲取API基礎URL，優先從localStorage讀取，否則使用默認值
  * @returns {string} API基礎URL
  */
 const getApiBaseUrl = (): string => {
-  const ip = localStorage.getItem("apiServerIp") ?? process.env.REACT_APP_DEFAULT_API_IP ?? "192.168.68.93";
+  const ip = localStorage.getItem("apiServerIp") ?? "192.168.68.93";
   return `http://${ip}:5000`; // 假設後端運行在5000埠
 };
 
@@ -16,7 +16,7 @@ const apiService = axios.create({
 
 // 添加請求攔截器，動態更新baseURL並附加token
 apiService.interceptors.request.use(
-  (config: any): any => {
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     // 每次請求前檢查是否有新的IP設定
     config.baseURL = getApiBaseUrl();
     
@@ -26,18 +26,18 @@ apiService.interceptors.request.use(
     }
     return config;
   },
-  (error: any): Promise<any> => {
+  (error: AxiosError): Promise<AxiosError> => {
     return Promise.reject(new Error(error.message ?? 'Request interceptor error'));
   }
 );
 
 // 添加響應攔截器，處理token過期等錯誤
 apiService.interceptors.response.use(
-  (response: any): any => {
+  (response: AxiosResponse): AxiosResponse => {
     // 對響應數據做點什麼
     return response;
   },
-  (error: any): Promise<any> => {
+  (error: AxiosError): Promise<Error> => {
     // 處理響應錯誤
     if (error.response && error.response.status === 401) {
       // 如果是401錯誤 (通常表示token無效或過期)
