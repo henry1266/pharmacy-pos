@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import config from 'config';
 import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
-import mongoose from 'mongoose';
+// 移除未使用的導入
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
@@ -133,10 +133,13 @@ router.post(
       // 檢查用戶是否存在 - 支持用戶名或電子郵件登入
       let user: any = null;
       
+      // 使用參數化查詢，避免 SQL 注入風險
       if (username) {
-        user = await User.findOne({ username });
+        const usernameToFind = username.toString();
+        user = await User.findOne({ username: usernameToFind });
       } else if (email) {
-        user = await User.findOne({ email });
+        const emailToFind = email.toString();
+        user = await User.findOne({ email: emailToFind });
       }
 
       if (!user) {
@@ -193,7 +196,7 @@ router.post(
             success: true,
             message: '登入成功',
             data: {
-              token: token!,
+              token: token,
               user: {
                 id: user.id,
                 name: user.name,
@@ -350,7 +353,7 @@ router.put(
         return;
       }
       
-      const user = userValidation.user!;
+      const user = userValidation.user;
 
       // 更新密碼
       if (newPassword) {

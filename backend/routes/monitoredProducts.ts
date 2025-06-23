@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import MonitoredProduct from '../models/MonitoredProduct';
+import MonitoredProduct, { IMonitoredProductDocument } from '../models/MonitoredProduct';
 import BaseProduct from '../models/BaseProduct';
 import auth from '../middleware/auth';
 import { check, validationResult } from 'express-validator';
@@ -33,7 +33,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: Response): Promise<
     
     // 使用 Promise.all 並行查詢每個監測產品的詳細資訊
     const productsWithDetails: MonitoredProductResponse[] = await Promise.all(
-      monitoredProducts.map(async (product: any): Promise<MonitoredProductResponse> => {
+      monitoredProducts.map(async (product: IMonitoredProductDocument): Promise<MonitoredProductResponse> => {
         // 將 productCode 轉換為字串，確保類型一致性
         const productCodeStr = String(product.productCode);
         
@@ -47,8 +47,8 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: Response): Promise<
         });
         
         // 記錄查詢結果，幫助調試
-        console.log(`查詢產品: ${productCodeStr}, 結果:`, baseProduct ? 
-          `找到產品 - 名稱: ${(baseProduct as any).name}, code: ${(baseProduct as any).code}, shortCode: ${(baseProduct as any).shortCode}` : 
+        console.log(`查詢產品: ${productCodeStr}, 結果:`, baseProduct ?
+          `找到產品 - 名稱: ${baseProduct.name}, code: ${baseProduct.code}, shortCode: ${baseProduct.shortCode}` :
           '未找到產品');
         
         // 返回合併後的資料，不包含 addedAt
@@ -56,8 +56,8 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: Response): Promise<
         const result: MonitoredProductResponse = {
           _id: product._id.toString(),
           productCode: product.productCode,
-          productName: baseProduct ? (baseProduct as any).name : '未知產品',
-          addedBy: product.addedBy
+          productName: baseProduct ? baseProduct.name : '未知產品',
+          addedBy: product.addedBy ? product.addedBy.toString() : ''
         };
         
         console.log(`最終回傳資料: ${JSON.stringify(result)}`);
@@ -73,12 +73,12 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: Response): Promise<
     };
     
     res.json(response);
-  } catch (err: any) {
-    console.error('獲取監測產品失敗:', err.message);
+  } catch (err) {
+    console.error('獲取監測產品失敗:', (err as Error).message);
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: err.message,
+      error: (err as Error).message,
       timestamp: new Date()
     };
     res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
@@ -120,8 +120,8 @@ router.post(
       });
       
       // 記錄查詢結果，幫助調試
-      console.log(`新增監測產品: ${productCodeStr}, 查詢結果:`, productExists ? 
-        `找到產品 - 名稱: ${(productExists as any).name}, code: ${(productExists as any).code}, shortCode: ${(productExists as any).shortCode}` : 
+      console.log(`新增監測產品: ${productCodeStr}, 查詢結果:`, productExists ?
+        `找到產品 - 名稱: ${productExists.name}, code: ${productExists.code}, shortCode: ${productExists.shortCode}` :
         '未找到產品');
         
       if (!productExists) {
@@ -158,10 +158,10 @@ router.post(
       
       // 4. 返回包含產品名稱的完整資訊，不包含 addedAt
       const responseData: MonitoredProductResponse = {
-        _id: (monitoredProduct as any)._id.toString(),
-        productCode: (monitoredProduct as any).productCode,
-        productName: (productExists as any).name,
-        addedBy: (monitoredProduct as any).addedBy
+        _id: monitoredProduct._id.toString(),
+        productCode: monitoredProduct.productCode,
+        productName: productExists.name,
+        addedBy: monitoredProduct.addedBy ? monitoredProduct.addedBy.toString() : ''
       };
       
       const response: ApiResponse<MonitoredProductResponse> = {
@@ -172,10 +172,10 @@ router.post(
       };
       
       res.json(response);
-    } catch (err: any) {
-      console.error('新增監測產品失敗:', err.message);
+    } catch (err) {
+      console.error('新增監測產品失敗:', (err as Error).message);
       // Handle potential duplicate key error during save, although findOne should catch it first
-      if (err.code === 11000) {
+      if ((err as Error & { code?: number }).code === 11000) {
         const errorResponse: ErrorResponse = {
           success: false,
           message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
@@ -188,7 +188,7 @@ router.post(
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        error: err.message,
+        error: (err as Error).message,
         timestamp: new Date()
       };
       res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
@@ -231,9 +231,9 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Pr
     };
     
     res.json(response);
-  } catch (err: any) {
-    console.error('刪除監測產品失敗:', err.message);
-    if (err.kind === 'ObjectId') {
+  } catch (err) {
+    console.error('刪除監測產品失敗:', (err as Error).message);
+    if ((err as Error & { kind?: string }).kind === 'ObjectId') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
@@ -246,7 +246,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Pr
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: err.message,
+      error: (err as Error).message,
       timestamp: new Date()
     };
     res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);

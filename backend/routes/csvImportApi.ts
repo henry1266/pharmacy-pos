@@ -463,8 +463,9 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
     const productMap: { [key: string]: any } = {};
     products.forEach(product => {
       // 需要類型斷言因為 BaseProduct 模型的 TypeScript 定義中缺少 healthInsuranceCode 屬性
-      if ((product as any).healthInsuranceCode) {
-        productMap[(product as any).healthInsuranceCode] = product;
+      const productWithHealthCode = product as unknown as { healthInsuranceCode?: string };
+      if (productWithHealthCode.healthInsuranceCode) {
+        productMap[productWithHealthCode.healthInsuranceCode] = product;
       }
     });
 
@@ -502,11 +503,11 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
 
     // 保存出貨單
     const savedOrder = await shippingOrder.save();
-    console.log(`出貨單 ${(savedOrder as any).soid} 已保存，狀態: ${(savedOrder as any).status}`);
+    console.log(`出貨單 ${savedOrder.soid} 已保存，狀態: ${savedOrder.status}`);
     
     // 創建庫存記錄
     await createShippingInventoryRecords(savedOrder);
-    console.log(`已為出貨單 ${(savedOrder as any).soid} 創建庫存記錄`);
+    console.log(`已為出貨單 ${savedOrder.soid} 創建庫存記錄`);
 
     // 返回標準化的成功回應
     res.status(201).json({
@@ -514,12 +515,12 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
       msg: "藥品明細CSV匯入成功",
       shippingOrder: {
         _id: savedOrder._id,
-        soid: (savedOrder as any).soid,
+        soid: savedOrder.soid,
         orderNumber: savedOrder.orderNumber,
         supplier: supplierName,
         itemCount: items.length,
         totalAmount: savedOrder.totalAmount,
-        paymentStatus: (savedOrder as any).paymentStatus,
+        paymentStatus: savedOrder.paymentStatus,
         status: savedOrder.status,
         createdAt: savedOrder.createdAt
       },

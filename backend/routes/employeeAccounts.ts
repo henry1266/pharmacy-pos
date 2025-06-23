@@ -14,6 +14,34 @@ import {
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
+// 定義介面
+interface EmployeeInfo {
+  id: string;
+  name: string;
+}
+
+interface UserInfo {
+  id: string;
+  name: string;
+  username: string;
+  role?: string;
+}
+
+interface EmployeeAccountResult {
+  employee: EmployeeInfo;
+  user?: UserInfo;
+}
+
+interface EmployeeUser {
+  _id: string;
+  name: string;
+  username: string;
+  email?: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const router: express.Router = express.Router();
 
 /**
@@ -65,18 +93,18 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
       role
     });
 
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<EmployeeAccountResult> = {
       success: true,
       message: '員工帳號創建成功',
       data: result,
       timestamp: new Date()
     };
     res.json(response);
-  } catch (error: any) {
+  } catch (error) {
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: error.message,
+      error: (error as Error).message,
       timestamp: new Date()
     };
     res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
@@ -91,19 +119,20 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
 router.get('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
     const user = await getEmployeeAccount(req.params.employeeId);
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<EmployeeUser> = {
       success: true,
       message: '成功獲取員工帳號資訊',
       data: user,
       timestamp: new Date()
     };
     res.json(response);
-  } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    const statusCode = errorMessage.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
     const errorResponse: ErrorResponse = {
       success: false,
-      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: error.message,
+      message: errorMessage.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: errorMessage,
       timestamp: new Date()
     };
     res.status(statusCode).json(errorResponse);
@@ -138,19 +167,20 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
       role
     });
 
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<{ user: EmployeeUser }> = {
       success: true,
       message: '員工帳號更新成功',
       data: { user: updatedUser },
       timestamp: new Date()
     };
     res.json(response);
-  } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    const statusCode = errorMessage.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
     const errorResponse: ErrorResponse = {
       success: false,
-      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: error.message,
+      message: errorMessage.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: errorMessage,
       timestamp: new Date()
     };
     res.status(statusCode).json(errorResponse);
@@ -173,12 +203,13 @@ router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Respo
       timestamp: new Date()
     };
     res.json(response);
-  } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    const statusCode = errorMessage.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
     const errorResponse: ErrorResponse = {
       success: false,
-      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: error.message,
+      message: errorMessage.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: errorMessage,
       timestamp: new Date()
     };
     res.status(statusCode).json(errorResponse);
@@ -198,19 +229,20 @@ router.put('/:employeeId/unbind', [auth, adminAuth], async (req: Request, res: R
       ? '員工帳號綁定已解除' 
       : '員工帳號綁定已解除（用戶不存在）';
     
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<EmployeeAccountResult> = {
       success: true,
       message: message,
       data: result,
       timestamp: new Date()
     };
     res.json(response);
-  } catch (error: any) {
-    const statusCode = error.message.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    const statusCode = errorMessage.includes('找不到') ? API_CONSTANTS.HTTP_STATUS.NOT_FOUND : API_CONSTANTS.HTTP_STATUS.BAD_REQUEST;
     const errorResponse: ErrorResponse = {
       success: false,
-      message: error.message.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: error.message,
+      message: errorMessage.includes('找不到') ? ERROR_MESSAGES.GENERIC.NOT_FOUND : ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      error: errorMessage,
       timestamp: new Date()
     };
     res.status(statusCode).json(errorResponse);

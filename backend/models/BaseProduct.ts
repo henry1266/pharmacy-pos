@@ -13,7 +13,8 @@ type BaseProductDocumentFields = {
   supplier?: mongoose.Types.ObjectId;
 };
 
-interface IBaseProductDocument extends Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document, BaseProductDocumentFields {}
+// 使用類型別名替代聯合類型
+type IBaseProductDocument = Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'> & mongoose.Document & BaseProductDocumentFields;
 
 interface IProductDocument extends Omit<IProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
   category?: mongoose.Types.ObjectId;

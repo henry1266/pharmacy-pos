@@ -53,7 +53,7 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     const { employeeId, startDate, endDate, status } = req.query as OvertimeQueryParams;
     
     // 構建查詢條件
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     
     // 如果指定了員工ID，則只獲取該員工的加班記錄
     if (employeeId) {
@@ -85,7 +85,7 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
       .populate("createdBy", "name")
       .sort({ date: -1 });
     
-    const response: ApiResponse<any[]> = {
+    const response: ApiResponse<typeof overtimeRecords> = {
       success: true,
       data: overtimeRecords,
       message: '加班記錄獲取成功',
@@ -216,7 +216,7 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     // 按加班時數降序排序
     result.sort((a, b) => b.overtimeHours - a.overtimeHours);
     
-    const response: ApiResponse<any[]> = {
+    const response: ApiResponse<typeof result> = {
       success: true,
       data: result,
       message: '月度加班統計獲取成功',
@@ -500,7 +500,7 @@ router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedReque
     const { startDate, endDate } = req.query as SummaryQueryParams;
     
     // 構建查詢條件
-    const query: any = {
+    const query: Record<string, unknown> = {
       employeeId: req.params.employeeId,
       status: "approved" // 只計算已核准的加班
     };
@@ -560,7 +560,7 @@ router.get("/summary/all", auth, async (req: AuthenticatedRequest, res: Response
     const { startDate, endDate } = req.query as SummaryQueryParams;
     
     // 構建查詢條件
-    const query: any = {
+    const query: Record<string, unknown> = {
       status: "approved" // 只計算已核准的加班
     };
     

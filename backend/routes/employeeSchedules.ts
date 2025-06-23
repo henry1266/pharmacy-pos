@@ -46,7 +46,7 @@ router.get('/', [
     const { startDate, endDate, employeeId, leaveType } = req.query;
     
     // Build filter object with validated data
-    const filter: Record<string, any> = {};
+    const filter: Record<string, unknown> = {};
     
     // Add date range filter if provided
     if (startDate && endDate) {
@@ -87,7 +87,7 @@ router.get('/', [
       .sort({ date: 1, shift: 1 })
       .lean(); // 使用 lean() 提高查詢性能
     
-    const response: ApiResponse<any[]> = {
+    const response: ApiResponse<typeof schedules> = {
       success: true,
       data: schedules,
       message: '員工排班資料獲取成功',
@@ -197,7 +197,7 @@ router.post(
       const populatedSchedule = await EmployeeSchedule.findById(savedSchedule._id)
         .populate('employeeId', 'name department position');
       
-      const response: ApiResponse<any> = {
+      const response: ApiResponse<typeof populatedSchedule> = {
         success: true,
         data: populatedSchedule,
         message: '員工排班建立成功',
@@ -205,8 +205,8 @@ router.post(
       };
       res.json(response);
     } catch (err) {
-      console.error(err.message);
-      if ((err as any).code === 11000) {
+      console.error((err as Error).message);
+      if ((err as Error & { code?: number }).code === 11000) {
         const errorResponse: ErrorResponse = {
           success: false,
           message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
@@ -335,7 +335,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // 更新資料
-    const updatedFields: Record<string, any> = {};
+    const updatedFields: Record<string, unknown> = {};
     const allowedFields = ['date', 'shift', 'employeeId', 'leaveType'];
     
     for (const [key, value] of Object.entries(req.body)) {
@@ -350,9 +350,9 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     if (updatedFields.date || updatedFields.shift || updatedFields.employeeId) {
       const hasConflict = await checkScheduleConflict(
         req.params.id,
-        updatedFields.date ?? schedule.date,
-        updatedFields.shift ?? schedule.shift,
-        updatedFields.employeeId ?? schedule.employeeId
+        updatedFields.date ? new Date(updatedFields.date as string) : schedule.date,
+        updatedFields.shift ? (updatedFields.shift as string) : schedule.shift,
+        updatedFields.employeeId ? (updatedFields.employeeId as string) : schedule.employeeId
       );
       
       if (hasConflict) {
@@ -372,7 +372,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       { new: true, runValidators: true }
     ).populate('employeeId', 'name department position');
 
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<typeof updatedSchedule> = {
       success: true,
       data: updatedSchedule,
       message: '員工排班更新成功',
@@ -380,8 +380,8 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     };
     res.json(response);
   } catch (err) {
-    console.error(err.message);
-    if ((err as any).code === 11000) {
+    console.error((err as Error).message);
+    if ((err as Error & { code?: number }).code === 11000) {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
@@ -504,11 +504,23 @@ router.get('/by-date', [
     }).populate('employeeId', 'name department position');
     
     // 將排班按日期和班次分組
+    interface ScheduleEntry {
+      _id: mongoose.Types.ObjectId;
+      employee: {
+        _id: mongoose.Types.ObjectId;
+        name: string;
+        department: string;
+        position: string;
+      };
+      shift: string;
+      leaveType: string | null;
+    }
+    
     interface GroupedSchedules {
       [date: string]: {
-        morning: any[];
-        afternoon: any[];
-        evening: any[];
+        morning: ScheduleEntry[];
+        afternoon: ScheduleEntry[];
+        evening: ScheduleEntry[];
       };
     }
     
@@ -527,13 +539,18 @@ router.get('/by-date', [
       
       groupedSchedules[dateStr][schedule.shift as keyof typeof groupedSchedules[string]].push({
         _id: schedule._id,
-        employee: schedule.employeeId,
+        employee: schedule.employeeId as unknown as {
+          _id: mongoose.Types.ObjectId;
+          name: string;
+          department: string;
+          position: string;
+        },
         shift: schedule.shift,
         leaveType: schedule.leaveType
       });
     });
     
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<typeof groupedSchedules> = {
       success: true,
       data: groupedSchedules,
       message: '按日期分組的排班資料獲取成功',

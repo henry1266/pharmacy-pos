@@ -66,8 +66,8 @@ router.get('/', async (req: Request, res: Response) => {
         totalPurchases: customer.totalPurchases,
         lastPurchaseDate: customer.lastPurchaseDate,
         date: customer.date,
-        createdAt: (customer as any).createdAt,
-        updatedAt: (customer as any).updatedAt
+        createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
+        updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
       })),
       timestamp: new Date()
     };
@@ -134,8 +134,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         totalPurchases: customer.totalPurchases,
         lastPurchaseDate: customer.lastPurchaseDate,
         date: customer.date,
-        createdAt: (customer as any).createdAt,
-        updatedAt: (customer as any).updatedAt
+        createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
+        updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
       },
       timestamp: new Date()
     };
@@ -224,7 +224,7 @@ function assignBasicFields(
   if (email) customerFields.email = email;
   if (address) customerFields.address = address;
   if (gender) customerFields.gender = gender;
-  if (isActive !== undefined) (customerFields as any).isActive = isActive;
+  if (isActive !== undefined) (customerFields as unknown as { isActive?: boolean }).isActive = isActive;
 }
 
 /**
@@ -272,7 +272,7 @@ function assignAdditionalFields(
   if (allergies !== undefined) customerFields.allergies = Array.isArray(allergies) ? allergies : [allergies];
   if (membershipLevel !== undefined) customerFields.membershipLevel = membershipLevel as 'regular' | 'silver' | 'gold' | 'platinum';
   if (idCardNumber !== undefined) customerFields.idCardNumber = idCardNumber;
-  if (points !== undefined) (customerFields as any).points = points;
+  if (points !== undefined) (customerFields as unknown as { points?: number }).points = points;
 }
 
 // @route   POST api/customers
@@ -342,8 +342,8 @@ router.post(
           totalPurchases: customer.totalPurchases,
           lastPurchaseDate: customer.lastPurchaseDate,
           date: customer.date,
-          createdAt: (customer as any).createdAt,
-          updatedAt: (customer as any).updatedAt
+          createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
+          updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
         },
         timestamp: new Date()
       };
@@ -436,8 +436,8 @@ router.put('/:id', async (req: Request, res: Response) => {
         totalPurchases: updatedCustomer!.totalPurchases,
         lastPurchaseDate: updatedCustomer!.lastPurchaseDate,
         date: updatedCustomer!.date,
-        createdAt: (updatedCustomer as any).createdAt,
-        updatedAt: (updatedCustomer as any).updatedAt
+        createdAt: (updatedCustomer as unknown as { createdAt?: Date }).createdAt,
+        updatedAt: (updatedCustomer as unknown as { updatedAt?: Date }).updatedAt
       },
       timestamp: new Date()
     };
