@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Inventory } from '@shared/types/entities';
+import { Inventory } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/inventory';
 

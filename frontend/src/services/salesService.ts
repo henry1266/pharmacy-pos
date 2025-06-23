@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Sale } from '@shared/types/entities';
+import { Sale } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/sales';
 

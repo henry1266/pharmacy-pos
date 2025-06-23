@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../redux/actions';
-import { Supplier } from '@shared/types/entities';
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 const SERVICE_URL = `${API_BASE_URL}/shipping-orders`.replace('/api/api', '/api');
 

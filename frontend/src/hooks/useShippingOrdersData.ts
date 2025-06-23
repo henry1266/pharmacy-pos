@@ -4,7 +4,7 @@ import { useAppDispatch } from './redux';
 import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
 import { getShippingOrderById } from '../services/shippingOrdersService';
 import { RootState, ShippingOrdersState, SuppliersState } from '../types/store';
-import { ShippingOrder, Supplier } from '../../../shared/types/entities';
+import { ShippingOrder, Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 擴展的出貨單介面 (包含前端特有屬性)

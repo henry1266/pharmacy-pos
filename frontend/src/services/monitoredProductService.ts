@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Product } from '@shared/types/entities';
+import { Product } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/monitored-products';
 

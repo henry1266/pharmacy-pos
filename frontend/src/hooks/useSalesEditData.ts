@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import * as salesService from '../services/salesService';
 import * as productService from '../services/productService';
 import * as customerService from '../services/customerService';
-import { Product, Customer } from '../../../shared/types/entities';
+import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 前端使用的銷售項目介面 (與後端 SaleItem 介面有些差異)

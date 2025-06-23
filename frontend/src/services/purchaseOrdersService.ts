@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { PurchaseOrder } from '@shared/types/entities';
+import { PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
 
 // Assuming API_BASE_URL is defined elsewhere or use relative paths
 // If API_BASE_URL is needed, it should be imported or configured globally
