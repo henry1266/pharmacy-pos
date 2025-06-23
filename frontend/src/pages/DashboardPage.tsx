@@ -111,29 +111,44 @@ const mockPageData: MockPageData = {
  * 將 DashboardSummary 或 MockDashboardData 轉換為 SummaryData 類型
  */
 const adaptToSummaryData = (data: DashboardSummary | MockDashboardData | null): { salesSummary: { total: number, today: number, month: number }, counts: { orders: number } } | null => {
-  if (!data) return null;
+  if (!data) {
+    console.warn('adaptToSummaryData: data is null or undefined');
+    return null;
+  }
   
-  // 如果是 MockDashboardData 類型，它已經有 salesSummary 屬性
-  if ('salesSummary' in data) {
+  try {
+    // 檢查是否為 MockDashboardData 類型（有 totalSalesToday 屬性）
+    if ('totalSalesToday' in data) {
+      // 確保 MockDashboardData 有必要的屬性
+      if (!data.salesSummary || !data.counts || typeof data.counts.orders === 'undefined') {
+        console.error('adaptToSummaryData: MockDashboardData missing required properties', data);
+        return null;
+      }
+      
+      return {
+        salesSummary: data.salesSummary,
+        counts: {
+          orders: data.counts.orders
+        }
+      };
+    }
+    
+    // 如果是 DashboardSummary 類型，檢查必要屬性
+    if (!data.salesSummary || !data.counts || typeof data.counts.orders === 'undefined') {
+      console.error('adaptToSummaryData: DashboardSummary missing required properties', data);
+      return null;
+    }
+    
     return {
       salesSummary: data.salesSummary,
       counts: {
         orders: data.counts.orders
       }
     };
+  } catch (error) {
+    console.error('adaptToSummaryData: Error processing data', error, data);
+    return null;
   }
-  
-  // 如果是 DashboardSummary 類型，需要轉換
-  return {
-    salesSummary: {
-      total: data.totalSales || 0,
-      today: data.totalOrders || 0,
-      month: data.totalCustomers || 0
-    },
-    counts: {
-      orders: data.totalOrders || 0
-    }
-  };
 };
 
 /**
@@ -227,7 +242,9 @@ const DashboardPage: FC = () => {
       </Box>
 
       {/* Sales Summary Cards */}
-      {dashboardData && <DashboardSummaryCards summaryData={adaptToSummaryData(dashboardData)} />}
+      {dashboardData && adaptToSummaryData(dashboardData) && (
+        <DashboardSummaryCards summaryData={adaptToSummaryData(dashboardData)} />
+      )}
 
       {/* Statistics Cards */}
       {dashboardData?.counts && <DashboardStatsCards countsData={dashboardData.counts} />}
@@ -246,13 +263,29 @@ const DashboardPage: FC = () => {
       </Grid>
 
       {/* Placeholder for other sections like Low Stock Items if needed */}
-      {isTestMode && dashboardData?.lowStockItems && (
+      {isTestMode && 'lowStockItems' in (dashboardData || {}) && dashboardData.lowStockItems && (
         <Box sx={{mt: 4}}>
             <Typography variant="h6" component="h2" sx={{mb:2}}>低庫存商品 (測試數據)</Typography>
             <Grid container spacing={2}>
                 {dashboardData.lowStockItems.map(item => (
                     <Grid item xs={12} sm={6} md={4} key={item.id}>
                         <Alert severity="warning">{item.name} - 目前庫存: {item.currentStock} (安全庫存: {item.reorderPoint})</Alert>
+                    </Grid>
+                ))}
+            </Grid>
+        </Box>
+      )}
+      
+      {/* 顯示實際的低庫存警告 */}
+      {!isTestMode && 'lowStockWarnings' in (dashboardData || {}) && dashboardData.lowStockWarnings && dashboardData.lowStockWarnings.length > 0 && (
+        <Box sx={{mt: 4}}>
+            <Typography variant="h6" component="h2" sx={{mb:2}}>低庫存警告</Typography>
+            <Grid container spacing={2}>
+                {dashboardData.lowStockWarnings.map(item => (
+                    <Grid item xs={12} sm={6} md={4} key={item.productId}>
+                        <Alert severity="warning">
+                          {item.productName} ({item.productCode}) - 目前庫存: {item.currentStock} (最低庫存: {item.minStock})
+                        </Alert>
                     </Grid>
                 ))}
             </Grid>

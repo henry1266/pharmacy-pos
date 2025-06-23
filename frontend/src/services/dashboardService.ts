@@ -8,21 +8,67 @@ import { Sale } from '@shared/types/entities';
 const API_URL = '/api/dashboard'; // Adjust if your base URL is different
 
 /**
+ * 低庫存警告介面
+ */
+export interface LowStockWarning {
+  productId: string;
+  productCode: string;
+  productName: string;
+  currentStock: number;
+  minStock: number;
+}
+
+/**
+ * 熱銷產品介面
+ */
+export interface TopProduct {
+  productId: string;
+  productCode: string;
+  productName: string;
+  quantity: number;
+  revenue: number;
+}
+
+/**
+ * 最近銷售記錄介面
+ */
+export interface RecentSale {
+  id: string;
+  saleNumber?: string;
+  customerName: string;
+  totalAmount: number;
+  date: Date;
+  paymentStatus: string;
+}
+
+/**
+ * 銷售摘要介面
+ */
+export interface SalesSummary {
+  total: number;
+  today: number;
+  month: number;
+}
+
+/**
+ * 統計數量介面
+ */
+export interface Counts {
+  products: number;
+  customers: number;
+  suppliers: number;
+  orders: number;
+}
+
+/**
  * 儀表板摘要數據介面
  */
 export interface DashboardSummary {
-  totalSales: number;
-  totalOrders: number;
-  totalCustomers: number;
-  totalProducts: number;
-  recentSales: Sale[];
-  lowStockProducts: {
-    _id: string;
-    name: string;
-    stock: number;
-    threshold: number;
-  }[];
-  [key: string]: any; // 允許其他可能的屬性
+  salesSummary: SalesSummary;
+  counts: Counts;
+  lowStockWarnings: LowStockWarning[];
+  topProducts: TopProduct[];
+  recentSales: RecentSale[];
 }
 
 /**
@@ -42,13 +88,29 @@ export interface CategorySales {
 }
 
 /**
+ * API 回應包裝介面
+ */
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: Date;
+}
+
+/**
  * 獲取儀表板摘要數據
  * @returns {Promise<DashboardSummary>} 摘要數據
  */
 export const getDashboardSummary = async (): Promise<DashboardSummary> => {
   try {
-    const response = await axios.get<DashboardSummary>(`${API_URL}/summary`);
-    return response.data;
+    const response = await axios.get<ApiResponse<DashboardSummary>>(`${API_URL}/summary`);
+    
+    // 檢查 API 回應格式
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('API 回應格式不正確');
+    }
   } catch (error: any) {
     console.error('Error fetching dashboard summary:', error);
     // Re-throw the error to be handled by the caller (e.g., the hook)

@@ -224,7 +224,7 @@ router.get('/summary', async (req: Request, res: Response) => {
       .populate('customer')
       .sort({ date: -1 })
       .limit(5)
-      .select('invoiceNumber customer totalAmount date paymentStatus');
+      .select('saleNumber customer totalAmount date paymentStatus');
     
     const formattedRecentSales: RecentSale[] = recentSales.map(sale => ({
       id: sale._id,
