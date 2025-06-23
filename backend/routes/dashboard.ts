@@ -123,7 +123,7 @@ interface InventoryRecord {
   type?: string;
 }
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/dashboard/summary
 // @desc    Get dashboard summary data

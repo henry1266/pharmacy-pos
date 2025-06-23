@@ -9,7 +9,7 @@ import { ApiResponse, ErrorResponse, CSVImportResponse } from '@pharmacy-pos/sha
 import { Supplier as SupplierType } from '@pharmacy-pos/shared/types/entities';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 型別定義
 interface SupplierCreationRequest {

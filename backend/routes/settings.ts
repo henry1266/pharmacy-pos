@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from "../src/types/express";
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 interface UserSettings {
   [key: string]: any;

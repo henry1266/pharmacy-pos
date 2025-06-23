@@ -23,7 +23,7 @@ import auth from '../middleware/auth';
 const BaseProduct = require('../models/BaseProduct');
 const { Product, Medicine } = require('../models/BaseProduct');
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 
 // 配置 multer 存儲

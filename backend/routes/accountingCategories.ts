@@ -19,7 +19,7 @@ interface AccountingCategoryRequest {
   order?: number;
 }
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/accounting-categories
 // @desc    獲取所有記帳名目類別

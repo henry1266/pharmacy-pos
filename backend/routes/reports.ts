@@ -183,7 +183,7 @@ interface ProfitLossSummary {
   profitMargin: number;
 }
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 共用函數：構建產品查詢條件
 function buildProductQuery(queryParams: ReportQueryParams): Record<string, any> {

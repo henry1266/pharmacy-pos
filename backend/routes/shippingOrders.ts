@@ -91,7 +91,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/shipping-orders
 // @desc    獲取所有出貨單

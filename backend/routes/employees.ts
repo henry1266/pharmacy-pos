@@ -7,7 +7,7 @@ import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { Employee as SharedEmployee } from '@pharmacy-pos/shared/types/entities';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/employees
 // @desc    Get all employees with pagination and search

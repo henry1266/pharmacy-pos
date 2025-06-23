@@ -9,7 +9,7 @@ import { AuthenticatedRequest } from '../src/types/express';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 定義介面
 interface MonitoredProductRequest {

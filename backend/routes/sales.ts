@@ -14,7 +14,7 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants
 // 引入通用訂單單號生成服務
 const OrderNumberService = require('../utils/OrderNumberService');
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 型別定義
 // 使用 shared 的 SaleCreateRequest，並擴展本地需要的欄位

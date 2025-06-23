@@ -15,7 +15,7 @@ import {
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 /**
  * 員工帳號管理路由

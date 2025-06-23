@@ -94,7 +94,7 @@ const upload = multer({
   }
 });
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/purchase-orders
 // @desc    獲取所有進貨單

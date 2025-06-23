@@ -5,7 +5,7 @@ import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import ProductCategory from '../models/ProductCategory';
 import auth from '../middleware/auth';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 型別定義
 interface ProductCategoryRequest {

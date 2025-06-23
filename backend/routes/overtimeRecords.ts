@@ -15,7 +15,7 @@ import {
   ERROR_MESSAGES
 } from '@pharmacy-pos/shared';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 interface OvertimeQueryParams {
   employeeId?: string;

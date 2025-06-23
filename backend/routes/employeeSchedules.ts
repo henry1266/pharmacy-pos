@@ -13,7 +13,7 @@ import {
   ERROR_MESSAGES
 } from '@pharmacy-pos/shared';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/employee-schedules
 // @desc    Get employee schedules with date range filter
