@@ -38,6 +38,26 @@ interface ImportResult {
   }>;
 }
 
+// 輔助函數：轉換 Mongoose Document 到 SupplierType
+function convertToSupplierType(supplier: any): SupplierType {
+  return {
+    _id: supplier._id.toString(),
+    code: supplier.code,
+    shortCode: supplier.shortCode,
+    name: supplier.name,
+    contactPerson: supplier.contactPerson,
+    phone: supplier.phone,
+    email: supplier.email,
+    address: supplier.address,
+    taxId: supplier.taxId,
+    paymentTerms: supplier.paymentTerms,
+    notes: supplier.notes,
+    date: supplier.date,
+    createdAt: supplier.createdAt || new Date(),
+    updatedAt: supplier.updatedAt || new Date()
+  };
+}
+
 // 設置文件上傳
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -78,22 +98,7 @@ router.get('/', async (req: Request, res: Response) => {
     const response: ApiResponse<SupplierType[]> = {
       success: true,
       message: 'Suppliers retrieved successfully',
-      data: suppliers.map(supplier => ({
-        _id: supplier._id.toString(),
-        code: supplier.code,
-        shortCode: supplier.shortCode,
-        name: supplier.name,
-        contactPerson: supplier.contactPerson,
-        phone: supplier.phone,
-        email: supplier.email,
-        address: supplier.address,
-        taxId: supplier.taxId,
-        paymentTerms: supplier.paymentTerms,
-        notes: supplier.notes,
-        date: supplier.date,
-        createdAt: supplier.toObject().createdAt,
-        updatedAt: supplier.toObject().updatedAt
-      })),
+      data: suppliers.map(supplier => convertToSupplierType(supplier)),
       timestamp: new Date()
     };
     
@@ -142,22 +147,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const response: ApiResponse<SupplierType> = {
       success: true,
       message: 'Supplier retrieved successfully',
-      data: {
-        _id: supplier._id.toString(),
-        code: supplier.code,
-        shortCode: supplier.shortCode,
-        name: supplier.name,
-        contactPerson: supplier.contactPerson,
-        phone: supplier.phone,
-        email: supplier.email,
-        address: supplier.address,
-        taxId: supplier.taxId,
-        paymentTerms: supplier.paymentTerms,
-        notes: supplier.notes,
-        date: supplier.date,
-        createdAt: supplier.toObject().createdAt,
-        updatedAt: supplier.toObject().updatedAt
-      },
+      data: convertToSupplierType(supplier),
       timestamp: new Date()
     };
     
@@ -267,27 +257,7 @@ router.post(
       const response: ApiResponse<SupplierType> = {
         success: true,
         message: 'Supplier created successfully',
-        data: {
-          _id: supplier._id.toString(),
-          code: supplier.code,
-          shortCode: supplier.shortCode,
-          name: supplier.name,
-          contactPerson: supplier.contactPerson,
-          phone: supplier.phone,
-          email: supplier.email,
-          address: supplier.address,
-          taxId: supplier.taxId,
-          paymentTerms: supplier.paymentTerms,
-          notes: supplier.notes,
-          date: supplier.date,
-          ...(() => {
-            const supplierObj = supplier.toObject();
-            return {
-              createdAt: supplierObj.createdAt,
-              updatedAt: supplierObj.updatedAt
-            };
-          })()
-        },
+        data: convertToSupplierType(supplier),
         timestamp: new Date()
       };
       
@@ -423,27 +393,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     const response: ApiResponse<SupplierType> = {
       success: true,
       message: 'Supplier updated successfully',
-      data: {
-        _id: supplier._id.toString(),
-        code: supplier.code,
-        shortCode: supplier.shortCode,
-        name: supplier.name,
-        contactPerson: supplier.contactPerson,
-        phone: supplier.phone,
-        email: supplier.email,
-        address: supplier.address,
-        taxId: supplier.taxId,
-        paymentTerms: supplier.paymentTerms,
-        notes: supplier.notes,
-        date: supplier.date,
-        ...(() => {
-          const supplierObj = supplier.toObject();
-          return {
-            createdAt: supplierObj.createdAt,
-            updatedAt: supplierObj.updatedAt
-          };
-        })()
-      },
+      data: convertToSupplierType(supplier),
       timestamp: new Date()
     };
     

@@ -64,7 +64,8 @@
     "coverage",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "./models/**/*.js"
+    "./models/**/*.js",
+    "test_mongo_connection.ts"
   ],
   "ts-node": {
     "transpileOnly": true,
