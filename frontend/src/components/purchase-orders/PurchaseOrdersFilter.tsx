@@ -82,6 +82,7 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
             label="開始日期"
             value={searchParams.startDate}
             onChange={(date) => handleDateChange('startDate', date)}
+            renderInput={(params) => <TextField {...params} size="small" fullWidth />}
           />
         </LocalizationProvider>
       </Grid>
@@ -91,6 +92,7 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
             label="結束日期"
             value={searchParams.endDate}
             onChange={(date) => handleDateChange('endDate', date)}
+            renderInput={(params) => <TextField {...params} size="small" fullWidth />}
           />
         </LocalizationProvider>
       </Grid>

@@ -199,7 +199,7 @@ const SuppliersPage: FC<{}> = () => {
   const suppliers = isTestMode ? localSuppliers : (actualSuppliers as unknown as SupplierData[]) ?? [];
   const loading = isTestMode ? false : actualLoading;
   const error = isTestMode ? null : actualError;
-  const selectedSupplier = isTestMode ? localSelectedSupplier : (actualSelectedSupplier as unknown as SupplierData);
+  const selectedSupplier = isTestMode ? localSelectedSupplier : (actualSelectedSupplier as unknown as SupplierData | null);
 
   const selectSupplier = (id: string): void => {
     if (isTestMode) {

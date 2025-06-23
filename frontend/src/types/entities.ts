@@ -85,11 +85,15 @@ export interface Category {
 
 export interface Supplier {
   _id: string;
+  code: string;
+  shortCode?: string;
   name: string;
   contactPerson?: string;
   phone?: string;
   email?: string;
   address?: string;
+  taxId?: string;
+  paymentTerms?: string;
   notes?: string;
   createdAt: string | Date;
   updatedAt: string | Date;

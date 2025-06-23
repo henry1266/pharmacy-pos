@@ -86,6 +86,7 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
                 title={title}
                 pageSize={10}
                 checkboxSelection={false}
+                onRowClick={onRowClick}
                 {...dataTableProps} // Spread any additional DataTable props including sorting if needed
               />
             )}
