@@ -44,7 +44,7 @@ interface OvertimeRecordDialogProps {
   title: string;
   formData: FormData;
   formErrors: FormErrors;
-  employees: Employee[];
+  employees?: Employee[];
   employeeId: string | null;
   isAdmin: boolean;
   submitting: boolean;
@@ -63,7 +63,7 @@ const OvertimeRecordDialog: React.FC<OvertimeRecordDialogProps> = ({
   title,
   formData,
   formErrors,
-  employees,
+  employees = [],
   employeeId,
   isAdmin,
   submitting,
@@ -87,11 +87,15 @@ const OvertimeRecordDialog: React.FC<OvertimeRecordDialogProps> = ({
                 label="員工"
                 disabled={!!employeeId}
               >
-                {employees.map((employee) => (
+                {employees && employees.length > 0 ? employees.map((employee) => (
                   <MenuItem key={employee._id} value={employee._id}>
                     {employee.name}
                   </MenuItem>
-                ))}
+                )) : (
+                  <MenuItem value="" disabled>
+                    沒有可選擇的員工
+                  </MenuItem>
+                )}
               </Select>
               {formErrors.employeeId && (
                 <Typography color="error" variant="caption">

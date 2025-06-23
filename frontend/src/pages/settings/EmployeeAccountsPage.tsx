@@ -134,7 +134,7 @@ const EmployeeAccountsPage: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {employees.map((employee) => (
+                    {employees && employees.length > 0 ? employees.map((employee) => (
                       <EmployeeAccountRow
                         key={employee._id}
                         employee={employee}
@@ -145,7 +145,13 @@ const EmployeeAccountsPage: React.FC = () => {
                         getRoleName={getRoleName}
                         getRoleColor={getRoleColor as any}
                       />
-                    ))}
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">
+                          沒有員工資料
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -185,11 +191,17 @@ const EmployeeAccountsPage: React.FC = () => {
             }}
             label="選擇員工"
           >
-            {employees
-              .filter(emp => !emp.account) // 只顯示沒有帳號的員工
-              .map(emp => (
-                <MenuItem key={emp._id} value={emp._id}>{emp.name}</MenuItem>
-              ))
+            {employees && employees.length > 0
+              ? employees
+                  .filter(emp => !emp.account) // 只顯示沒有帳號的員工
+                  .map(emp => (
+                    <MenuItem key={emp._id} value={emp._id}>{emp.name}</MenuItem>
+                  ))
+              : (
+                <MenuItem value="" disabled>
+                  沒有可選擇的員工
+                </MenuItem>
+              )
             }
           </Select>
         </FormControl>

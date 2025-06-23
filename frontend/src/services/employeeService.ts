@@ -45,8 +45,42 @@ export const getEmployees = async (params: EmployeeQueryParams = {}): Promise<Em
       params
     };
 
-    const response = await axios.get<EmployeeListResponse>(API_URL, config);
-    return response.data;
+    const response = await axios.get<{
+      success: boolean;
+      message: string;
+      data: {
+        employees: Employee[];
+        totalCount: number;
+        page: number;
+        limit: number;
+      };
+      timestamp: Date;
+    }>(API_URL, config);
+    
+    // 確保回應結構正確
+    if (response.data.success && response.data.data && Array.isArray(response.data.data.employees)) {
+      return {
+        employees: response.data.data.employees,
+        pagination: {
+          total: response.data.data.totalCount,
+          page: response.data.data.page,
+          limit: response.data.data.limit,
+          totalPages: Math.ceil(response.data.data.totalCount / response.data.data.limit)
+        }
+      };
+    } else {
+      // 如果回應結構不正確，返回空陣列
+      console.warn('API 回應結構不正確:', response.data);
+      return {
+        employees: [],
+        pagination: {
+          total: 0,
+          page: 0,
+          limit: 10,
+          totalPages: 0
+        }
+      };
+    }
   } catch (err: any) {
     console.error('獲取員工資訊失敗:', err);
     throw new Error(
@@ -74,8 +108,19 @@ export const getEmployee = async (id: string): Promise<Employee> => {
       }
     };
 
-    const response = await axios.get<Employee>(`${API_URL}/${id}`, config);
-    return response.data;
+    const response = await axios.get<{
+      success: boolean;
+      message: string;
+      data: Employee;
+      timestamp: Date;
+    }>(`${API_URL}/${id}`, config);
+    
+    // 確保回應結構正確
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('API 回應結構不正確');
+    }
   } catch (err: any) {
     console.error('獲取員工資訊失敗:', err);
     throw new Error(

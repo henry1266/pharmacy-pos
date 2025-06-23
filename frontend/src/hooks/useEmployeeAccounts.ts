@@ -64,9 +64,18 @@ const useEmployeeAccounts = () => {
     setIsLoading(true);
     try {
       const employeesWithAccounts = await employeeService.getEmployeesWithAccountStatus();
-      setEmployees(employeesWithAccounts);
+      // 確保 employeesWithAccounts 是陣列
+      if (Array.isArray(employeesWithAccounts)) {
+        setEmployees(employeesWithAccounts);
+      } else {
+        console.warn('員工資料不是陣列格式:', employeesWithAccounts);
+        setEmployees([]);
+      }
     } catch (error: any) {
+      console.error('獲取員工資訊失敗:', error);
       setError('獲取員工資訊失敗: ' + error.message);
+      // 確保在錯誤情況下 employees 仍然是空陣列
+      setEmployees([]);
     } finally {
       setIsLoading(false);
     }

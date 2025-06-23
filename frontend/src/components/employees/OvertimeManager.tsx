@@ -268,11 +268,13 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
       });
       
       // 處理統計數據中的員工ID
-      summaryData.forEach(stat => {
-        if (stat.employeeId) {
-          expandedState[stat.employeeId] = false;
-        }
-      });
+      if (Array.isArray(summaryData)) {
+        summaryData.forEach(stat => {
+          if (stat.employeeId) {
+            expandedState[stat.employeeId] = false;
+          }
+        });
+      }
       
       console.log("初始化展開狀態:", expandedState);
       setExpandedEmployees(expandedState);
@@ -490,9 +492,18 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   const fetchEmployees = async (): Promise<void> => {
     try {
       const response = await employeeService.getEmployees({ limit: 1000 });
-      setEmployees(response.employees);
+      // 確保 response.employees 是陣列
+      if (response && Array.isArray(response.employees)) {
+        setEmployees(response.employees);
+      } else {
+        console.warn('員工資料不是陣列格式:', response);
+        setEmployees([]);
+      }
     } catch (err: any) {
+      console.error('獲取員工資訊失敗:', err);
       setError(err.message);
+      // 確保在錯誤情況下 employees 仍然是空陣列
+      setEmployees([]);
     }
   };
 
@@ -717,8 +728,10 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   // 格式化日期為 YYYY-MM-DD 格式，避免時區問題
   const formatDateToYYYYMMDD = (date: Date): string => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const monthNum = date.getMonth() + 1;
+    const dayNum = date.getDate();
+    const month = monthNum < 10 ? `0${monthNum}` : monthNum.toString();
+    const day = dayNum < 10 ? `0${dayNum}` : dayNum.toString();
     return `${year}-${month}-${day}`;
   };
 
@@ -828,7 +841,15 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                   <TableCell colSpan={6}>
                     <Typography variant="caption" color="text.secondary">
                       獨立加班記錄: {overtimeRecords.length} 筆,
-                      排班加班記錄: {Object.values(scheduleOvertimeRecords).flat().length} 筆,
+                      排班加班記錄: {(() => {
+                        let count = 0;
+                        for (const key in scheduleOvertimeRecords) {
+                          if (scheduleOvertimeRecords.hasOwnProperty(key)) {
+                            count += scheduleOvertimeRecords[key].length;
+                          }
+                        }
+                        return count;
+                      })()} 筆,
                       統計數據: {summaryData.length} 筆
                     </Typography>
                   </TableCell>
@@ -855,15 +876,23 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                     </TableCell>
                   </TableRow>
                 ) : (
-                  Object.entries(processedOvertimeData).map(([employeeId, group]) => {
+                  (() => {
+                    const entries: Array<[string, ProcessedOvertimeGroup]> = [];
+                    for (const key in processedOvertimeData) {
+                      if (processedOvertimeData.hasOwnProperty(key)) {
+                        entries.push([key, processedOvertimeData[key]]);
+                      }
+                    }
+                    return entries;
+                  })().map(([employeeId, group]) => {
                     // 查找對應的排班系統加班統計 - 增強健壯性
                     console.log(`嘗試查找員工 ${employeeId} 的加班統計，summaryData:`, summaryData);
                     
                     // 簡化匹配邏輯，避免複雜的類型檢查
-                    const scheduleStats = summaryData.find(stat => {
+                    const scheduleStats = Array.isArray(summaryData) ? summaryData.find(stat => {
                       // 直接匹配 employeeId 字符串
                       return stat.employeeId === employeeId;
-                    });
+                    }) : undefined;
                     
                     console.log(`員工 ${employeeId} 的加班統計:`, scheduleStats);
                     
@@ -904,7 +933,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                           </TableCell>
                           <TableCell component="th" scope="row">
                             <Typography variant="subtitle1" fontWeight="bold">
-                              {group.employee.name ?? `員工${(selectedMonth + 1).toString().padStart(2, '0')}`}
+                              {group.employee.name ?? `員工${selectedMonth + 1 < 10 ? `0${selectedMonth + 1}` : (selectedMonth + 1).toString()}`}
                             </Typography>
                           </TableCell>
                           <TableCell>{group.independentHours.toFixed(1)} 小時</TableCell>

@@ -62,10 +62,32 @@ interface SnackbarState {
   severity: 'success' | 'error' | 'info' | 'warning';
 }
 
-interface EmployeeResponse {
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: Date;
+}
+
+interface EmployeeListData {
   employees: Employee[];
   totalCount: number;
+  page: number;
+  limit: number;
 }
+
+/**
+ * 型別守衛：檢查員工資料是否有效
+ */
+const isValidEmployee = (employee: any): employee is Employee => {
+  return employee &&
+         typeof employee._id === 'string' &&
+         typeof employee.name === 'string' &&
+         (employee.gender === 'male' || employee.gender === 'female') &&
+         typeof employee.department === 'string' &&
+         typeof employee.position === 'string' &&
+         typeof employee.phone === 'string';
+};
 
 /**
  * 員工列表頁面
@@ -108,10 +130,20 @@ const EmployeeListPage: React.FC = () => {
       // 構建 API 請求 URL，包含分頁和搜尋參數
       const url = `/api/employees?page=${page}&limit=${rowsPerPage}&search=${searchTerm}`;
       
-      const response = await axios.get<EmployeeResponse>(url, config);
+      const response = await axios.get<ApiResponse<EmployeeListData>>(url, config);
       
-      setEmployees(response.data.employees);
-      setTotalCount(response.data.totalCount);
+      // 確保 response.data.data 存在且包含 employees 陣列
+      if (response.data.success && response.data.data && Array.isArray(response.data.data.employees)) {
+        // 過濾並驗證員工資料
+        const validEmployees = response.data.data.employees.filter(isValidEmployee);
+        setEmployees(validEmployees);
+        setTotalCount(response.data.data.totalCount || 0);
+      } else {
+        // 如果回應結構不正確，設為空陣列
+        console.warn('API 回應結構不正確:', response.data);
+        setEmployees([]);
+        setTotalCount(0);
+      }
       setError(null);
     } catch (err: any) {
       console.error('獲取員工資料失敗:', err);
@@ -357,7 +389,7 @@ const EmployeeListPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {employees.map((employee) => (
+              {employees && employees.length > 0 ? employees.map((employee) => (
                 <TableRow
                   hover
                   key={employee._id}
@@ -397,8 +429,8 @@ const EmployeeListPage: React.FC = () => {
                     </Tooltip>
                   </TableCell>
                 </TableRow>
-              ))}
-              {employees.length === 0 && (
+              )) : null}
+              {(!employees || employees.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={7} align="center">
                     {searchTerm ? '沒有符合搜尋條件的員工' : '目前沒有員工資料'}

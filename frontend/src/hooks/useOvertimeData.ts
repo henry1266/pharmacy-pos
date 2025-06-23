@@ -159,9 +159,9 @@ const useOvertimeData = (
     
     // 從統計數據中查找
     if (!employeeName) {
-      const matchingStat = summaryData.find(stat =>
+      const matchingStat = Array.isArray(summaryData) ? summaryData.find(stat =>
         stat.employeeId === empId || (stat?.employeeName && empId.includes(stat.employeeName))
-      );
+      ) : undefined;
       if (matchingStat?.employeeName) {
         employeeName = matchingStat.employeeName;
       }
@@ -178,7 +178,8 @@ const useOvertimeData = (
     
     // 生成臨時名稱
     if (!employeeName) {
-      const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+      const monthNum = selectedMonth + 1;
+      const monthStr = monthNum < 10 ? `0${monthNum}` : monthNum.toString();
       employeeName = `員工${monthStr}`;
     }
     
@@ -190,7 +191,7 @@ const useOvertimeData = (
     const initialGroups: ProcessedOvertimeData = {};
     
     // 從統計數據中獲取員工ID
-    summaryData.forEach(stat => {
+    (Array.isArray(summaryData) ? summaryData : []).forEach(stat => {
       if (stat.employeeId) {
         let employeeName = stat.employeeName || '';
         
@@ -215,7 +216,8 @@ const useOvertimeData = (
         
         // 生成臨時名稱
         if (!employeeName) {
-          const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+          const monthNum = selectedMonth + 1;
+          const monthStr = monthNum < 10 ? `0${monthNum}` : monthNum.toString();
           employeeName = `員工${monthStr}`;
         }
         

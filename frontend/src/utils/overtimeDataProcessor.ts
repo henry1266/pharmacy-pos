@@ -137,10 +137,10 @@ const findEmployeeInfo = (
   }
   
   // 從統計數據中查找
-  const matchingStat = summaryData.find(stat =>
-    stat.employeeId === empId || (typeof stat.employeeId === 'object' && stat.employeeId?._id === empId) || 
+  const matchingStat = Array.isArray(summaryData) ? summaryData.find(stat =>
+    stat.employeeId === empId || (typeof stat.employeeId === 'object' && stat.employeeId?._id === empId) ||
     (stat.employeeName && typeof empId === 'string' && empId.includes(stat.employeeName))
-  );
+  ) : undefined;
   
   if (matchingStat?.employeeName) {
     employeeName = matchingStat.employeeName;
@@ -158,7 +158,8 @@ const findEmployeeInfo = (
   
   // 使用臨時名稱
   if (!employeeName) {
-    const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+    const monthNum = selectedMonth + 1;
+    const monthStr = monthNum < 10 ? `0${monthNum}` : monthNum.toString();
     employeeName = `員工${monthStr}`;
   }
   
@@ -221,7 +222,7 @@ export const groupOvertimeRecords = (
   const initialGroups: Record<string, EmployeeGroup> = {};
   
   // 從統計數據中獲取員工ID
-  summaryData.forEach(stat => {
+  (Array.isArray(summaryData) ? summaryData : []).forEach(stat => {
     if (stat.employeeId) {
       let employeeId: string;
       if (typeof stat.employeeId === 'string') {
@@ -248,7 +249,8 @@ export const groupOvertimeRecords = (
       
       // 如果還是沒有名字，使用臨時名稱
       if (!employeeName) {
-        const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+        const monthNum = selectedMonth + 1;
+        const monthStr = monthNum < 10 ? `0${monthNum}` : monthNum.toString();
         employeeName = `員工${monthStr}`;
       }
       
@@ -271,7 +273,15 @@ export const groupOvertimeRecords = (
   });
   
   // 從排班系統加班記錄中獲取員工ID
-  Object.keys(scheduleOvertimeRecords).forEach(empId => {
+  (() => {
+    const keys: string[] = [];
+    for (const key in scheduleOvertimeRecords) {
+      if (scheduleOvertimeRecords.hasOwnProperty(key)) {
+        keys.push(key);
+      }
+    }
+    return keys;
+  })().forEach(empId => {
     if (!initialGroups[empId]) {
       initialGroups[empId] = createEmployeeGroup(
         empId, 
@@ -304,7 +314,15 @@ export const groupOvertimeRecords = (
   });
   
   // 處理排班系統加班記錄和統計數據
-  Object.keys(initialGroups).forEach(employeeId => {
+  (() => {
+    const keys: string[] = [];
+    for (const key in initialGroups) {
+      if (initialGroups.hasOwnProperty(key)) {
+        keys.push(key);
+      }
+    }
+    return keys;
+  })().forEach(employeeId => {
     const group = initialGroups[employeeId];
     
     // 添加排班記錄
@@ -313,14 +331,14 @@ export const groupOvertimeRecords = (
     }
     
     // 查找對應的統計數據
-    const scheduleStats = summaryData.find(stat => {
+    const scheduleStats = Array.isArray(summaryData) ? summaryData.find(stat => {
       if (typeof stat.employeeId === 'string') {
         return stat.employeeId === employeeId || (employeeId.includes(stat.employeeId));
       } else if (typeof stat.employeeId === 'object') {
         return stat.employeeId._id === employeeId;
       }
       return false;
-    });
+    }) : undefined;
     
     if (scheduleStats) {
       // 計算排班系統加班時數 (總時數 - 獨立加班時數)
@@ -332,7 +350,15 @@ export const groupOvertimeRecords = (
   });
   
   // 轉換為數組格式並排序
-  return Object.entries(initialGroups).sort((a, b) => {
+  return (() => {
+    const entries: Array<[string, EmployeeGroup]> = [];
+    for (const key in initialGroups) {
+      if (initialGroups.hasOwnProperty(key)) {
+        entries.push([key, initialGroups[key]]);
+      }
+    }
+    return entries;
+  })().sort((a, b) => {
     // 按總加班時數降序排序
     return b[1].totalHours - a[1].totalHours;
   });
