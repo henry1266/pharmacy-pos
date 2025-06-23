@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import supplierService from '../services/supplierService';
-import { Supplier } from '../types/entities';
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 供應商導入結果介面

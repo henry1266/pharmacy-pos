@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useAppDispatch } from './redux';
 import { fetchPurchaseOrders, fetchSuppliers } from '../redux/actions'; // 假設 actions 處理 API 調用
 import { RootState, PurchaseOrdersState, SuppliersState } from '../types/store';
-import { PurchaseOrder, Supplier } from '../types/entities';
+import { PurchaseOrder, Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 採購訂單數據 Hook 返回值介面

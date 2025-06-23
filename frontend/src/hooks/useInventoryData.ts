@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Inventory, Product } from '../types/entities';
+import { Inventory, Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 庫存記錄介面（擴展）

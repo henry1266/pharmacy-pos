@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ApiResponse, ErrorResponse, AuthResponse, LoginRequest, UpdateUserRequest, LoginResponse } from '../types/api';
-import { EmployeeAccount } from '../types/entities';
+import { EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/auth';
 

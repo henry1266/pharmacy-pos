@@ -1,5 +1,6 @@
 import React, { useState, useEffect, FC, ReactNode } from 'react';
 import axios from 'axios';
+import { ApiResponse } from '../types/api';
 import {
   Box,
   Typography,
@@ -397,14 +398,6 @@ const SalesDetailPage: FC = () => {
   const fetchSaleData = async (): Promise<void> => {
     try {
       setLoading(true);
-      
-      // 定義 API 回應格式
-      interface ApiResponse<T> {
-        success: boolean;
-        message: string;
-        data: T;
-        timestamp: Date;
-      }
       
       const response = await axios.get<ApiResponse<Sale>>(`/api/sales/${id}`);
       

@@ -4,7 +4,7 @@ import overtimeRecordService, {
   OvertimeRecordCreateData
 } from '../services/overtimeRecordService';
 import employeeService from '../services/employeeService';
-import { Employee } from '../types/entities';
+import { Employee } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 排班系統加班記錄介面
@@ -85,8 +85,10 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
   // 格式化日期為 YYYY-MM-DD 格式，避免時區問題
   const formatDateToYYYYMMDD = useCallback((date: Date): string => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const monthNum = date.getMonth() + 1;
+    const dayNum = date.getDate();
+    const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
+    const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
     return `${year}-${month}-${day}`;
   }, []);
 

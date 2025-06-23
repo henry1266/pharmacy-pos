@@ -14,6 +14,7 @@ import {
   Tabs,
   Container,
   Tab,
+  TextField,
   SelectChangeEvent
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -375,7 +376,9 @@ const ReportsPage: React.FC = () => {
                     label="開始日期"
                     value={dateRange.startDate}
                     onChange={handleStartDateChange}
-                    slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                    renderInput={(params) => (
+                      <TextField {...params} size="small" fullWidth />
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3} component="div">
@@ -383,7 +386,9 @@ const ReportsPage: React.FC = () => {
                     label="結束日期"
                     value={dateRange.endDate}
                     onChange={handleEndDateChange}
-                    slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                    renderInput={(params) => (
+                      <TextField {...params} size="small" fullWidth />
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3} component="div">

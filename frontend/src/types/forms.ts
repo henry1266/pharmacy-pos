@@ -2,7 +2,7 @@
  * 表單型別定義
  */
 
-import { Role } from './entities';
+import { Role } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 登入表單型別

@@ -3,7 +3,11 @@
  */
 
 import { ChangeEvent, SyntheticEvent, ReactNode } from 'react';
-import { GridPaginationModel } from '@mui/x-data-grid';
+// GridPaginationModel 在 MUI v5.17.26 中不存在，使用自定義型別
+interface GridPaginationModel {
+  page: number;
+  pageSize: number;
+}
 
 // 基本項目介面
 export interface Item {

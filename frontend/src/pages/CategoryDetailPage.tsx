@@ -169,12 +169,12 @@ const ProductsDataGrid: React.FC<ProductsDataGridProps> = ({
         columns={columns}
         initialState={{
           pagination: {
-            paginationModel: { pageSize: 10, page: 0 },
+            pageSize: 10,
           },
         }}
-        pageSizeOptions={[10]}
+        rowsPerPageOptions={[10]}
         onRowClick={onProductClick}
-        disableRowSelectionOnClick
+        disableSelectionOnClick
         loading={loadingProductData}
         sx={{
           '& .MuiDataGrid-row:hover': {

@@ -1,27 +1,11 @@
 import { useMemo, useCallback } from 'react';
-import { Employee } from '../types/entities';
+import { Employee } from '@pharmacy-pos/shared/types/entities';
+import { OvertimeRecord } from '../services/overtimeRecordService';
 
 /**
  * 加班狀態類型
  */
 type OvertimeStatus = 'pending' | 'approved' | 'rejected';
-
-/**
- * 加班記錄介面
- */
-interface OvertimeRecord {
-  _id: string;
-  date: string | Date;
-  employeeId: {
-    _id: string;
-    name: string;
-    [key: string]: any;
-  };
-  hours: number;
-  description?: string;
-  status?: string;
-  [key: string]: any;
-}
 
 /**
  * 排班系統加班記錄介面
@@ -169,10 +153,13 @@ const useOvertimeData = (
     
     // 從加班記錄中查找
     if (!employeeName) {
-      const matchingRecord = overtimeRecords.find(r => r.employeeId?._id === empId);
-      if (matchingRecord?.employeeId?.name) {
-        employeeName = matchingRecord.employeeId.name;
-        employeeObj = matchingRecord.employeeId as unknown as Employee;
+      const matchingRecord = overtimeRecords.find(r =>
+        (typeof r.employee === 'object' && r.employee?._id === empId) ||
+        r.employeeId === empId
+      );
+      if (matchingRecord?.employee && typeof matchingRecord.employee === 'object') {
+        employeeName = matchingRecord.employee.name;
+        employeeObj = matchingRecord.employee as unknown as Employee;
       }
     }
     
@@ -206,11 +193,12 @@ const useOvertimeData = (
         // 嘗試從加班記錄中查找
         if (!employeeName) {
           const matchingRecord = overtimeRecords.find(r =>
-            r.employeeId && r.employeeId._id === stat.employeeId
+            (typeof r.employee === 'object' && r.employee?._id === stat.employeeId) ||
+            r.employeeId === stat.employeeId
           );
           
-          if (matchingRecord?.employeeId?.name) {
-            employeeName = matchingRecord.employeeId.name;
+          if (matchingRecord?.employee && typeof matchingRecord.employee === 'object') {
+            employeeName = matchingRecord.employee.name;
           }
         }
         
@@ -265,29 +253,43 @@ const useOvertimeData = (
     
     // 處理獨立加班記錄
     overtimeRecords.forEach(record => {
-      if (record.employeeId?._id) {
-        const employeeId = record.employeeId._id;
-        
-        if (!initialGroups[employeeId]) {
-          initialGroups[employeeId] = {
-            employee: record.employeeId as unknown as Employee,
-            records: [],
-            independentHours: 0,
-            scheduleHours: 0,
-            totalHours: 0,
-            scheduleRecords: [],
-            latestDate: new Date(0)
-          };
-        }
-        
-        initialGroups[employeeId].records.push(record);
-        initialGroups[employeeId].independentHours += record.hours;
-        initialGroups[employeeId].totalHours += record.hours;
-        
-        const recordDate = new Date(record.date);
-        if (recordDate > initialGroups[employeeId].latestDate) {
-          initialGroups[employeeId].latestDate = recordDate;
-        }
+      let employeeId: string;
+      let employeeObj: any;
+      
+      if (typeof record.employee === 'object' && record.employee?._id) {
+        employeeId = record.employee._id;
+        employeeObj = record.employee;
+      } else if (typeof record.employeeId === 'string') {
+        employeeId = record.employeeId;
+        // 嘗試從員工列表中找到對應的員工對象
+        employeeObj = employees.find(emp => emp._id === employeeId) || {
+          _id: employeeId,
+          name: `員工${employeeId.slice(-4)}`,
+          position: '員工'
+        };
+      } else {
+        return; // 跳過無效記錄
+      }
+      
+      if (!initialGroups[employeeId]) {
+        initialGroups[employeeId] = {
+          employee: employeeObj,
+          records: [],
+          independentHours: 0,
+          scheduleHours: 0,
+          totalHours: 0,
+          scheduleRecords: [],
+          latestDate: new Date(0)
+        };
+      }
+      
+      initialGroups[employeeId].records.push(record);
+      initialGroups[employeeId].independentHours += record.hours;
+      initialGroups[employeeId].totalHours += record.hours;
+      
+      const recordDate = new Date(record.date);
+      if (recordDate > initialGroups[employeeId].latestDate) {
+        initialGroups[employeeId].latestDate = recordDate;
       }
     });
     

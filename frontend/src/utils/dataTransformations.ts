@@ -1,5 +1,5 @@
 import { parse, format } from 'date-fns';
-import { Product } from '../types/entities';
+import { Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 銷售記錄介面 - 使用 Sale 型別但允許更靈活的 items 型別
@@ -92,8 +92,8 @@ export const transformSalesForTrend = (salesData: SaleRecord[]): SalesTrendItem[
   }, {});
 
   // Convert the aggregated object into an array and sort by date
-  return Object.entries(salesByDate)
-    .map(([date, totalSales]): SalesTrendItem => ({ date, totalSales }))
+  return Object.keys(salesByDate)
+    .map(date => ({ date, totalSales: salesByDate[date] } as SalesTrendItem))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 };
 
@@ -142,5 +142,5 @@ export const transformSalesForCategory = (salesData: SaleRecord[]): CategorySale
   }, {});
 
   // Convert the aggregated object into an array
-  return Object.entries(salesByCategory).map(([category, totalSales]): CategorySalesItem => ({ category, totalSales }));
+  return Object.keys(salesByCategory).map(category => ({ category, totalSales: salesByCategory[category] } as CategorySalesItem));
 };

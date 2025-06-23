@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { getLatestSaleNumber, createSale } from '../services/salesService';
-import { Product } from '../types/entities';
+import { Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 銷售項目介面
@@ -178,11 +178,14 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
       let finalSaleNumber = currentSale.saleNumber;
       if (!finalSaleNumber) {
         const now = new Date();
-        const datePrefix = `${now.getFullYear().toString()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const datePrefix = `${now.getFullYear().toString()}${month < 10 ? '0' + month : month.toString()}${date < 10 ? '0' + date : date.toString()}`;
         try {
           const latestNumber = await getLatestSaleNumber(datePrefix);
           const sequence = latestNumber ? parseInt(latestNumber.slice(-3)) + 1 : 1;
-          finalSaleNumber = `${datePrefix}${sequence.toString().padStart(3, '0')}`;
+          const paddedSequence = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
+          finalSaleNumber = `${datePrefix}${paddedSequence}`;
         } catch (err) {
           console.error('獲取最新銷貨單號失敗:', err);
           finalSaleNumber = `${datePrefix}001`; // Fallback

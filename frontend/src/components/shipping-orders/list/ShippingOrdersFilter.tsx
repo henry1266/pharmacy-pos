@@ -98,13 +98,14 @@ const ShippingOrdersFilter: FC<ShippingOrdersFilterProps> = ({
               label="開始日期"
               value={searchParams.startDate}
               onChange={(date: Date | null) => handleDateChange('startDate', date)}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  variant: "outlined",
-                  size: "small"
-                }
-              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                />
+              )}
             />
           </LocalizationProvider>
         </Grid>
@@ -115,13 +116,14 @@ const ShippingOrdersFilter: FC<ShippingOrdersFilterProps> = ({
               label="結束日期"
               value={searchParams.endDate}
               onChange={(date: Date | null) => handleDateChange('endDate', date)}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  variant: "outlined",
-                  size: "small"
-                }
-              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                />
+              )}
             />
           </LocalizationProvider>
         </Grid>

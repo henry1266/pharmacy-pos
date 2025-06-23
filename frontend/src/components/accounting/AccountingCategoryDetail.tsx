@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import { AccountingCategory } from '../../types/entities';
+import { AccountingCategory } from '@pharmacy-pos/shared/types/entities';
 import {
   // 共用組件
   ContentSection,
@@ -40,7 +40,7 @@ const AccountingCategoryDetail: React.FC = () => {
   const { findCategoryById } = useAccountingCategories();
   
   // 找到當前類別
-  const category: AccountingCategory | undefined = findCategoryById(categoryId ?? '');
+  const category = findCategoryById(categoryId ?? '') as AccountingCategory | undefined;
   
   // 使用會計數據 Hook，傳入類別名稱進行過濾
   const { loading, error, monthlyData, dailyData } = useAccountingData(

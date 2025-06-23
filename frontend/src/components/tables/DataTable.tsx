@@ -50,16 +50,7 @@ const CustomColumnMenu: React.FC<CustomColumnMenuProps> = (props) => {
       <GridColumnMenu
         {...props}
         open={true}
-        slots={{
-          // 添加自定義菜單項
-          columnMenuUserItem: ColumnMenuUserItemButton,
-        }}
-        slotProps={{
-          columnMenuUserItem: {
-            onClick: handleOpen,
-            displayOrder: 0, // 顯示在最上方
-          },
-        }}
+        currentColumn={colDef}
       />
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>設置列寬</DialogTitle>
@@ -176,7 +167,7 @@ const DataTable: React.FC<DataTableProps> = ({
   // 初始狀態
   const initialState: GridInitialState = {
     pagination: {
-      paginationModel: { pageSize: 50, page: 0 }, // 設置初始頁面大小為50
+      pageSize: 50, // 設置初始頁面大小為50
     },
   };
 
@@ -194,17 +185,14 @@ const DataTable: React.FC<DataTableProps> = ({
           rows={rows}
           columns={columnsWithResizing}
           loading={loading}
-          pageSizeOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[5, 10, 25, 50]}
           checkboxSelection={checkboxSelection}
-          disableRowSelectionOnClick
+          disableSelectionOnClick
           onRowClick={handleRowClickInternal}
-          slots={{
-            columnMenu: CustomColumnMenu as React.ComponentType<any>, // 使用自定義列菜單
-          }}
           initialState={{
             ...initialState,
             pagination: {
-              paginationModel: { pageSize, page: 0 },
+              pageSize: pageSize,
             },
           }}
           sx={{

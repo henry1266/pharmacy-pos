@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getCustomerById } from '../services/customerService';
-import { Customer } from '../types/entities';
+import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * Custom hook for managing customer detail page data.

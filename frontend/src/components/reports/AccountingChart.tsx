@@ -1,13 +1,13 @@
 import React, { useState, useEffect, FC } from 'react';
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Grid,
   Chip,
   CircularProgress,
@@ -21,6 +21,7 @@ import {
   Button,
   Tabs,
   Tab,
+  TextField,
   SelectChangeEvent
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -800,11 +801,13 @@ const AccountingChart: FC = () => {
                   label="開始日期"
                   value={dateRange.startDate}
                   onChange={handleStartDateChange}
+                  renderInput={(params) => <TextField {...params} />}
                 />
                 <DatePicker
                   label="結束日期"
                   value={dateRange.endDate}
                   onChange={handleEndDateChange}
+                  renderInput={(params) => <TextField {...params} />}
                 />
               </LocalizationProvider>
             </Box>

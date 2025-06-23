@@ -2,7 +2,7 @@
  * 員工模組共用工具函數
  */
 
-import { Role } from '../../../types/entities';
+import { Role } from '@pharmacy-pos/shared/types/entities';
 import { FormData, FormErrors } from './types';
 import { ROLE_COLORS, ROLE_NAMES, STATUS_CONFIG, VALIDATION_RULES } from './constants';
 
@@ -59,8 +59,10 @@ export const formatDate = (dateString: string): string => {
  */
 export const formatDateToYYYYMMDD = (date: Date): string => {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const monthNum = date.getMonth() + 1;
+  const dayNum = date.getDate();
+  const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
+  const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
   return `${year}-${month}-${day}`;
 };
 
@@ -241,7 +243,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeoutId: NodeJS.Timeout;
+  let timeoutId: ReturnType<typeof setTimeout>;
   
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);

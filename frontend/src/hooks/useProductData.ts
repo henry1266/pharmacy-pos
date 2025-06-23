@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import productService from '../services/productService'; // Import the consolidated service
 import { getProductCategories } from '../services/productCategoryService'; // Keep category service separate or integrate
-import { Product, Supplier, Category } from '../types/entities';
+import { Product, Supplier, Category } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 產品類型

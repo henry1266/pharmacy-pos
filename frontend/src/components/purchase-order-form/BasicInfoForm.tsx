@@ -137,9 +137,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 label="發票日期"
                 value={formData?.pobilldate}
                 onChange={handleDateChange}
-                slotProps={{
-                  textField: { fullWidth: true }
-                }}
+                renderInput={(params) => <TextField {...params} fullWidth />}
               />
             </LocalizationProvider>
           </Grid>

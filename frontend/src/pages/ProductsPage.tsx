@@ -32,7 +32,7 @@ interface ProductWithId {
   categoryName?: string;
   supplier?: string;
   supplierName?: string;
-  stock: number;
+  stock?: number;
   unit: string;
   barcode?: string;
   productType?: ProductType;

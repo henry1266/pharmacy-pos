@@ -78,7 +78,8 @@ const TableRowComponent: React.FC<TableRowComponentProps> = ({
   renderItem
 }) => {
   if (renderItem) {
-    return renderItem(item, index);
+    const result = renderItem(item, index);
+    return result as React.ReactElement;
   }
   
   return (
@@ -232,7 +233,8 @@ const ListItemComponent: React.FC<ListItemComponentProps> = ({
   renderItem
 }) => {
   if (renderItem) {
-    return renderItem(item, index);
+    const result = renderItem(item, index);
+    return result as React.ReactElement;
   }
   
   return (

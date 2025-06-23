@@ -83,11 +83,11 @@ const ShippingOrdersTable: FC<ShippingOrdersTableProps> = ({
       <DataGrid
         rows={filteredRows ?? []} // Directly use filteredRows, provide default empty array
         columns={columns}
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        pageSizeOptions={[5, 10, 25, 50]}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        pagination
+        paginationMode="client"
         checkboxSelection={false}
-        disableRowSelectionOnClick
+        disableSelectionOnClick
         loading={loading}
         autoHeight
         density="standard"

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import employeeAccountService from '../services/employeeAccountService';
 import employeeService from '../services/employeeService';
-import { EmployeeWithAccount } from '../types/entities';
+import { EmployeeWithAccount } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 表單資料介面

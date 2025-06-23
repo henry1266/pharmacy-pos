@@ -12,15 +12,7 @@ import {
   Chip
 } from '@mui/material';
 import authService from '../../services/authService';
-
-// 定義用戶介面
-interface User {
-  _id: string;
-  name: string;
-  username: string;
-  email?: string;
-  role: string;
-}
+import { EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
 
 // 定義表單數據介面
 interface FormData {
@@ -48,7 +40,7 @@ interface AlertState {
  * 允許用戶查看和更新自己的帳號資訊
  */
 const AccountSettingsPage: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<EmployeeAccount | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
@@ -88,10 +80,10 @@ const AccountSettingsPage: React.FC = () => {
 
         <Grid {...{ item: true, xs: 12, sm: 6 } as any}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            姓名
+            用戶名
           </Typography>
           <Typography variant="body1">
-            {currentUser.name}
+            {currentUser.username}
           </Typography>
         </Grid>
         
