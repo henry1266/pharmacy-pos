@@ -15,6 +15,20 @@ export interface ValidationResult {
 }
 
 /**
+ * 驗證參數型別
+ */
+export interface ValidationParams {
+  min?: number;
+  max?: number;
+  format?: string;
+  minLength?: number;
+  requireUppercase?: boolean;
+  requireLowercase?: boolean;
+  requireNumbers?: boolean;
+  requireSpecialChars?: boolean;
+}
+
+/**
  * 驗證規則介面
  */
 export interface ValidationRule {
@@ -23,7 +37,7 @@ export interface ValidationRule {
   rules: Array<{
     type: string;
     message: string;
-    params?: any;
+    params?: ValidationParams;
   }>;
 }
 
@@ -400,7 +414,7 @@ export const validateMultiple = (rules: ValidationRule[]): ValidationResult => {
 export const createValidationRule = (
   field: string,
   value: unknown,
-  rules: Array<{ type: string; message: string; params?: any }>
+  rules: Array<{ type: string; message: string; params?: ValidationParams }>
 ): ValidationRule => {
   return { field, value, rules };
 };

@@ -27,7 +27,10 @@ export interface ShiftTime {
 export interface Employee {
   _id: string;
   name: string;
-  [key: string]: any;
+  role?: string;
+  email?: string;
+  phone?: string;
+  isActive?: boolean;
 }
 
 /**
@@ -36,7 +39,9 @@ export interface Employee {
 export interface Schedule {
   employee: Employee;
   leaveType?: LeaveType;
-  [key: string]: any;
+  date?: string;
+  shift?: ShiftType;
+  notes?: string;
 }
 
 /**
@@ -50,7 +55,9 @@ export interface HoursData {
   names: Record<string, string>;
   totalSchedules: number;
   sickLeaveCount: number;
-  [key: string]: any;
+  startDate?: string;
+  endDate?: string;
+  department?: string;
 }
 
 /**
