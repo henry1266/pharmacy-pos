@@ -1,21 +1,3 @@
-import OrderNumberGenerator from './OrderNumberGenerator';
-import mongoose, { Model } from 'mongoose';
-
-/**
- * 訂單類型
- */
-export type OrderType = 'purchase' | 'shipping' | 'sale';
-
-/**
- * 訂單號生成選項
- */
-export interface OrderNumberOptions {
-  prefix?: string;
-  useShortYear?: boolean;
-  sequenceDigits?: number;
-  sequenceStart?: number;
-}
-
 /**
  * 通用訂單單號生成服務
  * 用於生成進貨單、出貨單和銷貨單的單號
@@ -26,6 +8,17 @@ export interface OrderNumberOptions {
  * 3. 支持不同類型訂單的特定配置
  * 4. 易於維護和擴展
  */
+
+import OrderNumberGenerator from './OrderNumberGenerator';
+import mongoose from 'mongoose';
+
+interface OrderNumberOptions {
+  prefix?: string;
+  useShortYear?: boolean;
+  sequenceDigits?: number;
+  sequenceStart?: number;
+}
+
 class OrderNumberService {
   /**
    * 生成進貨單號
@@ -137,8 +130,8 @@ class OrderNumberService {
    * @param options - 可選配置參數
    * @returns 生成的訂單號
    */
-  static async generateOrderNumber(type: OrderType, options: OrderNumberOptions = {}): Promise<string> {
-    switch (type.toLowerCase() as OrderType) {
+  static async generateOrderNumber(type: string, options: OrderNumberOptions = {}): Promise<string> {
+    switch (type.toLowerCase()) {
       case 'purchase':
         return await this.generatePurchaseOrderNumber(options);
       case 'shipping':
@@ -156,7 +149,7 @@ class OrderNumberService {
    * @param orderNumber - 要檢查的訂單號
    * @returns 是否唯一
    */
-  static async isOrderNumberUnique(type: OrderType, orderNumber: string): Promise<boolean> {
+  static async isOrderNumberUnique(type: string, orderNumber: string): Promise<boolean> {
     try {
       // 安全處理：驗證輸入參數
       if (!type || typeof type !== 'string' || !orderNumber || typeof orderNumber !== 'string') {
@@ -164,9 +157,9 @@ class OrderNumberService {
       }
       
       // 安全處理：清理和驗證訂單類型
-      const sanitizedType = type.toLowerCase().trim() as OrderType;
+      const sanitizedType = type.toLowerCase().trim();
       
-      let Model: Model<any>;
+      let Model: mongoose.Model<any>;
       
       // 使用白名單方式處理訂單類型
       switch (sanitizedType) {
@@ -210,7 +203,7 @@ class OrderNumberService {
    * @param baseOrderNumber - 基礎訂單號
    * @returns 唯一的訂單號
    */
-  static async generateUniqueOrderNumber(type: OrderType, baseOrderNumber: string): Promise<string> {
+  static async generateUniqueOrderNumber(type: string, baseOrderNumber: string): Promise<string> {
     // 安全處理：驗證輸入參數
     if (!type || typeof type !== 'string') {
       throw new Error('無效的訂單類型');
@@ -221,7 +214,7 @@ class OrderNumberService {
     }
     
     // 安全處理：清理輸入
-    const sanitizedType = type.toLowerCase().trim() as OrderType;
+    const sanitizedType = type.toLowerCase().trim();
     const sanitizedBaseOrderNumber = baseOrderNumber.trim();
     
     let orderNumber = sanitizedBaseOrderNumber;

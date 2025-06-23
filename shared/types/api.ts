@@ -327,28 +327,39 @@ export interface PurchaseOrderUpdateRequest extends Partial<PurchaseOrderCreateR
  * 出貨訂單相關 API 型別
  */
 export interface ShippingOrderCreateRequest {
+  soid?: string;
   orderNumber?: string;
+  sosupplier: string;
+  supplier?: string;
   customer?: string;
   customerName?: string;
   orderDate?: string;
   shippingDate?: string;
   items: Array<{
-    product: string;
-    quantity: number;
-    price?: number;
+    did: string;
+    dname: string;
+    dquantity: number;
+    dtotalCost: number;
+    product?: string;
     unitPrice?: number;
-    subtotal?: number;
     notes?: string;
   }>;
   totalAmount?: number;
-  status?: 'pending' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
+  status?: 'pending' | 'completed' | 'cancelled';
+  paymentStatus?: '未收' | '已收款' | '已開立';
   shippingAddress?: string;
   notes?: string;
 }
 
 export interface ShippingOrderResponse {
   _id: string;
+  soid: string;
   orderNumber: string;
+  sosupplier: string;
+  supplier?: {
+    _id: string;
+    name: string;
+  };
   customer?: {
     _id: string;
     name: string;
@@ -356,19 +367,23 @@ export interface ShippingOrderResponse {
   customerName?: string;
   items: Array<{
     _id?: string;
-    product: {
+    did: string;
+    dname: string;
+    dquantity: number;
+    dtotalCost: number;
+    unitPrice?: number;
+    product?: {
       _id: string;
       name: string;
       code?: string;
+      healthInsuranceCode?: string;
     };
-    quantity: number;
-    price?: number;
-    unitPrice?: number;
-    subtotal?: number;
+    healthInsuranceCode?: string;
     notes?: string;
   }>;
-  totalAmount?: number;
-  status: string;
+  totalAmount: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  paymentStatus: '未收' | '已收款' | '已開立';
   orderDate?: Date | string;
   shippingDate?: Date | string;
   deliveryDate?: Date | string;

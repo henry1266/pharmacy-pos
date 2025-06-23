@@ -11,7 +11,7 @@ import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
 import Supplier from '../models/Supplier';
-const OrderNumberService = require('../utils/OrderNumberService');
+import OrderNumberService from '../utils/OrderNumberService';
 
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';

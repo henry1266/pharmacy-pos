@@ -54,7 +54,7 @@ interface IOrderItem {
   dquantity: number | string; // 允許輸入時為 string
   dtotalCost: number | string; // 允許輸入時為 string
   product: string | null; // 儲存 product ID
-  quantity: number; // API 期望的屬性
+  quantity?: number; // API 期望的屬性，設為可選以避免初始化問題
   price?: number;
   unitPrice?: number;
   subtotal?: number;
@@ -109,8 +109,7 @@ const ShippingOrderFormPage: React.FC = () => {
     dname: '',
     dquantity: '',
     dtotalCost: '',
-    product: null,
-    quantity: 0
+    product: null
   });
   
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
@@ -236,7 +235,7 @@ const ShippingOrderFormPage: React.FC = () => {
     });
     
     // 清空當前項目
-    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null, quantity: 0 });
+    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
     
     // FIX: 聚焦操作應該由 ProductItemForm 組件內部處理，而不是在這裡直接操作 DOM
   };
@@ -306,19 +305,24 @@ const ShippingOrderFormPage: React.FC = () => {
   const submitForm = () => {
     // 轉換為 API 期望的格式
     const submitData = {
-      orderNumber: formData.soid,
-      customer: formData.supplier,
-      customerName: formData.sosupplier,
+      soid: formData.soid,
+      sosupplier: formData.sosupplier,
+      supplier: formData.supplier,
       items: formData.items.map(item => ({
-        product: item.product ?? '',
-        quantity: Number(item.dquantity),
-        price: Number(item.dtotalCost),
+        did: item.did,
+        dname: item.dname,
+        dquantity: Number(item.dquantity),
+        dtotalCost: Number(item.dtotalCost),
+        product: item.product ?? undefined,
+        quantity: Number(item.dquantity), // 添加必需的 quantity 屬性
+        price: Number(item.dtotalCost) / Number(item.dquantity), // 添加必需的 price 屬性
         unitPrice: Number(item.dtotalCost) / Number(item.dquantity),
-        subtotal: Number(item.dtotalCost),
+        subtotal: Number(item.dtotalCost), // 添加必需的 subtotal 屬性
         notes: item.notes ?? ''
       })),
       totalAmount: formData.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0),
       status: formData.status,
+      paymentStatus: formData.paymentStatus,
       notes: formData.notes
     };
     

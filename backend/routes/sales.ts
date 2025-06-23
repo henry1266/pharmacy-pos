@@ -11,7 +11,7 @@ import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@pharmacy-pos/sha
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 引入通用訂單單號生成服務
-const OrderNumberService = require('../utils/OrderNumberService');
+import OrderNumberService from '../utils/OrderNumberService';
 
 const router: express.Router = express.Router();
 

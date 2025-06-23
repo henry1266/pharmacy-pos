@@ -4,14 +4,10 @@ import multer from "multer";
 import csv from "csv-parser";
 import fs from "fs";
 import path from "path";
-
-// 使用 ES6 import 導入模型
 import ShippingOrder from "../models/ShippingOrder";
 import BaseProduct from "../models/BaseProduct";
 import Inventory from "../models/Inventory";
-const OrderNumberService = require("../utils/OrderNumberService");
-
-// 使用 ES6 import 導入 TypeScript 模型
+import OrderNumberService from "../utils/OrderNumberService";
 import Supplier from '../models/Supplier';
 
 // 使用 shared 架構的類型
