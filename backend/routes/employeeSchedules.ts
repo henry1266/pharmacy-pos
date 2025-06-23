@@ -374,10 +374,10 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     if (!scheduleValidation.valid) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: scheduleValidation.error!.msg,
+        message: scheduleValidation.error?.msg ?? '驗證失敗',
         timestamp: new Date().toISOString()
       };
-      res.status(scheduleValidation.error!.status).json(errorResponse);
+      res.status(scheduleValidation.error?.status ?? 400).json(errorResponse);
       return;
     }
     const schedule = scheduleValidation.schedule!;

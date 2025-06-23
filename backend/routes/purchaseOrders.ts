@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 // 使用 ES6 import 導入模型
-import PurchaseOrder, { IPurchaseOrderDocument, IPurchaseOrderItem, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../models/PurchaseOrder';
+import PurchaseOrder, { IPurchaseOrderDocument, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../models/PurchaseOrder';
 import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
@@ -507,7 +507,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       res.status(statusCode).json({ msg: validation.error });
       return;
     }
-    let purchaseOrder = validation.purchaseOrder!;
+    let purchaseOrder = validation.purchaseOrder;
 
     // 處理進貨單號變更
     const idChangeResult = await handlePurchaseOrderIdChange(poid, purchaseOrder);
@@ -524,7 +524,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     
     // 處理狀態變更
     const oldStatus = purchaseOrder.status;
-    const statusResult = await handleStatusChange(status as PurchaseOrderStatus, oldStatus, purchaseOrder._id.toString());
+    const statusResult = await handleStatusChange(status, oldStatus, purchaseOrder._id.toString());
     if (statusResult.statusChanged) {
       updateData.status = statusResult.status as ModelPurchaseOrderStatus;
     }

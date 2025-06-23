@@ -359,7 +359,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
       if (!idValidation.valid) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: idValidation.message!,
+          message: idValidation.message ?? '驗證失敗',
           timestamp: new Date()
         };
         res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);

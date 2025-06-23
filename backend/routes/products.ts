@@ -3,7 +3,6 @@ import { check, validationResult } from 'express-validator';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-import { AuthenticatedRequest } from '../src/types/express';
 import {
   ApiResponse
 } from '@pharmacy-pos/shared/types/api';
