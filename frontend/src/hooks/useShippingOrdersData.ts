@@ -144,13 +144,13 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
         return {
           id: so._id,
           _id: so._id,
-          soid: so.soid || '',
-          sobill: so.sobill || '',
-          sobilldate: so.sobilldate || new Date(),
+          soid: so.soid ?? '',
+          sobill: so.sobill ?? '',
+          sobilldate: so.sobilldate ?? new Date(),
           sosupplier: supplierValue,
-          totalAmount: so.totalAmount || 0,
-          status: so.status || '',
-          paymentStatus: so.paymentStatus || ''
+          totalAmount: so.totalAmount ?? 0,
+          status: so.status ?? '',
+          paymentStatus: so.paymentStatus ?? ''
         };
       });
       setFilteredRows(formattedRows);

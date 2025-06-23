@@ -12,7 +12,7 @@ import { ROLE_COLORS, ROLE_NAMES, STATUS_CONFIG, VALIDATION_RULES } from './cons
  * @returns 角色中文名稱
  */
 export const getRoleName = (role: Role): string => {
-  return ROLE_NAMES[role] || role;
+  return ROLE_NAMES[role] ?? role;
 };
 
 /**
@@ -21,7 +21,7 @@ export const getRoleName = (role: Role): string => {
  * @returns 角色顏色
  */
 export const getRoleColor = (role: Role): "error" | "success" | "primary" | "default" => {
-  return ROLE_COLORS[role] || ROLE_COLORS.default;
+  return ROLE_COLORS[role] ?? ROLE_COLORS.default;
 };
 
 /**

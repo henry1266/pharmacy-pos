@@ -203,7 +203,7 @@ const SalesListPage: FC = () => {
       // if (Math.random() < 0.3) throw new Error("Simulated API error in test mode");
       const response = await axios.get<ApiResponse<Sale[]>>('/api/sales'); // Attempt real fetch
       // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
-      const salesData = response.data.data || [];
+      const salesData = response.data.data ?? [];
       if (Array.isArray(salesData) && salesData.length > 0) {
           setSales(salesData);
       } else {
@@ -224,7 +224,7 @@ const SalesListPage: FC = () => {
     try {
       const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
       // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
-      const salesData = response.data.data || [];
+      const salesData = response.data.data ?? [];
       if (Array.isArray(salesData)) {
         setSales(salesData);
       } else {

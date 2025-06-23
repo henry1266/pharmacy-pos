@@ -68,16 +68,16 @@ const useCustomerData = (): UseCustomerDataReturn => {
       const data = await customerService.getCustomers();
       const formattedCustomers: CustomerDisplay[] = data.map((customer: Customer) => ({
         id: customer._id,
-        code: customer.code || '',
+        code: customer.code ?? '',
         name: customer.name,
-        phone: customer.phone || '',
-        email: customer.email || '',
-        address: customer.address || '',
-        idCardNumber: customer.idCardNumber || '',
+        phone: customer.phone ?? '',
+        email: customer.email ?? '',
+        address: customer.address ?? '',
+        idCardNumber: customer.idCardNumber ?? '',
         birthdate: customer.birthdate ? String(customer.birthdate) : null,
-        notes: customer.notes || '',
-        level: mapMembershipLevel(customer.membershipLevel || 'regular'),
-        membershipLevel: customer.membershipLevel || 'regular'
+        notes: customer.notes ?? '',
+        level: mapMembershipLevel(customer.membershipLevel ?? 'regular'),
+        membershipLevel: customer.membershipLevel ?? 'regular'
       }));
       setCustomers(formattedCustomers);
     } catch (err: any) {

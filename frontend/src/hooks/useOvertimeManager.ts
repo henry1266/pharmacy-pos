@@ -110,7 +110,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
       let allEmployees: Employee[] = [];
       try {
         const response = await employeeService.getEmployees({ limit: 1000 });
-        allEmployees = response.employees || [];
+        allEmployees = response.employees ?? [];
         console.log(`獲取到 ${allEmployees.length} 名員工信息`);
       } catch (empErr) {
         console.error('獲取員工信息失敗:', empErr);

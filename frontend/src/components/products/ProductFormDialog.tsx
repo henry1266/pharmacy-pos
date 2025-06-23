@@ -125,7 +125,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             <TextField
               name="code"
               label="編號"
-              value={currentProduct?.code || ''}
+              value={currentProduct?.code ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -136,7 +136,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             <TextField
               name="shortCode"
               label="簡碼"
-              value={currentProduct?.shortCode || ''}
+              value={currentProduct?.shortCode ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -147,7 +147,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             <TextField
               name="name"
               label="名稱"
-              value={currentProduct?.name || ''}
+              value={currentProduct?.name ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -160,7 +160,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               <TextField
                 name="barcode"
                 label="國際條碼"
-                value={currentProduct?.barcode || ''}
+                value={currentProduct?.barcode ?? ''}
                 onChange={handleInputChange}
                 fullWidth
                 margin="dense"
@@ -172,7 +172,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
                 <TextField
                   name="barcode"
                   label="國際條碼"
-                  value={currentProduct?.barcode || ''}
+                  value={currentProduct?.barcode ?? ''}
                   onChange={handleInputChange}
                   fullWidth
                   margin="dense"
@@ -182,7 +182,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
                 <TextField
                   name="healthInsuranceCode"
                   label="健保碼"
-                  value={currentProduct?.healthInsuranceCode || ''}
+                  value={currentProduct?.healthInsuranceCode ?? ''}
                   onChange={handleInputChange}
                   fullWidth
                   margin="dense"
@@ -193,7 +193,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
                   name="healthInsurancePrice"
                   label="健保價"
                   type="number"
-                  value={currentProduct?.healthInsurancePrice || ''}
+                  value={currentProduct?.healthInsurancePrice ?? ''}
                   onChange={handleInputChange}
                   fullWidth
                   margin="dense"
@@ -211,7 +211,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
                 <Select
                   labelId="category-label"
                   name="category"
-                  value={currentProduct?.category || ''}
+                  value={currentProduct?.category ?? ''}
                   onChange={handleInputChange}
                   label="分類"
                   {...({} as any)}
@@ -232,7 +232,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             <TextField
               name="unit"
               label="單位"
-              value={currentProduct?.unit || ''}
+              value={currentProduct?.unit ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -243,7 +243,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               name="purchasePrice"
               label="進貨價"
               type="number"
-              value={currentProduct?.purchasePrice || ''}
+              value={currentProduct?.purchasePrice ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -254,7 +254,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               name="sellingPrice"
               label="售價"
               type="number"
-              value={currentProduct?.sellingPrice || ''}
+              value={currentProduct?.sellingPrice ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -265,7 +265,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               name="minStock"
               label="最低庫存"
               type="number"
-              value={currentProduct?.minStock || ''}
+              value={currentProduct?.minStock ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"
@@ -277,7 +277,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               <Select
                 labelId="supplier-label"
                 name="supplier"
-                value={currentProduct?.supplier || ''}
+                value={currentProduct?.supplier ?? ''}
                 onChange={handleInputChange}
                 label="供應商"
                 {...({} as any)}
@@ -297,7 +297,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             <TextField
               name="description"
               label="描述"
-              value={currentProduct?.description || ''}
+              value={currentProduct?.description ?? ''}
               onChange={handleInputChange}
               fullWidth
               margin="dense"

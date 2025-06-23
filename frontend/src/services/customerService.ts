@@ -30,7 +30,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
     if (!token) throw new Error('Authentication required.');
     const config = { headers: { 'x-auth-token': token } }; // Config for GET
     const response = await axios.get(API_URL, config);
-    return (response.data as any)?.data || [];
+    return (response.data as any)?.data ?? [];
   } catch (error: any) {
     console.error('Error fetching customers:', error.response?.data ?? error.message);
     throw error; // Re-throw for handling in the hook/component

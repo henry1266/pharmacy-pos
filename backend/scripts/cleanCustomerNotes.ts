@@ -254,7 +254,7 @@ async function previewCleanup() {
 // 主程式
 async function main() {
   const args = process.argv.slice(2);
-  const isPreview = args.includes('--preview') ?? args.includes('-p');
+  const isPreview = args.includes('--preview') || args.includes('-p');
 
   console.log('🧹 客戶備註欄位清理工具');
   console.log('================================');

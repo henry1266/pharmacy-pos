@@ -33,7 +33,7 @@ const useInventoryData = (productId?: string) => {
       };
       
       const res = await axios.get<{success: boolean, data: InventoryRecord[]}>('/api/inventory', config);
-      setInventory(res.data.data || []);
+      setInventory(res.data.data ?? []);
       setLoading(false);
     } catch (err: any) {
       console.error(err);
@@ -58,7 +58,7 @@ const useInventoryData = (productId?: string) => {
       const res = await axios.get<{success: boolean, data: InventoryRecord[]}>(`/api/inventory/product/${id}`, config);
       
       // 合併相同進貨單號的記錄
-      const mergedInventory = mergeInventoryByPurchaseOrder(res.data.data || []);
+      const mergedInventory = mergeInventoryByPurchaseOrder(res.data.data ?? []);
       setProductInventory(mergedInventory);
       setLoading(false);
     } catch (err: any) {
@@ -75,12 +75,12 @@ const useInventoryData = (productId?: string) => {
     
     // 第一步：按進貨單號分組並加總數量
     inventoryData.forEach(item => {
-      const poNumber = item.purchaseOrderNumber || item.shippingOrderNumber || '未指定';
+      const poNumber = item.purchaseOrderNumber ?? item.shippingOrderNumber ?? '未指定';
       
       if (groupedByPO.has(poNumber)) {
         // 如果已有該進貨單號的記錄，加總數量
         const existingItem = groupedByPO.get(poNumber);
-        existingItem.quantity = (parseInt(existingItem.quantity.toString()) || 0) + (parseInt(item.quantity.toString()) || 0);
+        existingItem.quantity = (parseInt(existingItem.quantity.toString()) ?? 0) + (parseInt(item.quantity.toString()) ?? 0);
       } else {
         // 如果是新的進貨單號，創建新記錄
         groupedByPO.set(poNumber, { ...item });
@@ -92,8 +92,8 @@ const useInventoryData = (productId?: string) => {
     
     // 第三步：按進貨單號排序
     mergedInventory.sort((a, b) => {
-      const poA = a.purchaseOrderNumber || a.shippingOrderNumber || '';
-      const poB = b.purchaseOrderNumber || b.shippingOrderNumber || '';
+      const poA = a.purchaseOrderNumber ?? a.shippingOrderNumber ?? '';
+      const poB = b.purchaseOrderNumber ?? b.shippingOrderNumber ?? '';
       return poA.localeCompare(poB);
     });
     
@@ -119,7 +119,7 @@ const useInventoryData = (productId?: string) => {
     
     if (productInv.length === 0) return '0';
     
-    const total = productInv.reduce((sum, item) => sum + (parseInt(item.quantity.toString()) || 0), 0);
+    const total = productInv.reduce((sum, item) => sum + (parseInt(item.quantity.toString()) ?? 0), 0);
     return total.toString();
   };
 

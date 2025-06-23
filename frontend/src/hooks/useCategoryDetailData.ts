@@ -240,7 +240,7 @@ const useCategoryDetailData = (categoryId: string): CategoryDetailData => {
             id: product._id,
             profitLoss,
             currentStock,
-            stock: product.stock || currentStock || 0  // 確保 stock 欄位存在
+            stock: product.stock ?? currentStock ?? 0  // 確保 stock 欄位存在
           };
         })
       );

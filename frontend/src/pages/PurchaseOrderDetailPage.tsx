@@ -132,7 +132,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
       setProductDetailsError(null);
       const details: ProductDetailsState = {};
       // 使用 'did' 作為產品代碼字段
-      const productCodes = Array.from(new Set(currentPurchaseOrder.items?.map(item => item.did).filter(Boolean) || []));
+      const productCodes = Array.from(new Set(currentPurchaseOrder.items?.map(item => item.did).filter(Boolean) ?? []));
 
       try {
         const promises = productCodes.map(async (code) => {
@@ -165,7 +165,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
     if (!currentPurchaseOrder) return [];
   
     const details: CollapsibleDetail[] = [];
-    const subtotal = (currentPurchaseOrder.totalAmount || 0) + (currentPurchaseOrder.discountAmount || 0);
+    const subtotal = (currentPurchaseOrder.totalAmount ?? 0) + (currentPurchaseOrder.discountAmount ?? 0);
   
     details.push({
       label: '小計',
@@ -212,8 +212,8 @@ const PurchaseOrderDetailPage: React.FC = () => {
             {productDetailsError && (
               <Typography color="error" sx={{ mb: 2 }}>{productDetailsError}</Typography>
             )}
-            <ProductItemsTable 
-              items={currentPurchaseOrder.items || []}
+            <ProductItemsTable
+              items={currentPurchaseOrder.items ?? []}
               productDetails={productDetails}
               codeField="did"
               nameField="dname"
@@ -241,11 +241,11 @@ const PurchaseOrderDetailPage: React.FC = () => {
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <ReceiptIcon fontSize="small" color="action"/>
-                <Typography variant="body2">進貨單號: {currentPurchaseOrder.poid || 'N/A'}</Typography>
+                <Typography variant="body2">進貨單號: {currentPurchaseOrder.poid ?? 'N/A'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <ReceiptIcon fontSize="small" color="action"/>
-                <Typography variant="body2">發票號碼: {currentPurchaseOrder.pobill || 'N/A'}</Typography>
+                <Typography variant="body2">發票號碼: {currentPurchaseOrder.pobill ?? 'N/A'}</Typography>
               </Stack>
                <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
@@ -253,7 +253,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <SupplierIcon fontSize="small" color="action"/>
-                <Typography variant="body2">供應商: {currentPurchaseOrder.posupplier || '未指定'}</Typography>
+                <Typography variant="body2">供應商: {currentPurchaseOrder.posupplier ?? '未指定'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <InfoIcon fontSize="small" color="action"/>
@@ -276,7 +276,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">備註:</Typography>
                   <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {currentPurchaseOrder.notes || '無'}
+                    {currentPurchaseOrder.notes ?? '無'}
                   </Typography>
                 </Box>
               </Stack>

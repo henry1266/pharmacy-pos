@@ -108,7 +108,7 @@ export const fetchProducts = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_PRODUCTS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PRODUCTS_FAILED);
@@ -210,7 +210,7 @@ export const fetchSuppliers = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SUPPLIERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SUPPLIERS_FAILED);
@@ -235,7 +235,7 @@ export const fetchCustomers = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_CUSTOMERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_CUSTOMERS_FAILED);
@@ -260,7 +260,7 @@ export const fetchInventory = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_INVENTORY_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_INVENTORY_FAILED);
@@ -285,7 +285,7 @@ export const fetchSales = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SALES_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SALES_FAILED);
@@ -310,7 +310,7 @@ export const fetchDashboardData = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_DASHBOARD_DATA_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_DASHBOARD_FAILED);
@@ -335,7 +335,7 @@ export const fetchReportsData = (reportType: string, params: Record<string, any>
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_REPORTS_DATA_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_REPORTS_FAILED);
@@ -363,7 +363,7 @@ export const fetchPurchaseOrders = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_PURCHASE_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED);
@@ -388,7 +388,7 @@ export const fetchPurchaseOrder = (id: string): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_PURCHASE_ORDER_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED);
@@ -518,7 +518,7 @@ export const searchPurchaseOrders = (searchParams: Record<string, string>): AppT
     if (res.data.success) {
       dispatch({
         type: ActionTypes.SEARCH_PURCHASE_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED);
@@ -545,7 +545,7 @@ export const fetchShippingOrders = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SHIPPING_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDERS_FAILED);
@@ -570,7 +570,7 @@ export const fetchShippingOrder = (id: string): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDER_FAILED);
@@ -700,7 +700,7 @@ export const searchShippingOrders = (searchParams: Record<string, string>): AppT
     if (res.data.success) {
       dispatch({
         type: ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
       throw new Error(res.data.message || ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED);

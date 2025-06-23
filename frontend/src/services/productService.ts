@@ -42,7 +42,7 @@ export const getProducts = async (): Promise<Product[]> => {
     const config = getAuthConfig(false); // GET request doesn't need Content-Type
     const response = await axios.get(PRODUCTS_API_URL, config);
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (response.data as any)?.data || [];
+    return (response.data as any)?.data ?? [];
   } catch (error: any) {
     console.error('Error fetching products:', error.response?.data ?? error.message);
     throw error;
@@ -57,7 +57,7 @@ export const getSuppliers = async (): Promise<Supplier[]> => {
   try {
     const config = getAuthConfig(false);
     const response = await axios.get(SUPPLIERS_API_URL, config);
-    return (response.data as any)?.data || [];
+    return (response.data as any)?.data ?? [];
   } catch (error: any) {
     console.error('Error fetching suppliers:', error.response?.data ?? error.message);
     throw error;

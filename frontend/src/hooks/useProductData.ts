@@ -44,7 +44,7 @@ const useProductData = () => {
       data.forEach(item => {
         // 將 item 轉換為 ExtendedProduct 型別
         const extendedItem = item as ExtendedProduct;
-        const product = { ...extendedItem, id: item._id || (item as any).id }; // Map _id to id
+        const product = { ...extendedItem, id: item._id ?? (item as any).id }; // Map _id to id
         
         if (extendedItem.productType === 'product') {
           productsList.push(product);
