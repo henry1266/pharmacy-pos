@@ -231,13 +231,13 @@ const SalesItemRow: FC<SalesItemRowProps> = ({ item, fifoLoading, fifoData, show
       <TableCell>
         <ProductCodeLink product={item.product} />
       </TableCell>
-      <TableCell>{item.product?.name || item.name || 'N/A'}</TableCell>
+      <TableCell>{item.product?.name ?? item.name ?? 'N/A'}</TableCell>
       <TableCell align="right">{item.price.toFixed(2)}</TableCell>
       <TableCell align="right">{item.quantity}</TableCell>
       <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
       {!fifoLoading && fifoData?.items && showSalesProfitColumns && (
         <>
-          <TableCell align="right">{fifoItem?.fifoProfit?.totalCost.toFixed(2) || 'N/A'}</TableCell>
+          <TableCell align="right">{fifoItem?.fifoProfit?.totalCost.toFixed(2) ?? 'N/A'}</TableCell>
           {/* 型別斷言在此是必要的，因為可能存在兩個不同的 FifoProfit 介面定義 */}
           <GrossProfitCell fifoProfit={fifoItem?.fifoProfit as Record<string, any>} />
           <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
@@ -279,7 +279,7 @@ const SalesItemsTable: FC<SalesItemsTableProps> = ({ sale, fifoLoading, fifoData
       <TableBody>
         {sale.items.map((item, index) => (
           <SalesItemRow 
-            key={item.product?._id || `item-${index}`}
+            key={item.product?._id ?? `item-${index}`}
             item={item} 
             fifoLoading={fifoLoading} 
             fifoData={fifoData} 
@@ -304,11 +304,11 @@ const SaleInfoSidebar: FC<SaleInfoSidebarProps> = ({ sale }) => (
       <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} alignItems="center">
           <CalendarTodayIcon fontSize="small" color="action"/>
-          <Typography variant="body2">銷售單號: {sale.saleNumber || 'N/A'}</Typography>
+          <Typography variant="body2">銷售單號: {sale.saleNumber ?? 'N/A'}</Typography>
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center">
           <PersonIcon fontSize="small" color="action"/>
-          <Typography variant="body2">客戶: {sale.customer?.name || '一般客戶'}</Typography>
+          <Typography variant="body2">客戶: {sale.customer?.name ?? '一般客戶'}</Typography>
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center">
           <PaymentIcon fontSize="small" color="action"/>
@@ -319,7 +319,7 @@ const SaleInfoSidebar: FC<SaleInfoSidebarProps> = ({ sale }) => (
           <Typography variant="body2">付款狀態: <Chip label={getPaymentStatusInfo(sale.paymentStatus).text} color={getPaymentStatusInfo(sale.paymentStatus).color} size="small" /></Typography>
         </Stack>
         <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
-        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note || '無'}</Typography>
+        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note ?? '無'}</Typography>
       </Stack>
     </CardContent>
   </Card>
@@ -349,7 +349,7 @@ const MainContent: FC<MainContentProps> = ({
         title="金額信息"
         titleIcon={<AccountBalanceWalletIcon />}
         mainAmountLabel="總金額"
-        mainAmountValue={sale.totalAmount || 0}
+        mainAmountValue={sale.totalAmount ?? 0}
         mainAmountIcon={<ReceiptLongIcon />}
         collapsibleDetails={getCollapsibleDetails(sale, fifoLoading, fifoError, fifoData)}
         initialOpenState={true}
@@ -402,7 +402,7 @@ const SalesDetailPage: FC = () => {
       const response = await axios.get<ApiResponse<Sale>>(`/api/sales/${id}`);
       
       // 檢查 API 回應格式
-      if (response.data?.success && response.data.data) {
+      if (response.data?.success && response.data?.data) {
         // 驗證銷售資料的完整性
         const saleData = response.data.data;
         
@@ -420,7 +420,7 @@ const SalesDetailPage: FC = () => {
             console.warn(`銷售項目 ${index + 1} 缺少商品資訊`);
             return {
               ...item,
-              name: item.name || '未知商品'
+              name: item.name ?? '未知商品'
             };
           }
           
@@ -429,9 +429,9 @@ const SalesDetailPage: FC = () => {
             return {
               ...item,
               product: {
-                _id: item.product._id || '',
-                name: item.product.name || '未知商品',
-                code: item.product.code || ''
+                _id: item.product._id ?? '',
+                name: item.product.name ?? '未知商品',
+                code: item.product.code ?? ''
               }
             };
           }

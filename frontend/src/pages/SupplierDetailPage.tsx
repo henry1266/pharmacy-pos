@@ -63,7 +63,7 @@ const SupplierDetailPage: FC = () => {
         const response = await axios.get<ApiResponse<Supplier>>(`/api/suppliers/${id}`);
         
         // 檢查 API 回應格式
-        if (response.data?.success && response.data.data) {
+        if (response.data?.success && response.data?.data) {
           setSupplier(response.data.data);
         } else {
           throw new Error('供應商資料格式不正確');
@@ -71,7 +71,7 @@ const SupplierDetailPage: FC = () => {
         setLoading(false);
       } catch (err: any) {
         console.error('獲取供應商詳情失敗:', err);
-        setError(err.response?.data?.message || err.message || '獲取供應商詳情失敗');
+        setError(err.response?.data?.message ?? err.message ?? '獲取供應商詳情失敗');
         setLoading(false);
       }
     };

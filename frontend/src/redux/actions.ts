@@ -76,12 +76,12 @@ export const login = (username: string, password: string): AppThunk => async (
         payload: { token, user }
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.LOGIN_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.LOGIN_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.LOGIN_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.LOGIN_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.LOGIN_FAILED
     });
   }
 };
@@ -110,15 +110,15 @@ export const fetchProducts = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_PRODUCTS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PRODUCTS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_PRODUCTS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PRODUCTS_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_PRODUCTS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PRODUCTS_FAILED
     });
   }
 };
@@ -142,12 +142,12 @@ export const addProduct = (productData: ProductCreateRequest): AppThunk => async
         payload: res.data.data
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.ADD_PRODUCT_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.ADD_PRODUCT_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_PRODUCT_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.ADD_PRODUCT_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.ADD_PRODUCT_FAILED
     });
   }
 };
@@ -166,12 +166,12 @@ export const updateProduct = (id: string, productData: ProductUpdateRequest): Ap
         payload: res.data.data
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.UPDATE_PRODUCT_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.UPDATE_PRODUCT_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_PRODUCT_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.UPDATE_PRODUCT_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.UPDATE_PRODUCT_FAILED
     });
   }
 };
@@ -190,12 +190,12 @@ export const deleteProduct = (id: string): AppThunk => async (
         payload: id
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.DELETE_PRODUCT_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.DELETE_PRODUCT_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_PRODUCT_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.DELETE_PRODUCT_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.DELETE_PRODUCT_FAILED
     });
   }
 };
@@ -212,15 +212,15 @@ export const fetchSuppliers = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SUPPLIERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SUPPLIERS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_SUPPLIERS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SUPPLIERS_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_SUPPLIERS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SUPPLIERS_FAILED
     });
   }
 };
@@ -237,15 +237,15 @@ export const fetchCustomers = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_CUSTOMERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_CUSTOMERS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_CUSTOMERS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_CUSTOMERS_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_CUSTOMERS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_CUSTOMERS_FAILED
     });
   }
 };
@@ -262,15 +262,15 @@ export const fetchInventory = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_INVENTORY_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_INVENTORY_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_INVENTORY_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_INVENTORY_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_INVENTORY_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_INVENTORY_FAILED
     });
   }
 };
@@ -287,15 +287,15 @@ export const fetchSales = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SALES_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SALES_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_SALES_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SALES_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_SALES_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SALES_FAILED
     });
   }
 };
@@ -312,15 +312,15 @@ export const fetchDashboardData = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_DASHBOARD_DATA_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_DASHBOARD_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_DASHBOARD_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_DASHBOARD_DATA_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_DASHBOARD_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_DASHBOARD_FAILED
     });
   }
 };
@@ -337,15 +337,15 @@ export const fetchReportsData = (reportType: string, params: Record<string, any>
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_REPORTS_DATA_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_REPORTS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_REPORTS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_REPORTS_DATA_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_REPORTS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_REPORTS_FAILED
     });
   }
 };
@@ -365,15 +365,15 @@ export const fetchPurchaseOrders = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_PURCHASE_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDERS_FAILED
     });
   }
 };
@@ -390,15 +390,15 @@ export const fetchPurchaseOrder = (id: string): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_PURCHASE_ORDER_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_PURCHASE_ORDER_FAILED
     });
   }
 };
@@ -429,12 +429,12 @@ export const addPurchaseOrder = (formData: PurchaseOrderCreateRequest, navigate?
         navigate('/purchase-orders');
       }
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.ADD_PURCHASE_ORDER_FAILED
     });
   }
 };
@@ -465,12 +465,12 @@ export const updatePurchaseOrder = (id: string, formData: PurchaseOrderUpdateReq
         navigate('/purchase-orders');
       }
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.UPDATE_PURCHASE_ORDER_FAILED
     });
   }
 };
@@ -490,12 +490,12 @@ export const deletePurchaseOrder = (id: string): AppThunk => async (
         payload: id
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_PURCHASE_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.DELETE_PURCHASE_ORDER_FAILED
     });
   }
 };
@@ -520,15 +520,15 @@ export const searchPurchaseOrders = (searchParams: Record<string, string>): AppT
     if (res.data.success) {
       dispatch({
         type: ActionTypes.SEARCH_PURCHASE_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.SEARCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED
     });
   }
 };
@@ -547,15 +547,15 @@ export const fetchShippingOrders = (): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SHIPPING_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDERS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_SHIPPING_ORDERS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDERS_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDERS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SHIPPING_ORDERS_FAILED
     });
   }
 };
@@ -572,15 +572,15 @@ export const fetchShippingOrder = (id: string): AppThunk => async (
     if (res.data.success) {
       dispatch({
         type: ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS,
-        payload: res.data.data || {}
+        payload: res.data.data ?? {}
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.FETCH_SHIPPING_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.FETCH_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.FETCH_SHIPPING_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.FETCH_SHIPPING_ORDER_FAILED
     });
   }
 };
@@ -611,12 +611,12 @@ export const addShippingOrder = (formData: ShippingOrderCreateRequest, navigate?
         navigate('/shipping-orders');
       }
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.ADD_SHIPPING_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.ADD_SHIPPING_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.ADD_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.ADD_SHIPPING_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.ADD_SHIPPING_ORDER_FAILED
     });
   }
 };
@@ -647,12 +647,12 @@ export const updateShippingOrder = (id: string, formData: ShippingOrderUpdateReq
         navigate('/shipping-orders');
       }
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.UPDATE_SHIPPING_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.UPDATE_SHIPPING_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.UPDATE_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.UPDATE_SHIPPING_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.UPDATE_SHIPPING_ORDER_FAILED
     });
   }
 };
@@ -672,12 +672,12 @@ export const deleteShippingOrder = (id: string): AppThunk => async (
         payload: id
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.DELETE_SHIPPING_ORDER_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.DELETE_SHIPPING_ORDER_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.DELETE_SHIPPING_ORDER_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.DELETE_SHIPPING_ORDER_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.DELETE_SHIPPING_ORDER_FAILED
     });
   }
 };
@@ -702,15 +702,15 @@ export const searchShippingOrders = (searchParams: Record<string, string>): AppT
     if (res.data.success) {
       dispatch({
         type: ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS,
-        payload: res.data.data || []
+        payload: res.data.data ?? []
       });
     } else {
-      throw new Error(res.data.message || ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED);
+      throw new Error(res.data.message ?? ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED);
     }
   } catch (err: any) {
     dispatch({
       type: ActionTypes.SEARCH_SHIPPING_ORDERS_FAILURE,
-      payload: err.response?.data?.message || ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED
+      payload: err.response?.data?.message ?? ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED
     });
   }
 };

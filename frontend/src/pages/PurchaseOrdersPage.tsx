@@ -173,7 +173,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       let filtered = [...purchaseOrders];
       if (selectedSuppliers.length > 0) {
         filtered = filtered.filter(po => {
-          const supplierName = typeof po.supplier === 'string' ? po.supplier : po.supplier?.name || '';
+          const supplierName = typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '';
           return selectedSuppliers.includes(supplierName);
         });
       }
@@ -447,7 +447,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="確認刪除進貨單"
-        message={`您確定要刪除進貨單 ${purchaseOrderToDelete?.poid || ''} 嗎？此操作無法撤銷。`}
+        message={`您確定要刪除進貨單 ${purchaseOrderToDelete?.poid ?? ''} 嗎？此操作無法撤銷。`}
         confirmText="確認刪除"
         cancelText="取消"
       />
