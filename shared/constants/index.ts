@@ -153,7 +153,7 @@ export const VALIDATION_CONSTANTS = {
 
   // 電話號碼規則
   PHONE: {
-    PATTERN: /^[\d\s\-\+\(\)]+$/,
+    PATTERN: /^[\d\s\-+()]+$/,
     MIN_LENGTH: 8,
     MAX_LENGTH: 20
   },
@@ -185,7 +185,7 @@ export const VALIDATION_CONSTANTS = {
 
   // 身分證字號規則 (台灣)
   ID_NUMBER: {
-    PATTERN: /^[A-Z][12][0-9]{8}$/
+    PATTERN: /^[A-Z][12]\d{8}$/
   },
 
   // 統一編號規則 (台灣)
