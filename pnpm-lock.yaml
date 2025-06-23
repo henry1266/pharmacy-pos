@@ -10,6 +10,9 @@ importers:
 
   backend:
     dependencies:
+      axios:
+        specifier: ^1.10.0
+        version: 1.10.0
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -34,6 +37,9 @@ importers:
       express-validator:
         specifier: ^7.0.1
         version: 7.2.1
+      form-data:
+        specifier: ^4.0.3
+        version: 4.0.3
       jsonwebtoken:
         specifier: ^9.0.0
         version: 9.0.2

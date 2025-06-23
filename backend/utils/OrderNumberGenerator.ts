@@ -23,12 +23,12 @@ export interface OrderNumberGeneratorOptions {
 }
 
 class OrderNumberGenerator {
-  private Model: Model<any>;
-  private field: string;
-  private prefix: string;
-  private useShortYear: boolean;
-  private sequenceDigits: number;
-  private sequenceStart: number;
+  private readonly Model: Model<any>;
+  private readonly field: string;
+  private readonly prefix: string;
+  private readonly useShortYear: boolean;
+  private readonly sequenceDigits: number;
+  private readonly sequenceStart: number;
 
   /**
    * 創建訂單單號生成器
@@ -109,7 +109,7 @@ class OrderNumberGenerator {
         // 嘗試將序號部分轉換為數字
         // 只取最後sequenceDigits位數字，避免中間有其他字符
         const regex = new RegExp(`\\d{${this.sequenceDigits}}$`);
-        const match = sequencePart.match(regex);
+        const match = regex.exec(sequencePart);
         
         if (match) {
           const sequence = parseInt(match[0], 10);

@@ -416,6 +416,82 @@ async function handleStatusChange(
   return result;
 }
 
+/**
+ * 驗證進貨單ID並獲取進貨單
+ */
+const validateAndGetPurchaseOrder = async (id: string): Promise<{ valid: boolean; purchaseOrder?: IPurchaseOrderDocument; error?: string }> => {
+  if (!id) {
+    return { valid: false, error: '進貨單ID為必填項' };
+  }
+
+  const purchaseOrder = await PurchaseOrder.findById(id);
+  if (!purchaseOrder) {
+    return { valid: false, error: '找不到該進貨單' };
+  }
+
+  return { valid: true, purchaseOrder };
+};
+
+/**
+ * 處理項目更新
+ */
+const processItemsUpdate = async (items: PurchaseOrderRequest['items']): Promise<{ valid: boolean; processedItems?: any; error?: string }> => {
+  if (!items || items.length === 0) {
+    return { valid: true };
+  }
+
+  // 驗證所有藥品ID是否存在
+  const validationResult = await validateAndSetProductIds(items);
+  if (!validationResult.valid) {
+    return { valid: false, error: validationResult.message };
+  }
+
+  // 正確處理 items 的型別轉換 - 使用 any 來避免 Document 型別衝突
+  const processedItems = items.map(item => ({
+    ...item,
+    product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
+    unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0)
+  })) as any;
+
+  return { valid: true, processedItems };
+};
+
+/**
+ * 應用更新到進貨單
+ */
+const applyUpdatesToPurchaseOrder = (purchaseOrder: IPurchaseOrderDocument, updateData: Partial<IPurchaseOrderDocument>): void => {
+  if (updateData.poid) purchaseOrder.poid = updateData.poid;
+  if (updateData.orderNumber) purchaseOrder.orderNumber = updateData.orderNumber;
+  if (updateData.pobill !== undefined) purchaseOrder.pobill = updateData.pobill;
+  if (updateData.pobilldate) purchaseOrder.pobilldate = updateData.pobilldate;
+  if (updateData.posupplier) purchaseOrder.posupplier = updateData.posupplier;
+  if (updateData.supplier) purchaseOrder.supplier = updateData.supplier;
+  if (updateData.notes !== undefined) purchaseOrder.notes = updateData.notes;
+  if (updateData.paymentStatus) purchaseOrder.paymentStatus = updateData.paymentStatus;
+  if (updateData.status) purchaseOrder.status = updateData.status;
+  if (updateData.items) purchaseOrder.items = updateData.items;
+  
+  // 手動計算總金額以確保正確
+  purchaseOrder.totalAmount = purchaseOrder.items.reduce(
+    (total: number, item: { dtotalCost: number | string }) => total + Number(item.dtotalCost),
+    0
+  );
+};
+
+/**
+ * 處理進貨單更新錯誤
+ */
+const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
+  console.error('更新進貨單錯誤:', err.message);
+  
+  if (err.name === 'CastError') {
+    res.status(404).json({ msg: '找不到該進貨單' });
+    return;
+  }
+  
+  res.status(500).send('伺服器錯誤');
+};
+
 // @route   PUT api/purchase-orders/:id
 // @desc    更新進貨單
 // @access  Public
@@ -424,17 +500,14 @@ router.put('/:id', async (req: Request, res: Response) => {
     const { poid, status, items } = req.body as PurchaseOrderRequest;
     const id = req.params.id;
 
-    if (!id) {
-      res.status(400).json({ msg: '進貨單ID為必填項' });
+    // 驗證進貨單ID並獲取進貨單
+    const validation = await validateAndGetPurchaseOrder(id);
+    if (!validation.valid) {
+      const statusCode = validation.error === '進貨單ID為必填項' ? 400 : 404;
+      res.status(statusCode).json({ msg: validation.error });
       return;
     }
-
-    // 檢查進貨單是否存在
-    let purchaseOrder = await PurchaseOrder.findById(id);
-    if (!purchaseOrder) {
-      res.status(404).json({ msg: '找不到該進貨單' });
-      return;
-    }
+    let purchaseOrder = validation.purchaseOrder!;
 
     // 處理進貨單號變更
     const idChangeResult = await handlePurchaseOrderIdChange(poid, purchaseOrder);
@@ -457,47 +530,24 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     // 處理項目更新
-    if (items && items.length > 0) {
-      // 驗證所有藥品ID是否存在
-      const validationResult = await validateAndSetProductIds(items);
-      if (!validationResult.valid) {
-        res.status(400).json({ msg: validationResult.message });
+    const itemsResult = await processItemsUpdate(items);
+    if (!itemsResult.valid) {
+      res.status(400).json({ msg: itemsResult.error });
       return;
-      }
-      // 正確處理 items 的型別轉換 - 使用 any 來避免 Document 型別衝突
-      updateData.items = items.map(item => ({
-        ...item,
-        product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
-        unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0)
-      })) as any;
+    }
+    if (itemsResult.processedItems) {
+      updateData.items = itemsResult.processedItems;
     }
 
-    // 更新進貨單
-    // 先更新基本字段
+    // 重新獲取進貨單以確保最新狀態
     purchaseOrder = await PurchaseOrder.findById(id);
-    
     if (!purchaseOrder) {
       res.status(404).json({ msg: '找不到該進貨單' });
       return;
     }
     
-    // 應用更新 - 使用型別安全的方式
-    if (updateData.poid) purchaseOrder.poid = updateData.poid;
-    if (updateData.orderNumber) purchaseOrder.orderNumber = updateData.orderNumber;
-    if (updateData.pobill !== undefined) purchaseOrder.pobill = updateData.pobill;
-    if (updateData.pobilldate) purchaseOrder.pobilldate = updateData.pobilldate;
-    if (updateData.posupplier) purchaseOrder.posupplier = updateData.posupplier;
-    if (updateData.supplier) purchaseOrder.supplier = updateData.supplier;
-    if (updateData.notes !== undefined) purchaseOrder.notes = updateData.notes;
-    if (updateData.paymentStatus) purchaseOrder.paymentStatus = updateData.paymentStatus;
-    if (updateData.status) purchaseOrder.status = updateData.status;
-    if (updateData.items) purchaseOrder.items = updateData.items;
-    
-    // 手動計算總金額以確保正確
-    purchaseOrder.totalAmount = purchaseOrder.items.reduce(
-      (total: number, item: { dtotalCost: number | string }) => total + Number(item.dtotalCost), 
-      0
-    );
+    // 應用更新
+    applyUpdatesToPurchaseOrder(purchaseOrder, updateData);
     
     // 保存更新後的進貨單，這樣會觸發pre-save中間件
     await purchaseOrder.save();
@@ -509,12 +559,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     res.json(purchaseOrder);
   } catch (err) {
-    console.error('更新進貨單錯誤:', (err as Error).message);
-    if (err instanceof Error && err.name === 'CastError') {
-      res.status(404).json({ msg: '找不到該進貨單' });
-      return;
-    }
-    res.status(500).send('伺服器錯誤');
+    handlePurchaseOrderUpdateError(res, err as Error);
   }
 });
 

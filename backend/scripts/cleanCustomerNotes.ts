@@ -48,30 +48,119 @@ function parseContaminatedNotes(notes: string): ParsedInfo {
 }
 
 /**
+ * 連接到 MongoDB 資料庫
+ */
+async function connectToDatabase(): Promise<void> {
+  const mongoURI: string = config.get('mongoURI');
+  await mongoose.connect(mongoURI, {
+    serverApi: {
+      version: "1" as const,
+      strict: true,
+      deprecationErrors: true
+    },
+    connectTimeoutMS: 30000,
+    serverSelectionTimeoutMS: 30000
+  });
+  console.log('✅ 已連接到 MongoDB');
+}
+
+/**
+ * 查找被污染的客戶資料
+ */
+async function findContaminatedCustomers() {
+  return await Customer.find({
+    notes: {
+      $regex: /(會員等級:|身分證:|病史:|過敏:)/,
+      $options: 'i'
+    }
+  });
+}
+
+/**
+ * 準備客戶更新資料
+ */
+function prepareCustomerUpdateData(parsedInfo: ParsedInfo, customer: any): any {
+  const updateData: any = {};
+  
+  // 只更新有值的欄位，避免覆蓋現有正確資料
+  if (parsedInfo.membershipLevel && !customer.membershipLevel) {
+    updateData.membershipLevel = parsedInfo.membershipLevel;
+  }
+  if (parsedInfo.idCardNumber && !customer.idCardNumber) {
+    updateData.idCardNumber = parsedInfo.idCardNumber;
+  }
+  if (parsedInfo.medicalHistory && !customer.medicalHistory) {
+    updateData.medicalHistory = parsedInfo.medicalHistory;
+  }
+  if (parsedInfo.allergies && (!customer.allergies || customer.allergies.length === 0)) {
+    updateData.allergies = [parsedInfo.allergies];
+  }
+  
+  // 更新清理後的備註
+  updateData.notes = parsedInfo.cleanNotes || '';
+  
+  return updateData;
+}
+
+/**
+ * 記錄客戶清理結果
+ */
+function logCustomerCleaningResult(customer: any, updateData: any): void {
+  console.log(`✅ 已清理客戶: ${customer.name}`);
+  console.log(`   清理後備註: ${updateData.notes || '(空白)'}`);
+  if (updateData.membershipLevel) console.log(`   會員等級: ${updateData.membershipLevel}`);
+  if (updateData.idCardNumber) console.log(`   身分證: ${updateData.idCardNumber}`);
+  if (updateData.medicalHistory) console.log(`   病史: ${updateData.medicalHistory}`);
+  if (updateData.allergies) console.log(`   過敏: ${updateData.allergies.join(', ')}`);
+}
+
+/**
+ * 處理單個客戶的清理
+ */
+async function processCustomerCleaning(customer: any): Promise<boolean> {
+  try {
+    console.log(`\n🔧 處理客戶: ${customer.name} (${customer.code})`);
+    console.log(`原始備註: ${customer.notes}`);
+
+    // 解析被污染的備註
+    const parsedInfo = parseContaminatedNotes(customer.notes || '');
+    
+    // 準備更新資料
+    const updateData = prepareCustomerUpdateData(parsedInfo, customer);
+
+    // 執行更新
+    await Customer.findByIdAndUpdate(customer._id, updateData);
+    
+    // 記錄結果
+    logCustomerCleaningResult(customer, updateData);
+    
+    return true;
+  } catch (error) {
+    console.error(`❌ 處理客戶 ${customer.name} 時發生錯誤:`, error);
+    return false;
+  }
+}
+
+/**
+ * 記錄清理統計結果
+ */
+function logCleaningStatistics(cleanedCount: number, errorCount: number, totalCount: number): void {
+  console.log(`\n📊 清理完成統計:`);
+  console.log(`   成功清理: ${cleanedCount} 筆`);
+  console.log(`   發生錯誤: ${errorCount} 筆`);
+  console.log(`   總計處理: ${totalCount} 筆`);
+}
+
+/**
  * 主要清理函數
  */
 async function cleanCustomerNotes() {
   try {
     // 連接資料庫
-    const mongoURI: string = config.get('mongoURI');
-    await mongoose.connect(mongoURI, {
-      serverApi: {
-        version: "1" as "1",
-        strict: true,
-        deprecationErrors: true
-      },
-      connectTimeoutMS: 30000,
-      serverSelectionTimeoutMS: 30000
-    });
-    console.log('✅ 已連接到 MongoDB');
+    await connectToDatabase();
 
     // 找出所有包含被污染備註的客戶
-    const contaminatedCustomers = await Customer.find({
-      notes: {
-        $regex: /(會員等級:|身分證:|病史:|過敏:)/,
-        $options: 'i'
-      }
-    });
+    const contaminatedCustomers = await findContaminatedCustomers();
 
     console.log(`🔍 找到 ${contaminatedCustomers.length} 筆被污染的客戶資料`);
 
@@ -85,54 +174,16 @@ async function cleanCustomerNotes() {
 
     // 逐一處理每個被污染的客戶
     for (const customer of contaminatedCustomers) {
-      try {
-        console.log(`\n🔧 處理客戶: ${customer.name} (${customer.code})`);
-        console.log(`原始備註: ${customer.notes}`);
-
-        // 解析被污染的備註
-        const parsedInfo = parseContaminatedNotes(customer.notes || '');
-        
-        // 準備更新資料
-        const updateData: any = {};
-        
-        // 只更新有值的欄位，避免覆蓋現有正確資料
-        if (parsedInfo.membershipLevel && !customer.membershipLevel) {
-          updateData.membershipLevel = parsedInfo.membershipLevel;
-        }
-        if (parsedInfo.idCardNumber && !customer.idCardNumber) {
-          updateData.idCardNumber = parsedInfo.idCardNumber;
-        }
-        if (parsedInfo.medicalHistory && !customer.medicalHistory) {
-          updateData.medicalHistory = parsedInfo.medicalHistory;
-        }
-        if (parsedInfo.allergies && (!customer.allergies || customer.allergies.length === 0)) {
-          updateData.allergies = [parsedInfo.allergies];
-        }
-        
-        // 更新清理後的備註
-        updateData.notes = parsedInfo.cleanNotes || '';
-
-        // 執行更新
-        await Customer.findByIdAndUpdate(customer._id, updateData);
-        
-        console.log(`✅ 已清理客戶: ${customer.name}`);
-        console.log(`   清理後備註: ${updateData.notes || '(空白)'}`);
-        if (updateData.membershipLevel) console.log(`   會員等級: ${updateData.membershipLevel}`);
-        if (updateData.idCardNumber) console.log(`   身分證: ${updateData.idCardNumber}`);
-        if (updateData.medicalHistory) console.log(`   病史: ${updateData.medicalHistory}`);
-        if (updateData.allergies) console.log(`   過敏: ${updateData.allergies.join(', ')}`);
-        
+      const success = await processCustomerCleaning(customer);
+      if (success) {
         cleanedCount++;
-      } catch (error) {
-        console.error(`❌ 處理客戶 ${customer.name} 時發生錯誤:`, error);
+      } else {
         errorCount++;
       }
     }
 
-    console.log(`\n📊 清理完成統計:`);
-    console.log(`   成功清理: ${cleanedCount} 筆`);
-    console.log(`   發生錯誤: ${errorCount} 筆`);
-    console.log(`   總計處理: ${contaminatedCustomers.length} 筆`);
+    // 記錄統計結果
+    logCleaningStatistics(cleanedCount, errorCount, contaminatedCustomers.length);
 
   } catch (error) {
     console.error('❌ 清理過程中發生錯誤:', error);
@@ -152,7 +203,7 @@ async function previewCleanup() {
     const mongoURI: string = config.get('mongoURI');
     await mongoose.connect(mongoURI, {
       serverApi: {
-        version: "1" as "1",
+        version: "1" as const,
         strict: true,
         deprecationErrors: true
       },

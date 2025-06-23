@@ -302,6 +302,68 @@ const checkScheduleConflict = async (
   return count > 0;
 };
 
+/**
+ * 準備更新欄位
+ */
+const prepareScheduleUpdateFields = (requestBody: Record<string, unknown>): Record<string, unknown> => {
+  const updatedFields: Record<string, unknown> = {};
+  const allowedFields = ['date', 'shift', 'employeeId', 'leaveType'];
+  
+  for (const [key, value] of Object.entries(requestBody)) {
+    if (value !== undefined && allowedFields.includes(key)) {
+      updatedFields[key] = value;
+    }
+  }
+  
+  updatedFields.updatedAt = Date.now();
+  return updatedFields;
+};
+
+/**
+ * 檢查排班更新衝突
+ */
+const checkScheduleUpdateConflict = async (
+  scheduleId: string,
+  updatedFields: Record<string, unknown>,
+  originalSchedule: IEmployeeScheduleDocument
+): Promise<boolean> => {
+  if (!updatedFields.date && !updatedFields.shift && !updatedFields.employeeId) {
+    return false;
+  }
+
+  return await checkScheduleConflict(
+    scheduleId,
+    updatedFields.date ? new Date(updatedFields.date as string) : originalSchedule.date,
+    updatedFields.shift ? (updatedFields.shift as string) : originalSchedule.shift,
+    updatedFields.employeeId ? (updatedFields.employeeId as string) : originalSchedule.employeeId
+  );
+};
+
+/**
+ * 處理排班更新錯誤回應
+ */
+const handleScheduleUpdateError = (res: Response, error: any): void => {
+  console.error(error.message);
+  
+  if (error.code === 11000) {
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+      timestamp: new Date().toISOString()
+    };
+    res.status(400).json(errorResponse);
+    return;
+  }
+  
+  const errorResponse: ErrorResponse = {
+    success: false,
+    message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+    error: error.message,
+    timestamp: new Date().toISOString()
+  };
+  res.status(500).json(errorResponse);
+};
+
 // @route   PUT api/employee-schedules/:id
 // @desc    Update an employee schedule
 // @access  Private
@@ -312,13 +374,13 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     if (!scheduleValidation.valid) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: scheduleValidation.error.msg,
+        message: scheduleValidation.error!.msg,
         timestamp: new Date().toISOString()
       };
-      res.status(scheduleValidation.error.status).json(errorResponse);
+      res.status(scheduleValidation.error!.status).json(errorResponse);
       return;
     }
-    const schedule = scheduleValidation.schedule;
+    const schedule = scheduleValidation.schedule!;
 
     // 如果要更新員工ID，先檢查員工是否存在
     if (req.body.employeeId) {
@@ -326,44 +388,27 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       if (!employeeValidation.valid) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: employeeValidation.error.msg,
+          message: employeeValidation.error!.msg,
           timestamp: new Date().toISOString()
         };
-        res.status(employeeValidation.error.status).json(errorResponse);
-      return;
+        res.status(employeeValidation.error!.status).json(errorResponse);
+        return;
       }
     }
 
-    // 更新資料
-    const updatedFields: Record<string, unknown> = {};
-    const allowedFields = ['date', 'shift', 'employeeId', 'leaveType'];
-    
-    for (const [key, value] of Object.entries(req.body)) {
-      if (value !== undefined && allowedFields.includes(key)) {
-        updatedFields[key] = value;
-      }
-    }
-    
-    updatedFields.updatedAt = Date.now();
+    // 準備更新欄位
+    const updatedFields = prepareScheduleUpdateFields(req.body);
 
     // 檢查更新後是否會與現有排班衝突
-    if (updatedFields.date || updatedFields.shift || updatedFields.employeeId) {
-      const hasConflict = await checkScheduleConflict(
-        req.params.id,
-        updatedFields.date ? new Date(updatedFields.date as string) : schedule.date,
-        updatedFields.shift ? (updatedFields.shift as string) : schedule.shift,
-        updatedFields.employeeId ? (updatedFields.employeeId as string) : schedule.employeeId
-      );
-      
-      if (hasConflict) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
-          timestamp: new Date().toISOString()
-        };
-        res.status(400).json(errorResponse);
+    const hasConflict = await checkScheduleUpdateConflict(req.params.id, updatedFields, schedule);
+    if (hasConflict) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+        timestamp: new Date().toISOString()
+      };
+      res.status(400).json(errorResponse);
       return;
-      }
     }
 
     const updatedSchedule = await EmployeeSchedule.findByIdAndUpdate(
@@ -380,23 +425,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     };
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
-    if ((err as Error & { code?: number }).code === 11000) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
-        timestamp: new Date().toISOString()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      error: (err as Error).message,
-      timestamp: new Date().toISOString()
-    };
-    res.status(500).json(errorResponse);
+    handleScheduleUpdateError(res, err as Error);
   }
 });
 

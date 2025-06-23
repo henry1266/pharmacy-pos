@@ -168,9 +168,9 @@ export const validatePasswordStrength = (
     score += 1;
   }
 
-  if (mergedPolicy.requireSpecialChars && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (mergedPolicy.requireSpecialChars && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     errors.push('密碼必須包含至少一個特殊字符');
-  } else if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  } else if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     score += 1;
   }
 
@@ -292,7 +292,7 @@ export const calculatePasswordEntropy = (password: string): number => {
   if (/[a-z]/.test(password)) charsetSize += 26;
   if (/[A-Z]/.test(password)) charsetSize += 26;
   if (/\d/.test(password)) charsetSize += 10;
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) charsetSize += 32;
+  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) charsetSize += 32;
 
   return password.length * Math.log2(charsetSize);
 };

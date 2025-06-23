@@ -269,7 +269,7 @@ export const createShippingOrderPdf = async (
       // 完成PDF生成
       doc.end();
     } catch (error) {
-      reject(error);
+      reject(new Error(`PDF 生成錯誤: ${error instanceof Error ? error.message : String(error)}`));
     }
   });
 };
@@ -345,9 +345,7 @@ export const generateShippingOrderPdf = async (
   options: PDFGenerationOptions = {}
 ): Promise<PDFGenerationResult> => {
   try {
-    const startTime = Date.now();
     const buffer = await createShippingOrderPdf(shippingOrder, options);
-    const endTime = Date.now();
     
     return {
       success: true,

@@ -456,7 +456,7 @@ async function findOrSetSupplier(defaultSupplier?: any): Promise<SupplierResult>
   return { supplierId, supplierName };
 }
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/shipping-orders/generate-number
 // @desc    生成新的出貨單號
@@ -535,7 +535,7 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
           Object.assign(result, updatedResult);
         })
         .on("end", () => resolve())
-        .on("error", (err) => reject(err));
+        .on("error", (err) => reject(new Error(`CSV 解析錯誤: ${err instanceof Error ? err.message : String(err)}`)));
     });
 
     // 刪除上傳的文件

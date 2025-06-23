@@ -41,28 +41,9 @@ router.get('/', auth, async (req: Request, res: Response) => {
       .limit(limit);
 
     // 轉換 Mongoose Document 到 shared 類型
-    const employeeList: SharedEmployee[] = employees.map(emp => {
-      // 使用類型斷言來存取 Mongoose Document 的額外屬性
-      const empAny = emp as any;
-      return {
-        _id: emp._id.toString(),
-        name: emp.name,
-        phone: emp.phone,
-        email: emp.email,
-        address: emp.address,
-        position: emp.position,
-        hireDate: emp.hireDate,
-        birthDate: emp.birthDate,
-        idNumber: emp.idNumber,
-        gender: emp.gender,
-        department: emp.department,
-        salary: emp.salary,
-        emergencyContact: empAny.emergencyContact,
-        notes: empAny.notes,
-        createdAt: empAny.createdAt,
-        updatedAt: empAny.updatedAt
-      };
-    });
+    const employeeList: SharedEmployee[] = employees.map(emp =>
+      convertToSharedEmployee(emp)
+    );
 
     const response: ApiResponse<{
       employees: SharedEmployee[];
@@ -122,25 +103,7 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
     }
 
     // 轉換 Mongoose Document 到 shared 類型
-    const empAny = employee as any;
-    const employeeData: SharedEmployee = {
-      _id: employee._id.toString(),
-      name: employee.name,
-      phone: employee.phone,
-      email: employee.email,
-      address: employee.address,
-      position: employee.position,
-      hireDate: employee.hireDate,
-      birthDate: employee.birthDate,
-      idNumber: employee.idNumber,
-      gender: employee.gender,
-      department: employee.department,
-      salary: employee.salary,
-      emergencyContact: empAny.emergencyContact,
-      notes: empAny.notes,
-      createdAt: empAny.createdAt,
-      updatedAt: empAny.updatedAt
-    };
+    const employeeData = convertToSharedEmployee(employee);
 
     const response: ApiResponse<SharedEmployee> = {
       success: true,
@@ -302,6 +265,66 @@ router.post(
   }
 );
 
+// 輔助函數：驗證身分證號碼格式和重複性
+async function validateIdNumber(idNumber: string, currentEmployeeId: string): Promise<{ valid: boolean; message?: string }> {
+  // 驗證身分證號碼格式
+  if (!/^[A-Z][12]\d{8}$/.test(idNumber)) {
+    return { valid: false, message: '身分證號碼格式不正確' };
+  }
+  
+  // 檢查是否與其他員工重複
+  const idNumberToCheck = String(idNumber).trim();
+  const existingEmployee = await Employee.findOne({ idNumber: idNumberToCheck });
+  if (existingEmployee && existingEmployee._id.toString() !== currentEmployeeId) {
+    return { valid: false, message: '此身分證號碼已存在' };
+  }
+  
+  return { valid: true };
+}
+
+// 輔助函數：準備更新欄位
+function prepareUpdateFields(requestBody: any): any {
+  const updatedFields: any = {};
+  const allowedFields = [
+    'name', 'gender', 'birthDate', 'idNumber', 'education',
+    'nativePlace', 'address', 'phone', 'position', 'department',
+    'hireDate', 'salary', 'insuranceDate', 'experience', 'rewards',
+    'injuries', 'additionalInfo', 'idCardFront', 'idCardBack'
+  ];
+  
+  // 只允許更新預定義的欄位，避免惡意注入其他欄位
+  for (const [key, value] of Object.entries(requestBody)) {
+    if (value !== undefined && allowedFields.includes(key)) {
+      updatedFields[key] = value;
+    }
+  }
+  
+  updatedFields.updatedAt = Date.now();
+  return updatedFields;
+}
+
+// 輔助函數：轉換員工資料格式
+function convertToSharedEmployee(employee: any): SharedEmployee {
+  return {
+    _id: employee._id.toString(),
+    name: employee.name,
+    phone: employee.phone,
+    email: employee.email,
+    address: employee.address,
+    position: employee.position,
+    hireDate: employee.hireDate,
+    birthDate: employee.birthDate,
+    idNumber: employee.idNumber,
+    gender: employee.gender,
+    department: employee.department,
+    salary: employee.salary,
+    emergencyContact: employee.emergencyContact,
+    notes: employee.notes,
+    createdAt: employee.createdAt,
+    updatedAt: employee.updatedAt
+  };
+}
+
 // @route   PUT api/employees/:id
 // @desc    Update an employee
 // @access  Private
@@ -332,49 +355,20 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
 
     // 檢查身分證號碼是否與其他員工重複
     if (req.body.idNumber && req.body.idNumber !== employee.idNumber) {
-      // 驗證身分證號碼格式，確保只包含合法字符
-      if (!/^[A-Z][12]\d{8}$/.test(req.body.idNumber)) {
+      const idValidation = await validateIdNumber(req.body.idNumber, req.params.id);
+      if (!idValidation.valid) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: '身分證號碼格式不正確',
+          message: idValidation.message!,
           timestamp: new Date()
         };
         res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
-      }
-      
-      // 使用參數化查詢，避免直接將用戶輸入傳入查詢
-      const idNumberToCheck = String(req.body.idNumber).trim();
-      const existingEmployee = await Employee.findOne({ idNumber: idNumberToCheck.toString() });
-      if (existingEmployee) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: '此身分證號碼已存在',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
+        return;
       }
     }
 
-    // 更新資料 - 安全地處理用戶輸入
-    const updatedFields: any = {};
-    const allowedFields = [
-      'name', 'gender', 'birthDate', 'idNumber', 'education', 
-      'nativePlace', 'address', 'phone', 'position', 'department', 
-      'hireDate', 'salary', 'insuranceDate', 'experience', 'rewards', 
-      'injuries', 'additionalInfo', 'idCardFront', 'idCardBack'
-    ];
-    
-    // 只允許更新預定義的欄位，避免惡意注入其他欄位
-    for (const [key, value] of Object.entries(req.body)) {
-      if (value !== undefined && allowedFields.includes(key)) {
-        updatedFields[key] = value;
-      }
-    }
-
-    // 設定更新時間
-    updatedFields.updatedAt = Date.now();
+    // 準備更新資料
+    const updatedFields = prepareUpdateFields(req.body);
 
     // 使用參數化查詢和安全的更新操作
     const updatedEmployee = await Employee.findOneAndUpdate(
@@ -384,25 +378,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     );
 
     // 轉換 Mongoose Document 到 shared 類型
-    const updatedEmpAny = updatedEmployee as any;
-    const employeeData: SharedEmployee = {
-      _id: updatedEmployee!._id.toString(),
-      name: updatedEmployee!.name,
-      phone: updatedEmployee!.phone,
-      email: updatedEmployee!.email,
-      address: updatedEmployee!.address,
-      position: updatedEmployee!.position,
-      hireDate: updatedEmployee!.hireDate,
-      birthDate: updatedEmployee!.birthDate,
-      idNumber: updatedEmployee!.idNumber,
-      gender: updatedEmployee!.gender,
-      department: updatedEmployee!.department,
-      salary: updatedEmployee!.salary,
-      emergencyContact: updatedEmpAny.emergencyContact,
-      notes: updatedEmpAny.notes,
-      createdAt: updatedEmpAny.createdAt,
-      updatedAt: updatedEmpAny.updatedAt
-    };
+    const employeeData = convertToSharedEmployee(updatedEmployee);
 
     const response: ApiResponse<SharedEmployee> = {
       success: true,
