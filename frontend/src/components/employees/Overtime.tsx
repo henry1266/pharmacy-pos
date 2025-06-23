@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Paper, Box, Container, Breadcrumbs, Link } from '@mui/material';
-import OvertimeManager from './OvertimeManager.tsx';
+import OvertimeManager from './OvertimeManager';
 
 /**
  * 加班管理頁面

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Dialog,
   DialogTitle,
   DialogContent,
@@ -33,43 +33,13 @@ import AddIcon from '@mui/icons-material/Add';
 import zhTW from 'date-fns/locale/zh-TW';
 import { format } from 'date-fns';
 import { getAccountingCategories } from '../../services/accountingCategoryService';
-import StatusSelect from '../common/form/StatusSelect.tsx';
-
-// 記帳項目介面
-interface AccountingItem {
-  amount: number | string;
-  category: string;
-  categoryId: string;
-  note: string;
-}
-
-// 未結算銷售介面
-interface UnaccountedSale {
-  _id: string;
-  lastUpdated: string;
-  product?: {
-    code: string;
-    name: string;
-  };
-  quantity: number;
-  totalAmount: number;
-  saleNumber: string;
-}
-
-// 表單數據介面
-interface FormData {
-  date: Date | null;
-  shift: string;
-  items: AccountingItem[];
-  status?: string;
-  unaccountedSales?: UnaccountedSale[];
-}
-
-// 記帳名目類別介面
-interface AccountingCategory {
-  _id: string;
-  name: string;
-}
+import StatusSelect from '../common/form/StatusSelect';
+import type {
+  AccountingItem,
+  UnaccountedSale,
+  FormData,
+  AccountingCategory
+} from '../../types/accounting';
 
 // 表格標題介面
 interface HeadCell {
@@ -308,7 +278,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     }
 
     return (
-      <Grid item xs={12} {...({} as any)}>
+      <Grid item xs={12}>
         <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
           <Typography variant="h6" gutterBottom>
             監測產品 - 當日未結算銷售 (將於完成時自動加入)
@@ -440,22 +410,19 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid item xs={12} sm={6}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
                 label="日期"
                 value={formData.date}
                 onChange={handleDateChange}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true
-                  }
-                }}
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth required />
+                )}
               />
             </LocalizationProvider>
           </Grid>
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
               <InputLabel>班別</InputLabel>
               <Select
@@ -471,7 +438,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
             </FormControl>
           </Grid>
           {editMode && (
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid item xs={12} sm={6}>
               <StatusSelect 
                 value={formData.status ?? 'pending'} // Default to pending if status is missing
                 onChange={handleFormChange} 
@@ -480,14 +447,14 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
           )}
           
           {/* 項目列表 */}
-          <Grid item xs={12} {...({} as any)}>
+          <Grid item xs={12}>
             <Typography variant="h6" gutterBottom>
               項目
             </Typography>
             
             {formData.items.map((item, index) => (
               <Grid container spacing={2} key={`item-${index}-${item.category ?? 'new'}`} sx={{ mb: 2 }}>
-                <Grid item xs={12} sm={3} {...({} as any)}>
+                <Grid item xs={12} sm={3}>
                   <TextField
                     label="金額"
                     type="number"
@@ -498,7 +465,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
                     sx={getItemFieldStyle(item)}
                   />
                 </Grid>
-                <Grid item xs={12} sm={3} {...({} as any)}>
+                <Grid item xs={12} sm={3}>
                   <FormControl fullWidth required>
                     <InputLabel>名目</InputLabel>
                     <Select
@@ -511,7 +478,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={4} {...({} as any)}>
+                <Grid item xs={12} sm={4}>
                   <TextField
                     label="備註"
                     value={item.note}
@@ -519,7 +486,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={12} sm={2} {...({} as any)}>
+                <Grid item xs={12} sm={2}>
                   <IconButton
                     color="error"
                     onClick={() => handleRemoveItem(index)}
@@ -544,7 +511,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
           {/* 未結算銷售區塊 */}
           {renderUnaccountedSalesSection()}
           
-          <Grid item xs={12} {...({} as any)}>
+          <Grid item xs={12}>
             <Typography variant="h6" align="right">
               總金額 (預覽): ${calculateTotal(formData.items, formData.unaccountedSales)}
             </Typography>

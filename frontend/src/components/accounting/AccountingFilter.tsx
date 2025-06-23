@@ -8,7 +8,8 @@ import {
   MenuItem,
   Box,
   SelectChangeEvent,
-  Grid
+  Grid,
+  TextField
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -55,11 +56,9 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
               label="開始日期"
               value={startDate}
               onChange={setStartDate}
-              slotProps={{
-                textField: {
-                  fullWidth: true
-                }
-              }}
+              renderInput={(params) => (
+                <TextField {...params} fullWidth />
+              )}
             />
           </LocalizationProvider>
         </Grid>
@@ -69,11 +68,9 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
               label="結束日期"
               value={endDate}
               onChange={setEndDate}
-              slotProps={{
-                textField: {
-                  fullWidth: true
-                }
-              }}
+              renderInput={(params) => (
+                <TextField {...params} fullWidth />
+              )}
             />
           </LocalizationProvider>
         </Grid>

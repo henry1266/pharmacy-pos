@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AccountingCategory } from '@shared/types/entities';
+import type { AccountingCategory } from '../types/accounting';
 
 /**
  * 獲取所有記帳名目類別

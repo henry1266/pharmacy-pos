@@ -1,8 +1,8 @@
-import { ActionTypes } from './actionTypes.ts';
+import { ActionTypes } from './actionTypes';
 import axios from 'axios';
-import { getApiBaseUrl } from '../utils/apiConfig.ts';
+import { getApiBaseUrl } from '../utils/apiConfig';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
-import { Action, RootState } from './reducers.ts';
+import { Action, RootState } from './reducers';
 import { NavigateFunction } from 'react-router-dom';
 
 // 導入 shared 類型

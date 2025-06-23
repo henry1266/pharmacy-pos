@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Snackbar, Alert } from '@mui/material';
-import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
 // Import Hook and Service
@@ -13,54 +12,21 @@ import AccountingDataGrid from '../components/accounting/AccountingDataGrid';
 import AccountingForm from '../components/accounting/AccountingForm';
 
 // Import Types
-import { AccountingRecord as EntityAccountingRecord } from '@pharmacy-pos/shared/types/entities';
+import { AccountingRecord } from '@pharmacy-pos/shared/types/entities';
+import type {
+  AccountingItem,
+  UnaccountedSale,
+  FormData,
+  ExtendedAccountingRecord
+} from '../types/accounting';
 
 // TypeScript interfaces
 interface AccountingPageProps {
   openAddDialog?: boolean;
 }
 
-interface AccountingItem {
-  amount: string | number;
-  category: string;
-  categoryId?: string;
-  note: string;
-}
-
-interface UnaccountedSale {
-  _id: string;
-  lastUpdated: string;
-  product?: {
-    code: string;
-    name: string;
-  };
-  quantity: number;
-  totalAmount: number;
-  saleNumber: string;
-}
-
-interface FormData {
-  date: Date;
-  shift: string;
-  status: string;
-  items: AccountingItem[];
-  unaccountedSales: UnaccountedSale[];
-}
-
 // 定義嚴重性類型別名
 type AlertSeverity = 'success' | 'error' | 'info' | 'warning';
-
-interface SnackbarState {
-  open: boolean;
-  message: string;
-  severity: AlertSeverity;
-}
-
-// 擴展 AccountingRecord 類型，以匹配組件中使用的結構
-interface ExtendedAccountingRecord extends EntityAccountingRecord {
-  items: AccountingItem[];
-  totalAmount: number;
-}
 
 const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }) => {
   const navigate = useNavigate();
@@ -169,8 +135,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       };
 
       if (editMode && currentId) {
-        // 型別斷言在此是必要的，因為 shift 屬性需要是特定的字串字面量聯合型別
-        await updateAccountingRecord(currentId, submitData as Partial<EntityAccountingRecord>);
+        await updateAccountingRecord(currentId, submitData as Partial<AccountingRecord>);
         showSnackbar('記帳記錄已更新', 'success');
         handleCloseDialog();
         fetchRecords(); // Refetch records after update
@@ -234,9 +199,9 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
 
       {/* Data Grid Component */}
       <AccountingDataGrid
-        records={records as any}
+        records={records}
         loading={loadingRecords ?? formLoading}
-        onEdit={handleOpenEditDialog as any}
+        onEdit={handleOpenEditDialog}
         onDelete={handleDelete}
       />
 
@@ -244,8 +209,8 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       <AccountingForm
         open={openDialog}
         onClose={handleCloseDialog}
-        formData={formData as any}
-        setFormData={setFormData as any}
+        formData={formData}
+        setFormData={setFormData}
         editMode={editMode}
         onSubmit={handleSubmit}
         loadingSales={formLoading}
@@ -270,13 +235,5 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
   );
 };
 
-// PropTypes are redundant in TypeScript but kept for backward compatibility
-AccountingPage.propTypes = {
-  openAddDialog: PropTypes.bool,
-};
-
-AccountingPage.defaultProps = {
-  openAddDialog: false,
-};
 
 export default AccountingPage;

@@ -1,5 +1,4 @@
 import React, { FC } from 'react';
-import PropTypes from 'prop-types';
 import {
   Card,
   CardContent,
@@ -13,8 +12,8 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import PieChartCell from './PieChartCell.tsx';
-import LegendFormatter from './LegendFormatter.tsx';
+import PieChartCell from './PieChartCell';
+import LegendFormatter from './LegendFormatter';
 
 /**
  * 類別銷售資料項目介面
@@ -119,13 +118,5 @@ const CategorySalesChart: FC<CategorySalesChartProps> = ({ categorySalesData }) 
   );
 };
 
-CategorySalesChart.propTypes = {
-  categorySalesData: PropTypes.arrayOf(
-    PropTypes.shape({
-      category: PropTypes.string.isRequired,
-      totalSales: PropTypes.number.isRequired
-    })
-  ).isRequired
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 export default CategorySalesChart;

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Supplier } from '@shared/types/entities';
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // Base API URL for suppliers
 const SUPPLIERS_API_URL = '/api/suppliers';

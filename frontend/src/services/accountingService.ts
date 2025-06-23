@@ -1,17 +1,13 @@
 import axios from 'axios';
-import { format } from 'date-fns'; // Import format for date handling
-import { AccountingRecord } from '@shared/types/entities';
+import { format } from 'date-fns';
+import { AccountingRecord } from '@pharmacy-pos/shared/types/entities';
+import type {
+  AccountingFilters,
+  ExtendedAccountingRecord,
+  UnaccountedSale
+} from '../types/accounting';
 
 const API_URL = '/api/accounting';
-
-/**
- * 記帳記錄過濾條件介面
- */
-export interface AccountingFilters {
-  startDate?: Date | null;
-  endDate?: Date | null;
-  shift?: 'morning' | 'afternoon' | 'evening' | '';
-}
 
 /**
  * 獲取記帳記錄，可選過濾條件
@@ -19,7 +15,7 @@ export interface AccountingFilters {
  * @returns {Promise<AccountingRecord[]>} - 記帳記錄陣列
  * @throws {Error} - 如果請求失敗
  */
-export const getAccountingRecords = async (filters: AccountingFilters = {}): Promise<AccountingRecord[]> => {
+export const getAccountingRecords = async (filters: AccountingFilters = {}): Promise<ExtendedAccountingRecord[]> => {
   try {
     const params = new URLSearchParams();
     if (filters.startDate) {
@@ -31,7 +27,7 @@ export const getAccountingRecords = async (filters: AccountingFilters = {}): Pro
     if (filters.shift) {
       params.append('shift', filters.shift);
     }
-    const response = await axios.get<AccountingRecord[]>(API_URL, { params });
+    const response = await axios.get<ExtendedAccountingRecord[]>(API_URL, { params });
     return response.data;
   } catch (err: any) {
     console.error('獲取記帳記錄失敗 (service):', err);
@@ -98,22 +94,6 @@ export const deleteAccountingRecord = async (id: string): Promise<{ success: boo
   }
 };
 
-/**
- * 未結算銷售記錄介面
- */
-export interface UnaccountedSale {
-  _id: string;
-  saleNumber: string;
-  date: string | Date;
-  product: {
-    _id: string;
-    name: string;
-    code: string;
-  };
-  quantity: number;
-  price: number;
-  subtotal: number;
-}
 
 /**
  * 獲取指定日期尚未標記的監控產品銷售記錄

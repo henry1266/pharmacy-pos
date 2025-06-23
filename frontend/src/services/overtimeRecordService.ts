@@ -1,9 +1,23 @@
 import axios from 'axios';
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { OvertimeRecord } from '@shared/types/entities';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 
-// 重新導出 OvertimeRecord 以保持向後兼容
-export type { OvertimeRecord } from '@shared/types/entities';
+// 定義 OvertimeRecord 類型
+export interface OvertimeRecord {
+  _id: string;
+  employeeId: string;
+  employee?: {
+    _id: string;
+    name: string;
+    [key: string]: any;
+  };
+  date: string | Date;
+  hours: number;
+  description?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  [key: string]: any;
+}
 
 /**
  * 加班記錄服務
@@ -113,7 +127,7 @@ export const getOvertimeRecords = async (params: OvertimeRecordQueryParams = {})
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '獲取加班記錄失敗';
     throw new Error(errorMessage);
   }
@@ -152,7 +166,7 @@ export const getOvertimeRecordById = async (id: string): Promise<OvertimeRecord>
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '獲取加班記錄失敗';
     throw new Error(errorMessage);
   }
@@ -191,7 +205,7 @@ export const createOvertimeRecord = async (recordData: OvertimeRecordCreateData)
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '創建加班記錄失敗';
     throw new Error(errorMessage);
   }
@@ -234,7 +248,7 @@ export const updateOvertimeRecord = async (
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '更新加班記錄失敗';
     throw new Error(errorMessage);
   }
@@ -273,7 +287,7 @@ export const deleteOvertimeRecord = async (id: string): Promise<{ success: boole
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '刪除加班記錄失敗';
     throw new Error(errorMessage);
   }
@@ -317,7 +331,7 @@ export const getEmployeeOvertimeSummary = async (
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '獲取加班時數統計失敗';
     throw new Error(errorMessage);
   }
@@ -359,7 +373,7 @@ export const getAllEmployeesOvertimeSummary = async (
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '獲取加班時數統計失敗';
     throw new Error(errorMessage);
   }
@@ -403,7 +417,7 @@ export const getMonthlyOvertimeStats = async (year: number, month: number): Prom
     const errorResponse = error.response?.data as ErrorResponse;
     const errorMessage =
       errorResponse?.message ??
-      errorResponse?.error ??
+      errorResponse?.message ??
       '獲取月度加班統計數據失敗';
     throw new Error(errorMessage);
   }

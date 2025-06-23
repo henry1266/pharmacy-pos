@@ -3,7 +3,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { EmployeeAccount, Employee } from '../../../types/entities';
+import { EmployeeAccount, Employee } from '@pharmacy-pos/shared/types/entities';
 import { OvertimeRecord } from '../../../services/overtimeRecordService';
 import { FormData, FormErrors } from './types';
 import {

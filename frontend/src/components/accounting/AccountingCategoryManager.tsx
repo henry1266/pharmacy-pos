@@ -19,7 +19,7 @@ import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import AddIcon from '@mui/icons-material/Add';
 import { getAccountingCategories, addAccountingCategory, updateAccountingCategory, deleteAccountingCategory } from '../../services/accountingCategoryService';
 import CategoryListItem from './CategoryListItem';
-import { AccountingCategory } from '../../types/entities';
+import type { AccountingCategory } from '../../types/accounting';
 
 // 對話框模式類型
 type DialogMode = 'add' | 'edit';

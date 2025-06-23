@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { Employee, EmployeeAccount } from '@shared/types/entities';
-import { PaginationParams } from '../types/api';
+import { Employee, EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
+import { PaginationParams } from '@pharmacy-pos/shared/types/api';
 
 const API_URL = '/api/employees';
 

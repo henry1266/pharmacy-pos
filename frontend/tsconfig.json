@@ -33,7 +33,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noFallthroughCasesInSwitch": true,
-    "allowImportingTsExtensions": true,
     
     /* 保持寬鬆以利轉型 */
     "strict": false,

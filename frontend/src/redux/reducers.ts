@@ -1,4 +1,4 @@
-import { ActionTypes } from './actionTypes.ts';
+import { ActionTypes } from './actionTypes';
 import { 
   Product, 
   Supplier, 
@@ -7,7 +7,7 @@ import {
   Sale, 
   PurchaseOrder, 
   ShippingOrder 
-} from '../types/entities';
+} from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 認證狀態介面

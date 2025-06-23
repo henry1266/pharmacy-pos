@@ -1,6 +1,5 @@
 import React, { FC } from 'react';
-import PropTypes from 'prop-types'; // Import PropTypes
-import ItemPreview from '../common/preview/ItemPreview.tsx';
+import ItemPreview from '../common/preview/ItemPreview';
 
 // 定義項目介面
 interface Item {
@@ -78,11 +77,5 @@ const ShippingOrderPreview: FC<ShippingOrderPreviewProps> = ({ shippingOrder, lo
   );
 };
 
-// Add prop types validation
-ShippingOrderPreview.propTypes = {
-  shippingOrder: PropTypes.object,
-  loading: PropTypes.bool,
-  error: PropTypes.string,
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 export default ShippingOrderPreview;

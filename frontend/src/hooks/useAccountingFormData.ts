@@ -2,34 +2,11 @@ import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { format } from 'date-fns';
 import { getAccountingCategories } from '../services/accountingCategoryService';
 import { getUnaccountedSales, createAccountingRecord } from '../services/accountingService';
-import { AccountingCategory } from '../types/entities';
-
-/**
- * 頁面中使用的未結算銷售記錄介面
- */
-export interface UnaccountedSale {
-  _id?: string;
-  lastUpdated: string;
-  product?: {
-    _id?: string;
-    code?: string;
-    name?: string;
-  };
-  quantity: number;
-  totalAmount: number;
-  saleNumber: string;
-}
-
-/**
- * 記帳項目介面
- */
-interface AccountingItem {
-  amount: number | string;
-  category: string;
-  categoryId: string;
-  note: string;
-  id?: string; // 添加可選的 id 屬性
-}
+import type {
+  AccountingCategory,
+  AccountingItem,
+  UnaccountedSale
+} from '../types/accounting';
 
 /**
  * 記帳表單數據介面
@@ -56,8 +33,8 @@ const useAccountingFormData = () => {
     shift: '',
     status: 'pending',
     items: [
-      { amount: '', category: '', categoryId: '', note: '', id: `new-1` },
-      { amount: '', category: '', categoryId: '', note: '', id: `new-2` }
+      { amount: '', category: '', categoryId: '', note: '' },
+      { amount: '', category: '', categoryId: '', note: '' }
     ]
   });
 
@@ -123,14 +100,14 @@ const useAccountingFormData = () => {
       const transformedData: UnaccountedSale[] = data.map(item => ({
         _id: item._id,
         saleNumber: item.saleNumber,
-        lastUpdated: new Date(item.date).toISOString(),
+        lastUpdated: item.lastUpdated || new Date().toISOString(),
         product: {
-          _id: item.product._id,
-          code: item.product.code,
-          name: item.product.name
+          _id: item.product?._id,
+          code: item.product?.code,
+          name: item.product?.name
         },
         quantity: item.quantity,
-        totalAmount: item.subtotal,
+        totalAmount: item.totalAmount,
       }));
       
       setUnaccountedSales(transformedData);
@@ -195,7 +172,7 @@ const useAccountingFormData = () => {
   const handleAddItem = useCallback(() => {
     setFormData(prevState => ({
       ...prevState,
-      items: [...prevState.items, { amount: '', category: '', categoryId: '', note: '', id: `new-${Date.now()}` }]
+      items: [...prevState.items, { amount: '', category: '', categoryId: '', note: '' }]
     }));
   }, []);
 
@@ -204,7 +181,7 @@ const useAccountingFormData = () => {
       const updatedItems = [...prevState.items];
       updatedItems.splice(index, 1);
       // Ensure at least one item row exists
-      const finalItems = updatedItems.length ? updatedItems : [{ amount: '', category: '', categoryId: '', note: '', id: `new-${Date.now()}` }];
+      const finalItems = updatedItems.length ? updatedItems : [{ amount: '', category: '', categoryId: '', note: '' }];
       return { ...prevState, items: finalItems };
     });
   }, []);

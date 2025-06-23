@@ -35,34 +35,11 @@ import { useNavigate } from 'react-router-dom';
 import StatusSelect from '../components/common/form/StatusSelect';
 import useAccountingFormData from '../hooks/useAccountingFormData';
 
-// TypeScript interfaces
-interface AccountingCategory {
-  _id: string;
-  name: string;
-  description?: string;
-  isExpense: boolean;
-}
-
-interface AccountingItem {
-  amount: string | number;
-  category: string;
-  categoryId: string;
-  note: string;
-  id?: string; // Optional ID for existing items
-}
-
-interface UnaccountedSale {
-  _id?: string;
-  lastUpdated: string;
-  product?: {
-    _id?: string;
-    code?: string;
-    name?: string;
-  };
-  quantity: number;
-  totalAmount: number;
-  saleNumber: string;
-}
+import type {
+  AccountingCategory,
+  AccountingItem,
+  UnaccountedSale
+} from '../types/accounting';
 
 interface FormData {
   date: Date;
@@ -333,8 +310,6 @@ const AccountingNewPage: React.FC = () => {
     );
   };
 
-  // 使用 TypeScript 類型斷言來解決 MUI Grid 組件的類型問題
-  const GridItem = Grid as any;
 
   return (
     <Container maxWidth="lg">
@@ -352,17 +327,20 @@ const AccountingNewPage: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             {/* Date, Shift, Status (use hook state and handlers) */}
-            <GridItem item md={4} sm={6} xs={12}> {/* Adjusted grid size */}
+            <Grid item md={4} sm={6} xs={12}>
               <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
                 <DatePicker
                   label="日期"
                   value={formData.date}
                   onChange={handleDateChange}
                   disabled={submitting}
+                  renderInput={(params) => (
+                    <TextField {...params} fullWidth required />
+                  )}
                 />
               </LocalizationProvider>
-            </GridItem>
-            <GridItem item md={4} sm={6} xs={12}> {/* Adjusted grid size */}
+            </Grid>
+            <Grid item md={4} sm={6} xs={12}>
               <FormControl fullWidth required>
                 <InputLabel>班別</InputLabel>
                 <Select
@@ -377,23 +355,23 @@ const AccountingNewPage: React.FC = () => {
                   <MenuItem value="晚">晚班</MenuItem>
                 </Select>
               </FormControl>
-            </GridItem>
-            <GridItem item md={4} sm={12} xs={12}> {/* Adjusted grid size */}
+            </Grid>
+            <Grid item md={4} sm={12} xs={12}>
               <StatusSelect 
                 value={formData.status}
                 onChange={handleFormChange as (event: SelectChangeEvent<string>) => void} // Use hook's handler
               />
-            </GridItem>
+            </Grid>
             
             {/* Items List (use hook state and handlers) */}
-            <GridItem item xs={12}>
+            <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
                 記帳項目
               </Typography>
               
               {formData.items.map((item, index) => (
-                <Grid container spacing={2} key={`item-${item.id ?? index}`} sx={{ mb: 2, alignItems: 'center' }}>
-                  <GridItem item sm={3} xs={12}>
+                <Grid container spacing={2} key={`item-${index}`} sx={{ mb: 2, alignItems: 'center' }}>
+                  <Grid item sm={3} xs={12}>
                     <TextField
                       label="金額"
                       type="number"
@@ -417,8 +395,8 @@ const AccountingNewPage: React.FC = () => {
                         }
                       }}
                     />
-                  </GridItem>
-                  <GridItem item sm={3} xs={12}>
+                  </Grid>
+                  <Grid item sm={3} xs={12}>
                     <FormControl fullWidth required>
                       <InputLabel>名目</InputLabel>
                       <Select
@@ -430,8 +408,8 @@ const AccountingNewPage: React.FC = () => {
                         {renderCategoryOptions()}
                       </Select>
                     </FormControl>
-                  </GridItem>
-                  <GridItem item sm={4} xs={12}>
+                  </Grid>
+                  <Grid item sm={4} xs={12}>
                     <TextField
                       label="備註"
                       value={item.note}
@@ -439,8 +417,8 @@ const AccountingNewPage: React.FC = () => {
                       fullWidth
                       disabled={submitting}
                     />
-                  </GridItem>
-                  <GridItem item sm={2} xs={12} sx={{ textAlign: 'right' }}>
+                  </Grid>
+                  <Grid item sm={2} xs={12} sx={{ textAlign: 'right' }}>
                     <IconButton
                       color="error"
                       onClick={() => handleRemoveItem(index)}
@@ -448,7 +426,7 @@ const AccountingNewPage: React.FC = () => {
                     >
                       <DeleteIcon />
                     </IconButton>
-                  </GridItem>
+                  </Grid>
                 </Grid>
               ))}
               
@@ -461,17 +439,17 @@ const AccountingNewPage: React.FC = () => {
               >
                 新增項目
               </Button>
-            </GridItem>
+            </Grid>
 
             {/* Total Amount Display */}
-            <GridItem item xs={12} sx={{ textAlign: 'right', mt: -1, mb: 2 }}>
+            <Grid item xs={12} sx={{ textAlign: 'right', mt: -1, mb: 2 }}>
               <Typography variant="h6">
                 總金額: {totalAmount.toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}
               </Typography>
-            </GridItem>
+            </Grid>
 
             {/* Unaccounted Sales Section (use hook state) */}
-            <GridItem item xs={12}>
+            <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                   <Typography variant="h6">
@@ -480,10 +458,10 @@ const AccountingNewPage: React.FC = () => {
                 </Box>
                 {renderUnaccountedSalesSection()}
               </Paper>
-            </GridItem>
+            </Grid>
 
             {/* Submit Button */}
-            <GridItem item xs={12} sx={{ mt: 3, textAlign: 'right' }}>
+            <Grid item xs={12} sx={{ mt: 3, textAlign: 'right' }}>
               <Button 
                 variant="contained" 
                 color="primary" 
@@ -492,7 +470,7 @@ const AccountingNewPage: React.FC = () => {
               >
                 {submitting ? <CircularProgress size={24} /> : '提交記帳'}
               </Button>
-            </GridItem>
+            </Grid>
           </Grid>
         </form>
       </Paper>

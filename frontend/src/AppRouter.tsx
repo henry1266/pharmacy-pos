@@ -1,53 +1,51 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DashboardPage from './pages/DashboardPage.tsx';
-import ProductsPage from './pages/ProductsPage.tsx';
-import ProductDetailPage from './pages/ProductDetailPage.tsx';
-import SuppliersPage from './pages/SuppliersPage.tsx';
-import SupplierDetailPage from './pages/SupplierDetailPage.tsx'; // Import Supplier Detail Page
-import CustomersPage from './pages/CustomersPage.tsx';
-import CustomerDetailPage from './pages/CustomerDetailPage.tsx'; // Import Customer Detail Page
-import SalesPage from './pages/SalesPage.tsx';
-import SalesListPage from './pages/SalesListPage.tsx';
-import SalesEditPage from './pages/SalesEditPage.tsx';
-import SalesDetailPage from './pages/SalesDetailPage.tsx';
-import ReportsPage from './pages/ReportsPage.tsx';
-import PurchaseOrdersPage from './pages/PurchaseOrdersPage.tsx';
-import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage.tsx';
-import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage.tsx';
-import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage.tsx';
-import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage.tsx';
-import ShippingOrdersPage from './pages/ShippingOrdersPage.tsx';
-import ShippingOrderFormPage from './pages/ShippingOrderFormPage.tsx';
-import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage.tsx';
-import AccountingPage from './pages/AccountingPage.tsx';
-import AccountingNewPage from './pages/AccountingNewPage.tsx';
-import AccountingCategoryPage from './pages/AccountingCategoryPage.tsx';
-import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage.tsx';
-import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage.tsx'; // Import All Categories Detail Page
-import ProductCategoryPage from './pages/ProductCategoryPage.tsx';
-import CategoryDetailPage from './pages/CategoryDetailPage.tsx';
-import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage.tsx';
-import SettingsIpPage from './pages/SettingsIpPage.tsx'; // Import the new IP settings page
-import SettingsPage from './pages/SettingsPage.tsx'; // Import the theme settings page
-import AccountSettingsPage from './pages/settings/AccountSettingsPage.tsx'; // Import the account settings page
-import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage.tsx'; // Import the employee accounts management page
+import DashboardPage from './pages/DashboardPage';
+import ProductsPage from './pages/ProductsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import SuppliersPage from './pages/SuppliersPage';
+import SupplierDetailPage from './pages/SupplierDetailPage';
+import CustomersPage from './pages/CustomersPage';
+import CustomerDetailPage from './pages/CustomerDetailPage';
+import SalesPage from './pages/SalesPage';
+import SalesListPage from './pages/SalesListPage';
+import SalesEditPage from './pages/SalesEditPage';
+import SalesDetailPage from './pages/SalesDetailPage';
+import ReportsPage from './pages/ReportsPage';
+import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
+import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
+import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
+import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
+import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage';
+import ShippingOrdersPage from './pages/ShippingOrdersPage';
+import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
+import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
+import AccountingPage from './pages/AccountingPage';
+import AccountingNewPage from './pages/AccountingNewPage';
+import AccountingCategoryPage from './pages/AccountingCategoryPage';
+import AccountingCategoryDetailPage from './pages/AccountingCategoryDetailPage';
+import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage';
+import ProductCategoryPage from './pages/ProductCategoryPage';
+import CategoryDetailPage from './pages/CategoryDetailPage';
+import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
+import SettingsIpPage from './pages/SettingsIpPage';
+import SettingsPage from './pages/SettingsPage';
+import AccountSettingsPage from './pages/settings/AccountSettingsPage';
+import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 
 // 員工管理頁面元件
-import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage.tsx'; // 員工基本資料頁面
-import EmployeeListPage from './pages/employees/EmployeeListPage.tsx'; // 員工列表頁面
-import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage.tsx'; // 員工排班頁面
+import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage';
+import EmployeeListPage from './pages/employees/EmployeeListPage';
+import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage';
 
-import Overtime from './components/employees/Overtime.tsx';
+import Overtime from './components/employees/Overtime';
 
 // Import the AdminRoute guard
-import AdminRoute from './components/common/AdminRoute.tsx';
+import AdminRoute from './components/common/AdminRoute';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
-  // @ts-ignore - 忽略所有 React Router 類型問題
   return (
-    // @ts-ignore
     <Routes>
       {/* Default route after login redirects to dashboard */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

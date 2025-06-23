@@ -2,45 +2,18 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { getUnaccountedSales } from '../services/accountingService';
-import { AccountingRecord } from '../../../shared/types/entities';
-
-/**
- * 擴展的記帳記錄介面，包含前端特定屬性
- */
-interface ExtendedAccountingRecord extends AccountingRecord {
-  status?: string;
-  items?: Array<{
-    category: string;
-    [key: string]: any;
-  }>;
-}
-
-/**
- * 編輯表單資料介面
- */
-interface EditFormData {
-  date: Date;
-  shift: string;
-  status: string;
-  items: any[];
-  unaccountedSales: any[];
-}
-
-/**
- * 操作結果介面
- */
-interface OperationResult {
-  success: boolean;
-  error?: string;
-  data?: EditFormData;
-}
+import type {
+  ExtendedAccountingRecord,
+  FormData,
+  OperationResult
+} from '../types/accounting';
 
 /**
  * Custom Hook for managing Accounting Page data and logic.
  * Fetches accounting records, handles filtering, deletion, and fetching data for editing.
  */
 const useAccountingData = () => {
-  const [records, setRecords] = useState<AccountingRecord[]>([]);
+  const [records, setRecords] = useState<ExtendedAccountingRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +41,7 @@ const useAccountingData = () => {
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-      const response = await axios.get<AccountingRecord[]>(url);
+      const response = await axios.get<ExtendedAccountingRecord[]>(url);
       setRecords(response.data);
     } catch (err: any) {
       console.error('載入記帳記錄失敗 (hook):', err);
@@ -109,7 +82,7 @@ const useAccountingData = () => {
         unaccountedSales = await getUnaccountedSales(format(new Date(record.date), 'yyyy-MM-dd'));
       }
 
-      const editFormData: EditFormData = {
+      const editFormData: FormData = {
         date: new Date(record.date),
         shift: record.shift as string,
         status: record.status || 'pending',

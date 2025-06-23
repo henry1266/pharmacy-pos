@@ -4,24 +4,8 @@ import { Paper, IconButton, Box } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { format } from 'date-fns';
-import StatusChip from '../common/StatusChip.tsx';
-
-// 記帳項目介面
-interface AccountingItem {
-  category: string;
-  amount: number;
-  note?: string;
-}
-
-// 記帳記錄介面
-interface AccountingRecord {
-  _id: string;
-  date: string;
-  shift: string;
-  status: string;
-  items: AccountingItem[];
-  totalAmount: number;
-}
+import StatusChip from '../common/StatusChip';
+import type { AccountingItem, ExtendedAccountingRecord } from '../../types/accounting';
 
 // DataGrid 行數據介面
 interface GridRow {
@@ -31,14 +15,14 @@ interface GridRow {
   status: string;
   items: AccountingItem[];
   totalAmount: number;
-  rawRecord: AccountingRecord;
+  rawRecord: ExtendedAccountingRecord;
 }
 
 // 組件 Props 介面
 interface AccountingDataGridProps {
-  records: AccountingRecord[];
+  records: ExtendedAccountingRecord[];
   loading: boolean;
-  onEdit: (record: AccountingRecord) => void;
+  onEdit: (record: ExtendedAccountingRecord) => void;
   onDelete: (id: string) => void;
 }
 
@@ -158,7 +142,7 @@ const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
           rows={rows}
           columns={columns}
           loading={loading}
-          disableRowSelectionOnClick
+          disableSelectionOnClick
           getRowHeight={getRowHeight}
           initialState={{
             sorting: {

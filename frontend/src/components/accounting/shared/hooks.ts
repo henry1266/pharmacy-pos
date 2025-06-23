@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAccountingRecords } from '../../../services/accountingService';
 import { getAccountingCategories } from '../../../services/accountingCategoryService';
-import { AccountingCategory } from '../../../types/entities';
+import { AccountingCategory } from '../../../types/accounting';
 import { LocalAccountingRecord, MonthlyData, DailyData } from './types';
 import { 
   transformApiDataToLocal, 

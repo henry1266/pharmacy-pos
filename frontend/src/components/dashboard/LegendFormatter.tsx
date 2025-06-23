@@ -1,5 +1,4 @@
 import React, { FC } from 'react';
-import PropTypes from 'prop-types';
 
 /**
  * LegendFormatter 元件的 Props 介面
@@ -16,9 +15,5 @@ const LegendFormatter: FC<LegendFormatterProps> = ({ value, color }) => {
   return <span style={{ color }}>{value}</span>;
 };
 
-LegendFormatter.propTypes = {
-  value: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired
-};
 
 export default LegendFormatter;
