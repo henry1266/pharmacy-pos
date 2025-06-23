@@ -16,9 +16,10 @@ import BaseProduct from "../models/BaseProduct";
 import ShippingOrder from "../models/ShippingOrder";
 import Supplier from "../models/Supplier";
 import Inventory from "../models/Inventory";
-import { IShippingOrderDocument, ISupplier, IBaseProductDocument, IInventory } from "../src/types/models";
+// 移除未使用的類型導入
+import "../src/types/models";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 interface CSVItem {
   rawDate: string;
@@ -110,7 +111,7 @@ async function createShippingInventoryRecords(shippingOrder: any): Promise<void>
       const inventory = new Inventory({
         product: item.product,
         quantity: -item.dquantity, // 負數表示出貨減少庫存
-        totalAmount: item.dtotalCost || 0,
+        totalAmount: item.dtotalCost ?? 0,
         type: "ship", // 設置類型為ship
         shippingOrderId: shippingOrder._id, // 關聯到出貨單ID
         shippingOrderNumber: shippingOrder.soid, // 設置出貨單號
@@ -263,8 +264,8 @@ function processShippingItems(results: CSVItem[], productMap: { [key: string]: a
     
     items.push({
       product: product._id.toString(),
-      did: product.code || "",
-      dname: product.name || "",
+      did: product.code ?? "",
+      dname: product.name ?? "",
       dquantity: item.quantity,
       dtotalCost: totalCost,
       unitPrice: item.nhPrice
@@ -354,10 +355,10 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
           const keys = Object.keys(data);
           // 如果CSV沒有標題行，則使用索引位置
           if (keys.length >= 4) {
-            const rawDate = data[keys[0]] || "";
-            const nhCode = data[keys[1]] || "";
-            const quantity = parseInt(data[keys[2]], 10) || 0;
-            const nhPrice = parseFloat(data[keys[3]]) || 0;
+            const rawDate = data[keys[0]] ?? "";
+            const nhCode = data[keys[1]] ?? "";
+            const quantity = parseInt(data[keys[2]], 10) ?? 0;
+            const nhPrice = parseFloat(data[keys[3]]) ?? 0;
 
             // 轉換日期格式（支持民國年和西元年）
             const date = convertToWesternDate(rawDate);
@@ -461,6 +462,7 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
     // 建立健保碼到藥品的映射
     const productMap: { [key: string]: any } = {};
     products.forEach(product => {
+      // 需要類型斷言因為 BaseProduct 模型的 TypeScript 定義中缺少 healthInsuranceCode 屬性
       if ((product as any).healthInsuranceCode) {
         productMap[(product as any).healthInsuranceCode] = product;
       }

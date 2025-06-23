@@ -332,7 +332,7 @@ router.post(
         date: new Date(req.body.date),
         hours: req.body.hours,
         description: req.body.description,
-        status: req.body.status || "pending",
+        status: req.body.status ?? "pending",
         createdBy: req.user?.id
       });
       

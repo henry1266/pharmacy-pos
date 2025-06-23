@@ -80,7 +80,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @route   GET api/accounting
 // @desc    獲取所有記帳記錄
@@ -425,10 +425,10 @@ router.post(
 
       // 將未結算銷售轉換為記帳項目並加入 items 陣列
       const salesItems: AccountingItem[] = unaccountedSales.map((sale: any) => ({
-        amount: sale.totalAmount || 0,
+        amount: sale.totalAmount ?? 0,
         category: '其他自費', // *** 將名目設為 其他自費 ***
         categoryId: null as Types.ObjectId | null, // Find the ID for '其他自費' category if needed
-        note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`, // *** 加入數量 ***
+        note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`, // *** 加入數量 ***
         isAutoLinked: true // Add a flag to differentiate if needed
       }));
       
@@ -450,7 +450,7 @@ router.post(
         shift,
         items: allItems, // Use the merged items array
         totalAmount: finalTotalAmount, // Use the final calculated total
-        status: status || 'pending', // Set status from request or default to pending
+        status: status ?? 'pending', // Set status from request or default to pending
         createdBy: req.user?.id
       });
 
@@ -592,7 +592,7 @@ router.put(
         amount: sale.totalAmount ?? 0,
         category: '其他自費',
         categoryId: null as Types.ObjectId | null,
-        note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`,
+        note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`,
         isAutoLinked: true
       }));
 
