@@ -202,7 +202,7 @@ export const validatePassword = (
     errors.push(`${fieldName}必須包含至少一個數字`);
   }
   
-  if (requireSpecialChars && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (requireSpecialChars && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     errors.push(`${fieldName}必須包含至少一個特殊字符`);
   }
   

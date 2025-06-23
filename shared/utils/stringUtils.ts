@@ -27,7 +27,7 @@ export const isNotBlank = (str: string | null | undefined): boolean => {
  * @returns 修剪後的字串，如果輸入為 null/undefined 則返回空字串
  */
 export const safeTrim = (str: string | null | undefined): string => {
-  return str?.trim() || '';
+  return str?.trim() ?? '';
 };
 
 /**
@@ -208,7 +208,7 @@ export const toSlug = (str: string): string => {
     .trim()
     .replace(/[^\w\s-]/g, '') // 移除特殊字符
     .replace(/[\s_-]+/g, '-') // 將空格和下劃線轉為短橫線
-    .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的短橫線
+    .replace(/^-+|(-+)$/g, ''); // 移除開頭和結尾的短橫線
 };
 
 /**

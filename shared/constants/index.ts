@@ -190,7 +190,7 @@ export const VALIDATION_CONSTANTS = {
 
   // 統一編號規則 (台灣)
   TAX_ID: {
-    PATTERN: /^[0-9]{8}$/
+    PATTERN: /^\d{8}$/
   }
 } as const;
 
@@ -491,16 +491,16 @@ export const SYSTEM_CONSTANTS = {
  */
 export const REGEX_PATTERNS = {
   // 台灣身分證字號
-  TW_ID_NUMBER: /^[A-Z][12][0-9]{8}$/,
+  TW_ID_NUMBER: /^[A-Z][12]\d{8}$/,
   
   // 台灣統一編號
-  TW_TAX_ID: /^[0-9]{8}$/,
+  TW_TAX_ID: /^\d{8}$/,
   
   // 台灣手機號碼
-  TW_MOBILE: /^09[0-9]{8}$/,
+  TW_MOBILE: /^09\d{8}$/,
   
   // 台灣市話
-  TW_PHONE: /^0[2-8][0-9]{7,8}$/,
+  TW_PHONE: /^0[2-8]\d{7,8}$/,
   
   // 產品代碼
   PRODUCT_CODE: /^[A-Za-z0-9\-_]+$/,
