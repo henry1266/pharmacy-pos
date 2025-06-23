@@ -83,7 +83,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         const response = await axios.get<{success: boolean, data: InventoryRecord[]}>(`/api/inventory/product/${productId}`);
         
         // 處理 ApiResponse 格式
-        const inventoryData = response.data.data || [];
+        const inventoryData = response.data.data ?? [];
         
         // 篩選條件：至少saleNumber、purchaseOrderNumber或shippingOrderNumber其中之一要有值
         const filteredInventories = inventoryData.filter(inv => {
@@ -106,12 +106,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
                 ...inv,
                 type: 'sale',
                 totalQuantity: inv.quantity,
-                totalAmount: inv.totalAmount || 0
+                totalAmount: inv.totalAmount ?? 0
               };
             } else {
-              saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity || 0) + inv.quantity;
+              saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity ?? 0) + inv.quantity;
               // 累加總金額
-              saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount || 0) + (inv.totalAmount || 0);
+              saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
             }
           } else if (inv.purchaseOrderNumber) {
             if (!purchaseGroups[inv.purchaseOrderNumber]) {
@@ -119,12 +119,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
                 ...inv,
                 type: 'purchase',
                 totalQuantity: inv.quantity,
-                totalAmount: inv.totalAmount || 0
+                totalAmount: inv.totalAmount ?? 0
               };
             } else {
-              purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity || 0) + inv.quantity;
+              purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity ?? 0) + inv.quantity;
               // 累加總金額，修復進貨合併顯示問題
-              purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount || 0) + (inv.totalAmount || 0);
+              purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
             }
           } else if (inv.shippingOrderNumber) {
             if (!shipGroups[inv.shippingOrderNumber]) {
@@ -132,12 +132,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
                 ...inv,
                 type: 'ship',
                 totalQuantity: inv.quantity,
-                totalAmount: inv.totalAmount || 0
+                totalAmount: inv.totalAmount ?? 0
               };
             } else {
-              shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity || 0) + inv.quantity;
+              shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity ?? 0) + inv.quantity;
               // 累加總金額
-              shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount || 0) + (inv.totalAmount || 0);
+              shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
             }
           }
         });
@@ -149,15 +149,15 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         
         // 排序：將saleNumber、purchaseOrderNumber和shippingOrderNumber從值大到小排序
         mergedInventories.sort((a, b) => {
-          const aValue = a.saleNumber || a.purchaseOrderNumber || a.shippingOrderNumber || '';
-          const bValue = b.saleNumber || b.purchaseOrderNumber || b.shippingOrderNumber || '';
+          const aValue = a.saleNumber ?? a.purchaseOrderNumber ?? a.shippingOrderNumber ?? '';
+          const bValue = b.saleNumber ?? b.purchaseOrderNumber ?? b.shippingOrderNumber ?? '';
           return bValue.localeCompare(aValue);
         });
         
         // 計算當前庫存
         let stock = 0;
         const processedInventories = [...mergedInventories].reverse().map(inv => {
-          const quantity = inv.totalQuantity || 0;
+          const quantity = inv.totalQuantity ?? 0;
           // All transaction types use the same stock calculation
           // ship and sale types already have negative quantities
           stock += quantity;
@@ -208,11 +208,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
           // 獲取貨單號
           let orderNumber = '';
           if (inv.type === 'sale') {
-            orderNumber = inv.saleNumber || '-';
+            orderNumber = inv.saleNumber ?? '-';
           } else if (inv.type === 'purchase') {
-            orderNumber = inv.purchaseOrderNumber || '-';
+            orderNumber = inv.purchaseOrderNumber ?? '-';
           } else if (inv.type === 'ship') {
-            orderNumber = inv.shippingOrderNumber || '-';
+            orderNumber = inv.shippingOrderNumber ?? '-';
           }
           
           // 轉換交易類型為中文
@@ -244,7 +244,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
             type: typeText,
             quantity: inv.totalQuantity || 0,
             price: price,
-            cumulativeStock: inv.currentStock || 0,
+            cumulativeStock: inv.currentStock ?? 0,
             cumulativeProfitLoss: 0 // 這個值會在SingleProductProfitLossChart中重新計算
           };
         });

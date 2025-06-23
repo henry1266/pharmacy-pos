@@ -99,7 +99,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
         // 過濾掉主管，只保留一般員工
         const filteredEmployees = response.data.employees.filter(employee => {
-          const position = employee.position?.toLowerCase() || '';
+          const position = employee.position?.toLowerCase() ?? '';
           return !position.includes('主管') &&
                  !position.includes('經理') &&
                  !position.includes('supervisor') &&
@@ -111,7 +111,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         setError(null);
       } catch (err: any) {
         console.error('獲取員工資料失敗:', err);
-        setError(err.response?.data?.msg || '獲取員工資料失敗');
+        setError(err.response?.data?.msg ?? '獲取員工資料失敗');
       } finally {
         setLoading(false);
       }
@@ -180,7 +180,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 獲取當前標籤對應的班次排班資料
   const getCurrentShiftSchedules = (): Schedule[] => {
     const currentShift = shifts[tabValue];
-    return schedules[currentShift] || [];
+    return schedules[currentShift] ?? [];
   };
 
   // 格式化日期顯示
@@ -228,7 +228,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 檢查員工是否已被排班在當前班次
   const isEmployeeScheduled = (employeeId: string): boolean => {
     const currentShift = shifts[tabValue];
-    return (schedules[currentShift] || []).some(
+    return (schedules[currentShift] ?? []).some(
       schedule => schedule.employee._id === employeeId
     );
   };
@@ -305,7 +305,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                           value={employee._id}
                           sx={{ color: 'text.primary' }}
                         >
-                          {employee.name} ({employee.department || ''} - {employee.position || ''})
+                          {employee.name} ({employee.department ?? ''} - {employee.position ?? ''})
                         </MenuItem>
                       ))}
                     </Select>
@@ -317,7 +317,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                     <InputLabel id="leave-type-select-label">請假類型</InputLabel>
                     <Select
                       labelId="leave-type-select-label"
-                      value={selectedLeaveType || ''}
+                      value={selectedLeaveType ?? ''}
                       onChange={handleLeaveTypeChange}
                       label="請假類型"
                       disabled={loading}
@@ -387,7 +387,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                             )}
                           </>
                         }
-                        secondary={`${schedule.employee.department || ''} - ${schedule.employee.position || ''}`}
+                        secondary={`${schedule.employee.department ?? ''} - ${schedule.employee.position ?? ''}`}
                         primaryTypographyProps={{
                           color: 'text.primary',
                           fontWeight: 'medium'

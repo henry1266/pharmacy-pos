@@ -97,7 +97,7 @@ function prepareCustomerUpdateData(parsedInfo: ParsedInfo, customer: any): any {
   }
   
   // 更新清理後的備註
-  updateData.notes = parsedInfo.cleanNotes || '';
+  updateData.notes = parsedInfo.cleanNotes ?? '';
   
   return updateData;
 }
@@ -123,7 +123,7 @@ async function processCustomerCleaning(customer: any): Promise<boolean> {
     console.log(`原始備註: ${customer.notes}`);
 
     // 解析被污染的備註
-    const parsedInfo = parseContaminatedNotes(customer.notes || '');
+    const parsedInfo = parseContaminatedNotes(customer.notes ?? '');
     
     // 準備更新資料
     const updateData = prepareCustomerUpdateData(parsedInfo, customer);
@@ -229,7 +229,7 @@ async function previewCleanup() {
       console.log(`📋 客戶 ${i + 1}: ${customer.name} (${customer.code})`);
       console.log(`   原始備註: ${customer.notes}`);
       
-      const parsedInfo = parseContaminatedNotes(customer.notes || '');
+      const parsedInfo = parseContaminatedNotes(customer.notes ?? '');
       console.log(`   解析結果:`);
       console.log(`     清理後備註: ${parsedInfo.cleanNotes || '(空白)'}`);
       if (parsedInfo.membershipLevel) console.log(`     會員等級: ${parsedInfo.membershipLevel}`);

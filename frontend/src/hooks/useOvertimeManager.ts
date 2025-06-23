@@ -143,7 +143,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
               employeeId: {
                 _id: employee._id,
                 name: employee.name,
-                position: employee.position || '員工'
+                position: employee.position ?? '員工'
               }
             };
           }
@@ -271,7 +271,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
       const apiData: OvertimeRecordCreateData = {
         employeeId: typeof recordData.employeeId === 'object' ? recordData.employeeId._id : recordData.employeeId,
         date: typeof recordData.date === 'string' ? recordData.date : formatDateToYYYYMMDD(recordData.date),
-        hours: recordData.hours || 0,
+        hours: recordData.hours ?? 0,
         description: recordData.description,
         status: recordData.status
       };

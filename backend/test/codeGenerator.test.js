@@ -9,7 +9,7 @@ const { generateNextProductCode, generateNextMedicineCode } = require('../utils/
 // 連接到測試資料庫
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb://localhost:27017/pharmacy_pos_test', {
+    await mongoose.connect('mongodb://192.168.68.73:27017/pharmacy_pos_test', {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
@@ -39,8 +39,8 @@ const testProductCodeGeneration = async () => {
     // 測試初始編號
     const initialCode = await generateNextProductCode();
     console.log('初始商品編號:', initialCode);
-    if (initialCode != 'P10001') {
-      throw new Error(`初始商品編號應為 P10001，但得到 ${initialCode}`);
+    if (initialCode !== 'P10001') {
+      throw new Error(`初始商品編號應為 P10001，但得到 ${String(initialCode)}`);
     }
     
     // 建立第一個商品
@@ -55,8 +55,8 @@ const testProductCodeGeneration = async () => {
     // 測試第二個編號
     const secondCode = await generateNextProductCode();
     console.log('第二個商品編號:', secondCode);
-    if (secondCode != 'P10002') {
-      throw new Error(`第二個商品編號應為 P10002，但得到 ${secondCode}`);
+    if (secondCode !== 'P10002') {
+      throw new Error(`第二個商品編號應為 P10002，但得到 ${String(secondCode)}`);
     }
     
     // 建立第二個商品
@@ -71,8 +71,8 @@ const testProductCodeGeneration = async () => {
     // 測試第三個編號
     const thirdCode = await generateNextProductCode();
     console.log('第三個商品編號:', thirdCode);
-    if (thirdCode != 'P10003') {
-      throw new Error(`第三個商品編號應為 P10003，但得到 ${thirdCode}`);
+    if (thirdCode !== 'P10003') {
+      throw new Error(`第三個商品編號應為 P10003，但得到 ${String(thirdCode)}`);
     }
     
     console.log('商品編號產生測試通過');
@@ -89,8 +89,8 @@ const testMedicineCodeGeneration = async () => {
     // 測試初始編號
     const initialCode = await generateNextMedicineCode();
     console.log('初始藥品編號:', initialCode);
-    if (initialCode != 'M10001') {
-      throw new Error(`初始藥品編號應為 M10001，但得到 ${initialCode}`);
+    if (initialCode !== 'M10001') {
+      throw new Error(`初始藥品編號應為 M10001，但得到 ${String(initialCode)}`);
     }
     
     // 建立第一個藥品
@@ -105,8 +105,8 @@ const testMedicineCodeGeneration = async () => {
     // 測試第二個編號
     const secondCode = await generateNextMedicineCode();
     console.log('第二個藥品編號:', secondCode);
-    if (secondCode != 'M10002') {
-      throw new Error(`第二個藥品編號應為 M10002，但得到 ${secondCode}`);
+    if (secondCode !== 'M10002') {
+      throw new Error(`第二個藥品編號應為 M10002，但得到 ${String(secondCode)}`);
     }
     
     // 建立第二個藥品
@@ -121,8 +121,8 @@ const testMedicineCodeGeneration = async () => {
     // 測試第三個編號
     const thirdCode = await generateNextMedicineCode();
     console.log('第三個藥品編號:', thirdCode);
-    if (thirdCode != 'M10003') {
-      throw new Error(`第三個藥品編號應為 M10003，但得到 ${thirdCode}`);
+    if (thirdCode !== 'M10003') {
+      throw new Error(`第三個藥品編號應為 M10003，但得到 ${String(thirdCode)}`);
     }
     
     console.log('藥品編號產生測試通過');

@@ -134,7 +134,7 @@ const ProductCategoryManager: React.FC = () => {
     setDialogMode('edit');
     setCurrentCategory({
       name: category.name,
-      description: category.description || ''
+      description: category.description ?? ''
     });
     setCurrentCategoryId(category._id);
     setOpenDialog(true);
@@ -180,7 +180,7 @@ const ProductCategoryManager: React.FC = () => {
     } catch (err: any) {
       console.error('操作分類失敗:', err);
       showSnackbar(
-        err.response?.data?.msg || '操作分類失敗',
+        err.response?.data?.msg ?? '操作分類失敗',
         'error'
       );
     }
@@ -197,7 +197,7 @@ const ProductCategoryManager: React.FC = () => {
     } catch (err: any) {
       console.error('刪除分類失敗:', err);
       showSnackbar(
-        err.response?.data?.msg || '刪除分類失敗',
+        err.response?.data?.msg ?? '刪除分類失敗',
         'error'
       );
     }
@@ -302,7 +302,7 @@ const ProductCategoryManager: React.FC = () => {
         </IconButton>
         <ListItemText
           primary={category.name}
-          secondary={category.description || '無描述'}
+          secondary={category.description ?? '無描述'}
           primaryTypographyProps={{
             sx: { color: '#000000 !important', fontWeight: 500 }
           }}

@@ -207,7 +207,7 @@ export const toSlug = (str: string): string => {
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, '') // 移除特殊字符
-    .replace(/[\s_-]+/g, '-') // 將空格和下劃線轉為短橫線
+    .replace(/[\s_\-]+/g, '-') // 將空格和下劃線轉為短橫線
     .replace(/^-+|-+$/g, ''); // 移除開頭和結尾的短橫線
 };
 

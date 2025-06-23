@@ -271,7 +271,7 @@ const useOvertimeData = (
         );
         
         initialGroups[empId] = {
-          employee: employeeObj || {
+          employee: employeeObj ?? {
             _id: empId,
             name: employeeName,
             position: '員工',
@@ -300,7 +300,7 @@ const useOvertimeData = (
       } else if (typeof record.employeeId === 'string') {
         employeeId = record.employeeId;
         // 嘗試從員工列表中找到對應的員工對象
-        employeeObj = employees.find(emp => emp._id === employeeId) || {
+        employeeObj = employees.find(emp => emp._id === employeeId) ?? {
           _id: employeeId,
           name: `員工${employeeId.slice(-4)}`,
           position: '員工'
