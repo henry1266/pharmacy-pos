@@ -2,8 +2,8 @@ import express, { Request, Response } from "express";
 import auth from "../middleware/auth";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../src/types/express";
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 const router = express.Router();
 

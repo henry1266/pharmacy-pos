@@ -14,19 +14,6 @@
     "declarationMap": true,
     "sourceMap": true,
     
-    /* 路徑解析 - 針對 backend */
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@models/*": ["./models/*"],
-      "@routes/*": ["./routes/*"],
-      "@services/*": ["./services/*"],
-      "@utils/*": ["./utils/*"],
-      "@middleware/*": ["./middleware/*"],
-      "@config/*": ["./config/*"],
-      "@shared/*": ["../shared/*"],
-      "@shared": ["../shared"]
-    },
     
     /* Node.js 環境設定 */
     "allowJs": true,

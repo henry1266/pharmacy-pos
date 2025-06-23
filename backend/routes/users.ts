@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import { check, validationResult } from 'express-validator';
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import User from '../models/User';
 
 const router = express.Router();

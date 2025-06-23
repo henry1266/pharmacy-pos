@@ -7,8 +7,8 @@ import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
 import { AuthenticatedRequest } from '../src/types/express';
 // 使用 shared 架構的 API 類型
-import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@shared/types/api';
-import { Sale as SharedSale, Product as SharedProduct, Customer as SharedCustomer, Inventory as SharedInventory } from '@shared/types/entities';
+import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
+import { Sale as SharedSale, Product as SharedProduct, Customer as SharedCustomer, Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
 
 // 引入通用訂單單號生成服務

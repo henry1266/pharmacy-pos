@@ -11,7 +11,7 @@ import {
   ApiResponse,
   ErrorResponse,
   ERROR_MESSAGES
-} from '../../shared';
+} from '@pharmacy-pos/shared';
 
 const router = express.Router();
 

@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import Customer from '../models/Customer';
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { Customer as CustomerType } from '@shared/types/entities';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { Customer as CustomerType } from '@pharmacy-pos/shared/types/entities';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 const router = express.Router();
 

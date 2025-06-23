@@ -12,8 +12,8 @@ import {
 } from '../services/employeeAccountService';
 
 // 導入共享類型和常數
-import { ApiResponse, ErrorResponse } from '../../shared/types/api';
-import { ERROR_MESSAGES, API_CONSTANTS } from '../../shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
 const router = express.Router();
 

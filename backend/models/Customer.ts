@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { Customer as ICustomer } from '@shared/types/entities';
+import { Customer as ICustomer } from '@pharmacy-pos/shared/types/entities';
 import mongoose from 'mongoose';
 
 // 擴展 Mongoose Document 介面

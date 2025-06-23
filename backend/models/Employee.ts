@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Employee as IEmployee } from '@shared/types/entities';
+import { Employee as IEmployee } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Mongoose Document 介面
 interface IEmployeeDocument extends Omit<IEmployee, '_id' | 'createdAt' | 'updatedAt'>, mongoose.Document {

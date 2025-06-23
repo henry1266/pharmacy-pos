@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from 'mongoose';
-import { Supplier as ISupplier } from '@shared/types/entities';
+import { Supplier as ISupplier } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Mongoose Document 介面
 interface ISupplierDocument extends Omit<ISupplier, '_id' | 'createdAt' | 'updatedAt'>, mongoose.Document {}

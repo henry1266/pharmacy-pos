@@ -3,8 +3,8 @@ import {
   BaseProduct as IBaseProduct,
   Product as IProduct,
   Medicine as IMedicine
-} from '@shared/types/entities';
-import { ProductType } from '@shared/enums';
+} from '@pharmacy-pos/shared/types/entities';
+import { ProductType } from '@pharmacy-pos/shared/enums';
 
 // 擴展 Mongoose Document 介面，處理 ObjectId 與 string 的差異
 interface IBaseProductDocument extends Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {

@@ -7,8 +7,8 @@ import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
 import Customer from '../models/Customer';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 定義查詢參數介面
 interface ReportQueryParams {

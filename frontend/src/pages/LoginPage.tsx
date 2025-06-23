@@ -18,7 +18,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import authService from '../services/authService';
-import { LoginRequest } from '../../../shared/types/api';
+import { LoginRequest } from '@pharmacy-pos/shared/types/api';
 
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";

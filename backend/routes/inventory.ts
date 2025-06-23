@@ -6,9 +6,9 @@ import Inventory from '../models/Inventory';
 // 使用 ES6 import 導入
 import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
 import PurchaseOrder from '../models/PurchaseOrder';
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { Inventory as SharedInventory } from '@shared/types/entities';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 const router = express.Router();
 

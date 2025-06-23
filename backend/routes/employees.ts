@@ -3,9 +3,9 @@ import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
 import Employee from '../models/Employee';
 import mongoose from 'mongoose';
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { Employee as SharedEmployee } from '@shared/types/entities';
-import { ERROR_MESSAGES, API_CONSTANTS } from '@shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { Employee as SharedEmployee } from '@pharmacy-pos/shared/types/entities';
+import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
 const router = express.Router();
 

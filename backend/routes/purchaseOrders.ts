@@ -14,9 +14,9 @@ import Supplier from '../models/Supplier';
 const OrderNumberService = require('../utils/OrderNumberService');
 
 // 使用 shared 架構的類型
-import { ApiResponse, ErrorResponse, PurchaseOrderCreateRequest, PurchaseOrderResponse } from '@shared/types/api';
-import { PurchaseOrder as SharedPurchaseOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@shared/types/entities';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
+import { ApiResponse, ErrorResponse, PurchaseOrderCreateRequest, PurchaseOrderResponse } from '@pharmacy-pos/shared/types/api';
+import { PurchaseOrder as SharedPurchaseOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@pharmacy-pos/shared/types/entities';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 定義符合實際模型的介面
 interface PurchaseOrderItem {

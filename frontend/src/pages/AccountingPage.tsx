@@ -13,7 +13,7 @@ import AccountingDataGrid from '../components/accounting/AccountingDataGrid';
 import AccountingForm from '../components/accounting/AccountingForm';
 
 // Import Types
-import { AccountingRecord as EntityAccountingRecord } from '../../../shared/types/entities';
+import { AccountingRecord as EntityAccountingRecord } from '@pharmacy-pos/shared/types/entities';
 
 // TypeScript interfaces
 interface AccountingPageProps {

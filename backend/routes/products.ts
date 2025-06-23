@@ -11,14 +11,14 @@ import {
   ProductResponse,
   CSVImportResult,
   CSVItemData
-} from '@shared/types/api';
+} from '@pharmacy-pos/shared/types/api';
 import {
   IBaseProductDocument,
   IProductDocument,
   IMedicineDocument
 } from '../src/types/models';
-import { ProductType } from '@shared/enums';
-import { ERROR_MESSAGES, API_CONSTANTS } from '@shared/constants';
+import { ProductType } from '@pharmacy-pos/shared/enums';
+import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 import auth from '../middleware/auth';
 const BaseProduct = require('../models/BaseProduct');
 const { Product, Medicine } = require('../models/BaseProduct');

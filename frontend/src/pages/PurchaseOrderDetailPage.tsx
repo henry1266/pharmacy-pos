@@ -32,7 +32,7 @@ import DetailLayout from '../components/DetailLayout';
 import { getProductByCode } from '../services/productService';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
 import { RootState } from '../types/store';
-import { Product, PurchaseOrder, PurchaseOrderItem } from '../../../shared/types/entities';
+import { Product, PurchaseOrder, PurchaseOrderItem } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
 interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {

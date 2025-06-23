@@ -16,9 +16,9 @@ const OrderNumberService = require("../utils/OrderNumberService");
 import Supplier from '../models/Supplier';
 
 // 使用 shared 架構的類型
-import { ApiResponse, ErrorResponse } from '@shared/types/api';
-import { ShippingOrder as SharedShippingOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@shared/types/entities';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { ShippingOrder as SharedShippingOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@pharmacy-pos/shared/types/entities';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 定義介面
 interface ShippingOrderItem {

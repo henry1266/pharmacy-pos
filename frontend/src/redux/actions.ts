@@ -28,7 +28,7 @@ import {
   ProductType,
   API_ENDPOINTS,
   ERROR_MESSAGES
-} from '../../../shared';
+} from '@pharmacy-pos/shared';
 
 // API基礎URL
 export const API_BASE_URL = getApiBaseUrl();
