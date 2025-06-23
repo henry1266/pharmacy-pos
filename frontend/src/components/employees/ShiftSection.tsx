@@ -87,7 +87,7 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
 
   // 檢查員工是否已被排班在指定班次
   const isEmployeeScheduled = (employeeId: string): boolean => {
-    return (schedules[shift] ?? []).some(
+    return (schedules[shift] || []).some(
       schedule => schedule.employee._id === employeeId
     );
   };

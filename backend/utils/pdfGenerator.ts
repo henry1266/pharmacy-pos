@@ -36,8 +36,6 @@ interface PDFDocumentConstructor {
 // 使用 require 來避免模組宣告問題
 const PDFDocument = require('pdfkit') as PDFDocumentConstructor;
 
-import fs from 'fs';
-import path from 'path';
 import dayjs from 'dayjs';
 import { Types } from 'mongoose';
 

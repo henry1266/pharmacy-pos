@@ -88,7 +88,7 @@ global.testUtils = {
         role: user.role,
         isAdmin: user.role === 'admin'
       },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env.JWT_SECRET ?? 'test-secret',
       { expiresIn: '1h' }
     );
   },

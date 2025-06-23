@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Types } from "mongoose";
-import { check, validationResult } from "express-validator";
+import { validationResult } from "express-validator";
 import multer from "multer";
 import csv from "csv-parser";
 import fs from "fs";
@@ -17,7 +17,7 @@ import Supplier from '../models/Supplier';
 
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
-import { ShippingOrder as SharedShippingOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@pharmacy-pos/shared/types/entities';
+import { ShippingOrder as SharedShippingOrder } from '@pharmacy-pos/shared/types/entities';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 定義介面
@@ -440,7 +440,7 @@ async function findOrSetSupplier(defaultSupplier?: any): Promise<SupplierResult>
   
   if (defaultSupplier) {
     supplierId = defaultSupplier._id?.toString();
-    supplierName = defaultSupplier.name?.toString() || supplierName;
+    supplierName = defaultSupplier.name?.toString() ?? supplierName;
   } else {
     // 嘗試查找名為"調劑"的供應商
     const supplier = await Supplier.findOne({

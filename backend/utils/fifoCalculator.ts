@@ -492,9 +492,9 @@ export const calculateProductFIFO = (inventories: InventoryRecord[]): FIFOCalcul
       timestamp: out.timestamp,
       unit_price: inventories.find(inv => 
         inv._id.toString() === out.source_id
-      )?.totalAmount ? (inventories.find(inv => 
+      )?.totalAmount ? (inventories.find(inv =>
         inv._id.toString() === out.source_id
-      )!.totalAmount! / Math.abs(out.quantity)) : 0
+      )?.totalAmount ?? 0) / Math.abs(out.quantity) : 0
     }));
     
     const profitMargins = calculateProfitMargins(fifoMatches, sales);

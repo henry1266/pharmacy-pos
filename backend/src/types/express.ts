@@ -71,7 +71,7 @@ export type FileUploadMiddleware = (
 export interface CustomError extends Error {
   statusCode?: number;
   code?: string;
-  details?: any;
+  details?: unknown;
   isOperational?: boolean;
 }
 
@@ -84,9 +84,9 @@ export type ErrorHandler = (
 
 // API 回應輔助函數型別
 export interface ApiResponseHelpers {
-  success<T = any>(data?: T, message?: string): void;
-  error(message: string, statusCode?: number, details?: any): void;
-  paginated<T = any>(
+  success<T = unknown>(data?: T, message?: string): void;
+  error(message: string, statusCode?: number, details?: unknown): void;
+  paginated<T = unknown>(
     data: T[],
     pagination: {
       currentPage: number;
@@ -146,9 +146,9 @@ export interface ValidationSchema {
     min?: number;
     max?: number;
     pattern?: RegExp;
-    enum?: any[];
-    custom?: (value: any) => boolean | string;
-    sanitize?: (value: any) => any;
+    enum?: unknown[];
+    custom?: (value: unknown) => boolean | string;
+    sanitize?: (value: unknown) => unknown;
   };
 }
 
@@ -210,19 +210,19 @@ export interface BaseController {
 }
 
 // 服務層介面型別
-export interface BaseService<T = any> {
-  findAll(filter?: any, options?: any): Promise<T[]>;
+export interface BaseService<T = unknown> {
+  findAll(filter?: Record<string, unknown>, options?: QueryOptions): Promise<T[]>;
   findById(id: string): Promise<T | null>;
   create(data: Partial<T>): Promise<T>;
   update(id: string, data: Partial<T>): Promise<T | null>;
   delete(id: string): Promise<boolean>;
-  count(filter?: any): Promise<number>;
+  count(filter?: Record<string, unknown>): Promise<number>;
 }
 
 // 資料庫查詢選項型別
 export interface QueryOptions {
   select?: string | string[];
-  populate?: string | string[] | any;
+  populate?: string | string[] | Record<string, unknown>;
   sort?: string | { [key: string]: 1 | -1 };
   limit?: number;
   skip?: number;
@@ -257,7 +257,7 @@ export interface SocketUser {
 
 export interface SocketMessage {
   type: string;
-  payload: any;
+  payload: unknown;
   timestamp: Date;
   from?: string;
   to?: string | string[];
@@ -265,8 +265,8 @@ export interface SocketMessage {
 
 export interface SocketEventHandler {
   event: string;
-  handler: (socket: any, data: any) => void | Promise<void>;
-  middleware?: (socket: any, next: Function) => void;
+  handler: (socket: unknown, data: unknown) => void | Promise<void>;
+  middleware?: (socket: unknown, next: Function) => void;
 }
 
 // 快取中間件型別
@@ -283,7 +283,7 @@ export interface LoggingMiddlewareOptions {
   level?: 'debug' | 'info' | 'warn' | 'error';
   format?: string;
   skip?: (req: Request, res: Response) => boolean;
-  meta?: (req: Request, res: Response) => any;
+  meta?: (req: Request, res: Response) => Record<string, unknown>;
 }
 
 // 安全中間件型別
@@ -294,7 +294,7 @@ export interface SecurityMiddlewareOptions {
     methods?: string[];
     allowedHeaders?: string[];
   };
-  helmet?: any;
+  helmet?: Record<string, unknown>;
   rateLimit?: {
     windowMs?: number;
     max?: number;

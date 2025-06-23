@@ -62,7 +62,7 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ searchParams, onSea
             label="編號"
             variant="outlined"
             size="small"
-            value={searchParams.code ?? ''}
+            value={searchParams.code || ''}
             onChange={handleInputChange}
             InputProps={{
               startAdornment: (
@@ -80,7 +80,7 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ searchParams, onSea
             label="名稱"
             variant="outlined"
             size="small"
-            value={searchParams.name ?? ''}
+            value={searchParams.name || ''}
             onChange={handleInputChange}
             InputProps={{
               startAdornment: (
@@ -98,7 +98,7 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ searchParams, onSea
             label="健保碼"
             variant="outlined"
             size="small"
-            value={searchParams.healthInsuranceCode ?? ''}
+            value={searchParams.healthInsuranceCode || ''}
             onChange={handleInputChange}
             disabled={tabValue === 0} // 只有藥品標籤頁才啟用健保碼搜尋
             InputProps={{

@@ -1,4 +1,4 @@
-import OrderNumberGenerator, { OrderNumberGeneratorOptions } from './OrderNumberGenerator';
+import OrderNumberGenerator from './OrderNumberGenerator';
 import mongoose, { Model } from 'mongoose';
 
 /**

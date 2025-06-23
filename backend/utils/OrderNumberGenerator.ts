@@ -10,7 +10,7 @@
  * 5. 提供統一的API接口
  */
 
-import { Model, Document, SortOrder } from 'mongoose';
+import { Model, SortOrder } from 'mongoose';
 
 // 訂單號生成器配置介面
 export interface OrderNumberGeneratorOptions {

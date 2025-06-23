@@ -99,7 +99,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
         // 過濾掉主管，只保留一般員工
         const filteredEmployees = response.data.employees.filter(employee => {
-          const position = employee.position?.toLowerCase() ?? '';
+          const position = employee.position?.toLowerCase() || '';
           return !position.includes('主管') &&
                  !position.includes('經理') &&
                  !position.includes('supervisor') &&
@@ -111,7 +111,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         setError(null);
       } catch (err: any) {
         console.error('獲取員工資料失敗:', err);
-        setError(err.response?.data?.msg ?? '獲取員工資料失敗');
+        setError(err.response?.data?.msg || '獲取員工資料失敗');
       } finally {
         setLoading(false);
       }
@@ -136,7 +136,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   
   // 處理請假類型選擇變更
   const handleLeaveTypeChange = (event: SelectChangeEvent<string>) => {
-    setSelectedLeaveType(event.target.value ?? null);
+    setSelectedLeaveType(event.target.value || null);
   };
 
   // 處理新增排班
@@ -180,7 +180,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 獲取當前標籤對應的班次排班資料
   const getCurrentShiftSchedules = (): Schedule[] => {
     const currentShift = shifts[tabValue];
-    return schedules[currentShift] ?? [];
+    return schedules[currentShift] || [];
   };
 
   // 格式化日期顯示
@@ -228,7 +228,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 檢查員工是否已被排班在當前班次
   const isEmployeeScheduled = (employeeId: string): boolean => {
     const currentShift = shifts[tabValue];
-    return (schedules[currentShift] ?? []).some(
+    return (schedules[currentShift] || []).some(
       schedule => schedule.employee._id === employeeId
     );
   };

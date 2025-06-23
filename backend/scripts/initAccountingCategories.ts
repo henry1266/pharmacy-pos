@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import config from 'config';
 import AccountingCategory from '../models/AccountingCategory';
-import { IAccountingCategory } from '../src/types/models';
 
 // 連接資料庫
 const db: string = config.get('mongoURI');

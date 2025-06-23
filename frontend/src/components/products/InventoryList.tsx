@@ -106,12 +106,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
                 ...inv,
                 type: 'sale',
                 totalQuantity: inv.quantity,
-                totalAmount: inv.totalAmount ?? 0
+                totalAmount: inv.totalAmount || 0
               };
             } else {
-              saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity ?? 0) + inv.quantity;
+              saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity || 0) + inv.quantity;
               // 累加總金額
-              saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+              saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount || 0) + (inv.totalAmount || 0);
             }
           } else if (inv.purchaseOrderNumber) {
             if (!purchaseGroups[inv.purchaseOrderNumber]) {
@@ -119,12 +119,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
                 ...inv,
                 type: 'purchase',
                 totalQuantity: inv.quantity,
-                totalAmount: inv.totalAmount ?? 0
+                totalAmount: inv.totalAmount || 0
               };
             } else {
-              purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity ?? 0) + inv.quantity;
+              purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity || 0) + inv.quantity;
               // 累加總金額，修復進貨合併顯示問題
-              purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+              purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount || 0) + (inv.totalAmount || 0);
             }
           } else if (inv.shippingOrderNumber) {
             if (!shipGroups[inv.shippingOrderNumber]) {
@@ -132,12 +132,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
                 ...inv,
                 type: 'ship',
                 totalQuantity: inv.quantity,
-                totalAmount: inv.totalAmount ?? 0
+                totalAmount: inv.totalAmount || 0
               };
             } else {
-              shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity ?? 0) + inv.quantity;
+              shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity || 0) + inv.quantity;
               // 累加總金額
-              shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+              shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount || 0) + (inv.totalAmount || 0);
             }
           }
         });
@@ -157,7 +157,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         // 計算當前庫存
         let stock = 0;
         const processedInventories = [...mergedInventories].reverse().map(inv => {
-          const quantity = inv.totalQuantity ?? 0;
+          const quantity = inv.totalQuantity || 0;
           // All transaction types use the same stock calculation
           // ship and sale types already have negative quantities
           stock += quantity;
@@ -416,11 +416,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
             {inventories.map((inv, index) => {
               const { orderNumber, orderLink } = getOrderInfo(inv, index);
               const typeDisplay = getTypeDisplay(inv.type);
-              const quantity = inv.totalQuantity ?? 0;
+              const quantity = inv.totalQuantity || 0;
               const price = calculatePrice(inv);
               
               // 使用穩定的唯一識別符作為 key
-              const idSuffix = inv._id ?? ('no-id-' + index);
+              const idSuffix = inv._id || ('no-id-' + index);
               const stableKey = `${inv.type}-${orderNumber}-${idSuffix}`;
               
               return (

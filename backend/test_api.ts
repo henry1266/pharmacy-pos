@@ -45,7 +45,7 @@ async function testGenerateOrderNumber(): Promise<string> {
     
     return response.data.orderNumber;
   } catch (error) {
-    const err = error as any;
+    const err = error as Error & { response?: { data: unknown } };
     console.error('出貨單號生成失敗:', err.message);
     if (err.response) {
       console.error('錯誤詳情:', err.response.data);
@@ -96,7 +96,7 @@ async function testMedicineCsvImport(orderNumber: string): Promise<ImportRespons
     
     return response.data;
   } catch (error) {
-    const err = error as any;
+    const err = error as Error & { response?: { data: unknown } };
     console.error('CSV匯入失敗:', err.message);
     if (err.response) {
       console.error('錯誤詳情:', err.response.data);

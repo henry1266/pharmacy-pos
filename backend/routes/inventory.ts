@@ -34,24 +34,24 @@ function convertToSharedInventory(inv: any): SharedInventory {
     _id: inv._id.toString(),
     product: typeof invObj.product === 'object' && invObj.product !== null
       ? invObj.product
-      : invObj.product?.toString() || '',
-    quantity: inv.quantity || 0,
-    totalAmount: invObj.totalAmount || 0,
-    type: (invObj.type as SharedInventory['type']) || 'purchase',
+      : invObj.product?.toString() ?? '',
+    quantity: inv.quantity ?? 0,
+    totalAmount: invObj.totalAmount ?? 0,
+    type: (invObj.type as SharedInventory['type']) ?? 'purchase',
     referenceId: invObj.referenceId?.toString(),
     purchaseOrderId: invObj.purchaseOrderId?.toString(),
-    purchaseOrderNumber: invObj.purchaseOrderNumber || '',
+    purchaseOrderNumber: invObj.purchaseOrderNumber ?? '',
     saleId: invObj.saleId?.toString(),
-    saleNumber: invObj.saleNumber || '',
+    saleNumber: invObj.saleNumber ?? '',
     shippingOrderId: invObj.shippingOrderId?.toString(),
-    shippingOrderNumber: invObj.shippingOrderNumber || '',
+    shippingOrderNumber: invObj.shippingOrderNumber ?? '',
     accountingId: invObj.accountingId?.toString(),
-    date: invObj.date || inv.lastUpdated || new Date(),
-    lastUpdated: invObj.lastUpdated || new Date(),
-    notes: invObj.notes || '',
+    date: invObj.date ?? inv.lastUpdated ?? new Date(),
+    lastUpdated: invObj.lastUpdated ?? new Date(),
+    notes: invObj.notes ?? '',
     createdBy: invObj.createdBy?.toString(),
-    createdAt: invObj.createdAt || inv.createdAt || new Date(),
-    updatedAt: invObj.updatedAt || inv.updatedAt || new Date()
+    createdAt: invObj.createdAt ?? inv.createdAt ?? new Date(),
+    updatedAt: invObj.updatedAt ?? inv.updatedAt ?? new Date()
   };
 }
 
@@ -360,7 +360,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     );
     
     // 轉換 Mongoose Document 到 shared 類型
-    const inventoryData: SharedInventory = convertToSharedInventory(inventory!);
+    const inventoryData: SharedInventory = convertToSharedInventory(inventory);
 
     const response: ApiResponse<SharedInventory> = {
       success: true,

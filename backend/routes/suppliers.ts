@@ -53,8 +53,8 @@ function convertToSupplierType(supplier: any): SupplierType {
     paymentTerms: supplier.paymentTerms,
     notes: supplier.notes,
     date: supplier.date,
-    createdAt: supplier.createdAt || new Date(),
-    updatedAt: supplier.updatedAt || new Date()
+    createdAt: supplier.createdAt ?? new Date(),
+    updatedAt: supplier.updatedAt ?? new Date()
   };
 }
 

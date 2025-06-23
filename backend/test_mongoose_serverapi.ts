@@ -1,9 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { ConnectOptions } from "mongoose";
 
 // Using local MongoDB server
 const uri = "mongodb://192.168.68.73:27017";
-
-import { ConnectOptions } from 'mongoose';
 
 const clientOptions: ConnectOptions = {
   connectTimeoutMS: 30000, // Keep increased timeout

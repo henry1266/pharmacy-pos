@@ -76,14 +76,14 @@ function logApiResponse(response: any, processingTime: number): void {
  */
 function handleSuccessResponse(data: CsvImportResponse): void {
   console.log('\n🎉 測試成功: API回應格式正確');
-  console.log(`📋 訂單號: ${data.shippingOrder!.soid}`);
-  console.log(`✅ 成功匯入項目數: ${data.summary!.successCount}`);
-  console.log(`❌ 失敗項目數: ${data.summary!.errorCount}`);
-  console.log(`📈 總計處理項目數: ${data.summary!.totalCount}`);
+  console.log(`📋 訂單號: ${data.shippingOrder?.soid}`);
+  console.log(`✅ 成功匯入項目數: ${data.summary?.successCount}`);
+  console.log(`❌ 失敗項目數: ${data.summary?.errorCount}`);
+  console.log(`📈 總計處理項目數: ${data.summary?.totalCount}`);
   
   // 計算成功率
-  const successRate = data.summary!.totalCount > 0
-    ? ((data.summary!.successCount / data.summary!.totalCount) * 100).toFixed(2)
+  const successRate = data.summary && data.summary.totalCount > 0
+    ? ((data.summary.successCount / data.summary.totalCount) * 100).toFixed(2)
     : '0';
   console.log(`📊 成功率: ${successRate}%`);
   
