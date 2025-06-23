@@ -7,7 +7,7 @@ const db: string = config.get("mongoURI");
 // 定義客戶端選項
 const clientOptions: ConnectOptions = {
   serverApi: {
-    version: "1" as "1", // 使用類型斷言確保version是字面量類型"1"
+    version: "1" as const, // 使用 const 斷言確保version是字面量類型"1"
     strict: true,
     deprecationErrors: true
   },

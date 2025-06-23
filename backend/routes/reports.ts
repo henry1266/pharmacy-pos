@@ -3,8 +3,7 @@ import mongoose, { Types } from 'mongoose';
 
 // 使用 ES6 import 導入模型
 import Sale from '../models/Sale';
-import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
-import Customer from '../models/Customer';
+import BaseProduct, { Product } from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
@@ -352,9 +351,10 @@ function groupSalesByDay(sales: SaleRecord[]): GroupedSalesData[] {
     if (dateStr && salesByDay[dateStr]) {
       salesByDay[dateStr].totalAmount += sale.totalAmount;
       salesByDay[dateStr].orderCount += 1;
+      
       sale.items.forEach(item => {
-        if (salesByDay[dateStr] && salesByDay[dateStr].items) {
-          salesByDay[dateStr].items!.push({
+        if (salesByDay[dateStr].items) {
+          salesByDay[dateStr].items.push({
             productId: safeToString(item.product?._id),
             productName: isPopulatedProduct(item.product) ? safeToString(item.product.name) : '',
             quantity: item.quantity,
@@ -386,9 +386,10 @@ function groupSalesByMonth(sales: SaleRecord[]): GroupedSalesData[] {
     }
     salesByMonth[monthStr].totalAmount += sale.totalAmount;
     salesByMonth[monthStr].orderCount += 1;
+    
     sale.items.forEach(item => {
-      if (salesByMonth[monthStr] && salesByMonth[monthStr].items) {
-        salesByMonth[monthStr].items!.push({
+      if (salesByMonth[monthStr].items) {
+        salesByMonth[monthStr].items.push({
           productId: safeToString(item.product?._id),
           productName: isPopulatedProduct(item.product) ? safeToString(item.product.name) : '',
           quantity: item.quantity,
@@ -412,8 +413,8 @@ function groupSalesByProduct(sales: SaleRecord[]): GroupedSalesData[] {
       if (!salesByProduct[productId]) {
         salesByProduct[productId] = {
           productId,
-          productCode: isPopulatedProduct(item.product) ? safeToString(item.product.code) : '',
-          productName: isPopulatedProduct(item.product) ? safeToString(item.product.name) : '',
+          productCode: isPopulatedProduct(item.product) ? item.product.code : '',
+          productName: isPopulatedProduct(item.product) ? item.product.name : '',
           quantity: 0,
           revenue: 0,
           orderCount: 0,
@@ -427,7 +428,7 @@ function groupSalesByProduct(sales: SaleRecord[]): GroupedSalesData[] {
     });
   });
   
-  return Object.values(salesByProduct).sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
+  return Object.values(salesByProduct).sort((a, b) => (b.revenue ?? 0) - (a.revenue ?? 0));
 }
 
 // 輔助函數：按客戶分組銷售數據
@@ -581,7 +582,7 @@ function processInventoryData(inventory: InventoryRecord[]): InventoryData[] {
     inventoryValue: item.quantity * item.product.purchasePrice,
     potentialRevenue: item.quantity * item.product.sellingPrice,
     potentialProfit: item.quantity * (item.product.sellingPrice - item.product.purchasePrice),
-    totalAmount: item.totalAmount || 0,
+    totalAmount: item.totalAmount ?? 0,
     minStock: item.product.minStock,
     status: item.quantity <= item.product.minStock ? 'low' : 'normal',
     batchNumber: safeToString(item.batchNumber),
@@ -643,16 +644,14 @@ function groupInventoryData(inventoryData: InventoryData[]): {
   
   inventoryData.forEach(item => {
     // 按類別分組
-    if (!categoryGroups[item.category]) {
-      categoryGroups[item.category] = {
-        category: item.category,
-        itemCount: 0,
-        totalQuantity: 0,
-        inventoryValue: 0,
-        potentialRevenue: 0,
-        potentialProfit: 0
-      };
-    }
+    categoryGroups[item.category] ??= {
+      category: item.category,
+      itemCount: 0,
+      totalQuantity: 0,
+      inventoryValue: 0,
+      potentialRevenue: 0,
+      potentialProfit: 0
+    };
     
     categoryGroups[item.category].itemCount += 1;
     categoryGroups[item.category].totalQuantity += item.quantity;
@@ -661,7 +660,7 @@ function groupInventoryData(inventoryData: InventoryData[]): {
     categoryGroups[item.category].potentialProfit += item.potentialProfit;
     
     // 按產品類型分組
-    const type = item.productType || 'product';
+    const type = item.productType ?? 'product';
     if (productTypeGroups[type]) {
       productTypeGroups[type].itemCount += 1;
       productTypeGroups[type].totalQuantity += item.quantity;

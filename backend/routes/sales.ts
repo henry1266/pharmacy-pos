@@ -82,7 +82,7 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const sale = await Sale.findOne({ _id: req.params.id })
+    const sale = await Sale.findById(req.params.id)
       .populate('customer')
       .populate({
         path: 'items.product',
@@ -197,7 +197,7 @@ router.post(
 async function checkCustomerExists(customerId?: string): Promise<CustomerCheckResult> {
   if (!customerId) return { exists: true };
   
-  const customerExists = await Customer.findOne({ _id: customerId });
+  const customerExists = await Customer.findById(customerId);
   if (!customerExists) {
     return { 
       exists: false, 
@@ -214,7 +214,7 @@ async function checkCustomerExists(customerId?: string): Promise<CustomerCheckRe
 
 // 檢查產品是否存在
 async function checkProductExists(productId: string): Promise<ProductCheckResult> {
-  const product = await BaseProduct.findOne({ _id: productId });
+  const product = await BaseProduct.findById(productId);
   if (!product) {
     return { 
       exists: false, 
@@ -277,7 +277,7 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
   // 檢查客戶是否存在
   const customerCheck = await checkCustomerExists(customer);
   if (!customerCheck.exists) {
-    return customerCheck.error!;
+    return customerCheck.error;
   }
   
   // 檢查所有產品是否存在
@@ -285,16 +285,16 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
     // 檢查產品是否存在
     const productCheck = await checkProductExists(item.product);
     if (!productCheck.exists) {
-      return productCheck.error!;
+      return productCheck.error;
     }
     
     // 記錄當前庫存量，但不限制負庫存
     console.log(`檢查產品ID: ${item.product}, 名稱: ${productCheck.product!.name}`);
     
     // 檢查產品庫存
-    const inventoryCheck = await checkProductInventory(productCheck.product!, item.quantity);
+    const inventoryCheck = await checkProductInventory(productCheck.product, item.quantity);
     if (!inventoryCheck.success) {
-      return inventoryCheck.error!;
+      return inventoryCheck.error;
     }
   }
   
@@ -408,9 +408,8 @@ async function updateCustomerPoints(sale: any): Promise<void> {
   const customerToUpdate = await Customer.findOne({ _id: sale.customer });
   if (!customerToUpdate) return;
   
-  // 假設每消費100元獲得1點積分
-  const pointsToAdd = Math.floor(sale.totalAmount / 100);
-  customerToUpdate.totalPurchases = (customerToUpdate.totalPurchases || 0) + sale.totalAmount;
+  // 更新客戶總購買金額
+  customerToUpdate.totalPurchases = (customerToUpdate.totalPurchases ?? 0) + sale.totalAmount;
   customerToUpdate.lastPurchaseDate = new Date();
   await customerToUpdate.save();
   

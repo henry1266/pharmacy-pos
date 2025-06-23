@@ -130,7 +130,7 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const purchaseOrder = await PurchaseOrder.findOne({ _id: req.params.id })
+    const purchaseOrder = await PurchaseOrder.findById(req.params.id)
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
@@ -455,7 +455,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     // 檢查進貨單是否存在
-    let purchaseOrder = await PurchaseOrder.findOne({ _id: id });
+    let purchaseOrder = await PurchaseOrder.findById(id);
     if (!purchaseOrder) {
       res.status(404).json({ msg: '找不到該進貨單' });
       return;
@@ -494,7 +494,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     // 更新進貨單
     // 先更新基本字段
-    purchaseOrder = await PurchaseOrder.findOne({ _id: id });
+    purchaseOrder = await PurchaseOrder.findById(id);
     
     if (!purchaseOrder) {
       res.status(404).json({ msg: '找不到該進貨單' });
@@ -542,7 +542,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return;
     }
 
-    const purchaseOrder = await PurchaseOrder.findOne({ _id: id });
+    const purchaseOrder = await PurchaseOrder.findById(id);
     if (!purchaseOrder) {
       res.status(404).json({ msg: '找不到該進貨單' });
       return;
@@ -577,7 +577,7 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
       return;
     }
 
-    const purchaseOrders = await PurchaseOrder.find({ supplier: supplierId })
+    const purchaseOrders = await PurchaseOrder.find({ supplier: new Types.ObjectId(supplierId) })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
@@ -631,7 +631,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
     }
 
     const purchaseOrders = await PurchaseOrder.find({
-      'items.product': productId,
+      'items.product': new Types.ObjectId(productId),
       'status': 'completed'
     })
       .sort({ pobilldate: -1 })
@@ -686,7 +686,7 @@ async function updateInventory(purchaseOrder: any): Promise<void> {
       await BaseProduct.findOne({ _id: item.product.toString() })
         .then((product: any) => {
           if (product) {
-            product.purchasePrice = item.unitPrice || (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0);
+            product.purchasePrice = item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0);
             return product.save();
           }
           return null;

@@ -82,7 +82,7 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const customer = await Customer.findOne({ _id: req.params.id });
+    const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
       const errorResponse: ErrorResponse = {
@@ -150,7 +150,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 async function checkCustomerCodeExists(code: string): Promise<boolean> {
   if (!code) return false;
   
-  const customer = await Customer.findOne({ code: code });
+  const customer = await Customer.findOne({ code });
   return !!customer;
 }
 
@@ -312,7 +312,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     const requestBody = req.body as CustomerUpdateRequest;
     
     // 檢查會員是否存在
-    let customer = await Customer.findOne({ _id: req.params.id });
+    let customer = await Customer.findById(req.params.id);
     if (!customer) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -340,8 +340,8 @@ router.put('/:id', async (req: Request, res: Response) => {
     const customerFields = buildCustomerFields(requestBody);
 
     // 更新
-    const updatedCustomer = await Customer.findOneAndUpdate(
-      { _id: req.params.id },
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      req.params.id,
       { $set: customerFields },
       { new: true }
     );
@@ -401,7 +401,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const customer = await Customer.findOne({ _id: req.params.id });
+    const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
       const errorResponse: ErrorResponse = {
@@ -414,7 +414,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
 
     // 使用 findOneAndDelete 替代已棄用的 remove() 方法
-    await Customer.findOneAndDelete({ _id: req.params.id });
+    await Customer.findByIdAndDelete(req.params.id);
 
     const response: ApiResponse<null> = {
       success: true,

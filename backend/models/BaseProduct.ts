@@ -22,9 +22,12 @@ interface IMedicineDocument extends Omit<IMedicine, '_id' | 'category' | 'suppli
   supplier?: mongoose.Types.ObjectId;
 }
 
+// 定義可能為空的產品文檔類型別名
+type MaybeBaseProduct = IBaseProductDocument | null;
+
 // 擴展 Model 介面以包含自定義靜態方法
 interface IBaseProductModel extends Model<IBaseProductDocument> {
-  findByCode(code: string): Promise<IBaseProductDocument | null>;
+  findByCode(code: string): Promise<MaybeBaseProduct>;
 }
 
 // 基礎產品 Schema (使用 shared 類型定義)
@@ -87,7 +90,7 @@ const BaseProductSchema = new Schema<IBaseProductDocument>({
 });
 
 // 靜態方法 - 類型安全
-BaseProductSchema.statics.findByCode = function(code: string): Promise<IBaseProductDocument | null> {
+BaseProductSchema.statics.findByCode = function(code: string): Promise<MaybeBaseProduct> {
   return this.findOne({ code });
 };
 

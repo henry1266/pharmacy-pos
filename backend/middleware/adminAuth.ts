@@ -19,7 +19,7 @@ const adminAuth: AdminAuthMiddleware = async (
     // 從 auth 中間件獲取用戶 ID
     const authenticatedReq = req as AuthenticatedRequest;
     
-    if (!authenticatedReq.user || !authenticatedReq.user.id) {
+    if (!authenticatedReq.user?.id) {
       res.status(401).json({
         success: false,
         message: '未授權，請先登入',

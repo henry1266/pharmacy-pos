@@ -1,6 +1,5 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 import { Customer as ICustomer } from '@pharmacy-pos/shared/types/entities';
-import mongoose from 'mongoose';
 
 // 擴展 Mongoose Document 介面
 interface ICustomerDocument extends Omit<ICustomer, '_id' | 'createdAt' | 'updatedAt'>, mongoose.Document {}
@@ -68,7 +67,7 @@ const CustomerSchema = new Schema<ICustomerDocument>({
 
 // 實例方法
 CustomerSchema.methods.updatePurchaseRecord = function(amount: number): void {
-  this.totalPurchases = (this.totalPurchases || 0) + amount;
+  this.totalPurchases = (this.totalPurchases ?? 0) + amount;
   this.lastPurchaseDate = new Date();
 };
 
@@ -93,7 +92,7 @@ CustomerSchema.methods.isActiveCustomer = function(days: number = 90): boolean {
 };
 
 CustomerSchema.methods.getCustomerTier = function(): string {
-  const totalPurchases = this.totalPurchases || 0;
+  const totalPurchases = this.totalPurchases ?? 0;
   
   if (totalPurchases >= 100000) return 'platinum';
   if (totalPurchases >= 50000) return 'gold';
