@@ -104,3 +104,13 @@ export const getRoleLevel = (role: Role): number => {
 export const hasPermission = (userRole: Role, requiredRole: Role): boolean => {
   return getRoleLevel(userRole) >= getRoleLevel(requiredRole);
 };
+
+/**
+ * 檢查用戶是否可以存取特定資源
+ * @param userRole - 用戶角色
+ * @param resourceRequiredRole - 資源所需角色
+ * @returns 是否可以存取
+ */
+export const canAccessResource = (userRole: Role, resourceRequiredRole: Role): boolean => {
+  return hasPermission(userRole, resourceRequiredRole);
+};

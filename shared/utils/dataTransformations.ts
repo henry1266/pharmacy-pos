@@ -77,7 +77,6 @@ export const transformSalesForTrend = (salesData: SaleRecord[]): SalesTrendItem[
         const year = parseInt(dateStrYYYYMMDD.substring(0, 4), 10);
         const month = parseInt(dateStrYYYYMMDD.substring(4, 6), 10) - 1; // Month is 0-indexed
         const day = parseInt(dateStrYYYYMMDD.substring(6, 8), 10);
-        const dateObj = new Date(year, month, day);
         const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
         const amount = typeof sale.totalAmount === 'number' ? sale.totalAmount : 0;

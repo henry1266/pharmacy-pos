@@ -5,6 +5,7 @@
 
 // Redux Action Types
 export * from './actionTypes';
+export { ActionTypes } from './actionTypes';
 
 /**
  * API 相關常數

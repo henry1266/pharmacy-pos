@@ -128,6 +128,7 @@ export {
   isValidRole,
   getRoleLevel,
   hasPermission,
+  canAccessResource,
   
   // 工具函數命名空間
   RoleUtils,
