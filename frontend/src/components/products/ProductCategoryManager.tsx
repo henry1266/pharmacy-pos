@@ -26,7 +26,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { getProductCategories, addProductCategory, updateProductCategory, deleteProductCategory } from '../../services/productCategoryService';
-import { Category } from '../../types/entities';
+import { Category } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Category 型別以包含 order 和 isActive 屬性
 interface ExtendedCategory extends Category {

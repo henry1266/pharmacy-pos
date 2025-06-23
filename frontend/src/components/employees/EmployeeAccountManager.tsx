@@ -18,7 +18,7 @@ import LockResetIcon from '@mui/icons-material/LockReset';
 import employeeAccountService from '../../services/employeeAccountService';
 import FormField from './account/FormField';
 import AccountDialog from './account/AccountDialog';
-import { EmployeeAccount, Role } from '../../types/entities';
+import { EmployeeAccount, Role } from '@pharmacy-pos/shared/types/entities';
 
 // 定義表單資料介面
 interface FormData {

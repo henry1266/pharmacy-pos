@@ -28,7 +28,7 @@ import {
 
 // 從 overtimeRecordService 導入類型
 import { OvertimeRecord } from '../../services/overtimeRecordService';
-import { Employee } from '../../types/entities';
+import { Employee } from '@pharmacy-pos/shared/types/entities';
 
 // 定義排班記錄介面
 interface ScheduleRecord {

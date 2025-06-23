@@ -14,7 +14,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
-import { Customer } from '../../types/entities';
+import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 interface SaleData {
   saleNumber: string;

@@ -10,7 +10,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import OvertimeRecordDialog from './OvertimeRecordDialog';
-import { Employee } from '../../../types/entities';
+import { Employee } from '@pharmacy-pos/shared/types/entities';
 import { OvertimeStatus } from '../../../utils/overtimeDataProcessor';
 import { OvertimeRecord } from '../../../services/overtimeRecordService';
 

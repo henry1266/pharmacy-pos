@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
-import { Product } from '../../types/entities';
+import { Product } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Product 型別以包含可能的 sellingPrice 屬性
 interface ExtendedProduct extends Product {

@@ -12,7 +12,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
-import { EmployeeAccount, Role, EmployeeWithAccount } from '../../../types/entities';
+import { EmployeeAccount, Role, EmployeeWithAccount } from '@pharmacy-pos/shared/types/entities';
 
 // 定義元件 Props 介面
 interface EmployeeAccountRowProps {

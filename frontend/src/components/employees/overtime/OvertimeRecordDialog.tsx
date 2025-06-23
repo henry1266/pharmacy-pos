@@ -15,7 +15,7 @@ import {
   InputAdornment,
   SelectChangeEvent
 } from '@mui/material';
-import { Employee } from '../../../types/entities';
+import { Employee } from '@pharmacy-pos/shared/types/entities';
 import { OvertimeStatus } from '../../../utils/overtimeDataProcessor';
 
 // 定義表單數據介面

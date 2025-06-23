@@ -14,7 +14,7 @@ import {
   useMediaQuery,
   SelectChangeEvent
 } from '@mui/material';
-import { Customer } from '../../types/entities';
+import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 定義當前銷售記錄的型別
 interface CurrentSale {

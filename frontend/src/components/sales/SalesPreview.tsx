@@ -1,6 +1,6 @@
 import React from 'react';
 import ItemPreview from '../common/preview/ItemPreview';
-import { Customer } from '../../types/entities';
+import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 定義銷售項目的型別
 interface SaleItem {

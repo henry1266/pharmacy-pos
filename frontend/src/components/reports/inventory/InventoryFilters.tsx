@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { FilterAlt } from '@mui/icons-material';
 import axios from 'axios';
-import { Supplier } from '../../../types/entities';
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // 定義 props 的型別
 interface InventoryFiltersProps {
