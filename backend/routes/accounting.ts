@@ -8,8 +8,8 @@ import Accounting from '../models/Accounting';
 import Inventory from '../models/Inventory';
 import BaseProduct from '../models/BaseProduct';
 import MonitoredProduct from '../models/MonitoredProduct';
-import { ApiResponse, ErrorResponse } from '@pharmacy-pos/types/api';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/constants';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import auth from '../middleware/auth';
 
 // 定義會計記錄狀態型別

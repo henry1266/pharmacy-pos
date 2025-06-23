@@ -9,7 +9,7 @@ import { AuthenticatedRequest } from '../src/types/express';
 // 使用 shared 架構的 API 類型
 import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
 import { Sale as SharedSale, Product as SharedProduct, Customer as SharedCustomer, Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@shared/constants';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 引入通用訂單單號生成服務
 const OrderNumberService = require('../utils/OrderNumberService');
