@@ -89,7 +89,6 @@ router.get('/', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err: unknown) {
-    const mongoError = err as MongooseError;
     console.error(err instanceof Error ? err.message : 'Unknown error');
     const errorResponse: ErrorResponse = {
       success: false,
@@ -149,9 +148,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     
     res.json(response);
   } catch (err: unknown) {
-    const mongoError = err as MongooseError;
     console.error(err instanceof Error ? err.message : 'Unknown error');
-    if (mongoError.kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
@@ -229,7 +227,6 @@ router.post(
       
       res.json(response);
     } catch (err: unknown) {
-      const mongoError = err as MongooseError;
       console.error(err instanceof Error ? err.message : 'Unknown error');
       const errorResponse: ErrorResponse = {
         success: false,
@@ -325,23 +322,22 @@ async function checkProductInventory(product: mongoose.Document, quantity: numbe
     
     // 安全地訪問產品屬性
     const productDoc = product as any;
-    console.log(`產品 ${productDoc.name || '未知'} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
+    console.log(`產品 ${productDoc.name ?? '未知'} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
     
     // 不再檢查庫存是否足夠，允許負庫存
     if (totalQuantity < quantity) {
-      console.log(`警告: 產品 ${(product as any).name || '未知'} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
+      console.log(`警告: 產品 ${(product as any).name ?? '未知'} 庫存不足，當前總庫存: ${totalQuantity}，需求: ${quantity}，將允許負庫存`);
     }
     
     return { success: true };
   } catch (err: unknown) {
-    const mongoError = err as MongooseError;
     console.error(`庫存檢查錯誤:`, err);
-    return { 
-      success: false, 
-      error: { 
-        success: false, 
-        statusCode: 500, 
-        message: `庫存檢查錯誤: ${mongoError.message}`
+    return {
+      success: false,
+      error: {
+        success: false,
+        statusCode: 500,
+        message: `庫存檢查錯誤: ${err instanceof Error ? err.message : '未知錯誤'}`
       }
     };
   }
@@ -359,8 +355,16 @@ function calculateTotalInventory(inventories: any[]): number {
   for (const inv of inventories) {
     totalQuantity += inv.quantity;
     // 安全地處理 _id，可能是 ObjectId 或字串
-    const recordId = inv._id ? (typeof inv._id === 'object' ? inv._id.toString() : inv._id) : '未知';
-    console.log(`庫存記錄: ${recordId}, 類型: ${inv.type || 'purchase'}, 數量: ${inv.quantity}`);
+    let recordId = '未知';
+    if (inv._id) {
+      // 提取三元運算符為獨立語句，提高可讀性
+      if (typeof inv._id === 'object') {
+        recordId = inv._id.toString();
+      } else {
+        recordId = inv._id;
+      }
+    }
+    console.log(`庫存記錄: ${recordId}, 類型: ${inv.type ?? 'purchase'}, 數量: ${inv.quantity}`);
   }
   return totalQuantity;
 }
@@ -493,7 +497,7 @@ function buildSaleFields(saleData: SaleFieldsInput): Record<string, any> {
   if (saleData.cashier) saleFields.cashier = saleData.cashier;
   
   // 計算最終金額
-  saleFields.finalAmount = saleFields.totalAmount - (saleFields.discount || 0);
+  saleFields.finalAmount = saleFields.totalAmount - (saleFields.discount ?? 0);
   
   return saleFields;
 }
@@ -519,7 +523,7 @@ async function handleInventoryForNewSale(sale: SaleDocument): Promise<void> {
 
 // 創建庫存記錄
 interface SaleItem {
-  product: string | any;
+  product: string | mongoose.Types.ObjectId;
   quantity: number;
   subtotal?: number;
 }

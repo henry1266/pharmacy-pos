@@ -2,21 +2,19 @@ import express, { Request, Response } from 'express';
 import mongoose, { Types } from 'mongoose';
 import { check, validationResult } from 'express-validator';
 import multer from 'multer';
-import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 
 // 使用 ES6 import 導入模型
 import ShippingOrder from '../models/ShippingOrder';
-import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
+import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
 import Supplier from '../models/Supplier';
 const OrderNumberService = require('../utils/OrderNumberService');
 
 // 使用 shared 架構的類型
-import { ApiResponse, ErrorResponse, ShippingOrderCreateRequest, ShippingOrderResponse } from '@pharmacy-pos/shared/types/api';
-import { ShippingOrder as SharedShippingOrder, Product as SharedProduct, Customer as SharedCustomer, Supplier as SharedSupplier } from '@pharmacy-pos/shared/types/entities';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 定義產品介面
@@ -109,7 +107,7 @@ router.get('/', async (req: Request, res: Response) => {
         if (order.items && order.items.length > 0) {
           order.items.forEach((item: ShippingOrderItem) => {
             if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = (item.product as ProductDocument).healthInsuranceCode;
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
             }
           });
         }
@@ -158,7 +156,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (shippingOrder.items && shippingOrder.items.length > 0) {
       shippingOrder.items.forEach((item: ShippingOrderItem) => {
         if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-          item.healthInsuranceCode = (item.product as ProductDocument).healthInsuranceCode;
+          item.healthInsuranceCode = item.product.healthInsuranceCode;
         }
       });
     }
@@ -173,7 +171,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    if ((err as any).kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
@@ -561,6 +559,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     
     // 應用更新
     Object.keys(updateData).forEach(key => {
+      // 使用索引簽名訪問屬性
       (shippingOrder as any)[key] = updateData[key];
     });
     
@@ -580,7 +579,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     res.json(shippingOrder);
   } catch (err) {
     console.error('更新出貨單錯誤:', (err as Error).message);
-    if ((err as any).kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       res.status(404).json({ msg: '找不到該出貨單' });
       return;
     }
@@ -608,7 +607,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     res.json({ msg: '出貨單已刪除' });
   } catch (err) {
     console.error((err as Error).message);
-    if ((err as any).kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       res.status(404).json({ msg: '找不到該出貨單' });
       return;
     }
@@ -632,7 +631,7 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
         if (order.items && order.items.length > 0) {
           order.items.forEach((item: ShippingOrderItem) => {
             if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = (item.product as ProductDocument).healthInsuranceCode;
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
             }
           });
         }
@@ -674,7 +673,7 @@ router.get('/search/query', async (req: Request, res: Response) => {
         if (order.items && order.items.length > 0) {
           order.items.forEach((item: ShippingOrderItem) => {
             if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = (item.product as ProductDocument).healthInsuranceCode;
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
             }
           });
         }
@@ -726,7 +725,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
         if (order.items && order.items.length > 0) {
           order.items.forEach((item: ShippingOrderItem) => {
             if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = (item.product as ProductDocument).healthInsuranceCode;
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
             }
           });
         }
@@ -757,7 +756,7 @@ router.get('/recent/list', async (req: Request, res: Response) => {
         if (order.items && order.items.length > 0) {
           order.items.forEach((item: ShippingOrderItem) => {
             if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = (item.product as ProductDocument).healthInsuranceCode;
+              item.healthInsuranceCode = item.product.healthInsuranceCode;
             }
           });
         }
@@ -826,6 +825,9 @@ router.post('/import/basic', upload.single('file'), async (req: Request, res: Re
     let successCount = 0;
 
     // 讀取並解析CSV文件
+    // 在這裡導入 csv-parser，只在需要時使用
+    const csv = require('csv-parser');
+    
     fs.createReadStream(req.file.path)
       .pipe(csv())
       .on('data', (data: any) => results.push(data))

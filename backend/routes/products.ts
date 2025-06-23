@@ -1,16 +1,11 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import multer from 'multer';
-import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import { AuthenticatedRequest } from '../src/types/express';
 import {
-  ApiResponse,
-  ProductCreateRequest,
-  ProductResponse,
-  CSVImportResult,
-  CSVItemData
+  ApiResponse
 } from '@pharmacy-pos/shared/types/api';
 import {
   IBaseProductDocument,
@@ -146,7 +141,7 @@ router.get('/medicines', async (req: Request, res: Response): Promise<void> => {
 // @access  Public
 router.get('/code/:code', async (req: Request, res: Response): Promise<void> => {
   try {
-    const productCode = (req.params.code || '').toString().trim().toUpperCase();
+    const productCode = (req.params.code ?? '').toString().trim().toUpperCase();
     
     const product = await BaseProduct.findByCode(productCode);
     
@@ -232,7 +227,6 @@ router.post(
     check('sellingPrice', '售價必須是數字').optional().isNumeric()
   ],
   async (req: Request, res: Response): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
@@ -274,13 +268,13 @@ router.post(
       
       // 創建商品
       const product = new Product({
-        code: code || await generateNextProductCode(),
-        shortCode: code || await generateNextProductCode(),
+        code: code ?? await generateNextProductCode(),
+        shortCode: code ?? await generateNextProductCode(),
         name,
         category,
         unit,
-        purchasePrice: parseFloat(purchasePrice) || 0,
-        sellingPrice: parseFloat(sellingPrice) || 0,
+        purchasePrice: parseFloat(purchasePrice) ?? 0,
+        sellingPrice: parseFloat(sellingPrice) ?? 0,
         description,
         supplier,
         minStock: parseInt(minStock) || 10,
@@ -336,7 +330,6 @@ router.post(
     check('sellingPrice', '售價必須是數字').optional().isNumeric()
   ],
   async (req: Request, res: Response): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
@@ -380,13 +373,13 @@ router.post(
       
       // 創建藥品
       const medicine = new Medicine({
-        code: code || await generateNextMedicineCode(),
-        shortCode: code || await generateNextMedicineCode(),
+        code: code ?? await generateNextMedicineCode(),
+        shortCode: code ?? await generateNextMedicineCode(),
         name,
         category,
         unit,
-        purchasePrice: parseFloat(purchasePrice) || 0,
-        sellingPrice: parseFloat(sellingPrice) || 0,
+        purchasePrice: parseFloat(purchasePrice) ?? 0,
+        sellingPrice: parseFloat(sellingPrice) ?? 0,
         description,
         supplier,
         minStock: parseInt(minStock) || 10,

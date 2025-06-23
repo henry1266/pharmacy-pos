@@ -73,8 +73,8 @@ router.get('/', async (req: Request, res: Response) => {
     };
     
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
     
     const errorResponse: ErrorResponse = {
       success: false,
@@ -141,10 +141,10 @@ router.get('/:id', async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
 
-    if (err.kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
@@ -349,8 +349,8 @@ router.post(
       };
 
       res.json(response);
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : 'Unknown error');
       
       const errorResponse: ErrorResponse = {
         success: false,
@@ -443,10 +443,10 @@ router.put('/:id', async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
 
-    if (err.kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
@@ -506,10 +506,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
 
-    if (err.kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,

@@ -1,56 +1,31 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
-import mongoose, { Types, Document, Model } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import multer from 'multer';
-import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 
 // 使用 ES6 import 導入模型
-import PurchaseOrder from '../models/PurchaseOrder';
-import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
+import PurchaseOrder, { IPurchaseOrderDocument, IPurchaseOrderItem, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../models/PurchaseOrder';
+import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
 const OrderNumberService = require('../utils/OrderNumberService');
 
 // 使用 shared 架構的類型
-import { ApiResponse, ErrorResponse, PurchaseOrderCreateRequest, PurchaseOrderResponse } from '@pharmacy-pos/shared/types/api';
-import { PurchaseOrder as SharedPurchaseOrder, Product as SharedProduct, Supplier as SharedSupplier } from '@pharmacy-pos/shared/types/entities';
+import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
-// 定義符合實際模型的介面
-interface PurchaseOrderItem {
-  product: Types.ObjectId;
-  did: string;
-  dname: string;
-  dquantity: number;
-  dtotalCost: number;
-  unitPrice?: number;
-}
+// 移除重複的介面定義，直接使用模型中的 IPurchaseOrderItem
 
 // 根據實際模型定義 status 型別
 type PurchaseOrderStatus = 'pending' | 'completed' | 'cancelled';
 type PaymentStatus = '未付' | '已下收' | '已匯款';
 
-interface PurchaseOrderModel {
-  _id: Types.ObjectId;
-  poid: string;
-  orderNumber: string;
-  pobill?: string;
-  pobilldate?: Date;
-  posupplier: string;
-  supplier?: Types.ObjectId;
-  items: PurchaseOrderItem[];
-  totalAmount: number;
-  status: PurchaseOrderStatus;
-  paymentStatus: PaymentStatus;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// 移除重複的介面定義，直接使用模型中的 IPurchaseOrder
 
 // 使用 mongoose.Document 型別
-type PurchaseOrderDocument = mongoose.Document & PurchaseOrderModel;
+// 移除未定義的 PurchaseOrderModel 引用，直接使用 IPurchaseOrderDocument
 
 interface PurchaseOrderRequest {
   poid?: string;
@@ -106,7 +81,7 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
-    const response: ApiResponse<any[]> = {
+    const response: ApiResponse<IPurchaseOrderDocument[]> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: purchaseOrders,
@@ -144,7 +119,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       return;
     }
     
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<IPurchaseOrderDocument> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: purchaseOrder,
@@ -154,7 +129,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    if ((err as any).kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
@@ -329,7 +304,7 @@ router.post('/', [
       await updateInventory(purchaseOrder);
     }
 
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<IPurchaseOrderDocument> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.CREATED,
       data: purchaseOrder,
@@ -356,7 +331,7 @@ router.post('/', [
  */
 async function handlePurchaseOrderIdChange(
   poid: string | undefined, 
-  purchaseOrder: any
+  purchaseOrder: IPurchaseOrderDocument
 ): Promise<{ success: boolean; error?: string; orderNumber?: string }> {
   if (!poid || poid === purchaseOrder.poid) {
     return { success: true };
@@ -385,18 +360,18 @@ async function handlePurchaseOrderIdChange(
  * @param {Object} purchaseOrder - 進貨單對象
  * @returns {Object} - 更新數據
  */
-function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: any): Record<string, any> {
+function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseOrderDocument): Partial<IPurchaseOrderDocument> {
   const { poid, pobill, pobilldate, posupplier, supplier, notes, paymentStatus } = data;
   
-  const updateData: Record<string, any> = {};
+  const updateData: Partial<IPurchaseOrderDocument> = {};
   if (poid) updateData.poid = poid.toString();
   if (purchaseOrder.orderNumber) updateData.orderNumber = purchaseOrder.orderNumber.toString();
   if (pobill) updateData.pobill = pobill.toString();
   if (pobilldate) updateData.pobilldate = pobilldate;
   if (posupplier) updateData.posupplier = posupplier.toString();
-  if (supplier) updateData.supplier = supplier.toString();
+  if (supplier) updateData.supplier = new Types.ObjectId(supplier.toString());
   if (notes !== undefined) updateData.notes = notes ? notes.toString() : '';
-  if (paymentStatus) updateData.paymentStatus = paymentStatus.toString();
+  if (paymentStatus) updateData.paymentStatus = paymentStatus as ModelPaymentStatus;
   
   return updateData;
 }
@@ -478,7 +453,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     const oldStatus = purchaseOrder.status;
     const statusResult = await handleStatusChange(status as PurchaseOrderStatus, oldStatus, purchaseOrder._id.toString());
     if (statusResult.statusChanged) {
-      updateData.status = statusResult.status;
+      updateData.status = statusResult.status as ModelPurchaseOrderStatus;
     }
 
     // 處理項目更新
@@ -489,7 +464,12 @@ router.put('/:id', async (req: Request, res: Response) => {
         res.status(400).json({ msg: validationResult.message });
       return;
       }
-      updateData.items = items;
+      // 正確處理 items 的型別轉換 - 使用 any 來避免 Document 型別衝突
+      updateData.items = items.map(item => ({
+        ...item,
+        product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
+        unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0)
+      })) as any;
     }
 
     // 更新進貨單
@@ -501,10 +481,17 @@ router.put('/:id', async (req: Request, res: Response) => {
       return;
     }
     
-    // 應用更新
-    Object.keys(updateData).forEach(key => {
-      (purchaseOrder as any)[key] = updateData[key];
-    });
+    // 應用更新 - 使用型別安全的方式
+    if (updateData.poid) purchaseOrder.poid = updateData.poid;
+    if (updateData.orderNumber) purchaseOrder.orderNumber = updateData.orderNumber;
+    if (updateData.pobill !== undefined) purchaseOrder.pobill = updateData.pobill;
+    if (updateData.pobilldate) purchaseOrder.pobilldate = updateData.pobilldate;
+    if (updateData.posupplier) purchaseOrder.posupplier = updateData.posupplier;
+    if (updateData.supplier) purchaseOrder.supplier = updateData.supplier;
+    if (updateData.notes !== undefined) purchaseOrder.notes = updateData.notes;
+    if (updateData.paymentStatus) purchaseOrder.paymentStatus = updateData.paymentStatus;
+    if (updateData.status) purchaseOrder.status = updateData.status;
+    if (updateData.items) purchaseOrder.items = updateData.items;
     
     // 手動計算總金額以確保正確
     purchaseOrder.totalAmount = purchaseOrder.items.reduce(
@@ -523,7 +510,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     res.json(purchaseOrder);
   } catch (err) {
     console.error('更新進貨單錯誤:', (err as Error).message);
-    if ((err as any).kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       res.status(404).json({ msg: '找不到該進貨單' });
       return;
     }
@@ -558,7 +545,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     res.json({ msg: '進貨單已刪除' });
   } catch (err) {
     console.error((err as Error).message);
-    if ((err as any).kind === 'ObjectId') {
+    if (err instanceof Error && err.name === 'CastError') {
       res.status(404).json({ msg: '找不到該進貨單' });
       return;
     }
@@ -596,7 +583,12 @@ router.get('/search/query', async (req: Request, res: Response) => {
   try {
     const { poid, pobill, posupplier, startDate, endDate } = req.query;
     
-    const query: Record<string, any> = {};
+    const query: {
+      poid?: { $regex: string; $options: string };
+      pobill?: { $regex: string; $options: string };
+      posupplier?: { $regex: string; $options: string };
+      pobilldate?: { $gte?: Date; $lte?: Date };
+    } = {};
     if (poid) query.poid = { $regex: poid.toString(), $options: 'i' };
     if (pobill) query.pobill = { $regex: pobill.toString(), $options: 'i' };
     if (posupplier) query.posupplier = { $regex: posupplier.toString(), $options: 'i' };
@@ -664,7 +656,7 @@ router.get('/recent/list', async (req: Request, res: Response) => {
 });
 
 // 更新庫存的輔助函數
-async function updateInventory(purchaseOrder: any): Promise<void> {
+async function updateInventory(purchaseOrder: IPurchaseOrderDocument): Promise<void> {
   for (const item of purchaseOrder.items) {
     if (!item.product) continue;
     
@@ -684,7 +676,7 @@ async function updateInventory(purchaseOrder: any): Promise<void> {
       
       // 更新藥品的採購價格
       await BaseProduct.findOne({ _id: item.product.toString() })
-        .then((product: any) => {
+        .then((product) => {
           if (product) {
             product.purchasePrice = item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0);
             return product.save();
@@ -716,7 +708,7 @@ async function deleteInventoryRecords(purchaseOrderId: string): Promise<mongoose
  * @param {number} rowIndex - 行索引
  * @returns {Object} - 驗證結果
  */
-function validateBasicInfoRow(row: Record<string, any>, rowIndex: number): { valid: boolean; error?: string } {
+function validateBasicInfoRow(row: Record<string, string | number | Date>, rowIndex: number): { valid: boolean; error?: string } {
   if (!row['進貨單號'] || !row['廠商']) {
     return {
       valid: false,
@@ -731,7 +723,15 @@ function validateBasicInfoRow(row: Record<string, any>, rowIndex: number): { val
  * @param {Object} row - CSV行數據
  * @returns {Object} - 進貨單數據
  */
-function createPurchaseOrderData(row: Record<string, any>): Record<string, any> {
+function createPurchaseOrderData(row: Record<string, string | number | Date>): {
+  poid: string;
+  pobill: string;
+  pobilldate: Date | null;
+  posupplier: string;
+  paymentStatus: string;
+  items: never[];
+  status: string;
+} {
   return {
     poid: row['進貨單號'].toString(),
     pobill: row['發票號'] ? row['發票號'].toString() : '',

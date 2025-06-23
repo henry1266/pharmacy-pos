@@ -37,7 +37,7 @@ interface ShippingOrderDocument {
   totalAmount?: number;
 }
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 生成出貨單PDF - 移除isAuthenticated中間件以解決undefined問題
 router.get('/pdf/:id', async (req: Request, res: Response) => {
@@ -64,7 +64,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         productHealthInsuranceMap[product._id.toString()] = product.healthInsuranceCode;
       } else {
         // 非藥品或無健保代碼時，使用產品代碼
-        productHealthInsuranceMap[product._id.toString()] = product.code || 'N/A';
+        productHealthInsuranceMap[product._id.toString()] = product.code ?? 'N/A';
       }
     });
     
@@ -73,7 +73,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
       const productId = item.product.toString();
       return {
         ...item,
-        healthInsuranceCode: productHealthInsuranceMap[productId] || 'N/A'
+        healthInsuranceCode: productHealthInsuranceMap[productId] ?? 'N/A'
       };
     });
 
@@ -103,7 +103,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
       doc.registerFont('NotoSansTC', fontPath);
       doc.font('NotoSansTC');
     } catch (fontError) {
-      console.warn('無法載入中文字體，使用默認字體:', (fontError as Error).message);
+      console.warn('無法載入中文字體，使用默認字體:', fontError instanceof Error ? fontError.message : String(fontError));
       // 繼續使用默認字體
     }
 
@@ -113,10 +113,10 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
 
     // 添加出貨單基本信息
     doc.fontSize(12);
-    doc.text(`出貨單號: ${shippingOrder.soid || 'N/A'}`, { continued: false } as PDFTextOptions);
+    doc.text(`出貨單號: ${shippingOrder.soid ?? 'N/A'}`, { continued: false } as PDFTextOptions);
     
     // 直接使用sosupplier而非customer.name
-    doc.text(`客戶: ${shippingOrder.sosupplier || '未指定'}`, { continued: false } as PDFTextOptions);
+    doc.text(`客戶: ${shippingOrder.sosupplier ?? '未指定'}`, { continued: false } as PDFTextOptions);
     
     if (shippingOrder.notes) {
       doc.moveDown();
@@ -215,7 +215,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         
         // 健保代碼
         // 從 item.healthInsuranceCode 取得健保代碼
-        doc.text(item.healthInsuranceCode || 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
+        doc.text(item.healthInsuranceCode ?? 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
         currentX += columnWidths[1];
         
         // 繪製第二條垂直分隔線
@@ -224,7 +224,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 項目名稱
-        doc.text(item.dname || 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
+        doc.text(item.dname ?? 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
         currentX += columnWidths[2];
         
         // 繪製第三條垂直分隔線
@@ -233,7 +233,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 數量置中對齊
-        doc.text(item.dquantity?.toString() || '0', currentX, currentY, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
+        doc.text(item.dquantity?.toString() ?? '0', currentX, currentY, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
         currentX += columnWidths[3];
         
         // 繪製第三條垂直分隔線
@@ -242,7 +242,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 單價靠右對齊，但保留右側空間
-        const dprice = (item.dtotalCost || 0) / (item.dquantity || 1);
+        const dprice = (item.dtotalCost ?? 0) / (item.dquantity ?? 1);
         doc.text(formatCurrency(dprice), currentX, currentY, { width: columnWidths[3] , align: 'center' } as PDFTextOptions);
         currentX += columnWidths[3];
         
@@ -252,7 +252,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
            .stroke();
         
         // 小計靠右對齊，但保留右側空間
-        const subtotal = (item.dtotalCost || 0) ;
+        const subtotal = (item.dtotalCost ?? 0) ;
         doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[4] - 1, align: 'center' } as PDFTextOptions);
         
         currentY += 20;
@@ -271,7 +271,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     currentY += 20;
     
     // 添加金額信息
-    doc.fontSize(12).text(`總金額: ${formatCurrency(shippingOrder.totalAmount || 0)}`, 50, currentY,  { align: 'right' } as PDFTextOptions);
+    doc.fontSize(12).text(`總金額: ${formatCurrency(shippingOrder.totalAmount ?? 0)}`, 50, currentY,  { align: 'right' } as PDFTextOptions);
     currentY += 20;
     
     doc.moveDown(2);
@@ -280,7 +280,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     doc.end();
     
   } catch (err) {
-    console.error('生成出貨單PDF時發生錯誤:', err);
+    console.error('生成出貨單PDF時發生錯誤:', err instanceof Error ? err.message : String(err));
     res.status(500).json({ msg: '生成PDF時發生錯誤' });
   }
 });

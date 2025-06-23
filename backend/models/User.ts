@@ -17,6 +17,7 @@ export interface IUser {
 // 用戶文檔介面
 export interface IUserDocument extends IUser, Document {
   _id: mongoose.Types.ObjectId;
+  id: string; // 添加 Mongoose 虛擬屬性 id
 }
 
 const UserSchema = new Schema<IUserDocument>({

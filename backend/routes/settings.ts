@@ -43,7 +43,7 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     console.log("User found:", userForLog);
     
     // Return the settings object, defaulting to an empty object if undefined
-    const settings: UserSettings = user.settings || {};
+    const settings: UserSettings = user.settings ?? {};
     console.log("Returning settings:", settings);
     
     const response: ApiResponse<UserSettings> = {
@@ -55,7 +55,7 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     
     res.json(response);
   } catch (err) {
-    const error = err as Error;
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error("獲取用戶設定失敗:", error.message);
     console.error("Error stack:", error.stack);
     
@@ -129,13 +129,13 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
     res.json(response);
 
   } catch (err) {
-    const error = err as Error;
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error("更新用戶設定失敗:", error.message);
     console.error("Error stack:", error.stack);
     
     // Handle potential validation errors if schema evolves
     if (error.name === 'ValidationError') {
-        const validationError = error as ValidationError;
+        const validationError = error as ValidationError; // 這裡的斷言是安全的，因為我們已經檢查了 error.name
         const errorResponse: ErrorResponse = {
           success: false,
           message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,

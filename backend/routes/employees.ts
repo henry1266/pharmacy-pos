@@ -42,6 +42,7 @@ router.get('/', auth, async (req: Request, res: Response) => {
 
     // 轉換 Mongoose Document 到 shared 類型
     const employeeList: SharedEmployee[] = employees.map(emp => {
+      // 使用類型斷言來存取 Mongoose Document 的額外屬性
       const empAny = emp as any;
       return {
         _id: emp._id.toString(),
@@ -81,8 +82,8 @@ router.get('/', auth, async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -149,9 +150,9 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: '找不到此員工資料',
@@ -255,7 +256,7 @@ router.post(
         additionalInfo,
         idCardFront,
         idCardBack,
-        userId: userId || (req as any).user.id // 使用當前登入用戶ID作為預設值
+        userId: userId ?? (req as any).user.id // 使用當前登入用戶ID作為預設值
       });
 
       const savedEmployee = await newEmployee.save();
@@ -289,8 +290,8 @@ router.post(
       };
 
       res.json(response);
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : 'Unknown error');
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
@@ -411,9 +412,9 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: '找不到此員工資料',
@@ -469,9 +470,9 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
     };
     
     res.json(response);
-  } catch (err: any) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
+    if (err instanceof Error && err.name === 'CastError') {
       const errorResponse: ErrorResponse = {
         success: false,
         message: '找不到此員工資料',

@@ -5,7 +5,7 @@ import Sale from '../models/Sale';
 import ShippingOrder from '../models/ShippingOrder';
 import { calculateProductFIFO, matchFIFOBatches, prepareInventoryForFIFO } from '../utils/fifoCalculator';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 定義介面
 interface FIFOSimulationRequest {
@@ -126,7 +126,7 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       }
     }
     
-    const totalRevenue = (sale as any).totalAmount || 0;
+    const totalRevenue = (sale as any).totalAmount ?? 0;
     const totalProfitMargin = totalRevenue > 0 
       ? ((totalProfit / totalRevenue) * 100).toFixed(2) + '%' 
       : '0.00%';
@@ -165,7 +165,7 @@ router.get('/shipping-order/:shippingOrderId', async (req: Request, res: Respons
     let totalCost = 0;
 
     for (const item of (shippingOrder as any).items) {
-      const productId = item.product?._id || null; 
+      const productId = item.product?._id ?? null;
       if (!productId) {
         itemsWithProfit.push({
           ...item.toObject(),
@@ -224,7 +224,7 @@ router.get('/shipping-order/:shippingOrderId', async (req: Request, res: Respons
       }
     }
     
-    const totalRevenue = (shippingOrder as any).totalAmount || 0; 
+    const totalRevenue = (shippingOrder as any).totalAmount ?? 0;
     
     const totalProfitMargin = totalRevenue > 0 
       ? ((totalProfit / totalRevenue) * 100).toFixed(2) + '%' 
@@ -273,14 +273,14 @@ router.get('/all', async (req: Request, res: Response): Promise<void> => {
     
     const overallSummary = results.reduce((sum, result) => {
       if (result.success && result.summary) {
-        sum.totalCost += result.summary.totalCost || 0;
-        sum.totalRevenue += result.summary.totalRevenue || 0;
-        sum.totalProfit += result.summary.totalProfit || 0;
+        sum.totalCost += result.summary.totalCost ?? 0;
+        sum.totalRevenue += result.summary.totalRevenue ?? 0;
+        sum.totalProfit += result.summary.totalProfit ?? 0;
       }
       return sum;
     }, { totalCost: 0, totalRevenue: 0, totalProfit: 0 });
     
-    (overallSummary as any).averageProfitMargin = overallSummary.totalRevenue > 0 
+    overallSummary.averageProfitMargin = overallSummary.totalRevenue > 0
       ? ((overallSummary.totalProfit / overallSummary.totalRevenue) * 100).toFixed(2) + '%' 
       : '0.00%';
     
@@ -378,7 +378,7 @@ function calculateFifoCost(fifoMatches: FIFOMatch[]): {
   return {
     totalCost: match.costParts.reduce((sum, part) => sum + (part.unit_price * part.quantity), 0),
     hasNegativeInventory: match.hasNegativeInventory,
-    remainingNegativeQuantity: match.remainingNegativeQuantity || 0
+    remainingNegativeQuantity: match.remainingNegativeQuantity ?? 0
   };
 }
 
@@ -413,7 +413,7 @@ router.post('/simulate', async (req: Request<{}, {}, FIFOSimulationRequest>, res
     const { totalCost, hasNegativeInventory, remainingNegativeQuantity } = calculateFifoCost(fifoMatches);
     
     // 獲取產品信息
-    const productInfo = (allInventories[0] as any).product;
+    const productInfo = allInventories[0].product;
     
     // 返回結果
     res.json({
