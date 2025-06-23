@@ -10,7 +10,7 @@ export * from './types/api';
 // 列舉常數
 export * from './enums';
 
-// 常數定義
+// 常數定義 - 包含 ActionTypes
 export * from './constants';
 
 // 工具函數 - 明確重新導出以避免型別衝突

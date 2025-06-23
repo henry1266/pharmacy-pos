@@ -3,6 +3,9 @@
  * 統一前後端使用的常數值
  */
 
+// Redux Action Types
+export * from './actionTypes';
+
 /**
  * API 相關常數
  */

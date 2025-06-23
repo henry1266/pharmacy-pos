@@ -1,4 +1,4 @@
-import { ActionTypes } from './actionTypes';
+import { ActionTypes } from '@pharmacy-pos/shared';
 import axios from 'axios';
 import {
   ApiResponse,
