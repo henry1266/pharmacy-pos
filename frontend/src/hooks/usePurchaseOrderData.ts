@@ -53,7 +53,7 @@ const usePurchaseOrderData = (
       return data;
     } catch (err: any) {
       setError('獲取供應商數據失敗');
-      showSnackbar('獲取供應商數據失敗: ' + (err.response?.data?.msg || err.message), 'error');
+      showSnackbar('獲取供應商數據失敗: ' + (err.response?.data?.msg ?? err.message), 'error');
       throw err;
     }
   }, [showSnackbar]);
@@ -69,7 +69,7 @@ const usePurchaseOrderData = (
       return data;
     } catch (err: any) {
       setError('獲取產品數據失敗');
-      showSnackbar('獲取產品數據失敗: ' + (err.response?.data?.msg || err.message), 'error');
+      showSnackbar('獲取產品數據失敗: ' + (err.response?.data?.msg ?? err.message), 'error');
       throw err;
     }
   }, [showSnackbar]);
@@ -86,7 +86,7 @@ const usePurchaseOrderData = (
       return data;
     } catch (err: any) {
       setError('獲取進貨單數據失敗');
-      showSnackbar('獲取進貨單數據失敗: ' + (err.response?.data?.msg || err.message), 'error');
+      showSnackbar('獲取進貨單數據失敗: ' + (err.response?.data?.msg ?? err.message), 'error');
       throw err;
     }
   }, [showSnackbar]);
@@ -108,7 +108,7 @@ const usePurchaseOrderData = (
             if (productData) {
               detailsMap[item.did] = {
                 ...productData,
-                stock: productData.stock || 0  // 確保 stock 欄位存在且為 number
+                stock: productData.stock ?? 0  // 確保 stock 欄位存在且為 number
               };
             }
           })

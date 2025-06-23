@@ -4,8 +4,6 @@ import { check, validationResult } from 'express-validator';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-
-// 使用 ES6 import 導入模型
 import ShippingOrder from '../models/ShippingOrder';
 import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';

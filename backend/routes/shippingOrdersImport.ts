@@ -7,7 +7,6 @@ import path from "path";
 import ShippingOrder from "../models/ShippingOrder";
 import BaseProduct from "../models/BaseProduct";
 import Inventory from "../models/Inventory";
-import OrderNumberService from "../utils/OrderNumberService";
 import Supplier from '../models/Supplier';
 
 // 使用 shared 架構的類型
