@@ -1,5 +1,5 @@
 {
-  "name": "pharmacy-pos-client",
+  "name": "@pharmacy-pos/frontend",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -61,6 +61,7 @@
   },
   "proxy": "http://localhost:5000",
   "devDependencies": {
+    "@pharmacy-pos/shared": "workspace:*",
     "@craco/craco": "^7.1.0",
     "@types/react-beautiful-dnd": "^13.1.8",
     "ts-loader": "^9.5.2",

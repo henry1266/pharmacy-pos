@@ -1,0 +1,11 @@
+packages:
+  - frontend
+  - backend
+  - shared
+
+onlyBuiltDependencies:
+  - '@tsparticles/engine'
+  - core-js
+  - core-js-pure
+  - mongodb-memory-server
+  - unrs-resolver

@@ -1,5 +1,5 @@
 {
-  "name": "pharmacy-pos-server",
+  "name": "@pharmacy-pos/backend",
   "version": "1.0.0",
   "description": "藥局POS系統後端服務",
   "main": "server.js",
@@ -33,6 +33,7 @@
     "pdfkit": "^0.17.1"
   },
   "devDependencies": {
+    "@pharmacy-pos/shared": "workspace:*",
     "@types/bcryptjs": "^2.4.6",
     "@types/config": "^3.3.4",
     "@types/cors": "^2.8.17",
