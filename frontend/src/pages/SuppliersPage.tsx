@@ -182,9 +182,16 @@ const SuppliersPage: FC<{}> = () => {
 
   useEffect(() => {
     if (isTestMode) {
-      setLocalSelectedSupplier(actualSelectedSupplier ? localSuppliers.find(s => s.id === (actualSelectedSupplier as unknown as SupplierData).id) ?? null : null);
+      // 在測試模式下，使用本地狀態
+      if (actualSelectedSupplier) {
+        const found = localSuppliers.find(s => s.id === (actualSelectedSupplier as unknown as SupplierData).id);
+        setLocalSelectedSupplier(found ?? null);
+      } else {
+        setLocalSelectedSupplier(null);
+      }
     } else {
-      setLocalSelectedSupplier(actualSelectedSupplier as unknown as SupplierData);
+      // 在非測試模式下，直接使用 actualSelectedSupplier
+      setLocalSelectedSupplier(actualSelectedSupplier as unknown as SupplierData ?? null);
     }
   }, [isTestMode, actualSelectedSupplier, localSuppliers]);
 

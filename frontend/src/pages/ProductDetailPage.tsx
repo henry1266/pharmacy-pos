@@ -20,6 +20,14 @@ import ProductDetailCard from '../components/products/ProductDetailCard';
 import FIFOProfitCalculator from '../components/products/FIFOProfitCalculator';
 import { getProductCategories } from '../services/productCategoryService';
 
+// 定義 API 回應格式
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: Date;
+}
+
 // 定義產品類型
 interface Product {
   id: string;
@@ -71,30 +79,37 @@ const ProductDetailPage: React.FC = () => {
         setLoading(true);
         
         // 獲取供應商列表
-        const suppliersResponse = await axios.get('/api/suppliers');
-        setSuppliers((suppliersResponse.data as any)?.data || []);
+        const suppliersResponse = await axios.get<ApiResponse<Supplier[]>>('/api/suppliers');
+        if (suppliersResponse.data && suppliersResponse.data.success && suppliersResponse.data.data) {
+          setSuppliers(suppliersResponse.data.data);
+        } else {
+          console.warn('供應商 API 回應格式不正確，使用空陣列');
+          setSuppliers([]);
+        }
         
         // 獲取產品分類
         const categoriesData = await getProductCategories();
         setCategories(categoriesData);
         
         // 獲取產品詳情
-        const productResponse = await axios.get(`/api/products/${id}`);
+        const productResponse = await axios.get<ApiResponse<Product>>(`/api/products/${id}`);
         
-        // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-        const rawProductData = (productResponse.data as any)?.data;
-        if (!rawProductData) {
-          throw new Error('產品資料不存在');
+        // 檢查 API 回應格式
+        if (productResponse.data && productResponse.data.success && productResponse.data.data) {
+          const rawProductData = productResponse.data.data;
+          
+          // 轉換產品數據格式，確保與ProductDetailCard組件兼容
+          const productData: Product = {
+            ...rawProductData,
+            id: rawProductData._id,
+            productType: rawProductData.productType ?? 'product'
+          };
+          
+          setProduct(productData);
+        } else {
+          throw new Error('產品資料不存在或格式不正確');
         }
         
-        // 轉換產品數據格式，確保與ProductDetailCard組件兼容
-        const productData: Product = {
-          ...rawProductData,
-          id: rawProductData._id,
-          productType: rawProductData.productType ?? 'product'
-        };
-        
-        setProduct(productData);
         setLoading(false);
       } catch (err: unknown) {
         console.error('獲取產品詳情失敗:', err);

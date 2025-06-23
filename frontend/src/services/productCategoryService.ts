@@ -56,8 +56,12 @@ export const updateProductCategory = async (id: string, categoryData: Partial<Ca
  */
 export const deleteProductCategory = async (id: string): Promise<{ success: boolean; message?: string }> => {
   try {
-    const res = await axios.delete<{ success: boolean; message?: string }>(`/api/product-categories/${id}`);
-    return res.data;
+    const res = await axios.delete(`/api/product-categories/${id}`);
+    // 處理可能的 ApiResponse 格式
+    if (res.data && typeof res.data === 'object' && 'data' in res.data) {
+      return res.data.data || { success: true };
+    }
+    return res.data || { success: true };
   } catch (err: any) {
     console.error('刪除產品分類失敗:', err);
     throw err;

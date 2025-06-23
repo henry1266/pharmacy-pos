@@ -19,6 +19,14 @@ import {
 import SupplierInfoCard from '../components/suppliers/SupplierInfoCard';
 import TwoColumnLayout from '../components/common/TwoColumnLayout';
 
+// 定義 API 回應格式
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: Date;
+}
+
 // 定義供應商資料介面
 interface Supplier {
   id: string;
@@ -52,12 +60,18 @@ const SupplierDetailPage: FC = () => {
     const fetchSupplierData = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/suppliers/${id}`);
-        setSupplier((response.data as any)?.data as Supplier);
+        const response = await axios.get<ApiResponse<Supplier>>(`/api/suppliers/${id}`);
+        
+        // 檢查 API 回應格式
+        if (response.data && response.data.success && response.data.data) {
+          setSupplier(response.data.data);
+        } else {
+          throw new Error('供應商資料格式不正確');
+        }
         setLoading(false);
       } catch (err: any) {
         console.error('獲取供應商詳情失敗:', err);
-        setError(err.response?.data?.message ?? '獲取供應商詳情失敗');
+        setError(err.response?.data?.message ?? err.message ?? '獲取供應商詳情失敗');
         setLoading(false);
       }
     };

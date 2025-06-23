@@ -13,8 +13,16 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import EmployeeForm from '../../components/employees/EmployeeForm.tsx';
-import EmployeeAccountManager from '../../components/employees/EmployeeAccountManager.tsx';
+import EmployeeForm from '../../components/employees/EmployeeForm';
+import EmployeeAccountManager from '../../components/employees/EmployeeAccountManager';
+
+// 定義 API 回應格式
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: Date;
+}
 
 // 定義介面
 interface User {
@@ -108,12 +116,18 @@ const EmployeeBasicInfoPage: React.FC = () => {
         }
       };
 
-      const response = await axios.get<Employee>(`/api/employees/${id}`, config);
-      setEmployee(response.data);
+      const response = await axios.get<ApiResponse<Employee>>(`/api/employees/${id}`, config);
+      
+      // 檢查 API 回應格式
+      if (response.data && response.data.success && response.data.data) {
+        setEmployee(response.data.data);
+      } else {
+        throw new Error('員工資料格式不正確');
+      }
       setError(null);
     } catch (err: any) {
       console.error('獲取員工資料失敗:', err);
-      setError(err.response?.data?.msg ?? '獲取員工資料失敗');
+      setError(err.response?.data?.message ?? err.response?.data?.msg ?? err.message ?? '獲取員工資料失敗');
     } finally {
       setLoading(false);
     }

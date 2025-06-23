@@ -111,17 +111,40 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
       }
     });
 
-    Object.values(saleGroups).forEach(group => mergedInventories.push(group));
-    Object.values(purchaseGroups).forEach(group => mergedInventories.push(group));
-    Object.values(shipGroups).forEach(group => mergedInventories.push(group));
+    // 使用相容性更好的方式遍歷物件值
+    for (const key in saleGroups) {
+      if (saleGroups.hasOwnProperty(key)) {
+        mergedInventories.push(saleGroups[key]);
+      }
+    }
+    for (const key in purchaseGroups) {
+      if (purchaseGroups.hasOwnProperty(key)) {
+        mergedInventories.push(purchaseGroups[key]);
+      }
+    }
+    for (const key in shipGroups) {
+      if (shipGroups.hasOwnProperty(key)) {
+        mergedInventories.push(shipGroups[key]);
+      }
+    }
 
-    // Calculate current stock (same logic as original)
+    // Calculate current stock (修正庫存計算邏輯)
     let currentStock = 0;
     const processedInventories = [...mergedInventories].reverse().map(inv => {
       const quantity = inv.totalQuantity;
-      if (inv.type === 'purchase' || inv.type === 'sale' || inv.type === 'ship') {
-        currentStock += quantity; // ship/sale quantity is negative for sale/ship
+      
+      // 庫存計算邏輯：
+      // - 進貨 (purchase): 增加庫存 (+)
+      // - 銷售 (sale): 減少庫存 (-)
+      // - 出貨 (ship): 減少庫存 (-)
+      if (inv.type === 'purchase') {
+        currentStock += Math.abs(quantity); // 進貨增加庫存
+      } else if (inv.type === 'sale') {
+        currentStock -= Math.abs(quantity); // 銷售減少庫存
+      } else if (inv.type === 'ship') {
+        currentStock -= Math.abs(quantity); // 出貨減少庫存
       }
+      
       return {
         ...inv,
         currentStock: currentStock
@@ -129,25 +152,31 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
     });
     processedInventories.reverse(); // Restore original order if needed
 
-    // Calculate profit/loss (same logic as original)
+    // Calculate profit/loss (修正損益計算邏輯)
     let totalProfitLoss = 0;
     processedInventories.forEach(inv => {
-      let price = 0;
-      if ((inv.type === 'purchase' || inv.type === 'ship' || inv.type === 'sale') && inv.totalAmount && inv.totalQuantity) {
-        const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-        price = unitPrice;
+      let unitPrice = 0;
+      
+      // 優先使用交易記錄中的實際金額計算單價
+      if (inv.totalAmount && inv.totalQuantity && inv.totalQuantity !== 0) {
+        unitPrice = Math.abs(inv.totalAmount) / Math.abs(inv.totalQuantity);
       } else if (typeof inv.product !== 'string' && inv.product?.price) {
-        price = inv.product.price;
+        // 備用：使用產品設定的價格
+        unitPrice = inv.product.price;
       }
 
-      const recordCost = price * Math.abs(inv.totalQuantity);
+      const recordAmount = unitPrice * Math.abs(inv.totalQuantity);
 
+      // 損益計算邏輯：
+      // - 銷售 (sale): 正向收入，增加利潤
+      // - 進貨 (purchase): 負向成本，減少利潤
+      // - 出貨 (ship): 正向收入，增加利潤（出貨是銷售給客戶）
       if (inv.type === 'sale') {
-        totalProfitLoss += recordCost;
+        totalProfitLoss += recordAmount; // 銷售收入
       } else if (inv.type === 'purchase') {
-        totalProfitLoss -= recordCost;
+        totalProfitLoss -= recordAmount; // 進貨成本
       } else if (inv.type === 'ship') {
-        totalProfitLoss += recordCost; // Assuming ship cost adds to profit (or reduces loss)
+        totalProfitLoss += recordAmount; // 出貨收入
       }
     });
 

@@ -233,11 +233,25 @@ const ShippingOrderDetailPage: React.FC = () => {
       setFifoLoading(true);
       // Assuming an API endpoint /api/fifo/shipping-order/:id for shipping order FIFO data
       const response = await axios.get(`/api/fifo/shipping-order/${id}`);
-      setFifoData(response.data);
+      
+      // 處理 API 回應格式 - 支援 ApiResponse 包裝格式和直接回應格式
+      if (response.data && typeof response.data === 'object') {
+        // 檢查是否為 ApiResponse 格式
+        if ('success' in response.data && 'data' in response.data && response.data.success) {
+          setFifoData(response.data.data);
+        } else if ('items' in response.data || 'summary' in response.data) {
+          // 直接回應格式
+          setFifoData(response.data);
+        } else {
+          throw new Error('FIFO 數據格式不正確');
+        }
+      } else {
+        throw new Error('無效的 FIFO 數據回應');
+      }
       setFifoError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('獲取FIFO毛利數據失敗 (出貨單):', err);
-      const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg ?? err.message);
+      const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.message ?? err.response?.data?.msg ?? err.message);
       setFifoError(errorMsg);
     } finally {
       setFifoLoading(false);

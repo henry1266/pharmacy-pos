@@ -88,13 +88,28 @@ const commonColumns = {
   
   // 分類欄位渲染函數
   category: (categories: Category[], headerName: string = '分類', width: number = 100): GridColDef => ({
-    field: 'category', 
-    headerName, 
+    field: 'category',
+    headerName,
     width,
     valueGetter: (params: GridValueGetterParams) => {
       if (!params.value) return '無';
-      const category = categories.find(c => c._id === params.value);
-      return category ? category.name : params.value;
+      
+      // 處理 category 可能是字串 ID 或填充後的物件
+      if (typeof params.value === 'string') {
+        // category 是 ID，需要在 categories 陣列中查找
+        const category = categories.find(c => c._id === params.value);
+        return category ? category.name : params.value;
+      } else if (params.value && typeof params.value === 'object' && 'name' in params.value) {
+        // category 是已填充的物件，直接返回名稱
+        return (params.value as Category).name;
+      } else if (params.value && typeof params.value === 'object' && '_id' in params.value) {
+        // category 是物件但沒有 name，嘗試用 _id 查找
+        const categoryId = (params.value as any)._id;
+        const category = categories.find(c => c._id === categoryId);
+        return category ? category.name : categoryId;
+      }
+      
+      return String(params.value);
     }
   }),
   
