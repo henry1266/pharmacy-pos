@@ -35,7 +35,7 @@ afterAll(async () => {
 });
 
 // 全域測試工具函數
-global.testUtils = {
+(global as any).testUtils = {
   // 建立測試用戶
   createTestUser: async () => {
     const User = require('../models/User');
@@ -168,7 +168,7 @@ declare global {
     }
   }
 
-  var testUtils: {
+  const testUtils: {
     createTestUser: () => Promise<any>;
     createTestAdmin: () => Promise<any>;
     createTestProduct: () => Promise<any>;

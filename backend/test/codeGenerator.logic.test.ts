@@ -4,31 +4,30 @@
  */
 
 import { generateNextProductCode, generateNextMedicineCode } from '../utils/codeGenerator';
-import { CodeGenerationResult } from '../src/types/utils';
 
 // 模擬 Product 模型
 class MockProduct {
-  static mockData: Array<{ productCode: string }> = [];
+  static readonly mockData: Array<{ productCode: string }> = [];
   
   static async find() {
     return this.mockData || [];
   }
   
   static setMockData(data: Array<{ productCode: string }>) {
-    this.mockData = data;
+    (this.mockData as any) = data;
   }
 }
 
 // 模擬 Medicine 模型
 class MockMedicine {
-  static mockData: Array<{ productCode: string }> = [];
+  static readonly mockData: Array<{ productCode: string }> = [];
   
   static async find() {
     return this.mockData || [];
   }
   
   static setMockData(data: Array<{ productCode: string }>) {
-    this.mockData = data;
+    (this.mockData as any) = data;
   }
 }
 

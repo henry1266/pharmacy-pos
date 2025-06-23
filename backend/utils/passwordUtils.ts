@@ -111,15 +111,10 @@ export const verifyPassword = async (
  * @param policy - 密碼政策，可選
  * @returns 驗證結果
  */
-export const validatePasswordStrength = (
-  password: string,
-  policy: Partial<PasswordPolicy> = {}
-): PasswordValidation => {
-  const mergedPolicy = { ...DEFAULT_PASSWORD_POLICY, ...policy };
-  const errors: string[] = [];
-  let score = 0;
-
-  // 基本檢查
+/**
+ * 基本驗證檢查
+ */
+const performBasicValidation = (password: string): PasswordValidation | null => {
   if (!password) {
     return {
       isValid: false,
@@ -138,45 +133,72 @@ export const validatePasswordStrength = (
     };
   }
 
-  // 長度檢查
-  if (password.length < mergedPolicy.minLength) {
-    errors.push(`密碼長度至少需要${mergedPolicy.minLength}個字符`);
+  return null; // 通過基本驗證
+};
+
+/**
+ * 長度檢查
+ */
+const validateLength = (password: string, policy: PasswordPolicy, errors: string[]): number => {
+  let score = 0;
+  
+  if (password.length < policy.minLength) {
+    errors.push(`密碼長度至少需要${policy.minLength}個字符`);
   } else {
     score += 1;
   }
 
-  if (mergedPolicy.maxLength && password.length > mergedPolicy.maxLength) {
-    errors.push(`密碼長度不能超過${mergedPolicy.maxLength}個字符`);
+  if (policy.maxLength && password.length > policy.maxLength) {
+    errors.push(`密碼長度不能超過${policy.maxLength}個字符`);
   }
 
-  // 字符類型檢查
-  if (mergedPolicy.requireUppercase && !/[A-Z]/.test(password)) {
+  return score;
+};
+
+/**
+ * 字符類型檢查
+ */
+const validateCharacterTypes = (password: string, policy: PasswordPolicy, errors: string[]): number => {
+  let score = 0;
+
+  // 大寫字母檢查
+  if (policy.requireUppercase && !/[A-Z]/.test(password)) {
     errors.push('密碼必須包含至少一個大寫字母');
   } else if (/[A-Z]/.test(password)) {
     score += 1;
   }
 
-  if (mergedPolicy.requireLowercase && !/[a-z]/.test(password)) {
+  // 小寫字母檢查
+  if (policy.requireLowercase && !/[a-z]/.test(password)) {
     errors.push('密碼必須包含至少一個小寫字母');
   } else if (/[a-z]/.test(password)) {
     score += 1;
   }
 
-  if (mergedPolicy.requireNumbers && !/\d/.test(password)) {
+  // 數字檢查
+  if (policy.requireNumbers && !/\d/.test(password)) {
     errors.push('密碼必須包含至少一個數字');
   } else if (/\d/.test(password)) {
     score += 1;
   }
 
-  if (mergedPolicy.requireSpecialChars && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+  // 特殊字符檢查
+  if (policy.requireSpecialChars && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     errors.push('密碼必須包含至少一個特殊字符');
   } else if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     score += 1;
   }
 
+  return score;
+};
+
+/**
+ * 禁用內容檢查
+ */
+const validateForbiddenContent = (password: string, policy: PasswordPolicy, errors: string[]): void => {
   // 禁用模式檢查
-  if (mergedPolicy.forbiddenPatterns) {
-    for (const pattern of mergedPolicy.forbiddenPatterns) {
+  if (policy.forbiddenPatterns) {
+    for (const pattern of policy.forbiddenPatterns) {
       if (new RegExp(pattern, 'i').test(password)) {
         errors.push('密碼包含禁用的模式');
         break;
@@ -185,32 +207,67 @@ export const validatePasswordStrength = (
   }
 
   // 禁用詞彙檢查
-  if (mergedPolicy.forbiddenWords) {
+  if (policy.forbiddenWords) {
     const lowerPassword = password.toLowerCase();
-    for (const word of mergedPolicy.forbiddenWords) {
+    for (const word of policy.forbiddenWords) {
       if (lowerPassword.includes(word.toLowerCase())) {
         errors.push('密碼不能包含常見的弱密碼詞彙');
         break;
       }
     }
   }
+};
 
-  // 額外強度檢查
+/**
+ * 額外強度檢查
+ */
+const performAdditionalStrengthChecks = (password: string): number => {
+  let score = 0;
+  
   if (password.length >= 12) score += 1;
   if (/(.)\1{2,}/.test(password)) score -= 1; // 連續重複字符
   if (/^(.+)\1+$/.test(password)) score -= 2; // 重複模式
 
-  // 計算強度等級
-  let strength: 'weak' | 'medium' | 'strong' | 'very_strong';
-  if (score <= 1) {
-    strength = 'weak';
-  } else if (score <= 3) {
-    strength = 'medium';
-  } else if (score <= 5) {
-    strength = 'strong';
-  } else {
-    strength = 'very_strong';
+  return score;
+};
+
+/**
+ * 計算強度等級
+ */
+const calculateStrengthLevel = (score: number): 'weak' | 'medium' | 'strong' | 'very_strong' => {
+  if (score <= 1) return 'weak';
+  if (score <= 3) return 'medium';
+  if (score <= 5) return 'strong';
+  return 'very_strong';
+};
+
+export const validatePasswordStrength = (
+  password: string,
+  policy: Partial<PasswordPolicy> = {}
+): PasswordValidation => {
+  const mergedPolicy = { ...DEFAULT_PASSWORD_POLICY, ...policy };
+  const errors: string[] = [];
+
+  // 基本驗證
+  const basicValidation = performBasicValidation(password);
+  if (basicValidation) {
+    return basicValidation;
   }
+
+  // 長度檢查
+  let score = validateLength(password, mergedPolicy, errors);
+
+  // 字符類型檢查
+  score += validateCharacterTypes(password, mergedPolicy, errors);
+
+  // 禁用內容檢查
+  validateForbiddenContent(password, mergedPolicy, errors);
+
+  // 額外強度檢查
+  score += performAdditionalStrengthChecks(password);
+
+  // 計算強度等級
+  const strength = calculateStrengthLevel(score);
 
   return {
     isValid: errors.length === 0,

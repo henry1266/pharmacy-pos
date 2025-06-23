@@ -5,7 +5,6 @@
 import mongoose from 'mongoose';
 import { Product, Medicine } from '../models/BaseProduct';
 import { generateNextProductCode, generateNextMedicineCode } from '../utils/codeGenerator';
-import { IProductDocument, IMedicineDocument } from '../src/types/models';
 import { CodeGenerationResult } from '../src/types/utils';
 
 // 連接到測試資料庫

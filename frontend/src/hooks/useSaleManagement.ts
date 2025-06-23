@@ -168,57 +168,71 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
     });
   }, []);
 
+  // 生成銷貨單號
+  const generateSaleNumber = useCallback(async (): Promise<string> => {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const date = now.getDate();
+    const datePrefix = `${now.getFullYear().toString()}${month < 10 ? '0' + month : month.toString()}${date < 10 ? '0' + date : date.toString()}`;
+    
+    try {
+      const latestNumber = await getLatestSaleNumber(datePrefix);
+      const sequence = latestNumber ? parseInt(latestNumber.slice(-3)) + 1 : 1;
+      const paddedSequence = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
+      return `${datePrefix}${paddedSequence}`;
+    } catch (err) {
+      console.error('獲取最新銷貨單號失敗:', err);
+      showSnackbar('自動生成銷貨單號失敗，使用備用號碼', 'warning');
+      return `${datePrefix}001`; // Fallback
+    }
+  }, [showSnackbar]);
+
+  // 準備銷售數據
+  const prepareSaleData = useCallback((finalSaleNumber: string) => {
+    return {
+      saleNumber: finalSaleNumber,
+      customer: currentSale.customer ?? null,
+      items: currentSale.items.map(item => ({
+        product: item.product,
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.subtotal
+      })),
+      totalAmount: currentSale.totalAmount,
+      discount: currentSale.discount,
+      paymentMethod: currentSale.paymentMethod,
+      paymentStatus: currentSale.paymentStatus,
+      note: currentSale.note,
+    };
+  }, [currentSale]);
+
+  // 重置表單
+  const resetForm = useCallback(() => {
+    setCurrentSale(initialSaleState);
+    setInputModes([]);
+  }, []);
+
   // Handler for saving the sale
   const handleSaveSale = useCallback(async (): Promise<boolean> => {
     if (currentSale.items.length === 0) {
       showSnackbar('請添加至少一個銷售項目', 'error');
-      return false; // Indicate failure
+      return false;
     }
+
     try {
-      let finalSaleNumber = currentSale.saleNumber;
-      if (!finalSaleNumber) {
-        const now = new Date();
-        const month = now.getMonth() + 1;
-        const date = now.getDate();
-        const datePrefix = `${now.getFullYear().toString()}${month < 10 ? '0' + month : month.toString()}${date < 10 ? '0' + date : date.toString()}`;
-        try {
-          const latestNumber = await getLatestSaleNumber(datePrefix);
-          const sequence = latestNumber ? parseInt(latestNumber.slice(-3)) + 1 : 1;
-          const paddedSequence = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
-          finalSaleNumber = `${datePrefix}${paddedSequence}`;
-        } catch (err) {
-          console.error('獲取最新銷貨單號失敗:', err);
-          finalSaleNumber = `${datePrefix}001`; // Fallback
-          showSnackbar('自動生成銷貨單號失敗，使用備用號碼', 'warning');
-        }
-      }
-      const saleData = {
-        saleNumber: finalSaleNumber,
-        customer: currentSale.customer ?? null,
-        items: currentSale.items.map(item => ({ 
-          product: item.product, 
-          quantity: item.quantity, 
-          price: item.price, 
-          subtotal: item.subtotal 
-        })),
-        totalAmount: currentSale.totalAmount,
-        discount: currentSale.discount,
-        paymentMethod: currentSale.paymentMethod,
-        paymentStatus: currentSale.paymentStatus,
-        note: currentSale.note,
-      };
+      const finalSaleNumber = currentSale.saleNumber || await generateSaleNumber();
+      const saleData = prepareSaleData(finalSaleNumber);
+      
       await createSale(saleData);
       showSnackbar('銷售記錄已保存', 'success');
-      // Reset form after successful save
-      setCurrentSale(initialSaleState);
-      setInputModes([]);
-      return true; // Indicate success
+      resetForm();
+      return true;
     } catch (err: any) {
       console.error('保存銷售記錄失敗:', err);
       showSnackbar('保存銷售記錄失敗: ' + (err.response?.data?.msg ?? err.message), 'error');
-      return false; // Indicate failure
+      return false;
     }
-  }, [currentSale, showSnackbar]);
+  }, [currentSale, generateSaleNumber, prepareSaleData, resetForm, showSnackbar]);
 
   return {
     currentSale,

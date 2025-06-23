@@ -91,7 +91,7 @@ async function testMedicineCsvImport(orderNumber: string): Promise<ImportRespons
     console.log('CSV匯入成功:', response.data);
     
     if (!response.data.success) {
-      throw new Error(`CSV匯入失敗: ${response.data.message || '未知錯誤'}`);
+      throw new Error(`CSV匯入失敗: ${response.data.message ?? '未知錯誤'}`);
     }
     
     return response.data;

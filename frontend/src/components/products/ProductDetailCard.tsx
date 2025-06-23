@@ -119,20 +119,24 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
         <Grid container spacing={2}>
           <Grid item xs={12} sm={3} {...({} as any)}>
             <Typography variant="subtitle2">供應商: {
-              product.supplier ?
-                (typeof product.supplier === 'string'
-                  ? suppliers.find(s => s._id === product.supplier)?.name ?? product.supplier
-                  : (product.supplier as any)?.name ?? '無')
-                : '無'
+              (() => {
+                if (!product.supplier) return '無';
+                if (typeof product.supplier === 'string') {
+                  return suppliers.find(s => s._id === product.supplier)?.name ?? product.supplier;
+                }
+                return product.supplier?.name ?? '無';
+              })()
             }</Typography>
           </Grid>
           <Grid item xs={12} sm={3} {...({} as any)}>
             <Typography variant="subtitle2">分類: {
-              product.category ?
-                (typeof product.category === 'string'
-                  ? categories.find(c => c._id === product.category)?.name ?? product.category
-                  : (product.category as any)?.name ?? '無')
-                : '無'
+              (() => {
+                if (!product.category) return '無';
+                if (typeof product.category === 'string') {
+                  return categories.find(c => c._id === product.category)?.name ?? product.category;
+                }
+                return product.category?.name ?? '無';
+              })()
             }</Typography>
           </Grid>
           <Grid item xs={12} sm={3} {...({} as any)}>
