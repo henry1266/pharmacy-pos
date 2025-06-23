@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import customerService from '../services/customerService';
-import { Customer } from '../../../shared/types/entities';
+import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Customer 類型以包含前端需要的額外屬性
 export interface ExtendedCustomer extends Omit<Customer, '_id' | 'membershipLevel' | 'birthdate'> {
@@ -21,7 +21,7 @@ export interface CustomerDisplay {
   address: string;
   idCardNumber: string;
   birthdate: string | null;
-  note: string;
+  notes: string;
   level: string;
   membershipLevel: string;
 }
@@ -75,7 +75,7 @@ const useCustomerData = (): UseCustomerDataReturn => {
         address: customer.address || '',
         idCardNumber: customer.idCardNumber || '',
         birthdate: customer.birthdate ? String(customer.birthdate) : null,
-        note: customer.notes || '',
+        notes: customer.notes || '',
         level: mapMembershipLevel(customer.membershipLevel || 'regular'),
         membershipLevel: customer.membershipLevel || 'regular'
       }));
@@ -97,20 +97,17 @@ const useCustomerData = (): UseCustomerDataReturn => {
     try {
       setLoading(true);
       setError(null);
-      // 創建一個中間變量，然後將其轉換為 Partial<Customer>
+      // 創建完整的客戶資料物件
       const customerDataToSend = {
         name: customerData.name,
         phone: customerData.phone,
         email: customerData.email,
         address: customerData.address,
-        notes: customerData.note
+        notes: customerData.notes,
+        idCardNumber: customerData.idCardNumber,
+        birthdate: customerData.birthdate,
+        membershipLevel: customerData.membershipLevel
       } as Partial<Customer>;
-      
-      // 使用非類型安全的方式添加額外屬性
-      const anyData = customerDataToSend as any;
-      anyData.idCardNumber = customerData.idCardNumber;
-      anyData.birthdate = customerData.birthdate;
-      anyData.membershipLevel = customerData.membershipLevel;
       
       await customerService.addCustomer(customerDataToSend);
       await fetchCustomers(); // Refresh the list after adding
@@ -129,20 +126,17 @@ const useCustomerData = (): UseCustomerDataReturn => {
     try {
       setLoading(true);
       setError(null);
-      // 創建一個中間變量，然後將其轉換為 Partial<Customer>
+      // 創建完整的客戶資料物件
       const customerDataToSend = {
         name: customerData.name,
         phone: customerData.phone,
         email: customerData.email,
         address: customerData.address,
-        notes: customerData.note
+        notes: customerData.notes,
+        idCardNumber: customerData.idCardNumber,
+        birthdate: customerData.birthdate,
+        membershipLevel: customerData.membershipLevel
       } as Partial<Customer>;
-      
-      // 使用非類型安全的方式添加額外屬性
-      const anyData = customerDataToSend as any;
-      anyData.idCardNumber = customerData.idCardNumber;
-      anyData.birthdate = customerData.birthdate;
-      anyData.membershipLevel = customerData.membershipLevel;
       
       await customerService.updateCustomer(id, customerDataToSend);
       await fetchCustomers(); // Refresh the list after updating

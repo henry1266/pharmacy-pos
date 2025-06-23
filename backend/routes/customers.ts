@@ -178,7 +178,7 @@ function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRe
     notes,
     note,
     isActive,
-    // 舊欄位相容性
+    // 舊欄位相容性 - 現在正確分離存儲
     medicalHistory,
     allergies,
     membershipLevel,
@@ -200,25 +200,18 @@ function buildCustomerFields(reqBody: CustomerCreationRequest | CustomerUpdateRe
   
   if (gender) customerFields.gender = gender;
   
-  // 處理備註欄位 (支援新舊欄位名稱)
+  // 處理備註欄位 (支援新舊欄位名稱) - 只存儲真正的備註
   if (notes !== undefined) customerFields.notes = notes;
   else if (note !== undefined) customerFields.notes = note;
   
   if (isActive !== undefined) customerFields.isActive = isActive;
   
-  // 舊欄位相容性處理 (可能需要存在 notes 中或忽略)
-  const additionalInfo: string[] = [];
-  if (medicalHistory) additionalInfo.push(`病史: ${medicalHistory}`);
-  if (allergies) additionalInfo.push(`過敏: ${allergies}`);
-  if (membershipLevel) additionalInfo.push(`會員等級: ${membershipLevel}`);
-  if (idCardNumber) additionalInfo.push(`身分證: ${idCardNumber}`);
-  
-  if (additionalInfo.length > 0) {
-    const existingNotes = customerFields.notes || '';
-    customerFields.notes = existingNotes ?
-      `${existingNotes}\n${additionalInfo.join('\n')}` :
-      additionalInfo.join('\n');
-  }
+  // 正確處理各個專屬欄位，不要混入備註中
+  if (medicalHistory !== undefined) customerFields.medicalHistory = medicalHistory;
+  if (allergies !== undefined) customerFields.allergies = allergies;
+  if (membershipLevel !== undefined) customerFields.membershipLevel = membershipLevel;
+  if (idCardNumber !== undefined) customerFields.idCardNumber = idCardNumber;
+  if (points !== undefined) customerFields.points = points;
   
   return customerFields;
 }

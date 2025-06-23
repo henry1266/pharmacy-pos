@@ -185,7 +185,6 @@ export interface Customer {
   totalPurchases?: number;
   lastPurchaseDate?: string | Date;
   notes?: string;
-  note?: string;
   date?: string | Date;
   createdAt: string | Date;
   updatedAt: string | Date;

@@ -43,7 +43,7 @@ interface Customer {
   address?: string;
   idCardNumber?: string;
   birthdate?: string | null;
-  note?: string;
+  notes?: string;
   membershipLevel: string;
   level?: string;
   [key: string]: any;
@@ -59,7 +59,7 @@ interface CustomerFormState {
   address: string;
   idCardNumber: string;
   birthdate: string | null;
-  note: string;
+  notes: string;
   membershipLevel: string;
 }
 
@@ -134,7 +134,7 @@ const initialCustomerState: CustomerFormState = {
   address: '',
   idCardNumber: "",
   birthdate: null,
-  note: "",
+  notes: "",
   membershipLevel: 'regular',
 };
 
@@ -149,7 +149,7 @@ const mockCustomersData: Customer[] = [
     address: '模擬地址一',
     idCardNumber: 'A123456789',
     birthdate: '1990-01-15',
-    note: '這是模擬客戶資料。',
+    notes: '這是模擬客戶資料。',
     membershipLevel: 'platinum',
     // level will be mapped
   },
@@ -162,7 +162,7 @@ const mockCustomersData: Customer[] = [
     address: '模擬地址二',
     idCardNumber: 'B987654321',
     birthdate: '1985-05-20',
-    note: '另一筆模擬客戶資料。',
+    notes: '另一筆模擬客戶資料。',
     membershipLevel: 'regular',
     // level will be mapped
   },
@@ -197,7 +197,7 @@ const CustomerFormDialog: FC<CustomerFormDialogProps> = ({
         <TextField name="birthdate" label="出生年月日" type="date" value={currentCustomerState.birthdate ? new Date(currentCustomerState.birthdate).toISOString().split('T')[0] : ''} onChange={onInputChange} fullWidth margin="dense" size="small" InputLabelProps={{ shrink: true }} />
         <TextField name="email" label="電子郵件" value={currentCustomerState.email} onChange={onInputChange} fullWidth margin="dense" size="small" />
         <TextField name="address" label="地址" value={currentCustomerState.address} onChange={onInputChange} fullWidth margin="dense" size="small" />
-        <TextField name="note" label="備註" value={currentCustomerState.note ?? ''} onChange={onInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
+        <TextField name="notes" label="備註" value={currentCustomerState.notes ?? ''} onChange={onInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
         <FormControl fullWidth margin="dense" size="small">
           <InputLabel>會員等級</InputLabel>
           <Select name="membershipLevel" value={currentCustomerState.membershipLevel} onChange={onInputChange} label="會員等級">
@@ -273,7 +273,7 @@ const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, h
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email ?? '無'}</Typography></ListItem>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.note ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.notes ?? '無'}</Typography></ListItem>
         </List>
       </CardContent>
     </Card>
@@ -499,7 +499,7 @@ const CustomersPage: FC = () => {
       address: customer.address || '',
       idCardNumber: customer.idCardNumber || "",
       birthdate: customer.birthdate || null,
-      note: customer.note || "",
+      notes: customer.notes || "",
       membershipLevel: customer.membershipLevel || 'regular'
     });
     setEditMode(true);
@@ -536,7 +536,7 @@ const CustomersPage: FC = () => {
       address: currentCustomerState.address,
       idCardNumber: currentCustomerState.idCardNumber,
       birthdate: currentCustomerState.birthdate,
-      note: currentCustomerState.note,
+      notes: currentCustomerState.notes,
       membershipLevel: currentCustomerState.membershipLevel
     };
 

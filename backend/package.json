@@ -14,7 +14,9 @@
     "build:watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "clean-customer-notes": "ts-node scripts/cleanCustomerNotes.ts",
+    "clean-customer-notes:preview": "ts-node scripts/cleanCustomerNotes.ts --preview"
   },
   "author": "",
   "license": "ISC",
