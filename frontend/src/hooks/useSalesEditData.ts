@@ -72,7 +72,7 @@ export const useSalesEditData = (saleId: string) => {
             price: item.price,
             quantity: item.quantity,
             subtotal: item.price * item.quantity,
-            productType: typeof item.product === 'object' ? (item.product as any).productType : undefined
+            productType: typeof item.product === 'object' ? item.product.productType : undefined
           }));
 
           // 確定付款狀態

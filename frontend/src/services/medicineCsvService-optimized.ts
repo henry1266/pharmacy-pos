@@ -171,7 +171,14 @@ class OrderNumberGenerator {
       const dateFormat = DateUtils.formatDateToYYYYMMDD(dateToUse);
       const sequence = 1; // 默認從001開始，實際序號由後端決定
       
-      const sequenceStr = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
+      let sequenceStr: string;
+      if (sequence < 10) {
+        sequenceStr = '00' + sequence;
+      } else if (sequence < 100) {
+        sequenceStr = '0' + sequence;
+      } else {
+        sequenceStr = sequence.toString();
+      }
       return `${dateFormat}${sequenceStr}D`;
     } catch (error) {
       console.error("根據日期生成訂單號時出錯:", error);

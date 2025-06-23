@@ -370,7 +370,7 @@ const AccountingNewPage: React.FC = () => {
               </Typography>
               
               {formData.items.map((item, index) => (
-                <Grid container spacing={2} key={`item-${index}`} sx={{ mb: 2, alignItems: 'center' }}>
+                <Grid container spacing={2} key={`${item.category}-${item.amount}-${index}`} sx={{ mb: 2, alignItems: 'center' }}>
                   <Grid item sm={3} xs={12}>
                     <TextField
                       label="金額"

@@ -29,9 +29,7 @@ interface PDFDocument {
   pipe(stream: any): void;
 }
 
-interface PDFDocumentConstructor {
-  new (options?: PDFDocumentOptions): PDFDocument;
-}
+type PDFDocumentConstructor = new (options?: PDFDocumentOptions) => PDFDocument;
 
 // 使用 require 來避免模組宣告問題
 const PDFDocument = require('pdfkit') as PDFDocumentConstructor;

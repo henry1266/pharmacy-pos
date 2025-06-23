@@ -29,10 +29,6 @@ const CustomColumnMenu: React.FC<CustomColumnMenuProps> = (props) => {
   const [width, setWidth] = useState<number>(colDef?.width ?? 100);
   const apiRef = useGridApiContext();
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
   const handleClose = () => {
     setOpen(false);
   };

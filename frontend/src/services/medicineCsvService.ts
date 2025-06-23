@@ -139,48 +139,68 @@ export const parseMedicineCsvForPreview = (file: File): Promise<MedicineCsvPrevi
  * @param {string | null} dateStr - 日期字符串，格式為YYYY-MM-DD或民國年格式YYYMMDD
  * @returns {string} 生成的訂單號
  */
+/**
+ * 格式化日期為 YYYYMMDD 格式
+ */
+const formatDateToYYYYMMDD = (date: Date): string => {
+  const year = date.getFullYear();
+  const monthNum = date.getMonth() + 1;
+  const dayNum = date.getDate();
+  const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
+  const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
+  return `${year}${month}${day}`;
+};
+
+/**
+ * 解析並驗證日期字符串
+ */
+const parseAndValidateDate = (dateStr: string | null): Date => {
+  const westernDateStr = dateStr ? convertToWesternDate(dateStr) : null;
+  
+  if (westernDateStr && /^\d{4}-\d{2}-\d{2}$/.exec(westernDateStr)) {
+    const dateObj = new Date(westernDateStr);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj;
+    }
+    throw new Error(`無效的日期格式: ${dateStr}`);
+  }
+  
+  throw new Error(`無法從CSV獲取有效日期: ${dateStr}`);
+};
+
+/**
+ * 生成序號字符串（3位數）
+ */
+const generateSequenceString = (sequence: number): string => {
+  if (sequence < 10) return '00' + sequence;
+  if (sequence < 100) return '0' + sequence;
+  return sequence.toString();
+};
+
+/**
+ * 生成備用訂單號（使用當前日期）
+ */
+const generateFallbackOrderNumber = (): string => {
+  const now = new Date();
+  const dateFormat = formatDateToYYYYMMDD(now);
+  return `${dateFormat}001D`;
+};
+
 export const generateOrderNumberByDate = (dateStr: string | null): string => {
   try {
-    // 先將日期轉換為西元年格式
-    const westernDateStr = dateStr ? convertToWesternDate(dateStr) : null;
-    
-    // 解析日期
-    let dateObj: Date;
-    if (westernDateStr && /^\d{4}-\d{2}-\d{2}$/.exec(westernDateStr)) {
-      dateObj = new Date(westernDateStr);
-      if (isNaN(dateObj.getTime())) {
-        throw new Error(`無效的日期格式: ${dateStr}`);
-      }
-    } else {
-      throw new Error(`無法從CSV獲取有效日期: ${dateStr}`);
-    }
-    
-    // 格式化日期為YYYYMMDD
-    const year = dateObj.getFullYear();
-    const monthNum = dateObj.getMonth() + 1;
-    const dayNum = dateObj.getDate();
-    const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
-    const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
-    const dateFormat = `${year}${month}${day}`;
+    const dateObj = parseAndValidateDate(dateStr);
+    const dateFormat = formatDateToYYYYMMDD(dateObj);
     
     // 訂單號格式: YYYYMMDD+序號+D
     // 注意：前端無法查詢數據庫獲取最大序號，因此只能生成一個臨時序號
     // 實際序號將由後端API決定，這裡僅作為備用
     const sequence = 1; // 默認從001開始
+    const sequenceStr = generateSequenceString(sequence);
     
-    // 生成新訂單號，序號部分固定3位數
-    const sequenceStr = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
     return `${dateFormat}${sequenceStr}D`;
   } catch (error) {
     console.error("根據日期生成訂單號時出錯:", error);
-    // 如果無法生成，返回一個帶有當前日期的臨時訂單號
-    const now = new Date();
-    const year = now.getFullYear();
-    const monthNum = now.getMonth() + 1;
-    const dayNum = now.getDate();
-    const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
-    const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
-    return `${year}${month}${day}001D`;
+    return generateFallbackOrderNumber();
   }
 };
 

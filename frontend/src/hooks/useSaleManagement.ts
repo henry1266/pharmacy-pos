@@ -178,7 +178,14 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
     try {
       const latestNumber = await getLatestSaleNumber(datePrefix);
       const sequence = latestNumber ? parseInt(latestNumber.slice(-3)) + 1 : 1;
-      const paddedSequence = sequence < 10 ? '00' + sequence : sequence < 100 ? '0' + sequence : sequence.toString();
+      let paddedSequence: string;
+      if (sequence < 10) {
+        paddedSequence = '00' + sequence;
+      } else if (sequence < 100) {
+        paddedSequence = '0' + sequence;
+      } else {
+        paddedSequence = sequence.toString();
+      }
       return `${datePrefix}${paddedSequence}`;
     } catch (err) {
       console.error('獲取最新銷貨單號失敗:', err);

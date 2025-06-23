@@ -40,7 +40,7 @@ const AccountingCategoryDetail: React.FC = () => {
   const { findCategoryById } = useAccountingCategories();
   
   // 找到當前類別
-  const category = findCategoryById(categoryId ?? '') as AccountingCategory | undefined;
+  const category = findCategoryById(categoryId ?? '');
   
   // 使用會計數據 Hook，傳入類別名稱進行過濾
   const { loading, error, monthlyData, dailyData } = useAccountingData(

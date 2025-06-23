@@ -361,7 +361,7 @@ const useOvertimeData = (
       originalRecord: record,
       hours: record.hours,
       description: record.description || '-',
-      status: (record.status as 'pending' | 'approved' | 'rejected') || 'pending'
+      status: record.status || 'pending'
     }));
     
     // 準備排班系統加班記錄

@@ -933,7 +933,11 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                           </TableCell>
                           <TableCell component="th" scope="row">
                             <Typography variant="subtitle1" fontWeight="bold">
-                              {group.employee.name ?? `員工${selectedMonth + 1 < 10 ? `0${selectedMonth + 1}` : (selectedMonth + 1).toString()}`}
+                              {group.employee.name ?? (() => {
+                                const monthNum = selectedMonth + 1;
+                                const monthStr = monthNum < 10 ? `0${monthNum}` : monthNum.toString();
+                                return `員工${monthStr}`;
+                              })()}
                             </Typography>
                           </TableCell>
                           <TableCell>{group.independentHours.toFixed(1)} 小時</TableCell>
