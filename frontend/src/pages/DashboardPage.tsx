@@ -120,7 +120,7 @@ const adaptToSummaryData = (data: DashboardSummary | MockDashboardData | null): 
     // 檢查是否為 MockDashboardData 類型（有 totalSalesToday 屬性）
     if ('totalSalesToday' in data) {
       // 確保 MockDashboardData 有必要的屬性
-      if (!data.salesSummary || !data.counts || data.counts?.orders === undefined) {
+      if (!data.salesSummary || !data.counts || data.counts.orders === undefined) {
         console.error('adaptToSummaryData: MockDashboardData missing required properties', data);
         return null;
       }
@@ -134,7 +134,7 @@ const adaptToSummaryData = (data: DashboardSummary | MockDashboardData | null): 
     }
     
     // 如果是 DashboardSummary 類型，檢查必要屬性
-    if (!data.salesSummary || !data.counts || data.counts?.orders === undefined) {
+    if (!data.salesSummary || !data.counts || data.counts.orders === undefined) {
       console.error('adaptToSummaryData: DashboardSummary missing required properties', data);
       return null;
     }

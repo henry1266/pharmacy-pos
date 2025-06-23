@@ -315,11 +315,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
     let orderLink = '';
     
     if (inv.type === 'sale') {
-      orderNumber = inv.saleNumber || '';
+      orderNumber = inv.saleNumber ?? '';
       const saleId = extractOidFromMongoId(inv.saleId) || extractOidFromMongoId(inv._id) || '';
       orderLink = `/sales/${saleId}`;
     } else if (inv.type === 'purchase') {
-      orderNumber = inv.purchaseOrderNumber || '';
+      orderNumber = inv.purchaseOrderNumber ?? '';
       const purchaseId = extractOidFromMongoId(inv.purchaseOrderId) || extractOidFromMongoId(inv._id) || '';
       orderLink = `/purchase-orders/${purchaseId}`;
     } else if (inv.type === 'ship') {

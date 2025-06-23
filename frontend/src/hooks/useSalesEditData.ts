@@ -98,12 +98,12 @@ export const useSalesEditData = (saleId: string) => {
           setError('Failed to process sale data from response.');
       }
       
-      setProducts(productsRes || []); // productService.getProducts returns data directly
-      setCustomers(customersRes || []); // customerService.getCustomers returns data directly
+      setProducts(productsRes ?? []); // productService.getProducts returns data directly
+      setCustomers(customersRes ?? []); // customerService.getCustomers returns data directly
       
     } catch (err: any) {
       console.error('Failed to fetch data for sales edit:', err);
-      const errorMessage = err.response?.data?.msg || err.message || 'Failed to load necessary data.';
+      const errorMessage = err.response?.data?.msg ?? err.message ?? 'Failed to load necessary data.';
       setError(errorMessage);
     } finally {
       setLoading(false);

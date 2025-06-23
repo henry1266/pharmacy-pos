@@ -97,7 +97,7 @@ export const getDashboardSummary = async (): Promise<DashboardSummary> => {
     const response = await axios.get<ApiResponse<DashboardSummary>>(`${API_URL}/summary`);
     
     // 檢查 API 回應格式
-    if (response.data && response.data.success && response.data.data) {
+    if (response.data?.success && response.data.data) {
       return response.data.data;
     } else {
       throw new Error('API 回應格式不正確');

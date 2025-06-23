@@ -119,7 +119,7 @@ const EmployeeBasicInfoPage: React.FC = () => {
       const response = await axios.get<ApiResponse<Employee>>(`/api/employees/${id}`, config);
       
       // 檢查 API 回應格式
-      if (response.data && response.data.success && response.data.data) {
+      if (response.data?.success && response.data.data) {
         setEmployee(response.data.data);
       } else {
         throw new Error('員工資料格式不正確');

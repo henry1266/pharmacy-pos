@@ -29,10 +29,11 @@ export const getRoleName = (role: Role): string => {
       return '藥師';
     case 'staff':
       return '員工';
-    default:
+    default: {
       // 使用 never 型別確保所有情況都被處理
       const _exhaustiveCheck: never = role;
       return _exhaustiveCheck;
+    }
   }
 };
 
@@ -49,9 +50,10 @@ export const getRoleColor = (role: Role): string => {
       return 'success';
     case 'staff':
       return 'primary';
-    default:
+    default: {
       const _exhaustiveCheck: never = role;
       return _exhaustiveCheck;
+    }
   }
 };
 
@@ -86,9 +88,10 @@ export const getRoleLevel = (role: Role): number => {
       return 2;
     case 'staff':
       return 1;
-    default:
+    default: {
       const _exhaustiveCheck: never = role;
       return _exhaustiveCheck;
+    }
   }
 };
 

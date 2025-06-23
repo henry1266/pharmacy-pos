@@ -45,7 +45,7 @@ const testProductCodeGeneration = async () => {
     MockProduct.setMockData([]);
     const initialCode = await generateNextProductCode();
     console.log('初始商品編號:', initialCode);
-    if (initialCode != 'P10001') {
+    if (initialCode !== 'P10001') {
       throw new Error(`初始商品編號應為 P10001，但得到 ${initialCode}`);
     }
     
@@ -53,7 +53,7 @@ const testProductCodeGeneration = async () => {
     MockProduct.setMockData([{ code: 'P10001' }]);
     const secondCode = await generateNextProductCode();
     console.log('第二個商品編號:', secondCode);
-    if (secondCode != 'P10002') {
+    if (secondCode !== 'P10002') {
       throw new Error(`第二個商品編號應為 P10002，但得到 ${secondCode}`);
     }
     
@@ -65,7 +65,7 @@ const testProductCodeGeneration = async () => {
     ]);
     const nextCode = await generateNextProductCode();
     console.log('下一個商品編號:', nextCode);
-    if (nextCode != 'P10006') {
+    if (nextCode !== 'P10006') {
       throw new Error(`下一個商品編號應為 P10006，但得到 ${nextCode}`);
     }
     
@@ -86,7 +86,7 @@ const testMedicineCodeGeneration = async () => {
     MockMedicine.setMockData([]);
     const initialCode = await generateNextMedicineCode();
     console.log('初始藥品編號:', initialCode);
-    if (initialCode != 'M10001') {
+    if (initialCode !== 'M10001') {
       throw new Error(`初始藥品編號應為 M10001，但得到 ${initialCode}`);
     }
     
@@ -94,7 +94,7 @@ const testMedicineCodeGeneration = async () => {
     MockMedicine.setMockData([{ code: 'M10001' }]);
     const secondCode = await generateNextMedicineCode();
     console.log('第二個藥品編號:', secondCode);
-    if (secondCode != 'M10002') {
+    if (secondCode !== 'M10002') {
       throw new Error(`第二個藥品編號應為 M10002，但得到 ${secondCode}`);
     }
     
@@ -106,7 +106,7 @@ const testMedicineCodeGeneration = async () => {
     ]);
     const nextCode = await generateNextMedicineCode();
     console.log('下一個藥品編號:', nextCode);
-    if (nextCode != 'M10009') {
+    if (nextCode !== 'M10009') {
       throw new Error(`下一個藥品編號應為 M10009，但得到 ${nextCode}`);
     }
     

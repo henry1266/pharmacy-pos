@@ -231,7 +231,7 @@ async function previewCleanup() {
       
       const parsedInfo = parseContaminatedNotes(customer.notes ?? '');
       console.log(`   解析結果:`);
-      console.log(`     清理後備註: ${parsedInfo.cleanNotes || '(空白)'}`);
+      console.log(`     清理後備註: ${parsedInfo.cleanNotes ?? '(空白)'}`);
       if (parsedInfo.membershipLevel) console.log(`     會員等級: ${parsedInfo.membershipLevel}`);
       if (parsedInfo.idCardNumber) console.log(`     身分證: ${parsedInfo.idCardNumber}`);
       if (parsedInfo.medicalHistory) console.log(`     病史: ${parsedInfo.medicalHistory}`);

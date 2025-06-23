@@ -402,7 +402,7 @@ const SalesDetailPage: FC = () => {
       const response = await axios.get<ApiResponse<Sale>>(`/api/sales/${id}`);
       
       // 檢查 API 回應格式
-      if (response.data && response.data.success && response.data.data) {
+      if (response.data?.success && response.data.data) {
         // 驗證銷售資料的完整性
         const saleData = response.data.data;
         

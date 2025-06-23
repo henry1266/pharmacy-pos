@@ -32,7 +32,7 @@ export const createSale = async (saleData: Partial<Sale>): Promise<Sale> => {
     const response = await axios.post<ApiResponse<Sale>>(API_URL, saleData);
     
     // 檢查 API 回應格式
-    if (response.data && response.data.success && response.data.data) {
+    if (response.data?.success && response.data.data) {
       return response.data.data;
     } else {
       throw new Error('API 回應格式不正確');
@@ -52,7 +52,7 @@ export const getAllSales = async (): Promise<Sale[]> => {
     const response = await axios.get<ApiResponse<Sale[]>>(API_URL);
     
     // 檢查 API 回應格式
-    if (response.data && response.data.success && response.data.data) {
+    if (response.data?.success && response.data.data) {
       return response.data.data;
     } else {
       throw new Error('API 回應格式不正確');
@@ -74,7 +74,7 @@ export const getSaleById = async (id: string): Promise<Sale> => {
     const response = await axios.get<ApiResponse<Sale>>(`${API_URL}/${id}`);
     
     // 檢查 API 回應格式
-    if (response.data && response.data.success && response.data.data) {
+    if (response.data?.success && response.data.data) {
       return response.data.data;
     } else {
       throw new Error('API 回應格式不正確');
@@ -96,7 +96,7 @@ export const updateSale = async (id: string, saleData: Partial<Sale>): Promise<S
     const response = await axios.put<ApiResponse<Sale>>(`${API_URL}/${id}`, saleData);
     
     // 檢查 API 回應格式
-    if (response.data && response.data.success && response.data.data) {
+    if (response.data?.success && response.data.data) {
       return response.data.data;
     } else {
       throw new Error('API 回應格式不正確');

@@ -80,7 +80,7 @@ const ProductDetailPage: React.FC = () => {
         
         // 獲取供應商列表
         const suppliersResponse = await axios.get<ApiResponse<Supplier[]>>('/api/suppliers');
-        if (suppliersResponse.data && suppliersResponse.data.success && suppliersResponse.data.data) {
+        if (suppliersResponse.data?.success && suppliersResponse.data.data) {
           setSuppliers(suppliersResponse.data.data);
         } else {
           console.warn('供應商 API 回應格式不正確，使用空陣列');
@@ -95,7 +95,7 @@ const ProductDetailPage: React.FC = () => {
         const productResponse = await axios.get<ApiResponse<Product>>(`/api/products/${id}`);
         
         // 檢查 API 回應格式
-        if (productResponse.data && productResponse.data.success && productResponse.data.data) {
+        if (productResponse.data?.success && productResponse.data.data) {
           const rawProductData = productResponse.data.data;
           
           // 轉換產品數據格式，確保與ProductDetailCard組件兼容
