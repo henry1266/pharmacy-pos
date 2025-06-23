@@ -1,5 +1,10 @@
 import { ActionTypes } from './actionTypes';
 import axios from 'axios';
+import {
+  ApiResponse,
+  LoginRequest,
+  LoginResponse,
+} from '@pharmacy-pos/shared/types/api';
 import { getApiBaseUrl } from '../utils/apiConfig';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { Action, RootState } from './reducers';
@@ -7,7 +12,6 @@ import { NavigateFunction } from 'react-router-dom';
 
 // 導入 shared 類型
 import {
-  ApiResponse,
   Product,
   Customer,
   Supplier,
@@ -17,8 +21,6 @@ import {
   ShippingOrder,
   DashboardData,
   ReportData,
-  LoginRequest,
-  LoginResponse,
   ProductCreateRequest,
   ProductUpdateRequest,
   PurchaseOrderCreateRequest,

@@ -227,7 +227,7 @@ interface Action<T, P = undefined> {
 
 // 認證相關 Action
 export type LoginRequestAction = Action<ActionType.LOGIN_REQUEST>;
-export type LoginSuccessAction = Action<ActionType.LOGIN_SUCCESS, { token: string; user: any }>;
+export type LoginSuccessAction = Action<ActionType.LOGIN_SUCCESS, { token: string; user: { id: string; username: string; email?: string; role: string; permissions?: string[] } }>;
 export type LoginFailureAction = Action<ActionType.LOGIN_FAILURE, string>;
 export type LogoutAction = Action<ActionType.LOGOUT>;
 

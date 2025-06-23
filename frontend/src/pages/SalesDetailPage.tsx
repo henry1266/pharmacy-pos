@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FC, ReactNode } from 'react';
 import axios from 'axios';
-import { ApiResponse } from '../types/api';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import {
   Box,
   Typography,

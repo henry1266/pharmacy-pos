@@ -6,7 +6,7 @@
 /**
  * 基礎 API 回應型別
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -22,7 +22,7 @@ export interface ErrorResponse {
     param?: string;
     location?: string;
   }>;
-  details?: any;
+  details?: Record<string, unknown>;
   statusCode?: number;
   timestamp?: Date | string;
 }
@@ -36,7 +36,7 @@ export interface PaginationParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, string | number | boolean>;
 }
 
 export interface PaginatedResponse<T> {
@@ -129,10 +129,11 @@ export interface QueryParams {
   startDate?: string;
   endDate?: string;
   isActive?: boolean;
-  [key: string]: any;
 }
 
-export interface FilterParams extends QueryParams, PaginationParams {}
+export interface FilterParams extends QueryParams, PaginationParams {
+  filters?: Record<string, string | number | boolean>;
+}
 
 /**
  * 產品相關 API 型別
@@ -623,7 +624,7 @@ export interface FileUploadResponse {
  * CSV 匯入相關型別
  */
 export interface CSVImportRequest {
-  file: any; // 兼容瀏覽器 File 和 Node.js Express.Multer.File
+  file: unknown; // 兼容瀏覽器 File 和 Node.js Express.Multer.File 型別
   options?: {
     skipHeader?: boolean;
     delimiter?: string;
@@ -641,7 +642,7 @@ export interface CSVImportResponse {
     errors?: Array<{
       row: number;
       error: string;
-      data?: any;
+      data?: Record<string, unknown>;
     }>;
   };
   timestamp: Date | string;
@@ -654,7 +655,7 @@ export interface CSVImportResult {
   success: boolean;
   count: number;
   errors?: Array<{
-    item: any;
+    item: Record<string, unknown>;
     error: string;
   }>;
 }
@@ -711,7 +712,7 @@ export interface ReportParams {
   filters?: QueryParams;
 }
 
-export interface ReportResponse<T = any> {
+export interface ReportResponse<T = unknown> {
   success: boolean;
   message: string;
   data: {
@@ -720,7 +721,7 @@ export interface ReportResponse<T = any> {
       startDate: Date | string;
       endDate: Date | string;
     };
-    summary: any;
+    summary: Record<string, unknown>;
     details: T[];
     generatedAt: Date | string;
   };

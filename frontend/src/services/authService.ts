@@ -1,5 +1,12 @@
 import axios from 'axios';
-import { ApiResponse, ErrorResponse, AuthResponse, LoginRequest, UpdateUserRequest, LoginResponse } from '../types/api';
+import {
+  ApiResponse,
+  ErrorResponse,
+  AuthResponse,
+  LoginRequest,
+  UpdateUserRequest,
+  LoginResponse
+} from '@pharmacy-pos/shared/types/api';
 import { EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/auth';
@@ -54,7 +61,7 @@ export const getCurrentUser = async (): Promise<EmployeeAccount> => {
       }
     };
 
-    const response = await axios.get<ApiResponse<any>>(API_URL, config);
+    const response = await axios.get<ApiResponse<EmployeeAccount>>(API_URL, config);
     
     // 檢查 API 響應格式
     if (response.data.success && response.data.data) {
@@ -95,7 +102,7 @@ export const updateCurrentUser = async (updateData: UpdateUserRequest): Promise<
       }
     };
 
-    const response = await axios.put<ApiResponse<any>>(`${API_URL}/update`, updateData, config);
+    const response = await axios.put<ApiResponse<EmployeeAccount>>(`${API_URL}/update`, updateData, config);
     
     // 檢查 API 響應格式
     if (response.data.success && response.data.data) {

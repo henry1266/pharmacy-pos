@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import { Sale } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/sales';
@@ -62,15 +63,6 @@ export const getAllSales = async (): Promise<Sale[]> => {
   }
 };
 
-/**
- * API 回應包裝介面
- */
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: Date;
-}
 
 /**
  * 根據ID獲取銷售記錄

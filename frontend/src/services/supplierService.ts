@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // Base API URL for suppliers
@@ -27,7 +28,7 @@ export const getSuppliers = async (): Promise<Array<Supplier & { id: string }>> 
     const config = getAuthConfig();
     const response = await axios.get(SUPPLIERS_API_URL, config);
     // Extract data from ApiResponse structure
-    const suppliers = (response.data as any)?.data ?? [];
+    const suppliers = (response.data as ApiResponse<unknown[]>)?.data ?? [];
     // Format data to match the structure expected by the page (with id)
     return suppliers.map((supplier: any) => ({
       ...supplier,

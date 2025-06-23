@@ -11,7 +11,7 @@ interface CsvImportHook {
   resetCsvImport: () => void;
 }
 
-interface ErrorResponse {
+interface LocalErrorResponse {
   msg?: string;
 }
 

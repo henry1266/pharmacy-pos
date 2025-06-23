@@ -1,8 +1,8 @@
 import axios from 'axios';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import { transformSalesForTrend, transformSalesForCategory } from '../utils/dataTransformations';
 // Import the function to get all sales data
 import { getAllSales } from './salesService'; // Assuming salesService is in the same directory
-import { Sale } from '@pharmacy-pos/shared/types/entities';
 
 // Base URL for dashboard related APIs
 const API_URL = '/api/dashboard'; // Adjust if your base URL is different
@@ -87,15 +87,6 @@ export interface CategorySales {
   totalSales: number;
 }
 
-/**
- * API 回應包裝介面
- */
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: Date;
-}
 
 /**
  * 獲取儀表板摘要數據

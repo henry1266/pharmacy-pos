@@ -1,17 +1,9 @@
 import axios from 'axios';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import { Inventory } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/inventory';
 
-/**
- * API 回應格式介面
- */
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: Date;
-}
 
 /**
  * 獲取特定產品的庫存記錄
@@ -36,7 +28,7 @@ export const getInventoryByProduct = async (productId: string): Promise<Inventor
       return response.data;
     } else {
       // 未知格式，嘗試提取 data 屬性
-      return (response.data as any)?.data ?? [];
+      return (response.data as { data?: Inventory[] })?.data ?? [];
     }
   } catch (err: any) {
     console.error(`獲取產品 ${productId} 的庫存記錄失敗 (service):`, err);

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import { Category, Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -9,7 +10,7 @@ export const getProductCategories = async (): Promise<Category[]> => {
   try {
     const res = await axios.get('/api/product-categories');
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (res.data as any)?.data ?? [];
+    return (res.data as ApiResponse<Category[]>)?.data ?? [];
   } catch (err: any) {
     console.error('獲取產品分類失敗:', err);
     throw err;
@@ -25,7 +26,7 @@ export const addProductCategory = async (categoryData: Partial<Category>): Promi
   try {
     const res = await axios.post('/api/product-categories', categoryData);
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (res.data as any)?.data;
+    return (res.data as ApiResponse<Category>)?.data;
   } catch (err: any) {
     console.error('新增產品分類失敗:', err);
     throw err;
@@ -42,7 +43,7 @@ export const updateProductCategory = async (id: string, categoryData: Partial<Ca
   try {
     const res = await axios.put(`/api/product-categories/${id}`, categoryData);
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (res.data as any)?.data;
+    return (res.data as ApiResponse<Category>)?.data;
   } catch (err: any) {
     console.error('更新產品分類失敗:', err);
     throw err;
@@ -77,7 +78,7 @@ export const getProductCategory = async (id: string): Promise<Category> => {
   try {
     const res = await axios.get(`/api/product-categories/${id}`);
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (res.data as any)?.data;
+    return (res.data as ApiResponse<Category>)?.data;
   } catch (err: any) {
     console.error('獲取產品分類失敗:', err);
     throw err;
@@ -93,7 +94,7 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
   try {
     const res = await axios.get('/api/products');
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    const products = (res.data as any)?.data ?? [];
+    const products = (res.data as ApiResponse<Product[]>)?.data ?? [];
     // 在前端過濾屬於該分類的產品
     // 注意：後端使用 populate 填充 category，所以 category 是物件而不是字串
     return products.filter((product: Product) => {

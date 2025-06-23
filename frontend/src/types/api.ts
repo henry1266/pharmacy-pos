@@ -5,7 +5,7 @@
 /**
  * HTTP 回應型別
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data: T;
   message?: string;
@@ -32,7 +32,7 @@ export interface PaginationParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, string | number | boolean>;
 }
 
 export interface PaginatedResponse<T> {
@@ -95,5 +95,5 @@ export interface ReportParams {
   startDate?: Date;
   endDate?: Date;
   groupBy?: 'day' | 'week' | 'month' | 'year';
-  filters?: Record<string, any>;
+  filters?: Record<string, string | number | boolean>;
 }
