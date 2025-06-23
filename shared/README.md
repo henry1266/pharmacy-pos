@@ -1,264 +1,134 @@
-# Pharmacy POS Shared Types
+# Shared 模組
 
-藥局 POS 系統共享型別定義模組，提供前後端統一的型別定義、常數、工具函數等。
+這個目錄包含了前後端共用的型別定義和工具函數，旨在提高程式碼重用性並確保型別一致性。
 
-## 📁 目錄結構
+## 目錄結構
 
 ```
 shared/
-├── types/          ← 共享型別定義
-│   ├── entities.ts ← 業務實體型別
-│   └── api.ts      ← API 介面型別
-├── enums/          ← 列舉常數
-│   └── index.ts    ← 所有列舉定義
-├── constants/      ← 共享常數
-│   └── index.ts    ← 系統常數定義
-├── schemas/        ← API 驗證 schema
-│   └── index.ts    ← 驗證規則定義
-├── utils/          ← 型別工具函數
-│   └── index.ts    ← 工具函數型別
-├── index.ts        ← 主要匯出檔案
-├── package.json    ← 套件配置
-├── tsconfig.json   ← TypeScript 配置
-└── README.md       ← 說明文件
+├── types/           # 型別定義
+│   ├── entities.ts     # 基礎實體型別
+│   ├── api.ts          # API 相關型別
+│   ├── forms.ts        # 表單相關型別
+│   ├── accounting.ts   # 會計相關型別
+│   ├── store.ts        # Redux 狀態型別
+│   ├── business.ts     # 業務邏輯型別
+│   ├── utils.ts        # 工具函數型別
+│   └── models.ts       # 資料模型型別
+├── utils/           # 工具函數
+│   ├── calendarUtils.ts        # 日曆相關工具
+│   ├── dataTransformations.ts  # 資料轉換工具
+│   ├── overtimeDataProcessor.ts # 加班數據處理
+│   ├── roleUtils.ts            # 角色相關工具
+│   └── stringUtils.ts          # 字串處理工具
+├── index.ts         # 統一匯出檔案
+└── README.md        # 說明文件
 ```
 
-## 🚀 安裝與使用
-
-### 安裝依賴
-
-```bash
-cd shared
-npm install
-```
-
-### 編譯
-
-```bash
-# 編譯 TypeScript
-npm run build
-
-# 監控模式編譯
-npm run build:watch
-
-# 型別檢查
-npm run type-check
-```
+## 使用方式
 
 ### 在前端使用
 
 ```typescript
-// frontend/src/types/shared.ts
-export * from '../../../shared';
+// 匯入型別定義
+import { Product, Sale, Customer } from '@pharmacy-pos/shared';
 
-// 使用範例
-import { Product, ApiResponse, UserRole } from '../../../shared';
+// 匯入工具函數
+import { formatDate, getRoleName } from '@pharmacy-pos/shared';
 
-interface ProductListProps {
-  products: Product[];
-  onUpdate: (product: Product) => Promise<ApiResponse<Product>>;
-}
-
-const userRole: UserRole = UserRole.PHARMACIST;
+// 使用特定模組
+import { ActionType, RootState } from '@pharmacy-pos/shared/types/store';
 ```
 
 ### 在後端使用
 
 ```typescript
-// backend/src/types/shared.ts
-export * from '../../../shared';
+// 匯入型別定義
+import { IUser, IProduct, CodeGenerationResult } from '@pharmacy-pos/shared';
 
-// 使用範例
-import { IProduct, ApiResponse, ProductCreateRequest } from '../../../shared';
-
-const createProduct = async (data: ProductCreateRequest): Promise<ApiResponse<IProduct>> => {
-  // 實作邏輯
-};
+// 匯入工具函數
+import { validateRole, processOvertimeData } from '@pharmacy-pos/shared';
 ```
 
-## 📋 主要功能
+## 型別定義說明
 
-### 1. 型別定義 (`types/`)
+### entities.ts
+包含基礎的實體型別定義，如 Product、Customer、Sale 等。
 
-#### 業務實體型別 (`entities.ts`)
-- `Employee` - 員工資料
-- `Product` - 產品資料
-- `Customer` - 客戶資料
-- `Sale` - 銷售記錄
-- `PurchaseOrder` - 採購訂單
-- `ShippingOrder` - 出貨訂單
-- `Inventory` - 庫存記錄
-- `Accounting` - 會計記錄
+### api.ts
+包含 API 請求和回應的型別定義，統一前後端的 API 介面。
 
-#### API 介面型別 (`api.ts`)
-- `ApiResponse<T>` - 統一 API 回應格式
-- `PaginatedResponse<T>` - 分頁回應格式
-- `LoginRequest` - 登入請求
-- `ProductCreateRequest` - 產品建立請求
-- 各種 CRUD 操作的請求/回應型別
+### forms.ts
+包含各種表單的型別定義，確保表單資料結構的一致性。
 
-### 2. 列舉常數 (`enums/`)
+### accounting.ts
+包含會計相關的型別定義，如記帳項目、會計分類等。
+
+### store.ts
+包含 Redux 狀態管理的型別定義，包括 Action 型別和 State 型別。
+
+### business.ts
+包含業務邏輯相關的型別定義，如訂單號生成、FIFO 計算等。
+
+### utils.ts
+包含工具函數相關的型別定義，如密碼驗證、檔案處理等。
+
+### models.ts
+包含資料模型的型別定義，移除了 MongoDB 依賴，適用於前後端。
+
+## 工具函數說明
+
+### calendarUtils.ts
+提供日曆相關的工具函數，如日期格式化、員工顏色生成等。
+
+### dataTransformations.ts
+提供資料轉換工具，如銷售數據轉換、趨勢分析等。
+
+### overtimeDataProcessor.ts
+提供加班數據處理工具，包含複雜的業務邏輯處理。
+
+### roleUtils.ts
+提供角色相關的工具函數，如角色名稱轉換、權限檢查等。
+
+### stringUtils.ts
+提供字串處理工具函數，如格式化、驗證等。
+
+## 設計原則
+
+1. **環境無關性**: 所有共享程式碼都不依賴特定的執行環境（如 Node.js 或瀏覽器）
+2. **型別安全**: 使用 TypeScript 提供完整的型別定義
+3. **模組化**: 按功能分類組織程式碼，便於維護和使用
+4. **一致性**: 確保前後端使用相同的型別定義和工具函數
+5. **可重用性**: 提供通用的工具函數，避免程式碼重複
+
+## 注意事項
+
+1. 避免在 shared 模組中引入特定環境的依賴（如 DOM API 或 Node.js API）
+2. 型別定義應該保持向後相容性
+3. 新增型別或工具函數時，請更新相應的匯出檔案
+4. 確保所有型別都有適當的 JSDoc 註釋
+
+## 版本管理
+
+當修改 shared 模組時，請注意：
+
+1. 破壞性變更需要更新版本號
+2. 新增功能應該保持向後相容
+3. 修改現有型別時要考慮對前後端的影響
+4. 建議使用語義化版本控制
+
+## 測試
+
+建議為工具函數編寫單元測試，確保功能的正確性和穩定性。
 
 ```typescript
-import { UserRole, PaymentMethod, OrderStatus } from '../../../shared';
+// 測試範例
+import { getRoleName } from '@pharmacy-pos/shared';
 
-// 使用者角色
-const role: UserRole = UserRole.ADMIN;
-
-// 付款方式
-const payment: PaymentMethod = PaymentMethod.CASH;
-
-// 訂單狀態
-const status: OrderStatus = OrderStatus.COMPLETED;
-```
-
-### 3. 系統常數 (`constants/`)
-
-```typescript
-import { API_CONSTANTS, VALIDATION_CONSTANTS, ERROR_MESSAGES } from '../../../shared';
-
-// API 常數
-const pageSize = API_CONSTANTS.PAGINATION.DEFAULT_LIMIT;
-
-// 驗證規則
-const minPasswordLength = VALIDATION_CONSTANTS.PASSWORD.MIN_LENGTH;
-
-// 錯誤訊息
-const errorMsg = ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS;
-```
-
-### 4. 驗證 Schema (`schemas/`)
-
-```typescript
-import { Schemas } from '../../../shared';
-
-// 產品建立驗證
-const productSchema = Schemas.Product.create;
-
-// 使用者登入驗證
-const loginSchema = Schemas.Auth.login;
-```
-
-### 5. 工具函數型別 (`utils/`)
-
-```typescript
-import { DateUtilsType, ValidationUtilsType } from '../../../shared';
-
-// 日期工具函數介面
-const dateUtils: DateUtilsType = {
-  formatDate: (date, format) => { /* 實作 */ },
-  parseDate: (dateString) => { /* 實作 */ },
-  // ...
-};
-
-// 驗證工具函數介面
-const validationUtils: ValidationUtilsType = {
-  validateEmail: (email) => { /* 實作 */ },
-  validatePhone: (phone) => { /* 實作 */ },
-  // ...
-};
-```
-
-## 🔧 開發指南
-
-### 新增型別定義
-
-1. **業務實體型別**：在 `types/entities.ts` 中新增
-2. **API 介面型別**：在 `types/api.ts` 中新增
-3. **列舉常數**：在 `enums/index.ts` 中新增
-4. **系統常數**：在 `constants/index.ts` 中新增
-5. **驗證規則**：在 `schemas/index.ts` 中新增
-
-### 型別命名規範
-
-- **介面型別**：使用 PascalCase，如 `Product`、`ApiResponse`
-- **列舉型別**：使用 PascalCase，如 `UserRole`、`PaymentMethod`
-- **常數物件**：使用 UPPER_SNAKE_CASE，如 `API_CONSTANTS`
-- **型別別名**：使用 PascalCase，如 `DeepPartial<T>`
-
-### 版本控制
-
-- 遵循語義化版本控制 (Semantic Versioning)
-- 主版本號：不相容的 API 變更
-- 次版本號：向下相容的功能新增
-- 修訂版本號：向下相容的問題修正
-
-## 📝 型別安全最佳實踐
-
-### 1. 使用嚴格的 TypeScript 配置
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "exactOptionalPropertyTypes": true
-  }
-}
-```
-
-### 2. 善用型別守衛
-
-```typescript
-import { isDefined, isString, isNumber } from '../../../shared';
-
-if (isDefined(user.email) && isString(user.email)) {
-  // user.email 現在是 string 型別
-  console.log(user.email.toLowerCase());
-}
-```
-
-### 3. 使用工具型別
-
-```typescript
-import { DeepPartial, Optional, RequiredFields } from '../../../shared';
-
-// 深度可選
-type PartialProduct = DeepPartial<Product>;
-
-// 部分欄位可選
-type ProductUpdate = Optional<Product, 'createdAt' | 'updatedAt'>;
-
-// 部分欄位必填
-type ProductCreate = RequiredFields<Product, 'name' | 'code'>;
-```
-
-## 🧪 測試
-
-```bash
-# 執行型別檢查
-npm run type-check
-
-# 執行 ESLint 檢查
-npm run lint
-
-# 修復 ESLint 問題
-npm run lint:fix
-```
-
-## 📚 相關文件
-
-- [TypeScript 官方文件](https://www.typescriptlang.org/docs/)
-- [專案架構設計文件](../docs/architecture.md)
-- [API 設計規範](../docs/api-design.md)
-- [前端開發指南](../frontend/README.md)
-- [後端開發指南](../backend/README.md)
-
-## 🤝 貢獻指南
-
-1. Fork 專案
-2. 建立功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交變更 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 開啟 Pull Request
-
-## 📄 授權
-
-本專案採用 MIT 授權條款 - 詳見 [LICENSE](../LICENSE) 檔案
-
-## 📞 聯絡資訊
-
-- 專案維護者：Development Team
-- Email: dev-team@example.com
-- 專案首頁：https://github.com/your-org/pharmacy-pos
+describe('getRoleName', () => {
+  it('should return correct role name', () => {
+    expect(getRoleName('admin')).toBe('管理員');
+    expect(getRoleName('pharmacist')).toBe('藥師');
+    expect(getRoleName('staff')).toBe('員工');
+  });
+});

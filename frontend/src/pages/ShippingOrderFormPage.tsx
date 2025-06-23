@@ -12,7 +12,7 @@ import {
   Button
 } from '@mui/material';
 
-// 假設你的 Redux actions 和 store state 已經有了基本的型別定義
+// Redux actions 和 store state 型別定義
 import {
   fetchShippingOrder,
   addShippingOrder,
@@ -20,7 +20,10 @@ import {
   fetchSuppliers,
   fetchProducts
 } from '../redux/actions';
-import { RootState } from '../redux/store'; // 假設你有一個 RootState 型別
+import { RootState } from '../redux/store';
+
+// 導入共享型別
+import { ShippingOrderCreateRequest, ShippingOrderUpdateRequest } from '@pharmacy-pos/shared/types/api';
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index';
@@ -54,10 +57,7 @@ interface IOrderItem {
   dquantity: number | string; // 允許輸入時為 string
   dtotalCost: number | string; // 允許輸入時為 string
   product: string | null; // 儲存 product ID
-  quantity?: number; // API 期望的屬性，設為可選以避免初始化問題
-  price?: number;
   unitPrice?: number;
-  subtotal?: number;
   notes?: string;
 }
 
@@ -70,7 +70,7 @@ interface IShippingOrderForm {
   items: IOrderItem[];
   notes: string;
   status: 'pending' | 'completed' | 'cancelled';
-  paymentStatus: '未收' | '已收';
+  paymentStatus: '未收' | '已收款' | '已開立';
 }
 
 interface ISnackbarState {
@@ -157,7 +157,9 @@ const ShippingOrderFormPage: React.FC = () => {
         status: (currentShippingOrder.status === 'shipped' || currentShippingOrder.status === 'delivered')
           ? 'completed'
           : (currentShippingOrder.status as 'pending' | 'completed' | 'cancelled') || 'pending',
-        paymentStatus: (currentShippingOrder as any).paymentStatus || '未收'
+        paymentStatus: (currentShippingOrder as any).paymentStatus === '已收'
+          ? '已收款'
+          : (currentShippingOrder as any).paymentStatus || '未收'
       });
       
       // 找到並設置當前選中的供應商物件，以正確顯示在 Autocomplete 中
@@ -304,7 +306,7 @@ const ShippingOrderFormPage: React.FC = () => {
   
   const submitForm = () => {
     // 轉換為 API 期望的格式
-    const submitData = {
+    const submitData: ShippingOrderCreateRequest = {
       soid: formData.soid,
       sosupplier: formData.sosupplier,
       supplier: formData.supplier,
@@ -313,12 +315,9 @@ const ShippingOrderFormPage: React.FC = () => {
         dname: item.dname,
         dquantity: Number(item.dquantity),
         dtotalCost: Number(item.dtotalCost),
-        product: item.product ?? undefined,
-        quantity: Number(item.dquantity), // 添加必需的 quantity 屬性
-        price: Number(item.dtotalCost) / Number(item.dquantity), // 添加必需的 price 屬性
+        product: item.product || undefined,
         unitPrice: Number(item.dtotalCost) / Number(item.dquantity),
-        subtotal: Number(item.dtotalCost), // 添加必需的 subtotal 屬性
-        notes: item.notes ?? ''
+        notes: item.notes || ''
       })),
       totalAmount: formData.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0),
       status: formData.status,
