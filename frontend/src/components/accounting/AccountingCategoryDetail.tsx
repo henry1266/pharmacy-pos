@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import { AccountingCategory } from '@pharmacy-pos/shared/types/entities';
 import {
   // 共用組件
   ContentSection,

@@ -114,7 +114,7 @@ const ProductDetailPage: React.FC = () => {
       } catch (err: unknown) {
         console.error('獲取產品詳情失敗:', err);
         const error = err as { response?: { data?: { message?: string } } };
-        setError(error.response?.data?.message ?? '獲取產品詳情失敗');
+        setError(error.response?.data?.message || '獲取產品詳情失敗');
         setLoading(false);
       }
     };
@@ -141,7 +141,7 @@ const ProductDetailPage: React.FC = () => {
     } catch (err: unknown) {
       console.error('刪除產品失敗:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message ?? '刪除產品失敗');
+      setError(error.response?.data?.message || '刪除產品失敗');
     }
   };
   

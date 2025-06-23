@@ -138,7 +138,7 @@ const getPaymentMethodText = (method: string): string => {
     'mobile_payment': '行動支付',
     'other': '其他'
   };
-  return methodMap[method] ?? method;
+  return methodMap[method] || method;
 };
 
 interface PaymentStatusInfo {
@@ -153,7 +153,7 @@ const getPaymentStatusInfo = (status: string): PaymentStatusInfo => {
     'partial': { text: '部分付款', color: 'info' },
     'cancelled': { text: '已取消', color: 'error' }
   };
-  return statusMap[status] ?? { text: status, color: 'default' };
+  return statusMap[status] || { text: status, color: 'default' };
 };
 
 // 銷售列表頁面元件
@@ -203,7 +203,7 @@ const SalesListPage: FC = () => {
       // if (Math.random() < 0.3) throw new Error("Simulated API error in test mode");
       const response = await axios.get<ApiResponse<Sale[]>>('/api/sales'); // Attempt real fetch
       // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
-      const salesData = response.data.data ?? [];
+      const salesData = response.data.data || [];
       if (Array.isArray(salesData) && salesData.length > 0) {
           setSales(salesData);
       } else {
@@ -224,7 +224,7 @@ const SalesListPage: FC = () => {
     try {
       const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
       // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
-      const salesData = response.data.data ?? [];
+      const salesData = response.data.data || [];
       if (Array.isArray(salesData)) {
         setSales(salesData);
       } else {
@@ -252,10 +252,10 @@ const SalesListPage: FC = () => {
   // 過濾銷售數據
   const filteredSales = sales.filter(sale => {
     const searchTermLower = searchTerm.toLowerCase();
-    const customerName = sale.customer?.name ?? '';
-    const productNames = sale.items.map(item => item.product?.name ?? '').join(' ');
-    const saleId = sale._id ?? '';
-    const saleNumber = sale.saleNumber ?? '';
+    const customerName = sale.customer?.name || '';
+    const productNames = sale.items.map(item => item.product?.name || '').join(' ');
+    const saleId = sale._id || '';
+    const saleNumber = sale.saleNumber || '';
     const saleDate = sale.date ? format(new Date(sale.date), 'yyyy-MM-dd') : '';
     
     return customerName.toLowerCase().includes(searchTermLower) ||
@@ -413,14 +413,14 @@ const SalesListPage: FC = () => {
             color="primary"
             onClick={() => handleViewSale(sale._id)}
           >
-            {sale.saleNumber ?? '無單號'}
+            {sale.saleNumber || '無單號'}
           </Button>
         </TableCell>
         <TableCell>
           {sale.date ? format(new Date(sale.date), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : ''}
         </TableCell>
         <TableCell>
-          {sale.customer?.name ?? '一般客戶'}
+          {sale.customer?.name || '一般客戶'}
         </TableCell>
         <TableCell>
           {sale.items.map((item, index) => (
@@ -430,7 +430,7 @@ const SalesListPage: FC = () => {
           ))}
         </TableCell>
         <TableCell align="right">
-          {sale.totalAmount?.toFixed(2) ?? '0.00'}
+          {sale.totalAmount?.toFixed(2) || '0.00'}
         </TableCell>
         <TableCell align="center">
           {getPaymentMethodText(sale.paymentMethod)}

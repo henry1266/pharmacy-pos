@@ -99,7 +99,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
         // 過濾掉主管，只保留一般員工
         const filteredEmployees = response.data.employees.filter(employee => {
-          const position = employee.position?.toLowerCase() ?? '';
+          const position = employee.position?.toLowerCase() || '';
           return !position.includes('主管') &&
                  !position.includes('經理') &&
                  !position.includes('supervisor') &&
@@ -136,7 +136,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   
   // 處理請假類型選擇變更
   const handleLeaveTypeChange = (event: SelectChangeEvent<string>) => {
-    setSelectedLeaveType(event.target.value || null);
+    setSelectedLeaveType(event.target.value ?? null);
   };
 
   // 處理新增排班
@@ -317,7 +317,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                     <InputLabel id="leave-type-select-label">請假類型</InputLabel>
                     <Select
                       labelId="leave-type-select-label"
-                      value={selectedLeaveType ?? ''}
+                      value={selectedLeaveType || ''}
                       onChange={handleLeaveTypeChange}
                       label="請假類型"
                       disabled={loading}

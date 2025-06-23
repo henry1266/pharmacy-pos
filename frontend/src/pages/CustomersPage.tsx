@@ -197,7 +197,7 @@ const CustomerFormDialog: FC<CustomerFormDialogProps> = ({
         <TextField name="birthdate" label="出生年月日" type="date" value={currentCustomerState.birthdate ? new Date(currentCustomerState.birthdate).toISOString().split('T')[0] : ''} onChange={onInputChange} fullWidth margin="dense" size="small" InputLabelProps={{ shrink: true }} />
         <TextField name="email" label="電子郵件" value={currentCustomerState.email} onChange={onInputChange} fullWidth margin="dense" size="small" />
         <TextField name="address" label="地址" value={currentCustomerState.address} onChange={onInputChange} fullWidth margin="dense" size="small" />
-        <TextField name="notes" label="備註" value={currentCustomerState.notes ?? ''} onChange={onInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
+        <TextField name="notes" label="備註" value={currentCustomerState.notes || ''} onChange={onInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
         <FormControl fullWidth margin="dense" size="small">
           <InputLabel>會員等級</InputLabel>
           <Select name="membershipLevel" value={currentCustomerState.membershipLevel} onChange={onInputChange} label="會員等級">
@@ -248,7 +248,7 @@ const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, h
   return (
     <Card elevation={2} sx={{ borderRadius: '0.5rem', height: '100%' }}>
       <CardHeader
-        avatar={<Avatar sx={{ bgcolor: 'secondary.main' }}>{selectedCustomer.name?.charAt(0) ?? 'C'}</Avatar>}
+        avatar={<Avatar sx={{ bgcolor: 'secondary.main' }}>{selectedCustomer.name?.charAt(0) || 'C'}</Avatar>}
         title={<Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>{selectedCustomer.name}</Typography>}
         subheader={`編號: ${selectedCustomer.code}`}
         action={
@@ -268,12 +268,12 @@ const CustomerDetailPanel: FC<CustomerDetailPanelProps> = ({ selectedCustomer, h
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>會員資訊</Typography>
         <List dense sx={{ py: 0 }}>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>電話:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.phone}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDateToYYYYMMDD(selectedCustomer.birthdate) ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>身分證:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.idCardNumber || '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>出生年月日:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDateToYYYYMMDD(selectedCustomer.birthdate) || '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>Email:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.email || '無'}</Typography></ListItem>
           <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>等級:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.level}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address ?? '無'}</Typography></ListItem>
-          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.notes ?? '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5 }}><Typography variant="body2" sx={{ width: '30%', color: 'text.secondary' }}>地址:</Typography><Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedCustomer.address || '無'}</Typography></ListItem>
+          <ListItem sx={{ py: 0.5, flexDirection: 'column', alignItems: 'flex-start' }}><Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>備註:</Typography><Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}>{selectedCustomer.notes || '無'}</Typography></ListItem>
         </List>
       </CardContent>
     </Card>
@@ -442,7 +442,7 @@ const CustomersPage: FC = () => {
   const pageError = isTestMode ? null : actualError;
 
   // Derived state for the detail panel, ensuring it uses the latest from customersToDisplay
-  const panelSelectedCustomer = customersToDisplay.find(c => c.id === localSelectedCustomer?.id) ?? null;
+  const panelSelectedCustomer = customersToDisplay.find(c => c.id === localSelectedCustomer?.id) || null;
 
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -615,7 +615,7 @@ const CustomersPage: FC = () => {
         currentCustomerState={currentCustomerState}
         onInputChange={handleInputChange}
         onSave={handleSaveCustomer}
-        formError={formError ?? undefined}
+        formError={formError || undefined}
         isTestMode={isTestMode}
         loading={isLoading}
       />

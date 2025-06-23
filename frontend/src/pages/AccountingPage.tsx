@@ -14,8 +14,6 @@ import AccountingForm from '../components/accounting/AccountingForm';
 // Import Types
 import { AccountingRecord } from '@pharmacy-pos/shared/types/entities';
 import type {
-  AccountingItem,
-  UnaccountedSale,
   FormData,
   ExtendedAccountingRecord
 } from '../types/accounting';

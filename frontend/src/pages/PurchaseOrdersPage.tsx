@@ -180,13 +180,13 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       const formattedRows = filtered.map(po => ({
         id: po._id,
         _id: po._id,
-        poid: (po as any).poid ?? po.orderNumber ?? '',
-        pobill: (po as any).pobill ?? '',
-        pobilldate: (po as any).pobilldate ?? po.orderDate ?? '',
-        posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
-        totalAmount: po.totalAmount ?? 0,
-        status: po.status ?? '',
-        paymentStatus: (po as any).paymentStatus ?? ''
+        poid: (po as any).poid || po.orderNumber || '',
+        pobill: (po as any).pobill || '',
+        pobilldate: (po as any).pobilldate || po.orderDate || '',
+        posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name || '',
+        totalAmount: po.totalAmount || 0,
+        status: po.status || '',
+        paymentStatus: (po as any).paymentStatus || ''
       }));
       setFilteredRows(formattedRows);
     } else {
@@ -314,14 +314,14 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
 
       dispatch(fetchPurchaseOrders());
       setCsvImportSuccess(true);
-      showSnackbar(response.msg ?? 'CSV導入成功', 'success');
+      showSnackbar(response.msg || 'CSV導入成功', 'success');
       setTimeout(() => {
         setCsvImportDialogOpen(false);
         setCsvImportSuccess(false);
       }, 3000);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { msg?: string } } };
-      setCsvImportError(error.response?.data?.msg ?? '導入失敗，請檢查CSV格式');
+      setCsvImportError(error.response?.data?.msg || '導入失敗，請檢查CSV格式');
     } finally {
       setCsvImportLoading(false);
     }
@@ -447,7 +447,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="確認刪除進貨單"
-        message={`您確定要刪除進貨單 ${purchaseOrderToDelete?.poid ?? ''} 嗎？此操作無法撤銷。`}
+        message={`您確定要刪除進貨單 ${purchaseOrderToDelete?.poid || ''} 嗎？此操作無法撤銷。`}
         confirmText="確認刪除"
         cancelText="取消"
       />

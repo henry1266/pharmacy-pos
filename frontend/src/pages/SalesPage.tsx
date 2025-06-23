@@ -284,7 +284,7 @@ const SalesPage: FC = () => {
         <CustomProductsDialog
           open={customDialogOpen}
           onClose={() => setCustomDialogOpen(false)}
-          allProducts={products ?? []} // Ensure products is an array
+          allProducts={products || []} // Ensure products is an array
           productIdsToShow={selectedShortcut.productIds}
           shortcutName={selectedShortcut.name}
           onSelectProduct={handleSelectProduct}
@@ -301,7 +301,7 @@ const SalesPage: FC = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <SalesProductInput
-            products={products ?? []} // Ensure products is an array
+            products={products || []} // Ensure products is an array
             barcodeInputRef={barcodeInputRef}
             onSelectProduct={handleSelectProduct}
             showSnackbar={showSnackbar}
@@ -336,7 +336,7 @@ const SalesPage: FC = () => {
         <Grid item xs={12} md={4}>
           <SaleInfoCard
             saleData={currentSale}
-            customers={customers ?? []} // Ensure customers is an array
+            customers={customers || []} // Ensure customers is an array
             isMobile={isMobile}
             expanded={infoExpanded}
             onExpandToggle={() => setInfoExpanded(!infoExpanded)}
@@ -346,7 +346,7 @@ const SalesPage: FC = () => {
           <Box sx={{ mt: 3 }}>
             <ShortcutButtonManager 
               onShortcutSelect={handleShortcutSelect} 
-              allProducts={products ?? []} // Ensure products is an array
+              allProducts={products || []} // Ensure products is an array
               isTestMode={isTestMode}
             />
           </Box>

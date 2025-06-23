@@ -396,7 +396,7 @@ const useOvertimeData = (
             }
             
             const result: MergedRecord = {
-              id: `schedule-${record?._id || 'unknown'}`,
+              id: `schedule-${record._id || 'unknown'}`,
               type: 'schedule',
               date: recordDate,
               originalRecord: record,

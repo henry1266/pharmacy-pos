@@ -58,7 +58,7 @@ const useSupplierData = () => {
 
   // Select supplier
   const selectSupplier = useCallback((id: string): void => {
-    const supplier = suppliers.find(s => (s as any).id === id || s._id === id);
+    const supplier = suppliers.find(s => s._id === id);
     setSelectedSupplier(supplier ?? null);
   }, [suppliers]);
 
@@ -81,8 +81,8 @@ const useSupplierData = () => {
       await supplierService.updateSupplier(id, supplierData);
       await fetchSuppliers(); // Re-fetch after updating
       // Update selected supplier if it was the one being edited
-      if (selectedSupplier && (selectedSupplier._id === id || (selectedSupplier as any).id === id)) {
-        const updatedSelected = suppliers.find(s => (s as any).id === id || s._id === id);
+      if (selectedSupplier && selectedSupplier._id === id) {
+        const updatedSelected = suppliers.find(s => s._id === id);
         setSelectedSupplier(updatedSelected ?? null);
       }
       return true; // Indicate success

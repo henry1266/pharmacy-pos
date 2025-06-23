@@ -137,7 +137,7 @@ const EmployeeListPage: React.FC = () => {
         // 過濾並驗證員工資料
         const validEmployees = response.data.data.employees.filter(isValidEmployee);
         setEmployees(validEmployees);
-        setTotalCount(response.data.data.totalCount || 0);
+        setTotalCount(response.data.data.totalCount ?? 0);
       } else {
         // 如果回應結構不正確，設為空陣列
         console.warn('API 回應結構不正確:', response.data);
@@ -147,7 +147,7 @@ const EmployeeListPage: React.FC = () => {
       setError(null);
     } catch (err: any) {
       console.error('獲取員工資料失敗:', err);
-      setError(err.response?.data?.msg ?? '獲取員工資料失敗');
+      setError(err.response?.data?.msg || '獲取員工資料失敗');
       setEmployees([]);
       setTotalCount(0);
     } finally {
@@ -254,7 +254,7 @@ const EmployeeListPage: React.FC = () => {
         console.error('刪除員工資料失敗:', err);
         setSnackbar({
           open: true,
-          message: err.response?.data?.msg ?? '刪除員工資料失敗',
+          message: err.response?.data?.msg || '刪除員工資料失敗',
           severity: 'error'
         });
       } finally {

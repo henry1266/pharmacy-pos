@@ -104,7 +104,7 @@ export const updateSale = async (id: string, saleData: Partial<Sale>): Promise<S
     const response = await axios.put<ApiResponse<Sale>>(`${API_URL}/${id}`, saleData);
     
     // 檢查 API 回應格式
-    if (response.data?.success && response.data?.data) {
+    if (response.data && response.data.success && response.data.data) {
       return response.data.data;
     } else {
       throw new Error('API 回應格式不正確');

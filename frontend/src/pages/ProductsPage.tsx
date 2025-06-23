@@ -147,7 +147,7 @@ const ProductsPage: React.FC = () => {
     const product = params.row;
     setSelectedProduct({
       ...product,
-      id: product.id ?? product._id,
+      id: product.id || product._id,
       productType: tabValue === 0 ? 'product' : 'medicine'
     });
   };
@@ -182,7 +182,7 @@ const ProductsPage: React.FC = () => {
           medicine.name.toLowerCase().includes(searchParams.name.toLowerCase());
         
         const healthInsuranceCodeMatch = !searchParams.healthInsuranceCode || 
-          (medicine as { healthInsuranceCode?: string }).healthInsuranceCode?.toLowerCase().includes(searchParams.healthInsuranceCode?.toLowerCase() ?? '');
+          (medicine as { healthInsuranceCode?: string }).healthInsuranceCode?.toLowerCase().includes(searchParams.healthInsuranceCode?.toLowerCase() || '');
         
         return codeMatch && nameMatch && healthInsuranceCodeMatch;
       });

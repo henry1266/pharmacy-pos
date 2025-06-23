@@ -146,19 +146,19 @@ const ShippingOrderFormPage: React.FC = () => {
     if (isEditMode && currentShippingOrder && suppliers.length > 0) {
       // 將從 Redux 來的資料設定到表單中
       setFormData({
-        soid: (currentShippingOrder as any).soid ?? currentShippingOrder.orderNumber ?? '',
+        soid: (currentShippingOrder as any).soid || currentShippingOrder.orderNumber || '',
         sosupplier: typeof (currentShippingOrder as any).customer === 'string'
           ? (currentShippingOrder as any).customer
           : (currentShippingOrder as any).customer?.name ?? '',
         supplier: typeof (currentShippingOrder as any).customer === 'string'
           ? (currentShippingOrder as any).customer
           : (currentShippingOrder as any).customer?._id ?? '',
-        items: (currentShippingOrder as any).items ?? [],
-        notes: (currentShippingOrder as any).notes ?? '',
+        items: (currentShippingOrder as any).items || [],
+        notes: (currentShippingOrder as any).notes || '',
         status: (currentShippingOrder.status === 'shipped' || currentShippingOrder.status === 'delivered')
           ? 'completed'
           : (currentShippingOrder.status as 'pending' | 'completed' | 'cancelled') || 'pending',
-        paymentStatus: (currentShippingOrder as any).paymentStatus ?? '未收'
+        paymentStatus: (currentShippingOrder as any).paymentStatus || '未收'
       });
       
       // 找到並設置當前選中的供應商物件，以正確顯示在 Autocomplete 中
@@ -310,12 +310,12 @@ const ShippingOrderFormPage: React.FC = () => {
       customer: formData.supplier,
       customerName: formData.sosupplier,
       items: formData.items.map(item => ({
-        product: item.product || '',
+        product: item.product ?? '',
         quantity: Number(item.dquantity),
         price: Number(item.dtotalCost),
         unitPrice: Number(item.dtotalCost) / Number(item.dquantity),
         subtotal: Number(item.dtotalCost),
-        notes: item.notes || ''
+        notes: item.notes ?? ''
       })),
       totalAmount: formData.items.reduce((sum, item) => sum + Number(item.dtotalCost), 0),
       status: formData.status,
@@ -349,7 +349,7 @@ const ShippingOrderFormPage: React.FC = () => {
     navigate('/shipping-orders');
   };
   
-  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
+  const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost || 0), 0);
   
   return (
     <Box>

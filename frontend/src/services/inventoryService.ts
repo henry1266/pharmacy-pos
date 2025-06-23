@@ -28,19 +28,19 @@ export const getInventoryByProduct = async (productId: string): Promise<Inventor
       // 後端返回 ApiResponse 格式
       const apiResponse = response.data as ApiResponse<Inventory[]>;
       if (!apiResponse.success) {
-        throw new Error(apiResponse.message || '獲取庫存記錄失敗');
+        throw new Error(apiResponse.message ?? '獲取庫存記錄失敗');
       }
-      return apiResponse.data || [];
+      return apiResponse.data ?? [];
     } else if (Array.isArray(response.data)) {
       // 後端直接返回陣列（向後相容）
       return response.data;
     } else {
       // 未知格式，嘗試提取 data 屬性
-      return (response.data as any)?.data || [];
+      return (response.data as any)?.data ?? [];
     }
   } catch (err: any) {
     console.error(`獲取產品 ${productId} 的庫存記錄失敗 (service):`, err);
-    const errorMessage = err.response?.data?.message || err.response?.data?.msg || err.message || `獲取產品 ${productId} 的庫存記錄失敗`;
+    const errorMessage = err.response?.data?.message ?? err.response?.data?.msg ?? err.message ?? `獲取產品 ${productId} 的庫存記錄失敗`;
     throw new Error(errorMessage);
   }
 };

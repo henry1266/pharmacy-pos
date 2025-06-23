@@ -84,13 +84,13 @@ export const useSalesEditData = (saleId: string) => {
           }
 
           setInitialSaleData({
-            customer: typeof saleData.customer === 'object' ? saleData.customer._id : (saleData.customer || ''),
+            customer: typeof saleData.customer === 'object' ? saleData.customer._id : (saleData.customer ?? ''),
             items: formattedItems,
             totalAmount: saleData.totalAmount,
             discount: 0, // 在 Sale 介面中沒有 discount 屬性，設為 0
-            paymentMethod: saleData.paymentMethod || 'cash',
+            paymentMethod: saleData.paymentMethod ?? 'cash',
             paymentStatus: paymentStatus,
-            note: saleData.notes || ''
+            note: saleData.notes ?? ''
           });
       } else {
           // Handle case where saleData or saleData.items is not as expected
@@ -98,12 +98,12 @@ export const useSalesEditData = (saleId: string) => {
           setError('Failed to process sale data from response.');
       }
       
-      setProducts(productsRes ?? []); // productService.getProducts returns data directly
-      setCustomers(customersRes ?? []); // customerService.getCustomers returns data directly
+      setProducts(productsRes || []); // productService.getProducts returns data directly
+      setCustomers(customersRes || []); // customerService.getCustomers returns data directly
       
     } catch (err: any) {
       console.error('Failed to fetch data for sales edit:', err);
-      const errorMessage = err.response?.data?.msg ?? err.message ?? 'Failed to load necessary data.';
+      const errorMessage = err.response?.data?.msg || err.message || 'Failed to load necessary data.';
       setError(errorMessage);
     } finally {
       setLoading(false);
