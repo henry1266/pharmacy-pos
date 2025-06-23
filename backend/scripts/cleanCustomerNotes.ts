@@ -43,7 +43,7 @@ function parseContaminatedNotes(notes: string): ParsedInfo {
     }
   }
 
-  result.cleanNotes = cleanNotesLines.join('\n').trim() || undefined;
+  result.cleanNotes = cleanNotesLines.join('\n').trim() ?? undefined;
   return result;
 }
 

@@ -380,7 +380,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       res.status(scheduleValidation.error?.status ?? 400).json(errorResponse);
       return;
     }
-    const schedule = scheduleValidation.schedule!;
+    const schedule = scheduleValidation.schedule;
 
     // 如果要更新員工ID，先檢查員工是否存在
     if (req.body.employeeId) {
@@ -388,10 +388,10 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       if (!employeeValidation.valid) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: employeeValidation.error!.msg,
+          message: employeeValidation.error?.msg ?? '驗證失敗',
           timestamp: new Date().toISOString()
         };
-        res.status(employeeValidation.error!.status).json(errorResponse);
+        res.status(employeeValidation.error?.status ?? 400).json(errorResponse);
         return;
       }
     }

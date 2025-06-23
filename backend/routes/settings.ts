@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Response } from "express";
 import auth from "../middleware/auth";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../src/types/express";

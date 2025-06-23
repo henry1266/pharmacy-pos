@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 // 使用 ES6 import 導入模型和PDFKit
 const PDFDocument = require('pdfkit');
 import ShippingOrder from '../models/ShippingOrder';
-import BaseProduct, { Medicine } from '../models/BaseProduct';
+import BaseProduct from '../models/BaseProduct';
 
 // 擴展PDFKit類型
 interface PDFTextOptions {

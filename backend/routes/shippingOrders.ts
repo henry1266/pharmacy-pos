@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { check, validationResult } from 'express-validator';
 import multer from 'multer';
 import fs from 'fs';
@@ -259,7 +259,8 @@ async function validateProductsAndInventory(items: ShippingOrderItem[]): Promise
     }
 
     // 驗證藥品代碼格式
-    if (typeof item.did !== 'string' || !item.did.match(/^[A-Za-z0-9_-]+$/)) {
+    const regexResult = /^[A-Za-z0-9_-]+$/.exec(item.did);
+    if (typeof item.did !== 'string' || !regexResult) {
       return {
         valid: false,
         error: `無效的藥品代碼格式: ${item.did}`
@@ -853,9 +854,9 @@ router.post('/import/basic', upload.single('file'), async (req: Request, res: Re
             // 準備出貨單數據
             const shippingOrderData: any = {
               soid: row['出貨單號'],
-              sobill: row['發票號'] || '',
+              sobill: row['發票號'] ?? '',
               socustomer: row['客戶'],
-              paymentStatus: row['付款狀態'] || '未收',
+              paymentStatus: row['付款狀態'] ?? '未收',
               items: [],
               status: 'pending'
             };

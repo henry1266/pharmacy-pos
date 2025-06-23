@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import mongoose, { Types } from "mongoose";
+import { Types } from "mongoose";
 import { check, validationResult } from "express-validator";
 import multer from "multer";
 import csv from "csv-parser";
@@ -247,8 +247,8 @@ function formatDateToYYYYMMDD(dateObj: Date): string {
  */
 async function findMaxOrderSequence(prefix: string, suffix: string): Promise<number> {
   const regex = new RegExp(`^${prefix}\\d{3}${suffix}$`);
-  const existingOrders = await ShippingOrder.find({ 
-    soid: regex.toString() 
+  const existingOrders = await ShippingOrder.find({
+    soid: regex
   }).sort({ soid: -1 });
   
   let sequence = 1; // 默認從001開始
@@ -443,8 +443,8 @@ async function findOrSetSupplier(defaultSupplier?: any): Promise<SupplierResult>
     supplierName = defaultSupplier.name?.toString() || supplierName;
   } else {
     // 嘗試查找名為"調劑"的供應商
-    const supplier = await Supplier.findOne({ 
-      name: "調劑".toString() 
+    const supplier = await Supplier.findOne({
+      name: "調劑"
     });
     
     if (supplier) {

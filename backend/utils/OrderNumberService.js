@@ -93,7 +93,7 @@ class OrderNumberService {
       const generatedNumber = await generator.generate();
       
       // 確保生成的銷貨單號不為空
-      if (!generatedNumber || generatedNumber.trim() === '') {
+      if (!generatedNumber ?? generatedNumber.trim() === '') {
         console.error('警告: 生成了空的銷貨單號');
         
         // 生成一個基於時間戳的備用單號

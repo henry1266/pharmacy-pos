@@ -91,8 +91,8 @@ router.get('/', async (req: Request, res: Response) => {
         paymentTerms: supplier.paymentTerms,
         notes: supplier.notes,
         date: supplier.date,
-        createdAt: (supplier as any).createdAt,
-        updatedAt: (supplier as any).updatedAt
+        createdAt: supplier.toObject().createdAt,
+        updatedAt: supplier.toObject().updatedAt
       })),
       timestamp: new Date()
     };
@@ -155,8 +155,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         paymentTerms: supplier.paymentTerms,
         notes: supplier.notes,
         date: supplier.date,
-        createdAt: (supplier as any).createdAt,
-        updatedAt: (supplier as any).updatedAt
+        createdAt: supplier.toObject().createdAt,
+        updatedAt: supplier.toObject().updatedAt
       },
       timestamp: new Date()
     };
@@ -280,8 +280,13 @@ router.post(
           paymentTerms: supplier.paymentTerms,
           notes: supplier.notes,
           date: supplier.date,
-          createdAt: (supplier as any).createdAt,
-          updatedAt: (supplier as any).updatedAt
+          ...(() => {
+            const supplierObj = supplier.toObject();
+            return {
+              createdAt: supplierObj.createdAt,
+              updatedAt: supplierObj.updatedAt
+            };
+          })()
         },
         timestamp: new Date()
       };
@@ -361,7 +366,7 @@ async function isCodeDuplicate(code: string | undefined, currentCode: string | u
  */
 function applyUpdatesToSupplier(supplier: any, supplierFields: Partial<SupplierType>): void {
   Object.keys(supplierFields).forEach(key => {
-    (supplier as any)[key] = (supplierFields as any)[key];
+    supplier[key] = (supplierFields as any)[key];
   });
 }
 
@@ -431,8 +436,13 @@ router.put('/:id', async (req: Request, res: Response) => {
         paymentTerms: supplier.paymentTerms,
         notes: supplier.notes,
         date: supplier.date,
-        createdAt: (supplier as any).createdAt,
-        updatedAt: (supplier as any).updatedAt
+        ...(() => {
+          const supplierObj = supplier.toObject();
+          return {
+            createdAt: supplierObj.createdAt,
+            updatedAt: supplierObj.updatedAt
+          };
+        })()
       },
       timestamp: new Date()
     };

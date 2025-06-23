@@ -421,8 +421,8 @@ function groupSalesByProduct(sales: SaleRecord[]): GroupedSalesData[] {
           totalAmount: 0
         };
       }
-      salesByProduct[productId].quantity! += item.quantity;
-      salesByProduct[productId].revenue! += item.subtotal;
+      salesByProduct[productId].quantity = (salesByProduct[productId].quantity ?? 0) + item.quantity;
+      salesByProduct[productId].revenue = (salesByProduct[productId].revenue ?? 0) + item.subtotal;
       salesByProduct[productId].orderCount += 1;
       salesByProduct[productId].totalAmount += item.subtotal;
     });

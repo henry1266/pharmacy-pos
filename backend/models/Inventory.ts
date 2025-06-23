@@ -11,12 +11,16 @@ export interface IInventory {
   purchaseOrderId?: mongoose.Types.ObjectId;
   purchaseOrderNumber?: string;
   type: InventoryType;
+  referenceId?: mongoose.Types.ObjectId; // 參考ID（如銷售ID、採購ID等）
   saleId?: mongoose.Types.ObjectId;
   saleNumber?: string;
   shippingOrderId?: mongoose.Types.ObjectId;
   shippingOrderNumber?: string;
   accountingId?: mongoose.Types.ObjectId; // 新增欄位，用於連結到記帳記錄
+  date: Date;
   lastUpdated: Date;
+  notes?: string;
+  createdBy?: mongoose.Types.ObjectId; // 創建者ID
 }
 
 // 庫存文檔介面
@@ -53,6 +57,10 @@ const InventorySchema = new Schema<IInventoryDocument>({
     default: "purchase",
     index: true // 為 type 添加索引
   },
+  referenceId: { // 參考ID（如銷售ID、採購ID等）
+    type: mongoose.Schema.Types.ObjectId,
+    index: true
+  },
   saleId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "sale"
@@ -73,11 +81,25 @@ const InventorySchema = new Schema<IInventoryDocument>({
     index: true, // 為 accountingId 添加索引
     default: null // 預設為 null，表示未連結
   },
+  date: {
+    type: Date,
+    default: Date.now,
+    index: true
+  },
   lastUpdated: {
     type: Date,
     default: Date.now,
     index: true // 為 lastUpdated 添加索引
+  },
+  notes: {
+    type: String
+  },
+  createdBy: { // 創建者ID
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
   }
+}, {
+  timestamps: true // 自動添加 createdAt 和 updatedAt
 });
 
 const Inventory = mongoose.model<IInventoryDocument>("inventory", InventorySchema);

@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import { check, validationResult } from 'express-validator';
@@ -85,7 +84,7 @@ router.post(
 
       // 獲取 JWT 配置
       const jwtSecret = config.get<string>('jwtSecret');
-      const jwtExpiration = config.get<string>('jwtExpiration') || '24h';
+      const jwtExpiration = config.get<string>('jwtExpiration') ?? '24h';
 
       // 生成 JWT
       jwt.sign(

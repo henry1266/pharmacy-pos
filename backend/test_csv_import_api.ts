@@ -104,7 +104,7 @@ function handleFailureResponse(data: CsvImportResponse): void {
   console.log('預期回應應包含: success, shippingOrder, summary 欄位');
   
   if (!data.success) {
-    console.log(`錯誤訊息: ${data.message || '未提供錯誤訊息'}`);
+    console.log(`錯誤訊息: ${data.message ?? '未提供錯誤訊息'}`);
   }
 }
 

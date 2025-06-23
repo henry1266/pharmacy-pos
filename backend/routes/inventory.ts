@@ -1,9 +1,7 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import { Types } from 'mongoose';
-
 import Inventory from '../models/Inventory';
-// 使用 ES6 import 導入
 import BaseProduct from '../models/BaseProduct';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
@@ -28,6 +26,35 @@ interface InventoryCreationRequest {
 
 interface InventoryUpdateRequest extends Partial<InventoryCreationRequest> {}
 
+// 輔助函數：轉換 Mongoose Document 到 SharedInventory
+function convertToSharedInventory(inv: any): SharedInventory {
+  const invObj = inv.toObject ? inv.toObject() : inv;
+  
+  return {
+    _id: inv._id.toString(),
+    product: typeof invObj.product === 'object' && invObj.product !== null
+      ? invObj.product
+      : invObj.product?.toString() || '',
+    quantity: inv.quantity || 0,
+    totalAmount: invObj.totalAmount || 0,
+    type: (invObj.type as SharedInventory['type']) || 'purchase',
+    referenceId: invObj.referenceId?.toString(),
+    purchaseOrderId: invObj.purchaseOrderId?.toString(),
+    purchaseOrderNumber: invObj.purchaseOrderNumber || '',
+    saleId: invObj.saleId?.toString(),
+    saleNumber: invObj.saleNumber || '',
+    shippingOrderId: invObj.shippingOrderId?.toString(),
+    shippingOrderNumber: invObj.shippingOrderNumber || '',
+    accountingId: invObj.accountingId?.toString(),
+    date: invObj.date || inv.lastUpdated || new Date(),
+    lastUpdated: invObj.lastUpdated || new Date(),
+    notes: invObj.notes || '',
+    createdBy: invObj.createdBy?.toString(),
+    createdAt: invObj.createdAt || inv.createdAt || new Date(),
+    updatedAt: invObj.updatedAt || inv.updatedAt || new Date()
+  };
+}
+
 // @route   GET api/inventory
 // @desc    Get all inventory items
 // @access  Public
@@ -38,30 +65,7 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('purchaseOrderId', 'poid orderNumber pobill');
     
     // 轉換 Mongoose Document 到 shared 類型
-    const inventoryList: SharedInventory[] = inventory.map(inv => {
-      const invAny = inv as any;
-      return {
-        _id: inv._id.toString(),
-        product: invAny.product,
-        quantity: inv.quantity,
-        totalAmount: invAny.totalAmount,
-        type: invAny.type ?? 'purchase',
-        referenceId: invAny.referenceId,
-        purchaseOrderId: invAny.purchaseOrderId,
-        purchaseOrderNumber: invAny.purchaseOrderNumber,
-        saleId: invAny.saleId,
-        saleNumber: invAny.saleNumber,
-        shippingOrderId: invAny.shippingOrderId,
-        shippingOrderNumber: invAny.shippingOrderNumber,
-        accountingId: invAny.accountingId,
-        date: invAny.date ?? new Date(),
-        lastUpdated: invAny.lastUpdated,
-        notes: invAny.notes,
-        createdBy: invAny.createdBy,
-        createdAt: invAny.createdAt,
-        updatedAt: invAny.updatedAt
-      };
-    });
+    const inventoryList: SharedInventory[] = inventory.map(inv => convertToSharedInventory(inv));
 
     const response: ApiResponse<SharedInventory[]> = {
       success: true,
@@ -116,28 +120,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
     
     // 轉換 Mongoose Document 到 shared 類型
-    const invAny = inventory as any;
-    const inventoryData: SharedInventory = {
-      _id: inventory._id.toString(),
-      product: invAny.product,
-      quantity: inventory.quantity,
-      totalAmount: invAny.totalAmount,
-      type: invAny.type ?? 'purchase',
-      referenceId: invAny.referenceId,
-      purchaseOrderId: invAny.purchaseOrderId,
-      purchaseOrderNumber: invAny.purchaseOrderNumber,
-      saleId: invAny.saleId,
-      saleNumber: invAny.saleNumber,
-      shippingOrderId: invAny.shippingOrderId,
-      shippingOrderNumber: invAny.shippingOrderNumber,
-      accountingId: invAny.accountingId,
-      date: invAny.date ?? new Date(),
-      lastUpdated: invAny.lastUpdated,
-      notes: invAny.notes,
-      createdBy: invAny.createdBy,
-      createdAt: invAny.createdAt,
-      updatedAt: invAny.updatedAt
-    };
+    const inventoryData: SharedInventory = convertToSharedInventory(inventory);
 
     const response: ApiResponse<SharedInventory> = {
       success: true,
@@ -237,28 +220,7 @@ router.post(
         await existingInventory.save();
         
         // 轉換 Mongoose Document 到 shared 類型
-        const existingInvAny = existingInventory as any;
-        const inventoryData: SharedInventory = {
-          _id: existingInventory._id.toString(),
-          product: existingInvAny.product,
-          quantity: existingInventory.quantity,
-          totalAmount: existingInvAny.totalAmount,
-          type: existingInvAny.type ?? 'purchase',
-          referenceId: existingInvAny.referenceId,
-          purchaseOrderId: existingInvAny.purchaseOrderId,
-          purchaseOrderNumber: existingInvAny.purchaseOrderNumber,
-          saleId: existingInvAny.saleId,
-          saleNumber: existingInvAny.saleNumber,
-          shippingOrderId: existingInvAny.shippingOrderId,
-          shippingOrderNumber: existingInvAny.shippingOrderNumber,
-          accountingId: existingInvAny.accountingId,
-          date: existingInvAny.date ?? new Date(),
-          lastUpdated: existingInvAny.lastUpdated,
-          notes: existingInvAny.notes,
-          createdBy: existingInvAny.createdBy,
-          createdAt: existingInvAny.createdAt,
-          updatedAt: existingInvAny.updatedAt
-        };
+        const inventoryData: SharedInventory = convertToSharedInventory(existingInventory);
 
         const response: ApiResponse<SharedInventory> = {
           success: true,
@@ -293,28 +255,7 @@ router.post(
       await inventory.save();
       
       // 轉換 Mongoose Document 到 shared 類型
-      const savedInvAny = inventory as any;
-      const inventoryData: SharedInventory = {
-        _id: inventory._id.toString(),
-        product: savedInvAny.product,
-        quantity: inventory.quantity,
-        totalAmount: savedInvAny.totalAmount,
-        type: savedInvAny.type ?? 'purchase',
-        referenceId: savedInvAny.referenceId,
-        purchaseOrderId: savedInvAny.purchaseOrderId,
-        purchaseOrderNumber: savedInvAny.purchaseOrderNumber,
-        saleId: savedInvAny.saleId,
-        saleNumber: savedInvAny.saleNumber,
-        shippingOrderId: savedInvAny.shippingOrderId,
-        shippingOrderNumber: savedInvAny.shippingOrderNumber,
-        accountingId: savedInvAny.accountingId,
-        date: savedInvAny.date ?? new Date(),
-        lastUpdated: savedInvAny.lastUpdated,
-        notes: savedInvAny.notes,
-        createdBy: savedInvAny.createdBy,
-        createdAt: savedInvAny.createdAt as Date,
-        updatedAt: savedInvAny.updatedAt as Date
-      };
+      const inventoryData: SharedInventory = convertToSharedInventory(inventory);
 
       const response: ApiResponse<SharedInventory> = {
         success: true,
@@ -419,28 +360,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     );
     
     // 轉換 Mongoose Document 到 shared 類型
-    const updatedInvAny = inventory as any;
-    const inventoryData: SharedInventory = {
-      _id: inventory!._id.toString(),
-      product: updatedInvAny.product,
-      quantity: inventory!.quantity,
-      totalAmount: updatedInvAny.totalAmount,
-      type: updatedInvAny.type ?? 'purchase',
-      referenceId: updatedInvAny.referenceId,
-      purchaseOrderId: updatedInvAny.purchaseOrderId,
-      purchaseOrderNumber: updatedInvAny.purchaseOrderNumber,
-      saleId: updatedInvAny.saleId,
-      saleNumber: updatedInvAny.saleNumber,
-      shippingOrderId: updatedInvAny.shippingOrderId,
-      shippingOrderNumber: updatedInvAny.shippingOrderNumber,
-      accountingId: updatedInvAny.accountingId,
-      date: updatedInvAny.date ?? new Date(),
-      lastUpdated: updatedInvAny.lastUpdated,
-      notes: updatedInvAny.notes,
-      createdBy: updatedInvAny.createdBy,
-      createdAt: updatedInvAny.createdAt,
-      updatedAt: updatedInvAny.updatedAt
-    };
+    const inventoryData: SharedInventory = convertToSharedInventory(inventory!);
 
     const response: ApiResponse<SharedInventory> = {
       success: true,
@@ -556,30 +476,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
       .populate('saleId', 'saleNumber');
     
     // 轉換 Mongoose Document 到 shared 類型
-    const inventoryList: SharedInventory[] = inventory.map(inv => {
-      const invAny = inv as any;
-      return {
-        _id: inv._id.toString(),
-        product: invAny.product,
-        quantity: inv.quantity,
-        totalAmount: invAny.totalAmount,
-        type: invAny.type ?? 'purchase',
-        referenceId: invAny.referenceId,
-        purchaseOrderId: invAny.purchaseOrderId,
-        purchaseOrderNumber: invAny.purchaseOrderNumber,
-        saleId: invAny.saleId,
-        saleNumber: invAny.saleNumber,
-        shippingOrderId: invAny.shippingOrderId,
-        shippingOrderNumber: invAny.shippingOrderNumber,
-        accountingId: invAny.accountingId,
-        date: invAny.date ?? new Date(),
-        lastUpdated: invAny.lastUpdated,
-        notes: invAny.notes,
-        createdBy: invAny.createdBy,
-        createdAt: invAny.createdAt,
-        updatedAt: invAny.updatedAt
-      };
-    });
+    const inventoryList: SharedInventory[] = inventory.map(inv => convertToSharedInventory(inv));
 
     const response: ApiResponse<SharedInventory[]> = {
       success: true,
