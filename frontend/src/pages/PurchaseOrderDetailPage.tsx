@@ -31,7 +31,7 @@ import ProductItemsTable from '../components/common/ProductItemsTable';
 import DetailLayout from '../components/DetailLayout';
 import { getProductByCode } from '../services/productService';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
-import { RootState } from '../types/store';
+import { RootState } from '@pharmacy-pos/shared/types/store';
 import { Product, PurchaseOrder, PurchaseOrderItem } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
