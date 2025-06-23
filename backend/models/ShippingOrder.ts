@@ -129,9 +129,7 @@ ShippingOrderSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   
   // 確保orderNumber有值
-  if (!this.orderNumber) {
-    this.orderNumber = this.soid;
-  }
+  this.orderNumber ??= this.soid;
   
   next();
 });

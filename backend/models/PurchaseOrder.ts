@@ -138,9 +138,7 @@ PurchaseOrderSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   
   // 確保orderNumber有值
-  if (!this.orderNumber) {
-    this.orderNumber = this.poid;
-  }
+  this.orderNumber ??= this.poid;
   
   next();
 });

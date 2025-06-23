@@ -7,10 +7,13 @@ import {
 import { ProductType } from '@pharmacy-pos/shared/enums';
 
 // 擴展 Mongoose Document 介面，處理 ObjectId 與 string 的差異
-interface IBaseProductDocument extends Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
+// 定義 BaseProduct 文檔類型別名
+type BaseProductDocumentFields = {
   category?: mongoose.Types.ObjectId;
   supplier?: mongoose.Types.ObjectId;
-}
+};
+
+interface IBaseProductDocument extends Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document, BaseProductDocumentFields {}
 
 interface IProductDocument extends Omit<IProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
   category?: mongoose.Types.ObjectId;

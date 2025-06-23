@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { Employee as IEmployee } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Mongoose Document 介面

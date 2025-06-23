@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { ISale, ISaleDocument } from '../src/types/models';
+import { ISaleDocument } from '../src/types/models';
 
 const SaleSchema = new Schema<ISaleDocument>({
   saleNumber: {
@@ -66,7 +66,7 @@ const SaleSchema = new Schema<ISaleDocument>({
 
 // 實例方法
 SaleSchema.methods.calculateTotalAmount = function(): number {
-  return this.items.reduce((total: number, item: any) => total + item.subtotal, 0) - (this.discount || 0);
+  return this.items.reduce((total: number, item: any) => total + item.subtotal, 0) - (this.discount ?? 0);
 };
 
 SaleSchema.methods.validateItemSubtotals = function(): boolean {
@@ -78,7 +78,7 @@ SaleSchema.methods.validateItemSubtotals = function(): boolean {
 
 // 虛擬屬性
 SaleSchema.virtual('finalAmount').get(function() {
-  return this.totalAmount - (this.discount || 0);
+  return this.totalAmount - (this.discount ?? 0);
 });
 
 SaleSchema.virtual('saleDate').get(function() {

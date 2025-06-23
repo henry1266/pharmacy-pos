@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import MonitoredProduct from '../models/MonitoredProduct';
 import BaseProduct from '../models/BaseProduct';
 import auth from '../middleware/auth';
@@ -152,7 +152,7 @@ router.post(
       // 3. 新增監測產品
       monitoredProduct = new MonitoredProduct({
         productCode: productCodeStr,
-        addedBy: req.user!.id, // 記錄添加者
+        addedBy: req.user.id, // 記錄添加者
       });
       await monitoredProduct.save();
       
@@ -217,7 +217,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Pr
     // 可選：權限檢查，例如只允許添加者刪除
     // if (monitoredProduct.addedBy.toString() !== req.user.id) {
     //   res.status(401).json({ msg: "權限不足" });
-      return;
+    //   return;
     // }
     
     // 修正：使用 findOneAndDelete 替代 findByIdAndDelete，並將 id 轉換為字串

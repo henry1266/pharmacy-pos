@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
 import adminAuth from '../middleware/adminAuth';
-import { handleError, createSuccessResponse } from '../utils/employeeAccountValidation';
 import {
   createEmployeeAccount,
   getEmployeeAccount,

@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Response } from "express";
 import { check, validationResult } from "express-validator";
 import { Types } from "mongoose";
 import auth from "../middleware/auth";
@@ -6,7 +6,7 @@ import OvertimeRecord from "../models/OvertimeRecord";
 import Employee from "../models/Employee";
 import EmployeeSchedule from "../models/EmployeeSchedule";
 import { AuthenticatedRequest } from "../src/types/express";
-import { IOvertimeRecord } from "../src/types/models";
+import "../src/types/models";
 
 // 導入 shared 類型和常量
 import {

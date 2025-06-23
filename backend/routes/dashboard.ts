@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 // 使用 ES6 import 導入模型
-import BaseProduct, { Product, Medicine } from '../models/BaseProduct';
+import BaseProduct, { Product } from '../models/BaseProduct';
 import Sale from '../models/Sale';
 import Customer from '../models/Customer';
 import Inventory from '../models/Inventory';

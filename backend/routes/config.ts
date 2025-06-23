@@ -1,8 +1,6 @@
 import express, { Request, Response } from "express";
-import fs from 'fs';
-import path from 'path';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
 const router: express.Router = express.Router();
 

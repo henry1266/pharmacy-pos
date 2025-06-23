@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import config from 'config';
 import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
-import mongoose, { Document } from 'mongoose';
+import mongoose from 'mongoose';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
@@ -67,7 +67,7 @@ interface EmailUpdateResult {
 router.get('/', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     // Find user by ID from token payload and exclude password
-    const user = await User.findOne({ _id: req.user!.id.toString() }).select('-password');
+    const user = await User.findOne({ _id: req.user.id.toString() }).select('-password');
     if (!user) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -134,9 +134,9 @@ router.post(
       let user: any = null;
       
       if (username) {
-        user = await User.findOne({ username: username.toString() });
+        user = await User.findOne({ username });
       } else if (email) {
-        user = await User.findOne({ email: email.toString() });
+        user = await User.findOne({ email });
       }
 
       if (!user) {
@@ -173,7 +173,7 @@ router.post(
 
       // 簽發 JWT
       // 使用 as any 來完全繞過 TypeScript 的型別檢查
-      (jwt.sign as any)(
+      jwt.sign(
         payload,
         config.get('jwtSecret'),
         { expiresIn: config.get('jwtExpiration') },
@@ -195,11 +195,11 @@ router.post(
             data: {
               token: token!,
               user: {
-                id: user!.id,
-                name: (user as any).name,
-                username: user!.username,
-                email: (user as any).email,
-                role: user!.role,
+                id: user.id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                role: user.role,
               }
             },
             timestamp: new Date()
@@ -283,7 +283,7 @@ const updateEmail = async (
   user: any,
   newEmail?: string
 ): Promise<EmailUpdateResult> => {
-  if (newEmail === undefined || newEmail === (user as any).email) {
+  if (newEmail === undefined || newEmail === user.email) {
     return { success: true };
   }
 
@@ -297,10 +297,10 @@ const updateEmail = async (
       return { success: false, error: '此電子郵件已被使用' };
     }
     // 設置新電子郵件
-    (user as any).email = newEmail;
+    user.email = newEmail;
   } else {
     // 如果email為空或空字符串，則從用戶文檔中移除email字段
-    (user as any).email = undefined;
+    user.email = undefined;
     // 直接從數據庫中移除email字段，不需要檢查user.email是否為undefined
     await User.updateOne(
       { _id: user._id },
@@ -339,7 +339,7 @@ router.put(
 
     try {
       // 驗證用戶存在
-      const userValidation = await validateUserExists(req.user!.id);
+      const userValidation = await validateUserExists(req.user.id);
       if (!userValidation.valid) {
         const errorResponse: ErrorResponse = {
           success: false,

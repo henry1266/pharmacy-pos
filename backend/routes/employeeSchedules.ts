@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import EmployeeSchedule, { IEmployeeScheduleDocument } from '../models/EmployeeSchedule';
@@ -187,7 +187,7 @@ router.post(
         date: req.body.date,
         shift: req.body.shift,
         employeeId: req.body.employeeId,
-        leaveType: req.body.leaveType || null,
+        leaveType: req.body.leaveType ?? null,
         createdBy: req.user.id
       });
 
@@ -205,7 +205,7 @@ router.post(
       };
       res.json(response);
     } catch (err) {
-      console.error((err as Error).message);
+      console.error(err.message);
       if ((err as any).code === 11000) {
         const errorResponse: ErrorResponse = {
           success: false,
@@ -312,13 +312,13 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     if (!scheduleValidation.valid) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: scheduleValidation.error!.msg,
+        message: scheduleValidation.error.msg,
         timestamp: new Date().toISOString()
       };
-      res.status(scheduleValidation.error!.status).json(errorResponse);
+      res.status(scheduleValidation.error.status).json(errorResponse);
       return;
     }
-    const schedule = scheduleValidation.schedule!;
+    const schedule = scheduleValidation.schedule;
 
     // 如果要更新員工ID，先檢查員工是否存在
     if (req.body.employeeId) {
@@ -326,10 +326,10 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       if (!employeeValidation.valid) {
         const errorResponse: ErrorResponse = {
           success: false,
-          message: employeeValidation.error!.msg,
+          message: employeeValidation.error.msg,
           timestamp: new Date().toISOString()
         };
-        res.status(employeeValidation.error!.status).json(errorResponse);
+        res.status(employeeValidation.error.status).json(errorResponse);
       return;
       }
     }
@@ -350,9 +350,9 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     if (updatedFields.date || updatedFields.shift || updatedFields.employeeId) {
       const hasConflict = await checkScheduleConflict(
         req.params.id,
-        updatedFields.date || schedule.date,
-        updatedFields.shift || schedule.shift,
-        updatedFields.employeeId || schedule.employeeId
+        updatedFields.date ?? schedule.date,
+        updatedFields.shift ?? schedule.shift,
+        updatedFields.employeeId ?? schedule.employeeId
       );
       
       if (hasConflict) {
@@ -380,7 +380,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     };
     res.json(response);
   } catch (err) {
-    console.error((err as Error).message);
+    console.error(err.message);
     if ((err as any).code === 11000) {
       const errorResponse: ErrorResponse = {
         success: false,

@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import mongoose, { Types } from 'mongoose';
 import { check, validationResult } from 'express-validator';
-import { startOfDay, endOfDay, format } from 'date-fns';
+import { format } from 'date-fns';
 
 // 使用 TypeScript import 語法導入模型和中介軟體
 import Accounting from '../models/Accounting';
@@ -376,7 +376,7 @@ router.post(
 
     try {
       const { date, shift, status } = req.body as AccountingRequest;
-      let items = req.body.items || []; // Get items from request or default to empty array
+      let items = req.body.items ?? []; // Get items from request or default to empty array
       const accountingDate = new Date(date);
 
       // 檢查是否已存在相同日期和班別的記錄
@@ -442,7 +442,7 @@ router.post(
       }
 
       // 計算最終總額 (所有項目加總)
-      const finalTotalAmount = allItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      const finalTotalAmount = allItems.reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
       // 新增記帳記錄 (包含合併後的項目和計算後的總額)
       const newAccounting = new Accounting({
@@ -553,7 +553,7 @@ router.put(
       // The 'items' array from req.body *already* contains only the manual items (filtered by frontend)
       const manualItemsFromRequest = items || []; // Use items directly from request
       let finalItems = manualItemsFromRequest;
-      let finalTotalAmount = manualItemsFromRequest.reduce((sum, item) => sum + (item.amount || 0), 0);
+      let finalTotalAmount = manualItemsFromRequest.reduce((sum, item) => sum + (item.amount ?? 0), 0);
       let linkedSaleIds: Types.ObjectId[] = [];
       let currentUnaccountedSales: any[] = []; // Define outside the if block
 
@@ -589,7 +589,7 @@ router.put(
       }
 
       const newSalesItems: AccountingItem[] = currentUnaccountedSales.map((sale: any) => ({
-        amount: sale.totalAmount || 0,
+        amount: sale.totalAmount ?? 0,
         category: '其他自費',
         categoryId: null as Types.ObjectId | null,
         note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity || 0)}`,
@@ -598,7 +598,7 @@ router.put(
 
       // Always merge manual items and current sales for storage
       finalItems = [...manualItemsFromRequest, ...newSalesItems];
-      finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount ?? 0), 0);
       linkedSaleIds = currentUnaccountedSales.map((sale: any) => sale._id); // Prepare IDs to link if completed
 
       // 3. Update the accounting record
