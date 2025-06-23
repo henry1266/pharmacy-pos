@@ -28,8 +28,14 @@ export const getLatestSaleNumber = async (datePrefix: string): Promise<string | 
  */
 export const createSale = async (saleData: Partial<Sale>): Promise<Sale> => {
   try {
-    const response = await axios.post<Sale>(API_URL, saleData);
-    return response.data;
+    const response = await axios.post<ApiResponse<Sale>>(API_URL, saleData);
+    
+    // 檢查 API 回應格式
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('API 回應格式不正確');
+    }
   } catch (error: any) {
     console.error('Error creating sale:', error);
     throw error;
@@ -42,13 +48,29 @@ export const createSale = async (saleData: Partial<Sale>): Promise<Sale> => {
  */
 export const getAllSales = async (): Promise<Sale[]> => {
   try {
-    const response = await axios.get<Sale[]>(API_URL);
-    return response.data;
+    const response = await axios.get<ApiResponse<Sale[]>>(API_URL);
+    
+    // 檢查 API 回應格式
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('API 回應格式不正確');
+    }
   } catch (error: any) {
     console.error('Error fetching all sales:', error);
     throw error;
   }
 };
+
+/**
+ * API 回應包裝介面
+ */
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: Date;
+}
 
 /**
  * 根據ID獲取銷售記錄
@@ -57,8 +79,14 @@ export const getAllSales = async (): Promise<Sale[]> => {
  */
 export const getSaleById = async (id: string): Promise<Sale> => {
   try {
-    const response = await axios.get<Sale>(`${API_URL}/${id}`);
-    return response.data; // Assuming the API returns the sale data directly
+    const response = await axios.get<ApiResponse<Sale>>(`${API_URL}/${id}`);
+    
+    // 檢查 API 回應格式
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('API 回應格式不正確');
+    }
   } catch (error: any) {
     console.error(`Error fetching sale with ID ${id}:`, error);
     throw error;
@@ -73,8 +101,14 @@ export const getSaleById = async (id: string): Promise<Sale> => {
  */
 export const updateSale = async (id: string, saleData: Partial<Sale>): Promise<Sale> => {
   try {
-    const response = await axios.put<Sale>(`${API_URL}/${id}`, saleData);
-    return response.data; // Assuming the API returns the updated sale data
+    const response = await axios.put<ApiResponse<Sale>>(`${API_URL}/${id}`, saleData);
+    
+    // 檢查 API 回應格式
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error('API 回應格式不正確');
+    }
   } catch (error: any) {
     console.error(`Error updating sale with ID ${id}:`, error);
     throw error;

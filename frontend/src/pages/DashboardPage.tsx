@@ -263,11 +263,11 @@ const DashboardPage: FC = () => {
       </Grid>
 
       {/* Placeholder for other sections like Low Stock Items if needed */}
-      {isTestMode && 'lowStockItems' in (dashboardData || {}) && dashboardData.lowStockItems && (
+      {isTestMode && dashboardData && 'lowStockItems' in dashboardData && (dashboardData as MockDashboardData).lowStockItems && (
         <Box sx={{mt: 4}}>
             <Typography variant="h6" component="h2" sx={{mb:2}}>低庫存商品 (測試數據)</Typography>
             <Grid container spacing={2}>
-                {dashboardData.lowStockItems.map(item => (
+                {(dashboardData as MockDashboardData).lowStockItems.map(item => (
                     <Grid item xs={12} sm={6} md={4} key={item.id}>
                         <Alert severity="warning">{item.name} - 目前庫存: {item.currentStock} (安全庫存: {item.reorderPoint})</Alert>
                     </Grid>
@@ -277,11 +277,11 @@ const DashboardPage: FC = () => {
       )}
       
       {/* 顯示實際的低庫存警告 */}
-      {!isTestMode && 'lowStockWarnings' in (dashboardData || {}) && dashboardData.lowStockWarnings && dashboardData.lowStockWarnings.length > 0 && (
+      {!isTestMode && dashboardData && 'lowStockWarnings' in dashboardData && (dashboardData as DashboardSummary).lowStockWarnings && (dashboardData as DashboardSummary).lowStockWarnings.length > 0 && (
         <Box sx={{mt: 4}}>
             <Typography variant="h6" component="h2" sx={{mb:2}}>低庫存警告</Typography>
             <Grid container spacing={2}>
-                {dashboardData.lowStockWarnings.map(item => (
+                {(dashboardData as DashboardSummary).lowStockWarnings.map(item => (
                     <Grid item xs={12} sm={6} md={4} key={item.productId}>
                         <Alert severity="warning">
                           {item.productName} ({item.productCode}) - 目前庫存: {item.currentStock} (最低庫存: {item.minStock})

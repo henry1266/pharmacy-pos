@@ -397,13 +397,75 @@ const SalesDetailPage: FC = () => {
   const fetchSaleData = async (): Promise<void> => {
     try {
       setLoading(true);
-      const response = await axios.get<Sale>(`/api/sales/${id}`);
-      setSale(response.data);
-      setError(null);
+      
+      // 定義 API 回應格式
+      interface ApiResponse<T> {
+        success: boolean;
+        message: string;
+        data: T;
+        timestamp: Date;
+      }
+      
+      const response = await axios.get<ApiResponse<Sale>>(`/api/sales/${id}`);
+      
+      // 檢查 API 回應格式
+      if (response.data && response.data.success && response.data.data) {
+        // 驗證銷售資料的完整性
+        const saleData = response.data.data;
+        
+        if (!saleData._id) {
+          throw new Error('銷售資料格式不正確：缺少 ID');
+        }
+        
+        if (!saleData.items || !Array.isArray(saleData.items)) {
+          throw new Error('銷售資料格式不正確：缺少或無效的項目列表');
+        }
+        
+        // 檢查每個銷售項目的商品資料
+        const validatedItems = saleData.items.map((item, index) => {
+          if (!item.product && !item.name) {
+            console.warn(`銷售項目 ${index + 1} 缺少商品資訊`);
+            return {
+              ...item,
+              name: item.name || '未知商品'
+            };
+          }
+          
+          // 確保商品資料完整性
+          if (item.product && typeof item.product === 'object') {
+            return {
+              ...item,
+              product: {
+                _id: item.product._id || '',
+                name: item.product.name || '未知商品',
+                code: item.product.code || ''
+              }
+            };
+          }
+          
+          return item;
+        });
+        
+        setSale({
+          ...saleData,
+          items: validatedItems
+        });
+        setError(null);
+      } else {
+        throw new Error('API 回應格式不正確');
+      }
     } catch (err: any) {
       console.error('獲取銷售數據失敗:', err);
-      const errorMsg = '獲取銷售數據失敗: ' + (err.response?.data?.msg ?? err.message);
+      let errorMsg = '獲取銷售數據失敗';
+      
+      if (err.response?.data?.message) {
+        errorMsg += ': ' + err.response.data.message;
+      } else if (err.message) {
+        errorMsg += ': ' + err.message;
+      }
+      
       setError(errorMsg);
+      setSale(null);
     } finally {
       setLoading(false);
     }
@@ -413,13 +475,35 @@ const SalesDetailPage: FC = () => {
   const fetchFifoData = async (): Promise<void> => {
     try {
       setFifoLoading(true);
-      const response = await axios.get<FifoData>(`/api/fifo/sale/${id}`);
-      setFifoData(response.data);
+      
+      const response = await axios.get<ApiResponse<FifoData> | FifoData>(`/api/fifo/sale/${id}`);
+      
+      // 檢查是否為包裝的 API 回應格式
+      if (response.data && 'success' in response.data && 'data' in response.data) {
+        const apiResponse = response.data as ApiResponse<FifoData>;
+        if (apiResponse.success && apiResponse.data) {
+          setFifoData(apiResponse.data);
+        } else {
+          throw new Error('FIFO API 回應格式不正確');
+        }
+      } else {
+        // 直接的 FifoData 格式
+        setFifoData(response.data as FifoData);
+      }
+      
       setFifoError(null);
     } catch (err: any) {
       console.error('獲取FIFO毛利數據失敗:', err);
-      const errorMsg = '獲取FIFO毛利數據失敗: ' + (err.response?.data?.msg ?? err.message);
+      let errorMsg = '獲取FIFO毛利數據失敗';
+      
+      if (err.response?.data?.message) {
+        errorMsg += ': ' + err.response.data.message;
+      } else if (err.message) {
+        errorMsg += ': ' + err.message;
+      }
+      
       setFifoError(errorMsg);
+      setFifoData(null);
     } finally {
       setFifoLoading(false);
     }
