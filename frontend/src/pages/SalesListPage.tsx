@@ -249,20 +249,24 @@ const SalesListPage: FC = () => {
     setSearchTerm(e.target.value);
   };
 
+  // 先把搜尋字串正規化（可重複使用）
+  const keyword = searchTerm.trim().toLowerCase();
+
   // 過濾銷售數據
-  const filteredSales = sales.filter(sale => {
-    const searchTermLower = searchTerm.toLowerCase();
-    const customerName = sale.customer?.name ?? '';
-    const productNames = sale.items.map(item => item.product?.name ?? '').join(' ');
-    const saleId = sale._id ?? '';
-    const saleNumber = sale.saleNumber ?? '';
-    const saleDate = sale.date ? format(new Date(sale.date), 'yyyy-MM-dd') : '';
-    
-    return customerName.toLowerCase().includes(searchTermLower) ||
-           productNames.toLowerCase().includes(searchTermLower) ||
-           saleId.toLowerCase().includes(searchTermLower) ||
-           saleNumber.toLowerCase().includes(searchTermLower) ||
-           saleDate.includes(searchTermLower);
+  const filteredSales = sales.filter(({ customer, items, _id, saleNumber, date }) => {
+  /** 將所有可搜尋欄位收成陣列；如需擴充只要再 push 欄位即可 */
+  const searchableFields: (string | undefined | null)[] = [
+    customer?.name,
+    items.map(item => item.product?.name).join(' '),
+    _id,
+    saleNumber,
+    date ? format(new Date(date), 'yyyy-MM-dd') : ''
+  ];
+
+  // `some()` 只要任一欄位命中就回傳 true
+  return searchableFields.some(field =>
+    (field ?? '').toLowerCase().includes(keyword)
+  );
   });
 
   // 處理刪除銷售記錄
