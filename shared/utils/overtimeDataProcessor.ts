@@ -330,7 +330,7 @@ const processScheduleOvertimeData = (
       const scheduleHours = scheduleStats.overtimeHours - group.independentHours;
       group.scheduleHours = scheduleHours > 0 ? scheduleHours : 0;
       group.totalHours = scheduleStats.overtimeHours;
-      group.scheduleRecordCount = scheduleStats.scheduleRecordCount || 0;
+      group.scheduleRecordCount = scheduleStats.scheduleRecordCount ?? 0;
     }
   });
 };

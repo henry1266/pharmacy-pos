@@ -346,7 +346,7 @@ const SalesPage: FC = () => {
           <Box sx={{ mt: 3 }}>
             <ShortcutButtonManager 
               onShortcutSelect={handleShortcutSelect} 
-              allProducts={products || []} // Ensure products is an array
+              allProducts={products ?? []} // Ensure products is an array
               isTestMode={isTestMode}
             />
           </Box>

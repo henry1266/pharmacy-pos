@@ -180,13 +180,13 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       const formattedRows = filtered.map(po => ({
         id: po._id,
         _id: po._id,
-        poid: (po as any).poid || po.orderNumber || '',
-        pobill: (po as any).pobill || '',
-        pobilldate: (po as any).pobilldate || po.orderDate || '',
-        posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name || '',
-        totalAmount: po.totalAmount || 0,
-        status: po.status || '',
-        paymentStatus: (po as any).paymentStatus || ''
+        poid: (po as any).poid ?? po.orderNumber ?? '',
+        pobill: (po as any).pobill ?? '',
+        pobilldate: (po as any).pobilldate ?? po.orderDate ?? '',
+        posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
+        totalAmount: po.totalAmount ?? 0,
+        status: po.status ?? '',
+        paymentStatus: (po as any).paymentStatus ?? ''
       }));
       setFilteredRows(formattedRows);
     } else {

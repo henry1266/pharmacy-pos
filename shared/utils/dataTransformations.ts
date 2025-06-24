@@ -127,8 +127,8 @@ export const transformSalesForCategory = (salesData: SaleRecord[]): CategorySale
         }
         
         // 計算項目總額，優先使用 sellingPrice，其次使用 price
-        const price = item.sellingPrice || item.price || 0;
-        const quantity = item.quantity || 0;
+        const price = item.sellingPrice ?? item.price ?? 0;
+        const quantity = item.quantity ?? 0;
         const itemTotal = (typeof quantity === 'number' && typeof price === 'number')
                          ? quantity * price
                          : 0;

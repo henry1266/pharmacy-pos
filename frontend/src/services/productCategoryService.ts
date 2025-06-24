@@ -60,7 +60,7 @@ export const deleteProductCategory = async (id: string): Promise<{ success: bool
     const res = await axios.delete(`/api/product-categories/${id}`);
     // 處理可能的 ApiResponse 格式
     if (res.data && typeof res.data === 'object' && 'data' in res.data) {
-      return res.data.data || { success: true };
+      return res.data.data ?? { success: true };
     }
     return res.data ?? { success: true };
   } catch (err: any) {

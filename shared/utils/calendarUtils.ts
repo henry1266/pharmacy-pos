@@ -58,7 +58,7 @@ interface Employee {
  * @returns {string} 員工姓名縮寫
  */
 export const getEmployeeAbbreviation = (employee?: Employee | null): string => {
-  return employee?.name?.charAt(employee?.name?.length - 1) || '';
+  return employee?.name?.charAt(employee?.name?.length - 1) ?? '';
 };
 
 /**
