@@ -18,7 +18,7 @@ module.exports = {
       };
 
       // 配置 TypeScript 和 JavaScript 檔案的處理
-      const tsRule = webpackConfig.module.rules.find(rule => 
+      const tsRule = webpackConfig.module.rules.find(rule =>
         rule.test && rule.test.toString().includes('tsx')
       );
       
@@ -30,6 +30,32 @@ module.exports = {
           path.resolve(__dirname, '../shared')
         ];
       }
+
+      // 添加 Babel loader 來處理 shared 目錄中的 TypeScript 文件
+      webpackConfig.module.rules.push({
+        test: /\.(ts|tsx)$/,
+        include: [
+          path.resolve(__dirname, '../shared')
+        ],
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                ['@babel/preset-env', {
+                  targets: {
+                    browsers: ['last 2 versions', 'ie >= 11']
+                  }
+                }],
+                ['@babel/preset-react', {
+                  runtime: 'automatic'
+                }],
+                '@babel/preset-typescript'
+              ]
+            }
+          }
+        ]
+      });
 
       // 添加對混合 JS/TS 專案的支援
       webpackConfig.module.rules.push({
