@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '../hooks/redux';
 import axios from 'axios'; // Added import
@@ -26,7 +26,8 @@ import {
   Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ReceiptLong as ReceiptLongIcon,
-  Print as PrintIcon
+  Print as PrintIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { format, isValid } from 'date-fns'; // Import isValid
 import { zhTW } from 'date-fns/locale';
@@ -209,6 +210,7 @@ const NoDataContent: React.FC<NoDataContentProps> = ({ orderLoading, currentShip
 
 const ShippingOrderDetailPage: React.FC = () => {
   const { id } = useParams<RouteParams>();
+  const navigate = useNavigate();
   // 使用更通用的 dispatch 類型
   const dispatch = useAppDispatch();
 
@@ -524,6 +526,33 @@ const ShippingOrderDetailPage: React.FC = () => {
     }
   };
 
+  // 處理編輯按鈕點擊事件
+  const handleEditClick = () => {
+    if (id) {
+      navigate(`/shipping-orders/edit/${id}`);
+    }
+  };
+
+  // 自定義編輯按鈕
+  const editButton = (() => {
+    // 提取複雜的禁用狀態邏輯為獨立變數
+    const isEditButtonDisabled = !!(currentShippingOrder ?? false) === false || !!(orderLoading ?? false);
+    
+    return (
+      <Button
+        key="edit"
+        variant="contained"
+        color="primary"
+        size="small"
+        startIcon={<EditIcon />}
+        onClick={handleEditClick}
+        disabled={isEditButtonDisabled}
+      >
+        編輯
+      </Button>
+    );
+  })();
+
   // 自定義列印按鈕
   const printButton = (() => {
     // 提取複雜的禁用狀態邏輯為獨立變數
@@ -556,7 +585,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       sidebarContent={sidebarContent}
       isLoading={orderLoading}
       errorContent={orderError ? <Typography color="error" variant="h6">載入出貨單時發生錯誤: {orderError}</Typography> : null}
-      additionalActions={[printButton]}
+      additionalActions={[editButton, printButton]}
     />
   );
 };

@@ -523,14 +523,24 @@ router.put('/:id', async (req: Request, res: Response) => {
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
     if (!shippingOrder) {
-      res.status(404).json({ msg: '找不到該出貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到該出貨單',
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
       return;
     }
 
     // 處理出貨單號變更
     const orderNumberResult = await handleOrderNumberChange(soid, shippingOrder.soid, req.params.id);
     if (orderNumberResult.error) {
-      res.status(400).json({ msg: orderNumberResult.error });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: orderNumberResult.error,
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
       return;
     }
 
@@ -538,8 +548,13 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (items && items.length > 0) {
       const itemsValidation = await validateOrderItems(items);
       if (!itemsValidation.valid) {
-        res.status(400).json({ msg: itemsValidation.message });
-      return;
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: itemsValidation.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+          timestamp: new Date()
+        };
+        res.status(400).json(errorResponse);
+        return;
       }
     }
 
@@ -575,14 +590,31 @@ router.put('/:id', async (req: Request, res: Response) => {
       await createShippingInventoryRecords(shippingOrder);
     }
 
-    res.json(shippingOrder);
+    const response: ApiResponse<any> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.UPDATED,
+      data: shippingOrder,
+      timestamp: new Date()
+    };
+
+    res.json(response);
   } catch (err) {
     console.error('更新出貨單錯誤:', (err as Error).message);
     if (err instanceof Error && err.name === 'CastError') {
-      res.status(404).json({ msg: '找不到該出貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到該出貨單',
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
       return;
     }
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -593,7 +625,12 @@ router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const shippingOrder = await ShippingOrder.findById(req.params.id);
     if (!shippingOrder) {
-      res.status(404).json({ msg: '找不到該出貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到該出貨單',
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
       return;
     }
 
@@ -607,10 +644,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
   } catch (err) {
     console.error((err as Error).message);
     if (err instanceof Error && err.name === 'CastError') {
-      res.status(404).json({ msg: '找不到該出貨單' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到該出貨單',
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
       return;
     }
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -637,10 +684,22 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
       });
     }
     
-    res.json(shippingOrders);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: shippingOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -679,10 +738,22 @@ router.get('/search/query', async (req: Request, res: Response) => {
       });
     }
     
-    res.json(shippingOrders);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: shippingOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -693,7 +764,12 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
     // 安全處理：驗證和清理productId
     if (!req.params.productId || typeof req.params.productId !== 'string') {
-      res.status(400).json({ msg: '無效的產品ID' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的產品ID',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
       return;
     }
     
@@ -731,10 +807,22 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
       });
     }
     
-    res.json(shippingOrders);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: shippingOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -762,10 +850,22 @@ router.get('/recent/list', async (req: Request, res: Response) => {
       });
     }
     
-    res.json(shippingOrders);
+    const response: ApiResponse<any[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: shippingOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -815,7 +915,12 @@ async function deleteShippingInventoryRecords(shippingOrderId?: Types.ObjectId):
 router.post('/import/basic', upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      res.status(400).json({ msg: '請上傳CSV文件' });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '請上傳CSV文件',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
       return;
     }
 
@@ -884,7 +989,12 @@ router.post('/import/basic', upload.single('file'), async (req: Request, res: Re
       });
   } catch (err) {
     console.error('CSV導入錯誤:', (err as Error).message);
-    res.status(500).json({ msg: '伺服器錯誤' });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 

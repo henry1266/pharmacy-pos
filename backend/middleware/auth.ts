@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import { Request, Response, NextFunction } from 'express';
+import { ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 擴展 Request 介面以包含用戶資訊
 interface AuthenticatedRequest extends Request {
@@ -18,7 +20,12 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
   // 檢查是否有 token
   if (!token) {
     console.log("No token provided in request");
-    res.status(401).json({ msg: "沒有權限，請先登入" });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: "沒有權限，請先登入",
+      timestamp: new Date()
+    };
+    res.status(401).json(errorResponse);
     return;
   }
 
@@ -32,7 +39,12 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
     
     if (!decoded.user?.id) {
       console.error("Token payload missing user ID");
-      res.status(401).json({ msg: "Token 格式無效" });
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: "Token 格式無效",
+        timestamp: new Date()
+      };
+      res.status(401).json(errorResponse);
       return;
     }
 
@@ -42,7 +54,12 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
   } catch (err) {
     console.error("Token 驗證失敗:", (err as Error).message);
     console.error("Token verification error details:", err);
-    res.status(401).json({ msg: "Token 無效或已過期" });
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: "Token 無效或已過期",
+      timestamp: new Date()
+    };
+    res.status(401).json(errorResponse);
   }
 };
 

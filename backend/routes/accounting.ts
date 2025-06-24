@@ -469,7 +469,12 @@ router.post(
       res.json(accounting);
     } catch (err) {
       console.error('新增記帳記錄失敗:', (err as Error).message);
-      res.status(500).send('伺服器錯誤');
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        timestamp: new Date()
+      };
+      res.status(500).json(errorResponse);
     }
   }
 );
@@ -623,7 +628,12 @@ router.put(
       res.json(accounting);
     } catch (err) {
       console.error('更新記帳記錄失敗:', (err as Error).message);
-      res.status(500).send('伺服器錯誤');
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        timestamp: new Date()
+      };
+      res.status(500).json(errorResponse);
     }
   }
 );
@@ -664,7 +674,12 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
     res.json({ msg: '記帳記錄已刪除，相關銷售記錄已取消連結' });
   } catch (err) {
     console.error('刪除記帳記錄失敗:', (err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 

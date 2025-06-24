@@ -489,7 +489,12 @@ const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
     return;
   }
   
-  res.status(500).send('伺服器錯誤');
+  const errorResponse: ErrorResponse = {
+    success: false,
+    message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+    timestamp: new Date()
+  };
+  res.status(500).json(errorResponse);
 };
 
 // @route   PUT api/purchase-orders/:id
@@ -594,7 +599,12 @@ router.delete('/:id', async (req: Request, res: Response) => {
       res.status(404).json({ msg: '找不到該進貨單' });
       return;
     }
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -617,7 +627,12 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
     res.json(purchaseOrders);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -652,7 +667,12 @@ router.get('/search/query', async (req: Request, res: Response) => {
     res.json(purchaseOrders);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -678,7 +698,12 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
     res.json(purchaseOrders);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -696,7 +721,12 @@ router.get('/recent/list', async (req: Request, res: Response) => {
     res.json(purchaseOrders);
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
   }
 });
 

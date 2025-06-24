@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import User from '../models/User';
 import Employee from '../models/Employee';
 import { Response } from 'express';
+import { ErrorResponse } from '@pharmacy-pos/shared/types/api';
+import { ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 /**
  * 員工帳號相關驗證工具函數
@@ -130,7 +132,12 @@ const handleError = (res: Response, error: Error, statusCode: number = 500): Res
   console.error(error.message);
   
   if (statusCode === 500) {
-    return res.status(500).send('伺服器錯誤');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    return res.status(500).json(errorResponse);
   }
   
   return res.status(statusCode).json({ msg: error.message });
