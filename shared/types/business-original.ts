@@ -1,47 +1,8 @@
 /**
- * 業務邏輯相關型別定義 - 重構版本
+ * 業務邏輯相關型別定義
  */
 
-// ===== 基礎共用型別 =====
-
-/** 基礎結果型別 */
-export interface BaseResult {
-  success: boolean;
-  message: string;
-}
-
-/** 基礎時間戳記型別 */
-export interface BaseTimestamps {
-  createdAt: Date;
-  updatedAt?: Date;
-}
-
-/** 基礎實體型別 */
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  updatedAt?: Date;
-}
-
-/** 基礎狀態型別 */
-export type BaseStatus = 'active' | 'inactive' | 'pending' | 'completed' | 'cancelled' | 'failed';
-
-/** 基礎處理狀態型別 */
-export type ProcessStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed';
-
-/** 基礎嚴重程度型別 */
-export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
-
-/** 基礎錯誤型別 */
-export interface BaseError {
-  field?: string;
-  value?: any;
-  error: string;
-  severity: 'error' | 'warning';
-}
-
-// ===== 訂單號生成器相關型別 =====
-
+// 訂單號生成器相關型別
 export interface OrderNumberOptions {
   prefix?: string;
   suffix?: string;
@@ -55,18 +16,14 @@ export interface GeneratorConfig {
   options: OrderNumberOptions;
 }
 
-export interface OrderNumberResult extends BaseResult {
-  data?: {
-    orderNumber: string;
-    sequence: number;
-    generatedAt: Date;
-  };
-  errors?: string[];
+export interface OrderNumberResult {
+  orderNumber: string;
+  sequence: number;
+  generatedAt: Date;
 }
 
-// ===== FIFO 計算相關型別 =====
-
-export interface InventoryBatch extends BaseEntity {
+// FIFO 計算相關型別
+export interface InventoryBatch {
   batchId: string;
   quantity: number;
   unitCost: number;
@@ -76,7 +33,17 @@ export interface InventoryBatch extends BaseEntity {
   referenceId?: string;
 }
 
-export interface InventoryMovement extends BaseEntity {
+export interface FIFOCalculation {
+  productId: string;
+  totalQuantity: number;
+  totalCost: number;
+  averageCost: number;
+  batches: InventoryBatch[];
+  movements: InventoryMovement[];
+  calculatedAt: Date;
+}
+
+export interface InventoryMovement {
   movementId: string;
   type: 'in' | 'out' | 'adjustment';
   quantity: number;
@@ -94,45 +61,30 @@ export interface InventoryMovement extends BaseEntity {
   }>;
 }
 
-export interface FIFOCalculation {
+export interface FIFOResult {
+  success: boolean;
   productId: string;
-  totalQuantity: number;
+  requestedQuantity: number;
+  availableQuantity: number;
+  allocatedQuantity: number;
   totalCost: number;
   averageCost: number;
-  batches: InventoryBatch[];
-  movements: InventoryMovement[];
+  batchesUsed: Array<{
+    batchId: string;
+    quantityUsed: number;
+    unitCost: number;
+    totalCost: number;
+  }>;
+  remainingBatches: InventoryBatch[];
   calculatedAt: Date;
 }
 
-export interface FIFOResult extends BaseResult {
-  data?: {
-    productId: string;
-    requestedQuantity: number;
-    availableQuantity: number;
-    allocatedQuantity: number;
-    totalCost: number;
-    averageCost: number;
-    batchesUsed: Array<{
-      batchId: string;
-      quantityUsed: number;
-      unitCost: number;
-      totalCost: number;
-    }>;
-    remainingBatches: InventoryBatch[];
-    calculatedAt: Date;
-  };
-  errors?: string[];
-}
-
-// ===== 員工帳號服務相關型別 =====
-
-export type EmployeeRole = 'employee' | 'supervisor' | 'manager';
-
-export interface EmployeeAccountData extends BaseEntity {
+// 員工帳號服務相關型別
+export interface EmployeeAccountData {
   employeeId: string;
   username: string;
   email?: string;
-  role: EmployeeRole;
+  role: 'employee' | 'supervisor' | 'manager';
   permissions: string[];
   isActive: boolean;
   temporaryPassword?: string;
@@ -142,7 +94,7 @@ export interface EmployeeAccountData extends BaseEntity {
 export interface AccountUpdateData {
   username?: string;
   email?: string;
-  role?: EmployeeRole;
+  role?: 'employee' | 'supervisor' | 'manager';
   permissions?: string[];
   isActive?: boolean;
   password?: string;
@@ -154,7 +106,9 @@ export interface EmployeeAccountValidation {
   warnings?: string[];
 }
 
-export interface AccountCreationResult extends BaseResult {
+export interface AccountCreationResult {
+  success: boolean;
+  message: string;
   data?: {
     userId: string;
     username: string;
@@ -164,8 +118,7 @@ export interface AccountCreationResult extends BaseResult {
   errors?: string[];
 }
 
-// ===== CSV 匯入相關型別 =====
-
+// CSV 匯入相關型別
 export interface ImportOptions {
   skipHeader?: boolean;
   delimiter?: string;
@@ -174,12 +127,18 @@ export interface ImportOptions {
   validateOnly?: boolean;
 }
 
-export interface ImportError extends BaseError {
+export interface ImportError {
   row: number;
   column?: string;
+  field?: string;
+  value?: any;
+  error: string;
+  severity: 'error' | 'warning';
 }
 
-export interface ImportResult<T = any> extends BaseResult {
+export interface ImportResult<T = any> {
+  success: boolean;
+  message: string;
   totalRows: number;
   processedRows: number;
   successRows: number;
@@ -208,8 +167,7 @@ export interface ImportMapping {
   validate?: (value: any) => boolean | string;
 }
 
-// ===== 價格計算相關型別 =====
-
+// 價格計算相關型別
 export interface PriceCalculation {
   basePrice: number;
   discountAmount?: number;
@@ -242,19 +200,17 @@ export interface PricingResult {
   appliedRules?: string[];
 }
 
-// ===== 庫存警報相關型別 =====
-
-export type AlertType = 'low_stock' | 'out_of_stock' | 'expiry_warning' | 'overstock';
-
-export interface StockAlert extends BaseTimestamps {
+// 庫存警報相關型別
+export interface StockAlert {
   productId: string;
   productCode: string;
   productName: string;
   currentStock: number;
   minStock: number;
-  alertType: AlertType;
-  severity: SeverityLevel;
+  alertType: 'low_stock' | 'out_of_stock' | 'expiry_warning' | 'overstock';
+  severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
+  createdAt: Date;
   acknowledged?: boolean;
   acknowledgedBy?: string;
   acknowledgedAt?: Date;
@@ -269,8 +225,7 @@ export interface AlertConfiguration {
   alertRecipients: string[];
 }
 
-// ===== 報表生成相關型別 =====
-
+// 報表生成相關型別
 export interface ReportFilter {
   startDate?: Date;
   endDate?: Date;
@@ -326,14 +281,13 @@ export interface ReportData {
   };
 }
 
-// ===== 工作流程相關型別 =====
-
-export interface WorkflowStep extends BaseEntity {
+// 工作流程相關型別
+export interface WorkflowStep {
   stepId: string;
   name: string;
   description?: string;
   assignedTo?: string;
-  status: ProcessStatus;
+  status: 'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed';
   startedAt?: Date;
   completedAt?: Date;
   notes?: string;
@@ -341,72 +295,61 @@ export interface WorkflowStep extends BaseEntity {
   validationRules?: any[];
 }
 
-export type WorkflowType = 'purchase_order' | 'sale_order' | 'inventory_adjustment' | 'employee_onboarding';
-
-export interface WorkflowInstance extends BaseTimestamps {
+export interface WorkflowInstance {
   workflowId: string;
   instanceId: string;
-  type: WorkflowType;
+  type: 'purchase_order' | 'sale_order' | 'inventory_adjustment' | 'employee_onboarding';
   referenceId: string;
-  status: BaseStatus;
+  status: 'active' | 'completed' | 'cancelled' | 'failed';
   currentStep: number;
   steps: WorkflowStep[];
   createdBy: string;
+  createdAt: Date;
   completedAt?: Date;
   metadata?: any;
 }
 
-// ===== 系統配置相關型別 =====
-
-export interface CompanyInfo {
-  name: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  taxId?: string;
-  logo?: string;
-}
-
-export interface BusinessSettings {
-  currency: string;
-  timezone: string;
-  dateFormat: string;
-  numberFormat: string;
-  fiscalYearStart: string;
-}
-
-export interface InventorySettings {
-  defaultCostMethod: 'fifo' | 'lifo' | 'average';
-  autoReorderEnabled: boolean;
-  lowStockAlertEnabled: boolean;
-  expiryAlertEnabled: boolean;
-}
-
-export interface SalesSettings {
-  allowNegativeInventory: boolean;
-  requireCustomerForSale: boolean;
-  defaultPaymentMethod: string;
-  taxRate?: number;
-}
-
-export interface SecuritySettings {
-  passwordMinLength: number;
-  passwordRequireSpecialChars: boolean;
-  sessionTimeout: number;
-  maxLoginAttempts: number;
-  lockoutDuration: number;
-}
-
+// 系統配置相關型別
 export interface SystemConfiguration {
-  companyInfo: CompanyInfo;
-  businessSettings: BusinessSettings;
-  inventorySettings: InventorySettings;
-  salesSettings: SalesSettings;
-  securitySettings: SecuritySettings;
+  companyInfo: {
+    name: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    taxId?: string;
+    logo?: string;
+  };
+  businessSettings: {
+    currency: string;
+    timezone: string;
+    dateFormat: string;
+    numberFormat: string;
+    fiscalYearStart: string;
+  };
+  inventorySettings: {
+    defaultCostMethod: 'fifo' | 'lifo' | 'average';
+    autoReorderEnabled: boolean;
+    lowStockAlertEnabled: boolean;
+    expiryAlertEnabled: boolean;
+  };
+  salesSettings: {
+    allowNegativeInventory: boolean;
+    requireCustomerForSale: boolean;
+    defaultPaymentMethod: string;
+    taxRate?: number;
+  };
+  securitySettings: {
+    passwordMinLength: number;
+    passwordRequireSpecialChars: boolean;
+    sessionTimeout: number;
+    maxLoginAttempts: number;
+    lockoutDuration: number;
+  };
 }
 
-export interface ConfigurationUpdate extends BaseTimestamps {
+export interface ConfigurationUpdate {
   section: keyof SystemConfiguration;
   updates: Partial<SystemConfiguration[keyof SystemConfiguration]>;
   updatedBy: string;
+  updatedAt: Date;
 }

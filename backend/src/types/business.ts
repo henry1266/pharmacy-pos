@@ -1,27 +1,61 @@
 import { Types } from 'mongoose';
+import {
+  // 從 shared 匯入基礎型別
+  BaseResult,
+  BaseTimestamps,
+  BaseEntity,
+  OrderNumberOptions,
+  GeneratorConfig,
+  EmployeeRole,
+  EmployeeAccountData as SharedEmployeeAccountData,
+  AccountUpdateData as SharedAccountUpdateData,
+  EmployeeAccountValidation,
+  ImportOptions,
+  ImportError as SharedImportError,
+  ImportResult as SharedImportResult,
+  CSVRowData,
+  ImportMapping,
+  PriceCalculation,
+  BulkPriceRule,
+  StockAlert as SharedStockAlert,
+  AlertConfiguration,
+  ReportColumn,
+  ReportConfiguration,
+  ReportData as SharedReportData,
+  WorkflowStep as SharedWorkflowStep,
+  WorkflowInstance as SharedWorkflowInstance,
+  WorkflowType,
+  CompanyInfo,
+  BusinessSettings,
+  InventorySettings,
+  SalesSettings,
+  SecuritySettings,
+  SystemConfiguration as SharedSystemConfiguration,
+  ConfigurationUpdate as SharedConfigurationUpdate,
+  AlertType,
+  ProcessStatus,
+  BaseStatus,
+  SeverityLevel
+} from '@pharmacy-pos/shared/types/business';
 
-// 訂單號生成器相關型別
-export interface OrderNumberOptions {
-  prefix?: string;
-  suffix?: string;
-  dateFormat?: string;
-  sequenceLength?: number;
-  resetPeriod?: 'daily' | 'monthly' | 'yearly' | 'never';
+/**
+ * MongoDB 特定的業務型別定義
+ * 繼承 shared 型別並加入 MongoDB ObjectId 支援
+ */
+
+// ===== 訂單號生成器相關型別 (MongoDB 版本) =====
+
+export interface OrderNumberResult extends BaseResult {
+  data?: {
+    orderNumber: string;
+    sequence: number;
+    generatedAt: Date;
+  };
 }
 
-export interface GeneratorConfig {
-  type: 'sale' | 'purchase' | 'shipping' | 'accounting';
-  options: OrderNumberOptions;
-}
+// ===== FIFO 計算相關型別 (MongoDB 版本) =====
 
-export interface OrderNumberResult {
-  orderNumber: string;
-  sequence: number;
-  generatedAt: Date;
-}
-
-// FIFO 計算相關型別
-export interface InventoryBatch {
+export interface InventoryBatch extends BaseEntity {
   batchId: string;
   quantity: number;
   unitCost: number;
@@ -31,17 +65,7 @@ export interface InventoryBatch {
   referenceId?: Types.ObjectId;
 }
 
-export interface FIFOCalculation {
-  productId: Types.ObjectId;
-  totalQuantity: number;
-  totalCost: number;
-  averageCost: number;
-  batches: InventoryBatch[];
-  movements: InventoryMovement[];
-  calculatedAt: Date;
-}
-
-export interface InventoryMovement {
+export interface InventoryMovement extends BaseEntity {
   movementId: string;
   type: 'in' | 'out' | 'adjustment';
   quantity: number;
@@ -59,130 +83,65 @@ export interface InventoryMovement {
   }>;
 }
 
-export interface FIFOResult {
-  success: boolean;
+export interface FIFOCalculation {
   productId: Types.ObjectId;
-  requestedQuantity: number;
-  availableQuantity: number;
-  allocatedQuantity: number;
+  totalQuantity: number;
   totalCost: number;
   averageCost: number;
-  batchesUsed: Array<{
-    batchId: string;
-    quantityUsed: number;
-    unitCost: number;
-    totalCost: number;
-  }>;
-  remainingBatches: InventoryBatch[];
+  batches: InventoryBatch[];
+  movements: InventoryMovement[];
   calculatedAt: Date;
 }
 
-// 員工帳號服務相關型別
-export interface EmployeeAccountData {
-  employeeId: string;
-  username: string;
-  email?: string;
-  role: 'employee' | 'supervisor' | 'manager';
-  permissions: string[];
-  isActive: boolean;
-  temporaryPassword?: string;
-  mustChangePassword?: boolean;
+export interface FIFOResult extends BaseResult {
+  data?: {
+    productId: Types.ObjectId;
+    requestedQuantity: number;
+    availableQuantity: number;
+    allocatedQuantity: number;
+    totalCost: number;
+    averageCost: number;
+    batchesUsed: Array<{
+      batchId: string;
+      quantityUsed: number;
+      unitCost: number;
+      totalCost: number;
+    }>;
+    remainingBatches: InventoryBatch[];
+    calculatedAt: Date;
+  };
 }
 
-export interface AccountUpdateData {
-  username?: string;
-  email?: string;
-  role?: 'employee' | 'supervisor' | 'manager';
-  permissions?: string[];
-  isActive?: boolean;
-  password?: string;
+// ===== 員工帳號服務相關型別 (MongoDB 版本) =====
+
+export interface EmployeeAccountData extends SharedEmployeeAccountData {
+  // 繼承 shared 版本，如需要可加入 MongoDB 特定欄位
 }
 
-export interface EmployeeAccountValidation {
-  isValid: boolean;
-  errors: string[];
-  warnings?: string[];
+export interface AccountUpdateData extends SharedAccountUpdateData {
+  // 繼承 shared 版本
 }
 
-export interface AccountCreationResult {
-  success: boolean;
-  message: string;
+export interface AccountCreationResult extends BaseResult {
   data?: {
     userId: string;
     username: string;
     temporaryPassword?: string;
     mustChangePassword: boolean;
   };
-  errors?: string[];
 }
 
-// CSV 匯入相關型別
-export interface ImportOptions {
-  skipHeader?: boolean;
-  delimiter?: string;
-  encoding?: 'utf8' | 'big5' | 'gb2312';
-  dateFormat?: string;
-  validateOnly?: boolean;
+// ===== CSV 匯入相關型別 (MongoDB 版本) =====
+
+export interface ImportError extends SharedImportError {
+  // 繼承 shared 版本
 }
 
-export interface ImportError {
-  row: number;
-  column?: string;
-  field?: string;
-  value?: any;
-  error: string;
-  severity: 'error' | 'warning';
+export interface ImportResult<T = any> extends SharedImportResult<T> {
+  // 繼承 shared 版本
 }
 
-export interface ImportResult<T = any> {
-  success: boolean;
-  message: string;
-  totalRows: number;
-  processedRows: number;
-  successRows: number;
-  errorRows: number;
-  warningRows: number;
-  data?: T[];
-  errors: ImportError[];
-  warnings?: ImportError[];
-  summary?: {
-    created: number;
-    updated: number;
-    skipped: number;
-  };
-  processedAt: Date;
-}
-
-export interface CSVRowData {
-  [key: string]: string | number | Date | boolean | null | undefined;
-}
-
-export interface ImportMapping {
-  csvColumn: string;
-  dbField: string;
-  required?: boolean;
-  transform?: (value: any) => any;
-  validate?: (value: any) => boolean | string;
-}
-
-// 價格計算相關型別
-export interface PriceCalculation {
-  basePrice: number;
-  discountAmount?: number;
-  discountPercentage?: number;
-  taxAmount?: number;
-  taxPercentage?: number;
-  finalPrice: number;
-  savings?: number;
-}
-
-export interface BulkPriceRule {
-  minQuantity: number;
-  maxQuantity?: number;
-  discountType: 'percentage' | 'fixed';
-  discountValue: number;
-  description?: string;
-}
+// ===== 價格計算相關型別 (MongoDB 版本) =====
 
 export interface PricingResult {
   productId: Types.ObjectId;
@@ -198,32 +157,24 @@ export interface PricingResult {
   appliedRules?: string[];
 }
 
-// 庫存警報相關型別
-export interface StockAlert {
+// ===== 庫存警報相關型別 (MongoDB 版本) =====
+
+export interface StockAlert extends BaseTimestamps {
   productId: Types.ObjectId;
   productCode: string;
   productName: string;
   currentStock: number;
   minStock: number;
-  alertType: 'low_stock' | 'out_of_stock' | 'expiry_warning' | 'overstock';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  alertType: AlertType;
+  severity: SeverityLevel;
   message: string;
-  createdAt: Date;
   acknowledged?: boolean;
   acknowledgedBy?: Types.ObjectId;
   acknowledgedAt?: Date;
 }
 
-export interface AlertConfiguration {
-  lowStockThreshold: number;
-  expiryWarningDays: number;
-  overstockThreshold?: number;
-  enableEmailAlerts: boolean;
-  enableSMSAlerts: boolean;
-  alertRecipients: string[];
-}
+// ===== 報表生成相關型別 (MongoDB 版本) =====
 
-// 報表生成相關型別
 export interface ReportFilter {
   startDate?: Date;
   endDate?: Date;
@@ -235,29 +186,6 @@ export interface ReportFilter {
   status?: string[];
   paymentMethods?: string[];
   [key: string]: any;
-}
-
-export interface ReportColumn {
-  key: string;
-  label: string;
-  type: 'string' | 'number' | 'date' | 'currency' | 'percentage';
-  format?: string;
-  width?: number;
-  align?: 'left' | 'center' | 'right';
-}
-
-export interface ReportConfiguration {
-  title: string;
-  description?: string;
-  columns: ReportColumn[];
-  filters: ReportFilter;
-  groupBy?: string[];
-  sortBy?: Array<{
-    field: string;
-    order: 'asc' | 'desc';
-  }>;
-  includeCharts?: boolean;
-  chartTypes?: string[];
 }
 
 export interface ReportData {
@@ -279,13 +207,14 @@ export interface ReportData {
   };
 }
 
-// 工作流程相關型別
-export interface WorkflowStep {
+// ===== 工作流程相關型別 (MongoDB 版本) =====
+
+export interface WorkflowStep extends BaseEntity {
   stepId: string;
   name: string;
   description?: string;
   assignedTo?: Types.ObjectId;
-  status: 'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed';
+  status: ProcessStatus;
   startedAt?: Date;
   completedAt?: Date;
   notes?: string;
@@ -293,61 +222,60 @@ export interface WorkflowStep {
   validationRules?: any[];
 }
 
-export interface WorkflowInstance {
+export interface WorkflowInstance extends BaseTimestamps {
   workflowId: string;
   instanceId: string;
-  type: 'purchase_order' | 'sale_order' | 'inventory_adjustment' | 'employee_onboarding';
+  type: WorkflowType;
   referenceId: Types.ObjectId;
-  status: 'active' | 'completed' | 'cancelled' | 'failed';
+  status: BaseStatus;
   currentStep: number;
   steps: WorkflowStep[];
   createdBy: Types.ObjectId;
-  createdAt: Date;
   completedAt?: Date;
   metadata?: any;
 }
 
-// 系統配置相關型別
-export interface SystemConfiguration {
-  companyInfo: {
-    name: string;
-    address?: string;
-    phone?: string;
-    email?: string;
-    taxId?: string;
-    logo?: string;
-  };
-  businessSettings: {
-    currency: string;
-    timezone: string;
-    dateFormat: string;
-    numberFormat: string;
-    fiscalYearStart: string;
-  };
-  inventorySettings: {
-    defaultCostMethod: 'fifo' | 'lifo' | 'average';
-    autoReorderEnabled: boolean;
-    lowStockAlertEnabled: boolean;
-    expiryAlertEnabled: boolean;
-  };
-  salesSettings: {
-    allowNegativeInventory: boolean;
-    requireCustomerForSale: boolean;
-    defaultPaymentMethod: string;
-    taxRate?: number;
-  };
-  securitySettings: {
-    passwordMinLength: number;
-    passwordRequireSpecialChars: boolean;
-    sessionTimeout: number;
-    maxLoginAttempts: number;
-    lockoutDuration: number;
-  };
+// ===== 系統配置相關型別 (MongoDB 版本) =====
+
+export interface SystemConfiguration extends SharedSystemConfiguration {
+  // 繼承 shared 版本
 }
 
-export interface ConfigurationUpdate {
+export interface ConfigurationUpdate extends BaseTimestamps {
   section: keyof SystemConfiguration;
   updates: Partial<SystemConfiguration[keyof SystemConfiguration]>;
   updatedBy: Types.ObjectId;
-  updatedAt: Date;
 }
+
+// ===== 重新匯出 shared 型別以保持向後相容性 =====
+
+export type {
+  // 基礎型別
+  BaseResult,
+  BaseTimestamps,
+  BaseEntity,
+  BaseStatus,
+  ProcessStatus,
+  SeverityLevel,
+  
+  // 直接使用 shared 版本的型別
+  OrderNumberOptions,
+  GeneratorConfig,
+  EmployeeRole,
+  EmployeeAccountValidation,
+  ImportOptions,
+  CSVRowData,
+  ImportMapping,
+  PriceCalculation,
+  BulkPriceRule,
+  AlertConfiguration,
+  ReportColumn,
+  ReportConfiguration,
+  WorkflowType,
+  CompanyInfo,
+  BusinessSettings,
+  InventorySettings,
+  SalesSettings,
+  SecuritySettings,
+  AlertType
+};
