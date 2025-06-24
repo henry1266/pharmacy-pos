@@ -40,8 +40,7 @@ import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage';
 
 import Overtime from './components/employees/Overtime';
 
-// Import the AdminRoute guard
-import AdminRoute from './components/common/AdminRoute';
+// AdminRoute guard removed - all routes are now accessible
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
@@ -58,11 +57,9 @@ const AppRouter: React.FC = () => {
       <Route path="/product-categories" element={<ProductCategoryPage />} />
       <Route path="/product-categories/:id" element={<CategoryDetailPage />} />
       
-      {/* Supplier Routes - Protected by AdminRoute */}
-      <Route path="/suppliers" element={<AdminRoute />}>
-        <Route path="" element={<SuppliersPage />} />
-        <Route path=":id" element={<SupplierDetailPage />} /> {/* Add Supplier Detail Route */}
-      </Route>
+      {/* Supplier Routes */}
+      <Route path="/suppliers" element={<SuppliersPage />} />
+      <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
       
       {/* Customer Routes */}
       <Route path="/customers" element={<CustomersPage />} />
@@ -87,19 +84,15 @@ const AppRouter: React.FC = () => {
       <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}
       <Route path="/settings/ip" element={<SettingsIpPage />} /> {/* Add the new IP settings route */}
       <Route path="/settings/account" element={<AccountSettingsPage />} /> {/* Add the account settings route */}
-      <Route path="/settings/employee-accounts" element={<AdminRoute />}>
-        <Route path="" element={<EmployeeAccountsPage />} /> {/* Add the employee accounts management route */}
-      </Route>
+      <Route path="/settings/employee-accounts" element={<EmployeeAccountsPage />} />
       <Route path="/settings/monitored-products" element={<MonitoredProductsSettingsPage />} />
       
-      {/* Purchase Order routes - Protected by AdminRoute */}
-      <Route path="/purchase-orders" element={<AdminRoute />}>
-        <Route path="" element={<PurchaseOrdersPage />} />
-        <Route path="new" element={<PurchaseOrderFormPage />} />
-        <Route path="edit/:id" element={<PurchaseOrderEditPage />} />
-        <Route path="supplier/:id" element={<PurchaseOrdersSupplierFilterPage />} />
-        <Route path=":id" element={<PurchaseOrderDetailPage />} />
-      </Route>
+      {/* Purchase Order routes */}
+      <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
+      <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
+      <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderEditPage />} />
+      <Route path="/purchase-orders/supplier/:id" element={<PurchaseOrdersSupplierFilterPage />} />
+      <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
       
       {/* Shipping Order routes */}
       <Route path="/shipping-orders" element={<ShippingOrdersPage />} />
@@ -110,16 +103,11 @@ const AppRouter: React.FC = () => {
       {/* 員工排班頁面 - 所有已認證用戶可訪問 */}
       <Route path="/employees/scheduling" element={<EmployeeSchedulingPage />} />
       
-      {/* 其他員工管理路由 - 受 AdminRoute 保護 */}
-      <Route path="/employees" element={<AdminRoute />}>
-        {/* 員工列表頁面 */}
-        <Route path="" element={<EmployeeListPage />} />
-        {/* 員工基本資料頁面 - 新增與編輯 */}
-        <Route path="basic-info/new" element={<EmployeeBasicInfoPage />} />
-        <Route path="basic-info/:id" element={<EmployeeBasicInfoPage />} />
-        {/* 員工加班頁面 */}
-        <Route path="overtime" element={<Overtime />} />
-      </Route>
+      {/* 員工管理路由 */}
+      <Route path="/employees" element={<EmployeeListPage />} />
+      <Route path="/employees/basic-info/new" element={<EmployeeBasicInfoPage />} />
+      <Route path="/employees/basic-info/:id" element={<EmployeeBasicInfoPage />} />
+      <Route path="/employees/overtime" element={<Overtime />} />
       
       {/* Fallback for any unmatched route within the protected area */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
