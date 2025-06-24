@@ -37,7 +37,6 @@ import useAccountingFormData from '../hooks/useAccountingFormData';
 
 import type {
   AccountingCategory,
-  AccountingItem,
   UnaccountedSale
 } from '@pharmacy-pos/shared/types/accounting';
 
