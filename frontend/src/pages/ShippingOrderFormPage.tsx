@@ -146,12 +146,12 @@ const ShippingOrderFormPage: React.FC = () => {
       // 將從 Redux 來的資料設定到表單中
       setFormData({
         soid: (currentShippingOrder as any).soid ?? currentShippingOrder.orderNumber ?? '',
-        sosupplier: typeof (currentShippingOrder as any).customer === 'string'
-          ? (currentShippingOrder as any).customer
-          : (currentShippingOrder as any).customer?.name ?? '',
-        supplier: typeof (currentShippingOrder as any).customer === 'string'
-          ? (currentShippingOrder as any).customer
-          : (currentShippingOrder as any).customer?._id ?? '',
+        sosupplier: typeof (currentShippingOrder as any).supplier === 'string'
+          ? (currentShippingOrder as any).supplier
+          : (currentShippingOrder as any).supplier?.name ?? (currentShippingOrder as any).sosupplier ?? '',
+        supplier: typeof (currentShippingOrder as any).supplier === 'string'
+          ? (currentShippingOrder as any).supplier
+          : (currentShippingOrder as any).supplier?._id ?? '',
         items: (currentShippingOrder as any).items ?? [],
         notes: (currentShippingOrder as any).notes ?? '',
         status: (currentShippingOrder.status === 'shipped' || currentShippingOrder.status === 'delivered')
@@ -163,11 +163,11 @@ const ShippingOrderFormPage: React.FC = () => {
       });
       
       // 找到並設置當前選中的供應商物件，以正確顯示在 Autocomplete 中
-      const customerId = typeof (currentShippingOrder as any).customer === 'string'
-        ? (currentShippingOrder as any).customer
-        : (currentShippingOrder as any).customer?._id;
+      const supplierId = typeof (currentShippingOrder as any).supplier === 'string'
+        ? (currentShippingOrder as any).supplier
+        : (currentShippingOrder as any).supplier?._id;
         
-      const foundSupplier = suppliers.find(s => s._id === customerId);
+      const foundSupplier = suppliers.find(s => s._id === supplierId);
       if (foundSupplier) {
         setSelectedSupplier(foundSupplier);
       }
