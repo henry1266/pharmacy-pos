@@ -100,7 +100,7 @@ const useAccountingFormData = () => {
       const transformedData: UnaccountedSale[] = data.map(item => ({
         _id: item._id,
         saleNumber: item.saleNumber,
-        lastUpdated: item.lastUpdated || new Date().toISOString(),
+        lastUpdated: item.lastUpdated ?? new Date().toISOString(),
         product: {
           _id: item.product?._id,
           code: item.product?.code,

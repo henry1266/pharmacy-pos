@@ -261,7 +261,7 @@ const AccountingNewPage: React.FC = () => {
           </TableHead>
           <TableBody>
             {sortedSales.map((row) => (
-              <TableRow hover key={row._id || `${row.saleNumber}-${row.product?._id}`}>
+              <TableRow hover key={row._id ?? `${row.saleNumber}-${row.product?._id}`}>
                 <TableCell>{new Date(row.lastUpdated).toLocaleTimeString('zh-TW')}</TableCell>
                 <TableCell>{row.product?.code}</TableCell>
                 <TableCell>{row.product?.name}</TableCell>

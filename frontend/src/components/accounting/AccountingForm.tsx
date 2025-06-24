@@ -336,7 +336,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
         </TableHead>
         <TableBody>
           {sortedSales.map((sale) => (
-            <TableRow hover key={sale._id || `sale-${sale.saleNumber}-${sale.product?.code}`}>
+            <TableRow hover key={sale._id ?? `sale-${sale.saleNumber}-${sale.product?.code}`}>
               <TableCell>{format(new Date(sale.lastUpdated), 'HH:mm:ss')}</TableCell>
               <TableCell>{sale.product?.code ?? 'N/A'}</TableCell>
               <TableCell>{sale.product?.name ?? '未知產品'}</TableCell>

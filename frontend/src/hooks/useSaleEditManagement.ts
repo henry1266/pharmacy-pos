@@ -184,7 +184,7 @@ export const useSaleEditManagement = (
     }
 
     const saleData = {
-      customer: currentSale.customer || null,
+      customer: currentSale.customer ?? null,
       items: currentSale.items.map(item => ({
         product: item.product,
         quantity: item.quantity,
@@ -205,7 +205,7 @@ export const useSaleEditManagement = (
       setTimeout(() => navigate('/sales'), 1500);
     } catch (err: any) {
       console.error('更新銷售記錄失敗:', err);
-      setSnackbar({ open: true, message: `更新銷售記錄失敗: ${err.response?.data?.msg || err.message}`, severity: 'error' });
+      setSnackbar({ open: true, message: `更新銷售記錄失敗: ${err.response?.data?.msg ?? err.message}`, severity: 'error' });
     }
   }, [currentSale, saleId, navigate]);
 
