@@ -31,9 +31,9 @@ interface InventoryRecord {
   saleNumber?: string;
   purchaseOrderNumber?: string;
   shippingOrderNumber?: string;
-  saleId?: string | { $oid: string };
-  purchaseOrderId?: string | { $oid: string };
-  shippingOrderId?: string | { $oid: string };
+  saleId?: string | { $oid: string } | any;
+  purchaseOrderId?: string | { $oid: string } | any;
+  shippingOrderId?: string | { $oid: string } | any;
   product?: ExtendedProduct;
   type?: 'sale' | 'purchase' | 'ship';
   totalQuantity?: number;
@@ -271,12 +271,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
     if (!mongoId) return '';
     
     // 如果是MongoDB格式的對象ID，如 {"$oid": "67fcec39a20aed37bbb62981"}
-    if (typeof mongoId === 'object' && '$oid' in mongoId) {
+    if (typeof mongoId === 'object' && mongoId !== null && '$oid' in mongoId) {
       return mongoId.$oid;
     }
     
     // 如果是普通對象且有_id屬性
-    if (typeof mongoId === 'object' && '_id' in mongoId) {
+    if (typeof mongoId === 'object' && mongoId !== null && '_id' in mongoId) {
       // 如果_id本身是MongoDB格式的對象ID
       if (typeof mongoId._id === 'object' && mongoId._id !== null && '$oid' in mongoId._id) {
         return mongoId._id.$oid;
