@@ -225,7 +225,6 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
       try {
         const response = await employeeService.getEmployees({ limit: 1000 });
         allEmployees = response?.employees || [];
-        console.log(`獲取到 ${allEmployees.length} 名員工信息`);
       } catch (empErr: any) {
         console.error('獲取員工信息失敗:', empErr);
       }
@@ -247,10 +246,38 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
       params.startDate = formatDateToYYYYMMDD(startDate);
       params.endDate = formatDateToYYYYMMDD(endDate);
       
-      console.log(`[診斷] 查詢整年數據: startDate=${params.startDate}, endDate=${params.endDate}, 年份=${selectedYear}`);
-      
-      const records = await overtimeRecordService.getOvertimeRecords(params);
-      setOvertimeRecords(records);
+      // 直接使用 axios 調用 API，繞過 service 層可能的問題
+      let records: any[] = [];
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: { 'x-auth-token': token },
+          params
+        };
+        
+        const response = await axios.get('/api/overtime-records', config);
+        
+        if (response.data.success && Array.isArray(response.data.data)) {
+          records = response.data.data;
+          console.log(`✓ 成功獲取 ${records.length} 筆獨立加班記錄`);
+          
+          // 轉換數據格式，確保 employee 字段正確
+          records = records.map(record => ({
+            ...record,
+            employee: record.employeeId || record.employee
+          }));
+          
+        } else {
+          console.warn('API 響應格式異常:', response.data);
+          records = [];
+        }
+        
+        setOvertimeRecords(records);
+      } catch (recordsError) {
+        console.error('獲取獨立加班記錄失敗:', recordsError);
+        records = [];
+        setOvertimeRecords([]);
+      }
       
       // 初始化展開狀態 - 同時考慮獨立加班記錄和排班系統加班記錄
       const expandedState: ExpandedEmployees = {};
@@ -306,7 +333,12 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
         console.log(`API響應狀態: ${response.status}`);
         console.log(`API響應數據:`, response.data);
         
-        stats = response.data as OvertimeStat[];
+        // 檢查 API 響應格式
+        if (response.data.success && response.data.data) {
+          stats = response.data.data as OvertimeStat[];
+        } else {
+          throw new Error('獲取月度加班統計失敗');
+        }
         console.log(`獲取到月度加班統計:`, stats);
       } catch (statsError: any) {
         console.error('獲取月度加班統計失敗:', statsError);
@@ -351,10 +383,21 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
           const response = await axios.get(url, config);
           console.log(`API響應狀態: ${response.status}`);
           
+          // 檢查 API 響應格式
+          let responseData: any[];
+          if (response.data.success && response.data.data) {
+            responseData = response.data.data;
+          } else if (Array.isArray(response.data)) {
+            // 向後兼容舊格式
+            responseData = response.data;
+          } else {
+            throw new Error('獲取排班記錄失敗');
+          }
+          
           // 詳細記錄每條數據的結構
-          if (response.data && Array.isArray(response.data)) {
-            console.log(`獲取到排班記錄數量: ${response.data.length}`);
-            response.data.forEach((record, idx) => {
+          if (responseData && Array.isArray(responseData)) {
+            console.log(`獲取到排班記錄數量: ${responseData.length}`);
+            responseData.forEach((record, idx) => {
               console.log(`排班記錄 ${idx + 1}:`, record);
               if (record.employeeId) {
                 console.log(`  - employeeId類型: ${typeof record.employeeId}`);
@@ -368,7 +411,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
             });
           }
           
-          scheduleRecords = response.data as any[];
+          scheduleRecords = responseData;
         } catch (scheduleError: any) {
           console.error('獲取排班記錄失敗:', scheduleError);
           console.error('錯誤詳情:', scheduleError.response?.data ?? scheduleError.message);
@@ -897,16 +940,32 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                     console.log(`員工 ${employeeId} 的加班統計:`, scheduleStats);
                     
                     if (scheduleStats) {
-                      // 計算排班系統加班時數 (總時數 - 獨立加班時數)
-                      const scheduleHours = scheduleStats.overtimeHours - group.independentHours;
-                      group.scheduleHours = scheduleHours > 0 ? scheduleHours : 0;
-                      group.totalHours = scheduleStats.overtimeHours;
+                      // 使用統計數據中的總時數，但不覆蓋 hook 中已計算的獨立加班時數
+                      const totalFromStats = scheduleStats.overtimeHours;
+                      const scheduleHoursFromStats = totalFromStats - group.independentHours;
+                      
+                      // 如果統計數據中的排班時數與 hook 計算的不一致，使用統計數據
+                      if (scheduleHoursFromStats !== group.scheduleHours && scheduleHoursFromStats >= 0) {
+                        console.log(`員工 ${employeeId} 排班時數不一致: hook計算=${group.scheduleHours}, 統計數據=${scheduleHoursFromStats}`);
+                        group.scheduleHours = scheduleHoursFromStats;
+                      }
+                      
+                      // 重新計算總時數
+                      group.totalHours = group.independentHours + group.scheduleHours;
+                      
                       // 使用 scheduleRecords.length 代替 scheduleRecordCount
                       const scheduleRecordsCount = scheduleStats.scheduleRecordCount ?? 0;
                       // 添加一個臨時屬性來存儲排班記錄數量
                       (group as any).scheduleRecordCount = scheduleRecordsCount;
                     } else {
-                      console.log(`警告: 未找到員工 ${employeeId} 的加班統計數據`);
+                      // 如果沒有統計數據，使用 hook 中計算的數據
+                      console.log(`警告: 未找到員工 ${employeeId} 的加班統計數據，使用 hook 計算的數據`);
+                      console.log(`  - 獨立加班時數: ${group.independentHours}`);
+                      console.log(`  - 排班加班時數: ${group.scheduleHours}`);
+                      console.log(`  - 總時數: ${group.totalHours}`);
+                      
+                      // 確保總時數正確計算
+                      group.totalHours = group.independentHours + group.scheduleHours;
                     }
                     
                     return (
@@ -967,7 +1026,16 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                                   </TableHead>
                                   <TableBody>
                                     {(() => {
+                                      // 添加調試信息
+                                      console.log(`[調試] 員工 ${employeeId} (${group.employee.name}) 的數據:`);
+                                      console.log(`  - 獨立加班記錄數量: ${group.records.length}`);
+                                      console.log(`  - 獨立加班記錄:`, group.records);
+                                      console.log(`  - 排班加班記錄數量: ${group.scheduleRecords.length}`);
+                                      console.log(`  - 排班加班記錄:`, group.scheduleRecords);
+                                      
                                       const allRecords = generateMergedRecords(group, employeeId);
+                                      console.log(`  - 合併後記錄數量: ${allRecords.length}`);
+                                      console.log(`  - 合併後記錄:`, allRecords);
                                       
                                       if (allRecords.length === 0) {
                                         return (
@@ -975,6 +1043,10 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                                             <TableCell colSpan={isAdmin ? 6 : 5} align="center">
                                               <Typography color="textSecondary">
                                                 沒有找到加班記錄
+                                                <br />
+                                                <Typography variant="caption" color="error">
+                                                  調試: 獨立記錄 {group.records.length} 筆, 排班記錄 {group.scheduleRecords.length} 筆
+                                                </Typography>
                                               </Typography>
                                             </TableCell>
                                           </TableRow>

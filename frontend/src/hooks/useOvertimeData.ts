@@ -281,10 +281,26 @@ const useOvertimeData = (
           independentHours: 0,
           scheduleHours: 0,
           totalHours: 0,
-          scheduleRecords: [],
+          scheduleRecords: scheduleRecords || [],
           latestDate: new Date(0)
         };
+      } else {
+        // 如果員工組已存在，確保排班記錄被添加
+        initialGroups[empId].scheduleRecords = scheduleOvertimeRecords[empId] || [];
       }
+      
+      // 計算排班加班時數
+      const scheduleRecords = scheduleOvertimeRecords[empId] || [];
+      let scheduleHours = 0;
+      scheduleRecords.forEach(record => {
+        switch(record.shift) {
+          case 'morning': scheduleHours += 3.5; break;
+          case 'afternoon': scheduleHours += 3; break;
+          case 'evening': scheduleHours += 1.5; break;
+          default: scheduleHours += 0;
+        }
+      });
+      initialGroups[empId].scheduleHours = scheduleHours;
     });
   }, [scheduleOvertimeRecords, findEmployeeInfo, employees, summaryData, overtimeRecords, selectedMonth]);
 
@@ -309,6 +325,7 @@ const useOvertimeData = (
         return; // 跳過無效記錄
       }
       
+      // 如果該員工組不存在，創建新組
       if (!initialGroups[employeeId]) {
         initialGroups[employeeId] = {
           employee: employeeObj,
@@ -321,14 +338,20 @@ const useOvertimeData = (
         };
       }
       
+      // 添加獨立加班記錄到現有組或新組
       initialGroups[employeeId].records.push(record);
       initialGroups[employeeId].independentHours += record.hours;
-      initialGroups[employeeId].totalHours += record.hours;
       
       const recordDate = new Date(record.date);
       if (recordDate > initialGroups[employeeId].latestDate) {
         initialGroups[employeeId].latestDate = recordDate;
       }
+    });
+    
+    // 重新計算總時數（獨立 + 排班）
+    Object.keys(initialGroups).forEach(employeeId => {
+      const group = initialGroups[employeeId];
+      group.totalHours = group.independentHours + group.scheduleHours;
     });
   }, [overtimeRecords, employees]);
 

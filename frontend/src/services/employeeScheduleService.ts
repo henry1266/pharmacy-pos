@@ -1,6 +1,16 @@
 import axios from 'axios';
 
 /**
+ * API 回應格式介面
+ */
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string;
+  timestamp: string;
+}
+
+/**
  * 員工排班記錄介面
  */
 export interface EmployeeSchedule {
@@ -70,8 +80,8 @@ export const getSchedules = async (
       url += `&employeeId=${employeeId}`;
     }
 
-    const response = await axios.get<EmployeeSchedule[]>(url, config);
-    return response.data;
+    const response = await axios.get<ApiResponse<EmployeeSchedule[]>>(url, config);
+    return response.data.data;
   } catch (error: any) {
     console.error('獲取排班資料失敗:', error);
     throw error;
@@ -101,8 +111,8 @@ export const getSchedulesByDate = async (
     };
 
     const url = `/api/employee-schedules/by-date?startDate=${startDate}&endDate=${endDate}`;
-    const response = await axios.get<SchedulesByDate>(url, config);
-    return response.data;
+    const response = await axios.get<ApiResponse<SchedulesByDate>>(url, config);
+    return response.data.data;
   } catch (error: any) {
     console.error('獲取排班資料失敗:', error);
     throw error;
@@ -127,8 +137,8 @@ export const createSchedule = async (scheduleData: ScheduleData): Promise<Employ
       }
     };
 
-    const response = await axios.post<EmployeeSchedule>('/api/employee-schedules', scheduleData, config);
-    return response.data;
+    const response = await axios.post<ApiResponse<EmployeeSchedule>>('/api/employee-schedules', scheduleData, config);
+    return response.data.data;
   } catch (error: any) {
     console.error('創建排班失敗:', error);
     throw error;
@@ -157,8 +167,8 @@ export const updateSchedule = async (
       }
     };
 
-    const response = await axios.put<EmployeeSchedule>(`/api/employee-schedules/${id}`, scheduleData, config);
-    return response.data;
+    const response = await axios.put<ApiResponse<EmployeeSchedule>>(`/api/employee-schedules/${id}`, scheduleData, config);
+    return response.data.data;
   } catch (error: any) {
     console.error('更新排班失敗:', error);
     throw error;
@@ -183,8 +193,8 @@ export const deleteSchedule = async (id: string): Promise<{ success: boolean; me
       }
     };
 
-    const response = await axios.delete<{ success: boolean; message?: string }>(`/api/employee-schedules/${id}`, config);
-    return response.data;
+    const response = await axios.delete<ApiResponse<null>>(`/api/employee-schedules/${id}`, config);
+    return { success: response.data.success, message: response.data.message };
   } catch (error: any) {
     console.error('刪除排班失敗:', error);
     throw error;

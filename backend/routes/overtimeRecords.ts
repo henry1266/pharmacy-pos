@@ -187,10 +187,35 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
       });
     });
     
-    // 創建統計數據，包含排班系統的加班時數
-    const summaryData = Object.keys(scheduleOvertimeByEmployee).map(employeeId => {
-      const scheduleHours = scheduleOvertimeByEmployee[employeeId].reduce((total, record) => total + record.hours, 0);
-      const scheduleRecordCount = scheduleOvertimeByEmployee[employeeId].length;
+    // 處理獨立加班記錄，按員工ID分組
+    const independentOvertimeByEmployee: Record<string, any[]> = {};
+    overtimeRecords.forEach((record: any) => {
+      const employeeId = record.employeeId._id.toString();
+      if (!independentOvertimeByEmployee[employeeId]) {
+        independentOvertimeByEmployee[employeeId] = [];
+      }
+      independentOvertimeByEmployee[employeeId].push(record);
+    });
+    
+    // 獲取所有有加班記錄的員工ID（獨立 + 排班）
+    const allEmployeeIds = new Set([
+      ...Object.keys(independentOvertimeByEmployee),
+      ...Object.keys(scheduleOvertimeByEmployee)
+    ]);
+    
+    // 創建統計數據，包含獨立加班記錄和排班系統的加班時數
+    const summaryData = Array.from(allEmployeeIds).map(employeeId => {
+      // 計算獨立加班時數
+      const independentHours = independentOvertimeByEmployee[employeeId]
+        ? independentOvertimeByEmployee[employeeId].reduce((total, record) => total + record.hours, 0)
+        : 0;
+      const independentRecordCount = independentOvertimeByEmployee[employeeId]?.length || 0;
+      
+      // 計算排班系統加班時數
+      const scheduleHours = scheduleOvertimeByEmployee[employeeId]
+        ? scheduleOvertimeByEmployee[employeeId].reduce((total, record) => total + record.hours, 0)
+        : 0;
+      const scheduleRecordCount = scheduleOvertimeByEmployee[employeeId]?.length || 0;
       
       // 查找對應的員工資料
       const employee = employees.find(emp => emp._id.toString() === employeeId);
@@ -198,7 +223,10 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
       return {
         employeeId,
         employeeName: employee?.name || `員工${parseInt(month)}`,
-        overtimeHours: scheduleHours,
+        overtimeHours: independentHours + scheduleHours, // 總加班時數
+        independentHours,
+        scheduleHours,
+        independentRecordCount,
         scheduleRecordCount
       };
     });
