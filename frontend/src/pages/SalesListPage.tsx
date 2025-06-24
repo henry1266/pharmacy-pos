@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC } from 'react';
+import React, { useState, useEffect, FC ,useMemo} from 'react';
 import axios from 'axios'; // Keep for non-test mode
 import {
   Box,
@@ -244,30 +244,31 @@ const SalesListPage: FC = () => {
     }
   };
 
-  // 處理搜索變更
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setSearchTerm(e.target.value);
-  };
+  /** 處理搜尋框異動 */
+const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  setSearchTerm(e.target.value);
+};
 
-  // 先把搜尋字串正規化（可重複使用）
+/** 依搜尋字串產生過濾後的銷售清單 */
+const filteredSales = useMemo(() => {
   const keyword = searchTerm.trim().toLowerCase();
 
-  // 過濾銷售數據
-  const filteredSales = sales.filter(({ customer, items, _id, saleNumber, date }) => {
-  /** 將所有可搜尋欄位收成陣列；如需擴充只要再 push 欄位即可 */
-  const searchableFields: (string | undefined | null)[] = [
-    customer?.name,
-    items.map(item => item.product?.name).join(' '),
-    _id,
-    saleNumber,
-    date ? format(new Date(date), 'yyyy-MM-dd') : ''
-  ];
+  return sales.filter(({ customer, items, _id, saleNumber, date }) => {
+    /** 收集所有可搜尋欄位；必要時只要 push 新欄位即可 */
+    const searchableFields: string[] = [
+      customer?.name ?? '',
+      items.map(item => item.product?.name ?? '').join(' '),
+      String(_id ?? ''),          // ← 先轉字串再比對
+      String(saleNumber ?? ''),
+      date ? format(new Date(date), 'yyyy-MM-dd') : ''
+    ];
 
-  // `some()` 只要任一欄位命中就回傳 true
-  return searchableFields.some(field =>
-    (field ?? '').toLowerCase().includes(keyword)
-  );
+    // 只要任一欄位包含關鍵字即通過
+    return searchableFields.some(field =>
+      field.toLowerCase().includes(keyword)
+    );
   });
+}, [sales, searchTerm]);   // ← 依賴項
 
   // 處理刪除銷售記錄
   const handleDeleteSale = async (id: string): Promise<void> => {
