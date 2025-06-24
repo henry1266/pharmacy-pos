@@ -73,7 +73,7 @@ export const downloadShippingOrderPdf = async (
     return {
       success: false,
       filename: `出貨單_${orderNumber || orderId}.pdf`,
-      error: error.message || '下載PDF時發生未知錯誤'
+      error: error.message ?? '下載PDF時發生未知錯誤'
     };
   }
 };
@@ -103,7 +103,7 @@ export const batchDownloadShippingOrderPdfs = async (
       results.push({
         success: false,
         filename: `出貨單_${order.orderNumber || order.id}.pdf`,
-        error: error.message || '批量下載時發生錯誤'
+        error: error.message ?? '批量下載時發生錯誤'
       });
     }
   }

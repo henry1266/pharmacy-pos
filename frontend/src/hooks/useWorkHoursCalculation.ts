@@ -6,7 +6,7 @@ import {
   allocateHoursByLeaveType,
   formatEmployeeHours,
   ShiftType
-} from '../utils/workHoursUtils';
+} from '@pharmacy-pos/shared/utils';
 import { SchedulesByDate, EmployeeSchedule } from '../services/employeeScheduleService';
 
 /**

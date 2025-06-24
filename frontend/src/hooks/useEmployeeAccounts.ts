@@ -143,18 +143,19 @@ const useEmployeeAccounts = () => {
     return result;
   }, []);
 
-  // 驗證表單
-  const validateForm = useCallback((isPasswordReset = false, isEdit = false): ValidationResult => {
-    const errors: FormErrors = {};
-
-    if (!isEdit) {
-      if (!formData.username) {
-        errors.username = '請輸入用戶名';
-      } else if (formData.username.length < 3) {
-        errors.username = '用戶名長度至少需要3個字符';
-      }
+  // 驗證用戶名
+  const validateUsername = useCallback((errors: FormErrors, isEdit: boolean): void => {
+    if (isEdit) return;
+    
+    if (!formData.username) {
+      errors.username = '請輸入用戶名';
+    } else if (formData.username.length < 3) {
+      errors.username = '用戶名長度至少需要3個字符';
     }
+  }, [formData.username]);
 
+  // 驗證密碼
+  const validatePassword = useCallback((errors: FormErrors, isEdit: boolean, isPasswordReset: boolean): void => {
     if (!isEdit || isPasswordReset) {
       if (!formData.password) {
         errors.password = '請輸入密碼';
@@ -169,12 +170,22 @@ const useEmployeeAccounts = () => {
         errors.confirmPassword = '兩次輸入的密碼不一致';
       }
     }
+  }, [formData.password, formData.confirmPassword, validatePasswordStrength]);
 
-    if (!isPasswordReset && !isEdit) {
-      if (!formData.role) {
-        errors.role = '請選擇角色';
-      }
+  // 驗證角色
+  const validateRole = useCallback((errors: FormErrors, isPasswordReset: boolean, isEdit: boolean): void => {
+    if (!isPasswordReset && !isEdit && !formData.role) {
+      errors.role = '請選擇角色';
     }
+  }, [formData.role]);
+
+  // 驗證表單
+  const validateForm = useCallback((isPasswordReset = false, isEdit = false): ValidationResult => {
+    const errors: FormErrors = {};
+
+    validateUsername(errors, isEdit);
+    validatePassword(errors, isEdit, isPasswordReset);
+    validateRole(errors, isPasswordReset, isEdit);
 
     setFormErrors(errors);
     const isValid = Object.keys(errors).length === 0;
@@ -183,12 +194,12 @@ const useEmployeeAccounts = () => {
       isValid,
       errors: Object.keys(errors).length > 0 ? Object.entries(errors).map(([field, message]) => ({
         field,
-        message: message || '',
+        message: message ?? '',
         value: formData[field as keyof FormData]
       })) : [],
       warnings: []
     };
-  }, [formData, validatePasswordStrength]);
+  }, [validateUsername, validatePassword, validateRole]);
 
   // 對話框操作
   const handleOpenEditDialog = useCallback((employee: EmployeeWithAccount, account: any) => {

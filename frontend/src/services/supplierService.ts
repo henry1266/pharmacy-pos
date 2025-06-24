@@ -206,7 +206,7 @@ export const importSuppliersCsv = async (
     console.error('Error importing suppliers CSV:', error.response?.data ?? error.message);
     return {
       success: false,
-      errors: [error.response?.data?.message || error.message || '導入失敗']
+      errors: [error.response?.data?.message ?? error.message ?? '導入失敗']
     };
   }
 };

@@ -216,7 +216,7 @@ export const useCsvImport = (options?: FileProcessingOptions) => {
         setSuccess(true);
       } else {
         const errorMessages = result.errors.map(err => err.message).join(', ');
-        setError(errorMessages || '導入失敗');
+        setError(errorMessages ?? '導入失敗');
         setSuccess(false);
       }
     } catch (err) {

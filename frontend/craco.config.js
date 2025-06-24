@@ -25,7 +25,10 @@ module.exports = {
       if (tsRule) {
         // 確保 TypeScript loader 能處理 .js 檔案中的 TypeScript 引用
         tsRule.test = /\.(js|mjs|jsx|ts|tsx)$/;
-        tsRule.include = path.resolve(__dirname, 'src');
+        tsRule.include = [
+          path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, '../shared')
+        ];
       }
 
       // 添加對混合 JS/TS 專案的支援

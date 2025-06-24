@@ -37,155 +37,288 @@
 
 ## 系統架構
 
+### 整體架構設計
+藥局POS系統採用現代化的 **Monorepo** 架構，使用 **pnpm workspace** 管理多個相關套件，確保代碼重用性和型別一致性。系統分為三個主要模組：
+
+- **Frontend**: React + TypeScript 前端應用
+- **Backend**: Node.js + Express 後端服務  
+- **Shared**: 共享型別定義和工具函數庫
+
 ### 前端技術棧
-藥局POS系統的前端採用了現代化的技術棧，確保了良好的用戶體驗和系統性能：
+前端採用現代化的 React 生態系統，提供優秀的用戶體驗：
 
-- **React.js**: 作為核心前端框架，提供了組件化開發和高效的DOM更新
-- **Redux**: 用於全局狀態管理，確保數據流的可預測性和一致性
-- **Material-UI**: 提供了豐富的UI組件庫，確保界面美觀且符合現代設計標準
-- **Recharts & Chart.js**: 用於數據可視化，提供了多種圖表類型
-- **Axios**: 作為HTTP客戶端，處理與後端的通信
-- **Formik & Yup**: 用於表單處理和驗證
-- **React Router**: 處理前端路由
-- **Framer Motion**: 提供流暢的動畫效果
-- **React Beautiful DnD**: 實現拖放功能
-- **tsParticles**: 用於創建粒子效果
-
-前端採用了模組化的設計，將不同功能區分為獨立的組件和頁面，提高了代碼的可維護性和可擴展性。
+- **React 18**: 核心前端框架，支援 Concurrent Features
+- **TypeScript**: 提供完整的型別安全保障
+- **Material-UI v5**: 現代化的 UI 組件庫，支援主題定制
+- **Redux Toolkit**: 現代化的狀態管理解決方案
+- **React Router v6**: 聲明式路由管理
+- **Formik & Yup**: 表單處理和驗證
+- **Chart.js & Recharts**: 數據可視化圖表庫
+- **Framer Motion**: 流暢的動畫效果
+- **Axios**: HTTP 客戶端，統一 API 調用
+- **CRACO**: Create React App 配置覆蓋工具
 
 ### 後端技術棧
-後端系統基於Node.js平台，採用了以下技術：
+後端基於 Node.js 平台，提供穩定可靠的 API 服務：
 
-- **Node.js**: 作為運行環境，提供了高效的非阻塞I/O
-- **Express.js**: 作為Web框架，處理HTTP請求和路由
-- **MongoDB**: 作為主要數據庫，提供了靈活的文檔存儲
-- **Mongoose**: 作為ODM（對象文檔映射）工具，簡化了MongoDB的操作
-- **JWT**: 用於用戶認證和授權
-- **Bcrypt.js**: 用於密碼加密
-- **Multer**: 處理文件上傳
-- **CSV-Parser**: 處理CSV文件的導入和導出
-- **PDFKit**: 用於生成PDF報表
-- **Day.js**: 處理日期和時間
+- **Node.js**: 高效能的 JavaScript 運行環境
+- **Express.js**: 輕量級 Web 框架
+- **TypeScript**: 型別安全的後端開發
+- **MongoDB**: NoSQL 文檔數據庫
+- **Mongoose**: 優雅的 MongoDB ODM
+- **JWT**: 無狀態身份驗證
+- **Bcrypt.js**: 密碼加密
+- **Multer**: 文件上傳處理
+- **CSV-Parser**: CSV 文件處理
+- **PDFKit**: PDF 報表生成
+- **Day.js**: 輕量級日期處理庫
 
-後端API採用了RESTful設計原則，提供了清晰的端點和一致的數據格式。系統還實現了中間件機制，用於處理認證、日誌記錄和錯誤處理等橫切關注點。
+### Shared 模組架構
+共享模組是系統的核心創新，提供統一的型別定義和工具函數：
 
-## 資料夾結構
+#### 型別定義 (`types/`)
+- **entities.ts**: 基礎實體型別（Product、Customer、Sale 等）
+- **api.ts**: API 請求/回應型別定義
+- **forms.ts**: 表單數據結構型別
+- **accounting.ts**: 會計相關型別
+- **business.ts**: 業務邏輯型別
+- **models.ts**: 數據模型型別
+- **utils.ts**: 工具函數型別
 
-### 根目錄結構
+#### 工具函數 (`utils/`)
+- **dateUtils.ts**: 日期處理工具
+- **stringUtils.ts**: 字串處理工具
+- **numberUtils.ts**: 數字格式化工具
+- **validationUtils.ts**: 數據驗證工具
+- **workHoursUtils.ts**: 工時計算工具
+- **roleUtils.ts**: 角色權限工具
+- **accountingTypeConverters.ts**: 型別轉換工具
+
+#### 常數和列舉 (`constants/`, `enums/`)
+- **actionTypes.ts**: Redux Action 型別常數
+- **index.ts**: 系統常數定義
+
+#### Schema 驗證 (`schemas/`)
+- 統一的數據驗證規則
+- 支援前後端共用驗證邏輯
+
+### 型別安全保障
+系統實現了完整的型別安全機制：
+
+1. **統一型別定義**: 前後端共用相同的型別定義
+2. **型別轉換工具**: 提供安全的數據轉換函數
+3. **自動型別檢查**: 使用 TypeScript 編譯時檢查
+4. **一致性驗證**: 自動化腳本檢查型別一致性
+
+## 專案結構
+
+### Monorepo 根目錄結構
 ```
 pharmacy-pos/
-├── backend/         # 後端代碼
-├── frontend/        # 前端代碼
-├── config/          # 配置文件
-├── csv/             # CSV模板和示例
-├── madge/           # 依賴分析工具配置
-├── test/            # 測試文件
-├── 報告/            # 開發報告和文檔
-├── 專案優化/        # 優化建議和實施
-├── 開發指南/        # 開發規範和指南
-├── setup.sh         # Linux/Mac安裝腳本
-├── setup.bat        # Windows安裝腳本
-├── start.bat        # Windows啟動腳本
-└── README.md        # 項目說明文檔
+├── package.json              # 根專案配置
+├── pnpm-workspace.yaml       # pnpm workspace 配置
+├── tsconfig.json             # TypeScript 專案參考配置
+├── backend/                  # 後端服務
+├── frontend/                 # 前端應用
+├── shared/                   # 共享模組
+├── scripts/                  # 開發工具腳本
+├── config/                   # 全域配置文件
+├── csv/                      # CSV 模板和示例
+├── test/                     # 整合測試
+├── 報告/                     # 開發報告和文檔
+├── 開發指南/                 # 開發規範和指南
+├── setup.sh                  # Linux/Mac 安裝腳本
+├── setup.bat                 # Windows 安裝腳本
+├── start.bat                 # Windows 啟動腳本
+└── README.md                 # 專案說明文檔
+```
+
+### Shared 模組結構
+```
+shared/
+├── package.json              # 共享模組配置
+├── tsconfig.json             # TypeScript 配置
+├── index.ts                  # 統一匯出檔案
+├── types/                    # 型別定義
+│   ├── entities.ts              # 基礎實體型別
+│   ├── api.ts                   # API 相關型別
+│   ├── forms.ts                 # 表單型別
+│   ├── accounting.ts            # 會計型別
+│   ├── business.ts              # 業務邏輯型別
+│   ├── models.ts                # 資料模型型別
+│   └── utils.ts                 # 工具函數型別
+├── utils/                    # 工具函數
+│   ├── dateUtils.ts             # 日期工具
+│   ├── stringUtils.ts           # 字串工具
+│   ├── numberUtils.ts           # 數字工具
+│   ├── validationUtils.ts       # 驗證工具
+│   ├── workHoursUtils.ts        # 工時計算工具
+│   ├── roleUtils.ts             # 角色工具
+│   └── accountingTypeConverters.ts # 型別轉換工具
+├── constants/                # 常數定義
+│   ├── actionTypes.ts           # Redux Action 型別
+│   └── index.ts                 # 系統常數
+├── enums/                    # 列舉定義
+├── schemas/                  # 驗證 Schema
+└── README.md                 # 模組說明文檔
 ```
 
 ### 後端結構
 ```
 backend/
-├── assets/          # 靜態資源
-├── config/          # 後端配置
-├── middleware/      # 中間件
-├── models/          # 數據模型
-├── routes/          # API路由
-├── scripts/         # 輔助腳本
-├── utils/           # 工具函數
-├── test/            # 後端測試
-└── server.js        # 主入口文件
+├── package.json              # 後端專案配置
+├── tsconfig.json             # TypeScript 配置
+├── server.ts                 # 主入口文件
+├── config/                   # 後端配置
+├── middleware/               # 中間件
+├── models/                   # 數據模型
+├── routes/                   # API 路由
+├── scripts/                  # 輔助腳本
+├── utils/                    # 工具函數
+└── test/                     # 後端測試
 ```
 
 ### 前端結構
 ```
 frontend/
-├── public/          # 靜態文件
+├── package.json              # 前端專案配置
+├── tsconfig.json             # TypeScript 配置
+├── craco.config.js           # CRACO 配置
+├── public/                   # 靜態文件
 └── src/
-    ├── assets/      # 前端資源
-    ├── components/  # 可重用組件
-    ├── hooks/       # 自定義React Hooks
-    ├── pages/       # 頁面組件
-    ├── redux/       # Redux狀態管理
-    ├── services/    # API服務
-    ├── utils/       # 工具函數
-    ├── tests/       # 前端測試
-    └── App.js       # 應用入口
+    ├── components/              # 可重用組件
+    ├── hooks/                   # 自定義 React Hooks
+    ├── pages/                   # 頁面組件
+    ├── redux/                   # Redux 狀態管理
+    ├── services/                # API 服務層
+    ├── utils/                   # 前端工具函數
+    ├── tests/                   # 前端測試
+    ├── types/                   # 前端特定型別
+    ├── setupProxy.ts            # 開發代理配置
+    └── App.tsx                  # 應用入口
 ```
 
 ## 安裝說明
 
 ### 系統需求
-- Node.js 14.x 或更高版本
-- MongoDB 4.x 或更高版本
-- 現代瀏覽器（Chrome, Firefox, Edge等）
+- **Node.js**: 18.x 或更高版本
+- **pnpm**: 8.x 或更高版本（推薦使用 pnpm 作為套件管理器）
+- **MongoDB**: 4.x 或更高版本
+- **TypeScript**: 4.9 或更高版本
+- **現代瀏覽器**: Chrome, Firefox, Edge 等
 
 ### 完整安裝步驟
 
-#### 克隆倉庫
+#### 1. 克隆倉庫
 ```bash
 git clone https://github.com/henry1266/pharmacy-pos.git
 cd pharmacy-pos
 ```
 
-#### 後端安裝
+#### 2. 安裝 pnpm（如果尚未安裝）
 ```bash
-cd backend
-npm install
+npm install -g pnpm
 ```
 
-#### 前端安裝
+#### 3. 安裝所有依賴
 ```bash
-cd ../frontend
-npm install
+# 安裝根專案和所有子專案的依賴
+pnpm install
 ```
 
-#### 配置數據庫
-1. 確保MongoDB服務已啟動
-2. 在`backend/config`目錄中創建或編輯`default.json`文件，設置MongoDB連接字符串
+#### 4. 建構 Shared 模組
+```bash
+# 建構共享型別定義
+pnpm --filter shared build
+```
 
-#### 啟動系統
+#### 5. 配置數據庫
+1. 確保 MongoDB 服務已啟動
+2. 在 `backend/config` 目錄中創建或編輯 `default.json` 文件
+3. 設置 MongoDB 連接字符串
+
+#### 6. 啟動開發環境
+```bash
+# 同時啟動前後端開發服務器
+pnpm dev
+```
+
+或者分別啟動：
 ```bash
 # 啟動後端服務
-cd ../backend
-npm start
+pnpm --filter backend dev
 
-# 在另一個終端中啟動前端服務
-cd ../frontend
-npm start
+# 啟動前端服務（另一個終端）
+pnpm --filter frontend start
 ```
 
 ### 快速啟動腳本
 系統提供了便捷的安裝和啟動腳本：
 
-#### Windows用戶
-```
+#### Windows 用戶
+```batch
 setup.bat  # 首次安裝依賴
 start.bat  # 啟動系統
 ```
 
-#### Linux/Mac用戶
-```
+#### Linux/Mac 用戶
+```bash
 chmod +x setup.sh  # 設置執行權限
 ./setup.sh         # 首次安裝依賴
 ```
 
+### 開發工具指令
+
+#### 型別檢查
+```bash
+# 檢查所有專案的型別
+pnpm type-check
+
+# 檢查型別一致性
+pnpm check-types
+```
+
+#### 建構專案
+```bash
+# 建構所有專案
+pnpm build
+
+# 建構特定專案
+pnpm --filter shared build
+pnpm --filter backend build
+pnpm --filter frontend build
+```
+
+#### 執行測試
+```bash
+# 執行所有測試
+pnpm test
+
+# 執行特定專案測試
+pnpm --filter backend test
+pnpm --filter frontend test
+```
+
 ## 開發指南
 
-### 代碼規範
-藥局POS系統遵循以下開發原則：
+### 開發規範
 
+#### 代碼品質標準
+藥局POS系統遵循嚴格的開發規範：
+
+- **型別安全**: 所有代碼必須通過 TypeScript 嚴格模式檢查
 - **代碼簡潔性**: 保持代碼簡潔、可讀、前後端一致
-- **DRY原則**: 避免重複代碼，提取共用功能
+- **DRY 原則**: 避免重複代碼，優先使用 shared 模組
 - **可讀性優先**: 優先考慮代碼可讀性而非過度簡潔
 - **命名規範**: 使用有意義的變數和函數名稱
-- **註釋原則**: 避免過度註釋，但關鍵邏輯必須有註釋說明
+- **註釋原則**: 關鍵邏輯必須有 JSDoc 註釋說明
+
+#### Monorepo 開發原則
+1. **模組化設計**: 功能按模組劃分，避免循環依賴
+2. **型別統一**: 所有型別定義統一放在 shared 模組
+3. **工具函數共享**: 通用邏輯提取到 shared/utils
+4. **版本同步**: 使用 workspace 協議管理內部依賴
+5. **建構順序**: shared → backend → frontend
 
 ### Git提交規範
 項目採用Conventional Commits規範進行Git提交，格式如下：
@@ -318,6 +451,26 @@ FIFO功能的主要特點包括：
 
 新用戶的預設角色是 `staff`。用戶角色可以在建立用戶時指定，或由管理員後續修改。系統實現了基於角色的訪問控制(RBAC)，確保用戶只能訪問其角色允許的功能。
 
+## 技術特色
+
+### Monorepo 架構優勢
+- **型別安全**: 前後端共享型別定義，消除型別不一致問題
+- **代碼重用**: 共享工具函數和業務邏輯，減少重複開發
+- **統一管理**: 使用 pnpm workspace 統一管理依賴和建構流程
+- **開發效率**: 一次修改，多處生效，提高開發和維護效率
+
+### 型別系統設計
+- **漸進式型別化**: 支援從 JavaScript 逐步遷移到 TypeScript
+- **嚴格模式**: Shared 模組採用 TypeScript 嚴格模式
+- **型別轉換**: 提供安全的前後端數據轉換工具
+- **自動檢查**: 自動化腳本確保型別一致性
+
+### 現代化工具鏈
+- **pnpm**: 高效能的套件管理器，支援 workspace
+- **TypeScript**: 完整的型別安全保障
+- **CRACO**: 靈活的 Create React App 配置
+- **Concurrently**: 同時執行多個開發服務器
+
 ## 開發團隊
 
 - Henry Chen - 項目負責人
@@ -351,4 +504,4 @@ FIFO功能的主要特點包括：
 
 ---
 
-*最後更新: 2025年5月24日*
+*最後更新: 2025年6月24日*
