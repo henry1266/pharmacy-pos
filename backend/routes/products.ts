@@ -253,8 +253,8 @@ router.post(
       } = req.body;
       
       // 檢查產品代碼是否已存在
-      if (code) {
-        const existingProduct = await BaseProduct.findByCode(code);
+      if (code && code.trim()) {
+        const existingProduct = await BaseProduct.findByCode(code.trim());
         if (existingProduct) {
           res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
             success: false,
@@ -267,13 +267,13 @@ router.post(
       
       // 創建商品
       const product = new Product({
-        code: code ?? await generateNextProductCode(),
-        shortCode: code ?? await generateNextProductCode(),
+        code: code && code.trim() ? code.trim() : await generateNextProductCode(),
+        shortCode: req.body.shortCode && req.body.shortCode.trim() ? req.body.shortCode.trim() : '',
         name,
         category,
         unit,
-        purchasePrice: parseFloat(purchasePrice) ?? 0,
-        sellingPrice: parseFloat(sellingPrice) ?? 0,
+        purchasePrice: purchasePrice ? parseFloat(purchasePrice) : 0,
+        sellingPrice: sellingPrice ? parseFloat(sellingPrice) : 0,
         description,
         supplier,
         minStock: parseInt(minStock) || 10,
@@ -358,8 +358,8 @@ router.post(
       } = req.body;
       
       // 檢查產品代碼是否已存在
-      if (code) {
-        const existingProduct = await BaseProduct.findByCode(code);
+      if (code && code.trim()) {
+        const existingProduct = await BaseProduct.findByCode(code.trim());
         if (existingProduct) {
           res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
             success: false,
@@ -372,19 +372,19 @@ router.post(
       
       // 創建藥品
       const medicine = new Medicine({
-        code: code ?? await generateNextMedicineCode(),
-        shortCode: code ?? await generateNextMedicineCode(),
+        code: code && code.trim() ? code.trim() : await generateNextMedicineCode(),
+        shortCode: req.body.shortCode && req.body.shortCode.trim() ? req.body.shortCode.trim() : '',
         name,
         category,
         unit,
-        purchasePrice: parseFloat(purchasePrice) ?? 0,
-        sellingPrice: parseFloat(sellingPrice) ?? 0,
+        purchasePrice: purchasePrice ? parseFloat(purchasePrice) : 0,
+        sellingPrice: sellingPrice ? parseFloat(sellingPrice) : 0,
         description,
         supplier,
         minStock: parseInt(minStock) || 10,
         barcode,
         healthInsuranceCode,
-        healthInsurancePrice: parseFloat(healthInsurancePrice) || 0,
+        healthInsurancePrice: healthInsurancePrice ? parseFloat(healthInsurancePrice) : 0,
         productType: ProductType.MEDICINE,
         isActive: true
       });
@@ -423,14 +423,194 @@ router.post(
   }
 );
 
+// @route   PUT api/products/:id
+// @desc    更新產品
+// @access  Private
+router.put(
+  '/:id',
+  auth,
+  [
+    check('name', '產品名稱為必填項目').optional().not().isEmpty(),
+    check('unit', '單位為必填項目').optional().not().isEmpty(),
+    check('purchasePrice', '進貨價格必須是數字').optional().isNumeric(),
+    check('sellingPrice', '售價必須是數字').optional().isNumeric()
+  ],
+  async (req: Request, res: Response): Promise<void> => {
+    const errors = validationResult(req);
+    
+    if (!errors.isEmpty()) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        details: errors.array(),
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+    
+    try {
+      const productId = req.params.id;
+      const updateData = req.body;
+      
+      // 檢查產品是否存在
+      const existingProduct = await BaseProduct.findById(productId);
+      if (!existingProduct) {
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
+          success: false,
+          message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+          timestamp: new Date()
+        } as ApiResponse);
+        return;
+      }
+      
+      // 如果更新代碼，檢查是否與其他產品重複
+      if (updateData.code && updateData.code.trim() && updateData.code.trim() !== existingProduct.code) {
+        const duplicateProduct = await BaseProduct.findByCode(updateData.code.trim());
+        if (duplicateProduct) {
+          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+            success: false,
+            message: ERROR_MESSAGES.PRODUCT.CODE_EXISTS,
+            timestamp: new Date()
+          } as ApiResponse);
+          return;
+        }
+      }
+      
+      // 處理數值欄位
+      if (updateData.purchasePrice !== undefined) {
+        updateData.purchasePrice = updateData.purchasePrice ? parseFloat(updateData.purchasePrice) : 0;
+      }
+      if (updateData.sellingPrice !== undefined) {
+        updateData.sellingPrice = updateData.sellingPrice ? parseFloat(updateData.sellingPrice) : 0;
+      }
+      if (updateData.healthInsurancePrice !== undefined) {
+        updateData.healthInsurancePrice = updateData.healthInsurancePrice ? parseFloat(updateData.healthInsurancePrice) : 0;
+      }
+      if (updateData.minStock !== undefined) {
+        updateData.minStock = parseInt(updateData.minStock) || 10;
+      }
+      
+      // 處理代碼欄位
+      if (updateData.code !== undefined) {
+        updateData.code = updateData.code && updateData.code.trim() ? updateData.code.trim() : existingProduct.code;
+      }
+      
+      // 處理簡碼欄位 - 不自動帶入商品編號
+      if (updateData.shortCode !== undefined) {
+        updateData.shortCode = updateData.shortCode && updateData.shortCode.trim() ? updateData.shortCode.trim() : '';
+      }
+      
+      // 更新產品
+      const updatedProduct = await BaseProduct.findByIdAndUpdate(
+        productId,
+        { $set: updateData },
+        { new: true, runValidators: true }
+      )
+        .populate('category', 'name')
+        .populate('supplier', 'name');
+      
+      if (!updatedProduct) {
+        res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
+          timestamp: new Date()
+        } as ApiResponse);
+        return;
+      }
+      
+      res.json({
+        success: true,
+        message: '產品更新成功',
+        data: updatedProduct,
+        timestamp: new Date()
+      } as ApiResponse<IBaseProductDocument>);
+    } catch (err) {
+      console.error('更新產品錯誤:', err);
+      if (err instanceof Error && err.name === 'CastError') {
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
+          success: false,
+          message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+          timestamp: new Date()
+        } as ApiResponse);
+        return;
+      }
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
+        error: err instanceof Error ? err.message : '未知錯誤',
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+  }
+);
+
+// @route   DELETE api/products/:id
+// @desc    刪除產品（軟刪除）
+// @access  Private
+router.delete('/:id', auth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const productId = req.params.id;
+    
+    // 檢查產品是否存在
+    const existingProduct = await BaseProduct.findById(productId);
+    if (!existingProduct) {
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
+        success: false,
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+    
+    // 軟刪除：設置 isActive 為 false
+    const deletedProduct = await BaseProduct.findByIdAndUpdate(
+      productId,
+      { $set: { isActive: false } },
+      { new: true }
+    );
+    
+    if (!deletedProduct) {
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+    
+    res.json({
+      success: true,
+      message: '產品刪除成功',
+      data: deletedProduct,
+      timestamp: new Date()
+    } as ApiResponse<IBaseProductDocument>);
+  } catch (err) {
+    console.error('刪除產品錯誤:', err);
+    if (err instanceof Error && err.name === 'CastError') {
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json({
+        success: false,
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
+      error: err instanceof Error ? err.message : '未知錯誤',
+      timestamp: new Date()
+    } as ApiResponse);
+  }
+});
+
 // 輔助函數：生成產品代碼
 async function generateNextProductCode(): Promise<string> {
   try {
     const count = await Product.countDocuments();
-    return `P${String(count + 1).padStart(6, '0')}`;
+    return `P${String(count + 10001).padStart(5, '0')}`;
   } catch (error) {
     console.error('生成產品代碼錯誤:', error);
-    return `P${String(Date.now()).slice(-6)}`;
+    return `P${String(Date.now()).slice(-5)}`;
   }
 }
 
@@ -438,10 +618,10 @@ async function generateNextProductCode(): Promise<string> {
 async function generateNextMedicineCode(): Promise<string> {
   try {
     const count = await Medicine.countDocuments();
-    return `M${String(count + 1).padStart(6, '0')}`;
+    return `M${String(count + 10001).padStart(5, '0')}`;
   } catch (error) {
     console.error('生成藥品代碼錯誤:', error);
-    return `M${String(Date.now()).slice(-6)}`;
+    return `M${String(Date.now()).slice(-5)}`;
   }
 }
 

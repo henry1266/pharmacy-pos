@@ -65,6 +65,7 @@ interface ProductFormDialogProps {
   editMode?: boolean;
   productType?: string;
   suppliers?: Supplier[];
+  categories?: Category[];
   handleInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
   handleSave: () => void;
 }
@@ -80,30 +81,36 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
   editMode,
   productType,
   suppliers = [],
+  categories: propCategories = [],
   handleInputChange,
   handleSave,
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(false);
 
-  // 獲取產品分類列表
+  // 獲取產品分類列表 - 優先使用從父組件傳入的分類，否則重新獲取
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoadingCategories(true);
-        const data = await getProductCategories();
-        setCategories(data);
-      } catch (err) {
-        console.error('獲取產品分類失敗:', err);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
+    if (propCategories.length > 0) {
+      setCategories(propCategories);
+      setLoadingCategories(false);
+    } else {
+      const fetchCategories = async () => {
+        try {
+          setLoadingCategories(true);
+          const data = await getProductCategories();
+          setCategories(data);
+        } catch (err) {
+          console.error('獲取產品分類失敗:', err);
+        } finally {
+          setLoadingCategories(false);
+        }
+      };
 
-    if (open) {
-      fetchCategories();
+      if (open) {
+        fetchCategories();
+      }
     }
-  }, [open]);
+  }, [open, propCategories]);
 
   // 將巢狀三元運算子拆解為獨立陳述式
   const getDialogTitle = (): string => {

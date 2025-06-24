@@ -225,17 +225,26 @@ const ProductsPage: React.FC = () => {
       : medicines.find(p => p.id === id);
     
     if (product) {
+      // 處理分類和供應商 - 如果是物件則取 _id，如果是字串則直接使用
+      const categoryId = typeof product.category === 'object' && product.category
+        ? (product.category as any)._id
+        : product.category ?? '';
+      
+      const supplierId = typeof product.supplier === 'object' && product.supplier
+        ? (product.supplier as any)._id
+        : product.supplier ?? '';
+
       setCurrentProduct({
         id: product.id,
         code: product.code ?? '',
         shortCode: (product as { shortCode?: string }).shortCode ?? '',
         name: product.name ?? '',
-        category: product.category ?? '',
+        category: categoryId,
         unit: product.unit ?? '',
         purchasePrice: (product as { purchasePrice?: number }).purchasePrice ?? 0,
         sellingPrice: (product as { sellingPrice?: number }).sellingPrice ?? 0,
         description: product.description ?? '',
-        supplier: product.supplier ?? '',
+        supplier: supplierId,
         minStock: (product as { minStock?: number }).minStock ?? 10,
         barcode: product.barcode ?? '',
         healthInsuranceCode: (product as { healthInsuranceCode?: string }).healthInsuranceCode ?? '',
@@ -373,13 +382,14 @@ const ProductsPage: React.FC = () => {
       </Grid>
       
       {/* 對話框組件 */}
-      <ProductFormDialog 
+      <ProductFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         currentProduct={currentProduct}
         editMode={editMode}
         productType={productType}
         suppliers={suppliers}
+        categories={categories}
         handleInputChange={handleInputChange}
         handleSave={handleSaveProduct}
       />
