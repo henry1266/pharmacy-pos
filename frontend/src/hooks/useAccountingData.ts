@@ -85,8 +85,8 @@ const useAccountingData = () => {
       const editFormData: FormData = {
         date: new Date(record.date),
         shift: record.shift as string,
-        status: record.status || 'pending',
-        items: record.status === 'pending' ? manualItems : (record.items || []),
+        status: record.status ?? 'pending',
+        items: record.status === 'pending' ? manualItems : (record.items ?? []),
         unaccountedSales: unaccountedSales
       };
       return { success: true, data: editFormData };

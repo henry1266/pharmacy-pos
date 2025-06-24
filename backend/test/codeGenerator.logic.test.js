@@ -45,16 +45,16 @@ const testProductCodeGeneration = async () => {
     MockProduct.setMockData([]);
     const initialCode = await generateNextProductCode();
     console.log('初始商品編號:', initialCode);
-    if (initialCode !== 'P10001') {
-      throw new Error(`初始商品編號應為 P10001，但得到 ${initialCode}`);
+    if (initialCode != 'P10001') {
+      throw new Error(`初始商品編號應為 P10001，但得到 ${JSON.stringify(initialCode)}`);
     }
     
     // 測試情境 2: 已有一個商品 P10001
     MockProduct.setMockData([{ code: 'P10001' }]);
     const secondCode = await generateNextProductCode();
     console.log('第二個商品編號:', secondCode);
-    if (secondCode !== 'P10002') {
-      throw new Error(`第二個商品編號應為 P10002，但得到 ${secondCode}`);
+    if (secondCode != 'P10002') {
+      throw new Error(`第二個商品編號應為 P10002，但得到 ${JSON.stringify(secondCode)}`);
     }
     
     // 測試情境 3: 已有多個商品，最大編號為 P10005
@@ -65,8 +65,8 @@ const testProductCodeGeneration = async () => {
     ]);
     const nextCode = await generateNextProductCode();
     console.log('下一個商品編號:', nextCode);
-    if (nextCode !== 'P10006') {
-      throw new Error(`下一個商品編號應為 P10006，但得到 ${nextCode}`);
+    if (nextCode != 'P10006') {
+      throw new Error(`下一個商品編號應為 P10006，但得到 ${JSON.stringify(nextCode)}`);
     }
     
     console.log('商品編號產生邏輯測試通過');
@@ -86,16 +86,16 @@ const testMedicineCodeGeneration = async () => {
     MockMedicine.setMockData([]);
     const initialCode = await generateNextMedicineCode();
     console.log('初始藥品編號:', initialCode);
-    if (initialCode !== 'M10001') {
-      throw new Error(`初始藥品編號應為 M10001，但得到 ${initialCode}`);
+    if (initialCode != 'M10001') {
+      throw new Error(`初始藥品編號應為 M10001，但得到 ${JSON.stringify(initialCode)}`);
     }
     
     // 測試情境 2: 已有一個藥品 M10001
     MockMedicine.setMockData([{ code: 'M10001' }]);
     const secondCode = await generateNextMedicineCode();
     console.log('第二個藥品編號:', secondCode);
-    if (secondCode !== 'M10002') {
-      throw new Error(`第二個藥品編號應為 M10002，但得到 ${secondCode}`);
+    if (secondCode != 'M10002') {
+      throw new Error(`第二個藥品編號應為 M10002，但得到 ${JSON.stringify(secondCode)}`);
     }
     
     // 測試情境 3: 已有多個藥品，最大編號為 M10008
@@ -106,8 +106,8 @@ const testMedicineCodeGeneration = async () => {
     ]);
     const nextCode = await generateNextMedicineCode();
     console.log('下一個藥品編號:', nextCode);
-    if (nextCode !== 'M10009') {
-      throw new Error(`下一個藥品編號應為 M10009，但得到 ${nextCode}`);
+    if (nextCode != 'M10009') {
+      throw new Error(`下一個藥品編號應為 M10009，但得到 ${JSON.stringify(nextCode)}`);
     }
     
     console.log('藥品編號產生邏輯測試通過');

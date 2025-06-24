@@ -1,17 +1,5 @@
-import { ActionTypes } from '@pharmacy-pos/shared';
-import axios from 'axios';
 import {
-  ApiResponse,
-  LoginRequest,
-  LoginResponse,
-} from '@pharmacy-pos/shared/types/api';
-import { getApiBaseUrl } from '../utils/apiConfig';
-import { ThunkAction, ThunkDispatch } from 'redux-thunk';
-import { Action, RootState } from './reducers';
-import { NavigateFunction } from 'react-router-dom';
-
-// 導入 shared 類型
-import {
+  ActionTypes,
   Product,
   Customer,
   Supplier,
@@ -29,8 +17,16 @@ import {
   ShippingOrderUpdateRequest,
   ProductType,
   API_ENDPOINTS,
-  ERROR_MESSAGES
+  ERROR_MESSAGES,
+  ApiResponse,
+  LoginRequest,
+  LoginResponse
 } from '@pharmacy-pos/shared';
+import axios from 'axios';
+import { getApiBaseUrl } from '../utils/apiConfig';
+import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { Action, RootState } from './reducers';
+import { NavigateFunction } from 'react-router-dom';
 
 // API基礎URL
 export const API_BASE_URL = getApiBaseUrl();

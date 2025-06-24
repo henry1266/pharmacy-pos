@@ -74,7 +74,7 @@ export const useSaleEditManagement = (
     const total = currentSale.items.reduce((sum, item) => sum + (parseFloat(item.price.toString()) * item.quantity), 0);
     setCurrentSale(prev => ({
       ...prev,
-      totalAmount: total - (parseFloat(prev.discount.toString()) ?? 0)
+      totalAmount: total - (parseFloat(prev.discount.toString()) || 0)
     }));
   }, [currentSale.items, currentSale.discount]);
 
@@ -184,15 +184,15 @@ export const useSaleEditManagement = (
     }
 
     const saleData = {
-      customer: currentSale.customer ?? null,
+      customer: currentSale.customer || null,
       items: currentSale.items.map(item => ({
         product: item.product,
         quantity: item.quantity,
-        price: parseFloat(item.price.toString()) ?? 0,
-        subtotal: (parseFloat(item.price.toString()) ?? 0) * item.quantity
+        price: parseFloat(item.price.toString()) || 0,
+        subtotal: (parseFloat(item.price.toString()) || 0) * item.quantity
       })),
       totalAmount: currentSale.totalAmount,
-      discount: parseFloat(currentSale.discount.toString()) ?? 0,
+      discount: parseFloat(currentSale.discount.toString()) || 0,
       paymentMethod: currentSale.paymentMethod,
       paymentStatus: currentSale.paymentStatus,
       note: currentSale.note,
@@ -205,7 +205,7 @@ export const useSaleEditManagement = (
       setTimeout(() => navigate('/sales'), 1500);
     } catch (err: any) {
       console.error('更新銷售記錄失敗:', err);
-      setSnackbar({ open: true, message: `更新銷售記錄失敗: ${err.response?.data?.msg ?? err.message}`, severity: 'error' });
+      setSnackbar({ open: true, message: `更新銷售記錄失敗: ${err.response?.data?.msg || err.message}`, severity: 'error' });
     }
   }, [currentSale, saleId, navigate]);
 

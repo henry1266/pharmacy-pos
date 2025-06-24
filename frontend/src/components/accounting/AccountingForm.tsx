@@ -338,10 +338,10 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
           {sortedSales.map((sale) => (
             <TableRow hover key={sale._id || `sale-${sale.saleNumber}-${sale.product?.code}`}>
               <TableCell>{format(new Date(sale.lastUpdated), 'HH:mm:ss')}</TableCell>
-              <TableCell>{sale.product?.code || 'N/A'}</TableCell>
-              <TableCell>{sale.product?.name || '未知產品'}</TableCell>
-              <TableCell align="right">{Math.abs(sale.quantity || 0)}</TableCell>
-              <TableCell align="right">${sale.totalAmount || 0}</TableCell>
+              <TableCell>{sale.product?.code ?? 'N/A'}</TableCell>
+              <TableCell>{sale.product?.name ?? '未知產品'}</TableCell>
+              <TableCell align="right">{Math.abs(sale.quantity ?? 0)}</TableCell>
+              <TableCell align="right">${sale.totalAmount ?? 0}</TableCell>
               <TableCell>{sale.saleNumber}</TableCell>
             </TableRow>
           ))}

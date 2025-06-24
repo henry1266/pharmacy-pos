@@ -158,7 +158,7 @@ const AccountingCategoryManager: React.FC = () => {
     setDialogMode('edit');
     setCurrentCategory({
       name: category.name,
-      description: category.description || ''
+      description: category.description ?? ''
     });
     setCurrentCategoryId(category._id);
     setOpenDialog(true);

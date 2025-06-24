@@ -83,7 +83,7 @@ const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
       renderCell: (params) => (
         <div>
           {(params.value as AccountingItem[]).map((item, index) => (
-            <div key={`${item.category}-${item.amount}-${item.note || ''}-${index}`}>
+            <div key={`${item.category}-${item.amount}-${item.note ?? ''}-${index}`}>
               {item.category}: ${item.amount}
               {item.note && ` (${item.note})`}
             </div>
