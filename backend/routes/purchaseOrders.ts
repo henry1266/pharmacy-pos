@@ -107,7 +107,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const purchaseOrder = await PurchaseOrder.findById(req.params.id)
       .populate('supplier', 'name code')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code _id');
     
     if (!purchaseOrder) {
       const errorResponse: ErrorResponse = {

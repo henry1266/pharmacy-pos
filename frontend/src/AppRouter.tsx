@@ -15,7 +15,6 @@ import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
-import PurchaseOrderEditPage from './pages/PurchaseOrderEditPage';
 import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage';
 import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
@@ -90,7 +89,7 @@ const AppRouter: React.FC = () => {
       {/* Purchase Order routes */}
       <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
       <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
-      <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderEditPage />} />
+      <Route path="/purchase-orders/edit/:id" element={<PurchaseOrderFormPage />} />
       <Route path="/purchase-orders/supplier/:id" element={<PurchaseOrdersSupplierFilterPage />} />
       <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
       

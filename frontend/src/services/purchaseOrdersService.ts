@@ -39,8 +39,10 @@ export interface ImportPurchaseOrderResponse {
 export const getPurchaseOrderById = async (id: string): Promise<PurchaseOrder> => {
   try {
     // Note: The original code had .replace('/api/api', '/api'), ensure the base URL is correct
-    const response = await axios.get<PurchaseOrder>(`${API_URL}/${id}`, getAuthConfig());
-    return response.data;
+    const response = await axios.get<{ success: boolean; data: PurchaseOrder }>(`${API_URL}/${id}`, getAuthConfig());
+    console.log('API 響應:', response.data); // 調試日誌
+    // 後端返回的是包裝在 ApiResponse 中的資料
+    return response.data.data || response.data as any;
   } catch (error: any) {
     console.error(`Error fetching purchase order with ID ${id}:`, error);
     // Re-throw the error to be handled by the caller (e.g., the component or hook)

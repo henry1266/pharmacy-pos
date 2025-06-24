@@ -500,10 +500,22 @@ const PurchaseOrderEditPage: React.FC = () => {
               handleEditingItemChange={handleEditingItemChange}
               totalAmount={totalAmount}
             />
-             <ActionButtons
-              loading={loading}
-              onCancel={handleCancel}
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={handleCancel}
+                disabled={loading}
+              >
+                取消
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+              >
+                {loading ? '儲存中...' : (isEditMode ? '更新進貨單' : '儲存進貨單')}
+              </Button>
+            </Box>
           </CardContent>
         </Card>
       </form>

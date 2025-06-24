@@ -305,29 +305,62 @@ const PurchaseOrderFormPage: React.FC = () => {
 
   useEffect(() => {
     if (isEditMode && orderData) {
+      console.log('載入編輯資料:', orderData); // 調試日誌
+      
       const supplierId = typeof orderData.supplier === 'object' ? orderData.supplier._id : orderData.supplier;
-      // 確保設置的對象包含所有 IFormData 所需的屬性
+      
+      // 修復項目資料映射邏輯
       const mappedItems = Array.isArray(orderData.items)
-        ? orderData.items.map(item => ({
-            did: item.product && typeof item.product === 'object' ? item.product.code ?? '' : '',
-            dname: item.product && typeof item.product === 'object' ? item.product.name ?? '' : '',
-            dquantity: String(item.quantity ?? ''),
-            dtotalCost: String(item.subtotal ?? ''),
-            // 提取嵌套的三元運算符為更清晰的條件語句
-            product: getProductId(item.product)
-          }))
+        ? orderData.items.map(item => {
+            console.log('處理項目:', item); // 調試日誌
+            
+            // 處理產品資訊
+            let productCode = '';
+            let productName = '';
+            let productId = null;
+            
+            if (item.product) {
+              if (typeof item.product === 'object') {
+                // 產品是完整對象
+                productCode = item.product.code || item.did || '';
+                productName = item.product.name || item.dname || '';
+                productId = item.product._id;
+              } else {
+                // 產品只是ID字符串
+                productId = item.product;
+                productCode = item.did || '';
+                productName = item.dname || '';
+              }
+            } else {
+              // 沒有產品對象，使用項目中的直接欄位
+              productCode = item.did || '';
+              productName = item.dname || '';
+            }
+            
+            return {
+              did: productCode,
+              dname: productName,
+              dquantity: String(item.dquantity || item.quantity || ''),
+              dtotalCost: String(item.dtotalCost || item.subtotal || ''),
+              product: productId
+            };
+          })
         : [];
         
+      console.log('映射後的項目:', mappedItems); // 調試日誌
+        
       setFormData({
-        poid: orderData.orderNumber ?? '',
-        pobill: '',
-        pobilldate: (orderData as ExtendedPurchaseOrder).pobilldate ? new Date((orderData as ExtendedPurchaseOrder).pobilldate) : new Date(),
-        posupplier: orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : '',
+        poid: orderData.poid || orderData.orderNumber || '',
+        pobill: orderData.pobill || '',
+        pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) :
+                   orderData.orderDate ? new Date(orderData.orderDate) : new Date(),
+        posupplier: orderData.posupplier ||
+                   (orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : ''),
         supplier: supplierId,
         items: mappedItems,
         notes: orderData.notes ?? '',
         status: orderData.status ?? 'pending',
-        paymentStatus: '未付',
+        paymentStatus: orderData.paymentStatus || '未付',
         multiplierMode: ''
       });
     }
