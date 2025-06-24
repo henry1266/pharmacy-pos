@@ -314,7 +314,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
 
       dispatch(fetchPurchaseOrders());
       setCsvImportSuccess(true);
-      showSnackbar(response.msg || 'CSV導入成功', 'success');
+      showSnackbar(response.msg ?? 'CSV導入成功', 'success');
       setTimeout(() => {
         setCsvImportDialogOpen(false);
         setCsvImportSuccess(false);

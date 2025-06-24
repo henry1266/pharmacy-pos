@@ -138,7 +138,7 @@ const getPaymentMethodText = (method: string): string => {
     'mobile_payment': '行動支付',
     'other': '其他'
   };
-  return methodMap[method] || method;
+  return methodMap[method] ?? method;
 };
 
 interface PaymentStatusInfo {
@@ -153,7 +153,7 @@ const getPaymentStatusInfo = (status: string): PaymentStatusInfo => {
     'partial': { text: '部分付款', color: 'info' },
     'cancelled': { text: '已取消', color: 'error' }
   };
-  return statusMap[status] || { text: status, color: 'default' };
+  return statusMap[status] ?? { text: status, color: 'default' };
 };
 
 // 銷售列表頁面元件
