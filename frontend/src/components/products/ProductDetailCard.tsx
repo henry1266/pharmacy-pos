@@ -96,24 +96,6 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           國際條碼: {product.barcode ?? '無'} | 健保碼: {product.healthInsuranceCode ?? '無'}
         </>
         }
-        action={
-          <Box>
-            <IconButton
-              color="primary"
-              onClick={() => handleEditProduct(product.id, product.productType)}
-              title="編輯產品"
-            >
-              <EditIcon />
-            </IconButton>
-            <IconButton
-              color="error"
-              onClick={() => handleDeleteProduct(product.id)}
-              title="刪除產品"
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Box>
-        }
       />
       <CardContent>
         <Grid container spacing={2}>

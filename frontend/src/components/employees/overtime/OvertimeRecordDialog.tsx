@@ -16,7 +16,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
-import { OvertimeStatus } from '../../../utils/overtimeDataProcessor';
+import { OvertimeStatus } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 
 // 定義表單數據介面
 interface FormData {

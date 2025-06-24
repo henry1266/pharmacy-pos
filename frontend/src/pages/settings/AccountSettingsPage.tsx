@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -196,12 +196,7 @@ const AccountSettingsPage: React.FC = () => {
   };
 
   // 獲取當前用戶資訊
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
-
-  // 獲取當前用戶資訊
-  const fetchCurrentUser = async (): Promise<void> => {
+  const fetchCurrentUser = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     try {
       const userData = await authService.getCurrentUser();
@@ -220,7 +215,12 @@ const AccountSettingsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [formData]);
+
+  // 獲取當前用戶資訊
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   // 處理表單輸入變更
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

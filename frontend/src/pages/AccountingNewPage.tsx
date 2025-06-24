@@ -41,13 +41,6 @@ import type {
   UnaccountedSale
 } from '@pharmacy-pos/shared/types/accounting';
 
-interface FormData {
-  date: Date;
-  shift: string;
-  status: string;
-  items: AccountingItem[];
-}
-
 interface HeadCell {
   id: string;
   label: string;

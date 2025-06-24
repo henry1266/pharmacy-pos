@@ -69,11 +69,6 @@ interface SalesDataItem {
   [key: string]: any; // 允許其他可能的屬性
 }
 
-// 從 useReportsData hook 導入的類型
-type SalesReportData = {
-  [key: string]: any;
-};
-
 const ReportsPage: React.FC = () => {
   // State management
   const [reportType, setReportType] = useState<string>('sales'); // Default report type

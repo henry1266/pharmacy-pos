@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import OvertimeRecordDialog from './OvertimeRecordDialog';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
-import { OvertimeStatus } from '../../../utils/overtimeDataProcessor';
+import { OvertimeStatus } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 import { OvertimeRecord } from '../../../services/overtimeRecordService';
 
 // 定義表單數據介面
