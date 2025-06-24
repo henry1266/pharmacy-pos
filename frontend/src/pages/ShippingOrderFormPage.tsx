@@ -23,7 +23,7 @@ import {
 import { RootState } from '../redux/store';
 
 // 導入共享型別
-import { ShippingOrderCreateRequest, ShippingOrderUpdateRequest } from '@pharmacy-pos/shared/types/api';
+import { ShippingOrderCreateRequest } from '@pharmacy-pos/shared/types/api';
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index';

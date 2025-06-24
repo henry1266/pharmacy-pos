@@ -128,8 +128,8 @@ const SalesPage: FC = () => {
   } = useSalesData();
 
   // Determine data sources based on test mode
-  const products = (isTestMode && actualError) || (isTestMode && !actualProducts) ? mockSalesPageData.products : actualProducts;
-  const customers = (isTestMode && actualError) || (isTestMode && !actualCustomers) ? mockSalesPageData.customers : actualCustomers;
+  const products = (isTestMode && actualError) ?? (isTestMode && !actualProducts) ? mockSalesPageData.products : actualProducts;
+  const customers = (isTestMode && actualError) ?? (isTestMode && !actualCustomers) ? mockSalesPageData.customers : actualCustomers;
   const loading = isTestMode ? false : actualLoading;
   const error = isTestMode ? null : actualError; // In test mode, we use mock data on actual error
 

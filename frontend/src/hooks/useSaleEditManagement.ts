@@ -98,12 +98,10 @@ export const useSaleEditManagement = (
 
       try {
         let product = products.find(p => p.code === trimmedBarcode);
-        if (!product) {
-          product = products.find(p => 
-            p.isMedicine && 
-            (p as any).healthInsuranceCode === trimmedBarcode
-          );
-        }
+        product ??= products.find(p =>
+          p.isMedicine &&
+          (p as any).healthInsuranceCode === trimmedBarcode
+        );
 
         if (product) {
           const existingItemIndex = currentSale.items.findIndex(item => item.product === product._id);
@@ -188,11 +186,11 @@ export const useSaleEditManagement = (
       items: currentSale.items.map(item => ({
         product: item.product,
         quantity: item.quantity,
-        price: parseFloat(item.price.toString()) || 0,
-        subtotal: (parseFloat(item.price.toString()) || 0) * item.quantity
+        price: parseFloat(item.price.toString()) ?? 0,
+        subtotal: (parseFloat(item.price.toString()) ?? 0) * item.quantity
       })),
       totalAmount: currentSale.totalAmount,
-      discount: parseFloat(currentSale.discount.toString()) || 0,
+      discount: parseFloat(currentSale.discount.toString()) ?? 0,
       paymentMethod: currentSale.paymentMethod,
       paymentStatus: currentSale.paymentStatus,
       note: currentSale.note,

@@ -321,7 +321,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       }, 3000);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { msg?: string } } };
-      setCsvImportError(error.response?.data?.msg || '導入失敗，請檢查CSV格式');
+      setCsvImportError(error.response?.data?.msg ?? '導入失敗，請檢查CSV格式');
     } finally {
       setCsvImportLoading(false);
     }

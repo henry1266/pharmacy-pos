@@ -224,7 +224,7 @@ const SalesListPage: FC = () => {
     try {
       const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
       // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
-      const salesData = response.data.data || [];
+      const salesData = response.data.data ?? [];
       if (Array.isArray(salesData)) {
         setSales(salesData);
       } else {
