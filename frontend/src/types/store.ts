@@ -2,7 +2,7 @@
  * Redux 狀態型別定義
  */
 
-import { Product, Supplier, Customer, Inventory, Sale, PurchaseOrder, ShippingOrder } from './entities';
+import { Product, Supplier, Customer, Inventory, Sale, PurchaseOrder, ShippingOrder } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * Action 型別定義

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useAppDispatch } from './redux';
 import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
 import { getShippingOrderById } from '../services/shippingOrdersService';
-import { RootState, ShippingOrdersState, SuppliersState } from '@pharmacy-pos/shared/types/store';
+import { RootState, ShippingOrdersState, SuppliersState } from '../types/store';
 import { ShippingOrder, Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
