@@ -6,7 +6,7 @@ import type {
   AccountingCategory,
   AccountingItem,
   UnaccountedSale
-} from '../types/accounting';
+} from '@pharmacy-pos/shared/types/accounting';
 
 /**
  * 記帳表單數據介面
@@ -33,8 +33,8 @@ const useAccountingFormData = () => {
     shift: '',
     status: 'pending',
     items: [
-      { amount: '', category: '', categoryId: '', note: '' },
-      { amount: '', category: '', categoryId: '', note: '' }
+      { amount: 0, category: '', categoryId: '', note: '' },
+      { amount: 0, category: '', categoryId: '', note: '' }
     ]
   });
 
@@ -154,7 +154,7 @@ const useAccountingFormData = () => {
       } else if (field === 'amount' && updatedItems[index].category === '退押金' && value !== '') {
         newValue = -Math.abs(parseFloat(value as string));
       } else if (field === 'amount') {
-        newValue = value === '' ? '' : parseFloat(value as string);
+        newValue = value === '' ? 0 : parseFloat(value as string) || 0;
       }
 
       updatedItems[index][field] = newValue as never; // Type assertion needed due to complex logic
@@ -172,7 +172,7 @@ const useAccountingFormData = () => {
   const handleAddItem = useCallback(() => {
     setFormData(prevState => ({
       ...prevState,
-      items: [...prevState.items, { amount: '', category: '', categoryId: '', note: '' }]
+      items: [...prevState.items, { amount: 0, category: '', categoryId: '', note: '' }]
     }));
   }, []);
 
@@ -181,7 +181,7 @@ const useAccountingFormData = () => {
       const updatedItems = [...prevState.items];
       updatedItems.splice(index, 1);
       // Ensure at least one item row exists
-      const finalItems = updatedItems.length ? updatedItems : [{ amount: '', category: '', categoryId: '', note: '' }];
+      const finalItems = updatedItems.length ? updatedItems : [{ amount: 0, category: '', categoryId: '', note: '' }];
       return { ...prevState, items: finalItems };
     });
   }, []);
@@ -197,7 +197,7 @@ const useAccountingFormData = () => {
       if (!formData.shift) throw new Error('請選擇班別');
 
       const validItems = formData.items.filter(
-        item => item.amount !== '' && item.category !== '' && item.categoryId !== ''
+        item => item.amount !== 0 && item.category !== '' && item.categoryId !== ''
       );
 
       if (validItems.length === 0) throw new Error('至少需要一個有效的項目 (金額和名目皆需填寫)');
@@ -223,7 +223,10 @@ const useAccountingFormData = () => {
 
   // Calculate total
   const calculateTotal = useCallback((items: AccountingItem[]) => {
-    return items.reduce((sum, item) => sum + (parseFloat(item.amount as string) || 0), 0);
+    return items.reduce((sum, item) => {
+      const amount = typeof item.amount === 'number' ? item.amount : 0;
+      return sum + amount;
+    }, 0);
   }, []);
 
   const totalAmount = calculateTotal(formData.items);

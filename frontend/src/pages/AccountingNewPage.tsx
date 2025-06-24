@@ -39,7 +39,7 @@ import type {
   AccountingCategory,
   AccountingItem,
   UnaccountedSale
-} from '../types/accounting';
+} from '@pharmacy-pos/shared/types/accounting';
 
 interface FormData {
   date: Date;

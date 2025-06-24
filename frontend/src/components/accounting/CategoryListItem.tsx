@@ -10,7 +10,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { DraggableProvided } from 'react-beautiful-dnd';
-import type { AccountingCategory } from '../../types/accounting';
+import type { AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
 
 // 組件 Props 介面
 interface CategoryListItemProps {

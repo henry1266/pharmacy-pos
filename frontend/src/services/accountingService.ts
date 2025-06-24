@@ -5,7 +5,7 @@ import type {
   AccountingFilters,
   ExtendedAccountingRecord,
   UnaccountedSale
-} from '../types/accounting';
+} from '@pharmacy-pos/shared/types/accounting';
 
 const API_URL = '/api/accounting';
 

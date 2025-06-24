@@ -39,7 +39,7 @@ import type {
   UnaccountedSale,
   FormData,
   AccountingCategory
-} from '../../types/accounting';
+} from '@pharmacy-pos/shared/types/accounting';
 
 // 表格標題介面
 interface HeadCell {
@@ -149,11 +149,16 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
   // 處理金額變更的輔助函數
   const handleAmountChange = (items: AccountingItem[], index: number, value: string): void => {
     if (value === '') {
-      items[index].amount = '';
+      items[index].amount = 0;
       return;
     }
     
     const parsedValue = parseFloat(value);
+    if (isNaN(parsedValue)) {
+      items[index].amount = 0;
+      return;
+    }
+    
     if (items[index].category === '退押金') {
       items[index].amount = -Math.abs(parsedValue);
     } else {
@@ -175,7 +180,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
   const handleAddItem = (): void => {
     setFormData({
       ...formData,
-      items: [...formData.items, { amount: '', category: '', categoryId: '', note: '' }]
+      items: [...formData.items, { amount: 0, category: '', categoryId: '', note: '' }]
     });
   };
   
@@ -186,13 +191,16 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     
     setFormData({
       ...formData,
-      items: updatedItems.length ? updatedItems : [{ amount: '', category: '', categoryId: '', note: '' }]
+      items: updatedItems.length ? updatedItems : [{ amount: 0, category: '', categoryId: '', note: '' }]
     });
   };
   
   // 計算總金額 (僅用於顯示，後端會重新計算)
   const calculateTotal = (items: AccountingItem[], unaccountedSales: UnaccountedSale[] = []): number => {
-    const manualTotal = items.reduce((sum, item) => sum + (parseFloat(item.amount as string) || 0), 0);
+    const manualTotal = items.reduce((sum, item) => {
+      const amount = typeof item.amount === 'number' ? item.amount : 0;
+      return sum + amount;
+    }, 0);
     
     // 計算銷售總額
     let salesTotal = 0;
@@ -201,7 +209,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     }
       
     // 總是加上手動和銷售總額以在編輯模式下預覽
-    return manualTotal + salesTotal; 
+    return manualTotal + salesTotal;
   };
 
   // --- Sorting Logic (Copied from AccountingNewPage) ---

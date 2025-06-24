@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AccountingCategory } from '../types/accounting';
+import type { AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
 
 /**
  * 獲取所有記帳名目類別

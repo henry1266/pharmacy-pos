@@ -1,17 +1,19 @@
 /**
  * 會計相關型別定義
+ * 前後端共用型別，確保資料結構一致性
  */
 
-import { AccountingRecord as BaseAccountingRecord } from './entities';
+import { AccountingRecord as BaseAccountingRecord, AccountingCategory as BaseAccountingCategory } from './entities';
 
 /**
  * 記帳項目介面
+ * 統一前後端資料格式
  */
 export interface AccountingItem {
-  amount: string | number;
+  amount: number; // 統一為 number 型別
   category: string;
   categoryId?: string;
-  note: string;
+  note?: string; // 改為選填，與 backend 一致
 }
 
 /**
@@ -52,15 +54,11 @@ export interface ExtendedAccountingRecord extends BaseAccountingRecord {
 
 /**
  * 記帳名目類別介面
+ * 擴展基礎類別，添加前端需要的屬性
  */
-export interface AccountingCategory {
-  _id: string;
-  name: string;
-  description?: string;
-  isExpense: boolean;
-  order?: number;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+export interface AccountingCategory extends BaseAccountingCategory {
+  // 繼承 BaseAccountingCategory 的所有屬性
+  // 可以在這裡添加前端特有的屬性
 }
 
 /**

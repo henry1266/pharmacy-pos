@@ -6,7 +6,7 @@ import type {
   ExtendedAccountingRecord,
   FormData,
   OperationResult
-} from '../types/accounting';
+} from '@pharmacy-pos/shared/types/accounting';
 
 /**
  * Custom Hook for managing Accounting Page data and logic.

@@ -1,4 +1,5 @@
 import { Document, Types } from 'mongoose';
+import { AccountingItem, AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
 
 // 基礎介面
 export interface ITimestamps {
@@ -210,11 +211,9 @@ export interface IInventoryDocument extends IInventory, Document {
 }
 
 // Accounting 模型型別 (記帳系統)
-export interface IAccountingItem {
-  amount: number;
-  category: string;
-  categoryId?: Types.ObjectId;
-  note?: string;
+// 使用 shared 型別，確保前後端一致
+export interface IAccountingItem extends Omit<AccountingItem, 'categoryId'> {
+  categoryId?: Types.ObjectId; // backend 使用 ObjectId
 }
 
 export interface IAccounting {
@@ -302,11 +301,9 @@ export interface IProductCategoryDocument extends IProductCategory, Document, IT
 }
 
 // AccountingCategory 模型型別
-export interface IAccountingCategory {
-  name: string;
-  description?: string;
-  order: number;
-  isActive: boolean;
+// 使用 shared 型別，確保前後端一致
+export interface IAccountingCategory extends Omit<AccountingCategory, '_id' | 'createdAt' | 'updatedAt'> {
+  // 繼承 shared 型別，移除 Document 相關屬性
 }
 
 export interface IAccountingCategoryDocument extends IAccountingCategory, Document, ITimestamps {

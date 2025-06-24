@@ -16,7 +16,7 @@ import { AccountingRecord } from '@pharmacy-pos/shared/types/entities';
 import type {
   FormData,
   ExtendedAccountingRecord
-} from '../types/accounting';
+} from '@pharmacy-pos/shared/types/accounting';
 
 // TypeScript interfaces
 interface AccountingPageProps {
@@ -58,8 +58,8 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
     shift: '',
     status: 'pending',
     items: [
-      { amount: '', category: '掛號費', note: '' },
-      { amount: '', category: '部分負擔', note: '' }
+      { amount: 0, category: '掛號費', note: '' },
+      { amount: 0, category: '部分負擔', note: '' }
     ],
     unaccountedSales: []
   });
@@ -105,8 +105,8 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       shift: '',
       status: 'pending',
       items: [
-        { amount: '', category: '掛號費', note: '' },
-        { amount: '', category: '部分負擔', note: '' }
+        { amount: 0, category: '掛號費', note: '' },
+        { amount: 0, category: '部分負擔', note: '' }
       ],
       unaccountedSales: []
     });
