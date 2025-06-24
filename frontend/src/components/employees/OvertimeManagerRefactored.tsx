@@ -24,8 +24,7 @@ import {
   groupOvertimeRecords,
   validateOvertimeForm,
   OvertimeStatus
-} from '../../utils/overtimeDataProcessor';
-
+} from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 // 從 overtimeRecordService 導入類型
 import { OvertimeRecord } from '../../services/overtimeRecordService';
 import { Employee } from '@pharmacy-pos/shared/types/entities';

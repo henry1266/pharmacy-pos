@@ -1,5 +1,4 @@
 import express, { Response } from "express";
-import { check, validationResult } from "express-validator";
 import { Types } from "mongoose";
 import auth from "../middleware/auth";
 import OvertimeRecord from "../models/OvertimeRecord";
@@ -14,6 +13,15 @@ import {
   ErrorResponse,
   ERROR_MESSAGES
 } from '@pharmacy-pos/shared';
+
+// 導入共享的加班數據處理工具
+import {
+  groupOvertimeRecords,
+  validateOvertimeForm,
+  getStatusText,
+  getStatusColor,
+  formatDate
+} from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 
 const router: express.Router = express.Router();
 
@@ -138,7 +146,6 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
     }).populate("employeeId", "name department position");
     
     // 獲取該月的所有排班系統加班記錄
-    // 獲取該月的所有排班系統加班記錄
     const scheduleOvertimeRecords = await EmployeeSchedule.find({
       date: {
         $gte: startDate,
@@ -147,46 +154,18 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
       leaveType: 'overtime'
     }).populate("employeeId", "name department position");
     
-    // 按員工分組計算加班時數
-    const employeeStats: { [key: string]: EmployeeOvertimeStats } = {};
+    // 獲取所有員工資料
+    const employees = await Employee.find({}, "name department position");
     
-    // 處理獨立加班記錄
-    overtimeRecords.forEach((record: any) => {
-      const employeeId = record.employeeId._id.toString();
-      const employeeName = record.employeeId.name;
-      
-      if (!employeeStats[employeeId]) {
-        employeeStats[employeeId] = {
-          employeeId,
-          name: employeeName,
-          overtimeHours: 0,
-          independentRecordCount: 0,
-          scheduleRecordCount: 0,
-          totalRecordCount: 0
-        };
-      }
-      
-      employeeStats[employeeId].overtimeHours += record.hours;
-      employeeStats[employeeId].independentRecordCount += 1;
-    });
-    
-    // 處理排班系統加班記錄
+    // 處理排班系統加班記錄，按員工ID分組並計算預估時數
+    const scheduleOvertimeByEmployee: Record<string, any[]> = {};
     scheduleOvertimeRecords.forEach((record: any) => {
       const employeeId = record.employeeId._id.toString();
-      const employeeName = record.employeeId.name;
-      
-      if (!employeeStats[employeeId]) {
-        employeeStats[employeeId] = {
-          employeeId,
-          name: employeeName,
-          overtimeHours: 0,
-          independentRecordCount: 0,
-          scheduleRecordCount: 0,
-          totalRecordCount: 0
-        };
+      if (!scheduleOvertimeByEmployee[employeeId]) {
+        scheduleOvertimeByEmployee[employeeId] = [];
       }
       
-      // 計算預估時數
+      // 計算預估時數並添加到記錄中
       let estimatedHours = 0;
       switch(record.shift) {
         case 'morning':
@@ -202,19 +181,68 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
           break;
       }
       
-      employeeStats[employeeId].overtimeHours += estimatedHours;
-      employeeStats[employeeId].scheduleRecordCount += 1;
+      scheduleOvertimeByEmployee[employeeId].push({
+        ...record.toObject(),
+        hours: estimatedHours
+      });
     });
     
-    // 轉換為數組格式
-    const result = Object.values(employeeStats).map(stat => ({
-      ...stat,
-      overtimeHours: parseFloat(stat.overtimeHours.toFixed(1)),
-      totalRecordCount: stat.independentRecordCount + stat.scheduleRecordCount
+    // 創建統計數據，包含排班系統的加班時數
+    const summaryData = Object.keys(scheduleOvertimeByEmployee).map(employeeId => {
+      const scheduleHours = scheduleOvertimeByEmployee[employeeId].reduce((total, record) => total + record.hours, 0);
+      const scheduleRecordCount = scheduleOvertimeByEmployee[employeeId].length;
+      
+      // 查找對應的員工資料
+      const employee = employees.find(emp => emp._id.toString() === employeeId);
+      
+      return {
+        employeeId,
+        employeeName: employee?.name || `員工${parseInt(month)}`,
+        overtimeHours: scheduleHours,
+        scheduleRecordCount
+      };
+    });
+    
+    // 轉換 MongoDB 文檔為共享介面格式
+    const formattedOvertimeRecords = overtimeRecords.map((record: any) => ({
+      employeeId: record.employeeId ? {
+        _id: record.employeeId._id.toString(),
+        name: record.employeeId.name,
+        department: record.employeeId.department,
+        position: record.employeeId.position
+      } : record.employeeId,
+      date: record.date,
+      hours: record.hours,
+      status: record.status,
+      description: record.description
     }));
     
-    // 按加班時數降序排序
-    result.sort((a, b) => b.overtimeHours - a.overtimeHours);
+    // 轉換員工數據為共享介面格式
+    const formattedEmployees = employees.map((emp: any) => ({
+      _id: emp._id.toString(),
+      name: emp.name,
+      department: emp.department,
+      position: emp.position
+    }));
+    
+    // 使用共享的 groupOvertimeRecords 函數處理數據
+    const groupedRecords = groupOvertimeRecords(
+      formattedOvertimeRecords,
+      scheduleOvertimeByEmployee,
+      summaryData,
+      formattedEmployees,
+      parseInt(month) - 1 // 轉換為 0-based 月份
+    );
+    
+    // 轉換為 API 需要的格式
+    const result = groupedRecords.map(([employeeId, group]) => ({
+      employeeId,
+      name: group.employee.name,
+      overtimeHours: parseFloat(group.totalHours.toFixed(1)),
+      independentRecordCount: group.records.length,
+      scheduleRecordCount: group.scheduleRecordCount,
+      totalRecordCount: group.records.length + group.scheduleRecordCount
+    }));
     
     const response: ApiResponse<typeof result> = {
       success: true,
@@ -295,18 +323,20 @@ router.get("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
 router.post(
   "/",
   auth,
-  [
-    check("employeeId", "員工ID為必填欄位").not().isEmpty(),
-    check("date", "日期為必填欄位").not().isEmpty(),
-    check("hours", "加班時數為必填欄位").isNumeric().isFloat({ min: 0.5, max: 24 })
-  ],
   async (req: AuthenticatedRequest, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    // 使用共享的表單驗證函數
+    const formErrors = validateOvertimeForm(req.body);
+    if (Object.keys(formErrors).length > 0) {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        errors: errors.array(),
+        errors: Object.entries(formErrors).map(([field, message]) => ({
+          type: 'field',
+          value: req.body[field],
+          msg: message,
+          path: field,
+          location: 'body'
+        })),
         timestamp: new Date().toISOString()
       };
       res.status(400).json(errorResponse);
