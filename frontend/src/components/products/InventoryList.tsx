@@ -142,17 +142,49 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
           }
         });
         
-        // 將合併後的記錄添加到結果數組
-        Object.values(saleGroups).forEach(group => mergedInventories.push(group));
-        Object.values(purchaseGroups).forEach(group => mergedInventories.push(group));
-        Object.values(shipGroups).forEach(group => mergedInventories.push(group));
+        // 將合併後的記錄添加到結果數組（混合所有類型）
+        mergedInventories.push(...Object.values(saleGroups));
+        mergedInventories.push(...Object.values(purchaseGroups));
+        mergedInventories.push(...Object.values(shipGroups));
         
-        // 排序：將saleNumber、purchaseOrderNumber和shippingOrderNumber從值大到小排序
+        // 調試：檢查合併後的數據
+        console.log('合併後的數據:', mergedInventories.map(inv => ({
+          type: inv.type,
+          saleNumber: inv.saleNumber,
+          purchaseOrderNumber: inv.purchaseOrderNumber,
+          shippingOrderNumber: inv.shippingOrderNumber,
+          orderNumber: inv.saleNumber || inv.purchaseOrderNumber || inv.shippingOrderNumber || 'EMPTY'
+        })));
+        
+        // 排序：取訂單號左邊八位數字進行數值比較，大的在上小的在下
         mergedInventories.sort((a, b) => {
-          const aValue = a.saleNumber ?? a.purchaseOrderNumber ?? a.shippingOrderNumber ?? '';
-          const bValue = b.saleNumber ?? b.purchaseOrderNumber ?? b.shippingOrderNumber ?? '';
-          return bValue.localeCompare(aValue);
+          const aValue = (a.saleNumber && a.saleNumber.trim()) ||
+                        (a.purchaseOrderNumber && a.purchaseOrderNumber.trim()) ||
+                        (a.shippingOrderNumber && a.shippingOrderNumber.trim()) || '';
+          const bValue = (b.saleNumber && b.saleNumber.trim()) ||
+                        (b.purchaseOrderNumber && b.purchaseOrderNumber.trim()) ||
+                        (b.shippingOrderNumber && b.shippingOrderNumber.trim()) || '';
+          
+          // 提取左邊八位數字（只取數字部分）
+          const aMatch = aValue.match(/^\d{8}/);
+          const bMatch = bValue.match(/^\d{8}/);
+          
+          const aNumber = aMatch ? parseInt(aMatch[0]) : 0;
+          const bNumber = bMatch ? parseInt(bMatch[0]) : 0;
+          
+          // 調試信息
+          console.log(`排序比較: "${aValue}"(${aNumber}) vs "${bValue}"(${bNumber})`);
+          
+          // 大的在上，小的在下
+          return bNumber - aNumber;
         });
+        
+        // 排序後的調試信息
+        console.log('排序後的訂單號:', mergedInventories.map(inv =>
+          (inv.saleNumber && inv.saleNumber.trim()) ||
+          (inv.purchaseOrderNumber && inv.purchaseOrderNumber.trim()) ||
+          (inv.shippingOrderNumber && inv.shippingOrderNumber.trim()) || 'EMPTY'
+        ));
         
         // 計算當前庫存
         let stock = 0;
@@ -405,7 +437,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '120px' }}>貨單號</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '110px' }}>貨單號</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '80px' }}>類型</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '60px' }}>數量</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '60px' }}>庫存</TableCell>
