@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
-import { 
-  PasswordHashResult, 
-  PasswordValidation, 
-  PasswordPolicy, 
-  PasswordCompareResult 
-} from '../src/types/utils';
+import {
+  PasswordHashResult,
+  PasswordValidation,
+  PasswordPolicy,
+  PasswordCompareResult
+} from '@pharmacy-pos/shared/types/utils';
 
 /**
  * 密碼處理工具函數

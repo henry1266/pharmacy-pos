@@ -2,17 +2,16 @@
  * 出貨單模組共用 Hooks
  */
 
-import { useState, useCallback, ChangeEvent } from 'react';
+import { useState, useCallback, ChangeEvent, useMemo } from 'react';
 import { Item } from './types';
-import { 
-  calculateTotalAmount, 
-  moveArrayItem, 
-  deepClone, 
-  validateItem,
-  validateFileType,
-  validateFileSize
+import {
+  calculateTotalAmount,
+  moveArrayItem,
+  deepClone,
+  validateItem
 } from './utils';
 import { FILE_UPLOAD_CONFIG } from './constants';
+import { FileProcessingOptions, FileValidationResult, ValidationResult } from '@pharmacy-pos/shared/types/utils';
 
 /**
  * 項目管理 Hook
@@ -134,30 +133,67 @@ export const useItemsManagement = (initialItems: Item[] = []) => {
 /**
  * CSV 導入 Hook
  */
-export const useCsvImport = () => {
+export const useCsvImport = (options?: FileProcessingOptions) => {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<boolean>(false);
+  const [validationResult, setValidationResult] = useState<FileValidationResult | null>(null);
+
+  // 預設檔案處理選項
+  const processingOptions = useMemo((): FileProcessingOptions => {
+    const defaultOptions: FileProcessingOptions = {
+      allowedExtensions: [...FILE_UPLOAD_CONFIG.allowedExtensions],
+      maxFileSize: FILE_UPLOAD_CONFIG.maxFileSize,
+      maxFiles: 1
+    };
+    return { ...defaultOptions, ...options };
+  }, [options]);
+
+  // 驗證檔案
+  const validateFile = useCallback((file: File): FileValidationResult => {
+    const errors: string[] = [];
+    
+    // 檢查檔案擴展名
+    if (processingOptions.allowedExtensions) {
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (!processingOptions.allowedExtensions.includes(fileExtension)) {
+        errors.push(`不支援的檔案格式，僅支援: ${processingOptions.allowedExtensions.join(', ')}`);
+      }
+    }
+    
+    // 檢查檔案大小
+    if (processingOptions.maxFileSize && file.size > processingOptions.maxFileSize) {
+      const maxSizeMB = processingOptions.maxFileSize / 1024 / 1024;
+      errors.push(`檔案大小超過限制 (${maxSizeMB}MB)`);
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+      fileInfo: {
+        originalName: file.name,
+        size: file.size,
+        mimetype: file.type,
+        extension: '.' + file.name.split('.').pop()?.toLowerCase() || ''
+      }
+    };
+  }, [processingOptions]);
 
   // 處理檔案變更
   const handleFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       setCsvFile(null);
+      setValidationResult(null);
       return;
     }
 
-    // 驗證檔案類型
-    if (!validateFileType(file, [...FILE_UPLOAD_CONFIG.allowedExtensions])) {
-      setError('請選擇 CSV 檔案');
-      setCsvFile(null);
-      return;
-    }
+    const validation = validateFile(file);
+    setValidationResult(validation);
 
-    // 驗證檔案大小
-    if (!validateFileSize(file, FILE_UPLOAD_CONFIG.maxFileSize)) {
-      setError(`檔案大小不能超過 ${FILE_UPLOAD_CONFIG.maxFileSize / 1024 / 1024}MB`);
+    if (!validation.isValid) {
+      setError(validation.errors.join(', '));
       setCsvFile(null);
       return;
     }
@@ -165,29 +201,36 @@ export const useCsvImport = () => {
     setCsvFile(file);
     setError('');
     setSuccess(false);
-  }, []);
+  }, [validateFile]);
 
   // 執行導入
-  const handleImport = useCallback(async (importFunction: (file: File) => Promise<void>) => {
-    if (!csvFile) return;
+  const handleImport = useCallback(async (importFunction: (file: File) => Promise<ValidationResult>) => {
+    if (!csvFile || !validationResult?.isValid) return;
 
     setLoading(true);
     setError('');
     
     try {
-      await importFunction(csvFile);
-      setSuccess(true);
+      const result = await importFunction(csvFile);
+      if (result.isValid) {
+        setSuccess(true);
+      } else {
+        const errorMessages = result.errors.map(err => err.message).join(', ');
+        setError(errorMessages || '導入失敗');
+        setSuccess(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '導入失敗');
       setSuccess(false);
     } finally {
       setLoading(false);
     }
-  }, [csvFile]);
+  }, [csvFile, validationResult]);
 
   // 重置狀態
   const resetImportState = useCallback(() => {
     setCsvFile(null);
+    setValidationResult(null);
     setLoading(false);
     setError('');
     setSuccess(false);
@@ -198,6 +241,7 @@ export const useCsvImport = () => {
     loading,
     error,
     success,
+    validationResult,
     handleFileChange,
     handleImport,
     resetImportState

@@ -3,6 +3,7 @@
  */
 
 import { Role } from '@pharmacy-pos/shared/types/entities';
+import { ValidationResult, ValidationRule, PasswordValidation } from '@pharmacy-pos/shared/types/utils';
 import { FormData, FormErrors } from './types';
 import { ROLE_COLORS, ROLE_NAMES, STATUS_CONFIG, VALIDATION_RULES } from './constants';
 
@@ -67,6 +68,49 @@ export const formatDateToYYYYMMDD = (date: Date): string => {
 };
 
 /**
+ * 驗證密碼強度
+ * @param password 密碼
+ * @returns 密碼驗證結果
+ */
+export const validatePasswordStrength = (password: string): PasswordValidation => {
+  const result: PasswordValidation = {
+    isValid: true,
+    errors: [],
+    strength: 'weak',
+    score: 0
+  };
+
+  if (password.length < VALIDATION_RULES.password.minLength) {
+    result.isValid = false;
+    result.errors.push(`密碼長度至少需要${VALIDATION_RULES.password.minLength}個字符`);
+  } else if (password.length >= 8) {
+    result.score += 1;
+  }
+
+  if (/[A-Z]/.test(password)) result.score += 1;
+  if (/[a-z]/.test(password)) result.score += 1;
+  if (/\d/.test(password)) result.score += 1;
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) result.score += 1;
+
+  // 設定密碼強度
+  if (result.score >= 4) {
+    result.strength = 'very_strong';
+  } else if (result.score >= 3) {
+    result.strength = 'strong';
+  } else if (result.score >= 2) {
+    result.strength = 'medium';
+  } else {
+    result.strength = 'weak';
+  }
+
+  if (result.score < 2 && result.isValid) {
+    result.errors.push('建議使用大小寫字母、數字和特殊字符組合');
+  }
+
+  return result;
+};
+
+/**
  * 驗證帳號表單
  * @param formData 表單資料
  * @param isPasswordReset 是否為密碼重設
@@ -74,40 +118,67 @@ export const formatDateToYYYYMMDD = (date: Date): string => {
  * @returns 驗證結果
  */
 export const validateAccountForm = (
-  formData: FormData, 
-  isPasswordReset = false, 
+  formData: FormData,
+  isPasswordReset = false,
   isEdit = false
-): { isValid: boolean; errors: FormErrors } => {
-  const errors: FormErrors = {};
+): ValidationResult => {
+  const errors: Array<{ field: string; message: string; value?: any }> = [];
 
   if (!isEdit) {
     if (!formData.username) {
-      errors.username = '請輸入用戶名';
+      errors.push({
+        field: 'username',
+        message: '請輸入用戶名',
+        value: formData.username
+      });
     } else if (formData.username.length < VALIDATION_RULES.username.minLength) {
-      errors.username = `用戶名長度至少需要${VALIDATION_RULES.username.minLength}個字符`;
+      errors.push({
+        field: 'username',
+        message: `用戶名長度至少需要${VALIDATION_RULES.username.minLength}個字符`,
+        value: formData.username
+      });
     }
   }
 
   if (!isEdit || isPasswordReset) {
     if (!formData.password) {
-      errors.password = '請輸入密碼';
-    } else if (formData.password.length < VALIDATION_RULES.password.minLength) {
-      errors.password = `密碼長度至少需要${VALIDATION_RULES.password.minLength}個字符`;
+      errors.push({
+        field: 'password',
+        message: '請輸入密碼',
+        value: formData.password
+      });
+    } else {
+      const passwordValidation = validatePasswordStrength(formData.password);
+      if (!passwordValidation.isValid) {
+        errors.push({
+          field: 'password',
+          message: passwordValidation.errors.join(', '),
+          value: formData.password
+        });
+      }
     }
 
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = '兩次輸入的密碼不一致';
+      errors.push({
+        field: 'confirmPassword',
+        message: '兩次輸入的密碼不一致',
+        value: formData.confirmPassword
+      });
     }
   }
 
   if (!isPasswordReset && !isEdit) {
     if (!formData.role) {
-      errors.role = '請選擇角色';
+      errors.push({
+        field: 'role',
+        message: '請選擇角色',
+        value: formData.role
+      });
     }
   }
 
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid: errors.length === 0,
     errors
   };
 };
@@ -117,28 +188,44 @@ export const validateAccountForm = (
  * @param formData 表單資料
  * @returns 驗證結果
  */
-export const validateOvertimeForm = (formData: FormData): { isValid: boolean; errors: FormErrors } => {
-  const errors: FormErrors = {};
+export const validateOvertimeForm = (formData: FormData): ValidationResult => {
+  const errors: Array<{ field: string; message: string; value?: any }> = [];
 
   if (!formData.employeeId) {
-    errors.employeeId = '請選擇員工';
+    errors.push({
+      field: 'employeeId',
+      message: '請選擇員工',
+      value: formData.employeeId
+    });
   }
 
   if (!formData.date) {
-    errors.date = '請選擇日期';
+    errors.push({
+      field: 'date',
+      message: '請選擇日期',
+      value: formData.date
+    });
   }
 
   if (!formData.hours) {
-    errors.hours = '請輸入加班時數';
+    errors.push({
+      field: 'hours',
+      message: '請輸入加班時數',
+      value: formData.hours
+    });
   } else {
     const hours = Number(formData.hours);
     if (isNaN(hours) || hours < VALIDATION_RULES.hours.min || hours > VALIDATION_RULES.hours.max) {
-      errors.hours = `加班時數必須在 ${VALIDATION_RULES.hours.min} 到 ${VALIDATION_RULES.hours.max} 小時之間`;
+      errors.push({
+        field: 'hours',
+        message: `加班時數必須在 ${VALIDATION_RULES.hours.min} 到 ${VALIDATION_RULES.hours.max} 小時之間`,
+        value: formData.hours
+      });
     }
   }
 
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid: errors.length === 0,
     errors
   };
 };

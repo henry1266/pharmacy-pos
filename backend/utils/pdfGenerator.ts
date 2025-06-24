@@ -36,6 +36,7 @@ const PDFDocument = require('pdfkit') as PDFDocumentConstructor;
 
 import dayjs from 'dayjs';
 import { Types } from 'mongoose';
+import { PDFGenerationOptions, PDFGenerationResult } from '@pharmacy-pos/shared/types/utils';
 
 // PDF 生成相關型別定義
 export interface ShippingOrderPDFData {
@@ -68,26 +69,6 @@ export interface ShippingOrderPDFItem {
   subtotal?: number;
 }
 
-export interface PDFGenerationOptions {
-  fontSize?: number;
-  fontFamily?: string;
-  margins?: {
-    top?: number;
-    bottom?: number;
-    left?: number;
-    right?: number;
-  };
-}
-
-export interface PDFGenerationResult {
-  success: boolean;
-  buffer?: Buffer;
-  error?: string;
-  metadata?: {
-    pageCount: number;
-    generatedAt: Date;
-  };
-}
 
 /**
  * 生成出貨單PDF
@@ -348,7 +329,9 @@ export const generateShippingOrderPdf = async (
       buffer,
       metadata: {
         pageCount: 1, // 實際頁數需要從 PDF 中計算
+        fileSize: buffer.length,
         generatedAt: new Date(),
+        processingTime: 0 // 可以在實際應用中計算處理時間
       }
     };
   } catch (error) {

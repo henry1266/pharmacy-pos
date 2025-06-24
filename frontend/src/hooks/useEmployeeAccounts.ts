@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import employeeAccountService from '../services/employeeAccountService';
 import employeeService from '../services/employeeService';
 import { EmployeeWithAccount } from '@pharmacy-pos/shared/types/entities';
+import { PasswordValidation, ValidationResult } from '@pharmacy-pos/shared/types/utils';
 
 /**
  * 表單資料介面
@@ -103,8 +104,47 @@ const useEmployeeAccounts = () => {
     }
   }, [formErrors]);
 
+  // 驗證密碼強度
+  const validatePasswordStrength = useCallback((password: string): PasswordValidation => {
+    const result: PasswordValidation = {
+      isValid: true,
+      errors: [],
+      strength: 'weak',
+      score: 0
+    };
+
+    if (password.length < 6) {
+      result.isValid = false;
+      result.errors.push('密碼長度至少需要6個字符');
+    } else if (password.length >= 8) {
+      result.score += 1;
+    }
+
+    if (/[A-Z]/.test(password)) result.score += 1;
+    if (/[a-z]/.test(password)) result.score += 1;
+    if (/\d/.test(password)) result.score += 1;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) result.score += 1;
+
+    // 設定密碼強度
+    if (result.score >= 4) {
+      result.strength = 'very_strong';
+    } else if (result.score >= 3) {
+      result.strength = 'strong';
+    } else if (result.score >= 2) {
+      result.strength = 'medium';
+    } else {
+      result.strength = 'weak';
+    }
+
+    if (result.score < 2 && result.isValid) {
+      result.errors.push('建議使用大小寫字母、數字和特殊字符組合');
+    }
+
+    return result;
+  }, []);
+
   // 驗證表單
-  const validateForm = useCallback((isPasswordReset = false, isEdit = false) => {
+  const validateForm = useCallback((isPasswordReset = false, isEdit = false): ValidationResult => {
     const errors: FormErrors = {};
 
     if (!isEdit) {
@@ -118,8 +158,11 @@ const useEmployeeAccounts = () => {
     if (!isEdit || isPasswordReset) {
       if (!formData.password) {
         errors.password = '請輸入密碼';
-      } else if (formData.password.length < 6) {
-        errors.password = '密碼長度至少需要6個字符';
+      } else {
+        const passwordValidation = validatePasswordStrength(formData.password);
+        if (!passwordValidation.isValid) {
+          errors.password = passwordValidation.errors.join(', ');
+        }
       }
 
       if (formData.password !== formData.confirmPassword) {
@@ -134,8 +177,18 @@ const useEmployeeAccounts = () => {
     }
 
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  }, [formData]);
+    const isValid = Object.keys(errors).length === 0;
+    
+    return {
+      isValid,
+      errors: Object.keys(errors).length > 0 ? Object.entries(errors).map(([field, message]) => ({
+        field,
+        message: message || '',
+        value: formData[field as keyof FormData]
+      })) : [],
+      warnings: []
+    };
+  }, [formData, validatePasswordStrength]);
 
   // 對話框操作
   const handleOpenEditDialog = useCallback((employee: EmployeeWithAccount, account: any) => {
@@ -201,7 +254,8 @@ const useEmployeeAccounts = () => {
       return;
     }
     
-    if (!validateForm()) return;
+    const validation = validateForm();
+    if (!validation.isValid) return;
 
     setSubmitting(true);
     try {
@@ -231,7 +285,8 @@ const useEmployeeAccounts = () => {
   }, [formData, employees, validateForm, handleCloseDialogs, fetchEmployees]);
 
   const handleUpdateAccount = useCallback(async () => {
-    if (!validateForm(false, true)) return;
+    const validation = validateForm(false, true);
+    if (!validation.isValid) return;
 
     const updateData: Record<string, any> = {};
     if (formData.username) updateData.username = formData.username;
@@ -258,7 +313,8 @@ const useEmployeeAccounts = () => {
   }, [formData, validateForm, handleCloseDialogs, fetchEmployees]);
 
   const handleResetPassword = useCallback(async () => {
-    if (!validateForm(true)) return;
+    const validation = validateForm(true);
+    if (!validation.isValid) return;
 
     setSubmitting(true);
     try {

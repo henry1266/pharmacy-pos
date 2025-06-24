@@ -20,10 +20,6 @@ export * from './api';
 
 // 表單型別
 export * from './forms';
-
-// 儲存相關型別
-export * from './store';
-
 // 工具型別
 export * from './utils';
 

@@ -6,7 +6,7 @@
  */
 
 import { Product, Medicine } from '../models/BaseProduct';
-import { CodeGenerationResult } from '../src/types/utils';
+import { CodeGenerationResult } from '@pharmacy-pos/shared/types/utils';
 
 /**
  * 產生下一個可用的商品編號

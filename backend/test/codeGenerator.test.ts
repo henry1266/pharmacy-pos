@@ -5,7 +5,7 @@
 import mongoose from 'mongoose';
 import { Product, Medicine } from '../models/BaseProduct';
 import { generateNextProductCode, generateNextMedicineCode } from '../utils/codeGenerator';
-import { CodeGenerationResult } from '../src/types/utils';
+import { CodeGenerationResult } from '@pharmacy-pos/shared/types/utils';
 
 // 連接到測試資料庫
 const connectDB = async (): Promise<void> => {
