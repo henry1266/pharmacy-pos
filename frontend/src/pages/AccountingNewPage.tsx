@@ -61,8 +61,11 @@ const AccountingNewPage: React.FC = () => {
     handleFormChange,
     handleDateChange,
     handleItemChange,
+    handleItemBlur,
     handleAddItem,
     handleRemoveItem,
+    accountingItemsTotal,
+    monitoredProductsTotal,
     totalAmount,
     unaccountedSales,
     loadingSales,
@@ -80,6 +83,9 @@ const AccountingNewPage: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc'); // Sort order for sales table
   const [orderBy, setOrderBy] = useState<string>('lastUpdated'); // Sort by column for sales table
+  
+  // Local state for amount inputs to prevent losing focus
+  const [localAmounts, setLocalAmounts] = useState<{ [key: number]: string }>({});
 
   // Show snackbar for submission results or errors
   useEffect(() => {
@@ -132,6 +138,63 @@ const AccountingNewPage: React.FC = () => {
   // Back navigation
   const handleBack = (): void => {
     navigate('/accounting');
+  };
+
+  // Handle local amount input changes
+  const handleLocalAmountChange = (index: number, value: string): void => {
+    setLocalAmounts(prev => ({
+      ...prev,
+      [index]: value
+    }));
+  };
+
+  // Handle amount blur - update the actual form data
+  const handleAmountBlur = (index: number, value: string): void => {
+    handleItemBlur(index, 'amount', value);
+    // Clear local state after blur
+    setLocalAmounts(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+  };
+
+  // Get display value for amount input
+  const getAmountDisplayValue = (index: number, item: any): string => {
+    // Use local state if available, otherwise use form data
+    if (localAmounts[index] !== undefined) {
+      return localAmounts[index];
+    }
+    return item.amount?.toString() || '';
+  };
+
+  // Handle Tab key navigation between amount fields
+  const handleAmountKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      // Tab key pressed (forward navigation)
+      const nextIndex = index + 1;
+      if (nextIndex < formData.items.length) {
+        e.preventDefault();
+        // Focus next amount input
+        const nextInput = document.querySelector(`input[data-amount-index="${nextIndex}"]`) as HTMLInputElement;
+        if (nextInput) {
+          nextInput.focus();
+          nextInput.select(); // Select all text for easy replacement
+        }
+      }
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      // Shift+Tab key pressed (backward navigation)
+      const prevIndex = index - 1;
+      if (prevIndex >= 0) {
+        e.preventDefault();
+        // Focus previous amount input
+        const prevInput = document.querySelector(`input[data-amount-index="${prevIndex}"]`) as HTMLInputElement;
+        if (prevInput) {
+          prevInput.focus();
+          prevInput.select(); // Select all text for easy replacement
+        }
+      }
+    }
   };
 
   // Form submission trigger
@@ -367,11 +430,16 @@ const AccountingNewPage: React.FC = () => {
                     <TextField
                       label="金額"
                       type="number"
-                      value={item.amount}
-                      onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
+                      value={getAmountDisplayValue(index, item)}
+                      onChange={(e) => handleLocalAmountChange(index, e.target.value)}
+                      onBlur={(e) => handleAmountBlur(index, e.target.value)}
+                      onKeyDown={(e) => handleAmountKeyDown(index, e)}
                       fullWidth
                       required
                       disabled={submitting}
+                      inputProps={{
+                        'data-amount-index': index
+                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': {
@@ -435,8 +503,14 @@ const AccountingNewPage: React.FC = () => {
 
             {/* Total Amount Display */}
             <Grid item xs={12} sx={{ textAlign: 'right', mt: -1, mb: 2 }}>
-              <Typography variant="h6">
-                總金額: {totalAmount.toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}
+              <Typography variant="h6" sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+                <span>進帳項目: {accountingItemsTotal.toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}</span>
+                <span>+</span>
+                <span>監測產品: {monitoredProductsTotal.toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}</span>
+                <span>=</span>
+                <span style={{ fontWeight: 'bold', color: '#1976d2' }}>
+                  總金額: {totalAmount.toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}
+                </span>
               </Typography>
             </Grid>
 

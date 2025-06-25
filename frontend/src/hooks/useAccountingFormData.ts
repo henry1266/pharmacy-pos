@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { accountingServiceV2 } from '../services/accountingServiceV2';
 import type {
   AccountingCategory,
@@ -73,7 +73,10 @@ const useAccountingFormData = () => {
       }
     } catch (err: any) {
       console.error('獲取記帳名目類別失敗 (hook):', err);
-      setErrorCategories('獲取記帳名目類別失敗');
+      // 只有在不是認證錯誤時才設置錯誤訊息
+      if (!err.message?.includes('沒有權限') && !err.message?.includes('Unauthorized')) {
+        setErrorCategories('獲取記帳名目類別失敗');
+      }
     } finally {
       setLoadingCategories(false);
     }
@@ -85,7 +88,7 @@ const useAccountingFormData = () => {
 
   // Fetch unaccounted sales
   const fetchSales = useCallback(async (date: Date) => {
-    if (!date) {
+    if (!date || !isValid(date)) {
       setUnaccountedSales([]);
       return;
     }
@@ -112,7 +115,10 @@ const useAccountingFormData = () => {
       setUnaccountedSales(transformedData);
     } catch (err: any) {
       console.error('獲取未標記銷售記錄失敗 (hook):', err);
-      setSalesError(err.message ?? '獲取未標記銷售記錄失敗');
+      // 只有在不是認證錯誤時才設置錯誤訊息
+      if (!err.message?.includes('沒有權限') && !err.message?.includes('Unauthorized')) {
+        setSalesError(err.message ?? '獲取未標記銷售記錄失敗');
+      }
       setUnaccountedSales([]);
     } finally {
       setLoadingSales(false);
@@ -140,20 +146,21 @@ const useAccountingFormData = () => {
   }, []);
 
   const handleItemChange = useCallback((index: number, field: keyof AccountingItem, value: string | number) => {
+    // 對於金額欄位，不觸發狀態更新，避免失去焦點
+    if (field === 'amount') {
+      return; // 金額欄位只在 blur 時更新
+    }
+
     setFormData(prevState => {
       const updatedItems = [...prevState.items];
       let newValue = value;
 
-      // Handle '退押金' logic
+      // Handle '退押金' logic for category changes
       if (field === 'category' && value === '退押金') {
         const currentAmount = updatedItems[index].amount;
         if (typeof currentAmount === 'number' && currentAmount > 0) {
           updatedItems[index].amount = -Math.abs(currentAmount);
         }
-      } else if (field === 'amount' && updatedItems[index].category === '退押金' && value !== '') {
-        newValue = -Math.abs(parseFloat(value as string));
-      } else if (field === 'amount') {
-        newValue = value === '' ? 0 : parseFloat(value as string) || 0;
       }
 
       updatedItems[index][field] = newValue as never; // Type assertion needed due to complex logic
@@ -167,6 +174,24 @@ const useAccountingFormData = () => {
       return { ...prevState, items: updatedItems };
     });
   }, [categories]);
+
+  // 新增處理欄位失去焦點的函數
+  const handleItemBlur = useCallback((index: number, field: keyof AccountingItem, value: string) => {
+    if (field === 'amount') {
+      setFormData(prevState => {
+        const updatedItems = [...prevState.items];
+        let numericValue = value === '' ? 0 : parseFloat(value) || 0;
+        
+        // Handle '退押金' logic for blur event
+        if (updatedItems[index].category === '退押金' && numericValue !== 0) {
+          numericValue = -Math.abs(numericValue);
+        }
+        
+        updatedItems[index].amount = numericValue;
+        return { ...prevState, items: updatedItems };
+      });
+    }
+  }, []);
 
   const handleAddItem = useCallback(() => {
     setFormData(prevState => ({
@@ -220,15 +245,23 @@ const useAccountingFormData = () => {
     }
   }, [formData]);
 
-  // Calculate total
-  const calculateTotal = useCallback((items: AccountingItem[]) => {
+  // Calculate totals - 分別計算進帳項目和監測產品
+  const calculateAccountingTotal = useCallback((items: AccountingItem[]) => {
     return items.reduce((sum, item) => {
       const amount = typeof item.amount === 'number' ? item.amount : 0;
       return sum + amount;
     }, 0);
   }, []);
 
-  const totalAmount = calculateTotal(formData.items);
+  const calculateMonitoredProductsTotal = useCallback((sales: UnaccountedSale[]) => {
+    return sales.reduce((sum, sale) => {
+      return sum + (sale.totalAmount || 0);
+    }, 0);
+  }, []);
+
+  const accountingItemsTotal = calculateAccountingTotal(formData.items);
+  const monitoredProductsTotal = calculateMonitoredProductsTotal(unaccountedSales);
+  const totalAmount = accountingItemsTotal + monitoredProductsTotal;
 
   return {
     // Categories
@@ -240,8 +273,12 @@ const useAccountingFormData = () => {
     handleFormChange,
     handleDateChange,
     handleItemChange,
+    handleItemBlur, // 新增 blur 處理函數
     handleAddItem,
     handleRemoveItem,
+    // Totals - 分別提供三個數值
+    accountingItemsTotal,
+    monitoredProductsTotal,
     totalAmount,
     // Unaccounted Sales
     unaccountedSales,
