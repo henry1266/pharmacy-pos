@@ -21,6 +21,9 @@ export * from './numberUtils';
 // 驗證工具函數
 export * from './validationUtils';
 
+// 錯誤處理工具函數
+export * from './errorUtils';
+
 /**
  * 工具函數分類導出
  * 可以按需導入特定分類的工具函數
@@ -49,6 +52,10 @@ export { NumberUtils };
 // 驗證工具函數命名空間
 import * as ValidationUtils from './validationUtils';
 export { ValidationUtils };
+
+// 錯誤處理工具函數命名空間
+import * as ErrorUtils from './errorUtils';
+export { ErrorUtils };
 
 /**
  * 版本資訊

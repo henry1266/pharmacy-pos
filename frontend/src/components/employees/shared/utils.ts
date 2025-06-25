@@ -3,7 +3,14 @@
  */
 
 import { Role } from '@pharmacy-pos/shared/types/entities';
-import { ValidationResult, ValidationRule, PasswordValidation } from '@pharmacy-pos/shared/types/utils';
+import { ValidationResult, PasswordValidation } from '@pharmacy-pos/shared/types/utils';
+import {
+  formatDateString,
+  validatePassword,
+  isValidEmail as sharedIsValidEmail,
+  safeParseNumber,
+  handleApiError as sharedHandleApiError
+} from '@pharmacy-pos/shared/utils';
 import { FormData, FormErrors } from './types';
 import { ROLE_COLORS, ROLE_NAMES, STATUS_CONFIG, VALIDATION_RULES } from './constants';
 
@@ -55,59 +62,52 @@ export const formatDate = (dateString: string): string => {
 
 /**
  * 格式化日期為 YYYY-MM-DD 格式，避免時區問題
+ * 使用 shared 模組的 formatDateString 函數
  * @param date 日期物件
  * @returns YYYY-MM-DD 格式的日期字串
  */
 export const formatDateToYYYYMMDD = (date: Date): string => {
-  const year = date.getFullYear();
-  const monthNum = date.getMonth() + 1;
-  const dayNum = date.getDate();
-  const month = monthNum < 10 ? '0' + monthNum : monthNum.toString();
-  const day = dayNum < 10 ? '0' + dayNum : dayNum.toString();
-  return `${year}-${month}-${day}`;
+  return formatDateString(date);
 };
 
 /**
  * 驗證密碼強度
+ * 使用 shared 模組的 validatePassword 函數並轉換為本地格式
  * @param password 密碼
  * @returns 密碼驗證結果
  */
 export const validatePasswordStrength = (password: string): PasswordValidation => {
-  const result: PasswordValidation = {
-    isValid: true,
-    errors: [],
-    strength: 'weak',
-    score: 0
+  const sharedResult = validatePassword(password, {
+    minLength: VALIDATION_RULES.password.minLength,
+    requireUppercase: true,
+    requireLowercase: true,
+    requireNumbers: true,
+    requireSpecialChars: false
+  });
+
+  // 計算密碼強度分數
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
+
+  let strength: 'weak' | 'medium' | 'strong' | 'very_strong' = 'weak';
+  if (score >= 4) {
+    strength = 'very_strong';
+  } else if (score >= 3) {
+    strength = 'strong';
+  } else if (score >= 2) {
+    strength = 'medium';
+  }
+
+  return {
+    isValid: sharedResult.isValid,
+    errors: sharedResult.errors,
+    strength,
+    score
   };
-
-  if (password.length < VALIDATION_RULES.password.minLength) {
-    result.isValid = false;
-    result.errors.push(`密碼長度至少需要${VALIDATION_RULES.password.minLength}個字符`);
-  } else if (password.length >= 8) {
-    result.score += 1;
-  }
-
-  if (/[A-Z]/.test(password)) result.score += 1;
-  if (/[a-z]/.test(password)) result.score += 1;
-  if (/\d/.test(password)) result.score += 1;
-  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) result.score += 1;
-
-  // 設定密碼強度
-  if (result.score >= 4) {
-    result.strength = 'very_strong';
-  } else if (result.score >= 3) {
-    result.strength = 'strong';
-  } else if (result.score >= 2) {
-    result.strength = 'medium';
-  } else {
-    result.strength = 'weak';
-  }
-
-  if (result.score < 2 && result.isValid) {
-    result.errors.push('建議使用大小寫字母、數字和特殊字符組合');
-  }
-
-  return result;
 };
 
 /**
@@ -267,13 +267,13 @@ export const getChangedFields = (
 
 /**
  * 安全的數字轉換
+ * 使用 shared 模組的 safeParseNumber 函數
  * @param value 要轉換的值
  * @param defaultValue 預設值
  * @returns 轉換後的數字
  */
 export const safeNumber = (value: any, defaultValue: number = 0): number => {
-  const num = Number(value);
-  return isNaN(num) ? defaultValue : num;
+  return safeParseNumber(value, defaultValue);
 };
 
 /**
@@ -290,106 +290,23 @@ export const safeString = (value: any, defaultValue: string = ''): string => {
 };
 
 /**
- * 深拷貝物件
- * @param obj 要拷貝的物件
- * @returns 深拷貝後的物件
- */
-export const deepClone = <T>(obj: T): T => {
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
-  
-  if (obj instanceof Date) {
-    return new Date(obj.getTime()) as unknown as T;
-  }
-  
-  if (obj instanceof Array) {
-    return obj.map(item => deepClone(item)) as unknown as T;
-  }
-  
-  if (typeof obj === 'object') {
-    const clonedObj = {} as T;
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        clonedObj[key] = deepClone(obj[key]);
-      }
-    }
-    return clonedObj;
-  }
-  
-  return obj;
-};
-
-/**
- * 防抖函數
- * @param func 要防抖的函數
- * @param delay 延遲時間（毫秒）
- * @returns 防抖後的函數
- */
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): ((...args: Parameters<T>) => void) => {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
-  };
-};
-
-/**
- * 節流函數
- * @param func 要節流的函數
- * @param delay 延遲時間（毫秒）
- * @returns 節流後的函數
- */
-export const throttle = <T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): ((...args: Parameters<T>) => void) => {
-  let lastCall = 0;
-  
-  return (...args: Parameters<T>) => {
-    const now = Date.now();
-    if (now - lastCall >= delay) {
-      lastCall = now;
-      func(...args);
-    }
-  };
-};
-
-/**
- * 生成唯一ID
- * @returns 唯一ID字串
- */
-export const generateUniqueId = (): string => {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-};
-
-/**
  * 處理 API 錯誤
+ * 使用 shared 模組的 handleApiError 函數
  * @param error 錯誤物件
  * @returns 錯誤訊息
  */
 export const handleApiError = (error: any): string => {
-  if (error.response?.data?.message) {
-    return error.response.data.message;
-  }
-  if (error.message) {
-    return error.message;
-  }
-  return '發生未知錯誤';
+  return sharedHandleApiError(error);
 };
 
 /**
  * 檢查是否為有效的電子郵件
+ * 使用 shared 模組的 isValidEmail 函數
  * @param email 電子郵件
  * @returns 是否有效
  */
 export const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return sharedIsValidEmail(email);
 };
 
 /**
