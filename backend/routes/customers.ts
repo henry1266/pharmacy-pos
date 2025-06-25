@@ -255,8 +255,10 @@ function assignAdditionalFields(
       if (typeof allergies === 'string') {
         customerFields.allergies = allergies.trim() ? [allergies.trim()] : [];
       } else if (Array.isArray(allergies)) {
-        customerFields.allergies = allergies.filter((item: any) =>
-          typeof item === 'string' && item.trim()
+        // 明確型別轉換，確保 TypeScript 能正確推斷型別
+        const allergiesArray = allergies as unknown[];
+        customerFields.allergies = allergiesArray.filter((item: unknown): item is string =>
+          typeof item === 'string' && item.trim().length > 0
         ).map((item: string) => item.trim());
       } else {
         customerFields.allergies = [];
@@ -269,6 +271,58 @@ function assignAdditionalFields(
   if (membershipLevel !== undefined) customerFields.membershipLevel = membershipLevel as 'regular' | 'silver' | 'gold' | 'platinum';
   if (idCardNumber !== undefined) customerFields.idCardNumber = idCardNumber;
   if (points !== undefined) (customerFields as unknown as { points?: number }).points = points;
+}
+
+/**
+ * 驗證會員編號更新的有效性
+ */
+async function validateCustomerCodeUpdate(
+  newCode: string | undefined,
+  currentCode: string
+): Promise<{ isValid: boolean; errorMessage?: string }> {
+  if (!newCode || newCode === currentCode) {
+    return { isValid: true };
+  }
+  
+  const codeExists = await checkCustomerCodeExists(newCode);
+  if (codeExists) {
+    return {
+      isValid: false,
+      errorMessage: ERROR_MESSAGES.CUSTOMER.CODE_EXISTS
+    };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * 建立更新欄位物件，過濾空值
+ */
+function buildUpdateFields(requestBody: CustomerUpdateRequest): Partial<CustomerType> {
+  const customerFields = buildCustomerFields(requestBody);
+  
+  // 確保不會更新空值或未定義的欄位
+  return Object.fromEntries(
+    Object.entries(customerFields).filter(([_, value]) => value !== undefined && value !== null)
+  );
+}
+
+/**
+ * 執行會員更新操作
+ */
+async function performCustomerUpdate(
+  customerId: string,
+  updateFields: Partial<CustomerType>
+): Promise<any> {
+  return await Customer.findByIdAndUpdate(
+    customerId,
+    { $set: updateFields },
+    {
+      new: true,
+      runValidators: true,
+      context: 'query'
+    }
+  );
 }
 
 // @route   POST api/customers
@@ -318,54 +372,44 @@ router.post(
 // @route   PUT api/customers/:id
 // @desc    Update a customer
 // @access  Public
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', async (req: Request<{ id: string }, any, CustomerUpdateRequest>, res: Response) => {
   try {
-    const requestBody = req.body as CustomerUpdateRequest;
+    const customerId = req.params.id;
+    const requestBody = req.body;
     
     // 驗證 ID 格式，防止 NoSQL 注入
-    if (!isValidObjectId(req.params.id)) {
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+    if (!isValidObjectId(customerId)) {
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
          .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
+      return;
     }
     
     // 檢查會員是否存在
-    const customer = await Customer.findById(req.params.id);
-    if (!customer) {
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+    const existingCustomer = await Customer.findById(customerId);
+    if (!existingCustomer) {
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
          .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
+      return;
     }
 
-    // 若編號被修改，檢查是否重複
-    if (requestBody.code && requestBody.code !== customer.code) {
-      const codeExists = await checkCustomerCodeExists(requestBody.code);
-      if (codeExists) {
-        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
-           .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.CODE_EXISTS));
-      }
+    // 驗證會員編號唯一性
+    const codeValidationResult = await validateCustomerCodeUpdate(requestBody.code, existingCustomer.code);
+    if (!codeValidationResult.isValid) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
+         .json(createErrorResponse(codeValidationResult.errorMessage!));
+      return;
     }
 
-    // 建立更新欄位物件 - 只包含有值的欄位
-    const customerFields = buildCustomerFields(requestBody);
+    // 建立更新欄位物件
+    const updateFields = buildUpdateFields(requestBody);
     
-    // 確保不會更新空值或未定義的欄位
-    const filteredFields = Object.fromEntries(
-      Object.entries(customerFields).filter(([_, value]) => value !== undefined && value !== null)
-    );
-
-    // 更新 - 使用已驗證的 ID 和過濾後的欄位
-    const updatedCustomer = await Customer.findByIdAndUpdate(
-      req.params.id,
-      { $set: filteredFields },
-      {
-        new: true,
-        runValidators: true,
-        context: 'query'
-      }
-    );
+    // 執行更新操作
+    const updatedCustomer = await performCustomerUpdate(customerId, updateFields);
 
     if (!updatedCustomer) {
-      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
          .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
+      return;
     }
 
     res.json(createSuccessResponse('Customer updated successfully', transformCustomerToResponse(updatedCustomer)));
