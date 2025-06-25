@@ -87,9 +87,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         
         // 篩選條件：至少saleNumber、purchaseOrderNumber或shippingOrderNumber其中之一要有值
         const filteredInventories = inventoryData.filter(inv => {
-          const hasSaleNumber = inv.saleNumber && inv.saleNumber.trim() !== '';
-          const hasPurchaseOrderNumber = inv.purchaseOrderNumber && inv.purchaseOrderNumber.trim() !== '';
-          const hasShippingOrderNumber = inv.shippingOrderNumber && inv.shippingOrderNumber.trim() !== '';
+          const hasSaleNumber = inv.saleNumber?.trim() !== '';
+          const hasPurchaseOrderNumber = inv.purchaseOrderNumber?.trim() !== '';
+          const hasShippingOrderNumber = inv.shippingOrderNumber?.trim() !== '';
           return hasSaleNumber || hasPurchaseOrderNumber || hasShippingOrderNumber;
         });
         
@@ -158,12 +158,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         
         // 排序：取訂單號左邊八位數字進行數值比較，大的在上小的在下
         mergedInventories.sort((a, b) => {
-          const aValue = (a.saleNumber && a.saleNumber.trim()) ||
-                        (a.purchaseOrderNumber && a.purchaseOrderNumber.trim()) ||
-                        (a.shippingOrderNumber && a.shippingOrderNumber.trim()) || '';
-          const bValue = (b.saleNumber && b.saleNumber.trim()) ||
-                        (b.purchaseOrderNumber && b.purchaseOrderNumber.trim()) ||
-                        (b.shippingOrderNumber && b.shippingOrderNumber.trim()) || '';
+          const aValue = a.saleNumber?.trim() ||
+                        a.purchaseOrderNumber?.trim() ||
+                        a.shippingOrderNumber?.trim() || '';
+          const bValue = b.saleNumber?.trim() ||
+                        b.purchaseOrderNumber?.trim() ||
+                        b.shippingOrderNumber?.trim() || '';
           
           // 提取左邊八位數字（只取數字部分）
           const aMatch = aValue.match(/^\d{8}/);
@@ -181,9 +181,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         
         // 排序後的調試信息
         console.log('排序後的訂單號:', mergedInventories.map(inv =>
-          (inv.saleNumber && inv.saleNumber.trim()) ||
-          (inv.purchaseOrderNumber && inv.purchaseOrderNumber.trim()) ||
-          (inv.shippingOrderNumber && inv.shippingOrderNumber.trim()) || 'EMPTY'
+          inv.saleNumber?.trim() ||
+          inv.purchaseOrderNumber?.trim() ||
+          inv.shippingOrderNumber?.trim() || 'EMPTY'
         ));
         
         // 計算當前庫存

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box,
   Grid,
@@ -52,6 +52,9 @@ interface HeadCell {
 const AccountingNewPage: React.FC = () => {
   const navigate = useNavigate();
   
+  // Ref for date picker auto focus
+  const datePickerRef = useRef<HTMLInputElement>(null);
+  
   // Use the custom hook
   const {
     categories,
@@ -86,6 +89,19 @@ const AccountingNewPage: React.FC = () => {
   
   // Local state for amount inputs to prevent losing focus
   const [localAmounts, setLocalAmounts] = useState<{ [key: number]: string }>({});
+
+  // Auto focus on date picker when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (datePickerRef.current) {
+        datePickerRef.current.focus();
+        // Set cursor position to the beginning of the input
+        datePickerRef.current.setSelectionRange(0, 0);
+      }
+    }, 100); // Small delay to ensure component is fully rendered
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Show snackbar for submission results or errors
   useEffect(() => {
@@ -181,6 +197,13 @@ const AccountingNewPage: React.FC = () => {
           nextInput.focus();
           nextInput.select(); // Select all text for easy replacement
         }
+      } else {
+        // Last amount field, focus on "新增項目" button
+        e.preventDefault();
+        const addButton = document.querySelector('[data-testid="add-item-button"]') as HTMLButtonElement;
+        if (addButton) {
+          addButton.focus();
+        }
       }
     } else if (e.key === 'Tab' && e.shiftKey) {
       // Shift+Tab key pressed (backward navigation)
@@ -193,6 +216,27 @@ const AccountingNewPage: React.FC = () => {
           prevInput.focus();
           prevInput.select(); // Select all text for easy replacement
         }
+      }
+    }
+  };
+
+  // Handle Tab key navigation from add button
+  const handleAddButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>): void => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      // Tab key pressed, focus on submit button
+      e.preventDefault();
+      const submitButton = document.querySelector('[data-testid="submit-button"]') as HTMLButtonElement;
+      if (submitButton) {
+        submitButton.focus();
+      }
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      // Shift+Tab key pressed, focus on last amount input
+      e.preventDefault();
+      const lastIndex = formData.items.length - 1;
+      const lastInput = document.querySelector(`input[data-amount-index="${lastIndex}"]`) as HTMLInputElement;
+      if (lastInput) {
+        lastInput.focus();
+        lastInput.select();
       }
     }
   };
@@ -390,7 +434,7 @@ const AccountingNewPage: React.FC = () => {
                   onChange={handleDateChange}
                   disabled={submitting}
                   renderInput={(params) => (
-                    <TextField {...params} fullWidth required />
+                    <TextField {...params} fullWidth required inputRef={datePickerRef} />
                   )}
                 />
               </LocalizationProvider>
@@ -494,8 +538,10 @@ const AccountingNewPage: React.FC = () => {
                 variant="outlined"
                 startIcon={<AddIcon />}
                 onClick={handleAddItem}
+                onKeyDown={handleAddButtonKeyDown}
                 sx={{ mt: 1 }}
                 disabled={submitting}
+                data-testid="add-item-button"
               >
                 新增項目
               </Button>
@@ -528,11 +574,12 @@ const AccountingNewPage: React.FC = () => {
 
             {/* Submit Button */}
             <Grid item xs={12} sx={{ mt: 3, textAlign: 'right' }}>
-              <Button 
-                variant="contained" 
-                color="primary" 
+              <Button
+                variant="contained"
+                color="primary"
                 type="submit" // Changed to type submit
                 disabled={submitting}
+                data-testid="submit-button"
               >
                 {submitting ? <CircularProgress size={24} /> : '提交記帳'}
               </Button>
