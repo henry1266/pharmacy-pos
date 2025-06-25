@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import employeeAccountService from '../services/employeeAccountService';
-import employeeService from '../services/employeeService';
+import employeeServiceV2 from '../services/employeeServiceV2';
 import { EmployeeWithAccount } from '@pharmacy-pos/shared/types/entities';
 import { PasswordValidation, ValidationResult } from '@pharmacy-pos/shared/types/utils';
 
@@ -64,7 +64,7 @@ const useEmployeeAccounts = () => {
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
     try {
-      const employeesWithAccounts = await employeeService.getEmployeesWithAccountStatus();
+      const employeesWithAccounts = await employeeServiceV2.getEmployeesWithAccountStatus();
       // 確保 employeesWithAccounts 是陣列
       if (Array.isArray(employeesWithAccounts)) {
         setEmployees(employeesWithAccounts);

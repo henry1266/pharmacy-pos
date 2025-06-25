@@ -3,7 +3,7 @@ import overtimeRecordService, {
   OvertimeRecord,
   OvertimeRecordCreateData
 } from '../services/overtimeRecordService';
-import employeeService from '../services/employeeService';
+import employeeServiceV2 from '../services/employeeServiceV2';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -95,7 +95,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
   // 獲取員工列表
   const fetchEmployees = useCallback(async (): Promise<void> => {
     try {
-      const response = await employeeService.getEmployees({ limit: 1000 });
+      const response = await employeeServiceV2.getAllEmployees({ limit: 1000 });
       setEmployees(response.employees);
     } catch (err: any) {
       setError(err.message);
@@ -109,7 +109,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
       // 先獲取所有員工信息
       let allEmployees: Employee[] = [];
       try {
-        const response = await employeeService.getEmployees({ limit: 1000 });
+        const response = await employeeServiceV2.getAllEmployees({ limit: 1000 });
         allEmployees = response.employees || [];
         console.log(`獲取到 ${allEmployees.length} 名員工信息`);
       } catch (empErr) {

@@ -30,7 +30,7 @@ import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import overtimeRecordService, { OvertimeRecord, OvertimeRecordStatus } from '../../services/overtimeRecordService';
-import employeeService from '../../services/employeeService';
+import employeeServiceV2 from '../../services/employeeServiceV2';
 import OvertimeRecordDialog from './overtime/OvertimeRecordDialog';
 import OvertimeRecordRow from './overtime/OvertimeRecordRow';
 import useOvertimeData from '../../hooks/useOvertimeData';
@@ -223,7 +223,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
       // 先獲取所有員工信息，用於後續匹配
       let allEmployees: Employee[] = [];
       try {
-        const response = await employeeService.getEmployees({ limit: 1000 });
+        const response = await employeeServiceV2.getAllEmployees({ limit: 1000 });
         allEmployees = response?.employees || [];
       } catch (empErr: any) {
         console.error('獲取員工信息失敗:', empErr);
@@ -534,7 +534,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   // 獲取員工列表
   const fetchEmployees = async (): Promise<void> => {
     try {
-      const response = await employeeService.getEmployees({ limit: 1000 });
+      const response = await employeeServiceV2.getAllEmployees({ limit: 1000 });
       // 確保 response.employees 是陣列
       if (response && Array.isArray(response.employees)) {
         setEmployees(response.employees);

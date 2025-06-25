@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getProductCategory, getProductsByCategory } from '../services/productCategoryService';
-import { getInventoryByProduct } from '../services/inventoryService';
+import { getInventoryByProduct } from '../services/inventoryServiceV2';
 import { Category, Product, Inventory } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Inventory 類型以包含我們在代碼中使用的額外屬性
