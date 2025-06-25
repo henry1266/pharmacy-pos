@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
-import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Collapse, Popover, Button } from '@mui/material';
+import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Collapse, Popover, Button, useTheme, useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
@@ -93,6 +93,11 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // xs
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg')); // sm, md
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg')); // lg, xl
+  
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState<boolean>(false);
   const [productSubMenuOpen, setProductSubMenuOpen] = useState<boolean>(false);
@@ -479,22 +484,123 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Toolbar>
       </AppBar>
       
-      <Drawer variant="permanent" open={true} sx={{ width: 200, flexShrink: 0, [`& .MuiDrawer-paper`]: { width: 200, boxSizing: 'border-box', backgroundColor: 'var(--bg-sidebar)', color: 'var(--text-light)', borderRight: 'none' }, display: { xs: 'none', sm: 'block' } }}>
-        <Toolbar />
-        <Box sx={{ overflow: 'auto', mt: 2 }}>
-          <Box sx={{ px: 3, mb: 3 }}>
-            <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
-              興安藥局
-            </Typography>
+      {/* Mobile: Hidden Drawer */}
+      {isMobile && (
+        <Drawer
+          variant="temporary"
+          open={drawerOpen}
+          onClose={toggleDrawer}
+          sx={{
+            width: 200,
+            flexShrink: 0,
+            [`& .MuiDrawer-paper`]: {
+              width: 200,
+              boxSizing: 'border-box',
+              backgroundColor: 'var(--bg-sidebar)',
+              color: 'var(--text-light)',
+              borderRight: 'none'
+            }
+          }}
+        >
+          <Toolbar />
+          <Box sx={{ overflow: 'auto', mt: 2 }}>
+            <Box sx={{ px: 3, mb: 3 }}>
+              <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
+                興安藥局
+              </Typography>
+            </Box>
+            <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <List component="nav">
+              {filteredMenuItems.map(renderMenuItem)}
+            </List>
           </Box>
-          <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-          <List component="nav">
-            {filteredMenuItems.map(renderMenuItem)}
-          </List>
-        </Box>
-      </Drawer>
+        </Drawer>
+      )}
+
+      {/* Tablet: Collapsible Drawer */}
+      {isTablet && (
+        <Drawer
+          variant="persistent"
+          open={drawerOpen}
+          sx={{
+            width: drawerOpen ? 200 : 0,
+            flexShrink: 0,
+            [`& .MuiDrawer-paper`]: {
+              width: 200,
+              boxSizing: 'border-box',
+              backgroundColor: 'var(--bg-sidebar)',
+              color: 'var(--text-light)',
+              borderRight: 'none',
+              transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+              transition: theme.transitions.create('transform', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              })
+            }
+          }}
+        >
+          <Toolbar />
+          <Box sx={{ overflow: 'auto', mt: 2 }}>
+            <Box sx={{ px: 3, mb: 3 }}>
+              <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
+                興安藥局
+              </Typography>
+            </Box>
+            <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <List component="nav">
+              {filteredMenuItems.map(renderMenuItem)}
+            </List>
+          </Box>
+        </Drawer>
+      )}
+
+      {/* Desktop: Permanent Drawer */}
+      {isDesktop && (
+        <Drawer
+          variant="permanent"
+          open={true}
+          sx={{
+            width: 200,
+            flexShrink: 0,
+            [`& .MuiDrawer-paper`]: {
+              width: 200,
+              boxSizing: 'border-box',
+              backgroundColor: 'var(--bg-sidebar)',
+              color: 'var(--text-light)',
+              borderRight: 'none'
+            }
+          }}
+        >
+          <Toolbar />
+          <Box sx={{ overflow: 'auto', mt: 2 }}>
+            <Box sx={{ px: 3, mb: 3 }}>
+              <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
+                興安藥局
+              </Typography>
+            </Box>
+            <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <List component="nav">
+              {filteredMenuItems.map(renderMenuItem)}
+            </List>
+          </Box>
+        </Drawer>
+      )}
+
       {/* Main Content Area */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          backgroundColor: 'var(--bg-primary)',
+          minHeight: '100vh',
+          marginLeft: isTablet && drawerOpen ? '200px' : '0',
+          transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          })
+        }}
+      >
         <Toolbar /> {/* For spacing below AppBar */}
         {children}
       </Box>
