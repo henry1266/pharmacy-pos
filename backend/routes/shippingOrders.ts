@@ -89,6 +89,75 @@ const upload = multer({ storage: storage });
 
 const router: express.Router = express.Router();
 
+// 通用輔助函數
+/**
+ * 處理產品的 healthInsuranceCode
+ * @param orders - 出貨單數組
+ */
+function processHealthInsuranceCode(orders: ShippingOrderDocument[]): void {
+  if (!orders || orders.length === 0) return;
+  
+  orders.forEach((order: ShippingOrderDocument) => {
+    if (order.items && order.items.length > 0) {
+      order.items.forEach((item: ShippingOrderItem) => {
+        if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
+          item.healthInsuranceCode = item.product.healthInsuranceCode;
+        }
+      });
+    }
+  });
+}
+
+/**
+ * 創建標準 API 成功響應
+ * @param data - 響應數據
+ * @param message - 響應消息
+ */
+function createSuccessResponse<T>(data: T, message: string = SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS): ApiResponse<T> {
+  return {
+    success: true,
+    message,
+    data,
+    timestamp: new Date()
+  };
+}
+
+/**
+ * 創建標準錯誤響應
+ * @param message - 錯誤消息
+ * @param errors - 驗證錯誤數組（可選）
+ */
+function createErrorResponse(message: string, errors?: any[]): ErrorResponse {
+  const response: ErrorResponse = {
+    success: false,
+    message,
+    timestamp: new Date()
+  };
+  
+  if (errors) {
+    response.errors = errors;
+  }
+  
+  return response;
+}
+
+/**
+ * 處理數據庫錯誤並發送響應
+ * @param res - Express 響應對象
+ * @param err - 錯誤對象
+ * @param customMessage - 自定義錯誤消息（可選）
+ */
+function handleDatabaseError(res: Response, err: Error, customMessage?: string): void {
+  console.error(err.message);
+  
+  if (err.name === 'CastError') {
+    res.status(404).json(createErrorResponse(customMessage || ERROR_MESSAGES.GENERIC.NOT_FOUND));
+    return;
+  }
+  
+  res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
+}
+
 // @route   GET api/shipping-orders
 // @desc    獲取所有出貨單
 // @access  Public
@@ -99,35 +168,10 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach((order: ShippingOrderDocument) => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach((item: ShippingOrderItem) => {
-            if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
-    
-    const response: ApiResponse<any[]> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: shippingOrders,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    processHealthInsuranceCode(shippingOrders);
+    res.json(createSuccessResponse(shippingOrders));
   } catch (err) {
-    console.error((err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error);
   }
 });
 
@@ -141,49 +185,14 @@ router.get('/:id', async (req: Request, res: Response) => {
       .populate('items.product', 'name code healthInsuranceCode');
     
     if (!shippingOrder) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
+      res.status(404).json(createErrorResponse(ERROR_MESSAGES.GENERIC.NOT_FOUND));
       return;
     }
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrder.items && shippingOrder.items.length > 0) {
-      shippingOrder.items.forEach((item: ShippingOrderItem) => {
-        if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-          item.healthInsuranceCode = item.product.healthInsuranceCode;
-        }
-      });
-    }
-    
-    const response: ApiResponse<any> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: shippingOrder,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    processHealthInsuranceCode([shippingOrder]);
+    res.json(createSuccessResponse(shippingOrder));
   } catch (err) {
-    console.error((err as Error).message);
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
-      return;
-    }
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error);
   }
 });
 
@@ -328,14 +337,8 @@ router.post('/', [
 ], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      errors: errors.array(),
-      timestamp: new Date()
-    };
-    res.status(400).json(errorResponse);
-      return;
+    res.status(400).json(createErrorResponse(ERROR_MESSAGES.GENERIC.VALIDATION_FAILED, errors.array()));
+    return;
   }
 
   try {
@@ -344,12 +347,7 @@ router.post('/', [
     // 處理出貨單號
     const soidResult = await handleShippingOrderId(soid);
     if (soidResult.error) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: soidResult.error,
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse(soidResult.error));
       return;
     }
     soid = soidResult.soid;
@@ -360,12 +358,7 @@ router.post('/', [
     // 驗證產品並檢查庫存
     const productsResult = await validateProductsAndInventory(items);
     if (!productsResult.valid) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: productsResult.error || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse(productsResult.error || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED));
       return;
     }
     items = productsResult.items!;
@@ -392,22 +385,9 @@ router.post('/', [
       await createShippingInventoryRecords(shippingOrder);
     }
 
-    const response: ApiResponse<any> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.CREATED,
-      data: shippingOrder,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse(shippingOrder, SUCCESS_MESSAGES.GENERIC.CREATED));
   } catch (err) {
-    console.error('創建出貨單錯誤:', (err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error, '創建出貨單錯誤');
   }
 });
 
@@ -523,24 +503,14 @@ router.put('/:id', async (req: Request, res: Response) => {
     // 檢查出貨單是否存在
     let shippingOrder = await ShippingOrder.findById(req.params.id);
     if (!shippingOrder) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到該出貨單',
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
+      res.status(404).json(createErrorResponse('找不到該出貨單'));
       return;
     }
 
     // 處理出貨單號變更
     const orderNumberResult = await handleOrderNumberChange(soid, shippingOrder.soid, req.params.id);
     if (orderNumberResult.error) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: orderNumberResult.error,
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse(orderNumberResult.error));
       return;
     }
 
@@ -548,12 +518,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (items && items.length > 0) {
       const itemsValidation = await validateOrderItems(items);
       if (!itemsValidation.valid) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: itemsValidation.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-          timestamp: new Date()
-        };
-        res.status(400).json(errorResponse);
+        res.status(400).json(createErrorResponse(itemsValidation.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED));
         return;
       }
     }
@@ -590,31 +555,9 @@ router.put('/:id', async (req: Request, res: Response) => {
       await createShippingInventoryRecords(shippingOrder);
     }
 
-    const response: ApiResponse<any> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.UPDATED,
-      data: shippingOrder,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse(shippingOrder, SUCCESS_MESSAGES.GENERIC.UPDATED));
   } catch (err) {
-    console.error('更新出貨單錯誤:', (err as Error).message);
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到該出貨單',
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
-      return;
-    }
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error, '更新出貨單錯誤');
   }
 });
 
@@ -625,12 +568,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const shippingOrder = await ShippingOrder.findById(req.params.id);
     if (!shippingOrder) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到該出貨單',
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
+      res.status(404).json(createErrorResponse('找不到該出貨單'));
       return;
     }
 
@@ -640,24 +578,9 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
 
     await shippingOrder.deleteOne();
-    res.json({ msg: '出貨單已刪除' });
+    res.json(createSuccessResponse(null, '出貨單已刪除'));
   } catch (err) {
-    console.error((err as Error).message);
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到該出貨單',
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
-      return;
-    }
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error);
   }
 });
 
@@ -671,35 +594,10 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach((order: ShippingOrderDocument) => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach((item: ShippingOrderItem) => {
-            if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
-    
-    const response: ApiResponse<any[]> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: shippingOrders,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    processHealthInsuranceCode(shippingOrders);
+    res.json(createSuccessResponse(shippingOrders));
   } catch (err) {
-    console.error((err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error);
   }
 });
 
@@ -725,35 +623,10 @@ router.get('/search/query', async (req: Request, res: Response) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach((order: ShippingOrderDocument) => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach((item: ShippingOrderItem) => {
-            if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
-    
-    const response: ApiResponse<any[]> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: shippingOrders,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    processHealthInsuranceCode(shippingOrders);
+    res.json(createSuccessResponse(shippingOrders));
   } catch (err) {
-    console.error((err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error);
   }
 });
 
@@ -764,12 +637,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
     // 安全處理：驗證和清理productId
     if (!req.params.productId || typeof req.params.productId !== 'string') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的產品ID',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse('無效的產品ID'));
       return;
     }
     
@@ -794,35 +662,10 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
       );
     });
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach((order: ShippingOrderDocument) => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach((item: ShippingOrderItem) => {
-            if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
-    
-    const response: ApiResponse<any[]> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: shippingOrders,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    processHealthInsuranceCode(shippingOrders);
+    res.json(createSuccessResponse(shippingOrders));
   } catch (err) {
-    console.error((err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error);
   }
 });
 
@@ -837,35 +680,10 @@ router.get('/recent/list', async (req: Request, res: Response) => {
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
     
-    // 將產品的healthInsuranceCode添加到items中
-    if (shippingOrders && shippingOrders.length > 0) {
-      shippingOrders.forEach((order: ShippingOrderDocument) => {
-        if (order.items && order.items.length > 0) {
-          order.items.forEach((item: ShippingOrderItem) => {
-            if (typeof item.product !== 'string' && item.product && 'healthInsuranceCode' in item.product) {
-              item.healthInsuranceCode = item.product.healthInsuranceCode;
-            }
-          });
-        }
-      });
-    }
-    
-    const response: ApiResponse<any[]> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: shippingOrders,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    processHealthInsuranceCode(shippingOrders);
+    res.json(createSuccessResponse(shippingOrders));
   } catch (err) {
-    console.error((err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error);
   }
 });
 
@@ -915,12 +733,7 @@ async function deleteShippingInventoryRecords(shippingOrderId?: Types.ObjectId):
 router.post('/import/basic', upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '請上傳CSV文件',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse('請上傳CSV文件'));
       return;
     }
 
@@ -988,13 +801,7 @@ router.post('/import/basic', upload.single('file'), async (req: Request, res: Re
         });
       });
   } catch (err) {
-    console.error('CSV導入錯誤:', (err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleDatabaseError(res, err as Error, 'CSV導入錯誤');
   }
 });
 

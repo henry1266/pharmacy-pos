@@ -323,62 +323,43 @@ const AccountingChart: FC = () => {
       : categoryItems.length;
   };
   
-  // 處理按日期分組的數據
-  const processDateGroupData = (): ChartDataItem[] => {
-    return accountingData.map(item => {
-      const result: ChartDataItem = { name: item.date ?? '' };
+  // 通用的數據處理函數
+  const processGroupData = (groupType: string): ChartDataItem[] => {
+    if (groupType === 'category') {
+      const filteredStats = selectedCategories.length > 0
+        ? summaryData.categoryStats.filter(item => selectedCategories.includes(item.category))
+        : summaryData.categoryStats;
       
-      // 如果是按類別過濾，則需要從items中提取
-      if (selectedCategories.length > 0) {
-        selectedCategories.forEach(category => {
-          result[category] = calculateCategoryValueForItem(item.items, category, viewMode);
-        });
-      } else {
-        // 否則直接使用總金額或總數量
-        result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
-      }
-      
-      return result;
-    }).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
-  };
-
-  // 處理按班別分組的數據
-  const processShiftGroupData = (): ChartDataItem[] => {
-    return accountingData.map(item => {
-      const result: ChartDataItem = { name: item.shift ?? '' };
-      
-      // 如果是按類別過濾，則需要從items中提取
-      if (selectedCategories.length > 0) {
-        selectedCategories.forEach(category => {
-          result[category] = calculateCategoryValueForItem(item.items, category, viewMode);
-        });
-      } else {
-        // 否則直接使用總金額或總數量
-        result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
-      }
-      
-      return result;
-    }).sort((a, b) => {
-      const shiftOrder: Record<string, number> = { '早班': 1, '中班': 2, '晚班': 3 };
-      return (shiftOrder[a.name as string] || 0) - (shiftOrder[b.name as string] || 0);
-    });
-  };
-
-  // 處理按類別分組的數據
-  const processCategoryGroupData = (): ChartDataItem[] => {
-    if (selectedCategories.length > 0) {
-      return summaryData.categoryStats
-        .filter(item => selectedCategories.includes(item.category))
-        .map(item => ({
-          name: item.category,
-          value: viewMode === 'amount' ? item.totalAmount : item.count
-        }));
-    } else {
-      return summaryData.categoryStats.map(item => ({
+      return filteredStats.map(item => ({
         name: item.category,
         value: viewMode === 'amount' ? item.totalAmount : item.count
       }));
     }
+
+    const data = accountingData.map(item => {
+      const name = groupType === 'date' ? (item.date ?? '') : (item.shift ?? '');
+      const result: ChartDataItem = { name };
+      
+      if (selectedCategories.length > 0) {
+        selectedCategories.forEach(category => {
+          result[category] = calculateCategoryValueForItem(item.items, category, viewMode);
+        });
+      } else {
+        result.value = viewMode === 'amount' ? item.totalAmount : item.items.length;
+      }
+      
+      return result;
+    });
+
+    // 排序邏輯
+    if (groupType === 'date') {
+      return data.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+    } else if (groupType === 'shift') {
+      const shiftOrder: Record<string, number> = { '早班': 1, '中班': 2, '晚班': 3 };
+      return data.sort((a, b) => (shiftOrder[a.name as string] || 0) - (shiftOrder[b.name as string] || 0));
+    }
+    
+    return data;
   };
 
   // 獲取圖表顏色
@@ -398,16 +379,7 @@ const AccountingChart: FC = () => {
       return [];
     }
 
-    // 根據分組方式處理數據
-    if (groupBy === 'date') {
-      return processDateGroupData();
-    } else if (groupBy === 'shift') {
-      return processShiftGroupData();
-    } else if (groupBy === 'category') {
-      return processCategoryGroupData();
-    }
-
-    return [];
+    return processGroupData(groupBy);
   };
 
   // 獲取處理後的圖表數據
@@ -467,6 +439,66 @@ const AccountingChart: FC = () => {
     );
   }
 
+  // 通用圖表配置
+  const getCommonChartProps = () => ({
+    data: chartData,
+    margin: {
+      top: 20,
+      right: 30,
+      left: 20,
+      bottom: 60,
+    }
+  });
+
+  const getCommonAxisProps = () => ({
+    xAxis: {
+      dataKey: "name",
+      stroke: "var(--text-secondary)",
+      angle: -45,
+      textAnchor: "end" as const,
+      height: 60
+    },
+    yAxis: {
+      stroke: "var(--text-secondary)",
+      tickFormatter: (value: any) => viewMode === 'amount' ? formatCurrency(value) : value.toString()
+    }
+  });
+
+  const getCommonTooltipProps = () => ({
+    formatter: (value: any, name: string) => [
+      viewMode === 'amount' ? formatCurrency(value as number) : value,
+      name
+    ],
+    contentStyle: {
+      backgroundColor: 'var(--bg-secondary)',
+      borderColor: 'var(--border-color)',
+      borderRadius: 'var(--border-radius-sm)'
+    }
+  });
+
+  const renderDataElements = (ChartElement: any, elementProps: any = {}) => {
+    if (groupBy === 'category' || selectedCategories.length === 0) {
+      return (
+        <ChartElement
+          dataKey="value"
+          name={viewMode === 'amount' ? '金額' : '數量'}
+          {...(chartType === 'bar' ? { fill: COLORS[0] } : { stroke: COLORS[0] })}
+          {...elementProps}
+        />
+      );
+    }
+    
+    return selectedCategories.map((category, index) => (
+      <ChartElement
+        key={`${chartType}-${category}`}
+        dataKey={category}
+        name={category}
+        {...(chartType === 'bar' ? { fill: COLORS[index % COLORS.length] } : { stroke: COLORS[index % COLORS.length] })}
+        {...elementProps}
+      />
+    ));
+  };
+
   // 渲染圖表
   const renderChart = () => {
     if (chartData.length === 0) {
@@ -479,117 +511,33 @@ const AccountingChart: FC = () => {
       );
     }
 
+    const commonProps = getCommonChartProps();
+    const axisProps = getCommonAxisProps();
+    const tooltipProps = getCommonTooltipProps();
+
     if (chartType === 'bar') {
       return (
         <ResponsiveContainer width="100%" height={400}>
-          <BarChart
-            data={chartData}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 60,
-            }}
-          >
+          <BarChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-            <XAxis 
-              dataKey="name" 
-              stroke="var(--text-secondary)" 
-              angle={-45}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis 
-              stroke="var(--text-secondary)" 
-              tickFormatter={value => viewMode === 'amount' ? formatCurrency(value) : value.toString()}
-            />
-            <Tooltip 
-              formatter={(value: any, name: string) => [
-                viewMode === 'amount' ? formatCurrency(value as number) : value, 
-                name
-              ]}
-              contentStyle={{
-                backgroundColor: 'var(--bg-secondary)',
-                borderColor: 'var(--border-color)',
-                borderRadius: 'var(--border-radius-sm)'
-              }}
-            />
+            <XAxis {...axisProps.xAxis} />
+            <YAxis {...axisProps.yAxis} />
+            <Tooltip {...tooltipProps} />
             <Legend />
-            {groupBy === 'category' || selectedCategories.length === 0 ? (
-              <Bar 
-                dataKey="value" 
-                name={viewMode === 'amount' ? '金額' : '數量'} 
-                fill={COLORS[0]} 
-              />
-            ) : (
-              selectedCategories.map((category, index) => (
-                <Bar 
-                  key={`bar-${category}`} 
-                  dataKey={category} 
-                  name={category} 
-                  fill={COLORS[index % COLORS.length]} 
-                />
-              ))
-            )}
+            {renderDataElements(Bar)}
           </BarChart>
         </ResponsiveContainer>
       );
     } else if (chartType === 'line') {
       return (
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 60,
-            }}
-          >
+          <LineChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-            <XAxis 
-              dataKey="name" 
-              stroke="var(--text-secondary)" 
-              angle={-45}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis 
-              stroke="var(--text-secondary)" 
-              tickFormatter={value => viewMode === 'amount' ? formatCurrency(value) : value.toString()}
-            />
-            <Tooltip 
-              formatter={(value: any, name: string) => [
-                viewMode === 'amount' ? formatCurrency(value as number) : value, 
-                name
-              ]}
-              contentStyle={{
-                backgroundColor: 'var(--bg-secondary)',
-                borderColor: 'var(--border-color)',
-                borderRadius: 'var(--border-radius-sm)'
-              }}
-            />
+            <XAxis {...axisProps.xAxis} />
+            <YAxis {...axisProps.yAxis} />
+            <Tooltip {...tooltipProps} />
             <Legend />
-            {groupBy === 'category' || selectedCategories.length === 0 ? (
-              <Line 
-                type="monotone"
-                dataKey="value" 
-                name={viewMode === 'amount' ? '金額' : '數量'} 
-                stroke={COLORS[0]} 
-                activeDot={{ r: 8 }}
-              />
-            ) : (
-              selectedCategories.map((category, index) => (
-                <Line 
-                  key={`line-${category}`} 
-                  type="monotone"
-                  dataKey={category} 
-                  name={category} 
-                  stroke={COLORS[index % COLORS.length]} 
-                  activeDot={{ r: 8 }}
-                />
-              ))
-            )}
+            {renderDataElements(Line, { type: "monotone", activeDot: { r: 8 } })}
           </LineChart>
         </ResponsiveContainer>
       );
@@ -611,9 +559,9 @@ const AccountingChart: FC = () => {
                 <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip 
+            <Tooltip
               formatter={(value: any) => [
-                viewMode === 'amount' ? formatCurrency(value as number) : value, 
+                viewMode === 'amount' ? formatCurrency(value as number) : value,
                 '數值'
               ]}
               contentStyle={{
@@ -630,6 +578,104 @@ const AccountingChart: FC = () => {
     return null;
   };
 
+  // 通用表格配置
+  const getTableConfig = (groupType: string) => {
+    switch (groupType) {
+      case 'date':
+        return {
+          headers: ['日期', '總金額', '項目數', '明細'],
+          data: accountingData,
+          renderRow: (row: GroupedAccountingData) => (
+            <TableRow
+              key={`date-row-${row.date}`}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell component="th" scope="row">
+                {row.date}
+              </TableCell>
+              <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
+              <TableCell align="right">{row.items.length}</TableCell>
+              <TableCell>
+                {row.items.slice(0, 3).map((item) => (
+                  <Chip
+                    key={`item-${item._id ?? item.category + '-' + item.amount}`}
+                    label={`${item.category}: ${formatCurrency(item.amount)}`}
+                    size="small"
+                    sx={{ mr: 0.5, mb: 0.5 }}
+                  />
+                ))}
+                {row.items.length > 3 && (
+                  <Chip
+                    key={`date-more-${row.date}`}
+                    label={`+${row.items.length - 3}項`}
+                    size="small"
+                    variant="outlined"
+                  />
+                )}
+              </TableCell>
+            </TableRow>
+          )
+        };
+      case 'shift':
+        return {
+          headers: ['班別', '總金額', '項目數', '明細'],
+          data: accountingData,
+          renderRow: (row: GroupedAccountingData) => (
+            <TableRow
+              key={`shift-row-${row.shift}`}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell component="th" scope="row">
+                {row.shift}
+              </TableCell>
+              <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
+              <TableCell align="right">{row.items.length}</TableCell>
+              <TableCell>
+                {row.items.slice(0, 3).map((item) => (
+                  <Chip
+                    key={`shift-item-${item._id ?? item.category + '-' + item.amount}`}
+                    label={`${item.category}: ${formatCurrency(item.amount)}`}
+                    size="small"
+                    sx={{ mr: 0.5, mb: 0.5 }}
+                  />
+                ))}
+                {row.items.length > 3 && (
+                  <Chip
+                    key={`shift-more-${row.shift}`}
+                    label={`+${row.items.length - 3}項`}
+                    size="small"
+                    variant="outlined"
+                  />
+                )}
+              </TableCell>
+            </TableRow>
+          )
+        };
+      case 'category':
+        return {
+          headers: ['類別', '總金額', '項目數', '平均金額'],
+          data: summaryData.categoryStats,
+          renderRow: (row: CategoryStat) => (
+            <TableRow
+              key={`category-row-${row.category}`}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell component="th" scope="row">
+                {row.category}
+              </TableCell>
+              <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
+              <TableCell align="right">{row.count}</TableCell>
+              <TableCell align="right">
+                {formatCurrency(row.count > 0 ? row.totalAmount / row.count : 0)}
+              </TableCell>
+            </TableRow>
+          )
+        };
+      default:
+        return null;
+    }
+  };
+
   // 渲染表格
   const renderTable = () => {
     if (accountingData.length === 0) {
@@ -642,135 +688,27 @@ const AccountingChart: FC = () => {
       );
     }
 
-    if (groupBy === 'date') {
-      return (
-        <TableContainer component={Paper} sx={{ mt: 3 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
-                <TableCell>日期</TableCell>
-                <TableCell align="right">總金額</TableCell>
-                <TableCell align="right">項目數</TableCell>
-                <TableCell>明細</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {accountingData.map((row) => (
-                <TableRow
-                  key={`date-row-${row.date}`}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {row.date}
-                  </TableCell>
-                  <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
-                  <TableCell align="right">{row.items.length}</TableCell>
-                  <TableCell>
-                    {row.items.slice(0, 3).map((item) => (
-                      <Chip 
-                        key={`item-${item._id ?? item.category + '-' + item.amount}`}
-                        label={`${item.category}: ${formatCurrency(item.amount)}`} 
-                        size="small" 
-                        sx={{ mr: 0.5, mb: 0.5 }} 
-                      />
-                    ))}
-                    {row.items.length > 3 && (
-                      <Chip 
-                        key={`date-more-${row.date}`}
-                        label={`+${row.items.length - 3}項`} 
-                        size="small" 
-                        variant="outlined" 
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      );
-    } else if (groupBy === 'shift') {
-      return (
-        <TableContainer component={Paper} sx={{ mt: 3 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
-                <TableCell>班別</TableCell>
-                <TableCell align="right">總金額</TableCell>
-                <TableCell align="right">項目數</TableCell>
-                <TableCell>明細</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {accountingData.map((row) => (
-                <TableRow
-                  key={`shift-row-${row.shift}`}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {row.shift}
-                  </TableCell>
-                  <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
-                  <TableCell align="right">{row.items.length}</TableCell>
-                  <TableCell>
-                    {row.items.slice(0, 3).map((item) => (
-                      <Chip 
-                        key={`shift-item-${item._id ?? item.category + '-' + item.amount}`}
-                        label={`${item.category}: ${formatCurrency(item.amount)}`} 
-                        size="small" 
-                        sx={{ mr: 0.5, mb: 0.5 }} 
-                      />
-                    ))}
-                    {row.items.length > 3 && (
-                      <Chip 
-                        key={`shift-more-${row.shift}`}
-                        label={`+${row.items.length - 3}項`} 
-                        size="small" 
-                        variant="outlined" 
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      );
-    } else if (groupBy === 'category') {
-      return (
-        <TableContainer component={Paper} sx={{ mt: 3 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
-                <TableCell>類別</TableCell>
-                <TableCell align="right">總金額</TableCell>
-                <TableCell align="right">項目數</TableCell>
-                <TableCell align="right">平均金額</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {summaryData.categoryStats.map((row) => (
-                <TableRow
-                  key={`category-row-${row.category}`}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {row.category}
-                  </TableCell>
-                  <TableCell align="right">{formatCurrency(row.totalAmount)}</TableCell>
-                  <TableCell align="right">{row.count}</TableCell>
-                  <TableCell align="right">
-                    {formatCurrency(row.count > 0 ? row.totalAmount / row.count : 0)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      );
-    }
+    const config = getTableConfig(groupBy);
+    if (!config) return null;
 
-    return null;
+    return (
+      <TableContainer component={Paper} sx={{ mt: 3 }}>
+        <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
+          <TableHead>
+            <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
+              {config.headers.map((header, index) => (
+                <TableCell key={`header-${index}`} align={index === 0 ? 'left' : 'right'}>
+                  {header}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {config.data.map((row: any) => config.renderRow(row))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
   };
 
   return (
