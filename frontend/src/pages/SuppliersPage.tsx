@@ -173,10 +173,20 @@ const SuppliersPage: FC<{}> = () => {
         setLocalSuppliers(mockSuppliersData);
         showSnackbar('測試模式：載入實際供應商資料失敗，已使用模擬數據。', 'info');
       } else {
-        setLocalSuppliers(actualSuppliers as unknown as SupplierData[]);
+        // 轉換 _id 為 id 以符合 DataGrid 需求
+        const convertedSuppliers = actualSuppliers.map(supplier => ({
+          ...supplier,
+          id: supplier._id
+        })) as unknown as SupplierData[];
+        setLocalSuppliers(convertedSuppliers);
       }
     } else {
-      setLocalSuppliers((actualSuppliers as unknown as SupplierData[]) ?? []);
+      // 轉換 _id 為 id 以符合 DataGrid 需求
+      const convertedSuppliers = (actualSuppliers ?? []).map(supplier => ({
+        ...supplier,
+        id: supplier._id
+      })) as unknown as SupplierData[];
+      setLocalSuppliers(convertedSuppliers);
     }
   }, [isTestMode, actualSuppliers, actualError]);
 
@@ -196,7 +206,7 @@ const SuppliersPage: FC<{}> = () => {
   }, [isTestMode, actualSelectedSupplier, localSuppliers]);
 
 
-  const suppliers = isTestMode ? localSuppliers : (actualSuppliers as unknown as SupplierData[]) ?? [];
+  const suppliers = isTestMode ? localSuppliers : localSuppliers;
   const loading = isTestMode ? false : actualLoading;
   const error = isTestMode ? null : actualError;
   const selectedSupplier = isTestMode ? localSelectedSupplier : (actualSelectedSupplier as unknown as SupplierData | null);

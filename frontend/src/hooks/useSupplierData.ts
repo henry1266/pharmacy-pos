@@ -58,7 +58,7 @@ const useSupplierData = () => {
 
   // Select supplier
   const selectSupplier = useCallback((id: string): void => {
-    const supplier = suppliers.find(s => s._id === id);
+    const supplier = suppliers.find(s => s._id === id || (s as any).id === id);
     setSelectedSupplier(supplier ?? null);
   }, [suppliers]);
 
