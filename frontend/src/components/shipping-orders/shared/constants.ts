@@ -2,6 +2,8 @@
  * 出貨單模組共用常數定義
  */
 
+import { createStatusConfig, createColumnConfig } from './utils';
+
 // 表格配置
 export const TABLE_CONFIG = {
   maxHeight: '350px',
@@ -18,21 +20,21 @@ export const FILE_UPLOAD_CONFIG = {
   allowedExtensions: ['csv']
 } as const;
 
-// 狀態配置
-export const STATUS_CONFIG = {
-  pending: { color: 'warning', text: '待處理' },
-  processing: { color: 'info', text: '處理中' },
-  completed: { color: 'success', text: '已完成' },
-  cancelled: { color: 'error', text: '已取消' }
-} as const;
+// 狀態配置 - 使用工廠函數減少重複
+export const STATUS_CONFIG = createStatusConfig([
+  { key: 'pending', color: 'warning', text: '待處理' },
+  { key: 'processing', color: 'info', text: '處理中' },
+  { key: 'completed', color: 'success', text: '已完成' },
+  { key: 'cancelled', color: 'error', text: '已取消' }
+]);
 
-// 付款狀態配置
-export const PAYMENT_STATUS_CONFIG = {
-  unpaid: { color: 'error', text: '未付款' },
-  partial: { color: 'warning', text: '部分付款' },
-  paid: { color: 'success', text: '已付款' },
-  refunded: { color: 'info', text: '已退款' }
-} as const;
+// 付款狀態配置 - 使用工廠函數減少重複
+export const PAYMENT_STATUS_CONFIG = createStatusConfig([
+  { key: 'unpaid', color: 'error', text: '未付款' },
+  { key: 'partial', color: 'warning', text: '部分付款' },
+  { key: 'paid', color: 'success', text: '已付款' },
+  { key: 'refunded', color: 'info', text: '已退款' }
+]);
 
 // 表格本地化文字
 export const TABLE_LOCALE_TEXT = {
@@ -87,23 +89,23 @@ export const CSV_IMPORT_TABS = {
   items: { index: 1, label: '藥品項目', description: '導入出貨單藥品項目，包括出貨單號、藥品代碼、數量、總金額等。' }
 } as const;
 
-// 表格欄位配置
-export const TABLE_COLUMNS = {
-  sequence: { field: 'sequence', headerName: '序號', width: 60, align: 'center' as const },
-  drugCode: { field: 'did', headerName: '藥品代碼', flex: 1 },
-  drugName: { field: 'dname', headerName: '藥品名稱', flex: 1 },
-  quantity: { field: 'dquantity', headerName: '數量', align: 'right' as const },
-  totalCost: { field: 'dtotalCost', headerName: '總成本', align: 'right' as const },
-  unitPrice: { field: 'unitPrice', headerName: '單價', align: 'right' as const },
-  actions: { field: 'actions', headerName: '操作', align: 'center' as const, width: 200 }
-} as const;
+// 表格欄位配置 - 使用工廠函數減少重複
+export const TABLE_COLUMNS = createColumnConfig([
+  { key: 'sequence', field: 'sequence', headerName: '序號', width: 60, align: 'center' },
+  { key: 'drugCode', field: 'did', headerName: '藥品代碼', flex: 1 },
+  { key: 'drugName', field: 'dname', headerName: '藥品名稱', flex: 1 },
+  { key: 'quantity', field: 'dquantity', headerName: '數量', align: 'right' },
+  { key: 'totalCost', field: 'dtotalCost', headerName: '總成本', align: 'right' },
+  { key: 'unitPrice', field: 'unitPrice', headerName: '單價', align: 'right' },
+  { key: 'actions', field: 'actions', headerName: '操作', align: 'center', width: 200 }
+]);
 
-// 出貨單表格欄位配置
-export const SHIPPING_ORDER_COLUMNS = {
-  soid: { field: 'soid', headerName: '出貨單號', flex: 1 },
-  supplier: { field: 'sosupplier', headerName: '供應商', flex: 1 },
-  totalAmount: { field: 'totalAmount', headerName: '總金額', flex: 1 },
-  status: { field: 'status', headerName: '狀態', flex: 1 },
-  paymentStatus: { field: 'paymentStatus', headerName: '付款狀態', flex: 1 },
-  actions: { field: 'actions', headerName: '操作', flex: 1, sortable: false, filterable: false }
-} as const;
+// 出貨單表格欄位配置 - 使用工廠函數減少重複
+export const SHIPPING_ORDER_COLUMNS = createColumnConfig([
+  { key: 'soid', field: 'soid', headerName: '出貨單號', flex: 1 },
+  { key: 'supplier', field: 'sosupplier', headerName: '供應商', flex: 1 },
+  { key: 'totalAmount', field: 'totalAmount', headerName: '總金額', flex: 1 },
+  { key: 'status', field: 'status', headerName: '狀態', flex: 1 },
+  { key: 'paymentStatus', field: 'paymentStatus', headerName: '付款狀態', flex: 1 },
+  { key: 'actions', field: 'actions', headerName: '操作', flex: 1, sortable: false, filterable: false }
+]);

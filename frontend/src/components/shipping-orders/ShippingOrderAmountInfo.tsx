@@ -12,6 +12,7 @@ import {
   Percent as PercentIcon
 } from '@mui/icons-material';
 import CollapsibleAmountInfo from '../common/CollapsibleAmountInfo';
+import { createDetailItem } from './shared/utils';
 
 interface ShippingOrder {
   totalAmount?: number;
@@ -59,71 +60,60 @@ const ShippingOrderAmountInfo: React.FC<ShippingOrderAmountInfoProps> = ({
     const details: CollapsibleDetail[] = [];
     const subtotal = (shippingOrder.totalAmount ?? 0) + (shippingOrder.discountAmount ?? 0);
 
-    details.push({
-      label: '小計',
-      value: subtotal,
+    // 小計項目
+    details.push(createDetailItem('小計', subtotal, {
       icon: <ReceiptLongIcon color="action" fontSize="small" />,
-      condition: true,
       valueFormatter: val => val.toFixed(2)
-    });
+    }));
 
+    // 折扣項目（條件性顯示）
     if (shippingOrder.discountAmount && shippingOrder.discountAmount > 0) {
-      details.push({
-        label: '折扣',
-        value: -shippingOrder.discountAmount,
+      details.push(createDetailItem('折扣', -shippingOrder.discountAmount, {
         icon: <PercentIcon color="secondary" fontSize="small" />,
         color: 'secondary.main',
-        condition: true,
         valueFormatter: val => val.toFixed(2)
-      });
+      }));
     }
 
+    // FIFO 相關項目
     if (!fifoLoading && fifoData?.summary) {
-      details.push({
-        label: '總成本',
-        value: fifoData.summary.totalCost,
+      // 總成本
+      details.push(createDetailItem('總成本', fifoData.summary.totalCost, {
         icon: <MonetizationOnIcon color="action" fontSize="small"/>,
-        condition: true,
         valueFormatter: val => typeof val === 'number' ? val.toFixed(2) : 'N/A'
-      });
+      }));
       
-      details.push({
-        label: '總毛利',
-        value: fifoData.summary.totalProfit,
-        icon: <TrendingUpIcon color={fifoData.summary.totalProfit >= 0 ? 'success' : 'error'} fontSize="small"/>,
-        color: fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main',
+      // 總毛利
+      const totalProfit = fifoData.summary.totalProfit;
+      details.push(createDetailItem('總毛利', totalProfit, {
+        icon: <TrendingUpIcon color={totalProfit >= 0 ? 'success' : 'error'} fontSize="small"/>,
+        color: totalProfit >= 0 ? 'success.main' : 'error.main',
         fontWeight: 'bold',
-        condition: true,
         valueFormatter: val => typeof val === 'number' ? val.toFixed(2) : 'N/A'
-      });
+      }));
       
-      details.push({
-        label: '毛利率',
-        value: fifoData.summary.totalProfitMargin,
-        icon: <PercentIcon color={parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success' : 'error'} fontSize="small"/>,
-        color: parseFloat(fifoData.summary.totalProfitMargin) >= 0 ? 'success.main' : 'error.main',
-        fontWeight: 'bold',
-        condition: true
-      });
+      // 毛利率
+      const profitMargin = parseFloat(fifoData.summary.totalProfitMargin);
+      details.push(createDetailItem('毛利率', fifoData.summary.totalProfitMargin, {
+        icon: <PercentIcon color={profitMargin >= 0 ? 'success' : 'error'} fontSize="small"/>,
+        color: profitMargin >= 0 ? 'success.main' : 'error.main',
+        fontWeight: 'bold'
+      }));
     } else if (fifoLoading) {
-      details.push({
-        label: '毛利資訊',
-        value: '',
+      // 載入中狀態
+      details.push(createDetailItem('毛利資訊', '', {
         customContent: (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <CircularProgress size={16} sx={{ mr: 1 }} />
             <Typography variant="body2" color="text.secondary">計算中...</Typography>
           </Box>
-        ),
-        condition: true
-      });
+        )
+      }));
     } else if (fifoError) {
-      details.push({
-        label: '毛利資訊',
-        value: '',
-        customContent: <Typography variant="body2" color="error">{fifoError}</Typography>,
-        condition: true
-      });
+      // 錯誤狀態
+      details.push(createDetailItem('毛利資訊', '', {
+        customContent: <Typography variant="body2" color="error">{fifoError}</Typography>
+      }));
     }
 
     return details;

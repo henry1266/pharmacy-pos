@@ -219,3 +219,66 @@ export const safeString = (value: any, defaultValue: string = ''): string => {
   }
   return String(value);
 };
+
+/**
+ * 創建詳細項目的工廠函數
+ * @param label 標籤
+ * @param value 值
+ * @param options 選項配置
+ * @returns 詳細項目物件
+ */
+export const createDetailItem = (
+  label: string,
+  value: any,
+  options: {
+    icon?: React.ReactElement;
+    color?: string;
+    fontWeight?: string;
+    condition?: boolean;
+    valueFormatter?: (val: any) => string;
+    customContent?: React.ReactNode;
+  } = {}
+) => ({
+  label,
+  value,
+  icon: options.icon,
+  color: options.color,
+  fontWeight: options.fontWeight,
+  condition: options.condition ?? true,
+  valueFormatter: options.valueFormatter,
+  customContent: options.customContent
+});
+
+/**
+ * 創建狀態配置的工廠函數
+ * @param configs 狀態配置陣列
+ * @returns 狀態配置物件
+ */
+export const createStatusConfig = (configs: Array<{ key: string; color: string; text: string }>) => {
+  return configs.reduce((acc, { key, color, text }) => {
+    acc[key] = { color, text };
+    return acc;
+  }, {} as Record<string, { color: string; text: string }>);
+};
+
+/**
+ * 創建表格欄位配置的工廠函數
+ * @param configs 欄位配置陣列
+ * @returns 欄位配置物件
+ */
+export const createColumnConfig = (configs: Array<{
+  key: string;
+  field: string;
+  headerName: string;
+  width?: number;
+  flex?: number;
+  align?: 'left' | 'center' | 'right';
+  sortable?: boolean;
+  filterable?: boolean;
+}>) => {
+  return configs.reduce((acc, config) => {
+    const { key, ...columnProps } = config;
+    acc[key] = columnProps;
+    return acc;
+  }, {} as Record<string, any>);
+};
