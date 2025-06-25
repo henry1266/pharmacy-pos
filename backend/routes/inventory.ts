@@ -6,6 +6,16 @@ import BaseProduct from '../models/BaseProduct';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import {
+  sendSuccessResponse,
+  sendErrorResponse,
+  sendValidationErrorResponse,
+  sendInvalidRequestResponse,
+  sendNotFoundResponse,
+  sendServerErrorResponse,
+  handleObjectIdError,
+  validateRequestId
+} from '../utils/responseHelpers';
 
 const router: express.Router = express.Router();
 
@@ -68,24 +78,9 @@ router.get('/', async (req: Request, res: Response) => {
     // 轉換 Mongoose Document 到 shared 類型
     const inventoryList: SharedInventory[] = inventory.map(inv => convertToSharedInventory(inv));
 
-    const response: ApiResponse<SharedInventory[]> = {
-      success: true,
-      message: '庫存項目獲取成功',
-      data: inventoryList,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, '庫存項目獲取成功', inventoryList);
   } catch (err: any) {
-    console.error(err.message);
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    sendServerErrorResponse(res, err);
   }
 });
 
@@ -94,14 +89,8 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    // 確保id存在
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的庫存記錄ID',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    // 驗證 ID 參數
+    if (!validateRequestId(res, req.params.id, '無效的庫存記錄ID')) {
       return;
     }
     
@@ -111,46 +100,16 @@ router.get('/:id', async (req: Request, res: Response) => {
       .populate('purchaseOrderId', 'poid orderNumber pobill');
     
     if (!inventory) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '庫存記錄不存在',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      sendNotFoundResponse(res, '庫存記錄不存在');
       return;
     }
     
     // 轉換 Mongoose Document 到 shared 類型
     const inventoryData: SharedInventory = convertToSharedInventory(inventory);
 
-    const response: ApiResponse<SharedInventory> = {
-      success: true,
-      message: '庫存項目獲取成功',
-      data: inventoryData,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, '庫存項目獲取成功', inventoryData);
   } catch (err: any) {
-    console.error(err.message);
-    
-    if (err.kind === 'ObjectId') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '庫存記錄不存在',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleObjectIdError(res, err, '庫存記錄不存在');
   }
 });
 
@@ -166,13 +125,7 @@ router.post(
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        error: JSON.stringify(errors.array()),
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      sendValidationErrorResponse(res, errors.array());
       return;
     }
     
@@ -188,28 +141,20 @@ router.post(
       } = requestBody;
       
       // 檢查藥品是否存在
-      // 修正：使用 findOne 替代 findById，並將 product 轉換為字串
       const productExists = await BaseProduct.findOne({ _id: product.toString() });
       if (!productExists) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: '藥品不存在',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
+        sendNotFoundResponse(res, '藥品不存在');
+        return;
       }
       
       // 檢查是否已有該藥品的庫存記錄
       let existingInventory: any = null;
       if (purchaseOrderId) {
-        // 修正：將 product 和 purchaseOrderId 參數轉換為字串
-        existingInventory = await Inventory.findOne({ 
-          product: product.toString(), 
-          purchaseOrderId: purchaseOrderId.toString() 
+        existingInventory = await Inventory.findOne({
+          product: product.toString(),
+          purchaseOrderId: purchaseOrderId.toString()
         });
       } else {
-        // 修正：將 product 參數轉換為字串
         existingInventory = await Inventory.findOne({ product: product.toString() });
       }
       
@@ -220,18 +165,9 @@ router.post(
         
         await existingInventory.save();
         
-        // 轉換 Mongoose Document 到 shared 類型
         const inventoryData: SharedInventory = convertToSharedInventory(existingInventory);
-
-        const response: ApiResponse<SharedInventory> = {
-          success: true,
-          message: '庫存項目更新成功',
-          data: inventoryData,
-          timestamp: new Date()
-        };
-        
-        res.json(response);
-      return;
+        sendSuccessResponse(res, '庫存項目更新成功', inventoryData);
+        return;
       }
       
       // 建立新庫存記錄
@@ -255,27 +191,10 @@ router.post(
       const inventory = new Inventory(inventoryFields);
       await inventory.save();
       
-      // 轉換 Mongoose Document 到 shared 類型
       const inventoryData: SharedInventory = convertToSharedInventory(inventory);
-
-      const response: ApiResponse<SharedInventory> = {
-        success: true,
-        message: '庫存項目創建成功',
-        data: inventoryData,
-        timestamp: new Date()
-      };
-      
-      res.json(response);
+      sendSuccessResponse(res, '庫存項目創建成功', inventoryData);
     } catch (err: any) {
-      console.error(err.message);
-      
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        timestamp: new Date()
-      };
-      
-      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+      sendServerErrorResponse(res, err);
     }
   }
 );
@@ -285,14 +204,8 @@ router.post(
 // @access  Public
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    // 確保id存在
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的庫存記錄ID',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    // 驗證 ID 參數
+    if (!validateRequestId(res, req.params.id, '無效的庫存記錄ID')) {
       return;
     }
     
@@ -325,72 +238,33 @@ router.put('/:id', async (req: Request, res: Response) => {
       inventoryFields.purchaseOrderNumber = purchaseOrderNumber;
     }
     
-    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    // 查找庫存記錄
     let inventory = await Inventory.findOne({ _id: req.params.id.toString() });
     if (!inventory) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '庫存記錄不存在',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      sendNotFoundResponse(res, '庫存記錄不存在');
       return;
     }
     
     // 如果更改了藥品，檢查新藥品是否存在
     if (product && product !== inventory.product.toString()) {
-      // 修正：使用 findOne 替代 findById，並將 product 轉換為字串
       const productExists = await BaseProduct.findOne({ _id: product.toString() });
       if (!productExists) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: '藥品不存在',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
+        sendNotFoundResponse(res, '藥品不存在');
+        return;
       }
     }
     
-    // 更新
-    // 修正：使用 findOneAndUpdate 替代 findByIdAndUpdate，並將 id 轉換為字串
+    // 更新庫存記錄
     inventory = await Inventory.findOneAndUpdate(
       { _id: req.params.id.toString() },
       { $set: inventoryFields },
       { new: true }
     );
     
-    // 轉換 Mongoose Document 到 shared 類型
     const inventoryData: SharedInventory = convertToSharedInventory(inventory);
-
-    const response: ApiResponse<SharedInventory> = {
-      success: true,
-      message: '庫存項目更新成功',
-      data: inventoryData,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, '庫存項目更新成功', inventoryData);
   } catch (err: any) {
-    console.error(err.message);
-    
-    if (err.kind === 'ObjectId') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '庫存記錄不存在',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleObjectIdError(res, err, '庫存記錄不存在');
   }
 });
 
@@ -399,59 +273,23 @@ router.put('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    // 確保id存在
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的庫存記錄ID',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    // 驗證 ID 參數
+    if (!validateRequestId(res, req.params.id, '無效的庫存記錄ID')) {
       return;
     }
     
-    // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    // 查找庫存記錄
     const inventory = await Inventory.findOne({ _id: req.params.id.toString() });
     if (!inventory) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '庫存記錄不存在',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      sendNotFoundResponse(res, '庫存記錄不存在');
       return;
     }
     
     await inventory.deleteOne();
     
-    const response: ApiResponse<null> = {
-      success: true,
-      message: '庫存記錄已刪除',
-      data: null,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, '庫存記錄已刪除', null);
   } catch (err: any) {
-    console.error(err.message);
-    
-    if (err.kind === 'ObjectId') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '庫存記錄不存在',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleObjectIdError(res, err, '庫存記錄不存在');
   }
 });
 
@@ -460,14 +298,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
-    // 確保productId存在
-    if (!req.params.productId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的產品ID',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    // 驗證產品 ID 參數
+    if (!validateRequestId(res, req.params.productId, '無效的產品ID')) {
       return;
     }
     
@@ -479,24 +311,9 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
     // 轉換 Mongoose Document 到 shared 類型
     const inventoryList: SharedInventory[] = inventory.map(inv => convertToSharedInventory(inv));
 
-    const response: ApiResponse<SharedInventory[]> = {
-      success: true,
-      message: '產品庫存項目獲取成功',
-      data: inventoryList,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, '產品庫存項目獲取成功', inventoryList);
   } catch (err: any) {
-    console.error(err.message);
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    sendServerErrorResponse(res, err);
   }
 });
 

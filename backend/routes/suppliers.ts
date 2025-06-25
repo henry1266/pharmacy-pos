@@ -8,6 +8,17 @@ import Supplier from '../models/Supplier';
 import { ApiResponse, ErrorResponse, CSVImportResponse } from '@pharmacy-pos/shared/types/api';
 import { Supplier as SupplierType } from '@pharmacy-pos/shared/types/entities';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import {
+  sendSuccessResponse,
+  sendErrorResponse,
+  sendValidationErrorResponse,
+  sendInvalidRequestResponse,
+  sendNotFoundResponse,
+  sendServerErrorResponse,
+  handleObjectIdError,
+  validateRequestId,
+  createUpdateFields
+} from '../utils/responseHelpers';
 
 const router: express.Router = express.Router();
 
@@ -95,24 +106,13 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const suppliers = await Supplier.find().sort({ name: 1 });
     
-    const response: ApiResponse<SupplierType[]> = {
-      success: true,
-      message: 'Suppliers retrieved successfully',
-      data: suppliers.map(supplier => convertToSupplierType(supplier)),
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(
+      res,
+      'Suppliers retrieved successfully',
+      suppliers.map(supplier => convertToSupplierType(supplier))
+    );
   } catch (err: any) {
-    console.error(err.message);
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    sendServerErrorResponse(res, err);
   }
 });
 
@@ -121,57 +121,21 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    // 確保id存在
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    // 驗證 ID 參數
+    if (!validateRequestId(res, req.params.id)) {
       return;
     }
     
     const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
     
     if (!supplier) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       return;
     }
     
-    const response: ApiResponse<SupplierType> = {
-      success: true,
-      message: 'Supplier retrieved successfully',
-      data: convertToSupplierType(supplier),
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, 'Supplier retrieved successfully', convertToSupplierType(supplier));
   } catch (err: any) {
-    console.error(err.message);
-    
-    if (err.kind === 'ObjectId') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleObjectIdError(res, err, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
   }
 });
 
@@ -187,62 +151,29 @@ router.post(
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        error: JSON.stringify(errors.array()),
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      sendValidationErrorResponse(res, errors.array());
       return;
     }
 
     try {
       const requestBody = req.body as SupplierCreationRequest;
-      const {
-        code,
-        shortCode,
-        name,
-        contactPerson,
-        phone,
-        email,
-        address,
-        taxId,
-        paymentTerms,
-        notes
-      } = requestBody;
+      const { code } = requestBody;
 
       // 檢查供應商編號是否已存在
       if (code) {
         let supplier = await Supplier.findOne({ code: code.toString() });
         if (supplier) {
-          const errorResponse: ErrorResponse = {
-            success: false,
-            message: ERROR_MESSAGES.SUPPLIER.CODE_EXISTS,
-            timestamp: new Date()
-          };
-          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
+          sendErrorResponse(res, ERROR_MESSAGES.SUPPLIER.CODE_EXISTS, API_CONSTANTS.HTTP_STATUS.BAD_REQUEST);
+          return;
         }
       }
 
-      // 建立供應商欄位物件
-      const supplierFields: Partial<SupplierType> = {
-        name: name.toString(),
-        shortCode: shortCode.toString()
-      };
-
-      // 修復：允許保存空字符串值，使用 !== undefined 而不是簡單的 if 檢查
-      if (code !== undefined) supplierFields.code = code.toString();
-      if (contactPerson !== undefined) supplierFields.contactPerson = contactPerson.toString();
-      if (phone !== undefined) supplierFields.phone = phone.toString();
-      if (email !== undefined) supplierFields.email = email.toString();
-      if (address !== undefined) supplierFields.address = address.toString();
-      if (taxId !== undefined) supplierFields.taxId = taxId.toString();
-      if (paymentTerms !== undefined) supplierFields.paymentTerms = paymentTerms.toString();
-      if (notes !== undefined) supplierFields.notes = notes.toString();
+      // 使用輔助函數建立供應商欄位物件
+      const supplierFields = createUpdateFields<SupplierType>(requestBody);
       
-      // 設置日期
+      // 設置必填欄位和日期
+      supplierFields.name = requestBody.name.toString();
+      supplierFields.shortCode = requestBody.shortCode.toString();
       supplierFields.date = new Date();
 
       // 若沒提供供應商編號，系統自動生成
@@ -254,24 +185,9 @@ router.post(
       let supplier = new Supplier(supplierFields);
       await supplier.save();
       
-      const response: ApiResponse<SupplierType> = {
-        success: true,
-        message: 'Supplier created successfully',
-        data: convertToSupplierType(supplier),
-        timestamp: new Date()
-      };
-      
-      res.json(response);
+      sendSuccessResponse(res, 'Supplier created successfully', convertToSupplierType(supplier));
     } catch (err: any) {
-      console.error(err.message);
-      
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        timestamp: new Date()
-      };
-      
-      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+      sendServerErrorResponse(res, err);
     }
   }
 );
@@ -347,40 +263,24 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const requestBody = req.body as SupplierUpdateRequest;
     
-    // 確保id存在
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    // 驗證 ID 參數
+    if (!validateRequestId(res, req.params.id)) {
       return;
     }
     
     // 查找供應商
     let supplier = await Supplier.findOne({ _id: req.params.id.toString() });
     if (!supplier) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       return;
     }
 
-    // 建立更新欄位物件
-    const supplierFields = createSupplierFields(requestBody);
+    // 使用輔助函數建立更新欄位物件
+    const supplierFields = createUpdateFields<SupplierType>(requestBody);
     
     // 檢查編號是否重複
     if (await isCodeDuplicate(supplierFields.code, supplier.code)) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.SUPPLIER.CODE_EXISTS,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      sendErrorResponse(res, ERROR_MESSAGES.SUPPLIER.CODE_EXISTS, API_CONSTANTS.HTTP_STATUS.BAD_REQUEST);
       return;
     }
 
@@ -390,34 +290,9 @@ router.put('/:id', async (req: Request, res: Response) => {
     // 保存更新
     await supplier.save();
     
-    const response: ApiResponse<SupplierType> = {
-      success: true,
-      message: 'Supplier updated successfully',
-      data: convertToSupplierType(supplier),
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, 'Supplier updated successfully', convertToSupplierType(supplier));
   } catch (err: any) {
-    console.error(err.message);
-    
-    if (err.kind === 'ObjectId') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleObjectIdError(res, err, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
   }
 });
 
@@ -426,59 +301,23 @@ router.put('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    // 確保id存在
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.INVALID_REQUEST,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    // 驗證 ID 參數
+    if (!validateRequestId(res, req.params.id)) {
       return;
     }
     
     const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
     if (!supplier) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       return;
     }
 
-    // 修復：使用 deleteOne 替代 findByIdAndDelete
+    // 刪除供應商
     await Supplier.deleteOne({ _id: req.params.id.toString() });
     
-    const response: ApiResponse<null> = {
-      success: true,
-      message: '供應商已刪除',
-      data: null,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    sendSuccessResponse(res, '供應商已刪除', null);
   } catch (err: any) {
-    console.error(err.message);
-    
-    if (err.kind === 'ObjectId') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.SUPPLIER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleObjectIdError(res, err, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
   }
 });
 
