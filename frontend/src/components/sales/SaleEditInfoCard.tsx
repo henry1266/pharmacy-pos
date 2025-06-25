@@ -42,11 +42,11 @@ const SaleEditInfoCard: React.FC<SaleEditInfoCardProps> = ({
           <Grid item xs={12} {...({} as any)}>
             <TextField
               fullWidth
-              label="條碼"
+              label="條碼 / 代碼 / 簡碼 / 健保碼"
               value={barcode}
               onChange={handleBarcodeChange}
               onKeyDown={handleBarcodeSubmit}
-              placeholder="掃描或輸入條碼後按 Enter"
+              placeholder="掃描條碼或輸入產品代碼、簡碼、健保碼後按 Enter"
               inputRef={barcodeInputRef} // Use the passed ref
               autoComplete="off"
             />

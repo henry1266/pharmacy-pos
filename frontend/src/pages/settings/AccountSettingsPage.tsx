@@ -11,7 +11,7 @@ import {
   CircularProgress,
   Chip
 } from '@mui/material';
-import authService from '../../services/authService';
+import authService from '../../services/authServiceV2';
 import { EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
 
 // 定義表單數據介面

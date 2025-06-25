@@ -17,7 +17,7 @@ import {
   Chip
 } from '@mui/material';
 import { syncMongoDBConfig } from '../../utils/configSync';
-import authService from '../../services/authService';
+import authService from '../../services/authServiceV2';
 
 /**
  * 用戶資訊介面

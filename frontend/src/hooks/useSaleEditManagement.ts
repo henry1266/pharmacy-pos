@@ -97,10 +97,12 @@ export const useSaleEditManagement = (
       setBarcode('');
 
       try {
-        let product = products.find(p => p.code === trimmedBarcode);
-        product ??= products.find(p =>
-          p.isMedicine &&
-          (p as any).healthInsuranceCode === trimmedBarcode
+        // 支援多種輸入方式：條碼、代碼、簡碼、健保碼
+        let product = products.find(p =>
+          String(p.code) === trimmedBarcode ||
+          String(p.barcode) === trimmedBarcode ||
+          String((p as any).shortCode) === trimmedBarcode ||
+          String((p as any).healthInsuranceCode) === trimmedBarcode
         );
 
         if (product) {
@@ -128,7 +130,7 @@ export const useSaleEditManagement = (
           }
           setCurrentSale(prev => ({ ...prev, items: updatedItems }));
         } else {
-          setSnackbar({ open: true, message: `找不到條碼或健保碼 ${trimmedBarcode} 對應的產品`, severity: 'error' });
+          setSnackbar({ open: true, message: `找不到條碼/代碼/簡碼/健保碼 ${trimmedBarcode} 對應的產品`, severity: 'error' });
         }
       } catch (err) {
         console.error('處理條碼失敗:', err);

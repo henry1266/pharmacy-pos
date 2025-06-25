@@ -189,6 +189,28 @@ export {
   createApiClient
 } from './services/baseApiClient';
 
+export {
+  AuthApiClient,
+  createAuthApiClient,
+  AuthLoginRequest,
+  AuthUpdateRequest,
+  PasswordResetRequest,
+  PasswordChangeRequest,
+  TokenValidationResponse
+} from './services/authApiClient';
+
+export {
+  EmployeeApiClient,
+  createEmployeeApiClient,
+  EmployeeQueryParams,
+  EmployeeCreateRequest,
+  EmployeeUpdateRequest,
+  EmployeeListResponse,
+  EmployeeAccountCreateRequest,
+  EmployeeAccountUpdateRequest,
+  EmployeeStats
+} from './services/employeeApiClient';
+
 // Schema 驗證 - 使用別名避免衝突
 export {
   ValidationRule as SchemaValidationRule,
