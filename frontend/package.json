@@ -70,6 +70,7 @@
     "@craco/craco": "^7.1.0",
     "@pharmacy-pos/shared": "workspace:*",
     "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
     "@types/react": "^18.3.23",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^18.3.7",
