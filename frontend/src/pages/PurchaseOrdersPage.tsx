@@ -25,7 +25,7 @@ import { useAppDispatch } from '../hooks/redux';
 import usePurchaseOrdersData from '../hooks/usePurchaseOrdersData';
 
 // Import Services
-import { getPurchaseOrderById, importPurchaseOrdersBasic, importPurchaseOrderItems } from '../services/purchaseOrdersService';
+import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 
 // Import Redux Actions
 import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders } from '../redux/actions';
@@ -229,7 +229,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       if (existingPO?.items) {
         setPreviewPurchaseOrder(existingPO as unknown as PurchaseOrder);
       } else {
-        const data = await getPurchaseOrderById(id);
+        const data = await purchaseOrderServiceV2.getPurchaseOrderById(id);
         setPreviewPurchaseOrder(data as unknown as PurchaseOrder);
       }
     } catch (err: any) {
@@ -307,9 +307,13 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
 
       let response;
       if (csvType === 'basic') {
-        response = await importPurchaseOrdersBasic(formData);
+        // V2 服務需要 File 對象而不是 FormData
+        const file = formData.get('file') as File;
+        response = await purchaseOrderServiceV2.importBasicPurchaseOrders(file);
       } else {
-        response = await importPurchaseOrderItems(formData);
+        // V2 服務需要 File 對象而不是 FormData
+        const file = formData.get('file') as File;
+        response = await purchaseOrderServiceV2.importPurchaseOrderItems(file);
       }
 
       dispatch(fetchPurchaseOrders());

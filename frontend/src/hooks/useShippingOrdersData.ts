@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from './redux';
 import { fetchShippingOrders, deleteShippingOrder, searchShippingOrders, fetchSuppliers } from '../redux/actions';
-import { getShippingOrderById } from '../services/shippingOrdersService';
+import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
 import { RootState, ShippingOrdersState, SuppliersState } from '../types/store';
 import { ShippingOrder, Supplier } from '@pharmacy-pos/shared/types/entities';
 
@@ -214,7 +214,7 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
         return;
       }
       // 如果未找到或不完整，則使用服務函數從 API 獲取
-      const data = await getShippingOrderById(id);
+      const data = await shippingOrderServiceV2.getShippingOrderById(id);
       setPreviewShippingOrder(data);
     } catch (err: any) {
       console.error('獲取出貨單預覽失敗 (hook):', err);

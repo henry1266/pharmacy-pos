@@ -85,6 +85,27 @@
 - **models.ts**: 數據模型型別
 - **utils.ts**: 工具函數型別
 
+#### V2 統一 API 客戶端架構 (`services/`)
+系統實現了基於 shared 模組的統一 API 客戶端架構，大幅減少代碼重複並提高一致性：
+
+- **baseApiClient.ts**: 抽象基類，提供通用 CRUD 操作和錯誤處理
+- **accountingApiClient.ts**: 會計服務 API 客戶端
+- **productApiClient.ts**: 產品服務 API 客戶端
+- **supplierApiClient.ts**: 供應商服務 API 客戶端
+- **customerApiClient.ts**: 客戶服務 API 客戶端
+- **salesApiClient.ts**: 銷售服務 API 客戶端
+- **shippingOrderApiClient.ts**: 出貨訂單服務 API 客戶端
+- **purchaseOrderApiClient.ts**: 採購訂單服務 API 客戶端
+- **inventoryApiClient.ts**: 庫存服務 API 客戶端
+- **employeeApiClient.ts**: 員工服務 API 客戶端
+
+**V2 架構優勢**：
+- **代碼重用**: 消除 80-85% 的重複 API 調用代碼
+- **型別安全**: 完整的 TypeScript 支援和泛型設計
+- **統一錯誤處理**: 標準化的錯誤處理機制
+- **依賴注入**: 支援不同 HTTP 客戶端實現
+- **可擴展性**: 新服務可輕鬆擴展基礎架構
+
 #### 工具函數 (`utils/`)
 - **dateUtils.ts**: 日期處理工具
 - **stringUtils.ts**: 字串處理工具
@@ -147,6 +168,17 @@ shared/
 │   ├── business.ts              # 業務邏輯型別
 │   ├── models.ts                # 資料模型型別
 │   └── utils.ts                 # 工具函數型別
+├── services/                 # V2 統一 API 客戶端
+│   ├── baseApiClient.ts         # 基礎 API 客戶端抽象類
+│   ├── accountingApiClient.ts   # 會計服務 API 客戶端
+│   ├── productApiClient.ts      # 產品服務 API 客戶端
+│   ├── supplierApiClient.ts     # 供應商服務 API 客戶端
+│   ├── customerApiClient.ts     # 客戶服務 API 客戶端
+│   ├── salesApiClient.ts        # 銷售服務 API 客戶端
+│   ├── shippingOrderApiClient.ts # 出貨訂單服務 API 客戶端
+│   ├── purchaseOrderApiClient.ts # 採購訂單服務 API 客戶端
+│   ├── inventoryApiClient.ts    # 庫存服務 API 客戶端
+│   └── employeeApiClient.ts     # 員工服務 API 客戶端
 ├── utils/                    # 工具函數
 │   ├── dateUtils.ts             # 日期工具
 │   ├── stringUtils.ts           # 字串工具
@@ -451,6 +483,110 @@ FIFO功能的主要特點包括：
 
 新用戶的預設角色是 `staff`。用戶角色可以在建立用戶時指定，或由管理員後續修改。系統實現了基於角色的訪問控制(RBAC)，確保用戶只能訪問其角色允許的功能。
 
+## V2 統一 API 架構
+
+### 架構概述
+藥局POS系統實現了基於 shared 模組的統一 API 客戶端架構，這是系統現代化的重要里程碑。V2 架構將原本分散在各個前端服務中的重複代碼整合到共享模組中，實現了代碼重用和一致性。
+
+### 核心組件
+
+#### BaseApiClient 基礎架構
+- **抽象基類**: 提供通用的 CRUD 操作模板
+- **統一錯誤處理**: 標準化的 `handleApiError` 機制
+- **HttpClient 介面**: 支援依賴注入的 HTTP 客戶端抽象
+- **泛型支援**: 完整的 TypeScript 泛型設計
+
+#### 已實現的 V2 服務
+系統已完成所有核心業務服務的 V2 架構實現：
+
+1. **會計服務** - 分類管理、交易記錄
+2. **產品服務** - 產品管理、庫存追蹤
+3. **供應商服務** - 供應商管理、採購關係
+4. **客戶服務** - 客戶管理、購買歷史
+5. **銷售服務** - 銷售統計、退貨處理
+6. **出貨訂單服務** - 出貨管理、批量操作
+7. **採購訂單服務** - 採購管理、供應商整合
+8. **庫存服務** - 庫存記錄、統計分析
+9. **員工服務** - 員工管理、權限控制
+
+### 前端適配器模式
+每個前端 V2 服務都採用統一的適配器模式：
+
+```typescript
+// 創建 axios 適配器
+const axiosAdapter: HttpClient = {
+  get: axios.get.bind(axios),
+  post: axios.post.bind(axios),
+  put: axios.put.bind(axios),
+  delete: axios.delete.bind(axios),
+};
+
+// 創建 API 客戶端實例
+const apiClient = createXxxApiClient(axiosAdapter);
+
+// 直接匯出方法，實現零重複代碼
+export const getAllItems = apiClient.getAllItems.bind(apiClient);
+export const getItemById = apiClient.getItemById.bind(apiClient);
+```
+
+### 架構優勢
+
+#### 代碼減少量
+- **原始服務**: 每個服務約 100-200 行重複的 API 調用代碼
+- **V2 服務**: 每個服務僅需 20-30 行適配器代碼
+- **減少比例**: 約 80-85% 的代碼減少
+
+#### 技術優勢
+- **型別安全**: 完整的 TypeScript 支援和編譯時檢查
+- **一致性**: 統一的錯誤處理和響應格式處理
+- **可擴展性**: 支援依賴注入和繼承架構
+- **維護性**: 修改一次，所有服務受益
+
+### 使用範例
+
+```typescript
+// 使用員工服務 V2
+import {
+  getAllEmployees,
+  createEmployee,
+  updateEmployee
+} from '../services/employeeServiceV2';
+
+const EmployeeComponent = () => {
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const data = await getAllEmployees();
+        setEmployees(data);
+      } catch (error) {
+        console.error('獲取員工失敗:', error);
+      }
+    };
+    
+    fetchEmployees();
+  }, []);
+
+  const handleCreateEmployee = async (employeeData) => {
+    try {
+      const newEmployee = await createEmployee(employeeData);
+      setEmployees(prev => [...prev, newEmployee]);
+    } catch (error) {
+      console.error('創建員工失敗:', error);
+    }
+  };
+
+  // ... 組件渲染邏輯
+};
+```
+
+### 文檔資源
+- **V2 架構總結**: [`docs/V2_ARCHITECTURE_SUMMARY.md`](docs/V2_ARCHITECTURE_SUMMARY.md)
+- **員工服務文檔**: [`docs/employee-service-v2.md`](docs/employee-service-v2.md)
+- **採購訂單服務文檔**: [`docs/purchase-order-service-v2.md`](docs/purchase-order-service-v2.md)
+- **出貨訂單服務文檔**: [`docs/shipping-order-service-v2.md`](docs/shipping-order-service-v2.md)
+
 ## 技術特色
 
 ### Monorepo 架構優勢
@@ -504,4 +640,4 @@ FIFO功能的主要特點包括：
 
 ---
 
-*最後更新: 2025年6月24日*
+*最後更新: 2025年6月25日*

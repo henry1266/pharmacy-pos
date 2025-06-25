@@ -14,7 +14,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 
 // Import service functions
-import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService';
+import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import { productServiceV2 } from '../services/productServiceV2';
 import { getAllSuppliers } from '../services/supplierServiceV2';
 
@@ -154,7 +154,7 @@ const PurchaseOrderEditPage: React.FC = () => {
       return;
     }
     try {
-      const orderData = await getPurchaseOrderById(id as string) as ExtendedPurchaseOrder;
+      const orderData = await purchaseOrderServiceV2.getPurchaseOrderById(id as string) as ExtendedPurchaseOrder;
       setFormData(prevData => ({
         ...prevData,
         ...orderData,
@@ -375,10 +375,10 @@ const PurchaseOrderEditPage: React.FC = () => {
   const submitFormData = async (submitData: any): Promise<void> => {
     try {
       if (isEditMode) {
-        await updatePurchaseOrder(id as string, submitData);
+        await purchaseOrderServiceV2.updatePurchaseOrder(id as string, submitData as any);
         setSnackbar({ open: true, message: '進貨單已成功更新', severity: 'success' });
       } else {
-        await addPurchaseOrder(submitData);
+        await purchaseOrderServiceV2.createPurchaseOrder(submitData as any);
         setSnackbar({ open: true, message: '進貨單已成功新增', severity: 'success' });
       }
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);

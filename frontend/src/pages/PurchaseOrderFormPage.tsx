@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
-import { addPurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrdersService';
+import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
@@ -472,10 +472,10 @@ const PurchaseOrderFormPage: React.FC = () => {
 
     try {
       if (isEditMode && id) {
-        await updatePurchaseOrder(id, submitData as unknown as Partial<PurchaseOrder>);
+        await purchaseOrderServiceV2.updatePurchaseOrder(id, submitData as any);
         showSnackbar('進貨單已成功更新', 'success');
       } else {
-        await addPurchaseOrder(submitData as unknown as Partial<PurchaseOrder>);
+        await purchaseOrderServiceV2.createPurchaseOrder(submitData as any);
         showSnackbar('進貨單已成功新增', 'success');
       }
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);

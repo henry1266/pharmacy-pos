@@ -23,7 +23,7 @@ import { useAppDispatch } from '../hooks/redux';
 import useShippingOrdersData from '../hooks/useShippingOrdersData';
 
 // Import Service functions for CSV import
-import { importShippingOrdersBasic, importShippingOrdersItems } from '../services/shippingOrdersService';
+import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
 import { fetchShippingOrders } from '../redux/actions';
 
 // Import Presentation Components
@@ -226,9 +226,9 @@ const ShippingOrdersPage: React.FC = () => {
 
       let response;
       if (csvType === 'basic') {
-        response = await importShippingOrdersBasic(csvFile);
+        response = await shippingOrderServiceV2.importBasicShippingOrders(csvFile);
       } else {
-        response = await importShippingOrdersItems(csvFile);
+        response = await shippingOrderServiceV2.importMedicineDetails(csvFile);
       }
 
       // Refresh the list after successful import

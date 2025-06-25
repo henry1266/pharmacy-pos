@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAllSuppliers } from '../services/supplierServiceV2';
 import { productServiceV2 } from '../services/productServiceV2';
-import { getPurchaseOrderById } from '../services/purchaseOrdersService';
+import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import { Supplier, Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -80,7 +80,7 @@ const usePurchaseOrderData = (
   const fetchPurchaseOrderData = useCallback(async (currentOrderId: string): Promise<PurchaseOrder | null> => {
     if (!currentOrderId) return null;
     try {
-      const data = await getPurchaseOrderById(currentOrderId);
+      const data = await purchaseOrderServiceV2.getPurchaseOrderById(currentOrderId);
       setOrderData(data);
       setOrderDataLoaded(true);
       return data;
