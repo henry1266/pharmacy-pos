@@ -23,6 +23,13 @@ export * from './forms';
 // 工具型別
 export * from './utils';
 
+// 採購訂單相關型別 (明確匯出避免衝突)
+export type {
+  PurchaseOrderStatus,
+  PaymentStatus,
+  PurchaseOrderRequest
+} from './purchase-order';
+
 // 業務邏輯型別 (避免與 api 衝突) - 使用重構後的版本
 export type {
   // 基礎型別

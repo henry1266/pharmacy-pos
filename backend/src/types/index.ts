@@ -9,8 +9,8 @@ export * from './api';
 // 業務邏輯型別
 export * from './business';
 
-// 工具函數型別
-export * from './utils';
+// 工具函數型別 - 暫時註解掉，因為檔案不存在
+// export * from './utils';
 
 // Express 擴展型別
 export * from './express';

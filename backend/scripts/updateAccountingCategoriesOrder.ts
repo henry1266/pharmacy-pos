@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import config from 'config';
-import AccountingCategory from '../models/AccountingCategory';
-import { IAccountingCategoryDocument } from '../src/types/models';
+import AccountingCategoryModel from '../models/AccountingCategory';
+import { AccountingCategory } from '@pharmacy-pos/shared/types';
 
 // 連接資料庫
 const db: string = config.get('mongoURI');
@@ -28,7 +28,7 @@ const updateAccountingCategoriesOrder = async (): Promise<void> => {
     
     // 更新現有類別的順序或創建新類別
     for (const category of orderedCategories) {
-      const existingCategory: IAccountingCategoryDocument | null = await AccountingCategory.findOne({ name: category.name });
+      const existingCategory: any = await AccountingCategoryModel.findOne({ name: category.name });
       
       if (existingCategory) {
         // 更新現有類別的順序
@@ -37,7 +37,7 @@ const updateAccountingCategoriesOrder = async (): Promise<void> => {
         console.log(`已更新類別順序: ${category.name} (${category.order})`);
       } else {
         // 創建新類別
-        const newCategory = new AccountingCategory({
+        const newCategory = new AccountingCategoryModel({
           name: category.name,
           description: `${category.name}費用`,
           order: category.order,
@@ -49,7 +49,7 @@ const updateAccountingCategoriesOrder = async (): Promise<void> => {
     }
     
     // 獲取所有類別並按順序顯示
-    const allCategories: IAccountingCategoryDocument[] = await AccountingCategory.find().sort({ order: 1, name: 1 });
+    const allCategories: any[] = await AccountingCategoryModel.find().sort({ order: 1, name: 1 });
     console.log('\n當前類別順序:');
     allCategories.forEach(cat => {
       console.log(`${cat.name} (順序: ${cat.order})`);

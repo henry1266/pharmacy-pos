@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 // 使用 ES6 import 導入模型
-import PurchaseOrder, { IPurchaseOrderDocument, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../models/PurchaseOrder';
+import PurchaseOrder, { IPurchaseOrderDocument, IPurchaseOrderItemDocument, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../models/PurchaseOrder';
 import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
@@ -15,36 +15,12 @@ import OrderNumberService from '../utils/OrderNumberService';
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
-
-// 移除重複的介面定義，直接使用模型中的 IPurchaseOrderItem
-
-// 根據實際模型定義 status 型別
-type PurchaseOrderStatus = 'pending' | 'completed' | 'cancelled';
-type PaymentStatus = '未付' | '已下收' | '已匯款';
-
-// 移除重複的介面定義，直接使用模型中的 IPurchaseOrder
-
-// 使用 mongoose.Document 型別
-// 移除未定義的 PurchaseOrderModel 引用，直接使用 IPurchaseOrderDocument
-
-interface PurchaseOrderRequest {
-  poid?: string;
-  pobill?: string;
-  pobilldate?: Date;
-  posupplier: string;
-  supplier?: string;
-  items: Array<{
-    did: string;
-    dname: string;
-    dquantity: number;
-    dtotalCost: number;
-    unitPrice?: number;
-    product?: Types.ObjectId | string;
-  }>;
-  notes?: string;
-  status?: PurchaseOrderStatus;
-  paymentStatus?: PaymentStatus;
-}
+import {
+  PurchaseOrderRequest,
+  PurchaseOrderStatus,
+  PaymentStatus,
+  PurchaseOrderItem
+} from '@pharmacy-pos/shared/types/purchase-order';
 
 // 設置文件上傳
 const storage = multer.diskStorage({
@@ -199,7 +175,7 @@ async function validateAndSetProductIds(items: PurchaseOrderRequest['items']): P
     // 嘗試查找藥品
     const product = await BaseProduct.findOne({ code: item.did.toString() });
     if (product) {
-      item.product = product._id as Types.ObjectId;
+      item.product = product._id.toString();
     }
   }
   
@@ -447,7 +423,7 @@ const processItemsUpdate = async (items: PurchaseOrderRequest['items']): Promise
   }
 
   // 正確處理 items 的型別轉換 - 使用 any 來避免 Document 型別衝突
-  const processedItems = items.map(item => ({
+  const processedItems = items.map((item: any) => ({
     ...item,
     product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
     unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0)
@@ -473,7 +449,7 @@ const applyUpdatesToPurchaseOrder = (purchaseOrder: IPurchaseOrderDocument, upda
   
   // 手動計算總金額以確保正確
   purchaseOrder.totalAmount = purchaseOrder.items.reduce(
-    (total: number, item: { dtotalCost: number | string }) => total + Number(item.dtotalCost),
+    (total: number, item: IPurchaseOrderItemDocument) => total + Number(item.dtotalCost || 0),
     0
   );
 };

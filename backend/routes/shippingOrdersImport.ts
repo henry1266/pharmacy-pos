@@ -674,7 +674,7 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
       success: false,
       message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
       error: (err as Error).message,
-      details: process.env.NODE_ENV === "production" ? null : (err as Error).stack,
+      details: process.env.NODE_ENV === "production" ? undefined : { stack: (err as Error).stack },
       timestamp: new Date()
     };
     res.status(500).json(errorResponse);

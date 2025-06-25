@@ -1,17 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import {
+  PurchaseOrderStatus,
+  PaymentStatus,
+  PurchaseOrderItem as SharedPurchaseOrderItem,
+  PurchaseOrder as SharedPurchaseOrder
+} from '@pharmacy-pos/shared/types/purchase-order';
 
-// 進貨單狀態枚舉
-export type PurchaseOrderStatus = 'pending' | 'completed' | 'cancelled';
-export type PaymentStatus = '未付' | '已下收' | '已匯款';
-
-// 進貨單項目介面
-export interface IPurchaseOrderItem {
-  product: mongoose.Types.ObjectId;
-  did: string;
-  dname: string;
-  dquantity: number;
-  dtotalCost: number;
-  unitPrice: number;
+// 後端專用的 MongoDB 文檔介面
+export interface IPurchaseOrderItem extends Omit<SharedPurchaseOrderItem, 'product' | '_id'> {
+  product: mongoose.Types.ObjectId; // 後端使用 ObjectId
 }
 
 // 進貨單項目文檔介面
@@ -19,19 +16,10 @@ export interface IPurchaseOrderItemDocument extends IPurchaseOrderItem, Document
   _id: mongoose.Types.ObjectId;
 }
 
-// 進貨單介面
-export interface IPurchaseOrder {
-  poid: string;
-  orderNumber: string;
-  pobill?: string;
-  pobilldate?: Date;
-  posupplier: string;
-  supplier?: mongoose.Types.ObjectId;
+// 後端專用的進貨單介面
+export interface IPurchaseOrder extends Omit<SharedPurchaseOrder, '_id' | 'supplier' | 'items' | 'createdAt' | 'updatedAt'> {
+  supplier?: mongoose.Types.ObjectId; // 後端使用 ObjectId
   items: IPurchaseOrderItem[];
-  totalAmount: number;
-  status: PurchaseOrderStatus;
-  paymentStatus: PaymentStatus;
-  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +29,9 @@ export interface IPurchaseOrderDocument extends IPurchaseOrder, Document {
   _id: mongoose.Types.ObjectId;
   items: IPurchaseOrderItemDocument[];
 }
+
+// 重新匯出型別以保持向後兼容
+export type { PurchaseOrderStatus, PaymentStatus };
 
 // 進貨單項目子模型
 const PurchaseOrderItemSchema = new Schema<IPurchaseOrderItemDocument>({

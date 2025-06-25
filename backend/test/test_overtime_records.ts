@@ -34,7 +34,7 @@ const testOvertimeRecords = async () => {
       console.log('前 3 筆記錄:');
       allRecords.slice(0, 3).forEach((record, index) => {
         console.log(`${index + 1}. ID: ${record._id}`);
-        console.log(`   員工: ${record.employeeId?.name || '未知'}`);
+        console.log(`   員工: ${(record.employeeId as any)?.name || '未知'}`);
         console.log(`   日期: ${record.date}`);
         console.log(`   時數: ${record.hours}`);
         console.log(`   狀態: ${record.status}`);
@@ -59,7 +59,7 @@ const testOvertimeRecords = async () => {
     
     if (mayRecords.length > 0) {
       mayRecords.forEach((record, index) => {
-        console.log(`${index + 1}. 員工: ${record.employeeId?.name || '未知'}, 日期: ${record.date}, 時數: ${record.hours}, 狀態: ${record.status}`);
+        console.log(`${index + 1}. 員工: ${(record.employeeId as any)?.name || '未知'}, 日期: ${record.date}, 時數: ${record.hours}, 狀態: ${record.status}`);
       });
     }
     

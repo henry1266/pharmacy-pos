@@ -36,7 +36,7 @@ import {
   ProcessStatus,
   BaseStatus,
   SeverityLevel
-} from '@pharmacy-pos/shared/types/business';
+} from '@pharmacy-pos/shared/types';
 
 /**
  * MongoDB 特定的業務型別定義
