@@ -17,18 +17,12 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { 
-  getMonitoredProducts, 
-  addMonitoredProduct, 
-  deleteMonitoredProduct 
+import {
+  getMonitoredProducts,
+  addMonitoredProduct,
+  deleteMonitoredProduct,
+  MonitoredProduct
 } from '../services/monitoredProductService';
-
-// 定義監測產品介面
-interface MonitoredProduct {
-  _id: string;
-  productCode: string;
-  productName?: string;
-}
 
 const MonitoredProductsSettingsPage: React.FC = () => {
   const [products, setProducts] = useState<MonitoredProduct[]>([]);
@@ -69,8 +63,8 @@ const MonitoredProductsSettingsPage: React.FC = () => {
       setNewProductCode(''); // Clear input
       fetchProducts(); // Refresh the list
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { msg?: string } } };
-      setAddError(error.response?.data?.msg ?? '新增失敗，請檢查產品編號是否存在或已在列表中');
+      const error = err as { response?: { data?: { message?: string } } };
+      setAddError(error.response?.data?.message ?? '新增失敗，請檢查產品編號是否存在或已在列表中');
       console.error(err);
     } finally {
       setAdding(false);
@@ -99,7 +93,7 @@ const MonitoredProductsSettingsPage: React.FC = () => {
     if (error) {
       return <Alert severity="error">{error}</Alert>;
     }
-    if (products.length === 0) {
+    if (!Array.isArray(products) || products.length === 0) {
       return (
         <Typography variant="body1" color="text.primary">
           目前沒有設定任何監測產品。
@@ -108,7 +102,7 @@ const MonitoredProductsSettingsPage: React.FC = () => {
     }
     return (
       <List>
-        {products.map((product) => (
+        {(Array.isArray(products) ? products : []).map((product) => (
           <ListItem
             key={product._id}
             divider
@@ -145,7 +139,7 @@ const MonitoredProductsSettingsPage: React.FC = () => {
                     component="span"
                     sx={{ color: '#333', fontWeight: 'medium' }}
                   >
-                    {product.productName ?? '未知產品'}
+                    {product.productName}
                   </Typography>
                 </Box>
               }

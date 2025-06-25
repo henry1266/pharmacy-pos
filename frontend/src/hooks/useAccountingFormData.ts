@@ -13,7 +13,7 @@ import type {
  */
 interface AccountingFormData {
   date: Date;
-  shift: '' | 'morning' | 'afternoon' | 'evening';
+  shift: '' | '早' | '中' | '晚';
   status: 'pending' | 'completed' | 'cancelled';
   items: AccountingItem[];
 }
@@ -206,7 +206,7 @@ const useAccountingFormData = () => {
         ...formData,
         date: formData.date, // Service will format
         items: validItems,
-        shift: formData.shift as 'morning' | 'afternoon' | 'evening'
+        shift: formData.shift as '早' | '中' | '晚'
       };
 
       await createAccountingRecord(submitData);

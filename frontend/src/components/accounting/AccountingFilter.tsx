@@ -25,8 +25,8 @@ interface AccountingFilterProps {
   setStartDate: (date: Date | null) => void;
   endDate: Date | null;
   setEndDate: (date: Date | null) => void;
-  filterShift: string;
-  setFilterShift: (shift: string) => void;
+  filterShift: 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '';
+  setFilterShift: (shift: 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '') => void;
   onAddClick: () => void;
 }
 
@@ -44,7 +44,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
 }) => {
   // 處理班別選擇變更
   const handleShiftChange = (e: SelectChangeEvent<string>): void => {
-    setFilterShift(e.target.value);
+    setFilterShift(e.target.value as 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '');
   };
 
   return (

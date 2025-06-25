@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { format } from 'date-fns';
 import { AccountingRecord } from '@pharmacy-pos/shared/types/entities';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import type {
   AccountingFilters,
   ExtendedAccountingRecord,
@@ -27,11 +28,11 @@ export const getAccountingRecords = async (filters: AccountingFilters = {}): Pro
     if (filters.shift) {
       params.append('shift', filters.shift);
     }
-    const response = await axios.get<ExtendedAccountingRecord[]>(API_URL, { params });
-    return response.data;
+    const response = await axios.get<ApiResponse<ExtendedAccountingRecord[]>>(API_URL, { params });
+    return response.data.data;
   } catch (err: any) {
     console.error('獲取記帳記錄失敗 (service):', err);
-    throw new Error(err.response?.data?.msg ?? '獲取記帳記錄失敗');
+    throw new Error(err.response?.data?.message ?? '獲取記帳記錄失敗');
   }
 };
 
@@ -48,11 +49,11 @@ export const createAccountingRecord = async (recordData: Partial<AccountingRecor
       ...recordData,
       date: format(new Date(recordData.date), 'yyyy-MM-dd')
     };
-    const response = await axios.post<AccountingRecord>(API_URL, dataToSend);
-    return response.data;
+    const response = await axios.post<ApiResponse<AccountingRecord>>(API_URL, dataToSend);
+    return response.data.data;
   } catch (err: any) {
     console.error('創建記帳記錄失敗 (service):', err);
-    throw new Error(err.response?.data?.msg ?? '創建記帳記錄失敗');
+    throw new Error(err.response?.data?.message ?? '創建記帳記錄失敗');
   }
 };
 
@@ -70,11 +71,11 @@ export const updateAccountingRecord = async (id: string, recordData: Partial<Acc
       ...recordData,
       date: format(new Date(recordData.date), 'yyyy-MM-dd')
     };
-    const response = await axios.put<AccountingRecord>(`${API_URL}/${id}`, dataToSend);
-    return response.data;
+    const response = await axios.put<ApiResponse<AccountingRecord>>(`${API_URL}/${id}`, dataToSend);
+    return response.data.data;
   } catch (err: any) {
     console.error(`更新記帳記錄 ${id} 失敗 (service):`, err);
-    throw new Error(err.response?.data?.msg ?? '更新記帳記錄失敗');
+    throw new Error(err.response?.data?.message ?? '更新記帳記錄失敗');
   }
 };
 
@@ -86,11 +87,11 @@ export const updateAccountingRecord = async (id: string, recordData: Partial<Acc
  */
 export const deleteAccountingRecord = async (id: string): Promise<{ success: boolean; message?: string }> => {
   try {
-    const response = await axios.delete<{ success: boolean; message?: string }>(`${API_URL}/${id}`);
-    return response.data; // Usually an empty object or success message
+    const response = await axios.delete<ApiResponse<any>>(`${API_URL}/${id}`);
+    return { success: response.data.success, message: response.data.message };
   } catch (err: any) {
     console.error(`刪除記帳記錄 ${id} 失敗 (service):`, err);
-    throw new Error(err.response?.data?.msg ?? '刪除記帳記錄失敗');
+    throw new Error(err.response?.data?.message ?? '刪除記帳記錄失敗');
   }
 };
 
@@ -103,15 +104,15 @@ export const deleteAccountingRecord = async (id: string): Promise<{ success: boo
  */
 export const getUnaccountedSales = async (date: string): Promise<UnaccountedSale[]> => {
   try {
-    const response = await axios.get<UnaccountedSale[]>(`${API_URL}/unaccounted-sales`, {
+    const response = await axios.get<ApiResponse<UnaccountedSale[]>>(`${API_URL}/unaccounted-sales`, {
       params: {
         date: date,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (err: any) {
     console.error('獲取未結算銷售記錄失敗 (service):', err);
-    throw new Error(err.response?.data?.msg ?? '獲取未結算銷售記錄失敗');
+    throw new Error(err.response?.data?.message ?? '獲取未結算銷售記錄失敗');
   }
 };
 

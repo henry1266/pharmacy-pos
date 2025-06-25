@@ -1,18 +1,16 @@
 import axios from 'axios';
-import { Product } from '@pharmacy-pos/shared/types/entities';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 
 const API_URL = '/api/monitored-products';
 
 /**
- * 監測產品介面
+ * 監測產品介面 - 與後端回傳格式一致
  */
 export interface MonitoredProduct {
   _id: string;
-  productId: string;
   productCode: string;
-  product?: Product;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  productName: string;
+  addedBy: string;
 }
 
 /**
@@ -21,10 +19,11 @@ export interface MonitoredProduct {
  */
 export const getMonitoredProducts = async (): Promise<MonitoredProduct[]> => {
   try {
-    const response = await axios.get<MonitoredProduct[]>(API_URL);
-    return response.data;
+    const response = await axios.get<ApiResponse<MonitoredProduct[]>>(API_URL);
+    // 後端回傳的是 ApiResponse 格式，實際資料在 data 欄位中
+    return response.data.data || [];
   } catch (error: any) {
-    console.error('獲取監測產品失敗:', error.response?.data?.msg ?? error.message);
+    console.error('獲取監測產品失敗:', error.response?.data?.message ?? error.message);
     throw error;
   }
 };
@@ -36,10 +35,11 @@ export const getMonitoredProducts = async (): Promise<MonitoredProduct[]> => {
  */
 export const addMonitoredProduct = async (productCode: string): Promise<MonitoredProduct> => {
   try {
-    const response = await axios.post<MonitoredProduct>(API_URL, { productCode });
-    return response.data;
+    const response = await axios.post<ApiResponse<MonitoredProduct>>(API_URL, { productCode });
+    // 後端回傳的是 ApiResponse 格式，實際資料在 data 欄位中
+    return response.data.data;
   } catch (error: any) {
-    console.error('新增監測產品失敗:', error.response?.data?.msg ?? error.message);
+    console.error('新增監測產品失敗:', error.response?.data?.message ?? error.message);
     throw error;
   }
 };
@@ -51,10 +51,11 @@ export const addMonitoredProduct = async (productCode: string): Promise<Monitore
  */
 export const deleteMonitoredProduct = async (id: string): Promise<{ success: boolean; message?: string }> => {
   try {
-    const response = await axios.delete<{ success: boolean; message?: string }>(`${API_URL}/${id}`);
-    return response.data;
+    const response = await axios.delete<ApiResponse<null>>(`${API_URL}/${id}`);
+    // 後端回傳的是 ApiResponse 格式
+    return { success: response.data.success, message: response.data.message };
   } catch (error: any) {
-    console.error('刪除監測產品失敗:', error.response?.data?.msg ?? error.message);
+    console.error('刪除監測產品失敗:', error.response?.data?.message ?? error.message);
     throw error;
   }
 };

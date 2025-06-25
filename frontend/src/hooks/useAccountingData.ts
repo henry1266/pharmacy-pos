@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { format } from 'date-fns';
-import { getUnaccountedSales } from '../services/accountingService';
+import { getAccountingRecords, getUnaccountedSales, deleteAccountingRecord } from '../services/accountingService';
 import type {
   ExtendedAccountingRecord,
   FormData,
-  OperationResult
+  OperationResult,
+  AccountingFilters
 } from '@pharmacy-pos/shared/types/accounting';
 
 /**
@@ -20,32 +20,29 @@ const useAccountingData = () => {
   // Filter state
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [filterShift, setFilterShift] = useState<string>('');
+  const [filterShift, setFilterShift] = useState<'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | ''>('');
 
   // Fetch records based on filters
   const fetchRecords = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      let url = '/api/accounting';
-      const params = new URLSearchParams();
+      const filters: AccountingFilters = {};
       if (startDate) {
-        params.append('startDate', format(startDate, 'yyyy-MM-dd'));
+        filters.startDate = startDate;
       }
       if (endDate) {
-        params.append('endDate', format(endDate, 'yyyy-MM-dd'));
+        filters.endDate = endDate;
       }
       if (filterShift) {
-        params.append('shift', filterShift);
+        (filters as any).shift = filterShift;
       }
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-      const response = await axios.get<ExtendedAccountingRecord[]>(url);
-      setRecords(response.data);
+      
+      const records = await getAccountingRecords(filters);
+      setRecords(records);
     } catch (err: any) {
       console.error('載入記帳記錄失敗 (hook):', err);
-      setError('載入記帳記錄失敗');
+      setError(err.message || '載入記帳記錄失敗');
       setRecords([]); // Clear records on error
     } finally {
       setLoading(false);
@@ -61,13 +58,13 @@ const useAccountingData = () => {
   const deleteRecord = useCallback(async (id: string): Promise<OperationResult> => {
     // Note: Confirmation logic should remain in the component
     try {
-      await axios.delete(`/api/accounting/${id}`);
+      await deleteAccountingRecord(id);
       // Optimistic update or refetch
       setRecords(prev => prev.filter(record => record._id !== id));
       return { success: true };
     } catch (err: any) {
       console.error('刪除記帳記錄失敗 (hook):', err);
-      return { success: false, error: '刪除記帳記錄失敗' };
+      return { success: false, error: err.message || '刪除記帳記錄失敗' };
     }
   }, []);
 

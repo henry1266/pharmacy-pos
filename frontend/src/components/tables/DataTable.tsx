@@ -195,7 +195,10 @@ const DataTable: React.FC<DataTableProps> = ({
             height: '100%',
             width: '100%',
             '& .MuiDataGrid-main': { overflow: 'hidden' },
-            '& .MuiDataGrid-virtualScroller': { overflow: 'auto' },
+            '& .MuiDataGrid-virtualScroller': {
+              overflow: 'auto',
+              marginTop: '0 !important' // 移除第一排的空白
+            },
             '& .MuiDataGrid-columnHeaders': {
               backgroundColor: 'background.paper',
               borderBottom: '1px solid',

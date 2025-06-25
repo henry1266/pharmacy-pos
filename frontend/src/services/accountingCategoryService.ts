@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 
 /**
  * 獲取所有記帳名目類別
@@ -7,10 +8,11 @@ import type { AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
  */
 export const getAccountingCategories = async (): Promise<AccountingCategory[]> => {
   try {
-    const res = await axios.get<AccountingCategory[]>('/api/accounting-categories');
-    return res.data;
+    const res = await axios.get<ApiResponse<AccountingCategory[]>>('/api/accounting-categories');
+    // 後端回傳的是 ApiResponse 格式，實際資料在 data 欄位中
+    return res.data.data || [];
   } catch (err: any) {
-    console.error('獲取記帳名目類別失敗:', err);
+    console.error('獲取記帳名目類別失敗:', err.response?.data?.message ?? err.message);
     throw err;
   }
 };
@@ -22,10 +24,11 @@ export const getAccountingCategories = async (): Promise<AccountingCategory[]> =
  */
 export const addAccountingCategory = async (categoryData: Partial<AccountingCategory>): Promise<AccountingCategory> => {
   try {
-    const res = await axios.post<AccountingCategory>('/api/accounting-categories', categoryData);
-    return res.data;
+    const res = await axios.post<ApiResponse<AccountingCategory>>('/api/accounting-categories', categoryData);
+    // 後端回傳的是 ApiResponse 格式，實際資料在 data 欄位中
+    return res.data.data;
   } catch (err: any) {
-    console.error('新增記帳名目類別失敗:', err);
+    console.error('新增記帳名目類別失敗:', err.response?.data?.message ?? err.message);
     throw err;
   }
 };
@@ -38,10 +41,11 @@ export const addAccountingCategory = async (categoryData: Partial<AccountingCate
  */
 export const updateAccountingCategory = async (id: string, categoryData: Partial<AccountingCategory>): Promise<AccountingCategory> => {
   try {
-    const res = await axios.put<AccountingCategory>(`/api/accounting-categories/${id}`, categoryData);
-    return res.data;
+    const res = await axios.put<ApiResponse<AccountingCategory>>(`/api/accounting-categories/${id}`, categoryData);
+    // 後端回傳的是 ApiResponse 格式，實際資料在 data 欄位中
+    return res.data.data;
   } catch (err: any) {
-    console.error('更新記帳名目類別失敗:', err);
+    console.error('更新記帳名目類別失敗:', err.response?.data?.message ?? err.message);
     throw err;
   }
 };
@@ -53,10 +57,11 @@ export const updateAccountingCategory = async (id: string, categoryData: Partial
  */
 export const deleteAccountingCategory = async (id: string): Promise<{ success: boolean; message?: string }> => {
   try {
-    const res = await axios.delete<{ success: boolean; message?: string }>(`/api/accounting-categories/${id}`);
-    return res.data;
+    const res = await axios.delete<ApiResponse<null>>(`/api/accounting-categories/${id}`);
+    // 後端回傳的是 ApiResponse 格式
+    return { success: res.data.success, message: res.data.message };
   } catch (err: any) {
-    console.error('刪除記帳名目類別失敗:', err);
+    console.error('刪除記帳名目類別失敗:', err.response?.data?.message ?? err.message);
     throw err;
   }
 };

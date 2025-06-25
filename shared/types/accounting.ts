@@ -76,5 +76,5 @@ export interface OperationResult {
 export interface AccountingFilters {
   startDate?: Date | null;
   endDate?: Date | null;
-  shift?: 'morning' | 'afternoon' | 'evening' | '';
+  shift?: 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '';
 }
