@@ -15,8 +15,8 @@ import { format } from 'date-fns';
 
 // Import service functions
 import { getPurchaseOrderById, updatePurchaseOrder, addPurchaseOrder } from '../services/purchaseOrdersService';
-import { getProducts } from '../services/productService';
-import { getSuppliers } from '../services/supplierService';
+import { productServiceV2 } from '../services/productServiceV2';
+import { getAllSuppliers } from '../services/supplierServiceV2';
 
 // Import components
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
@@ -177,7 +177,7 @@ const PurchaseOrderEditPage: React.FC = () => {
 
   const fetchProductsData = async (): Promise<Product[]> => {
     try {
-      const productsData = await getProducts();
+      const productsData = await productServiceV2.getAllProducts();
       setProducts(productsData || []);
       setProductsLoaded(true);
       return productsData;
@@ -189,7 +189,7 @@ const PurchaseOrderEditPage: React.FC = () => {
 
   const fetchSuppliersData = async (): Promise<Supplier[]> => {
     try {
-      const suppliersData = await getSuppliers();
+      const suppliersData = await getAllSuppliers();
       setSuppliers(suppliersData || []);
       setSuppliersLoaded(true);
       return suppliersData;

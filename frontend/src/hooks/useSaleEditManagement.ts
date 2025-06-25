@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, ChangeEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as salesService from '../services/salesService';
+import { updateSale } from '../services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -197,8 +197,8 @@ export const useSaleEditManagement = (
     };
 
     try {
-      // Corrected: Ensure salesService.updateSale is correctly called
-      await salesService.updateSale(saleId, saleData);
+      // 使用 V2 服務更新銷售記錄
+      await updateSale(saleId, saleData);
       setSnackbar({ open: true, message: '銷售記錄已更新', severity: 'success' });
       setTimeout(() => navigate('/sales'), 1500);
     } catch (err: any) {

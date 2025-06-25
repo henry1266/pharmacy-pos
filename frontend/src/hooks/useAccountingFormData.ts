@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { format } from 'date-fns';
-import { getAccountingCategories } from '../services/accountingCategoryService';
-import { getUnaccountedSales, createAccountingRecord } from '../services/accountingService';
+import { accountingServiceV2 } from '../services/accountingServiceV2';
 import type {
   AccountingCategory,
   AccountingItem,
@@ -53,7 +52,7 @@ const useAccountingFormData = () => {
     try {
       setLoadingCategories(true);
       setErrorCategories(null);
-      const data = await getAccountingCategories();
+      const data = await accountingServiceV2.getAccountingCategories();
       setCategories(data);
 
       // Pre-fill first two items if categories exist
@@ -94,7 +93,7 @@ const useAccountingFormData = () => {
     setSalesError(null);
     try {
       const formattedDate = format(date, 'yyyy-MM-dd');
-      const data = await getUnaccountedSales(formattedDate);
+      const data = await accountingServiceV2.getUnaccountedSales(formattedDate);
       
       // 將服務返回的數據轉換為頁面需要的格式
       const transformedData: UnaccountedSale[] = data.map(item => ({
@@ -209,7 +208,7 @@ const useAccountingFormData = () => {
         shift: formData.shift as '早' | '中' | '晚'
       };
 
-      await createAccountingRecord(submitData);
+      await accountingServiceV2.createAccountingRecord(submitData);
       setSubmitSuccess(true);
       return true; // Indicate success
     } catch (err: any) {

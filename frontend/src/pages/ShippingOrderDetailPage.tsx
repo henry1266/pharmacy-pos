@@ -36,7 +36,7 @@ import { fetchShippingOrder } from '../redux/actions';
 import DetailLayout from '../components/DetailLayout';
 import ProductItemsTable from '../components/common/ProductItemsTable';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
-import { getProductByCode } from '../services/productService';
+import { productServiceV2 } from '../services/productServiceV2';
 
 // 定義出貨單項目類型
 interface ShippingOrderItem {
@@ -282,7 +282,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       try {
         const promises = productCodes.map(async (code) => {
           try {
-            const productData = await getProductByCode(code);
+            const productData = await productServiceV2.getProductByCode(code);
             if (productData) {
               details[code] = productData;
             }

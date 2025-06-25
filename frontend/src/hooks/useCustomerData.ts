@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import customerService from '../services/customerService';
+import { getAllCustomers, createCustomer, updateCustomer, deleteCustomer } from '../services/customerServiceV2';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 擴展 Customer 類型以包含前端需要的額外屬性
@@ -65,7 +65,7 @@ const useCustomerData = (): UseCustomerDataReturn => {
     try {
       setLoading(true);
       setError(null);
-      const data = await customerService.getCustomers();
+      const data = await getAllCustomers();
       const formattedCustomers: CustomerDisplay[] = data.map((customer: Customer) => ({
         id: customer._id,
         code: customer.code ?? '',
@@ -107,9 +107,9 @@ const useCustomerData = (): UseCustomerDataReturn => {
         idCardNumber: customerData.idCardNumber,
         birthdate: customerData.birthdate,
         membershipLevel: customerData.membershipLevel
-      } as Partial<Customer>;
+      };
       
-      await customerService.addCustomer(customerDataToSend);
+      await createCustomer(customerDataToSend as any);
       await fetchCustomers(); // Refresh the list after adding
     } catch (err: any) {
       console.error('添加會員失敗 (hook):', err);
@@ -136,9 +136,9 @@ const useCustomerData = (): UseCustomerDataReturn => {
         idCardNumber: customerData.idCardNumber,
         birthdate: customerData.birthdate,
         membershipLevel: customerData.membershipLevel
-      } as Partial<Customer>;
+      };
       
-      await customerService.updateCustomer(id, customerDataToSend);
+      await updateCustomer(id, customerDataToSend as any);
       await fetchCustomers(); // Refresh the list after updating
     } catch (err: any) {
       console.error('更新會員失敗 (hook):', err);
@@ -155,7 +155,7 @@ const useCustomerData = (): UseCustomerDataReturn => {
     try {
       setLoading(true);
       setError(null);
-      await customerService.deleteCustomer(id);
+      await deleteCustomer(id);
       // Optimistic update or refetch
       // setCustomers(prevCustomers => prevCustomers.filter(customer => customer.id !== id));
       await fetchCustomers(); // Refresh the list after deleting

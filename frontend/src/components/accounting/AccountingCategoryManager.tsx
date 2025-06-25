@@ -17,7 +17,7 @@ import {
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import AddIcon from '@mui/icons-material/Add';
-import { getAccountingCategories, addAccountingCategory, updateAccountingCategory, deleteAccountingCategory } from '../../services/accountingCategoryService';
+import { accountingServiceV2 } from '../../services/accountingServiceV2';
 import CategoryListItem from './CategoryListItem';
 import type { AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
 
@@ -88,7 +88,7 @@ const AccountingCategoryManager: React.FC = () => {
   const fetchCategories = async (): Promise<void> => {
     try {
       setLoading(true);
-      const data = await getAccountingCategories();
+      const data = await accountingServiceV2.getAccountingCategories();
       setCategories(data);
       setError(null);
     } catch (err: unknown) {
@@ -132,7 +132,7 @@ const AccountingCategoryManager: React.FC = () => {
           description: item.description ?? '',
           order: item.order
         };
-        await updateAccountingCategory(item._id, updateData);
+        await accountingServiceV2.updateAccountingCategory(item._id, updateData);
       }
       
       showSnackbar('類別順序已更新', 'success');
@@ -205,7 +205,7 @@ const AccountingCategoryManager: React.FC = () => {
           order: (categories.length + 1) * 10, // 新類別放在最後
           isExpense: false // 預設為收入類別，可根據需求調整
         };
-        await addAccountingCategory(createData);
+        await accountingServiceV2.addAccountingCategory(createData);
         showSnackbar('類別已新增', 'success');
       } else if (currentCategoryId) {
         // 編輯類別
@@ -214,7 +214,7 @@ const AccountingCategoryManager: React.FC = () => {
           name: currentCategory.name,
           description: currentCategory.description
         };
-        await updateAccountingCategory(currentCategoryId, updateData);
+        await accountingServiceV2.updateAccountingCategory(currentCategoryId, updateData);
         showSnackbar('類別已更新', 'success');
       }
       
@@ -233,7 +233,7 @@ const AccountingCategoryManager: React.FC = () => {
     if (!window.confirm('確定要刪除此類別嗎？')) return;
     
     try {
-      await deleteAccountingCategory(categoryId);
+      await accountingServiceV2.deleteAccountingCategory(categoryId);
       showSnackbar('類別已刪除', 'success');
       fetchCategories();
     } catch (err: unknown) {

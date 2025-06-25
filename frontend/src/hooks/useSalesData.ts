@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getProducts } from '../services/productService';
-import { getCustomers } from '../services/customerService';
+import { productServiceV2 } from '../services/productServiceV2';
+import { getAllCustomers } from '../services/customerServiceV2';
 import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -21,8 +21,8 @@ const useSalesData = () => {
       try {
         // Fetch products and customers concurrently
         const [productsData, customersData] = await Promise.all([
-          getProducts(), // Assuming getProducts fetches all necessary product data
-          getCustomers() // Assuming getCustomers fetches all necessary customer data
+          productServiceV2.getAllProducts(), // Using V2 service
+          getAllCustomers() // Using V2 service
         ]);
         
         // 直接設置資料，假設 API 已經返回正確的陣列

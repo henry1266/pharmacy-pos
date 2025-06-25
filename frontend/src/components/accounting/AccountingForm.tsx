@@ -32,7 +32,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import zhTW from 'date-fns/locale/zh-TW';
 import { format } from 'date-fns';
-import { getAccountingCategories } from '../../services/accountingCategoryService';
+import { accountingServiceV2 } from '../../services/accountingServiceV2';
 import StatusSelect from '../common/form/StatusSelect';
 import type {
   AccountingItem,
@@ -84,7 +84,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     const fetchCategories = async (): Promise<void> => {
       try {
         setLoading(true);
-        const data = await getAccountingCategories();
+        const data = await accountingServiceV2.getAccountingCategories();
         setCategories(data);
         setError(null);
       } catch (err) {

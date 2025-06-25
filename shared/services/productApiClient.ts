@@ -76,6 +76,21 @@ export class ProductApiClient extends BaseApiClient {
   }
 
   /**
+   * 根據產品代碼獲取產品
+   */
+  async getProductByCode(code: string): Promise<Product | null> {
+    try {
+      return await this.get<Product>(`/products/code/${code}`);
+    } catch (error: any) {
+      // 如果產品不存在，返回 null 而不是拋出錯誤
+      if (error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * 批量更新產品庫存
    */
   async updateProductStock(updates: Array<{ id: string; quantity: number }>): Promise<Product[]> {

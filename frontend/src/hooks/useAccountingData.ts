@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { getAccountingRecords, getUnaccountedSales, deleteAccountingRecord } from '../services/accountingService';
+import { accountingServiceV2 } from '../services/accountingServiceV2';
 import type {
   ExtendedAccountingRecord,
   FormData,
@@ -38,7 +38,7 @@ const useAccountingData = () => {
         (filters as any).shift = filterShift;
       }
       
-      const records = await getAccountingRecords(filters);
+      const records = await accountingServiceV2.getAccountingRecords(filters);
       setRecords(records);
     } catch (err: any) {
       console.error('載入記帳記錄失敗 (hook):', err);
@@ -58,7 +58,7 @@ const useAccountingData = () => {
   const deleteRecord = useCallback(async (id: string): Promise<OperationResult> => {
     // Note: Confirmation logic should remain in the component
     try {
-      await deleteAccountingRecord(id);
+      await accountingServiceV2.deleteAccountingRecord(id);
       // Optimistic update or refetch
       setRecords(prev => prev.filter(record => record._id !== id));
       return { success: true };
@@ -76,7 +76,7 @@ const useAccountingData = () => {
 
       if (record.status === 'pending') {
         // Fetch current unaccounted sales only if status is pending
-        unaccountedSales = await getUnaccountedSales(format(new Date(record.date), 'yyyy-MM-dd'));
+        unaccountedSales = await accountingServiceV2.getUnaccountedSales(format(new Date(record.date), 'yyyy-MM-dd'));
       }
 
       const editFormData: FormData = {

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Import Hook and Service
 import useAccountingData from '../hooks/useAccountingData';
-import { updateAccountingRecord } from '../services/accountingService';
+import { accountingServiceV2 } from '../services/accountingServiceV2';
 
 // Import Presentation Components
 import AccountingFilter from '../components/accounting/AccountingFilter';
@@ -133,7 +133,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
       };
 
       if (editMode && currentId) {
-        await updateAccountingRecord(currentId, submitData as Partial<AccountingRecord>);
+        await accountingServiceV2.updateAccountingRecord(currentId, submitData as Partial<AccountingRecord>);
         showSnackbar('記帳記錄已更新', 'success');
         handleCloseDialog();
         fetchRecords(); // Refetch records after update

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import productService from '../services/productService'; // Import the consolidated service
+import { productServiceV2 } from '../services/productServiceV2';
+import { getAllSuppliers } from '../services/supplierServiceV2';
 import { getProductCategories } from '../services/productCategoryService'; // Keep category service separate or integrate
 import { Product, Supplier, Category } from '@pharmacy-pos/shared/types/entities';
 
@@ -35,7 +36,7 @@ const useProductData = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await productService.getProducts();
+      const data = await productServiceV2.getAllProducts();
 
       // Separate products and medicines
       const productsList: ProductWithId[] = [];
@@ -76,7 +77,7 @@ const useProductData = () => {
   const fetchSuppliers = useCallback(async () => {
     try {
       setError(null);
-      const data = await productService.getSuppliers();
+      const data = await getAllSuppliers();
       setSuppliers(data);
     } catch (err: any) {
       console.error('獲取供應商失敗 (hook):', err);
@@ -101,7 +102,7 @@ const useProductData = () => {
     try {
       setLoading(true); // Indicate loading during delete
       setError(null);
-      await productService.deleteProduct(id);
+      await productServiceV2.deleteProduct(id);
 
       // Update local state optimistically or refetch
       setProducts(prev => prev.filter(p => p.id !== id));
@@ -130,10 +131,10 @@ const useProductData = () => {
 
       if (editMode) {
         // Update product
-        savedProductData = await productService.updateProduct(productData.id, productData);
+        savedProductData = await productServiceV2.updateProduct(productData.id, productData);
       } else {
         // Add new product
-        savedProductData = await productService.addProduct(productData, productType);
+        savedProductData = await productServiceV2.createProduct(productData);
       }
 
       // Refetch products to ensure data consistency

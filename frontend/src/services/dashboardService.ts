@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import { transformSalesForTrend, transformSalesForCategory } from '../utils/dataTransformations';
 // Import the function to get all sales data
-import { getAllSales } from './salesService'; // Assuming salesService is in the same directory
+import { getAllSales } from './salesServiceV2';
 
 // Base URL for dashboard related APIs
 const API_URL = '/api/dashboard'; // Adjust if your base URL is different
@@ -118,7 +118,7 @@ export const getProcessedSalesDataForDashboard = async (): Promise<{
   categorySales: CategorySales[];
 }> => {
   try {
-    // Fetch all raw sales data using the function from salesService
+    // Fetch all raw sales data using the function from salesServiceV2
     const rawSalesData = await getAllSales();
 
     // Transform the data

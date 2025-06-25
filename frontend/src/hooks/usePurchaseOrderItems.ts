@@ -1,5 +1,5 @@
 import { useState, useCallback, RefObject, ChangeEvent } from 'react';
-import { getProductByCode } from '../services/productService';
+import { productServiceV2 } from '../services/productServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -118,7 +118,7 @@ const usePurchaseOrderItems = ({
 
     if (!productDetails[newItem.did]) {
       try {
-        const detail = await getProductByCode(newItem.did);
+        const detail = await productServiceV2.getProductByCode(newItem.did);
         if (detail) {
           setProductDetails(prev => ({ ...prev, [newItem.did]: detail }));
         }
@@ -156,7 +156,7 @@ const usePurchaseOrderItems = ({
 
     if (originalItem.did !== editingItem.did && !productDetails[editingItem.did]) {
       try {
-        const detail = await getProductByCode(editingItem.did);
+        const detail = await productServiceV2.getProductByCode(editingItem.did);
         if (detail) {
           setProductDetails(prev => ({ ...prev, [editingItem.did]: detail }));
         }

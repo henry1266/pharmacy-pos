@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSuppliers } from '../services/supplierService';
-import { getProducts, getProductByCode } from '../services/productService';
+import { getAllSuppliers } from '../services/supplierServiceV2';
+import { productServiceV2 } from '../services/productServiceV2';
 import { getPurchaseOrderById } from '../services/purchaseOrdersService';
 import { Supplier, Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
 
@@ -47,7 +47,7 @@ const usePurchaseOrderData = (
    */
   const fetchSuppliersData = useCallback(async (): Promise<Supplier[]> => {
     try {
-      const data = await getSuppliers();
+      const data = await getAllSuppliers();
       setSuppliers(data);
       setSuppliersLoaded(true);
       return data;
@@ -63,7 +63,7 @@ const usePurchaseOrderData = (
    */
   const fetchProductsData = useCallback(async (): Promise<Product[]> => {
     try {
-      const data = await getProducts();
+      const data = await productServiceV2.getAllProducts();
       setProducts(data);
       setProductsLoaded(true);
       return data;
@@ -103,7 +103,7 @@ const usePurchaseOrderData = (
     try {
       const detailsMap: ProductDetailsMap = {};
       const promises = items.map(item =>
-        getProductByCode(item.did)
+        productServiceV2.getProductByCode(item.did)
           .then(productData => {
             if (productData) {
               detailsMap[item.did] = {

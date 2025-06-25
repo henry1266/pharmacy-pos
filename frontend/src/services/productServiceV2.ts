@@ -30,6 +30,7 @@ export const productServiceV2 = {
   // 直接綁定 API 客戶端方法
   getAllProducts: productApiClient.getAllProducts.bind(productApiClient),
   getProductById: productApiClient.getProductById.bind(productApiClient),
+  getProductByCode: productApiClient.getProductByCode.bind(productApiClient),
   createProduct: productApiClient.createProduct.bind(productApiClient),
   updateProduct: productApiClient.updateProduct.bind(productApiClient),
   deleteProduct: productApiClient.deleteProduct.bind(productApiClient),

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import supplierService from '../services/supplierService';
+import { getAllSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../services/supplierServiceV2';
 import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -40,7 +40,7 @@ const useSupplierData = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await supplierService.getSuppliers();
+      const data = await getAllSuppliers();
       setSuppliers(data);
     } catch (err: any) {
       console.error('獲取供應商數據失敗 (hook):', err);
@@ -65,7 +65,7 @@ const useSupplierData = () => {
   // Add supplier
   const addSupplier = useCallback(async (supplierData: Partial<Supplier>): Promise<boolean> => {
     try {
-      await supplierService.createSupplier(supplierData);
+      await createSupplier(supplierData);
       await fetchSuppliers(); // Re-fetch after adding
       return true; // Indicate success
     } catch (err: any) {
@@ -78,7 +78,7 @@ const useSupplierData = () => {
   // Update supplier
   const updateSupplier = useCallback(async (id: string, supplierData: Partial<Supplier>): Promise<boolean> => {
     try {
-      await supplierService.updateSupplier(id, supplierData);
+      await updateSupplier(id, supplierData);
       await fetchSuppliers(); // Re-fetch after updating
       // Update selected supplier if it was the one being edited
       if (selectedSupplier && selectedSupplier._id === id) {
@@ -96,7 +96,7 @@ const useSupplierData = () => {
   // Delete supplier
   const deleteSupplier = useCallback(async (id: string): Promise<boolean> => {
     try {
-      await supplierService.deleteSupplier(id);
+      await deleteSupplier(id);
       await fetchSuppliers(); // Re-fetch after deleting
       if (selectedSupplier && (selectedSupplier._id === id || (selectedSupplier as any).id === id)) {
         setSelectedSupplier(null); // Clear selection if deleted
@@ -112,19 +112,8 @@ const useSupplierData = () => {
   // Import suppliers CSV
   const importCsv = useCallback(async (file: File): Promise<ImportResult> => {
     try {
-      const result = await supplierService.importSuppliersCsv(file) as SupplierServiceResult;
-      if (result.success) {
-        await fetchSuppliers(); // Re-fetch if import was successful
-      }
-      
-      // 將服務返回結果轉換為 ImportResult 格式
-      return {
-        total: result.total ?? 0,
-        success: result.imported ?? 0,
-        failed: result.failed ?? 0,
-        duplicates: result.duplicates ?? 0,
-        errors: result.errors?.map(err => ({ error: typeof err === 'string' ? err : JSON.stringify(err) })) ?? []
-      };
+      // Note: CSV import not available in V2 yet, need to implement or use fallback
+      throw new Error('CSV import not implemented in V2 service');
     } catch (err: any) {
       console.error('匯入供應商 CSV 失敗 (hook):', err);
       setError(`匯入 CSV 失敗: ${err.response?.data?.message ?? err.message}`);
@@ -136,8 +125,8 @@ const useSupplierData = () => {
   // Download template
   const downloadTemplate = useCallback(async (): Promise<Blob | null> => {
     try {
-      const blob = await supplierService.downloadSupplierTemplate();
-      return blob;
+      // Note: Template download not available in V2 yet, need to implement or use fallback
+      throw new Error('Template download not implemented in V2 service');
     } catch (err: any) {
       console.error('下載模板失敗 (hook):', err);
       setError(`下載模板失敗: ${err.message}`);

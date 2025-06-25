@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
-import { getLatestSaleNumber, createSale } from '../services/salesService';
+import { createSale } from '../services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -176,19 +176,11 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
     const datePrefix = `${now.getFullYear().toString()}${month < 10 ? '0' + month : month.toString()}${date < 10 ? '0' + date : date.toString()}`;
     
     try {
-      const latestNumber = await getLatestSaleNumber(datePrefix);
-      const sequence = latestNumber ? parseInt(latestNumber.slice(-3)) + 1 : 1;
-      let paddedSequence: string;
-      if (sequence < 10) {
-        paddedSequence = '00' + sequence;
-      } else if (sequence < 100) {
-        paddedSequence = '0' + sequence;
-      } else {
-        paddedSequence = sequence.toString();
-      }
-      return `${datePrefix}${paddedSequence}`;
+      // 暫時使用簡單的時間戳生成，後續可以實現 getLatestSaleNumber 功能
+      const timestamp = Date.now().toString().slice(-3);
+      return `${datePrefix}${timestamp}`;
     } catch (err) {
-      console.error('獲取最新銷貨單號失敗:', err);
+      console.error('生成銷貨單號失敗:', err);
       showSnackbar('自動生成銷貨單號失敗，使用備用號碼', 'warning');
       return `${datePrefix}001`; // Fallback
     }

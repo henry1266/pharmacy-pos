@@ -3,8 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getAccountingRecords } from '../../../services/accountingService';
-import { getAccountingCategories } from '../../../services/accountingCategoryService';
+import { accountingServiceV2 } from '../../../services/accountingServiceV2';
 import { AccountingCategory } from '@pharmacy-pos/shared/types/accounting';
 import { LocalAccountingRecord, MonthlyData, DailyData } from './types';
 import { 
@@ -32,7 +31,7 @@ export const useAccountingData = (currentYear: number, categoryName?: string) =>
       const startDate = new Date(currentYear, 0, 1); // 1月1日
       const endDate = new Date(currentYear, 11, 31); // 12月31日
       
-      const data = await getAccountingRecords({
+      const data = await accountingServiceV2.getAccountingRecords({
         startDate,
         endDate
       });
@@ -84,7 +83,7 @@ export const useAccountingCategories = () => {
   const fetchCategories = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
-      const categoriesData = await getAccountingCategories();
+      const categoriesData = await accountingServiceV2.getAccountingCategories();
       setCategories(categoriesData);
       setError(null);
     } catch (err) {

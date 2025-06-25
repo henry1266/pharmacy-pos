@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import * as salesService from '../services/salesService';
-import * as productService from '../services/productService';
-import * as customerService from '../services/customerService';
+import { getSaleById } from '../services/salesServiceV2';
+import { productServiceV2 } from '../services/productServiceV2';
+import { getAllCustomers } from '../services/customerServiceV2';
 import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -55,9 +55,9 @@ export const useSalesEditData = (saleId: string) => {
       
       // Fetch all data concurrently
       const [saleRes, productsRes, customersRes] = await Promise.all([
-        salesService.getSaleById(saleId),
-        productService.getProducts(),
-        customerService.getCustomers()
+        getSaleById(saleId),
+        productServiceV2.getAllProducts(),
+        getAllCustomers()
       ]);
 
       // Process sale data
