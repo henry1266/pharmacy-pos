@@ -26,6 +26,7 @@ interface Product {
   code?: string;
   barcode?: string;
   healthInsuranceCode?: string;
+  price?: number;
   sellingPrice?: number;
 }
 
@@ -181,7 +182,7 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
                         {product?.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
-                        編號: {product?.code ?? '無'} | 價格: {product?.sellingPrice ? `$${product?.sellingPrice.toFixed(2)}` : '無'}
+                        編號: {product?.code ?? '無'} | 價格: {(product?.sellingPrice ?? product?.price) ? `$${(product?.sellingPrice ?? product?.price)?.toFixed(2)}` : '無'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
                         庫存: {getTotalInventory(product?._id)}

@@ -96,9 +96,9 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
           productDetails: product, // Keep details for reference if needed
           name: product.name,
           code: product.code,
-          price: product.price ?? 0,
+          price: product.sellingPrice ?? product.price ?? 0,
           quantity: 1,
-          subtotal: product.price ?? 0
+          subtotal: product.sellingPrice ?? product.price ?? 0
         };
         updatedItems = [...prevSale.items, newItem];
         setInputModes(prevModes => [...prevModes, 'price']); // Add mode for new item

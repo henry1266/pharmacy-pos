@@ -19,6 +19,7 @@ interface Product {
   shortCode?: string;
   barcode?: string;
   healthInsuranceCode?: string;
+  price?: number;
   sellingPrice?: number;
 }
 
@@ -129,7 +130,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
               代碼: {option.code || 'N/A'} | 健保碼: {option.healthInsuranceCode || 'N/A'}
             </Typography>
             <Typography variant="body2" display="block" sx={{ color: 'black' }}>
-              價格: ${option.sellingPrice?.toFixed(0) || 'N/A'}
+              價格: ${(option.sellingPrice ?? option.price)?.toFixed(0) || 'N/A'}
             </Typography>
           </>
         }

@@ -118,9 +118,9 @@ export const useSaleEditManagement = (
               productDetails: product,
               name: product.name,
               code: product.code,
-              price: product.price,
+              price: product.sellingPrice ?? product.price ?? 0,
               quantity: 1,
-              subtotal: product.price,
+              subtotal: product.sellingPrice ?? product.price ?? 0,
               productType: (product as any).productType
             };
             updatedItems = [...currentSale.items, newItem];
