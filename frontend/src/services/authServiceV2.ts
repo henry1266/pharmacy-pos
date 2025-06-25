@@ -5,7 +5,7 @@
  */
 
 import axios from 'axios';
-import { 
+import {
   createAuthApiClient,
   type AuthLoginRequest,
   type AuthUpdateRequest,

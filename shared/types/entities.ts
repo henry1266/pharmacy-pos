@@ -46,6 +46,7 @@ export interface EmployeeAccount {
   role: Role;
   isActive: boolean;
   lastLogin?: string | Date;
+  settings?: Record<string, any>; // 用戶設定
   createdAt: string | Date;
   updatedAt: string | Date;
 }

@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 // Import hooks
 import useSalesData from '../hooks/useSalesData';
 import useSaleManagement from '../hooks/useSaleManagement';
+import { type UserShortcut } from '../hooks/useUserSettings';
 
 // Import sub-components
 import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
@@ -32,13 +33,6 @@ import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
-
-// 定義快捷按鈕類型 - 與 ShortcutButtonManager 中的定義匹配
-interface Shortcut {
-  id: string;
-  name: string;
-  productIds: string[];
-}
 
 // Mock data for test mode
 interface MockSalesPageData {
@@ -184,7 +178,7 @@ const SalesPage: FC = () => {
 
   // Component-specific UI State
   const [customDialogOpen, setCustomDialogOpen] = useState<boolean>(false);
-  const [selectedShortcut, setSelectedShortcut] = useState<Shortcut | null>(null);
+  const [selectedShortcut, setSelectedShortcut] = useState<UserShortcut | null>(null);
   const [infoExpanded, setInfoExpanded] = useState<boolean>(!isMobile);
 
   const focusBarcode = useCallback(() => {
@@ -228,7 +222,7 @@ const SalesPage: FC = () => {
     }
   };
 
-  const handleShortcutSelect = (shortcut: Shortcut): void => {
+  const handleShortcutSelect = (shortcut: UserShortcut): void => {
     console.log("Shortcut selected:", shortcut);
     
     if (!shortcut?.productIds?.length) {

@@ -27,6 +27,10 @@ export interface PasswordChangeRequest {
   newPassword: string;
 }
 
+export interface UserSettingsUpdateRequest {
+  settings: Record<string, any>;
+}
+
 export interface TokenValidationResponse {
   valid: boolean;
   user?: EmployeeAccount;
@@ -170,6 +174,13 @@ export class AuthApiClient extends BaseApiClient {
       userAgent?: string;
       success: boolean;
     }>('/login-history', params);
+  }
+
+  /**
+   * 更新用戶設定
+   */
+  async updateUserSettings(settingsData: UserSettingsUpdateRequest): Promise<EmployeeAccount> {
+    return this.put<EmployeeAccount>('/settings', settingsData);
   }
 }
 

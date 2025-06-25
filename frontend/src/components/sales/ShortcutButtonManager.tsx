@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Button,
   Dialog,
@@ -24,8 +24,11 @@ import {
   Add as AddIcon,
   Close as CloseIcon,
   Save as SaveIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  Check as CheckIcon,
+  Cancel as CancelIcon
 } from '@mui/icons-material';
+import useUserSettings, { type UserShortcut } from '../../hooks/useUserSettings';
 
 // 定義產品的型別
 interface Product {
@@ -37,13 +40,6 @@ interface Product {
   sellingPrice?: number;
 }
 
-// 定義快捷按鈕的型別
-interface Shortcut {
-  id: string;
-  name: string;
-  productIds: string[];
-}
-
 // 定義 Snackbar 狀態的型別
 interface SnackbarState {
   open: boolean;
@@ -51,42 +47,44 @@ interface SnackbarState {
   severity: 'success' | 'error' | 'warning' | 'info';
 }
 
-// Default shortcuts if none are loaded from backend
-const defaultShortcuts: Shortcut[] = [{ id: 'default', name: '常用藥品', productIds: [] }];
-
 // --- Edit Shortcut Items Dialog ---
 interface EditShortcutItemsDialogProps {
   open: boolean;
   onClose: () => void;
-  shortcut?: Shortcut;
+  shortcut?: UserShortcut;
   allProducts?: Product[];
   onSave: (shortcutId: string, productIds: string[]) => void;
+  onRename: (shortcutId: string, newName: string) => void;
 }
 
-const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({ 
-  open, 
-  onClose, 
-  shortcut, 
-  allProducts, 
-  onSave 
+const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
+  open,
+  onClose,
+  shortcut,
+  allProducts,
+  onSave,
+  onRename
 }) => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(shortcut?.productIds ?? []);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isEditingName, setIsEditingName] = useState<boolean>(false);
+  const [editingName, setEditingName] = useState<string>('');
 
-  useEffect(() => {
+  React.useEffect(() => {
     setSelectedProductIds(shortcut?.productIds ?? []);
+    setEditingName(shortcut?.name ?? '');
   }, [shortcut]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredProducts([]);
     } else {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       const results = allProducts?.filter(p =>
-        (p?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ??
-        (p?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ??
-        (p?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ??
+        (p?.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (p?.code?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (p?.barcode?.toLowerCase().includes(lowerCaseSearchTerm)) ||
         (p?.healthInsuranceCode?.toLowerCase().includes(lowerCaseSearchTerm))
       ).slice(0, 50) ?? [];
       setFilteredProducts(results);
@@ -109,7 +107,23 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
     if (shortcut?.id) {
       onSave(shortcut.id, selectedProductIds);
     }
-    onClose();
+    // 不要在這裡關閉對話框，讓 onSave 處理完成後再關閉
+  };
+
+  const handleStartEditName = (): void => {
+    setIsEditingName(true);
+  };
+
+  const handleCancelEditName = (): void => {
+    setIsEditingName(false);
+    setEditingName(shortcut?.name ?? '');
+  };
+
+  const handleSaveEditName = (): void => {
+    if (shortcut?.id && editingName.trim()) {
+      onRename(shortcut.id, editingName.trim());
+      setIsEditingName(false);
+    }
   };
 
   const getProductDetails = (productId: string): Product | undefined => {
@@ -119,7 +133,36 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        編輯 "{shortcut?.name}" 快捷項目
+        <Box sx={{ display: 'flex', alignItems: 'center', pr: 6 }}>
+          {isEditingName ? (
+            <>
+              <TextField
+                value={editingName}
+                onChange={(e) => setEditingName(e.target.value)}
+                onKeyPress={(e) => { if (e.key === 'Enter') handleSaveEditName(); }}
+                size="small"
+                autoFocus
+                sx={{ flexGrow: 1, mr: 1 }}
+                placeholder="輸入快捷按鈕名稱"
+              />
+              <IconButton onClick={handleSaveEditName} size="small" color="primary">
+                <CheckIcon fontSize="small" />
+              </IconButton>
+              <IconButton onClick={handleCancelEditName} size="small">
+                <CancelIcon fontSize="small" />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                編輯 "{shortcut?.name}" 快捷項目
+              </Typography>
+              <IconButton onClick={handleStartEditName} size="small" sx={{ mr: 1 }}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </>
+          )}
+        </Box>
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -144,6 +187,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             getOptionLabel={(option) => (typeof option === 'string' ? option : option?.name ?? '')}
             filterOptions={(x) => x}
             value={null}
+            inputValue={searchTerm}
             onChange={(event, newValue) => {
               if (newValue && typeof newValue !== 'string' && newValue._id) {
                 handleAddProduct(newValue._id);
@@ -157,6 +201,12 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                 {...params}
                 label="搜尋藥品 (名稱/代碼/條碼)"
                 placeholder="輸入關鍵字搜尋..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && filteredProducts.length > 0) {
+                    e.preventDefault();
+                    handleAddProduct(filteredProducts[0]._id);
+                  }
+                }}
                 InputProps={{
                   ...params.InputProps,
                   startAdornment: (
@@ -213,60 +263,39 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
 
 // --- Shortcut Button Manager --- (Main Component)
 interface ShortcutButtonManagerProps {
-  onShortcutSelect: (shortcut: Shortcut) => void;
+  onShortcutSelect: (shortcut: UserShortcut) => void;
   allProducts: Product[];
   isTestMode?: boolean;
 }
 
-const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({ 
-  onShortcutSelect, 
-  allProducts, 
-  isTestMode = false 
+const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
+  onShortcutSelect,
+  allProducts,
+  isTestMode = false
 }) => {
-  // Always use default shortcuts instead of loading from API
-  const [shortcuts, setShortcuts] = useState<Shortcut[]>(defaultShortcuts);
-  const [loading] = useState<boolean>(false); // No loading needed
-  const [error, setError] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'info' });
+  // 使用用戶設定 hook
+  const {
+    shortcuts,
+    loading,
+    error,
+    addShortcut,
+    removeShortcut,
+    updateShortcutItems,
+    updateShortcutName
+  } = useUserSettings();
 
+  // 調試資訊
+  React.useEffect(() => {
+    console.log('ShortcutButtonManager - shortcuts:', shortcuts);
+    console.log('ShortcutButtonManager - loading:', loading);
+    console.log('ShortcutButtonManager - error:', error);
+  }, [shortcuts, loading, error]);
+
+  const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'info' });
   const [manageDialogOpen, setManageDialogOpen] = useState<boolean>(false);
   const [editItemsDialogOpen, setEditItemsDialogOpen] = useState<boolean>(false);
-  const [currentEditingShortcut, setCurrentEditingShortcut] = useState<Shortcut | null>(null);
+  const [currentEditingShortcut, setCurrentEditingShortcut] = useState<UserShortcut | null>(null);
   const [newShortcutName, setNewShortcutName] = useState<string>('');
-
-  // Local storage key for shortcuts
-  const SHORTCUTS_STORAGE_KEY = 'pharmacy_pos_shortcuts';
-
-  // Function to save shortcuts to local storage instead of backend
-  const saveShortcutsToLocalStorage = useCallback((updatedShortcuts: Shortcut[]) => {
-    try {
-      localStorage.setItem(SHORTCUTS_STORAGE_KEY, JSON.stringify(updatedShortcuts));
-      setSnackbar({ open: true, message: '快捷按鈕設定已儲存', severity: 'success' });
-    } catch (err) {
-      console.error("Failed to save shortcuts to local storage", err);
-      setError('儲存快捷按鈕設定失敗');
-      setSnackbar({ open: true, message: '儲存快捷按鈕設定失敗', severity: 'error' });
-    }
-  }, []);
-
-  // Load shortcuts from local storage on component mount
-  useEffect(() => {
-    try {
-      const savedShortcuts = localStorage.getItem(SHORTCUTS_STORAGE_KEY);
-      if (savedShortcuts) {
-        const parsedShortcuts = JSON.parse(savedShortcuts);
-        if (Array.isArray(parsedShortcuts) && parsedShortcuts.length > 0) {
-          console.log("Using saved shortcuts from local storage");
-          setShortcuts(parsedShortcuts);
-        }
-      } else {
-        console.log("No saved shortcuts found, using defaults");
-      }
-    } catch (err) {
-      console.error("Error loading shortcuts from local storage", err);
-      // Keep using default shortcuts on error
-    }
-  }, []);
 
   // --- Handlers for managing shortcuts ---
 
@@ -279,27 +308,34 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
     setNewShortcutName('');
   };
 
-  const handleAddShortcut = (): void => {
+  const handleAddShortcut = async (): Promise<void> => {
     if (newShortcutName.trim() && !shortcuts.some(s => s.name === newShortcutName.trim())) {
-      const newShortcut: Shortcut = {
+      const newShortcut: UserShortcut = {
         id: Date.now().toString(),
         name: newShortcutName.trim(),
         productIds: []
       };
-      const updatedShortcuts = [...shortcuts, newShortcut];
-      setShortcuts(updatedShortcuts);
-      saveShortcutsToLocalStorage(updatedShortcuts); // Save to local storage
-      setNewShortcutName('');
+      
+      const success = await addShortcut(newShortcut);
+      if (success) {
+        setSnackbar({ open: true, message: '快捷按鈕已新增', severity: 'success' });
+        setNewShortcutName('');
+      } else {
+        setSnackbar({ open: true, message: '新增快捷按鈕失敗', severity: 'error' });
+      }
     }
   };
 
-  const handleRemoveShortcut = (idToRemove: string): void => {
-    const updatedShortcuts = shortcuts.filter(s => s.id !== idToRemove);
-    setShortcuts(updatedShortcuts);
-    saveShortcutsToLocalStorage(updatedShortcuts); // Save to local storage
+  const handleRemoveShortcut = async (idToRemove: string): Promise<void> => {
+    const success = await removeShortcut(idToRemove);
+    if (success) {
+      setSnackbar({ open: true, message: '快捷按鈕已刪除', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: '刪除快捷按鈕失敗', severity: 'error' });
+    }
   };
 
-  const handleOpenEditItemsDialog = (shortcut: Shortcut): void => {
+  const handleOpenEditItemsDialog = (shortcut: UserShortcut): void => {
     setCurrentEditingShortcut(shortcut);
     setEditItemsDialogOpen(true);
   };
@@ -309,17 +345,30 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
     setCurrentEditingShortcut(null);
   };
 
-  const handleSaveShortcutItems = (shortcutId: string, updatedProductIds: string[]): void => {
-    const updatedShortcuts = shortcuts.map(s =>
-      s.id === shortcutId ? { ...s, productIds: updatedProductIds } : s
-    );
-    setShortcuts(updatedShortcuts);
-    saveShortcutsToLocalStorage(updatedShortcuts); // Save to local storage
+  const handleSaveShortcutItems = async (shortcutId: string, updatedProductIds: string[]): Promise<void> => {
+    const success = await updateShortcutItems(shortcutId, updatedProductIds);
+    if (success) {
+      setSnackbar({ open: true, message: '快捷按鈕項目已更新', severity: 'success' });
+      // 儲存成功後關閉對話框
+      handleCloseEditItemsDialog();
+    } else {
+      setSnackbar({ open: true, message: '更新快捷按鈕項目失敗', severity: 'error' });
+    }
+  };
+
+  const handleRenameShortcut = async (shortcutId: string, newName: string): Promise<void> => {
+    const success = await updateShortcutName(shortcutId, newName);
+    if (success) {
+      setSnackbar({ open: true, message: '快捷按鈕名稱已更新', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: '更新快捷按鈕名稱失敗', severity: 'error' });
+    }
   };
 
   const handleCloseSnackbar = (): void => {
     setSnackbar({ ...snackbar, open: false });
   };
+
 
   // --- Render Logic --- 
 
@@ -414,6 +463,7 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
           shortcut={currentEditingShortcut}
           allProducts={allProducts}
           onSave={handleSaveShortcutItems}
+          onRename={handleRenameShortcut}
         />
       )}
 

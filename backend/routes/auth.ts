@@ -419,4 +419,65 @@ router.put(
   }
 );
 
+// @route   PUT api/auth/settings
+// @desc    更新當前用戶設定
+// @access  Private
+router.put(
+  '/settings',
+  auth,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { settings } = req.body;
+
+      if (!settings || typeof settings !== 'object') {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '請提供有效的設定資料',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        return;
+      }
+
+      // 驗證用戶存在
+      const userValidation = await validateUserExists(req.user.id);
+      if (!userValidation.valid) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: userValidation.error || '找不到用戶',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+        return;
+      }
+
+      const user = userValidation.user;
+
+      // 更新設定
+      user.settings = { ...user.settings, ...settings };
+      await user.save();
+
+      // 返回更新後的用戶資訊（不含密碼）
+      const updatedUser = await User.findById(user.id).select('-password');
+      
+      const response: ApiResponse<any> = {
+        success: true,
+        message: '用戶設定更新成功',
+        data: updatedUser,
+        timestamp: new Date()
+      };
+      
+      res.json(response);
+    } catch (err: any) {
+      console.error(err.message);
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    }
+  }
+);
+
 export default router;
