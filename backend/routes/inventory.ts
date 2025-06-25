@@ -32,6 +32,7 @@ interface InventoryCreationRequest {
   shippingOrderNumber?: string;
   accountingId?: string;
   totalAmount?: number;
+  notes?: string;
 }
 
 interface InventoryUpdateRequest extends Partial<InventoryCreationRequest> {}
@@ -312,6 +313,192 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
     const inventoryList: SharedInventory[] = inventory.map(inv => convertToSharedInventory(inv));
 
     sendSuccessResponse(res, '產品庫存項目獲取成功', inventoryList);
+  } catch (err: any) {
+    sendServerErrorResponse(res, err);
+  }
+});
+
+// @route   POST api/inventory/batch
+// @desc    Create multiple inventory items
+// @access  Public
+router.post('/batch', async (req: Request, res: Response) => {
+  try {
+    const { items } = req.body as { items: InventoryCreationRequest[] };
+    
+    if (!Array.isArray(items) || items.length === 0) {
+      sendInvalidRequestResponse(res, '批量創建項目不能為空');
+      return;
+    }
+    
+    const createdItems: SharedInventory[] = [];
+    
+    for (const item of items) {
+      const {
+        product,
+        quantity,
+        purchaseOrderId,
+        purchaseOrderNumber,
+        type = 'purchase',
+        totalAmount = 0,
+        notes
+      } = item;
+      
+      // 檢查藥品是否存在
+      const productExists = await BaseProduct.findOne({ _id: product.toString() });
+      if (!productExists) {
+        sendNotFoundResponse(res, `藥品 ${product} 不存在`);
+        return;
+      }
+      
+      // 建立庫存記錄
+      const inventoryFields: any = {
+        product: new Types.ObjectId(product),
+        quantity,
+        type,
+        totalAmount,
+        date: new Date(),
+        lastUpdated: new Date(),
+        notes
+      };
+      
+      if (purchaseOrderId) {
+        inventoryFields.purchaseOrderId = new Types.ObjectId(purchaseOrderId);
+      }
+      
+      if (purchaseOrderNumber) {
+        inventoryFields.purchaseOrderNumber = purchaseOrderNumber;
+      }
+      
+      const inventory = new Inventory(inventoryFields);
+      await inventory.save();
+      
+      createdItems.push(convertToSharedInventory(inventory));
+    }
+    
+    sendSuccessResponse(res, `成功創建 ${createdItems.length} 個庫存項目`, createdItems);
+  } catch (err: any) {
+    sendServerErrorResponse(res, err);
+  }
+});
+
+// @route   GET api/inventory/stats
+// @desc    Get inventory statistics
+// @access  Public
+router.get('/stats', async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate, productId } = req.query;
+    
+    // 建立查詢條件
+    const matchConditions: any = {};
+    
+    if (startDate || endDate) {
+      matchConditions.date = {};
+      if (startDate) {
+        matchConditions.date.$gte = new Date(startDate as string);
+      }
+      if (endDate) {
+        matchConditions.date.$lte = new Date(endDate as string);
+      }
+    }
+    
+    if (productId) {
+      matchConditions.product = new Types.ObjectId(productId as string);
+    }
+    
+    // 聚合查詢統計數據
+    const stats = await Inventory.aggregate([
+      { $match: matchConditions },
+      {
+        $group: {
+          _id: null,
+          totalRecords: { $sum: 1 },
+          totalQuantity: { $sum: '$quantity' },
+          totalAmount: { $sum: '$totalAmount' },
+          byType: {
+            $push: {
+              type: '$type',
+              quantity: '$quantity',
+              amount: '$totalAmount'
+            }
+          }
+        }
+      }
+    ]);
+    
+    // 按類型統計
+    const typeStats = await Inventory.aggregate([
+      { $match: matchConditions },
+      {
+        $group: {
+          _id: '$type',
+          count: { $sum: 1 },
+          quantity: { $sum: '$quantity' },
+          amount: { $sum: '$totalAmount' }
+        }
+      }
+    ]);
+    
+    const byType: Record<string, { count: number; quantity: number; amount: number }> = {};
+    typeStats.forEach(stat => {
+      byType[stat._id] = {
+        count: stat.count,
+        quantity: stat.quantity,
+        amount: stat.amount
+      };
+    });
+    
+    const result = {
+      totalRecords: stats[0]?.totalRecords || 0,
+      totalQuantity: stats[0]?.totalQuantity || 0,
+      totalAmount: stats[0]?.totalAmount || 0,
+      byType
+    };
+    
+    sendSuccessResponse(res, '庫存統計獲取成功', result);
+  } catch (err: any) {
+    sendServerErrorResponse(res, err);
+  }
+});
+
+// @route   GET api/inventory/history/:productId
+// @desc    Get inventory history for a product
+// @access  Public
+router.get('/history/:productId', async (req: Request, res: Response) => {
+  try {
+    // 驗證產品 ID 參數
+    if (!validateRequestId(res, req.params.productId, '無效的產品ID')) {
+      return;
+    }
+    
+    const { startDate, endDate, limit = 50, offset = 0 } = req.query;
+    
+    // 建立查詢條件
+    const matchConditions: any = {
+      product: new Types.ObjectId(req.params.productId)
+    };
+    
+    if (startDate || endDate) {
+      matchConditions.date = {};
+      if (startDate) {
+        matchConditions.date.$gte = new Date(startDate as string);
+      }
+      if (endDate) {
+        matchConditions.date.$lte = new Date(endDate as string);
+      }
+    }
+    
+    const inventory = await Inventory.find(matchConditions)
+      .populate('product')
+      .populate('purchaseOrderId', 'poid orderNumber pobill')
+      .populate('saleId', 'saleNumber')
+      .sort({ date: -1 })
+      .limit(parseInt(limit as string))
+      .skip(parseInt(offset as string));
+    
+    // 轉換 Mongoose Document 到 shared 類型
+    const inventoryList: SharedInventory[] = inventory.map(inv => convertToSharedInventory(inv));
+    
+    sendSuccessResponse(res, '產品庫存歷史獲取成功', inventoryList);
   } catch (err: any) {
     sendServerErrorResponse(res, err);
   }

@@ -276,7 +276,7 @@ router.post(
         sellingPrice: sellingPrice ? parseFloat(sellingPrice) : 0,
         description,
         supplier,
-        minStock: parseInt(minStock) || 10,
+        minStock: minStock !== undefined ? parseInt(minStock) : 10,
         barcode,
         productType: ProductType.PRODUCT,
         isActive: true
@@ -381,7 +381,7 @@ router.post(
         sellingPrice: sellingPrice ? parseFloat(sellingPrice) : 0,
         description,
         supplier,
-        minStock: parseInt(minStock) || 10,
+        minStock: minStock !== undefined ? parseInt(minStock) : 10,
         barcode,
         healthInsuranceCode,
         healthInsurancePrice: healthInsurancePrice ? parseFloat(healthInsurancePrice) : 0,
@@ -487,7 +487,11 @@ router.put(
         updateData.healthInsurancePrice = updateData.healthInsurancePrice ? parseFloat(updateData.healthInsurancePrice) : 0;
       }
       if (updateData.minStock !== undefined) {
-        updateData.minStock = parseInt(updateData.minStock) || 10;
+        updateData.minStock = parseInt(updateData.minStock);
+        // 如果解析失敗（NaN），則設為 10，但允許 0 值
+        if (isNaN(updateData.minStock)) {
+          updateData.minStock = 10;
+        }
       }
       
       // 處理代碼欄位

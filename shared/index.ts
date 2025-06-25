@@ -177,6 +177,14 @@ export {
 } from './services/salesApiClient';
 
 export {
+  InventoryApiClient,
+  createInventoryApiClient,
+  InventoryQueryParams,
+  InventoryCreateRequest,
+  InventoryUpdateRequest
+} from './services/inventoryApiClient';
+
+export {
   BaseApiClient,
   createApiClient
 } from './services/baseApiClient';

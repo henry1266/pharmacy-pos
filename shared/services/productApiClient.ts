@@ -5,6 +5,7 @@
 
 import { BaseApiClient, HttpClient } from './baseApiClient';
 import type { Product } from '../types/entities';
+import { ProductType } from '../enums';
 
 /**
  * 產品查詢參數介面
@@ -44,7 +45,9 @@ export class ProductApiClient extends BaseApiClient {
    * 創建新產品
    */
   async createProduct(productData: Partial<Product>): Promise<Product> {
-    return this.createItem<Product>('/products', productData);
+    // 根據產品類型決定使用哪個端點
+    const endpoint = productData.productType === ProductType.MEDICINE ? '/products/medicine' : '/products/product';
+    return this.createItem<Product>(endpoint, productData);
   }
 
   /**
@@ -65,14 +68,33 @@ export class ProductApiClient extends BaseApiClient {
    * 搜尋產品
    */
   async searchProducts(query: string): Promise<Product[]> {
-    return this.getList<Product>('/products/search', { q: query });
+    // 使用現有的 getAllProducts 端點，然後在客戶端進行過濾
+    const allProducts = await this.getAllProducts();
+    if (!query || query.trim() === '') {
+      return allProducts;
+    }
+    
+    const searchTerm = query.toLowerCase().trim();
+    return allProducts.filter(product =>
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.code.toLowerCase().includes(searchTerm) ||
+      (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
+      (product.description && product.description.toLowerCase().includes(searchTerm))
+    );
   }
 
   /**
    * 獲取低庫存產品
    */
   async getLowStockProducts(): Promise<Product[]> {
-    return this.getList<Product>('/products/low-stock');
+    // 使用現有的 getAllProducts 端點，然後在客戶端進行過濾
+    const allProducts = await this.getAllProducts();
+    return allProducts.filter(product =>
+      product.stock !== undefined &&
+      product.minStock !== undefined &&
+      product.stock <= product.minStock &&
+      product.minStock >= 0 // 最低庫存可以為 0
+    );
   }
 
   /**
@@ -94,7 +116,20 @@ export class ProductApiClient extends BaseApiClient {
    * 批量更新產品庫存
    */
   async updateProductStock(updates: Array<{ id: string; quantity: number }>): Promise<Product[]> {
-    return this.post<Product[]>('/products/batch-update-stock', { updates });
+    // 由於後端沒有批量更新端點，我們逐一更新每個產品
+    const updatedProducts: Product[] = [];
+    
+    for (const update of updates) {
+      try {
+        const updatedProduct = await this.updateProduct(update.id, { stock: update.quantity });
+        updatedProducts.push(updatedProduct);
+      } catch (error) {
+        console.error(`更新產品 ${update.id} 庫存失敗:`, error);
+        // 繼續處理其他產品，不中斷整個批量操作
+      }
+    }
+    
+    return updatedProducts;
   }
 }
 
