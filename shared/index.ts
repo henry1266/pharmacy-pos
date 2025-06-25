@@ -151,6 +151,36 @@ export {
   buildQueryParams
 } from './services/accountingApiClient';
 
+export {
+  ProductApiClient,
+  createProductApiClient,
+  ProductQueryParams
+} from './services/productApiClient';
+
+export {
+  SupplierApiClient,
+  createSupplierApiClient,
+  SupplierQueryParams
+} from './services/supplierApiClient';
+
+export {
+  CustomerApiClient,
+  createCustomerApiClient,
+  CustomerQueryParams
+} from './services/customerApiClient';
+
+export {
+  SalesApiClient,
+  createSalesApiClient,
+  SalesQueryParams,
+  SalesStats
+} from './services/salesApiClient';
+
+export {
+  BaseApiClient,
+  createApiClient
+} from './services/baseApiClient';
+
 // Schema 驗證 - 使用別名避免衝突
 export {
   ValidationRule as SchemaValidationRule,
