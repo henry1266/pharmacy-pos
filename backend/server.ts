@@ -1,6 +1,8 @@
 import express, { Application, Request, Response } from "express";
 import path from "path";
 import cors from "cors";
+import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
 import connectDB from "./config/db";
 
 // 導入已轉換為 TypeScript 的路由
@@ -79,7 +81,50 @@ if (process.env.NODE_ENV === "production") {
 
 const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
-const server = app.listen(PORT, () => console.log(`伺服器已啟動，監聽埠號: ${PORT}`));
+// 創建 HTTP 伺服器和 Socket.IO 實例
+const server = createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: true, // 允許所有來源（開發環境）
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Socket.IO 連接處理
+io.on('connection', (socket) => {
+  console.log(`🔗 用戶已連接: ${socket.id}`);
+  
+  // 用戶加入 sales-new2 房間
+  socket.on('join-sales-new2', () => {
+    socket.join('sales-new2');
+    console.log(`🏠 用戶 ${socket.id} 加入 sales-new2 房間`);
+    
+    // 確認房間成員數量
+    const roomSize = io.sockets.adapter.rooms.get('sales-new2')?.size || 0;
+    console.log(`📊 sales-new2 房間目前有 ${roomSize} 個用戶`);
+  });
+  
+  // 用戶離開 sales-new2 房間
+  socket.on('leave-sales-new2', () => {
+    socket.leave('sales-new2');
+    console.log(`🚪 用戶 ${socket.id} 離開 sales-new2 房間`);
+    
+    // 確認房間成員數量
+    const roomSize = io.sockets.adapter.rooms.get('sales-new2')?.size || 0;
+    console.log(`📊 sales-new2 房間目前有 ${roomSize} 個用戶`);
+  });
+  
+  // 處理斷線
+  socket.on('disconnect', () => {
+    console.log(`❌ 用戶已斷線: ${socket.id}`);
+  });
+});
+
+// 將 io 實例附加到 app，讓路由可以使用
+app.set('io', io);
+
+server.listen(PORT, () => console.log(`伺服器已啟動，監聽埠號: ${PORT}`));
 
 // 優雅地處理伺服器關閉
 process.on('SIGTERM', () => {

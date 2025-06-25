@@ -15,7 +15,8 @@ import {
 import {
   Add as AddIcon,
   Remove as RemoveIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  SyncAlt as SyncAltIcon // 新增：切換輸入模式的圖示
 } from '@mui/icons-material';
 
 // 定義銷售編輯項目的型別
@@ -29,18 +30,24 @@ interface SalesEditItem {
 
 interface SalesEditItemsTableProps {
   items: SalesEditItem[];
+  inputModes: string[]; // 新增：輸入模式陣列
   handleQuantityChange: (index: number, quantity: number | string) => void;
   handlePriceChange: (index: number, price: string) => void;
   handlePriceBlur: (index: number) => void;
+  handleSubtotalChange: (index: number, subtotal: number) => void; // 新增：小計變更處理
+  toggleInputMode: (index: number) => void; // 新增：切換輸入模式
   handleRemoveItem: (index: number) => void;
   onQuantityInputComplete?: () => void;
 }
 
 const SalesEditItemsTable: React.FC<SalesEditItemsTableProps> = ({
   items,
+  inputModes, // 新增：輸入模式
   handleQuantityChange,
   handlePriceChange,
   handlePriceBlur,
+  handleSubtotalChange, // 新增：小計變更處理
+  toggleInputMode, // 新增：切換輸入模式
   handleRemoveItem,
   onQuantityInputComplete // New prop for focus management
 }) => {
@@ -50,16 +57,15 @@ const SalesEditItemsTable: React.FC<SalesEditItemsTableProps> = ({
         <TableHead>
           <TableRow>
             <TableCell>藥品/商品</TableCell>
-            <TableCell align="right">單價</TableCell>
-            <TableCell align="center" sx={{ width: '150px' }}>數量</TableCell> {/* Adjusted header width slightly */} 
-            <TableCell align="right">小計</TableCell>
+            <TableCell align="center" sx={{ width: '150px' }}>數量</TableCell> {/* Adjusted header width slightly */}
+            <TableCell align="right">單價/小計</TableCell> {/* 修改：合併單價和小計欄位 */}
             <TableCell align="center">操作</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {items.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} align="center">
+              <TableCell colSpan={4} align="center"> {/* 修改：調整 colSpan */}
                 <Typography variant="body2" color="textSecondary">
                   尚無銷售項目，請掃描條碼添加
                 </Typography>
@@ -69,20 +75,6 @@ const SalesEditItemsTable: React.FC<SalesEditItemsTableProps> = ({
             items.map((item, index) => (
               <TableRow key={item.product + index}> {/* Use a more stable key if possible */}
                 <TableCell>{item.name}</TableCell>
-                <TableCell align="right">
-                  <TextField
-                    type="number"
-                    size="small"
-                    value={item.price} // Controlled component
-                    onChange={(e) => handlePriceChange(index, e.target.value)} // Pass the string value
-                    onBlur={() => handlePriceBlur(index)} // Call blur handler
-                    InputProps={{
-                      inputProps: { min: 0, step: 0.01 },
-                      style: { textAlign: 'right', width: '80px' } // Price field width
-                    }}
-                    sx={{ '.MuiInputBase-input': { textAlign: 'right' } }} // Ensure text aligns right
-                  />
-                </TableCell>
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <IconButton
@@ -144,7 +136,48 @@ const SalesEditItemsTable: React.FC<SalesEditItemsTableProps> = ({
                   </Box>
                 </TableCell>
                 <TableCell align="right">
-                  ${(item.subtotal ?? 0).toFixed(2)}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    {inputModes[index] === 'price' ? (
+                      <TextField
+                        type="number"
+                        label="單價"
+                        size="small"
+                        value={item.price} // Controlled component
+                        onChange={(e) => handlePriceChange(index, e.target.value)} // Pass the string value
+                        onBlur={() => handlePriceBlur(index)} // Call blur handler
+                        InputProps={{
+                          inputProps: { min: 0, step: 0.01 }
+                        }}
+                        sx={{
+                          width: '90px',
+                          '.MuiInputBase-input': { textAlign: 'right' }
+                        }}
+                      />
+                    ) : (
+                      <TextField
+                        type="number"
+                        label="小計"
+                        size="small"
+                        value={item.subtotal ?? 0}
+                        onChange={(e) => handleSubtotalChange(index, parseFloat(e.target.value) || 0)}
+                        InputProps={{
+                          inputProps: { min: 0, step: 0.01 }
+                        }}
+                        sx={{
+                          width: '90px',
+                          '.MuiInputBase-input': { textAlign: 'right' }
+                        }}
+                      />
+                    )}
+                    <IconButton
+                      size="small"
+                      onClick={() => toggleInputMode(index)}
+                      sx={{ ml: 0.5 }}
+                      title={inputModes[index] === 'price' ? "切換為輸入小計" : "切換為輸入單價"}
+                    >
+                      <SyncAltIcon fontSize="inherit" />
+                    </IconButton>
+                  </Box>
                 </TableCell>
                 <TableCell align="center">
                   <IconButton

@@ -40,6 +40,11 @@ interface SnackbarState {
 }
 
 /**
+ * 輸入模式類型
+ */
+type InputMode = 'price' | 'subtotal';
+
+/**
  * 銷售編輯管理 Hook
  */
 export const useSaleEditManagement = (
@@ -58,6 +63,7 @@ export const useSaleEditManagement = (
     note: ''
   });
   const [barcode, setBarcode] = useState<string>('');
+  const [inputModes, setInputModes] = useState<InputMode[]>([]); // 新增：輸入模式狀態
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: '',
@@ -67,6 +73,8 @@ export const useSaleEditManagement = (
   useEffect(() => {
     if (initialSaleData) {
       setCurrentSale(initialSaleData);
+      // 初始化輸入模式，預設為單價模式
+      setInputModes(new Array(initialSaleData.items.length).fill('price'));
     }
   }, [initialSaleData]);
 
@@ -139,7 +147,18 @@ export const useSaleEditManagement = (
     }
   }, [barcode, products, currentSale.items]);
 
-  const handleQuantityChange = useCallback((index: number, newQuantity: number) => {
+  const handleQuantityChange = useCallback((index: number, newQuantity: number | string) => {
+    if (typeof newQuantity === 'string') {
+      // 處理字串輸入（暫時允許空字串）
+      const updatedItems = [...currentSale.items];
+      updatedItems[index].quantity = newQuantity === '' ? 0 : parseInt(newQuantity);
+      if (newQuantity !== '') {
+        updatedItems[index].subtotal = updatedItems[index].price * updatedItems[index].quantity;
+      }
+      setCurrentSale(prev => ({ ...prev, items: updatedItems }));
+      return;
+    }
+    
     if (newQuantity < 1) return;
     const updatedItems = [...currentSale.items];
     updatedItems[index].quantity = newQuantity;
@@ -171,10 +190,39 @@ export const useSaleEditManagement = (
     }
   }, [currentSale.items, handlePriceChange]);
 
+  // 新增：處理小計變更
+  const handleSubtotalChange = useCallback((index: number, newSubtotal: number) => {
+    if (newSubtotal < 0) return;
+    const updatedItems = [...currentSale.items];
+    updatedItems[index].subtotal = newSubtotal;
+    if (updatedItems[index].quantity > 0) {
+      updatedItems[index].price = newSubtotal / updatedItems[index].quantity;
+    } else {
+      updatedItems[index].price = 0;
+    }
+    setCurrentSale(prev => ({ ...prev, items: updatedItems }));
+  }, [currentSale.items]);
+
+  // 新增：切換輸入模式
+  const toggleInputMode = useCallback((index: number) => {
+    setInputModes(prevModes => {
+      const updatedModes = [...prevModes];
+      updatedModes[index] = updatedModes[index] === 'price' ? 'subtotal' : 'price';
+      return updatedModes;
+    });
+  }, []);
+
   const handleRemoveItem = useCallback((index: number) => {
     const updatedItems = [...currentSale.items];
     updatedItems.splice(index, 1);
     setCurrentSale(prev => ({ ...prev, items: updatedItems }));
+    
+    // 同時移除對應的輸入模式
+    setInputModes(prevModes => {
+      const updatedModes = [...prevModes];
+      updatedModes.splice(index, 1);
+      return updatedModes;
+    });
   }, [currentSale.items]);
 
   const handleUpdateSale = useCallback(async () => {
@@ -216,12 +264,15 @@ export const useSaleEditManagement = (
   return {
     currentSale,
     barcode,
+    inputModes, // 新增：輸入模式
     handleBarcodeChange,
     handleBarcodeSubmit,
     handleInputChange,
     handleQuantityChange,
     handlePriceChange,
     handlePriceBlur,
+    handleSubtotalChange, // 新增：小計變更處理
+    toggleInputMode, // 新增：切換輸入模式
     handleRemoveItem,
     handleUpdateSale,
     snackbar,

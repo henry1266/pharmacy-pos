@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 調試工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket 實時同步調試工具</h1>
+        
+        <div class="grid">
+            <div>
+                <h3>連接設定</h3>
+                <label>伺服器 URL:</label>
+                <input type="text" id="serverUrl" value="http://192.168.68.90:5000" />
+                <br>
+                <button onclick="connect()">連接</button>
+                <button onclick="disconnect()">斷開</button>
+                <button onclick="joinRoom()">加入房間</button>
+                <button onclick="leaveRoom()">離開房間</button>
+                
+                <div id="connectionStatus" class="status disconnected">
+                    未連接
+                </div>
+            </div>
+            
+            <div>
+                <h3>測試功能</h3>
+                <button onclick="testSaleCreation()">測試銷售事件</button>
+                <button onclick="testApiConnection()">測試 API 連接</button>
+                <button onclick="clearLog()">清除日誌</button>
+                <button onclick="exportLog()">匯出日誌</button>
+                
+                <div id="testResults" class="status info">
+                    等待測試...
+                </div>
+            </div>
+        </div>
+        
+        <h3>即時日誌</h3>
+        <div id="log" class="log">
+            等待連接...
+        </div>
+        
+        <h3>接收到的事件</h3>
+        <div id="events" class="log">
+            尚未接收到任何事件
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        let socket = null;
+        let isConnected = false;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function logEvent(type, data) {
+            const eventsDiv = document.getElementById('events');
+            const timestamp = new Date().toLocaleTimeString();
+            eventsDiv.innerHTML += `[${timestamp}] ${type}: ${JSON.stringify(data)}\n`;
+            eventsDiv.scrollTop = eventsDiv.scrollHeight;
+        }
+        
+        function updateStatus(status, className) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.textContent = status;
+            statusDiv.className = `status ${className}`;
+        }
+        
+        function updateTestResults(message, className = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.textContent = message;
+            resultsDiv.className = `status ${className}`;
+        }
+        
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            log(`嘗試連接到: ${serverUrl}`);
+            
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            socket = io(serverUrl, {
+                transports: ['websocket', 'polling'],
+                timeout: 20000,
+            });
+            
+            socket.on('connect', () => {
+                isConnected = true;
+                log(`✅ WebSocket 已連接: ${socket.id}`);
+                updateStatus('已連接', 'connected');
+            });
+            
+            socket.on('disconnect', (reason) => {
+                isConnected = false;
+                log(`❌ WebSocket 已斷線: ${reason}`);
+                updateStatus('已斷線', 'disconnected');
+            });
+            
+            socket.on('connect_error', (error) => {
+                log(`❌ 連接錯誤: ${error.message}`);
+                updateStatus('連接失敗', 'disconnected');
+            });
+            
+            // 監聽銷售事件
+            socket.on('sale-created', (data) => {
+                log(`📦 收到銷售建立事件: ${data.message}`);
+                logEvent('sale-created', data);
+            });
+            
+            socket.on('sale-updated', (data) => {
+                log(`📝 收到銷售更新事件: ${data.message}`);
+                logEvent('sale-updated', data);
+            });
+            
+            socket.on('sale-deleted', (data) => {
+                log(`🗑️ 收到銷售刪除事件: ${data.message}`);
+                logEvent('sale-deleted', data);
+            });
+        }
+        
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                isConnected = false;
+                log('🔌 手動斷開連接');
+                updateStatus('已斷開', 'disconnected');
+            }
+        }
+        
+        function joinRoom() {
+            if (socket && isConnected) {
+                socket.emit('join-sales-new2');
+                log('🏠 發送加入 sales-new2 房間請求');
+            } else {
+                log('⚠️ 無法加入房間：WebSocket 未連接');
+            }
+        }
+        
+        function leaveRoom() {
+            if (socket && isConnected) {
+                socket.emit('leave-sales-new2');
+                log('🚪 發送離開 sales-new2 房間請求');
+            } else {
+                log('⚠️ 無法離開房間：WebSocket 未連接');
+            }
+        }
+        
+        async function testSaleCreation() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            updateTestResults('正在測試銷售事件...', 'warning');
+            
+            try {
+                const testSale = {
+                    items: [
+                        {
+                            product: '507f1f77bcf86cd799439011',
+                            quantity: 1,
+                            price: 100,
+                            subtotal: 100
+                        }
+                    ],
+                    totalAmount: 100,
+                    paymentMethod: 'cash',
+                    paymentStatus: 'paid',
+                    notes: 'WebSocket 調試工具測試'
+                };
+                
+                const response = await fetch(`${serverUrl}/api/sales`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testSale),
+                });
+                
+                if (response.ok) {
+                    log('📤 測試銷售記錄已發送');
+                    updateTestResults('測試銷售事件發送成功', 'connected');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ 測試銷售記錄發送失敗: ${response.status} ${errorText}`);
+                    updateTestResults('測試銷售事件發送失敗', 'disconnected');
+                }
+            } catch (error) {
+                log(`❌ 測試錯誤: ${error.message}`);
+                updateTestResults(`測試錯誤: ${error.message}`, 'disconnected');
+            }
+        }
+        
+        async function testApiConnection() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            updateTestResults('正在測試 API 連接...', 'warning');
+            
+            try {
+                const response = await fetch(`${serverUrl}/api/sales`);
+                if (response.ok) {
+                    log('✅ API 連接測試成功');
+                    updateTestResults('API 連接正常', 'connected');
+                } else {
+                    log(`❌ API 連接測試失敗: ${response.status}`);
+                    updateTestResults(`API 連接失敗: ${response.status}`, 'disconnected');
+                }
+            } catch (error) {
+                log(`❌ API 連接錯誤: ${error.message}`);
+                updateTestResults(`API 連接錯誤: ${error.message}`, 'disconnected');
+            }
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('events').innerHTML = '日誌已清除';
+        }
+        
+        function exportLog() {
+            const logContent = document.getElementById('log').textContent;
+            const eventsContent = document.getElementById('events').textContent;
+            const fullLog = `=== WebSocket 調試日誌 ===\n${logContent}\n\n=== 事件日誌 ===\n${eventsContent}`;
+            
+            const blob = new Blob([fullLog], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `websocket-debug-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 自動連接
+        window.onload = function() {
+            log('WebSocket 調試工具已載入');
+            log('請點擊「連接」按鈕開始測試');
+        };
+    </script>
+</body>
+</html>

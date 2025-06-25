@@ -40,12 +40,15 @@ const SalesEditPage: FC = () => {
   const {
     currentSale,
     barcode,
+    inputModes, // 新增：輸入模式
     handleBarcodeChange,
     handleBarcodeSubmit,
     handleInputChange,
     handleQuantityChange,
     handlePriceChange,
     handlePriceBlur,
+    handleSubtotalChange, // 新增：小計變更處理
+    toggleInputMode, // 新增：切換輸入模式
     handleRemoveItem,
     handleUpdateSale,
     snackbar,
@@ -150,9 +153,12 @@ const SalesEditPage: FC = () => {
               </Typography>
           <SalesEditItemsTable
             items={currentSale.items}
+            inputModes={inputModes} // 新增：輸入模式
             handleQuantityChange={handleQuantityChange}
             handlePriceChange={handlePriceChange}
             handlePriceBlur={handlePriceBlur}
+            handleSubtotalChange={handleSubtotalChange} // 新增：小計變更處理
+            toggleInputMode={toggleInputMode} // 新增：切換輸入模式
             handleRemoveItem={handleRemoveItem}
             onQuantityInputComplete={handleQuantityInputComplete} // Pass the handler down
           />

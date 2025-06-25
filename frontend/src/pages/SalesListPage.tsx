@@ -33,7 +33,8 @@ import {
   Edit as EditIcon,
   Search as SearchIcon,
   Visibility as VisibilityIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
+  ViewList as ViewListIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -344,6 +345,10 @@ const filteredSales = useMemo(() => {
     navigate('/sales/new');
   };
 
+  const handleAddNewSaleV2 = (): void => {
+    navigate('/sales/new2');
+  };
+
   const handleEditSale = (saleId: string): void => {
     navigate(`/sales/edit/${saleId}`);
   };
@@ -500,6 +505,15 @@ const filteredSales = useMemo(() => {
             sx={{ mr: 1 }}
           >
             新增銷售 {isTestMode && "(模擬)"}
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<ViewListIcon />}
+            onClick={handleAddNewSaleV2}
+            sx={{ mr: 1 }}
+          >
+            新增銷售 v2 {isTestMode && "(模擬)"}
           </Button>
           <Button
             variant="outlined"

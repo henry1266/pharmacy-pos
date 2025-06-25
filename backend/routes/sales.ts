@@ -9,6 +9,7 @@ import Customer from '../models/Customer';
 // 使用 shared 架構的 API 類型
 import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { Server as SocketIOServer } from 'socket.io';
 
 // 引入通用訂單單號生成服務
 import OrderNumberService from '../utils/OrderNumberService';
@@ -224,6 +225,29 @@ router.post(
         },
         timestamp: new Date()
       };
+      
+      // 發送 WebSocket 事件通知所有在 sales-new2 房間的用戶
+      const io: SocketIOServer = req.app.get('io');
+      if (io) {
+        const eventData = {
+          message: '新的銷售記錄已建立',
+          saleId: sale._id,
+          timestamp: new Date()
+        };
+        
+        console.log('📤 發送 sale-created 事件到 sales-new2 房間:', eventData);
+        
+        // 檢查房間成員數量
+        const roomSize = io.sockets.adapter.rooms.get('sales-new2')?.size || 0;
+        console.log(`📊 sales-new2 房間目前有 ${roomSize} 個用戶`);
+        
+        io.to('sales-new2').emit('sale-created', eventData);
+        
+        // 也發送到所有連接的客戶端（備用方案）
+        io.emit('sale-created-broadcast', eventData);
+      } else {
+        console.warn('⚠️ Socket.IO 實例未找到，無法發送 WebSocket 事件');
+      }
       
       res.json(response);
     } catch (err: unknown) {
@@ -574,6 +598,260 @@ async function updateCustomerPoints(sale: SaleDocument): Promise<void> {
   await customerToUpdate.save();
   
   console.log(`為客戶 ${customerToUpdate._id} 更新購買記錄，金額: ${sale.totalAmount}`);
+}
+
+// @route   PUT api/sales/:id
+// @desc    Update a sale
+// @access  Public
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    // 驗證 ID 格式，防止 NoSQL 注入
+    if (!isValidObjectId(req.params.id)) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
+    // 檢查銷售記錄是否存在
+    const existingSale = await Sale.findById(req.params.id);
+    if (!existingSale) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
+    // 驗證更新請求
+    const validationResult = await validateSaleUpdateRequest(req.body as SaleCreationRequest);
+    if (!validationResult.success) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: validationResult.message || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+        timestamp: new Date()
+      };
+      res.status(validationResult.statusCode || 400).json(errorResponse);
+      return;
+    }
+
+    // 更新銷售記錄
+    const updatedSale = await updateSaleRecord(req.params.id, req.body as SaleCreationRequest, existingSale);
+
+    // 處理庫存變更（如果項目有變化）
+    await handleInventoryForUpdatedSale(existingSale, updatedSale);
+
+    // 重新填充關聯資料
+    const populatedSale = await Sale.findById(updatedSale._id)
+      .populate('customer')
+      .populate({
+        path: 'items.product',
+        model: 'baseproduct'
+      })
+      .populate('cashier');
+
+    const response: ApiResponse<any> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.UPDATED,
+      data: {
+        ...populatedSale.toObject(),
+        _id: populatedSale._id.toString(),
+        createdAt: populatedSale.createdAt,
+        updatedAt: populatedSale.updatedAt
+      },
+      timestamp: new Date()
+    };
+
+    // 發送 WebSocket 事件通知所有在 sales-new2 房間的用戶
+    const io: SocketIOServer = req.app.get('io');
+    if (io) {
+      io.to('sales-new2').emit('sale-updated', {
+        message: '銷售記錄已更新',
+        saleId: updatedSale._id,
+        timestamp: new Date()
+      });
+    }
+
+    res.json(response);
+  } catch (err: unknown) {
+    console.error('更新銷售記錄失敗:', err instanceof Error ? err.message : 'Unknown error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+// 驗證銷售更新請求
+async function validateSaleUpdateRequest(requestBody: SaleCreationRequest): Promise<ValidationResult> {
+  const { customer, items } = requestBody;
+  
+  // 檢查客戶是否存在
+  const customerCheck = await checkCustomerExists(customer);
+  if (!customerCheck.exists) {
+    return customerCheck.error;
+  }
+  
+  // 檢查所有產品是否存在
+  for (const item of items) {
+    const productCheck = await checkProductExists(item.product);
+    if (!productCheck.exists) {
+      return productCheck.error;
+    }
+  }
+  
+  return { success: true };
+}
+
+// 更新銷售記錄
+async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest, existingSale: SaleDocument): Promise<SaleDocument> {
+  // 保持原有的銷貨單號
+  const saleData = {
+    saleNumber: existingSale.saleNumber, // 保持原有銷貨單號
+    customer: requestBody.customer,
+    items: requestBody.items,
+    totalAmount: requestBody.totalAmount,
+    discount: requestBody.discount,
+    paymentMethod: requestBody.paymentMethod,
+    paymentStatus: requestBody.paymentStatus,
+    notes: requestBody.notes, // 使用正確的欄位名稱
+    cashier: requestBody.cashier
+  };
+  
+  const saleFields = buildSaleFields(saleData);
+  
+  // 更新銷售記錄
+  const updatedSale = await Sale.findByIdAndUpdate(
+    saleId,
+    { $set: saleFields },
+    { new: true, runValidators: true }
+  );
+  
+  if (!updatedSale) {
+    throw new Error('更新銷售記錄失敗');
+  }
+  
+  return updatedSale;
+}
+
+// 處理更新銷售的庫存變更
+async function handleInventoryForUpdatedSale(originalSale: SaleDocument, updatedSale: SaleDocument): Promise<void> {
+  try {
+    // 刪除原有的銷售庫存記錄
+    await Inventory.deleteMany({
+      saleId: originalSale._id,
+      type: 'sale'
+    });
+    
+    // 為更新後的銷售項目創建新的庫存記錄
+    if (updatedSale.items && Array.isArray(updatedSale.items)) {
+      const items = updatedSale.items as any[];
+      for (const item of items) {
+        try {
+          await createInventoryRecord(item, updatedSale);
+        } catch (err) {
+          console.error(`處理更新銷售的庫存記錄時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error(`處理更新銷售的庫存變更時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+    // 不拋出錯誤，避免影響銷售記錄更新
+  }
+}
+
+// @route   DELETE api/sales/:id
+// @desc    Delete a sale
+// @access  Public
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    // 驗證 ID 格式，防止 NoSQL 注入
+    if (!isValidObjectId(req.params.id)) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
+    // 檢查銷售記錄是否存在
+    const existingSale = await Sale.findById(req.params.id);
+    if (!existingSale) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
+    // 處理庫存恢復（刪除銷售相關的庫存記錄，恢復庫存）
+    await handleInventoryForDeletedSale(existingSale);
+
+    // 刪除銷售記錄
+    await Sale.findByIdAndDelete(req.params.id);
+
+    const response: ApiResponse<{ id: string }> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.DELETED || '銷售記錄已刪除',
+      data: { id: req.params.id },
+      timestamp: new Date()
+    };
+
+    // 發送 WebSocket 事件通知所有在 sales-new2 房間的用戶
+    const io: SocketIOServer = req.app.get('io');
+    if (io) {
+      io.to('sales-new2').emit('sale-deleted', {
+        message: '銷售記錄已刪除',
+        saleId: req.params.id,
+        timestamp: new Date()
+      });
+    }
+
+    res.json(response);
+  } catch (err: unknown) {
+    console.error('刪除銷售記錄失敗:', err instanceof Error ? err.message : 'Unknown error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(500).json(errorResponse);
+  }
+});
+
+// 處理刪除銷售的庫存恢復
+async function handleInventoryForDeletedSale(sale: SaleDocument): Promise<void> {
+  try {
+    // 刪除與此銷售相關的所有庫存記錄（這會自動恢復庫存）
+    const deletedInventories = await Inventory.deleteMany({
+      saleId: sale._id,
+      type: 'sale'
+    });
+    
+    console.log(`已刪除 ${deletedInventories.deletedCount} 個與銷售 ${sale.saleNumber} 相關的庫存記錄`);
+    
+    // 記錄庫存恢復日誌
+    if (sale.items && Array.isArray(sale.items)) {
+      const items = sale.items as any[];
+      for (const item of items) {
+        console.log(`恢復產品 ${item.product} 的庫存，數量: +${item.quantity}`);
+      }
+    }
+  } catch (err) {
+    console.error(`處理刪除銷售的庫存恢復時出錯: ${err instanceof Error ? err.message : '未知錯誤'}`);
+    // 不拋出錯誤，避免影響銷售記錄刪除
+  }
 }
 
 export default router;
