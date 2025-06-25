@@ -390,19 +390,30 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
           variant="contained"
           color="info"
           onClick={() => onShortcutSelect(shortcut)}
-          sx={{ ml: 1, height: 56, textTransform: 'none' }}
+          sx={{
+            textTransform: 'none',
+            height: { xs: 36, sm: 40 },
+            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+          }}
+          size="small"
           disabled={!!error} // Disable if there was an error loading/saving
         >
           {shortcut?.name}
         </Button>
       ))}
       {/* Button to open the management dialog */}
-      <IconButton 
-        onClick={handleOpenManageDialog} 
-        sx={{ ml: 1, height: 56, width: 56, border: '1px solid', borderColor: 'divider' }}
+      <IconButton
+        onClick={handleOpenManageDialog}
+        sx={{
+          height: { xs: 36, sm: 40 },
+          width: { xs: 36, sm: 40 },
+          border: '1px solid',
+          borderColor: 'divider'
+        }}
+        size="small"
         disabled={!!error} // Disable if there was an error loading/saving
       >
-        <EditIcon />
+        <EditIcon fontSize="small" />
       </IconButton>
 
       {/* Dialog to Manage Shortcut Buttons */}

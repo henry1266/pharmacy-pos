@@ -59,7 +59,7 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{ pt: 0 }}> {/* Remove padding top */}
           <Grid container spacing={2}>
-            <Grid item xs={12} md={3} {...({} as any)}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="銷貨單號"
@@ -71,7 +71,7 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
                 size="small"
               />
             </Grid>
-            <Grid item xs={12} md={4} {...({} as any)}>
+            <Grid item xs={12}>
               <FormControl fullWidth size="small">
                 <InputLabel>客戶</InputLabel>
                 <Select
@@ -87,7 +87,7 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4} {...({} as any)}>
+            <Grid item xs={12}>
               <FormControl fullWidth size="small">
                 <InputLabel>付款方式</InputLabel>
                 <Select
@@ -104,7 +104,7 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3} {...({} as any)}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="折扣金額"
@@ -116,7 +116,7 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
                 InputProps={{ inputProps: { min: 0 } }}
               />
             </Grid>
-            <Grid item xs={12} md={8} {...({} as any)}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="備註"
@@ -125,7 +125,7 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
                 onChange={onInputChange}
                 size="small"
                 multiline
-                rows={1} // Adjust as needed
+                rows={2}
               />
             </Grid>
           </Grid>

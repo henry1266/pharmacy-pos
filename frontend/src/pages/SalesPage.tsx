@@ -289,7 +289,33 @@ const SalesPage: FC = () => {
         <Typography variant={isMobile ? 'h5' : 'h4'} component="h1" gutterBottom={isMobile}>
           銷售作業 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
         </Typography>
-        <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/sales')} sx={{ mt: isMobile ? 1 : 0 }}>返回銷售列表</Button>
+        <Box sx={{
+          display: 'flex',
+          gap: { xs: 0.5, sm: 1 },
+          flexDirection: isMobile ? 'column' : 'row',
+          width: isMobile ? '100%' : 'auto'
+        }}>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => navigate('/sales/new2')}
+            size={isMobile ? 'small' : 'medium'}
+            fullWidth={isMobile}
+            sx={{ mt: isMobile ? 1 : 0 }}
+          >
+            切換到 v2 版本
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/sales')}
+            size={isMobile ? 'small' : 'medium'}
+            fullWidth={isMobile}
+            sx={{ mt: isMobile ? 1 : 0 }}
+          >
+            返回銷售列表
+          </Button>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>

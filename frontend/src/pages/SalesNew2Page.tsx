@@ -350,61 +350,95 @@ const SalesNew2Page: FC = () => {
       {/* Header */}
       <Box sx={{
         display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        justifyContent: 'space-between',
-        alignItems: isMobile ? 'flex-start' : 'center',
+        flexDirection: 'column',
         mb: { xs: 2, sm: 2, md: 3 },
         gap: { xs: 1, sm: 2 }
       }}>
-        <Typography
-          variant={isMobile ? 'h5' : isTablet ? 'h4' : 'h4'}
-          component="h1"
-          gutterBottom={isMobile}
-          sx={{
-            fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem', lg: '2.125rem' },
-            fontWeight: 500
-          }}
-        >
-          銷售作業 v2 {isTestMode && (
-            <Typography
-              component="span"
-              sx={{
-                fontSize: { xs: '0.75em', sm: '0.8em' },
-                color: 'orange',
-                fontWeight: 'bold'
-              }}
-            >
-              (測試模式)
-            </Typography>
-          )}
-        </Typography>
+        {/* Title and Action Buttons Row */}
         <Box sx={{
           display: 'flex',
-          gap: { xs: 0.5, sm: 1 },
           flexDirection: isMobile ? 'column' : 'row',
-          width: isMobile ? '100%' : 'auto'
+          justifyContent: 'space-between',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          gap: { xs: 1, sm: 2 }
         }}>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={refreshSales}
-            disabled={salesLoading}
-            size={isMobile ? 'small' : 'medium'}
-            fullWidth={isMobile}
-            sx={{ mt: isMobile ? 1 : 0 }}
+          <Typography
+            variant={isMobile ? 'h5' : isTablet ? 'h4' : 'h4'}
+            component="h1"
+            gutterBottom={isMobile}
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem', lg: '2.125rem' },
+              fontWeight: 500
+            }}
           >
-            刷新清單
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/sales')}
-            size={isMobile ? 'small' : 'medium'}
-            fullWidth={isMobile}
-            sx={{ mt: isMobile ? 1 : 0 }}
-          >
-            返回銷售列表
-          </Button>
+            銷售作業 v2 {isTestMode && (
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: { xs: '0.75em', sm: '0.8em' },
+                  color: 'orange',
+                  fontWeight: 'bold'
+                }}
+              >
+                (測試模式)
+              </Typography>
+            )}
+          </Typography>
+          <Box sx={{
+            display: 'flex',
+            gap: { xs: 0.5, sm: 1 },
+            flexDirection: isMobile ? 'column' : 'row',
+            width: isMobile ? '100%' : 'auto'
+          }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => navigate('/sales/new')}
+              size={isMobile ? 'small' : 'medium'}
+              fullWidth={isMobile}
+              sx={{ mt: isMobile ? 1 : 0 }}
+            >
+              切換到 v1 版本
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              onClick={refreshSales}
+              disabled={salesLoading}
+              size={isMobile ? 'small' : 'medium'}
+              fullWidth={isMobile}
+              sx={{ mt: isMobile ? 1 : 0 }}
+            >
+              刷新清單
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/sales')}
+              size={isMobile ? 'small' : 'medium'}
+              fullWidth={isMobile}
+              sx={{ mt: isMobile ? 1 : 0 }}
+            >
+              返回銷售列表
+            </Button>
+          </Box>
+        </Box>
+        
+        {/* Shortcut Buttons Row */}
+        <Box sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: { xs: 1, sm: 1.5 },
+          alignItems: 'center'
+        }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mr: 1 }}>
+            快捷按鈕：
+          </Typography>
+          <ShortcutButtonManager
+            onShortcutSelect={handleShortcutSelect}
+            allProducts={products ?? []}
+            isTestMode={isTestMode}
+          />
         </Box>
       </Box>
 
@@ -512,14 +546,6 @@ const SalesNew2Page: FC = () => {
                     onExpandToggle={() => setInfoExpanded(!infoExpanded)}
                     onInputChange={handleSaleInfoChange}
                   />
-
-                  <Box sx={{ flexGrow: 1 }}>
-                    <ShortcutButtonManager
-                      onShortcutSelect={handleShortcutSelect}
-                      allProducts={products ?? []}
-                      isTestMode={isTestMode}
-                    />
-                  </Box>
                 </Box>
               </Grid>
             </Grid>
