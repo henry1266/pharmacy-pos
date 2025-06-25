@@ -141,6 +141,16 @@ export {
   USAGE_EXAMPLES
 } from './utils';
 
+// 服務層 - API 客戶端
+export {
+  AccountingApiClient,
+  createAccountingApiClient,
+  HttpClient,
+  handleApiError,
+  formatDateForApi,
+  buildQueryParams
+} from './services/accountingApiClient';
+
 // Schema 驗證 - 使用別名避免衝突
 export {
   ValidationRule as SchemaValidationRule,
