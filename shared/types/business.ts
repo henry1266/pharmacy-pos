@@ -17,10 +17,8 @@ export interface BaseTimestamps {
 }
 
 /** 基礎實體型別 */
-export interface BaseEntity {
+export interface BaseEntity extends BaseTimestamps {
   id: string;
-  createdAt: Date;
-  updatedAt?: Date;
 }
 
 /** 基礎狀態型別 */
@@ -40,6 +38,41 @@ export interface BaseError {
   severity: 'error' | 'warning';
 }
 
+/** 帶數據的結果型別 */
+export interface DataResult<T> extends BaseResult {
+  data?: T;
+  errors?: string[];
+}
+
+/** 帶錯誤詳情的結果型別 */
+export interface DetailedResult<T> extends DataResult<T> {
+  warnings?: string[];
+  metadata?: Record<string, any>;
+}
+
+/** 列表結果型別 */
+export interface ListResult<T> extends DataResult<T[]> {
+  total?: number;
+  page?: number;
+  limit?: number;
+}
+
+/** 分頁結果型別 */
+export interface PaginatedResult<T> extends ListResult<T> {
+  totalPages?: number;
+  hasNext?: boolean;
+  hasPrev?: boolean;
+}
+
+/** 統計結果型別 */
+export interface StatsResult<T> extends DataResult<T> {
+  calculatedAt?: Date;
+  period?: {
+    start: Date;
+    end: Date;
+  };
+}
+
 // ===== 訂單號生成器相關型別 =====
 
 export interface OrderNumberOptions {
@@ -55,14 +88,11 @@ export interface GeneratorConfig {
   options: OrderNumberOptions;
 }
 
-export interface OrderNumberResult extends BaseResult {
-  data?: {
-    orderNumber: string;
-    sequence: number;
-    generatedAt: Date;
-  };
-  errors?: string[];
-}
+export interface OrderNumberResult extends DataResult<{
+  orderNumber: string;
+  sequence: number;
+  generatedAt: Date;
+}> {}
 
 // ===== FIFO 計算相關型別 =====
 
@@ -104,25 +134,22 @@ export interface FIFOCalculation {
   calculatedAt: Date;
 }
 
-export interface FIFOResult extends BaseResult {
-  data?: {
-    productId: string;
-    requestedQuantity: number;
-    availableQuantity: number;
-    allocatedQuantity: number;
+export interface FIFOResult extends DataResult<{
+  productId: string;
+  requestedQuantity: number;
+  availableQuantity: number;
+  allocatedQuantity: number;
+  totalCost: number;
+  averageCost: number;
+  batchesUsed: Array<{
+    batchId: string;
+    quantityUsed: number;
+    unitCost: number;
     totalCost: number;
-    averageCost: number;
-    batchesUsed: Array<{
-      batchId: string;
-      quantityUsed: number;
-      unitCost: number;
-      totalCost: number;
-    }>;
-    remainingBatches: InventoryBatch[];
-    calculatedAt: Date;
-  };
-  errors?: string[];
-}
+  }>;
+  remainingBatches: InventoryBatch[];
+  calculatedAt: Date;
+}> {}
 
 // ===== 員工帳號服務相關型別 =====
 
@@ -154,15 +181,12 @@ export interface EmployeeAccountValidation {
   warnings?: string[];
 }
 
-export interface AccountCreationResult extends BaseResult {
-  data?: {
-    userId: string;
-    username: string;
-    temporaryPassword?: string;
-    mustChangePassword: boolean;
-  };
-  errors?: string[];
-}
+export interface AccountCreationResult extends DataResult<{
+  userId: string;
+  username: string;
+  temporaryPassword?: string;
+  mustChangePassword: boolean;
+}> {}
 
 // ===== CSV 匯入相關型別 =====
 
