@@ -16,11 +16,77 @@ function isValidObjectId(id: string): boolean {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
+/**
+ * 將 MongoDB 客戶文檔轉換為 API 響應格式
+ */
+function transformCustomerToResponse(customer: any): CustomerType {
+  return {
+    _id: customer._id.toString(),
+    name: customer.name,
+    code: customer.code,
+    phone: customer.phone,
+    email: customer.email,
+    address: customer.address,
+    birthdate: customer.birthdate,
+    gender: customer.gender,
+    notes: customer.notes,
+    idCardNumber: customer.idCardNumber,
+    allergies: customer.allergies,
+    membershipLevel: customer.membershipLevel,
+    medicalHistory: customer.medicalHistory,
+    totalPurchases: customer.totalPurchases,
+    lastPurchaseDate: customer.lastPurchaseDate,
+    date: customer.date,
+    createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
+    updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
+  };
+}
+
+/**
+ * 創建成功響應
+ */
+function createSuccessResponse<T>(message: string, data: T): ApiResponse<T> {
+  return {
+    success: true,
+    message,
+    data,
+    timestamp: new Date()
+  };
+}
+
+/**
+ * 創建錯誤響應
+ */
+function createErrorResponse(message: string, error?: string): ErrorResponse {
+  return {
+    success: false,
+    message,
+    error,
+    timestamp: new Date()
+  };
+}
+
+/**
+ * 處理數據庫錯誤
+ */
+function handleDatabaseError(err: unknown, res: Response): void {
+  console.error(err instanceof Error ? err.message : 'Unknown error');
+
+  if (err instanceof Error && err.name === 'CastError') {
+    res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+       .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
+    return;
+  }
+
+  res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR)
+     .json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
+}
+
 // 型別定義
 interface CustomerCreationRequest {
   code?: string;
   name: string;
-  phone: string;
+  phone?: string;
   email?: string;
   address?: string;
   dateOfBirth?: Date;
@@ -45,44 +111,11 @@ interface CustomerUpdateRequest extends Partial<CustomerCreationRequest> {}
 router.get('/', async (req: Request, res: Response) => {
   try {
     const customers = await Customer.find().sort({ name: 1 });
+    const transformedCustomers = customers.map(transformCustomerToResponse);
     
-    const response: ApiResponse<CustomerType[]> = {
-      success: true,
-      message: 'Customers retrieved successfully',
-      data: customers.map(customer => ({
-        _id: customer._id.toString(),
-        name: customer.name,
-        code: customer.code,
-        phone: customer.phone,
-        email: customer.email,
-        address: customer.address,
-        birthdate: customer.birthdate,
-        gender: customer.gender,
-        notes: customer.notes,
-        idCardNumber: customer.idCardNumber,
-        allergies: customer.allergies,
-        membershipLevel: customer.membershipLevel,
-        medicalHistory: customer.medicalHistory,
-        totalPurchases: customer.totalPurchases,
-        lastPurchaseDate: customer.lastPurchaseDate,
-        date: customer.date,
-        createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
-        updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
-      })),
-      timestamp: new Date()
-    };
-    
-    res.json(response);
+    res.json(createSuccessResponse('Customers retrieved successfully', transformedCustomers));
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleDatabaseError(err, res);
   }
 });
 
@@ -93,74 +126,22 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+         .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
       return;
     }
 
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+         .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
       return;
     }
 
-    const response: ApiResponse<CustomerType> = {
-      success: true,
-      message: 'Customer retrieved successfully',
-      data: {
-        _id: customer._id.toString(),
-        name: customer.name,
-        code: customer.code,
-        phone: customer.phone,
-        email: customer.email,
-        address: customer.address,
-        birthdate: customer.birthdate,
-        gender: customer.gender,
-        notes: customer.notes,
-        idCardNumber: customer.idCardNumber,
-        allergies: customer.allergies,
-        membershipLevel: customer.membershipLevel,
-        medicalHistory: customer.medicalHistory,
-        totalPurchases: customer.totalPurchases,
-        lastPurchaseDate: customer.lastPurchaseDate,
-        date: customer.date,
-        createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
-        updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
-      },
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse('Customer retrieved successfully', transformCustomerToResponse(customer)));
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleDatabaseError(err, res);
   }
 });
 
@@ -269,7 +250,22 @@ function assignAdditionalFields(
   const { medicalHistory, allergies, membershipLevel, idCardNumber, points } = reqBody;
   
   if (medicalHistory !== undefined) customerFields.medicalHistory = medicalHistory;
-  if (allergies !== undefined) customerFields.allergies = Array.isArray(allergies) ? allergies : [allergies];
+  if (allergies !== undefined) {
+    try {
+      if (typeof allergies === 'string') {
+        customerFields.allergies = allergies.trim() ? [allergies.trim()] : [];
+      } else if (Array.isArray(allergies)) {
+        customerFields.allergies = allergies.filter((item: any) =>
+          typeof item === 'string' && item.trim()
+        ).map((item: string) => item.trim());
+      } else {
+        customerFields.allergies = [];
+      }
+    } catch (error) {
+      console.error('Error processing allergies field:', error);
+      customerFields.allergies = [];
+    }
+  }
   if (membershipLevel !== undefined) customerFields.membershipLevel = membershipLevel as 'regular' | 'silver' | 'gold' | 'platinum';
   if (idCardNumber !== undefined) customerFields.idCardNumber = idCardNumber;
   if (points !== undefined) (customerFields as unknown as { points?: number }).points = points;
@@ -281,19 +277,13 @@ function assignAdditionalFields(
 router.post(
   '/',
   [
-    check('name', '會員姓名為必填項').not().isEmpty(),
-    check('phone', '電話號碼為必填項').not().isEmpty()
+    check('name', '會員姓名為必填項').not().isEmpty()
   ],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        error: JSON.stringify(errors.array()),
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
+         .json(createErrorResponse(ERROR_MESSAGES.GENERIC.VALIDATION_FAILED, JSON.stringify(errors.array())));
       return;
     }
 
@@ -302,13 +292,9 @@ router.post(
       
       // 檢查會員編號是否已存在
       if (requestBody.code && await checkCustomerCodeExists(requestBody.code)) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: ERROR_MESSAGES.CUSTOMER.CODE_EXISTS,
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
+           .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.CODE_EXISTS));
+        return;
       }
 
       // 建立會員欄位物件
@@ -322,43 +308,9 @@ router.post(
       const customer = new Customer(customerFields);
       await customer.save();
 
-      const response: ApiResponse<CustomerType> = {
-        success: true,
-        message: 'Customer created successfully',
-        data: {
-          _id: customer._id.toString(),
-          name: customer.name,
-          code: customer.code,
-          phone: customer.phone,
-          email: customer.email,
-          address: customer.address,
-          birthdate: customer.birthdate,
-          gender: customer.gender,
-          notes: customer.notes,
-          idCardNumber: customer.idCardNumber,
-          allergies: customer.allergies,
-          membershipLevel: customer.membershipLevel,
-          medicalHistory: customer.medicalHistory,
-          totalPurchases: customer.totalPurchases,
-          lastPurchaseDate: customer.lastPurchaseDate,
-          date: customer.date,
-          createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
-          updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
-        },
-        timestamp: new Date()
-      };
-
-      res.json(response);
+      res.json(createSuccessResponse('Customer created successfully', transformCustomerToResponse(customer)));
     } catch (err) {
-      console.error(err instanceof Error ? err.message : 'Unknown error');
-      
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        timestamp: new Date()
-      };
-      
-      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+      handleDatabaseError(err, res);
     }
   }
 );
@@ -372,97 +324,54 @@ router.put('/:id', async (req: Request, res: Response) => {
     
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+         .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
     }
     
     // 檢查會員是否存在
-    let customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findById(req.params.id);
     if (!customer) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+         .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
     }
 
     // 若編號被修改，檢查是否重複
     if (requestBody.code && requestBody.code !== customer.code) {
-      if (await checkCustomerCodeExists(requestBody.code)) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: ERROR_MESSAGES.CUSTOMER.CODE_EXISTS,
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
+      const codeExists = await checkCustomerCodeExists(requestBody.code);
+      if (codeExists) {
+        return res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
+           .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.CODE_EXISTS));
       }
     }
 
-    // 建立更新欄位物件
+    // 建立更新欄位物件 - 只包含有值的欄位
     const customerFields = buildCustomerFields(requestBody);
-
-    // 更新 - 使用已驗證的 ID
-    const updatedCustomer = await Customer.findByIdAndUpdate(
-      req.params.id,
-      { $set: customerFields },
-      { new: true }
+    
+    // 確保不會更新空值或未定義的欄位
+    const filteredFields = Object.fromEntries(
+      Object.entries(customerFields).filter(([_, value]) => value !== undefined && value !== null)
     );
 
-    const response: ApiResponse<CustomerType> = {
-      success: true,
-      message: 'Customer updated successfully',
-      data: {
-        _id: updatedCustomer!._id.toString(),
-        name: updatedCustomer!.name,
-        code: updatedCustomer!.code,
-        phone: updatedCustomer!.phone,
-        email: updatedCustomer!.email,
-        address: updatedCustomer!.address,
-        birthdate: updatedCustomer!.birthdate,
-        gender: updatedCustomer!.gender,
-        notes: updatedCustomer!.notes,
-        idCardNumber: updatedCustomer!.idCardNumber,
-        allergies: updatedCustomer!.allergies,
-        membershipLevel: updatedCustomer!.membershipLevel,
-        medicalHistory: updatedCustomer!.medicalHistory,
-        totalPurchases: updatedCustomer!.totalPurchases,
-        lastPurchaseDate: updatedCustomer!.lastPurchaseDate,
-        date: updatedCustomer!.date,
-        createdAt: (updatedCustomer as unknown as { createdAt?: Date }).createdAt,
-        updatedAt: (updatedCustomer as unknown as { updatedAt?: Date }).updatedAt
-      },
-      timestamp: new Date()
-    };
+    // 更新 - 使用已驗證的 ID 和過濾後的欄位
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      req.params.id,
+      { $set: filteredFields },
+      {
+        new: true,
+        runValidators: true,
+        context: 'query'
+      }
+    );
 
-    res.json(response);
-  } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
+    if (!updatedCustomer) {
+      return res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+         .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
     }
 
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    res.json(createSuccessResponse('Customer updated successfully', transformCustomerToResponse(updatedCustomer)));
+  } catch (err) {
+    console.error('Customer update error:', err);
+    handleDatabaseError(err, res);
   }
 });
 
@@ -473,24 +382,16 @@ router.delete('/:id', async (req: Request, res: Response) => {
   try {
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+         .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
       return;
     }
 
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
+         .json(createErrorResponse(ERROR_MESSAGES.CUSTOMER.NOT_FOUND));
       return;
     }
 
@@ -498,34 +399,9 @@ router.delete('/:id', async (req: Request, res: Response) => {
     // 使用已驗證的 ID
     await Customer.findByIdAndDelete(req.params.id);
 
-    const response: ApiResponse<null> = {
-      success: true,
-      message: '會員已刪除',
-      data: null,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse('會員已刪除', null));
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.CUSTOMER.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleDatabaseError(err, res);
   }
 });
 

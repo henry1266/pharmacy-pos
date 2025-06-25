@@ -16,7 +16,7 @@ const CustomerSchema = new Schema<ICustomerDocument>({
   },
   phone: {
     type: String,
-    required: true
+    required: false
   },
   email: {
     type: String
@@ -105,7 +105,3 @@ const Customer = model<ICustomerDocument>('customer', CustomerSchema);
 // 雙重導出策略以確保兼容性
 export default Customer;
 export type { ICustomer, ICustomerDocument };
-
-// CommonJS 兼容性
-module.exports = Customer;
-module.exports.default = Customer;
