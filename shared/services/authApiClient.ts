@@ -6,7 +6,6 @@
 import { BaseApiClient, HttpClient } from './baseApiClient';
 import type {
   LoginRequest,
-  AuthResponse,
   LoginResponse,
   UpdateUserRequest
 } from '../types/api';
@@ -46,53 +45,21 @@ export class AuthApiClient extends BaseApiClient {
    * 用戶登入
    */
   async login(credentials: AuthLoginRequest): Promise<LoginResponse> {
-    const response = await this.post<any>('', credentials);
-    
-    // 處理包裝格式的響應 { success: true, data: LoginResponse }
-    if (response.success && response.data) {
-      return response.data;
-    }
-    
-    // 處理直接返回 LoginResponse 的響應
-    if (response.token && response.user) {
-      return response as LoginResponse;
-    }
-    
-    throw new Error('登入失敗，未收到完整的驗證資訊');
+    return this.post<LoginResponse>('', credentials);
   }
 
   /**
    * 獲取當前用戶資訊
    */
   async getCurrentUser(): Promise<EmployeeAccount> {
-    const response = await this.get<{
-      success: boolean;
-      message?: string;
-      data: EmployeeAccount;
-    }>('');
-
-    if (response.success && response.data) {
-      return response.data;
-    }
-
-    throw new Error('獲取用戶資訊失敗');
+    return this.get<EmployeeAccount>('');
   }
 
   /**
    * 更新當前用戶資訊
    */
   async updateCurrentUser(updateData: AuthUpdateRequest): Promise<EmployeeAccount> {
-    const response = await this.put<{
-      success: boolean;
-      message?: string;
-      data: EmployeeAccount;
-    }>('/update', updateData);
-
-    if (response.success && response.data) {
-      return response.data;
-    }
-
-    throw new Error('更新用戶資訊失敗');
+    return this.put<EmployeeAccount>('/update', updateData);
   }
 
   /**
