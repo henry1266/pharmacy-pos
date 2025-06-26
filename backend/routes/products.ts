@@ -227,7 +227,7 @@ router.post(
   ],
   async (req: Request, res: Response): Promise<void> => {
     const errors = validationResult(req);
-    
+
     if (!errors.isEmpty()) {
       res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
         success: false,
@@ -237,7 +237,7 @@ router.post(
       } as ApiResponse);
       return;
     }
-    
+
     try {
       const {
         code,
@@ -251,7 +251,7 @@ router.post(
         minStock,
         barcode
       } = req.body;
-      
+
       // 檢查產品代碼是否已存在
       if (code && code.trim()) {
         const existingProduct = await BaseProduct.findByCode(code.trim());
@@ -264,7 +264,7 @@ router.post(
           return;
         }
       }
-      
+
       // 創建商品
       const product = new Product({
         code: code && code.trim() ? code.trim() : await generateNextProductCode(),
@@ -281,14 +281,14 @@ router.post(
         productType: ProductType.PRODUCT,
         isActive: true
       });
-      
+
       await product.save();
-      
+
       // 重新查詢以獲取完整的關聯資料
       const savedProduct = await Product.findById(product._id)
         .populate('category', 'name')
-        .populate('supplier', 'name') as unknown as IProductDocument | null;
-      
+        .populate('supplier', 'name') as IProductDocument | null;
+
       if (!savedProduct) {
         res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
           success: false,
@@ -297,7 +297,7 @@ router.post(
         } as ApiResponse);
         return;
       }
-      
+
       res.json({
         success: true,
         message: '商品創建成功',
