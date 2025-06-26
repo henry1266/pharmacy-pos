@@ -23,7 +23,7 @@ import useSalesData from '../hooks/useSalesData';
 import useSaleManagementV2 from '../hooks/useSaleManagementV2';
 import useSalesListData from '../hooks/useSalesListData';
 import { type UserShortcut } from '../hooks/useUserSettings';
-import useSocket from '../hooks/useSocket';
+// import useSocket from '../hooks/useSocket'; // 移除 WebSocket 多機同步功能
 
 // Import sub-components
 import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
@@ -170,38 +170,38 @@ const SalesNew2Page: FC = () => {
   // Sales list search state
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // WebSocket 連接和事件處理
-  const { onSaleCreated, onSaleUpdated } = useSocket({
-    autoConnect: true,
-    joinSalesNew2Room: true
-  });
+  // 移除 WebSocket 多機同步功能，僅保留本機操作
+  // const { onSaleCreated, onSaleUpdated } = useSocket({
+  //   autoConnect: true,
+  //   joinSalesNew2Room: true
+  // });
 
-  // 處理 WebSocket 事件
-  useEffect(() => {
-    console.log('🎧 SalesNew2Page: 設定 WebSocket 事件監聽器');
-    
-    // 監聽銷售記錄建立事件
-    const handleSaleCreated = (data: any) => {
-      console.log('📥 收到銷售記錄建立事件:', data);
-      showSnackbar(`${data.message} - 清單已自動刷新`, 'info');
-      refreshSales(); // 自動刷新銷售清單
-    };
-
-    // 監聽銷售記錄更新事件
-    const handleSaleUpdated = (data: any) => {
-      console.log('📥 收到銷售記錄更新事件:', data);
-      showSnackbar(`${data.message} - 清單已自動刷新`, 'info');
-      refreshSales(); // 自動刷新銷售清單
-    };
-
-    onSaleCreated(handleSaleCreated);
-    onSaleUpdated(handleSaleUpdated);
-
-    // 清理函數
-    return () => {
-      console.log('🧹 SalesNew2Page: 清理 WebSocket 事件監聽器');
-    };
-  }, [onSaleCreated, onSaleUpdated, refreshSales, showSnackbar]);
+  // 移除 WebSocket 自動刷新事件監聽
+  // useEffect(() => {
+  //   console.log('🎧 SalesNew2Page: 設定 WebSocket 事件監聽器');
+  //
+  //   // 監聽銷售記錄建立事件
+  //   const handleSaleCreated = (data: any) => {
+  //     console.log('📥 收到銷售記錄建立事件:', data);
+  //     showSnackbar(`${data.message} - 清單已自動刷新`, 'info');
+  //     refreshSales(); // 自動刷新銷售清單
+  //   };
+  //
+  //   // 監聽銷售記錄更新事件
+  //   const handleSaleUpdated = (data: any) => {
+  //     console.log('📥 收到銷售記錄更新事件:', data);
+  //     showSnackbar(`${data.message} - 清單已自動刷新`, 'info');
+  //     refreshSales(); // 自動刷新銷售清單
+  //   };
+  //
+  //   onSaleCreated(handleSaleCreated);
+  //   onSaleUpdated(handleSaleUpdated);
+  //
+  //   // 清理函數
+  //   return () => {
+  //     console.log('🧹 SalesNew2Page: 清理 WebSocket 事件監聽器');
+  //   };
+  // }, [onSaleCreated, onSaleUpdated, refreshSales, showSnackbar]);
 
   // Callback function for when a sale is completed
   const handleSaleCompleted = useCallback(() => {
@@ -433,6 +433,7 @@ const SalesNew2Page: FC = () => {
               size={isMobile ? 'small' : 'medium'}
               fullWidth={isMobile}
               sx={{ mt: isMobile ? 1 : 0 }}
+              title="手動刷新當天銷售記錄"
             >
               刷新清單
             </Button>

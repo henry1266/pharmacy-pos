@@ -257,8 +257,10 @@ async function handleShippingOrderId(soid?: string): Promise<{ soid?: string; er
 // 驗證產品項目並檢查庫存的輔助函數
 async function validateProductsAndInventory(items: ShippingOrderItem[]): Promise<{ valid: boolean; error?: string; items?: ShippingOrderItem[] }> {
   for (const item of items) {
-    // 檢查項目完整性
-    if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
+    // 檢查項目完整性 - 修正：允許 dtotalCost 為 0
+    if (!item.did || !item.dname ||
+        item.dquantity === null || item.dquantity === undefined || !item.dquantity ||
+        item.dtotalCost === null || item.dtotalCost === undefined) {
       return {
         valid: false,
         error: '藥品項目資料不完整'
@@ -394,7 +396,11 @@ router.post('/', [
 // 驗證出貨單項目的輔助函數
 async function validateOrderItems(items: ShippingOrderItem[]): Promise<{ valid: boolean; message?: string }> {
   for (const item of items) {
-    if (!item.did || !item.dname || !item.dquantity || !item.dtotalCost) {
+    // 修正：允許 dtotalCost 為 0，但不允許為 null、undefined
+    // 使用嚴格檢查，確保欄位存在且不為空值
+    if (!item.did || !item.dname ||
+        item.dquantity === null || item.dquantity === undefined || !item.dquantity ||
+        item.dtotalCost === null || item.dtotalCost === undefined) {
       return {
         valid: false,
         message: '藥品項目資料不完整'

@@ -144,7 +144,24 @@ const useProductData = () => {
 
     } catch (err: any) {
       console.error('保存產品失敗 (hook):', err);
-      const errorMsg = `保存產品失敗: ${err.response?.data?.message ?? err.message}`;
+      
+      // 提取詳細錯誤訊息
+      let errorMsg = '保存產品失敗';
+      
+      if (err.response?.data) {
+        const { data } = err.response;
+        if (data.message) {
+          errorMsg = `保存產品失敗: ${data.message}`;
+        } else if (data.details && Array.isArray(data.details)) {
+          const validationErrors = data.details.map((detail: any) =>
+            detail.msg || detail.message || detail.param
+          ).join(', ');
+          errorMsg = `保存產品失敗 - 驗證錯誤: ${validationErrors}`;
+        }
+      } else if (err.message) {
+        errorMsg = `保存產品失敗: ${err.message}`;
+      }
+      
       setError(errorMsg);
       // Re-throw the error for the component to handle (e.g., show alert, keep dialog open)
       throw new Error(errorMsg);

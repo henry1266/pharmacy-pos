@@ -20,7 +20,41 @@ export interface HttpClient {
  */
 export const handleApiError = (error: any, operation: string): never => {
   console.error(`${operation} 失敗:`, error);
-  const message = error.response?.data?.message ?? `${operation} 失敗`;
+  
+  // 詳細的錯誤資訊提取
+  let message = `${operation} 失敗`;
+  
+  if (error.response) {
+    // HTTP 錯誤響應
+    const { status, data } = error.response;
+    
+    if (data?.message) {
+      message = data.message;
+    } else if (data?.details && Array.isArray(data.details)) {
+      // 驗證錯誤詳情
+      const validationErrors = data.details.map((detail: any) => detail.msg || detail.message).join(', ');
+      message = `資料驗證失敗: ${validationErrors}`;
+    } else if (status === 400) {
+      message = '資料驗證失敗';
+    } else if (status === 401) {
+      message = '未授權的存取';
+    } else if (status === 403) {
+      message = '禁止存取';
+    } else if (status === 404) {
+      message = '找不到資源';
+    } else if (status === 409) {
+      message = '資料衝突';
+    } else if (status >= 500) {
+      message = '伺服器內部錯誤';
+    }
+  } else if (error.request) {
+    // 網路錯誤
+    message = '網路連線錯誤';
+  } else {
+    // 其他錯誤
+    message = error.message || `${operation} 失敗`;
+  }
+  
   throw new Error(message);
 };
 

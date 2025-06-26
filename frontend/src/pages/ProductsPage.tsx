@@ -268,33 +268,46 @@ const ProductsPage: React.FC = () => {
   // 處理保存產品
   const handleSaveProduct = async (): Promise<void> => {
     try {
+      // 驗證必填欄位
+      if (!currentProduct.name?.trim()) {
+        alert('產品名稱為必填項目');
+        return;
+      }
+      
+      if (!currentProduct.unit?.trim()) {
+        alert('單位為必填項目');
+        return;
+      }
+
       const productData: any = {
-        code: currentProduct.code,
-        shortCode: currentProduct.shortCode,
-        name: currentProduct.name,
-        category: currentProduct.category,
-        unit: currentProduct.unit,
-        purchasePrice: currentProduct.purchasePrice,
-        sellingPrice: currentProduct.sellingPrice,
-        description: currentProduct.description,
-        supplier: currentProduct.supplier,
-        minStock: currentProduct.minStock
+        code: currentProduct.code?.trim() || '',
+        shortCode: currentProduct.shortCode?.trim() || '',
+        name: currentProduct.name.trim(),
+        category: currentProduct.category || '',
+        unit: currentProduct.unit.trim(),
+        purchasePrice: Number(currentProduct.purchasePrice) || 0,
+        sellingPrice: Number(currentProduct.sellingPrice) || 0,
+        description: currentProduct.description?.trim() || '',
+        supplier: currentProduct.supplier || '',
+        minStock: Number(currentProduct.minStock) || 10
       };
       
       // 根據產品類型添加特有屬性
       if (productType === 'product') {
-        productData.barcode = currentProduct.barcode;
+        productData.barcode = currentProduct.barcode?.trim() || '';
         productData.productType = 'product';
       } else {
-        productData.barcode = currentProduct.barcode;
-        productData.healthInsuranceCode = currentProduct.healthInsuranceCode;
-        productData.healthInsurancePrice = currentProduct.healthInsurancePrice;
+        productData.barcode = currentProduct.barcode?.trim() || '';
+        productData.healthInsuranceCode = currentProduct.healthInsuranceCode?.trim() || '';
+        productData.healthInsurancePrice = Number(currentProduct.healthInsurancePrice) || 0;
         productData.productType = 'medicine';
       }
       
       if (editMode && currentProduct.id) {
         productData.id = currentProduct.id;
       }
+      
+      console.log('發送的產品資料:', productData); // 除錯用
       
       // 使用從Hook中獲取的saveProduct函數
       const result = await saveProduct(productData, editMode, productType);

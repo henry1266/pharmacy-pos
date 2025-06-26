@@ -402,15 +402,18 @@ router.put(
   '/:id',
   auth,
   [
-    check('name', '產品名稱為必填項目').optional().not().isEmpty(),
-    check('unit', '單位為必填項目').optional().not().isEmpty(),
-    check('purchasePrice', '進貨價格必須是數字').optional().isNumeric(),
-    check('sellingPrice', '售價必須是數字').optional().isNumeric()
+    check('name', '產品名稱為必填項目').notEmpty().withMessage('產品名稱不能為空'),
+    check('unit', '單位為必填項目').notEmpty().withMessage('單位不能為空'),
+    check('purchasePrice', '進貨價格必須是數字').optional().isNumeric().withMessage('進貨價格格式錯誤'),
+    check('sellingPrice', '售價必須是數字').optional().isNumeric().withMessage('售價格式錯誤'),
+    check('minStock', '最低庫存必須是數字').optional().isInt({ min: 0 }).withMessage('最低庫存必須是非負整數'),
+    check('healthInsurancePrice', '健保價格必須是數字').optional().isNumeric().withMessage('健保價格格式錯誤')
   ],
   async (req: Request, res: Response): Promise<void> => {
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
+      console.log('驗證錯誤詳情:', errors.array()); // 除錯用
       res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,

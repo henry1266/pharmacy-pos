@@ -117,10 +117,15 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ pb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <ReceiptIcon sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6" component="h2">
-            銷售記錄 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+        <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <ReceiptIcon sx={{ mr: 1, color: 'primary.main' }} />
+            <Typography variant="h6" component="h2">
+              銷售記錄 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+            </Typography>
+          </Box>
+          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+            僅顯示當天且編號前八碼相符的記錄
           </Typography>
         </Box>
         
