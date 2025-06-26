@@ -97,7 +97,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
    * @returns Promise<PurchaseOrder>
    */
   async createPurchaseOrder(orderData: PurchaseOrderCreateRequest): Promise<PurchaseOrder> {
-    return this.post<PurchaseOrder>('', orderData as any);
+    return this.post<PurchaseOrder>('', orderData);
   }
 
   /**
@@ -107,7 +107,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
    * @returns Promise<PurchaseOrder>
    */
   async updatePurchaseOrder(id: string, orderData: PurchaseOrderUpdateRequest): Promise<PurchaseOrder> {
-    return this.put<PurchaseOrder>(`/${id}`, orderData as any);
+    return this.put<PurchaseOrder>(`/${id}`, orderData);
   }
 
   /**
@@ -311,7 +311,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
     
     for (const orderId of orderIds) {
       try {
-        const updatedOrder = await this.updatePurchaseOrder(orderId, { paymentStatus } as any);
+        const updatedOrder = await this.updatePurchaseOrder(orderId, { paymentStatus } as PurchaseOrderUpdateRequest);
         updatedOrders.push(updatedOrder);
       } catch (error) {
         console.error(`更新採購訂單 ${orderId} 付款狀態失敗:`, error);

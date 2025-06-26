@@ -284,6 +284,7 @@ export interface PurchaseOrderCreateRequest {
   }>;
   totalAmount?: number;
   status?: 'pending' | 'approved' | 'received' | 'cancelled' | 'completed';
+  paymentStatus?: '未付' | '已下收' | '已匯款';
   notes?: string;
 }
 
