@@ -18,8 +18,6 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants
 import {
   PurchaseOrderRequest,
   PurchaseOrderStatus,
-  PaymentStatus,
-  PurchaseOrderItem
 } from '@pharmacy-pos/shared/types/purchase-order';
 
 // 設置文件上傳

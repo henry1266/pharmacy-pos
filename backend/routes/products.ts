@@ -436,7 +436,7 @@ router.put(
       }
       
       // 如果更新代碼，檢查是否與其他產品重複
-      if (updateData.code && updateData.code.trim() && updateData.code.trim() !== existingProduct.code) {
+      if (updateData.code?.trim() && updateData.code.trim() !== existingProduct.code) {
         const duplicateProduct = await BaseProduct.findByCode(updateData.code.trim());
         if (duplicateProduct) {
           res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
@@ -468,12 +468,12 @@ router.put(
       
       // 處理代碼欄位
       if (updateData.code !== undefined) {
-        updateData.code = updateData.code && updateData.code.trim() ? updateData.code.trim() : existingProduct.code;
+        updateData.code = updateData.code?.trim() ?? existingProduct.code;
       }
       
       // 處理簡碼欄位 - 不自動帶入商品編號
       if (updateData.shortCode !== undefined) {
-        updateData.shortCode = updateData.shortCode && updateData.shortCode.trim() ? updateData.shortCode.trim() : '';
+        updateData.shortCode = updateData.shortCode?.trim() ?? '';
       }
       
       // 更新產品
