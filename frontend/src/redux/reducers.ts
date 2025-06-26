@@ -135,11 +135,12 @@ function createPurchaseOrdersReducer(
       case ActionTypes.FETCH_PURCHASE_ORDER_SUCCESS:
         return { ...state, currentPurchaseOrder: action.payload, loading: false, error: null };
 
-      case ActionTypes.ADD_PURCHASE_ORDER_SUCCESS:
+      case ActionTypes.ADD_PURCHASE_ORDER_SUCCESS: {
         const newPOs = [...state.data, action.payload];
         return { ...state, data: newPOs, purchaseOrders: newPOs, loading: false, error: null };
+      }
 
-      case ActionTypes.UPDATE_PURCHASE_ORDER_SUCCESS:
+      case ActionTypes.UPDATE_PURCHASE_ORDER_SUCCESS: {
         const updatedPOs = state.data.map(po => po._id === action.payload._id ? action.payload : po);
         return {
           ...state,
@@ -149,8 +150,9 @@ function createPurchaseOrdersReducer(
           loading: false,
           error: null
         };
+      }
 
-      case ActionTypes.DELETE_PURCHASE_ORDER_SUCCESS:
+      case ActionTypes.DELETE_PURCHASE_ORDER_SUCCESS: {
         const filteredPOs = state.data.filter(po => po._id !== action.payload);
         return {
           ...state,
@@ -159,6 +161,7 @@ function createPurchaseOrdersReducer(
           loading: false,
           error: null
         };
+      }
 
       // 失敗狀態
       case ActionTypes.FETCH_PURCHASE_ORDERS_FAILURE:
@@ -200,9 +203,10 @@ function createShippingOrdersReducer(
       case ActionTypes.FETCH_SHIPPING_ORDER_SUCCESS:
         return { ...state, currentShippingOrder: action.payload, loading: false, error: null };
 
-      case ActionTypes.ADD_SHIPPING_ORDER_SUCCESS:
+      case ActionTypes.ADD_SHIPPING_ORDER_SUCCESS: {
         const newSOs = [...state.data, action.payload];
         return { ...state, data: newSOs, shippingOrders: newSOs, loading: false, error: null };
+      }
 
       case ActionTypes.UPDATE_SHIPPING_ORDER_SUCCESS: {
         const updatedSOs = state.data.map(so => so._id === action.payload._id ? action.payload : so);
