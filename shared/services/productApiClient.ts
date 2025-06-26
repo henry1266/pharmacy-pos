@@ -78,8 +78,8 @@ export class ProductApiClient extends BaseApiClient {
     return allProducts.filter(product =>
       product.name.toLowerCase().includes(searchTerm) ||
       product.code.toLowerCase().includes(searchTerm) ||
-      (product.shortCode && product.shortCode.toLowerCase().includes(searchTerm)) ||
-      (product.description && product.description.toLowerCase().includes(searchTerm))
+      product.shortCode?.toLowerCase().includes(searchTerm) ||
+      product.description?.toLowerCase().includes(searchTerm)
     );
   }
 
