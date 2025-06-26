@@ -75,7 +75,8 @@ export class AuthApiClient extends BaseApiClient {
         token ? { token } : undefined
       );
       return response;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('驗證 Token 失敗:', error);
       return { valid: false };
     }
   }
@@ -147,7 +148,8 @@ export class AuthApiClient extends BaseApiClient {
     try {
       const response = await this.get<{ hasPermission: boolean }>(`/permissions/${permission}`);
       return response.hasPermission;
-    } catch (error) {
+    } catch (error: any) {
+      console.error(`檢查權限 ${permission} 失敗:`, error);
       return false;
     }
   }

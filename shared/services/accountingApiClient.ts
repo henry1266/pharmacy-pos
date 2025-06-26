@@ -68,7 +68,7 @@ export const buildQueryParams = (filters: AccountingFilters): URLSearchParams =>
  */
 export class AccountingApiClient {
   private httpClient: HttpClient;
-  private baseUrl: string;
+  private readonly baseUrl: string;
 
   constructor(httpClient: HttpClient, baseUrl: string = '/api') {
     this.httpClient = httpClient;
