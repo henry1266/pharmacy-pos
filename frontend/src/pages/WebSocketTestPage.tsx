@@ -25,7 +25,7 @@ import socketService from '../services/socketService';
 const WebSocketTestPage: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<string>('未連接');
   const [messages, setMessages] = useState<any[]>([]);
-  const [testResults, setTestResults] = useState<string[]>([]);
+  const [testResults, setTestResults] = useState<{ id: string; text: string; timestamp: Date }[]>([]);
 
   const { connect, disconnect, joinSalesNew2Room, leaveSalesNew2Room, isConnected, onSaleCreated, onSaleUpdated } = useSocket({
     autoConnect: true,
@@ -48,34 +48,34 @@ const WebSocketTestPage: React.FC = () => {
     onSaleCreated((data: any) => {
       console.log('收到銷售建立事件:', data);
       setMessages(prev => [...prev, { type: 'sale-created', data, timestamp: new Date() }]);
-      setTestResults(prev => [...prev, `✅ 收到銷售建立事件: ${data.message}`]);
+      setTestResults(prev => [...prev, { id: Date.now().toString(), text: `✅ 收到銷售建立事件: ${data.message}`, timestamp: new Date() }]);
     });
 
     onSaleUpdated((data: any) => {
       console.log('收到銷售更新事件:', data);
       setMessages(prev => [...prev, { type: 'sale-updated', data, timestamp: new Date() }]);
-      setTestResults(prev => [...prev, `✅ 收到銷售更新事件: ${data.message}`]);
+      setTestResults(prev => [...prev, { id: Date.now().toString(), text: `✅ 收到銷售更新事件: ${data.message}`, timestamp: new Date() }]);
     });
   }, [onSaleCreated, onSaleUpdated]);
 
   const handleConnect = () => {
     connect();
-    setTestResults(prev => [...prev, '🔄 嘗試連接 WebSocket...']);
+    setTestResults(prev => [...prev, { id: Date.now().toString(), text: '🔄 嘗試連接 WebSocket...', timestamp: new Date() }]);
   };
 
   const handleDisconnect = () => {
     disconnect();
-    setTestResults(prev => [...prev, '🔌 斷開 WebSocket 連接']);
+    setTestResults(prev => [...prev, { id: Date.now().toString(), text: '🔌 斷開 WebSocket 連接', timestamp: new Date() }]);
   };
 
   const handleJoinRoom = () => {
     joinSalesNew2Room();
-    setTestResults(prev => [...prev, '🏠 嘗試加入 sales-new2 房間']);
+    setTestResults(prev => [...prev, { id: Date.now().toString(), text: '🏠 嘗試加入 sales-new2 房間', timestamp: new Date() }]);
   };
 
   const handleLeaveRoom = () => {
     leaveSalesNew2Room();
-    setTestResults(prev => [...prev, '🚪 離開 sales-new2 房間']);
+    setTestResults(prev => [...prev, { id: Date.now().toString(), text: '🚪 離開 sales-new2 房間', timestamp: new Date() }]);
   };
 
   const handleClearMessages = () => {
@@ -110,12 +110,12 @@ const WebSocketTestPage: React.FC = () => {
       });
 
       if (response.ok) {
-        setTestResults(prev => [...prev, '📤 測試銷售記錄已發送']);
+        setTestResults(prev => [...prev, { id: Date.now().toString(), text: '📤 測試銷售記錄已發送', timestamp: new Date() }]);
       } else {
-        setTestResults(prev => [...prev, '❌ 測試銷售記錄發送失敗']);
+        setTestResults(prev => [...prev, { id: Date.now().toString(), text: '❌ 測試銷售記錄發送失敗', timestamp: new Date() }]);
       }
     } catch (error) {
-      setTestResults(prev => [...prev, `❌ 測試錯誤: ${error}`]);
+      setTestResults(prev => [...prev, { id: Date.now().toString(), text: `❌ 測試錯誤: ${error}`, timestamp: new Date() }]);
     }
   };
 
@@ -226,11 +226,11 @@ const WebSocketTestPage: React.FC = () => {
               </Typography>
             ) : (
               <List dense>
-                {testResults.map((result, index) => (
-                  <ListItem key={index}>
+                {testResults.map((result) => (
+                  <ListItem key={result.id}>
                     <ListItemText
-                      primary={result}
-                      secondary={new Date().toLocaleTimeString()}
+                      primary={result.text}
+                      secondary={result.timestamp.toLocaleTimeString()}
                     />
                   </ListItem>
                 ))}
@@ -251,8 +251,8 @@ const WebSocketTestPage: React.FC = () => {
               </Typography>
             ) : (
               <List dense>
-                {messages.map((message, index) => (
-                  <ListItem key={index}>
+                {messages.map((message) => (
+                  <ListItem key={`${message.type}-${message.timestamp.getTime()}`}>
                     <ListItemText
                       primary={`${message.type}: ${message.data.message}`}
                       secondary={message.timestamp.toLocaleString()}
