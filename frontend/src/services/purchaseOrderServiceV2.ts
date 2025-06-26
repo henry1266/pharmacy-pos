@@ -65,7 +65,7 @@ class AxiosHttpClient {
  * 基於統一的 API 客戶端架構，提供完整的採購訂單管理功能
  */
 export class PurchaseOrderServiceV2 {
-  private apiClient: PurchaseOrderApiClient;
+  private readonly apiClient: PurchaseOrderApiClient;
 
   constructor() {
     const httpClient = new AxiosHttpClient();

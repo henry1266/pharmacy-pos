@@ -67,7 +67,7 @@ export const buildQueryParams = (filters: AccountingFilters): URLSearchParams =>
  * 會計 API 客戶端類
  */
 export class AccountingApiClient {
-  private httpClient: HttpClient;
+  private readonly httpClient: HttpClient;
   private readonly baseUrl: string;
 
   constructor(httpClient: HttpClient, baseUrl: string = '/api') {

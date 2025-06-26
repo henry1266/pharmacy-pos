@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, FC } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, FC } from 'react';
 import {
   Box,
   Typography,
@@ -138,10 +138,15 @@ const SalesNew2Page: FC = () => {
   } = useSalesListData();
 
   // Determine data sources based on test mode
-  const products = (isTestMode && actualError) ?? (isTestMode && !actualProducts) ? mockSalesPageData.products : actualProducts;
-  const customers = (isTestMode && actualError) ?? (isTestMode && !actualCustomers) ? mockSalesPageData.customers : actualCustomers;
-  const loading = isTestMode ? false : actualLoading;
-  const error = isTestMode ? null : actualError;
+  const { products, customers, loading, error } = useMemo(() => {
+    const useMockData = isTestMode && (actualError || !actualProducts || !actualCustomers);
+    return {
+      products: useMockData ? mockSalesPageData.products : actualProducts,
+      customers: useMockData ? mockSalesPageData.customers : actualCustomers,
+      loading: isTestMode ? false : actualLoading,
+      error: isTestMode ? null : actualError,
+    };
+  }, [isTestMode, actualProducts, actualCustomers, actualLoading, actualError]);
 
   // Snackbar state
   interface SnackbarState {
@@ -277,42 +282,51 @@ const SalesNew2Page: FC = () => {
     }
   };
 
-  const handleShortcutSelect = (shortcut: UserShortcut): void => {
-    console.log("Shortcut selected:", shortcut);
-    
+  const validateShortcutProducts = useCallback((shortcut: UserShortcut, allProducts: Product[]): { isValid: boolean; validProductIds: string[] } => {
     if (!shortcut?.productIds?.length) {
       console.warn("Selected shortcut has no product IDs");
       showSnackbar('此快捷按鈕沒有包含任何商品', 'warning');
-      return;
+      return { isValid: false, validProductIds: [] };
     }
-    
-    if (!products || products.length === 0) {
+
+    if (!allProducts || allProducts.length === 0) {
       console.warn("Products not loaded yet");
       showSnackbar('產品資料尚未載入完成，請稍後再試', 'warning');
-      return;
+      return { isValid: false, validProductIds: [] };
     }
-    
+
     const validProductIds = shortcut.productIds.filter(id =>
-      products.some(p => p._id === id)
+      allProducts.some(p => p._id === id)
     );
-    
+
     if (validProductIds.length === 0) {
       console.warn("None of the shortcut product IDs match available products");
       showSnackbar('找不到此快捷按鈕中的任何商品', 'error');
-      return;
+      return { isValid: false, validProductIds: [] };
     }
-    
+
     if (validProductIds.length < shortcut.productIds.length) {
       console.warn(`Only ${validProductIds.length} of ${shortcut.productIds.length} products found`);
       showSnackbar(`只找到 ${validProductIds.length} 個商品，部分商品可能已不存在`, 'warning');
     }
-    
+    return { isValid: true, validProductIds };
+  }, [showSnackbar]);
+
+  const handleShortcutSelect = useCallback((shortcut: UserShortcut): void => {
+    console.log("Shortcut selected:", shortcut);
+
+    const { isValid, validProductIds } = validateShortcutProducts(shortcut, products ?? []);
+
+    if (!isValid) {
+      return;
+    }
+
     setSelectedShortcut({
       ...shortcut,
       productIds: validProductIds
     });
     setCustomDialogOpen(true);
-  };
+  }, [products, validateShortcutProducts]);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);

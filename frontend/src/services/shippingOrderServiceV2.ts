@@ -57,7 +57,7 @@ class AxiosHttpClient {
  * 基於統一的 API 客戶端架構，提供完整的出貨訂單管理功能
  */
 export class ShippingOrderServiceV2 {
-  private apiClient: ShippingOrderApiClient;
+  private readonly apiClient: ShippingOrderApiClient;
 
   constructor() {
     const httpClient = new AxiosHttpClient();
