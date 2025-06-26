@@ -185,7 +185,7 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                         
                         <Box sx={{ mb: 1 }}>
                           {sale.items.slice(0, 2).map((item, itemIndex) => (
-                            <Typography key={itemIndex} variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+                            <Typography key={item.product?._id || item.name} variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
                               {item.product?.name ?? item.name} x {item.quantity}
                             </Typography>
                           ))}
