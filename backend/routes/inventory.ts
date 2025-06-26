@@ -3,9 +3,7 @@ import { check, validationResult } from 'express-validator';
 import { Types } from 'mongoose';
 import Inventory from '../models/Inventory';
 import BaseProduct from '../models/BaseProduct';
-import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
-import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import {
   sendSuccessResponse,
   sendErrorResponse,
