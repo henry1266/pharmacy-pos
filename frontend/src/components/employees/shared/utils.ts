@@ -111,6 +111,64 @@ export const validatePasswordStrength = (password: string): PasswordValidation =
 };
 
 /**
+ * 驗證用戶名
+ * @param username 用戶名
+ * @returns 錯誤陣列
+ */
+const validateUsername = (username: string): Array<{ field: string; message: string; value?: any }> => {
+  const errors: Array<{ field: string; message: string; value?: any }> = [];
+  if (!username) {
+    errors.push({
+      field: 'username',
+      message: '請輸入用戶名',
+      value: username
+    });
+  } else if (username.length < VALIDATION_RULES.username.minLength) {
+    errors.push({
+      field: 'username',
+      message: `用戶名長度至少需要${VALIDATION_RULES.username.minLength}個字符`,
+      value: username
+    });
+  }
+  return errors;
+};
+
+/**
+ * 驗證密碼和確認密碼
+ * @param password 密碼
+ * @param confirmPassword 確認密碼
+ * @returns 錯誤陣列
+ */
+const validatePasswordFields = (password: string, confirmPassword: string): Array<{ field: string; message: string; value?: any }> => {
+  const errors: Array<{ field: string; message: string; value?: any }> = [];
+  if (!password) {
+    errors.push({
+      field: 'password',
+      message: '請輸入密碼',
+      value: password
+    });
+  } else {
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      errors.push({
+        field: 'password',
+        message: passwordValidation.errors.join(', '),
+        value: password
+      });
+    }
+  }
+
+  if (password !== confirmPassword) {
+    errors.push({
+      field: 'confirmPassword',
+      message: '兩次輸入的密碼不一致',
+      value: confirmPassword
+    });
+  }
+  return errors;
+};
+
+/**
  * 驗證帳號表單
  * @param formData 表單資料
  * @param isPasswordReset 是否為密碼重設
@@ -122,49 +180,14 @@ export const validateAccountForm = (
   isPasswordReset = false,
   isEdit = false
 ): ValidationResult => {
-  const errors: Array<{ field: string; message: string; value?: any }> = [];
+  let errors: Array<{ field: string; message: string; value?: any }> = [];
 
   if (!isEdit) {
-    if (!formData.username) {
-      errors.push({
-        field: 'username',
-        message: '請輸入用戶名',
-        value: formData.username
-      });
-    } else if (formData.username.length < VALIDATION_RULES.username.minLength) {
-      errors.push({
-        field: 'username',
-        message: `用戶名長度至少需要${VALIDATION_RULES.username.minLength}個字符`,
-        value: formData.username
-      });
-    }
+    errors = errors.concat(validateUsername(formData.username));
   }
 
   if (!isEdit || isPasswordReset) {
-    if (!formData.password) {
-      errors.push({
-        field: 'password',
-        message: '請輸入密碼',
-        value: formData.password
-      });
-    } else {
-      const passwordValidation = validatePasswordStrength(formData.password);
-      if (!passwordValidation.isValid) {
-        errors.push({
-          field: 'password',
-          message: passwordValidation.errors.join(', '),
-          value: formData.password
-        });
-      }
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      errors.push({
-        field: 'confirmPassword',
-        message: '兩次輸入的密碼不一致',
-        value: formData.confirmPassword
-      });
-    }
+    errors = errors.concat(validatePasswordFields(formData.password, formData.confirmPassword));
   }
 
   if (!isPasswordReset && !isEdit) {
