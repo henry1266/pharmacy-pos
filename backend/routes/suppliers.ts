@@ -5,14 +5,13 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import Supplier from '../models/Supplier';
-import { ApiResponse, ErrorResponse, CSVImportResponse } from '@pharmacy-pos/shared/types/api';
+import { ErrorResponse, CSVImportResponse } from '@pharmacy-pos/shared/types/api';
 import { Supplier as SupplierType } from '@pharmacy-pos/shared/types/entities';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import {
   sendSuccessResponse,
   sendErrorResponse,
   sendValidationErrorResponse,
-  sendInvalidRequestResponse,
   sendNotFoundResponse,
   sendServerErrorResponse,
   handleObjectIdError,
