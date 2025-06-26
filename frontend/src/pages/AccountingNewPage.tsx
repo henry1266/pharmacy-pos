@@ -185,37 +185,45 @@ const AccountingNewPage: React.FC = () => {
   };
 
   // Handle Tab key navigation between amount fields
-  const handleAmountKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>): void => {
-    if (e.key === 'Tab' && !e.shiftKey) {
-      // Tab key pressed (forward navigation)
-      const nextIndex = index + 1;
-      if (nextIndex < formData.items.length) {
-        e.preventDefault();
-        // Focus next amount input
-        const nextInput = document.querySelector(`input[data-amount-index="${nextIndex}"]`) as HTMLInputElement;
-        if (nextInput) {
-          nextInput.focus();
-          nextInput.select(); // Select all text for easy replacement
-        }
-      } else {
-        // Last amount field, focus on "新增項目" button
-        e.preventDefault();
-        const addButton = document.querySelector('[data-testid="add-item-button"]') as HTMLButtonElement;
-        if (addButton) {
-          addButton.focus();
-        }
+  // Helper to focus on the next amount input or add item button
+  const focusNextAmountInput = (index: number, e: React.KeyboardEvent<HTMLDivElement>): void => {
+    const nextIndex = index + 1;
+    if (nextIndex < formData.items.length) {
+      e.preventDefault();
+      const nextInput = document.querySelector(`input[data-amount-index="${nextIndex}"]`) as HTMLInputElement;
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.select();
       }
-    } else if (e.key === 'Tab' && e.shiftKey) {
-      // Shift+Tab key pressed (backward navigation)
-      const prevIndex = index - 1;
-      if (prevIndex >= 0) {
-        e.preventDefault();
-        // Focus previous amount input
-        const prevInput = document.querySelector(`input[data-amount-index="${prevIndex}"]`) as HTMLInputElement;
-        if (prevInput) {
-          prevInput.focus();
-          prevInput.select(); // Select all text for easy replacement
-        }
+    } else {
+      e.preventDefault();
+      const addButton = document.querySelector('[data-testid="add-item-button"]') as HTMLButtonElement;
+      if (addButton) {
+        addButton.focus();
+      }
+    }
+  };
+
+  // Helper to focus on the previous amount input
+  const focusPreviousAmountInput = (index: number, e: React.KeyboardEvent<HTMLDivElement>): void => {
+    const prevIndex = index - 1;
+    if (prevIndex >= 0) {
+      e.preventDefault();
+      const prevInput = document.querySelector(`input[data-amount-index="${prevIndex}"]`) as HTMLInputElement;
+      if (prevInput) {
+        prevInput.focus();
+        prevInput.select();
+      }
+    }
+  };
+
+  // Handle Tab key navigation between amount fields
+  const handleAmountKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        focusPreviousAmountInput(index, e);
+      } else {
+        focusNextAmountInput(index, e);
       }
     }
   };
