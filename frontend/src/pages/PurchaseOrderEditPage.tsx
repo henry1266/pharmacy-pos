@@ -22,7 +22,6 @@ import { getAllSuppliers } from '../services/supplierServiceV2';
 import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
-import ActionButtons from '../components/purchase-order-form/ActionButtons';
 
 // 定義介面
 interface Supplier {
@@ -375,10 +374,10 @@ const PurchaseOrderEditPage: React.FC = () => {
   const submitFormData = async (submitData: any): Promise<void> => {
     try {
       if (isEditMode) {
-        await purchaseOrderServiceV2.updatePurchaseOrder(id as string, submitData as any);
+        await purchaseOrderServiceV2.updatePurchaseOrder(id as string, submitData);
         setSnackbar({ open: true, message: '進貨單已成功更新', severity: 'success' });
       } else {
-        await purchaseOrderServiceV2.createPurchaseOrder(submitData as any);
+        await purchaseOrderServiceV2.createPurchaseOrder(submitData);
         setSnackbar({ open: true, message: '進貨單已成功新增', severity: 'success' });
       }
       setTimeout(() => { navigate('/purchase-orders'); }, 1500);
