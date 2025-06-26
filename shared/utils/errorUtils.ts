@@ -88,6 +88,7 @@ export const isValidationError = (error: any): boolean => {
  */
 export const logError = (error: any, context?: string): void => {
   if (process.env.NODE_ENV === 'development') {
-    console.error(`[Error${context ? ` - ${context}` : ''}]:`, error);
+    const errorPrefix = context ? `[Error - ${context}]` : '[Error]';
+    console.error(`${errorPrefix}:`, error);
   }
 };
