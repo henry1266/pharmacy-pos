@@ -190,15 +190,15 @@ const AccountingNewPage: React.FC = () => {
     const nextIndex = index + 1;
     if (nextIndex < formData.items.length) {
       e.preventDefault();
-      const nextInput = document.querySelector(`input[data-amount-index="${nextIndex}"]`) as HTMLInputElement;
-      if (nextInput) {
+      const nextInput = document.querySelector(`input[data-amount-index="${nextIndex}"]`);
+      if (nextInput instanceof HTMLInputElement) {
         nextInput.focus();
         nextInput.select();
       }
     } else {
       e.preventDefault();
-      const addButton = document.querySelector('[data-testid="add-item-button"]') as HTMLButtonElement;
-      if (addButton) {
+      const addButton = document.querySelector('[data-testid="add-item-button"]');
+      if (addButton instanceof HTMLButtonElement) {
         addButton.focus();
       }
     }
@@ -209,8 +209,8 @@ const AccountingNewPage: React.FC = () => {
     const prevIndex = index - 1;
     if (prevIndex >= 0) {
       e.preventDefault();
-      const prevInput = document.querySelector(`input[data-amount-index="${prevIndex}"]`) as HTMLInputElement;
-      if (prevInput) {
+      const prevInput = document.querySelector(`input[data-amount-index="${prevIndex}"]`);
+      if (prevInput instanceof HTMLInputElement) {
         prevInput.focus();
         prevInput.select();
       }
@@ -233,16 +233,16 @@ const AccountingNewPage: React.FC = () => {
     if (e.key === 'Tab' && !e.shiftKey) {
       // Tab key pressed, focus on submit button
       e.preventDefault();
-      const submitButton = document.querySelector('[data-testid="submit-button"]') as HTMLButtonElement;
-      if (submitButton) {
+      const submitButton = document.querySelector('[data-testid="submit-button"]');
+      if (submitButton instanceof HTMLButtonElement) {
         submitButton.focus();
       }
     } else if (e.key === 'Tab' && e.shiftKey) {
       // Shift+Tab key pressed, focus on last amount input
       e.preventDefault();
       const lastIndex = formData.items.length - 1;
-      const lastInput = document.querySelector(`input[data-amount-index="${lastIndex}"]`) as HTMLInputElement;
-      if (lastInput) {
+      const lastInput = document.querySelector(`input[data-amount-index="${lastIndex}"]`);
+      if (lastInput instanceof HTMLInputElement) {
         lastInput.focus();
         lastInput.select();
       }
