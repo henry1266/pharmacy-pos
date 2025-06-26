@@ -337,15 +337,16 @@ export const productsReducer = (state: ProductsState = createInitialCompatState<
       const newProducts = [...state.data, action.payload];
       return { ...state, data: newProducts, products: newProducts, loading: false, error: null };
     
-    case ActionTypes.UPDATE_PRODUCT_SUCCESS:
+    case ActionTypes.UPDATE_PRODUCT_SUCCESS: {
       const updatedProducts = state.data.map(product =>
         product._id === action.payload._id ? action.payload : product
       );
       return { ...state, data: updatedProducts, products: updatedProducts, loading: false, error: null };
-    
-    case ActionTypes.DELETE_PRODUCT_SUCCESS:
+    }
+    case ActionTypes.DELETE_PRODUCT_SUCCESS: {
       const filteredProducts = state.data.filter(product => product._id !== action.payload);
       return { ...state, data: filteredProducts, products: filteredProducts, loading: false, error: null };
+    }
     
     case ActionTypes.FETCH_PRODUCTS_FAILURE:
     case ActionTypes.ADD_PRODUCT_FAILURE:

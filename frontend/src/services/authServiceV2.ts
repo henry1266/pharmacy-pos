@@ -13,12 +13,11 @@ import {
   type PasswordResetRequest
 } from '@pharmacy-pos/shared/services/authApiClient';
 import type { HttpClient } from '@pharmacy-pos/shared/services/baseApiClient';
-import type { 
+import type {
   LoginRequest,
   UpdateUserRequest,
-  LoginResponse, 
-  JWTPayload,
-  ErrorResponse 
+  LoginResponse,
+  JWTPayload
 } from '@pharmacy-pos/shared/types/api';
 import type { EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
 
