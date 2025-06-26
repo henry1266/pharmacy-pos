@@ -396,7 +396,7 @@ router.put('/:id', async (req: Request<{ id: string }, any, CustomerUpdateReques
     const codeValidationResult = await validateCustomerCodeUpdate(requestBody.code, existingCustomer.code);
     if (!codeValidationResult.isValid) {
       res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
-         .json(createErrorResponse(codeValidationResult.errorMessage!));
+         .json(createErrorResponse(codeValidationResult.errorMessage as string));
       return;
     }
 

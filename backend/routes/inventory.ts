@@ -6,7 +6,6 @@ import BaseProduct from '../models/BaseProduct';
 import { Inventory as SharedInventory } from '@pharmacy-pos/shared/types/entities';
 import {
   sendSuccessResponse,
-  sendErrorResponse,
   sendValidationErrorResponse,
   sendInvalidRequestResponse,
   sendNotFoundResponse,

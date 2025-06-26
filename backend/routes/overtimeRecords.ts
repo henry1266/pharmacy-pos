@@ -18,9 +18,6 @@ import {
 import {
   groupOvertimeRecords,
   validateOvertimeForm,
-  getStatusText,
-  getStatusColor,
-  formatDate
 } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 
 const router: express.Router = express.Router();
