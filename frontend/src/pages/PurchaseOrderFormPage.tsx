@@ -352,8 +352,15 @@ const PurchaseOrderFormPage: React.FC = () => {
       setFormData({
         poid: orderData.poid || orderData.orderNumber || '',
         pobill: orderData.pobill || '',
-        pobilldate: orderData.pobilldate ? new Date(orderData.pobilldate) :
-                   orderData.orderDate ? new Date(orderData.orderDate) : new Date(),
+        pobilldate: (() => {
+          let dateToUse = new Date();
+          if (orderData.pobilldate) {
+            dateToUse = new Date(orderData.pobilldate);
+          } else if (orderData.orderDate) {
+            dateToUse = new Date(orderData.orderDate);
+          }
+          return dateToUse;
+        })(),
         posupplier: orderData.posupplier ||
                    (orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : ''),
         supplier: supplierId,
