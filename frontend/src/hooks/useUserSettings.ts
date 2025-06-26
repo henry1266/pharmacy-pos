@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authServiceV2';
-import type { EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
 
 // 定義快捷按鈕類型
 export interface UserShortcut {

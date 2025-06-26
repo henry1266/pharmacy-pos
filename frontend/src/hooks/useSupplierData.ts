@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../services/supplierServiceV2';
+import { getAllSuppliers, createSupplier } from '../services/supplierServiceV2';
 import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -58,7 +58,7 @@ const useSupplierData = () => {
 
   // Select supplier
   const selectSupplier = useCallback((id: string): void => {
-    const supplier = suppliers.find(s => s._id === id || (s as any).id === id);
+    const supplier = suppliers.find(s => s._id === id);
     setSelectedSupplier(supplier ?? null);
   }, [suppliers]);
 
