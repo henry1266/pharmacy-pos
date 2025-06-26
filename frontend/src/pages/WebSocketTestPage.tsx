@@ -20,7 +20,6 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import useSocket from '../hooks/useSocket';
-import socketService from '../services/socketService';
 
 const WebSocketTestPage: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<string>('未連接');

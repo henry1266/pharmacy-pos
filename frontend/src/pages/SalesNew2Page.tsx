@@ -318,6 +318,8 @@ const SalesNew2Page: FC = () => {
     setSearchTerm(value);
   };
 
+  const panelWidth = isMobile ? '100%' : isTablet ? '300px' : isLargeScreen ? '400px' : '350px';
+
   if (loading && !isTestMode) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -453,7 +455,7 @@ const SalesNew2Page: FC = () => {
       }}>
         {/* Left Panel - Sales List */}
         <Box sx={{
-          width: isMobile ? '100%' : isTablet ? '300px' : isLargeScreen ? '400px' : '350px',
+          width: panelWidth,
           minWidth: isMobile ? 'auto' : '280px',
           maxWidth: isMobile ? '100%' : '450px',
           height: isMobile ? '40vh' : 'auto',
