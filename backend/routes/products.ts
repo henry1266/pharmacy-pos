@@ -253,7 +253,7 @@ router.post(
       } = req.body;
 
       // 檢查產品代碼是否已存在
-      if (code && code.trim()) {
+      if (code?.trim()) {
         const existingProduct = await BaseProduct.findByCode(code.trim());
         if (existingProduct) {
           res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
@@ -267,7 +267,7 @@ router.post(
 
       // 創建商品
       const product = new Product({
-        code: code && code.trim() ? code.trim() : await generateNextProductCode(),
+        code: code?.trim() ?? await generateNextProductCode(),
         shortCode: req.body.shortCode && req.body.shortCode.trim() ? req.body.shortCode.trim() : '',
         name,
         category,
