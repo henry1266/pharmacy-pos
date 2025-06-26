@@ -88,7 +88,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
    * @returns Promise<PurchaseOrder>
    */
   async getPurchaseOrderById(id: string): Promise<PurchaseOrder> {
-    return this.getItem<PurchaseOrder>('', id);
+    return this.get<PurchaseOrder>(`/${id}`);
   }
 
   /**
@@ -97,7 +97,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
    * @returns Promise<PurchaseOrder>
    */
   async createPurchaseOrder(orderData: PurchaseOrderCreateRequest): Promise<PurchaseOrder> {
-    return this.createItem<PurchaseOrder>('', orderData as any);
+    return this.post<PurchaseOrder>('', orderData as any);
   }
 
   /**
@@ -107,7 +107,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
    * @returns Promise<PurchaseOrder>
    */
   async updatePurchaseOrder(id: string, orderData: PurchaseOrderUpdateRequest): Promise<PurchaseOrder> {
-    return this.updateItem<PurchaseOrder>('', id, orderData as any);
+    return this.put<PurchaseOrder>(`/${id}`, orderData as any);
   }
 
   /**
@@ -116,7 +116,7 @@ export class PurchaseOrderApiClient extends BaseApiClient {
    * @returns Promise<{ success: boolean; message?: string }>
    */
   async deletePurchaseOrder(id: string): Promise<{ success: boolean; message?: string }> {
-    return this.deleteItem('', id);
+    return this.delete(`/${id}`);
   }
 
   // ==================== 特殊查詢功能 ====================

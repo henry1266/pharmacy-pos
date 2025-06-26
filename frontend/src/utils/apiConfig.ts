@@ -14,8 +14,8 @@ export const getApiBaseUrl = (): string => {
     return `http://${savedIp}:5000/api`;
   }
   
-  // 默認值
-  return `http://192.168.68.93:5000/api`; // 使用固定的預設值避免 process.env 問題
+  // 默認值 - 使用當前機器的 IP
+  return `http://192.168.68.90:5000/api`; // 使用當前機器的 IP
 };
 
 const apiConfig = {

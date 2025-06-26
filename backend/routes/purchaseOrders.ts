@@ -538,7 +538,14 @@ router.put('/:id', async (req: Request, res: Response) => {
       await updateInventory(purchaseOrder);
     }
 
-    res.json(purchaseOrder);
+    const response: ApiResponse<IPurchaseOrderDocument> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.UPDATED,
+      data: purchaseOrder,
+      timestamp: new Date()
+    };
+
+    res.json(response);
   } catch (err) {
     handlePurchaseOrderUpdateError(res, err as Error);
   }
@@ -568,7 +575,15 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
 
     await purchaseOrder.deleteOne();
-    res.json({ msg: '進貨單已刪除' });
+    
+    const response: ApiResponse<null> = {
+      success: true,
+      message: '進貨單已刪除',
+      data: null,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     if (err instanceof Error && err.name === 'CastError') {
@@ -600,7 +615,14 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
-    res.json(purchaseOrders);
+    const response: ApiResponse<IPurchaseOrderDocument[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: purchaseOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     const errorResponse: ErrorResponse = {
@@ -640,7 +662,14 @@ router.get('/search/query', async (req: Request, res: Response) => {
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
-    res.json(purchaseOrders);
+    const response: ApiResponse<IPurchaseOrderDocument[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: purchaseOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     const errorResponse: ErrorResponse = {
@@ -671,7 +700,14 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
-    res.json(purchaseOrders);
+    const response: ApiResponse<IPurchaseOrderDocument[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: purchaseOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     const errorResponse: ErrorResponse = {
@@ -694,7 +730,14 @@ router.get('/recent/list', async (req: Request, res: Response) => {
       .populate('supplier', 'name code')
       .populate('items.product', 'name code');
     
-    res.json(purchaseOrders);
+    const response: ApiResponse<IPurchaseOrderDocument[]> = {
+      success: true,
+      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
+      data: purchaseOrders,
+      timestamp: new Date()
+    };
+    
+    res.json(response);
   } catch (err) {
     console.error((err as Error).message);
     const errorResponse: ErrorResponse = {

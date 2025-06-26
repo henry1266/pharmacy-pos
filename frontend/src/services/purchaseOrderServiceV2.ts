@@ -3,6 +3,7 @@ import { PurchaseOrderApiClient } from '@pharmacy-pos/shared/services/purchaseOr
 import { PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
 import { PurchaseOrderCreateRequest, PurchaseOrderUpdateRequest } from '@pharmacy-pos/shared/types/api';
 import { PurchaseOrderSearchParams, PurchaseOrderImportResponse } from '@pharmacy-pos/shared/services/purchaseOrderApiClient';
+import { getApiBaseUrl } from '../utils/apiConfig';
 
 /**
  * HTTP 客戶端適配器
@@ -29,26 +30,33 @@ class AxiosHttpClient {
     };
   }
 
+  private getFullUrl(url: string): string {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `${getApiBaseUrl()}${url}`;
+  }
+
   async get<T>(url: string, config?: any): Promise<{ data: T }> {
     const mergedConfig = { ...this.getAuthConfig(), ...config };
-    return axios.get<T>(url, mergedConfig);
+    return axios.get<T>(this.getFullUrl(url), mergedConfig);
   }
 
   async post<T>(url: string, data?: any, config?: any): Promise<{ data: T }> {
     const isFormData = data instanceof FormData;
     const baseConfig = isFormData ? this.getMultipartConfig() : this.getAuthConfig();
     const mergedConfig = { ...baseConfig, ...config };
-    return axios.post<T>(url, data, mergedConfig);
+    return axios.post<T>(this.getFullUrl(url), data, mergedConfig);
   }
 
   async put<T>(url: string, data?: any, config?: any): Promise<{ data: T }> {
     const mergedConfig = { ...this.getAuthConfig(), ...config };
-    return axios.put<T>(url, data, mergedConfig);
+    return axios.put<T>(this.getFullUrl(url), data, mergedConfig);
   }
 
   async delete<T>(url: string, config?: any): Promise<{ data: T }> {
     const mergedConfig = { ...this.getAuthConfig(), ...config };
-    return axios.delete<T>(url, mergedConfig);
+    return axios.delete<T>(this.getFullUrl(url), mergedConfig);
   }
 }
 
