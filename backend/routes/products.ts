@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { check, validationResult } from 'express-validator';
+import { check, validationResult, Result } from 'express-validator';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -268,7 +268,7 @@ router.post(
       // 創建商品
       const product = new Product({
         code: code?.trim() ?? await generateNextProductCode(),
-        shortCode: req.body.shortCode && req.body.shortCode.trim() ? req.body.shortCode.trim() : '',
+        shortCode: req.body.shortCode?.trim() ?? '',
         name,
         category,
         unit,
@@ -330,17 +330,10 @@ router.post(
   ],
   async (req: Request, res: Response): Promise<void> => {
     const errors = validationResult(req);
-    
-    if (!errors.isEmpty()) {
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        details: errors.array(),
-        timestamp: new Date()
-      } as ApiResponse);
+    if (handleValidationErrors(errors, res)) {
       return;
     }
-    
+
     try {
       const {
         code,
@@ -356,55 +349,34 @@ router.post(
         healthInsuranceCode,
         healthInsurancePrice
       } = req.body;
-      
-      // 檢查產品代碼是否已存在
-      if (code && code.trim()) {
-        const existingProduct = await BaseProduct.findByCode(code.trim());
-        if (existingProduct) {
-          res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
-            success: false,
-            message: ERROR_MESSAGES.PRODUCT.CODE_EXISTS,
-            timestamp: new Date()
-          } as ApiResponse);
-          return;
-        }
+
+      if (await checkProductCodeExistence(code, res)) {
+        return;
       }
-      
-      // 創建藥品
+
       const medicine = new Medicine({
-        code: code && code.trim() ? code.trim() : await generateNextMedicineCode(),
-        shortCode: req.body.shortCode && req.body.shortCode.trim() ? req.body.shortCode.trim() : '',
+        code: code?.trim() ?? await generateNextMedicineCode(),
+        shortCode: req.body.shortCode?.trim() ?? '',
         name,
         category,
         unit,
-        purchasePrice: purchasePrice ? parseFloat(purchasePrice) : 0,
-        sellingPrice: sellingPrice ? parseFloat(sellingPrice) : 0,
+        purchasePrice: parseFloatOrDefault(purchasePrice, 0),
+        sellingPrice: parseFloatOrDefault(sellingPrice, 0),
         description,
         supplier,
-        minStock: minStock !== undefined ? parseInt(minStock) : 10,
+        minStock: parseIntOrDefault(minStock, 10),
         barcode,
         healthInsuranceCode,
-        healthInsurancePrice: healthInsurancePrice ? parseFloat(healthInsurancePrice) : 0,
+        healthInsurancePrice: parseFloatOrDefault(healthInsurancePrice, 0),
         productType: ProductType.MEDICINE,
         isActive: true
       });
-      
-      await medicine.save();
-      
-      // 重新查詢以獲取完整的關聯資料
-      const savedMedicine = await Medicine.findById(medicine._id)
-        .populate('category', 'name')
-        .populate('supplier', 'name') as unknown as IMedicineDocument | null;
-      
+
+      const savedMedicine = await saveAndPopulateMedicine(medicine, res);
       if (!savedMedicine) {
-        res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-          success: false,
-          message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
-          timestamp: new Date()
-        } as ApiResponse);
-        return;
+        return; // saveAndPopulateMedicine 已經處理了錯誤響應
       }
-      
+
       res.json({
         success: true,
         message: '藥品創建成功',
@@ -628,6 +600,77 @@ async function generateNextMedicineCode(): Promise<string> {
     return `M${String(Date.now()).slice(-5)}`;
   }
 }
+
+/**
+ * 處理驗證錯誤並發送響應
+ */
+function handleValidationErrors(errors: Result, res: Response): boolean {
+  if (!errors.isEmpty()) {
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      details: errors.array(),
+      timestamp: new Date()
+    } as ApiResponse);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * 檢查產品代碼是否已存在
+ */
+async function checkProductCodeExistence(code: string | undefined, res: Response): Promise<boolean> {
+  if (code?.trim()) {
+    const existingProduct = await BaseProduct.findByCode(code.trim());
+    if (existingProduct) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: ERROR_MESSAGES.PRODUCT.CODE_EXISTS,
+        timestamp: new Date()
+      } as ApiResponse);
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * 將值解析為浮點數，如果無效則返回預設值
+ */
+function parseFloatOrDefault(value: any, defaultValue: number): number {
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
+
+/**
+ * 將值解析為整數，如果無效則返回預設值
+ */
+function parseIntOrDefault(value: any, defaultValue: number): number {
+  const parsed = parseInt(value);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
+
+/**
+ * 保存 Medicine 文檔並重新查詢以獲取完整的關聯資料
+ */
+async function saveAndPopulateMedicine(medicine: IMedicineDocument, res: Response): Promise<IMedicineDocument | null> {
+  await medicine.save();
+  const savedMedicine = await Medicine.findById(medicine._id)
+    .populate('category', 'name')
+    .populate('supplier', 'name') as unknown as IMedicineDocument | null;
+
+  if (!savedMedicine) {
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.INTERNAL_ERROR,
+      timestamp: new Date()
+    } as ApiResponse);
+    return null;
+  }
+  return savedMedicine;
+}
+
 
 // 臨時測試端點：創建測試數據（僅用於開發測試）
 router.post('/create-test-data', async (req: Request, res: Response): Promise<void> => {

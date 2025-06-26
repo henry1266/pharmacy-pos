@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import config from 'config';
 import { Request, Response, NextFunction } from 'express';
 import { ErrorResponse } from '@pharmacy-pos/shared/types/api';
-import { ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 // 擴展 Request 介面以包含用戶資訊
 interface AuthenticatedRequest extends Request {
