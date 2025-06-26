@@ -332,7 +332,16 @@ const SalesNew2Page: FC = () => {
     setSearchTerm(value);
   };
 
-  const panelWidth = isMobile ? '100%' : isTablet ? '300px' : isLargeScreen ? '400px' : '350px';
+  let panelWidth: string;
+  if (isMobile) {
+    panelWidth = '100%';
+  } else if (isTablet) {
+    panelWidth = '300px';
+  } else if (isLargeScreen) {
+    panelWidth = '400px';
+  } else {
+    panelWidth = '350px';
+  }
 
   if (loading && !isTestMode) {
     return (
@@ -380,9 +389,14 @@ const SalesNew2Page: FC = () => {
         }}>
           <Typography
             variant={
-              isMobile ? 'h5' :
-              isTablet ? 'h4' :
-              'h4'
+              (() => {
+                if (isMobile) {
+                  return 'h5';
+                } else if (isTablet) {
+                  return 'h4';
+                }
+                return 'h4';
+              })()
             }
             component="h1"
             gutterBottom={isMobile}
