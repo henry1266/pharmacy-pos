@@ -19,14 +19,16 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { Link } from 'react-router-dom';
 import zhTW from 'date-fns/locale/zh-TW';
 
+type ShiftFilter = 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '';
+
 // 組件 Props 介面
 interface AccountingFilterProps {
   startDate: Date | null;
   setStartDate: (date: Date | null) => void;
   endDate: Date | null;
   setEndDate: (date: Date | null) => void;
-  filterShift: 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '';
-  setFilterShift: (shift: 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '') => void;
+  filterShift: ShiftFilter;
+  setFilterShift: (shift: ShiftFilter) => void;
   onAddClick: () => void;
 }
 
@@ -44,7 +46,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
 }) => {
   // 處理班別選擇變更
   const handleShiftChange = (e: SelectChangeEvent<string>): void => {
-    setFilterShift(e.target.value as 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '');
+    setFilterShift(e.target.value as ShiftFilter);
   };
 
   return (

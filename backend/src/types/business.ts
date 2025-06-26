@@ -31,7 +31,6 @@ import {
   SalesSettings,
   SecuritySettings,
   SystemConfiguration as SharedSystemConfiguration,
-  ConfigurationUpdate as SharedConfigurationUpdate,
   AlertType,
   ProcessStatus,
   BaseStatus,

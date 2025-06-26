@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import OvertimeRecord from '../models/OvertimeRecord';
-import Employee from '../models/Employee';
 
 // 連接到數據庫
 const connectDB = async () => {
