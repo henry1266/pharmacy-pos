@@ -204,7 +204,7 @@ function createShippingOrdersReducer(
         const newSOs = [...state.data, action.payload];
         return { ...state, data: newSOs, shippingOrders: newSOs, loading: false, error: null };
 
-      case ActionTypes.UPDATE_SHIPPING_ORDER_SUCCESS:
+      case ActionTypes.UPDATE_SHIPPING_ORDER_SUCCESS: {
         const updatedSOs = state.data.map(so => so._id === action.payload._id ? action.payload : so);
         return {
           ...state,
@@ -214,8 +214,9 @@ function createShippingOrdersReducer(
           loading: false,
           error: null
         };
+      }
 
-      case ActionTypes.DELETE_SHIPPING_ORDER_SUCCESS:
+      case ActionTypes.DELETE_SHIPPING_ORDER_SUCCESS: {
         const filteredSOs = state.data.filter(so => so._id !== action.payload);
         return {
           ...state,
@@ -224,6 +225,7 @@ function createShippingOrdersReducer(
           loading: false,
           error: null
         };
+      }
 
       // 失敗狀態
       case ActionTypes.FETCH_SHIPPING_ORDERS_FAILURE:
@@ -333,9 +335,10 @@ export const productsReducer = (state: ProductsState = createInitialCompatState<
     case ActionTypes.FETCH_PRODUCTS_SUCCESS:
       return { ...state, data: action.payload, products: action.payload, loading: false, error: null };
     
-    case ActionTypes.ADD_PRODUCT_SUCCESS:
+    case ActionTypes.ADD_PRODUCT_SUCCESS: {
       const newProducts = [...state.data, action.payload];
       return { ...state, data: newProducts, products: newProducts, loading: false, error: null };
+    }
     
     case ActionTypes.UPDATE_PRODUCT_SUCCESS: {
       const updatedProducts = state.data.map(product =>
