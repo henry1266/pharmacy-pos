@@ -379,7 +379,11 @@ const SalesNew2Page: FC = () => {
           gap: { xs: 1, sm: 2 }
         }}>
           <Typography
-            variant={isMobile ? 'h5' : isTablet ? 'h4' : 'h4'}
+            variant={
+              isMobile ? 'h5' :
+              isTablet ? 'h4' :
+              'h4'
+            }
             component="h1"
             gutterBottom={isMobile}
             sx={{
