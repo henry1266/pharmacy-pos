@@ -69,8 +69,8 @@ export const useShippingOrderActions = ({
 };
 
 // 保持向後兼容的組件導出
-const ShippingOrderActions: React.FC<ShippingOrderActionsProps> = (props) => {
-  const actions = useShippingOrderActions(props);
+const ShippingOrderActions: React.FC<ShippingOrderActionsProps> = ({ onEdit, ...restProps }) => {
+  const actions = useShippingOrderActions({ onEdit, ...restProps });
   return <>{actions}</>;
 };
 
