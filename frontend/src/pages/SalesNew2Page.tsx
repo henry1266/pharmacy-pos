@@ -388,16 +388,7 @@ const SalesNew2Page: FC = () => {
           gap: { xs: 1, sm: 2 }
         }}>
           <Typography
-            variant={
-              (() => {
-                if (isMobile) {
-                  return 'h5';
-                } else if (isTablet) {
-                  return 'h4';
-                }
-                return 'h4';
-              })()
-            }
+            variant={isMobile ? 'h5' : 'h4'}
             component="h1"
             gutterBottom={isMobile}
             sx={{
