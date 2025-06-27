@@ -178,7 +178,7 @@ router.post('/', auth, [
     }
 
     // 標記嵌套物件已修改
-    user.markModified('settings.theme');
+    user.markModified('settings');
     await user.save();
 
     console.log('新主題已建立並保存到資料庫:', newTheme);
@@ -235,7 +235,7 @@ router.put('/current/:themeId', auth, async (req: AuthRequest, res: Response): P
     user.settings.theme.currentThemeId = themeId;
     
     // 標記嵌套物件已修改
-    user.markModified('settings.theme');
+    user.markModified('settings');
     await user.save();
 
     console.log('當前主題已設定並保存到資料庫:', themeId);
@@ -365,7 +365,7 @@ router.delete('/:themeId', auth, async (req: AuthRequest, res: Response): Promis
     user.settings.theme.themes.splice(themeIndex, 1);
     
     // 標記嵌套物件已修改
-    user.markModified('settings.theme');
+    user.markModified('settings');
     await user.save();
 
     console.log('主題已刪除並保存到資料庫:', themeId);
