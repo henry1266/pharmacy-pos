@@ -4,6 +4,7 @@ import { CssBaseline } from '@mui/material';
 import { UserTheme, DEFAULT_THEME_COLORS, DEFAULT_CUSTOM_SETTINGS } from '@pharmacy-pos/shared/types/theme';
 import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
 import { themeServiceV2 } from '../services/themeServiceV2';
+import { injectThemeVariables, resetToDefaultTheme } from '../utils/themeInjector';
 
 // 主題上下文介面
 interface ThemeContextType {
@@ -17,6 +18,10 @@ interface ThemeContextType {
   deleteTheme: (themeId: string) => Promise<void>;
   refreshThemes: () => Promise<void>;
   getDefaultColors: () => Promise<Record<string, string>>;
+  previewTheme: (theme: UserTheme) => void;
+  applyPreviewedTheme: () => Promise<void>;
+  cancelPreview: () => void;
+  isPreviewMode: boolean;
 }
 
 // 建立上下文
@@ -36,59 +41,134 @@ export const useTheme = (): ThemeContextType => {
  */
 const convertToMuiTheme = (userTheme: UserTheme): Theme => {
   const { generatedPalette, mode, customSettings } = userTheme;
+  const actualMode = mode === 'auto' ? 'light' : mode;
   
-  return createTheme({
-    palette: {
-      mode: mode === 'auto' ? 'light' : mode,
-      primary: {
-        main: generatedPalette.primary.main,
-        light: generatedPalette.primary.light,
-        dark: generatedPalette.primary.dark,
-        contrastText: generatedPalette.primary.contrastText || '#ffffff',
+  // 檢查是否有 Material 3 調色板
+  const hasMaterial3 = generatedPalette.material3?.lightScheme && generatedPalette.material3?.darkScheme;
+  
+  if (hasMaterial3) {
+    // 使用 Material 3 調色板
+    const material3Scheme = actualMode === 'dark'
+      ? generatedPalette.material3!.darkScheme
+      : generatedPalette.material3!.lightScheme;
+    
+    return createTheme({
+      palette: {
+        mode: actualMode,
+        primary: {
+          main: material3Scheme.primary,
+          light: material3Scheme.primaryContainer,
+          dark: material3Scheme.primary,
+          contrastText: material3Scheme.onPrimary,
+        },
+        secondary: {
+          main: material3Scheme.secondary,
+          light: material3Scheme.secondaryContainer,
+          dark: material3Scheme.secondary,
+          contrastText: material3Scheme.onSecondary,
+        },
+        error: {
+          main: material3Scheme.error,
+          light: material3Scheme.errorContainer,
+          dark: material3Scheme.error,
+          contrastText: material3Scheme.onError,
+        },
+        warning: {
+          main: material3Scheme.tertiary,
+          light: material3Scheme.tertiaryContainer,
+          dark: material3Scheme.tertiary,
+          contrastText: material3Scheme.onTertiary,
+        },
+        info: {
+          main: material3Scheme.primary,
+          light: material3Scheme.primaryContainer,
+          dark: material3Scheme.primary,
+          contrastText: material3Scheme.onPrimary,
+        },
+        success: {
+          main: material3Scheme.secondary,
+          light: material3Scheme.secondaryContainer,
+          dark: material3Scheme.secondary,
+          contrastText: material3Scheme.onSecondary,
+        },
+        background: {
+          default: material3Scheme.background,
+          paper: material3Scheme.surface,
+        },
+        text: {
+          primary: material3Scheme.onBackground,
+          secondary: material3Scheme.onSurfaceVariant,
+        },
+        divider: material3Scheme.outline,
       },
-      secondary: {
-        main: generatedPalette.secondary.main,
-        light: generatedPalette.secondary.light,
-        dark: generatedPalette.secondary.dark,
-        contrastText: generatedPalette.secondary.contrastText || '#ffffff',
+      shape: {
+        borderRadius: customSettings.borderRadius,
       },
-      success: {
-        main: generatedPalette.success.main,
-        light: generatedPalette.success.light,
-        dark: generatedPalette.success.dark,
-        contrastText: generatedPalette.success.contrastText || '#ffffff',
+      typography: {
+        fontSize: 14 * customSettings.fontScale,
       },
-      warning: {
-        main: generatedPalette.warning.main,
-        light: generatedPalette.warning.light,
-        dark: generatedPalette.warning.dark,
-        contrastText: generatedPalette.warning.contrastText || '#ffffff',
+      shadows: Array(25).fill('none').map((_, index) => {
+        if (index === 0) return 'none';
+        const elevation = Math.min(index * customSettings.elevation, 24);
+        const shadowColor = actualMode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)';
+        return `0px ${elevation}px ${elevation * 2}px ${shadowColor}`;
+      }) as any,
+    });
+  } else {
+    // 使用傳統調色板
+    return createTheme({
+      palette: {
+        mode: actualMode,
+        primary: {
+          main: generatedPalette.primary.main,
+          light: generatedPalette.primary.light,
+          dark: generatedPalette.primary.dark,
+          contrastText: generatedPalette.primary.contrastText || '#ffffff',
+        },
+        secondary: {
+          main: generatedPalette.secondary.main,
+          light: generatedPalette.secondary.light,
+          dark: generatedPalette.secondary.dark,
+          contrastText: generatedPalette.secondary.contrastText || '#ffffff',
+        },
+        success: {
+          main: generatedPalette.success.main,
+          light: generatedPalette.success.light,
+          dark: generatedPalette.success.dark,
+          contrastText: generatedPalette.success.contrastText || '#ffffff',
+        },
+        warning: {
+          main: generatedPalette.warning.main,
+          light: generatedPalette.warning.light,
+          dark: generatedPalette.warning.dark,
+          contrastText: generatedPalette.warning.contrastText || '#ffffff',
+        },
+        error: {
+          main: generatedPalette.error.main,
+          light: generatedPalette.error.light,
+          dark: generatedPalette.error.dark,
+          contrastText: generatedPalette.error.contrastText || '#ffffff',
+        },
+        info: {
+          main: generatedPalette.info.main,
+          light: generatedPalette.info.light,
+          dark: generatedPalette.info.dark,
+          contrastText: generatedPalette.info.contrastText || '#ffffff',
+        },
       },
-      error: {
-        main: generatedPalette.error.main,
-        light: generatedPalette.error.light,
-        dark: generatedPalette.error.dark,
-        contrastText: generatedPalette.error.contrastText || '#ffffff',
+      shape: {
+        borderRadius: customSettings.borderRadius,
       },
-      info: {
-        main: generatedPalette.info.main,
-        light: generatedPalette.info.light,
-        dark: generatedPalette.info.dark,
-        contrastText: generatedPalette.info.contrastText || '#ffffff',
+      typography: {
+        fontSize: 14 * customSettings.fontScale,
       },
-    },
-    shape: {
-      borderRadius: customSettings.borderRadius,
-    },
-    typography: {
-      fontSize: 14 * customSettings.fontScale,
-    },
-    shadows: Array(25).fill('none').map((_, index) => {
-      if (index === 0) return 'none';
-      const elevation = Math.min(index * customSettings.elevation, 24);
-      return `0px ${elevation}px ${elevation * 2}px rgba(0,0,0,0.12)`;
-    }) as any,
-  });
+      shadows: Array(25).fill('none').map((_, index) => {
+        if (index === 0) return 'none';
+        const elevation = Math.min(index * customSettings.elevation, 24);
+        return `0px ${elevation}px ${elevation * 2}px rgba(0,0,0,0.12)`;
+      }) as any,
+    });
+  }
 };
 
 /**
@@ -118,13 +198,21 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
   const [muiTheme, setMuiTheme] = useState<Theme>(createDefaultTheme());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // 預覽模式狀態
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [previewedTheme, setPreviewedTheme] = useState<UserTheme | null>(null);
+  const [originalTheme, setOriginalTheme] = useState<UserTheme | null>(null);
 
   /**
-   * 應用主題到 Material-UI
+   * 應用主題到 Material-UI 和 CSS 變數
    */
   const applyTheme = (theme: UserTheme) => {
     const newMuiTheme = convertToMuiTheme(theme);
     setMuiTheme(newMuiTheme);
+    
+    // 注入主題變數到 CSS
+    injectThemeVariables(theme);
   };
 
   /**
@@ -365,6 +453,96 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
     }
   };
 
+  /**
+   * 預覽主題（不保存到後端）
+   */
+  const previewTheme = (theme: UserTheme) => {
+    if (!isPreviewMode) {
+      // 第一次進入預覽模式，保存原始主題
+      setOriginalTheme(currentTheme);
+      setIsPreviewMode(true);
+    }
+    
+    setPreviewedTheme(theme);
+    applyTheme(theme);
+    console.log('🎨 預覽 Material 3 主題:', theme.themeName);
+  };
+
+  /**
+   * 應用預覽的主題（保存到後端）
+   */
+  const applyPreviewedTheme = async () => {
+    if (!previewedTheme) return;
+    
+    try {
+      console.log('正在保存 Material 3 主題:', previewedTheme);
+      
+      // 檢查是否已存在同名主題
+      const existingTheme = userThemes.find(theme => theme.themeName === previewedTheme.themeName);
+      
+      let savedTheme: UserTheme;
+      
+      if (existingTheme) {
+        // 更新現有主題
+        savedTheme = await themeServiceV2.updateTheme(existingTheme._id!, {
+          primaryColor: previewedTheme.primaryColor,
+          mode: previewedTheme.mode,
+          customSettings: previewedTheme.customSettings,
+          generatedPalette: previewedTheme.generatedPalette
+        });
+        
+        // 更新本地主題列表
+        setUserThemes(prev =>
+          prev.map(theme => theme._id === existingTheme._id ? savedTheme : theme)
+        );
+      } else {
+        // 創建新主題
+        savedTheme = await themeServiceV2.createTheme({
+          themeName: previewedTheme.themeName,
+          primaryColor: previewedTheme.primaryColor,
+          mode: previewedTheme.mode,
+          customSettings: previewedTheme.customSettings,
+          generatedPalette: previewedTheme.generatedPalette
+        });
+        
+        // 更新主題列表
+        setUserThemes(prev => [...prev, savedTheme]);
+      }
+      
+      // 切換到保存的主題
+      await switchTheme(savedTheme);
+      
+      // 退出預覽模式
+      setIsPreviewMode(false);
+      setPreviewedTheme(null);
+      setOriginalTheme(null);
+      
+      console.log('已保存並應用 Material 3 主題:', savedTheme.themeName, savedTheme);
+    } catch (error) {
+      console.error('保存 Material 3 主題失敗:', error);
+      setError('保存主題失敗: ' + (error instanceof Error ? error.message : '未知錯誤'));
+      throw error;
+    }
+  };
+
+  /**
+   * 取消預覽，恢復原始主題
+   */
+  const cancelPreview = () => {
+    if (originalTheme) {
+      applyTheme(originalTheme);
+      setCurrentTheme(originalTheme);
+    } else {
+      // 如果沒有原始主題，重置為預設主題
+      resetToDefaultTheme();
+    }
+    
+    setIsPreviewMode(false);
+    setPreviewedTheme(null);
+    setOriginalTheme(null);
+    console.log('🔄 已取消預覽，恢復原始主題');
+  };
+
   // 初始化
   useEffect(() => {
     loadUserThemes();
@@ -382,6 +560,10 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
     deleteTheme,
     refreshThemes,
     getDefaultColors,
+    previewTheme,
+    applyPreviewedTheme,
+    cancelPreview,
+    isPreviewMode,
   };
 
   return (

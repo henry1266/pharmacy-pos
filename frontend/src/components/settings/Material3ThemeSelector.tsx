@@ -32,8 +32,10 @@ import {
 } from '@mui/icons-material';
 
 import { themeServiceV2 } from '../../services/themeServiceV2';
-import { EnhancedGeneratedPalette } from '@pharmacy-pos/shared/types/theme';
+import { EnhancedGeneratedPalette, UserTheme } from '@pharmacy-pos/shared/types/theme';
 import { Material3SchemeType } from '@pharmacy-pos/shared/utils';
+import { useTheme } from '../../contexts/ThemeContext';
+import { ThemePreview } from './ThemePreview';
 
 interface Material3ThemeSelectorProps {
   primaryColor: string;
@@ -85,9 +87,16 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const schemeOptions = themeServiceV2.getMaterial3SchemeOptions();
+  const {
+    currentTheme,
+    previewTheme: contextPreviewTheme,
+    applyPreviewedTheme,
+    cancelPreview,
+    isPreviewMode
+  } = useTheme();
 
-  // 預覽主題效果
-  const previewTheme = async (schemeType: Material3SchemeType) => {
+  // 預覽 Material 3 主題效果
+  const previewMaterial3Theme = async (schemeType: Material3SchemeType) => {
     setLoading(true);
     setError(null);
     
@@ -95,6 +104,27 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
       const palette = await themeServiceV2.previewMaterial3Theme(primaryColor, schemeType);
       setPreviewPalette(palette);
       onThemeChange?.(palette);
+      
+      // 創建臨時主題對象用於預覽
+      const tempTheme: UserTheme = {
+        _id: 'temp-material3-preview',
+        themeName: `Material 3 ${schemeOptions.find(opt => opt.value === schemeType)?.label} 預覽`,
+        primaryColor,
+        mode: currentTheme?.mode || 'light',
+        customSettings: currentTheme?.customSettings || {
+          borderRadius: 8,
+          elevation: 4,
+          fontScale: 1.0
+        },
+        generatedPalette: palette,
+        userId: currentTheme?.userId || '',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // 使用 ThemeContext 的預覽功能
+      contextPreviewTheme(tempTheme);
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : '預覽失敗');
     } finally {
@@ -105,7 +135,7 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
   // 當主色或方案改變時自動預覽
   useEffect(() => {
     if (primaryColor) {
-      previewTheme(selectedScheme);
+      previewMaterial3Theme(selectedScheme);
     }
   }, [primaryColor, selectedScheme]);
 
@@ -118,8 +148,17 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
   const handleSave = async () => {
     if (!previewPalette) return;
     
-    const themeName = `Material 3 ${schemeOptions.find(opt => opt.value === selectedScheme)?.label} 主題`;
-    onSave?.(themeName, previewPalette);
+    try {
+      await applyPreviewedTheme();
+    } catch (error) {
+      console.error('保存 Material 3 主題失敗:', error);
+    }
+  };
+
+  // 取消預覽
+  const handleCancel = () => {
+    cancelPreview();
+    setPreviewPalette(null);
   };
 
   // 渲染 Material 3 色彩方案
@@ -176,6 +215,15 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
 
   return (
     <Box>
+      {/* 預覽模式提示 */}
+      {isPreviewMode && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="body2">
+            🎨 <strong>預覽模式</strong> - 您正在預覽 Material 3 主題效果。點擊「應用主題」保存，或「取消預覽」恢復原始主題。
+          </Typography>
+        </Alert>
+      )}
+
       {/* 控制面板 */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -221,7 +269,7 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
                 <Button
                   variant="outlined"
                   startIcon={<RefreshIcon />}
-                  onClick={() => previewTheme(selectedScheme)}
+                  onClick={() => previewMaterial3Theme(selectedScheme)}
                   disabled={loading}
                 >
                   重新預覽
@@ -232,8 +280,18 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
                   onClick={handleSave}
                   disabled={!previewPalette || loading}
                 >
-                  保存主題
+                  {isPreviewMode ? '應用主題' : '保存主題'}
                 </Button>
+                {isPreviewMode && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleCancel}
+                    disabled={loading}
+                  >
+                    取消預覽
+                  </Button>
+                )}
               </Box>
             </Grid>
 
@@ -310,6 +368,14 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
               </Grid>
             </CardContent>
           </Card>
+
+          {/* 實際主題預覽 */}
+          <Box sx={{ mt: 3 }}>
+            <ThemePreview
+              themeName={`Material 3 ${schemeOptions.find(opt => opt.value === selectedScheme)?.label}`}
+              showTitle={true}
+            />
+          </Box>
         </Box>
       )}
     </Box>

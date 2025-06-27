@@ -10,6 +10,7 @@ import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import { UserTheme, DEFAULT_THEME_COLORS, DEFAULT_CUSTOM_SETTINGS } from '@pharmacy-pos/shared/types/theme';
 import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
+import { enhancePaletteWithMaterial3 } from '@pharmacy-pos/shared/utils';
 import User from '../models/User';
 
 const router: Router = express.Router();
@@ -162,7 +163,7 @@ router.post('/', auth, [
       userId: user.id,
       primaryColor,
       themeName,
-      generatedPalette: generateThemePalette(primaryColor),
+      generatedPalette: req.body.generatedPalette || generateThemePalette(primaryColor),
       mode: mode || 'light',
       customSettings: customSettings || DEFAULT_CUSTOM_SETTINGS,
       createdAt: new Date(),
@@ -289,9 +290,9 @@ router.put('/:themeId', auth, async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    // 如果更新了主色，重新生成調色板
+    // 如果更新了主色，重新生成調色板（除非已提供 generatedPalette）
     let finalUpdateData = { ...updateData };
-    if (updateData.primaryColor) {
+    if (updateData.primaryColor && !updateData.generatedPalette) {
       finalUpdateData.generatedPalette = generateThemePalette(updateData.primaryColor);
     }
 
