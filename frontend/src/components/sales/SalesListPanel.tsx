@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -22,7 +22,9 @@ import {
   Person as PersonIcon,
   Receipt as ReceiptIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  ExpandLess as ExpandLessIcon,
+  UnfoldMore as UnfoldMoreIcon,
+  UnfoldLess as UnfoldLessIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -88,6 +90,19 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
       return newSet;
     });
   };
+
+  // 一鍵展開/收起所有記錄
+  const toggleAllExpanded = () => {
+    if (expandedSales.size === filteredSales.length && filteredSales.length > 0) {
+      // 如果全部都展開了，則收起全部
+      setExpandedSales(new Set());
+    } else {
+      // 否則展開全部
+      const allIds = new Set(filteredSales.map(sale => sale._id));
+      setExpandedSales(allIds);
+    }
+  };
+  
   // 過濾銷售記錄
   const filteredSales = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
@@ -107,6 +122,18 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
       );
     });
   }, [sales, searchTerm]);
+
+  // 當有搜尋條件時自動展開全部
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      // 展開所有過濾後的銷售記錄
+      const allFilteredIds = new Set(filteredSales.map(sale => sale._id));
+      setExpandedSales(allFilteredIds);
+    } else {
+      // 清空搜尋時收起全部
+      setExpandedSales(new Set());
+    }
+  }, [searchTerm, filteredSales]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     onSearchChange(e.target.value);
@@ -148,32 +175,56 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
         borderColor: 'divider',
         p: 2
       }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <ReceiptIcon sx={{ mr: 1, color: 'primary.main' }} />
-            <Typography variant="h6" component="h2" sx={{ fontSize: '1.1rem' }}>
-              銷售記錄 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+        <Box sx={{ display: 'flex', flexDirection: 'column', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <ReceiptIcon sx={{ mr: 1, color: 'primary.main' }} />
+              <Typography variant="h6" component="h2" sx={{ fontSize: '1.1rem' }}>
+                銷售記錄 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+              僅顯示當天且編號前八碼相符的記錄
             </Typography>
           </Box>
-          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
-            僅顯示當天且編號前八碼相符的記錄
-          </Typography>
         </Box>
         
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="搜索銷售記錄..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            )
-          }}
-        />
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="搜索銷售記錄..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          
+          {/* 一鍵展開/收起按鈕 */}
+          <IconButton
+            size="small"
+            onClick={toggleAllExpanded}
+            disabled={filteredSales.length === 0}
+            sx={{
+              flexShrink: 0,
+              color: 'text.secondary',
+              '&:hover': {
+                color: 'primary.main'
+              }
+            }}
+            title={expandedSales.size === filteredSales.length && filteredSales.length > 0 ? '收起全部' : '展開全部'}
+          >
+            {expandedSales.size === filteredSales.length && filteredSales.length > 0 ?
+              <UnfoldLessIcon fontSize="small" /> :
+              <UnfoldMoreIcon fontSize="small" />
+            }
+          </IconButton>
+        </Box>
       </Box>
       
       {/* 可滾動內容區域 */}
