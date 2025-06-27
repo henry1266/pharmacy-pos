@@ -5,6 +5,29 @@
 
 import { UserTheme } from '@pharmacy-pos/shared/types/theme';
 
+/**
+ * 從 hex 顏色提取 RGB 分量
+ */
+function extractRgbFromHex(hex: string): { r: string; g: string; b: string } {
+  // 移除 # 符號
+  const cleanHex = hex.replace('#', '');
+  
+  // 處理 3 位數的 hex (如 #fff)
+  const fullHex = cleanHex.length === 3
+    ? cleanHex.split('').map(char => char + char).join('')
+    : cleanHex;
+  
+  const r = parseInt(fullHex.substring(0, 2), 16);
+  const g = parseInt(fullHex.substring(2, 4), 16);
+  const b = parseInt(fullHex.substring(4, 6), 16);
+  
+  return {
+    r: r.toString(),
+    g: g.toString(),
+    b: b.toString()
+  };
+}
+
 interface ThemeVariables {
   // 主要顏色
   '--primary-color': string;
@@ -28,6 +51,41 @@ interface ThemeVariables {
   
   // 邊框和其他
   '--border-color': string;
+  
+  // Material 3 RGB 分量變數
+  '--primary-r': string;
+  '--primary-g': string;
+  '--primary-b': string;
+  '--secondary-r': string;
+  '--secondary-g': string;
+  '--secondary-b': string;
+  '--success-r': string;
+  '--success-g': string;
+  '--success-b': string;
+  '--error-r': string;
+  '--error-g': string;
+  '--error-b': string;
+  '--warning-r': string;
+  '--warning-g': string;
+  '--warning-b': string;
+  '--info-r': string;
+  '--info-g': string;
+  '--info-b': string;
+  '--surface-r': string;
+  '--surface-g': string;
+  '--surface-b': string;
+  '--background-r': string;
+  '--background-g': string;
+  '--background-b': string;
+  '--on-surface-r': string;
+  '--on-surface-g': string;
+  '--on-surface-b': string;
+  '--on-surface-variant-r': string;
+  '--on-surface-variant-g': string;
+  '--on-surface-variant-b': string;
+  '--outline-r': string;
+  '--outline-g': string;
+  '--outline-b': string;
 }
 
 /**
@@ -46,6 +104,21 @@ export const convertThemeToCSSVariables = (theme: UserTheme): ThemeVariables => 
       ? generatedPalette.material3!.darkScheme
       : generatedPalette.material3!.lightScheme;
     
+    // 提取所有顏色的 RGB 分量
+    const primaryRgb = extractRgbFromHex(material3Scheme.primary);
+    const primaryContainerRgb = extractRgbFromHex(material3Scheme.primaryContainer);
+    const secondaryRgb = extractRgbFromHex(material3Scheme.secondary);
+    const tertiaryRgb = extractRgbFromHex(material3Scheme.tertiary);
+    const errorRgb = extractRgbFromHex(material3Scheme.error);
+    const backgroundRgb = extractRgbFromHex(material3Scheme.background);
+    const surfaceRgb = extractRgbFromHex(material3Scheme.surface);
+    const surfaceVariantRgb = extractRgbFromHex(material3Scheme.surfaceVariant);
+    const onBackgroundRgb = extractRgbFromHex(material3Scheme.onBackground);
+    const onSurfaceVariantRgb = extractRgbFromHex(material3Scheme.onSurfaceVariant);
+    const outlineRgb = extractRgbFromHex(material3Scheme.outline);
+    const onPrimaryRgb = extractRgbFromHex(material3Scheme.onPrimary);
+    const sidebarRgb = extractRgbFromHex(actualMode === 'dark' ? material3Scheme.surfaceVariant : '#0f172a');
+
     return {
       // 主要顏色
       '--primary-color': material3Scheme.primary,
@@ -69,9 +142,88 @@ export const convertThemeToCSSVariables = (theme: UserTheme): ThemeVariables => 
       
       // 邊框
       '--border-color': material3Scheme.outline,
+
+      // RGB 分量 - Primary
+      '--primary-r': primaryRgb.r,
+      '--primary-g': primaryRgb.g,
+      '--primary-b': primaryRgb.b,
+
+      // RGB 分量 - Secondary
+      '--secondary-r': secondaryRgb.r,
+      '--secondary-g': secondaryRgb.g,
+      '--secondary-b': secondaryRgb.b,
+
+      // RGB 分量 - Success (使用 tertiary)
+      '--success-r': tertiaryRgb.r,
+      '--success-g': tertiaryRgb.g,
+      '--success-b': tertiaryRgb.b,
+
+      // RGB 分量 - Error
+      '--error-r': errorRgb.r,
+      '--error-g': errorRgb.g,
+      '--error-b': errorRgb.b,
+
+      // RGB 分量 - Warning (使用 tertiary)
+      '--warning-r': tertiaryRgb.r,
+      '--warning-g': tertiaryRgb.g,
+      '--warning-b': tertiaryRgb.b,
+
+      // RGB 分量 - Info (使用 primary)
+      '--info-r': primaryRgb.r,
+      '--info-g': primaryRgb.g,
+      '--info-b': primaryRgb.b,
+
+      // RGB 分量 - Surface
+      '--surface-r': surfaceRgb.r,
+      '--surface-g': surfaceRgb.g,
+      '--surface-b': surfaceRgb.b,
+
+      // RGB 分量 - Background
+      '--background-r': backgroundRgb.r,
+      '--background-g': backgroundRgb.g,
+      '--background-b': backgroundRgb.b,
+
+      // RGB 分量 - On Surface
+      '--on-surface-r': onBackgroundRgb.r,
+      '--on-surface-g': onBackgroundRgb.g,
+      '--on-surface-b': onBackgroundRgb.b,
+
+      // RGB 分量 - On Surface Variant
+      '--on-surface-variant-r': onSurfaceVariantRgb.r,
+      '--on-surface-variant-g': onSurfaceVariantRgb.g,
+      '--on-surface-variant-b': onSurfaceVariantRgb.b,
+
+      // RGB 分量 - Outline
+      '--outline-r': outlineRgb.r,
+      '--outline-g': outlineRgb.g,
+      '--outline-b': outlineRgb.b,
     };
   } else {
     // 使用傳統調色板
+    // 提取所有顏色的 RGB 分量
+    const primaryRgb = extractRgbFromHex(generatedPalette.primary.main);
+    const primaryLightRgb = extractRgbFromHex(generatedPalette.primary.light);
+    const secondaryRgb = extractRgbFromHex(generatedPalette.secondary.main);
+    const successRgb = extractRgbFromHex(generatedPalette.success.main);
+    const errorRgb = extractRgbFromHex(generatedPalette.error.main);
+    const warningRgb = extractRgbFromHex(generatedPalette.warning.main);
+    const infoRgb = extractRgbFromHex(generatedPalette.info.main);
+    
+    const bgPrimary = actualMode === 'dark' ? '#121212' : '#f5f4f8';
+    const bgSecondary = actualMode === 'dark' ? '#1e1e1e' : '#ffffff';
+    const bgSidebar = actualMode === 'dark' ? '#2d2d2d' : '#0f172a';
+    const textPrimary = actualMode === 'dark' ? '#ffffff' : '#1e293b';
+    const textSecondary = actualMode === 'dark' ? '#b3b3b3' : '#64748b';
+    const textMuted = actualMode === 'dark' ? '#808080' : '#94a3b8';
+    const borderColor = actualMode === 'dark' ? '#404040' : '#e2e8f0';
+    
+    const bgPrimaryRgb = extractRgbFromHex(bgPrimary);
+    const bgSecondaryRgb = extractRgbFromHex(bgSecondary);
+    const textPrimaryRgb = extractRgbFromHex(textPrimary);
+    const textSecondaryRgb = extractRgbFromHex(textSecondary);
+    const textMutedRgb = extractRgbFromHex(textMuted);
+    const borderRgb = extractRgbFromHex(borderColor);
+
     return {
       // 主要顏色
       '--primary-color': generatedPalette.primary.main,
@@ -83,18 +235,73 @@ export const convertThemeToCSSVariables = (theme: UserTheme): ThemeVariables => 
       '--info-color': generatedPalette.info.main,
       
       // 背景顏色 (根據模式調整)
-      '--bg-primary': actualMode === 'dark' ? '#121212' : '#f5f4f8',
-      '--bg-secondary': actualMode === 'dark' ? '#1e1e1e' : '#ffffff',
-      '--bg-sidebar': actualMode === 'dark' ? '#2d2d2d' : '#0f172a',
+      '--bg-primary': bgPrimary,
+      '--bg-secondary': bgSecondary,
+      '--bg-sidebar': bgSidebar,
       
       // 文字顏色
-      '--text-primary': actualMode === 'dark' ? '#ffffff' : '#1e293b',
-      '--text-secondary': actualMode === 'dark' ? '#b3b3b3' : '#64748b',
-      '--text-muted': actualMode === 'dark' ? '#808080' : '#94a3b8',
+      '--text-primary': textPrimary,
+      '--text-secondary': textSecondary,
+      '--text-muted': textMuted,
       '--text-light': '#ffffff',
       
       // 邊框
-      '--border-color': actualMode === 'dark' ? '#404040' : '#e2e8f0',
+      '--border-color': borderColor,
+
+      // RGB 分量 - Primary
+      '--primary-r': primaryRgb.r,
+      '--primary-g': primaryRgb.g,
+      '--primary-b': primaryRgb.b,
+
+      // RGB 分量 - Secondary
+      '--secondary-r': secondaryRgb.r,
+      '--secondary-g': secondaryRgb.g,
+      '--secondary-b': secondaryRgb.b,
+
+      // RGB 分量 - Success
+      '--success-r': successRgb.r,
+      '--success-g': successRgb.g,
+      '--success-b': successRgb.b,
+
+      // RGB 分量 - Error
+      '--error-r': errorRgb.r,
+      '--error-g': errorRgb.g,
+      '--error-b': errorRgb.b,
+
+      // RGB 分量 - Warning
+      '--warning-r': warningRgb.r,
+      '--warning-g': warningRgb.g,
+      '--warning-b': warningRgb.b,
+
+      // RGB 分量 - Info
+      '--info-r': infoRgb.r,
+      '--info-g': infoRgb.g,
+      '--info-b': infoRgb.b,
+
+      // RGB 分量 - Surface (使用 bgSecondary)
+      '--surface-r': bgSecondaryRgb.r,
+      '--surface-g': bgSecondaryRgb.g,
+      '--surface-b': bgSecondaryRgb.b,
+
+      // RGB 分量 - Background
+      '--background-r': bgPrimaryRgb.r,
+      '--background-g': bgPrimaryRgb.g,
+      '--background-b': bgPrimaryRgb.b,
+
+      // RGB 分量 - On Surface
+      '--on-surface-r': textPrimaryRgb.r,
+      '--on-surface-g': textPrimaryRgb.g,
+      '--on-surface-b': textPrimaryRgb.b,
+
+      // RGB 分量 - On Surface Variant
+      '--on-surface-variant-r': textSecondaryRgb.r,
+      '--on-surface-variant-g': textSecondaryRgb.g,
+      '--on-surface-variant-b': textSecondaryRgb.b,
+
+      // RGB 分量 - Outline
+      '--outline-r': borderRgb.r,
+      '--outline-g': borderRgb.g,
+      '--outline-b': borderRgb.b,
     };
   }
 };
@@ -118,6 +325,23 @@ export const injectThemeVariables = (theme: UserTheme): void => {
  * 重置為預設主題
  */
 export const resetToDefaultTheme = (): void => {
+  // 提取預設顏色的 RGB 分量
+  const primaryRgb = extractRgbFromHex('#7a65ff');
+  const primaryLightRgb = extractRgbFromHex('#e5e1ff');
+  const secondaryRgb = extractRgbFromHex('#6c757d');
+  const successRgb = extractRgbFromHex('#00b66a');
+  const dangerRgb = extractRgbFromHex('#e53f3c');
+  const warningRgb = extractRgbFromHex('#f5a623');
+  const infoRgb = extractRgbFromHex('#30b1aa');
+  const bgPrimaryRgb = extractRgbFromHex('#f5f4f8');
+  const bgSecondaryRgb = extractRgbFromHex('#ffffff');
+  const bgSidebarRgb = extractRgbFromHex('#0f172a');
+  const textPrimaryRgb = extractRgbFromHex('#1e293b');
+  const textSecondaryRgb = extractRgbFromHex('#64748b');
+  const textMutedRgb = extractRgbFromHex('#94a3b8');
+  const textLightRgb = extractRgbFromHex('#ffffff');
+  const borderRgb = extractRgbFromHex('#e2e8f0');
+
   const defaultVariables: ThemeVariables = {
     '--primary-color': '#7a65ff',
     '--primary-light': '#e5e1ff',
@@ -134,6 +358,61 @@ export const resetToDefaultTheme = (): void => {
     '--text-muted': '#94a3b8',
     '--text-light': '#ffffff',
     '--border-color': '#e2e8f0',
+
+    // RGB 分量 - Primary
+    '--primary-r': primaryRgb.r,
+    '--primary-g': primaryRgb.g,
+    '--primary-b': primaryRgb.b,
+
+    // RGB 分量 - Secondary
+    '--secondary-r': secondaryRgb.r,
+    '--secondary-g': secondaryRgb.g,
+    '--secondary-b': secondaryRgb.b,
+
+    // RGB 分量 - Success
+    '--success-r': successRgb.r,
+    '--success-g': successRgb.g,
+    '--success-b': successRgb.b,
+
+    // RGB 分量 - Error
+    '--error-r': dangerRgb.r,
+    '--error-g': dangerRgb.g,
+    '--error-b': dangerRgb.b,
+
+    // RGB 分量 - Warning
+    '--warning-r': warningRgb.r,
+    '--warning-g': warningRgb.g,
+    '--warning-b': warningRgb.b,
+
+    // RGB 分量 - Info
+    '--info-r': infoRgb.r,
+    '--info-g': infoRgb.g,
+    '--info-b': infoRgb.b,
+
+    // RGB 分量 - Surface (使用 bgSecondary)
+    '--surface-r': bgSecondaryRgb.r,
+    '--surface-g': bgSecondaryRgb.g,
+    '--surface-b': bgSecondaryRgb.b,
+
+    // RGB 分量 - Background
+    '--background-r': bgPrimaryRgb.r,
+    '--background-g': bgPrimaryRgb.g,
+    '--background-b': bgPrimaryRgb.b,
+
+    // RGB 分量 - On Surface
+    '--on-surface-r': textPrimaryRgb.r,
+    '--on-surface-g': textPrimaryRgb.g,
+    '--on-surface-b': textPrimaryRgb.b,
+
+    // RGB 分量 - On Surface Variant
+    '--on-surface-variant-r': textSecondaryRgb.r,
+    '--on-surface-variant-g': textSecondaryRgb.g,
+    '--on-surface-variant-b': textSecondaryRgb.b,
+
+    // RGB 分量 - Outline
+    '--outline-r': borderRgb.r,
+    '--outline-g': borderRgb.g,
+    '--outline-b': borderRgb.b,
   };
   
   const root = document.documentElement;
@@ -167,5 +446,60 @@ export const getCurrentThemeVariables = (): ThemeVariables => {
     '--text-muted': computedStyle.getPropertyValue('--text-muted').trim(),
     '--text-light': computedStyle.getPropertyValue('--text-light').trim(),
     '--border-color': computedStyle.getPropertyValue('--border-color').trim(),
+
+    // RGB 分量 - Primary
+    '--primary-r': computedStyle.getPropertyValue('--primary-r').trim(),
+    '--primary-g': computedStyle.getPropertyValue('--primary-g').trim(),
+    '--primary-b': computedStyle.getPropertyValue('--primary-b').trim(),
+
+    // RGB 分量 - Secondary
+    '--secondary-r': computedStyle.getPropertyValue('--secondary-r').trim(),
+    '--secondary-g': computedStyle.getPropertyValue('--secondary-g').trim(),
+    '--secondary-b': computedStyle.getPropertyValue('--secondary-b').trim(),
+
+    // RGB 分量 - Success
+    '--success-r': computedStyle.getPropertyValue('--success-r').trim(),
+    '--success-g': computedStyle.getPropertyValue('--success-g').trim(),
+    '--success-b': computedStyle.getPropertyValue('--success-b').trim(),
+
+    // RGB 分量 - Error
+    '--error-r': computedStyle.getPropertyValue('--error-r').trim(),
+    '--error-g': computedStyle.getPropertyValue('--error-g').trim(),
+    '--error-b': computedStyle.getPropertyValue('--error-b').trim(),
+
+    // RGB 分量 - Warning
+    '--warning-r': computedStyle.getPropertyValue('--warning-r').trim(),
+    '--warning-g': computedStyle.getPropertyValue('--warning-g').trim(),
+    '--warning-b': computedStyle.getPropertyValue('--warning-b').trim(),
+
+    // RGB 分量 - Info
+    '--info-r': computedStyle.getPropertyValue('--info-r').trim(),
+    '--info-g': computedStyle.getPropertyValue('--info-g').trim(),
+    '--info-b': computedStyle.getPropertyValue('--info-b').trim(),
+
+    // RGB 分量 - Surface
+    '--surface-r': computedStyle.getPropertyValue('--surface-r').trim(),
+    '--surface-g': computedStyle.getPropertyValue('--surface-g').trim(),
+    '--surface-b': computedStyle.getPropertyValue('--surface-b').trim(),
+
+    // RGB 分量 - Background
+    '--background-r': computedStyle.getPropertyValue('--background-r').trim(),
+    '--background-g': computedStyle.getPropertyValue('--background-g').trim(),
+    '--background-b': computedStyle.getPropertyValue('--background-b').trim(),
+
+    // RGB 分量 - On Surface
+    '--on-surface-r': computedStyle.getPropertyValue('--on-surface-r').trim(),
+    '--on-surface-g': computedStyle.getPropertyValue('--on-surface-g').trim(),
+    '--on-surface-b': computedStyle.getPropertyValue('--on-surface-b').trim(),
+
+    // RGB 分量 - On Surface Variant
+    '--on-surface-variant-r': computedStyle.getPropertyValue('--on-surface-variant-r').trim(),
+    '--on-surface-variant-g': computedStyle.getPropertyValue('--on-surface-variant-g').trim(),
+    '--on-surface-variant-b': computedStyle.getPropertyValue('--on-surface-variant-b').trim(),
+
+    // RGB 分量 - Outline
+    '--outline-r': computedStyle.getPropertyValue('--outline-r').trim(),
+    '--outline-g': computedStyle.getPropertyValue('--outline-g').trim(),
+    '--outline-b': computedStyle.getPropertyValue('--outline-b').trim(),
   };
 };

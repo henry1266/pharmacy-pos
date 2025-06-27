@@ -23,7 +23,6 @@ import useSalesData from '../hooks/useSalesData';
 import useSaleManagementV2 from '../hooks/useSaleManagementV2';
 import useSalesListData from '../hooks/useSalesListData';
 import { type UserShortcut } from '../hooks/useUserSettings';
-// import useSocket from '../hooks/useSocket'; // 移除 WebSocket 多機同步功能
 
 // Import sub-components
 import ShortcutButtonManager from '../components/sales/ShortcutButtonManager';
@@ -457,14 +456,14 @@ const SalesNew2Page: FC = () => {
           gap: { xs: 2, sm: 2.5, md: 3 },
           alignItems: 'center',
           p: { xs: 2, sm: 2.5, md: 3 },
-          backgroundColor: 'rgba(102, 126, 234, 0.05)',
-          borderRadius: 2,
-          border: '1px solid rgba(102, 126, 234, 0.1)'
+          backgroundColor: 'rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.05)',
+          borderRadius: 'var(--border-radius, 8px)',
+          border: '1px solid rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.1)'
         }}>
           <Typography
             variant="subtitle1"
             sx={{
-              color: 'primary.main',
+              color: 'var(--primary-color, #667eea)',
               fontWeight: 600,
               fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
               mr: { xs: 1, sm: 2 }

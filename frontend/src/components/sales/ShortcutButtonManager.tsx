@@ -399,21 +399,23 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
             fontWeight: 600,
             px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 1.5, sm: 2 },
-            borderRadius: 3,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            boxShadow: '0 4px 15px 0 rgba(102, 126, 234, 0.4)',
+            borderRadius: 'var(--border-radius, 12px)',
+            background: `linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--primary-dark, #764ba2) 100%)`,
+            color: 'var(--primary-contrast, #ffffff)',
+            boxShadow: `0 4px 15px 0 var(--primary-shadow, rgba(102, 126, 234, 0.4))`,
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
-              background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-              boxShadow: '0 6px 20px 0 rgba(102, 126, 234, 0.6)',
+              background: `linear-gradient(135deg, var(--primary-dark, #5a6fd8) 0%, var(--primary-darker, #6a4190) 100%)`,
+              boxShadow: `0 6px 20px 0 var(--primary-shadow-hover, rgba(102, 126, 234, 0.6))`,
               transform: 'translateY(-2px)',
             },
             '&:active': {
               transform: 'translateY(0px)',
-              boxShadow: '0 2px 10px 0 rgba(102, 126, 234, 0.4)',
+              boxShadow: `0 2px 10px 0 var(--primary-shadow, rgba(102, 126, 234, 0.4))`,
             },
             '&:disabled': {
-              background: 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)',
+              background: `linear-gradient(135deg, var(--disabled-bg, #e0e0e0) 0%, var(--disabled-bg-dark, #bdbdbd) 100%)`,
+              color: 'var(--disabled-text, #9e9e9e)',
               boxShadow: 'none',
               transform: 'none',
             }
@@ -429,26 +431,29 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
         sx={{
           height: { xs: 48, sm: 52, md: 56 },
           width: { xs: 48, sm: 52, md: 56 },
-          borderRadius: 3,
+          borderRadius: 'var(--border-radius, 12px)',
           border: '2px solid',
-          borderColor: 'primary.main',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
-          boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.1)',
+          borderColor: 'var(--primary-color, #667eea)',
+          background: `linear-gradient(135deg, var(--bg-primary, #ffffff) 0%, var(--bg-secondary, #f5f5f5) 100%)`,
+          boxShadow: `0 2px 8px 0 var(--shadow-light, rgba(0, 0, 0, 0.1))`,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)',
-            borderColor: 'primary.dark',
-            boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.15)',
+            background: `linear-gradient(135deg, var(--bg-hover, #f0f0f0) 0%, var(--bg-hover-dark, #e0e0e0) 100%)`,
+            borderColor: 'var(--primary-dark, #5a6fd8)',
+            boxShadow: `0 4px 12px 0 var(--shadow-medium, rgba(0, 0, 0, 0.15))`,
             transform: 'translateY(-1px)',
           },
           '&:active': {
             transform: 'translateY(0px)',
-            boxShadow: '0 1px 4px 0 rgba(0, 0, 0, 0.1)',
+            boxShadow: `0 1px 4px 0 var(--shadow-light, rgba(0, 0, 0, 0.1))`,
           }
         }}
         disabled={!!error} // Disable if there was an error loading/saving
       >
-        <EditIcon sx={{ fontSize: { xs: 20, sm: 22, md: 24 }, color: 'primary.main' }} />
+        <EditIcon sx={{
+          fontSize: { xs: 20, sm: 22, md: 24 },
+          color: 'var(--primary-color, #667eea)'
+        }} />
       </IconButton>
 
       {/* Dialog to Manage Shortcut Buttons */}

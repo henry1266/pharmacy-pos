@@ -1,30 +1,103 @@
 /* DashUI 主題樣式 - 基於 https://dashui.codescandy.com/dashuipro/ */
 
 :root {
-  /* 主要顏色 */
-  --primary-color: #7a65ff;
-  --primary-light: #e5e1ff;
-  --secondary-color: #6c757d;
-  --success-color: #00b66a;
-  --danger-color: #e53f3c;
-  --warning-color: #f5a623;
-  --info-color: #30b1aa;
+  /* Material 3 RGB 分量變數 - 由 JavaScript 動態注入 */
+  --primary-r: 122;
+  --primary-g: 101;
+  --primary-b: 255;
+  --secondary-r: 108;
+  --secondary-g: 117;
+  --secondary-b: 125;
+  --success-r: 0;
+  --success-g: 182;
+  --success-b: 106;
+  --error-r: 229;
+  --error-g: 63;
+  --error-b: 60;
+  --warning-r: 245;
+  --warning-g: 166;
+  --warning-b: 35;
+  --info-r: 48;
+  --info-g: 177;
+  --info-b: 170;
+  --surface-r: 255;
+  --surface-g: 255;
+  --surface-b: 255;
+  --background-r: 245;
+  --background-g: 244;
+  --background-b: 248;
+  --on-surface-r: 30;
+  --on-surface-g: 41;
+  --on-surface-b: 59;
+  --on-surface-variant-r: 100;
+  --on-surface-variant-g: 116;
+  --on-surface-variant-b: 139;
+  --outline-r: 226;
+  --outline-g: 232;
+  --outline-b: 240;
   
-  /* 背景顏色 */
-  --bg-primary: #f5f4f8;
-  --bg-secondary: #ffffff;
-  --bg-sidebar: #0f172a;
+  /* Material 3 主要顏色 */
+  --primary-color: rgb(var(--primary-r), var(--primary-g), var(--primary-b));
+  --primary-light: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12);
+  --primary-container: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.08);
   
-  /* 文字顏色 */
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  --text-light: #ffffff;
+  /* Material 3 次要顏色 */
+  --secondary-color: rgb(var(--secondary-r), var(--secondary-g), var(--secondary-b));
+  --secondary-container: rgba(var(--secondary-r), var(--secondary-g), var(--secondary-b), 0.08);
   
-  /* 邊框和陰影 */
-  --border-color: #e2e8f0;
-  --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  /* Material 3 狀態顏色 */
+  --success-color: rgb(var(--success-r), var(--success-g), var(--success-b));
+  --success-container: rgba(var(--success-r), var(--success-g), var(--success-b), 0.08);
+  
+  --error-color: rgb(var(--error-r), var(--error-g), var(--error-b));
+  --error-container: rgba(var(--error-r), var(--error-g), var(--error-b), 0.08);
+  
+  --warning-color: rgb(var(--warning-r), var(--warning-g), var(--warning-b));
+  --warning-container: rgba(var(--warning-r), var(--warning-g), var(--warning-b), 0.08);
+  
+  --info-color: rgb(var(--info-r), var(--info-g), var(--info-b));
+  --info-container: rgba(var(--info-r), var(--info-g), var(--info-b), 0.08);
+  
+  /* Material 3 Surface 顏色 */
+  --surface-color: rgb(var(--surface-r), var(--surface-g), var(--surface-b));
+  --surface-variant: rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.95);
+  --surface-container: rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.9);
+  --surface-container-high: rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.85);
+  
+  /* Material 3 Background 顏色 */
+  --background-color: rgb(var(--background-r), var(--background-g), var(--background-b));
+  
+  /* Material 3 Text 顏色 */
+  --on-surface: rgb(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b));
+  --on-surface-variant: rgb(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b));
+  --on-primary: rgb(var(--surface-r), var(--surface-g), var(--surface-b));
+  
+  /* Material 3 Outline 顏色 */
+  --outline: rgb(var(--outline-r), var(--outline-g), var(--outline-b));
+  --outline-variant: rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.5);
+  
+  /* 動態透明度變數 */
+  --primary-alpha-light: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.02);
+  --primary-alpha-medium: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.05);
+  --primary-alpha-strong: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.1);
+  
+  /* 向後相容的別名 */
+  --bg-primary: var(--background-color);
+  --bg-secondary: var(--surface-color);
+  --bg-sidebar: rgb(15, 23, 42);
+  --text-primary: var(--on-surface);
+  --text-secondary: var(--on-surface-variant);
+  --text-muted: rgba(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b), 0.7);
+  --text-light: var(--on-primary);
+  --border-color: var(--outline);
+  --danger-color: var(--error-color);
+  
+  /* Material 3 陰影 */
+  --elevation-1: 0 1px 2px rgba(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b), 0.3), 0 1px 3px 1px rgba(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b), 0.15);
+  --elevation-2: 0 1px 2px rgba(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b), 0.3), 0 2px 6px 2px rgba(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b), 0.15);
+  --elevation-3: 0 1px 3px rgba(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b), 0.3), 0 4px 8px 3px rgba(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b), 0.15);
+  --card-shadow: var(--elevation-1);
+  --card-shadow-hover: var(--elevation-3);
   
   /* 圓角 */
   --border-radius-sm: 0.25rem;
@@ -252,18 +325,18 @@ body {
 }
 
 .stat-card-icon.success {
-  background-color: rgba(0, 217, 126, 0.1);
+  background-color: var(--success-container);
   color: var(--success-color);
 }
 
 .stat-card-icon.warning {
-  background-color: rgba(245, 166, 35, 0.1);
+  background-color: var(--warning-container);
   color: var(--warning-color);
 }
 
 .stat-card-icon.danger {
-  background-color: rgba(229, 63, 60, 0.1);
-  color: var(--danger-color);
+  background-color: var(--error-container);
+  color: var(--error-color);
 }
 
 .stat-card-value {
@@ -313,7 +386,7 @@ body {
 }
 
 .btn-primary:hover {
-  background-color: #5040d9;
+  background-color: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.8);
 }
 
 .btn-secondary {
@@ -322,7 +395,7 @@ body {
 }
 
 .btn-secondary:hover {
-  background-color: #5a6268;
+  background-color: rgba(var(--secondary-r), var(--secondary-g), var(--secondary-b), 0.8);
 }
 
 .btn-success {
@@ -331,16 +404,16 @@ body {
 }
 
 .btn-success:hover {
-  background-color: #00b86b;
+  background-color: rgba(var(--success-r), var(--success-g), var(--success-b), 0.8);
 }
 
 .btn-danger {
-  background-color: var(--danger-color);
+  background-color: var(--error-color);
   color: var(--text-light);
 }
 
 .btn-danger:hover {
-  background-color: #d63230;
+  background-color: rgba(var(--error-r), var(--error-g), var(--error-b), 0.8);
 }
 
 .btn-outline-primary {
@@ -374,11 +447,11 @@ body {
   border-bottom: 2px solid var(--border-color);
   font-weight: 600;
   color: var(--text-secondary);
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--surface-container);
 }
 
 .table tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--surface-container);
 }
 
 /* 表單樣式 */
@@ -410,7 +483,7 @@ body {
 .form-control:focus {
   border-color: var(--primary-color);
   outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(98, 75, 255, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.25);
 }
 
 /* 圖表樣式 */
@@ -431,27 +504,27 @@ body {
 }
 
 .alert-primary {
-  color: #2b208f;
-  background-color: var(--primary-light);
-  border-color: #b9b3ff;
+  color: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.8);
+  background-color: var(--primary-container);
+  border-color: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.3);
 }
 
 .alert-success {
-  color: #0a6b46;
-  background-color: #ccf5e7;
-  border-color: #b9f0da;
+  color: rgba(var(--success-r), var(--success-g), var(--success-b), 0.8);
+  background-color: var(--success-container);
+  border-color: rgba(var(--success-r), var(--success-g), var(--success-b), 0.3);
 }
 
 .alert-danger {
-  color: #721c24;
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
+  color: rgba(var(--error-r), var(--error-g), var(--error-b), 0.8);
+  background-color: var(--error-container);
+  border-color: rgba(var(--error-r), var(--error-g), var(--error-b), 0.3);
 }
 
 .alert-warning {
-  color: #856404;
-  background-color: #fff3cd;
-  border-color: #ffeeba;
+  color: rgba(var(--warning-r), var(--warning-g), var(--warning-b), 0.8);
+  background-color: var(--warning-container);
+  border-color: rgba(var(--warning-r), var(--warning-g), var(--warning-b), 0.3);
 }
 
 /* 徽章 */
@@ -493,7 +566,7 @@ body {
   height: 0.5rem;
   overflow: hidden;
   font-size: 0.75rem;
-  background-color: #e9ecef;
+  background-color: var(--surface-container);
   border-radius: var(--border-radius-sm);
 }
 
@@ -532,7 +605,7 @@ body {
 .MuiAppBar-root {
   background-color: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: var(--elevation-1) !important;
 }
 
 .MuiDrawer-paper {
@@ -585,7 +658,7 @@ body {
 }
 
 .MuiButton-containedPrimary:hover {
-  background-color: #5040d9 !important;
+  background-color: rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.8) !important;
 }
 
 .MuiCard-root {
@@ -607,13 +680,13 @@ body {
 }
 
 .MuiTableCell-head {
-  background-color: rgba(0, 0, 0, 0.02) !important;
+  background-color: var(--surface-container) !important;
   font-weight: 600 !important;
   color: var(--text-secondary) !important;
 }
 
 .MuiTableRow-root:hover {
-  background-color: rgba(0, 0, 0, 0.02) !important;
+  background-color: var(--surface-container) !important;
 }
 
 .MuiChip-root {
@@ -626,41 +699,41 @@ body {
 }
 
 .MuiChip-colorSecondary {
-  background-color: rgba(108, 117, 125, 0.1) !important;
+  background-color: var(--secondary-container) !important;
   color: var(--secondary-color) !important;
 }
 
 .MuiChip-colorSuccess {
-  background-color: rgba(0, 217, 126, 0.1) !important;
+  background-color: var(--success-container) !important;
   color: var(--success-color) !important;
 }
 
 .MuiChip-colorError {
-  background-color: rgba(229, 63, 60, 0.1) !important;
-  color: var(--danger-color) !important;
+  background-color: var(--error-container) !important;
+  color: var(--error-color) !important;
 }
 
 .MuiChip-colorWarning {
-  background-color: rgba(245, 166, 35, 0.1) !important;
+  background-color: var(--warning-container) !important;
   color: var(--warning-color) !important;
 }
 
 .MuiAlert-standardSuccess {
-  background-color: rgba(0, 217, 126, 0.1) !important;
+  background-color: var(--success-container) !important;
   color: var(--success-color) !important;
 }
 
 .MuiAlert-standardError {
-  background-color: rgba(229, 63, 60, 0.1) !important;
-  color: var(--danger-color) !important;
+  background-color: var(--error-container) !important;
+  color: var(--error-color) !important;
 }
 
 .MuiAlert-standardWarning {
-  background-color: rgba(245, 166, 35, 0.1) !important;
+  background-color: var(--warning-container) !important;
   color: var(--warning-color) !important;
 }
 
 .MuiAlert-standardInfo {
-  background-color: rgba(57, 175, 209, 0.1) !important;
+  background-color: var(--info-container) !important;
   color: var(--info-color) !important;
 }
