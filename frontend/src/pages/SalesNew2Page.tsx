@@ -482,7 +482,7 @@ const SalesNew2Page: FC = () => {
         flex: 1,
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
-        gap: { xs: 2, sm: 2, md: 3 },
+        gap: { xs: 1, sm: 2, md: 3 },
         overflow: 'visible', // 改為 visible 讓按鈕可以超出主容器邊界
         minHeight: 0 // 重要：讓 flex 子元素能正確縮小
       }}>
@@ -550,7 +550,6 @@ const SalesNew2Page: FC = () => {
                   flexDirection: 'column',
                   height: '100%',
                   overflow: 'visible', // 改為 visible 讓按鈕可以超出邊界
-
                   position: 'relative' // 為絕對定位的按鈕提供參考點
                 }}>
                   <SalesProductInput
@@ -606,8 +605,7 @@ const SalesNew2Page: FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     height: '100%',
-                    gap: { xs: 2, sm: 2, md: 3 },
-                    overflow: 'hidden',
+                    gap: { xs: 1, sm: 2, md: 3 },
                     pl: { xs: 0, lg: 0.5 }
                   }}
                 >
