@@ -24,6 +24,12 @@ export * from './validationUtils';
 // 錯誤處理工具函數
 export * from './errorUtils';
 
+// 顏色處理工具函數
+export * from './colorUtils';
+
+// Material 3 顏色工具函數
+export * from './material3ColorUtils';
+
 /**
  * 工具函數分類導出
  * 可以按需導入特定分類的工具函數
@@ -56,6 +62,14 @@ export { ValidationUtils };
 // 錯誤處理工具函數命名空間
 import * as ErrorUtils from './errorUtils';
 export { ErrorUtils };
+
+// 顏色工具函數命名空間
+import * as ColorUtils from './colorUtils';
+export { ColorUtils };
+
+// Material 3 顏色工具函數命名空間
+import * as Material3ColorUtils from './material3ColorUtils';
+export { Material3ColorUtils };
 
 /**
  * 版本資訊
@@ -110,6 +124,23 @@ export const USAGE_EXAMPLES = {
       "import { validateEmail, validateRequired } from 'shared/utils';",
       "const emailResult = validateEmail(email);",
       "const requiredResult = validateRequired(value, '姓名');"
+    ]
+  },
+  color: {
+    description: '顏色處理工具函數',
+    examples: [
+      "import { hexToRgb, generateColorPalette, getContrastText } from 'shared/utils';",
+      "const rgb = hexToRgb('#1976d2');",
+      "const palette = generateColorPalette('#1976d2');",
+      "const textColor = getContrastText('#1976d2');"
+    ]
+  },
+  material3Color: {
+    description: 'Material 3 顏色工具函數',
+    examples: [
+      "import { generateMaterial3Theme, enhancePaletteWithMaterial3 } from 'shared/utils';",
+      "const theme = generateMaterial3Theme('#1976d2', 'tonalSpot');",
+      "const enhanced = enhancePaletteWithMaterial3(palette, '#1976d2');"
     ]
   }
 };

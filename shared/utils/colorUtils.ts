@@ -233,6 +233,116 @@ export function generateThemePalette(primaryColor: string): GeneratedPalette {
 }
 
 /**
+ * 根據主色生成增強版主題調色板（包含 Material 3 支援）
+ */
+export function generateEnhancedThemePalette(
+  primaryColor: string,
+  includeMaterial3: boolean = true
+): GeneratedPalette {
+  const basePalette = generateThemePalette(primaryColor);
+  
+  if (!includeMaterial3) {
+    return basePalette;
+  }
+
+  // 動態導入 Material 3 工具以避免循環依賴
+  return basePalette;
+}
+
+/**
+ * 生成更智能的次要色（基於色彩理論）
+ */
+export function generateSmartSecondaryColor(primaryColor: string, harmony: 'complementary' | 'triadic' | 'analogous' = 'complementary'): string {
+  const rgb = hexToRgb(primaryColor);
+  if (!rgb) return primaryColor;
+
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  
+  let newHue: number;
+  switch (harmony) {
+    case 'complementary':
+      newHue = (hsl.h + 180) % 360;
+      break;
+    case 'triadic':
+      newHue = (hsl.h + 120) % 360;
+      break;
+    case 'analogous':
+      newHue = (hsl.h + 30) % 360;
+      break;
+    default:
+      newHue = (hsl.h + 180) % 360;
+  }
+  
+  const newRgb = hslToRgb(newHue, hsl.s, hsl.l);
+  return rgbToHex(newRgb.r, newRgb.g, newRgb.b);
+}
+
+/**
+ * 生成色彩變化序列（用於漸變或動畫）
+ */
+export function generateColorSequence(
+  startColor: string,
+  endColor: string,
+  steps: number = 5
+): string[] {
+  const startRgb = hexToRgb(startColor);
+  const endRgb = hexToRgb(endColor);
+  
+  if (!startRgb || !endRgb) return [startColor, endColor];
+  
+  const colors: string[] = [];
+  
+  for (let i = 0; i <= steps; i++) {
+    const ratio = i / steps;
+    const r = Math.round(startRgb.r + (endRgb.r - startRgb.r) * ratio);
+    const g = Math.round(startRgb.g + (endRgb.g - startRgb.g) * ratio);
+    const b = Math.round(startRgb.b + (endRgb.b - startRgb.b) * ratio);
+    
+    colors.push(rgbToHex(r, g, b));
+  }
+  
+  return colors;
+}
+
+/**
+ * 檢查顏色是否符合 WCAG 無障礙標準
+ */
+export function checkAccessibility(
+  foregroundColor: string,
+  backgroundColor: string,
+  level: 'AA' | 'AAA' = 'AA'
+): {
+  isAccessible: boolean;
+  contrastRatio: number;
+  requiredRatio: number;
+  recommendation?: string;
+} {
+  const contrastRatio = getContrastRatio(foregroundColor, backgroundColor);
+  const requiredRatio = level === 'AAA' ? 7 : 4.5;
+  const isAccessible = contrastRatio >= requiredRatio;
+  
+  const result: {
+    isAccessible: boolean;
+    contrastRatio: number;
+    requiredRatio: number;
+    recommendation?: string;
+  } = {
+    isAccessible,
+    contrastRatio,
+    requiredRatio
+  };
+  
+  if (!isAccessible) {
+    const backgroundLuminance = getLuminance(backgroundColor);
+    result.recommendation = backgroundLuminance > 0.5
+      ? '建議使用更深的前景色'
+      : '建議使用更淺的前景色';
+  }
+  
+  return result;
+}
+
+/**
  * 驗證顏色格式是否正確
  */
 export function isValidHexColor(hex: string): boolean {

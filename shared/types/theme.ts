@@ -30,6 +30,74 @@ export interface GeneratedPalette {
   info: ColorPalette;
 }
 
+// Material 3 調色系統型別定義
+export interface Material3TonalPalette {
+  0: string;   // 黑色
+  10: string;  // 最深色調
+  20: string;
+  30: string;
+  40: string;
+  50: string;  // 基準色
+  60: string;
+  70: string;
+  80: string;
+  90: string;
+  95: string;
+  99: string;  // 最淺色調
+  100: string; // 白色
+}
+
+export interface Material3CorePalette {
+  primary: Material3TonalPalette;
+  secondary: Material3TonalPalette;
+  tertiary: Material3TonalPalette;
+  neutral: Material3TonalPalette;
+  neutralVariant: Material3TonalPalette;
+  error: Material3TonalPalette;
+}
+
+export interface Material3ColorScheme {
+  primary: string;
+  onPrimary: string;
+  primaryContainer: string;
+  onPrimaryContainer: string;
+  secondary: string;
+  onSecondary: string;
+  secondaryContainer: string;
+  onSecondaryContainer: string;
+  tertiary: string;
+  onTertiary: string;
+  tertiaryContainer: string;
+  onTertiaryContainer: string;
+  error: string;
+  onError: string;
+  errorContainer: string;
+  onErrorContainer: string;
+  background: string;
+  onBackground: string;
+  surface: string;
+  onSurface: string;
+  surfaceVariant: string;
+  onSurfaceVariant: string;
+  outline: string;
+  outlineVariant: string;
+  shadow: string;
+  scrim: string;
+  inverseSurface: string;
+  inverseOnSurface: string;
+  inversePrimary: string;
+}
+
+export interface Material3ThemeData {
+  corePalette: Material3CorePalette;
+  lightScheme: Material3ColorScheme;
+  darkScheme: Material3ColorScheme;
+}
+
+export interface EnhancedGeneratedPalette extends GeneratedPalette {
+  material3?: Material3ThemeData;
+}
+
 export interface CustomThemeSettings {
   borderRadius: number;
   elevation: number;
@@ -41,7 +109,7 @@ export interface UserTheme {
   userId: string;
   primaryColor: string;
   themeName: string;
-  generatedPalette: GeneratedPalette;
+  generatedPalette: EnhancedGeneratedPalette;
   mode: 'light' | 'dark' | 'auto';
   customSettings: CustomThemeSettings;
   createdAt?: Date;

@@ -44,5 +44,8 @@
   "bugs": {
     "url": "https://github.com/your-org/pharmacy-pos/issues"
   },
-  "homepage": "https://github.com/your-org/pharmacy-pos#readme"
+  "homepage": "https://github.com/your-org/pharmacy-pos#readme",
+  "dependencies": {
+    "@material/material-color-utilities": "^0.3.0"
+  }
 }
