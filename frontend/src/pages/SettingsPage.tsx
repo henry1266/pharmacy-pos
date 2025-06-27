@@ -116,9 +116,7 @@ const SettingsPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          <Material3ThemeSelector
-            primaryColor={currentTheme?.primaryColor || '#1976d2'}
-          />
+          <Material3ThemeSelector />
         </TabPanel>
 
         <TabPanel value={tabValue} index={2}>

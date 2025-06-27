@@ -36,9 +36,10 @@ import { EnhancedGeneratedPalette, UserTheme } from '@pharmacy-pos/shared/types/
 import { Material3SchemeType } from '@pharmacy-pos/shared/utils';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemePreview } from './ThemePreview';
+import { ColorPicker } from './ColorPicker';
 
 interface Material3ThemeSelectorProps {
-  primaryColor: string;
+  primaryColor?: string;
   onThemeChange?: (palette: EnhancedGeneratedPalette) => void;
   onSave?: (themeName: string, palette: EnhancedGeneratedPalette) => void;
 }
@@ -77,7 +78,7 @@ const ColorDisplay: React.FC<ColorDisplayProps> = ({ color, label, size = 'mediu
 };
 
 export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
-  primaryColor,
+  primaryColor: initialPrimaryColor,
   onThemeChange,
   onSave
 }) => {
@@ -85,6 +86,9 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
   const [previewPalette, setPreviewPalette] = useState<EnhancedGeneratedPalette | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPrimaryColor, setCurrentPrimaryColor] = useState<string>(
+    initialPrimaryColor || '#1976d2'
+  );
 
   const schemeOptions = themeServiceV2.getMaterial3SchemeOptions();
   const {
@@ -101,7 +105,7 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
     setError(null);
     
     try {
-      const palette = await themeServiceV2.previewMaterial3Theme(primaryColor, schemeType);
+      const palette = await themeServiceV2.previewMaterial3Theme(currentPrimaryColor, schemeType);
       setPreviewPalette(palette);
       onThemeChange?.(palette);
       
@@ -109,7 +113,7 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
       const tempTheme: UserTheme = {
         _id: 'temp-material3-preview',
         themeName: `Material 3 ${schemeOptions.find(opt => opt.value === schemeType)?.label} 預覽`,
-        primaryColor,
+        primaryColor: currentPrimaryColor,
         mode: currentTheme?.mode || 'light',
         customSettings: currentTheme?.customSettings || {
           borderRadius: 8,
@@ -134,14 +138,19 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
 
   // 當主色或方案改變時自動預覽
   useEffect(() => {
-    if (primaryColor) {
+    if (currentPrimaryColor) {
       previewMaterial3Theme(selectedScheme);
     }
-  }, [primaryColor, selectedScheme]);
+  }, [currentPrimaryColor, selectedScheme]);
 
   // 處理方案選擇
   const handleSchemeChange = (schemeType: Material3SchemeType) => {
     setSelectedScheme(schemeType);
+  };
+
+  // 處理顏色變化
+  const handleColorChange = (color: string) => {
+    setCurrentPrimaryColor(color);
   };
 
   // 保存主題
@@ -224,6 +233,17 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
         </Alert>
       )}
 
+      {/* 選色盤 */}
+      <Box sx={{ mb: 3 }}>
+        <ColorPicker
+          value={currentPrimaryColor}
+          onChange={handleColorChange}
+          title="選擇 Material 3 主題色彩"
+          showPresets={true}
+          showInput={true}
+        />
+      </Box>
+
       {/* 控制面板 */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -300,7 +320,7 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
                 <Typography variant="body2" color="text.secondary">
                   主色：
                 </Typography>
-                <ColorDisplay color={primaryColor} label={primaryColor} size="small" />
+                <ColorDisplay color={currentPrimaryColor} label={currentPrimaryColor} size="small" />
               </Box>
             </Grid>
           </Grid>
