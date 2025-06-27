@@ -43,8 +43,8 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
 }) => {
   return (
     <Card sx={{
-      maxWidth: '100%',
-      minWidth: { xs: '100%', lg: 280, xl: 320 },
+      maxWidth: { xs: '100%', lg: 250, xl: 270 },
+      minWidth: { xs: '100%', lg: 200, xl: 220 },
       boxShadow: 2
     }}>
       <CardHeader

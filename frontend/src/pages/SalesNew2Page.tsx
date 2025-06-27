@@ -493,7 +493,7 @@ const SalesNew2Page: FC = () => {
           maxWidth: isMobile ? '100%' : '360px',
           height: isMobile ? '35%' : '100%',
           flexShrink: 0,
-          overflow: 'hidden'
+ 
         }}>
           <SalesListPanel
             sales={sales}
