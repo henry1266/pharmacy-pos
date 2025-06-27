@@ -31,6 +31,7 @@ import SaleInfoCard from '../components/sales/SaleInfoCard';
 import SalesProductInput from '../components/sales/SalesProductInput';
 import SalesItemsTable from '../components/sales/SalesItemsTable';
 import SalesListPanel from '../components/sales/SalesListPanel';
+import CheckoutSuccessEffect from '../components/sales/CheckoutSuccessEffect';
 
 // Import types
 import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
@@ -113,6 +114,8 @@ const SalesNew2Page: FC = () => {
   const navigate = useNavigate();
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
+  const [showCheckoutEffect, setShowCheckoutEffect] = useState<boolean>(false);
+  const [lastSaleData, setLastSaleData] = useState<{ totalAmount: number; saleNumber: string } | null>(null);
 
   useEffect(() => {
     const testModeActive = localStorage.getItem('isTestMode') === 'true';
@@ -169,13 +172,28 @@ const SalesNew2Page: FC = () => {
   // Sales list search state
   const [searchTerm, setSearchTerm] = useState<string>('');
 
+  // Focus barcode function
+  const focusBarcode = useCallback(() => {
+    setTimeout(() => {
+        if (barcodeInputRef.current) {
+            barcodeInputRef.current.focus();
+        }
+    }, 50);
+  }, []);
+
   // Callback function for when a sale is completed
-  const handleSaleCompleted = useCallback(() => {
+  const handleSaleCompleted = useCallback((saleData?: { totalAmount: number; saleNumber: string }) => {
+    // 顯示結帳特效
+    if (saleData) {
+      setLastSaleData(saleData);
+      setShowCheckoutEffect(true);
+    }
+    
     // Refresh the sales list after a successful sale
     refreshSales();
     // Focus back to barcode input
     focusBarcode();
-  }, [refreshSales]);
+  }, [refreshSales, focusBarcode]);
 
   // Use the enhanced custom hook to manage sale state and logic
   const {
@@ -206,14 +224,6 @@ const SalesNew2Page: FC = () => {
   const [selectedShortcut, setSelectedShortcut] = useState<UserShortcut | null>(null);
   const [infoExpanded, setInfoExpanded] = useState<boolean>(!isMobile);
 
-  const focusBarcode = useCallback(() => {
-    setTimeout(() => {
-        if (barcodeInputRef.current) {
-            barcodeInputRef.current.focus();
-        }
-    }, 50);
-  }, []);
-
   const handleQuantityInputComplete = useCallback(() => {
     focusBarcode();
   }, [focusBarcode]);
@@ -236,15 +246,28 @@ const SalesNew2Page: FC = () => {
     if (isTestMode) {
       // Simulate save for test mode
       console.log("Test Mode: Simulating save sale with data:", currentSale);
+      
+      // 模擬銷貨單號生成
+      const mockSaleNumber = `TEST${Date.now().toString().slice(-8)}`;
+      const saleData = {
+        totalAmount: currentSale.totalAmount,
+        saleNumber: mockSaleNumber
+      };
+      
       showSnackbar('測試模式：銷售記錄已模擬儲存成功！', 'success');
       resetForm();
-      refreshSales(); // Refresh the sales list
-      focusBarcode();
+      handleSaleCompleted(saleData);
       return;
     }
+    
     const success = await handleSaveSaleHook();
     if (success) {
-      focusBarcode(); 
+      // 實際模式下也需要傳遞銷售數據來觸發特效
+      const saleData = {
+        totalAmount: currentSale.totalAmount,
+        saleNumber: currentSale.saleNumber || `SALE${Date.now().toString().slice(-8)}`
+      };
+      handleSaleCompleted(saleData);
     }
   };
 
@@ -647,6 +670,14 @@ const SalesNew2Page: FC = () => {
           </Paper>
         </Box>
       </Box>
+
+      {/* 結帳成功特效 */}
+      <CheckoutSuccessEffect
+        show={showCheckoutEffect}
+        onComplete={() => setShowCheckoutEffect(false)}
+        totalAmount={lastSaleData?.totalAmount}
+        saleNumber={lastSaleData?.saleNumber}
+      />
 
       <Snackbar
         open={snackbar.open}

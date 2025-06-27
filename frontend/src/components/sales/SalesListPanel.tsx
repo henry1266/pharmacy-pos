@@ -14,7 +14,8 @@ import {
   InputAdornment,
   Divider,
   Collapse,
-  IconButton
+  IconButton,
+  Link
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -195,12 +196,12 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                 <React.Fragment key={sale._id}>
                   <ListItem
                     sx={{
-                      py: 0.5,
-                      px: 1.5, // 縮窄左右內距
+                      py: 0.25, // 減少上下內距
+                      px: 1.5,
                       flexDirection: 'column',
                       alignItems: 'stretch',
-                      minHeight: '64px', // 固定最小高度
-                      maxHeight: isExpanded ? 'none' : '64px', // 摺疊時限制高度
+                      minHeight: '48px', // 減少最小高度
+                      maxHeight: isExpanded ? 'none' : '48px', // 摺疊時限制高度
                       '&:hover': {
                         backgroundColor: 'action.hover'
                       }
@@ -210,11 +211,11 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                     <Box
                       sx={{
                         display: 'flex',
-                        alignItems: 'flex-start',
+                        alignItems: 'center', // 改為 center 對齊
                         width: '100%',
                         cursor: 'pointer',
-                        minHeight: '60px', // 確保基本資訊區域固定高度
-                        py: 0.5,
+                        minHeight: '44px', // 減少基本資訊區域高度
+                        py: 0.25, // 減少內距
                         gap: 0.5
                       }}
                       onClick={() => toggleExpanded(sale._id)}
@@ -237,11 +238,11 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                             variant="subtitle2"
                             sx={{
                               fontWeight: 'bold',
-                              fontSize: '0.85rem',
+                              fontSize: '0.9rem', // 增大字體
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
-                              lineHeight: 1.3,
+                              lineHeight: 1.2, // 減少行高
                               flex: '0 1 auto',
                               minWidth: 0
                             }}
@@ -266,7 +267,7 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                             variant="caption"
                             color="textSecondary"
                             sx={{
-                              fontSize: '0.7rem',
+                              fontSize: '0.8rem', // 增大時間字體
                               lineHeight: 1.2,
                               textAlign: 'right',
                               overflow: 'hidden',
@@ -347,22 +348,28 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                           ))}
                         </Box>
 
-                        {onSaleClick && (
-                          <Box sx={{ mt: 1, textAlign: 'right' }}>
-                            <Typography
-                              variant="caption"
-                              color="primary"
-                              sx={{
-                                cursor: 'pointer',
-                                textDecoration: 'underline',
-                                fontSize: '0.75rem'
-                              }}
-                              onClick={() => onSaleClick(sale)}
-                            >
-                              查看詳情
-                            </Typography>
-                          </Box>
-                        )}
+                        {/* 詳情連結固定在右下角 */}
+                        <Box sx={{ mt: 1, textAlign: 'right' }}>
+                          <Link
+                            href={`/sales/${sale._id}`}
+                            color="primary"
+                            underline="hover"
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontWeight: 'medium',
+                              cursor: 'pointer'
+                            }}
+                            onClick={(e) => {
+                              if (onSaleClick) {
+                                e.preventDefault();
+                                onSaleClick(sale);
+                              }
+                              // 如果沒有 onSaleClick，則使用預設的連結導航
+                            }}
+                          >
+                            詳情
+                          </Link>
+                        </Box>
                       </Box>
                     </Collapse>
                   </ListItem>
