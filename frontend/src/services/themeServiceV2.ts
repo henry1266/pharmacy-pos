@@ -1,69 +1,126 @@
 /**
- * 主題服務 V2 - 整合到用戶設定檔
- * 使用認證 API 端點管理主題設定
+ * 主題服務 V2 - 使用統一的 shared API 客戶端
+ * 整合 BaseApiClient 架構
  */
 
-import axios from 'axios';
-import { UserTheme } from '@pharmacy-pos/shared/types/theme';
+import { ThemeApiClient } from '@pharmacy-pos/shared/services/themeApiClient';
+import { BaseApiClient } from '@pharmacy-pos/shared/services/baseApiClient';
+import { UserTheme, CreateUserThemeRequest, UpdateUserThemeRequest, DEFAULT_THEME_COLORS } from '@pharmacy-pos/shared/types/theme';
 import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 
 /**
- * 主題服務類別 - 整合到用戶認證系統
+ * HTTP 客戶端實作
+ */
+class HttpClientImpl {
+  private getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { 'x-auth-token': token } : {};
+  }
+
+  async request<T>(config: {
+    method: string;
+    url: string;
+    data?: any;
+    headers?: Record<string, string>;
+  }): Promise<{ data: T }> {
+    const response = await fetch(config.url, {
+      method: config.method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+        ...config.headers
+      },
+      ...(config.data && { body: JSON.stringify(config.data) })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return { data };
+  }
+}
+
+/**
+ * 主題服務類別 V2 - 使用認證端點
  */
 export class ThemeServiceV2 {
+  private baseUrl: string;
+  private httpClient: HttpClientImpl;
+
+  constructor() {
+    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    this.httpClient = new HttpClientImpl();
+  }
+
   private getAuthHeaders() {
     const token = localStorage.getItem('token');
     return token ? { 'x-auth-token': token } : {};
   }
 
   private async makeRequest<T>(method: string, url: string, data?: any): Promise<T> {
-    const config = {
+    const response = await fetch(`${this.baseUrl}${url}`, {
       method,
-      url: `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${url}`,
       headers: {
         'Content-Type': 'application/json',
         ...this.getAuthHeaders()
       },
-      ...(data && { data })
-    };
+      ...(data && { body: JSON.stringify(data) })
+    });
 
-    const response = await axios(config);
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result;
   }
 
   // 獲取用戶主題列表
   async getUserThemes(): Promise<UserTheme[]> {
-    const response = await this.makeRequest<ApiResponse<UserTheme[]>>('GET', '/api/auth/themes');
+    const response = await this.makeRequest<ApiResponse<UserTheme[]>>('GET', '/api/themes');
     return response.data;
   }
 
   // 建立新主題
   async createTheme(themeData: Partial<UserTheme>): Promise<UserTheme> {
-    const response = await this.makeRequest<ApiResponse<UserTheme>>('POST', '/api/auth/themes', themeData);
+    const response = await this.makeRequest<ApiResponse<UserTheme>>('POST', '/api/themes', themeData);
     return response.data;
   }
 
   // 更新主題
   async updateTheme(themeId: string, themeData: Partial<UserTheme>): Promise<UserTheme> {
-    const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/auth/themes/${themeId}`, themeData);
+    const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/themes/${themeId}`, themeData);
     return response.data;
   }
 
   // 刪除主題
   async deleteTheme(themeId: string): Promise<void> {
-    await this.makeRequest<ApiResponse<{ message: string }>>('DELETE', `/api/auth/themes/${themeId}`);
+    await this.makeRequest<ApiResponse<{ message: string }>>('DELETE', `/api/themes/${themeId}`);
   }
 
   // 獲取預設顏色
-  async getDefaultColors(): Promise<Record<string, string>> {
-    const response = await this.makeRequest<ApiResponse<Record<string, string>>>('GET', '/api/auth/themes/default-colors');
+  async getDefaultColors(): Promise<typeof DEFAULT_THEME_COLORS> {
+    const response = await this.makeRequest<ApiResponse<typeof DEFAULT_THEME_COLORS>>('GET', '/api/themes/default-colors');
     return response.data;
   }
 
   // 設定當前主題
   async setCurrentTheme(themeId: string): Promise<UserTheme> {
-    const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/auth/themes/current/${themeId}`, {});
+    const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/themes/current/${themeId}`, {});
     return response.data;
+  }
+
+  // 獲取當前主題
+  async getCurrentTheme(): Promise<UserTheme | null> {
+    try {
+      const response = await this.makeRequest<ApiResponse<UserTheme | null>>('GET', '/api/themes/current');
+      return response.data;
+    } catch (error) {
+      console.error('獲取當前主題失敗:', error);
+      return null;
+    }
   }
 
   // 獲取當前用戶資料（包含主題設定）
@@ -72,26 +129,6 @@ export class ThemeServiceV2 {
     return response.data;
   }
 
-  // 獲取當前主題
-  async getCurrentTheme(): Promise<UserTheme | null> {
-    try {
-      const user = await this.getCurrentUser();
-      const currentThemeId = user.settings?.theme?.currentThemeId;
-      
-      if (!currentThemeId || !user.settings?.theme?.themes) {
-        return null;
-      }
-
-      const currentTheme = user.settings.theme.themes.find(
-        (theme: UserTheme) => theme._id === currentThemeId
-      );
-
-      return currentTheme || null;
-    } catch (error) {
-      console.error('獲取當前主題失敗:', error);
-      return null;
-    }
-  }
 
   // 複製主題
   async duplicateTheme(themeId: string, newName: string): Promise<UserTheme> {

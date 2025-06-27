@@ -275,7 +275,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     // 使用輔助函數建立更新欄位物件
-    const supplierFields = createUpdateFields<SupplierType>(requestBody);
+    const supplierFields = createSupplierFields(requestBody);
     
     // 檢查編號是否重複
     if (await isCodeDuplicate(supplierFields.code, supplier.code)) {

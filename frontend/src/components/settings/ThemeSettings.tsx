@@ -39,7 +39,7 @@ import {
   ColorLens as ColorLensIcon,
 } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
-import { DEFAULT_THEME_COLORS } from '@pharmacy-pos/shared';
+import { DEFAULT_THEME_COLORS } from '@pharmacy-pos/shared/types/theme';
 
 /**
  * 顏色選擇器組件
@@ -122,7 +122,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ color, onChange, label }) => 
               預設顏色
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {Object.entries(DEFAULT_THEME_COLORS).map(([name, colorValue]) => (
+              {DEFAULT_THEME_COLORS && Object.entries(DEFAULT_THEME_COLORS).map(([name, colorValue]) => (
                 <Tooltip key={name} title={name}>
                   <Box
                     sx={{
@@ -177,7 +177,7 @@ const ThemeSettings: React.FC = () => {
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newThemeName, setNewThemeName] = useState('');
-  const [newThemeColor, setNewThemeColor] = useState<string>(DEFAULT_THEME_COLORS.blue);
+  const [newThemeColor, setNewThemeColor] = useState<string>(DEFAULT_THEME_COLORS?.blue || '#1976d2');
 
   /**
    * 建立新主題
@@ -193,7 +193,7 @@ const ThemeSettings: React.FC = () => {
       });
       setCreateDialogOpen(false);
       setNewThemeName('');
-      setNewThemeColor(DEFAULT_THEME_COLORS.blue);
+      setNewThemeColor(DEFAULT_THEME_COLORS?.blue || '#1976d2');
     } catch (error) {
       console.error('建立主題失敗:', error);
     }
@@ -203,29 +203,53 @@ const ThemeSettings: React.FC = () => {
    * 更新主色
    */
   const handlePrimaryColorChange = async (color: string) => {
-    if (!currentTheme) return;
-    await updateCurrentTheme(currentTheme._id, { primaryColor: color });
+    if (!currentTheme?._id) {
+      console.error('沒有當前主題 ID');
+      return;
+    }
+    
+    try {
+      await updateCurrentTheme(currentTheme._id, { primaryColor: color });
+    } catch (error) {
+      console.error('更新主色失敗:', error);
+    }
   };
 
   /**
    * 更新模式
    */
   const handleModeChange = async (mode: 'light' | 'dark' | 'auto') => {
-    if (!currentTheme) return;
-    await updateCurrentTheme(currentTheme._id, { mode });
+    if (!currentTheme?._id) {
+      console.error('沒有當前主題 ID');
+      return;
+    }
+    
+    try {
+      await updateCurrentTheme(currentTheme._id, { mode });
+    } catch (error) {
+      console.error('更新模式失敗:', error);
+    }
   };
 
   /**
    * 更新自定義設定
    */
   const handleCustomSettingChange = async (key: string, value: number) => {
-    if (!currentTheme) return;
-    await updateCurrentTheme(currentTheme._id, {
-      customSettings: {
-        ...currentTheme.customSettings,
-        [key]: value,
-      },
-    });
+    if (!currentTheme?._id) {
+      console.error('沒有當前主題 ID');
+      return;
+    }
+    
+    try {
+      await updateCurrentTheme(currentTheme._id, {
+        customSettings: {
+          ...currentTheme.customSettings,
+          [key]: value,
+        },
+      });
+    } catch (error) {
+      console.error('更新自定義設定失敗:', error);
+    }
   };
 
   if (loading) {

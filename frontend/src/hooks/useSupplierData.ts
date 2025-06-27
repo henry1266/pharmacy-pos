@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllSuppliers, createSupplier } from '../services/supplierServiceV2';
+import {
+  getAllSuppliers,
+  createSupplier,
+  updateSupplier as updateSupplierService,
+  deleteSupplier as deleteSupplierService
+} from '../services/supplierServiceV2';
 import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
@@ -78,7 +83,7 @@ const useSupplierData = () => {
   // Update supplier
   const updateSupplier = useCallback(async (id: string, supplierData: Partial<Supplier>): Promise<boolean> => {
     try {
-      await updateSupplier(id, supplierData);
+      await updateSupplierService(id, supplierData);
       await fetchSuppliers(); // Re-fetch after updating
       // Update selected supplier if it was the one being edited
       if (selectedSupplier && selectedSupplier._id === id) {
@@ -96,7 +101,7 @@ const useSupplierData = () => {
   // Delete supplier
   const deleteSupplier = useCallback(async (id: string): Promise<boolean> => {
     try {
-      await deleteSupplier(id);
+      await deleteSupplierService(id);
       await fetchSuppliers(); // Re-fetch after deleting
       if (selectedSupplier && (selectedSupplier._id === id || (selectedSupplier as any).id === id)) {
         setSelectedSupplier(null); // Clear selection if deleted
