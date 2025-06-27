@@ -1,203 +1,154 @@
 /**
- * 主題服務 V2 - 使用統一 API 客戶端
- * 基於 shared 模組的主題管理服務
+ * 主題服務 V2 - 整合到用戶設定檔
+ * 使用認證 API 端點管理主題設定
  */
 
 import axios from 'axios';
-import { createThemeApiClient, HttpClient } from '@pharmacy-pos/shared';
-import type { 
-  UserTheme, 
-  CreateUserThemeRequest, 
-  UpdateUserThemeRequest,
-  UserThemeQueryParams,
-  DuplicateThemeRequest,
-  DEFAULT_THEME_COLORS 
-} from '@pharmacy-pos/shared';
+import { UserTheme } from '@pharmacy-pos/shared/types/theme';
+import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 
 /**
- * Axios 適配器 - 實現 HttpClient 介面，包含認證 headers
+ * 主題服務類別 - 整合到用戶認證系統
  */
-const createAxiosAdapter = (): HttpClient => {
-  const getAuthHeaders = () => {
+export class ThemeServiceV2 {
+  private getAuthHeaders() {
     const token = localStorage.getItem('token');
     return token ? { 'x-auth-token': token } : {};
-  };
-
-  return {
-    get: async (url: string, config?: any) => {
-      const response = await axios.get(url, {
-        ...config,
-        headers: {
-          ...getAuthHeaders(),
-          ...config?.headers
-        }
-      });
-      return { data: response.data };
-    },
-    post: async (url: string, data?: any, config?: any) => {
-      const response = await axios.post(url, data, {
-        ...config,
-        headers: {
-          ...getAuthHeaders(),
-          ...config?.headers
-        }
-      });
-      return { data: response.data };
-    },
-    put: async (url: string, data?: any, config?: any) => {
-      const response = await axios.put(url, data, {
-        ...config,
-        headers: {
-          ...getAuthHeaders(),
-          ...config?.headers
-        }
-      });
-      return { data: response.data };
-    },
-    delete: async (url: string, config?: any) => {
-      const response = await axios.delete(url, {
-        ...config,
-        headers: {
-          ...getAuthHeaders(),
-          ...config?.headers
-        }
-      });
-      return { data: response.data };
-    }
-  };
-};
-
-/**
- * 創建主題 API 客戶端實例
- */
-const themeApiClient = createThemeApiClient(createAxiosAdapter());
-
-/**
- * 主題服務 V2 - 前端適配器
- * 使用方法綁定實現零重複代碼
- */
-export const themeServiceV2 = {
-  // 基本 CRUD 操作
-  getUserThemes: themeApiClient.getUserThemes.bind(themeApiClient),
-  getUserDefaultTheme: themeApiClient.getUserDefaultTheme.bind(themeApiClient),
-  getThemeById: themeApiClient.getThemeById.bind(themeApiClient),
-  createTheme: themeApiClient.createTheme.bind(themeApiClient),
-  updateTheme: themeApiClient.updateTheme.bind(themeApiClient),
-  deleteTheme: themeApiClient.deleteTheme.bind(themeApiClient),
-  
-  // 進階功能
-  duplicateTheme: themeApiClient.duplicateTheme.bind(themeApiClient),
-  getDefaultColors: themeApiClient.getDefaultColors.bind(themeApiClient),
-  searchUserThemes: themeApiClient.searchUserThemes.bind(themeApiClient),
-  getUserThemesByMode: themeApiClient.getUserThemesByMode.bind(themeApiClient),
-  
-  // 批量操作
-  bulkDeleteThemes: themeApiClient.bulkDeleteThemes.bind(themeApiClient),
-  exportUserThemes: themeApiClient.exportUserThemes.bind(themeApiClient),
-  importUserThemes: themeApiClient.importUserThemes.bind(themeApiClient),
-  resetUserThemes: themeApiClient.resetUserThemes.bind(themeApiClient),
-  
-  // 統計功能
-  getThemeStats: themeApiClient.getThemeStats.bind(themeApiClient),
-};
-
-/**
- * 獲取當前用戶 ID 的輔助函數
- */
-const getCurrentUserId = (): string => {
-  try {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      return user.id || user._id || 'default-user';
-    }
-  } catch (error) {
-    console.warn('解析用戶資訊失敗:', error);
   }
-  return 'default-user';
-};
 
-/**
- * 便利函數：獲取當前用戶的主題
- */
-export const getCurrentUserThemes = async (): Promise<UserTheme[]> => {
-  const currentUserId = getCurrentUserId();
-  return themeServiceV2.getUserThemes(currentUserId);
-};
+  private async makeRequest<T>(method: string, url: string, data?: any): Promise<T> {
+    const config = {
+      method,
+      url: `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${url}`,
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders()
+      },
+      ...(data && { data })
+    };
 
-/**
- * 便利函數：獲取當前用戶的預設主題
- */
-export const getCurrentUserDefaultTheme = async (): Promise<UserTheme | null> => {
-  try {
-    const currentUserId = getCurrentUserId();
-    return await themeServiceV2.getUserDefaultTheme(currentUserId);
-  } catch (error) {
-    console.warn('無法獲取預設主題，可能用戶尚未設定主題:', error);
-    return null;
+    const response = await axios(config);
+    return response.data;
   }
-};
 
-/**
- * 便利函數：為當前用戶建立主題
- */
-export const createThemeForCurrentUser = async (
-  themeData: Omit<CreateUserThemeRequest, 'userId'>
-): Promise<UserTheme> => {
-  const currentUserId = getCurrentUserId();
-  return themeServiceV2.createTheme({
-    ...themeData,
-    userId: currentUserId
-  });
-};
+  // 獲取用戶主題列表
+  async getUserThemes(): Promise<UserTheme[]> {
+    const response = await this.makeRequest<ApiResponse<UserTheme[]>>('GET', '/api/auth/themes');
+    return response.data;
+  }
 
-/**
- * 便利函數：搜尋當前用戶的主題
- */
-export const searchCurrentUserThemes = async (searchTerm: string): Promise<UserTheme[]> => {
-  const currentUserId = getCurrentUserId();
-  return themeServiceV2.searchUserThemes(currentUserId, searchTerm);
-};
+  // 建立新主題
+  async createTheme(themeData: Partial<UserTheme>): Promise<UserTheme> {
+    const response = await this.makeRequest<ApiResponse<UserTheme>>('POST', '/api/auth/themes', themeData);
+    return response.data;
+  }
 
-/**
- * 便利函數：獲取當前用戶指定模式的主題
- */
-export const getCurrentUserThemesByMode = async (
-  mode: 'light' | 'dark' | 'auto'
-): Promise<UserTheme[]> => {
-  const currentUserId = getCurrentUserId();
-  return themeServiceV2.getUserThemesByMode(currentUserId, mode);
-};
+  // 更新主題
+  async updateTheme(themeId: string, themeData: Partial<UserTheme>): Promise<UserTheme> {
+    const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/auth/themes/${themeId}`, themeData);
+    return response.data;
+  }
 
-/**
- * 便利函數：重設當前用戶的主題
- */
-export const resetCurrentUserThemes = async (): Promise<{ success: boolean; message?: string }> => {
-  const currentUserId = getCurrentUserId();
-  return themeServiceV2.resetUserThemes(currentUserId);
-};
+  // 刪除主題
+  async deleteTheme(themeId: string): Promise<void> {
+    await this.makeRequest<ApiResponse<{ message: string }>>('DELETE', `/api/auth/themes/${themeId}`);
+  }
 
-/**
- * 便利函數：獲取當前用戶的主題統計
- */
-export const getCurrentUserThemeStats = async () => {
-  const currentUserId = getCurrentUserId();
-  return themeServiceV2.getThemeStats(currentUserId);
-};
+  // 獲取預設顏色
+  async getDefaultColors(): Promise<Record<string, string>> {
+    const response = await this.makeRequest<ApiResponse<Record<string, string>>>('GET', '/api/auth/themes/default-colors');
+    return response.data;
+  }
 
-/**
- * 預設匯出
- */
-export default themeServiceV2;
+  // 設定當前主題
+  async setCurrentTheme(themeId: string): Promise<UserTheme> {
+    const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/auth/themes/current/${themeId}`, {});
+    return response.data;
+  }
 
-// 型別匯出
-export type { 
-  UserTheme, 
-  CreateUserThemeRequest, 
-  UpdateUserThemeRequest,
-  UserThemeQueryParams,
-  DuplicateThemeRequest 
-};
+  // 獲取當前用戶資料（包含主題設定）
+  async getCurrentUser(): Promise<any> {
+    const response = await this.makeRequest<ApiResponse<any>>('GET', '/api/auth');
+    return response.data;
+  }
 
-// 常數匯出
-export { DEFAULT_THEME_COLORS };
+  // 獲取當前主題
+  async getCurrentTheme(): Promise<UserTheme | null> {
+    try {
+      const user = await this.getCurrentUser();
+      const currentThemeId = user.settings?.theme?.currentThemeId;
+      
+      if (!currentThemeId || !user.settings?.theme?.themes) {
+        return null;
+      }
+
+      const currentTheme = user.settings.theme.themes.find(
+        (theme: UserTheme) => theme._id === currentThemeId
+      );
+
+      return currentTheme || null;
+    } catch (error) {
+      console.error('獲取當前主題失敗:', error);
+      return null;
+    }
+  }
+
+  // 複製主題
+  async duplicateTheme(themeId: string, newName: string): Promise<UserTheme> {
+    const themes = await this.getUserThemes();
+    const originalTheme = themes.find(theme => theme._id === themeId);
+    
+    if (!originalTheme) {
+      throw new Error('找不到要複製的主題');
+    }
+
+    const duplicatedTheme = {
+      ...originalTheme,
+      themeName: newName,
+      _id: undefined, // 讓後端生成新的 ID
+      createdAt: undefined,
+      updatedAt: undefined
+    };
+
+    return this.createTheme(duplicatedTheme);
+  }
+
+  // 匯出主題
+  async exportTheme(themeId: string): Promise<string> {
+    const themes = await this.getUserThemes();
+    const theme = themes.find(t => t._id === themeId);
+    
+    if (!theme) {
+      throw new Error('找不到要匯出的主題');
+    }
+
+    // 移除不需要匯出的欄位
+    const exportData = {
+      ...theme,
+      _id: undefined,
+      userId: undefined,
+      createdAt: undefined,
+      updatedAt: undefined
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  }
+
+  // 匯入主題
+  async importTheme(themeJson: string): Promise<UserTheme> {
+    try {
+      const themeData = JSON.parse(themeJson);
+      
+      // 驗證必要欄位
+      if (!themeData.themeName || !themeData.primaryColor) {
+        throw new Error('主題資料格式不正確');
+      }
+
+      return this.createTheme(themeData);
+    } catch (error) {
+      throw new Error('主題匯入失敗: ' + (error instanceof Error ? error.message : '未知錯誤'));
+    }
+  }
+}
+
+export const themeServiceV2 = new ThemeServiceV2();

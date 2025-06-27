@@ -7,6 +7,8 @@ import auth from '../middleware/auth';
 // 移除未使用的導入
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { UserTheme, DEFAULT_THEME_COLORS, DEFAULT_CUSTOM_SETTINGS } from '@pharmacy-pos/shared/types/theme';
+import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
 
 import User from '../models/User';
 
@@ -479,5 +481,380 @@ router.put(
     }
   }
 );
+
+// @route   GET api/auth/themes
+// @desc    獲取當前用戶的主題列表
+// @access  Private
+router.get('/themes', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userValidation = await validateUserExists(req.user.id);
+    if (!userValidation.valid) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: userValidation.error || '找不到用戶',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const user = userValidation.user;
+    const themes = user.settings?.theme?.themes || [];
+
+    const response: ApiResponse<UserTheme[]> = {
+      success: true,
+      message: '主題列表獲取成功',
+      data: themes,
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err: any) {
+    console.error(err.message);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+});
+
+// @route   POST api/auth/themes
+// @desc    建立新主題
+// @access  Private
+router.post('/themes', auth, [
+  check('themeName', '主題名稱為必填欄位').not().isEmpty(),
+  check('primaryColor', '主色為必填欄位').not().isEmpty(),
+  check('mode', '主題模式為必填欄位').isIn(['light', 'dark'])
+], async (req: AuthRequest, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
+      error: JSON.stringify(errors.array()),
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    return;
+  }
+
+  try {
+    const { themeName, primaryColor, mode, customSettings } = req.body;
+
+    const userValidation = await validateUserExists(req.user.id);
+    if (!userValidation.valid) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: userValidation.error || '找不到用戶',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const user = userValidation.user;
+
+    // 初始化用戶設定（如果不存在）
+    if (!user.settings) {
+      user.settings = {};
+    }
+    
+    // 初始化主題設定（如果不存在）
+    if (!user.settings.theme) {
+      user.settings.theme = { themes: [] };
+    }
+
+    // 建立新主題
+    const newTheme: UserTheme = {
+      _id: Date.now().toString(),
+      userId: user.id,
+      primaryColor,
+      themeName,
+      generatedPalette: generateThemePalette(primaryColor),
+      mode: mode || 'light',
+      customSettings: customSettings || DEFAULT_CUSTOM_SETTINGS,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // 添加到用戶主題列表
+    user.settings.theme.themes.push(newTheme);
+
+    // 如果這是第一個主題，設為當前主題
+    if (user.settings.theme.themes.length === 1) {
+      user.settings.theme.currentThemeId = newTheme._id;
+    }
+
+    await user.save();
+
+    const response: ApiResponse<UserTheme> = {
+      success: true,
+      message: '主題建立成功',
+      data: newTheme,
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err: any) {
+    console.error(err.message);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+});
+
+// @route   GET api/auth/themes/default-colors
+// @desc    獲取預設顏色
+// @access  Private
+router.get('/themes/default-colors', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const response: ApiResponse<typeof DEFAULT_THEME_COLORS> = {
+      success: true,
+      message: '預設顏色獲取成功',
+      data: DEFAULT_THEME_COLORS,
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err: any) {
+    console.error(err.message);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+});
+
+// @route   PUT api/auth/themes/current/:themeId
+// @desc    設定當前主題
+// @access  Private
+router.put('/themes/current/:themeId', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { themeId } = req.params;
+
+    const userValidation = await validateUserExists(req.user.id);
+    if (!userValidation.valid) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: userValidation.error || '找不到用戶',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const user = userValidation.user;
+
+    // 初始化用戶設定（如果不存在）
+    if (!user.settings) {
+      user.settings = {};
+    }
+    
+    if (!user.settings.theme?.themes) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到主題',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const theme = user.settings.theme.themes.find((theme: UserTheme) => theme._id === themeId);
+    if (!theme) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到指定的主題',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    // 設定當前主題
+    user.settings.theme.currentThemeId = themeId;
+    await user.save();
+
+    const response: ApiResponse<UserTheme> = {
+      success: true,
+      message: '當前主題設定成功',
+      data: theme,
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err: any) {
+    console.error(err.message);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+});
+
+// @route   PUT api/auth/themes/:themeId
+// @desc    更新主題
+// @access  Private
+router.put('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { themeId } = req.params;
+    const updateData = req.body;
+
+    const userValidation = await validateUserExists(req.user.id);
+    if (!userValidation.valid) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: userValidation.error || '找不到用戶',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const user = userValidation.user;
+
+    // 初始化用戶設定（如果不存在）
+    if (!user.settings) {
+      user.settings = {};
+    }
+    
+    if (!user.settings.theme?.themes) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到主題',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const themeIndex = user.settings.theme.themes.findIndex((theme: UserTheme) => theme._id === themeId);
+    if (themeIndex === -1) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到指定的主題',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    // 如果更新了主色，重新生成調色板
+    let finalUpdateData = { ...updateData };
+    if (updateData.primaryColor) {
+      finalUpdateData.generatedPalette = generateThemePalette(updateData.primaryColor);
+    }
+
+    // 更新主題
+    user.settings.theme.themes[themeIndex] = {
+      ...user.settings.theme.themes[themeIndex],
+      ...finalUpdateData,
+      updatedAt: new Date()
+    };
+
+    await user.save();
+
+    const response: ApiResponse<UserTheme> = {
+      success: true,
+      message: '主題更新成功',
+      data: user.settings.theme.themes[themeIndex],
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err: any) {
+    console.error(err.message);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+});
+
+// @route   DELETE api/auth/themes/:themeId
+// @desc    刪除主題
+// @access  Private
+router.delete('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { themeId } = req.params;
+
+    const userValidation = await validateUserExists(req.user.id);
+    if (!userValidation.valid) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: userValidation.error || '找不到用戶',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const user = userValidation.user;
+
+    // 初始化用戶設定（如果不存在）
+    if (!user.settings) {
+      user.settings = {};
+    }
+    
+    if (!user.settings.theme?.themes) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到主題',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    const themeIndex = user.settings.theme.themes.findIndex((theme: UserTheme) => theme._id === themeId);
+    if (themeIndex === -1) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到指定的主題',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      return;
+    }
+
+    // 如果刪除的是當前主題，清除當前主題 ID
+    if (user.settings.theme.currentThemeId === themeId) {
+      user.settings.theme.currentThemeId = undefined;
+    }
+
+    // 刪除主題
+    user.settings.theme.themes.splice(themeIndex, 1);
+
+    await user.save();
+
+    const response: ApiResponse<{ message: string }> = {
+      success: true,
+      message: '主題刪除成功',
+      data: { message: '主題已成功刪除' },
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err: any) {
+    console.error(err.message);
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+});
 
 export default router;

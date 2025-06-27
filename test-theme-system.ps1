@@ -87,7 +87,7 @@ function Test-ThemeEndpoints {
     param([string]$Token)
     
     $headers = @{
-        "Authorization" = "Bearer $Token"
+        "x-auth-token" = $Token
         "Content-Type" = "application/json"
     }
     
@@ -95,7 +95,7 @@ function Test-ThemeEndpoints {
     
     # 1. 測試獲取預設顏色
     Write-Host "`n--- 測試預設顏色 ---" -ForegroundColor Magenta
-    $defaultColors = Test-ApiEndpoint -Url "$baseUrl/api/user-themes/default-colors" -Headers $headers -Description "獲取預設顏色"
+    $defaultColors = Test-ApiEndpoint -Url "$baseUrl/api/auth/themes/default-colors" -Headers $headers -Description "獲取預設顏色"
     
     if ($defaultColors) {
         Write-Host "預設顏色數量: $($defaultColors.data.PSObject.Properties.Count)" -ForegroundColor Cyan
@@ -106,7 +106,7 @@ function Test-ThemeEndpoints {
     
     # 2. 測試獲取用戶主題列表
     Write-Host "`n--- 測試主題列表 ---" -ForegroundColor Magenta
-    $themeList = Test-ApiEndpoint -Url "$baseUrl/api/user-themes" -Headers $headers -Description "獲取用戶主題列表"
+    $themeList = Test-ApiEndpoint -Url "$baseUrl/api/auth/themes" -Headers $headers -Description "獲取用戶主題列表"
     
     if ($themeList) {
         Write-Host "現有主題數量: $($themeList.data.Count)" -ForegroundColor Cyan
@@ -117,7 +117,7 @@ function Test-ThemeEndpoints {
     $createdThemes = @()
     
     foreach ($theme in $testThemes) {
-        $newTheme = Test-ApiEndpoint -Url "$baseUrl/api/user-themes" -Method "POST" -Headers $headers -Body $theme -Description "建立主題: $($theme.themeName)"
+        $newTheme = Test-ApiEndpoint -Url "$baseUrl/api/auth/themes" -Method "POST" -Headers $headers -Body $theme -Description "建立主題: $($theme.themeName)"
         
         if ($newTheme) {
             $createdThemes += $newTheme.data
@@ -137,7 +137,7 @@ function Test-ThemeEndpoints {
             mode = "dark"
         }
         
-        $updatedTheme = Test-ApiEndpoint -Url "$baseUrl/api/user-themes/$($themeToUpdate._id)" -Method "PUT" -Headers $headers -Body $updateData -Description "更新主題"
+        $updatedTheme = Test-ApiEndpoint -Url "$baseUrl/api/auth/themes/$($themeToUpdate._id)" -Method "PUT" -Headers $headers -Body $updateData -Description "更新主題"
         
         if ($updatedTheme) {
             Write-Host "  更新後主題名稱: $($updatedTheme.data.themeName)" -ForegroundColor Cyan
@@ -150,7 +150,7 @@ function Test-ThemeEndpoints {
         Write-Host "`n--- 測試刪除主題 ---" -ForegroundColor Magenta
         $themeToDelete = $createdThemes[-1]  # 刪除最後一個
         
-        $deleteResult = Test-ApiEndpoint -Url "$baseUrl/api/user-themes/$($themeToDelete._id)" -Method "DELETE" -Headers $headers -Description "刪除主題"
+        $deleteResult = Test-ApiEndpoint -Url "$baseUrl/api/auth/themes/$($themeToDelete._id)" -Method "DELETE" -Headers $headers -Description "刪除主題"
         
         if ($deleteResult) {
             Write-Host "  已刪除主題: $($themeToDelete.themeName)" -ForegroundColor Cyan
@@ -161,7 +161,26 @@ function Test-ThemeEndpoints {
     if ($createdThemes.Count -gt 0) {
         Write-Host "`n--- 測試獲取單個主題 ---" -ForegroundColor Magenta
         $themeId = $createdThemes[0]._id
-        $singleTheme = Test-ApiEndpoint -Url "$baseUrl/api/user-themes/$themeId" -Headers $headers -Description "獲取單個主題"
+        # 6. 測試設定當前主題
+        Write-Host "`n--- 測試設定當前主題 ---" -ForegroundColor Magenta
+        $themeId = $createdThemes[0]._id
+        $currentThemeResult = Test-ApiEndpoint -Url "$baseUrl/api/auth/themes/current/$themeId" -Method "PUT" -Headers $headers -Body @{} -Description "設定當前主題"
+        
+        if ($currentThemeResult) {
+            Write-Host "  當前主題已設定: $($currentThemeResult.data.themeName)" -ForegroundColor Cyan
+        }
+    }
+    
+    # 7. 測試獲取用戶資料（包含主題設定）
+    if ($createdThemes.Count -gt 0) {
+        Write-Host "`n--- 測試獲取用戶資料 ---" -ForegroundColor Magenta
+        $userData = Test-ApiEndpoint -Url "$baseUrl/api/auth" -Headers $headers -Description "獲取用戶資料"
+        
+        if ($userData) {
+            Write-Host "  用戶名稱: $($userData.data.name)" -ForegroundColor Cyan
+            Write-Host "  當前主題 ID: $($userData.data.settings.theme.currentThemeId)" -ForegroundColor Cyan
+            Write-Host "  主題數量: $($userData.data.settings.theme.themes.Count)" -ForegroundColor Cyan
+        }
         
         if ($singleTheme) {
             Write-Host "  主題名稱: $($singleTheme.data.themeName)" -ForegroundColor Cyan

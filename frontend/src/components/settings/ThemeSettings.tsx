@@ -169,11 +169,10 @@ const ThemeSettings: React.FC = () => {
     loading,
     error,
     switchTheme,
-    createNewTheme,
+    createTheme,
     updateCurrentTheme,
     deleteTheme,
     refreshThemes,
-    resetToDefault,
   } = useTheme();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -187,7 +186,11 @@ const ThemeSettings: React.FC = () => {
     if (!newThemeName.trim()) return;
 
     try {
-      await createNewTheme(newThemeColor, newThemeName.trim());
+      await createTheme({
+        themeName: newThemeName.trim(),
+        primaryColor: newThemeColor,
+        mode: 'light'
+      });
       setCreateDialogOpen(false);
       setNewThemeName('');
       setNewThemeColor(DEFAULT_THEME_COLORS.blue);
@@ -201,7 +204,7 @@ const ThemeSettings: React.FC = () => {
    */
   const handlePrimaryColorChange = async (color: string) => {
     if (!currentTheme) return;
-    await updateCurrentTheme({ primaryColor: color });
+    await updateCurrentTheme(currentTheme._id, { primaryColor: color });
   };
 
   /**
@@ -209,7 +212,7 @@ const ThemeSettings: React.FC = () => {
    */
   const handleModeChange = async (mode: 'light' | 'dark' | 'auto') => {
     if (!currentTheme) return;
-    await updateCurrentTheme({ mode });
+    await updateCurrentTheme(currentTheme._id, { mode });
   };
 
   /**
@@ -217,7 +220,7 @@ const ThemeSettings: React.FC = () => {
    */
   const handleCustomSettingChange = async (key: string, value: number) => {
     if (!currentTheme) return;
-    await updateCurrentTheme({
+    await updateCurrentTheme(currentTheme._id, {
       customSettings: {
         ...currentTheme.customSettings,
         [key]: value,
@@ -376,7 +379,7 @@ const ThemeSettings: React.FC = () => {
                         backgroundColor: 'action.hover',
                       },
                     }}
-                    onClick={() => switchTheme(theme._id!)}
+                    onClick={() => switchTheme(theme)}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box
@@ -415,10 +418,10 @@ const ThemeSettings: React.FC = () => {
                 fullWidth
                 variant="outlined"
                 startIcon={<ResetIcon />}
-                onClick={resetToDefault}
+                onClick={refreshThemes}
                 sx={{ mt: 2 }}
               >
-                重設為預設
+                重新整理主題
               </Button>
             </CardContent>
           </Card>

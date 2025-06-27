@@ -1,79 +1,45 @@
-/**
- * 主題 Context - 管理應用程式的主題狀態
- * 整合 Material-UI 主題系統與用戶自定義主題
- */
-
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ThemeProvider, createTheme, Theme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import {
-  UserTheme,
-  DEFAULT_THEME_COLORS,
-  DEFAULT_CUSTOM_SETTINGS
-} from '@pharmacy-pos/shared';
+import { UserTheme, DEFAULT_THEME_COLORS, DEFAULT_CUSTOM_SETTINGS } from '@pharmacy-pos/shared/types/theme';
 import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
-import {
-  getCurrentUserDefaultTheme,
-  getCurrentUserThemes,
-  createThemeForCurrentUser,
-  themeServiceV2
-} from '../services/themeServiceV2';
+import { themeServiceV2 } from '../services/themeServiceV2';
 
-/**
- * 主題 Context 狀態介面
- */
-interface ThemeContextState {
-  // 當前主題
+// 主題上下文介面
+interface ThemeContextType {
   currentTheme: UserTheme | null;
-  // 用戶所有主題
   userThemes: UserTheme[];
-  // Material-UI 主題物件
-  muiTheme: Theme;
-  // 載入狀態
   loading: boolean;
-  // 錯誤狀態
   error: string | null;
-  
-  // 操作方法
-  switchTheme: (themeId: string) => Promise<void>;
-  createNewTheme: (primaryColor: string, themeName: string) => Promise<void>;
-  updateCurrentTheme: (updates: Partial<UserTheme>) => Promise<void>;
+  switchTheme: (theme: UserTheme) => Promise<void>;
+  createTheme: (themeData: Partial<UserTheme>) => Promise<UserTheme>;
+  updateCurrentTheme: (themeId: string, updates: Partial<UserTheme>) => Promise<UserTheme>;
   deleteTheme: (themeId: string) => Promise<void>;
   refreshThemes: () => Promise<void>;
-  resetToDefault: () => Promise<void>;
+  getDefaultColors: () => Promise<Record<string, string>>;
 }
 
-/**
- * 預設 Context 值
- */
-const defaultContextValue: ThemeContextState = {
-  currentTheme: null,
-  userThemes: [],
-  muiTheme: createTheme(),
-  loading: false,
-  error: null,
-  switchTheme: async () => {},
-  createNewTheme: async () => {},
-  updateCurrentTheme: async () => {},
-  deleteTheme: async () => {},
-  refreshThemes: async () => {},
-  resetToDefault: async () => {},
+// 建立上下文
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+// Hook 來使用主題上下文
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeContextProvider');
+  }
+  return context;
 };
 
 /**
- * 主題 Context
+ * 將 UserTheme 轉換為 Material-UI Theme
  */
-const ThemeContext = createContext<ThemeContextState>(defaultContextValue);
-
-/**
- * 將用戶主題轉換為 Material-UI 主題
- */
-const createMuiThemeFromUserTheme = (userTheme: UserTheme): Theme => {
+const convertToMuiTheme = (userTheme: UserTheme): Theme => {
   const { generatedPalette, mode, customSettings } = userTheme;
   
   return createTheme({
     palette: {
-      mode: mode === 'auto' ? 'light' : mode, // 簡化處理，實際可根據系統偏好
+      mode: mode === 'auto' ? 'light' : mode,
       primary: {
         main: generatedPalette.primary.main,
         light: generatedPalette.primary.light,
@@ -128,22 +94,15 @@ const createMuiThemeFromUserTheme = (userTheme: UserTheme): Theme => {
 /**
  * 建立預設主題
  */
-const createDefaultTheme = async (): Promise<UserTheme> => {
-  const defaultTheme: UserTheme = {
-    userId: localStorage.getItem('userId') || 'default-user',
-    primaryColor: DEFAULT_THEME_COLORS.blue,
-    themeName: '預設主題',
-    generatedPalette: generateThemePalette(DEFAULT_THEME_COLORS.blue),
-    mode: 'light',
-    customSettings: DEFAULT_CUSTOM_SETTINGS,
-  };
-  
-  try {
-    return await createThemeForCurrentUser(defaultTheme);
-  } catch (error) {
-    console.warn('無法建立預設主題，使用本地預設值:', error);
-    return defaultTheme;
-  }
+const createDefaultTheme = (): Theme => {
+  return createTheme({
+    palette: {
+      mode: 'light',
+      primary: {
+        main: DEFAULT_THEME_COLORS.blue,
+      },
+    },
+  });
 };
 
 /**
@@ -156,116 +115,155 @@ interface ThemeContextProviderProps {
 export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState<UserTheme | null>(null);
   const [userThemes, setUserThemes] = useState<UserTheme[]>([]);
-  const [muiTheme, setMuiTheme] = useState<Theme>(createTheme());
+  const [muiTheme, setMuiTheme] = useState<Theme>(createDefaultTheme());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * 初始化主題
+   * 應用主題到 Material-UI
    */
-  const initializeTheme = async () => {
+  const applyTheme = (theme: UserTheme) => {
+    const newMuiTheme = convertToMuiTheme(theme);
+    setMuiTheme(newMuiTheme);
+  };
+
+  /**
+   * 載入用戶主題
+   */
+  const loadUserThemes = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // 嘗試獲取用戶預設主題
-      let defaultTheme = await getCurrentUserDefaultTheme();
       
-      // 如果沒有預設主題，建立一個
-      if (!defaultTheme) {
-        defaultTheme = await createDefaultTheme();
-      }
-
-      // 獲取用戶所有主題
-      const themes = await getCurrentUserThemes();
-
-      setCurrentTheme(defaultTheme);
+      // 獲取用戶資料和主題列表
+      const [user, themes] = await Promise.all([
+        themeServiceV2.getCurrentUser(),
+        themeServiceV2.getUserThemes()
+      ]);
+      
       setUserThemes(themes);
-      setMuiTheme(createMuiThemeFromUserTheme(defaultTheme));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '初始化主題失敗';
-      setError(errorMessage);
-      console.error('主題初始化失敗:', err);
       
-      // 使用預設主題作為後備
-      const fallbackTheme = await createDefaultTheme();
-      setCurrentTheme(fallbackTheme);
-      setMuiTheme(createMuiThemeFromUserTheme(fallbackTheme));
+      // 獲取當前主題
+      const currentThemeId = user.settings?.theme?.currentThemeId;
+      let themeToApply: UserTheme | null = null;
+      
+      if (currentThemeId) {
+        themeToApply = themes.find(theme => theme._id === currentThemeId) || null;
+      }
+      
+      // 如果沒有當前主題但有主題列表，使用第一個主題
+      if (!themeToApply && themes.length > 0) {
+        themeToApply = themes[0];
+        // 自動設定為當前主題
+        try {
+          await themeServiceV2.setCurrentTheme(themes[0]._id);
+        } catch (error) {
+          console.error('設定當前主題失敗:', error);
+        }
+      }
+      
+      if (themeToApply) {
+        setCurrentTheme(themeToApply);
+        applyTheme(themeToApply);
+      } else {
+        // 如果沒有任何主題，建立預設主題
+        try {
+          const defaultTheme = await createThemeForUser();
+          setCurrentTheme(defaultTheme);
+          setUserThemes([defaultTheme]);
+          applyTheme(defaultTheme);
+        } catch (error) {
+          console.error('建立預設主題失敗:', error);
+          setError('無法載入主題設定');
+        }
+      }
+    } catch (error) {
+      console.error('載入用戶主題失敗:', error);
+      setError('載入主題失敗');
     } finally {
       setLoading(false);
     }
   };
 
   /**
+   * 建立用戶預設主題
+   */
+  const createThemeForUser = async (): Promise<UserTheme> => {
+    const defaultThemeData = {
+      themeName: '預設主題',
+      primaryColor: DEFAULT_THEME_COLORS.blue,
+      mode: 'light' as const,
+      customSettings: DEFAULT_CUSTOM_SETTINGS
+    };
+    
+    return await themeServiceV2.createTheme(defaultThemeData);
+  };
+
+  /**
    * 切換主題
    */
-  const switchTheme = async (themeId: string) => {
+  const switchTheme = async (theme: UserTheme) => {
     try {
-      const theme = userThemes.find(t => t._id === themeId);
-      if (!theme) {
-        throw new Error('找不到指定的主題');
-      }
-
-      setCurrentTheme(theme);
-      setMuiTheme(createMuiThemeFromUserTheme(theme));
+      // 設定為當前主題（後端）
+      await themeServiceV2.setCurrentTheme(theme._id);
       
-      // 儲存到本地存儲
-      localStorage.setItem('selectedThemeId', themeId);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '切換主題失敗';
-      setError(errorMessage);
-      console.error('切換主題失敗:', err);
+      // 更新本地狀態
+      setCurrentTheme(theme);
+      applyTheme(theme);
+      
+      // 儲存到 localStorage（備用）
+      localStorage.setItem('currentTheme', JSON.stringify(theme));
+    } catch (error) {
+      console.error('切換主題失敗:', error);
+      setError('切換主題失敗');
+      // 即使後端失敗，仍然應用本地主題
+      setCurrentTheme(theme);
+      applyTheme(theme);
+      localStorage.setItem('currentTheme', JSON.stringify(theme));
     }
   };
 
   /**
    * 建立新主題
    */
-  const createNewTheme = async (primaryColor: string, themeName: string) => {
+  const createNewTheme = async (themeData: Partial<UserTheme>): Promise<UserTheme> => {
     try {
-      const newTheme = await createThemeForCurrentUser({
-        primaryColor,
-        themeName,
-        mode: 'light',
-        customSettings: DEFAULT_CUSTOM_SETTINGS,
-      });
-
-      setUserThemes(prev => [newTheme, ...prev]);
+      const newTheme = await themeServiceV2.createTheme(themeData);
       
-      // 自動切換到新主題
-      await switchTheme(newTheme._id!);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '建立主題失敗';
-      setError(errorMessage);
-      console.error('建立主題失敗:', err);
+      // 更新本地狀態
+      setUserThemes(prev => [...prev, newTheme]);
+      
+      return newTheme;
+    } catch (error) {
+      console.error('建立主題失敗:', error);
+      setError('建立主題失敗');
+      throw error;
     }
   };
 
   /**
    * 更新當前主題
    */
-  const updateCurrentTheme = async (updates: Partial<UserTheme>) => {
-    if (!currentTheme?._id) return;
-
+  const updateCurrentTheme = async (themeId: string, updates: Partial<UserTheme>): Promise<UserTheme> => {
     try {
-      // 這裡需要調用更新 API
-      // const updatedTheme = await updateTheme(currentTheme._id, updates);
+      const updatedTheme = await themeServiceV2.updateTheme(themeId, updates);
       
-      // 暫時本地更新
-      const updatedTheme = { ...currentTheme, ...updates };
-      setCurrentTheme(updatedTheme);
-      setMuiTheme(createMuiThemeFromUserTheme(updatedTheme));
-      
-      // 更新主題列表
+      // 更新本地狀態
       setUserThemes(prev => 
-        prev.map(theme => 
-          theme._id === currentTheme._id ? updatedTheme : theme
-        )
+        prev.map(theme => theme._id === themeId ? updatedTheme : theme)
       );
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '更新主題失敗';
-      setError(errorMessage);
-      console.error('更新主題失敗:', err);
+      
+      // 如果更新的是當前主題，重新應用
+      if (currentTheme?._id === themeId) {
+        setCurrentTheme(updatedTheme);
+        applyTheme(updatedTheme);
+      }
+      
+      return updatedTheme;
+    } catch (error) {
+      console.error('更新主題失敗:', error);
+      setError('更新主題失敗');
+      throw error;
     }
   };
 
@@ -274,25 +272,28 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
    */
   const deleteTheme = async (themeId: string) => {
     try {
-      // 這裡需要調用刪除 API
-      // await deleteTheme(themeId);
+      await themeServiceV2.deleteTheme(themeId);
       
-      setUserThemes(prev => prev.filter(theme => theme._id !== themeId));
+      // 更新本地狀態
+      const remainingThemes = userThemes.filter(theme => theme._id !== themeId);
+      setUserThemes(remainingThemes);
       
       // 如果刪除的是當前主題，切換到第一個可用主題
       if (currentTheme?._id === themeId) {
-        const remainingThemes = userThemes.filter(theme => theme._id !== themeId);
         if (remainingThemes.length > 0) {
-          await switchTheme(remainingThemes[0]._id!);
+          await switchTheme(remainingThemes[0]);
         } else {
-          // 建立新的預設主題
-          await createNewTheme(DEFAULT_THEME_COLORS.blue, '預設主題');
+          // 如果沒有剩餘主題，建立新的預設主題
+          const defaultTheme = await createThemeForUser();
+          setCurrentTheme(defaultTheme);
+          setUserThemes([defaultTheme]);
+          applyTheme(defaultTheme);
         }
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '刪除主題失敗';
-      setError(errorMessage);
-      console.error('刪除主題失敗:', err);
+    } catch (error) {
+      console.error('刪除主題失敗:', error);
+      setError('刪除主題失敗');
+      throw error;
     }
   };
 
@@ -300,49 +301,38 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
    * 重新整理主題列表
    */
   const refreshThemes = async () => {
-    try {
-      const themes = await getCurrentUserThemes();
-      setUserThemes(themes);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '重新整理主題失敗';
-      setError(errorMessage);
-      console.error('重新整理主題失敗:', err);
-    }
+    await loadUserThemes();
   };
 
   /**
-   * 重設為預設主題
+   * 獲取預設顏色
    */
-  const resetToDefault = async () => {
+  const getDefaultColors = async (): Promise<Record<string, string>> => {
     try {
-      const defaultTheme = await createDefaultTheme();
-      setCurrentTheme(defaultTheme);
-      setMuiTheme(createMuiThemeFromUserTheme(defaultTheme));
-      localStorage.removeItem('selectedThemeId');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '重設主題失敗';
-      setError(errorMessage);
-      console.error('重設主題失敗:', err);
+      return await themeServiceV2.getDefaultColors();
+    } catch (error) {
+      console.error('獲取預設顏色失敗:', error);
+      return DEFAULT_THEME_COLORS;
     }
   };
 
   // 初始化
   useEffect(() => {
-    initializeTheme();
+    loadUserThemes();
   }, []);
 
-  const contextValue: ThemeContextState = {
+  // 上下文值
+  const contextValue: ThemeContextType = {
     currentTheme,
     userThemes,
-    muiTheme,
     loading,
     error,
     switchTheme,
-    createNewTheme,
+    createTheme: createNewTheme,
     updateCurrentTheme,
     deleteTheme,
     refreshThemes,
-    resetToDefault,
+    getDefaultColors,
   };
 
   return (
@@ -355,18 +345,4 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
   );
 };
 
-/**
- * 使用主題 Hook
- */
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeContextProvider');
-  }
-  return context;
-};
-
-/**
- * 預設匯出
- */
 export default ThemeContext;

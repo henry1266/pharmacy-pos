@@ -1,7 +1,27 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { UserTheme } from '@pharmacy-pos/shared/types/theme';
 
 // 用戶角色枚舉
 export type UserRole = 'admin' | 'pharmacist' | 'staff';
+
+// 用戶設定介面
+export interface IUserSettings {
+  shortcuts?: Array<{
+    id: string;
+    name: string;
+    productIds: string[];
+  }>;
+  theme?: {
+    currentThemeId?: string;
+    themes: UserTheme[];
+  };
+  notifications?: {
+    enabled: boolean;
+    sound: boolean;
+    desktop: boolean;
+  };
+  [key: string]: any; // 保持彈性以支援其他設定
+}
 
 // 用戶介面
 export interface IUser {
@@ -10,7 +30,7 @@ export interface IUser {
   email?: string;
   password: string;
   role: UserRole;
-  settings: Record<string, any>; // Use Record type for flexibility
+  settings: IUserSettings;
   date: Date;
 }
 
