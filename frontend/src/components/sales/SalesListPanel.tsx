@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -12,12 +12,16 @@ import {
   Alert,
   TextField,
   InputAdornment,
-  Divider
+  Divider,
+  Collapse,
+  IconButton
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Person as PersonIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -69,6 +73,20 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
   onSearchChange,
   onSaleClick
 }) => {
+  // 摺疊狀態管理
+  const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (saleId: string) => {
+    setExpandedSales(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(saleId)) {
+        newSet.delete(saleId);
+      } else {
+        newSet.add(saleId);
+      }
+      return newSet;
+    });
+  };
   // 過濾銷售記錄
   const filteredSales = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
@@ -115,12 +133,24 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
   }
 
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ pb: 1 }}>
+    <Card sx={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      maxHeight: '100%',
+      overflow: 'hidden' // 防止整體滾動
+    }}>
+      {/* 固定頂部區域 */}
+      <Box sx={{
+        flexShrink: 0,
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        p: 2
+      }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <ReceiptIcon sx={{ mr: 1, color: 'primary.main' }} />
-            <Typography variant="h6" component="h2">
+            <Typography variant="h6" component="h2" sx={{ fontSize: '1.1rem' }}>
               銷售記錄 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
             </Typography>
           </Box>
@@ -143,11 +173,14 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
             )
           }}
         />
-      </CardContent>
+      </Box>
       
-      <Divider />
-      
-      <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+      {/* 可滾動內容區域 */}
+      <Box sx={{
+        flexGrow: 1,
+        overflow: 'auto',
+        minHeight: 0
+      }}>
         {filteredSales.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography color="textSecondary">
@@ -156,77 +189,169 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
           </Box>
         ) : (
           <List sx={{ p: 0 }}>
-            {filteredSales.map((sale, index) => (
-              <React.Fragment key={sale._id}>
-                <ListItem
-                  button
-                  onClick={() => onSaleClick?.(sale)}
-                  sx={{
-                    py: 2,
-                    '&:hover': {
-                      backgroundColor: 'action.hover'
-                    }
-                  }}
-                >
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+            {filteredSales.map((sale, index) => {
+              const isExpanded = expandedSales.has(sale._id);
+              return (
+                <React.Fragment key={sale._id}>
+                  <ListItem
+                    sx={{
+                      py: 0.5,
+                      px: 1.5, // 縮窄左右內距
+                      flexDirection: 'column',
+                      alignItems: 'stretch',
+                      minHeight: '64px', // 固定最小高度
+                      maxHeight: isExpanded ? 'none' : '64px', // 摺疊時限制高度
+                      '&:hover': {
+                        backgroundColor: 'action.hover'
+                      }
+                    }}
+                  >
+                    {/* 摺疊狀態：僅顯示基本資訊 */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        width: '100%',
+                        cursor: 'pointer',
+                        minHeight: '60px', // 確保基本資訊區域固定高度
+                        py: 0.5,
+                        gap: 0.5
+                      }}
+                      onClick={() => toggleExpanded(sale._id)}
+                    >
+                      <Box sx={{
+                        flex: 1,
+                        minWidth: 0, // 允許文字截斷
+                        overflow: 'hidden',
+                        pr: 0.75 // 縮窄右邊距
+                      }}>
+                        {/* 第一行：銷貨單號 */}
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            lineHeight: 1.3,
+                            mb: 0.5
+                          }}
+                        >
                           {sale.saleNumber ?? '無單號'}
                         </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {sale.date ? format(new Date(sale.date), 'MM/dd HH:mm', { locale: zhTW }) : ''}
-                        </Typography>
+                        
+                        {/* 第二行：金額和時間 */}
+                        <Box sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 1
+                        }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: 'bold',
+                              color: 'primary.main',
+                              fontSize: '0.8rem',
+                              lineHeight: 1.2,
+                              flexShrink: 0
+                            }}
+                          >
+                            ${sale.totalAmount?.toFixed(0) ?? '0'}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="textSecondary"
+                            sx={{
+                              fontSize: '0.7rem',
+                              lineHeight: 1.2,
+                              textAlign: 'right',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {sale.date ? format(new Date(sale.date), 'MM/dd HH:mm', { locale: zhTW }) : ''}
+                          </Typography>
+                        </Box>
                       </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                      
+                      <IconButton
+                        size="small"
+                        sx={{
+                          p: 0.25,
+                          flexShrink: 0,
+                          alignSelf: 'center'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpanded(sale._id);
+                        }}
+                      >
+                        {isExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                      </IconButton>
+                    </Box>
+
+                    {/* 展開狀態：顯示詳細資訊 */}
+                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                      <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <PersonIcon sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                          <Typography variant="body2" color="textSecondary">
+                          <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem' }}>
                             {sale.customer?.name ?? '一般客戶'}
                           </Typography>
                         </Box>
                         
                         <Box sx={{ mb: 1 }}>
-                          {sale.items.slice(0, 2).map((item, itemIndex) => (
-                            <Typography key={item.product?._id || item.name} variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
-                              {item.product?.name ?? item.name} x {item.quantity}
+                          <Typography variant="body2" sx={{ fontWeight: 'medium', mb: 0.5, fontSize: '0.8rem' }}>
+                            商品明細：
+                          </Typography>
+                          {sale.items.map((item, itemIndex) => (
+                            <Typography key={item.product?._id || item.name} variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem', ml: 1 }}>
+                              • {item.product?.name ?? item.name} x {item.quantity}
                             </Typography>
                           ))}
-                          {sale.items.length > 2 && (
-                            <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem', fontStyle: 'italic' }}>
-                              ...等 {sale.items.length} 項商品
-                            </Typography>
-                          )}
                         </Box>
                         
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                            ${sale.totalAmount?.toFixed(0) ?? '0'}
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            <Chip 
-                              label={getPaymentMethodText(sale.paymentMethod)}
-                              size="small"
-                              variant="outlined"
-                              sx={{ fontSize: '0.7rem', height: 20 }}
-                            />
-                            <Chip 
-                              label={getPaymentStatusInfo(sale.paymentStatus).text}
-                              color={getPaymentStatusInfo(sale.paymentStatus).color}
-                              size="small"
-                              sx={{ fontSize: '0.7rem', height: 20 }}
-                            />
-                          </Box>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          <Chip
+                            label={getPaymentMethodText(sale.paymentMethod)}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: '0.7rem', height: 20 }}
+                          />
+                          <Chip
+                            label={getPaymentStatusInfo(sale.paymentStatus).text}
+                            color={getPaymentStatusInfo(sale.paymentStatus).color}
+                            size="small"
+                            sx={{ fontSize: '0.7rem', height: 20 }}
+                          />
                         </Box>
+
+                        {onSaleClick && (
+                          <Box sx={{ mt: 1, textAlign: 'right' }}>
+                            <Typography
+                              variant="caption"
+                              color="primary"
+                              sx={{
+                                cursor: 'pointer',
+                                textDecoration: 'underline',
+                                fontSize: '0.75rem'
+                              }}
+                              onClick={() => onSaleClick(sale)}
+                            >
+                              查看詳情
+                            </Typography>
+                          </Box>
+                        )}
                       </Box>
-                    }
-                  />
-                </ListItem>
-                {index < filteredSales.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
+                    </Collapse>
+                  </ListItem>
+                  {index < filteredSales.length - 1 && <Divider />}
+                </React.Fragment>
+              );
+            })}
           </List>
         )}
       </Box>

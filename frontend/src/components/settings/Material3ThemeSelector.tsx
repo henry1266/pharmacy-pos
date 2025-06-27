@@ -112,7 +112,7 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
       // 創建臨時主題對象用於預覽
       const tempTheme: UserTheme = {
         _id: 'temp-material3-preview',
-        themeName: `Material 3 ${schemeOptions.find(opt => opt.value === schemeType)?.label} 預覽`,
+        themeName: `Material 3 ${schemeOptions.find(opt => opt.value === schemeType)?.label}`,
         primaryColor: currentPrimaryColor,
         mode: currentTheme?.mode || 'light',
         customSettings: currentTheme?.customSettings || {
@@ -226,14 +226,24 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
     <Box>
       {/* 預覽模式提示 */}
       {isPreviewMode && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          <Typography variant="body2">
+        <Alert
+          severity="info"
+          sx={{
+            mb: 2,
+            backgroundColor: '#e3f2fd',
+            borderLeft: '4px solid #2196f3',
+            '& .MuiAlert-icon': {
+              color: '#1976d2'
+            }
+          }}
+        >
+          <Typography variant="body2" sx={{ color: '#1565c0' }}>
             🎨 <strong>預覽模式</strong> - 您正在預覽 Material 3 主題效果。點擊「應用主題」保存，或「取消預覽」恢復原始主題。
           </Typography>
         </Alert>
       )}
 
-      {/* 選色盤 */}
+      {/* 選色盤 - 移到最上方 */}
       <Box sx={{ mb: 3 }}>
         <ColorPicker
           value={currentPrimaryColor}
@@ -329,7 +339,18 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
 
       {/* 錯誤提示 */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 2,
+            backgroundColor: '#ffebee',
+            borderLeft: '4px solid #f44336',
+            '& .MuiAlert-icon': {
+              color: '#d32f2f'
+            },
+            color: '#c62828'
+          }}
+        >
           {error}
         </Alert>
       )}

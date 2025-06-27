@@ -337,9 +337,9 @@ const SalesNew2Page: FC = () => {
   } else if (isTablet) {
     panelWidth = '300px';
   } else if (isLargeScreen) {
-    panelWidth = '400px';
+    panelWidth = '360px';
   } else {
-    panelWidth = '350px';
+    panelWidth = '320px';
   }
 
   if (loading && !isTestMode) {
@@ -354,6 +354,7 @@ const SalesNew2Page: FC = () => {
   return (
     <Box sx={{
       p: { xs: 1, sm: 2, md: 3 },
+      px: { xs: 2, sm: 3, md: 4, lg: 5 }, // 增加左右外距
       height: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -537,7 +538,7 @@ const SalesNew2Page: FC = () => {
         <Box sx={{
           width: panelWidth,
           minWidth: isMobile ? 'auto' : '280px',
-          maxWidth: isMobile ? '100%' : '450px',
+          maxWidth: isMobile ? '100%' : '330px',
           height: isMobile ? '40vh' : 'auto',
           flexShrink: 0
         }}>
@@ -567,7 +568,7 @@ const SalesNew2Page: FC = () => {
             overflow: 'hidden'
           }}>
             <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ flexGrow: 1, overflow: 'hidden' }}>
-              <Grid item xs={12} lg={isLargeScreen ? 10 : 9} xl={9}>
+              <Grid item xs={12} lg={isLargeScreen ? 10.5 : 9.5} xl={9.5}>
                 <SalesProductInput
                   products={products ?? []}
                   barcodeInputRef={barcodeInputRef}
@@ -613,7 +614,7 @@ const SalesNew2Page: FC = () => {
                 </Box>
               </Grid>
 
-              <Grid item xs={12} lg={isLargeScreen ? 2 : 3} xl={3}>
+              <Grid item xs={12} lg={isLargeScreen ? 1.5 : 2.5} xl={2.5}>
                 <Box sx={{
                   display: 'flex',
                   flexDirection: 'column',

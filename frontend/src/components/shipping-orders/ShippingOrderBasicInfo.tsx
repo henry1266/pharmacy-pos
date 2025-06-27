@@ -4,8 +4,7 @@ import {
   Card,
   CardContent,
   Divider,
-  Stack,
-  Chip
+  Stack
 } from '@mui/material';
 import {
   CalendarToday as CalendarTodayIcon,
@@ -16,6 +15,8 @@ import {
 } from '@mui/icons-material';
 import { format, isValid } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import StatusChip from '../common/StatusChip';
+import PaymentStatusChip from '../common/PaymentStatusChip';
 
 interface ShippingOrder {
   soid?: string;
@@ -36,22 +37,6 @@ interface ShippingOrderBasicInfoProps {
   shippingOrder: ShippingOrder;
 }
 
-const StatusChip: React.FC<{ status?: string }> = ({ status }) => {
-  let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-  let label = status ?? '未知';
-  if (status === 'shipped') { color = 'success'; label = '已出貨'; }
-  if (status === 'pending') { color = 'warning'; label = '待處理'; }
-  if (status === 'cancelled') { color = 'error'; label = '已取消'; }
-  return <Chip size="small" label={label} color={color} />;
-};
-
-const PaymentStatusChip: React.FC<{ status?: string }> = ({ status }) => {
-  let color: 'default' | 'success' | 'warning' | 'error' = 'default';
-  let label = status ?? '未指定';
-  if (status === 'paid') { color = 'success'; label = '已付款'; }
-  if (status === 'unpaid') { color = 'warning'; label = '未付款'; }
-  return <Chip size="small" label={label} color={color} />;
-};
 
 const formatDateSafe = (dateValue: string | Date | null | undefined, formatString: string = 'yyyy-MM-dd HH:mm'): string => {
   if (!dateValue) return 'N/A';

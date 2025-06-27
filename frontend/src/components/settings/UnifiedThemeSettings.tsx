@@ -106,8 +106,22 @@ const UnifiedThemeSettings: React.FC = () => {
   const [material3Scheme, setMaterial3Scheme] = useState<Material3SchemeType>('tonalSpot');
   const [material3Loading, setMaterial3Loading] = useState(false);
   const [previewPalette, setPreviewPalette] = useState<EnhancedGeneratedPalette | null>(null);
+  
+  // 滑桿暫時值狀態
+  const [tempBorderRadius, setTempBorderRadius] = useState(currentTheme?.customSettings.borderRadius || 8);
+  const [tempElevation, setTempElevation] = useState(currentTheme?.customSettings.elevation || 4);
+  const [tempFontScale, setTempFontScale] = useState(currentTheme?.customSettings.fontScale || 1.0);
 
   const schemeOptions = themeServiceV2.getMaterial3SchemeOptions();
+
+  // 同步暫時值與當前主題
+  React.useEffect(() => {
+    if (currentTheme?.customSettings) {
+      setTempBorderRadius(currentTheme.customSettings.borderRadius);
+      setTempElevation(currentTheme.customSettings.elevation);
+      setTempFontScale(currentTheme.customSettings.fontScale);
+    }
+  }, [currentTheme?.customSettings]);
 
   // 標籤切換
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -151,7 +165,7 @@ const UnifiedThemeSettings: React.FC = () => {
       // 創建臨時主題用於預覽
       const tempTheme: UserTheme = {
         _id: 'temp-material3-preview',
-        themeName: `Material 3 ${schemeOptions.find(opt => opt.value === scheme)?.label} 預覽`,
+        themeName: `Material 3 ${schemeOptions.find(opt => opt.value === scheme)?.label}`,
         primaryColor: color,
         mode: currentTheme?.mode || 'light',
         customSettings: currentTheme?.customSettings || {
@@ -224,9 +238,16 @@ const UnifiedThemeSettings: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* 預覽模式提示 */}
       {isPreviewMode && (
-        <Alert 
-          severity="info" 
-          sx={{ mb: 3 }}
+        <Alert
+          severity="info"
+          sx={{
+            mb: 3,
+            backgroundColor: '#e3f2fd',
+            borderLeft: '4px solid #2196f3',
+            '& .MuiAlert-icon': {
+              color: '#1976d2'
+            }
+          }}
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
@@ -234,6 +255,12 @@ const UnifiedThemeSettings: React.FC = () => {
                 size="small"
                 onClick={applyPreviewedTheme}
                 startIcon={<SaveIcon />}
+                sx={{
+                  color: '#1976d2',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.1)'
+                  }
+                }}
               >
                 套用
               </Button>
@@ -241,13 +268,19 @@ const UnifiedThemeSettings: React.FC = () => {
                 color="inherit"
                 size="small"
                 onClick={cancelPreview}
+                sx={{
+                  color: '#1976d2',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.1)'
+                  }
+                }}
               >
                 取消
               </Button>
             </Box>
           }
         >
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ color: '#1565c0' }}>
             🎨 <strong>預覽模式</strong> - 您正在預覽主題效果
           </Typography>
         </Alert>
@@ -259,7 +292,18 @@ const UnifiedThemeSettings: React.FC = () => {
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 2,
+            backgroundColor: '#ffebee',
+            borderLeft: '4px solid #f44336',
+            '& .MuiAlert-icon': {
+              color: '#d32f2f'
+            },
+            color: '#c62828'
+          }}
+        >
           {error}
         </Alert>
       )}
@@ -272,78 +316,39 @@ const UnifiedThemeSettings: React.FC = () => {
               {/* 主題類型標籤 */}
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                 <Tabs value={tabValue} onChange={handleTabChange}>
-                  <Tab 
-                    icon={<PaletteIcon />} 
-                    label="基礎設定" 
+                  <Tab
+                    icon={<Material3Icon />}
+                    label="Material 3"
                     id="theme-tab-0"
                   />
-                  <Tab 
-                    icon={<Material3Icon />} 
-                    label="Material 3" 
+                  <Tab
+                    icon={<SettingsIcon />}
+                    label="進階設定"
                     id="theme-tab-1"
-                  />
-                  <Tab 
-                    icon={<SettingsIcon />} 
-                    label="進階設定" 
-                    id="theme-tab-2"
                   />
                 </Tabs>
               </Box>
 
-              {/* 基礎設定 */}
-              <TabPanel value={tabValue} index={0}>
-                {currentTheme && (
-                  <Grid container spacing={3}>
-                    {/* 主色選擇 */}
-                    <Grid item xs={12}>
-                      <ColorPicker
-                        value={currentTheme.primaryColor}
-                        onChange={handlePrimaryColorChange}
-                        title="選擇主題色彩"
-                        showPresets={true}
-                        showInput={true}
-                      />
-                    </Grid>
-
-                    {/* 模式設定 */}
-                    <Grid item xs={12} sm={6}>
-                      <FormControl component="fieldset">
-                        <FormLabel component="legend">主題模式</FormLabel>
-                        <RadioGroup
-                          value={currentTheme.mode}
-                          onChange={(e) => handleModeChange(e.target.value as any)}
-                        >
-                          <FormControlLabel value="light" control={<Radio />} label="淺色模式" />
-                          <FormControlLabel value="dark" control={<Radio />} label="深色模式" />
-                          <FormControlLabel value="auto" control={<Radio />} label="自動切換" />
-                        </RadioGroup>
-                      </FormControl>
-                    </Grid>
-
-                    {/* 主題資訊 */}
-                    <Grid item xs={12} sm={6}>
-                      <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                        <Typography variant="subtitle2" gutterBottom>
-                          當前主題資訊
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          名稱：{currentTheme.themeName}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          類型：{currentTheme.generatedPalette?.material3 ? 'Material 3' : '傳統主題'}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          主色：{currentTheme.primaryColor}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                )}
-              </TabPanel>
-
               {/* Material 3 設定 */}
-              <TabPanel value={tabValue} index={1}>
+              <TabPanel value={tabValue} index={0}>
                 <Grid container spacing={3}>
+                  {/* 選色器 - 放在最上方 */}
+                  <Grid item xs={12}>
+                    <ColorPicker
+                      value={currentTheme?.primaryColor || '#1976d2'}
+                      onChange={(color) => {
+                        if (currentTheme?.primaryColor !== color) {
+                          handlePrimaryColorChange(color);
+                          // 自動預覽新顏色的 Material 3 效果
+                          handleMaterial3Preview(color, material3Scheme);
+                        }
+                      }}
+                      title="選擇 Material 3 主題色彩"
+                      showPresets={true}
+                      showInput={true}
+                    />
+                  </Grid>
+
                   {/* Material 3 調色方案選擇 */}
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
@@ -422,15 +427,46 @@ const UnifiedThemeSettings: React.FC = () => {
               </TabPanel>
 
               {/* 進階設定 */}
-              <TabPanel value={tabValue} index={2}>
+              <TabPanel value={tabValue} index={1}>
                 {currentTheme && (
                   <Grid container spacing={3}>
+                    {/* 主題模式設定 */}
+                    <Grid item xs={12}>
+                      <Paper sx={{ p: 3, mb: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                          主題模式設定
+                        </Typography>
+                        <FormControl component="fieldset">
+                          <FormLabel component="legend">選擇主題模式</FormLabel>
+                          <RadioGroup
+                            value={currentTheme.mode}
+                            onChange={(e) => handleModeChange(e.target.value as any)}
+                            row
+                          >
+                            <FormControlLabel value="light" control={<Radio />} label="淺色模式" />
+                            <FormControlLabel value="dark" control={<Radio />} label="深色模式" />
+                            <FormControlLabel value="auto" control={<Radio />} label="自動切換" />
+                          </RadioGroup>
+                        </FormControl>
+                      </Paper>
+                    </Grid>
+
+                    {/* 自訂樣式設定 */}
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom>
+                        自訂樣式設定
+                      </Typography>
+                    </Grid>
+
                     {/* 邊框圓角 */}
                     <Grid item xs={12} sm={4}>
-                      <FormLabel component="legend">邊框圓角</FormLabel>
+                      <FormLabel component="legend">
+                        邊框圓角 ({tempBorderRadius}px)
+                      </FormLabel>
                       <Slider
-                        value={currentTheme.customSettings.borderRadius}
-                        onChange={(_, value) => handleCustomSettingChange('borderRadius', value as number)}
+                        value={tempBorderRadius}
+                        onChange={(_, value) => setTempBorderRadius(value as number)}
+                        onChangeCommitted={(_, value) => handleCustomSettingChange('borderRadius', value as number)}
                         min={0}
                         max={50}
                         step={1}
@@ -442,10 +478,13 @@ const UnifiedThemeSettings: React.FC = () => {
 
                     {/* 陰影層級 */}
                     <Grid item xs={12} sm={4}>
-                      <FormLabel component="legend">陰影層級</FormLabel>
+                      <FormLabel component="legend">
+                        陰影層級 ({tempElevation})
+                      </FormLabel>
                       <Slider
-                        value={currentTheme.customSettings.elevation}
-                        onChange={(_, value) => handleCustomSettingChange('elevation', value as number)}
+                        value={tempElevation}
+                        onChange={(_, value) => setTempElevation(value as number)}
+                        onChangeCommitted={(_, value) => handleCustomSettingChange('elevation', value as number)}
                         min={0}
                         max={24}
                         step={1}
@@ -457,10 +496,13 @@ const UnifiedThemeSettings: React.FC = () => {
 
                     {/* 字體縮放 */}
                     <Grid item xs={12} sm={4}>
-                      <FormLabel component="legend">字體縮放</FormLabel>
+                      <FormLabel component="legend">
+                        字體縮放 ({tempFontScale.toFixed(1)}x)
+                      </FormLabel>
                       <Slider
-                        value={currentTheme.customSettings.fontScale}
-                        onChange={(_, value) => handleCustomSettingChange('fontScale', value as number)}
+                        value={tempFontScale}
+                        onChange={(_, value) => setTempFontScale(value as number)}
+                        onChangeCommitted={(_, value) => handleCustomSettingChange('fontScale', value as number)}
                         min={0.5}
                         max={2.0}
                         step={0.1}
@@ -490,7 +532,7 @@ const UnifiedThemeSettings: React.FC = () => {
         </Grid>
 
         {/* 側邊欄 - 主題管理 */}
-        <Grid item xs={12} lg={4}>
+        <Grid item xs={12} lg={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
