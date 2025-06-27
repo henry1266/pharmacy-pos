@@ -31,6 +31,7 @@ import configRoutes from "./routes/config"; // 新增配置路由
 import csvImportApiRoutes from "./routes/csvImportApi"; // 新增CSV匯入REST API
 import employeeSchedulesRoutes from "./routes/employeeSchedules"; // 新增員工排班API路由
 import overtimeRecordsRoutes from "./routes/overtimeRecords"; // 新增加班記錄API路由
+import userThemesRoutes from "./routes/userThemes"; // 新增用戶主題API路由
 
 // 連接資料庫
 connectDB();
@@ -68,6 +69,7 @@ app.use("/api/config", configRoutes); // 新增配置路由
 app.use("/api/csv-import", csvImportApiRoutes); // 新增CSV匯入REST API
 app.use("/api/employee-schedules", employeeSchedulesRoutes); // 新增員工排班API路由
 app.use("/api/overtime-records", overtimeRecordsRoutes); // 新增加班記錄  API路由
+app.use("/api/user-themes", userThemesRoutes); // 新增用戶主題API路由
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {
