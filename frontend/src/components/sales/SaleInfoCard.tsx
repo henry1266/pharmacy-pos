@@ -42,23 +42,41 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
   onInputChange
 }) => {
   return (
-    <Card>
+    <Card sx={{
+      maxWidth: '100%',
+      minWidth: { xs: '100%', lg: 280, xl: 320 },
+      boxShadow: 2
+    }}>
       <CardHeader
         title="基本資訊"
+        titleTypographyProps={{
+          variant: 'h6',
+          fontSize: { xs: '1rem', sm: '1.1rem' },
+          fontWeight: 600
+        }}
         action={
           <IconButton
             onClick={onExpandToggle}
             aria-expanded={expanded}
             aria-label="顯示/隱藏基本資訊"
+            size="small"
           >
             <ExpandMoreIcon sx={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
           </IconButton>
         }
-        sx={{ pb: expanded ? 0 : 2 }} // Remove padding bottom if expanded
+        sx={{
+          pb: expanded ? 1 : 2,
+          px: { xs: 2, sm: 2.5 },
+          pt: { xs: 2, sm: 2.5 }
+        }}
       />
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent sx={{ pt: 0 }}> {/* Remove padding top */}
-          <Grid container spacing={2}>
+        <CardContent sx={{
+          pt: 0,
+          px: { xs: 2, sm: 2.5 },
+          pb: { xs: 2, sm: 2.5 }
+        }}>
+          <Grid container spacing={{ xs: 1.5, sm: 2 }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth

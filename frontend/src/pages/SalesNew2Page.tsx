@@ -454,11 +454,23 @@ const SalesNew2Page: FC = () => {
         <Box sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: { xs: 1, sm: 1.5 },
-          alignItems: 'center'
+          gap: { xs: 2, sm: 2.5, md: 3 },
+          alignItems: 'center',
+          p: { xs: 2, sm: 2.5, md: 3 },
+          backgroundColor: 'rgba(102, 126, 234, 0.05)',
+          borderRadius: 2,
+          border: '1px solid rgba(102, 126, 234, 0.1)'
         }}>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mr: 1 }}>
-            快捷按鈕：
+          <Typography
+            variant="subtitle1"
+            sx={{
+              color: 'primary.main',
+              fontWeight: 600,
+              fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+              mr: { xs: 1, sm: 2 }
+            }}
+          >
+            ⚡ 快捷按鈕：
           </Typography>
           <ShortcutButtonManager
             onShortcutSelect={handleShortcutSelect}
@@ -511,7 +523,7 @@ const SalesNew2Page: FC = () => {
             overflow: 'hidden'
           }}>
             <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ flexGrow: 1, overflow: 'hidden' }}>
-              <Grid item xs={12} lg={isLargeScreen ? 9 : 8} xl={8}>
+              <Grid item xs={12} lg={isLargeScreen ? 10 : 9} xl={9}>
                 <SalesProductInput
                   products={products ?? []}
                   barcodeInputRef={barcodeInputRef}
@@ -557,7 +569,7 @@ const SalesNew2Page: FC = () => {
                 </Box>
               </Grid>
 
-              <Grid item xs={12} lg={isLargeScreen ? 3 : 4} xl={4}>
+              <Grid item xs={12} lg={isLargeScreen ? 2 : 3} xl={3}>
                 <Box sx={{
                   display: 'flex',
                   flexDirection: 'column',

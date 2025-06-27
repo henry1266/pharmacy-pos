@@ -6,6 +6,7 @@
 // 型別定義
 export * from './types/entities';
 export * from './types/api';
+export * from './types/theme';
 
 // 列舉常數
 export * from './enums';
@@ -141,6 +142,25 @@ export {
   USAGE_EXAMPLES
 } from './utils';
 
+// 顏色工具函數
+export {
+  hexToRgb,
+  rgbToHex,
+  rgbToHsl,
+  hslToRgb,
+  lightenColor,
+  darkenColor,
+  adjustSaturation,
+  adjustHue,
+  getLuminance,
+  getContrastRatio,
+  getContrastText,
+  generateColorPalette,
+  generateThemePalette,
+  isValidHexColor,
+  normalizeHexColor
+} from './utils/colorUtils';
+
 // 服務層 - API 客戶端
 export {
   AccountingApiClient,
@@ -210,6 +230,28 @@ export {
   EmployeeAccountUpdateRequest,
   EmployeeStats
 } from './services/employeeApiClient';
+
+export {
+  ThemeApiClient,
+  createThemeApiClient
+} from './services/themeApiClient';
+
+// 主題相關常數和型別 - 直接重新匯出
+export {
+  DEFAULT_THEME_COLORS,
+  DEFAULT_CUSTOM_SETTINGS,
+  UserTheme,
+  CreateUserThemeRequest,
+  UpdateUserThemeRequest,
+  UserThemeQueryParams,
+  DuplicateThemeRequest,
+  ColorPalette,
+  GeneratedPalette,
+  CustomThemeSettings,
+  RGB,
+  HSL,
+  DefaultThemeColor
+} from './types/theme';
 
 // Schema 驗證 - 使用別名避免衝突
 export {

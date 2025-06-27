@@ -79,7 +79,11 @@ export abstract class BaseApiClient {
         `${this.baseUrl}${endpoint}`,
         { params }
       );
-      return response.data.data!;
+      // 檢查回應格式，支援直接回傳資料或包裝在 ApiResponse 中
+      if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+        return (response.data as ApiResponse<T>).data!;
+      }
+      return response.data as T;
     } catch (error) {
       return handleApiError(error, `GET ${endpoint}`);
     }
@@ -94,7 +98,11 @@ export abstract class BaseApiClient {
         `${this.baseUrl}${endpoint}`,
         data
       );
-      return response.data.data!;
+      // 檢查回應格式，支援直接回傳資料或包裝在 ApiResponse 中
+      if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+        return (response.data as ApiResponse<T>).data!;
+      }
+      return response.data as T;
     } catch (error) {
       return handleApiError(error, `POST ${endpoint}`);
     }
@@ -109,7 +117,11 @@ export abstract class BaseApiClient {
         `${this.baseUrl}${endpoint}`,
         data
       );
-      return response.data.data!;
+      // 檢查回應格式，支援直接回傳資料或包裝在 ApiResponse 中
+      if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+        return (response.data as ApiResponse<T>).data!;
+      }
+      return response.data as T;
     } catch (error) {
       return handleApiError(error, `PUT ${endpoint}`);
     }

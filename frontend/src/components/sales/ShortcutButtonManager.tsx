@@ -26,7 +26,8 @@ import {
   Save as SaveIcon,
   Search as SearchIcon,
   Check as CheckIcon,
-  Cancel as CancelIcon
+  Cancel as CancelIcon,
+  FlashOn as FlashOnIcon
 } from '@mui/icons-material';
 import useUserSettings, { type UserShortcut } from '../../hooks/useUserSettings';
 
@@ -388,14 +389,35 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
         <Button
           key={shortcut?.id}
           variant="contained"
-          color="info"
+          startIcon={<FlashOnIcon />}
           onClick={() => onShortcutSelect(shortcut)}
           sx={{
             textTransform: 'none',
-            height: { xs: 36, sm: 40 },
-            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+            height: { xs: 48, sm: 52, md: 56 },
+            minWidth: { xs: 120, sm: 140, md: 160 },
+            fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem' },
+            fontWeight: 600,
+            px: { xs: 2, sm: 3, md: 4 },
+            py: { xs: 1.5, sm: 2 },
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            boxShadow: '0 4px 15px 0 rgba(102, 126, 234, 0.4)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+              boxShadow: '0 6px 20px 0 rgba(102, 126, 234, 0.6)',
+              transform: 'translateY(-2px)',
+            },
+            '&:active': {
+              transform: 'translateY(0px)',
+              boxShadow: '0 2px 10px 0 rgba(102, 126, 234, 0.4)',
+            },
+            '&:disabled': {
+              background: 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)',
+              boxShadow: 'none',
+              transform: 'none',
+            }
           }}
-          size="small"
           disabled={!!error} // Disable if there was an error loading/saving
         >
           {shortcut?.name}
@@ -405,15 +427,28 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
       <IconButton
         onClick={handleOpenManageDialog}
         sx={{
-          height: { xs: 36, sm: 40 },
-          width: { xs: 36, sm: 40 },
-          border: '1px solid',
-          borderColor: 'divider'
+          height: { xs: 48, sm: 52, md: 56 },
+          width: { xs: 48, sm: 52, md: 56 },
+          borderRadius: 3,
+          border: '2px solid',
+          borderColor: 'primary.main',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
+          boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)',
+            borderColor: 'primary.dark',
+            boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(-1px)',
+          },
+          '&:active': {
+            transform: 'translateY(0px)',
+            boxShadow: '0 1px 4px 0 rgba(0, 0, 0, 0.1)',
+          }
         }}
-        size="small"
         disabled={!!error} // Disable if there was an error loading/saving
       >
-        <EditIcon fontSize="small" />
+        <EditIcon sx={{ fontSize: { xs: 20, sm: 22, md: 24 }, color: 'primary.main' }} />
       </IconButton>
 
       {/* Dialog to Manage Shortcut Buttons */}
