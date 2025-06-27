@@ -3,6 +3,8 @@ import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
+import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
+import { DEFAULT_THEME_COLORS, DEFAULT_CUSTOM_SETTINGS } from '@pharmacy-pos/shared/types/theme';
 
 const router: Router = express.Router();
 
@@ -216,12 +218,9 @@ router.post(
         userId,
         primaryColor,
         themeName: themeName || `主題 ${Date.now()}`,
-        generatedPalette: {
-          primary: { main: primaryColor, light: primaryColor, dark: primaryColor },
-          secondary: { main: '#f50057', light: '#f50057', dark: '#f50057' }
-        },
+        generatedPalette: generateThemePalette(primaryColor),
         mode: mode || 'light',
-        customSettings: customSettings || { borderRadius: 8, elevation: 2, fontScale: 1 },
+        customSettings: customSettings || DEFAULT_CUSTOM_SETTINGS,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -281,10 +280,16 @@ router.put('/:id', auth, async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
     
+    // 如果更新了主色，重新生成調色板
+    let finalUpdateData = { ...updateData };
+    if (updateData.primaryColor) {
+      finalUpdateData.generatedPalette = generateThemePalette(updateData.primaryColor);
+    }
+
     // 更新主題
     mockThemes[themeIndex] = {
       ...theme,
-      ...updateData,
+      ...finalUpdateData,
       updatedAt: new Date()
     };
     
@@ -364,21 +369,10 @@ router.delete('/:id', auth, async (req: AuthRequest, res: Response): Promise<voi
 // @access  Private
 router.get('/colors/defaults', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const defaultColors = {
-      blue: '#1976d2',
-      purple: '#9c27b0',
-      green: '#388e3c',
-      orange: '#f57c00',
-      red: '#d32f2f',
-      teal: '#00796b',
-      indigo: '#303f9f',
-      pink: '#c2185b'
-    };
-    
-    const response: ApiResponse<typeof defaultColors> = {
+    const response: ApiResponse<typeof DEFAULT_THEME_COLORS> = {
       success: true,
       message: '預設顏色獲取成功',
-      data: defaultColors,
+      data: DEFAULT_THEME_COLORS,
       timestamp: new Date()
     };
     

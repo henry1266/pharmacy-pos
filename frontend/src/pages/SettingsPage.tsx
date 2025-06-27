@@ -1,60 +1,131 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
   Container,
   Paper,
-  Grid,
-  Button,
+  Tabs,
+  Tab,
   Divider
 } from '@mui/material';
-// Placeholder for a color picker component (we might need to install one)
-// import { SketchPicker } from 'react-color'; 
+import { useState } from 'react';
+import ThemeSettings from '../components/settings/ThemeSettings';
+import {
+  Palette as PaletteIcon,
+  Settings as SettingsIcon,
+  Notifications as NotificationsIcon,
+  Security as SecurityIcon
+} from '@mui/icons-material';
 
-// Placeholder for theme context if we use one
-// import { ThemeContext } from '../context/ThemeContext';
+/**
+ * 設定頁面標籤介面
+ */
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
 
+/**
+ * 標籤面板組件
+ */
+const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other }) => {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`settings-tabpanel-${index}`}
+      aria-labelledby={`settings-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+    </div>
+  );
+};
+
+/**
+ * 設定頁面主組件
+ */
 const SettingsPage: React.FC = () => {
-  // Placeholder states for selected colors
-  const [primaryColor] = useState<string>('#1976d2'); // Default MUI blue
-  const [secondaryColor] = useState<string>('#dc004e'); // Default MUI pink
+  const [tabValue, setTabValue] = useState(0);
 
-  // Placeholder handler for saving settings
-  const handleSaveSettings = (): void => {
-    console.log('Saving colors:', { primary: primaryColor, secondary: secondaryColor });
-
-    alert('設定已儲存（功能待實現）');
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>系統配色設定</Typography>
-        <Divider sx={{ my: 2 }} />
-
-        <Typography variant="h6" gutterBottom>選擇主題顏色</Typography>
-        <Grid container spacing={3}>
-          <Grid {...{ item: true, xs: 12, sm: 6 } as any}>
-            <Typography gutterBottom>主要顏色 (Primary)</Typography>
-            {/* Placeholder for Color Picker */}
-            <Box sx={{ width: 50, height: 50, bgcolor: primaryColor, border: '1px solid grey', mb: 1 }} />
-            {/* <SketchPicker color={primaryColor} onChangeComplete={(color) => setPrimaryColor(color.hex)} /> */}
-            <Typography variant="caption">點擊方塊或使用調色盤選擇 (調色盤待實現)</Typography>
-          </Grid>
-          <Grid {...{ item: true, xs: 12, sm: 6 } as any}>
-            <Typography gutterBottom>次要顏色 (Secondary)</Typography>
-            {/* Placeholder for Color Picker */}
-            <Box sx={{ width: 50, height: 50, bgcolor: secondaryColor, border: '1px solid grey', mb: 1 }} />
-            {/* <SketchPicker color={secondaryColor} onChangeComplete={(color) => setSecondaryColor(color.hex)} /> */}
-            <Typography variant="caption">點擊方塊或使用調色盤選擇 (調色盤待實現)</Typography>
-          </Grid>
-        </Grid>
-
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="contained" onClick={handleSaveSettings}>
-            儲存設定
-          </Button>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Paper sx={{ overflow: 'hidden' }}>
+        {/* 頁面標題 */}
+        <Box sx={{ p: 3, pb: 0 }}>
+          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SettingsIcon />
+            系統設定
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            管理系統的各項設定，包括主題、通知和安全性設定
+          </Typography>
         </Box>
+
+        <Divider sx={{ mt: 2 }} />
+
+        {/* 設定標籤 */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="設定標籤"
+            sx={{ px: 3 }}
+          >
+            <Tab
+              icon={<PaletteIcon />}
+              label="主題設定"
+              id="settings-tab-0"
+              aria-controls="settings-tabpanel-0"
+            />
+            <Tab
+              icon={<NotificationsIcon />}
+              label="通知設定"
+              id="settings-tab-1"
+              aria-controls="settings-tabpanel-1"
+              disabled
+            />
+            <Tab
+              icon={<SecurityIcon />}
+              label="安全性設定"
+              id="settings-tab-2"
+              aria-controls="settings-tabpanel-2"
+              disabled
+            />
+          </Tabs>
+        </Box>
+
+        {/* 標籤內容 */}
+        <TabPanel value={tabValue} index={0}>
+          <ThemeSettings />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={1}>
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h6" color="text.secondary">
+              通知設定
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              此功能即將推出...
+            </Typography>
+          </Box>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h6" color="text.secondary">
+              安全性設定
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              此功能即將推出...
+            </Typography>
+          </Box>
+        </TabPanel>
       </Paper>
     </Container>
   );

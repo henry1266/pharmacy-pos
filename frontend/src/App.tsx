@@ -9,10 +9,12 @@ import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-d
 import AppRouter from './AppRouter'; // 這將包含受保護的路由
 import axios from 'axios';
 import './assets/css/dashui-theme.css';
+// 導入主題上下文提供者
+import { ThemeContextProvider } from './contexts/ThemeContext';
 // 在 TypeScript 中不需要 PropTypes，因為我們已經有了類型定義
 
-// 創建自定義主題
-const theme = createTheme({
+// 創建預設主題（作為後備）
+const fallbackTheme = createTheme({
   palette: {
     primary: {
       main: '#624bff',
@@ -155,31 +157,34 @@ const App: React.FC = () => {
 
   // @ts-ignore - 忽略 React Router 類型問題
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {/* @ts-ignore - 忽略 React Router 類型問題 */}
-      <Router>
-        {/* @ts-ignore - 忽略 React Router 類型問題 */}
-        <Routes>
-          {/* 公共登錄路由 */}
-          {/* @ts-ignore - 忽略 React Router 類型問題 */}
-          <Route path="/login" element={<LoginPage />} />
-          
-          {/* 受保護的路由 - 包裝 MainLayout 和 AppRouter */}
-          {/* @ts-ignore - 忽略 React Router 類型問題 */}
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
+    <Router>
+      <Routes>
+        {/* 公共登錄路由 - 使用預設主題 */}
+        <Route
+          path="/login"
+          element={
+            <ThemeProvider theme={fallbackTheme}>
+              <CssBaseline />
+              <LoginPage />
+            </ThemeProvider>
+          }
+        />
+        
+        {/* 受保護的路由 - 使用動態主題 */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <ThemeContextProvider>
                 <MainLayout>
-                  <AppRouter /> {/* AppRouter 現在只包含受保護的路由 */}
+                  <AppRouter />
                 </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+              </ThemeContextProvider>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 

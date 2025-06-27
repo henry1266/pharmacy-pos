@@ -6,16 +6,17 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { ThemeProvider, createTheme, Theme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { 
-  UserTheme, 
-  DEFAULT_THEME_COLORS, 
-  DEFAULT_CUSTOM_SETTINGS,
-  generateThemePalette 
+import {
+  UserTheme,
+  DEFAULT_THEME_COLORS,
+  DEFAULT_CUSTOM_SETTINGS
 } from '@pharmacy-pos/shared';
-import { 
-  getCurrentUserDefaultTheme, 
+import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
+import {
+  getCurrentUserDefaultTheme,
   getCurrentUserThemes,
-  createThemeForCurrentUser 
+  createThemeForCurrentUser,
+  themeServiceV2
 } from '../services/themeServiceV2';
 
 /**
