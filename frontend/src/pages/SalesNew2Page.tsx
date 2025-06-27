@@ -455,21 +455,66 @@ const SalesNew2Page: FC = () => {
           flexWrap: 'wrap',
           gap: { xs: 2, sm: 2.5, md: 3 },
           alignItems: 'center',
-          p: { xs: 2, sm: 2.5, md: 3 },
-          backgroundColor: 'rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.05)',
-          borderRadius: 'var(--border-radius, 8px)',
-          border: '1px solid rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.1)'
+          p: { xs: 2.5, sm: 3, md: 3.5 },
+          position: 'relative',
+          overflow: 'hidden',
+          
+          // Material3 動態背景 - 使用極低飽和度
+          background: `linear-gradient(135deg,
+            rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.4) 0%,
+            rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.03) 50%,
+            rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.6) 100%)`,
+          
+          // 浮雕容器效果
+          boxShadow: `
+            0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08),
+            0 4px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.04),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+            inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.03)
+          `,
+          
+          borderRadius: 'var(--shape-corner-extra-large, 28px)',
+          border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.12)`,
+          
+          // 偽元素 - 增強質感
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(135deg,
+              rgba(255, 255, 255, 0.06) 0%,
+              rgba(255, 255, 255, 0.02) 50%,
+              rgba(0, 0, 0, 0.01) 100%)`,
+            pointerEvents: 'none',
+            borderRadius: 'inherit',
+          }
         }}>
           <Typography
             variant="subtitle1"
             sx={{
-              color: 'var(--primary-color, #667eea)',
+              color: `rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.85)`,
               fontWeight: 600,
               fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-              mr: { xs: 1, sm: 2 }
+              mr: { xs: 1, sm: 2 },
+              textShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
             }}
           >
-            ⚡ 快捷按鈕：
+            <Box
+              component="span"
+              sx={{
+                fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.4rem' },
+                filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
+              }}
+            >
+              ⚡
+            </Box>
+            快捷按鈕：
           </Typography>
           <ShortcutButtonManager
             onShortcutSelect={handleShortcutSelect}

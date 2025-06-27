@@ -396,28 +396,102 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
             height: { xs: 48, sm: 52, md: 56 },
             minWidth: { xs: 120, sm: 140, md: 160 },
             fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem' },
-            fontWeight: 600,
+            fontWeight: 500,
             px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 1.5, sm: 2 },
-            borderRadius: 'var(--border-radius, 12px)',
-            background: `linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--primary-dark, #764ba2) 100%)`,
-            color: 'var(--primary-contrast, #ffffff)',
-            boxShadow: `0 4px 15px 0 var(--primary-shadow, rgba(102, 126, 234, 0.4))`,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: 'var(--shape-corner-large, 16px)',
+            position: 'relative',
+            overflow: 'hidden',
+            
+            // Material3 動態背景 - 使用低飽和度的 primaryContainer
+            background: `linear-gradient(145deg,
+              rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.08) 0%,
+              rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12) 50%,
+              rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.06) 100%)`,
+            
+            // 浮雕效果 - 多層陰影
+            boxShadow: `
+              0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.12),
+              0 4px 8px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.08),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+              inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.05)
+            `,
+            
+            // 微妙邊框
+            border: `1px solid rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.15)`,
+            
+            // 文字顏色 - 深色背景使用白色文字確保最佳對比度
+            color: 'rgba(255, 255, 255, 0.95)',
+            
+            // 平滑過渡
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            
+            // 偽元素 - 增強浮雕效果
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `linear-gradient(135deg,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(0, 0, 0, 0.02) 100%)`,
+              pointerEvents: 'none',
+              borderRadius: 'inherit',
+            },
+            
             '&:hover': {
-              background: `linear-gradient(135deg, var(--primary-dark, #5a6fd8) 0%, var(--primary-darker, #6a4190) 100%)`,
-              boxShadow: `0 6px 20px 0 var(--primary-shadow-hover, rgba(102, 126, 234, 0.6))`,
-              transform: 'translateY(-2px)',
+              // 懸停時增強效果
+              background: `linear-gradient(145deg,
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12) 0%,
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.18) 50%,
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.10) 100%)`,
+              
+              boxShadow: `
+                0 2px 6px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.15),
+                0 6px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+                inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08)
+              `,
+              
+              transform: 'translateY(-1px)',
+              borderColor: `rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.25)`,
+              color: 'rgba(255, 255, 255, 1.0)',
             },
+            
             '&:active': {
-              transform: 'translateY(0px)',
-              boxShadow: `0 2px 10px 0 var(--primary-shadow, rgba(102, 126, 234, 0.4))`,
+              // 按下時的內凹效果
+              transform: 'translateY(0px) scale(0.98)',
+              boxShadow: `
+                0 1px 2px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.1),
+                0 2px 4px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.06),
+                inset 0 2px 4px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08),
+                inset 0 -1px 0 0 rgba(255, 255, 255, 0.05)
+              `,
+              background: `linear-gradient(145deg,
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.06) 0%,
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.10) 50%,
+                rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.04) 100%)`,
             },
+            
             '&:disabled': {
-              background: `linear-gradient(135deg, var(--disabled-bg, #e0e0e0) 0%, var(--disabled-bg-dark, #bdbdbd) 100%)`,
-              color: 'var(--disabled-text, #9e9e9e)',
+              background: `rgba(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b), 0.04)`,
+              color: `rgba(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b), 0.38)`,
               boxShadow: 'none',
               transform: 'none',
+              border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08)`,
+            },
+            
+            // 圖示樣式 - 與白色文字保持一致
+            '& .MuiButton-startIcon': {
+              marginRight: { xs: 1, sm: 1.5 },
+              '& svg': {
+                fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' },
+                color: 'rgba(255, 255, 255, 0.9)',
+                filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))',
+              }
             }
           }}
           disabled={!!error} // Disable if there was an error loading/saving
@@ -431,28 +505,96 @@ const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
         sx={{
           height: { xs: 48, sm: 52, md: 56 },
           width: { xs: 48, sm: 52, md: 56 },
-          borderRadius: 'var(--border-radius, 12px)',
-          border: '2px solid',
-          borderColor: 'var(--primary-color, #667eea)',
-          background: `linear-gradient(135deg, var(--bg-primary, #ffffff) 0%, var(--bg-secondary, #f5f5f5) 100%)`,
-          boxShadow: `0 2px 8px 0 var(--shadow-light, rgba(0, 0, 0, 0.1))`,
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            background: `linear-gradient(135deg, var(--bg-hover, #f0f0f0) 0%, var(--bg-hover-dark, #e0e0e0) 100%)`,
-            borderColor: 'var(--primary-dark, #5a6fd8)',
-            boxShadow: `0 4px 12px 0 var(--shadow-medium, rgba(0, 0, 0, 0.15))`,
-            transform: 'translateY(-1px)',
+          borderRadius: 'var(--shape-corner-medium, 12px)',
+          position: 'relative',
+          overflow: 'hidden',
+          
+          // Material3 動態背景 - 使用 surfaceVariant
+          background: `linear-gradient(145deg,
+            rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.8) 0%,
+            rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.95) 50%,
+            rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.75) 100%)`,
+          
+          // 浮雕效果 - 與快捷按鈕一致的陰影
+          boxShadow: `
+            0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.12),
+            0 4px 8px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.05)
+          `,
+          
+          // 微妙邊框
+          border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.2)`,
+          
+          // 平滑過渡
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          
+          // 偽元素 - 增強浮雕效果
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(135deg,
+              rgba(255, 255, 255, 0.08) 0%,
+              rgba(255, 255, 255, 0.04) 50%,
+              rgba(0, 0, 0, 0.02) 100%)`,
+            pointerEvents: 'none',
+            borderRadius: 'inherit',
           },
+          
+          '&:hover': {
+            // 懸停時增強效果
+            background: `linear-gradient(145deg,
+              rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.08) 0%,
+              rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12) 50%,
+              rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.06) 100%)`,
+            
+            boxShadow: `
+              0 2px 6px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.15),
+              0 6px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.12),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+              inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08)
+            `,
+            
+            transform: 'translateY(-1px)',
+            borderColor: `rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.3)`,
+          },
+          
           '&:active': {
-            transform: 'translateY(0px)',
-            boxShadow: `0 1px 4px 0 var(--shadow-light, rgba(0, 0, 0, 0.1))`,
+            // 按下時的內凹效果
+            transform: 'translateY(0px) scale(0.95)',
+            boxShadow: `
+              0 1px 2px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.1),
+              0 2px 4px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.06),
+              inset 0 2px 4px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08),
+              inset 0 -1px 0 0 rgba(255, 255, 255, 0.05)
+            `,
+            background: `linear-gradient(145deg,
+              rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.6) 0%,
+              rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.8) 50%,
+              rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.5) 100%)`,
+          },
+          
+          '&:disabled': {
+            background: `rgba(var(--on-surface-variant-r), var(--on-surface-variant-g), var(--on-surface-variant-b), 0.04)`,
+            boxShadow: 'none',
+            transform: 'none',
+            border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08)`,
           }
         }}
         disabled={!!error} // Disable if there was an error loading/saving
       >
         <EditIcon sx={{
           fontSize: { xs: 20, sm: 22, md: 24 },
-          color: 'var(--primary-color, #667eea)'
+          color: `rgba(var(--on-surface-r), var(--on-surface-g), var(--on-surface-b), 0.8)`,
+          filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          '.MuiIconButton-root:hover &': {
+            color: `rgba(var(--on-primary-container-r), var(--on-primary-container-g), var(--on-primary-container-b), 0.95)`,
+          }
         }} />
       </IconButton>
 
