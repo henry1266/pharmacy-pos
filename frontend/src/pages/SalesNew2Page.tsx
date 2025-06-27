@@ -425,6 +425,7 @@ const SalesNew2Page: FC = () => {
           flexWrap: 'wrap',
           gap: { xs: 2, sm: 2.5, md: 3 },
           alignItems: 'center',
+          justifyContent: 'center',
           p: { xs: 2.5, sm: 3, md: 3.5 },
           position: 'relative',
           overflow: 'hidden',
@@ -549,7 +550,7 @@ const SalesNew2Page: FC = () => {
                   flexDirection: 'column',
                   height: '100%',
                   overflow: 'visible', // 改為 visible 讓按鈕可以超出邊界
-                  pr: { xs: 0, lg: 1 }, // 右邊距避免與右側欄重疊
+
                   position: 'relative' // 為絕對定位的按鈕提供參考點
                 }}>
                   <SalesProductInput
@@ -559,11 +560,10 @@ const SalesNew2Page: FC = () => {
                     showSnackbar={showSnackbar}
                   />
 
-                  {/* 商品表格區域 - 加高並智能滾輪 */}
+                  {/* 商品表格區域 */}
                   <Box sx={{
                     flex: 1,
                     minHeight: 0,
-                    paddingBottom: '0px', // 移除底部預留空間，讓表格使用更多空間
                     pr: { sm: 0.5 },
                     '&::-webkit-scrollbar': {
                       width: '6px'
@@ -596,35 +596,6 @@ const SalesNew2Page: FC = () => {
                     />
                   </Box>
 
-                  {/* 按鈕區域 - 固定在底部 */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      bottom: '-60px', // 讓按鈕超出容器邊界，利用下方白色空間
-                      right: { xs: '16px', sm: '24px', md: '32px' },
-                      left: isMobile ? '16px' : 'auto',
-                      display: 'flex',
-                      justifyContent: isMobile ? 'center' : 'flex-end',
-                      zIndex: 1000 // 提高 z-index 確保按鈕在最上層
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<SaveIcon />}
-                      onClick={handleSaveSale}
-                      disabled={currentSale.items.length === 0 || (loading && !isTestMode)}
-                      size={isMobile ? 'medium' : 'large'}
-                      fullWidth={isMobile}
-                      sx={{
-                        minHeight: { xs: '48px', sm: '52px', md: '56px' },
-                        fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' },
-                        maxWidth: isMobile ? '100%' : '300px'
-                      }}
-                    >
-                      儲存銷售記錄 {isTestMode && "(模擬)"}
-                    </Button>
-                  </Box>
                 </Box>
               </Grid>
 
@@ -637,7 +608,7 @@ const SalesNew2Page: FC = () => {
                     height: '100%',
                     gap: { xs: 2, sm: 2, md: 3 },
                     overflow: 'hidden',
-                    pl: { xs: 0, lg: 1 } // 左邊距避免被覆蓋
+                    pl: { xs: 0, lg: 0.5 }
                   }}
                 >
                   <SaleInfoCard
@@ -648,6 +619,30 @@ const SalesNew2Page: FC = () => {
                     onExpandToggle={() => setInfoExpanded(!infoExpanded)}
                     onInputChange={handleSaleInfoChange}
                   />
+                  
+                  {/* 儲存按鈕 - 放在基本資訊下方 */}
+                  <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    mt: 'auto',
+                    pt: { xs: 2, sm: 2, md: 3 }
+                  }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<SaveIcon />}
+                      onClick={handleSaveSale}
+                      disabled={currentSale.items.length === 0 || (loading && !isTestMode)}
+                      size={isMobile ? 'medium' : 'large'}
+                      fullWidth
+                      sx={{
+                        minHeight: { xs: '48px', sm: '52px', md: '56px' },
+                        fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' }
+                      }}
+                    >
+                      儲存銷售記錄 {isTestMode && "(模擬)"}
+                    </Button>
+                  </Box>
                 </Box>
               </Grid>
             </Grid>
