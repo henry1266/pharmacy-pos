@@ -225,29 +225,30 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                         overflow: 'hidden',
                         pr: 0.75 // 縮窄右邊距
                       }}>
-                        {/* 第一行：銷貨單號 */}
-                        <Typography
-                          variant="subtitle2"
-                          sx={{
-                            fontWeight: 'bold',
-                            fontSize: '0.85rem',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            lineHeight: 1.3,
-                            mb: 0.5
-                          }}
-                        >
-                          {sale.saleNumber ?? '無單號'}
-                        </Typography>
-                        
-                        {/* 第二行：金額和時間 */}
+                        {/* 單行顯示：銷貨單號、金額、時間 */}
                         <Box sx={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          gap: 1
+                          gap: 1,
+                          width: '100%'
                         }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: 'bold',
+                              fontSize: '0.85rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              lineHeight: 1.3,
+                              flex: '0 1 auto',
+                              minWidth: 0
+                            }}
+                          >
+                            {sale.saleNumber ?? '無單號'}
+                          </Typography>
+                          
                           <Typography
                             variant="subtitle2"
                             sx={{
@@ -260,6 +261,7 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                           >
                             ${sale.totalAmount?.toFixed(0) ?? '0'}
                           </Typography>
+                          
                           <Typography
                             variant="caption"
                             color="textSecondary"
@@ -269,7 +271,8 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                               textAlign: 'right',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0
                             }}
                           >
                             {sale.date ? format(new Date(sale.date), 'MM/dd HH:mm', { locale: zhTW }) : ''}
@@ -296,11 +299,41 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                     {/* 展開狀態：顯示詳細資訊 */}
                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                       <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <PersonIcon sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                          <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem' }}>
-                            {sale.customer?.name ?? '一般客戶'}
-                          </Typography>
+                        {/* 客戶和付款資訊同一列 */}
+                        <Box sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 1,
+                          gap: 1
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                            <PersonIcon sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
+                            <Typography variant="body2" color="textSecondary" sx={{
+                              fontSize: '0.8rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {sale.customer?.name ?? '一般客戶'}
+                            </Typography>
+                          </Box>
+                          
+                          {/* 付款狀態和方式放右上 */}
+                          <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+                            <Chip
+                              label={getPaymentMethodText(sale.paymentMethod)}
+                              size="small"
+                              variant="outlined"
+                              sx={{ fontSize: '0.7rem', height: 20 }}
+                            />
+                            <Chip
+                              label={getPaymentStatusInfo(sale.paymentStatus).text}
+                              color={getPaymentStatusInfo(sale.paymentStatus).color}
+                              size="small"
+                              sx={{ fontSize: '0.7rem', height: 20 }}
+                            />
+                          </Box>
                         </Box>
                         
                         <Box sx={{ mb: 1 }}>
@@ -312,21 +345,6 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                               • {item.product?.name ?? item.name} x {item.quantity}
                             </Typography>
                           ))}
-                        </Box>
-                        
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          <Chip
-                            label={getPaymentMethodText(sale.paymentMethod)}
-                            size="small"
-                            variant="outlined"
-                            sx={{ fontSize: '0.7rem', height: 20 }}
-                          />
-                          <Chip
-                            label={getPaymentStatusInfo(sale.paymentStatus).text}
-                            color={getPaymentStatusInfo(sale.paymentStatus).color}
-                            size="small"
-                            sx={{ fontSize: '0.7rem', height: 20 }}
-                          />
                         </Box>
 
                         {onSaleClick && (

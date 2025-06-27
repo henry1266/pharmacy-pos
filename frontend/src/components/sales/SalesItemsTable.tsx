@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -58,50 +58,69 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  // 當商品項目增加時，自動滾動到底部
+  useEffect(() => {
+    if (tableContainerRef.current && items.length > 0) {
+      const container = tableContainerRef.current;
+      // 延遲滾動確保DOM更新完成
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 100);
+    }
+  }, [items.length]);
 
   return (
-    <TableContainer
-      component={Paper}
-      sx={{
-        mt: 2,
-        height: '100%',
-        overflow: 'auto',
-        // 智能滾輪：只有在需要時才顯示
-        '&::-webkit-scrollbar': {
-          width: '6px'
-        },
-        '&::-webkit-scrollbar-track': {
-          background: 'transparent'
-        },
-        '&::-webkit-scrollbar-thumb': {
-          background: 'rgba(0,0,0,0.2)',
-          borderRadius: '3px',
-          '&:hover': {
-            background: 'rgba(0,0,0,0.4)'
-          }
-        },
-        // Firefox 滾輪樣式
-        scrollbarWidth: 'thin',
-        scrollbarColor: 'rgba(0,0,0,0.2) transparent',
-        // 當內容不超出時，滾輪會自動隱藏
-        overflowY: items.length > 8 ? 'scroll' : 'auto' // 超過8個項目才強制顯示滾輪
-      }}
-    >
-      <Table
+    <Box sx={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      mt: 2
+    }}>
+      <TableContainer
+        ref={tableContainerRef}
+        component={Paper}
         sx={{
-          minWidth: isMobile ? 300 : 650,
-          '& .MuiTableCell-root': {
-            borderBottom: '1px solid rgba(224, 224, 224, 1)'
-          }
+          flex: 1,
+          overflow: 'auto',
+          // 智能滾輪：只有在需要時才顯示
+          '&::-webkit-scrollbar': {
+            width: '6px'
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgba(0,0,0,0.2)',
+            borderRadius: '3px',
+            '&:hover': {
+              background: 'rgba(0,0,0,0.4)'
+            }
+          },
+          // Firefox 滾輪樣式
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(0,0,0,0.2) transparent',
+          // 當內容不超出時，滾輪會自動隱藏
+          overflowY: items.length > 8 ? 'scroll' : 'auto' // 超過8個項目才強制顯示滾輪
         }}
-        aria-label="銷售項目表格"
-        stickyHeader
       >
+        <Table
+          sx={{
+            minWidth: isMobile ? 300 : 650,
+            '& .MuiTableCell-root': {
+              borderBottom: '1px solid rgba(224, 224, 224, 1)'
+            }
+          }}
+          aria-label="銷售項目表格"
+          stickyHeader
+        >
         <TableHead>
           <TableRow>
+            <TableCell sx={{ px: 1, width: '60px' }} align="center">序號</TableCell>
             <TableCell sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>產品名稱</TableCell>
             {!isMobile && <TableCell align="right" sx={{ px: 1 }}>代碼</TableCell>}
-            <TableCell align="center" sx={{ px: 1, width: isMobile ? 'auto' : '150px' }}>數量</TableCell> {/* Adjusted header width */}
+            <TableCell align="center" sx={{ px: 1, width: isMobile ? 'auto' : '150px' }}>數量</TableCell>
             <TableCell align="right" sx={{ px: 1 }}>單價/小計</TableCell>
             <TableCell align="center" sx={{ px: 1 }}>操作</TableCell>
           </TableRow>
@@ -109,13 +128,16 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         <TableBody>
           {items.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={isMobile ? 4 : 5} align="center">
+              <TableCell colSpan={isMobile ? 5 : 6} align="center">
                 <Typography color="textSecondary">尚未添加任何項目</Typography>
               </TableCell>
             </TableRow>
           ) : (
             items.map((item, index) => (
-              <TableRow key={item.product + index}> 
+              <TableRow key={item.product + index}>
+                <TableCell align="center" sx={{ px: 1, fontWeight: 'bold', color: 'primary.main' }}>
+                  {index + 1}
+                </TableCell>
                 <TableCell component="th" scope="row" sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>
                   {item.name}
                 </TableCell>
@@ -227,28 +249,41 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
               </TableRow>
             ))
           )}
-          {/* Summary Row - 總計與折扣合併 */}
-          <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-            <TableCell colSpan={isMobile ? 1 : 2} />
-            <TableCell align="right">
-              <Typography variant="h6">總計:</Typography>
-            </TableCell>
-            <TableCell align="right" colSpan={isMobile ? 1 : 2}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                  ${totalAmount?.toFixed(2) ?? '0.00'}
-                </Typography>
-                {discount && discount > 0 && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-                    (折扣: ${discount.toFixed(2)})
-                  </Typography>
-                )}
-              </Box>
-            </TableCell>
-          </TableRow>
         </TableBody>
       </Table>
     </TableContainer>
+    
+    {/* 固定在底部的總計欄位 */}
+    <Paper sx={{
+      mt: 1,
+      p: 2,
+      backgroundColor: 'grey.50',
+      borderTop: '2px solid',
+      borderColor: 'primary.main'
+    }}>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 1
+      }}>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          總計:
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+            ${totalAmount?.toFixed(2) ?? '0.00'}
+          </Typography>
+          {discount && discount > 0 && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+              (折扣: ${discount.toFixed(2)})
+            </Typography>
+          )}
+        </Box>
+      </Box>
+    </Paper>
+  </Box>
   );
 };
 
