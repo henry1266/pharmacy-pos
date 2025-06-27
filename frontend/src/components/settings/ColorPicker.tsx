@@ -85,17 +85,36 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   presetColors = DEFAULT_PRESET_COLORS
 }) => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isPresetsOpen, setIsPresetsOpen] = useState(false);
+  const [tempColor, setTempColor] = useState(value);
 
-  // 處理顏色變化
+  // 處理顏色變化（暫存）
   const handleColorChange = useCallback((color: string) => {
-    onChange(color);
-  }, [onChange]);
+    setTempColor(color);
+  }, []);
 
-  // 處理預設色彩點擊
+  // 處理預設色彩點擊（暫存）
   const handlePresetClick = useCallback((color: string) => {
-    handleColorChange(color);
+    setTempColor(color);
+  }, []);
+
+  // 確認選擇
+  const handleConfirm = useCallback(() => {
+    onChange(tempColor);
     setIsPickerOpen(false);
-  }, [handleColorChange]);
+  }, [tempColor, onChange]);
+
+  // 取消選擇
+  const handleCancel = useCallback(() => {
+    setTempColor(value);
+    setIsPickerOpen(false);
+  }, [value]);
+
+  // 打開選色器時重置暫存顏色
+  const handleOpenPicker = useCallback(() => {
+    setTempColor(value);
+    setIsPickerOpen(true);
+  }, [value]);
 
   // 隨機選擇顏色
   const handleRandomColor = useCallback(() => {
@@ -136,7 +155,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                   boxShadow: 2,
                   cursor: 'pointer'
                 }}
-                onClick={() => setIsPickerOpen(!isPickerOpen)}
+                onClick={handleOpenPicker}
               />
               <Chip
                 label={value.toUpperCase()}
@@ -156,18 +175,18 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 </Typography>
                 <Box sx={{ mb: 2 }}>
                   <HexColorPicker
-                    color={value}
+                    color={tempColor}
                     onChange={handleColorChange}
                     style={{ width: '200px', height: '200px' }}
                   />
                 </Box>
                 {showInput && (
-                  <Box sx={{ width: '100%', maxWidth: '200px' }}>
+                  <Box sx={{ width: '100%', maxWidth: '200px', mb: 2 }}>
                     <Typography variant="caption" color="text.secondary" gutterBottom>
                       HEX 色碼：
                     </Typography>
                     <HexColorInput
-                      color={value}
+                      color={tempColor}
                       onChange={handleColorChange}
                       style={{
                         width: '100%',
@@ -181,19 +200,57 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                     />
                   </Box>
                 )}
+                {/* 預覽當前選擇的顏色 */}
+                <Box display="flex" alignItems="center" gap={2} mb={2}>
+                  <Typography variant="caption" color="text.secondary">
+                    預覽：
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: 30,
+                      height: 30,
+                      backgroundColor: tempColor,
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'divider'
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {tempColor.toUpperCase()}
+                  </Typography>
+                </Box>
+                {/* 確認/取消按鈕 */}
+                <Box display="flex" gap={1} width="100%">
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    fullWidth
+                    onClick={handleCancel}
+                  >
+                    取消
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    onClick={handleConfirm}
+                  >
+                    確認
+                  </Button>
+                </Box>
               </Paper>
             </Grid>
           )}
 
-          {/* 預設色彩快選 */}
-          {showPresets && (
-            <Grid item xs={12} md={isPickerOpen ? 6 : 12}>
+          {/* 預設色彩快選 - 只在選色器打開時顯示 */}
+          {showPresets && isPickerOpen && (
+            <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="subtitle2" gutterBottom>
                   預設色彩快選
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
-                <Grid container spacing={1}>
+                <Grid container spacing={1} sx={{ maxHeight: 200, overflowY: 'auto' }}>
                   {presetColors.map((color, index) => (
                     <Grid item key={index}>
                       <Tooltip title={color.toUpperCase()}>
@@ -203,8 +260,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                             height: 32,
                             backgroundColor: color,
                             borderRadius: 1,
-                            border: value === color ? '3px solid' : '1px solid',
-                            borderColor: value === color ? 'primary.main' : 'divider',
+                            border: tempColor === color ? '3px solid' : '1px solid',
+                            borderColor: tempColor === color ? 'primary.main' : 'divider',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
                             '&:hover': {
@@ -223,24 +280,26 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           )}
 
           {/* 操作按鈕 */}
-          <Grid item xs={12}>
-            <Box display="flex" gap={1} justifyContent="flex-end">
-              <Button
-                variant="outlined"
-                startIcon={<ColorizeIcon />}
-                onClick={() => setIsPickerOpen(!isPickerOpen)}
-              >
-                {isPickerOpen ? '隱藏選色器' : '打開選色器'}
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<RefreshIcon />}
-                onClick={handleRandomColor}
-              >
-                隨機選色
-              </Button>
-            </Box>
-          </Grid>
+          {!isPickerOpen && (
+            <Grid item xs={12}>
+              <Box display="flex" gap={1} justifyContent="flex-end">
+                <Button
+                  variant="outlined"
+                  startIcon={<ColorizeIcon />}
+                  onClick={handleOpenPicker}
+                >
+                  打開選色器
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={handleRandomColor}
+                >
+                  隨機選色
+                </Button>
+              </Box>
+            </Grid>
+          )}
         </Grid>
       </CardContent>
     </Card>

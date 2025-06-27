@@ -166,7 +166,7 @@ const FIFOSimulationDialog: React.FC<FIFOSimulationDialogProps> = ({
         <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
           <Table size="small" stickyHeader>
             <TableHead>
-              <TableRow sx={{ backgroundColor: '#e9ecef' }}>
+              <TableRow sx={{ backgroundColor: 'action.hover' }}>
                 <TableCell sx={{ fontWeight: 'bold' }}>批次時間</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>
@@ -200,7 +200,7 @@ const FIFOSimulationDialog: React.FC<FIFOSimulationDialogProps> = ({
                 </TableRow>
               ))}
               {/* 總計行 */}
-              <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+              <TableRow sx={{ backgroundColor: 'action.hover' }}>
                 <TableCell colSpan={3} align="right" sx={{ fontWeight: 'bold' }}>
                   總計:
                 </TableCell>

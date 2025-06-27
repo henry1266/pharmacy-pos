@@ -200,7 +200,7 @@ const DataTable: React.FC<DataTableProps> = ({
               marginTop: '0 !important' // 移除第一排的空白
             },
             '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: 'background.paper',
+              backgroundColor: 'action.hover',
               borderBottom: '1px solid',
               borderColor: 'divider',
               position: 'sticky',

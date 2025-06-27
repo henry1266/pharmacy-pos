@@ -148,7 +148,7 @@ const SortableHeaderCell: React.FC<SortableHeaderCellProps> = ({
   const cellStyle = {
     fontWeight: 'bold',
     cursor: sortable ? 'pointer' : 'default',
-    '&:hover': sortable ? { backgroundColor: '#e0e0e0' } : {}
+    '&:hover': sortable ? { backgroundColor: 'action.selected' } : {}
   };
   
   return (
@@ -203,8 +203,8 @@ const FifoTableRow: React.FC<FifoTableRowProps> = ({
     <React.Fragment key={uniqueKey}>
       <TableRow
         sx={{
-          '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
-          '&:hover': { backgroundColor: '#f1f1f1' }
+          backgroundColor: 'background.paper',
+          '&:hover': { backgroundColor: 'action.hover' }
         }}
       >
         <TableCell>{renderOrderCell(item)}</TableCell>
@@ -245,7 +245,7 @@ const FifoTableRow: React.FC<FifoTableRowProps> = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
           <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-            <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: '#f8f9fa', p: 1, borderRadius: 1 }}>
+            <Box sx={{ maxWidth: 380, marginLeft: 28, backgroundColor: 'action.hover', p: 1, borderRadius: 1 }}>
               <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 'bold' }}>
                 成本分佈明細
               </Typography>
@@ -406,7 +406,7 @@ const FifoDetailTable: React.FC<FifoDetailTableProps> = ({ fifoMatches, saleTime
   return (
     <Table size="small" aria-label="fifo-details">
       <TableHead>
-        <TableRow sx={{ backgroundColor: '#e9ecef' }}>
+        <TableRow sx={{ backgroundColor: 'action.hover' }}>
           <TableCell sx={{ fontWeight: 'bold' }}>批次時間</TableCell>
           <TableCell align="right" sx={{ fontWeight: 'bold' }}>數量</TableCell>
           <TableCell align="right" sx={{ fontWeight: 'bold' }}>單價</TableCell>                              
@@ -556,7 +556,7 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
   const summary = fifoData.summary;
   
   return (
-    <Box sx={{ mt: 2 }}>
+    <Box sx={{ mt: 2, backgroundColor: 'action.hover', p: 2, borderRadius: 1 }}>
       <Typography variant="h6" gutterBottom>
         FIFO毛利計算
       </Typography>
@@ -580,7 +580,7 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
       <TableContainer component={Paper} sx={{ overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+            <TableRow sx={{ backgroundColor: 'action.hover' }}>
               <SortableHeaderCell label="單號" columnKey="orderNumber" sortConfig={sortConfig} onSort={requestSort} />
               <SortableHeaderCell label="數量" columnKey="totalQuantity" sortConfig={sortConfig} onSort={requestSort} />
               <SortableHeaderCell label="單價" columnKey="unitPrice" sortable={false} sortConfig={sortConfig} onSort={requestSort} />

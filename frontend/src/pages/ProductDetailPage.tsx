@@ -190,8 +190,17 @@ const ProductDetailPage: React.FC = () => {
   }
   
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 2 }}>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 3,
+        backgroundColor: 'background.paper',
+        p: 2,
+        borderRadius: 1,
+        boxShadow: 1
+      }}>
         <Typography variant="h5" component="h1">
           產品詳情
         </Typography>
@@ -236,8 +245,12 @@ const ProductDetailPage: React.FC = () => {
 
         {/* 右側：FIFO毛利計算 */}
         <Grid item xs={12} md={7} lg={8}>
-          <Card>
-            <CardContent>
+          <Card sx={{
+            boxShadow: 2,
+            borderRadius: 2,
+            backgroundColor: 'background.paper'
+          }}>
+            <CardContent sx={{ p: 3 }}>
               <FIFOProfitCalculator productId={product.id} />
             </CardContent>
           </Card>

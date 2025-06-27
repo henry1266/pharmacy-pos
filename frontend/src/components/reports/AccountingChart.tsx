@@ -695,7 +695,7 @@ const AccountingChart: FC = () => {
       <TableContainer component={Paper} sx={{ mt: 3 }}>
         <Table sx={{ minWidth: 650 }} aria-label="記帳數據表">
           <TableHead>
-            <TableRow sx={{ backgroundColor: 'var(--bg-secondary)' }}>
+            <TableRow sx={{ backgroundColor: 'action.hover' }}>
               {config.headers.map((header, index) => (
                 <TableCell key={`header-${index}`} align={index === 0 ? 'left' : 'right'}>
                   {header}

@@ -9,15 +9,13 @@ import {
   Divider
 } from '@mui/material';
 import { useState } from 'react';
-import ThemeSettings from '../components/settings/ThemeSettings';
-import Material3ThemeSelector from '../components/settings/Material3ThemeSelector';
+import UnifiedThemeSettings from '../components/settings/UnifiedThemeSettings';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Palette as PaletteIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
-  Security as SecurityIcon,
-  AutoAwesome as Material3Icon
+  Security as SecurityIcon
 } from '@mui/icons-material';
 
 /**
@@ -88,23 +86,17 @@ const SettingsPage: React.FC = () => {
               aria-controls="settings-tabpanel-0"
             />
             <Tab
-              icon={<Material3Icon />}
-              label="Material 3"
-              id="settings-tab-1"
-              aria-controls="settings-tabpanel-1"
-            />
-            <Tab
               icon={<NotificationsIcon />}
               label="通知設定"
-              id="settings-tab-2"
-              aria-controls="settings-tabpanel-2"
+              id="settings-tab-1"
+              aria-controls="settings-tabpanel-1"
               disabled
             />
             <Tab
               icon={<SecurityIcon />}
               label="安全性設定"
-              id="settings-tab-3"
-              aria-controls="settings-tabpanel-3"
+              id="settings-tab-2"
+              aria-controls="settings-tabpanel-2"
               disabled
             />
           </Tabs>
@@ -112,14 +104,10 @@ const SettingsPage: React.FC = () => {
 
         {/* 標籤內容 */}
         <TabPanel value={tabValue} index={0}>
-          <ThemeSettings />
+          <UnifiedThemeSettings />
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          <Material3ThemeSelector />
-        </TabPanel>
-
-        <TabPanel value={tabValue} index={2}>
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
               通知設定
@@ -130,7 +118,7 @@ const SettingsPage: React.FC = () => {
           </Box>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={2}>
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
               安全性設定

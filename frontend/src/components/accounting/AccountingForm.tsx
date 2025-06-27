@@ -287,7 +287,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
 
     return (
       <Grid item xs={12}>
-        <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: '#f9f9f9' }}>
+        <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: 'action.hover' }}>
           <Typography variant="h6" gutterBottom>
             監測產品 - 當日未結算銷售 (將於完成時自動加入)
           </Typography>
@@ -316,7 +316,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     <TableContainer sx={{ maxHeight: 300 }}>
       <Table size="small" stickyHeader>
         <TableHead>
-          <TableRow sx={{ '& th': { backgroundColor: '#eee', fontWeight: 'bold' } }}>
+          <TableRow sx={{ '& th': { backgroundColor: 'action.hover', fontWeight: 'bold' } }}>
             {headCells.map((headCell) => (
               <TableCell
                 key={headCell.id}

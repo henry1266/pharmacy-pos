@@ -401,7 +401,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
   }
 
   return (
-    <Box sx={{ mt: 2 }}>
+    <Box sx={{ mt: 2, backgroundColor: 'action.hover', p: 2, borderRadius: 1 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, px: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant="body2" sx={{ mr: 1 }}>
@@ -436,7 +436,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
       <TableContainer component={Paper} sx={{ maxHeight: 250, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+            <TableRow sx={{ backgroundColor: 'action.hover' }}>
               <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '110px' }}>貨單號</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '80px' }}>類型</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '60px' }}>數量</TableCell>
@@ -458,9 +458,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
               return (
                 <TableRow 
                   key={stableKey}
-                  sx={{ 
-                    '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
-                    '&:hover': { backgroundColor: '#f1f1f1' }
+                  sx={{
+                    backgroundColor: 'background.paper',
+                    '&:hover': { backgroundColor: 'action.hover' }
                   }}
                 >
                   <TableCell align="center">
