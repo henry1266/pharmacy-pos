@@ -60,8 +60,43 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <TableContainer component={Paper} sx={{ mt: 2 }}>
-      <Table sx={{ minWidth: isMobile ? 300 : 650 }} aria-label="銷售項目表格">
+    <TableContainer
+      component={Paper}
+      sx={{
+        mt: 2,
+        height: '100%',
+        overflow: 'auto',
+        // 智能滾輪：只有在需要時才顯示
+        '&::-webkit-scrollbar': {
+          width: '6px'
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent'
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(0,0,0,0.2)',
+          borderRadius: '3px',
+          '&:hover': {
+            background: 'rgba(0,0,0,0.4)'
+          }
+        },
+        // Firefox 滾輪樣式
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'rgba(0,0,0,0.2) transparent',
+        // 當內容不超出時，滾輪會自動隱藏
+        overflowY: items.length > 8 ? 'scroll' : 'auto' // 超過8個項目才強制顯示滾輪
+      }}
+    >
+      <Table
+        sx={{
+          minWidth: isMobile ? 300 : 650,
+          '& .MuiTableCell-root': {
+            borderBottom: '1px solid rgba(224, 224, 224, 1)'
+          }
+        }}
+        aria-label="銷售項目表格"
+        stickyHeader
+      >
         <TableHead>
           <TableRow>
             <TableCell sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>產品名稱</TableCell>
@@ -192,23 +227,23 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
               </TableRow>
             ))
           )}
-          {/* Summary Row */}
-          <TableRow>
-            <TableCell colSpan={isMobile ? 1 : 2} />
-            <TableCell align="right"><Typography variant="subtitle1">折扣:</Typography></TableCell>
-            <TableCell align="right" colSpan={isMobile ? 1 : 2}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                ${discount?.toFixed(2) ?? '0.00'}
-              </Typography>
-            </TableCell>
-          </TableRow>
+          {/* Summary Row - 總計與折扣合併 */}
           <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
             <TableCell colSpan={isMobile ? 1 : 2} />
-            <TableCell align="right"><Typography variant="h6">總計:</Typography></TableCell>
+            <TableCell align="right">
+              <Typography variant="h6">總計:</Typography>
+            </TableCell>
             <TableCell align="right" colSpan={isMobile ? 1 : 2}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                ${totalAmount?.toFixed(2) ?? '0.00'}
-              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                  ${totalAmount?.toFixed(2) ?? '0.00'}
+                </Typography>
+                {discount && discount > 0 && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                    (折扣: ${discount.toFixed(2)})
+                  </Typography>
+                )}
+              </Box>
             </TableCell>
           </TableRow>
         </TableBody>

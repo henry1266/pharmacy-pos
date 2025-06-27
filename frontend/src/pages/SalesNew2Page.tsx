@@ -169,39 +169,6 @@ const SalesNew2Page: FC = () => {
   // Sales list search state
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // 移除 WebSocket 多機同步功能，僅保留本機操作
-  // const { onSaleCreated, onSaleUpdated } = useSocket({
-  //   autoConnect: true,
-  //   joinSalesNew2Room: true
-  // });
-
-  // 移除 WebSocket 自動刷新事件監聽
-  // useEffect(() => {
-  //   console.log('🎧 SalesNew2Page: 設定 WebSocket 事件監聽器');
-  //
-  //   // 監聽銷售記錄建立事件
-  //   const handleSaleCreated = (data: any) => {
-  //     console.log('📥 收到銷售記錄建立事件:', data);
-  //     showSnackbar(`${data.message} - 清單已自動刷新`, 'info');
-  //     refreshSales(); // 自動刷新銷售清單
-  //   };
-  //
-  //   // 監聽銷售記錄更新事件
-  //   const handleSaleUpdated = (data: any) => {
-  //     console.log('📥 收到銷售記錄更新事件:', data);
-  //     showSnackbar(`${data.message} - 清單已自動刷新`, 'info');
-  //     refreshSales(); // 自動刷新銷售清單
-  //   };
-  //
-  //   onSaleCreated(handleSaleCreated);
-  //   onSaleUpdated(handleSaleUpdated);
-  //
-  //   // 清理函數
-  //   return () => {
-  //     console.log('🧹 SalesNew2Page: 清理 WebSocket 事件監聽器');
-  //   };
-  // }, [onSaleCreated, onSaleUpdated, refreshSales, showSnackbar]);
-
   // Callback function for when a sale is completed
   const handleSaleCompleted = useCallback(() => {
     // Refresh the sales list after a successful sale
@@ -353,13 +320,13 @@ const SalesNew2Page: FC = () => {
 
   return (
     <Box sx={{
-      p: { xs: 1, sm: 2, md: 3 },
-      px: { xs: 2, sm: 3, md: 4, lg: 5 }, // 增加左右外距
-      height: '100vh',
+      height: 'calc(100vh - 120px)', // 進一步減少預留空間，增加可視區域
       display: 'flex',
       flexDirection: 'column',
-      maxWidth: '100vw',
-      overflow: 'hidden'
+      overflow: 'visible', // 改為 visible 讓按鈕可以超出最外層邊界
+      p: { xs: 1, sm: 1.5, md: 2 }, // 減少 padding 增加可視區域
+      px: { xs: 1, sm: 1.5, md: 2, lg: 3 }, // 減少左右 padding
+      boxSizing: 'border-box'
     }}>
       {selectedShortcut && (
         <CustomProductsDialog
@@ -372,12 +339,14 @@ const SalesNew2Page: FC = () => {
         />
       )}
 
-      {/* Header */}
+      {/* Header - 固定高度 */}
       <Box sx={{
         display: 'flex',
         flexDirection: 'column',
+        flexShrink: 0,
         mb: { xs: 2, sm: 2, md: 3 },
-        gap: { xs: 1, sm: 2 }
+        gap: { xs: 1, sm: 2 },
+        overflow: 'visible' // 允許快捷按鈕區域正常顯示
       }}>
         {/* Title and Action Buttons Row */}
         <Box sx={{
@@ -459,25 +428,10 @@ const SalesNew2Page: FC = () => {
           p: { xs: 2.5, sm: 3, md: 3.5 },
           position: 'relative',
           overflow: 'hidden',
-          
-          // Material3 動態背景 - 使用極低飽和度
-          background: `linear-gradient(135deg,
-            rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.4) 0%,
-            rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.03) 50%,
-            rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.6) 100%)`,
-          
-          // 浮雕容器效果
-          boxShadow: `
-            0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08),
-            0 4px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.04),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-            inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.03)
-          `,
-          
+          background: `linear-gradient(135deg, rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.4) 0%, rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.03) 50%, rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.6) 100%)`,
+          boxShadow: `0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08), 0 4px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.03)`,
           borderRadius: 'var(--shape-corner-extra-large, 28px)',
           border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.12)`,
-          
-          // 偽元素 - 增強質感
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -485,10 +439,7 @@ const SalesNew2Page: FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: `linear-gradient(135deg,
-              rgba(255, 255, 255, 0.06) 0%,
-              rgba(255, 255, 255, 0.02) 50%,
-              rgba(0, 0, 0, 0.01) 100%)`,
+            background: `linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(0, 0, 0, 0.01) 100%)`,
             pointerEvents: 'none',
             borderRadius: 'inherit',
           }
@@ -525,22 +476,23 @@ const SalesNew2Page: FC = () => {
         </Box>
       </Box>
 
-      {/* Main Content */}
+      {/* Main Content - 使用剩餘空間 */}
       <Box sx={{
-        flexGrow: 1,
+        flex: 1,
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
         gap: { xs: 2, sm: 2, md: 3 },
-        minHeight: 0,
-        overflow: 'hidden'
+        overflow: 'visible', // 改為 visible 讓按鈕可以超出主容器邊界
+        minHeight: 0 // 重要：讓 flex 子元素能正確縮小
       }}>
         {/* Left Panel - Sales List */}
         <Box sx={{
-          width: panelWidth,
+          width: isMobile ? '100%' : panelWidth,
           minWidth: isMobile ? 'auto' : '280px',
-          maxWidth: isMobile ? '100%' : '330px',
-          height: isMobile ? '40vh' : 'auto',
-          flexShrink: 0
+          maxWidth: isMobile ? '100%' : '360px',
+          height: isMobile ? '35%' : '100%',
+          flexShrink: 0,
+          overflow: 'hidden'
         }}>
           <SalesListPanel
             sales={sales}
@@ -554,73 +506,140 @@ const SalesNew2Page: FC = () => {
 
         {/* Right Panel - Sales Input */}
         <Box sx={{
-          flexGrow: 1,
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          overflow: 'hidden'
+          height: isMobile ? '65%' : '100%',
+          overflow: 'visible', // 改為 visible 讓按鈕可以超出更外層邊界
+          ml: { xs: 0, sm: 0.5, md: 1 } // 增加左邊距避免被覆蓋
         }}>
           <Paper sx={{
-            p: { xs: 1, sm: 2, md: 3 },
-            flexGrow: 1,
+            p: { xs: 1, sm: 1.5, md: 2 }, // 進一步減少 Paper 的 padding，增加內容區域
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            overflow: 'hidden'
+            overflow: 'visible', // 改為 visible 讓按鈕可以超出邊界
+            boxSizing: 'border-box'
           }}>
-            <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ flexGrow: 1, overflow: 'hidden' }}>
-              <Grid item xs={12} lg={isLargeScreen ? 10.5 : 9.5} xl={9.5}>
-                <SalesProductInput
-                  products={products ?? []}
-                  barcodeInputRef={barcodeInputRef}
-                  onSelectProduct={handleSelectProduct}
-                  showSnackbar={showSnackbar}
-                />
-
-                <SalesItemsTable
-                  items={currentSale.items}
-                  inputModes={inputModes}
-                  onQuantityChange={handleQuantityChange}
-                  onPriceChange={handlePriceChange}
-                  onRemoveItem={handleRemoveItem}
-                  onToggleInputMode={toggleInputMode}
-                  onSubtotalChange={handleSubtotalChange}
-                  totalAmount={currentSale.totalAmount}
-                  discount={currentSale.discount}
-                  onQuantityInputComplete={handleQuantityInputComplete}
-                />
-
-                <Box sx={{
-                  mt: { xs: 2, sm: 2, md: 3 },
-                  display: 'flex',
-                  justifyContent: isMobile ? 'center' : 'flex-end',
-                  width: '100%'
-                }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<SaveIcon />}
-                    onClick={handleSaveSale}
-                    disabled={currentSale.items.length === 0 || (loading && !isTestMode)}
-                    size={isMobile ? 'medium' : 'large'}
-                    fullWidth={isMobile}
-                    sx={{
-                      minHeight: { xs: '48px', sm: '52px', md: '56px' },
-                      fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' },
-                      maxWidth: isMobile ? '100%' : '300px'
-                    }}
-                  >
-                    儲存銷售記錄 {isTestMode && "(模擬)"}
-                  </Button>
-                </Box>
-              </Grid>
-
-              <Grid item xs={12} lg={isLargeScreen ? 1.5 : 2.5} xl={2.5}>
+            {/*
+              修正後的 Grid 容器:
+              1. 移除了 sx prop 中的 `px` 屬性，避免雙重 padding。
+              2. 讓 Grid 的 `spacing` 屬性全權負責項目間的間距。
+              3. 將 Grid 比例從 9.5/2.5 改為更穩定的 9/3。
+            */}
+            <Grid
+              container
+              spacing={{ xs: 2, md: 3 }}
+              sx={{
+                height: '100%',
+                overflow: 'visible', // 改為 visible 讓按鈕可以超出邊界
+                margin: 0,
+                width: '100%',
+                '& > .MuiGrid-item': {
+                  paddingTop: { xs: '16px', md: '24px' },
+                  paddingLeft: { xs: '16px', md: '24px' }
+                }
+              }}
+            >
+              {/* 左側主要區塊 */}
+              <Grid item xs={12} lg={9} sx={{ height: '100%' }}>
                 <Box sx={{
                   display: 'flex',
                   flexDirection: 'column',
                   height: '100%',
-                  gap: { xs: 2, sm: 2, md: 3 }
+                  overflow: 'visible', // 改為 visible 讓按鈕可以超出邊界
+                  pr: { xs: 0, lg: 1 }, // 右邊距避免與右側欄重疊
+                  position: 'relative' // 為絕對定位的按鈕提供參考點
                 }}>
+                  <SalesProductInput
+                    products={products ?? []}
+                    barcodeInputRef={barcodeInputRef}
+                    onSelectProduct={handleSelectProduct}
+                    showSnackbar={showSnackbar}
+                  />
+
+                  {/* 商品表格區域 - 加高並智能滾輪 */}
+                  <Box sx={{
+                    flex: 1,
+                    minHeight: 0,
+                    paddingBottom: '0px', // 移除底部預留空間，讓表格使用更多空間
+                    pr: { sm: 0.5 },
+                    '&::-webkit-scrollbar': {
+                      width: '6px'
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      background: 'transparent'
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      background: 'rgba(0,0,0,0.2)',
+                      borderRadius: '3px',
+                      '&:hover': {
+                        background: 'rgba(0,0,0,0.4)'
+                      }
+                    },
+                    // Firefox 滾輪樣式
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(0,0,0,0.2) transparent'
+                  }}>
+                    <SalesItemsTable
+                      items={currentSale.items}
+                      inputModes={inputModes}
+                      onQuantityChange={handleQuantityChange}
+                      onPriceChange={handlePriceChange}
+                      onRemoveItem={handleRemoveItem}
+                      onToggleInputMode={toggleInputMode}
+                      onSubtotalChange={handleSubtotalChange}
+                      totalAmount={currentSale.totalAmount}
+                      discount={currentSale.discount}
+                      onQuantityInputComplete={handleQuantityInputComplete}
+                    />
+                  </Box>
+
+                  {/* 按鈕區域 - 固定在底部 */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: '-60px', // 讓按鈕超出容器邊界，利用下方白色空間
+                      right: { xs: '16px', sm: '24px', md: '32px' },
+                      left: isMobile ? '16px' : 'auto',
+                      display: 'flex',
+                      justifyContent: isMobile ? 'center' : 'flex-end',
+                      zIndex: 1000 // 提高 z-index 確保按鈕在最上層
+                    }}
+                  >
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<SaveIcon />}
+                      onClick={handleSaveSale}
+                      disabled={currentSale.items.length === 0 || (loading && !isTestMode)}
+                      size={isMobile ? 'medium' : 'large'}
+                      fullWidth={isMobile}
+                      sx={{
+                        minHeight: { xs: '48px', sm: '52px', md: '56px' },
+                        fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' },
+                        maxWidth: isMobile ? '100%' : '300px'
+                      }}
+                    >
+                      儲存銷售記錄 {isTestMode && "(模擬)"}
+                    </Button>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* 右側資訊欄 */}
+              <Grid item xs={12} lg={3} sx={{ height: '100%' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    gap: { xs: 2, sm: 2, md: 3 },
+                    overflow: 'hidden',
+                    pl: { xs: 0, lg: 1 } // 左邊距避免被覆蓋
+                  }}
+                >
                   <SaleInfoCard
                     saleData={currentSale}
                     customers={customers ?? []}
