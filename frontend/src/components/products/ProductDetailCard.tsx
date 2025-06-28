@@ -162,13 +162,13 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, flex: 1 }}>
               <Typography variant="body2">
-                <strong>進貨價:</strong> <span style={{ color: '#1976d2' }}>NT$ {product.purchasePrice ?? '0'}</span>
+                <strong>進貨價:</strong> <span style={{ color: '#1976d2' }}>NT$ {parseFloat(product.purchasePrice?.toString() ?? '0').toFixed(2)}</span>
               </Typography>
               <Typography variant="body2">
-                <strong>售價:</strong> <span style={{ color: '#2e7d32' }}>NT$ {product.sellingPrice ?? '0'}</span>
+                <strong>售價:</strong> <span style={{ color: '#2e7d32' }}>NT$ {parseFloat(product.sellingPrice?.toString() ?? '0').toFixed(2)}</span>
               </Typography>
               <Typography variant="body2">
-                <strong>健保價:</strong> <span style={{ color: '#ed6c02' }}>NT$ {product.healthInsurancePrice ?? '0'}</span>
+                <strong>健保價:</strong> <span style={{ color: '#ed6c02' }}>NT$ {parseFloat(product.healthInsurancePrice?.toString() ?? '0').toFixed(2)}</span>
               </Typography>
             </Box>
           </Box>
