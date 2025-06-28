@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
+import {
+  Box,
+  Typography,
+  Paper,
   Table,
   TableBody,
   TableCell,
@@ -12,11 +12,16 @@ import {
   TableRow,
   Link,
   CircularProgress,
-  Divider
+  Divider,
+  Button
 } from '@mui/material';
+import {
+  BarChart as BarChartIcon,
+  TrendingUp as TrendingUpIcon
+} from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
-import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
 import { Product } from '@pharmacy-pos/shared/types/entities';
+import ChartModal from './ChartModal';
 
 // 擴展 Product 型別以包含可能的 sellingPrice 屬性
 interface ExtendedProduct extends Product {
@@ -66,15 +71,17 @@ interface OrderInfo {
 
 interface InventoryListProps {
   productId: string;
+  productName?: string;
 }
 
-const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
+const InventoryList: React.FC<InventoryListProps> = ({ productId, productName }) => {
   const [inventories, setInventories] = useState<InventoryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentStock, setCurrentStock] = useState<number>(0);
   const [profitLoss, setProfitLoss] = useState<number>(0);
   const [chartData, setChartData] = useState<ChartTransaction[]>([]);
+  const [chartModalOpen, setChartModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchInventories = async (): Promise<void> => {
@@ -426,12 +433,27 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
         </Box>
       </Box>
       
-      <Divider sx={{ mb: 1 }} />
+      <Divider sx={{ mb: 2 }} />
       
-      {/* 添加盈虧圖表 */}
-      <SingleProductProfitLossChart transactions={chartData} />
+      {/* 圖表分析按鈕 */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<BarChartIcon />}
+          onClick={() => setChartModalOpen(true)}
+          sx={{
+            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+            boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
+            }
+          }}
+        >
+          查看圖表分析
+        </Button>
+      </Box>
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ mb: 2 }} />
 
       <TableContainer component={Paper} sx={{ maxHeight: 250, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
@@ -499,6 +521,14 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId }) => {
           </TableBody>
         </Table>
       </TableContainer>
+      
+      {/* 圖表懸浮視窗 */}
+      <ChartModal
+        open={chartModalOpen}
+        onClose={() => setChartModalOpen(false)}
+        chartData={chartData}
+        productName={productName}
+      />
     </Box>
   );
 };

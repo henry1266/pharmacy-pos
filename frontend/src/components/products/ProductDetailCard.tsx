@@ -197,7 +197,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             庫存清單
           </Typography>
 
-          <InventoryList productId={product.id} />
+          <InventoryList productId={product.id} productName={product.name} />
         </Paper>
       </CardContent>
     </Card>
