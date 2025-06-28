@@ -556,13 +556,13 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
   const summary = fifoData.summary;
   
   return (
-    <Box sx={{ mt: 2, backgroundColor: 'action.hover', p: 2, borderRadius: 1 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box sx={{ mt: 1, backgroundColor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+      <Typography variant="h6" sx={{ mb: 1 }}>
         FIFO毛利計算
       </Typography>
 
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
+      <Card sx={{ mb: 1.5 }}>
+        <CardContent sx={{ p: 1.5 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <SummaryItem label="總成本" value={summary.totalCost} />
             <SummaryItem label="總收入" value={summary.totalRevenue} />

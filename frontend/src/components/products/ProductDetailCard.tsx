@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Box,
   Card,
   CardHeader,
   CardContent,
@@ -96,8 +97,8 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
         }
         subheader={
           <Paper sx={{
-            p: 1.5,
-            mt: 1,
+            p: 1,
+            mt: 0.5,
             backgroundColor: 'action.hover',
             borderRadius: 1
           }}>
@@ -110,15 +111,18 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           </Paper>
         }
       />
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: 1.5 }}>
         {/* 基本資訊區塊 */}
-        <Paper sx={{ p: 2, mb: 2, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1.5, color: 'text.primary' }}>
-            基本資訊
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+        <Paper sx={{ p: 1, mb: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+              基本資訊
+            </Typography>
+            <Typography variant="subtitle1" sx={{ color: 'text.secondary', mx: 0.5 }}>
+              |
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, flex: 1 }}>
+              <Typography variant="body2">
                 <strong>供應商:</strong> {
                   (() => {
                     if (!product.supplier) return '無';
@@ -129,9 +133,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
                   })()
                 }
               </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body2">
                 <strong>分類:</strong> {
                   (() => {
                     if (!product.category) return '無';
@@ -142,53 +144,55 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
                   })()
                 }
               </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <Typography variant="body2">
                 <strong>最低庫存:</strong> {product.minStock ?? '0'}
               </Typography>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Paper>
 
         {/* 價格資訊區塊 */}
-        <Paper sx={{ p: 2, mb: 2, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1.5, color: 'text.primary' }}>
-            價格資訊
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+        <Paper sx={{ p: 1.5, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+              價格資訊
+            </Typography>
+            <Typography variant="subtitle1" sx={{ color: 'text.secondary', mx: 0.5 }}>
+              |
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, flex: 1 }}>
+              <Typography variant="body2">
                 <strong>進貨價:</strong> <span style={{ color: '#1976d2' }}>NT$ {product.purchasePrice ?? '0'}</span>
               </Typography>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body2">
                 <strong>售價:</strong> <span style={{ color: '#2e7d32' }}>NT$ {product.sellingPrice ?? '0'}</span>
               </Typography>
-            </Grid>
-            <Grid item xs={12} sm={4}>
               <Typography variant="body2">
                 <strong>健保價:</strong> <span style={{ color: '#ed6c02' }}>NT$ {product.healthInsurancePrice ?? '0'}</span>
               </Typography>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Paper>
         
         {/* 備註區塊 */}
         {product.description && (
-          <Paper sx={{ p: 2, mb: 2, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1.5, color: 'text.primary' }}>
-              備註
-            </Typography>
-            <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-              {product.description}
-            </Typography>
+          <Paper sx={{ p: 1, mb: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.primary', minWidth: '40px' }}>
+                備註
+              </Typography>
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+                |
+              </Typography>
+              <Typography variant="body2" sx={{ lineHeight: 1.4, flex: 1 }}>
+                {product.description}
+              </Typography>
+            </Box>
           </Paper>
         )}
 
         {/* 庫存清單區塊 */}
-        <Paper sx={{ p: 2, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+        <Paper sx={{ p: 1, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1.5, color: 'text.primary' }}>
             庫存清單
           </Typography>

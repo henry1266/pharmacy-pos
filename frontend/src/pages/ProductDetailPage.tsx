@@ -190,7 +190,7 @@ const ProductDetailPage: React.FC = () => {
   }
   
   return (
-    <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh', p: 2 }}>
+    <Box sx={{ backgroundColor: 'background.default', p: 2 }}>
       <Box sx={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -250,7 +250,7 @@ const ProductDetailPage: React.FC = () => {
             borderRadius: 2,
             backgroundColor: 'background.paper'
           }}>
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: 2 }}>
               <FIFOProfitCalculator productId={product.id} />
             </CardContent>
           </Card>
