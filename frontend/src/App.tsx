@@ -146,11 +146,33 @@ const App: React.FC = () => {
     } else {
       delete axios.defaults.headers.common['x-auth-token'];
     }
-    // 存儲變更的基本監聽器，用於更新身份驗證狀態（可選，可能需要更強大的狀態管理）
-    const handleStorageChange = () => {
-        // 強制重新渲染或更新狀態（如果需要）
-        window.location.reload(); // 最簡單的方式，但不是理想的用戶體驗
+    
+    // 優化的存儲變更監聽器
+    const handleStorageChange = (event: StorageEvent) => {
+      // 只處理認證相關的變更
+      if (event.key === 'token' || event.key === 'user') {
+        const newToken = localStorage.getItem('token');
+        
+        // 更新 axios 標頭
+        if (newToken) {
+          axios.defaults.headers.common['x-auth-token'] = newToken;
+        } else {
+          delete axios.defaults.headers.common['x-auth-token'];
+          // 只有在登出時才重新載入
+          if (event.key === 'token' && !newToken) {
+            window.location.reload();
+          }
+        }
+      }
+      
+      // 忽略主題和 WebSocket 相關的 storage 變更
+      if (event.key?.startsWith('socket_') ||
+          event.key?.startsWith('theme_') ||
+          event.key === 'isTestMode') {
+        return;
+      }
     };
+    
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);

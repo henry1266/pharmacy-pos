@@ -142,23 +142,41 @@ const useSalesListData = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+
+  // 防重複請求的最小間隔（毫秒）
+  const FETCH_DEBOUNCE_TIME = 1000;
 
   useEffect(() => {
     const testModeActive = localStorage.getItem('isTestMode') === 'true';
     setIsTestMode(testModeActive);
   }, []);
 
-  // 獲取銷售數據
+  // 檢查是否可以發起新的請求
+  const canFetch = useCallback((): boolean => {
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastFetchTime;
+    return timeSinceLastFetch >= FETCH_DEBOUNCE_TIME;
+  }, [lastFetchTime]);
+
+  // 獲取銷售數據（帶防重複機制）
   const fetchSales = useCallback(async (): Promise<void> => {
+    // 防重複請求檢查
+    if (!canFetch()) {
+      console.log('🚫 銷售數據請求過於頻繁，已跳過');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setLastFetchTime(Date.now());
     
     if (isTestMode) {
       await fetchTestModeSales();
     } else {
       await fetchProductionSales();
     }
-  }, [isTestMode]);
+  }, [isTestMode, canFetch]);
 
   // 測試模式下獲取銷售數據
   const fetchTestModeSales = async (): Promise<void> => {

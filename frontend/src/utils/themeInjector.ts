@@ -306,19 +306,55 @@ export const convertThemeToCSSVariables = (theme: UserTheme): ThemeVariables => 
   }
 };
 
+// 主題注入防護機制
+let themeInjectionLock = false;
+let lastThemeHash = '';
+
 /**
- * 注入主題變數到 CSS
+ * 計算主題變數的雜湊值
+ */
+const calculateThemeHash = (variables: ThemeVariables): string => {
+  const sortedEntries = Object.entries(variables).sort();
+  return btoa(JSON.stringify(sortedEntries)).slice(0, 16);
+};
+
+/**
+ * 注入主題變數到 CSS（帶防重複機制）
  */
 export const injectThemeVariables = (theme: UserTheme): void => {
+  // 防止同時注入
+  if (themeInjectionLock) {
+    console.log('🔒 主題注入已鎖定，跳過重複操作');
+    return;
+  }
+
   const variables = convertThemeToCSSVariables(theme);
-  const root = document.documentElement;
+  const currentThemeHash = calculateThemeHash(variables);
   
-  // 設定所有 CSS 變數
-  Object.entries(variables).forEach(([property, value]) => {
-    root.style.setProperty(property, value);
-  });
+  // 檢查是否為相同主題
+  if (currentThemeHash === lastThemeHash) {
+    console.log('🎨 主題變數未變更，跳過注入');
+    return;
+  }
+
+  themeInjectionLock = true;
   
-  console.log('🎨 已注入 Material 3 主題變數:', theme.themeName, variables);
+  try {
+    const root = document.documentElement;
+    
+    // 批次設定所有 CSS 變數
+    Object.entries(variables).forEach(([property, value]) => {
+      root.style.setProperty(property, value);
+    });
+    
+    lastThemeHash = currentThemeHash;
+    console.log('🎨 已注入 Material 3 主題變數:', theme.themeName);
+  } finally {
+    // 延遲解鎖，防止快速重複調用
+    setTimeout(() => {
+      themeInjectionLock = false;
+    }, 100);
+  }
 };
 
 /**

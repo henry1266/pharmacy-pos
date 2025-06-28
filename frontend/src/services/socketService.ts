@@ -3,9 +3,87 @@ import { io, Socket } from 'socket.io-client';
 class SocketService {
   private socket: Socket | null = null;
   private isConnected: boolean = false;
+  private tabId: string;
+  private isMainTab: boolean = false;
+  private connectionCheckInterval: NodeJS.Timeout | null = null;
+
+  constructor() {
+    // 為每個分頁生成唯一 ID
+    this.tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.initTabCoordination();
+  }
+
+  // 初始化分頁協調機制
+  private initTabCoordination(): void {
+    // 檢查是否為主分頁
+    this.checkMainTab();
+    
+    // 監聽其他分頁的狀態
+    window.addEventListener('storage', this.handleStorageChange.bind(this));
+    window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
+    
+    // 定期檢查主分頁狀態
+    this.connectionCheckInterval = setInterval(() => {
+      this.checkMainTab();
+    }, 5000);
+  }
+
+  // 檢查是否為主分頁
+  private checkMainTab(): void {
+    const mainTabId = localStorage.getItem('socket_main_tab');
+    const mainTabTimestamp = localStorage.getItem('socket_main_tab_timestamp');
+    const now = Date.now();
+    
+    // 如果沒有主分頁或主分頁超時（10秒），則成為主分頁
+    if (!mainTabId || !mainTabTimestamp || (now - parseInt(mainTabTimestamp)) > 10000) {
+      this.becomeMainTab();
+    } else if (mainTabId === this.tabId) {
+      this.isMainTab = true;
+      // 更新時間戳
+      localStorage.setItem('socket_main_tab_timestamp', now.toString());
+    } else {
+      this.isMainTab = false;
+    }
+  }
+
+  // 成為主分頁
+  private becomeMainTab(): void {
+    this.isMainTab = true;
+    localStorage.setItem('socket_main_tab', this.tabId);
+    localStorage.setItem('socket_main_tab_timestamp', Date.now().toString());
+    console.log(`🎯 分頁 ${this.tabId} 成為主 WebSocket 連線`);
+  }
+
+  // 處理 Storage 變化
+  private handleStorageChange(event: StorageEvent): void {
+    if (event.key === 'socket_main_tab' && event.newValue !== this.tabId) {
+      this.isMainTab = false;
+      if (this.socket && this.isConnected) {
+        console.log(`🔄 分頁 ${this.tabId} 讓出 WebSocket 連線`);
+        this.disconnect();
+      }
+    }
+  }
+
+  // 頁面卸載前處理
+  private handleBeforeUnload(): void {
+    if (this.isMainTab) {
+      localStorage.removeItem('socket_main_tab');
+      localStorage.removeItem('socket_main_tab_timestamp');
+    }
+    if (this.connectionCheckInterval) {
+      clearInterval(this.connectionCheckInterval);
+    }
+  }
 
   // 初始化 Socket 連接
   connect(): void {
+    // 只有主分頁才能建立 WebSocket 連線
+    if (!this.isMainTab) {
+      console.log(`⏸️ 分頁 ${this.tabId} 非主分頁，跳過 WebSocket 連線`);
+      return;
+    }
+
     if (this.socket && this.isConnected) {
       return; // 已經連接，不需要重複連接
     }
