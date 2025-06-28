@@ -46,7 +46,8 @@ interface ChartDataItem {
 const colors = {
   stock: '#1976d2',     // 藍色 - 庫存折線
   inflow: '#2e7d32',    // 綠色 - 進貨長條
-  outflow: '#d32f2f'    // 紅色 - 出貨長條
+  outflow: '#d32f2f',   // 紅色 - 出貨長條
+  highlight: '#ff9800'  // 橙色 - 高亮顏色
 };
 
 // 格式化數量
@@ -139,9 +140,10 @@ const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
 // InventoryStockChart props 型別
 interface InventoryStockChartProps {
   transactions?: Transaction[];
+  selectedOrderNumber?: string; // 新增：選中的訂單號碼
 }
 
-const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }) => {
+const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [], selectedOrderNumber }) => {
   // 獲取交易的貨單號
   const getOrderNumber = (transaction: Transaction): string => {
     if (transaction.type === '進貨') {
@@ -202,6 +204,65 @@ const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }
   // 獲取處理後的圖表數據
   const chartData = getStockChangeData();
 
+  // 計算共用Y軸的範圍
+  const calculateSharedYAxisDomain = () => {
+    if (chartData.length === 0) return [0, 100];
+    
+    // 獲取所有數值（庫存、進貨量、出貨量）
+    const allValues: number[] = [];
+    chartData.forEach(item => {
+      allValues.push(item.cumulativeStock);
+      if (item.inQuantity > 0) allValues.push(item.inQuantity);
+      if (item.outQuantity < 0) allValues.push(item.outQuantity);
+    });
+    
+    const minValue = Math.min(...allValues);
+    const maxValue = Math.max(...allValues);
+    
+    // 添加一些緩衝空間
+    const buffer = (maxValue - minValue) * 0.1;
+    return [Math.floor(minValue - buffer), Math.ceil(maxValue + buffer)];
+  };
+
+  const sharedDomain = calculateSharedYAxisDomain();
+
+  // 檢查是否為選中的訂單
+  const isSelectedOrder = (item: ChartDataItem): boolean => {
+    if (!selectedOrderNumber) return false;
+    return item.orderNumber === selectedOrderNumber;
+  };
+
+  // 自定義點渲染函數
+  const CustomDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    const isSelected = isSelectedOrder(payload);
+    
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={isSelected ? 5 : 3}
+        fill={isSelected ? colors.highlight : colors.stock}
+        stroke={isSelected ? colors.highlight : colors.stock}
+        strokeWidth={isSelected ? 2 : 1}
+      />
+    );
+  };
+
+  // 為長條圖準備數據，根據選中狀態分離數據
+  const enhancedChartData = chartData.map((item) => {
+    const isSelected = isSelectedOrder(item);
+    return {
+      ...item,
+      // 正常狀態的數據（未選中時顯示）
+      normalInQuantity: isSelected ? 0 : item.inQuantity,
+      normalOutQuantity: isSelected ? 0 : item.outQuantity,
+      // 高亮狀態的數據（選中時顯示）
+      highlightInQuantity: isSelected ? item.inQuantity : 0,
+      highlightOutQuantity: isSelected ? item.outQuantity : 0
+    };
+  });
+
   // 渲染圖表
   const renderChart = () => {
     if (chartData.length === 0) {
@@ -220,63 +281,75 @@ const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }
     return (
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart
-          data={chartData}
+          data={enhancedChartData}
           margin={{
             top: 20,
             right: 30,
             left: 20,
             bottom: 5,
           }}
+          barCategoryGap="20%"
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="index" 
+          <XAxis
+            dataKey="index"
             tick={false} // 不顯示刻度文字
             tickLine={false} // 不顯示刻度線
             axisLine={true} // 顯示軸線
           />
+          {/* 共用Y軸 */}
           <YAxis
-            yAxisId="left"
-            label={{ value: '進出貨量', angle: -90, position: 'insideLeft' }}
-            domain={['dataMin', 'dataMax']}
-          />
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            label={{ value: '庫存數量', angle: 90, position: 'insideRight' }}
-            domain={[0, 'dataMax']}
+            label={{ value: '數量', angle: -90, position: 'insideLeft' }}
+            domain={sharedDomain}
           />
           <Tooltip content={<CustomTooltip />} />
-          <ReferenceLine y={0} stroke="#000" yAxisId="left" />
+          <ReferenceLine y={0} stroke="#000" />
           
-          {/* 進貨長條圖 */}
-          <Bar 
-            yAxisId="left"
-            dataKey="inQuantity" 
-            name="進貨量" 
+          {/* 正常狀態的進貨長條圖 */}
+          <Bar
+            dataKey="normalInQuantity"
+            name="進貨量"
             fill={colors.inflow}
             opacity={0.8}
+            maxBarSize={60}
           />
           
-          {/* 出貨長條圖 */}
-          <Bar 
-            yAxisId="left"
-            dataKey="outQuantity" 
-            name="出貨量" 
+          {/* 正常狀態的出貨長條圖 */}
+          <Bar
+            dataKey="normalOutQuantity"
+            name="出貨量"
             fill={colors.outflow}
             opacity={0.8}
+            maxBarSize={60}
+          />
+          
+          {/* 高亮狀態的進貨長條圖 */}
+          <Bar
+            dataKey="highlightInQuantity"
+            name="選中進貨量"
+            fill={colors.highlight}
+            opacity={1}
+            maxBarSize={60}
+          />
+          
+          {/* 高亮狀態的出貨長條圖 */}
+          <Bar
+            dataKey="highlightOutQuantity"
+            name="選中出貨量"
+            fill={colors.highlight}
+            opacity={1}
+            maxBarSize={60}
           />
           
           {/* 庫存折線圖 */}
           <Line
-            yAxisId="right"
             type="monotone"
             dataKey="cumulativeStock"
             name="庫存數量"
             stroke={colors.stock}
-            strokeWidth={3}
-            dot={{ r: 4, fill: colors.stock }}
-            activeDot={{ r: 6, fill: colors.stock }}
+            strokeWidth={2}
+            dot={<CustomDot />}
+            activeDot={{ r: 4, fill: colors.stock }}
             connectNulls={false}
           />
         </ComposedChart>

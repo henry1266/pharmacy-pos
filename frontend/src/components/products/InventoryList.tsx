@@ -409,36 +409,37 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
 
   return (
     <Box sx={{ mt: 2, backgroundColor: 'action.hover', p: 2, borderRadius: 1 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, px: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="body2" sx={{ mr: 1 }}>
-            總庫存數量:
-          </Typography>
-          <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
-            {currentStock}
-          </Typography>
+      {/* 標題區域 - 包含庫存資訊和圖表分析按鈕 */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 2 }}>
+        {/* 左側：庫存資訊 */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ mr: 1 }}>
+              總庫存數量:
+            </Typography>
+            <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
+              {currentStock}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ mr: 1 }}>
+              損益總和:
+            </Typography>
+            <Typography
+              variant="body1"
+              color={profitLoss >= 0 ? 'success.main' : 'error.main'}
+              sx={{ fontWeight: 'bold' }}
+            >
+              ${profitLoss.toFixed(2)}
+            </Typography>
+          </Box>
         </Box>
         
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="body2" sx={{ mr: 1 }}>
-            損益總和:
-          </Typography>
-          <Typography 
-            variant="body1" 
-            color={profitLoss >= 0 ? 'success.main' : 'error.main'} 
-            sx={{ fontWeight: 'bold' }}
-          >
-            ${profitLoss.toFixed(2)}
-          </Typography>
-        </Box>
-      </Box>
-      
-      <Divider sx={{ mb: 2 }} />
-      
-      {/* 圖表分析按鈕 */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        {/* 右側：圖表分析按鈕 */}
         <Button
           variant="contained"
+          size="small"
           startIcon={<BarChartIcon />}
           onClick={() => setChartModalOpen(true)}
           sx={{
@@ -453,74 +454,6 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
         </Button>
       </Box>
       
-      <Divider sx={{ mb: 2 }} />
-
-      <TableContainer component={Paper} sx={{ maxHeight: 250, overflow: 'auto' }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: 'action.hover' }}>
-              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '110px' }}>貨單號</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '80px' }}>類型</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '60px' }}>數量</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '60px' }}>庫存</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: '80px' }}>單價</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {inventories.map((inv, index) => {
-              const { orderNumber, orderLink } = getOrderInfo(inv, index);
-              const typeDisplay = getTypeDisplay(inv.type);
-              const quantity = inv.totalQuantity ?? 0;
-              const price = calculatePrice(inv);
-              
-              // 使用穩定的唯一識別符作為 key
-              const idSuffix = inv._id ?? ('no-id-' + index);
-              const stableKey = `${inv.type}-${orderNumber}-${idSuffix}`;
-              
-              return (
-                <TableRow 
-                  key={stableKey}
-                  sx={{
-                    backgroundColor: 'background.paper',
-                    '&:hover': { backgroundColor: 'action.hover' }
-                  }}
-                >
-                  <TableCell align="center">
-                    <Link 
-                      component={RouterLink} 
-                      to={orderLink}
-                      color={(inv.type === 'sale' || inv.type === 'ship') ? 'error' : 'primary'}
-                      sx={{ textDecoration: 'none' }}
-                    >
-                      {orderNumber}
-                    </Link>
-                  </TableCell>
-                  <TableCell 
-                    align="center" 
-                    sx={{ 
-                      color: typeDisplay.color,
-                      fontWeight: 'medium'
-                    }}
-                  >
-                    {typeDisplay.text}
-                  </TableCell>
-                  <TableCell 
-                    align="center"
-                    sx={{ 
-                      color: typeDisplay.color,
-                      fontWeight: 'medium'
-                    }}
-                  >
-                    {quantity}
-                  </TableCell>
-                  <TableCell align="center">{inv.currentStock}</TableCell>
-                  <TableCell align="center">{price}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
       
       {/* 圖表懸浮視窗 */}
       <ChartModal
@@ -528,6 +461,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
         onClose={() => setChartModalOpen(false)}
         chartData={chartData}
         productName={productName}
+        inventoryData={inventories}
+        currentStock={currentStock}
+        profitLoss={profitLoss}
       />
     </Box>
   );
