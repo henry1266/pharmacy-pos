@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -11,17 +11,12 @@ import {
   Divider,
   Grid,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Link
 } from '@mui/material';
 import {
   Close as CloseIcon
 } from '@mui/icons-material';
+import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { Link as RouterLink } from 'react-router-dom';
 import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
 import InventoryStockChart from './InventoryStockChart';
@@ -55,6 +50,7 @@ interface InventoryRecord {
   product?: any;
 }
 
+
 interface ChartModalProps {
   open: boolean;
   onClose: () => void;
@@ -74,8 +70,6 @@ const ChartModal: FC<ChartModalProps> = ({
   currentStock = 0,
   profitLoss = 0
 }) => {
-  // 狀態管理：選中的訂單號碼
-  const [selectedOrderNumber, setSelectedOrderNumber] = useState<string | undefined>(undefined);
   // 輔助函數：從MongoDB格式的對象ID中提取$oid值
   const extractOidFromMongoId = (mongoId: string | { $oid: string } | { _id: string | { $oid: string } } | undefined): string => {
     if (!mongoId) return '';
@@ -137,23 +131,129 @@ const ChartModal: FC<ChartModalProps> = ({
   };
 
   // 計算實際交易價格
-  const calculatePrice = (inv: InventoryRecord): string => {
+  const calculatePrice = (inv: InventoryRecord): number => {
     if (inv.totalAmount && inv.totalQuantity) {
-      const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
-      return unitPrice.toFixed(2);
+      return inv.totalAmount / Math.abs(inv.totalQuantity);
     } else if (inv.product?.sellingPrice) {
-      return inv.product.sellingPrice.toFixed(2);
+      return inv.product.sellingPrice;
     } else if (inv.product?.price) {
-      return inv.product.price.toFixed(2);
+      return inv.product.price;
     }
-    return '0.00';
+    return 0;
   };
 
-  // 根據庫存記錄獲取對應的訂單號碼
-  const getOrderNumberFromInventory = (inventoryRecord: InventoryRecord): string | undefined => {
-    const { orderNumber } = getOrderInfo(inventoryRecord);
-    return orderNumber || undefined;
-  };
+  // 準備 DataGrid 的行數據
+  const rows = useMemo(() => {
+    return inventoryData.map((inv, index) => {
+      const { orderNumber, orderLink } = getOrderInfo(inv);
+      const typeDisplay = getTypeDisplay(inv.type);
+      const quantity = inv.totalQuantity ?? 0;
+      const price = calculatePrice(inv);
+      const totalPrice = inv.totalAmount ?? 0;
+      
+      const idSuffix = inv._id ?? ('no-id-' + index);
+      const stableKey = `${inv.type}-${orderNumber}-${idSuffix}`;
+      
+      return {
+        id: stableKey,
+        currentStock: inv.currentStock ?? 0,
+        orderNumber,
+        orderLink,
+        type: inv.type ?? '',
+        typeDisplay: typeDisplay.text,
+        typeColor: typeDisplay.color,
+        quantity,
+        price,
+        totalAmount: totalPrice
+      };
+    });
+  }, [inventoryData]);
+
+  // 定義 DataGrid 的欄位
+  const columns: GridColDef[] = [
+    {
+      field: 'currentStock',
+      headerName: '庫存',
+      width: 80,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: true
+    },
+    {
+      field: 'orderNumber',
+      headerName: '貨單號',
+      width: 120,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: true,
+      renderCell: (params: GridRenderCellParams) => (
+        <Link
+          component={RouterLink}
+          to={params.row.orderLink}
+          color={(params.row.type === 'sale' || params.row.type === 'ship') ? 'error' : 'primary'}
+          sx={{ textDecoration: 'none' }}
+        >
+          {params.value}
+        </Link>
+      )
+    },
+    {
+      field: 'typeDisplay',
+      headerName: '類型',
+      width: 80,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: true,
+      renderCell: (params: GridRenderCellParams) => (
+        <Typography
+          sx={{
+            color: params.row.typeColor,
+            fontWeight: 'medium',
+            fontSize: '0.875rem'
+          }}
+        >
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      field: 'quantity',
+      headerName: '數量',
+      width: 80,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: true,
+      renderCell: (params: GridRenderCellParams) => (
+        <Typography
+          sx={{
+            color: params.row.typeColor,
+            fontWeight: 'medium',
+            fontSize: '0.875rem'
+          }}
+        >
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      field: 'price',
+      headerName: '單價',
+      width: 100,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: true,
+      valueFormatter: (params) => params.value.toFixed(2)
+    },
+    {
+      field: 'totalAmount',
+      headerName: '總價',
+      width: 100,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: true,
+      valueFormatter: (params) => `$${params.value.toFixed(2)}`
+    }
+  ];
 
   return (
     <Dialog
@@ -204,7 +304,6 @@ const ChartModal: FC<ChartModalProps> = ({
             <Box>
               <InventoryStockChart
                 transactions={chartData}
-                selectedOrderNumber={selectedOrderNumber}
               />
             </Box>
           </Grid>
@@ -217,17 +316,21 @@ const ChartModal: FC<ChartModalProps> = ({
               </Typography>
               
               {/* 庫存摘要資訊 */}
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">總庫存數量:</Typography>
-                  <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                    總庫存數量:
+                  </Typography>
+                  <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
                     {currentStock}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">損益總和:</Typography>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                    損益總和:
+                  </Typography>
                   <Typography
-                    variant="body2"
+                    variant="h6"
                     color={profitLoss >= 0 ? 'success.main' : 'error.main'}
                     sx={{ fontWeight: 'bold' }}
                   >
@@ -238,100 +341,26 @@ const ChartModal: FC<ChartModalProps> = ({
               
               <Divider sx={{ mb: 2 }} />
               
-              {/* 庫存記錄表格 */}
-              <TableContainer sx={{ maxHeight: 400, overflow: 'auto' }}>
-                <Table size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>庫存</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>貨單號</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>類型</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>數量</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>單價</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>總價</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {inventoryData.map((inv, index) => {
-                      const { orderNumber, orderLink } = getOrderInfo(inv);
-                      const typeDisplay = getTypeDisplay(inv.type);
-                      const quantity = inv.totalQuantity ?? 0;
-                      const price = calculatePrice(inv);
-                      const totalPrice = (inv.totalAmount ?? 0).toFixed(2);
-                      
-                      const idSuffix = inv._id ?? ('no-id-' + index);
-                      const stableKey = `${inv.type}-${orderNumber}-${idSuffix}`;
-                      
-                      return (
-                        <TableRow
-                          key={stableKey}
-                          hover
-                          selected={getOrderNumberFromInventory(inv) === selectedOrderNumber}
-                          sx={{
-                            cursor: 'pointer',
-                            '&:hover': {
-                              backgroundColor: 'action.hover',
-                              '& .MuiTableCell-root': {
-                                backgroundColor: 'transparent'
-                              }
-                            },
-                            '&.Mui-selected': {
-                              backgroundColor: 'action.selected'
-                            }
-                          }}
-                          onClick={() => {
-                            // 獲取對應的訂單號碼
-                            const orderNumber = getOrderNumberFromInventory(inv);
-                            setSelectedOrderNumber(orderNumber);
-                            console.log('Selected row:', inv, 'Order number:', orderNumber);
-                          }}
-                        >
-                          <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
-                            {inv.currentStock}
-                          </TableCell>
-                          <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
-                            <Link
-                              component={RouterLink}
-                              to={orderLink}
-                              color={(inv.type === 'sale' || inv.type === 'ship') ? 'error' : 'primary'}
-                              sx={{ textDecoration: 'none' }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {orderNumber}
-                            </Link>
-                          </TableCell>
-                          <TableCell
-                            align="center"
-                            sx={{
-                              color: typeDisplay.color,
-                              fontWeight: 'medium',
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {typeDisplay.text}
-                          </TableCell>
-                          <TableCell
-                            align="center"
-                            sx={{
-                              color: typeDisplay.color,
-                              fontWeight: 'medium',
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {quantity}
-                          </TableCell>
-                          <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
-                            {price}
-                          </TableCell>
-                          <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
-                            ${totalPrice}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              {/* 庫存記錄 DataGrid */}
+              <Box sx={{ height: 500, width: '100%' }}>
+                <DataGrid
+                  rows={rows}
+                  columns={columns}
+                  pageSize={50}
+                  rowsPerPageOptions={[25, 50, 100]}
+                  disableSelectionOnClick
+                  density="compact"
+                  sx={{
+                    '& .MuiDataGrid-cell': {
+                      fontSize: '0.75rem'
+                    },
+                    '& .MuiDataGrid-columnHeader': {
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold'
+                    }
+                  }}
+                />
+              </Box>
             </Paper>
           </Grid>
         </Grid>

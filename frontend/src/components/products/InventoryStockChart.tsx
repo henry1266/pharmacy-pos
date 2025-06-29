@@ -140,10 +140,9 @@ const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
 // InventoryStockChart props 型別
 interface InventoryStockChartProps {
   transactions?: Transaction[];
-  selectedOrderNumber?: string; // 新增：選中的訂單號碼
 }
 
-const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [], selectedOrderNumber }) => {
+const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }) => {
   // 獲取交易的貨單號
   const getOrderNumber = (transaction: Transaction): string => {
     if (transaction.type === '進貨') {
@@ -226,40 +225,29 @@ const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [], 
 
   const sharedDomain = calculateSharedYAxisDomain();
 
-  // 檢查是否為選中的訂單
-  const isSelectedOrder = (item: ChartDataItem): boolean => {
-    if (!selectedOrderNumber) return false;
-    return item.orderNumber === selectedOrderNumber;
-  };
-
   // 自定義點渲染函數
   const CustomDot = (props: any) => {
-    const { cx, cy, payload } = props;
-    const isSelected = isSelectedOrder(payload);
+    const { cx, cy } = props;
     
     return (
       <circle
         cx={cx}
         cy={cy}
-        r={isSelected ? 5 : 3}
-        fill={isSelected ? colors.highlight : colors.stock}
-        stroke={isSelected ? colors.highlight : colors.stock}
-        strokeWidth={isSelected ? 2 : 1}
+        r={3}
+        fill={colors.stock}
+        stroke={colors.stock}
+        strokeWidth={1}
       />
     );
   };
 
-  // 為長條圖準備數據，根據選中狀態分離數據
+  // 為面積圖準備數據
   const enhancedChartData = chartData.map((item) => {
-    const isSelected = isSelectedOrder(item);
     return {
       ...item,
-      // 正常狀態的數據（未選中時顯示）
-      normalInQuantity: isSelected ? 0 : item.inQuantity,
-      normalOutQuantity: isSelected ? 0 : item.outQuantity,
-      // 高亮狀態的數據（選中時顯示）
-      highlightInQuantity: isSelected ? item.inQuantity : 0,
-      highlightOutQuantity: isSelected ? item.outQuantity : 0
+      // 進出貨數據
+      inQuantity: item.inQuantity,
+      outQuantity: item.outQuantity
     };
   });
 
@@ -304,42 +292,6 @@ const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [], 
           />
           <Tooltip content={<CustomTooltip />} />
           <ReferenceLine y={0} stroke="#000" />
-          
-          {/* 正常狀態的進貨長條圖 */}
-          <Bar
-            dataKey="normalInQuantity"
-            name="進貨量"
-            fill={colors.inflow}
-            opacity={0.8}
-            maxBarSize={60}
-          />
-          
-          {/* 正常狀態的出貨長條圖 */}
-          <Bar
-            dataKey="normalOutQuantity"
-            name="出貨量"
-            fill={colors.outflow}
-            opacity={0.8}
-            maxBarSize={60}
-          />
-          
-          {/* 高亮狀態的進貨長條圖 */}
-          <Bar
-            dataKey="highlightInQuantity"
-            name="選中進貨量"
-            fill={colors.highlight}
-            opacity={1}
-            maxBarSize={60}
-          />
-          
-          {/* 高亮狀態的出貨長條圖 */}
-          <Bar
-            dataKey="highlightOutQuantity"
-            name="選中出貨量"
-            fill={colors.highlight}
-            opacity={1}
-            maxBarSize={60}
-          />
           
           {/* 庫存折線圖 */}
           <Line
