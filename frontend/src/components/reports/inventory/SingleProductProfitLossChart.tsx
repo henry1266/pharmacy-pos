@@ -97,21 +97,6 @@ const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
               width: 12,
               height: 12,
               borderRadius: '50%',
-              bgcolor: colors.stock,
-              mr: 1
-            }}
-          />
-          <Typography variant="body2">
-            累積庫存: {data.cumulativeStock}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-          <Box
-            component="span"
-            sx={{
-              width: 12,
-              height: 12,
-              borderRadius: '50%',
               bgcolor: data.cumulativeProfitLoss >= 0 ? colors.profit : colors.loss,
               mr: 1
             }}
@@ -121,10 +106,10 @@ const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
           </Typography>
         </Box>
         <Typography variant="body2" sx={{
-          color: data.profitLoss >= 0 ? colors.profit : colors.loss,
+          color: Math.abs(data.profitLoss) >= 0 ? (data.type === '進貨' ? colors.loss : colors.profit) : colors.loss,
           fontWeight: 500
         }}>
-          本次交易損益: {formatCurrency(data.profitLoss)}
+          本次交易損益: {formatCurrency(Math.abs(data.profitLoss))}
         </Typography>
       </Paper>
     );
