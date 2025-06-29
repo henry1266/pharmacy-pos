@@ -142,9 +142,15 @@ CustomTooltip.propTypes = {
 // SingleProductProfitLossChart props 型別
 interface SingleProductProfitLossChartProps {
   transactions?: Transaction[];
+  selectedOrderNumber?: string | null;
+  onOrderSelect?: (orderNumber: string | null) => void;
 }
 
-const SingleProductProfitLossChart: FC<SingleProductProfitLossChartProps> = ({ transactions = [] }) => {
+const SingleProductProfitLossChart: FC<SingleProductProfitLossChartProps> = ({
+  transactions = [],
+  selectedOrderNumber = null,
+  onOrderSelect
+}) => {
   // colors and formatCurrency are now in module scope
 
   // 獲取交易的貨單號
@@ -242,14 +248,24 @@ const SingleProductProfitLossChart: FC<SingleProductProfitLossChartProps> = ({ t
     }
 
     return (
-      <ResponsiveContainer width="100%" height={180}>
+      <ResponsiveContainer width="100%" height={300}>
         <AreaChart
           data={chartData}
           margin={{
-            top: 10,
+            top: 20,
             right: 30,
             left: 20,
             bottom: 5,
+          }}
+          syncId="chartSync"
+          onClick={(data) => {
+            if (data && data.activePayload && data.activePayload[0]) {
+              const clickedData = data.activePayload[0].payload;
+              const orderNumber = clickedData.orderNumber;
+              if (onOrderSelect) {
+                onOrderSelect(selectedOrderNumber === orderNumber ? null : orderNumber);
+              }
+            }
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
@@ -260,13 +276,9 @@ const SingleProductProfitLossChart: FC<SingleProductProfitLossChartProps> = ({ t
             axisLine={true} // 顯示軸線
           />
           <YAxis 
+            label={{ value: '金額', angle: -90, position: 'insideLeft' }}
             yAxisId="left"
             tickFormatter={(value) => formatCurrency(value)}
-          />
-          <YAxis 
-            yAxisId="right"
-            orientation="right"
-            domain={['auto', 'auto']}
           />
           <Tooltip content={<CustomTooltip />} />
           <ReferenceLine y={0} stroke="#000" yAxisId="left" />
@@ -280,23 +292,25 @@ const SingleProductProfitLossChart: FC<SingleProductProfitLossChartProps> = ({ t
               <stop offset="95%" stopColor={colors.loss} stopOpacity={0.2}/>
             </linearGradient>
           </defs>
-          <Area 
+          <Area
             yAxisId="left"
-            type="monotone" 
-            dataKey="positiveProfitLoss" 
-            name="盈利" 
-            stroke={colors.profit} 
+            type="monotone"
+            dataKey="positiveProfitLoss"
+            name="盈利"
+            stroke={colors.profit}
             fillOpacity={1}
             fill="url(#colorProfit)"
+            strokeWidth={selectedOrderNumber ? 3 : 2}
           />
-          <Area 
+          <Area
             yAxisId="left"
-            type="monotone" 
-            dataKey="negativeProfitLoss" 
-            name="虧損" 
-            stroke={colors.loss} 
+            type="monotone"
+            dataKey="negativeProfitLoss"
+            name="虧損"
+            stroke={colors.loss}
             fillOpacity={1}
             fill="url(#colorLoss)"
+            strokeWidth={selectedOrderNumber ? 3 : 2}
           />
           <Line
             yAxisId="right"

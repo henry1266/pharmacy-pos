@@ -140,9 +140,15 @@ const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
 // InventoryStockChart props 型別
 interface InventoryStockChartProps {
   transactions?: Transaction[];
+  selectedOrderNumber?: string | null;
+  onOrderSelect?: (orderNumber: string | null) => void;
 }
 
-const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }) => {
+const InventoryStockChart: FC<InventoryStockChartProps> = ({
+  transactions = [],
+  selectedOrderNumber = null,
+  onOrderSelect
+}) => {
   // 獲取交易的貨單號
   const getOrderNumber = (transaction: Transaction): string => {
     if (transaction.type === '進貨') {
@@ -227,16 +233,17 @@ const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }
 
   // 自定義點渲染函數
   const CustomDot = (props: any) => {
-    const { cx, cy } = props;
+    const { cx, cy, payload } = props;
+    const isSelected = payload && payload.orderNumber === selectedOrderNumber;
     
     return (
       <circle
         cx={cx}
         cy={cy}
-        r={3}
-        fill={colors.stock}
-        stroke={colors.stock}
-        strokeWidth={1}
+        r={isSelected ? 5 : 3}
+        fill={isSelected ? colors.highlight : colors.stock}
+        stroke={isSelected ? colors.highlight : colors.stock}
+        strokeWidth={isSelected ? 2 : 1}
       />
     );
   };
@@ -277,6 +284,16 @@ const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }
             bottom: 5,
           }}
           barCategoryGap="20%"
+          syncId="chartSync"
+          onClick={(data) => {
+            if (data && data.activePayload && data.activePayload[0]) {
+              const clickedData = data.activePayload[0].payload;
+              const orderNumber = clickedData.orderNumber;
+              if (onOrderSelect) {
+                onOrderSelect(selectedOrderNumber === orderNumber ? null : orderNumber);
+              }
+            }
+          }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
@@ -299,9 +316,9 @@ const InventoryStockChart: FC<InventoryStockChartProps> = ({ transactions = [] }
             dataKey="cumulativeStock"
             name="庫存數量"
             stroke={colors.stock}
-            strokeWidth={2}
+            strokeWidth={selectedOrderNumber ? 3 : 2}
             dot={<CustomDot />}
-            activeDot={{ r: 4, fill: colors.stock }}
+            activeDot={{ r: 6, fill: selectedOrderNumber ? colors.highlight : colors.stock }}
             connectNulls={false}
           />
         </ComposedChart>

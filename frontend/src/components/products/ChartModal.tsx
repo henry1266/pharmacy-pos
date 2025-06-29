@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -70,6 +70,11 @@ const ChartModal: FC<ChartModalProps> = ({
   currentStock = 0,
   profitLoss = 0
 }) => {
+  // 選取狀態管理
+  const [selectedOrderNumber, setSelectedOrderNumber] = useState<string | null>(null);
+  const [tooltipData, setTooltipData] = useState<any>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+
   // 輔助函數：從MongoDB格式的對象ID中提取$oid值
   const extractOidFromMongoId = (mongoId: string | { $oid: string } | { _id: string | { $oid: string } } | undefined): string => {
     if (!mongoId) return '';
@@ -164,10 +169,11 @@ const ChartModal: FC<ChartModalProps> = ({
         typeColor: typeDisplay.color,
         quantity,
         price,
-        totalAmount: totalPrice
+        totalAmount: totalPrice,
+        isSelected: orderNumber === selectedOrderNumber
       };
     });
-  }, [inventoryData]);
+  }, [inventoryData, selectedOrderNumber]);
 
   // 定義 DataGrid 的欄位
   const columns: GridColDef[] = [
@@ -294,16 +300,20 @@ const ChartModal: FC<ChartModalProps> = ({
           {/* 左側：圖表區域 */}
           <Grid item xs={12} md={6}>
             {/* 盈虧分析圖表 */}
-            <Box sx={{ mb: 3 }}>
-              <SingleProductProfitLossChart transactions={chartData} />
+            <Box sx={{ mb: 2, width: '100%' }}>
+              <SingleProductProfitLossChart
+                transactions={chartData}
+                selectedOrderNumber={selectedOrderNumber}
+                onOrderSelect={setSelectedOrderNumber}
+              />
             </Box>
             
-            <Divider sx={{ my: 3 }} />
-            
             {/* 庫存變化圖表 */}
-            <Box>
+            <Box sx={{ width: '100%' }}>
               <InventoryStockChart
                 transactions={chartData}
+                selectedOrderNumber={selectedOrderNumber}
+                onOrderSelect={setSelectedOrderNumber}
               />
             </Box>
           </Grid>
@@ -350,6 +360,10 @@ const ChartModal: FC<ChartModalProps> = ({
                   rowsPerPageOptions={[25, 50, 100]}
                   disableSelectionOnClick
                   density="compact"
+                  onRowClick={(params) => {
+                    const orderNumber = params.row.orderNumber;
+                    setSelectedOrderNumber(selectedOrderNumber === orderNumber ? null : orderNumber);
+                  }}
                   sx={{
                     '& .MuiDataGrid-cell': {
                       fontSize: '0.75rem'
@@ -357,8 +371,23 @@ const ChartModal: FC<ChartModalProps> = ({
                     '& .MuiDataGrid-columnHeader': {
                       fontSize: '0.75rem',
                       fontWeight: 'bold'
+                    },
+                    '& .MuiDataGrid-row': {
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'action.hover'
+                      }
+                    },
+                    '& .MuiDataGrid-row.selected': {
+                      backgroundColor: 'primary.light',
+                      '&:hover': {
+                        backgroundColor: 'primary.main'
+                      }
                     }
                   }}
+                  getRowClassName={(params) =>
+                    params.row.isSelected ? 'selected' : ''
+                  }
                 />
               </Box>
             </Paper>
