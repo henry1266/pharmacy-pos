@@ -17,7 +17,8 @@ import {
   IconButton,
   Collapse,
   Link,
-  Tooltip
+  Tooltip,
+  Grid
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -26,6 +27,10 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import PercentIcon from '@mui/icons-material/Percent';
+import PaidIcon from '@mui/icons-material/Paid';
 
 // 定義 FIFO 相關的型別
 interface FIFOSummary {
@@ -98,9 +103,10 @@ interface SummaryItemProps {
   value: number | string;
   isMonetary?: boolean;
   isProfit?: boolean;
+  icon?: React.ReactNode;
 }
 
-const SummaryItem: React.FC<SummaryItemProps> = ({ label, value, isMonetary = true, isProfit = false }) => {
+const SummaryItem: React.FC<SummaryItemProps> = ({ label, value, isMonetary = true, isProfit = false, icon }) => {
   // 解決巢狀三元運算式問題
   let isPositive = true;
   if (isProfit) {
@@ -110,22 +116,39 @@ const SummaryItem: React.FC<SummaryItemProps> = ({ label, value, isMonetary = tr
   // 解決另一個巢狀三元運算式問題
   let textColor = 'inherit';
   if (isProfit) {
-    textColor = isPositive ? 'success.main' : 'error.main';
+    // 使用更鮮明的顏色
+    textColor = isPositive ? '#00C853' : '#FF1744';
   }
   
   return (
-    <Box sx={{ mr: 3, mb: 1 }}>
-      <Typography variant="body2" color="text.secondary">
-        {label}:
-      </Typography>
-      <Typography
-        variant="body1"
-        fontWeight="medium"
-        color={textColor}
-      >
-        {isMonetary ? `$${parseFloat(value.toString()).toFixed(2)}` : value}
-      </Typography>
-    </Box>
+    <Card
+      elevation={2}
+      sx={{
+        minWidth: 180,
+        borderRadius: 2,
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: 4
+        }
+      }}
+    >
+      <CardContent sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          {icon}
+          <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: icon ? 1 : 0 }}>
+            {label}
+          </Typography>
+        </Box>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color={textColor}
+        >
+          {isMonetary ? `$${parseFloat(value.toString()).toFixed(2)}` : value}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -561,21 +584,51 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
         FIFO毛利計算
       </Typography>
 
-      <Card sx={{ mb: 1.5 }}>
-        <CardContent sx={{ p: 1.5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-            <SummaryItem label="總成本" value={summary.totalCost} />
-            <SummaryItem label="總收入" value={summary.totalRevenue} />
-            <SummaryItem label="總毛利" value={summary.totalProfit} isProfit={true} />
+      <Box sx={{ mb: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={3}>
+            <SummaryItem
+              label="總成本"
+              value={summary.totalCost}
+              icon={<MonetizationOnIcon color="action" fontSize="medium" />}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <SummaryItem
+              label="總收入"
+              value={summary.totalRevenue}
+              icon={<PaidIcon color="primary" fontSize="medium" />}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <SummaryItem
+              label="總毛利"
+              value={summary.totalProfit}
+              isProfit={true}
+              icon={
+                <TrendingUpIcon
+                  sx={{ color: summary.totalProfit >= 0 ? "#00C853" : "#FF1744" }}
+                  fontSize="medium"
+                />
+              }
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
             <SummaryItem
               label="平均毛利率"
               value={summary.averageProfitMargin}
               isMonetary={false}
               isProfit={true}
+              icon={
+                <PercentIcon
+                  sx={{ color: parseFloat(summary.averageProfitMargin) >= 0 ? "#00C853" : "#FF1744" }}
+                  fontSize="medium"
+                />
+              }
             />
-          </Box>
-        </CardContent>
-      </Card>
+          </Grid>
+        </Grid>
+      </Box>
 
       <TableContainer component={Paper} sx={{ overflow: 'auto' }}>
         <Table size="small" stickyHeader>

@@ -11,10 +11,14 @@ import {
   Divider,
   Grid,
   Paper,
-  Link
+  Link,
+  Card,
+  CardContent
 } from '@mui/material';
 import {
-  Close as CloseIcon
+  Close as CloseIcon,
+  Inventory as InventoryIcon,
+  MonetizationOn as MonetizationOnIcon
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { Link as RouterLink } from 'react-router-dom';
@@ -325,28 +329,72 @@ const ChartModal: FC<ChartModalProps> = ({
                 庫存清單
               </Typography>
               
-              {/* 庫存摘要資訊 */}
-              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                    總庫存數量:
-                  </Typography>
-                  <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-                    {currentStock}
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                    損益總和:
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    color={profitLoss >= 0 ? 'success.main' : 'error.main'}
-                    sx={{ fontWeight: 'bold' }}
-                  >
-                    ${profitLoss.toFixed(2)}
-                  </Typography>
-                </Box>
+              {/* 庫存摘要資訊 - Dashboard 風格 */}
+              <Box sx={{ mb: 3 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Card
+                      elevation={2}
+                      sx={{
+                        borderRadius: 2,
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: 4
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <InventoryIcon color="primary" fontSize="medium" />
+                          <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
+                            總庫存數量
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="h5"
+                          fontWeight="bold"
+                          color="primary.main"
+                        >
+                          {currentStock}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <Card
+                      elevation={2}
+                      sx={{
+                        borderRadius: 2,
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: 4
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <MonetizationOnIcon
+                            sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
+                            fontSize="medium"
+                          />
+                          <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
+                            損益總和
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="h5"
+                          fontWeight="bold"
+                          sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
+                        >
+                          ${profitLoss.toFixed(2)}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
               </Box>
               
               <Divider sx={{ mb: 2 }} />

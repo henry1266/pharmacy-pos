@@ -1,14 +1,18 @@
 import React, { useState, FC, ChangeEvent, SyntheticEvent, RefObject } from 'react';
-import { 
-  TextField, 
-  Autocomplete, 
+import axios from 'axios';
+import {
+  TextField,
+  Autocomplete,
   Button,
-  Typography
+  Typography,
+  IconButton,
+  Box
 } from '@mui/material';
 // 單獨引入 Grid 組件
 import Grid from '@mui/material/Grid';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, BarChart as BarChartIcon } from '@mui/icons-material';
 import PriceTooltip from '../form-widgets/PriceTooltip';
+import ChartModal from '../products/ChartModal';
 import PropTypes from 'prop-types';
 
 // 定義產品介面
@@ -54,6 +58,12 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   isTestMode
 }) => {
   const [activeInput, setActiveInput] = useState<string | null>(null);
+  const [chartModalOpen, setChartModalOpen] = useState<boolean>(false);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [inventoryData, setInventoryData] = useState<any[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(
+    products?.find(p => p._id === currentItem.product) ?? null
+  );
 
   const dQuantityValue = currentItem.dquantity ?? '';
   const packageQuantityValue = currentItem.packageQuantity ?? '';
@@ -133,46 +143,261 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     }
   };
 
+  // 處理圖表按鈕點擊
+  const handleChartButtonClick = async () => {
+    if (!selectedProduct) return;
+    
+    try {
+      // 調用 API 獲取產品的真實圖表數據
+      const response = await axios.get(`/api/inventory/product/${selectedProduct._id}`);
+      
+      // 處理 ApiResponse 格式
+      const inventoryData = response.data.data ?? [];
+      
+      // 篩選條件：至少saleNumber、purchaseOrderNumber或shippingOrderNumber其中之一要有值
+      const filteredInventories = inventoryData.filter((inv: any) => {
+        const hasSaleNumber = inv.saleNumber?.trim() !== '';
+        const hasPurchaseOrderNumber = inv.purchaseOrderNumber?.trim() !== '';
+        const hasShippingOrderNumber = inv.shippingOrderNumber?.trim() !== '';
+        return hasSaleNumber || hasPurchaseOrderNumber || hasShippingOrderNumber;
+      });
+      
+      // 合併相同類型且單號相同的記錄
+      const mergedInventories: any[] = [];
+      const saleGroups: { [key: string]: any } = {};
+      const purchaseGroups: { [key: string]: any } = {};
+      const shipGroups: { [key: string]: any } = {};
+      
+      filteredInventories.forEach((inv: any) => {
+        if (inv.saleNumber) {
+          if (!saleGroups[inv.saleNumber]) {
+            saleGroups[inv.saleNumber] = {
+              ...inv,
+              type: 'sale',
+              totalQuantity: inv.quantity,
+              totalAmount: inv.totalAmount ?? 0
+            };
+          } else {
+            saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity ?? 0) + inv.quantity;
+            saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+          }
+        } else if (inv.purchaseOrderNumber) {
+          if (!purchaseGroups[inv.purchaseOrderNumber]) {
+            purchaseGroups[inv.purchaseOrderNumber] = {
+              ...inv,
+              type: 'purchase',
+              totalQuantity: inv.quantity,
+              totalAmount: inv.totalAmount ?? 0
+            };
+          } else {
+            purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity ?? 0) + inv.quantity;
+            purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+          }
+        } else if (inv.shippingOrderNumber) {
+          if (!shipGroups[inv.shippingOrderNumber]) {
+            shipGroups[inv.shippingOrderNumber] = {
+              ...inv,
+              type: 'ship',
+              totalQuantity: inv.quantity,
+              totalAmount: inv.totalAmount ?? 0
+            };
+          } else {
+            shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity ?? 0) + inv.quantity;
+            shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+          }
+        }
+      });
+      
+      // 將合併後的記錄添加到結果數組
+      mergedInventories.push(...Object.values(saleGroups));
+      mergedInventories.push(...Object.values(purchaseGroups));
+      mergedInventories.push(...Object.values(shipGroups));
+      
+      // 排序：取訂單號左邊八位數字進行數值比較，大的在上小的在下
+      mergedInventories.sort((a, b) => {
+        const aValue = a.saleNumber?.trim() ||
+                      a.purchaseOrderNumber?.trim() ||
+                      a.shippingOrderNumber?.trim() || '';
+        const bValue = b.saleNumber?.trim() ||
+                      b.purchaseOrderNumber?.trim() ||
+                      b.shippingOrderNumber?.trim() || '';
+        
+        const aMatch = aValue.match(/^\d{8}/);
+        const bMatch = bValue.match(/^\d{8}/);
+        
+        const aNumber = aMatch ? parseInt(aMatch[0]) : 0;
+        const bNumber = bMatch ? parseInt(bMatch[0]) : 0;
+        
+        return bNumber - aNumber;
+      });
+      
+      // 計算當前庫存
+      let stock = 0;
+      const processedInventories = [...mergedInventories].reverse().map((inv: any) => {
+        const quantity = inv.totalQuantity ?? 0;
+        stock += quantity;
+        return {
+          ...inv,
+          currentStock: stock
+        };
+      });
+      
+      // 反轉回來，保持從大到小的排序
+      processedInventories.reverse();
+      
+      // 計算損益總和：銷售-進貨+出貨
+      let totalProfitLoss = 0;
+      processedInventories.forEach((inv: any) => {
+        // 計算實際交易價格
+        let price = 0;
+        // Calculate unit price for any transaction type with totalAmount and totalQuantity
+        if (inv.totalAmount && inv.totalQuantity) {
+          // 使用實際交易價格（總金額/數量）
+          const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+          price = unitPrice;
+        } else if (inv.product?.sellingPrice) {
+          // 其他記錄：使用產品售價 (使用可選鏈表達式)
+          price = inv.product.sellingPrice;
+        } else if (inv.product?.price) {
+          // 使用產品價格作為備選
+          price = inv.product.price;
+        }
+        
+        // 計算該記錄的損益
+        const recordCost = price * Math.abs(inv.totalQuantity ?? 0);
+        
+        if (inv.type === 'sale') {
+          // 銷售記錄：增加損益
+          totalProfitLoss += recordCost;
+        } else if (inv.type === 'purchase') {
+          // 進貨記錄：減少損益
+          totalProfitLoss -= recordCost;
+        } else if (inv.type === 'ship') {
+          // 出貨記錄：增加損益
+          totalProfitLoss += recordCost;
+        }
+      });
+      
+      // 準備圖表數據
+      const chartTransactions = processedInventories.map((inv: any) => {
+        // 獲取貨單號
+        let orderNumber = '';
+        if (inv.type === 'sale') {
+          orderNumber = inv.saleNumber ?? '-';
+        } else if (inv.type === 'purchase') {
+          orderNumber = inv.purchaseOrderNumber ?? '-';
+        } else if (inv.type === 'ship') {
+          orderNumber = inv.shippingOrderNumber ?? '-';
+        }
+        
+        // 轉換交易類型為中文
+        let typeText = '其他';
+        if (inv.type === 'sale') {
+          typeText = '銷售';
+        } else if (inv.type === 'purchase') {
+          typeText = '進貨';
+        } else if (inv.type === 'ship') {
+          typeText = '出貨';
+        }
+        
+        // 計算實際交易價格
+        let price = 0;
+        if (inv.totalAmount && inv.totalQuantity) {
+          price = inv.totalAmount / Math.abs(inv.totalQuantity);
+        } else if (inv.product?.sellingPrice) {
+          price = inv.product.sellingPrice;
+        } else if (inv.product?.price) {
+          price = inv.product.price;
+        }
+        
+        return {
+          purchaseOrderNumber: inv.type === 'purchase' ? orderNumber : '-',
+          shippingOrderNumber: inv.type === 'ship' ? orderNumber : '-',
+          saleNumber: inv.type === 'sale' ? orderNumber : '-',
+          type: typeText,
+          quantity: inv.totalQuantity || 0,
+          price: price,
+          cumulativeStock: inv.currentStock ?? 0,
+          cumulativeProfitLoss: 0 // 這個值會在SingleProductProfitLossChart中重新計算
+        };
+      });
+      
+      setChartData(chartTransactions);
+      setInventoryData(processedInventories);
+      // 儲存計算好的損益總和和當前庫存，供 ChartModal 使用
+      setChartModalOpen(true);
+    } catch (error) {
+      console.error('獲取圖表數據失敗:', error);
+      // 如果 API 調用失敗，仍然可以打開彈出視窗但顯示空數據
+      setChartData([]);
+      setInventoryData([]);
+      setChartModalOpen(true);
+    }
+  };
+
+  // 更新選中的產品
+  const handleProductChangeWithChart = (event: SyntheticEvent, product: Product | null) => {
+    setSelectedProduct(product);
+    handleProductChange(event, product);
+  };
+
   return (
     <Grid container spacing={2} alignItems="flex-start" sx={{ mb: 1 }}>
       {/* @ts-ignore */}
       <Grid item xs={12} sm={6} md={4}>
-        <Autocomplete
-          id="product-select"
-          options={products ?? []}
-          getOptionLabel={(option) => `${option.code ?? 'N/A'} - ${option.name}`}
-          value={products?.find(p => p._id === currentItem.product) ?? null}
-          onChange={handleProductChange}
-          filterOptions={(options, state) => filterProducts(options, state.inputValue)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === 'Tab') {
-              if ((event.target as HTMLInputElement).value) {
-                const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
-                if (filteredOptions.length > 0) {
-                  handleProductChange(event, filteredOptions[0]);
-                  event.preventDefault(); 
-                  const dquantityInput = document.querySelector('input[name="dquantity"]');
-                  const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
-                  if (dquantityInput && !(dquantityInput as HTMLInputElement).disabled) {
-                    (dquantityInput as HTMLInputElement).focus();
-                  } else if (packageQuantityInput && !(packageQuantityInput as HTMLInputElement).disabled) {
-                    (packageQuantityInput as HTMLInputElement).focus();
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+          <Box sx={{ flex: 1 }}>
+            <Autocomplete
+              id="product-select"
+              options={products ?? []}
+              getOptionLabel={(option) => `${option.code ?? 'N/A'} - ${option.name}`}
+              value={products?.find(p => p._id === currentItem.product) ?? null}
+              onChange={handleProductChangeWithChart}
+              filterOptions={(options, state) => filterProducts(options, state.inputValue)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === 'Tab') {
+                  if ((event.target as HTMLInputElement).value) {
+                    const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
+                    if (filteredOptions.length > 0) {
+                      handleProductChangeWithChart(event, filteredOptions[0]);
+                      event.preventDefault();
+                      const dquantityInput = document.querySelector('input[name="dquantity"]');
+                      const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
+                      if (dquantityInput && !(dquantityInput as HTMLInputElement).disabled) {
+                        (dquantityInput as HTMLInputElement).focus();
+                      } else if (packageQuantityInput && !(packageQuantityInput as HTMLInputElement).disabled) {
+                        (packageQuantityInput as HTMLInputElement).focus();
+                      }
+                      return;
+                    }
                   }
-                  return; 
                 }
-              }
-            }
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              inputRef={productInputRef} 
-              id="product-select-input"
-              label="選擇藥品"
-              fullWidth
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  inputRef={productInputRef}
+                  id="product-select-input"
+                  label="選擇藥品"
+                  fullWidth
+                />
+              )}
             />
-          )}
-        />
+          </Box>
+          <IconButton
+            onClick={handleChartButtonClick}
+            disabled={!selectedProduct}
+            color="primary"
+            sx={{
+              mt: 1,
+              minWidth: 40,
+              height: 40
+            }}
+            title="查看商品圖表分析"
+          >
+            <BarChartIcon />
+          </IconButton>
+        </Box>
       </Grid>
 
       {/* @ts-ignore */}
@@ -258,6 +483,42 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
           添加項目
         </Button>
       </Grid>
+      
+      {/* 圖表彈出視窗 */}
+      <ChartModal
+        open={chartModalOpen}
+        onClose={() => setChartModalOpen(false)}
+        chartData={chartData}
+        productName={selectedProduct?.name}
+        inventoryData={inventoryData}
+        currentStock={inventoryData.length > 0 ? inventoryData[0].currentStock || 0 : 0}
+        profitLoss={inventoryData.length > 0 ? (() => {
+          // 重新計算損益總和
+          let totalProfitLoss = 0;
+          inventoryData.forEach((inv: any) => {
+            let price = 0;
+            if (inv.totalAmount && inv.totalQuantity) {
+              const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+              price = unitPrice;
+            } else if (inv.product?.sellingPrice) {
+              price = inv.product.sellingPrice;
+            } else if (inv.product?.price) {
+              price = inv.product.price;
+            }
+            
+            const recordCost = price * Math.abs(inv.totalQuantity ?? 0);
+            
+            if (inv.type === 'sale') {
+              totalProfitLoss += recordCost;
+            } else if (inv.type === 'purchase') {
+              totalProfitLoss -= recordCost;
+            } else if (inv.type === 'ship') {
+              totalProfitLoss += recordCost;
+            }
+          });
+          return totalProfitLoss;
+        })() : 0}
+      />
     </Grid>
   );
 };

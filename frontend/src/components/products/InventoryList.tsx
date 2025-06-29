@@ -13,11 +13,16 @@ import {
   Link,
   CircularProgress,
   Divider,
-  Button
+  Button,
+  Card,
+  CardContent,
+  Grid
 } from '@mui/material';
 import {
   BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  Inventory as InventoryIcon,
+  MonetizationOn as MonetizationOnIcon
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import { Product } from '@pharmacy-pos/shared/types/entities';
@@ -409,37 +414,79 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
 
   return (
     <Box sx={{ mt: 2, backgroundColor: 'action.hover', p: 2, borderRadius: 1 }}>
-      {/* 標題區域 - 包含庫存資訊和圖表分析按鈕 */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 2 }}>
-        {/* 左側：庫存資訊 */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ mr: 1 }}>
-              總庫存數量:
-            </Typography>
-            <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold' }}>
-              {currentStock}
-            </Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ mr: 1 }}>
-              損益總和:
-            </Typography>
-            <Typography
-              variant="body1"
-              color={profitLoss >= 0 ? 'success.main' : 'error.main'}
-              sx={{ fontWeight: 'bold' }}
+      {/* Dashboard 風格的資訊卡片 */}
+      <Box sx={{ mb: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Card
+              elevation={2}
+              sx={{
+                borderRadius: 2,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 4
+                }
+              }}
             >
-              ${profitLoss.toFixed(2)}
-            </Typography>
-          </Box>
-        </Box>
-        
-        {/* 右側：圖表分析按鈕 */}
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <InventoryIcon color="primary" fontSize="medium" />
+                  <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
+                    總庫存數量
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  color="primary.main"
+                >
+                  {currentStock}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <Card
+              elevation={2}
+              sx={{
+                borderRadius: 2,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 4
+                }
+              }}
+            >
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <MonetizationOnIcon
+                    sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
+                    fontSize="medium"
+                  />
+                  <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
+                    損益總和
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
+                >
+                  ${profitLoss.toFixed(2)}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+      
+      {/* 圖表分析按鈕 - 移至下方 */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
         <Button
           variant="contained"
-          size="small"
+          size="medium"
           startIcon={<BarChartIcon />}
           onClick={() => setChartModalOpen(true)}
           sx={{
@@ -447,13 +494,15 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
             boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
             '&:hover': {
               background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
-            }
+            },
+            borderRadius: 2,
+            px: 3,
+            py: 1
           }}
         >
           查看圖表分析
         </Button>
       </Box>
-      
       
       {/* 圖表懸浮視窗 */}
       <ChartModal
