@@ -96,13 +96,44 @@ const EmployeeBasicInfoPage: React.FC = () => {
     
     // 如果是編輯模式，獲取員工資料
     if (isEditMode) {
-      fetchEmployeeData();
+      // 內聯定義獲取員工資料的函數，避免依賴問題
+      const fetchData = async (): Promise<void> => {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('未登入或權限不足');
+          }
+  
+          const config = {
+            headers: {
+              'x-auth-token': token
+            }
+          };
+  
+          const response = await axios.get<ApiResponse<Employee>>(`/api/employees/${id}`, config);
+          
+          // 檢查 API 回應格式
+          if (response.data?.success && response.data.data) {
+            setEmployee(response.data.data);
+          } else {
+            throw new Error('員工資料格式不正確');
+          }
+          setError(null);
+        } catch (err: any) {
+          console.error('獲取員工資料失敗:', err);
+          setError(err.response?.data?.message ?? err.response?.data?.msg ?? err.message ?? '獲取員工資料失敗');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchData();
     } else {
       setLoading(false);
     }
   }, [isEditMode, id]);
 
-  // 獲取員工資料
+  // 獲取員工資料 - 保留此函數以供其他地方使用
   const fetchEmployeeData = async (): Promise<void> => {
     try {
       const token = localStorage.getItem('token');

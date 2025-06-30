@@ -3,12 +3,8 @@
  * 整合 BaseApiClient 架構
  */
 
-import { ThemeApiClient } from '@pharmacy-pos/shared/services/themeApiClient';
-import { BaseApiClient } from '@pharmacy-pos/shared/services/baseApiClient';
 import {
   UserTheme,
-  CreateUserThemeRequest,
-  UpdateUserThemeRequest,
   DEFAULT_THEME_COLORS,
   EnhancedGeneratedPalette
 } from '@pharmacy-pos/shared/types/theme';
@@ -16,7 +12,6 @@ import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import {
   generateThemePalette,
   enhancePaletteWithMaterial3,
-  generateMaterial3Theme,
   Material3SchemeType
 } from '@pharmacy-pos/shared/utils';
 

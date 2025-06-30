@@ -106,18 +106,14 @@ export const convertThemeToCSSVariables = (theme: UserTheme): ThemeVariables => 
     
     // 提取所有顏色的 RGB 分量
     const primaryRgb = extractRgbFromHex(material3Scheme.primary);
-    const primaryContainerRgb = extractRgbFromHex(material3Scheme.primaryContainer);
     const secondaryRgb = extractRgbFromHex(material3Scheme.secondary);
     const tertiaryRgb = extractRgbFromHex(material3Scheme.tertiary);
     const errorRgb = extractRgbFromHex(material3Scheme.error);
     const backgroundRgb = extractRgbFromHex(material3Scheme.background);
     const surfaceRgb = extractRgbFromHex(material3Scheme.surface);
-    const surfaceVariantRgb = extractRgbFromHex(material3Scheme.surfaceVariant);
     const onBackgroundRgb = extractRgbFromHex(material3Scheme.onBackground);
     const onSurfaceVariantRgb = extractRgbFromHex(material3Scheme.onSurfaceVariant);
     const outlineRgb = extractRgbFromHex(material3Scheme.outline);
-    const onPrimaryRgb = extractRgbFromHex(material3Scheme.onPrimary);
-    const sidebarRgb = extractRgbFromHex(actualMode === 'dark' ? material3Scheme.surfaceVariant : '#0f172a');
 
     return {
       // 主要顏色
@@ -202,7 +198,6 @@ export const convertThemeToCSSVariables = (theme: UserTheme): ThemeVariables => 
     // 使用傳統調色板
     // 提取所有顏色的 RGB 分量
     const primaryRgb = extractRgbFromHex(generatedPalette.primary.main);
-    const primaryLightRgb = extractRgbFromHex(generatedPalette.primary.light);
     const secondaryRgb = extractRgbFromHex(generatedPalette.secondary.main);
     const successRgb = extractRgbFromHex(generatedPalette.success.main);
     const errorRgb = extractRgbFromHex(generatedPalette.error.main);
@@ -221,7 +216,6 @@ export const convertThemeToCSSVariables = (theme: UserTheme): ThemeVariables => 
     const bgSecondaryRgb = extractRgbFromHex(bgSecondary);
     const textPrimaryRgb = extractRgbFromHex(textPrimary);
     const textSecondaryRgb = extractRgbFromHex(textSecondary);
-    const textMutedRgb = extractRgbFromHex(textMuted);
     const borderRgb = extractRgbFromHex(borderColor);
 
     return {
@@ -363,7 +357,6 @@ export const injectThemeVariables = (theme: UserTheme): void => {
 export const resetToDefaultTheme = (): void => {
   // 提取預設顏色的 RGB 分量
   const primaryRgb = extractRgbFromHex('#7a65ff');
-  const primaryLightRgb = extractRgbFromHex('#e5e1ff');
   const secondaryRgb = extractRgbFromHex('#6c757d');
   const successRgb = extractRgbFromHex('#00b66a');
   const dangerRgb = extractRgbFromHex('#e53f3c');
@@ -371,11 +364,8 @@ export const resetToDefaultTheme = (): void => {
   const infoRgb = extractRgbFromHex('#30b1aa');
   const bgPrimaryRgb = extractRgbFromHex('#f5f4f8');
   const bgSecondaryRgb = extractRgbFromHex('#ffffff');
-  const bgSidebarRgb = extractRgbFromHex('#0f172a');
   const textPrimaryRgb = extractRgbFromHex('#1e293b');
   const textSecondaryRgb = extractRgbFromHex('#64748b');
-  const textMutedRgb = extractRgbFromHex('#94a3b8');
-  const textLightRgb = extractRgbFromHex('#ffffff');
   const borderRgb = extractRgbFromHex('#e2e8f0');
 
   const defaultVariables: ThemeVariables = {

@@ -171,7 +171,7 @@ const EmployeeListPage: React.FC = () => {
 
     // 獲取員工資料
     fetchEmployees();
-  }, [page, rowsPerPage]); // 當頁碼或每頁筆數變更時重新獲取資料
+  }, [page, rowsPerPage, fetchEmployees]); // 當頁碼或每頁筆數變更時重新獲取資料
 
   // 當搜尋條件變更時，重置頁碼並重新獲取資料
   useEffect(() => {
@@ -181,7 +181,7 @@ const EmployeeListPage: React.FC = () => {
     }, 500); // 延遲 500ms 再執行搜尋，避免頻繁請求
 
     return () => clearTimeout(delaySearch);
-  }, [searchTerm]);
+  }, [searchTerm, fetchEmployees]);
 
   // 檢查用戶是否為管理員
   const isAdmin = user && user.role === 'admin';
