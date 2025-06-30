@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC ,useMemo} from 'react';
+import React, { useState, useEffect, FC, useMemo } from 'react';
 import axios from 'axios'; // Keep for non-test mode
 import {
   Box,
@@ -6,13 +6,6 @@ import {
   Button,
   Card,
   CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   IconButton,
   Chip,
   TextField,
@@ -25,7 +18,9 @@ import {
   DialogContentText,
   DialogTitle,
   Popover,
-  CircularProgress
+  CircularProgress,
+  Fade,
+  Skeleton
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -36,6 +31,7 @@ import {
   ArrowBack as ArrowBackIcon,
   ViewList as ViewListIcon
 } from '@mui/icons-material';
+import { DataGrid, GridColDef, GridRenderCellParams, GridLocaleText } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -157,6 +153,59 @@ const getPaymentStatusInfo = (status: string): PaymentStatusInfo => {
   return statusMap[status] ?? { text: status, color: 'default' };
 };
 
+// 本地化文字配置
+const TABLE_LOCALE_TEXT = {
+  noRowsLabel: '沒有銷售記錄',
+  footerRowSelected: (count: number) => `已選擇 ${count} 個項目`,
+  columnMenuLabel: '選單',
+  columnMenuShowColumns: '顯示欄位',
+  columnMenuFilter: '篩選',
+  columnMenuHideColumn: '隱藏',
+  columnMenuUnsort: '取消排序',
+  columnMenuSortAsc: '升序排列',
+  columnMenuSortDesc: '降序排列',
+  filterPanelAddFilter: '新增篩選',
+  filterPanelDeleteIconLabel: '刪除',
+  filterPanelOperator: '運算子',
+  filterPanelOperatorAnd: '與',
+  filterPanelOperatorOr: '或',
+  filterPanelColumns: '欄位',
+  filterPanelInputLabel: '值',
+  filterPanelInputPlaceholder: '篩選值',
+  columnsPanelTextFieldLabel: '尋找欄位',
+  columnsPanelTextFieldPlaceholder: '欄位名稱',
+  columnsPanelDragIconLabel: '重新排序欄位',
+  columnsPanelShowAllButton: '顯示全部',
+  columnsPanelHideAllButton: '隱藏全部',
+  toolbarDensity: '密度',
+  toolbarDensityLabel: '密度',
+  toolbarDensityCompact: '緊湊',
+  toolbarDensityStandard: '標準',
+  toolbarDensityComfortable: '舒適',
+  toolbarExport: '匯出',
+  toolbarExportLabel: '匯出',
+  toolbarExportCSV: '下載CSV',
+  toolbarExportPrint: '列印',
+  toolbarColumns: '欄位',
+  toolbarColumnsLabel: '選擇欄位',
+  toolbarFilters: '篩選',
+  toolbarFiltersLabel: '顯示篩選',
+  toolbarFiltersTooltipHide: '隱藏篩選',
+  toolbarFiltersTooltipShow: '顯示篩選',
+  toolbarQuickFilterPlaceholder: '搜尋...',
+  toolbarQuickFilterLabel: '搜尋',
+  toolbarQuickFilterDeleteIconLabel: '清除',
+  paginationRowsPerPage: '每頁行數:',
+  paginationPageSize: '頁面大小',
+  paginationLabelRowsPerPage: '每頁行數:'
+} as const;
+
+// 獲取本地化分頁文字
+const getLocalizedPaginationText = (from: number, to: number, count: number): string => {
+  const countDisplay = count !== -1 ? count.toString() : '超過 ' + to;
+  return `${from}-${to} / ${countDisplay}`;
+};
+
 // 銷售列表頁面元件
 const SalesListPage: FC = () => {
   const navigate = useNavigate();
@@ -254,7 +303,7 @@ const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
 const filteredSales = useMemo(() => {
   const keyword = searchTerm.trim().toLowerCase();
 
-  return sales.filter(({ customer, items, _id, saleNumber, date }) => {
+  const filtered = sales.filter(({ customer, items, _id, saleNumber, date }) => {
     /** 收集所有可搜尋欄位；必要時只要 push 新欄位即可 */
     const searchableFields: string[] = [
       customer?.name ?? '',
@@ -269,6 +318,21 @@ const filteredSales = useMemo(() => {
       field.toLowerCase().includes(keyword)
     );
   });
+
+  // 為DataGrid準備行數據
+  return filtered.map(sale => ({
+    id: sale._id, // DataGrid需要唯一的id字段
+    _id: sale._id, // 保留原始_id用於操作
+    saleNumber: sale.saleNumber ?? '無單號',
+    // 保存原始日期值，讓 valueFormatter 處理格式化
+    date: sale.date,
+    customerName: sale.customer?.name ?? '一般客戶',
+    items: sale.items,
+    totalAmount: sale.totalAmount ?? 0,
+    paymentMethod: sale.paymentMethod,
+    paymentStatus: sale.paymentStatus,
+    ...sale // 保留其他屬性
+  }));
 }, [sales, searchTerm]);   // ← 依賴項
 
   // 處理刪除銷售記錄
@@ -357,138 +421,190 @@ const filteredSales = useMemo(() => {
     navigate(`/sales/${saleId}`);
   }
 
-  // 渲染表格內容
-  const renderTableContent = (): React.ReactNode => {
-    if (loading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-          <CircularProgress />
-          <Typography sx={{ ml: 2 }}>載入銷售記錄中...</Typography>
-        </Box>
-      );
-    }
-    
-    if (error && !isTestMode) {
-      return <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>;
-    }
-    
-    return (
-      <TableContainer component={Paper} variant="outlined">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>銷貨單號</TableCell>
-              <TableCell>日期</TableCell>
-              <TableCell>客戶</TableCell>
-              <TableCell>產品</TableCell>
-              <TableCell align="right">總金額</TableCell>
-              <TableCell align="center">付款方式</TableCell>
-              <TableCell align="center">付款狀態</TableCell>
-              <TableCell align="center">操作</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {renderTableRows()}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    );
-  };
-
-  // 渲染表格行
-  const renderTableRows = (): React.ReactNode => {
-    if (filteredSales.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={8} align="center">
-            {(() => {
-              if (searchTerm) {
-                return '沒有符合搜索條件的銷售記錄';
-              }
-              if (isTestMode) {
-                return '尚無模擬銷售記錄 (或篩選後無結果)';
-              }
-              return '尚無銷售記錄';
-            })()}
-          </TableCell>
-        </TableRow>
-      );
-    }
-    
-    return filteredSales.map((sale) => (
-      <TableRow key={sale._id}>
-        <TableCell>
-          <Button
-            size="small"
-            color="primary"
-            onClick={() => handleViewSale(sale._id)}
-          >
-            {sale.saleNumber ?? '無單號'}
-          </Button>
-        </TableCell>
-        <TableCell>
-          {sale.date ? format(new Date(sale.date), 'yyyy-MM-dd HH:mm', { locale: zhTW }) : ''}
-        </TableCell>
-        <TableCell>
-          {sale.customer?.name ?? '一般客戶'}
-        </TableCell>
-        <TableCell>
-          {sale.items.map((item, index) => (
-            <div key={`${sale._id}-${item.product?._id ?? item.name}-${index}`}>
+  // 表格列定義
+  const columns: GridColDef[] = [
+    {
+      field: 'saleNumber',
+      headerName: '銷貨單號',
+      flex: 1,
+      renderCell: (params: GridRenderCellParams) => (
+        <Button
+          size="small"
+          color="primary"
+          onClick={() => handleViewSale(params.row._id)}
+        >
+          {params.value}
+        </Button>
+      )
+    },
+    {
+      field: 'date',
+      headerName: '日期',
+      flex: 1,
+      valueFormatter: (params) => {
+        if (!params.value) return '';
+        
+        try {
+          // 確保我們有一個有效的日期對象
+          const dateObj = typeof params.value === 'string'
+            ? new Date(params.value)
+            : params.value instanceof Date
+              ? params.value
+              : new Date();
+              
+          // 檢查日期是否有效
+          if (isNaN(dateObj.getTime())) {
+            console.warn('無效的日期值:', params.value);
+            return String(params.value);
+          }
+          
+          // 使用指定格式
+          return format(dateObj, 'yyyy-MM-dd-HH:mm:ss', { locale: zhTW });
+        } catch (e) {
+          console.error('日期格式化錯誤:', e, params.value);
+          return String(params.value);
+        }
+      }
+    },
+    {
+      field: 'customerName',
+      headerName: '客戶',
+      flex: 1
+    },
+    {
+      field: 'items',
+      headerName: '產品',
+      flex: 3, // 增加產品欄位的寬度比例
+      minWidth: 250, // 設置最小寬度確保內容可見
+      renderCell: (params: GridRenderCellParams) => (
+        <Box>
+          {params.value.map((item: SaleItem, index: number) => (
+            <div key={`${params.row._id}-${item.product?._id ?? item.name}-${index}`}>
               {item.product?.name ?? item.name} x {item.quantity}
             </div>
           ))}
-        </TableCell>
-        <TableCell align="right">
-          {sale.totalAmount?.toFixed(2) ?? '0.00'}
-        </TableCell>
-        <TableCell align="center">
-          {getPaymentMethodText(sale.paymentMethod)}
-        </TableCell>
-        <TableCell align="center">
-          <Chip 
-            label={getPaymentStatusInfo(sale.paymentStatus).text}
-            color={getPaymentStatusInfo(sale.paymentStatus).color}
+        </Box>
+      )
+    },
+    {
+      field: 'totalAmount',
+      headerName: '總金額',
+      flex: 0.8,
+      minWidth: 120, // 確保金額欄位有足夠寬度
+      align: 'right',
+      headerAlign: 'right',
+      valueFormatter: (params) => {
+        return params.value ? params.value.toFixed(2) : '0.00';
+      }
+    },
+    {
+      field: 'paymentMethod',
+      headerName: '付款方式',
+      flex: 0.8,
+      minWidth: 120, // 確保付款方式欄位有足夠寬度
+      align: 'center',
+      headerAlign: 'center',
+      valueFormatter: (params) => {
+        return getPaymentMethodText(params.value);
+      }
+    },
+    {
+      field: 'paymentStatus',
+      headerName: '付款狀態',
+      flex: 0.8,
+      minWidth: 120, // 確保付款狀態欄位有足夠寬度
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: (params: GridRenderCellParams) => (
+        <Chip
+          label={getPaymentStatusInfo(params.value).text}
+          color={getPaymentStatusInfo(params.value).color}
+          size="small"
+        />
+      )
+    },
+    {
+      field: 'actions',
+      headerName: '操作',
+      flex: 0.8,
+      minWidth: 150, // 確保操作欄位有足夠寬度顯示所有按鈕
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams) => (
+        <Box>
+          <IconButton
             size="small"
-          />
-        </TableCell>
-        <TableCell align="center">
-          {renderRowActions(sale)}
-        </TableCell>
-      </TableRow>
-    ));
-  };
+            onClick={(event) => handlePreviewClick(event, params.row)}
+            title="查看詳情"
+            aria-describedby={previewId}
+          >
+            <VisibilityIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => handleEditSale(params.row._id)}
+            title="編輯"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => setConfirmDeleteId(params.row._id)}
+            title="刪除"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )
+    }
+  ];
 
-  // 渲染行操作按鈕
-  const renderRowActions = (sale: Sale): React.ReactNode => {
-    return (
-      <>
-        <IconButton
-          size="small"
-          onClick={(event) => handlePreviewClick(event, sale)}
-          title="查看詳情"
-          aria-describedby={previewId}
+  // 創建骨架屏載入效果
+  const renderSkeleton = () => (
+    <Box sx={{
+      width: '100%',
+      mt: 1,
+      bgcolor: 'background.paper', // 使用主題的背景色
+      borderRadius: 1,
+      height: '100%',
+      minHeight: '70vh' // 確保至少佔據70%的視窗高度
+    }}>
+      {[...Array(15)].map((_, index) => ( // 增加到15行以填滿更多空間
+        <Box
+          key={index}
+          sx={{
+            display: 'flex',
+            mb: 1,
+            opacity: 0,
+            animation: 'fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+            animationDelay: `${index * 0.05}s`
+          }}
         >
-          <VisibilityIcon fontSize="small" />
-        </IconButton>
-        <IconButton
-          size="small"
-          onClick={() => handleEditSale(sale._id)}
-          title="編輯"
-        >
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton
-          size="small"
-          color="error"
-          onClick={() => setConfirmDeleteId(sale._id)}
-          title="刪除"
-        >
-          <DeleteIcon fontSize="small" />
-        </IconButton>
-      </>
-    );
-  };
+          {[...Array(8)].map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rectangular"
+              width={`${100 / 8}%`}
+              height={52}
+              animation="wave"
+              sx={{
+                mx: 0.5,
+                borderRadius: 1,
+                opacity: 1 - (index * 0.1), // 漸變效果
+                bgcolor: 'action.hover', // 使用主題的懸停色，通常是淺灰色
+                '&::after': {
+                  background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.04), transparent)'
+                }
+              }}
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
 
   return (
     <Box sx={{ p: 3 }}>
@@ -543,7 +659,114 @@ const filteredSales = useMemo(() => {
         </CardContent>
       </Card>
       
-      {renderTableContent()}
+      <Box sx={{
+        width: '100%',
+        position: 'relative',
+        minHeight: '70vh', // 增加最小高度以填滿更多螢幕空間
+        height: '100%',
+        bgcolor: 'background.paper', // 確保整個容器使用相同的背景色
+        borderRadius: 1,
+        border: 1, // 添加外邊框
+        borderColor: 'divider', // 使用主題的分隔線顏色
+        boxShadow: 1, // 添加輕微陰影增強視覺效果
+        overflow: 'hidden' // 確保內容不會溢出圓角
+      }}>
+        <Fade in={!loading} timeout={1000}>
+          <Box sx={{
+            position: loading ? 'absolute' : 'relative',
+            width: '100%',
+            opacity: loading ? 0 : 1,
+            transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            border: 'none' // 不需要為骨架屏添加邊框，因為它在容器內部
+          }}>
+            <DataGrid
+              rows={filteredSales}
+              columns={columns}
+              checkboxSelection={false}
+              disableSelectionOnClick
+              loading={false} // 由於我們自己控制載入效果，這裡設為false
+              autoHeight
+              rowsPerPageOptions={[10, 25, 50, 100]}
+              pageSize={25}
+              sortModel={[{ field: 'date', sort: 'desc' }]} // 預設按日期降序排序
+              getRowId={(row) => row.id}
+              getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
+              localeText={{
+                ...TABLE_LOCALE_TEXT,
+                paginationLabelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) =>
+                  getLocalizedPaginationText(from, to, count),
+                MuiTablePagination: {
+                  labelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) =>
+                    getLocalizedPaginationText(from, to, count),
+                  labelRowsPerPage: TABLE_LOCALE_TEXT.paginationLabelRowsPerPage
+                }
+              } as Partial<GridLocaleText>}
+              sx={{
+                // 基本樣式
+                '& .MuiDataGrid-main': {
+                  bgcolor: 'background.paper'
+                },
+                '& .MuiDataGrid-root': {
+                  border: 'none' // 移除 DataGrid 自帶的邊框，因為我們已經為容器添加了邊框
+                },
+                // 基本行樣式
+                '& .MuiDataGrid-row': {
+                  opacity: 0,
+                  animation: 'fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                  bgcolor: 'background.paper'
+                },
+                // 表頭樣式
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)', // 淺灰色表頭背景
+                  fontWeight: 'bold',
+                },
+                // 單元格樣式
+                '& .MuiDataGrid-cell': {
+                  py: 1, // 增加單元格垂直內邊距
+                },
+                // 為每一行設置不同的動畫延遲
+                ...[...Array(20)].reduce((styles, _, index) => ({
+                  ...styles,
+                  [`& .row-${index}`]: {
+                    animationDelay: `${index * 0.03}s`,
+                  },
+                }), {}),
+                '@keyframes fadeIn': {
+                  '0%': {
+                    opacity: 0,
+                    transform: 'translateY(5px)'
+                  },
+                  '100%': {
+                    opacity: 1,
+                    transform: 'translateY(0)'
+                  }
+                }
+              }}
+            />
+          </Box>
+        </Fade>
+        
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%', // 確保填滿整個容器高度
+            minHeight: '70vh', // 確保至少佔據70%的視窗高度
+            opacity: loading ? 1 : 0,
+            visibility: loading ? 'visible' : 'hidden',
+            transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            overflow: 'hidden',
+            bgcolor: 'background.paper',
+            borderRadius: 1
+          }}
+        >
+          {renderSkeleton()}
+        </Box>
+      </Box>
       
       <Popover
         id={previewId}
