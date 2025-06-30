@@ -101,7 +101,8 @@ export const API_ENDPOINTS = {
     BASE: '/api/purchase-orders',
     LIST: '/api/purchase-orders',
     CREATE: '/api/purchase-orders',
-    SEARCH: '/api/purchase-orders/search'
+    // 已棄用：搜索功能已移至前端實現
+    SEARCH_DEPRECATED: '/api/purchase-orders/search'
   },
 
   // 出貨訂單相關
@@ -109,7 +110,8 @@ export const API_ENDPOINTS = {
     BASE: '/api/shipping-orders',
     LIST: '/api/shipping-orders',
     CREATE: '/api/shipping-orders',
-    SEARCH: '/api/shipping-orders/search'
+    // 已棄用：搜索功能已移至前端實現
+    SEARCH_DEPRECATED: '/api/shipping-orders/search/query'
   },
 
   // 儀表板相關

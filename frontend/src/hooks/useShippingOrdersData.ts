@@ -21,11 +21,7 @@ interface ShippingOrderExtended extends Omit<ShippingOrder, 'sosupplier' | 'paym
  * 搜尋參數介面
  */
 interface SearchParams {
-  soid: string;
-  sobill: string;
-  sosupplier: string;
-  startDate: Date | null;
-  endDate: Date | null;
+  searchTerm: string;
   [key: string]: string | Date | null; // 添加索引簽名以符合 Record<string, string>
 }
 
@@ -66,7 +62,6 @@ interface ShippingOrdersDataResult {
   handleSearch: () => void;
   handleClearSearch: () => void;
   handleInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  handleDateChange: (name: string, date: Date | null) => void;
   handleSupplierFilterChange: (suppliers: string[]) => void;
   // 預覽狀態與處理函數
   previewShippingOrder: ShippingOrderExtended | null;
@@ -93,11 +88,7 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
   );
 
   const [searchParams, setSearchParams] = useState<SearchParams>({
-    soid: '',
-    sobill: '',
-    sosupplier: '',
-    startDate: null,
-    endDate: null
+    searchTerm: ''
   });
 
   // 供應商過濾狀態
@@ -115,10 +106,33 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
     dispatch(fetchSuppliers());
   }, [dispatch]);
 
-  // 根據 shippingOrders 和 selectedSuppliers 過濾行
+  // 根據 shippingOrders、selectedSuppliers 和 searchParams 過濾行
   useEffect(() => {
     if (shippingOrders.length > 0) {
+      // 先根據搜索詞過濾
       let filtered = [...shippingOrders];
+      const searchTerm = searchParams.searchTerm.trim().toLowerCase();
+      
+      if (searchTerm) {
+        filtered = filtered.filter(so => {
+          // 收集所有可搜尋欄位
+          const searchableFields: string[] = [
+            typeof so.sosupplier === 'string' ? so.sosupplier : so.sosupplier?.name || '',
+            so.soid || '',
+            so.sobill || '',
+            so._id || '',
+            so.status || '',
+            so.paymentStatus || ''
+          ];
+          
+          // 只要任一欄位包含關鍵字即通過
+          return searchableFields.some(field =>
+            String(field).toLowerCase().includes(searchTerm)
+          );
+        });
+      }
+      
+      // 再根據供應商過濾
       if (selectedSuppliers.length > 0) {
         filtered = filtered.filter(so => {
           // 處理 sosupplier 是字符串的情況
@@ -132,6 +146,7 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
           return false;
         });
       }
+      
       const formattedRows = filtered.map(so => {
         // 提取供應商ID邏輯為獨立語句
         let supplierValue = '';
@@ -157,31 +172,21 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
     } else {
       setFilteredRows([]);
     }
-  }, [shippingOrders, selectedSuppliers]);
+  }, [shippingOrders, selectedSuppliers, searchParams.searchTerm]);
 
   // --- 搜尋和過濾邏輯 ---
   const handleSearch = useCallback(() => {
-    // 將 searchParams 轉換為符合 Record<string, string> 類型的對象
-    const formattedParams: Record<string, string> = {
-      soid: searchParams.soid,
-      sobill: searchParams.sobill,
-      sosupplier: searchParams.sosupplier,
-      startDate: searchParams.startDate ? searchParams.startDate.toISOString() : '',
-      endDate: searchParams.endDate ? searchParams.endDate.toISOString() : ''
-    };
-    dispatch(searchShippingOrders(formattedParams));
-  }, [dispatch, searchParams]);
+    // 不再調用 API，只更新 searchParams 即可
+    // 過濾邏輯已經在 useEffect 中實現
+    console.log('搜尋詞:', searchParams.searchTerm);
+  }, [searchParams]);
 
   const handleClearSearch = useCallback(() => {
     setSearchParams({
-      soid: '',
-      sobill: '',
-      sosupplier: '',
-      startDate: null,
-      endDate: null
+      searchTerm: ''
     });
-    dispatch(fetchShippingOrders());
-  }, [dispatch]);
+    // 不需要重新獲取數據，只需清空搜索詞
+  }, []);
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setSearchParams(prev => ({
@@ -190,12 +195,6 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
     }));
   }, []);
 
-  const handleDateChange = useCallback((name: string, date: Date | null) => {
-    setSearchParams(prev => ({
-      ...prev,
-      [name]: date
-    }));
-  }, []);
 
   const handleSupplierFilterChange = useCallback((suppliers: string[]) => {
     setSelectedSuppliers(suppliers);
@@ -253,7 +252,6 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
     handleSearch,
     handleClearSearch,
     handleInputChange,
-    handleDateChange,
     handleSupplierFilterChange,
     // 預覽狀態與處理函數
     previewShippingOrder,

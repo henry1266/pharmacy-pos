@@ -78,7 +78,6 @@ const ShippingOrdersPage: React.FC = () => {
     handleSearch,
     handleClearSearch,
     handleInputChange,
-    handleDateChange,
     handleSupplierFilterChange,
     previewShippingOrder,
     fetchPreviewData,
@@ -308,7 +307,7 @@ const ShippingOrdersPage: React.FC = () => {
                 onClick={() => setShowFilters(prev => !prev)}
                 sx={{ mr: 1 }}
               >
-                {showFilters ? '隱藏篩選' : '顯示篩選'}
+                {showFilters ? '隱藏搜索' : '顯示搜索'}
               </Button>
             </Box>
           </Box>
@@ -317,10 +316,8 @@ const ShippingOrdersPage: React.FC = () => {
             <ShippingOrdersFilter
               searchParams={searchParams}
               handleInputChange={handleInputChange}
-              handleDateChange={handleDateChange}
               handleSearch={handleSearch}
               handleClearSearch={handleClearSearch}
-              suppliers={suppliers}
             />
           )}
 

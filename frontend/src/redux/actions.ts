@@ -496,37 +496,16 @@ export const deletePurchaseOrder = (id: string): AppThunk => async (
   }
 };
 
-// 搜索進貨單
+// 搜索進貨單 - 已棄用，使用 usePurchaseOrdersData hook 中的前端過濾功能替代
+// @deprecated 此函數已棄用，請使用 usePurchaseOrdersData hook 中的前端過濾功能
 export const searchPurchaseOrders = (searchParams: Record<string, string>): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
-  try {
-    dispatch({ type: ActionTypes.SEARCH_PURCHASE_ORDERS_REQUEST });
-    
-    // 構建查詢字符串
-    const queryParams = new URLSearchParams();
-    for (const key in searchParams) {
-      if (searchParams[key]) {
-        queryParams.append(key, searchParams[key]);
-      }
-    }
-    
-    const res = await axios.get<ApiResponse<PurchaseOrder[]>>(`${API_ENDPOINTS.PURCHASE_ORDERS.SEARCH}?${queryParams.toString()}`);
-    
-    if (res.data.success) {
-      dispatch({
-        type: ActionTypes.SEARCH_PURCHASE_ORDERS_SUCCESS,
-        payload: res.data.data ?? []
-      });
-    } else {
-      throw new Error(res.data.message ?? ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED);
-    }
-  } catch (err: any) {
-    dispatch({
-      type: ActionTypes.SEARCH_PURCHASE_ORDERS_FAILURE,
-      payload: err.response?.data?.message ?? ERROR_MESSAGES.SEARCH_PURCHASE_ORDERS_FAILED
-    });
-  }
+  console.warn('searchPurchaseOrders 已棄用，請使用 usePurchaseOrdersData hook 中的前端過濾功能');
+  dispatch({
+    type: ActionTypes.SEARCH_PURCHASE_ORDERS_FAILURE,
+    payload: '此 API 已棄用，請使用前端過濾功能'
+  });
 };
 
 // 出貨單相關 Actions
@@ -678,35 +657,14 @@ export const deleteShippingOrder = (id: string): AppThunk => async (
   }
 };
 
-// 搜索出貨單
+// 搜索出貨單 - 已棄用，使用 useShippingOrdersData hook 中的前端過濾功能替代
+// @deprecated 此函數已棄用，請使用 useShippingOrdersData hook 中的前端過濾功能
 export const searchShippingOrders = (searchParams: Record<string, string>): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
-  try {
-    dispatch({ type: ActionTypes.SEARCH_SHIPPING_ORDERS_REQUEST });
-    
-    // 構建查詢字符串
-    const queryParams = new URLSearchParams();
-    for (const key in searchParams) {
-      if (searchParams[key]) {
-        queryParams.append(key, searchParams[key]);
-      }
-    }
-    
-    const res = await axios.get<ApiResponse<ShippingOrder[]>>(`${API_ENDPOINTS.SHIPPING_ORDERS.SEARCH}?${queryParams.toString()}`);
-    
-    if (res.data.success) {
-      dispatch({
-        type: ActionTypes.SEARCH_SHIPPING_ORDERS_SUCCESS,
-        payload: res.data.data ?? []
-      });
-    } else {
-      throw new Error(res.data.message ?? ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED);
-    }
-  } catch (err: any) {
-    dispatch({
-      type: ActionTypes.SEARCH_SHIPPING_ORDERS_FAILURE,
-      payload: err.response?.data?.message ?? ERROR_MESSAGES.SEARCH_SHIPPING_ORDERS_FAILED
-    });
-  }
+  console.warn('searchShippingOrders 已棄用，請使用 useShippingOrdersData hook 中的前端過濾功能');
+  dispatch({
+    type: ActionTypes.SEARCH_SHIPPING_ORDERS_FAILURE,
+    payload: '此 API 已棄用，請使用前端過濾功能'
+  });
 };

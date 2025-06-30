@@ -11,12 +11,15 @@ import {
   Snackbar,
   Alert,
   Popper,
-  CircularProgress
+  CircularProgress,
+  TextField,
+  InputAdornment
 } from '@mui/material';
 import {
   Add as AddIcon,
   FilterList as FilterListIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/redux';
@@ -50,6 +53,7 @@ interface SearchParams {
   posupplier: string;
   startDate: Date | null;
   endDate: Date | null;
+  searchTerm?: string;
 }
 
 // 確保與 Redux 中的 PurchaseOrder 類型一致
@@ -113,7 +117,17 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   const supplierIdFromRoute = initialSupplierId ?? params.id;
 
   // Use the custom hook to fetch data from Redux
-  const { purchaseOrders, suppliers, loading, error } = usePurchaseOrdersData();
+  const {
+    purchaseOrders,
+    suppliers,
+    filteredRows: hookFilteredRows,
+    loading,
+    error,
+    searchParams: hookSearchParams,
+    handleSearch: hookHandleSearch,
+    handleClearSearch: hookHandleClearSearch,
+    handleInputChange: hookHandleInputChange
+  } = usePurchaseOrdersData();
 
   // Component-specific state remains
   const [searchParams, setSearchParams] = useState<SearchParams>({
@@ -167,46 +181,78 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
     }
   }, [supplierIdFromRoute, suppliers]);
 
-  // Filter rows based on Redux state and local filter state
+  // 使用 hook 中的 filteredRows 和本地的 selectedSuppliers 進行過濾
   useEffect(() => {
-    if (purchaseOrders && purchaseOrders.length > 0) {
-      let filtered = [...purchaseOrders];
+    try {
+      // 首先將 hook 中的 filteredRows 轉換為本地的 FilteredRow 類型
+      // 確保 pobilldate 是字符串類型
+      const rows = hookFilteredRows.map(row => ({
+        id: row.id,
+        _id: row._id,
+        poid: row.poid,
+        pobill: row.pobill,
+        pobilldate: typeof row.pobilldate === 'string' ? row.pobilldate : new Date(row.pobilldate).toISOString().split('T')[0],
+        posupplier: row.posupplier,
+        totalAmount: row.totalAmount,
+        status: row.status,
+        paymentStatus: row.paymentStatus
+      }));
+      
+      // 然後根據本地選擇的供應商進一步過濾
+      let filteredBySupplier = rows;
       if (selectedSuppliers.length > 0) {
-        filtered = filtered.filter(po => {
-          const supplierName = typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '';
-          return selectedSuppliers.includes(supplierName);
+        filteredBySupplier = rows.filter(row => {
+          return selectedSuppliers.includes(row.posupplier);
         });
       }
-      const formattedRows = filtered.map(po => ({
-        id: po._id,
-        _id: po._id,
-        poid: (po as any).poid ?? po.orderNumber ?? '',
-        pobill: (po as any).pobill ?? '',
-        pobilldate: (po as any).pobilldate ?? po.orderDate ?? '',
-        posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
-        totalAmount: po.totalAmount ?? 0,
-        status: po.status ?? '',
-        paymentStatus: (po as any).paymentStatus ?? ''
-      }));
-      setFilteredRows(formattedRows);
-    } else {
-      setFilteredRows([]);
+      
+      // 更新本地的 filteredRows
+      setFilteredRows(filteredBySupplier);
+      
+      // 如果沒有過濾結果，則顯示所有數據
+      if (filteredBySupplier.length === 0 && !hookSearchParams.searchTerm && selectedSuppliers.length === 0) {
+        const formattedRows = purchaseOrders.map(po => ({
+          id: po._id,
+          _id: po._id,
+          poid: (po as any).poid ?? po.orderNumber ?? '',
+          pobill: (po as any).pobill ?? '',
+          pobilldate: typeof po.pobilldate === 'string' ? po.pobilldate :
+                     typeof po.orderDate === 'string' ? po.orderDate :
+                     new Date().toISOString().split('T')[0],
+          posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
+          totalAmount: po.totalAmount ?? 0,
+          status: po.status ?? '',
+          paymentStatus: (po as any).paymentStatus ?? ''
+        }));
+        setFilteredRows(formattedRows);
+      }
+      
+      console.log('過濾後的進貨單數量:', filteredBySupplier.length);
+      console.log('搜尋詞:', hookSearchParams.searchTerm);
+    } catch (err) {
+      console.error('過濾進貨單時出錯:', err);
     }
-  }, [purchaseOrders, selectedSuppliers]);
+  }, [hookFilteredRows, purchaseOrders, selectedSuppliers, hookSearchParams.searchTerm]);
 
-  // --- Event Handlers --- (Refactored API calls)
+  // --- Event Handlers --- (Refactored to use front-end filtering)
 
-  const handleSearch = () => {
-    dispatch(searchPurchaseOrders(searchParams as any));
+  // 直接使用 hook 中的函數，避免命名衝突
+  const handleLocalSearch = () => {
+    hookHandleSearch();
   };
 
-  const handleClearSearch = () => {
-    setSearchParams({ poid: '', pobill: '', posupplier: '', startDate: null, endDate: null });
-    dispatch(fetchPurchaseOrders());
+  const handleLocalClearSearch = () => {
+    hookHandleClearSearch();
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
+  const handleLocalInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    // 如果是搜索框，使用 hook 中的 handleInputChange
+    if (e.target.name === 'searchTerm') {
+      hookHandleInputChange(e);
+    } else {
+      // 其他輸入框保持原有邏輯
+      setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
+    }
   };
 
   const handleDateChange = (name: string, date: Date | null) => {
@@ -373,14 +419,37 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
           </Box>
 
           {showFilters && (
-            <PurchaseOrdersFilter
-              searchParams={searchParams}
-              handleInputChange={handleInputChange}
-              handleDateChange={handleDateChange}
-              handleSearch={handleSearch}
-              handleClearSearch={handleClearSearch}
-              suppliers={suppliers}
-            />
+            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+              <TextField
+                fullWidth
+                placeholder="搜索進貨單（單號、供應商、日期、ID）"
+                name="searchTerm"
+                value={hookSearchParams.searchTerm || ''}
+                onChange={hookHandleInputChange}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleLocalSearch}
+              >
+                搜尋
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleLocalClearSearch}
+              >
+                清除
+              </Button>
+            </Box>
           )}
 
           {filteredRows.length > 0 && (

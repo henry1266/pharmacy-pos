@@ -632,52 +632,7 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
   }
 });
 
-// @route   GET api/purchase-orders/search
-// @desc    搜索進貨單
-// @access  Public
-router.get('/search/query', async (req: Request, res: Response) => {
-  try {
-    const { poid, pobill, posupplier, startDate, endDate } = req.query;
-    
-    const query: {
-      poid?: { $regex: string; $options: string };
-      pobill?: { $regex: string; $options: string };
-      posupplier?: { $regex: string; $options: string };
-      pobilldate?: { $gte?: Date; $lte?: Date };
-    } = {};
-    if (poid) query.poid = { $regex: poid.toString(), $options: 'i' };
-    if (pobill) query.pobill = { $regex: pobill.toString(), $options: 'i' };
-    if (posupplier) query.posupplier = { $regex: posupplier.toString(), $options: 'i' };
-    
-    if (startDate || endDate) {
-      query.pobilldate = {};
-      if (startDate) query.pobilldate.$gte = new Date(startDate.toString());
-      if (endDate) query.pobilldate.$lte = new Date(endDate.toString());
-    }
-    
-    const purchaseOrders = await PurchaseOrder.find(query)
-      .sort({ createdAt: -1 })
-      .populate('supplier', 'name code')
-      .populate('items.product', 'name code');
-    
-    const response: ApiResponse<IPurchaseOrderDocument[]> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: purchaseOrders,
-      timestamp: new Date()
-    };
-    
-    res.json(response);
-  } catch (err) {
-    console.error((err as Error).message);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
-  }
-});
+// 搜索功能已移至前端實現，不再需要後端 API
 
 // @route   GET api/purchase-orders/product/:productId
 // @desc    獲取特定產品的進貨單

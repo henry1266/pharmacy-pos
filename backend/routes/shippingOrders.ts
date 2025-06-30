@@ -607,34 +607,7 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
   }
 });
 
-// @route   GET api/shipping-orders/search
-// @desc    搜索出貨單
-// @access  Public
-router.get('/search/query', async (req: Request, res: Response) => {
-  try {
-    const { soid, sosupplier, startDate, endDate } = req.query;
-    
-    const query: SearchQuery = {};
-    if (soid) query.soid = { $regex: soid.toString(), $options: 'i' };
-    if (sosupplier) query.sosupplier = { $regex: sosupplier.toString(), $options: 'i' };
-    
-    if (startDate || endDate) {
-      query.createdAt = {};
-      if (startDate) query.createdAt.$gte = new Date(startDate.toString());
-      if (endDate) query.createdAt.$lte = new Date(endDate.toString());
-    }
-    
-    const shippingOrders = await ShippingOrder.find(query)
-      .sort({ createdAt: -1 })
-      .populate('supplier', 'name')
-      .populate('items.product', 'name code healthInsuranceCode');
-    
-    processHealthInsuranceCode(shippingOrders);
-    res.json(createSuccessResponse(shippingOrders));
-  } catch (err) {
-    handleDatabaseError(res, err as Error);
-  }
-});
+// 搜索功能已移至前端實現，不再需要後端 API
 
 // @route   GET api/shipping-orders/product/:productId
 // @desc    獲取特定產品的出貨單
