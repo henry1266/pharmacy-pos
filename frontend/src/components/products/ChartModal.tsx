@@ -414,10 +414,10 @@ const ChartModal: FC<ChartModalProps> = ({
                   }}
                   sx={{
                     '& .MuiDataGrid-cell': {
-                      fontSize: '0.75rem'
+                      fontSize: '0.95rem'
                     },
                     '& .MuiDataGrid-columnHeader': {
-                      fontSize: '0.75rem',
+                      fontSize: '1rem',
                       fontWeight: 'bold'
                     },
                     '& .MuiDataGrid-row': {
