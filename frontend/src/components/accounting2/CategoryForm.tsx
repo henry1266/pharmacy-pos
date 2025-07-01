@@ -45,7 +45,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     icon: '',
     color: '#1976d2',
     description: '',
-    organizationId: selectedOrganizationId || 'personal'
+    organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -83,7 +83,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         icon: '',
         color: '#1976d2',
         description: '',
-        organizationId: selectedOrganizationId || 'personal'
+        organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
       });
     }
     setErrors({});
@@ -131,7 +131,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       icon: formData.icon || undefined,
       color: formData.color,
       description: formData.description || undefined,
-      organizationId: formData.organizationId === 'personal' ? undefined : formData.organizationId
+      organizationId: formData.organizationId
     };
 
     console.log('📤 CategoryForm 提交資料:', submitData);
@@ -146,17 +146,17 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       icon: '',
       color: '#1976d2',
       description: '',
-      organizationId: selectedOrganizationId || 'personal'
+      organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
     });
     setErrors({});
     onClose();
   };
 
   // 過濾可用的父類別（同類型、同機構、非自己）
-  const availableParentCategories = categories.filter(cat => 
-    cat.type === formData.type && 
+  const availableParentCategories = categories.filter(cat =>
+    cat.type === formData.type &&
     cat._id !== category?._id &&
-    (formData.organizationId === 'personal' ? !cat.organizationId : cat.organizationId === formData.organizationId)
+    cat.organizationId === formData.organizationId
   );
 
   return (
@@ -206,12 +206,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                   onChange={(e) => handleChange('organizationId', e.target.value)}
                   label="所屬機構"
                 >
-                  <MenuItem value="personal">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip label="個人" size="small" color="default" />
-                      個人類別
-                    </Box>
-                  </MenuItem>
                   {organizations.map((org) => (
                     <MenuItem key={org._id} value={org._id}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

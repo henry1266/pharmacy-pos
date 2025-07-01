@@ -26,6 +26,7 @@ import { Organization } from '@pharmacy-pos/shared/types/organization';
 import AccountList from '../components/accounting2/AccountList';
 import AccountForm from '../components/accounting2/AccountForm';
 import CategoryList from '../components/accounting2/CategoryList';
+import RecordList from '../components/accounting2/RecordList';
 import organizationService from '../services/organizationService';
 import { accounting2Service } from '../services/accounting2Service';
 
@@ -233,15 +234,9 @@ const Accounting2Page: React.FC = () => {
 
         {/* 記帳記錄頁籤 */}
         <TabPanel value={tabValue} index={2}>
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <RecordIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary">
-              記帳記錄功能開發中...
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              即將支援詳細的收支記錄管理和報表分析
-            </Typography>
-          </Box>
+          <RecordList
+            selectedOrganizationId={selectedOrganizationId}
+          />
         </TabPanel>
       </Paper>
 

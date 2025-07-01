@@ -23,17 +23,38 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       return;
     }
 
-    const { 
-      type, 
-      categoryId, 
-      accountId, 
-      startDate, 
-      endDate, 
-      page = 1, 
-      limit = 20 
+    const {
+      type,
+      categoryId,
+      accountId,
+      organizationId,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 20
     } = req.query;
 
+    console.log('🔍 GET /records - 查詢參數:', {
+      type,
+      categoryId,
+      accountId,
+      organizationId,
+      startDate,
+      endDate,
+      page,
+      limit,
+      userId
+    });
+
     const filter: any = { createdBy: userId };
+
+    // 機構過濾
+    if (organizationId) {
+      filter.organizationId = organizationId;
+      console.log('🏢 查詢機構記錄:', organizationId);
+    } else {
+      console.log('👤 查詢所有記錄（包含個人和機構）');
+    }
 
     // 類型過濾
     if (type && ['income', 'expense', 'transfer'].includes(type as string)) {
@@ -65,6 +86,8 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
+    console.log('📋 最終查詢條件:', filter);
+
     const [records, total] = await Promise.all([
       AccountingRecord2.find(filter)
         .sort({ date: -1, createdAt: -1 })
@@ -72,6 +95,8 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
         .limit(limitNum),
       AccountingRecord2.countDocuments(filter)
     ]);
+
+    console.log('📊 查詢結果數量:', records.length, '/', total);
 
     res.json({
       success: true,
@@ -103,8 +128,24 @@ router.get('/summary', auth, async (req: AuthenticatedRequest, res: express.Resp
       return;
     }
 
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, organizationId } = req.query;
+    
+    console.log('🔍 GET /records/summary - 查詢參數:', {
+      startDate,
+      endDate,
+      organizationId,
+      userId
+    });
+
     const filter: any = { createdBy: userId };
+
+    // 機構過濾
+    if (organizationId) {
+      filter.organizationId = organizationId;
+      console.log('🏢 查詢機構摘要:', organizationId);
+    } else {
+      console.log('👤 查詢所有摘要（包含個人和機構）');
+    }
 
     // 日期範圍過濾
     if (startDate || endDate) {
@@ -197,16 +238,30 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       return;
     }
 
-    const { 
-      type, 
-      amount, 
-      categoryId, 
-      accountId, 
-      date, 
-      description, 
-      tags, 
-      attachments 
+    const {
+      type,
+      amount,
+      categoryId,
+      accountId,
+      organizationId,
+      date,
+      description,
+      tags,
+      attachments
     } = req.body;
+
+    console.log('🔍 POST /records - 建立記錄:', {
+      type,
+      amount,
+      categoryId,
+      accountId,
+      organizationId,
+      date,
+      description,
+      tags,
+      attachments,
+      userId
+    });
 
     // 驗證必填欄位
     if (!type || !amount || !categoryId || !accountId) {
@@ -277,6 +332,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       amount,
       categoryId,
       accountId,
+      organizationId: organizationId || undefined,
       date: date ? new Date(date) : new Date(),
       description,
       tags: tags || [],
@@ -284,13 +340,25 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       createdBy: userId
     });
 
+    console.log('📝 建立記錄資料:', {
+      type,
+      amount,
+      categoryId,
+      accountId,
+      organizationId: organizationId || undefined,
+      createdBy: userId
+    });
+
     const savedRecord = await newRecord.save();
+    console.log('✅ 記錄建立成功:', savedRecord._id);
 
     // 更新帳戶餘額
     if (type === 'income') {
       account.balance += amount;
+      console.log('💰 帳戶收入 +', amount, '，新餘額:', account.balance);
     } else if (type === 'expense') {
       account.balance -= amount;
+      console.log('💸 帳戶支出 -', amount, '，新餘額:', account.balance);
     }
     await account.save();
 
