@@ -179,7 +179,12 @@ const App: React.FC = () => {
 
   // @ts-ignore - 忽略 React Router 類型問題
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <Routes>
         {/* 公共登錄路由 - 使用預設主題 */}
         <Route

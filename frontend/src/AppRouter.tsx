@@ -33,6 +33,9 @@ import SettingsIpPage from './pages/SettingsIpPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
+import Accounting2Page from './pages/Accounting2Page';
+import OrganizationPage from './pages/OrganizationPage';
+import OrganizationFormPage from './pages/OrganizationFormPage';
 
 // 員工管理頁面元件
 import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage';
@@ -82,6 +85,14 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
       <Route path="/accounting/categories/all" element={<AllCategoriesDetailPage />} />
       <Route path="/accounting/categories/:categoryId" element={<AccountingCategoryDetailPage />} />
+      
+      {/* Accounting2 routes */}
+      <Route path="/accounting2" element={<Accounting2Page />} />
+      
+      {/* Organization Management routes */}
+      <Route path="/organizations" element={<OrganizationPage />} />
+      <Route path="/organizations/new" element={<OrganizationFormPage />} />
+      <Route path="/organizations/:id/edit" element={<OrganizationFormPage />} />
       
       {/* Settings routes (assuming they require login) */}
       <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}

@@ -34,6 +34,14 @@ import overtimeRecordsRoutes from "./routes/overtimeRecords"; // 新增加班記
 import themesRoutes from "./routes/themes"; // 新增主題路由 V2
 // import userThemesRoutes from "./routes/userThemes"; // 已整合到 authRoutes 中
 
+// 新增 accounting2 模組路由
+import accounts2Routes from "./routes/accounts2";
+import categories2Routes from "./routes/categories2";
+import accountingRecords2Routes from "./routes/accountingRecords2";
+
+// 新增機構管理路由
+import organizationsRoutes from "./routes/organizations";
+
 // 連接資料庫
 connectDB();
 
@@ -72,6 +80,14 @@ app.use("/api/employee-schedules", employeeSchedulesRoutes); // 新增員工排�
 app.use("/api/overtime-records", overtimeRecordsRoutes); // 新增加班記錄  API路由
 app.use("/api/themes", themesRoutes); // 新增主題路由 V2
 // app.use("/api/user-themes", userThemesRoutes); // 主題功能已整合到 /api/auth/themes/*
+
+// 新增 accounting2 模組路由 - 獨立於現有 accounting 模組
+app.use("/api/accounting2/accounts", accounts2Routes);
+app.use("/api/accounting2/categories", categories2Routes);
+app.use("/api/accounting2/records", accountingRecords2Routes);
+
+// 新增機構管理路由 - 支援多機構集團化管理
+app.use("/api/organizations", organizationsRoutes);
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {

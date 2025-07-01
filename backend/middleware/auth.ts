@@ -11,10 +11,19 @@ interface AuthenticatedRequest extends Request {
 }
 
 const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-  // 從請求頭獲取 token
-  const token = req.header("x-auth-token");
+  // 從請求頭獲取 token - 支援兩種格式
+  let token = req.header("x-auth-token");
+  
+  // 如果沒有 x-auth-token，嘗試從 Authorization header 獲取
+  if (!token) {
+    const authHeader = req.header("Authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7); // 移除 "Bearer " 前綴
+    }
+  }
   
   console.log(`Auth middleware - Request path: ${req.originalUrl}`);
+  console.log(`Token found: ${token ? 'Yes' : 'No'}`);
 
   // 檢查是否有 token
   if (!token) {

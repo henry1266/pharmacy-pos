@@ -37,6 +37,8 @@ import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import BusinessIcon from '@mui/icons-material/Business';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
@@ -192,7 +194,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, [location.pathname, handleLogout]);
 
   const isProductPath = (path: string): boolean => path.startsWith('/products') || path.startsWith('/product-categories');
-  const isAccountingPath = (path: string): boolean => path.startsWith('/accounting') || path.startsWith('/settings/monitored-products');
+  const isAccountingPath = (path: string): boolean => (path.startsWith('/accounting') && !path.startsWith('/accounting2')) || path.startsWith('/settings/monitored-products');
+  const isAccounting2Path = (path: string): boolean => path.startsWith('/accounting2');
+  const isOrganizationPath = (path: string): boolean => path.startsWith('/organizations');
   const isSettingPath = (path: string): boolean => /^\/settings(\/|$)/.test(path);
   const isEmployeePath = (path: string): boolean => path.startsWith('/employees');
 
@@ -221,6 +225,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         { text: '監測列表', path: '/settings/monitored-products' },
       ]
     },
+    { text: '記帳系統 v2', icon: isAccounting2Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, path: '/accounting2' },
+    { text: '機構管理', icon: isOrganizationPath(location.pathname) ? <BusinessOutlinedIcon /> : <BusinessIcon />, path: '/organizations', adminOnly: true },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports', adminOnly: true },
     { text: '系統設定', icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, subItems: [
         { text: '設定列表', path: '/settings' },
