@@ -98,16 +98,11 @@ const Accounting2Page: React.FC = () => {
 
   const handleAccountFormSubmit = async (data: Account2FormData) => {
     try {
-      // 確保 organizationId 正確設定
-      const formData = {
-        ...data,
-        organizationId: selectedOrganizationId || undefined
-      };
-      
-      console.log('提交帳戶資料:', formData);
+      // 使用 AccountForm 傳來的 organizationId，不要覆蓋
+      console.log('提交帳戶資料:', data);
       
       // 調用 accounting2Service 來儲存資料
-      const response = await accounting2Service.accounts.create(formData);
+      const response = await accounting2Service.accounts.create(data);
       
       if (response.success) {
         console.log('帳戶建立成功:', response.data);

@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import mongoose from 'mongoose';
 import Account2, { IAccount2 } from '../models/Account2';
 import auth from '../middleware/auth';
 
@@ -23,20 +24,28 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
 
     const { organizationId } = req.query;
     
+    console.log('🔍 GET /accounts2 - 查詢參數:', { organizationId, userId });
+    
     // 建立查詢條件
     const filter: any = {
       createdBy: userId,
       isActive: true
     };
     
-    // 如果指定機構 ID，則過濾機構帳戶；否則顯示個人帳戶
-    if (organizationId) {
-      filter.organizationId = organizationId;
+    // 如果指定機構 ID，則過濾機構帳戶；否則顯示所有帳戶
+    if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
+      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+      console.log('🏢 查詢機構帳戶:', organizationId);
     } else {
-      filter.organizationId = { $exists: false };
+      console.log('👤 查詢所有帳戶（包含個人和機構）');
+      // 不加額外過濾條件，顯示所有該用戶的帳戶
     }
 
+    console.log('📋 最終查詢條件:', filter);
+
     const accounts = await Account2.find(filter).sort({ createdAt: -1 });
+    
+    console.log('📊 查詢結果數量:', accounts.length);
 
     res.json({
       success: true,
@@ -99,6 +108,17 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
     const { name, type, initialBalance, currency, description, organizationId } = req.body;
 
+    // 除錯日誌
+    console.log('🔍 POST /accounts2 - 接收到的資料:', {
+      name,
+      type,
+      initialBalance,
+      currency,
+      description,
+      organizationId,
+      organizationIdType: typeof organizationId
+    });
+
     // 驗證必填欄位
     if (!name || !type || initialBalance === undefined) {
       res.status(400).json({
@@ -117,9 +137,13 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     
     // 在相同範圍內檢查重複（個人或機構）
     if (organizationId) {
-      duplicateFilter.organizationId = organizationId;
+      duplicateFilter.organizationId = new mongoose.Types.ObjectId(organizationId);
     } else {
-      duplicateFilter.organizationId = { $exists: false };
+      // 個人帳戶：organizationId 為 null 或不存在
+      duplicateFilter.$or = [
+        { organizationId: { $exists: false } },
+        { organizationId: null }
+      ];
     }
 
     const existingAccount = await Account2.findOne(duplicateFilter);
@@ -132,16 +156,28 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       return;
     }
 
-    const newAccount = new Account2({
+    // 建立帳戶資料，只有當 organizationId 有值時才加入
+    const accountData: any = {
       name,
       type,
       balance: initialBalance,
       initialBalance,
       currency: currency || 'TWD',
       description,
-      organizationId: organizationId || undefined,
       createdBy: userId
-    });
+    };
+    
+    // 只有當 organizationId 有值且不為 null 時才加入
+    if (organizationId && organizationId !== null) {
+      console.log('✅ 設定 organizationId:', organizationId);
+      accountData.organizationId = new mongoose.Types.ObjectId(organizationId);
+    } else {
+      console.log('❌ organizationId 為空或 null，不設定該欄位');
+    }
+
+    console.log('📝 最終的 accountData:', accountData);
+
+    const newAccount = new Account2(accountData);
 
     const savedAccount = await newAccount.save();
 

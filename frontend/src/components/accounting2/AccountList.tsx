@@ -31,7 +31,9 @@ import {
   Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { Account2, ACCOUNT_TYPES } from '@pharmacy-pos/shared/types/accounting2';
+import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { accounting2Service } from '../../services/accounting2Service';
+import organizationService from '../../services/organizationService';
 import AccountForm from './AccountForm';
 
 interface AccountListProps {
@@ -42,6 +44,7 @@ interface AccountListProps {
 
 const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId, refreshTrigger }) => {
   const [accounts, setAccounts] = useState<Account2[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account2 | undefined>();
@@ -53,15 +56,20 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
   useEffect(() => {
     console.log('AccountList useEffect 觸發 - organizationId:', organizationId, 'refreshTrigger:', refreshTrigger);
     loadAccounts();
+    loadOrganizations();
   }, [organizationId, refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadAccounts = async () => {
     try {
+      console.log('開始載入帳戶列表 - organizationId:', organizationId);
       setLoading(true);
       const response = await accounting2Service.accounts.getAll(organizationId);
+      console.log('API 回應:', response);
       if (response.success) {
+        console.log('載入帳戶成功，帳戶數量:', response.data.length);
         setAccounts(response.data);
       } else {
+        console.error('API 回應失敗:', response);
         setError('載入帳戶列表失敗');
       }
     } catch (error) {
@@ -69,6 +77,17 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
       setError('載入帳戶列表失敗');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOrganizations = async () => {
+    try {
+      const response = await organizationService.getOrganizations();
+      if (response.success) {
+        setOrganizations(response.data);
+      }
+    } catch (error) {
+      console.error('載入機構列表錯誤:', error);
     }
   };
 
@@ -303,6 +322,8 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
         onSubmit={handleFormSubmit}
         account={selectedAccount}
         loading={submitLoading}
+        organizations={organizations}
+        selectedOrganizationId={organizationId}
       />
 
       {/* 刪除確認對話框 */}

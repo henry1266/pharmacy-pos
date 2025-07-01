@@ -48,13 +48,21 @@ const AccountForm: React.FC<AccountFormProps> = ({
 
   useEffect(() => {
     if (account) {
+      // 確保 organizationId 轉換為字串格式
+      const organizationId = account.organizationId ?
+        (typeof account.organizationId === 'string' ? account.organizationId : String(account.organizationId)) :
+        undefined;
+      
+      console.log('🔍 AccountForm 編輯模式 - 原始 organizationId:', account.organizationId);
+      console.log('🔍 AccountForm 編輯模式 - 轉換後 organizationId:', organizationId);
+      
       setFormData({
         name: account.name,
         type: account.type,
         initialBalance: account.initialBalance,
         currency: account.currency,
         description: account.description || '',
-        organizationId: account.organizationId || undefined
+        organizationId: organizationId
       });
     } else {
       setFormData({
@@ -90,6 +98,8 @@ const AccountForm: React.FC<AccountFormProps> = ({
     if (!validateForm()) {
       return;
     }
+
+    console.log('🔍 AccountForm 提交資料:', formData);
 
     try {
       await onSubmit(formData);
