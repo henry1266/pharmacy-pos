@@ -27,6 +27,8 @@ interface CategoryFormProps {
   organizations: Organization[];
   selectedOrganizationId: string | null;
   categories: Category2[]; // 用於父類別選擇
+  defaultType?: 'income' | 'expense'; // 預設類型
+  defaultParentId?: string | null; // 預設父類別
 }
 
 const CategoryForm: React.FC<CategoryFormProps> = ({
@@ -36,7 +38,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   category,
   organizations,
   selectedOrganizationId,
-  categories
+  categories,
+  defaultType = 'expense',
+  defaultParentId = null
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -45,7 +49,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     icon: '',
     color: '#1976d2',
     description: '',
-    organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
+    organizationId: selectedOrganizationId || ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -76,18 +80,25 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       });
     } else {
       // 新增模式
+      console.log('🔍 CategoryForm 新增模式 - 參數:', {
+        defaultType,
+        defaultParentId,
+        selectedOrganizationId,
+        open
+      });
+      
       setFormData({
         name: '',
-        type: 'expense',
-        parentId: '',
+        type: defaultType,
+        parentId: defaultParentId || '',
         icon: '',
         color: '#1976d2',
         description: '',
-        organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
+        organizationId: selectedOrganizationId || ''
       });
     }
     setErrors({});
-  }, [category, selectedOrganizationId, open]);
+  }, [category, selectedOrganizationId, open, defaultType, defaultParentId]);
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -131,7 +142,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       icon: formData.icon || undefined,
       color: formData.color,
       description: formData.description || undefined,
-      organizationId: formData.organizationId
+      organizationId: formData.organizationId || null
     };
 
     console.log('📤 CategoryForm 提交資料:', submitData);
@@ -146,18 +157,22 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       icon: '',
       color: '#1976d2',
       description: '',
-      organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
+      organizationId: selectedOrganizationId || ''
     });
     setErrors({});
     onClose();
   };
 
   // 過濾可用的父類別（同類型、同機構、非自己）
-  const availableParentCategories = categories.filter(cat =>
-    cat.type === formData.type &&
-    cat._id !== category?._id &&
-    cat.organizationId === formData.organizationId
-  );
+  const availableParentCategories = categories.filter(cat => {
+    // 處理機構ID比較
+    const catOrgId = cat.organizationId || null;
+    const formOrgId = formData.organizationId || null;
+    
+    return cat.type === formData.type &&
+           cat._id !== category?._id &&
+           catOrgId === formOrgId;
+  });
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -206,6 +221,12 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                   onChange={(e) => handleChange('organizationId', e.target.value)}
                   label="所屬機構"
                 >
+                  <MenuItem value="">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip label="個人" size="small" color="default" />
+                      個人帳務
+                    </Box>
+                  </MenuItem>
                   {organizations.map((org) => (
                     <MenuItem key={org._id} value={org._id}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

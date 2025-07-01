@@ -195,18 +195,18 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
           </Box>
         }
         secondary={
-          <Box>
+          <React.Fragment>
             {category.description && (
-              <Typography variant="body2" color="text.secondary">
+              <span style={{ display: 'block', fontSize: '0.875rem', color: 'rgba(0, 0, 0, 0.6)' }}>
                 {category.description}
-              </Typography>
+              </span>
             )}
             {category.parentId && (
-              <Typography variant="caption" color="text.secondary">
+              <span style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(0, 0, 0, 0.6)' }}>
                 子類別
-              </Typography>
+              </span>
             )}
-          </Box>
+          </React.Fragment>
         }
       />
       <ListItemSecondaryAction>

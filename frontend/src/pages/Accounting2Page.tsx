@@ -21,12 +21,14 @@ import {
   Business as BusinessIcon
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
-import { Account2FormData } from '@pharmacy-pos/shared/types/accounting2';
+import { Account2FormData, Category2 } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import AccountList from '../components/accounting2/AccountList';
 import AccountForm from '../components/accounting2/AccountForm';
 import CategoryList from '../components/accounting2/CategoryList';
+import CategoryForm from '../components/accounting2/CategoryForm';
 import RecordList from '../components/accounting2/RecordList';
+import AccountingTreeView from '../components/accounting2/AccountingTreeView';
 import organizationService from '../services/organizationService';
 import { accounting2Service } from '../services/accounting2Service';
 
@@ -66,9 +68,14 @@ function a11yProps(index: number) {
 const Accounting2Page: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [accountFormOpen, setAccountFormOpen] = useState(false);
+  const [categoryFormOpen, setCategoryFormOpen] = useState(false);
+  const [categoryType, setCategoryType] = useState<'income' | 'expense'>('income');
+  const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [categories, setCategories] = useState<Category2[]>([]);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [refreshAccounts, setRefreshAccounts] = useState(0);
+  const [refreshCategories, setRefreshCategories] = useState(0);
 
   // 載入機構列表
   useEffect(() => {
@@ -85,6 +92,24 @@ const Accounting2Page: React.FC = () => {
 
     loadOrganizations();
   }, []);
+
+  // 載入類別列表
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await accounting2Service.categories.getAll({
+          organizationId: selectedOrganizationId
+        });
+        if (response.success) {
+          setCategories(response.data);
+        }
+      } catch (error) {
+        console.error('載入類別列表失敗:', error);
+      }
+    };
+
+    loadCategories();
+  }, [selectedOrganizationId, refreshCategories]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -124,6 +149,50 @@ const Accounting2Page: React.FC = () => {
       console.error('建立帳戶失敗:', error);
       // 可以在這裡顯示錯誤訊息
     }
+  };
+
+  // 處理類別表單
+  const handleCategoryFormOpen = (type: 'income' | 'expense', parentId?: string, organizationId?: string | null) => {
+    setCategoryType(type);
+    setParentCategoryId(parentId || null);
+    // 如果有傳入機構ID，使用傳入的；否則使用當前選擇的機構ID
+    if (organizationId !== undefined) {
+      // 這裡可以根據需要更新選擇的機構ID，但通常應該保持一致
+      console.log('新增類別時的機構ID:', organizationId, '當前選擇的機構ID:', selectedOrganizationId);
+    }
+    setCategoryFormOpen(true);
+    setTabValue(1); // 切換到類別頁籤
+  };
+
+  const handleCategoryFormClose = () => {
+    setCategoryFormOpen(false);
+    setParentCategoryId(null);
+  };
+
+  const handleCategoryFormSubmit = async (data: Partial<Category2>) => {
+    try {
+      console.log('提交類別資料:', data);
+      
+      const response = await accounting2Service.categories.create(data as any);
+      
+      if (response.success) {
+        console.log('類別建立成功:', response.data);
+        setCategoryFormOpen(false);
+        
+        // 觸發重新載入
+        setRefreshCategories(prev => prev + 1);
+      } else {
+        console.error('建立類別失敗');
+      }
+      
+    } catch (error) {
+      console.error('建立類別失敗:', error);
+    }
+  };
+
+  // 處理記錄表單
+  const handleRecordFormOpen = () => {
+    setTabValue(2); // 切換到記錄頁籤
   };
 
   const handleOrganizationChange = (event: any) => {
@@ -190,55 +259,85 @@ const Accounting2Page: React.FC = () => {
       </Box>
 
       {/* 主要內容區域 */}
-      <Paper sx={{ width: '100%' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs 
-            value={tabValue} 
-            onChange={handleTabChange} 
-            aria-label="accounting2 tabs"
-            variant="fullWidth"
-          >
-            <Tab 
-              icon={<AccountIcon />} 
-              label="帳戶管理" 
-              {...a11yProps(0)} 
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' },
+        gap: 3,
+        gridTemplateRows: { xs: 'auto auto', lg: '1fr' }
+      }}>
+        {/* 左側：GUNCASH 風格樹狀結構 */}
+        <Paper sx={{ p: 0, overflow: 'hidden' }}>
+          <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
+            <Typography variant="h6" component="h2">
+              財務總覽
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              GUNCASH 風格的帳務結構檢視
+            </Typography>
+          </Box>
+          <Box sx={{ p: 2 }}>
+            <AccountingTreeView
+              selectedOrganizationId={selectedOrganizationId}
+              organizations={organizations}
+              onAddAccount={handleAccountFormOpen}
+              onAddCategory={handleCategoryFormOpen}
+              onAddRecord={handleRecordFormOpen}
             />
-            <Tab 
-              icon={<CategoryIcon />} 
-              label="類別管理" 
-              {...a11yProps(1)} 
+          </Box>
+        </Paper>
+
+        {/* 右側：管理功能頁籤 */}
+        <Paper sx={{ width: '100%' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              aria-label="accounting2 management tabs"
+              variant="fullWidth"
+              orientation="horizontal"
+            >
+              <Tab
+                icon={<AccountIcon />}
+                label="帳戶"
+                {...a11yProps(0)}
+              />
+              <Tab
+                icon={<CategoryIcon />}
+                label="類別"
+                {...a11yProps(1)}
+              />
+              <Tab
+                icon={<RecordIcon />}
+                label="記錄"
+                {...a11yProps(2)}
+              />
+            </Tabs>
+          </Box>
+
+          {/* 帳戶管理頁籤 */}
+          <TabPanel value={tabValue} index={0}>
+            <AccountList
+              onAddAccount={handleAccountFormOpen}
+              organizationId={selectedOrganizationId}
+              refreshTrigger={refreshAccounts}
             />
-            <Tab 
-              icon={<RecordIcon />} 
-              label="記帳記錄" 
-              {...a11yProps(2)} 
+          </TabPanel>
+
+          {/* 類別管理頁籤 */}
+          <TabPanel value={tabValue} index={1}>
+            <CategoryList
+              selectedOrganizationId={selectedOrganizationId}
             />
-          </Tabs>
-        </Box>
+          </TabPanel>
 
-        {/* 帳戶管理頁籤 */}
-        <TabPanel value={tabValue} index={0}>
-          <AccountList
-            onAddAccount={handleAccountFormOpen}
-            organizationId={selectedOrganizationId}
-            refreshTrigger={refreshAccounts}
-          />
-        </TabPanel>
-
-        {/* 類別管理頁籤 */}
-        <TabPanel value={tabValue} index={1}>
-          <CategoryList
-            selectedOrganizationId={selectedOrganizationId}
-          />
-        </TabPanel>
-
-        {/* 記帳記錄頁籤 */}
-        <TabPanel value={tabValue} index={2}>
-          <RecordList
-            selectedOrganizationId={selectedOrganizationId}
-          />
-        </TabPanel>
-      </Paper>
+          {/* 記帳記錄頁籤 */}
+          <TabPanel value={tabValue} index={2}>
+            <RecordList
+              selectedOrganizationId={selectedOrganizationId}
+            />
+          </TabPanel>
+        </Paper>
+      </Box>
 
       {/* 帳戶表單對話框 */}
       <AccountForm
@@ -247,6 +346,19 @@ const Accounting2Page: React.FC = () => {
         onSubmit={handleAccountFormSubmit}
         organizations={organizations}
         selectedOrganizationId={selectedOrganizationId}
+      />
+
+      {/* 類別表單對話框 */}
+      <CategoryForm
+        open={categoryFormOpen}
+        onClose={handleCategoryFormClose}
+        onSubmit={handleCategoryFormSubmit}
+        category={null}
+        organizations={organizations}
+        selectedOrganizationId={selectedOrganizationId}
+        categories={categories}
+        defaultType={categoryType}
+        defaultParentId={parentCategoryId}
       />
     </Container>
   );
