@@ -21,19 +21,40 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       return;
     }
 
-    const { type } = req.query;
-    const filter: any = { 
+    const { type, organizationId } = req.query;
+    console.log('🔍 GET /categories2 - 查詢參數:', { type, organizationId, userId });
+
+    // 建立查詢條件
+    const filter: any = {
       createdBy: userId,
-      isActive: true 
+      isActive: true
     };
+
+    // 處理機構查詢
+    if (organizationId === 'personal') {
+      // 查詢個人類別
+      filter.organizationId = null;
+      console.log('👤 查詢個人類別');
+    } else if (organizationId && organizationId !== 'undefined') {
+      // 查詢特定機構類別
+      filter.organizationId = organizationId;
+      console.log('🏢 查詢機構類別:', organizationId);
+    } else {
+      // 查詢所有類別（個人和機構）
+      console.log('📋 查詢所有類別（包含個人和機構）');
+    }
 
     if (type && (type === 'income' || type === 'expense')) {
       filter.type = type;
     }
 
+    console.log('📋 最終查詢條件:', filter);
+
     const categories = await Category2.find(filter)
       .populate('children')
       .sort({ sortOrder: 1, createdAt: -1 });
+
+    console.log('📊 查詢結果數量:', categories.length);
 
     res.json({
       success: true,
@@ -41,9 +62,9 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     });
   } catch (error) {
     console.error('獲取類別列表錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '獲取類別列表失敗' 
+    res.status(500).json({
+      success: false,
+      message: '獲取類別列表失敗'
     });
   }
 });
@@ -150,37 +171,50 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       return;
     }
 
-    const { name, type, parentId, icon, color, description, sortOrder } = req.body;
+    const { name, type, parentId, icon, color, description, sortOrder, organizationId } = req.body;
+    console.log('🔍 POST /categories2 - 建立類別:', { name, type, organizationId, userId });
 
     // 驗證必填欄位
     if (!name || !type) {
-      res.status(400).json({ 
-        success: false, 
-        message: '請填寫類別名稱和類型' 
+      res.status(400).json({
+        success: false,
+        message: '請填寫類別名稱和類型'
       });
       return;
     }
 
     if (!['income', 'expense'].includes(type)) {
-      res.status(400).json({ 
-        success: false, 
-        message: '類型必須是 income 或 expense' 
+      res.status(400).json({
+        success: false,
+        message: '類型必須是 income 或 expense'
       });
       return;
     }
 
-    // 檢查類別名稱是否重複（同類型下）
-    const existingCategory = await Category2.findOne({ 
-      name, 
+    // 處理機構 ID
+    let processedOrganizationId = null;
+    if (organizationId && organizationId !== 'personal' && organizationId !== 'undefined') {
+      processedOrganizationId = organizationId;
+      console.log('🏢 建立機構類別:', organizationId);
+    } else {
+      console.log('👤 建立個人類別');
+    }
+
+    // 檢查類別名稱是否重複（同類型、同機構下）
+    const duplicateFilter: any = {
+      name,
       type,
       createdBy: userId,
-      isActive: true 
-    });
+      isActive: true,
+      organizationId: processedOrganizationId
+    };
+
+    const existingCategory = await Category2.findOne(duplicateFilter);
 
     if (existingCategory) {
-      res.status(400).json({ 
-        success: false, 
-        message: '類別名稱已存在' 
+      res.status(400).json({
+        success: false,
+        message: '類別名稱已存在'
       });
       return;
     }
@@ -191,13 +225,14 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         _id: parentId,
         createdBy: userId,
         type: type,
+        organizationId: processedOrganizationId,
         isActive: true
       });
 
       if (!parentCategory) {
-        res.status(400).json({ 
-          success: false, 
-          message: '父類別不存在或類型不匹配' 
+        res.status(400).json({
+          success: false,
+          message: '父類別不存在或類型不匹配'
         });
         return;
       }
@@ -211,10 +246,12 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       color,
       description,
       sortOrder: sortOrder || 0,
+      organizationId: processedOrganizationId,
       createdBy: userId
     });
 
     const savedCategory = await newCategory.save();
+    console.log('✅ 類別建立成功:', savedCategory._id);
 
     res.status(201).json({
       success: true,
@@ -223,9 +260,9 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     });
   } catch (error) {
     console.error('建立類別錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '建立類別失敗' 
+    res.status(500).json({
+      success: false,
+      message: '建立類別失敗'
     });
   }
 });

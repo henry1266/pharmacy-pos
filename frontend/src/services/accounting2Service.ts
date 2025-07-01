@@ -70,8 +70,7 @@ export const accountsApi = {
 // 類別管理 API
 export const categoriesApi = {
   // 獲取所有類別
-  getAll: async (type?: 'income' | 'expense'): Promise<Category2ListResponse> => {
-    const params = type ? { type } : {};
+  getAll: async (params?: { type?: 'income' | 'expense'; organizationId?: string }): Promise<Category2ListResponse> => {
     const response = await apiService.get(`${BASE_URL}/categories`, { params });
     return response.data;
   },
