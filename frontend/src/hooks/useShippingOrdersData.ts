@@ -36,6 +36,8 @@ interface FilteredRow {
   sobilldate: string | Date;
   sosupplier: string;
   totalAmount: number;
+  totalCost?: number;
+  totalProfit?: number;
   status: string;
   paymentStatus: string;
 }
@@ -111,9 +113,12 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
     if (shippingOrders.length > 0) {
       // 先根據搜索詞過濾
       let filtered = [...shippingOrders];
-      const searchTerm = searchParams.searchTerm.trim().toLowerCase();
+      const searchTermRaw = searchParams.searchTerm.trim();
       
-      if (searchTerm) {
+      if (searchTermRaw) {
+        // 將搜尋詞分割為多個關鍵字（以空格分隔）
+        const searchTerms = searchTermRaw.split(' ').filter(term => term.length > 0);
+        
         filtered = filtered.filter(so => {
           // 收集所有可搜尋欄位
           const searchableFields: string[] = [
@@ -125,10 +130,35 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
             so.paymentStatus || ''
           ];
           
-          // 只要任一欄位包含關鍵字即通過
-          return searchableFields.some(field =>
-            String(field).toLowerCase().includes(searchTerm)
-          );
+          // 檢查是否符合任一搜尋詞（OR 關係）
+          return searchTerms.some(term => {
+            // 轉換為小寫以進行不區分大小寫的比較
+            const termLower = term.toLowerCase();
+            
+            // 檢查是否為萬用搜尋模式
+            if (term.includes('*')) {
+              // 將 * 轉換為正則表達式的 .*
+              const regexPattern = termLower.replace(/\*/g, '.*');
+              const regex = new RegExp(regexPattern);
+              
+              // 檢查任一欄位是否符合正則表達式
+              return searchableFields.some(field =>
+                regex.test(String(field).toLowerCase())
+              );
+            }
+            // 檢查是否為尾部匹配（如果搜尋詞只有一個字符）
+            else if (term.length === 1) {
+              return searchableFields.some(field =>
+                String(field).toLowerCase().endsWith(termLower)
+              );
+            }
+            // 一般包含搜尋
+            else {
+              return searchableFields.some(field =>
+                String(field).toLowerCase().includes(termLower)
+              );
+            }
+          });
         });
       }
       
@@ -147,28 +177,97 @@ const useShippingOrdersData = (): ShippingOrdersDataResult => {
         });
       }
       
-      const formattedRows = filtered.map(so => {
-        // 提取供應商ID邏輯為獨立語句
-        let supplierValue = '';
-        if (typeof so.sosupplier === 'string') {
-          supplierValue = so.sosupplier;
-        } else if (typeof so.sosupplier === 'object' && so.sosupplier) {
-          supplierValue = so.sosupplier._id;
+      // 使用 Promise.all 來並行獲取所有出貨單的詳細信息
+      const getDetailedShippingOrders = async () => {
+        try {
+          const detailedOrders = await Promise.all(
+            filtered.map(async (so) => {
+              // 如果已經有 items 且不為空，則直接使用
+              if (so.items && Array.isArray(so.items) && so.items.length > 0) {
+                return so;
+              }
+              
+              // 否則從 API 獲取詳細信息
+              try {
+                const detailedOrder = await shippingOrderServiceV2.getShippingOrderById(so._id);
+                return { ...so, items: detailedOrder.items };
+              } catch (error) {
+                console.error(`獲取出貨單 ${so._id} 詳細信息失敗:`, error);
+                return so;
+              }
+            })
+          );
+          
+          const formattedRows = detailedOrders.map(so => {
+            // 提取供應商ID邏輯為獨立語句
+            let supplierValue = '';
+            if (typeof so.sosupplier === 'string') {
+              supplierValue = so.sosupplier;
+            } else if (typeof so.sosupplier === 'object' && so.sosupplier) {
+              supplierValue = so.sosupplier._id;
+            }
+    
+            // 計算總成本和總毛利
+            let totalCost = 0;
+            if (so.items && Array.isArray(so.items)) {
+              totalCost = so.items.reduce((sum, item) => {
+                return sum + (item.dtotalCost || 0);
+              }, 0);
+            }
+            
+            const totalAmount = so.totalAmount ?? 0;
+            const totalProfit = totalAmount - totalCost;
+    
+            return {
+              id: so._id,
+              _id: so._id,
+              soid: so.soid ?? '',
+              sobill: so.sobill ?? '',
+              sobilldate: so.sobilldate ?? new Date(),
+              sosupplier: supplierValue,
+              totalAmount: totalAmount,
+              totalCost: totalCost,
+              totalProfit: totalProfit,
+              status: so.status ?? '',
+              paymentStatus: so.paymentStatus ?? ''
+            };
+          });
+          
+          setFilteredRows(formattedRows);
+        } catch (error) {
+          console.error('獲取詳細出貨單失敗:', error);
+          // 如果獲取詳細信息失敗，則使用原始數據
+          const formattedRows = filtered.map(so => {
+            // 提取供應商ID邏輯為獨立語句
+            let supplierValue = '';
+            if (typeof so.sosupplier === 'string') {
+              supplierValue = so.sosupplier;
+            } else if (typeof so.sosupplier === 'object' && so.sosupplier) {
+              supplierValue = so.sosupplier._id;
+            }
+    
+            return {
+              id: so._id,
+              _id: so._id,
+              soid: so.soid ?? '',
+              sobill: so.sobill ?? '',
+              sobilldate: so.sobilldate ?? new Date(),
+              sosupplier: supplierValue,
+              totalAmount: so.totalAmount ?? 0,
+              totalCost: 0,
+              totalProfit: 0,
+              status: so.status ?? '',
+              paymentStatus: so.paymentStatus ?? ''
+            };
+          });
+          
+          setFilteredRows(formattedRows);
         }
-
-        return {
-          id: so._id,
-          _id: so._id,
-          soid: so.soid ?? '',
-          sobill: so.sobill ?? '',
-          sobilldate: so.sobilldate ?? new Date(),
-          sosupplier: supplierValue,
-          totalAmount: so.totalAmount ?? 0,
-          status: so.status ?? '',
-          paymentStatus: so.paymentStatus ?? ''
-        };
-      });
-      setFilteredRows(formattedRows);
+      };
+      
+      // 調用函數獲取詳細信息
+      getDetailedShippingOrders();
+      // 注意：setFilteredRows 已經在 getDetailedShippingOrders 函數中調用
     } else {
       setFilteredRows([]);
     }

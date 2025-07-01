@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -16,11 +16,12 @@ import {
   FilterList as FilterListIcon,
   CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/redux';
 
 // Import Hook
 import useShippingOrdersData from '../hooks/useShippingOrdersData';
+import { useShippingOrdersBatchFifo } from '../hooks/useShippingOrdersBatchFifo';
 
 // Import Service functions for CSV import
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
@@ -62,6 +63,7 @@ interface PaginationModel {
 const ShippingOrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
 
   // Use the custom hook to get data and handlers
   const {
@@ -84,6 +86,63 @@ const ShippingOrdersPage: React.FC = () => {
     clearPreviewData,
     handleDelete,
   } = useShippingOrdersData(); // 移除不必要的型別斷言
+  
+  // 使用批量 FIFO 計算 hook
+  const {
+    calculateBatchFifoProfit,
+    batchFifoLoading,
+    batchFifoError
+  } = useShippingOrdersBatchFifo();
+  
+  // 當批量 FIFO 計算出錯時顯示錯誤訊息
+  useEffect(() => {
+    if (batchFifoError) {
+      setSnackbar({
+        open: true,
+        message: batchFifoError,
+        severity: 'error'
+      });
+    }
+  }, [batchFifoError]);
+
+  // 從 URL 查詢參數中獲取搜尋詞，並設置到 searchParams 中
+  useEffect(() => {
+    const searchTerm = urlSearchParams.get('search');
+    if (searchTerm) {
+      // 模擬輸入變更事件來設置搜尋詞
+      handleInputChange({
+        target: {
+          name: 'searchTerm',
+          value: searchTerm
+        }
+      } as React.ChangeEvent<HTMLInputElement>);
+      
+      // 觸發搜尋
+      handleSearch();
+    }
+  }, [urlSearchParams, handleInputChange, handleSearch]);
+
+  // 自定義搜尋處理函數，更新 URL 查詢參數
+  const handleSearchWithUrlUpdate = useCallback(() => {
+    // 調用原始的搜尋處理函數
+    handleSearch();
+    
+    // 更新 URL 查詢參數
+    if (searchParams.searchTerm) {
+      setUrlSearchParams({ search: searchParams.searchTerm });
+    } else {
+      setUrlSearchParams({});
+    }
+  }, [handleSearch, searchParams.searchTerm, setUrlSearchParams]);
+
+  // 自定義清除搜尋處理函數，更新 URL 查詢參數
+  const handleClearSearchWithUrlUpdate = useCallback(() => {
+    // 調用原始的清除搜尋處理函數
+    handleClearSearch();
+    
+    // 清除 URL 查詢參數
+    setUrlSearchParams({});
+  }, [handleClearSearch, setUrlSearchParams]);
 
   // --- Local UI State ---
   const [showFilters, setShowFilters] = useState<boolean>(false);
@@ -316,8 +375,8 @@ const ShippingOrdersPage: React.FC = () => {
             <ShippingOrdersFilter
               searchParams={searchParams}
               handleInputChange={handleInputChange}
-              handleSearch={handleSearch}
-              handleClearSearch={handleClearSearch}
+              handleSearch={handleSearchWithUrlUpdate}
+              handleClearSearch={handleClearSearchWithUrlUpdate}
             />
           )}
 
@@ -325,7 +384,10 @@ const ShippingOrdersPage: React.FC = () => {
             <FilterPriceSummary
               filteredRows={filteredRows}
               totalAmountField="totalAmount"
+              totalProfitField="totalProfit"
               title="篩選結果"
+              showProfit={true}
+              onCalculateProfit={calculateBatchFifoProfit}
             />
           )}
 
