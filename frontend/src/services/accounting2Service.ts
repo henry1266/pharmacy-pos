@@ -24,8 +24,9 @@ const BASE_URL = '/api/accounting2';
 // 帳戶管理 API
 export const accountsApi = {
   // 獲取所有帳戶
-  getAll: async (): Promise<Account2ListResponse> => {
-    const response = await apiService.get(`${BASE_URL}/accounts`);
+  getAll: async (organizationId?: string | null): Promise<Account2ListResponse> => {
+    const params = organizationId ? { organizationId } : {};
+    const response = await apiService.get(`${BASE_URL}/accounts`, { params });
     return response.data;
   },
 

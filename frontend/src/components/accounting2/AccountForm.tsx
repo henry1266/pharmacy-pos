@@ -15,6 +15,7 @@ import {
   Alert
 } from '@mui/material';
 import { Account2, Account2FormData, ACCOUNT_TYPES, CURRENCIES } from '@pharmacy-pos/shared/types/accounting2';
+import { Organization } from '@pharmacy-pos/shared/types/organization';
 
 interface AccountFormProps {
   open: boolean;
@@ -22,6 +23,8 @@ interface AccountFormProps {
   onSubmit: (data: Account2FormData) => Promise<void>;
   account?: Account2;
   loading?: boolean;
+  organizations?: Organization[];
+  selectedOrganizationId?: string | null;
 }
 
 const AccountForm: React.FC<AccountFormProps> = ({
@@ -29,14 +32,17 @@ const AccountForm: React.FC<AccountFormProps> = ({
   onClose,
   onSubmit,
   account,
-  loading = false
+  loading = false,
+  organizations = [],
+  selectedOrganizationId = null
 }) => {
   const [formData, setFormData] = useState<Account2FormData>({
     name: '',
     type: 'cash',
     initialBalance: 0,
     currency: 'TWD',
-    description: ''
+    description: '',
+    organizationId: selectedOrganizationId || undefined
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -47,7 +53,8 @@ const AccountForm: React.FC<AccountFormProps> = ({
         type: account.type,
         initialBalance: account.initialBalance,
         currency: account.currency,
-        description: account.description || ''
+        description: account.description || '',
+        organizationId: account.organizationId || undefined
       });
     } else {
       setFormData({
@@ -55,11 +62,12 @@ const AccountForm: React.FC<AccountFormProps> = ({
         type: 'cash',
         initialBalance: 0,
         currency: 'TWD',
-        description: ''
+        description: '',
+        organizationId: selectedOrganizationId || undefined
       });
     }
     setErrors({});
-  }, [account, open]);
+  }, [account, open, selectedOrganizationId]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -97,7 +105,8 @@ const AccountForm: React.FC<AccountFormProps> = ({
     const value = event.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'initialBalance' ? Number(value) : value
+      [field]: field === 'initialBalance' ? Number(value) :
+               field === 'organizationId' ? (value || undefined) : value
     }));
     
     // 清除該欄位的錯誤
@@ -158,6 +167,26 @@ const AccountForm: React.FC<AccountFormProps> = ({
                   {CURRENCIES.map((currency) => (
                     <MenuItem key={currency.value} value={currency.value}>
                       {currency.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>所屬機構</InputLabel>
+                <Select
+                  value={formData.organizationId || ''}
+                  onChange={handleChange('organizationId')}
+                  label="所屬機構"
+                >
+                  <MenuItem value="">
+                    <em>個人帳戶</em>
+                  </MenuItem>
+                  {organizations.map((org) => (
+                    <MenuItem key={org._id} value={org._id}>
+                      {org.name}
                     </MenuItem>
                   ))}
                 </Select>

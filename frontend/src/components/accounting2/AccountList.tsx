@@ -36,9 +36,11 @@ import AccountForm from './AccountForm';
 
 interface AccountListProps {
   onAddAccount?: () => void;
+  organizationId?: string | null;
+  refreshTrigger?: number;
 }
 
-const AccountList: React.FC<AccountListProps> = ({ onAddAccount }) => {
+const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId, refreshTrigger }) => {
   const [accounts, setAccounts] = useState<Account2[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -49,13 +51,14 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount }) => {
   const [submitLoading, setSubmitLoading] = useState(false);
 
   useEffect(() => {
+    console.log('AccountList useEffect 觸發 - organizationId:', organizationId, 'refreshTrigger:', refreshTrigger);
     loadAccounts();
-  }, []);
+  }, [organizationId, refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadAccounts = async () => {
     try {
       setLoading(true);
-      const response = await accounting2Service.accounts.getAll();
+      const response = await accounting2Service.accounts.getAll(organizationId);
       if (response.success) {
         setAccounts(response.data);
       } else {
