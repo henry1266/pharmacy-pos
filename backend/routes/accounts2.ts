@@ -21,10 +21,22 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       return;
     }
 
-    const accounts = await Account2.find({ 
+    const { organizationId } = req.query;
+    
+    // 建立查詢條件
+    const filter: any = {
       createdBy: userId,
-      isActive: true 
-    }).sort({ createdAt: -1 });
+      isActive: true
+    };
+    
+    // 如果指定機構 ID，則過濾機構帳戶；否則顯示個人帳戶
+    if (organizationId) {
+      filter.organizationId = organizationId;
+    } else {
+      filter.organizationId = { $exists: false };
+    }
+
+    const accounts = await Account2.find(filter).sort({ createdAt: -1 });
 
     res.json({
       success: true,
@@ -32,9 +44,9 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     });
   } catch (error) {
     console.error('獲取帳戶列表錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '獲取帳戶列表失敗' 
+    res.status(500).json({
+      success: false,
+      message: '獲取帳戶列表失敗'
     });
   }
 });
@@ -85,28 +97,37 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       return;
     }
 
-    const { name, type, initialBalance, currency, description } = req.body;
+    const { name, type, initialBalance, currency, description, organizationId } = req.body;
 
     // 驗證必填欄位
     if (!name || !type || initialBalance === undefined) {
-      res.status(400).json({ 
-        success: false, 
-        message: '請填寫所有必填欄位' 
+      res.status(400).json({
+        success: false,
+        message: '請填寫所有必填欄位'
       });
       return;
     }
 
-    // 檢查帳戶名稱是否重複
-    const existingAccount = await Account2.findOne({ 
-      name, 
+    // 建立查詢條件檢查重複名稱
+    const duplicateFilter: any = {
+      name,
       createdBy: userId,
-      isActive: true 
-    });
+      isActive: true
+    };
+    
+    // 在相同範圍內檢查重複（個人或機構）
+    if (organizationId) {
+      duplicateFilter.organizationId = organizationId;
+    } else {
+      duplicateFilter.organizationId = { $exists: false };
+    }
+
+    const existingAccount = await Account2.findOne(duplicateFilter);
 
     if (existingAccount) {
-      res.status(400).json({ 
-        success: false, 
-        message: '帳戶名稱已存在' 
+      res.status(400).json({
+        success: false,
+        message: '帳戶名稱已存在'
       });
       return;
     }
@@ -118,6 +139,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       initialBalance,
       currency: currency || 'TWD',
       description,
+      organizationId: organizationId || undefined,
       createdBy: userId
     });
 
@@ -130,9 +152,9 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     });
   } catch (error) {
     console.error('建立帳戶錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '建立帳戶失敗' 
+    res.status(500).json({
+      success: false,
+      message: '建立帳戶失敗'
     });
   }
 });

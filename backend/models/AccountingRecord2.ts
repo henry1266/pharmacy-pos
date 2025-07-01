@@ -9,6 +9,7 @@ export interface IAccountingRecord2 extends Document {
   description?: string;
   tags?: string[];
   attachments?: string[];
+  organizationId?: string; // 機構 ID（可選，支援個人記錄）
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
@@ -54,6 +55,11 @@ const AccountingRecord2Schema: Schema = new Schema({
     type: String,
     trim: true
   }],
+  organizationId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Organization',
+    default: null
+  },
   createdBy: {
     type: String,
     required: true
@@ -65,6 +71,8 @@ const AccountingRecord2Schema: Schema = new Schema({
 
 // 索引
 AccountingRecord2Schema.index({ createdBy: 1, date: -1 });
+AccountingRecord2Schema.index({ organizationId: 1, date: -1 });
+AccountingRecord2Schema.index({ organizationId: 1, createdBy: 1, date: -1 });
 AccountingRecord2Schema.index({ categoryId: 1, date: -1 });
 AccountingRecord2Schema.index({ accountId: 1, date: -1 });
 AccountingRecord2Schema.index({ type: 1, date: -1 });

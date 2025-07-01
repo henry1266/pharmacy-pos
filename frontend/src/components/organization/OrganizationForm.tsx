@@ -63,6 +63,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
       currency: 'TWD',
       language: 'zh-TW'
     },
+    notes: '',
     parentId: undefined
   });
 
@@ -137,6 +138,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
           establishedDate: new Date(org.business.establishedDate).toISOString().split('T')[0]
         },
         settings: org.settings,
+        notes: org.notes || '',
         parentId: org.parentId
       });
     } catch (err: any) {
@@ -514,6 +516,25 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
                     />
                   </Grid>
                 </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* 備註 */}
+          <Grid item xs={12}>
+            <Card>
+              <CardHeader title="備註" />
+              <CardContent>
+                <TextField
+                  fullWidth
+                  label="機構備註"
+                  value={formData.notes || ''}
+                  onChange={(e) => handleInputChange('notes', e.target.value)}
+                  multiline
+                  rows={4}
+                  helperText="可輸入機構相關的備註資訊（最多1000字）"
+                  inputProps={{ maxLength: 1000 }}
+                />
               </CardContent>
             </Card>
           </Grid>

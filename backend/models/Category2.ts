@@ -10,6 +10,7 @@ export interface ICategory2 extends Document {
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
+  organizationId?: string; // 機構 ID（可選，支援個人類別）
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
@@ -63,6 +64,11 @@ const Category2Schema: Schema = new Schema({
     required: true,
     default: 0
   },
+  organizationId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Organization',
+    default: null
+  },
   createdBy: {
     type: String,
     required: true
@@ -74,6 +80,8 @@ const Category2Schema: Schema = new Schema({
 
 // 索引
 Category2Schema.index({ createdBy: 1, type: 1, isActive: 1 });
+Category2Schema.index({ organizationId: 1, type: 1, isActive: 1 });
+Category2Schema.index({ organizationId: 1, createdBy: 1, type: 1, isActive: 1 });
 Category2Schema.index({ parentId: 1, sortOrder: 1 });
 Category2Schema.index({ type: 1, sortOrder: 1 });
 

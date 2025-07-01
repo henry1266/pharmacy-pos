@@ -47,6 +47,9 @@ export interface Organization {
     language: string;              // 預設語言
   };
   
+  // 備註
+  notes?: string;                  // 機構備註
+  
   // 審計欄位
   createdAt: Date;
   updatedAt: Date;
@@ -60,7 +63,6 @@ export interface OrganizationFormData {
   name: string;
   type: OrganizationType;
   status: OrganizationStatus;
-  parentId?: string;
   contact: {
     address: string;
     phone: string;
@@ -76,6 +78,8 @@ export interface OrganizationFormData {
     currency: string;
     language: string;
   };
+  notes?: string;                  // 機構備註
+  parentId?: string;
 }
 
 // 使用者機構關聯

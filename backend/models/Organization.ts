@@ -99,6 +99,13 @@ const OrganizationSchema = new Schema<OrganizationDocument>({
     },
   },
   
+  // 備註
+  notes: {
+    type: String,
+    trim: true,
+    maxlength: 1000  // 限制備註長度
+  },
+  
   // 審計欄位
   createdBy: {
     type: Schema.Types.ObjectId,
@@ -116,7 +123,7 @@ const OrganizationSchema = new Schema<OrganizationDocument>({
 });
 
 // 索引設定
-OrganizationSchema.index({ code: 1 }, { unique: true });
+// code 欄位已在 schema 中設定 unique: true，不需要重複建立索引
 OrganizationSchema.index({ type: 1, status: 1 });
 OrganizationSchema.index({ parentId: 1 });
 OrganizationSchema.index({ 'contact.taxId': 1 }, { sparse: true });

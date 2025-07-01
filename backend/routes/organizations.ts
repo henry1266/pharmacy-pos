@@ -43,11 +43,11 @@ const organizationValidation = [
     .isLength({ min: 8, max: 20 })
     .withMessage('請輸入有效的電話號碼'),
   body('contact.email')
-    .optional()
+    .optional({ checkFalsy: true })
     .isEmail()
     .withMessage('請輸入有效的電子郵件'),
   body('contact.taxId')
-    .optional()
+    .optional({ checkFalsy: true })
     .matches(/^\d{8}$/)
     .withMessage('統一編號必須是8位數字')
 ];
@@ -161,8 +161,12 @@ router.post('/', [
   ...organizationValidation
 ], async (req: AuthenticatedRequest, res: express.Response) => {
   try {
+    console.log('=== 建立機構請求 ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('驗證錯誤:', errors.array());
       res.status(400).json({
         success: false,
         data: null,
@@ -176,6 +180,7 @@ router.post('/', [
     const userId = req.user?.id || req.user?.userId;
 
     if (!userId) {
+      console.log('未找到用戶ID');
       res.status(401).json({ message: '未授權的請求' });
       return;
     }
@@ -183,6 +188,7 @@ router.post('/', [
     // 檢查機構代碼是否已存在
     const existingOrg = await Organization.findOne({ code: formData.code.toUpperCase() });
     if (existingOrg) {
+      console.log('機構代碼已存在:', formData.code);
       res.status(400).json({
         success: false,
         data: null,
@@ -192,6 +198,17 @@ router.post('/', [
     }
 
     // 建立新機構
+    console.log('準備建立機構，資料:', {
+      ...formData,
+      code: formData.code.toUpperCase(),
+      business: {
+        ...formData.business,
+        establishedDate: new Date(formData.business.establishedDate)
+      },
+      createdBy: userId,
+      updatedBy: userId
+    });
+
     const organization = new Organization({
       ...formData,
       code: formData.code.toUpperCase(),
@@ -204,6 +221,7 @@ router.post('/', [
     });
 
     await organization.save();
+    console.log('機構建立成功:', organization._id);
 
     const response: OrganizationApiResponse = {
       success: true,
@@ -217,6 +235,10 @@ router.post('/', [
     res.status(201).json(response);
   } catch (error) {
     console.error('建立機構錯誤:', error);
+    console.error('錯誤詳情:', error instanceof Error ? error.message : error);
+    if (error instanceof Error && 'errors' in error) {
+      console.error('Mongoose 驗證錯誤:', (error as any).errors);
+    }
     res.status(500).json({
       success: false,
       data: null,

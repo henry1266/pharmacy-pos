@@ -9,6 +9,7 @@ export interface Account2 {
   currency: string;
   description?: string;
   isActive: boolean;
+  organizationId?: string; // 機構 ID（可選，支援個人帳戶）
   createdAt: string | Date;
   updatedAt: string | Date;
   createdBy: string;
@@ -25,6 +26,7 @@ export interface Category2 {
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
+  organizationId?: string; // 機構 ID（可選，支援個人類別）
   createdAt: string | Date;
   updatedAt: string | Date;
   createdBy: string;
@@ -41,6 +43,7 @@ export interface AccountingRecord2 {
   description?: string;
   tags?: string[];
   attachments?: string[];
+  organizationId?: string; // 機構 ID（可選，支援個人記錄）
   createdAt: string | Date;
   updatedAt: string | Date;
   createdBy: string;
@@ -53,6 +56,7 @@ export interface Account2FormData {
   initialBalance: number;
   currency: string;
   description?: string;
+  organizationId?: string; // 機構 ID（可選）
 }
 
 export interface Category2FormData {
@@ -63,6 +67,7 @@ export interface Category2FormData {
   color?: string;
   description?: string;
   sortOrder?: number;
+  organizationId?: string; // 機構 ID（可選）
 }
 
 export interface AccountingRecord2FormData {
@@ -74,6 +79,7 @@ export interface AccountingRecord2FormData {
   description?: string;
   tags?: string[];
   attachments?: string[];
+  organizationId?: string; // 機構 ID（可選）
 }
 
 // API 回應類型
@@ -130,6 +136,7 @@ export interface AccountingRecord2Filter {
   type?: 'income' | 'expense' | 'transfer';
   categoryId?: string;
   accountId?: string;
+  organizationId?: string; // 機構過濾
   startDate?: string;
   endDate?: string;
   page?: number;
