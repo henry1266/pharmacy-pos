@@ -46,6 +46,7 @@ import RecordForm from './RecordForm';
 
 interface RecordListProps {
   selectedOrganizationId: string | null;
+  refreshTrigger?: number;
 }
 
 interface RecordFilter {
@@ -58,7 +59,7 @@ interface RecordFilter {
   limit: number;
 }
 
-const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId }) => {
+const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refreshTrigger }) => {
   const [records, setRecords] = useState<AccountingRecord2[]>([]);
   const [accounts, setAccounts] = useState<Account2[]>([]);
   const [categories, setCategories] = useState<Category2[]>([]);
@@ -157,13 +158,13 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId }) => {
 
   useEffect(() => {
     loadRecords();
-  }, [selectedOrganizationId, filter]);
+  }, [selectedOrganizationId, filter, refreshTrigger]);
 
   useEffect(() => {
     loadAccounts();
     loadCategories();
     loadOrganizations();
-  }, [selectedOrganizationId]);
+  }, [selectedOrganizationId, refreshTrigger]);
 
   // 處理表單提交
   const handleFormSubmit = async (recordData: Partial<AccountingRecord2>) => {

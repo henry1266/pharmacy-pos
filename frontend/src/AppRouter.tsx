@@ -34,6 +34,7 @@ import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import Accounting2Page from './pages/Accounting2Page';
+import AccountingDetailPageWrapper from './pages/AccountingDetailPage';
 import OrganizationPage from './pages/OrganizationPage';
 import OrganizationFormPage from './pages/OrganizationFormPage';
 
@@ -88,6 +89,8 @@ const AppRouter: React.FC = () => {
       
       {/* Accounting2 routes */}
       <Route path="/accounting2" element={<Accounting2Page />} />
+      <Route path="/accounting2/category/:categoryId" element={<AccountingDetailPageWrapper />} />
+      <Route path="/accounting2/account/:accountId" element={<AccountingDetailPageWrapper />} />
       
       {/* Organization Management routes */}
       <Route path="/organizations" element={<OrganizationPage />} />

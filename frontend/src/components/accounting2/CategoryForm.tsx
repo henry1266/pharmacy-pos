@@ -89,7 +89,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       
       setFormData({
         name: '',
-        type: defaultType,
+        type: defaultType || 'expense',
         parentId: defaultParentId || '',
         icon: '',
         color: '#1976d2',
@@ -168,6 +168,16 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     // 處理機構ID比較
     const catOrgId = cat.organizationId || null;
     const formOrgId = formData.organizationId || null;
+    
+    console.log('過濾父類別:', {
+      categoryName: cat.name,
+      categoryId: cat._id,
+      catOrgId,
+      formOrgId,
+      catType: cat.type,
+      formType: formData.type,
+      isMatch: cat.type === formData.type && cat._id !== category?._id && catOrgId === formOrgId
+    });
     
     return cat.type === formData.type &&
            cat._id !== category?._id &&

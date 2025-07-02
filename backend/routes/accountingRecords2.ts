@@ -265,64 +265,73 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
     // 驗證必填欄位
     if (!type || !amount || !categoryId || !accountId) {
-      res.status(400).json({ 
-        success: false, 
-        message: '請填寫所有必填欄位' 
+      res.status(400).json({
+        success: false,
+        message: '請填寫所有必填欄位'
       });
       return;
     }
 
     if (!['income', 'expense', 'transfer'].includes(type)) {
-      res.status(400).json({ 
-        success: false, 
-        message: '記錄類型必須是 income、expense 或 transfer' 
+      res.status(400).json({
+        success: false,
+        message: '記錄類型必須是 income、expense 或 transfer'
       });
       return;
     }
 
     if (amount <= 0) {
-      res.status(400).json({ 
-        success: false, 
-        message: '金額必須大於 0' 
+      res.status(400).json({
+        success: false,
+        message: '金額必須大於 0'
       });
       return;
     }
 
+    // 確保 ID 是字串格式
+    const cleanCategoryId = typeof categoryId === 'string' ? categoryId : categoryId.toString();
+    const cleanAccountId = typeof accountId === 'string' ? accountId : accountId.toString();
+
+    console.log('🧹 清理後的 ID:', { cleanCategoryId, cleanAccountId });
+
     // 驗證類別是否存在且屬於用戶
     const category = await Category2.findOne({
-      _id: categoryId,
+      _id: cleanCategoryId,
       createdBy: userId,
       isActive: true
     });
 
     if (!category) {
-      res.status(400).json({ 
-        success: false, 
-        message: '指定的類別不存在' 
+      console.error('❌ 類別不存在:', cleanCategoryId);
+      res.status(400).json({
+        success: false,
+        message: '指定的類別不存在'
       });
       return;
     }
 
     // 驗證帳戶是否存在且屬於用戶
     const account = await Account2.findOne({
-      _id: accountId,
+      _id: cleanAccountId,
       createdBy: userId,
       isActive: true
     });
 
     if (!account) {
-      res.status(400).json({ 
-        success: false, 
-        message: '指定的帳戶不存在' 
+      console.error('❌ 帳戶不存在:', cleanAccountId);
+      res.status(400).json({
+        success: false,
+        message: '指定的帳戶不存在'
       });
       return;
     }
 
     // 驗證類別類型與記錄類型是否匹配
     if (type !== 'transfer' && category.type !== type) {
-      res.status(400).json({ 
-        success: false, 
-        message: '類別類型與記錄類型不匹配' 
+      console.error('❌ 類別類型不匹配:', { categoryType: category.type, recordType: type });
+      res.status(400).json({
+        success: false,
+        message: '類別類型與記錄類型不匹配'
       });
       return;
     }
@@ -330,8 +339,8 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     const newRecord = new AccountingRecord2({
       type,
       amount,
-      categoryId,
-      accountId,
+      categoryId: cleanCategoryId,
+      accountId: cleanAccountId,
       organizationId: organizationId || undefined,
       date: date ? new Date(date) : new Date(),
       description,
@@ -343,8 +352,8 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     console.log('📝 建立記錄資料:', {
       type,
       amount,
-      categoryId,
-      accountId,
+      categoryId: cleanCategoryId,
+      accountId: cleanAccountId,
       organizationId: organizationId || undefined,
       createdBy: userId
     });
@@ -369,10 +378,20 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     });
   } catch (error) {
     console.error('建立記帳記錄錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '建立記帳記錄失敗' 
-    });
+    
+    // 檢查是否是 ObjectId 轉換錯誤
+    if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
+      console.error('❌ ObjectId 轉換失敗:', error.message);
+      res.status(400).json({
+        success: false,
+        message: 'ID 格式錯誤，請檢查類別或帳戶 ID'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: '建立記帳記錄失敗'
+      });
+    }
   }
 });
 
@@ -387,35 +406,46 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
-    const { 
-      amount, 
-      categoryId, 
-      accountId, 
-      date, 
-      description, 
-      tags, 
-      attachments 
+    const {
+      amount,
+      categoryId,
+      accountId,
+      date,
+      description,
+      tags,
+      attachments
     } = req.body;
 
+    console.log('🔍 PUT /records/:id - 更新記錄:', {
+      id,
+      amount,
+      categoryId,
+      accountId,
+      date,
+      description,
+      userId
+    });
+
     // 檢查記錄是否存在
-    const record = await AccountingRecord2.findOne({ 
-      _id: id, 
-      createdBy: userId 
+    const record = await AccountingRecord2.findOne({
+      _id: id,
+      createdBy: userId
     });
 
     if (!record) {
-      res.status(404).json({ 
-        success: false, 
-        message: '找不到指定的記帳記錄' 
+      res.status(404).json({
+        success: false,
+        message: '找不到指定的記帳記錄'
       });
       return;
     }
 
     const oldAmount = record.amount;
-    const oldAccountId = record.accountId.toString();
+    const oldAccountId = (record.accountId as any)?._id?.toString() || record.accountId.toString();
 
     // 驗證新的類別（如果有提供）
     if (categoryId && categoryId !== record.categoryId.toString()) {
+      console.log('🔍 驗證新類別:', categoryId);
       const category = await Category2.findOne({
         _id: categoryId,
         createdBy: userId,
@@ -423,17 +453,19 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       });
 
       if (!category) {
-        res.status(400).json({ 
-          success: false, 
-          message: '指定的類別不存在' 
+        console.error('❌ 類別不存在:', categoryId);
+        res.status(400).json({
+          success: false,
+          message: '指定的類別不存在'
         });
         return;
       }
 
       if (record.type !== 'transfer' && category.type !== record.type) {
-        res.status(400).json({ 
-          success: false, 
-          message: '類別類型與記錄類型不匹配' 
+        console.error('❌ 類別類型不匹配:', { categoryType: category.type, recordType: record.type });
+        res.status(400).json({
+          success: false,
+          message: '類別類型與記錄類型不匹配'
         });
         return;
       }
@@ -441,6 +473,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
 
     // 驗證新的帳戶（如果有提供）
     if (accountId && accountId !== oldAccountId) {
+      console.log('🔍 驗證新帳戶:', accountId);
       const account = await Account2.findOne({
         _id: accountId,
         createdBy: userId,
@@ -448,23 +481,32 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       });
 
       if (!account) {
-        res.status(400).json({ 
-          success: false, 
-          message: '指定的帳戶不存在' 
+        console.error('❌ 帳戶不存在:', accountId);
+        res.status(400).json({
+          success: false,
+          message: '指定的帳戶不存在'
         });
         return;
       }
     }
 
-    // 更新記錄資訊
+    // 更新記錄資訊 - 確保 ObjectId 格式正確
     const updateData: Partial<IAccountingRecord2> = {};
     if (amount !== undefined) updateData.amount = amount;
-    if (categoryId !== undefined) updateData.categoryId = categoryId;
-    if (accountId !== undefined) updateData.accountId = accountId;
+    if (categoryId !== undefined) {
+      // 確保 categoryId 是字串格式，不是物件
+      updateData.categoryId = typeof categoryId === 'string' ? categoryId : categoryId.toString();
+    }
+    if (accountId !== undefined) {
+      // 確保 accountId 是字串格式，不是物件
+      updateData.accountId = typeof accountId === 'string' ? accountId : accountId.toString();
+    }
     if (date !== undefined) updateData.date = new Date(date);
     if (description !== undefined) updateData.description = description;
     if (tags !== undefined) updateData.tags = tags;
     if (attachments !== undefined) updateData.attachments = attachments;
+
+    console.log('📝 更新資料:', updateData);
 
     const updatedRecord = await AccountingRecord2.findByIdAndUpdate(
       id,
@@ -472,15 +514,21 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       { new: true, runValidators: true }
     );
 
+    console.log('✅ 記錄更新成功:', updatedRecord?._id);
+
     // 更新帳戶餘額
     if (amount !== undefined || accountId !== undefined) {
+      console.log('💰 更新帳戶餘額...');
+      
       // 先從舊帳戶扣除舊金額
       const oldAccount = await Account2.findById(oldAccountId);
       if (oldAccount) {
         if (record.type === 'income') {
           oldAccount.balance -= oldAmount;
+          console.log('💸 舊帳戶扣除收入:', oldAmount, '新餘額:', oldAccount.balance);
         } else if (record.type === 'expense') {
           oldAccount.balance += oldAmount;
+          console.log('💰 舊帳戶回復支出:', oldAmount, '新餘額:', oldAccount.balance);
         }
         await oldAccount.save();
       }
@@ -492,8 +540,10 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       if (newAccount) {
         if (record.type === 'income') {
           newAccount.balance += newAmount;
+          console.log('💰 新帳戶增加收入:', newAmount, '新餘額:', newAccount.balance);
         } else if (record.type === 'expense') {
           newAccount.balance -= newAmount;
+          console.log('💸 新帳戶扣除支出:', newAmount, '新餘額:', newAccount.balance);
         }
         await newAccount.save();
       }
@@ -506,10 +556,20 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     });
   } catch (error) {
     console.error('更新記帳記錄錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '更新記帳記錄失敗' 
-    });
+    
+    // 檢查是否是 ObjectId 轉換錯誤
+    if (error instanceof Error && error.message.includes('Cast to ObjectId failed')) {
+      console.error('❌ ObjectId 轉換失敗:', error.message);
+      res.status(400).json({
+        success: false,
+        message: 'ID 格式錯誤，請檢查類別或帳戶 ID'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: '更新記帳記錄失敗'
+      });
+    }
   }
 });
 

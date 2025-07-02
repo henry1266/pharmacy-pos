@@ -29,7 +29,8 @@ import {
   Business,
   Category as CategoryIcon,
   ChevronRight as ChevronRightIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  Speed as QuickRecordIcon
 } from '@mui/icons-material';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { Account2, Category2, AccountingRecord2 } from '@pharmacy-pos/shared/types/accounting2';
@@ -41,6 +42,7 @@ interface AccountingTreeViewProps {
   onAddAccount?: () => void;
   onAddCategory?: (type: 'income' | 'expense', parentId?: string, organizationId?: string | null) => void;
   onAddRecord?: () => void;
+  onQuickRecord?: (type: 'income' | 'expense', categoryId: string, organizationId?: string | null) => void;
 }
 
 interface CategorySummary {
@@ -63,7 +65,8 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
   organizations,
   onAddAccount,
   onAddCategory,
-  onAddRecord
+  onAddRecord,
+  onQuickRecord
 }) => {
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<Account2[]>([]);
@@ -210,7 +213,9 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
         name: '股東權益',
         icon: <EquityIcon />,
         color: '#2e7d32',
-        total: equityCategories.reduce((sum, cat) => sum + calculateCategoryTotal(cat._id), 0),
+        total: equityCategories
+          .filter(cat => !cat.parentId) // 只計算根類別，避免重複計算
+          .reduce((sum, cat) => sum + calculateCategoryTotal(cat._id), 0),
         count: equityCategories.length,
         items: equityCategories
       },
@@ -228,7 +233,9 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
         name: '收入類別',
         icon: <IncomeIcon />,
         color: '#388e3c',
-        total: incomeCategories.reduce((sum, cat) => sum + calculateCategoryTotal(cat._id), 0),
+        total: incomeCategories
+          .filter(cat => !cat.parentId) // 只計算根類別，避免重複計算
+          .reduce((sum, cat) => sum + calculateCategoryTotal(cat._id), 0),
         count: incomeCategories.length,
         items: incomeCategories
       },
@@ -237,7 +244,9 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
         name: '支出類別',
         icon: <ExpenseIcon />,
         color: '#d32f2f',
-        total: expenseCategories.reduce((sum, cat) => sum + calculateCategoryTotal(cat._id), 0),
+        total: expenseCategories
+          .filter(cat => !cat.parentId) // 只計算根類別，避免重複計算
+          .reduce((sum, cat) => sum + calculateCategoryTotal(cat._id), 0),
         count: expenseCategories.length,
         items: expenseCategories
       }
@@ -301,7 +310,32 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
 
   // 處理子類別新增
   const handleAddSubCategory = (parentCategory: Category2) => {
-    onAddCategory?.(parentCategory.type, parentCategory._id, selectedOrganizationId);
+    // 從父類別中獲取機構ID
+    const categoryOrgId = parentCategory.organizationId || null;
+    
+    console.log('handleAddSubCategory 調用:', {
+      parentCategory: parentCategory.name,
+      parentId: parentCategory._id,
+      type: parentCategory.type,
+      categoryOrgId,
+      selectedOrganizationId
+    });
+    
+    onAddCategory?.(parentCategory.type, parentCategory._id, categoryOrgId);
+  };
+
+  // 處理快速記帳
+  const handleQuickRecord = (category: Category2) => {
+    const categoryOrgId = category.organizationId || selectedOrganizationId;
+    
+    console.log('handleQuickRecord 調用:', {
+      categoryName: category.name,
+      categoryId: category._id,
+      type: category.type,
+      organizationId: categoryOrgId
+    });
+    
+    onQuickRecord?.(category.type, category._id, categoryOrgId);
   };
 
   // 渲染類別項目（支援子類別）
@@ -309,7 +343,7 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
     const children = categories.filter(cat => cat.parentId === category._id);
     const hasChildren = children.length > 0;
     const isExpanded = expandedCategories.has(category._id);
-    const categoryTotal = calculateCategoryTotal(category._id, false); // 不包含子類別
+    const categoryTotal = calculateCategoryTotal(category._id, true); // 包含子類別金額
     const categoryRecords = getCategoryRecords(category._id);
 
     return (
@@ -354,6 +388,18 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
             >
               {formatCurrency(categoryTotal)}
             </Typography>
+            <Tooltip title="快速記帳">
+              <IconButton
+                size="small"
+                onClick={() => handleQuickRecord(category)}
+                sx={{
+                  color: 'success.main',
+                  '&:hover': { bgcolor: 'success.light', color: 'white' }
+                }}
+              >
+                <QuickRecordIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="新增子類別">
               <IconButton
                 size="small"

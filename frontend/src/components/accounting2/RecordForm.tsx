@@ -33,6 +33,9 @@ interface RecordFormProps {
   selectedOrganizationId: string | null;
   accounts: Account2[];
   categories: Category2[];
+  defaultType?: 'income' | 'expense' | 'transfer';
+  defaultCategoryId?: string;
+  defaultOrganizationId?: string | null;
 }
 
 const RecordForm: React.FC<RecordFormProps> = ({
@@ -43,7 +46,10 @@ const RecordForm: React.FC<RecordFormProps> = ({
   organizations,
   selectedOrganizationId,
   accounts,
-  categories
+  categories,
+  defaultType,
+  defaultCategoryId,
+  defaultOrganizationId
 }) => {
   const [formData, setFormData] = useState({
     type: 'expense' as 'income' | 'expense' | 'transfer',
@@ -83,16 +89,18 @@ const RecordForm: React.FC<RecordFormProps> = ({
         organizationId: organizationIdValue
       });
     } else {
-      // 新增模式
+      // 新增模式 - 使用預設值
+      const orgId = defaultOrganizationId || selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '');
+      
       setFormData({
-        type: 'expense',
+        type: defaultType || 'expense',
         amount: '',
-        categoryId: '',
+        categoryId: defaultCategoryId || '',
         accountId: '',
         date: new Date(),
         description: '',
         tags: [],
-        organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
+        organizationId: orgId
       });
     }
     setErrors({});
@@ -179,15 +187,17 @@ const RecordForm: React.FC<RecordFormProps> = ({
   };
 
   const handleClose = () => {
+    const orgId = defaultOrganizationId || selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '');
+    
     setFormData({
-      type: 'expense',
+      type: defaultType || 'expense',
       amount: '',
-      categoryId: '',
+      categoryId: defaultCategoryId || '',
       accountId: '',
       date: new Date(),
       description: '',
       tags: [],
-      organizationId: selectedOrganizationId || (organizations.length > 0 ? organizations[0]._id : '')
+      organizationId: orgId
     });
     setErrors({});
     setTagInput('');
