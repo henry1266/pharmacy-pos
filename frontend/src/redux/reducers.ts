@@ -455,6 +455,192 @@ export const shippingOrdersReducer = createShippingOrdersReducer(
 /**
  * 根狀態介面
  */
+// 複式記帳系統狀態介面
+export interface Account2State {
+  accounts: any[];
+  loading: boolean;
+  error: string | null;
+}
+
+export interface Category2State {
+  categories: any[];
+  loading: boolean;
+  error: string | null;
+}
+
+export interface Organization2State {
+  organizations: any[];
+  loading: boolean;
+  error: string | null;
+}
+
+export interface TransactionGroup2State {
+  transactionGroups: any[];
+  currentTransactionGroup: any | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface AccountingEntry2State {
+  entries: any[];
+  loading: boolean;
+  error: string | null;
+}
+
+export interface AccountBalance2State {
+  balances: any[];
+  loading: boolean;
+  error: string | null;
+}
+
+// 複式記帳系統 reducers
+const createInitialAccount2State = (): Account2State => ({
+  accounts: [],
+  loading: false,
+  error: null
+});
+
+const createInitialCategory2State = (): Category2State => ({
+  categories: [],
+  loading: false,
+  error: null
+});
+
+const createInitialOrganization2State = (): Organization2State => ({
+  organizations: [],
+  loading: false,
+  error: null
+});
+
+const createInitialTransactionGroup2State = (): TransactionGroup2State => ({
+  transactionGroups: [],
+  currentTransactionGroup: null,
+  loading: false,
+  error: null
+});
+
+const createInitialAccountingEntry2State = (): AccountingEntry2State => ({
+  entries: [],
+  loading: false,
+  error: null
+});
+
+const createInitialAccountBalance2State = (): AccountBalance2State => ({
+  balances: [],
+  loading: false,
+  error: null
+});
+
+export const account2Reducer = (state: Account2State = createInitialAccount2State(), action: Action): Account2State => {
+  switch (action.type) {
+    case 'FETCH_ACCOUNTS2_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_ACCOUNTS2_SUCCESS':
+      return { ...state, accounts: action.payload, loading: false, error: null };
+    case 'FETCH_ACCOUNTS2_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const category2Reducer = (state: Category2State = createInitialCategory2State(), action: Action): Category2State => {
+  switch (action.type) {
+    case 'FETCH_CATEGORIES2_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_CATEGORIES2_SUCCESS':
+      return { ...state, categories: action.payload, loading: false, error: null };
+    case 'FETCH_CATEGORIES2_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const organization2Reducer = (state: Organization2State = createInitialOrganization2State(), action: Action): Organization2State => {
+  switch (action.type) {
+    case 'FETCH_ORGANIZATIONS2_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_ORGANIZATIONS2_SUCCESS':
+      return { ...state, organizations: action.payload, loading: false, error: null };
+    case 'FETCH_ORGANIZATIONS2_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const transactionGroup2Reducer = (state: TransactionGroup2State = createInitialTransactionGroup2State(), action: Action): TransactionGroup2State => {
+  switch (action.type) {
+    case 'FETCH_TRANSACTION_GROUPS2_REQUEST':
+    case 'CREATE_TRANSACTION_GROUP2_REQUEST':
+    case 'UPDATE_TRANSACTION_GROUP2_REQUEST':
+    case 'DELETE_TRANSACTION_GROUP2_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_TRANSACTION_GROUPS2_SUCCESS':
+      return { ...state, transactionGroups: action.payload, loading: false, error: null };
+    case 'CREATE_TRANSACTION_GROUP2_SUCCESS':
+      return {
+        ...state,
+        transactionGroups: [...state.transactionGroups, action.payload],
+        currentTransactionGroup: action.payload,
+        loading: false,
+        error: null
+      };
+    case 'UPDATE_TRANSACTION_GROUP2_SUCCESS':
+      return {
+        ...state,
+        transactionGroups: state.transactionGroups.map(tg =>
+          tg._id === action.payload._id ? action.payload : tg
+        ),
+        currentTransactionGroup: action.payload,
+        loading: false,
+        error: null
+      };
+    case 'DELETE_TRANSACTION_GROUP2_SUCCESS':
+      return {
+        ...state,
+        transactionGroups: state.transactionGroups.filter(tg => tg._id !== action.payload),
+        currentTransactionGroup: null,
+        loading: false,
+        error: null
+      };
+    case 'FETCH_TRANSACTION_GROUPS2_FAILURE':
+    case 'CREATE_TRANSACTION_GROUP2_FAILURE':
+    case 'UPDATE_TRANSACTION_GROUP2_FAILURE':
+    case 'DELETE_TRANSACTION_GROUP2_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const accountingEntry2Reducer = (state: AccountingEntry2State = createInitialAccountingEntry2State(), action: Action): AccountingEntry2State => {
+  switch (action.type) {
+    case 'FETCH_ACCOUNTING_ENTRIES2_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_ACCOUNTING_ENTRIES2_SUCCESS':
+      return { ...state, entries: action.payload, loading: false, error: null };
+    case 'FETCH_ACCOUNTING_ENTRIES2_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const accountBalance2Reducer = (state: AccountBalance2State = createInitialAccountBalance2State(), action: Action): AccountBalance2State => {
+  switch (action.type) {
+    case 'FETCH_ACCOUNT_BALANCES2_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_ACCOUNT_BALANCES2_SUCCESS':
+      return { ...state, balances: action.payload, loading: false, error: null };
+    case 'FETCH_ACCOUNT_BALANCES2_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
 export interface RootState {
   auth: AuthState;
   products: ProductsState;
@@ -466,4 +652,11 @@ export interface RootState {
   reports: ReportsState;
   purchaseOrders: PurchaseOrdersState;
   shippingOrders: ShippingOrdersState;
+  // 複式記帳系統狀態
+  account2: Account2State;
+  category2: Category2State;
+  organization: Organization2State;
+  transactionGroup2: TransactionGroup2State;
+  accountingEntry2: AccountingEntry2State;
+  accountBalance2: AccountBalance2State;
 }

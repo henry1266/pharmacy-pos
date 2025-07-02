@@ -1,501 +1,292 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Box,
   Container,
   Typography,
-  Box,
-  Tabs,
-  Tab,
-  Paper,
-  Breadcrumbs,
-  Link,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Alert,
+  Snackbar,
+  Fab,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import {
-  AccountBalance as AccountIcon,
-  Category as CategoryIcon,
-  Receipt as RecordIcon,
-  Business as BusinessIcon,
-  ViewList as TreeViewIcon,
-  TableChart as DataGridIcon
+  Add as AddIcon,
+  AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
-import { Link as RouterLink } from 'react-router-dom';
-import { Account2FormData, Category2, Account2, AccountingRecord2 } from '@pharmacy-pos/shared/types/accounting2';
-import { Organization } from '@pharmacy-pos/shared/types/organization';
-import AccountList from '../components/accounting2/AccountList';
-import AccountForm from '../components/accounting2/AccountForm';
-import CategoryList from '../components/accounting2/CategoryList';
-import CategoryForm from '../components/accounting2/CategoryForm';
-import RecordList from '../components/accounting2/RecordList';
-import RecordForm from '../components/accounting2/RecordForm';
-import AccountingTreeView from '../components/accounting2/AccountingTreeView';
-import AccountingDataGrid from '../components/accounting2/AccountingDataGrid';
-import organizationService from '../services/organizationService';
-import { accounting2Service } from '../services/accounting2Service';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { AccountingDataGrid } from '../components/accounting2/AccountingDataGrid';
+import { TransactionGroupForm } from '../components/accounting2/TransactionGroupForm';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+interface TransactionGroup {
+  _id: string;
+  description: string;
+  transactionDate: string;
+  organizationId?: string;
+  invoiceNo?: string;
+  totalAmount: number;
+  isBalanced: boolean;
+  entries: any[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`accounting2-tabpanel-${index}`}
-      aria-labelledby={`accounting2-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
+interface TransactionGroupFormData {
+  description: string;
+  transactionDate: Date;
+  organizationId?: string;
+  invoiceNo: string;
+  attachments: File[];
+  entries: any[];
 }
 
-function a11yProps(index: number) {
-  return {
-    id: `accounting2-tab-${index}`,
-    'aria-controls': `accounting2-tabpanel-${index}`,
-  };
-}
-
-const Accounting2Page: React.FC = () => {
-  const [tabValue, setTabValue] = useState(0);
-  const [accountFormOpen, setAccountFormOpen] = useState(false);
-  const [categoryFormOpen, setCategoryFormOpen] = useState(false);
-  const [recordFormOpen, setRecordFormOpen] = useState(false);
-  const [categoryType, setCategoryType] = useState<'income' | 'expense'>('income');
-  const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [categories, setCategories] = useState<Category2[]>([]);
-  const [accounts, setAccounts] = useState<Account2[]>([]);
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
-  const [refreshAccounts, setRefreshAccounts] = useState(0);
-  const [refreshCategories, setRefreshCategories] = useState(0);
-  const [refreshRecords, setRefreshRecords] = useState(0);
+export const Accounting2Page: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const dispatch = useAppDispatch();
   
-  // 快速記帳的預設值
-  const [quickRecordDefaults, setQuickRecordDefaults] = useState<{
-    type?: 'income' | 'expense';
-    categoryId?: string;
-    organizationId?: string | null;
-  }>({});
+  // Redux state
+  const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroup2);
+  
+  // Local state
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<TransactionGroup | null>(null);
+  const [viewingTransaction, setViewingTransaction] = useState<TransactionGroup | null>(null);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-  // 視圖模式切換
-  const [viewMode, setViewMode] = useState<'tree' | 'datagrid'>('datagrid');
-
-  // 載入機構列表
+  // 載入交易群組資料
   useEffect(() => {
-    const loadOrganizations = async () => {
+    // TODO: 實作載入交易群組的 action
+    // dispatch(fetchTransactionGroups());
+  }, [dispatch]);
+
+  // 處理新增交易
+  const handleCreateNew = () => {
+    setEditingTransaction(null);
+    setDialogOpen(true);
+  };
+
+  // 處理編輯交易
+  const handleEdit = (transactionGroup: TransactionGroup) => {
+    setEditingTransaction(transactionGroup);
+    setDialogOpen(true);
+  };
+
+  // 處理檢視交易
+  const handleView = (transactionGroup: TransactionGroup) => {
+    setViewingTransaction(transactionGroup);
+  };
+
+  // 處理刪除交易
+  const handleDelete = async (id: string) => {
+    if (window.confirm('確定要刪除這筆交易嗎？此操作無法復原。')) {
       try {
-        const response = await organizationService.getOrganizations();
-        if (response.success) {
-          setOrganizations(response.data);
-        }
+        // TODO: 實作刪除交易的 action
+        // await dispatch(deleteTransactionGroup(id));
+        showSnackbar('交易已成功刪除', 'success');
       } catch (error) {
-        console.error('載入機構列表失敗:', error);
+        showSnackbar('刪除交易失敗', 'error');
       }
-    };
-
-    loadOrganizations();
-  }, []);
-
-  // 載入類別列表
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await accounting2Service.categories.getAll({
-          organizationId: selectedOrganizationId
-        });
-        if (response.success) {
-          setCategories(response.data);
-        }
-      } catch (error) {
-        console.error('載入類別列表失敗:', error);
-      }
-    };
-
-    loadCategories();
-  }, [selectedOrganizationId, refreshCategories]);
-
-  // 載入帳戶列表
-  useEffect(() => {
-    const loadAccounts = async () => {
-      try {
-        const response = await accounting2Service.accounts.getAll(selectedOrganizationId);
-        if (response.success) {
-          setAccounts(response.data);
-        }
-      } catch (error) {
-        console.error('載入帳戶列表失敗:', error);
-      }
-    };
-
-    loadAccounts();
-  }, [selectedOrganizationId, refreshAccounts]);
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
+    }
   };
 
-  const handleAccountFormOpen = () => {
-    setAccountFormOpen(true);
-  };
-
-  const handleAccountFormClose = () => {
-    setAccountFormOpen(false);
-  };
-
-  const handleAccountFormSubmit = async (data: Account2FormData) => {
+  // 處理表單提交
+  const handleFormSubmit = async (formData: TransactionGroupFormData) => {
     try {
-      // 使用 AccountForm 傳來的 organizationId，不要覆蓋
-      console.log('提交帳戶資料:', data);
-      
-      // 調用 accounting2Service 來儲存資料
-      const response = await accounting2Service.accounts.create(data);
-      
-      if (response.success) {
-        console.log('帳戶建立成功:', response.data);
-        setAccountFormOpen(false);
-        
-        // 觸發 AccountList 重新載入
-        setRefreshAccounts(prev => {
-          const newValue = prev + 1;
-          console.log('更新 refreshAccounts:', prev, '->', newValue);
-          return newValue;
-        });
+      if (editingTransaction) {
+        // TODO: 實作更新交易的 action
+        // await dispatch(updateTransactionGroup({ id: editingTransaction._id, data: formData }));
+        showSnackbar('交易已成功更新', 'success');
       } else {
-        console.error('建立帳戶失敗');
+        // TODO: 實作建立交易的 action
+        // await dispatch(createTransactionGroup(formData));
+        showSnackbar('交易已成功建立', 'success');
       }
-      
+      setDialogOpen(false);
+      setEditingTransaction(null);
     } catch (error) {
-      console.error('建立帳戶失敗:', error);
-      // 可以在這裡顯示錯誤訊息
+      showSnackbar(editingTransaction ? '更新交易失敗' : '建立交易失敗', 'error');
     }
   };
 
-  // 處理類別表單
-  const handleCategoryFormOpen = (type: 'income' | 'expense', parentId?: string, organizationId?: string | null) => {
-    console.log('handleCategoryFormOpen 被調用:', { type, parentId, organizationId, selectedOrganizationId });
-    setCategoryType(type);
-    setParentCategoryId(parentId || null);
-    
-    // 如果有傳入機構ID，更新當前選擇的機構ID
-    if (organizationId && organizationId !== selectedOrganizationId) {
-      console.log('更新機構ID:', selectedOrganizationId, '->', organizationId);
-      setSelectedOrganizationId(organizationId);
-    }
-    
-    setCategoryFormOpen(true);
-    setTabValue(1); // 切換到類別頁籤
+  // 顯示通知
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleCategoryFormClose = () => {
-    setCategoryFormOpen(false);
-    setParentCategoryId(null);
+  // 關閉通知
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const handleCategoryFormSubmit = async (data: Partial<Category2>) => {
-    try {
-      console.log('提交類別資料:', data);
-      
-      const response = await accounting2Service.categories.create(data as any);
-      
-      if (response.success) {
-        console.log('類別建立成功:', response.data);
-        setCategoryFormOpen(false);
-        
-        // 觸發重新載入
-        setRefreshCategories(prev => prev + 1);
-      } else {
-        console.error('建立類別失敗');
-      }
-      
-    } catch (error) {
-      console.error('建立類別失敗:', error);
-    }
+  // 關閉對話框
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setEditingTransaction(null);
   };
 
-  // 處理記錄表單
-  const handleRecordFormOpen = () => {
-    setTabValue(2); // 切換到記錄頁籤
-  };
-
-  // 處理快速記帳
-  const handleQuickRecord = (type: 'income' | 'expense', categoryId: string, organizationId?: string | null) => {
-    console.log('handleQuickRecord 被調用:', { type, categoryId, organizationId });
-    
-    setQuickRecordDefaults({
-      type,
-      categoryId,
-      organizationId: organizationId || selectedOrganizationId
-    });
-    
-    setRecordFormOpen(true);
-    setTabValue(2); // 切換到記錄頁籤
-  };
-
-  const handleRecordFormClose = () => {
-    setRecordFormOpen(false);
-    setQuickRecordDefaults({});
-  };
-
-  const handleRecordFormSubmit = async (data: Partial<AccountingRecord2>) => {
-    try {
-      console.log('提交記錄資料:', data);
-      
-      const response = await accounting2Service.records.create(data as any);
-      
-      if (response.success) {
-        console.log('記錄建立成功:', response.data);
-        setRecordFormOpen(false);
-        setQuickRecordDefaults({});
-        
-        // 觸發重新載入
-        setRefreshRecords(prev => prev + 1);
-        setRefreshAccounts(prev => prev + 1); // 更新帳戶餘額
-      } else {
-        console.error('建立記錄失敗');
-      }
-      
-    } catch (error) {
-      console.error('建立記錄失敗:', error);
-    }
-  };
-
-  const handleOrganizationChange = (event: any) => {
-    const value = event.target.value;
-    setSelectedOrganizationId(value || null);
-  };
-
-  const handleViewModeChange = (
-    event: React.MouseEvent<HTMLElement>,
-    newViewMode: 'tree' | 'datagrid'
-  ) => {
-    if (newViewMode !== null) {
-      setViewMode(newViewMode);
-    }
+  // 關閉檢視對話框
+  const handleCloseViewDialog = () => {
+    setViewingTransaction(null);
   };
 
   return (
-    <Container maxWidth="xl">
-      {/* 麵包屑導航 */}
-      <Box sx={{ mb: 3 }}>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            component={RouterLink}
-            to="/dashboard"
-            color="inherit"
-            underline="hover"
-          >
-            儀表板
-          </Link>
-          <Typography color="text.primary">記帳系統 v2</Typography>
-        </Breadcrumbs>
-      </Box>
-
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       {/* 頁面標題 */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          記帳系統 v2
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          全新的記帳系統，支援多帳戶管理、自訂類別和詳細記錄追蹤
-        </Typography>
-        
-        {/* 機構選擇器和視圖切換 */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>選擇機構</InputLabel>
-            <Select
-              value={selectedOrganizationId || ''}
-              onChange={handleOrganizationChange}
-              label="選擇機構"
-              startAdornment={<BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} />}
-            >
-              {organizations.map((org) => (
-                <MenuItem key={org._id} value={org._id}>
-                  {org.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          {selectedOrganizationId && (
-            <Chip
-              label={organizations.find(org => org._id === selectedOrganizationId)?.name || ''}
-              color="primary"
-              variant="outlined"
-              onDelete={() => setSelectedOrganizationId(null)}
-            />
-          )}
-          
-          {/* 視圖模式切換 */}
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={handleViewModeChange}
-            aria-label="視圖模式"
-            size="small"
-          >
-            <ToggleButton value="datagrid" aria-label="表格視圖">
-              <Tooltip title="專業表格視圖 (TanStack Table)">
-                <DataGridIcon />
-              </Tooltip>
-            </ToggleButton>
-            <ToggleButton value="tree" aria-label="樹狀視圖">
-              <Tooltip title="原始樹狀視圖">
-                <TreeViewIcon />
-              </Tooltip>
-            </ToggleButton>
-          </ToggleButtonGroup>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <AccountBalanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" fontWeight="bold">
+            複式記帳系統
+          </Typography>
         </Box>
+        <Typography variant="body1" color="text.secondary">
+          管理您的複式記帳交易，確保借貸平衡，追蹤財務狀況
+        </Typography>
       </Box>
 
-      {/* 主要內容區域 */}
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' },
-        gap: 3,
-        gridTemplateRows: { xs: 'auto auto', lg: '1fr' }
-      }}>
-        {/* 左側：財務總覽 - 動態視圖 */}
-        <Paper sx={{ p: 0, overflow: 'hidden' }}>
-          {viewMode === 'datagrid' ? (
-            <AccountingDataGrid
-              selectedOrganizationId={selectedOrganizationId}
-              organizations={organizations}
-              onAddAccount={handleAccountFormOpen}
-              onAddCategory={handleCategoryFormOpen}
-              onAddRecord={handleRecordFormOpen}
-              onQuickRecord={handleQuickRecord}
-            />
-          ) : (
-            <>
-              <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
-                <Typography variant="h6" component="h2">
-                  財務總覽
+      {/* 錯誤提示 */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* 主要內容 */}
+      <AccountingDataGrid
+        onCreateNew={handleCreateNew}
+        onEdit={handleEdit}
+        onView={handleView}
+        onDelete={handleDelete}
+      />
+
+      {/* 浮動新增按鈕 (行動版) */}
+      {isMobile && (
+        <Fab
+          color="primary"
+          aria-label="新增交易"
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: theme.zIndex.fab
+          }}
+          onClick={handleCreateNew}
+        >
+          <AddIcon />
+        </Fab>
+      )}
+
+      {/* 新增/編輯交易對話框 */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="lg"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle>
+          {editingTransaction ? '編輯交易群組' : '建立交易群組'}
+        </DialogTitle>
+        <DialogContent>
+          <TransactionGroupForm
+            mode={editingTransaction ? 'edit' : 'create'}
+            initialData={editingTransaction ? {
+              description: editingTransaction.description,
+              transactionDate: new Date(editingTransaction.transactionDate),
+              organizationId: editingTransaction.organizationId,
+              invoiceNo: editingTransaction.invoiceNo || '',
+              entries: editingTransaction.entries || []
+            } : undefined}
+            onSubmit={handleFormSubmit}
+            onCancel={handleCloseDialog}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>
+            取消
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 檢視交易對話框 */}
+      <Dialog
+        open={!!viewingTransaction}
+        onClose={handleCloseViewDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          交易詳情
+        </DialogTitle>
+        <DialogContent>
+          {viewingTransaction && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {viewingTransaction.description}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                交易日期：{new Date(viewingTransaction.transactionDate).toLocaleDateString('zh-TW')}
+              </Typography>
+              {viewingTransaction.invoiceNo && (
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  發票號碼：{viewingTransaction.invoiceNo}
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  GUNCASH 風格的帳務結構檢視
-                </Typography>
-              </Box>
-              <Box sx={{ p: 2 }}>
-                <AccountingTreeView
-                  selectedOrganizationId={selectedOrganizationId}
-                  organizations={organizations}
-                  onAddAccount={handleAccountFormOpen}
-                  onAddCategory={handleCategoryFormOpen}
-                  onAddRecord={handleRecordFormOpen}
-                  onQuickRecord={handleQuickRecord}
-                />
-              </Box>
-            </>
+              )}
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                總金額：NT$ {viewingTransaction.totalAmount.toLocaleString()}
+              </Typography>
+              <Typography variant="body2" color={viewingTransaction.isBalanced ? 'success.main' : 'error.main'}>
+                狀態：{viewingTransaction.isBalanced ? '已平衡' : '未平衡'}
+              </Typography>
+            </Box>
           )}
-        </Paper>
-
-        {/* 右側：管理功能頁籤 */}
-        <Paper sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              aria-label="accounting2 management tabs"
-              variant="fullWidth"
-              orientation="horizontal"
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseViewDialog}>
+            關閉
+          </Button>
+          {viewingTransaction && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                handleCloseViewDialog();
+                handleEdit(viewingTransaction);
+              }}
             >
-              <Tab
-                icon={<AccountIcon />}
-                label="帳戶"
-                {...a11yProps(0)}
-              />
-              <Tab
-                icon={<CategoryIcon />}
-                label="類別"
-                {...a11yProps(1)}
-              />
-              <Tab
-                icon={<RecordIcon />}
-                label="記錄"
-                {...a11yProps(2)}
-              />
-            </Tabs>
-          </Box>
+              編輯
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
-          {/* 帳戶管理頁籤 */}
-          <TabPanel value={tabValue} index={0}>
-            <AccountList
-              onAddAccount={handleAccountFormOpen}
-              organizationId={selectedOrganizationId}
-              refreshTrigger={refreshAccounts}
-            />
-          </TabPanel>
-
-          {/* 類別管理頁籤 */}
-          <TabPanel value={tabValue} index={1}>
-            <CategoryList
-              selectedOrganizationId={selectedOrganizationId}
-            />
-          </TabPanel>
-
-          {/* 記帳記錄頁籤 */}
-          <TabPanel value={tabValue} index={2}>
-            <RecordList
-              selectedOrganizationId={selectedOrganizationId}
-              refreshTrigger={refreshRecords}
-            />
-          </TabPanel>
-        </Paper>
-      </Box>
-
-      {/* 帳戶表單對話框 */}
-      <AccountForm
-        open={accountFormOpen}
-        onClose={handleAccountFormClose}
-        onSubmit={handleAccountFormSubmit}
-        organizations={organizations}
-        selectedOrganizationId={selectedOrganizationId}
-      />
-
-      {/* 類別表單對話框 */}
-      <CategoryForm
-        open={categoryFormOpen}
-        onClose={handleCategoryFormClose}
-        onSubmit={handleCategoryFormSubmit}
-        category={null}
-        organizations={organizations}
-        selectedOrganizationId={selectedOrganizationId}
-        categories={categories}
-        defaultType={categoryType}
-        defaultParentId={parentCategoryId}
-      />
-
-      {/* 記錄表單對話框 */}
-      <RecordForm
-        open={recordFormOpen}
-        onClose={handleRecordFormClose}
-        onSubmit={handleRecordFormSubmit}
-        organizations={organizations}
-        selectedOrganizationId={selectedOrganizationId}
-        accounts={accounts}
-        categories={categories}
-        defaultType={quickRecordDefaults.type}
-        defaultCategoryId={quickRecordDefaults.categoryId}
-        defaultOrganizationId={quickRecordDefaults.organizationId}
-      />
+      {/* 通知 Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

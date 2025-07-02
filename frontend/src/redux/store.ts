@@ -13,6 +13,12 @@ import {
   reportsReducer,
   purchaseOrdersReducer,
   shippingOrdersReducer,
+  account2Reducer,
+  category2Reducer,
+  organization2Reducer,
+  transactionGroup2Reducer,
+  accountingEntry2Reducer,
+  accountBalance2Reducer,
   RootState,
   Action
 } from './reducers';
@@ -34,7 +40,14 @@ const rootReducer = combineReducers({
   dashboard: dashboardReducer,
   reports: reportsReducer,
   purchaseOrders: purchaseOrdersReducer,
-  shippingOrders: shippingOrdersReducer
+  shippingOrders: shippingOrdersReducer,
+  // 複式記帳系統 reducers
+  account2: account2Reducer,
+  category2: category2Reducer,
+  organization: organization2Reducer,
+  transactionGroup2: transactionGroup2Reducer,
+  accountingEntry2: accountingEntry2Reducer,
+  accountBalance2: accountBalance2Reducer
 });
 
 // 定義 AppDispatch 類型
