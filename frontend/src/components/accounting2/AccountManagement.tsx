@@ -40,7 +40,8 @@ import {
   Search as SearchIcon,
   AccountTree as AccountTreeIcon,
   Category as CategoryIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import { RootState } from '../../redux/reducers';
 import {
@@ -53,6 +54,7 @@ import {
   fetchAccountsHierarchy,
   fetchAccountsByType
 } from '../../redux/actions';
+import organizationService, { Organization } from '../../services/organizationService';
 
 // 型別定義
 interface Account {
@@ -84,6 +86,7 @@ interface AccountFormData {
   initialBalance: number;
   currency: string;
   description?: string;
+  organizationId?: string;
 }
 
 const AccountManagement: React.FC = () => {
@@ -95,6 +98,11 @@ const AccountManagement: React.FC = () => {
   const [accountTree, setAccountTree] = useState<Account[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccountType, setSelectedAccountType] = useState<string>('');
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
+  
+  // 機構相關狀態
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [organizationsLoading, setOrganizationsLoading] = useState(false);
   
   // 對話框狀態
   const [openDialog, setOpenDialog] = useState(false);
@@ -109,7 +117,8 @@ const AccountManagement: React.FC = () => {
     type: 'other',
     initialBalance: 0,
     currency: 'TWD',
-    description: ''
+    description: '',
+    organizationId: ''
   });
   
   // 通知狀態
@@ -140,14 +149,32 @@ const AccountManagement: React.FC = () => {
     { value: 'other', label: '其他' }
   ];
 
+  // 載入機構列表
+  const loadOrganizations = async () => {
+    try {
+      setOrganizationsLoading(true);
+      console.log('🏢 開始載入機構列表...');
+      const response = await organizationService.getOrganizations({ limit: 100 });
+      console.log('🏢 機構列表載入成功:', response.data);
+      setOrganizations(response.data);
+    } catch (error) {
+      console.error('❌ 載入機構列表失敗:', error);
+      showNotification('載入機構列表失敗', 'error');
+    } finally {
+      setOrganizationsLoading(false);
+    }
+  };
+
   // 載入會計科目
   const loadAccounts = () => {
-    dispatch(fetchAccounts2() as any);
+    console.log('📊 載入會計科目，機構ID:', selectedOrganizationId);
+    dispatch(fetchAccounts2(selectedOrganizationId) as any);
   };
 
   // 載入科目樹狀結構
   const loadAccountTree = () => {
-    dispatch(fetchAccountsHierarchy() as any);
+    console.log('🌳 載入科目樹狀結構，機構ID:', selectedOrganizationId);
+    dispatch(fetchAccountsHierarchy(selectedOrganizationId) as any);
   };
 
   // 搜尋會計科目
@@ -188,7 +215,7 @@ const AccountManagement: React.FC = () => {
       return;
     }
 
-    dispatch(deleteAccount2(accountId) as any);
+    dispatch(deleteAccount2(accountId, selectedOrganizationId) as any);
     showNotification('會計科目刪除成功', 'success');
   };
 
@@ -204,7 +231,8 @@ const AccountManagement: React.FC = () => {
         parentId: account.parentId,
         initialBalance: account.initialBalance,
         currency: account.currency,
-        description: account.description || ''
+        description: account.description || '',
+        organizationId: account.organizationId || ''
       });
     } else {
       setEditingAccount(null);
@@ -215,7 +243,8 @@ const AccountManagement: React.FC = () => {
         type: 'other',
         initialBalance: 0,
         currency: 'TWD',
-        description: ''
+        description: '',
+        organizationId: selectedOrganizationId || ''
       });
     }
     setOpenDialog(true);
@@ -294,9 +323,20 @@ const AccountManagement: React.FC = () => {
 
   // 初始化載入
   useEffect(() => {
+    loadOrganizations();
     loadAccounts();
     loadAccountTree();
   }, []);
+
+  // 機構選擇變更時重新載入資料
+  useEffect(() => {
+    console.log('🔄 機構選擇變更，selectedOrganizationId:', selectedOrganizationId);
+    // 只有在機構列表載入完成後才執行
+    if (organizations.length > 0) {
+      loadAccounts();
+      loadAccountTree();
+    }
+  }, [selectedOrganizationId, organizations.length]);
 
   // 搜尋效果
   useEffect(() => {
@@ -357,6 +397,40 @@ const AccountManagement: React.FC = () => {
         </Box>
       </Box>
 
+      {/* 機構選擇器 */}
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <BusinessIcon color="primary" />
+          <Typography variant="h6">機構選擇</Typography>
+          <FormControl sx={{ minWidth: 250 }}>
+            <InputLabel id="organization-select-label">選擇機構</InputLabel>
+            <Select
+              labelId="organization-select-label"
+              value={selectedOrganizationId}
+              label="選擇機構"
+              onChange={(e) => {
+                const newOrgId = e.target.value;
+                console.log('🏢 機構選擇變更:', { from: selectedOrganizationId, to: newOrgId });
+                setSelectedOrganizationId(newOrgId);
+              }}
+              disabled={organizationsLoading}
+            >
+              <MenuItem value="">
+                <em>所有機構</em>
+              </MenuItem>
+              {organizations.map((org) => (
+                <MenuItem key={org._id} value={org._id}>
+                  {org.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {organizationsLoading && (
+            <CircularProgress size={20} />
+          )}
+        </Box>
+      </Paper>
+
       {/* 搜尋與篩選 */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
@@ -399,6 +473,7 @@ const AccountManagement: React.FC = () => {
               onClick={() => {
                 setSearchTerm('');
                 setSelectedAccountType('');
+                setSelectedOrganizationId('');
                 loadAccounts();
               }}
             >
@@ -514,6 +589,26 @@ const AccountManagement: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>所屬機構</InputLabel>
+                <Select
+                  value={formData.organizationId || ''}
+                  label="所屬機構"
+                  onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
+                  disabled={organizationsLoading}
+                >
+                  <MenuItem value="">
+                    <em>請選擇機構</em>
+                  </MenuItem>
+                  {organizations.map((org) => (
+                    <MenuItem key={org._id} value={org._id}>
+                      {org.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth

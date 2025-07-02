@@ -34,10 +34,28 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     
     // 如果指定機構 ID，則過濾機構帳戶；否則顯示所有帳戶
     if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
-      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
-      console.log('🏢 查詢機構帳戶:', organizationId);
+      try {
+        // 驗證 ObjectId 格式
+        if (!mongoose.Types.ObjectId.isValid(organizationId as string)) {
+          console.error('❌ 無效的機構 ID 格式:', organizationId);
+          res.status(400).json({
+            success: false,
+            message: '無效的機構 ID 格式'
+          });
+          return;
+        }
+        filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+        console.log('🏢 查詢機構帳戶:', organizationId);
+      } catch (error) {
+        console.error('❌ ObjectId 轉換錯誤:', error);
+        res.status(400).json({
+          success: false,
+          message: '機構 ID 格式錯誤'
+        });
+        return;
+      }
     } else {
-      console.log('👤 查詢所有帳戶（包含個人和機構）');
+      console.log('👤 查詢所有帳戶');
       // 不加額外過濾條件，顯示所有該用戶的帳戶
     }
 
@@ -98,7 +116,7 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
 });
 
 // 新增帳戶
-router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) => {
+router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response): Promise<void> => {
   try {
     const userId = req.user?.id || req.user?.userId;
     if (!userId) {
@@ -116,7 +134,8 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       currency,
       description,
       organizationId,
-      organizationIdType: typeof organizationId
+      organizationIdType: typeof organizationId,
+      body: req.body
     });
 
     // 驗證必填欄位
@@ -180,27 +199,63 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         'expense': '5'
       }[accountType] || '1';
 
-      // 查詢該類型下最大的代碼
+      console.log('🔍 generateAccountCode 開始 - accountType:', accountType, 'organizationId:', organizationId);
+
+      // 查詢該類型下最大的代碼 - 移除 createdBy 條件，確保機構內代碼唯一性
       const filter: any = {
-        createdBy: userId,
         accountType,
         code: { $regex: `^${prefix}` }
       };
       
       if (organizationId) {
+        console.log('🔍 加入機構篩選條件');
         filter.organizationId = new mongoose.Types.ObjectId(organizationId);
+      } else {
+        console.log('⚠️ 沒有機構ID，查詢個人科目');
+        // 查詢個人科目（沒有 organizationId 或為 null）
+        filter.$or = [
+          { organizationId: { $exists: false } },
+          { organizationId: null }
+        ];
       }
+
+      console.log('🔍 查詢條件:', JSON.stringify(filter, null, 2));
 
       const lastAccount = await Account2.findOne(filter)
         .sort({ code: -1 })
         .limit(1);
 
+      console.log('🔍 找到的最後科目:', lastAccount);
+
+      let newCode: string;
       if (lastAccount) {
         const lastCode = parseInt(lastAccount.code);
-        return (lastCode + 1).toString().padStart(4, '0');
+        newCode = (lastCode + 1).toString().padStart(4, '0');
       } else {
-        return `${prefix}001`;
+        newCode = `${prefix}001`;
       }
+
+      console.log('🔍 生成的新代碼:', newCode);
+
+      // 檢查新代碼是否已存在（雙重確認）
+      const duplicateCheckFilter: any = { code: newCode };
+      if (organizationId) {
+        duplicateCheckFilter.organizationId = new mongoose.Types.ObjectId(organizationId);
+      } else {
+        duplicateCheckFilter.$or = [
+          { organizationId: { $exists: false } },
+          { organizationId: null }
+        ];
+      }
+
+      const existingAccount = await Account2.findOne(duplicateCheckFilter);
+
+      if (existingAccount) {
+        console.error('❌ 生成的代碼已存在:', newCode, '現有科目:', existingAccount);
+        throw new Error(`會計科目代碼 ${newCode} 已存在於該機構中`);
+      }
+
+      return newCode;
     };
 
     const accountType = getAccountType(type);
@@ -260,10 +315,48 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       message: '帳戶建立成功'
     });
   } catch (error) {
-    console.error('建立帳戶錯誤:', error);
+    console.error('❌ 建立會計科目時發生錯誤:', error);
+    console.error('❌ 錯誤堆疊:', error.stack);
+    console.error('❌ 請求資料:', req.body);
+    
+    // 檢查是否為 MongoDB 相關錯誤
+    if (error.name === 'ValidationError') {
+      console.error('❌ MongoDB 驗證錯誤:', error.errors);
+      res.status(400).json({
+        success: false,
+        message: '資料驗證失敗',
+        error: error.message,
+        details: error.errors
+      });
+      return;
+    }
+    
+    if (error.name === 'CastError') {
+      console.error('❌ MongoDB 型別轉換錯誤:', error);
+      res.status(400).json({
+        success: false,
+        message: 'ID 格式錯誤',
+        error: error.message
+      });
+      return;
+    }
+
+    // 檢查是否為重複鍵錯誤
+    if (error.name === 'MongoServerError' && error.code === 11000) {
+      console.error('❌ MongoDB 重複鍵錯誤:', error);
+      const duplicateField = error.message.match(/dup key: \{ (.+?) :/)?.[1] || 'unknown';
+      res.status(400).json({
+        success: false,
+        message: `${duplicateField === 'code' ? '會計科目代碼' : '資料'}已存在，請重新嘗試`,
+        error: '重複資料錯誤'
+      });
+      return;
+    }
+    
     res.status(500).json({
       success: false,
-      message: '建立帳戶失敗'
+      message: '建立帳戶失敗',
+      error: error.message
     });
   }
 });
@@ -498,7 +591,26 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
     };
     
     if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
-      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+      try {
+        // 驗證 ObjectId 格式
+        if (!mongoose.Types.ObjectId.isValid(organizationId as string)) {
+          console.error('❌ 樹狀結構 - 無效的機構 ID 格式:', organizationId);
+          res.status(400).json({
+            success: false,
+            message: '無效的機構 ID 格式'
+          });
+          return;
+        }
+        filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+        console.log('🌳 查詢機構樹狀結構:', organizationId);
+      } catch (error) {
+        console.error('❌ 樹狀結構 ObjectId 轉換錯誤:', error);
+        res.status(400).json({
+          success: false,
+          message: '機構 ID 格式錯誤'
+        });
+        return;
+      }
     }
 
     // 獲取所有科目並按層級排序
@@ -557,7 +669,26 @@ router.get('/by-type/:accountType', auth, async (req: AuthenticatedRequest, res:
     };
     
     if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
-      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+      try {
+        // 驗證 ObjectId 格式
+        if (!mongoose.Types.ObjectId.isValid(organizationId as string)) {
+          console.error('❌ 依類型查詢 - 無效的機構 ID 格式:', organizationId);
+          res.status(400).json({
+            success: false,
+            message: '無效的機構 ID 格式'
+          });
+          return;
+        }
+        filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+        console.log('📂 依類型查詢機構帳戶:', { accountType, organizationId });
+      } catch (error) {
+        console.error('❌ 依類型查詢 ObjectId 轉換錯誤:', error);
+        res.status(400).json({
+          success: false,
+          message: '機構 ID 格式錯誤'
+        });
+        return;
+      }
     }
 
     const accounts = await Account2.find(filter).sort({ code: 1 });
@@ -703,7 +834,26 @@ router.get('/search', auth, async (req: AuthenticatedRequest, res: express.Respo
     };
     
     if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
-      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+      try {
+        // 驗證 ObjectId 格式
+        if (!mongoose.Types.ObjectId.isValid(organizationId as string)) {
+          console.error('❌ 搜尋 - 無效的機構 ID 格式:', organizationId);
+          res.status(400).json({
+            success: false,
+            message: '無效的機構 ID 格式'
+          });
+          return;
+        }
+        filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+        console.log('🔍 搜尋機構帳戶:', { q, organizationId });
+      } catch (error) {
+        console.error('❌ 搜尋 ObjectId 轉換錯誤:', error);
+        res.status(400).json({
+          success: false,
+          message: '機構 ID 格式錯誤'
+        });
+        return;
+      }
     }
 
     if (accountType && accountType !== '') {

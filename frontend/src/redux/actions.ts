@@ -672,26 +672,34 @@ export const searchShippingOrders = (searchParams: Record<string, string>): AppT
 // 會計科目管理相關 Actions
 
 // 獲取所有會計科目
-export const fetchAccounts2 = (): AppThunk => async (
+export const fetchAccounts2 = (organizationId?: string): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
+    console.log('🔍 fetchAccounts2 開始，organizationId:', organizationId);
     dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
     
-    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts`);
+    const params = organizationId ? { organizationId } : {};
+    console.log('📡 API 請求參數:', params);
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts`, { params });
+    console.log('📡 API 回應:', res.data);
     
     if (res.data.success) {
       dispatch({
         type: 'FETCH_ACCOUNTS2_SUCCESS',
         payload: res.data.data ?? []
       });
+      console.log('✅ fetchAccounts2 成功，資料筆數:', res.data.data?.length || 0);
     } else {
       throw new Error(res.data.message ?? '獲取會計科目失敗');
     }
   } catch (err: any) {
+    console.error('❌ fetchAccounts2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
     dispatch({
       type: 'FETCH_ACCOUNTS2_FAILURE',
-      payload: err.response?.data?.message ?? '獲取會計科目失敗'
+      payload: err.response?.data?.message ?? err.message ?? '獲取會計科目失敗'
     });
   }
 };
@@ -710,6 +718,8 @@ export const createAccount2 = (accountData: any): AppThunk => async (
         type: 'CREATE_ACCOUNT2_SUCCESS',
         payload: res.data.data
       });
+      // 創建成功後重新載入會計科目列表
+      dispatch(fetchAccounts2(accountData.organizationId) as any);
     } else {
       throw new Error(res.data.message ?? '創建會計科目失敗');
     }
@@ -735,6 +745,8 @@ export const updateAccount2 = (id: string, accountData: any): AppThunk => async 
         type: 'UPDATE_ACCOUNT2_SUCCESS',
         payload: res.data.data
       });
+      // 更新成功後重新載入會計科目列表
+      dispatch(fetchAccounts2(accountData.organizationId) as any);
     } else {
       throw new Error(res.data.message ?? '更新會計科目失敗');
     }
@@ -747,7 +759,7 @@ export const updateAccount2 = (id: string, accountData: any): AppThunk => async 
 };
 
 // 刪除會計科目
-export const deleteAccount2 = (id: string): AppThunk => async (
+export const deleteAccount2 = (id: string, organizationId?: string): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
@@ -760,6 +772,8 @@ export const deleteAccount2 = (id: string): AppThunk => async (
         type: 'DELETE_ACCOUNT2_SUCCESS',
         payload: id
       });
+      // 刪除成功後重新載入會計科目列表
+      dispatch(fetchAccounts2(organizationId) as any);
     } else {
       throw new Error(res.data.message ?? '刪除會計科目失敗');
     }
@@ -824,26 +838,34 @@ export const createStandardChart = (): AppThunk => async (
 };
 
 // 獲取會計科目樹狀結構
-export const fetchAccountsHierarchy = (): AppThunk => async (
+export const fetchAccountsHierarchy = (organizationId?: string): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
+    console.log('🌳 fetchAccountsHierarchy 開始，organizationId:', organizationId);
     dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
     
-    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts/tree/hierarchy`);
+    const params = organizationId ? { organizationId } : {};
+    console.log('📡 樹狀結構 API 請求參數:', params);
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts/tree/hierarchy`, { params });
+    console.log('📡 樹狀結構 API 回應:', res.data);
     
     if (res.data.success) {
       dispatch({
         type: 'FETCH_ACCOUNTS2_SUCCESS',
         payload: res.data.data ?? []
       });
+      console.log('✅ fetchAccountsHierarchy 成功，資料筆數:', res.data.data?.length || 0);
     } else {
       throw new Error(res.data.message ?? '獲取會計科目樹狀結構失敗');
     }
   } catch (err: any) {
+    console.error('❌ fetchAccountsHierarchy 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
     dispatch({
       type: 'FETCH_ACCOUNTS2_FAILURE',
-      payload: err.response?.data?.message ?? '獲取會計科目樹狀結構失敗'
+      payload: err.response?.data?.message ?? err.message ?? '獲取會計科目樹狀結構失敗'
     });
   }
 };
