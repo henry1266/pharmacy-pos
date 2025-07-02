@@ -534,11 +534,59 @@ const createInitialAccountBalance2State = (): AccountBalance2State => ({
 export const account2Reducer = (state: Account2State = createInitialAccount2State(), action: Action): Account2State => {
   switch (action.type) {
     case 'FETCH_ACCOUNTS2_REQUEST':
+    case 'CREATE_ACCOUNT2_REQUEST':
+    case 'UPDATE_ACCOUNT2_REQUEST':
+    case 'DELETE_ACCOUNT2_REQUEST':
+    case 'SEARCH_ACCOUNTS2_REQUEST':
+    case 'CREATE_STANDARD_CHART_REQUEST':
       return { ...state, loading: true, error: null };
+    
     case 'FETCH_ACCOUNTS2_SUCCESS':
+    case 'SEARCH_ACCOUNTS2_SUCCESS':
       return { ...state, accounts: action.payload, loading: false, error: null };
+    
+    case 'CREATE_ACCOUNT2_SUCCESS':
+      return {
+        ...state,
+        accounts: [...state.accounts, action.payload],
+        loading: false,
+        error: null
+      };
+    
+    case 'UPDATE_ACCOUNT2_SUCCESS':
+      return {
+        ...state,
+        accounts: state.accounts.map(account =>
+          account._id === action.payload._id ? action.payload : account
+        ),
+        loading: false,
+        error: null
+      };
+    
+    case 'DELETE_ACCOUNT2_SUCCESS':
+      return {
+        ...state,
+        accounts: state.accounts.filter(account => account._id !== action.payload),
+        loading: false,
+        error: null
+      };
+    
+    case 'CREATE_STANDARD_CHART_SUCCESS':
+      return {
+        ...state,
+        accounts: [...state.accounts, ...action.payload],
+        loading: false,
+        error: null
+      };
+    
     case 'FETCH_ACCOUNTS2_FAILURE':
+    case 'CREATE_ACCOUNT2_FAILURE':
+    case 'UPDATE_ACCOUNT2_FAILURE':
+    case 'DELETE_ACCOUNT2_FAILURE':
+    case 'SEARCH_ACCOUNTS2_FAILURE':
+    case 'CREATE_STANDARD_CHART_FAILURE':
       return { ...state, loading: false, error: action.payload };
+    
     default:
       return state;
   }

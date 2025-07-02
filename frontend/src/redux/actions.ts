@@ -668,3 +668,207 @@ export const searchShippingOrders = (searchParams: Record<string, string>): AppT
     payload: '此 API 已棄用，請使用前端過濾功能'
   });
 };
+
+// 會計科目管理相關 Actions
+
+// 獲取所有會計科目
+export const fetchAccounts2 = (): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2`);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'FETCH_ACCOUNTS2_SUCCESS',
+        payload: res.data.data ?? []
+      });
+    } else {
+      throw new Error(res.data.message ?? '獲取會計科目失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'FETCH_ACCOUNTS2_FAILURE',
+      payload: err.response?.data?.message ?? '獲取會計科目失敗'
+    });
+  }
+};
+
+// 創建會計科目
+export const createAccount2 = (accountData: any): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'CREATE_ACCOUNT2_REQUEST' });
+    
+    const res = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/api/accounts2`, accountData);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'CREATE_ACCOUNT2_SUCCESS',
+        payload: res.data.data
+      });
+    } else {
+      throw new Error(res.data.message ?? '創建會計科目失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'CREATE_ACCOUNT2_FAILURE',
+      payload: err.response?.data?.message ?? '創建會計科目失敗'
+    });
+  }
+};
+
+// 更新會計科目
+export const updateAccount2 = (id: string, accountData: any): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'UPDATE_ACCOUNT2_REQUEST' });
+    
+    const res = await axios.put<ApiResponse<any>>(`${API_BASE_URL}/api/accounts2/${id}`, accountData);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'UPDATE_ACCOUNT2_SUCCESS',
+        payload: res.data.data
+      });
+    } else {
+      throw new Error(res.data.message ?? '更新會計科目失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'UPDATE_ACCOUNT2_FAILURE',
+      payload: err.response?.data?.message ?? '更新會計科目失敗'
+    });
+  }
+};
+
+// 刪除會計科目
+export const deleteAccount2 = (id: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'DELETE_ACCOUNT2_REQUEST' });
+    
+    const res = await axios.delete<ApiResponse>(`${API_BASE_URL}/api/accounts2/${id}`);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'DELETE_ACCOUNT2_SUCCESS',
+        payload: id
+      });
+    } else {
+      throw new Error(res.data.message ?? '刪除會計科目失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'DELETE_ACCOUNT2_FAILURE',
+      payload: err.response?.data?.message ?? '刪除會計科目失敗'
+    });
+  }
+};
+
+// 搜尋會計科目
+export const searchAccounts2 = (searchTerm: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'SEARCH_ACCOUNTS2_REQUEST' });
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/search`, {
+      params: { q: searchTerm }
+    });
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'SEARCH_ACCOUNTS2_SUCCESS',
+        payload: res.data.data ?? []
+      });
+    } else {
+      throw new Error(res.data.message ?? '搜尋會計科目失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'SEARCH_ACCOUNTS2_FAILURE',
+      payload: err.response?.data?.message ?? '搜尋會計科目失敗'
+    });
+  }
+};
+
+// 建立標準會計科目表
+export const createStandardChart = (): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'CREATE_STANDARD_CHART_REQUEST' });
+    
+    const res = await axios.post<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/setup/standard-chart`);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'CREATE_STANDARD_CHART_SUCCESS',
+        payload: res.data.data ?? []
+      });
+    } else {
+      throw new Error(res.data.message ?? '建立標準會計科目表失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'CREATE_STANDARD_CHART_FAILURE',
+      payload: err.response?.data?.message ?? '建立標準會計科目表失敗'
+    });
+  }
+};
+
+// 獲取會計科目樹狀結構
+export const fetchAccountsHierarchy = (): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/tree/hierarchy`);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'FETCH_ACCOUNTS2_SUCCESS',
+        payload: res.data.data ?? []
+      });
+    } else {
+      throw new Error(res.data.message ?? '獲取會計科目樹狀結構失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'FETCH_ACCOUNTS2_FAILURE',
+      payload: err.response?.data?.message ?? '獲取會計科目樹狀結構失敗'
+    });
+  }
+};
+
+// 依類型獲取會計科目
+export const fetchAccountsByType = (accountType: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/by-type/${accountType}`);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'FETCH_ACCOUNTS2_SUCCESS',
+        payload: res.data.data ?? []
+      });
+    } else {
+      throw new Error(res.data.message ?? '依類型獲取會計科目失敗');
+    }
+  } catch (err: any) {
+    dispatch({
+      type: 'FETCH_ACCOUNTS2_FAILURE',
+      payload: err.response?.data?.message ?? '依類型獲取會計科目失敗'
+    });
+  }
+};
