@@ -2,17 +2,25 @@
 
 export interface Account2 {
   _id: string;
-  name: string;
-  type: 'cash' | 'bank' | 'credit' | 'investment' | 'other';
+  code: string;               // 會計科目代碼 (如: 1101, 2201)
+  name: string;               // 科目名稱
+  accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  type: 'cash' | 'bank' | 'credit' | 'investment' | 'other'; // 保留原有類型相容性
+  parentId?: string;          // 父科目ID
+  level: number;              // 科目層級
+  isActive: boolean;
+  normalBalance: 'debit' | 'credit'; // 正常餘額方向
+  
+  // 原有欄位
   balance: number;
   initialBalance: number;
   currency: string;
   description?: string;
-  isActive: boolean;
   organizationId?: string; // 機構 ID（可選，支援個人帳戶）
   createdAt: string | Date;
   updatedAt: string | Date;
   createdBy: string;
+  children?: Account2[];
 }
 
 export interface Category2 {
@@ -49,14 +57,71 @@ export interface AccountingRecord2 {
   createdBy: string;
 }
 
+// 交易群組介面
+export interface TransactionGroup {
+  _id: string;
+  groupNumber: string;        // 交易群組編號 (如: TXN-20250102-001)
+  description: string;        // 交易描述
+  transactionDate: string | Date; // 交易日期
+  organizationId?: string;    // 機構ID
+  receiptUrl?: string;        // 憑證URL
+  invoiceNo?: string;         // 發票號碼
+  totalAmount: number;        // 交易總金額
+  status: 'draft' | 'confirmed' | 'cancelled';
+  createdBy: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+// 記帳分錄介面
+export interface AccountingEntry {
+  _id: string;
+  transactionGroupId: string | TransactionGroup; // 關聯交易群組
+  sequence: number;           // 在群組中的順序
+  
+  // 借貸記帳核心欄位
+  accountId: string | Account2; // 會計科目ID
+  debitAmount: number;        // 借方金額
+  creditAmount: number;       // 貸方金額
+  
+  // 原有欄位保留相容性
+  categoryId?: string | Category2; // 類別ID (可選，用於報表分類)
+  description: string;        // 分錄描述
+  
+  // 機構與權限
+  organizationId?: string;
+  createdBy: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 // 表單相關類型
 export interface Account2FormData {
-  name: string;
+  code: string;               // 會計科目代碼
+  name: string;               // 科目名稱
+  accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   type: 'cash' | 'bank' | 'credit' | 'investment' | 'other';
+  parentId?: string;          // 父科目ID
   initialBalance: number;
   currency: string;
   description?: string;
   organizationId?: string; // 機構 ID（可選）
+}
+
+export interface TransactionGroupFormData {
+  description: string;        // 交易描述
+  transactionDate: string | Date; // 交易日期
+  receiptUrl?: string;        // 憑證URL
+  invoiceNo?: string;         // 發票號碼
+  organizationId?: string;    // 機構ID
+}
+
+export interface AccountingEntryFormData {
+  accountId: string;          // 會計科目ID
+  debitAmount: number;        // 借方金額
+  creditAmount: number;       // 貸方金額
+  categoryId?: string;        // 類別ID (可選)
+  description: string;        // 分錄描述
 }
 
 export interface Category2FormData {
@@ -131,6 +196,54 @@ export interface AccountingRecord2SummaryResponse {
   };
 }
 
+// 新增複式記帳 API 回應類型
+export interface TransactionGroupListResponse {
+  success: boolean;
+  data: {
+    groups: TransactionGroup[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  };
+}
+
+export interface TransactionGroupDetailResponse {
+  success: boolean;
+  data: TransactionGroup;
+}
+
+export interface AccountingEntryListResponse {
+  success: boolean;
+  data: {
+    entries: AccountingEntry[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  };
+}
+
+export interface AccountingEntryDetailResponse {
+  success: boolean;
+  data: AccountingEntry;
+}
+
+// 借貸平衡驗證回應
+export interface DebitCreditBalanceResponse {
+  success: boolean;
+  data: {
+    totalDebit: number;
+    totalCredit: number;
+    isBalanced: boolean;
+    difference: number;
+  };
+}
+
 // 過濾器類型
 export interface AccountingRecord2Filter {
   type?: 'income' | 'expense' | 'transfer';
@@ -141,6 +254,37 @@ export interface AccountingRecord2Filter {
   endDate?: string;
   page?: number;
   limit?: number;
+}
+
+// 新增複式記帳過濾器
+export interface TransactionGroupFilter {
+  status?: 'draft' | 'confirmed' | 'cancelled';
+  organizationId?: string;
+  startDate?: string;
+  endDate?: string;
+  invoiceNo?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface AccountingEntryFilter {
+  transactionGroupId?: string;
+  accountId?: string;
+  categoryId?: string;
+  organizationId?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface Account2Filter {
+  accountType?: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  type?: 'cash' | 'bank' | 'credit' | 'investment' | 'other';
+  parentId?: string;
+  level?: number;
+  isActive?: boolean;
+  organizationId?: string;
 }
 
 // 帳戶餘額類型
@@ -174,13 +318,35 @@ export interface SuccessResponse<T = any> {
 // 聯合類型
 export type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
 
-// 帳戶類型選項
+// 會計科目類型選項
+export const ACCOUNT_TYPES_V2 = [
+  { value: 'asset', label: '資產' },
+  { value: 'liability', label: '負債' },
+  { value: 'equity', label: '權益' },
+  { value: 'revenue', label: '收入' },
+  { value: 'expense', label: '費用' }
+] as const;
+
+// 帳戶類型選項 (保留相容性)
 export const ACCOUNT_TYPES = [
   { value: 'cash', label: '現金' },
   { value: 'bank', label: '銀行' },
   { value: 'credit', label: '信用卡' },
   { value: 'investment', label: '投資' },
   { value: 'other', label: '其他' }
+] as const;
+
+// 正常餘額方向選項
+export const NORMAL_BALANCE_TYPES = [
+  { value: 'debit', label: '借方' },
+  { value: 'credit', label: '貸方' }
+] as const;
+
+// 交易狀態選項
+export const TRANSACTION_STATUS = [
+  { value: 'draft', label: '草稿' },
+  { value: 'confirmed', label: '已確認' },
+  { value: 'cancelled', label: '已取消' }
 ] as const;
 
 // 記錄類型選項
