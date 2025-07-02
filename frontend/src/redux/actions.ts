@@ -678,7 +678,7 @@ export const fetchAccounts2 = (): AppThunk => async (
   try {
     dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
     
-    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2`);
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts`);
     
     if (res.data.success) {
       dispatch({
@@ -703,7 +703,7 @@ export const createAccount2 = (accountData: any): AppThunk => async (
   try {
     dispatch({ type: 'CREATE_ACCOUNT2_REQUEST' });
     
-    const res = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/api/accounts2`, accountData);
+    const res = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/accounting2/accounts`, accountData);
     
     if (res.data.success) {
       dispatch({
@@ -728,7 +728,7 @@ export const updateAccount2 = (id: string, accountData: any): AppThunk => async 
   try {
     dispatch({ type: 'UPDATE_ACCOUNT2_REQUEST' });
     
-    const res = await axios.put<ApiResponse<any>>(`${API_BASE_URL}/api/accounts2/${id}`, accountData);
+    const res = await axios.put<ApiResponse<any>>(`${API_BASE_URL}/accounting2/accounts/${id}`, accountData);
     
     if (res.data.success) {
       dispatch({
@@ -753,7 +753,7 @@ export const deleteAccount2 = (id: string): AppThunk => async (
   try {
     dispatch({ type: 'DELETE_ACCOUNT2_REQUEST' });
     
-    const res = await axios.delete<ApiResponse>(`${API_BASE_URL}/api/accounts2/${id}`);
+    const res = await axios.delete<ApiResponse>(`${API_BASE_URL}/accounting2/accounts/${id}`);
     
     if (res.data.success) {
       dispatch({
@@ -778,7 +778,7 @@ export const searchAccounts2 = (searchTerm: string): AppThunk => async (
   try {
     dispatch({ type: 'SEARCH_ACCOUNTS2_REQUEST' });
     
-    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/search`, {
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts/search`, {
       params: { q: searchTerm }
     });
     
@@ -805,7 +805,7 @@ export const createStandardChart = (): AppThunk => async (
   try {
     dispatch({ type: 'CREATE_STANDARD_CHART_REQUEST' });
     
-    const res = await axios.post<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/setup/standard-chart`);
+    const res = await axios.post<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts/setup/standard-chart`);
     
     if (res.data.success) {
       dispatch({
@@ -830,7 +830,7 @@ export const fetchAccountsHierarchy = (): AppThunk => async (
   try {
     dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
     
-    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/tree/hierarchy`);
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts/tree/hierarchy`);
     
     if (res.data.success) {
       dispatch({
@@ -855,7 +855,7 @@ export const fetchAccountsByType = (accountType: string): AppThunk => async (
   try {
     dispatch({ type: 'FETCH_ACCOUNTS2_REQUEST' });
     
-    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/api/accounts2/by-type/${accountType}`);
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts/by-type/${accountType}`);
     
     if (res.data.success) {
       dispatch({

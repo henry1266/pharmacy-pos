@@ -156,10 +156,83 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       return;
     }
 
-    // 建立帳戶資料，只有當 organizationId 有值時才加入
+    // 根據 type 映射到 accountType
+    const getAccountType = (type: string): string => {
+      switch (type) {
+        case 'cash':
+        case 'bank':
+        case 'investment':
+          return 'asset';
+        case 'credit':
+          return 'liability';
+        default:
+          return 'asset'; // 預設為資產
+      }
+    };
+
+    // 自動生成會計科目代碼
+    const generateAccountCode = async (accountType: string, organizationId?: string): Promise<string> => {
+      const prefix = {
+        'asset': '1',
+        'liability': '2',
+        'equity': '3',
+        'revenue': '4',
+        'expense': '5'
+      }[accountType] || '1';
+
+      // 查詢該類型下最大的代碼
+      const filter: any = {
+        createdBy: userId,
+        accountType,
+        code: { $regex: `^${prefix}` }
+      };
+      
+      if (organizationId) {
+        filter.organizationId = new mongoose.Types.ObjectId(organizationId);
+      }
+
+      const lastAccount = await Account2.findOne(filter)
+        .sort({ code: -1 })
+        .limit(1);
+
+      if (lastAccount) {
+        const lastCode = parseInt(lastAccount.code);
+        return (lastCode + 1).toString().padStart(4, '0');
+      } else {
+        return `${prefix}001`;
+      }
+    };
+
+    const accountType = getAccountType(type);
+    const code = await generateAccountCode(accountType, organizationId);
+
+    // 根據 accountType 設定 normalBalance
+    const getNormalBalance = (accountType: string): 'debit' | 'credit' => {
+      switch (accountType) {
+        case 'asset':
+        case 'expense':
+          return 'debit';
+        case 'liability':
+        case 'equity':
+        case 'revenue':
+          return 'credit';
+        default:
+          return 'debit';
+      }
+    };
+
+    const normalBalance = getNormalBalance(accountType);
+
+    console.log('🔧 自動生成資料:', { accountType, code, normalBalance });
+
+    // 建立帳戶資料，包含會計科目必要欄位
     const accountData: any = {
       name,
       type,
+      code,
+      accountType,
+      normalBalance,
+      level: 1, // 預設為第一層
       balance: initialBalance,
       initialBalance,
       currency: currency || 'TWD',

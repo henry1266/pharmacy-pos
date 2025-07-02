@@ -12,15 +12,21 @@ import {
   Snackbar,
   Fab,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Tabs,
+  Tab,
+  Paper
 } from '@mui/material';
 import {
   Add as AddIcon,
-  AccountBalance as AccountBalanceIcon
+  AccountBalance as AccountBalanceIcon,
+  AccountTree as AccountTreeIcon,
+  Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { AccountingDataGrid } from '../components/accounting2/AccountingDataGrid';
 import { TransactionGroupForm } from '../components/accounting2/TransactionGroupForm';
+import AccountManagement from '../components/accounting2/AccountManagement';
 
 interface TransactionGroup {
   _id: string;
@@ -53,6 +59,7 @@ export const Accounting2Page: React.FC = () => {
   const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroup2);
   
   // Local state
+  const [currentTab, setCurrentTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<TransactionGroup | null>(null);
   const [viewingTransaction, setViewingTransaction] = useState<TransactionGroup | null>(null);
@@ -142,6 +149,38 @@ export const Accounting2Page: React.FC = () => {
     setViewingTransaction(null);
   };
 
+  // 處理 Tab 切換
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setCurrentTab(newValue);
+  };
+
+  // Tab 面板組件
+  interface TabPanelProps {
+    children?: React.ReactNode;
+    index: number;
+    value: number;
+  }
+
+  const TabPanel = (props: TabPanelProps) => {
+    const { children, value, index, ...other } = props;
+
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`accounting-tabpanel-${index}`}
+        aria-labelledby={`accounting-tab-${index}`}
+        {...other}
+      >
+        {value === index && (
+          <Box sx={{ py: 3 }}>
+            {children}
+          </Box>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>
       {/* 頁面標題 */}
@@ -164,16 +203,57 @@ export const Accounting2Page: React.FC = () => {
         </Alert>
       )}
 
-      {/* 主要內容 */}
-      <AccountingDataGrid
-        onCreateNew={handleCreateNew}
-        onEdit={handleEdit}
-        onView={handleView}
-        onDelete={handleDelete}
-      />
+      {/* Tab 導航 */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs
+          value={currentTab}
+          onChange={handleTabChange}
+          aria-label="會計系統功能選項"
+          variant={isMobile ? "fullWidth" : "standard"}
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTab-root': {
+              minHeight: 64,
+              textTransform: 'none',
+              fontSize: '1rem',
+              fontWeight: 500
+            }
+          }}
+        >
+          <Tab
+            icon={<ReceiptIcon />}
+            iconPosition="start"
+            label="交易管理"
+            id="accounting-tab-0"
+            aria-controls="accounting-tabpanel-0"
+          />
+          <Tab
+            icon={<AccountTreeIcon />}
+            iconPosition="start"
+            label="會計科目"
+            id="accounting-tab-1"
+            aria-controls="accounting-tabpanel-1"
+          />
+        </Tabs>
+      </Paper>
 
-      {/* 浮動新增按鈕 (行動版) */}
-      {isMobile && (
+      {/* Tab 內容面板 */}
+      <TabPanel value={currentTab} index={0}>
+        <AccountingDataGrid
+          onCreateNew={handleCreateNew}
+          onEdit={handleEdit}
+          onView={handleView}
+          onDelete={handleDelete}
+        />
+      </TabPanel>
+
+      <TabPanel value={currentTab} index={1}>
+        <AccountManagement />
+      </TabPanel>
+
+      {/* 浮動新增按鈕 (行動版) - 只在交易管理 Tab 顯示 */}
+      {isMobile && currentTab === 0 && (
         <Fab
           color="primary"
           aria-label="新增交易"
