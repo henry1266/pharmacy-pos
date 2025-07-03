@@ -27,6 +27,33 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { AccountingDataGrid } from '../components/accounting2/AccountingDataGrid';
 import { TransactionGroupForm } from '../components/accounting2/TransactionGroupForm';
 import AccountManagement from '../components/accounting2/AccountManagement';
+import {
+  fetchTransactionGroups2,
+  createTransactionGroup2,
+  updateTransactionGroup2,
+  deleteTransactionGroup2,
+  fetchAccounts2
+} from '../redux/actions';
+
+// 新增機構相關 actions
+const fetchOrganizations2 = () => async (dispatch: any) => {
+  try {
+    dispatch({ type: 'FETCH_ORGANIZATIONS2_REQUEST' });
+    const response = await fetch('/api/organizations', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const organizations = Array.isArray(data.data) ? data.data : [];
+      dispatch({ type: 'FETCH_ORGANIZATIONS2_SUCCESS', payload: organizations });
+    }
+  } catch (error) {
+    dispatch({ type: 'FETCH_ORGANIZATIONS2_FAILURE', payload: 'Failed to fetch organizations' });
+  }
+};
 
 interface TransactionGroup {
   _id: string;
@@ -73,10 +100,11 @@ export const Accounting2Page: React.FC = () => {
     severity: 'success'
   });
 
-  // 載入交易群組資料
+  // 載入交易群組、會計科目和機構資料
   useEffect(() => {
-    // TODO: 實作載入交易群組的 action
-    // dispatch(fetchTransactionGroups());
+    dispatch(fetchTransactionGroups2() as any);
+    dispatch(fetchAccounts2() as any);
+    dispatch(fetchOrganizations2() as any);
   }, [dispatch]);
 
   // 處理新增交易
@@ -100,10 +128,10 @@ export const Accounting2Page: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('確定要刪除這筆交易嗎？此操作無法復原。')) {
       try {
-        // TODO: 實作刪除交易的 action
-        // await dispatch(deleteTransactionGroup(id));
+        await dispatch(deleteTransactionGroup2(id) as any);
         showSnackbar('交易已成功刪除', 'success');
       } catch (error) {
+        console.error('刪除交易失敗:', error);
         showSnackbar('刪除交易失敗', 'error');
       }
     }
@@ -112,18 +140,19 @@ export const Accounting2Page: React.FC = () => {
   // 處理表單提交
   const handleFormSubmit = async (formData: TransactionGroupFormData) => {
     try {
+      console.log('🔍 handleFormSubmit 開始:', { editingTransaction, formData });
+      
       if (editingTransaction) {
-        // TODO: 實作更新交易的 action
-        // await dispatch(updateTransactionGroup({ id: editingTransaction._id, data: formData }));
+        await dispatch(updateTransactionGroup2(editingTransaction._id, formData) as any);
         showSnackbar('交易已成功更新', 'success');
       } else {
-        // TODO: 實作建立交易的 action
-        // await dispatch(createTransactionGroup(formData));
+        await dispatch(createTransactionGroup2(formData) as any);
         showSnackbar('交易已成功建立', 'success');
       }
       setDialogOpen(false);
       setEditingTransaction(null);
     } catch (error) {
+      console.error('表單提交失敗:', error);
       showSnackbar(editingTransaction ? '更新交易失敗' : '建立交易失敗', 'error');
     }
   };

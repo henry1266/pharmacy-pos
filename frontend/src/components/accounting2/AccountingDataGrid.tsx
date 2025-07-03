@@ -70,7 +70,7 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
   onDelete,
   onView
 }) => {
-  const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroup2);
+  const { transactionGroups = [], loading, error } = useAppSelector(state => state.transactionGroup2);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const handleExpandRow = (id: string) => {

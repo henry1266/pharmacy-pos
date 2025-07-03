@@ -211,7 +211,17 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     }
 
     try {
-      await onSubmit(formData);
+      // 清理表單資料，確保 organizationId 格式正確
+      const cleanedFormData = {
+        ...formData,
+        // 如果 organizationId 是空字串或 undefined，則設為 null
+        organizationId: formData.organizationId && formData.organizationId.trim() !== ''
+          ? formData.organizationId
+          : null
+      };
+      
+      console.log('🔍 提交表單資料:', cleanedFormData);
+      await onSubmit(cleanedFormData);
     } catch (error) {
       console.error('提交交易群組失敗:', error);
     }

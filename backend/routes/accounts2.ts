@@ -124,7 +124,12 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       return;
     }
 
-    const { name, type, initialBalance, currency, description, organizationId } = req.body;
+    const { name, type, accountType: requestedAccountType, initialBalance, currency, description, organizationId } = req.body;
+    
+    // 忽略前端發送的 code，我們會自動生成
+    if (req.body.code) {
+      console.log('⚠️ 忽略前端發送的 code:', req.body.code, '將自動生成新代碼');
+    }
 
     // 除錯日誌
     console.log('🔍 POST /accounts2 - 接收到的資料:', {
@@ -135,8 +140,23 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       description,
       organizationId,
       organizationIdType: typeof organizationId,
+      organizationIdLength: organizationId ? organizationId.length : 'N/A',
       body: req.body
     });
+
+    // 驗證 organizationId 格式
+    if (organizationId) {
+      console.log('🔍 驗證 organizationId 格式:', organizationId);
+      if (!mongoose.Types.ObjectId.isValid(organizationId)) {
+        console.error('❌ organizationId 格式無效:', organizationId);
+        res.status(400).json({
+          success: false,
+          message: '機構ID格式無效'
+        });
+        return;
+      }
+      console.log('✅ organizationId 格式有效');
+    }
 
     // 驗證必填欄位
     if (!name || !type || initialBalance === undefined) {
@@ -209,7 +229,14 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       
       if (organizationId) {
         console.log('🔍 加入機構篩選條件');
-        filter.organizationId = new mongoose.Types.ObjectId(organizationId);
+        try {
+          const objectId = new mongoose.Types.ObjectId(organizationId);
+          console.log('✅ ObjectId 轉換成功:', objectId);
+          filter.organizationId = objectId;
+        } catch (objectIdError) {
+          console.error('❌ ObjectId 轉換失敗:', objectIdError);
+          throw new Error(`機構ID轉換失敗: ${objectIdError.message}`);
+        }
       } else {
         console.log('⚠️ 沒有機構ID，查詢個人科目');
         // 查詢個人科目（沒有 organizationId 或為 null）
@@ -258,8 +285,25 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       return newCode;
     };
 
-    const accountType = getAccountType(type);
-    const code = await generateAccountCode(accountType, organizationId);
+    // 使用前端傳來的 accountType，如果沒有則使用自動推斷
+    const accountType = requestedAccountType || getAccountType(type);
+    
+    let code: string;
+    try {
+      code = await generateAccountCode(accountType, organizationId);
+      console.log('✅ 代碼生成成功:', code);
+    } catch (codeGenError) {
+      console.error('❌ 代碼生成失敗，使用時間戳後備方案:', codeGenError);
+      // 使用時間戳作為後備方案
+      const timestamp = Date.now().toString().slice(-4);
+      const prefix = accountType === 'asset' ? '1' :
+                    accountType === 'liability' ? '2' :
+                    accountType === 'equity' ? '3' :
+                    accountType === 'revenue' ? '4' :
+                    accountType === 'expense' ? '5' : '9';
+      code = `${prefix}${timestamp}`;
+      console.log('🔄 後備代碼:', code);
+    }
 
     // 根據 accountType 設定 normalBalance
     const getNormalBalance = (accountType: string): 'debit' | 'credit' => {
@@ -298,7 +342,18 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     // 只有當 organizationId 有值且不為 null 時才加入
     if (organizationId && organizationId !== null) {
       console.log('✅ 設定 organizationId:', organizationId);
-      accountData.organizationId = new mongoose.Types.ObjectId(organizationId);
+      try {
+        const finalObjectId = new mongoose.Types.ObjectId(organizationId);
+        console.log('✅ 最終 ObjectId 轉換成功:', finalObjectId);
+        accountData.organizationId = finalObjectId;
+      } catch (finalObjectIdError) {
+        console.error('❌ 最終 ObjectId 轉換失敗:', finalObjectIdError);
+        res.status(400).json({
+          success: false,
+          message: '機構ID最終轉換失敗'
+        });
+        return;
+      }
     } else {
       console.log('❌ organizationId 為空或 null，不設定該欄位');
     }

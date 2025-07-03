@@ -104,7 +104,22 @@ const Account2Schema: Schema = new Schema({
 });
 
 // 索引
-Account2Schema.index({ code: 1 }, { unique: true });
+// 機構隔離的代碼唯一性：同一機構內代碼唯一，不同機構可重複
+Account2Schema.index(
+  { organizationId: 1, code: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { organizationId: { $ne: null } }
+  }
+);
+// 個人帳戶（無機構）的代碼唯一性
+Account2Schema.index(
+  { createdBy: 1, code: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { organizationId: null }
+  }
+);
 Account2Schema.index({ createdBy: 1, isActive: 1 });
 Account2Schema.index({ organizationId: 1, isActive: 1 });
 Account2Schema.index({ organizationId: 1, createdBy: 1, isActive: 1 });

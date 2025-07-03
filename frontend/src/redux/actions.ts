@@ -34,9 +34,12 @@ export const API_BASE_URL = getApiBaseUrl();
 // 設置認證令牌
 const setAuthToken = (token: string | null): void => {
   if (token) {
+    // 同時設定兩種認證方式以確保相容性
     axios.defaults.headers.common['x-auth-token'] = token;
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     delete axios.defaults.headers.common['x-auth-token'];
+    delete axios.defaults.headers.common['Authorization'];
   }
 };
 
@@ -682,24 +685,46 @@ export const fetchAccounts2 = (organizationId?: string): AppThunk => async (
     const params = organizationId ? { organizationId } : {};
     console.log('📡 API 請求參數:', params);
     
-    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts`, { params });
+    // 確保請求包含正確的認證標頭
+    const config = {
+      params,
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/accounting2/accounts`, config);
     console.log('📡 API 回應:', res.data);
     
     if (res.data.success) {
+      // 確保回傳的資料是陣列
+      const accounts = Array.isArray(res.data.data) ? res.data.data : [];
       dispatch({
         type: 'FETCH_ACCOUNTS2_SUCCESS',
-        payload: res.data.data ?? []
+        payload: accounts
       });
-      console.log('✅ fetchAccounts2 成功，資料筆數:', res.data.data?.length || 0);
+      console.log('✅ fetchAccounts2 成功，資料筆數:', accounts.length);
     } else {
       throw new Error(res.data.message ?? '獲取會計科目失敗');
     }
   } catch (err: any) {
     console.error('❌ fetchAccounts2 失敗:', err);
     console.error('❌ 錯誤詳情:', err.response?.data);
+    console.error('❌ 錯誤狀態碼:', err.response?.status);
+    
+    let errorMessage = '獲取會計科目失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
     dispatch({
       type: 'FETCH_ACCOUNTS2_FAILURE',
-      payload: err.response?.data?.message ?? err.message ?? '獲取會計科目失敗'
+      payload: errorMessage
     });
   }
 };
@@ -891,6 +916,222 @@ export const fetchAccountsByType = (accountType: string): AppThunk => async (
     dispatch({
       type: 'FETCH_ACCOUNTS2_FAILURE',
       payload: err.response?.data?.message ?? '依類型獲取會計科目失敗'
+    });
+  }
+};
+
+// 交易群組相關 Actions
+
+// 獲取所有交易群組
+export const fetchTransactionGroups2 = (organizationId?: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🔍 fetchTransactionGroups2 開始，organizationId:', organizationId);
+    dispatch({ type: 'FETCH_TRANSACTION_GROUPS2_REQUEST' });
+    
+    const params = organizationId ? { organizationId } : {};
+    console.log('📡 API 請求參數:', params);
+    
+    // 確保請求包含正確的認證標頭
+    const config = {
+      params,
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.get<ApiResponse<any>>(`${API_BASE_URL}/accounting2/transaction-groups`, config);
+    console.log('📡 API 回應:', res.data);
+    
+    if (res.data.success) {
+      // 處理後端回傳的巢狀結構：{ data: { transactionGroups: [...], pagination: {...} } }
+      let transactionGroups = [];
+      if (res.data.data && res.data.data.transactionGroups) {
+        transactionGroups = Array.isArray(res.data.data.transactionGroups) ? res.data.data.transactionGroups : [];
+      } else if (Array.isArray(res.data.data)) {
+        transactionGroups = res.data.data;
+      }
+      
+      dispatch({
+        type: 'FETCH_TRANSACTION_GROUPS2_SUCCESS',
+        payload: transactionGroups
+      });
+      console.log('✅ fetchTransactionGroups2 成功，資料筆數:', transactionGroups.length);
+    } else {
+      throw new Error(res.data.message ?? '獲取交易群組失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ fetchTransactionGroups2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    console.error('❌ 錯誤狀態碼:', err.response?.status);
+    
+    let errorMessage = '獲取交易群組失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    dispatch({
+      type: 'FETCH_TRANSACTION_GROUPS2_FAILURE',
+      payload: errorMessage
+    });
+  }
+};
+
+// 創建交易群組
+export const createTransactionGroup2 = (transactionData: any): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🔍 createTransactionGroup2 開始:', transactionData);
+    dispatch({ type: 'CREATE_TRANSACTION_GROUP2_REQUEST' });
+    
+    // 確保請求包含正確的認證標頭
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/accounting2/transaction-groups`, transactionData, config);
+    console.log('📡 創建交易群組 API 回應:', res.data);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'CREATE_TRANSACTION_GROUP2_SUCCESS',
+        payload: res.data.data
+      });
+      console.log('✅ createTransactionGroup2 成功:', res.data.data);
+      // 創建成功後重新載入交易群組列表
+      dispatch(fetchTransactionGroups2(transactionData.organizationId) as any);
+    } else {
+      throw new Error(res.data.message ?? '創建交易群組失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ createTransactionGroup2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    console.error('❌ 錯誤狀態碼:', err.response?.status);
+    
+    let errorMessage = '創建交易群組失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.status === 400) {
+      errorMessage = err.response?.data?.message || '請求資料格式錯誤';
+    } else if (err.response?.status === 500) {
+      errorMessage = err.response?.data?.message || '伺服器內部錯誤';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    dispatch({
+      type: 'CREATE_TRANSACTION_GROUP2_FAILURE',
+      payload: errorMessage
+    });
+    throw new Error(errorMessage); // 重新拋出錯誤，讓前端組件可以處理
+  }
+};
+
+// 更新交易群組
+export const updateTransactionGroup2 = (id: string, transactionData: any): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🔍 updateTransactionGroup2 開始:', { id, transactionData });
+    dispatch({ type: 'UPDATE_TRANSACTION_GROUP2_REQUEST' });
+    
+    const res = await axios.put<ApiResponse<any>>(`${API_BASE_URL}/accounting2/transaction-groups/${id}`, transactionData);
+    console.log('📡 更新交易群組 API 回應:', res.data);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'UPDATE_TRANSACTION_GROUP2_SUCCESS',
+        payload: res.data.data
+      });
+      console.log('✅ updateTransactionGroup2 成功:', res.data.data);
+      // 更新成功後重新載入交易群組列表
+      dispatch(fetchTransactionGroups2(transactionData.organizationId) as any);
+    } else {
+      throw new Error(res.data.message ?? '更新交易群組失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ updateTransactionGroup2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    dispatch({
+      type: 'UPDATE_TRANSACTION_GROUP2_FAILURE',
+      payload: err.response?.data?.message ?? err.message ?? '更新交易群組失敗'
+    });
+    throw err; // 重新拋出錯誤，讓前端組件可以處理
+  }
+};
+
+// 刪除交易群組
+export const deleteTransactionGroup2 = (id: string, organizationId?: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🔍 deleteTransactionGroup2 開始:', { id, organizationId });
+    dispatch({ type: 'DELETE_TRANSACTION_GROUP2_REQUEST' });
+    
+    const res = await axios.delete<ApiResponse>(`${API_BASE_URL}/accounting2/transaction-groups/${id}`);
+    console.log('📡 刪除交易群組 API 回應:', res.data);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'DELETE_TRANSACTION_GROUP2_SUCCESS',
+        payload: id
+      });
+      console.log('✅ deleteTransactionGroup2 成功:', id);
+      // 刪除成功後重新載入交易群組列表
+      dispatch(fetchTransactionGroups2(organizationId) as any);
+    } else {
+      throw new Error(res.data.message ?? '刪除交易群組失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ deleteTransactionGroup2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    dispatch({
+      type: 'DELETE_TRANSACTION_GROUP2_FAILURE',
+      payload: err.response?.data?.message ?? err.message ?? '刪除交易群組失敗'
+    });
+    throw err; // 重新拋出錯誤，讓前端組件可以處理
+  }
+};
+
+// 獲取單一交易群組
+export const fetchTransactionGroup2 = (id: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🔍 fetchTransactionGroup2 開始:', id);
+    dispatch({ type: 'FETCH_TRANSACTION_GROUP2_REQUEST' });
+    
+    const res = await axios.get<ApiResponse<any>>(`${API_BASE_URL}/accounting2/transaction-groups/${id}`);
+    console.log('📡 獲取單一交易群組 API 回應:', res.data);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'FETCH_TRANSACTION_GROUP2_SUCCESS',
+        payload: res.data.data
+      });
+      console.log('✅ fetchTransactionGroup2 成功:', res.data.data);
+    } else {
+      throw new Error(res.data.message ?? '獲取交易群組失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ fetchTransactionGroup2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    dispatch({
+      type: 'FETCH_TRANSACTION_GROUP2_FAILURE',
+      payload: err.response?.data?.message ?? err.message ?? '獲取交易群組失敗'
     });
   }
 };

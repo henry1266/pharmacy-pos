@@ -543,7 +543,9 @@ export const account2Reducer = (state: Account2State = createInitialAccount2Stat
     
     case 'FETCH_ACCOUNTS2_SUCCESS':
     case 'SEARCH_ACCOUNTS2_SUCCESS':
-      return { ...state, accounts: action.payload, loading: false, error: null };
+      // 確保 payload 是陣列
+      const accounts = Array.isArray(action.payload) ? action.payload : [];
+      return { ...state, accounts, loading: false, error: null };
     
     case 'CREATE_ACCOUNT2_SUCCESS':
       return {
@@ -572,9 +574,11 @@ export const account2Reducer = (state: Account2State = createInitialAccount2Stat
       };
     
     case 'CREATE_STANDARD_CHART_SUCCESS':
+      // 確保 payload 是陣列
+      const newAccounts = Array.isArray(action.payload) ? action.payload : [];
       return {
         ...state,
-        accounts: [...state.accounts, ...action.payload],
+        accounts: [...state.accounts, ...newAccounts],
         loading: false,
         error: null
       };
@@ -597,7 +601,9 @@ export const category2Reducer = (state: Category2State = createInitialCategory2S
     case 'FETCH_CATEGORIES2_REQUEST':
       return { ...state, loading: true, error: null };
     case 'FETCH_CATEGORIES2_SUCCESS':
-      return { ...state, categories: action.payload, loading: false, error: null };
+      // 確保 payload 是陣列
+      const categories = Array.isArray(action.payload) ? action.payload : [];
+      return { ...state, categories, loading: false, error: null };
     case 'FETCH_CATEGORIES2_FAILURE':
       return { ...state, loading: false, error: action.payload };
     default:
@@ -610,7 +616,9 @@ export const organization2Reducer = (state: Organization2State = createInitialOr
     case 'FETCH_ORGANIZATIONS2_REQUEST':
       return { ...state, loading: true, error: null };
     case 'FETCH_ORGANIZATIONS2_SUCCESS':
-      return { ...state, organizations: action.payload, loading: false, error: null };
+      // 確保 payload 是陣列
+      const organizations = Array.isArray(action.payload) ? action.payload : [];
+      return { ...state, organizations, loading: false, error: null };
     case 'FETCH_ORGANIZATIONS2_FAILURE':
       return { ...state, loading: false, error: action.payload };
     default:
@@ -626,7 +634,9 @@ export const transactionGroup2Reducer = (state: TransactionGroup2State = createI
     case 'DELETE_TRANSACTION_GROUP2_REQUEST':
       return { ...state, loading: true, error: null };
     case 'FETCH_TRANSACTION_GROUPS2_SUCCESS':
-      return { ...state, transactionGroups: action.payload, loading: false, error: null };
+      // 確保 payload 是陣列
+      const transactionGroups = Array.isArray(action.payload) ? action.payload : [];
+      return { ...state, transactionGroups, loading: false, error: null };
     case 'CREATE_TRANSACTION_GROUP2_SUCCESS':
       return {
         ...state,
@@ -668,7 +678,9 @@ export const accountingEntry2Reducer = (state: AccountingEntry2State = createIni
     case 'FETCH_ACCOUNTING_ENTRIES2_REQUEST':
       return { ...state, loading: true, error: null };
     case 'FETCH_ACCOUNTING_ENTRIES2_SUCCESS':
-      return { ...state, entries: action.payload, loading: false, error: null };
+      // 確保 payload 是陣列
+      const entries = Array.isArray(action.payload) ? action.payload : [];
+      return { ...state, entries, loading: false, error: null };
     case 'FETCH_ACCOUNTING_ENTRIES2_FAILURE':
       return { ...state, loading: false, error: action.payload };
     default:
@@ -681,7 +693,9 @@ export const accountBalance2Reducer = (state: AccountBalance2State = createIniti
     case 'FETCH_ACCOUNT_BALANCES2_REQUEST':
       return { ...state, loading: true, error: null };
     case 'FETCH_ACCOUNT_BALANCES2_SUCCESS':
-      return { ...state, balances: action.payload, loading: false, error: null };
+      // 確保 payload 是陣列
+      const balances = Array.isArray(action.payload) ? action.payload : [];
+      return { ...state, balances, loading: false, error: null };
     case 'FETCH_ACCOUNT_BALANCES2_FAILURE':
       return { ...state, loading: false, error: action.payload };
     default:

@@ -95,7 +95,6 @@ const AccountManagement: React.FC = () => {
   const { accounts, loading, error } = useSelector((state: RootState) => state.account2);
   
   // 本地狀態
-  const [accountTree, setAccountTree] = useState<Account[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccountType, setSelectedAccountType] = useState<string>('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
@@ -200,10 +199,23 @@ const AccountManagement: React.FC = () => {
 
   // 儲存會計科目
   const saveAccount = () => {
+    // 建立提交資料，排除 code 欄位讓後端自動生成
+    const submitData = {
+      name: formData.name,
+      type: formData.type,
+      accountType: formData.accountType,
+      initialBalance: formData.initialBalance,
+      currency: formData.currency,
+      description: formData.description,
+      organizationId: formData.organizationId
+    };
+
+    console.log('📤 提交會計科目資料:', submitData);
+
     if (editingAccount) {
-      dispatch(updateAccount2(editingAccount._id, formData) as any);
+      dispatch(updateAccount2(editingAccount._id, submitData) as any);
     } else {
-      dispatch(createAccount2(formData) as any);
+      dispatch(createAccount2(submitData) as any);
     }
     handleCloseDialog();
     showNotification('會計科目儲存成功', 'success');
@@ -264,55 +276,199 @@ const AccountManagement: React.FC = () => {
     });
   };
 
+  // 機構樹狀結構
+  interface OrganizationNode {
+    id: string;
+    name: string;
+    type: 'organization' | 'accountType' | 'account';
+    accountType?: string;
+    account?: Account;
+    children: OrganizationNode[];
+  }
+
+  // 建立機構階層樹狀結構
+  const buildOrganizationTree = (): OrganizationNode[] => {
+    const tree: OrganizationNode[] = [];
+    
+    // 按機構分組
+    const accountsByOrg = accounts.reduce((acc, account) => {
+      const orgId = account.organizationId || 'personal';
+      if (!acc[orgId]) acc[orgId] = [];
+      acc[orgId].push(account);
+      return acc;
+    }, {} as Record<string, Account[]>);
+
+    // 為每個機構建立樹狀結構
+    Object.entries(accountsByOrg).forEach(([orgId, orgAccounts]) => {
+      const organization = organizations.find(org => org._id === orgId);
+      const orgName = organization?.name || '個人帳戶';
+      
+      // 按會計科目類型分組
+      const accountsByType = (orgAccounts as Account[]).reduce((acc, account) => {
+        if (!acc[account.accountType]) acc[account.accountType] = [];
+        acc[account.accountType].push(account);
+        return acc;
+      }, {} as Record<string, Account[]>);
+
+      // 建立機構節點
+      const orgNode: OrganizationNode = {
+        id: orgId,
+        name: orgName,
+        type: 'organization',
+        children: []
+      };
+
+      // 為每個會計科目類型建立節點
+      accountTypeOptions.forEach(typeOption => {
+        const typeAccounts = accountsByType[typeOption.value] || [];
+        if (typeAccounts.length > 0) {
+          const typeNode: OrganizationNode = {
+            id: `${orgId}-${typeOption.value}`,
+            name: `${typeOption.label} (${typeAccounts.length})`,
+            type: 'accountType',
+            accountType: typeOption.value,
+            children: typeAccounts.map(account => ({
+              id: account._id,
+              name: `${account.code} - ${account.name}`,
+              type: 'account' as const,
+              account,
+              children: []
+            }))
+          };
+          orgNode.children.push(typeNode);
+        }
+      });
+
+      tree.push(orgNode);
+    });
+
+    return tree;
+  };
+
   // 樹狀結構項目組件
-  const TreeItemComponent: React.FC<{ account: Account; level?: number }> = ({ account, level = 0 }) => {
-    const [expanded, setExpanded] = useState(false);
-    const hasChildren = account.children && account.children.length > 0;
+  const TreeItemComponent: React.FC<{ node: OrganizationNode; level?: number }> = ({ node, level = 0 }) => {
+    const [expanded, setExpanded] = useState(level === 0); // 機構層級預設展開
+    const hasChildren = node.children && node.children.length > 0;
+
+    const getNodeIcon = () => {
+      switch (node.type) {
+        case 'organization':
+          return <BusinessIcon sx={{ color: '#1976d2' }} />;
+        case 'accountType':
+          const typeOption = accountTypeOptions.find(opt => opt.value === node.accountType);
+          return <CategoryIcon sx={{ color: typeOption?.color || '#666' }} />;
+        case 'account':
+          return <Box sx={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#4caf50' }} />;
+        default:
+          return null;
+      }
+    };
+
+    const getNodeContent = () => {
+      switch (node.type) {
+        case 'organization':
+          return (
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+              {node.name}
+            </Typography>
+          );
+        case 'accountType':
+          const typeOption = accountTypeOptions.find(opt => opt.value === node.accountType);
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                {node.name}
+              </Typography>
+              <Chip
+                size="small"
+                label={typeOption?.label}
+                sx={{
+                  backgroundColor: typeOption?.color,
+                  color: 'white',
+                  fontSize: '0.7rem'
+                }}
+              />
+            </Box>
+          );
+        case 'account':
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+              <Typography variant="body2">
+                {node.name}
+              </Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <Typography variant="caption" color="text.secondary">
+                ${node.account?.balance.toLocaleString() || 0}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <Tooltip title="編輯">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (node.account) handleOpenDialog(node.account);
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="刪除">
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (node.account) handleDeleteAccount(node.account._id);
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+          );
+        default:
+          return null;
+      }
+    };
 
     return (
       <React.Fragment>
         <ListItem
-          sx={{ 
+          sx={{
             pl: level * 2 + 1,
             cursor: hasChildren ? 'pointer' : 'default',
-            '&:hover': { backgroundColor: 'action.hover' }
+            '&:hover': { backgroundColor: 'action.hover' },
+            py: node.type === 'organization' ? 1 : 0.5
           }}
           onClick={() => hasChildren && setExpanded(!expanded)}
         >
-          <ListItemIcon sx={{ minWidth: 24 }}>
+          <ListItemIcon sx={{ minWidth: 32 }}>
             {hasChildren ? (
               expanded ? <ExpandMoreIcon /> : <ChevronRightIcon />
             ) : (
               <Box sx={{ width: 24 }} />
             )}
           </ListItemIcon>
+          <ListItemIcon sx={{ minWidth: 32 }}>
+            {getNodeIcon()}
+          </ListItemIcon>
           <ListItemText
-            primary={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: level === 0 ? 'bold' : 'normal' }}>
-                  {account.code} - {account.name}
-                </Typography>
-                <Chip
-                  size="small"
-                  label={accountTypeOptions.find(opt => opt.value === account.accountType)?.label}
-                  sx={{ 
-                    backgroundColor: accountTypeOptions.find(opt => opt.value === account.accountType)?.color,
-                    color: 'white',
-                    fontSize: '0.7rem'
-                  }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  ${account.balance.toLocaleString()}
-                </Typography>
-              </Box>
-            }
+            primary={getNodeContent()}
+            sx={{
+              '& .MuiListItemText-primary': {
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%'
+              }
+            }}
           />
         </ListItem>
         {hasChildren && (
           <Collapse in={expanded} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {account.children?.map(child => (
-                <TreeItemComponent key={child._id} account={child} level={level + 1} />
+              {node.children.map(child => (
+                <TreeItemComponent key={child.id} node={child} level={level + 1} />
               ))}
             </List>
           </Collapse>
@@ -354,22 +510,6 @@ const AccountManagement: React.FC = () => {
     }
   }, [error]);
 
-  // 從 Redux 狀態更新樹狀結構
-  useEffect(() => {
-    if (accounts.length > 0) {
-      // 簡單的樹狀結構構建邏輯
-      const buildTree = (items: Account[], parentId?: string): Account[] => {
-        return items
-          .filter(item => item.parentId === parentId)
-          .map(item => ({
-            ...item,
-            children: buildTree(items, item._id)
-          }));
-      };
-      
-      setAccountTree(buildTree(accounts));
-    }
-  }, [accounts]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -497,8 +637,8 @@ const AccountManagement: React.FC = () => {
               </Box>
             ) : (
               <List sx={{ width: '100%' }}>
-                {accountTree.map(account => (
-                  <TreeItemComponent key={account._id} account={account} />
+                {buildOrganizationTree().map(node => (
+                  <TreeItemComponent key={node.id} node={node} />
                 ))}
               </List>
             )}
@@ -616,6 +756,8 @@ const AccountManagement: React.FC = () => {
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 required
+                disabled
+                helperText="系統將自動生成科目代碼"
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -633,7 +775,11 @@ const AccountManagement: React.FC = () => {
                 <Select
                   value={formData.accountType}
                   label="會計科目類型"
-                  onChange={(e) => setFormData({ ...formData, accountType: e.target.value as any })}
+                  onChange={(e) => {
+                    const newAccountType = e.target.value as 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+                    console.log('🔄 會計科目類型變更:', { from: formData.accountType, to: newAccountType });
+                    setFormData({ ...formData, accountType: newAccountType });
+                  }}
                 >
                   {accountTypeOptions.map(option => (
                     <MenuItem key={option.value} value={option.value}>
@@ -649,7 +795,11 @@ const AccountManagement: React.FC = () => {
                 <Select
                   value={formData.type}
                   label="科目類型"
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                  onChange={(e) => {
+                    const newType = e.target.value as 'cash' | 'bank' | 'credit' | 'investment' | 'other';
+                    console.log('🔄 科目類型變更:', { from: formData.type, to: newType });
+                    setFormData({ ...formData, type: newType });
+                  }}
                 >
                   {typeOptions.map(option => (
                     <MenuItem key={option.value} value={option.value}>

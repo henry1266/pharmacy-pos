@@ -142,9 +142,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
+      // 同時設定兩種認證方式以確保相容性
       axios.defaults.headers.common['x-auth-token'] = token;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
       delete axios.defaults.headers.common['x-auth-token'];
+      delete axios.defaults.headers.common['Authorization'];
     }
     
     // 優化的存儲變更監聽器
@@ -155,9 +158,12 @@ const App: React.FC = () => {
         
         // 更新 axios 標頭
         if (newToken) {
+          // 同時設定兩種認證方式以確保相容性
           axios.defaults.headers.common['x-auth-token'] = newToken;
+          axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
         } else {
           delete axios.defaults.headers.common['x-auth-token'];
+          delete axios.defaults.headers.common['Authorization'];
           // 只有在登出時才重新載入
           if (event.key === 'token' && !newToken) {
             window.location.reload();

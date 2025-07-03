@@ -90,14 +90,12 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
 
     res.json({
       success: true,
-      data: {
-        transactionGroups,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total,
-          pages: Math.ceil(total / limitNum)
-        }
+      data: transactionGroups,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
       }
     });
   } catch (error) {
@@ -215,9 +213,21 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       createdBy: userId
     };
 
-    // 只有當 organizationId 有值時才加入
-    if (organizationId && organizationId !== null) {
-      transactionGroupData.organizationId = new mongoose.Types.ObjectId(organizationId);
+    // 只有當 organizationId 有值且不是 null 時才加入
+    if (organizationId && organizationId !== null && organizationId !== 'null' && organizationId.trim() !== '') {
+      try {
+        transactionGroupData.organizationId = new mongoose.Types.ObjectId(organizationId);
+        console.log('✅ 設定 organizationId:', organizationId);
+      } catch (error) {
+        console.error('❌ organizationId 格式錯誤:', organizationId, error);
+        res.status(400).json({
+          success: false,
+          message: '機構ID格式錯誤'
+        });
+        return;
+      }
+    } else {
+      console.log('ℹ️ 個人記帳，不設定 organizationId');
     }
 
     console.log('📝 建立交易群組資料:', transactionGroupData);
@@ -235,7 +245,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
       // 建立記帳分錄
       const entryPromises = entries.map((entry: any, index: number) => {
-        const entryData = {
+        const entryData: any = {
           transactionGroupId: savedTransactionGroup._id,
           sequence: index + 1,
           accountId: entry.accountId,
@@ -243,9 +253,17 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
           creditAmount: entry.creditAmount || 0,
           categoryId: entry.categoryId,
           description: entry.description || description,
-          organizationId: organizationId || undefined,
           createdBy: userId
         };
+
+        // 只有當 organizationId 有效時才加入
+        if (organizationId && organizationId !== null && organizationId !== 'null' && organizationId.trim() !== '') {
+          try {
+            entryData.organizationId = new mongoose.Types.ObjectId(organizationId);
+          } catch (error) {
+            console.error('❌ 分錄 organizationId 格式錯誤:', organizationId, error);
+          }
+        }
 
         console.log(`📝 建立分錄 ${index + 1}:`, entryData);
 
