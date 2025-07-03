@@ -71,6 +71,12 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
   onView
 }) => {
   const { transactionGroups = [], loading, error } = useAppSelector(state => state.transactionGroup2);
+  
+  // 確保每個 transactionGroup 都有 entries 陣列
+  const safeTransactionGroups = transactionGroups.map(group => ({
+    ...group,
+    entries: Array.isArray(group.entries) ? group.entries : []
+  }));
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const handleExpandRow = (id: string) => {
@@ -131,7 +137,7 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
       />
       
       <CardContent>
-        {transactionGroups.length === 0 ? (
+        {safeTransactionGroups.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <ReceiptIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
             <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -163,7 +169,7 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {transactionGroups.map((group) => (
+                {safeTransactionGroups.map((group) => (
                   <React.Fragment key={group._id}>
                     {/* 主要交易行 */}
                     <TableRow hover>
@@ -252,7 +258,7 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {group.entries.map((entry) => (
+                                {group.entries && group.entries.length > 0 ? group.entries.map((entry) => (
                                   <TableRow key={entry._id}>
                                     <TableCell>
                                       <Typography variant="body2">
@@ -294,7 +300,15 @@ export const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
                                       )}
                                     </TableCell>
                                   </TableRow>
-                                ))}
+                                )) : (
+                                  <TableRow>
+                                    <TableCell colSpan={5} align="center">
+                                      <Typography variant="body2" color="text.secondary">
+                                        此交易群組尚無分錄資料
+                                      </Typography>
+                                    </TableCell>
+                                  </TableRow>
+                                )}
                               </TableBody>
                             </Table>
                           </Box>

@@ -89,7 +89,8 @@ const AppRouter: React.FC = () => {
       
       {/* Accounting2 routes */}
       <Route path="/accounting2" element={<Accounting2Page />} />
-      <Route path="/accounting2/category/:categoryId" element={<AccountingDetailPageWrapper />} />
+      <Route path="/accounting2/organization/:organizationId" element={<AccountingDetailPageWrapper />} />
+      <Route path="/accounting2/account-type/:accountType" element={<AccountingDetailPageWrapper />} />
       <Route path="/accounting2/account/:accountId" element={<AccountingDetailPageWrapper />} />
       
       {/* Organization Management routes */}

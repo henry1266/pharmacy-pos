@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -41,7 +42,9 @@ import {
   AccountTree as AccountTreeIcon,
   Category as CategoryIcon,
   Settings as SettingsIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  Visibility as VisibilityIcon,
+  Launch as LaunchIcon
 } from '@mui/icons-material';
 import { RootState } from '../../redux/reducers';
 import {
@@ -52,7 +55,10 @@ import {
   searchAccounts2,
   createStandardChart,
   fetchAccountsHierarchy,
-  fetchAccountsByType
+  fetchAccountsByType,
+  fetchOrganizations2,
+  calculateAccountBalancesBatch,
+  fetchAccountBalancesSummary
 } from '../../redux/actions';
 import organizationService, { Organization } from '../../services/organizationService';
 
@@ -92,16 +98,18 @@ interface AccountFormData {
 const AccountManagement: React.FC = () => {
   // Redux 狀態管理
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { accounts, loading, error } = useSelector((state: RootState) => state.account2);
+  const { organizations } = useSelector((state: RootState) => state.organization);
+  const { batchBalances, summary, loading: balanceLoading } = useSelector((state: RootState) => state.accountBalance2);
   
   // 本地狀態
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccountType, setSelectedAccountType] = useState<string>('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
   
-  // 機構相關狀態
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [organizationsLoading, setOrganizationsLoading] = useState(false);
+  // 科目餘額映射
+  const [accountBalances, setAccountBalances] = useState<Record<string, number>>({});
   
   // 對話框狀態
   const [openDialog, setOpenDialog] = useState(false);
@@ -149,19 +157,24 @@ const AccountManagement: React.FC = () => {
   ];
 
   // 載入機構列表
-  const loadOrganizations = async () => {
-    try {
-      setOrganizationsLoading(true);
-      console.log('🏢 開始載入機構列表...');
-      const response = await organizationService.getOrganizations({ limit: 100 });
-      console.log('🏢 機構列表載入成功:', response.data);
-      setOrganizations(response.data);
-    } catch (error) {
-      console.error('❌ 載入機構列表失敗:', error);
-      showNotification('載入機構列表失敗', 'error');
-    } finally {
-      setOrganizationsLoading(false);
+  const loadOrganizations = () => {
+    console.log('🏢 開始載入機構列表...');
+    dispatch(fetchOrganizations2() as any);
+  };
+
+  // 載入科目餘額
+  const loadAccountBalances = () => {
+    if (accounts.length > 0) {
+      console.log('💰 開始載入科目餘額...');
+      const accountIds = accounts.map(account => account._id);
+      dispatch(calculateAccountBalancesBatch(accountIds, selectedOrganizationId) as any);
     }
+  };
+
+  // 載入科目餘額摘要
+  const loadBalancesSummary = () => {
+    console.log('📊 開始載入科目餘額摘要...');
+    dispatch(fetchAccountBalancesSummary(selectedOrganizationId) as any);
   };
 
   // 載入會計科目
@@ -198,27 +211,43 @@ const AccountManagement: React.FC = () => {
   };
 
   // 儲存會計科目
-  const saveAccount = () => {
-    // 建立提交資料，排除 code 欄位讓後端自動生成
-    const submitData = {
-      name: formData.name,
-      type: formData.type,
-      accountType: formData.accountType,
-      initialBalance: formData.initialBalance,
-      currency: formData.currency,
-      description: formData.description,
-      organizationId: formData.organizationId
-    };
+  const saveAccount = async () => {
+    try {
+      // 建立提交資料，排除 code 欄位讓後端自動生成
+      const submitData = {
+        name: formData.name,
+        type: formData.type,
+        accountType: formData.accountType,
+        initialBalance: formData.initialBalance,
+        currency: formData.currency,
+        description: formData.description,
+        organizationId: formData.organizationId,
+        parentId: formData.parentId || null
+      };
 
-    console.log('📤 提交會計科目資料:', submitData);
+      console.log('📤 提交會計科目資料:', submitData);
 
-    if (editingAccount) {
-      dispatch(updateAccount2(editingAccount._id, submitData) as any);
-    } else {
-      dispatch(createAccount2(submitData) as any);
+      if (editingAccount) {
+        await dispatch(updateAccount2(editingAccount._id, submitData) as any);
+        showNotification('會計科目更新成功', 'success');
+      } else {
+        await dispatch(createAccount2(submitData) as any);
+        showNotification('會計科目新增成功', 'success');
+      }
+      
+      handleCloseDialog();
+      
+      // 強制重新載入資料
+      setTimeout(() => {
+        console.log('🔄 強制重新載入會計科目資料');
+        loadAccounts();
+        loadAccountTree();
+      }, 500);
+      
+    } catch (error) {
+      console.error('❌ 儲存會計科目失敗:', error);
+      showNotification('儲存會計科目失敗', 'error');
     }
-    handleCloseDialog();
-    showNotification('會計科目儲存成功', 'success');
   };
 
   // 刪除會計科目
@@ -286,8 +315,8 @@ const AccountManagement: React.FC = () => {
     children: OrganizationNode[];
   }
 
-  // 建立機構階層樹狀結構
-  const buildOrganizationTree = (): OrganizationNode[] => {
+  // 建立真正的父子科目階層結構
+  const buildAccountHierarchy = (): OrganizationNode[] => {
     const tree: OrganizationNode[] = [];
     
     // 按機構分組
@@ -322,18 +351,30 @@ const AccountManagement: React.FC = () => {
       accountTypeOptions.forEach(typeOption => {
         const typeAccounts = accountsByType[typeOption.value] || [];
         if (typeAccounts.length > 0) {
+          // 建立父子階層結構
+          const buildAccountTree = (accounts: Account[], parentId: string | null = null): OrganizationNode[] => {
+            return accounts
+              .filter(account => {
+                if (parentId === null) {
+                  return !account.parentId;
+                }
+                return account.parentId === parentId;
+              })
+              .map(account => ({
+                id: account._id,
+                name: `${account.code} - ${account.name}`,
+                type: 'account' as const,
+                account,
+                children: buildAccountTree(accounts, account._id)
+              }));
+          };
+
           const typeNode: OrganizationNode = {
             id: `${orgId}-${typeOption.value}`,
             name: `${typeOption.label} (${typeAccounts.length})`,
             type: 'accountType',
             accountType: typeOption.value,
-            children: typeAccounts.map(account => ({
-              id: account._id,
-              name: `${account.code} - ${account.name}`,
-              type: 'account' as const,
-              account,
-              children: []
-            }))
+            children: buildAccountTree(typeAccounts)
           };
           orgNode.children.push(typeNode);
         }
@@ -343,6 +384,24 @@ const AccountManagement: React.FC = () => {
     });
 
     return tree;
+  };
+
+  // 處理節點點擊導航
+  const handleNodeClick = (node: OrganizationNode) => {
+    switch (node.type) {
+      case 'organization':
+        navigate(`/accounting2/organization/${node.id}`);
+        break;
+      case 'accountType':
+        const orgId = node.id.split('-')[0];
+        navigate(`/accounting2/organization/${orgId}/type/${node.accountType}`);
+        break;
+      case 'account':
+        if (node.account) {
+          navigate(`/accounting2/account/${node.account._id}`);
+        }
+        break;
+    }
   };
 
   // 樹狀結構項目組件
@@ -393,14 +452,27 @@ const AccountManagement: React.FC = () => {
         case 'account':
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{ flexGrow: 1 }}>
                 {node.name}
               </Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              <Typography variant="caption" color="text.secondary">
-                ${node.account?.balance.toLocaleString() || 0}
+              <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                ${(accountBalances[node.account?._id] || node.account?.balance || 0).toLocaleString()}
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <Tooltip title="查看詳情">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (node.account) {
+                        navigate(`/accounting2/account/${node.account._id}`);
+                      }
+                    }}
+                  >
+                    <LaunchIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title="編輯">
                   <IconButton
                     size="small"
@@ -437,11 +509,17 @@ const AccountManagement: React.FC = () => {
         <ListItem
           sx={{
             pl: level * 2 + 1,
-            cursor: hasChildren ? 'pointer' : 'default',
+            cursor: 'pointer',
             '&:hover': { backgroundColor: 'action.hover' },
             py: node.type === 'organization' ? 1 : 0.5
           }}
-          onClick={() => hasChildren && setExpanded(!expanded)}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasChildren) {
+              setExpanded(!expanded);
+            }
+            // 移除直接導航，只有按鈕點擊才會導航
+          }}
         >
           <ListItemIcon sx={{ minWidth: 32 }}>
             {hasChildren ? (
@@ -484,6 +562,50 @@ const AccountManagement: React.FC = () => {
     loadAccountTree();
   }, []);
 
+  // 當科目載入完成後，載入餘額
+  useEffect(() => {
+    if (accounts.length > 0 && !balanceLoading) {
+      loadAccountBalances();
+      loadBalancesSummary();
+    }
+  }, [accounts.length, selectedOrganizationId]);
+
+  // 處理批量餘額計算結果
+  useEffect(() => {
+    if (batchBalances && batchBalances.length > 0) {
+      const balanceMap: Record<string, number> = {};
+      batchBalances.forEach((balance: any) => {
+        if (balance.accountId) {
+          balanceMap[balance.accountId] = balance.actualBalance || 0;
+        }
+      });
+      setAccountBalances(balanceMap);
+      console.log('💰 科目餘額映射更新:', balanceMap);
+    }
+  }, [batchBalances]);
+
+  // 處理餘額摘要結果，提取各科目的實際餘額
+  useEffect(() => {
+    if (summary && summary.summary) {
+      const balanceMap: Record<string, number> = {};
+      
+      // 遍歷所有科目類型
+      Object.values(summary.summary).forEach((typeData: any) => {
+        if (typeData.accounts && Array.isArray(typeData.accounts)) {
+          typeData.accounts.forEach((account: any) => {
+            if (account._id && typeof account.actualBalance === 'number') {
+              balanceMap[account._id] = account.actualBalance;
+            }
+          });
+        }
+      });
+      
+      // 合併到現有的餘額映射
+      setAccountBalances(prev => ({ ...prev, ...balanceMap }));
+      console.log('📊 從餘額摘要更新科目餘額映射:', balanceMap);
+    }
+  }, [summary]);
+
   // 機構選擇變更時重新載入資料
   useEffect(() => {
     console.log('🔄 機構選擇變更，selectedOrganizationId:', selectedOrganizationId);
@@ -509,6 +631,16 @@ const AccountManagement: React.FC = () => {
       showNotification(error, 'error');
     }
   }, [error]);
+
+  // 監聽 Redux 狀態變化，當 accounts 更新時重新渲染
+  useEffect(() => {
+    console.log('📊 Redux accounts 狀態變化:', {
+      accountsLength: accounts.length,
+      loading,
+      error,
+      accounts: accounts.slice(0, 3) // 只顯示前3筆作為範例
+    });
+  }, [accounts, loading, error]);
 
 
   return (
@@ -553,7 +685,7 @@ const AccountManagement: React.FC = () => {
                 console.log('🏢 機構選擇變更:', { from: selectedOrganizationId, to: newOrgId });
                 setSelectedOrganizationId(newOrgId);
               }}
-              disabled={organizationsLoading}
+              disabled={loading}
             >
               <MenuItem value="">
                 <em>所有機構</em>
@@ -565,7 +697,7 @@ const AccountManagement: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-          {organizationsLoading && (
+          {loading && (
             <CircularProgress size={20} />
           )}
         </Box>
@@ -623,104 +755,29 @@ const AccountManagement: React.FC = () => {
         </Grid>
       </Paper>
 
-      <Grid container spacing={3}>
-        {/* 科目樹狀結構 */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: '600px', overflow: 'auto' }}>
-            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-              <AccountTreeIcon sx={{ mr: 1 }} />
-              科目階層結構
-            </Typography>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <List sx={{ width: '100%' }}>
-                {buildOrganizationTree().map(node => (
-                  <TreeItemComponent key={node.id} node={node} />
-                ))}
-              </List>
-            )}
-          </Paper>
-        </Grid>
-
-        {/* 科目列表 */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: '600px', overflow: 'auto' }}>
-            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-              <CategoryIcon sx={{ mr: 1 }} />
-              科目列表 ({accounts.length})
-            </Typography>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {accounts.map((account) => (
-                <Card key={account._id} variant="outlined">
-                  <CardContent sx={{ pb: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                          {account.code} - {account.name}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                          <Chip
-                            size="small"
-                            label={accountTypeOptions.find(opt => opt.value === account.accountType)?.label}
-                            sx={{ 
-                              backgroundColor: accountTypeOptions.find(opt => opt.value === account.accountType)?.color,
-                              color: 'white'
-                            }}
-                          />
-                          <Chip
-                            size="small"
-                            label={account.normalBalance === 'debit' ? '借方' : '貸方'}
-                            variant="outlined"
-                          />
-                          <Typography variant="caption" color="text.secondary">
-                            層級 {account.level}
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          餘額: ${account.balance.toLocaleString()} {account.currency}
-                        </Typography>
-                        {account.description && (
-                          <Typography variant="caption" color="text.secondary">
-                            {account.description}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  </CardContent>
-                  <CardActions sx={{ pt: 0 }}>
-                    <Tooltip title="編輯">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(account)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="刪除">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteAccount(account._id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </CardActions>
-                </Card>
-              ))}
-              </Box>
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
+      {/* 科目階層結構 - 全寬度 */}
+      <Paper sx={{ p: 2, height: '600px', overflow: 'auto' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+            <AccountTreeIcon sx={{ mr: 1 }} />
+            科目階層結構 - 點擊展開/收合，使用按鈕操作
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            總計 {accounts.length} 個科目
+          </Typography>
+        </Box>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <List sx={{ width: '100%' }}>
+            {buildAccountHierarchy().map(node => (
+              <TreeItemComponent key={node.id} node={node} />
+            ))}
+          </List>
+        )}
+      </Paper>
 
       {/* 新增/編輯科目對話框 */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
@@ -736,7 +793,7 @@ const AccountManagement: React.FC = () => {
                   value={formData.organizationId || ''}
                   label="所屬機構"
                   onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
-                  disabled={organizationsLoading}
+                  disabled={loading}
                 >
                   <MenuItem value="">
                     <em>請選擇機構</em>
@@ -746,6 +803,37 @@ const AccountManagement: React.FC = () => {
                       {org.name}
                     </MenuItem>
                   ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>父科目</InputLabel>
+                <Select
+                  value={formData.parentId || ''}
+                  label="父科目"
+                  onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                  disabled={loading}
+                >
+                  <MenuItem value="">
+                    <em>無（建立為根科目）</em>
+                  </MenuItem>
+                  {accounts
+                    .filter(account =>
+                      // 過濾條件：
+                      // 1. 同機構或同為個人帳戶
+                      (account.organizationId === formData.organizationId ||
+                       (!account.organizationId && !formData.organizationId)) &&
+                      // 2. 不是自己（編輯時）
+                      account._id !== editingAccount?._id &&
+                      // 3. 層級小於4（最多5層）
+                      account.level < 4
+                    )
+                    .map((account) => (
+                      <MenuItem key={account._id} value={account._id}>
+                        {'　'.repeat(account.level - 1)}{account.code} - {account.name}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             </Grid>

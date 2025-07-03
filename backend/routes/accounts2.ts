@@ -124,7 +124,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       return;
     }
 
-    const { name, type, accountType: requestedAccountType, initialBalance, currency, description, organizationId } = req.body;
+    const { name, type, accountType: requestedAccountType, initialBalance, currency, description, organizationId, parentId } = req.body;
     
     // 忽略前端發送的 code，我們會自動生成
     if (req.body.code) {
@@ -141,6 +141,8 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       organizationId,
       organizationIdType: typeof organizationId,
       organizationIdLength: organizationId ? organizationId.length : 'N/A',
+      parentId,
+      parentIdType: typeof parentId,
       body: req.body
     });
 
@@ -331,13 +333,30 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
       code,
       accountType,
       normalBalance,
-      level: 1, // 預設為第一層
+      level: 1, // 預設為第一層，如果有父科目會在 pre-save hook 中自動調整
       balance: initialBalance,
       initialBalance,
       currency: currency || 'TWD',
       description,
       createdBy: userId
     };
+    
+    // 如果有父科目 ID，加入到資料中
+    if (parentId && parentId !== null && parentId !== '') {
+      console.log('✅ 設定父科目 ID:', parentId);
+      try {
+        const parentObjectId = new mongoose.Types.ObjectId(parentId);
+        console.log('✅ 父科目 ObjectId 轉換成功:', parentObjectId);
+        accountData.parentId = parentObjectId;
+      } catch (parentIdError) {
+        console.error('❌ 父科目 ObjectId 轉換失敗:', parentIdError);
+        res.status(400).json({
+          success: false,
+          message: '父科目ID格式無效'
+        });
+        return;
+      }
+    }
     
     // 只有當 organizationId 有值且不為 null 時才加入
     if (organizationId && organizationId !== null) {
@@ -363,6 +382,14 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     const newAccount = new Account2(accountData);
 
     const savedAccount = await newAccount.save();
+    
+    console.log('✅ 會計科目建立成功:', {
+      id: savedAccount._id,
+      code: savedAccount.code,
+      name: savedAccount.name,
+      accountType: savedAccount.accountType,
+      organizationId: savedAccount.organizationId
+    });
 
     res.status(201).json({
       success: true,

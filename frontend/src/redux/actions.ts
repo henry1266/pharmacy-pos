@@ -734,25 +734,61 @@ export const createAccount2 = (accountData: any): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
+    console.log('🔍 createAccount2 開始:', accountData);
     dispatch({ type: 'CREATE_ACCOUNT2_REQUEST' });
     
-    const res = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/accounting2/accounts`, accountData);
+    // 確保請求包含正確的認證標頭
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/accounting2/accounts`, accountData, config);
+    console.log('📡 創建會計科目 API 回應:', res.data);
     
     if (res.data.success) {
       dispatch({
         type: 'CREATE_ACCOUNT2_SUCCESS',
         payload: res.data.data
       });
+      console.log('✅ createAccount2 成功:', res.data.data);
+      
       // 創建成功後重新載入會計科目列表
-      dispatch(fetchAccounts2(accountData.organizationId) as any);
+      setTimeout(() => {
+        console.log('🔄 重新載入會計科目列表');
+        dispatch(fetchAccounts2(accountData.organizationId) as any);
+      }, 100);
+      
+      return res.data.data; // 返回創建的資料
     } else {
       throw new Error(res.data.message ?? '創建會計科目失敗');
     }
   } catch (err: any) {
+    console.error('❌ createAccount2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    console.error('❌ 錯誤狀態碼:', err.response?.status);
+    
+    let errorMessage = '創建會計科目失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.status === 400) {
+      errorMessage = err.response?.data?.message || '請求資料格式錯誤';
+    } else if (err.response?.status === 500) {
+      errorMessage = err.response?.data?.message || '伺服器內部錯誤';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
     dispatch({
       type: 'CREATE_ACCOUNT2_FAILURE',
-      payload: err.response?.data?.message ?? '創建會計科目失敗'
+      payload: errorMessage
     });
+    throw new Error(errorMessage); // 重新拋出錯誤，讓前端組件可以處理
   }
 };
 
@@ -946,19 +982,29 @@ export const fetchTransactionGroups2 = (organizationId?: string): AppThunk => as
     console.log('📡 API 回應:', res.data);
     
     if (res.data.success) {
-      // 處理後端回傳的巢狀結構：{ data: { transactionGroups: [...], pagination: {...} } }
+      // 處理後端回傳的新結構：{ data: { transactionGroups: [...], pagination: {...} } }
       let transactionGroups = [];
       if (res.data.data && res.data.data.transactionGroups) {
         transactionGroups = Array.isArray(res.data.data.transactionGroups) ? res.data.data.transactionGroups : [];
       } else if (Array.isArray(res.data.data)) {
+        // 向後兼容舊格式
         transactionGroups = res.data.data;
       }
       
+      // 確保每個交易群組都有完整的資料結構
+      const processedTransactionGroups = transactionGroups.map(group => ({
+        ...group,
+        entries: Array.isArray(group.entries) ? group.entries : [],
+        totalAmount: typeof group.totalAmount === 'number' ? group.totalAmount : 0,
+        isBalanced: typeof group.isBalanced === 'boolean' ? group.isBalanced : false
+      }));
+      
       dispatch({
         type: 'FETCH_TRANSACTION_GROUPS2_SUCCESS',
-        payload: transactionGroups
+        payload: processedTransactionGroups
       });
-      console.log('✅ fetchTransactionGroups2 成功，資料筆數:', transactionGroups.length);
+      console.log('✅ fetchTransactionGroups2 成功，資料筆數:', processedTransactionGroups.length);
+      console.log('📋 第一筆資料範例:', processedTransactionGroups[0]);
     } else {
       throw new Error(res.data.message ?? '獲取交易群組失敗');
     }
@@ -1048,7 +1094,16 @@ export const updateTransactionGroup2 = (id: string, transactionData: any): AppTh
     console.log('🔍 updateTransactionGroup2 開始:', { id, transactionData });
     dispatch({ type: 'UPDATE_TRANSACTION_GROUP2_REQUEST' });
     
-    const res = await axios.put<ApiResponse<any>>(`${API_BASE_URL}/accounting2/transaction-groups/${id}`, transactionData);
+    // 確保請求包含正確的認證標頭
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.put<ApiResponse<any>>(`${API_BASE_URL}/accounting2/transaction-groups/${id}`, transactionData, config);
     console.log('📡 更新交易群組 API 回應:', res.data);
     
     if (res.data.success) {
@@ -1081,7 +1136,15 @@ export const deleteTransactionGroup2 = (id: string, organizationId?: string): Ap
     console.log('🔍 deleteTransactionGroup2 開始:', { id, organizationId });
     dispatch({ type: 'DELETE_TRANSACTION_GROUP2_REQUEST' });
     
-    const res = await axios.delete<ApiResponse>(`${API_BASE_URL}/accounting2/transaction-groups/${id}`);
+    // 確保請求包含正確的認證標頭
+    const config = {
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.delete<ApiResponse>(`${API_BASE_URL}/accounting2/transaction-groups/${id}`, config);
     console.log('📡 刪除交易群組 API 回應:', res.data);
     
     if (res.data.success) {
@@ -1132,6 +1195,212 @@ export const fetchTransactionGroup2 = (id: string): AppThunk => async (
     dispatch({
       type: 'FETCH_TRANSACTION_GROUP2_FAILURE',
       payload: err.response?.data?.message ?? err.message ?? '獲取交易群組失敗'
+    });
+  }
+};
+
+// 機構管理相關 Actions
+
+// 獲取所有機構
+export const fetchOrganizations2 = (): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🏢 fetchOrganizations2 開始');
+    dispatch({ type: 'FETCH_ORGANIZATIONS2_REQUEST' });
+    
+    // 確保請求包含正確的認證標頭
+    const config = {
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.get<ApiResponse<any[]>>(`${API_BASE_URL}/organizations`, config);
+    console.log('📡 機構 API 回應:', res.data);
+    
+    if (res.data.success) {
+      const organizations = Array.isArray(res.data.data) ? res.data.data : [];
+      dispatch({
+        type: 'FETCH_ORGANIZATIONS2_SUCCESS',
+        payload: organizations
+      });
+      console.log('✅ fetchOrganizations2 成功，資料筆數:', organizations.length);
+    } else {
+      throw new Error(res.data.message ?? '獲取機構列表失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ fetchOrganizations2 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    
+    let errorMessage = '獲取機構列表失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    dispatch({
+      type: 'FETCH_ORGANIZATIONS2_FAILURE',
+      payload: errorMessage
+    });
+  }
+};
+
+// 科目餘額相關 Actions
+
+// 計算單一科目餘額
+export const calculateAccountBalance = (accountId: string, organizationId?: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🧮 calculateAccountBalance 開始:', { accountId, organizationId });
+    dispatch({ type: 'CALCULATE_ACCOUNT_BALANCE_REQUEST' });
+    
+    const params = organizationId ? { organizationId } : {};
+    const config = {
+      params,
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.get<ApiResponse<any>>(`${API_BASE_URL}/accounting2/balances/${accountId}`, config);
+    console.log('📡 科目餘額計算 API 回應:', res.data);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'CALCULATE_ACCOUNT_BALANCE_SUCCESS',
+        payload: res.data.data
+      });
+      console.log('✅ calculateAccountBalance 成功:', res.data.data);
+    } else {
+      throw new Error(res.data.message ?? '計算科目餘額失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ calculateAccountBalance 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    
+    let errorMessage = '計算科目餘額失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    dispatch({
+      type: 'CALCULATE_ACCOUNT_BALANCE_FAILURE',
+      payload: errorMessage
+    });
+  }
+};
+
+// 批量計算科目餘額
+export const calculateAccountBalancesBatch = (accountIds: string[], organizationId?: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('🧮 calculateAccountBalancesBatch 開始:', { accountIds: accountIds.length, organizationId });
+    dispatch({ type: 'CALCULATE_ACCOUNT_BALANCES_BATCH_REQUEST' });
+    
+    const requestData = {
+      accountIds,
+      organizationId
+    };
+    
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/accounting2/balances/batch`, requestData, config);
+    console.log('📡 批量科目餘額計算 API 回應:', res.data);
+    
+    if (res.data.success) {
+      dispatch({
+        type: 'CALCULATE_ACCOUNT_BALANCES_BATCH_SUCCESS',
+        payload: res.data.data
+      });
+      console.log('✅ calculateAccountBalancesBatch 成功，計算筆數:', res.data.data?.count || 0);
+    } else {
+      throw new Error(res.data.message ?? '批量計算科目餘額失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ calculateAccountBalancesBatch 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    
+    let errorMessage = '批量計算科目餘額失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    dispatch({
+      type: 'CALCULATE_ACCOUNT_BALANCES_BATCH_FAILURE',
+      payload: errorMessage
+    });
+  }
+};
+
+// 獲取科目餘額摘要
+export const fetchAccountBalancesSummary = (organizationId?: string): AppThunk => async (
+  dispatch: ThunkDispatch<RootState, unknown, Action>
+) => {
+  try {
+    console.log('📊 fetchAccountBalancesSummary 開始:', { organizationId });
+    dispatch({ type: 'FETCH_ACCOUNT_BALANCES_SUMMARY_REQUEST' });
+    
+    const params = organizationId ? { organizationId } : {};
+    const config = {
+      params,
+      headers: {
+        'x-auth-token': localStorage.getItem('token'),
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
+    
+    const res = await axios.get<ApiResponse<any>>(`${API_BASE_URL}/accounting2/balances/summary`, config);
+    console.log('📡 科目餘額摘要 API 回應:', res.data);
+    
+    if (res.data.success) {
+      // 後端返回的數據結構：{ success: true, organizationId, totalAccounts, summary }
+      // 需要將整個 res.data 傳遞給 reducer，而不只是 res.data.data
+      dispatch({
+        type: 'FETCH_ACCOUNT_BALANCES_SUMMARY_SUCCESS',
+        payload: res.data
+      });
+      console.log('✅ fetchAccountBalancesSummary 成功，總科目數:', (res.data as any).totalAccounts || 0);
+    } else {
+      throw new Error(res.data.message ?? '獲取科目餘額摘要失敗');
+    }
+  } catch (err: any) {
+    console.error('❌ fetchAccountBalancesSummary 失敗:', err);
+    console.error('❌ 錯誤詳情:', err.response?.data);
+    
+    let errorMessage = '獲取科目餘額摘要失敗';
+    if (err.response?.status === 401) {
+      errorMessage = '認證失敗，請重新登入';
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    dispatch({
+      type: 'FETCH_ACCOUNT_BALANCES_SUMMARY_FAILURE',
+      payload: errorMessage
     });
   }
 };

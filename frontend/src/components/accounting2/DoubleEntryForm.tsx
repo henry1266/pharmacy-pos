@@ -30,7 +30,6 @@ export interface AccountingEntryFormData {
   accountId: string;
   debitAmount: number;
   creditAmount: number;
-  categoryId?: string;
   description: string;
 }
 
@@ -48,12 +47,6 @@ interface AccountOption {
   normalBalance: 'debit' | 'credit';
 }
 
-interface CategoryOption {
-  _id: string;
-  name: string;
-  type: string;
-  color?: string;
-}
 
 export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
   entries,
@@ -61,15 +54,10 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
   organizationId
 }) => {
   const { accounts } = useAppSelector(state => state.account2 || { accounts: [] });
-  const { categories } = useAppSelector(state => state.category2 || { categories: [] });
 
-  // 過濾可用的會計科目和類別
-  const availableAccounts: AccountOption[] = accounts.filter(account => 
+  // 過濾可用的會計科目
+  const availableAccounts: AccountOption[] = accounts.filter(account =>
     account.isActive && (!organizationId || account.organizationId === organizationId)
-  );
-
-  const availableCategories: CategoryOption[] = categories.filter(category =>
-    category.isActive && (!organizationId || category.organizationId === organizationId)
   );
 
   // 計算借貸總額
@@ -84,7 +72,6 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
       accountId: '',
       debitAmount: 0,
       creditAmount: 0,
-      categoryId: '',
       description: ''
     };
     onChange([...entries, newEntry]);
@@ -178,10 +165,9 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell width="25%">會計科目</TableCell>
-              <TableCell width="15%">借方金額</TableCell>
-              <TableCell width="15%">貸方金額</TableCell>
-              <TableCell width="15%">類別</TableCell>
+              <TableCell width="30%">會計科目</TableCell>
+              <TableCell width="20%">借方金額</TableCell>
+              <TableCell width="20%">貸方金額</TableCell>
               <TableCell width="25%">摘要</TableCell>
               <TableCell width="5%">操作</TableCell>
             </TableRow>
@@ -257,36 +243,6 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                   />
                 </TableCell>
 
-                {/* 類別選擇 */}
-                <TableCell>
-                  <Autocomplete
-                    size="small"
-                    options={availableCategories}
-                    getOptionLabel={(option) => option.name}
-                    value={availableCategories.find(cat => cat._id === entry.categoryId) || null}
-                    onChange={(_, newValue) => {
-                      updateEntry(index, 'categoryId', newValue?._id || '');
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="選擇類別"
-                      />
-                    )}
-                    renderOption={(props, option) => (
-                      <Box component="li" {...props}>
-                        <Chip
-                          size="small"
-                          label={option.name}
-                          style={{ backgroundColor: option.color }}
-                          sx={{ mr: 1 }}
-                        />
-                        {option.type}
-                      </Box>
-                    )}
-                  />
-                </TableCell>
-
                 {/* 摘要 */}
                 <TableCell>
                   <TextField
@@ -329,7 +285,7 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                   NT$ {totalCredit.toLocaleString()}
                 </Typography>
               </TableCell>
-              <TableCell colSpan={3}>
+              <TableCell colSpan={2}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body2" color={isBalanced ? 'success.main' : 'error.main'}>
                     {isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${difference.toLocaleString()}`}

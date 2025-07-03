@@ -15,6 +15,80 @@ interface AuthenticatedRequest extends express.Request {
 
 const router: Router = express.Router();
 
+// 輔助函數：驗證和轉換 ObjectId
+const validateObjectId = (id: string, fieldName: string): mongoose.Types.ObjectId => {
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    throw new Error(`${fieldName} 不能為空`);
+  }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new Error(`無效的 ${fieldName} ID: ${id}`);
+  }
+  return new mongoose.Types.ObjectId(id);
+};
+
+// 輔助函數：安全轉換 ObjectId（可選欄位）
+const safeObjectId = (id?: string): mongoose.Types.ObjectId | undefined => {
+  if (!id || id === 'null' || id === 'undefined' || id.trim() === '') return undefined;
+  if (!mongoose.Types.ObjectId.isValid(id)) return undefined;
+  return new mongoose.Types.ObjectId(id);
+};
+
+// 輔助函數：生成交易群組編號
+const generateGroupNumber = async (session?: mongoose.ClientSession): Promise<string> => {
+  const today = new Date();
+  const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+  
+  // 查找今日最大序號
+  const query = TransactionGroup.findOne({
+    groupNumber: new RegExp(`^TXN-${dateStr}-`)
+  }).sort({ groupNumber: -1 });
+  
+  if (session) {
+    query.session(session);
+  }
+  
+  const lastGroup = await query;
+  
+  let sequence = 1;
+  if (lastGroup) {
+    const parts = lastGroup.groupNumber.split('-');
+    if (parts.length === 3) {
+      const lastSequence = parseInt(parts[2]);
+      if (!isNaN(lastSequence)) {
+        sequence = lastSequence + 1;
+      }
+    }
+  }
+  
+  return `TXN-${dateStr}-${sequence.toString().padStart(3, '0')}`;
+};
+
+// 輔助函數：驗證分錄資料
+const validateEntryData = (entry: any, index: number): void => {
+  if (!entry.accountId) {
+    throw new Error(`分錄 ${index + 1}: 會計科目不能為空`);
+  }
+  
+  if (!mongoose.Types.ObjectId.isValid(entry.accountId)) {
+    throw new Error(`分錄 ${index + 1}: 會計科目ID格式錯誤`);
+  }
+  
+  const debitAmount = parseFloat(entry.debitAmount) || 0;
+  const creditAmount = parseFloat(entry.creditAmount) || 0;
+  
+  if (debitAmount === 0 && creditAmount === 0) {
+    throw new Error(`分錄 ${index + 1}: 借方金額或貸方金額至少要有一個大於0`);
+  }
+  
+  if (debitAmount > 0 && creditAmount > 0) {
+    throw new Error(`分錄 ${index + 1}: 借方金額和貸方金額不能同時大於0`);
+  }
+  
+  if (debitAmount < 0 || creditAmount < 0) {
+    throw new Error(`分錄 ${index + 1}: 金額不能為負數`);
+  }
+};
+
 // 獲取所有交易群組
 router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
@@ -88,14 +162,76 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
 
     console.log('📊 查詢結果數量:', transactionGroups.length, '/', total);
 
+    // 為每個交易群組獲取分錄資料
+    const transactionGroupsWithEntries = await Promise.all(
+      transactionGroups.map(async (group) => {
+        try {
+          const entries = await AccountingEntry.find({
+            transactionGroupId: group._id
+          })
+          .populate('accountId', 'name code accountType normalBalance')
+          .populate('categoryId', 'name type color')
+          .sort({ sequence: 1 });
+
+          console.log(`📋 交易群組 ${group._id} 的分錄數量:`, entries.length);
+
+          // 將分錄資料轉換為前端期望的格式
+          const formattedEntries = entries.map((entry, index) => {
+            const account = entry.accountId as any;
+            const category = entry.categoryId as any;
+            
+            console.log(`  分錄 ${index + 1}:`, {
+              accountId: account?._id,
+              accountName: account?.name,
+              accountCode: account?.code,
+              categoryName: category?.name
+            });
+
+            return {
+              _id: entry._id,
+              accountId: account?._id || entry.accountId,
+              accountName: account?.name || '未知科目',
+              accountCode: account?.code || '',
+              debitAmount: entry.debitAmount || 0,
+              creditAmount: entry.creditAmount || 0,
+              description: entry.description || '',
+              categoryId: category?._id || entry.categoryId,
+              categoryName: category?.name || ''
+            };
+          });
+
+          // 計算借貸平衡
+          const totalDebit = formattedEntries.reduce((sum, e) => sum + e.debitAmount, 0);
+          const totalCredit = formattedEntries.reduce((sum, e) => sum + e.creditAmount, 0);
+          const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01; // 允許小數點誤差
+
+          return {
+            ...group.toObject(),
+            entries: formattedEntries,
+            isBalanced,
+            totalAmount: totalDebit // 使用借方總額作為交易總金額
+          };
+        } catch (error) {
+          console.error(`❌ 處理交易群組 ${group._id} 的分錄時發生錯誤:`, error);
+          return {
+            ...group.toObject(),
+            entries: [],
+            isBalanced: false
+          };
+        }
+      })
+    );
+
     res.json({
       success: true,
-      data: transactionGroups,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        pages: Math.ceil(total / limitNum)
+      data: {
+        transactionGroups: transactionGroupsWithEntries,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
       }
     });
   } catch (error) {
@@ -189,6 +325,28 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       return;
     }
 
+    // 驗證分錄數量
+    if (entries.length < 2) {
+      res.status(400).json({
+        success: false,
+        message: '複式記帳至少需要兩筆分錄'
+      });
+      return;
+    }
+
+    // 驗證每筆分錄的資料完整性
+    try {
+      entries.forEach((entry, index) => {
+        validateEntryData(entry, index);
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error instanceof Error ? error.message : '分錄資料驗證失敗'
+      });
+      return;
+    }
+
     // 驗證借貸平衡
     const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
     if (!balanceValidation.isBalanced) {
@@ -213,68 +371,87 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       createdBy: userId
     };
 
-    // 只有當 organizationId 有值且不是 null 時才加入
-    if (organizationId && organizationId !== null && organizationId !== 'null' && organizationId.trim() !== '') {
-      try {
-        transactionGroupData.organizationId = new mongoose.Types.ObjectId(organizationId);
+    // 處理 organizationId
+    try {
+      const validOrganizationId = safeObjectId(organizationId);
+      if (validOrganizationId) {
+        transactionGroupData.organizationId = validOrganizationId;
         console.log('✅ 設定 organizationId:', organizationId);
-      } catch (error) {
-        console.error('❌ organizationId 格式錯誤:', organizationId, error);
-        res.status(400).json({
-          success: false,
-          message: '機構ID格式錯誤'
-        });
-        return;
+      } else {
+        console.log('ℹ️ 個人記帳，不設定 organizationId');
       }
-    } else {
-      console.log('ℹ️ 個人記帳，不設定 organizationId');
+    } catch (error) {
+      console.error('❌ organizationId 處理錯誤:', organizationId, error);
+      res.status(400).json({
+        success: false,
+        message: '機構ID格式錯誤'
+      });
+      return;
     }
 
+    // 生成交易群組編號
+    const groupNumber = await generateGroupNumber();
+    transactionGroupData.groupNumber = groupNumber;
+    
     console.log('📝 建立交易群組資料:', transactionGroupData);
 
-    // 使用事務確保資料一致性
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+    let savedTransactionGroup: any = null;
+    
     try {
       // 建立交易群組
       const newTransactionGroup = new TransactionGroup(transactionGroupData);
-      const savedTransactionGroup = await newTransactionGroup.save({ session });
+      savedTransactionGroup = await newTransactionGroup.save();
 
       console.log('✅ 交易群組建立成功:', savedTransactionGroup._id);
 
       // 建立記帳分錄
       const entryPromises = entries.map((entry: any, index: number) => {
-        const entryData: any = {
-          transactionGroupId: savedTransactionGroup._id,
-          sequence: index + 1,
-          accountId: entry.accountId,
-          debitAmount: entry.debitAmount || 0,
-          creditAmount: entry.creditAmount || 0,
-          categoryId: entry.categoryId,
-          description: entry.description || description,
-          createdBy: userId
-        };
+        try {
+          // 驗證並轉換 accountId
+          const validAccountId = validateObjectId(entry.accountId, `分錄 ${index + 1} 會計科目`);
+          
+          // 處理可選的 categoryId
+          const validCategoryId = safeObjectId(entry.categoryId);
+          
+          // 處理可選的 organizationId
+          const validOrganizationId = safeObjectId(organizationId);
 
-        // 只有當 organizationId 有效時才加入
-        if (organizationId && organizationId !== null && organizationId !== 'null' && organizationId.trim() !== '') {
-          try {
-            entryData.organizationId = new mongoose.Types.ObjectId(organizationId);
-          } catch (error) {
-            console.error('❌ 分錄 organizationId 格式錯誤:', organizationId, error);
+          const entryData: any = {
+            transactionGroupId: savedTransactionGroup._id,
+            sequence: index + 1,
+            accountId: validAccountId,
+            debitAmount: parseFloat(entry.debitAmount) || 0,
+            creditAmount: parseFloat(entry.creditAmount) || 0,
+            description: entry.description || description,
+            createdBy: userId
+          };
+
+          // 只有當有效時才加入可選欄位
+          if (validCategoryId) {
+            entryData.categoryId = validCategoryId;
           }
+          
+          if (validOrganizationId) {
+            entryData.organizationId = validOrganizationId;
+          }
+
+          console.log(`📝 建立分錄 ${index + 1}:`, {
+            ...entryData,
+            accountId: entryData.accountId.toString(),
+            categoryId: entryData.categoryId?.toString(),
+            organizationId: entryData.organizationId?.toString()
+          });
+
+          const newEntry = new AccountingEntry(entryData);
+          return newEntry.save();
+        } catch (error) {
+          console.error(`❌ 分錄 ${index + 1} 資料處理錯誤:`, error);
+          throw error;
         }
-
-        console.log(`📝 建立分錄 ${index + 1}:`, entryData);
-
-        const newEntry = new AccountingEntry(entryData);
-        return newEntry.save({ session });
       });
 
       const savedEntries = await Promise.all(entryPromises);
       console.log('✅ 所有分錄建立成功，數量:', savedEntries.length);
-
-      await session.commitTransaction();
 
       res.status(201).json({
         success: true,
@@ -285,16 +462,35 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         message: '交易群組建立成功'
       });
     } catch (error) {
-      await session.abortTransaction();
+      // 如果分錄建立失敗，嘗試清理已建立的交易群組
+      if (savedTransactionGroup) {
+        try {
+          await TransactionGroup.findByIdAndDelete(savedTransactionGroup._id);
+          console.log('🧹 已清理失敗的交易群組');
+        } catch (cleanupError) {
+          console.error('❌ 清理交易群組失敗:', cleanupError);
+        }
+      }
       throw error;
-    } finally {
-      session.endSession();
     }
   } catch (error) {
-    console.error('建立交易群組錯誤:', error);
+    console.error('❌ 建立交易群組錯誤:', error);
+    console.error('❌ 錯誤堆疊:', error instanceof Error ? error.stack : 'Unknown error');
+    console.error('❌ 錯誤詳情:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      code: (error as any)?.code,
+      keyPattern: (error as any)?.keyPattern,
+      keyValue: (error as any)?.keyValue
+    });
+    
     res.status(500).json({
       success: false,
-      message: '建立交易群組失敗'
+      message: '建立交易群組失敗',
+      error: process.env.NODE_ENV === 'development' ? {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      } : undefined
     });
   }
 });
@@ -363,10 +559,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       }
     }
 
-    // 使用事務確保資料一致性
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+    // 不使用事務，直接進行更新操作（適用於單機 MongoDB）
     try {
       // 更新交易群組基本資訊
       const updateData: Partial<ITransactionGroup> = {};
@@ -383,47 +576,75 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       const updatedTransactionGroup = await TransactionGroup.findByIdAndUpdate(
         id,
         updateData,
-        { new: true, runValidators: true, session }
+        { new: true, runValidators: true }
       );
 
       console.log('✅ 交易群組更新成功:', updatedTransactionGroup?._id);
 
       let updatedEntries = null;
 
-      // 如果提供了分錄，更新分錄
+      // 只有在明確提供了有效分錄且數量大於0時才更新分錄
+      // 並且分錄資料必須是完整且有效的
       if (entries && Array.isArray(entries) && entries.length > 0) {
-        // 刪除舊分錄
-        await AccountingEntry.deleteMany({
-          transactionGroupId: id
-        }, { session });
+        // 驗證分錄資料完整性 - 更嚴格的驗證
+        const hasValidEntries = entries.every(entry =>
+          entry.accountId &&
+          mongoose.Types.ObjectId.isValid(entry.accountId) &&
+          (entry.debitAmount > 0 || entry.creditAmount > 0) &&
+          !(entry.debitAmount > 0 && entry.creditAmount > 0) // 不能同時有借方和貸方
+        );
 
-        console.log('🗑️ 舊分錄已刪除');
+        // 驗證借貸平衡
+        const totalDebit = entries.reduce((sum: number, entry: any) => sum + (entry.debitAmount || 0), 0);
+        const totalCredit = entries.reduce((sum: number, entry: any) => sum + (entry.creditAmount || 0), 0);
+        const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
 
-        // 建立新分錄
-        const entryPromises = entries.map((entry: any, index: number) => {
-          const entryData = {
-            transactionGroupId: id,
-            sequence: index + 1,
-            accountId: entry.accountId,
-            debitAmount: entry.debitAmount || 0,
-            creditAmount: entry.creditAmount || 0,
-            categoryId: entry.categoryId,
-            description: entry.description || description,
-            organizationId: transactionGroup.organizationId,
-            createdBy: userId
-          };
+        if (hasValidEntries && isBalanced && entries.length >= 2) {
+          console.log('🔄 開始更新分錄，新分錄數量:', entries.length);
+          console.log('💰 借方總額:', totalDebit, '貸方總額:', totalCredit);
+          
+          // 刪除舊分錄
+          await AccountingEntry.deleteMany({
+            transactionGroupId: id
+          });
 
-          console.log(`📝 建立新分錄 ${index + 1}:`, entryData);
+          console.log('🗑️ 舊分錄已刪除');
 
-          const newEntry = new AccountingEntry(entryData);
-          return newEntry.save({ session });
-        });
+          // 建立新分錄
+          const entryPromises = entries.map((entry: any, index: number) => {
+            const entryData = {
+              transactionGroupId: id,
+              sequence: index + 1,
+              accountId: entry.accountId,
+              debitAmount: entry.debitAmount || 0,
+              creditAmount: entry.creditAmount || 0,
+              categoryId: entry.categoryId || null,
+              description: entry.description || description,
+              organizationId: transactionGroup.organizationId,
+              createdBy: userId
+            };
 
-        updatedEntries = await Promise.all(entryPromises);
-        console.log('✅ 新分錄建立成功，數量:', updatedEntries.length);
+            console.log(`📝 建立新分錄 ${index + 1}:`, entryData);
+
+            const newEntry = new AccountingEntry(entryData);
+            return newEntry.save();
+          });
+
+          updatedEntries = await Promise.all(entryPromises);
+          console.log('✅ 新分錄建立成功，數量:', updatedEntries.length);
+        } else {
+          console.log('⚠️ 分錄資料驗證失敗，跳過分錄更新');
+          console.log('📊 驗證結果:', {
+            hasValidEntries,
+            isBalanced,
+            entriesLength: entries.length,
+            totalDebit,
+            totalCredit
+          });
+        }
+      } else {
+        console.log('ℹ️ 未提供分錄或分錄為空，僅更新交易群組基本資訊');
       }
-
-      await session.commitTransaction();
 
       res.json({
         success: true,
@@ -434,10 +655,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         message: '交易群組更新成功'
       });
     } catch (error) {
-      await session.abortTransaction();
       throw error;
-    } finally {
-      session.endSession();
     }
   } catch (error) {
     console.error('更新交易群組錯誤:', error);
@@ -574,34 +792,26 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
       return;
     }
 
-    // 使用事務確保資料一致性
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+    // 不使用事務，直接進行刪除操作（適用於單機 MongoDB）
     try {
       // 刪除相關分錄
       await AccountingEntry.deleteMany({
         transactionGroupId: id
-      }, { session });
+      });
 
       console.log('🗑️ 相關分錄已刪除');
 
       // 刪除交易群組
-      await TransactionGroup.findByIdAndDelete(id, { session });
+      await TransactionGroup.findByIdAndDelete(id);
 
       console.log('🗑️ 交易群組已刪除');
-
-      await session.commitTransaction();
 
       res.json({
         success: true,
         message: '交易群組刪除成功'
       });
     } catch (error) {
-      await session.abortTransaction();
       throw error;
-    } finally {
-      session.endSession();
     }
   } catch (error) {
     console.error('刪除交易群組錯誤:', error);

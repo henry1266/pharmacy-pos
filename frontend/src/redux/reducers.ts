@@ -489,6 +489,9 @@ export interface AccountingEntry2State {
 
 export interface AccountBalance2State {
   balances: any[];
+  currentBalance: any | null;
+  batchBalances: any[];
+  summary: any | null;
   loading: boolean;
   error: string | null;
 }
@@ -527,6 +530,9 @@ const createInitialAccountingEntry2State = (): AccountingEntry2State => ({
 
 const createInitialAccountBalance2State = (): AccountBalance2State => ({
   balances: [],
+  currentBalance: null,
+  batchBalances: [],
+  summary: null,
   loading: false,
   error: null
 });
@@ -634,24 +640,44 @@ export const transactionGroup2Reducer = (state: TransactionGroup2State = createI
     case 'DELETE_TRANSACTION_GROUP2_REQUEST':
       return { ...state, loading: true, error: null };
     case 'FETCH_TRANSACTION_GROUPS2_SUCCESS':
-      // 確保 payload 是陣列
-      const transactionGroups = Array.isArray(action.payload) ? action.payload : [];
+      // 確保 payload 是陣列，並且每個交易群組都有完整的結構
+      const rawTransactionGroups = Array.isArray(action.payload) ? action.payload : [];
+      const transactionGroups = rawTransactionGroups.map(group => ({
+        ...group,
+        entries: Array.isArray(group.entries) ? group.entries : [],
+        totalAmount: typeof group.totalAmount === 'number' ? group.totalAmount : 0,
+        isBalanced: typeof group.isBalanced === 'boolean' ? group.isBalanced : false
+      }));
       return { ...state, transactionGroups, loading: false, error: null };
     case 'CREATE_TRANSACTION_GROUP2_SUCCESS':
+      // 確保新建立的交易群組有完整的結構
+      const newTransactionGroup = {
+        ...action.payload,
+        entries: Array.isArray(action.payload.entries) ? action.payload.entries : [],
+        totalAmount: typeof action.payload.totalAmount === 'number' ? action.payload.totalAmount : 0,
+        isBalanced: typeof action.payload.isBalanced === 'boolean' ? action.payload.isBalanced : false
+      };
       return {
         ...state,
-        transactionGroups: [...state.transactionGroups, action.payload],
-        currentTransactionGroup: action.payload,
+        transactionGroups: [...state.transactionGroups, newTransactionGroup],
+        currentTransactionGroup: newTransactionGroup,
         loading: false,
         error: null
       };
     case 'UPDATE_TRANSACTION_GROUP2_SUCCESS':
+      // 確保更新的交易群組有完整的結構
+      const updatedTransactionGroup = {
+        ...action.payload,
+        entries: Array.isArray(action.payload.entries) ? action.payload.entries : [],
+        totalAmount: typeof action.payload.totalAmount === 'number' ? action.payload.totalAmount : 0,
+        isBalanced: typeof action.payload.isBalanced === 'boolean' ? action.payload.isBalanced : false
+      };
       return {
         ...state,
         transactionGroups: state.transactionGroups.map(tg =>
-          tg._id === action.payload._id ? action.payload : tg
+          tg._id === action.payload._id ? updatedTransactionGroup : tg
         ),
-        currentTransactionGroup: action.payload,
+        currentTransactionGroup: updatedTransactionGroup,
         loading: false,
         error: null
       };
@@ -690,6 +716,49 @@ export const accountingEntry2Reducer = (state: AccountingEntry2State = createIni
 
 export const accountBalance2Reducer = (state: AccountBalance2State = createInitialAccountBalance2State(), action: Action): AccountBalance2State => {
   switch (action.type) {
+    // 計算單一科目餘額
+    case 'CALCULATE_ACCOUNT_BALANCE_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'CALCULATE_ACCOUNT_BALANCE_SUCCESS':
+      return {
+        ...state,
+        currentBalance: action.payload,
+        loading: false,
+        error: null
+      };
+    case 'CALCULATE_ACCOUNT_BALANCE_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+
+    // 批量計算科目餘額
+    case 'CALCULATE_ACCOUNT_BALANCES_BATCH_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'CALCULATE_ACCOUNT_BALANCES_BATCH_SUCCESS':
+      // action.payload 應該包含 { success: true, count: number, balances: [] }
+      const batchBalances = action.payload?.balances || [];
+      return {
+        ...state,
+        batchBalances,
+        balances: batchBalances, // 同時更新 balances 以保持兼容性
+        loading: false,
+        error: null
+      };
+    case 'CALCULATE_ACCOUNT_BALANCES_BATCH_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+
+    // 獲取科目餘額摘要
+    case 'FETCH_ACCOUNT_BALANCES_SUMMARY_REQUEST':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_ACCOUNT_BALANCES_SUMMARY_SUCCESS':
+      return {
+        ...state,
+        summary: action.payload,
+        loading: false,
+        error: null
+      };
+    case 'FETCH_ACCOUNT_BALANCES_SUMMARY_FAILURE':
+      return { ...state, loading: false, error: action.payload };
+
+    // 舊的 API 兼容性
     case 'FETCH_ACCOUNT_BALANCES2_REQUEST':
       return { ...state, loading: true, error: null };
     case 'FETCH_ACCOUNT_BALANCES2_SUCCESS':
@@ -698,6 +767,7 @@ export const accountBalance2Reducer = (state: AccountBalance2State = createIniti
       return { ...state, balances, loading: false, error: null };
     case 'FETCH_ACCOUNT_BALANCES2_FAILURE':
       return { ...state, loading: false, error: action.payload };
+    
     default:
       return state;
   }

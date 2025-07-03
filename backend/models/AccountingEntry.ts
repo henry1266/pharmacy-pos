@@ -1,20 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IAccountingEntry extends Document {
-  transactionGroupId: string; // 關聯交易群組
+  transactionGroupId: mongoose.Types.ObjectId | string; // 關聯交易群組
   sequence: number;           // 在群組中的順序
   
   // 借貸記帳核心欄位
-  accountId: string;          // 會計科目ID
+  accountId: mongoose.Types.ObjectId | string;          // 會計科目ID
   debitAmount: number;        // 借方金額
   creditAmount: number;       // 貸方金額
   
   // 原有欄位保留相容性
-  categoryId?: string;        // 類別ID (可選，用於報表分類)
+  categoryId?: mongoose.Types.ObjectId | string;        // 類別ID (可選，用於報表分類)
   description: string;        // 分錄描述
   
   // 機構與權限
-  organizationId?: string;
+  organizationId?: mongoose.Types.ObjectId | string;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -97,12 +97,12 @@ AccountingEntrySchema.pre('save', function(this: IAccountingEntry, next) {
   next();
 });
 
-// 填充關聯資料
-AccountingEntrySchema.pre(/^find/, function(this: any, next: any) {
-  this.populate('transactionGroupId', 'groupNumber description transactionDate status')
-      .populate('accountId', 'name code accountType normalBalance')
-      .populate('categoryId', 'name type color icon');
-  next();
-});
+// 填充關聯資料 - 註解掉自動 populate，改由路由層控制
+// AccountingEntrySchema.pre(/^find/, function(this: any, next: any) {
+//   this.populate('transactionGroupId', 'groupNumber description transactionDate status')
+//       .populate('accountId', 'name code accountType normalBalance')
+//       .populate('categoryId', 'name type color icon');
+//   next();
+// });
 
 export default mongoose.model<IAccountingEntry>('AccountingEntry', AccountingEntrySchema);

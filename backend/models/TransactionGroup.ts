@@ -4,7 +4,7 @@ export interface ITransactionGroup extends Document {
   groupNumber: string;        // 交易群組編號 (如: TXN-20250102-001)
   description: string;        // 交易描述
   transactionDate: Date;      // 交易日期
-  organizationId?: string;    // 機構ID
+  organizationId?: mongoose.Types.ObjectId | string;    // 機構ID
   receiptUrl?: string;        // 憑證URL
   invoiceNo?: string;         // 發票號碼
   totalAmount: number;        // 交易總金額
@@ -17,7 +17,7 @@ export interface ITransactionGroup extends Document {
 const TransactionGroupSchema: Schema = new Schema({
   groupNumber: {
     type: String,
-    required: true,
+    required: false,  // 改為可選，因為在路由中手動設定
     unique: true,
     trim: true,
     maxlength: 50
@@ -79,21 +79,35 @@ TransactionGroupSchema.index({ invoiceNo: 1 });
 // 自動生成交易群組編號
 TransactionGroupSchema.pre('save', async function(this: ITransactionGroup, next) {
   if (this.isNew && !this.groupNumber) {
-    const today = new Date();
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-    
-    // 查找今日最大序號
-    const lastGroup = await mongoose.model('TransactionGroup').findOne({
-      groupNumber: new RegExp(`^TXN-${dateStr}-`)
-    }).sort({ groupNumber: -1 });
-    
-    let sequence = 1;
-    if (lastGroup) {
-      const lastSequence = parseInt(lastGroup.groupNumber.split('-')[2]);
-      sequence = lastSequence + 1;
+    try {
+      const today = new Date();
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+      
+      // 使用 this.constructor 避免循環引用問題
+      const TransactionGroupModel = this.constructor as mongoose.Model<ITransactionGroup>;
+      
+      // 查找今日最大序號
+      const lastGroup = await TransactionGroupModel.findOne({
+        groupNumber: new RegExp(`^TXN-${dateStr}-`)
+      }).sort({ groupNumber: -1 }).session(this.$session());
+      
+      let sequence = 1;
+      if (lastGroup) {
+        const parts = lastGroup.groupNumber.split('-');
+        if (parts.length === 3) {
+          const lastSequence = parseInt(parts[2]);
+          if (!isNaN(lastSequence)) {
+            sequence = lastSequence + 1;
+          }
+        }
+      }
+      
+      this.groupNumber = `TXN-${dateStr}-${sequence.toString().padStart(3, '0')}`;
+      console.log('✅ 自動生成 groupNumber:', this.groupNumber);
+    } catch (error) {
+      console.error('❌ 生成 groupNumber 錯誤:', error);
+      return next(error instanceof Error ? error : new Error('生成交易群組編號失敗'));
     }
-    
-    this.groupNumber = `TXN-${dateStr}-${sequence.toString().padStart(3, '0')}`;
   }
   next();
 });

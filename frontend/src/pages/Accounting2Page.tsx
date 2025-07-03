@@ -61,11 +61,22 @@ interface TransactionGroup {
   transactionDate: string;
   organizationId?: string;
   invoiceNo?: string;
+  receiptUrl?: string;
   totalAmount: number;
   isBalanced: boolean;
-  entries: any[];
+  entries: AccountingEntry[];
   createdAt: string;
   updatedAt: string;
+}
+
+interface AccountingEntry {
+  _id: string;
+  accountId: string;
+  accountName: string;
+  accountCode: string;
+  debitAmount: number;
+  creditAmount: number;
+  description: string;
 }
 
 interface TransactionGroupFormData {
@@ -73,8 +84,9 @@ interface TransactionGroupFormData {
   transactionDate: Date;
   organizationId?: string;
   invoiceNo: string;
+  receiptUrl?: string;
   attachments: File[];
-  entries: any[];
+  entries: AccountingEntry[];
 }
 
 export const Accounting2Page: React.FC = () => {
@@ -102,10 +114,21 @@ export const Accounting2Page: React.FC = () => {
 
   // 載入交易群組、會計科目和機構資料
   useEffect(() => {
+    console.log('🔄 Accounting2Page 初始化載入資料');
     dispatch(fetchTransactionGroups2() as any);
     dispatch(fetchAccounts2() as any);
     dispatch(fetchOrganizations2() as any);
   }, [dispatch]);
+
+  // 監聽 Redux 狀態變化，用於除錯
+  useEffect(() => {
+    console.log('📊 TransactionGroups 狀態變化:', {
+      transactionGroupsLength: transactionGroups.length,
+      loading,
+      error,
+      firstTransaction: transactionGroups[0]
+    });
+  }, [transactionGroups, loading, error]);
 
   // 處理新增交易
   const handleCreateNew = () => {
@@ -316,8 +339,14 @@ export const Accounting2Page: React.FC = () => {
               description: editingTransaction.description,
               transactionDate: new Date(editingTransaction.transactionDate),
               organizationId: editingTransaction.organizationId,
+              receiptUrl: editingTransaction.receiptUrl || '',
               invoiceNo: editingTransaction.invoiceNo || '',
-              entries: editingTransaction.entries || []
+              entries: Array.isArray(editingTransaction.entries) ? editingTransaction.entries.map(entry => ({
+                accountId: entry.accountId || '',
+                debitAmount: entry.debitAmount || 0,
+                creditAmount: entry.creditAmount || 0,
+                description: entry.description || ''
+              })) : []
             } : undefined}
             onSubmit={handleFormSubmit}
             onCancel={handleCloseDialog}
