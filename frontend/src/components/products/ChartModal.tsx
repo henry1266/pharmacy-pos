@@ -143,12 +143,19 @@ const ChartModal: FC<ChartModalProps> = ({
   const calculatePrice = (inv: InventoryRecord): number => {
     if (inv.totalAmount && inv.totalQuantity) {
       return inv.totalAmount / Math.abs(inv.totalQuantity);
-    } else if (inv.product?.sellingPrice) {
-      return inv.product.sellingPrice;
-    } else if (inv.product?.price) {
-      return inv.product.price;
+    } else {
+      // 根據交易類型選擇適當的價格
+      if (inv.type === 'purchase') {
+        // 進貨記錄：優先使用進貨價
+        return inv.product?.purchasePrice ?? inv.product?.price ?? 0;
+      } else if (inv.type === 'sale' || inv.type === 'ship') {
+        // 銷售/出貨記錄：優先使用售價
+        return inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+      } else {
+        // 其他記錄：使用通用價格
+        return inv.product?.price ?? 0;
+      }
     }
-    return 0;
   };
 
   // 準備 DataGrid 的行數據

@@ -224,12 +224,18 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
             // 使用實際交易價格（總金額/數量）
             const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
             price = unitPrice;
-          } else if (inv.product?.sellingPrice) {
-            // 其他記錄：使用產品售價 (使用可選鏈表達式)
-            price = inv.product.sellingPrice;
-          } else if (inv.product?.price) {
-            // 使用產品價格作為備選
-            price = inv.product.price;
+          } else {
+            // 根據交易類型選擇適當的價格
+            if (inv.type === 'purchase') {
+              // 進貨記錄：優先使用進貨價
+              price = inv.product?.purchasePrice ?? inv.product?.price ?? 0;
+            } else if (inv.type === 'sale' || inv.type === 'ship') {
+              // 銷售/出貨記錄：優先使用售價
+              price = inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+            } else {
+              // 其他記錄：使用通用價格
+              price = inv.product?.price ?? 0;
+            }
           }
           
           // 計算該記錄的損益
@@ -273,12 +279,18 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
           let price = 0;
           if (inv.totalAmount && inv.totalQuantity) {
             price = inv.totalAmount / Math.abs(inv.totalQuantity);
-          } else if (inv.product?.sellingPrice) {
-            // 使用可選鏈表達式
-            price = inv.product.sellingPrice;
-          } else if (inv.product?.price) {
-            // 使用產品價格作為備選
-            price = inv.product.price;
+          } else {
+            // 根據交易類型選擇適當的價格
+            if (inv.type === 'purchase') {
+              // 進貨記錄：優先使用進貨價
+              price = inv.product?.purchasePrice ?? inv.product?.price ?? 0;
+            } else if (inv.type === 'sale' || inv.type === 'ship') {
+              // 銷售/出貨記錄：優先使用售價
+              price = inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+            } else {
+              // 其他記錄：使用通用價格
+              price = inv.product?.price ?? 0;
+            }
           }
           
           return {
@@ -380,12 +392,22 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
     if (inv.totalAmount && inv.totalQuantity) {
       const unitPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
       return unitPrice.toFixed(2);
-    } else if (inv.product?.sellingPrice) {
-      return inv.product.sellingPrice.toFixed(2);
-    } else if (inv.product?.price) {
-      return inv.product.price.toFixed(2);
+    } else {
+      // 根據交易類型選擇適當的價格
+      if (inv.type === 'purchase') {
+        // 進貨記錄：優先使用進貨價
+        const price = inv.product?.purchasePrice ?? inv.product?.price ?? 0;
+        return price.toFixed(2);
+      } else if (inv.type === 'sale' || inv.type === 'ship') {
+        // 銷售/出貨記錄：優先使用售價
+        const price = inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+        return price.toFixed(2);
+      } else {
+        // 其他記錄：使用通用價格
+        const price = inv.product?.price ?? 0;
+        return price.toFixed(2);
+      }
     }
-    return '0.00';
   };
 
   if (loading) {

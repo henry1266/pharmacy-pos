@@ -1055,8 +1055,7 @@ export const createTransactionGroup2 = (transactionData: any): AppThunk => async
         payload: res.data.data
       });
       console.log('✅ createTransactionGroup2 成功:', res.data.data);
-      // 創建成功後重新載入交易群組列表
-      dispatch(fetchTransactionGroups2(transactionData.organizationId) as any);
+      // 不自動重新載入，避免影響對話框狀態
     } else {
       throw new Error(res.data.message ?? '創建交易群組失敗');
     }
@@ -1112,8 +1111,7 @@ export const updateTransactionGroup2 = (id: string, transactionData: any): AppTh
         payload: res.data.data
       });
       console.log('✅ updateTransactionGroup2 成功:', res.data.data);
-      // 更新成功後重新載入交易群組列表
-      dispatch(fetchTransactionGroups2(transactionData.organizationId) as any);
+      // 不自動重新載入，避免影響對話框狀態
     } else {
       throw new Error(res.data.message ?? '更新交易群組失敗');
     }
@@ -1124,7 +1122,7 @@ export const updateTransactionGroup2 = (id: string, transactionData: any): AppTh
       type: 'UPDATE_TRANSACTION_GROUP2_FAILURE',
       payload: err.response?.data?.message ?? err.message ?? '更新交易群組失敗'
     });
-    throw err; // 重新拋出錯誤，讓前端組件可以處理
+    // 不要重新拋出錯誤，讓 Promise 正常 resolve
   }
 };
 

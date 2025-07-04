@@ -46,6 +46,7 @@ export interface TransactionGroupFormData {
   organizationId?: string;
   receiptUrl?: string;
   invoiceNo?: string;
+  attachments?: File[];
   entries: AccountingEntryFormData[];
 }
 
@@ -117,14 +118,35 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
   ];
 
   // 表單狀態
-  const [formData, setFormData] = useState<TransactionGroupFormData>({
-    description: '',
-    transactionDate: new Date(),
-    organizationId: undefined,
-    receiptUrl: '',
-    invoiceNo: '',
-    entries: createDefaultEntries(),
-    ...initialData
+  const [formData, setFormData] = useState<TransactionGroupFormData>(() => {
+    // 如果有初始資料，使用轉換後的資料初始化
+    if (initialData) {
+      const convertedData = convertBackendDataToFormData(initialData);
+      const entries = convertedData.entries && convertedData.entries.length >= 2
+        ? convertedData.entries
+        : createDefaultEntries();
+      
+      return {
+        description: convertedData.description || '',
+        transactionDate: convertedData.transactionDate || new Date(),
+        organizationId: convertedData.organizationId,
+        receiptUrl: convertedData.receiptUrl || '',
+        invoiceNo: convertedData.invoiceNo || '',
+        attachments: [],
+        entries
+      };
+    }
+    
+    // 預設狀態
+    return {
+      description: '',
+      transactionDate: new Date(),
+      organizationId: undefined,
+      receiptUrl: '',
+      invoiceNo: '',
+      attachments: [],
+      entries: createDefaultEntries()
+    };
   });
 
   // 驗證狀態
@@ -152,11 +174,16 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
         ? convertedData.entries
         : createDefaultEntries();
       
-      setFormData(prev => ({
-        ...prev,
-        ...convertedData,
+      // 完全重置表單資料，確保複製模式下能正常編輯
+      setFormData({
+        description: convertedData.description || '',
+        transactionDate: convertedData.transactionDate || new Date(),
+        organizationId: convertedData.organizationId,
+        receiptUrl: convertedData.receiptUrl || '',
+        invoiceNo: convertedData.invoiceNo || '',
+        attachments: [],
         entries
-      }));
+      });
     }
   }, [initialData]);
 

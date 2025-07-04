@@ -31,7 +31,8 @@ import {
   ArrowForward,
   Business as BusinessIcon,
   Category as CategoryIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  SwapHoriz as SwapHorizIcon
 } from '@mui/icons-material';
 import { useAppSelector } from '../../hooks/redux';
 import { AccountSelector } from './AccountSelector';
@@ -298,6 +299,16 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
     onChange(newEntries);
   };
 
+  // 借貸對調功能
+  const swapDebitCredit = () => {
+    const newEntries = entries.map(entry => ({
+      ...entry,
+      debitAmount: entry.creditAmount,
+      creditAmount: entry.debitAmount
+    }));
+    onChange(newEntries);
+  };
+
   // 計算交易流向
   const getTransactionFlow = (currentIndex: number) => {
     const currentEntry = entries[currentIndex];
@@ -545,18 +556,39 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                   <Typography variant="body2" color={isBalanced ? 'success.main' : 'error.main'}>
                     {isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${difference.toLocaleString()}`}
                   </Typography>
-                  {!isBalanced && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={quickBalance}
-                      startIcon={<BalanceIcon />}
-                      disabled={entries.length < 2}
-                      sx={{ ml: 2 }}
-                    >
-                      快速平衡
-                    </Button>
-                  )}
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Tooltip title="將所有分錄的借方與貸方金額互換">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={swapDebitCredit}
+                        startIcon={<SwapHorizIcon />}
+                        disabled={entries.length < 2 || entries.every(entry => entry.debitAmount === 0 && entry.creditAmount === 0)}
+                        sx={{
+                          minWidth: 'auto',
+                          color: 'info.main',
+                          borderColor: 'info.main',
+                          '&:hover': {
+                            borderColor: 'info.dark',
+                            backgroundColor: 'info.light'
+                          }
+                        }}
+                      >
+                        借貸對調
+                      </Button>
+                    </Tooltip>
+                    {!isBalanced && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={quickBalance}
+                        startIcon={<BalanceIcon />}
+                        disabled={entries.length < 2}
+                      >
+                        快速平衡
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
               </TableCell>
             </TableRow>

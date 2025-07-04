@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -11,21 +11,11 @@ import {
   Button,
   Alert,
   Snackbar,
-  Fab,
-  useTheme,
-  useMediaQuery,
-  Tabs,
-  Tab,
-  Paper
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  AccountBalance as AccountBalanceIcon,
-  AccountTree as AccountTreeIcon,
-  Receipt as ReceiptIcon
+  AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
-import { AccountingDataGrid } from '../components/accounting2/AccountingDataGrid';
 import { TransactionGroupForm } from '../components/accounting2/TransactionGroupForm';
 import AccountManagement from '../components/accounting2/AccountManagement';
 import {
@@ -91,17 +81,17 @@ interface TransactionGroupFormData {
 }
 
 export const Accounting2Page: React.FC = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { transactionId } = useParams<{ transactionId?: string }>();
   const isCopyMode = window.location.pathname.includes('/copy');
+  const returnTo = searchParams.get('returnTo');
   
   // Redux state
   const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroup2);
   
   // Local state
-  const [currentTab, setCurrentTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<TransactionGroup | null>(null);
   const [copyingTransaction, setCopyingTransaction] = useState<TransactionGroup | null>(null);
@@ -158,6 +148,7 @@ export const Accounting2Page: React.FC = () => {
   // 處理新增交易
   const handleCreateNew = () => {
     setEditingTransaction(null);
+    setCopyingTransaction(null);
     setDialogOpen(true);
   };
 
@@ -188,17 +179,51 @@ export const Accounting2Page: React.FC = () => {
   // 處理表單提交
   const handleFormSubmit = async (formData: TransactionGroupFormData) => {
     try {
-      console.log('🔍 handleFormSubmit 開始:', { editingTransaction, formData });
+      console.log('🔍 handleFormSubmit 開始:', { editingTransaction, copyingTransaction, isCopyMode, returnTo, formData });
       
       if (editingTransaction) {
         await dispatch(updateTransactionGroup2(editingTransaction._id, formData) as any);
         showSnackbar('交易已成功更新', 'success');
+        
+        // 先關閉對話框
+        setDialogOpen(false);
+        setEditingTransaction(null);
+        setCopyingTransaction(null);
+        
+        // 手動重新載入交易群組資料
+        setTimeout(() => {
+          dispatch(fetchTransactionGroups2() as any);
+        }, 100);
+        
+        // 只有在編輯模式且有 returnTo 參數時，才自動導航回原頁面
+        if (returnTo && editingTransaction) {
+          console.log('🔄 編輯成功，準備返回原頁面:', decodeURIComponent(returnTo));
+          setTimeout(() => {
+            navigate(decodeURIComponent(returnTo));
+          }, 1000); // 延遲 1 秒讓用戶看到成功訊息
+        }
       } else {
         await dispatch(createTransactionGroup2(formData) as any);
-        showSnackbar('交易已成功建立', 'success');
+        showSnackbar(copyingTransaction ? '交易已成功複製' : '交易已成功建立', 'success');
+        
+        // 先關閉對話框
+        setDialogOpen(false);
+        setEditingTransaction(null);
+        setCopyingTransaction(null);
+        
+        // 手動重新載入交易群組資料
+        setTimeout(() => {
+          dispatch(fetchTransactionGroups2() as any);
+        }, 100);
+        
+        // 如果是複製模式且有 returnTo 參數，自動導航回原頁面
+        if (copyingTransaction && returnTo) {
+          console.log('🔄 複製成功，準備返回原頁面:', decodeURIComponent(returnTo));
+          setTimeout(() => {
+            navigate(decodeURIComponent(returnTo));
+          }, 1000); // 延遲 1 秒讓用戶看到成功訊息
+        }
       }
-      setDialogOpen(false);
-      setEditingTransaction(null);
     } catch (error) {
       console.error('表單提交失敗:', error);
       showSnackbar(editingTransaction ? '更新交易失敗' : '建立交易失敗', 'error');
@@ -220,6 +245,11 @@ export const Accounting2Page: React.FC = () => {
     setDialogOpen(false);
     setEditingTransaction(null);
     setCopyingTransaction(null);
+    
+    // 如果是從 URL 參數進入的複製模式，關閉對話框時返回交易列表
+    if (isCopyMode && transactionId && returnTo) {
+      navigate('/accounting2');
+    }
   };
 
   // 關閉檢視對話框
@@ -227,37 +257,6 @@ export const Accounting2Page: React.FC = () => {
     setViewingTransaction(null);
   };
 
-  // 處理 Tab 切換
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setCurrentTab(newValue);
-  };
-
-  // Tab 面板組件
-  interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-  }
-
-  const TabPanel = (props: TabPanelProps) => {
-    const { children, value, index, ...other } = props;
-
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`accounting-tabpanel-${index}`}
-        aria-labelledby={`accounting-tab-${index}`}
-        {...other}
-      >
-        {value === index && (
-          <Box sx={{ py: 3 }}>
-            {children}
-          </Box>
-        )}
-      </div>
-    );
-  };
 
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>
@@ -270,7 +269,7 @@ export const Accounting2Page: React.FC = () => {
           </Typography>
         </Box>
         <Typography variant="body1" color="text.secondary">
-          管理您的複式記帳交易，確保借貸平衡，追蹤財務狀況
+          管理會計科目結構，查看分錄明細，建立複式記帳交易
         </Typography>
       </Box>
 
@@ -281,71 +280,13 @@ export const Accounting2Page: React.FC = () => {
         </Alert>
       )}
 
-      {/* Tab 導航 */}
-      <Paper sx={{ mb: 3 }}>
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          aria-label="會計系統功能選項"
-          variant={isMobile ? "fullWidth" : "standard"}
-          sx={{
-            borderBottom: 1,
-            borderColor: 'divider',
-            '& .MuiTab-root': {
-              minHeight: 64,
-              textTransform: 'none',
-              fontSize: '1rem',
-              fontWeight: 500
-            }
-          }}
-        >
-          <Tab
-            icon={<ReceiptIcon />}
-            iconPosition="start"
-            label="交易管理"
-            id="accounting-tab-0"
-            aria-controls="accounting-tabpanel-0"
-          />
-          <Tab
-            icon={<AccountTreeIcon />}
-            iconPosition="start"
-            label="會計科目"
-            id="accounting-tab-1"
-            aria-controls="accounting-tabpanel-1"
-          />
-        </Tabs>
-      </Paper>
-
-      {/* Tab 內容面板 */}
-      <TabPanel value={currentTab} index={0}>
-        <AccountingDataGrid
-          onCreateNew={handleCreateNew}
-          onEdit={handleEdit}
-          onView={handleView}
-          onDelete={handleDelete}
-        />
-      </TabPanel>
-
-      <TabPanel value={currentTab} index={1}>
-        <AccountManagement />
-      </TabPanel>
-
-      {/* 浮動新增按鈕 (行動版) - 只在交易管理 Tab 顯示 */}
-      {isMobile && currentTab === 0 && (
-        <Fab
-          color="primary"
-          aria-label="新增交易"
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-            zIndex: theme.zIndex.fab
-          }}
-          onClick={handleCreateNew}
-        >
-          <AddIcon />
-        </Fab>
-      )}
+      {/* 科目管理 */}
+      <AccountManagement
+        onCreateNew={handleCreateNew}
+        onEdit={handleEdit}
+        onView={handleView}
+        onDelete={handleDelete}
+      />
 
       {/* 新增/編輯交易對話框 */}
       <Dialog
@@ -353,7 +294,6 @@ export const Accounting2Page: React.FC = () => {
         onClose={handleCloseDialog}
         maxWidth="lg"
         fullWidth
-        fullScreen={isMobile}
       >
         <DialogTitle>
           {editingTransaction ? '編輯交易群組' : copyingTransaction ? '複製交易群組' : '建立交易群組'}
@@ -374,10 +314,10 @@ export const Accounting2Page: React.FC = () => {
                 description: entry.description || ''
               })) : []
             } : copyingTransaction ? {
-              description: copyingTransaction.description,
+              description: '', // 複製時清空描述，讓用戶輸入新的摘要
               transactionDate: new Date(), // 複製時使用今天的日期
               organizationId: copyingTransaction.organizationId,
-              receiptUrl: copyingTransaction.receiptUrl || '',
+              receiptUrl: '', // 複製時清空憑證 URL
               invoiceNo: '', // 複製時清空發票號碼
               entries: Array.isArray(copyingTransaction.entries) ? copyingTransaction.entries.map(entry => ({
                 accountId: entry.accountId || '',

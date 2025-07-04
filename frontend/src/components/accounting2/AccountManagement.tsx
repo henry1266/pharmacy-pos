@@ -101,7 +101,45 @@ interface AccountFormData {
   organizationId?: string;
 }
 
-const AccountManagement: React.FC = () => {
+// 交易管理相關介面
+interface TransactionGroup {
+  _id: string;
+  description: string;
+  transactionDate: string;
+  organizationId?: string;
+  invoiceNo?: string;
+  receiptUrl?: string;
+  totalAmount: number;
+  isBalanced: boolean;
+  entries: AccountingEntry[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AccountingEntry {
+  _id: string;
+  accountId: string;
+  accountName: string;
+  accountCode: string;
+  debitAmount: number;
+  creditAmount: number;
+  description: string;
+}
+
+// AccountManagement 組件的 Props 介面
+interface AccountManagementProps {
+  onCreateNew?: () => void;
+  onEdit?: (transactionGroup: TransactionGroup) => void;
+  onView?: (transactionGroup: TransactionGroup) => void;
+  onDelete?: (id: string) => void;
+}
+
+const AccountManagement: React.FC<AccountManagementProps> = ({
+  onCreateNew,
+  onEdit,
+  onView,
+  onDelete
+}) => {
   // Redux 狀態管理
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -580,6 +618,23 @@ const AccountManagement: React.FC = () => {
     children: OrganizationNode[];
   }
 
+  // 計算包含子科目的總餘額
+  const calculateTotalBalance = useCallback((accountId: string, accounts: Account[]): number => {
+    const account = accounts.find(acc => acc._id === accountId);
+    if (!account) return 0;
+    
+    // 取得當前科目的餘額
+    let totalBalance = accountBalances[accountId] || account.balance || 0;
+    
+    // 找到所有子科目並遞歸計算其餘額
+    const childAccounts = accounts.filter(acc => acc.parentId === accountId);
+    for (const childAccount of childAccounts) {
+      totalBalance += calculateTotalBalance(childAccount._id, accounts);
+    }
+    
+    return totalBalance;
+  }, [accountBalances]);
+
   // 建立真正的父子科目階層結構
   const buildAccountHierarchy = useMemo((): OrganizationNode[] => {
     const tree: OrganizationNode[] = [];
@@ -798,7 +853,7 @@ const AccountManagement: React.FC = () => {
                 {node.name}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                ${(accountBalances[node.account?._id] || node.account?.balance || 0).toLocaleString()}
+                ${calculateTotalBalance(node.account?._id || '', accounts).toLocaleString()}
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5 }}>
                 <Tooltip title="新增子科目">
@@ -1012,15 +1067,24 @@ const AccountManagement: React.FC = () => {
   }, [accounts, loading, error]);
 
 
+  // 搜尋展開狀態
+  const [searchExpanded, setSearchExpanded] = useState(false);
+
   return (
-    <Box sx={{ p: 3 }}>
-      {/* 標題與操作按鈕 */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" component="h1" sx={{ display: 'flex', alignItems: 'center' }}>
-          <AccountTreeIcon sx={{ mr: 1 }} />
-          會計科目管理
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+    <Box sx={{ p: 2 }}>
+      {/* 操作按鈕列 - 移到右上角 */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          {onCreateNew && (
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<AddIcon />}
+              onClick={onCreateNew}
+            >
+              新增交易
+            </Button>
+          )}
           <Button
             variant="outlined"
             startIcon={<SettingsIcon />}
@@ -1035,85 +1099,102 @@ const AccountManagement: React.FC = () => {
           >
             新增科目
           </Button>
+          
+          {/* 搜尋按鈕 */}
+          <Tooltip title={searchExpanded ? "收合搜尋" : "展開搜尋"}>
+            <IconButton
+              color="primary"
+              onClick={() => setSearchExpanded(!searchExpanded)}
+              sx={{
+                backgroundColor: searchExpanded ? 'primary.50' : 'transparent',
+                '&:hover': { backgroundColor: searchExpanded ? 'primary.100' : 'action.hover' },
+                ml: 1
+              }}
+            >
+              <SearchIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Box>
 
-      {/* 機構選擇與搜尋篩選 */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
-              <InputLabel id="organization-select-label">選擇機構</InputLabel>
-              <Select
-                labelId="organization-select-label"
-                value={selectedOrganizationId}
-                label="選擇機構"
-                onChange={(e) => {
-                  const newOrgId = e.target.value;
-                  console.log('🏢 機構選擇變更:', { from: selectedOrganizationId, to: newOrgId });
-                  setSelectedOrganizationId(newOrgId);
+      {/* 機構選擇與搜尋篩選 - 可展開收合 */}
+      <Collapse in={searchExpanded} timeout="auto" unmountOnExit>
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel id="organization-select-label">選擇機構</InputLabel>
+                <Select
+                  labelId="organization-select-label"
+                  value={selectedOrganizationId}
+                  label="選擇機構"
+                  onChange={(e) => {
+                    const newOrgId = e.target.value;
+                    console.log('🏢 機構選擇變更:', { from: selectedOrganizationId, to: newOrgId });
+                    setSelectedOrganizationId(newOrgId);
+                  }}
+                  disabled={loading}
+                >
+                  <MenuItem value="">
+                    <em>所有機構</em>
+                  </MenuItem>
+                  {organizations.map((org) => (
+                    <MenuItem key={org._id} value={org._id}>
+                      {org.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                placeholder="搜尋科目代碼或名稱..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
                 }}
-                disabled={loading}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>科目類型</InputLabel>
+                <Select
+                  value={selectedAccountType}
+                  label="科目類型"
+                  onChange={(e) => setSelectedAccountType(e.target.value)}
+                >
+                  <MenuItem value="">全部</MenuItem>
+                  {accountTypeOptions.map(option => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedAccountType('');
+                  setSelectedOrganizationId('');
+                  loadAccounts();
+                }}
               >
-                <MenuItem value="">
-                  <em>所有機構</em>
-                </MenuItem>
-                {organizations.map((org) => (
-                  <MenuItem key={org._id} value={org._id}>
-                    {org.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                清除篩選
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              placeholder="搜尋科目代碼或名稱..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
-              <InputLabel>科目類型</InputLabel>
-              <Select
-                value={selectedAccountType}
-                label="科目類型"
-                onChange={(e) => setSelectedAccountType(e.target.value)}
-              >
-                <MenuItem value="">全部</MenuItem>
-                {accountTypeOptions.map(option => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedAccountType('');
-                setSelectedOrganizationId('');
-                loadAccounts();
-              }}
-            >
-              清除篩選
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
+        </Paper>
+      </Collapse>
 
       {/* 科目階層結構 - 左右分割佈局 */}
       <Paper sx={{ height: '600px', overflow: 'hidden' }}>

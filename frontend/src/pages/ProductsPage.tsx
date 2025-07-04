@@ -6,6 +6,7 @@ import {
   Paper,
   SelectChangeEvent
 } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 import ProductTabs from '../components/products/ProductTabs';
 import ProductFormDialog from '../components/products/ProductFormDialog';
 import CsvImportDialog from '../components/products/CsvImportDialog';
@@ -75,6 +76,8 @@ interface CurrentProduct {
 
 
 const ProductsPage: React.FC = () => {
+  const location = useLocation();
+  
   // 基本狀態管理
   const [tabValue, setTabValue] = useState<number>(0);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithId | null>(null);
@@ -191,6 +194,24 @@ const ProductsPage: React.FC = () => {
     setFilteredProducts(filterProducts());
     setFilteredMedicines(filterMedicines());
   }, [products, medicines, searchParams]);
+  
+  // 處理從 ProductDetailPage 傳來的編輯狀態
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.shouldOpenEditDialog && state?.editProductId && state?.productType) {
+      // 設置正確的標籤頁
+      setTabValue(state.productType === 'medicine' ? 1 : 0);
+      
+      // 等待產品數據載入後再觸發編輯
+      const timer = setTimeout(() => {
+        handleEditProduct(state.editProductId, state.productType);
+        // 清除 location state 避免重複觸發
+        window.history.replaceState({}, document.title);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [location.state, products, medicines]);
   
   // 打開新增產品對話框
   const handleAddProduct = (): void => {

@@ -181,12 +181,20 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
 
   // 處理編輯交易群組
   const handleEditTransaction = (transactionGroupId: string) => {
-    navigate(`/accounting2/transaction/${transactionGroupId}/edit`);
+    // 導航到編輯頁面，並在 URL 中加入返回參數
+    const returnUrl = `/accounting2/account/${accountId}`;
+    navigate(`/accounting2/transaction/${transactionGroupId}/edit?returnTo=${encodeURIComponent(returnUrl)}`);
   };
 
   // 處理複製交易群組
-  const handleCopyTransaction = (transactionGroupId: string) => {
-    navigate(`/accounting2/transaction/${transactionGroupId}/copy`);
+  const handleCopyTransaction = async (transactionGroupId: string) => {
+    try {
+      // 導航到複製頁面，並在 URL 中加入返回參數
+      const returnUrl = `/accounting2/account/${accountId}`;
+      navigate(`/accounting2/transaction/${transactionGroupId}/copy?returnTo=${encodeURIComponent(returnUrl)}`);
+    } catch (error) {
+      console.error('❌ 複製交易失敗:', error);
+    }
   };
 
   // 格式化交易狀態
