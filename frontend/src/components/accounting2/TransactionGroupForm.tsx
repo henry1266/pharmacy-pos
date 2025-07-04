@@ -400,6 +400,30 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
           <CardHeader
             title={mode === 'create' ? '基本資訊' : '基本資訊'}
             avatar={<ReceiptIcon color="primary" />}
+            action={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<UploadIcon />}
+                  disabled={uploadingReceipt}
+                  size="small"
+                >
+                  {uploadingReceipt ? '上傳中...' : '上傳憑證'}
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*,.pdf"
+                    onChange={handleReceiptUpload}
+                  />
+                </Button>
+                {formData.receiptUrl && (
+                  <Typography variant="body2" color="success.main" sx={{ ml: 1 }}>
+                    ✓
+                  </Typography>
+                )}
+              </Box>
+            }
           />
           <CardContent>
             <Grid container spacing={3}>
@@ -467,31 +491,6 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                 />
               </Grid>
 
-              {/* 憑證上傳 */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    startIcon={<UploadIcon />}
-                    disabled={uploadingReceipt}
-                  >
-                    {uploadingReceipt ? '上傳中...' : '上傳憑證'}
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*,.pdf"
-                      onChange={handleReceiptUpload}
-                    />
-                  </Button>
-                  
-                  {formData.receiptUrl && (
-                    <Typography variant="body2" color="success.main">
-                      憑證已上傳
-                    </Typography>
-                  )}
-                </Box>
-              </Grid>
             </Grid>
           </CardContent>
         </Card>
