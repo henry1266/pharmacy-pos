@@ -837,7 +837,7 @@ const AccountManagement: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
             <AccountTreeIcon sx={{ mr: 1 }} />
-            科目階層結構 - 點擊展開/收合，使用按鈕操作
+            科目階層結構
           </Typography>
           <Typography variant="body2" color="text.secondary">
             總計 {accounts.length} 個科目
