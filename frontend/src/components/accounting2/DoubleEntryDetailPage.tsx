@@ -22,14 +22,14 @@ import {
   TrendingUp,
   TrendingDown,
   Receipt,
-  Visibility
+  Visibility,
+  ArrowForward
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
-import TransactionFlowVisualization from './TransactionFlowVisualization';
 
 interface DoubleEntryDetailPageProps {
   organizationId?: string;
@@ -95,6 +95,48 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
 
   // 找到當前科目
   const currentAccount = accountId ? accounts.find(a => a._id === accountId) : null;
+
+  // 計算當前加總（從最舊的交易開始累計，但顯示時按近到遠排序）
+  const entriesWithRunningTotal = useMemo(() => {
+    if (!currentAccount || entries.length === 0) return [];
+
+    const isDebitAccount = currentAccount.normalBalance === 'debit' ||
+      (currentAccount.accountType === 'asset' || currentAccount.accountType === 'expense');
+
+    // 先按日期排序（遠到近）進行累計計算
+    const sortedForCalculation = [...entries].sort((a, b) =>
+      new Date(a.transactionDate).getTime() - new Date(b.transactionDate).getTime()
+    );
+
+    let runningTotal = 0;
+    
+    // 計算每筆交易的累計餘額
+    const entriesWithTotal = sortedForCalculation.map((entry) => {
+      const debitAmount = entry.debitAmount || 0;
+      const creditAmount = entry.creditAmount || 0;
+      
+      // 計算本筆對餘額的影響
+      let entryEffect = 0;
+      if (debitAmount > 0) {
+        entryEffect = isDebitAccount ? debitAmount : -debitAmount;
+      } else if (creditAmount > 0) {
+        entryEffect = isDebitAccount ? -creditAmount : creditAmount;
+      }
+      
+      runningTotal += entryEffect;
+      
+      return {
+        ...entry,
+        runningTotal,
+        entryEffect
+      };
+    });
+
+    // 最後按日期排序（近到遠）用於顯示
+    return entriesWithTotal.sort((a, b) =>
+      new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
+    );
+  }, [entries, currentAccount]);
 
   // 建立麵包屑路徑
   const breadcrumbPath = useMemo(() => {
@@ -254,19 +296,16 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
         </Grid>
       </Grid>
 
-      {/* 主要內容區域 - 左右分欄 */}
-      <Grid container spacing={3}>
-        {/* 左側：分錄表格 */}
-        <Grid item xs={12} lg={8}>
-          <Paper sx={{ mb: 3 }}>
-            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">分錄明細</Typography>
-            </Box>
-            <Divider />
-            
-            <Box sx={{ height: 600, width: '100%' }}>
+      {/* 分錄表格 */}
+      <Paper sx={{ mb: 3 }}>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">分錄明細（含交易流向）</Typography>
+        </Box>
+        <Divider />
+        
+        <Box sx={{ height: 600, width: '100%' }}>
           <DataGrid
-            rows={entries.map((entry, index) => ({
+            rows={entriesWithRunningTotal.map((entry, index) => ({
               id: entry._id,
               ...entry,
               index: index + 1
@@ -295,109 +334,125 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
               {
                 field: 'description',
                 headerName: '描述',
-                width: 200,
+                width: 150,
                 flex: 1
               },
               {
-                field: 'debitAmount',
-                headerName: '借方',
+                field: 'transactionFlow',
+                headerName: '交易流向',
+                width: 200,
+                sortable: false,
+                filterable: false,
+                renderCell: (params: GridRenderCellParams) => {
+                  const counterpartAccounts = params.row.counterpartAccounts || [];
+                  
+                  // 判斷流向
+                  const hasDebit = params.row.debitAmount > 0;
+                  
+                  if (counterpartAccounts.length === 0) {
+                    return <Typography variant="caption" color="text.disabled">-</Typography>;
+                  }
+                  
+                  const counterpartName = counterpartAccounts[0]; // 取第一個對方科目
+                  
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
+                      {/* 流向圖 */}
+                      {hasDebit ? (
+                        // 借方有金額：對方科目 -> 當前科目
+                        <>
+                          <Chip
+                            label={counterpartName}
+                            size="small"
+                            color="secondary"
+                            sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+                          />
+                          <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
+                          <Chip
+                            label={currentAccount?.name || '當前'}
+                            size="small"
+                            color="primary"
+                            sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+                          />
+                        </>
+                      ) : (
+                        // 貸方有金額：當前科目 -> 對方科目
+                        <>
+                          <Chip
+                            label={currentAccount?.name || '當前'}
+                            size="small"
+                            color="primary"
+                            sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+                          />
+                          <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
+                          <Chip
+                            label={counterpartName}
+                            size="small"
+                            color="secondary"
+                            sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+                          />
+                        </>
+                      )}
+                    </Box>
+                  );
+                }
+              },
+              {
+                field: 'amount',
+                headerName: '金額',
                 width: 150,
                 align: 'right',
                 headerAlign: 'right',
                 renderCell: (params: GridRenderCellParams) => {
-                  // 判斷當前科目是否為借方科目（資產、費用）
+                  const debitAmount = params.row.debitAmount || 0;
+                  const creditAmount = params.row.creditAmount || 0;
+                  
+                  // 判斷當前科目的正常餘額方向
                   const isDebitAccount = currentAccount?.normalBalance === 'debit' ||
                     (currentAccount?.accountType === 'asset' || currentAccount?.accountType === 'expense');
                   
-                  console.log('🔍 借方欄位渲染:', {
-                    accountType: currentAccount?.accountType,
-                    normalBalance: currentAccount?.normalBalance,
-                    isDebitAccount,
-                    debitAmount: params.value,
-                    accountName: currentAccount?.name,
-                    row: params.row
-                  });
+                  let amount = 0;
+                  let isPositive = true;
                   
-                  // 如果有借方金額，優先顯示金額
-                  if (params.value > 0) {
-                    return (
-                      <Typography
-                        color="success.main"
-                        fontWeight="medium"
-                      >
-                        {formatCurrency(params.value as number)}
-                      </Typography>
-                    );
+                  if (debitAmount > 0) {
+                    amount = debitAmount;
+                    isPositive = isDebitAccount; // 借方科目的借方金額為正，貸方科目的借方金額為負
+                  } else if (creditAmount > 0) {
+                    amount = creditAmount;
+                    isPositive = !isDebitAccount; // 貸方科目的貸方金額為正，借方科目的貸方金額為負
                   }
                   
-                  // 如果沒有借方金額，且當前是貸方科目，則顯示對方科目名稱
-                  if (!isDebitAccount) {
-                    const counterpartAccounts = params.row.counterpartAccounts || [];
-                    return (
-                      <Typography color="text.secondary" variant="body2">
-                        {counterpartAccounts.length > 0
-                          ? counterpartAccounts.join(', ')
-                          : '-'}
-                      </Typography>
-                    );
+                  if (amount === 0) {
+                    return <Typography color="text.disabled">-</Typography>;
                   }
                   
-                  // 其他情況顯示 "-"
                   return (
-                    <Typography color="text.disabled">
-                      -
+                    <Typography
+                      color={isPositive ? 'success.main' : 'error.main'}
+                      fontWeight="medium"
+                    >
+                      {isPositive ? '+' : '-'}{formatCurrency(amount)}
                     </Typography>
                   );
                 }
               },
               {
-                field: 'creditAmount',
-                headerName: '貸方',
+                field: 'runningTotal',
+                headerName: '當前加總',
                 width: 150,
                 align: 'right',
                 headerAlign: 'right',
+                sortable: false,
                 renderCell: (params: GridRenderCellParams) => {
-                  // 判斷當前科目是否為貸方科目（負債、權益、收入）
-                  const isCreditAccount = currentAccount?.normalBalance === 'credit' ||
-                    (currentAccount?.accountType === 'liability' || currentAccount?.accountType === 'equity' || currentAccount?.accountType === 'revenue');
+                  const runningTotal = params.row.runningTotal || 0;
                   
-                  console.log('🔍 貸方欄位渲染:', {
-                    accountType: currentAccount?.accountType,
-                    normalBalance: currentAccount?.normalBalance,
-                    isCreditAccount,
-                    creditAmount: params.value,
-                    accountName: currentAccount?.name,
-                    row: params.row
-                  });
-                  
-                  // 如果有貸方金額，優先顯示金額
-                  if (params.value > 0) {
-                    return (
-                      <Typography
-                        color="error.main"
-                        fontWeight="medium"
-                      >
-                        {formatCurrency(params.value as number)}
-                      </Typography>
-                    );
-                  }
-                  
-                  // 如果沒有貸方金額，且當前是借方科目，則顯示對方科目名稱
-                  if (!isCreditAccount) {
-                    const counterpartAccounts = params.row.counterpartAccounts || [];
-                    return (
-                      <Typography color="text.secondary" variant="body2">
-                        {counterpartAccounts.length > 0
-                          ? counterpartAccounts.join(', ')
-                          : '-'}
-                      </Typography>
-                    );
-                  }
-                  
-                  // 其他情況顯示 "-"
                   return (
-                    <Typography color="text.disabled">
-                      -
+                    <Typography
+                      color={runningTotal >= 0 ? 'success.main' : 'error.main'}
+                      fontWeight="bold"
+                      variant="body2"
+                    >
+                      {formatCurrency(Math.abs(runningTotal))}
                     </Typography>
                   );
                 }
@@ -425,6 +480,9 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
               pagination: {
                 page: 0,
                 pageSize: 25
+              },
+              sorting: {
+                sortModel: [{ field: 'transactionDate', sort: 'desc' }]
               }
             }}
             pageSize={25}
@@ -470,27 +528,8 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
               }
             }}
           />
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* 右側：交易流向可視化 */}
-        <Grid item xs={12} lg={4}>
-          <Paper sx={{ p: 2, height: 'fit-content' }}>
-            <Typography variant="h6" gutterBottom>
-              交易流向圖
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            
-            {/* 交易流向可視化組件 */}
-            <TransactionFlowVisualization
-              entries={entries}
-              currentAccount={currentAccount}
-              statistics={statistics}
-            />
-          </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Paper>
     </Box>
   );
 };
