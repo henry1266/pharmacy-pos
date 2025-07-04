@@ -15,7 +15,11 @@ import {
   Select,
   MenuItem,
   IconButton,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -23,7 +27,10 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Upload as UploadIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  Speed as SpeedIcon,
+  Help as HelpIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -93,6 +100,22 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
   const { organizations } = useAppSelector(state => state.organization);
   const { user } = useAppSelector(state => state.auth);
 
+  // 建立預設的兩個空分錄
+  const createDefaultEntries = (): AccountingEntryFormData[] => [
+    {
+      accountId: '',
+      debitAmount: 0,
+      creditAmount: 0,
+      description: ''
+    },
+    {
+      accountId: '',
+      debitAmount: 0,
+      creditAmount: 0,
+      description: ''
+    }
+  ];
+
   // 表單狀態
   const [formData, setFormData] = useState<TransactionGroupFormData>({
     description: '',
@@ -100,7 +123,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     organizationId: undefined,
     receiptUrl: '',
     invoiceNo: '',
-    entries: [],
+    entries: createDefaultEntries(),
     ...initialData
   });
 
@@ -111,6 +134,10 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
   // 檔案上傳狀態
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
+  // 對話框狀態
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [quickStartOpen, setQuickStartOpen] = useState(false);
+
   // 初始化表單資料
   useEffect(() => {
     if (initialData) {
@@ -120,9 +147,15 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
       const convertedData = convertBackendDataToFormData(initialData);
       console.log('✅ 轉換後的表單資料:', convertedData);
       
+      // 如果沒有分錄或分錄少於2筆，補充預設分錄
+      const entries = convertedData.entries && convertedData.entries.length >= 2
+        ? convertedData.entries
+        : createDefaultEntries();
+      
       setFormData(prev => ({
         ...prev,
-        ...convertedData
+        ...convertedData,
+        entries
       }));
     }
   }, [initialData]);
@@ -261,6 +294,9 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
       description: prev.description || template.name,
       entries: templateEntries
     }));
+
+    // 選擇範本後關閉對話框
+    setTemplateDialogOpen(false);
   };
 
   // 處理憑證上傳
@@ -362,7 +398,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
         {/* 基本資訊卡片 */}
         <Card sx={{ mb: 3 }}>
           <CardHeader
-            title={mode === 'create' ? '建立交易群組' : '編輯交易群組'}
+            title={mode === 'create' ? '基本資訊' : '基本資訊'}
             avatar={<ReceiptIcon color="primary" />}
           />
           <CardContent>
@@ -460,24 +496,58 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
           </CardContent>
         </Card>
 
-        {/* 交易範本選擇器 */}
-        <Card sx={{ mb: 3 }}>
-          <CardHeader title="快速範本" />
-          <CardContent>
-            <TransactionTemplateSelector
-              onSelectTemplate={handleTemplateSelect}
-              organizationId={formData.organizationId}
-            />
-          </CardContent>
-        </Card>
 
         {/* 借貸分錄表單 */}
-        <Card sx={{ mb: 3 }}>
+        <Card sx={{ mb: 3, boxShadow: 2 }}>
           <CardHeader
             title="借貸分錄"
             subheader={`目前分錄數量: ${formData.entries.length} 筆`}
+            action={
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<SpeedIcon />}
+                  onClick={() => setTemplateDialogOpen(true)}
+                  sx={{
+                    color: 'primary.contrastText',
+                    borderColor: 'primary.contrastText',
+                    '&:hover': {
+                      borderColor: 'primary.contrastText',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                    }
+                  }}
+                >
+                  快速範本
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<HelpIcon />}
+                  onClick={() => setQuickStartOpen(true)}
+                  sx={{
+                    color: 'primary.contrastText',
+                    borderColor: 'primary.contrastText',
+                    '&:hover': {
+                      borderColor: 'primary.contrastText',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                    }
+                  }}
+                >
+                  快速入門
+                </Button>
+              </Box>
+            }
+            sx={{
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
+              '& .MuiCardHeader-subheader': {
+                color: 'primary.contrastText',
+                opacity: 0.8
+              }
+            }}
           />
-          <CardContent>
+          <CardContent sx={{ pt: 3 }}>
             {errors.entries && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {errors.entries}
@@ -490,19 +560,6 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               </Alert>
             )}
 
-            {formData.entries.length === 0 && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                <Typography variant="body2">
-                  <strong>開始建立交易：</strong>
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  1. 點擊下方「新增分錄」按鈕<br/>
-                  2. 選擇會計科目並輸入金額<br/>
-                  3. 確保借方總額 = 貸方總額<br/>
-                  4. 至少需要 2 筆分錄才能提交
-                </Typography>
-              </Alert>
-            )}
 
             <DoubleEntryForm
               entries={formData.entries}
@@ -550,6 +607,169 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
             </span>
           </Tooltip>
         </Box>
+
+        {/* 快速範本對話框 */}
+        <Dialog
+          open={templateDialogOpen}
+          onClose={() => setTemplateDialogOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              boxShadow: 4
+            }
+          }}
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SpeedIcon color="primary" />
+                <Typography variant="h6" component="div">
+                  快速範本選擇
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={() => setTemplateDialogOpen(false)}
+                size="small"
+                sx={{ color: 'grey.500' }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent sx={{ pt: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              選擇適合的交易範本可以快速建立標準的複式記帳分錄
+            </Typography>
+            <TransactionTemplateSelector
+              onSelectTemplate={handleTemplateSelect}
+              organizationId={formData.organizationId}
+            />
+          </DialogContent>
+          
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button
+              onClick={() => setTemplateDialogOpen(false)}
+              variant="outlined"
+            >
+              取消
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* 快速入門對話框 */}
+        <Dialog
+          open={quickStartOpen}
+          onClose={() => setQuickStartOpen(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              boxShadow: 4
+            }
+          }}
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <HelpIcon color="info" />
+                <Typography variant="h6" component="div">
+                  複式記帳快速入門
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={() => setQuickStartOpen(false)}
+                size="small"
+                sx={{ color: 'grey.500' }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent sx={{ pt: 2 }}>
+            <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
+              複式記帳是一種確保財務記錄準確性的會計方法，每筆交易都會同時影響兩個或多個會計科目。
+            </Typography>
+
+            <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+              📝 操作步驟：
+            </Typography>
+            
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="body2">
+                <strong>💡 請為每筆分錄選擇會計科目並輸入金額</strong>
+              </Typography>
+            </Alert>
+
+            <Box component="ol" sx={{ pl: 2, mb: 3, '& li': { mb: 1.5 } }}>
+              <li>
+                <Typography variant="body2">
+                  <strong>選擇第一筆分錄的會計科目</strong>並輸入金額（借方或貸方）
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  <strong>選擇第二筆分錄的會計科目</strong>並輸入對應金額
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  <strong>確保借方總額 = 貸方總額</strong>（系統會自動檢查平衡）
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  可使用上方<strong>「快速範本」</strong>快速建立常用交易類型
+                </Typography>
+              </li>
+            </Box>
+
+            <Alert severity="success" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                <strong>💡 小提示：</strong>
+                每筆交易的借方總額必須等於貸方總額，這是複式記帳的基本原則。
+              </Typography>
+            </Alert>
+
+            <Typography variant="h6" sx={{ mb: 2, color: 'success.main' }}>
+              🎯 常見交易範例：
+            </Typography>
+            
+            <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary' }}>
+                現金收入（例如：銷售商品收到現金）
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                • 借方：現金 $1,000<br/>
+                • 貸方：銷售收入 $1,000
+              </Typography>
+            </Box>
+
+            <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary' }}>
+                費用支出（例如：支付辦公用品費用）
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                • 借方：辦公費用 $500<br/>
+                • 貸方：現金 $500
+              </Typography>
+            </Box>
+          </DialogContent>
+          
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button
+              onClick={() => setQuickStartOpen(false)}
+              variant="contained"
+              sx={{ minWidth: 100 }}
+            >
+              開始記帳
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </LocalizationProvider>
   );

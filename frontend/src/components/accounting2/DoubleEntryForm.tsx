@@ -60,6 +60,27 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
     account.isActive && (!organizationId || account.organizationId === organizationId)
   );
 
+  // 確保至少有兩個空分錄
+  React.useEffect(() => {
+    if (entries.length === 0) {
+      const defaultEntries: AccountingEntryFormData[] = [
+        {
+          accountId: '',
+          debitAmount: 0,
+          creditAmount: 0,
+          description: ''
+        },
+        {
+          accountId: '',
+          debitAmount: 0,
+          creditAmount: 0,
+          description: ''
+        }
+      ];
+      onChange(defaultEntries);
+    }
+  }, [entries.length, onChange]);
+
   // 計算借貸總額
   const totalDebit = entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
   const totalCredit = entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
@@ -121,45 +142,6 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
 
   return (
     <Box>
-      {/* 借貸平衡狀態 */}
-      <Box sx={{ mb: 2, p: 2, bgcolor: isBalanced ? 'success.light' : 'warning.light', borderRadius: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          {isBalanced ? (
-            <CheckCircleIcon color="success" />
-          ) : (
-            <ErrorIcon color="warning" />
-          )}
-          <Typography variant="h6">
-            借貸平衡檢查
-          </Typography>
-        </Box>
-        
-        <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-          <Typography>
-            借方總額：<strong>NT$ {totalDebit.toLocaleString()}</strong>
-          </Typography>
-          <Typography>
-            貸方總額：<strong>NT$ {totalCredit.toLocaleString()}</strong>
-          </Typography>
-          {!isBalanced && (
-            <>
-              <Typography color="warning.main">
-                差額：<strong>NT$ {difference.toLocaleString()}</strong>
-              </Typography>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={quickBalance}
-                startIcon={<BalanceIcon />}
-                disabled={entries.length < 2}
-              >
-                快速平衡
-              </Button>
-            </>
-          )}
-        </Box>
-      </Box>
-
       {/* 分錄表格 */}
       <TableContainer component={Paper} variant="outlined">
         <Table>
@@ -290,6 +272,18 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                   <Typography variant="body2" color={isBalanced ? 'success.main' : 'error.main'}>
                     {isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${difference.toLocaleString()}`}
                   </Typography>
+                  {!isBalanced && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={quickBalance}
+                      startIcon={<BalanceIcon />}
+                      disabled={entries.length < 2}
+                      sx={{ ml: 2 }}
+                    >
+                      快速平衡
+                    </Button>
+                  )}
                 </Box>
               </TableCell>
             </TableRow>
@@ -309,17 +303,12 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
       </Box>
 
       {/* 提示訊息 */}
-      {entries.length === 0 && (
-        <Alert severity="info" sx={{ mt: 2 }}>
-          請至少新增兩筆分錄以建立完整的複式記帳交易
-        </Alert>
-      )}
-
       {entries.length === 1 && (
         <Alert severity="warning" sx={{ mt: 2 }}>
           複式記帳需要至少兩筆分錄，請新增更多分錄
         </Alert>
       )}
+
     </Box>
   );
 };
