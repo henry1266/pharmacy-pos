@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -32,6 +32,7 @@ import {
   Collapse,
   CircularProgress
 } from '@mui/material';
+import { DataGrid, GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -44,7 +45,10 @@ import {
   Settings as SettingsIcon,
   Business as BusinessIcon,
   Visibility as VisibilityIcon,
-  Launch as LaunchIcon
+  Launch as LaunchIcon,
+  AccountBalance as AccountBalanceIcon,
+  ArrowForward,
+  ContentCopy
 } from '@mui/icons-material';
 import { RootState } from '../../redux/reducers';
 import {
@@ -61,6 +65,8 @@ import {
   fetchAccountBalancesSummary
 } from '../../redux/actions';
 import organizationService, { Organization } from '../../services/organizationService';
+import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
+import { formatCurrency } from '../../utils/formatters';
 
 // 型別定義
 interface Account {
@@ -107,9 +113,23 @@ const AccountManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccountType, setSelectedAccountType] = useState<string>('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  
+  // 樹狀結構展開狀態
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
   
   // 科目餘額映射
   const [accountBalances, setAccountBalances] = useState<Record<string, number>>({});
+  
+  // 分錄明細相關狀態
+  const [entries, setEntries] = useState<AccountingEntryDetail[]>([]);
+  const [entriesLoading, setEntriesLoading] = useState(false);
+  const [statistics, setStatistics] = useState({
+    totalEntries: 0,
+    totalDebit: 0,
+    totalCredit: 0,
+    balance: 0
+  });
   
   // 對話框狀態
   const [openDialog, setOpenDialog] = useState(false);
@@ -139,6 +159,200 @@ const AccountManagement: React.FC = () => {
     severity: 'info'
   });
 
+  // 計算帶有餘額的分錄資料
+  const entriesWithBalance = useMemo(() => {
+    if (!selectedAccount || entries.length === 0) return [];
+
+    const isDebitAccount = selectedAccount.normalBalance === 'debit' ||
+      (selectedAccount.accountType === 'asset' || selectedAccount.accountType === 'expense');
+
+    // 按日期排序（最新到最舊）
+    const sortedEntries = [...entries].sort((a, b) =>
+      new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
+    );
+
+    // 計算每筆的餘額影響和累計餘額
+    const entriesWithEffect = sortedEntries.map((entry) => {
+      const debitAmount = entry.debitAmount || 0;
+      const creditAmount = entry.creditAmount || 0;
+      
+      // 計算本筆對餘額的影響
+      let entryEffect = 0;
+      if (debitAmount > 0) {
+        entryEffect = isDebitAccount ? debitAmount : -debitAmount;
+      } else if (creditAmount > 0) {
+        entryEffect = isDebitAccount ? -creditAmount : creditAmount;
+      }
+      
+      return {
+        ...entry,
+        entryEffect
+      };
+    });
+
+    // 計算累計餘額（從最下方往上累計）
+    const entriesWithRunningTotal = entriesWithEffect.map((entry, index) => {
+      let runningTotal = 0;
+      
+      // 從當前行往下累計到最後一行
+      for (let i = index; i < entriesWithEffect.length; i++) {
+        runningTotal += entriesWithEffect[i].entryEffect;
+      }
+      
+      return {
+        ...entry,
+        runningTotal
+      };
+    });
+
+    return entriesWithRunningTotal;
+  }, [entries, selectedAccount]);
+
+  // DataGrid 欄位配置
+  const columns: GridColDef[] = [
+    {
+      field: 'index',
+      headerName: '#',
+      width: 60,
+      align: 'center',
+      headerAlign: 'center'
+    },
+    {
+      field: 'transactionDate',
+      headerName: '交易日期',
+      width: 120,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return new Date(params.value as string).toLocaleDateString('zh-TW');
+      }
+    },
+    {
+      field: 'description',
+      headerName: '描述',
+      width: 180,
+      flex: 1
+    },
+    {
+      field: 'transactionFlow',
+      headerName: '交易流向',
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        const counterpartAccounts = params.row.counterpartAccounts || [];
+        
+        // 判斷流向
+        const hasDebit = params.row.debitAmount > 0;
+        
+        if (counterpartAccounts.length === 0) {
+          return <Typography variant="caption" color="text.disabled">-</Typography>;
+        }
+        
+        const counterpartName = counterpartAccounts[0]; // 取第一個對方科目
+        
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
+            {/* 流向圖 */}
+            {hasDebit ? (
+              // 借方有金額：對方科目 -> 當前科目
+              <>
+                <Chip
+                  label={counterpartName}
+                  size="small"
+                  color="secondary"
+                  sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+                />
+                <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
+                <Chip
+                  label={selectedAccount?.name || '當前'}
+                  size="small"
+                  color="primary"
+                  sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+                />
+              </>
+            ) : (
+              // 貸方有金額：當前科目 -> 對方科目
+              <>
+                <Chip
+                  label={selectedAccount?.name || '當前'}
+                  size="small"
+                  color="primary"
+                  sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+                />
+                <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
+                <Chip
+                  label={counterpartName}
+                  size="small"
+                  color="secondary"
+                  sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+                />
+              </>
+            )}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'amount',
+      headerName: '金額',
+      width: 150,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: (params: GridRenderCellParams) => {
+        const debitAmount = params.row.debitAmount || 0;
+        const creditAmount = params.row.creditAmount || 0;
+        
+        // 判斷當前科目的正常餘額方向
+        const isDebitAccount = selectedAccount?.normalBalance === 'debit' ||
+          (selectedAccount?.accountType === 'asset' || selectedAccount?.accountType === 'expense');
+        
+        let amount = 0;
+        let isPositive = true;
+        
+        if (debitAmount > 0) {
+          amount = debitAmount;
+          isPositive = isDebitAccount; // 借方科目的借方金額為正，貸方科目的借方金額為負
+        } else if (creditAmount > 0) {
+          amount = creditAmount;
+          isPositive = !isDebitAccount; // 貸方科目的貸方金額為正，借方科目的貸方金額為負
+        }
+        
+        if (amount === 0) {
+          return <Typography color="text.disabled">-</Typography>;
+        }
+        
+        return (
+          <Typography
+            color={isPositive ? 'success.main' : 'error.main'}
+            fontWeight="medium"
+          >
+            {isPositive ? '+' : '-'}{formatCurrency(amount)}
+          </Typography>
+        );
+      }
+    },
+    {
+      field: 'runningTotal',
+      headerName: '當前加總',
+      width: 150,
+      align: 'right',
+      headerAlign: 'right',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => {
+        const runningTotal = params.row.runningTotal || 0;
+        
+        return (
+          <Typography
+            color={runningTotal >= 0 ? 'success.main' : 'error.main'}
+            fontWeight="bold"
+            variant="body2"
+          >
+            {formatCurrency(Math.abs(runningTotal))}
+          </Typography>
+        );
+      }
+    }
+  ];
+  
   // 會計科目類型選項
   const accountTypeOptions = [
     { value: 'asset', label: '資產', color: '#4caf50' },
@@ -176,6 +390,57 @@ const AccountManagement: React.FC = () => {
     console.log('📊 開始載入科目餘額摘要...');
     dispatch(fetchAccountBalancesSummary(selectedOrganizationId) as any);
   };
+
+  // 載入分錄明細
+  const loadDoubleEntries = useCallback(async (accountId: string) => {
+    try {
+      setEntriesLoading(true);
+      console.log('📋 開始載入分錄明細，科目ID:', accountId);
+      
+      const response = await doubleEntryService.getByAccount(accountId, {
+        organizationId: selectedOrganizationId,
+        limit: 1000
+      });
+      
+      console.log('📊 API 回應:', response);
+      
+      if (response.success && response.data) {
+        const entriesData = response.data.entries || [];
+        const statsData = response.data.statistics || {
+          totalDebit: 0,
+          totalCredit: 0,
+          balance: 0,
+          recordCount: 0
+        };
+        
+        setEntries(entriesData);
+        setStatistics({
+          totalEntries: statsData.recordCount || entriesData.length,
+          totalDebit: statsData.totalDebit || 0,
+          totalCredit: statsData.totalCredit || 0,
+          balance: statsData.balance || 0
+        });
+        
+        console.log('📋 分錄明細載入完成:', {
+          entriesCount: entriesData.length,
+          statistics: statsData
+        });
+      } else {
+        throw new Error('載入分錄失敗');
+      }
+    } catch (error) {
+      console.error('❌ 載入分錄明細失敗:', error);
+      setEntries([]);
+      setStatistics({
+        totalEntries: 0,
+        totalDebit: 0,
+        totalCredit: 0,
+        balance: 0
+      });
+    } finally {
+      setEntriesLoading(false);
+    }
+  }, [selectedOrganizationId]);
 
   // 載入會計科目
   const loadAccounts = () => {
@@ -316,7 +581,7 @@ const AccountManagement: React.FC = () => {
   }
 
   // 建立真正的父子科目階層結構
-  const buildAccountHierarchy = (): OrganizationNode[] => {
+  const buildAccountHierarchy = useMemo((): OrganizationNode[] => {
     const tree: OrganizationNode[] = [];
     
     // 按機構分組
@@ -384,7 +649,7 @@ const AccountManagement: React.FC = () => {
     });
 
     return tree;
-  };
+  }, [accounts, organizations, accountTypeOptions]);
 
   // 處理節點點擊導航
   const handleNodeClick = (node: OrganizationNode) => {
@@ -441,8 +706,15 @@ const AccountManagement: React.FC = () => {
 
   // 樹狀結構項目組件
   const TreeItemComponent: React.FC<{ node: OrganizationNode; level?: number }> = ({ node, level = 0 }) => {
-    const [expanded, setExpanded] = useState(level === 0); // 機構層級預設展開
     const hasChildren = node.children && node.children.length > 0;
+    const expanded = expandedNodes[node.id] ?? (level === 0); // 機構層級預設展開
+    
+    const handleToggleExpanded = () => {
+      setExpandedNodes(prev => ({
+        ...prev,
+        [node.id]: !expanded
+      }));
+    };
 
     const getNodeIcon = () => {
       switch (node.type) {
@@ -597,14 +869,25 @@ const AccountManagement: React.FC = () => {
             pl: level * 2 + 1,
             cursor: 'pointer',
             '&:hover': { backgroundColor: 'action.hover' },
-            py: node.type === 'organization' ? 1 : 0.5
+            py: node.type === 'organization' ? 1 : 0.5,
+            backgroundColor: node.type === 'account' && selectedAccount?._id === node.account?._id
+              ? 'primary.50'
+              : 'transparent',
+            borderLeft: node.type === 'account' && selectedAccount?._id === node.account?._id
+              ? '3px solid'
+              : 'none',
+            borderLeftColor: 'primary.main'
           }}
           onClick={(e) => {
             e.stopPropagation();
             if (hasChildren) {
-              setExpanded(!expanded);
+              handleToggleExpanded();
             }
-            // 移除直接導航，只有按鈕點擊才會導航
+            // 只有葉子節點（沒有子科目的科目）才觸發右邊的明細功能
+            if (node.type === 'account' && node.account && node.children.length === 0) {
+              setSelectedAccount(node.account);
+              loadDoubleEntries(node.account._id);
+            }
           }}
         >
           <ListItemIcon sx={{ minWidth: 32 }}>
@@ -832,28 +1115,176 @@ const AccountManagement: React.FC = () => {
         </Grid>
       </Paper>
 
-      {/* 科目階層結構 - 全寬度 */}
-      <Paper sx={{ p: 2, height: '600px', overflow: 'auto' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
-            <AccountTreeIcon sx={{ mr: 1 }} />
-            科目階層結構
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            總計 {accounts.length} 個科目
-          </Typography>
-        </Box>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-            <CircularProgress />
+      {/* 科目階層結構 - 左右分割佈局 */}
+      <Paper sx={{ height: '600px', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', height: '100%' }}>
+          {/* 左半邊：科目樹狀結構 */}
+          <Box sx={{
+            width: '42%',
+            borderRight: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                <AccountTreeIcon sx={{ mr: 1 }} />
+                科目階層結構
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <List sx={{ width: '100%' }}>
+                  {buildAccountHierarchy.map(node => (
+                    <TreeItemComponent key={node.id} node={node} />
+                  ))}
+                </List>
+              )}
+            </Box>
           </Box>
-        ) : (
-          <List sx={{ width: '100%' }}>
-            {buildAccountHierarchy().map(node => (
-              <TreeItemComponent key={node.id} node={node} />
-            ))}
-          </List>
-        )}
+
+          {/* 右半邊：選中科目的詳細資訊 */}
+          <Box sx={{
+            width: '58%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                分錄明細
+                {selectedAccount && (
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedAccount.code} - {selectedAccount.name}
+                  </Typography>
+                )}
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              {selectedAccount ? (
+                <>
+                  {/* 統計摘要 */}
+                  <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">筆數</Typography>
+                          <Typography variant="h6" color="primary">
+                            {statistics.totalEntries}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">借方總額</Typography>
+                          <Typography variant="h6" color="success.main">
+                            {formatCurrency(statistics.totalDebit)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">貸方總額</Typography>
+                          <Typography variant="h6" color="error.main">
+                            {formatCurrency(statistics.totalCredit)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">餘額</Typography>
+                          <Typography variant="h6" color={statistics.balance >= 0 ? 'success.main' : 'error.main'}>
+                            {formatCurrency(statistics.balance)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  {/* 分錄明細表格 */}
+                  <Box sx={{ flex: 1, p: 1 }}>
+                    {entriesLoading ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                        <CircularProgress />
+                      </Box>
+                    ) : (
+                      <DataGrid
+                        rows={entriesWithBalance.map((entry, index) => ({
+                          id: entry._id,
+                          ...entry,
+                          index: index + 1
+                        }))}
+                        columns={columns}
+                        initialState={{
+                          pagination: {
+                            page: 0,
+                            pageSize: 10
+                          },
+                          sorting: {
+                            sortModel: [{ field: 'transactionDate', sort: 'desc' }]
+                          }
+                        }}
+                        pageSize={10}
+                        rowsPerPageOptions={[10, 25, 50]}
+                        disableSelectionOnClick
+                        localeText={{
+                          // 中文化
+                          noRowsLabel: '暫無分錄資料',
+                          footerRowSelected: (count) => `已選擇 ${count} 行`,
+                          footerTotalRows: '總行數:',
+                          footerTotalVisibleRows: (visibleCount, totalCount) =>
+                            `${visibleCount.toLocaleString()} / ${totalCount.toLocaleString()}`,
+                          columnMenuLabel: '選單',
+                          columnMenuShowColumns: '顯示欄位',
+                          columnMenuFilter: '篩選',
+                          columnMenuHideColumn: '隱藏',
+                          columnMenuUnsort: '取消排序',
+                          columnMenuSortAsc: '升序排列',
+                          columnMenuSortDesc: '降序排列'
+                        }}
+                        sx={{
+                          border: 'none',
+                          '& .MuiDataGrid-cell': {
+                            borderBottom: '1px solid rgba(224, 224, 224, 1)'
+                          },
+                          '& .MuiDataGrid-columnHeaders': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                            borderBottom: '2px solid rgba(224, 224, 224, 1)'
+                          }
+                        }}
+                      />
+                    )}
+                  </Box>
+                </>
+              ) : (
+                <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  color: 'text.secondary',
+                  p: 3
+                }}>
+                  <AccountTreeIcon sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
+                  <Typography variant="h6" gutterBottom>
+                    請選擇一個科目
+                  </Typography>
+                  <Typography variant="body2" textAlign="center">
+                    點擊左側樹狀結構中的葉子節點科目<br />
+                    查看該科目的分錄明細
+                  </Typography>
+                  <Typography variant="caption" textAlign="center" sx={{ mt: 2, opacity: 0.7 }}>
+                    注意：只有沒有子科目的科目才會顯示明細
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Box>
       </Paper>
 
       {/* 新增/編輯科目對話框 */}

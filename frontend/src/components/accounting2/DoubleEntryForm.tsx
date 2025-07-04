@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Table,
@@ -16,7 +16,11 @@ import {
   Chip,
   Paper,
   Tooltip,
-  ListSubheader
+  ListSubheader,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -26,9 +30,11 @@ import {
   Error as ErrorIcon,
   ArrowForward,
   Business as BusinessIcon,
-  Category as CategoryIcon
+  Category as CategoryIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { useAppSelector } from '../../hooks/redux';
+import { AccountSelector } from './AccountSelector';
 
 export interface AccountingEntryFormData {
   accountId: string;
@@ -61,6 +67,10 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
 }) => {
   const { accounts } = useAppSelector(state => state.account2 || { accounts: [] });
   const { organizations } = useAppSelector(state => state.organization || { organizations: [] });
+
+  // 科目選擇對話框狀態
+  const [accountSelectorOpen, setAccountSelectorOpen] = useState(false);
+  const [currentEditingIndex, setCurrentEditingIndex] = useState<number>(-1);
 
   // 過濾可用的會計科目
   const availableAccounts: AccountOption[] = accounts.filter(account =>
@@ -207,7 +217,7 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
   };
 
   // 更新分錄
-  const updateEntry = (index: number, field: keyof AccountingEntryFormData, value: any) => {
+  const updateEntry = useCallback((index: number, field: keyof AccountingEntryFormData, value: any) => {
     console.log('🔄 updateEntry 被調用:', { index, field, value, currentValue: entries[index]?.[field] });
     
     const newEntries = [...entries];
@@ -235,9 +245,7 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
 
     // 如果是科目選擇變更，記錄詳細資訊
     if (field === 'accountId') {
-      const selectedAccount = hierarchicalAccountOptions.find(opt =>
-        opt.type === 'account' && opt._id === value
-      );
+      const selectedAccount = availableAccounts.find(acc => acc._id === value);
       console.log('🏦 科目選擇變更:', {
         index,
         oldAccountId: currentEntry.accountId,
@@ -249,7 +257,28 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
 
     console.log('✅ updateEntry 完成，新的分錄狀態:', newEntries[index]);
     onChange(newEntries);
-  };
+  }, [entries, onChange, availableAccounts]);
+
+  // 開啟科目選擇對話框
+  const handleOpenAccountSelector = useCallback((index: number) => {
+    setCurrentEditingIndex(index);
+    setAccountSelectorOpen(true);
+  }, []);
+
+  // 處理科目選擇
+  const handleAccountSelect = useCallback((account: AccountOption) => {
+    if (currentEditingIndex >= 0) {
+      updateEntry(currentEditingIndex, 'accountId', account._id);
+      setAccountSelectorOpen(false);
+      setCurrentEditingIndex(-1);
+    }
+  }, [currentEditingIndex, updateEntry]);
+
+  // 關閉科目選擇對話框
+  const handleCloseAccountSelector = useCallback(() => {
+    setAccountSelectorOpen(false);
+    setCurrentEditingIndex(-1);
+  }, []);
 
   // 快速平衡功能
   const quickBalance = () => {
@@ -365,80 +394,60 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
               <TableRow key={index}>
                 {/* 會計科目選擇 */}
                 <TableCell>
-                  <Autocomplete
-                    size="small"
-                    options={hierarchicalAccountOptions}
-                    getOptionLabel={(option) => {
-                      if (option.type === 'header') return option.label;
-                      return option.displayName || `${option.code} - ${option.name}`;
-                    }}
-                    value={hierarchicalAccountOptions.find(opt => opt.type === 'account' && opt._id === entry.accountId) || null}
-                    onChange={(_, newValue) => {
-                      if (newValue && newValue.type === 'account') {
-                        console.log('🔄 科目選擇變更:', {
-                          from: entry.accountId,
-                          to: newValue._id,
-                          accountName: newValue.name
-                        });
-                        updateEntry(index, 'accountId', newValue._id || '');
-                      } else if (newValue === null) {
-                        // 處理清除選擇的情況
-                        console.log('🔄 清除科目選擇:', entry.accountId);
-                        updateEntry(index, 'accountId', '');
-                      }
-                    }}
-                    getOptionDisabled={(option) => option.type === 'header'}
-                    isOptionEqualToValue={(option, value) => {
-                      // 確保正確的值比較邏輯
-                      if (option.type === 'header' || value.type === 'header') return false;
-                      return option._id === value._id;
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="選擇會計科目"
-                        error={!entry.accountId}
-                      />
-                    )}
-                    renderOption={(props, option) => {
-                      if (option.type === 'header') {
-                        return (
-                          <ListSubheader
-                            key={option.id}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                              fontWeight: 'bold',
-                              color: option.icon === 'organization' ? 'primary.main' : 'text.primary',
-                              backgroundColor: option.icon === 'organization' ? 'primary.50' : 'grey.50'
-                            }}
-                          >
-                            {option.icon === 'organization' && <BusinessIcon fontSize="small" />}
-                            {option.icon === 'category' && <CategoryIcon fontSize="small" />}
-                            {option.label}
-                          </ListSubheader>
-                        );
-                      }
-                      
-                      return (
-                        <Box component="li" {...props} key={option._id}>
-                          <Box sx={{ width: '100%' }}>
-                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                              {option.displayName}
+                  {entry.accountId ? (
+                    // 已選擇科目：顯示科目資訊和編輯按鈕
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ flex: 1 }}>
+                        {(() => {
+                          const selectedAccount = availableAccounts.find(acc => acc._id === entry.accountId);
+                          return selectedAccount ? (
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                {selectedAccount.code} - {selectedAccount.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {accountTypeOptions.find(opt => opt.value === selectedAccount.accountType)?.label} |
+                                {selectedAccount.normalBalance === 'debit' ? '借方' : '貸方'}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <Typography variant="body2" color="error">
+                              科目不存在
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {option.accountType} | 正常餘額：{option.normalBalance === 'debit' ? '借方' : '貸方'}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      );
-                    }}
-                    groupBy={(option) => {
-                      if (option.type === 'header') return '';
-                      return ''; // 不使用 groupBy，因為我們已經用 ListSubheader 處理分組
-                    }}
-                  />
+                          );
+                        })()}
+                      </Box>
+                      <Tooltip title="更換科目">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenAccountSelector(index)}
+                          color="primary"
+                        >
+                          <SearchIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  ) : (
+                    // 未選擇科目：顯示選擇按鈕
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<SearchIcon />}
+                      onClick={() => handleOpenAccountSelector(index)}
+                      sx={{
+                        width: '100%',
+                        justifyContent: 'flex-start',
+                        color: 'text.secondary',
+                        borderColor: 'divider',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          color: 'primary.main'
+                        }
+                      }}
+                    >
+                      選擇會計科目
+                    </Button>
+                  )}
                 </TableCell>
 
                 {/* 交易流向 */}
@@ -572,6 +581,34 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
           複式記帳需要至少兩筆分錄，請新增更多分錄
         </Alert>
       )}
+
+      {/* 科目選擇對話框 */}
+      <Dialog
+        open={accountSelectorOpen}
+        onClose={handleCloseAccountSelector}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '80vh',
+            maxHeight: '600px'
+          }
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h6" component="div">
+            選擇會計科目
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <AccountSelector
+            selectedAccountId={currentEditingIndex >= 0 ? entries[currentEditingIndex]?.accountId : undefined}
+            organizationId={organizationId}
+            onAccountSelect={handleAccountSelect}
+            onCancel={handleCloseAccountSelector}
+          />
+        </DialogContent>
+      </Dialog>
 
     </Box>
   );
