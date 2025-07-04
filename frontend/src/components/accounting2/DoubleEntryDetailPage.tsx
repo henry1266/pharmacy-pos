@@ -110,22 +110,20 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
   }, [organizationId, accountId, accounts.length]);
 
 
-  // 計算當前加總（從最舊的交易開始累計，但顯示時按近到遠排序）
+  // 計算當前加總（依排序由下到上，即按顯示順序從最舊累計到當前行）
   const entriesWithRunningTotal = useMemo(() => {
     if (!currentAccount || entries.length === 0) return [];
 
     const isDebitAccount = currentAccount.normalBalance === 'debit' ||
       (currentAccount.accountType === 'asset' || currentAccount.accountType === 'expense');
 
-    // 先按日期排序（遠到近）進行累計計算
-    const sortedForCalculation = [...entries].sort((a, b) =>
-      new Date(a.transactionDate).getTime() - new Date(b.transactionDate).getTime()
+    // 先按日期排序（近到遠）用於顯示順序
+    const sortedForDisplay = [...entries].sort((a, b) =>
+      new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
     );
 
-    let runningTotal = 0;
-    
-    // 計算每筆交易的累計餘額
-    const entriesWithTotal = sortedForCalculation.map((entry) => {
+    // 計算每筆交易對餘額的影響
+    const entriesWithEffect = sortedForDisplay.map((entry) => {
       const debitAmount = entry.debitAmount || 0;
       const creditAmount = entry.creditAmount || 0;
       
@@ -137,19 +135,29 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
         entryEffect = isDebitAccount ? -creditAmount : creditAmount;
       }
       
-      runningTotal += entryEffect;
-      
       return {
         ...entry,
-        runningTotal,
         entryEffect
       };
     });
 
-    // 最後按日期排序（近到遠）用於顯示
-    return entriesWithTotal.sort((a, b) =>
-      new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
-    );
+    // 依排序由下到上計算當前加總（從表格最下方開始累計）
+    const entriesWithTotal = entriesWithEffect.map((entry, index) => {
+      // 計算從最下方（最舊）到當前行的累計餘額
+      let runningTotal = 0;
+      
+      // 從當前行往下累計到最後一行（最舊的交易）
+      for (let i = index; i < entriesWithEffect.length; i++) {
+        runningTotal += entriesWithEffect[i].entryEffect;
+      }
+      
+      return {
+        ...entry,
+        runningTotal
+      };
+    });
+
+    return entriesWithTotal;
   }, [entries, currentAccount]);
 
   // 建立麵包屑路徑

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Table,
@@ -15,7 +15,8 @@ import {
   Autocomplete,
   Chip,
   Paper,
-  Tooltip
+  Tooltip,
+  ListSubheader
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -23,7 +24,9 @@ import {
   Balance as BalanceIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
-  ArrowForward
+  ArrowForward,
+  Business as BusinessIcon,
+  Category as CategoryIcon
 } from '@mui/icons-material';
 import { useAppSelector } from '../../hooks/redux';
 
@@ -46,6 +49,8 @@ interface AccountOption {
   code: string;
   accountType: string;
   normalBalance: 'debit' | 'credit';
+  organizationId?: string;
+  parentId?: string;
 }
 
 
@@ -55,11 +60,107 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
   organizationId
 }) => {
   const { accounts } = useAppSelector(state => state.account2 || { accounts: [] });
+  const { organizations } = useAppSelector(state => state.organization || { organizations: [] });
 
   // 過濾可用的會計科目
   const availableAccounts: AccountOption[] = accounts.filter(account =>
     account.isActive && (!organizationId || account.organizationId === organizationId)
   );
+
+  // 會計科目類型選項
+  const accountTypeOptions = [
+    { value: 'asset', label: '資產', color: '#4caf50' },
+    { value: 'liability', label: '負債', color: '#f44336' },
+    { value: 'equity', label: '權益', color: '#2196f3' },
+    { value: 'revenue', label: '收入', color: '#ff9800' },
+    { value: 'expense', label: '費用', color: '#9c27b0' }
+  ];
+
+  // 建立階層式會計科目選項
+  const hierarchicalAccountOptions = useMemo(() => {
+    console.log('🔄 重新計算 hierarchicalAccountOptions，可用科目數:', availableAccounts.length);
+    const options: any[] = [];
+    
+    // 按機構分組
+    const accountsByOrg = availableAccounts.reduce((acc, account) => {
+      const orgId = account.organizationId || 'personal';
+      if (!acc[orgId]) acc[orgId] = [];
+      acc[orgId].push(account);
+      return acc;
+    }, {} as Record<string, AccountOption[]>);
+
+    // 為每個機構建立階層結構
+    Object.entries(accountsByOrg).forEach(([orgId, orgAccounts]) => {
+      const organization = organizations.find(org => org._id === orgId);
+      const orgName = organization?.name || '個人帳戶';
+      
+      // 添加機構標題
+      options.push({
+        type: 'header',
+        id: `org-${orgId}`,
+        label: orgName,
+        icon: 'organization'
+      });
+
+      // 按會計科目類型分組
+      const accountsByType = orgAccounts.reduce((acc, account) => {
+        if (!acc[account.accountType]) acc[account.accountType] = [];
+        acc[account.accountType].push(account);
+        return acc;
+      }, {} as Record<string, AccountOption[]>);
+
+      // 為每個會計科目類型建立節點
+      accountTypeOptions.forEach(typeOption => {
+        const typeAccounts = accountsByType[typeOption.value] || [];
+        if (typeAccounts.length > 0) {
+          // 添加科目類型標題
+          options.push({
+            type: 'header',
+            id: `${orgId}-${typeOption.value}`,
+            label: `　${typeOption.label}`,
+            icon: 'category'
+          });
+
+          // 建立父子階層結構
+          const buildAccountHierarchy = (accounts: AccountOption[], parentId: string | null = null, level: number = 0): void => {
+            const filteredAccounts = accounts.filter(account => {
+              if (parentId === null) {
+                return !account.parentId;
+              }
+              return account.parentId === parentId;
+            });
+
+            filteredAccounts
+              .sort((a, b) => a.code.localeCompare(b.code))
+              .forEach(account => {
+                // 確保每個科目選項都有穩定的結構
+                options.push({
+                  type: 'account',
+                  _id: account._id,
+                  name: account.name,
+                  code: account.code,
+                  accountType: account.accountType,
+                  normalBalance: account.normalBalance,
+                  organizationId: account.organizationId,
+                  parentId: account.parentId,
+                  displayName: `${'　'.repeat(level + 2)}${account.code} - ${account.name}`,
+                  level: level + 2
+                });
+
+                // 遞歸處理子科目
+                buildAccountHierarchy(accounts, account._id, level + 1);
+              });
+          };
+
+          buildAccountHierarchy(typeAccounts);
+        }
+      });
+    });
+
+    console.log('✅ hierarchicalAccountOptions 計算完成，總選項數:', options.length);
+    console.log('📋 科目選項範例:', options.filter(opt => opt.type === 'account').slice(0, 3));
+    return options;
+  }, [availableAccounts, organizations, organizationId]);
 
   // 確保至少有兩個空分錄
   React.useEffect(() => {
@@ -107,19 +208,46 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
 
   // 更新分錄
   const updateEntry = (index: number, field: keyof AccountingEntryFormData, value: any) => {
+    console.log('🔄 updateEntry 被調用:', { index, field, value, currentValue: entries[index]?.[field] });
+    
     const newEntries = [...entries];
+    const currentEntry = newEntries[index];
+    
+    if (!currentEntry) {
+      console.warn('⚠️ updateEntry: 找不到指定索引的分錄:', index);
+      return;
+    }
+
+    // 更新指定欄位
     newEntries[index] = {
-      ...newEntries[index],
+      ...currentEntry,
       [field]: value
     };
 
     // 如果是金額欄位，確保另一個金額為 0
     if (field === 'debitAmount' && value > 0) {
       newEntries[index].creditAmount = 0;
+      console.log('💰 設定借方金額，清除貸方金額:', { debitAmount: value });
     } else if (field === 'creditAmount' && value > 0) {
       newEntries[index].debitAmount = 0;
+      console.log('💰 設定貸方金額，清除借方金額:', { creditAmount: value });
     }
 
+    // 如果是科目選擇變更，記錄詳細資訊
+    if (field === 'accountId') {
+      const selectedAccount = hierarchicalAccountOptions.find(opt =>
+        opt.type === 'account' && opt._id === value
+      );
+      console.log('🏦 科目選擇變更:', {
+        index,
+        oldAccountId: currentEntry.accountId,
+        newAccountId: value,
+        accountName: selectedAccount?.name || '未知',
+        accountCode: selectedAccount?.code || '未知'
+      });
+    }
+
+    console.log('✅ updateEntry 完成，新的分錄狀態:', newEntries[index]);
     onChange(newEntries);
   };
 
@@ -148,7 +276,10 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
       return null;
     }
 
-    const currentAccount = availableAccounts.find(acc => acc._id === currentEntry.accountId);
+    // 從階層式選項中找到當前會計科目
+    const currentAccount = hierarchicalAccountOptions.find(opt =>
+      opt.type === 'account' && opt._id === currentEntry.accountId
+    );
     if (!currentAccount) return null;
 
     // 找到對方科目（有相反金額的分錄）
@@ -166,7 +297,9 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
 
     // 取第一個對方科目
     const counterpartEntry = counterpartEntries[0];
-    const counterpartAccount = availableAccounts.find(acc => acc._id === counterpartEntry.accountId);
+    const counterpartAccount = hierarchicalAccountOptions.find(opt =>
+      opt.type === 'account' && opt._id === counterpartEntry.accountId
+    );
     if (!counterpartAccount) return null;
 
     const hasDebit = currentEntry.debitAmount > 0;
@@ -219,11 +352,11 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell width="25%">會計科目</TableCell>
-              <TableCell width="20%">交易流向</TableCell>
-              <TableCell width="15%">借方金額</TableCell>
-              <TableCell width="15%">貸方金額</TableCell>
-              <TableCell width="20%">摘要</TableCell>
+              <TableCell width="35%">會計科目</TableCell>
+              <TableCell width="18%">交易流向</TableCell>
+              <TableCell width="13%">借方金額</TableCell>
+              <TableCell width="13%">貸方金額</TableCell>
+              <TableCell width="16%">摘要</TableCell>
               <TableCell width="5%">操作</TableCell>
             </TableRow>
           </TableHead>
@@ -234,11 +367,31 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                 <TableCell>
                   <Autocomplete
                     size="small"
-                    options={availableAccounts}
-                    getOptionLabel={(option) => `${option.code} - ${option.name}`}
-                    value={availableAccounts.find(acc => acc._id === entry.accountId) || null}
+                    options={hierarchicalAccountOptions}
+                    getOptionLabel={(option) => {
+                      if (option.type === 'header') return option.label;
+                      return option.displayName || `${option.code} - ${option.name}`;
+                    }}
+                    value={hierarchicalAccountOptions.find(opt => opt.type === 'account' && opt._id === entry.accountId) || null}
                     onChange={(_, newValue) => {
-                      updateEntry(index, 'accountId', newValue?._id || '');
+                      if (newValue && newValue.type === 'account') {
+                        console.log('🔄 科目選擇變更:', {
+                          from: entry.accountId,
+                          to: newValue._id,
+                          accountName: newValue.name
+                        });
+                        updateEntry(index, 'accountId', newValue._id || '');
+                      } else if (newValue === null) {
+                        // 處理清除選擇的情況
+                        console.log('🔄 清除科目選擇:', entry.accountId);
+                        updateEntry(index, 'accountId', '');
+                      }
+                    }}
+                    getOptionDisabled={(option) => option.type === 'header'}
+                    isOptionEqualToValue={(option, value) => {
+                      // 確保正確的值比較邏輯
+                      if (option.type === 'header' || value.type === 'header') return false;
+                      return option._id === value._id;
                     }}
                     renderInput={(params) => (
                       <TextField
@@ -247,18 +400,44 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                         error={!entry.accountId}
                       />
                     )}
-                    renderOption={(props, option) => (
-                      <Box component="li" {...props}>
-                        <Box>
-                          <Typography variant="body2">
-                            {option.code} - {option.name}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {option.accountType} | 正常餘額：{option.normalBalance === 'debit' ? '借方' : '貸方'}
-                          </Typography>
+                    renderOption={(props, option) => {
+                      if (option.type === 'header') {
+                        return (
+                          <ListSubheader
+                            key={option.id}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              fontWeight: 'bold',
+                              color: option.icon === 'organization' ? 'primary.main' : 'text.primary',
+                              backgroundColor: option.icon === 'organization' ? 'primary.50' : 'grey.50'
+                            }}
+                          >
+                            {option.icon === 'organization' && <BusinessIcon fontSize="small" />}
+                            {option.icon === 'category' && <CategoryIcon fontSize="small" />}
+                            {option.label}
+                          </ListSubheader>
+                        );
+                      }
+                      
+                      return (
+                        <Box component="li" {...props} key={option._id}>
+                          <Box sx={{ width: '100%' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                              {option.displayName}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {option.accountType} | 正常餘額：{option.normalBalance === 'debit' ? '借方' : '貸方'}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    )}
+                      );
+                    }}
+                    groupBy={(option) => {
+                      if (option.type === 'header') return '';
+                      return ''; // 不使用 groupBy，因為我們已經用 ListSubheader 處理分組
+                    }}
                   />
                 </TableCell>
 

@@ -404,6 +404,41 @@ const AccountManagement: React.FC = () => {
     }
   };
 
+  // 處理新增子科目
+  const handleAddChildAccount = (parentNode: OrganizationNode) => {
+    // 根據父節點類型設定預設值
+    let defaultFormData: AccountFormData = {
+      code: '',
+      name: '',
+      accountType: 'asset',
+      type: 'other',
+      initialBalance: 0,
+      currency: 'TWD',
+      description: '',
+      organizationId: ''
+    };
+
+    if (parentNode.type === 'organization') {
+      // 機構層級：設定機構ID
+      defaultFormData.organizationId = parentNode.id;
+    } else if (parentNode.type === 'accountType') {
+      // 科目類型層級：設定機構ID和科目類型
+      const orgId = parentNode.id.split('-')[0];
+      defaultFormData.organizationId = orgId;
+      defaultFormData.accountType = parentNode.accountType as any;
+    } else if (parentNode.type === 'account' && parentNode.account) {
+      // 會計科目層級：設定父科目ID、機構ID和科目類型
+      defaultFormData.parentId = parentNode.account._id;
+      defaultFormData.organizationId = parentNode.account.organizationId || '';
+      defaultFormData.accountType = parentNode.account.accountType;
+      defaultFormData.type = parentNode.account.type;
+    }
+
+    setFormData(defaultFormData);
+    setEditingAccount(null);
+    setOpenDialog(true);
+  };
+
   // 樹狀結構項目組件
   const TreeItemComponent: React.FC<{ node: OrganizationNode; level?: number }> = ({ node, level = 0 }) => {
     const [expanded, setExpanded] = useState(level === 0); // 機構層級預設展開
@@ -427,15 +462,33 @@ const AccountManagement: React.FC = () => {
       switch (node.type) {
         case 'organization':
           return (
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-              {node.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2', flexGrow: 1 }}>
+                {node.name}
+              </Typography>
+              <Tooltip title="新增科目">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddChildAccount(node);
+                  }}
+                  sx={{
+                    backgroundColor: 'primary.50',
+                    '&:hover': { backgroundColor: 'primary.100' }
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           );
         case 'accountType':
           const typeOption = accountTypeOptions.find(opt => opt.value === node.accountType);
           return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+              <Typography variant="body1" sx={{ fontWeight: 'medium', flexGrow: 1 }}>
                 {node.name}
               </Typography>
               <Chip
@@ -444,9 +497,26 @@ const AccountManagement: React.FC = () => {
                 sx={{
                   backgroundColor: typeOption?.color,
                   color: 'white',
-                  fontSize: '0.7rem'
+                  fontSize: '0.7rem',
+                  mr: 1
                 }}
               />
+              <Tooltip title="新增科目">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddChildAccount(node);
+                  }}
+                  sx={{
+                    backgroundColor: 'primary.50',
+                    '&:hover': { backgroundColor: 'primary.100' }
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
           );
         case 'account':
@@ -459,6 +529,22 @@ const AccountManagement: React.FC = () => {
                 ${(accountBalances[node.account?._id] || node.account?.balance || 0).toLocaleString()}
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <Tooltip title="新增子科目">
+                  <IconButton
+                    size="small"
+                    color="success"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddChildAccount(node);
+                    }}
+                    sx={{
+                      backgroundColor: 'success.50',
+                      '&:hover': { backgroundColor: 'success.100' }
+                    }}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title="查看詳情">
                   <IconButton
                     size="small"
@@ -647,7 +733,7 @@ const AccountManagement: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* 標題與操作按鈕 */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center' }}>
+        <Typography variant="h5" component="h1" sx={{ display: 'flex', alignItems: 'center' }}>
           <AccountTreeIcon sx={{ mr: 1 }} />
           會計科目管理
         </Typography>
@@ -669,44 +755,35 @@ const AccountManagement: React.FC = () => {
         </Box>
       </Box>
 
-      {/* 機構選擇器 */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <BusinessIcon color="primary" />
-          <Typography variant="h6">機構選擇</Typography>
-          <FormControl sx={{ minWidth: 250 }}>
-            <InputLabel id="organization-select-label">選擇機構</InputLabel>
-            <Select
-              labelId="organization-select-label"
-              value={selectedOrganizationId}
-              label="選擇機構"
-              onChange={(e) => {
-                const newOrgId = e.target.value;
-                console.log('🏢 機構選擇變更:', { from: selectedOrganizationId, to: newOrgId });
-                setSelectedOrganizationId(newOrgId);
-              }}
-              disabled={loading}
-            >
-              <MenuItem value="">
-                <em>所有機構</em>
-              </MenuItem>
-              {organizations.map((org) => (
-                <MenuItem key={org._id} value={org._id}>
-                  {org.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {loading && (
-            <CircularProgress size={20} />
-          )}
-        </Box>
-      </Paper>
-
-      {/* 搜尋與篩選 */}
+      {/* 機構選擇與搜尋篩選 */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel id="organization-select-label">選擇機構</InputLabel>
+              <Select
+                labelId="organization-select-label"
+                value={selectedOrganizationId}
+                label="選擇機構"
+                onChange={(e) => {
+                  const newOrgId = e.target.value;
+                  console.log('🏢 機構選擇變更:', { from: selectedOrganizationId, to: newOrgId });
+                  setSelectedOrganizationId(newOrgId);
+                }}
+                disabled={loading}
+              >
+                <MenuItem value="">
+                  <em>所有機構</em>
+                </MenuItem>
+                {organizations.map((org) => (
+                  <MenuItem key={org._id} value={org._id}>
+                    {org.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               placeholder="搜尋科目代碼或名稱..."
@@ -721,7 +798,7 @@ const AccountManagement: React.FC = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <FormControl fullWidth>
               <InputLabel>科目類型</InputLabel>
               <Select
@@ -780,7 +857,19 @@ const AccountManagement: React.FC = () => {
       </Paper>
 
       {/* 新增/編輯科目對話框 */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={(event, reason) => {
+          // 防止點擊背景或按 ESC 鍵關閉對話框
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+            return;
+          }
+          handleCloseDialog();
+        }}
+        maxWidth="md"
+        fullWidth
+        disableEscapeKeyDown
+      >
         <DialogTitle>
           {editingAccount ? '編輯會計科目' : '新增會計科目'}
         </DialogTitle>
@@ -792,7 +881,7 @@ const AccountManagement: React.FC = () => {
                 <Select
                   value={formData.organizationId || ''}
                   label="所屬機構"
-                  onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, organizationId: e.target.value }))}
                   disabled={loading}
                 >
                   <MenuItem value="">
@@ -812,7 +901,7 @@ const AccountManagement: React.FC = () => {
                 <Select
                   value={formData.parentId || ''}
                   label="父科目"
-                  onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, parentId: e.target.value }))}
                   disabled={loading}
                 >
                   <MenuItem value="">
@@ -824,9 +913,11 @@ const AccountManagement: React.FC = () => {
                       // 1. 同機構或同為個人帳戶
                       (account.organizationId === formData.organizationId ||
                        (!account.organizationId && !formData.organizationId)) &&
-                      // 2. 不是自己（編輯時）
+                      // 2. 同科目類型
+                      account.accountType === formData.accountType &&
+                      // 3. 不是自己（編輯時）
                       account._id !== editingAccount?._id &&
-                      // 3. 層級小於4（最多5層）
+                      // 4. 層級小於4（最多5層）
                       account.level < 4
                     )
                     .map((account) => (
@@ -853,7 +944,7 @@ const AccountManagement: React.FC = () => {
                 fullWidth
                 label="科目名稱"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 required
               />
             </Grid>
@@ -866,7 +957,12 @@ const AccountManagement: React.FC = () => {
                   onChange={(e) => {
                     const newAccountType = e.target.value as 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
                     console.log('🔄 會計科目類型變更:', { from: formData.accountType, to: newAccountType });
-                    setFormData({ ...formData, accountType: newAccountType });
+                    setFormData(prev => ({
+                      ...prev,
+                      accountType: newAccountType,
+                      // 當科目類型變更時，清除父科目選擇（因為父科目必須是同類型）
+                      parentId: prev.accountType !== newAccountType ? '' : prev.parentId
+                    }));
                   }}
                 >
                   {accountTypeOptions.map(option => (
@@ -886,7 +982,7 @@ const AccountManagement: React.FC = () => {
                   onChange={(e) => {
                     const newType = e.target.value as 'cash' | 'bank' | 'credit' | 'investment' | 'other';
                     console.log('🔄 科目類型變更:', { from: formData.type, to: newType });
-                    setFormData({ ...formData, type: newType });
+                    setFormData(prev => ({ ...prev, type: newType }));
                   }}
                 >
                   {typeOptions.map(option => (
@@ -903,7 +999,7 @@ const AccountManagement: React.FC = () => {
                 label="初始餘額"
                 type="number"
                 value={formData.initialBalance}
-                onChange={(e) => setFormData({ ...formData, initialBalance: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => setFormData(prev => ({ ...prev, initialBalance: parseFloat(e.target.value) || 0 }))}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -911,7 +1007,7 @@ const AccountManagement: React.FC = () => {
                 fullWidth
                 label="幣別"
                 value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
               />
             </Grid>
             <Grid item xs={12}>
@@ -921,7 +1017,7 @@ const AccountManagement: React.FC = () => {
                 multiline
                 rows={3}
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               />
             </Grid>
           </Grid>
