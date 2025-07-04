@@ -72,56 +72,57 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 載入數據函數
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('🔍 DetailPage - 開始載入數據:', { organizationId, categoryId, accountId });
+
+      // 先載入帳戶和類別，再載入記錄
+      const [categoriesRes, accountsRes] = await Promise.all([
+        accounting2Service.categories.getAll({ organizationId }),
+        accounting2Service.accounts.getAll(organizationId)
+      ]);
+
+      console.log('📊 DetailPage - 類別載入結果:', categoriesRes);
+      console.log('📊 DetailPage - 帳戶載入結果:', accountsRes);
+
+      if (categoriesRes.success) {
+        setCategories(categoriesRes.data);
+      }
+      
+      if (accountsRes.success) {
+        setAccounts(accountsRes.data);
+        console.log('✅ DetailPage - 帳戶數據設置完成:', accountsRes.data);
+      }
+
+      // 載入記錄
+      const recordsRes = await accounting2Service.records.getAll({
+        organizationId,
+        categoryId,
+        accountId,
+        page: 1,
+        limit: 1000
+      });
+
+      console.log('📊 DetailPage - 記錄載入結果:', recordsRes);
+      
+      if (recordsRes.success) {
+        setRecords(recordsRes.data.records);
+        console.log('✅ DetailPage - 記錄數據設置完成:', recordsRes.data.records);
+      }
+    } catch (err) {
+      console.error('❌ DetailPage - 載入數據失敗:', err);
+      setError('載入數據失敗，請稍後再試');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 載入數據
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('🔍 DetailPage - 開始載入數據:', { organizationId, categoryId, accountId });
-
-        // 先載入帳戶和類別，再載入記錄
-        const [categoriesRes, accountsRes] = await Promise.all([
-          accounting2Service.categories.getAll({ organizationId }),
-          accounting2Service.accounts.getAll(organizationId)
-        ]);
-
-        console.log('📊 DetailPage - 類別載入結果:', categoriesRes);
-        console.log('📊 DetailPage - 帳戶載入結果:', accountsRes);
-
-        if (categoriesRes.success) {
-          setCategories(categoriesRes.data);
-        }
-        
-        if (accountsRes.success) {
-          setAccounts(accountsRes.data);
-          console.log('✅ DetailPage - 帳戶數據設置完成:', accountsRes.data);
-        }
-
-        // 載入記錄
-        const recordsRes = await accounting2Service.records.getAll({
-          organizationId,
-          categoryId,
-          accountId,
-          page: 1,
-          limit: 1000
-        });
-
-        console.log('📊 DetailPage - 記錄載入結果:', recordsRes);
-        
-        if (recordsRes.success) {
-          setRecords(recordsRes.data.records);
-          console.log('✅ DetailPage - 記錄數據設置完成:', recordsRes.data.records);
-        }
-      } catch (err) {
-        console.error('❌ DetailPage - 載入數據失敗:', err);
-        setError('載入數據失敗，請稍後再試');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
   }, [organizationId, categoryId, accountId]);
 
@@ -533,7 +534,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
         <Typography variant="h6" color="error" gutterBottom>
           {error}
         </Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>
+        <Button variant="contained" onClick={loadData}>
           重新載入
         </Button>
       </Box>

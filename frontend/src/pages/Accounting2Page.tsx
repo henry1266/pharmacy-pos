@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -93,6 +94,8 @@ export const Accounting2Page: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useAppDispatch();
+  const { transactionId } = useParams<{ transactionId?: string }>();
+  const isCopyMode = window.location.pathname.includes('/copy');
   
   // Redux state
   const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroup2);
@@ -101,6 +104,7 @@ export const Accounting2Page: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<TransactionGroup | null>(null);
+  const [copyingTransaction, setCopyingTransaction] = useState<TransactionGroup | null>(null);
   const [viewingTransaction, setViewingTransaction] = useState<TransactionGroup | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -129,6 +133,27 @@ export const Accounting2Page: React.FC = () => {
       firstTransaction: transactionGroups[0]
     });
   }, [transactionGroups, loading, error]);
+
+  // 處理從 URL 參數進入編輯或複製模式
+  useEffect(() => {
+    if (transactionId && transactionGroups.length > 0) {
+      const transactionToProcess = transactionGroups.find(t => t._id === transactionId);
+      if (transactionToProcess) {
+        if (isCopyMode) {
+          console.log('📋 從 URL 參數自動打開複製對話框:', transactionToProcess);
+          // 複製模式：設置要複製的交易，但編輯交易設為 null（表示新增模式）
+          setCopyingTransaction(transactionToProcess);
+          setEditingTransaction(null);
+          setDialogOpen(true);
+        } else {
+          console.log('🔧 從 URL 參數自動打開編輯對話框:', transactionToProcess);
+          setEditingTransaction(transactionToProcess);
+          setCopyingTransaction(null);
+          setDialogOpen(true);
+        }
+      }
+    }
+  }, [transactionId, transactionGroups, isCopyMode]);
 
   // 處理新增交易
   const handleCreateNew = () => {
@@ -194,6 +219,7 @@ export const Accounting2Page: React.FC = () => {
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingTransaction(null);
+    setCopyingTransaction(null);
   };
 
   // 關閉檢視對話框
@@ -330,7 +356,7 @@ export const Accounting2Page: React.FC = () => {
         fullScreen={isMobile}
       >
         <DialogTitle>
-          {editingTransaction ? '編輯交易群組' : '建立交易群組'}
+          {editingTransaction ? '編輯交易群組' : copyingTransaction ? '複製交易群組' : '建立交易群組'}
         </DialogTitle>
         <DialogContent>
           <TransactionGroupForm
@@ -342,6 +368,18 @@ export const Accounting2Page: React.FC = () => {
               receiptUrl: editingTransaction.receiptUrl || '',
               invoiceNo: editingTransaction.invoiceNo || '',
               entries: Array.isArray(editingTransaction.entries) ? editingTransaction.entries.map(entry => ({
+                accountId: entry.accountId || '',
+                debitAmount: entry.debitAmount || 0,
+                creditAmount: entry.creditAmount || 0,
+                description: entry.description || ''
+              })) : []
+            } : copyingTransaction ? {
+              description: copyingTransaction.description,
+              transactionDate: new Date(), // 複製時使用今天的日期
+              organizationId: copyingTransaction.organizationId,
+              receiptUrl: copyingTransaction.receiptUrl || '',
+              invoiceNo: '', // 複製時清空發票號碼
+              entries: Array.isArray(copyingTransaction.entries) ? copyingTransaction.entries.map(entry => ({
                 accountId: entry.accountId || '',
                 debitAmount: entry.debitAmount || 0,
                 creditAmount: entry.creditAmount || 0,

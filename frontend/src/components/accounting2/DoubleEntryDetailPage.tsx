@@ -22,25 +22,32 @@ import {
   TrendingUp,
   TrendingDown,
   Receipt,
-  Visibility,
-  ArrowForward
+  Edit,
+  ArrowForward,
+  ContentCopy
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
+import { fetchAccounts2 } from '../../redux/actions';
 
 interface DoubleEntryDetailPageProps {
   organizationId?: string;
 }
 
-const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizationId }) => {
+const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizationId: propOrganizationId }) => {
   const { accountId } = useParams<{ accountId?: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   // Redux 狀態
-  const { accounts } = useSelector((state: RootState) => state.account2);
+  const { accounts, loading: accountsLoading } = useSelector((state: RootState) => state.account2);
+  
+  // 找到當前科目並取得其 organizationId
+  const currentAccount = accountId ? accounts.find(a => a._id === accountId) : null;
+  const organizationId = propOrganizationId || currentAccount?.organizationId;
   
   // 本地狀態
   const [entries, setEntries] = useState<AccountingEntryDetail[]>([]);
@@ -53,48 +60,55 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     recordCount: 0
   });
 
+  // 載入分錄資料函數
+  const loadEntries = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('🔍 DoubleEntryDetailPage - 開始載入分錄:', { organizationId, accountId });
+
+      if (!accountId) {
+        throw new Error('缺少 accountId 參數');
+      }
+
+      const response = await doubleEntryService.getByAccount(accountId, {
+        organizationId,
+        limit: 1000
+      });
+
+      console.log('📊 DoubleEntryDetailPage - API 回應:', response);
+
+      if (response.success) {
+        setEntries(response.data.entries);
+        setStatistics(response.data.statistics);
+        console.log('✅ DoubleEntryDetailPage - 分錄載入成功:', response.data.entries.length);
+      } else {
+        throw new Error('載入分錄失敗');
+      }
+    } catch (err) {
+      console.error('❌ DoubleEntryDetailPage - 載入分錄失敗:', err);
+      setError('載入分錄資料失敗，請稍後再試');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 確保 accounts 資料已載入
+  useEffect(() => {
+    if (accounts.length === 0 && !accountsLoading) {
+      console.log('🔄 DoubleEntryDetailPage - 載入 accounts 資料');
+      dispatch(fetchAccounts2() as any);
+    }
+  }, [accounts.length, accountsLoading, dispatch]);
+
   // 載入分錄資料
   useEffect(() => {
-    const loadEntries = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('🔍 DoubleEntryDetailPage - 開始載入分錄:', { organizationId, accountId });
-
-        if (!accountId) {
-          throw new Error('缺少 accountId 參數');
-        }
-
-        const response = await doubleEntryService.getByAccount(accountId, {
-          organizationId,
-          limit: 1000
-        });
-
-        console.log('📊 DoubleEntryDetailPage - API 回應:', response);
-
-        if (response.success) {
-          setEntries(response.data.entries);
-          setStatistics(response.data.statistics);
-          console.log('✅ DoubleEntryDetailPage - 分錄載入成功:', response.data.entries.length);
-        } else {
-          throw new Error('載入分錄失敗');
-        }
-      } catch (err) {
-        console.error('❌ DoubleEntryDetailPage - 載入分錄失敗:', err);
-        setError('載入分錄資料失敗，請稍後再試');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (accountId) {
+    if (accountId && accounts.length > 0) {
       loadEntries();
     }
-  }, [organizationId, accountId]);
+  }, [organizationId, accountId, accounts.length]);
 
-  // 找到當前科目
-  const currentAccount = accountId ? accounts.find(a => a._id === accountId) : null;
 
   // 計算當前加總（從最舊的交易開始累計，但顯示時按近到遠排序）
   const entriesWithRunningTotal = useMemo(() => {
@@ -157,9 +171,14 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     navigate('/accounting2');
   };
 
-  // 處理查看交易群組詳情
-  const handleViewTransaction = (transactionGroupId: string) => {
-    navigate(`/accounting2/transaction/${transactionGroupId}`);
+  // 處理編輯交易群組
+  const handleEditTransaction = (transactionGroupId: string) => {
+    navigate(`/accounting2/transaction/${transactionGroupId}/edit`);
+  };
+
+  // 處理複製交易群組
+  const handleCopyTransaction = (transactionGroupId: string) => {
+    navigate(`/accounting2/transaction/${transactionGroupId}/copy`);
   };
 
   // 格式化交易狀態
@@ -177,10 +196,13 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
   };
 
   // 載入狀態
-  if (loading) {
+  if (loading || accountsLoading || (accounts.length === 0 && !currentAccount)) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress />
+        <Typography variant="body2" sx={{ ml: 2 }}>
+          {accountsLoading ? '載入科目資料中...' : '載入分錄資料中...'}
+        </Typography>
       </Box>
     );
   }
@@ -192,7 +214,7 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
         <Typography variant="h6" color="error" gutterBottom>
           {error}
         </Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>
+        <Button variant="contained" onClick={loadEntries}>
           重新載入
         </Button>
       </Box>
@@ -467,10 +489,17 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
                   <Stack direction="row" spacing={1}>
                     <IconButton
                       size="small"
-                      onClick={() => handleViewTransaction(params.row.transactionGroupId)}
-                      title="查看交易詳情"
+                      onClick={() => handleEditTransaction(params.row.transactionGroupId)}
+                      title="編輯交易"
                     >
-                      <Visibility />
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleCopyTransaction(params.row.transactionGroupId)}
+                      title="複製交易"
+                    >
+                      <ContentCopy />
                     </IconButton>
                   </Stack>
                 )

@@ -394,7 +394,7 @@ const AccountingDetailPageWrapper: React.FC = () => {
 
     if (accountId) {
       // 使用新的複式記帳詳情頁面組件
-      return <DoubleEntryDetailPage />;
+      return <DoubleEntryDetailPage organizationId={organizationId} />;
     }
 
     // 預設情況

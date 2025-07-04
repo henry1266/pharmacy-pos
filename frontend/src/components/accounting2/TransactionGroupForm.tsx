@@ -500,7 +500,6 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
         <Card sx={{ mb: 3, boxShadow: 2 }}>
           <CardHeader
             title="借貸分錄"
-            subheader={`目前分錄數量: ${formData.entries.length} 筆`}
             action={
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button

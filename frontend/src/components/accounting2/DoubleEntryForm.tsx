@@ -22,7 +22,8 @@ import {
   Delete as DeleteIcon,
   Balance as BalanceIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon
+  Error as ErrorIcon,
+  ArrowForward
 } from '@mui/icons-material';
 import { useAppSelector } from '../../hooks/redux';
 
@@ -140,6 +141,77 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
     onChange(newEntries);
   };
 
+  // 計算交易流向
+  const getTransactionFlow = (currentIndex: number) => {
+    const currentEntry = entries[currentIndex];
+    if (!currentEntry.accountId || (currentEntry.debitAmount === 0 && currentEntry.creditAmount === 0)) {
+      return null;
+    }
+
+    const currentAccount = availableAccounts.find(acc => acc._id === currentEntry.accountId);
+    if (!currentAccount) return null;
+
+    // 找到對方科目（有相反金額的分錄）
+    const counterpartEntries = entries.filter((entry, index) => {
+      if (index === currentIndex || !entry.accountId) return false;
+      
+      // 如果當前分錄是借方，找貸方分錄；反之亦然
+      if (currentEntry.debitAmount > 0 && entry.creditAmount > 0) return true;
+      if (currentEntry.creditAmount > 0 && entry.debitAmount > 0) return true;
+      
+      return false;
+    });
+
+    if (counterpartEntries.length === 0) return null;
+
+    // 取第一個對方科目
+    const counterpartEntry = counterpartEntries[0];
+    const counterpartAccount = availableAccounts.find(acc => acc._id === counterpartEntry.accountId);
+    if (!counterpartAccount) return null;
+
+    const hasDebit = currentEntry.debitAmount > 0;
+    
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
+        {hasDebit ? (
+          // 借方：對方科目 -> 當前科目
+          <>
+            <Chip
+              label={counterpartAccount.name}
+              size="small"
+              color="secondary"
+              sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+            />
+            <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
+            <Chip
+              label={currentAccount.name}
+              size="small"
+              color="primary"
+              sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+            />
+          </>
+        ) : (
+          // 貸方：當前科目 -> 對方科目
+          <>
+            <Chip
+              label={currentAccount.name}
+              size="small"
+              color="primary"
+              sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+            />
+            <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
+            <Chip
+              label={counterpartAccount.name}
+              size="small"
+              color="secondary"
+              sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+            />
+          </>
+        )}
+      </Box>
+    );
+  };
+
   return (
     <Box>
       {/* 分錄表格 */}
@@ -147,10 +219,11 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell width="30%">會計科目</TableCell>
-              <TableCell width="20%">借方金額</TableCell>
-              <TableCell width="20%">貸方金額</TableCell>
-              <TableCell width="25%">摘要</TableCell>
+              <TableCell width="25%">會計科目</TableCell>
+              <TableCell width="20%">交易流向</TableCell>
+              <TableCell width="15%">借方金額</TableCell>
+              <TableCell width="15%">貸方金額</TableCell>
+              <TableCell width="20%">摘要</TableCell>
               <TableCell width="5%">操作</TableCell>
             </TableRow>
           </TableHead>
@@ -187,6 +260,15 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                       </Box>
                     )}
                   />
+                </TableCell>
+
+                {/* 交易流向 */}
+                <TableCell>
+                  {getTransactionFlow(index) || (
+                    <Typography variant="caption" color="text.disabled">
+                      -
+                    </Typography>
+                  )}
                 </TableCell>
 
                 {/* 借方金額 */}
@@ -256,6 +338,9 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
             <TableRow sx={{ bgcolor: 'grey.50' }}>
               <TableCell>
                 <Typography variant="subtitle2">總計</Typography>
+              </TableCell>
+              <TableCell>
+                {/* 交易流向欄位 - 空白 */}
               </TableCell>
               <TableCell>
                 <Typography variant="subtitle2" sx={{ textAlign: 'right' }}>
