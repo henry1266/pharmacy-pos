@@ -8,6 +8,75 @@ export * from './types/entities';
 export * from './types/api';
 export * from './types/theme';
 
+// 從 accounting2 明確匯出，避免與 api.ts 的型別衝突
+export {
+  // 核心介面
+  Account2,
+  Category2,
+  AccountingRecord2,
+  TransactionGroup,
+  AccountingEntry,
+  
+  // 表單資料介面
+  Account2FormData,
+  TransactionGroupFormData,
+  AccountingEntryFormData,
+  Category2FormData,
+  AccountingRecord2FormData,
+  
+  // API 回應介面 - 使用別名避免衝突
+  Account2ListResponse,
+  Account2DetailResponse,
+  Category2ListResponse,
+  Category2DetailResponse,
+  AccountingRecord2ListResponse,
+  AccountingRecord2DetailResponse,
+  AccountingRecord2SummaryResponse,
+  TransactionGroupListResponse,
+  TransactionGroupDetailResponse,
+  AccountingEntryListResponse,
+  AccountingEntryDetailResponse,
+  DebitCreditBalanceResponse,
+  FundingTrackingResponse,
+  FundingFlowResponse,
+  
+  // 過濾器介面
+  AccountingRecord2Filter,
+  TransactionGroupFilter,
+  AccountingEntryFilter,
+  Account2Filter,
+  
+  // 其他工具介面
+  AccountBalance,
+  CategoryReorderItem,
+  
+  // 資金來源追蹤相關介面
+  FundingSource,
+  FundingSourcesResponse,
+  FundingFlowTransaction,
+  FundingFlowData,
+  FundingValidationResult,
+  FundingValidationData,
+  FundingValidationResponse,
+  FundingSourceEntriesResponse,
+  FundingPathLevel,
+  FundingPathEntriesResponse,
+  
+  // 常數
+  ACCOUNT_TYPES_V2,
+  ACCOUNT_TYPES,
+  NORMAL_BALANCE_TYPES,
+  TRANSACTION_STATUS,
+  FUNDING_TYPES,
+  RECORD_TYPES,
+  CATEGORY_TYPES,
+  CURRENCIES,
+  
+  // 型別別名
+  FundingType,
+  TransactionStatus
+} from './types/accounting2';
+
 // 列舉常數
 export * from './enums';
 

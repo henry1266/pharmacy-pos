@@ -9,6 +9,12 @@ export interface ITransactionGroup extends Document {
   invoiceNo?: string;         // 發票號碼
   totalAmount: number;        // 交易總金額
   status: 'draft' | 'confirmed' | 'cancelled';
+  
+  // 資金來源追蹤功能
+  linkedTransactionIds: (mongoose.Types.ObjectId | string)[]; // 被延伸使用的交易ID陣列
+  sourceTransactionId?: mongoose.Types.ObjectId | string;     // 此交易的資金來源交易ID
+  fundingType: 'original' | 'extended' | 'transfer';          // 資金類型：原始/延伸/轉帳
+  
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -59,6 +65,22 @@ const TransactionGroupSchema: Schema = new Schema({
     enum: ['draft', 'confirmed', 'cancelled'],
     default: 'draft'
   },
+  // 資金來源追蹤欄位
+  linkedTransactionIds: [{
+    type: Schema.Types.ObjectId,
+    ref: 'TransactionGroup'
+  }],
+  sourceTransactionId: {
+    type: Schema.Types.ObjectId,
+    ref: 'TransactionGroup',
+    default: null
+  },
+  fundingType: {
+    type: String,
+    required: true,
+    enum: ['original', 'extended', 'transfer'],
+    default: 'original'
+  },
   createdBy: {
     type: String,
     required: true
@@ -75,6 +97,12 @@ TransactionGroupSchema.index({ organizationId: 1, createdBy: 1, transactionDate:
 TransactionGroupSchema.index({ groupNumber: 1 }, { unique: true });
 TransactionGroupSchema.index({ status: 1, transactionDate: -1 });
 TransactionGroupSchema.index({ invoiceNo: 1 });
+
+// 資金來源追蹤索引
+TransactionGroupSchema.index({ linkedTransactionIds: 1 });
+TransactionGroupSchema.index({ sourceTransactionId: 1 });
+TransactionGroupSchema.index({ fundingType: 1, transactionDate: -1 });
+TransactionGroupSchema.index({ sourceTransactionId: 1, fundingType: 1 });
 
 // 自動生成交易群組編號
 TransactionGroupSchema.pre('save', async function(this: ITransactionGroup, next) {

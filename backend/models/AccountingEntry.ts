@@ -13,6 +13,10 @@ export interface IAccountingEntry extends Document {
   categoryId?: mongoose.Types.ObjectId | string;        // 類別ID (可選，用於報表分類)
   description: string;        // 分錄描述
   
+  // 資金來源追蹤欄位
+  sourceTransactionId?: mongoose.Types.ObjectId | string; // 此分錄的資金來源交易ID
+  fundingPath?: string[];     // 資金流動路徑 (交易ID陣列的字串表示)
+  
   // 機構與權限
   organizationId?: mongoose.Types.ObjectId | string;
   createdBy: string;
@@ -59,6 +63,16 @@ const AccountingEntrySchema: Schema = new Schema({
     trim: true,
     maxlength: 500
   },
+  // 資金來源追蹤欄位
+  sourceTransactionId: {
+    type: Schema.Types.ObjectId,
+    ref: 'TransactionGroup',
+    default: null
+  },
+  fundingPath: [{
+    type: String,
+    trim: true
+  }],
   organizationId: {
     type: Schema.Types.ObjectId,
     ref: 'Organization',
@@ -80,6 +94,11 @@ AccountingEntrySchema.index({ createdBy: 1, createdAt: -1 });
 AccountingEntrySchema.index({ organizationId: 1, createdAt: -1 });
 AccountingEntrySchema.index({ organizationId: 1, createdBy: 1, createdAt: -1 });
 AccountingEntrySchema.index({ categoryId: 1, createdAt: -1 });
+
+// 資金來源追蹤索引
+AccountingEntrySchema.index({ sourceTransactionId: 1 });
+AccountingEntrySchema.index({ sourceTransactionId: 1, accountId: 1 });
+AccountingEntrySchema.index({ fundingPath: 1 });
 
 // 複合索引：確保同一交易群組內序號唯一
 AccountingEntrySchema.index({ transactionGroupId: 1, sequence: 1 }, { unique: true });

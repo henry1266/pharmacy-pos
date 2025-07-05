@@ -56,6 +56,7 @@ interface TransactionGroup {
   totalAmount: number;
   isBalanced: boolean;
   entries: AccountingEntry[];
+  status?: 'draft' | 'confirmed' | 'cancelled'; // 添加狀態欄位
   createdAt: string;
   updatedAt: string;
 }
@@ -136,24 +137,73 @@ export const Accounting2Page: React.FC = () => {
 
   // 處理從 URL 參數進入編輯或複製模式
   useEffect(() => {
-    if (transactionId && transactionGroups.length > 0) {
+    if (transactionId) {
+      // 先嘗試從 Redux store 中找交易
       const transactionToProcess = transactionGroups.find(t => t._id === transactionId);
+      
       if (transactionToProcess) {
+        // 在 Redux store 中找到交易
         if (isCopyMode) {
-          console.log('📋 從 URL 參數自動打開複製對話框:', transactionToProcess);
-          // 複製模式：設置要複製的交易，但編輯交易設為 null（表示新增模式）
+          console.log('📋 從 Redux store 自動打開複製對話框:', transactionToProcess);
           setCopyingTransaction(transactionToProcess);
           setEditingTransaction(null);
           setDialogOpen(true);
         } else {
-          console.log('🔧 從 URL 參數自動打開編輯對話框:', transactionToProcess);
+          console.log('🔧 從 Redux store 自動打開編輯對話框:', transactionToProcess);
           setEditingTransaction(transactionToProcess);
           setCopyingTransaction(null);
           setDialogOpen(true);
         }
+      } else if (transactionGroups.length > 0) {
+        // Redux store 已載入但找不到交易，直接透過 API 獲取
+        console.log('🔍 Redux store 中找不到交易，透過 API 直接獲取:', transactionId);
+        fetchTransactionDirectly(transactionId);
       }
+      // 如果 transactionGroups.length === 0，表示還在載入中，等待下次 effect 觸發
     }
   }, [transactionId, transactionGroups, isCopyMode]);
+
+  // 直接透過 API 獲取單一交易
+  const fetchTransactionDirectly = async (id: string) => {
+    try {
+      console.log('📡 直接 API 獲取交易:', id);
+      const response = await fetch(`/api/accounting2/transaction-groups/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const transaction = result.data;
+          console.log('✅ 直接 API 獲取交易成功:', transaction);
+          
+          if (isCopyMode) {
+            console.log('📋 透過 API 自動打開複製對話框:', transaction);
+            setCopyingTransaction(transaction);
+            setEditingTransaction(null);
+            setDialogOpen(true);
+          } else {
+            console.log('🔧 透過 API 自動打開編輯對話框:', transaction);
+            setEditingTransaction(transaction);
+            setCopyingTransaction(null);
+            setDialogOpen(true);
+          }
+        } else {
+          console.error('❌ API 回應格式錯誤:', result);
+          showSnackbar('找不到指定的交易', 'error');
+        }
+      } else {
+        console.error('❌ API 請求失敗:', response.status, response.statusText);
+        showSnackbar('載入交易失敗', 'error');
+      }
+    } catch (error) {
+      console.error('❌ 直接獲取交易失敗:', error);
+      showSnackbar('載入交易失敗', 'error');
+    }
+  };
 
   // 處理從科目詳情頁面的「增加明細」按鈕進入新增模式
   useEffect(() => {
@@ -322,11 +372,25 @@ export const Accounting2Page: React.FC = () => {
             defaultAccountId={defaultAccountId || undefined}
             defaultOrganizationId={defaultOrganizationId || undefined}
             isCopyMode={!!copyingTransaction}
+            transactionId={editingTransaction?._id}
+            currentStatus={editingTransaction?.status}
+            onStatusChange={(newStatus) => {
+              console.log('🔄 狀態變更:', { transactionId: editingTransaction?._id, newStatus });
+              // 這裡可以添加狀態變更的處理邏輯
+              if (editingTransaction) {
+                // 更新本地狀態
+                setEditingTransaction({
+                  ...editingTransaction,
+                  status: newStatus
+                });
+              }
+            }}
             initialData={(() => {
               console.log('🔍 準備 initialData:', {
                 editingTransaction: !!editingTransaction,
                 copyingTransaction: !!copyingTransaction,
-                isCopyModeParam: !!copyingTransaction
+                isCopyModeParam: !!copyingTransaction,
+                editingTransactionStatus: editingTransaction?.status
               });
               return editingTransaction ? {
               description: editingTransaction.description,

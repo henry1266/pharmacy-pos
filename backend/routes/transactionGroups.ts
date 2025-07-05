@@ -303,7 +303,10 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       organizationId,
       receiptUrl,
       invoiceNo,
-      entries
+      entries,
+      linkedTransactionIds,
+      sourceTransactionId,
+      fundingType = 'original'
     } = req.body;
 
     console.log('🔍 POST /transaction-groups - 建立交易群組:', {
@@ -368,7 +371,10 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       receiptUrl,
       invoiceNo,
       status: 'draft',
-      createdBy: userId
+      createdBy: userId,
+      fundingType,
+      linkedTransactionIds: linkedTransactionIds ? linkedTransactionIds.map((id: string) => new mongoose.Types.ObjectId(id)) : [],
+      sourceTransactionId: sourceTransactionId ? new mongoose.Types.ObjectId(sourceTransactionId) : undefined
     };
 
     // 處理 organizationId
@@ -511,7 +517,10 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       transactionDate,
       receiptUrl,
       invoiceNo,
-      entries
+      entries,
+      linkedTransactionIds,
+      sourceTransactionId,
+      fundingType
     } = req.body;
 
     console.log('🔍 PUT /transaction-groups/:id - 更新交易群組:', {
@@ -567,6 +576,13 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       if (transactionDate !== undefined) updateData.transactionDate = new Date(transactionDate);
       if (receiptUrl !== undefined) updateData.receiptUrl = receiptUrl;
       if (invoiceNo !== undefined) updateData.invoiceNo = invoiceNo;
+      if (fundingType !== undefined) updateData.fundingType = fundingType;
+      if (linkedTransactionIds !== undefined) {
+        updateData.linkedTransactionIds = linkedTransactionIds.map((id: string) => new mongoose.Types.ObjectId(id));
+      }
+      if (sourceTransactionId !== undefined) {
+        updateData.sourceTransactionId = sourceTransactionId ? new mongoose.Types.ObjectId(sourceTransactionId) : undefined;
+      }
 
       // 如果有分錄更新，重新計算總金額
       if (entries && Array.isArray(entries) && entries.length > 0) {
@@ -818,6 +834,297 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     res.status(500).json({
       success: false,
       message: '刪除交易群組失敗'
+    });
+  }
+});
+
+// 獲取可用的資金來源
+router.get('/funding-sources/available', auth, async (req: AuthenticatedRequest, res: express.Response) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    const { organizationId, minAmount = 0 } = req.query;
+
+    console.log('🔍 GET /transaction-groups/funding-sources/available - 查詢可用資金來源:', {
+      organizationId,
+      minAmount,
+      userId
+    });
+
+    // 建立查詢條件
+    const filter: any = {
+      createdBy: userId,
+      status: 'confirmed', // 只有已確認的交易才能作為資金來源
+      fundingType: { $in: ['original', 'extended'] }, // 原始資金或延伸使用的資金
+      totalAmount: { $gt: parseFloat(minAmount as string) } // 金額大於最小要求
+    };
+
+    // 機構過濾
+    if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
+      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
+    }
+
+    // 查詢可用的資金來源
+    const fundingSources = await TransactionGroup.find(filter)
+      .sort({ transactionDate: -1, createdAt: -1 })
+      .limit(50); // 限制返回數量
+
+    // 計算每個資金來源的已使用金額
+    const sourcesWithUsage = await Promise.all(
+      fundingSources.map(async (source) => {
+        // 查找所有使用此資金來源的交易
+        const linkedTransactions = await TransactionGroup.find({
+          linkedTransactionIds: source._id,
+          status: { $ne: 'cancelled' },
+          createdBy: userId
+        });
+
+        const usedAmount = linkedTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
+        const availableAmount = (source.totalAmount || 0) - usedAmount;
+
+        return {
+          _id: source._id,
+          groupNumber: source.groupNumber,
+          description: source.description,
+          transactionDate: source.transactionDate,
+          totalAmount: source.totalAmount || 0,
+          usedAmount,
+          availableAmount,
+          fundingType: source.fundingType,
+          receiptUrl: source.receiptUrl,
+          invoiceNo: source.invoiceNo,
+          isAvailable: availableAmount > 0
+        };
+      })
+    );
+
+    // 只返回有可用金額的資金來源
+    const availableSources = sourcesWithUsage.filter(source => source.isAvailable);
+
+    res.json({
+      success: true,
+      data: {
+        fundingSources: availableSources,
+        total: availableSources.length
+      }
+    });
+  } catch (error) {
+    console.error('獲取可用資金來源錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '獲取可用資金來源失敗'
+    });
+  }
+});
+
+// 獲取資金流向追蹤
+router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: express.Response) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    const { id } = req.params;
+
+    if (!userId) {
+      res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    console.log('🔍 GET /transaction-groups/:id/funding-flow - 查詢資金流向:', { id, userId });
+
+    // 檢查交易群組是否存在
+    const transactionGroup = await TransactionGroup.findOne({
+      _id: id,
+      createdBy: userId
+    });
+
+    if (!transactionGroup) {
+      res.status(404).json({
+        success: false,
+        message: '找不到指定的交易群組'
+      });
+      return;
+    }
+
+    // 建立資金流向追蹤結果
+    const fundingFlow: any = {
+      sourceTransaction: transactionGroup,
+      linkedTransactions: [],
+      fundingPath: [],
+      totalUsedAmount: 0
+    };
+
+    // 如果這是延伸使用的資金，追蹤其來源
+    if (transactionGroup.sourceTransactionId) {
+      const sourceTransaction = await TransactionGroup.findById(transactionGroup.sourceTransactionId);
+      if (sourceTransaction) {
+        fundingFlow.originalSource = sourceTransaction;
+        
+        // 遞歸追蹤完整的資金路徑
+        const buildFundingPath = async (txId: mongoose.Types.ObjectId | string, path: any[] = []): Promise<any[]> => {
+          const tx = await TransactionGroup.findById(txId);
+          if (!tx) return path;
+          
+          path.unshift({
+            _id: tx._id,
+            groupNumber: tx.groupNumber,
+            description: tx.description,
+            transactionDate: tx.transactionDate,
+            totalAmount: tx.totalAmount,
+            fundingType: tx.fundingType
+          });
+          
+          if (tx.sourceTransactionId) {
+            return buildFundingPath(tx.sourceTransactionId, path);
+          }
+          
+          return path;
+        };
+        
+        fundingFlow.fundingPath = await buildFundingPath(transactionGroup.sourceTransactionId);
+      }
+    }
+
+    // 查找所有使用此交易作為資金來源的交易
+    const linkedTransactions = await TransactionGroup.find({
+      linkedTransactionIds: transactionGroup._id,
+      createdBy: userId
+    }).sort({ transactionDate: 1, createdAt: 1 });
+
+    fundingFlow.linkedTransactions = linkedTransactions.map(tx => ({
+      _id: tx._id,
+      groupNumber: tx.groupNumber,
+      description: tx.description,
+      transactionDate: tx.transactionDate,
+      totalAmount: tx.totalAmount,
+      fundingType: tx.fundingType,
+      status: tx.status
+    }));
+
+    fundingFlow.totalUsedAmount = linkedTransactions
+      .filter(tx => tx.status !== 'cancelled')
+      .reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
+
+    // 計算剩餘可用金額
+    fundingFlow.availableAmount = (transactionGroup.totalAmount || 0) - fundingFlow.totalUsedAmount;
+
+    res.json({
+      success: true,
+      data: fundingFlow
+    });
+  } catch (error) {
+    console.error('獲取資金流向錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '獲取資金流向失敗'
+    });
+  }
+});
+
+// 驗證資金來源可用性
+router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest, res: express.Response) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    const { sourceTransactionIds, requiredAmount } = req.body;
+
+    console.log('🔍 POST /transaction-groups/funding-sources/validate - 驗證資金來源:', {
+      sourceTransactionIds,
+      requiredAmount,
+      userId
+    });
+
+    if (!sourceTransactionIds || !Array.isArray(sourceTransactionIds) || sourceTransactionIds.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: '請提供有效的資金來源ID列表'
+      });
+      return;
+    }
+
+    const validationResults = await Promise.all(
+      sourceTransactionIds.map(async (sourceId: string) => {
+        try {
+          // 檢查資金來源是否存在且已確認
+          const sourceTransaction = await TransactionGroup.findOne({
+            _id: sourceId,
+            createdBy: userId,
+            status: 'confirmed'
+          });
+
+          if (!sourceTransaction) {
+            return {
+              sourceId,
+              isValid: false,
+              error: '資金來源不存在或未確認'
+            };
+          }
+
+          // 計算已使用金額
+          const linkedTransactions = await TransactionGroup.find({
+            linkedTransactionIds: sourceId,
+            status: { $ne: 'cancelled' },
+            createdBy: userId
+          });
+
+          const usedAmount = linkedTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
+          const availableAmount = (sourceTransaction.totalAmount || 0) - usedAmount;
+
+          return {
+            sourceId,
+            isValid: availableAmount > 0,
+            sourceTransaction: {
+              _id: sourceTransaction._id,
+              groupNumber: sourceTransaction.groupNumber,
+              description: sourceTransaction.description,
+              totalAmount: sourceTransaction.totalAmount,
+              usedAmount,
+              availableAmount
+            },
+            error: availableAmount <= 0 ? '資金來源已用完' : null
+          };
+        } catch (error) {
+          return {
+            sourceId,
+            isValid: false,
+            error: '驗證過程中發生錯誤'
+          };
+        }
+      })
+    );
+
+    // 計算總可用金額
+    const totalAvailableAmount = validationResults
+      .filter(result => result.isValid)
+      .reduce((sum, result) => sum + (result.sourceTransaction?.availableAmount || 0), 0);
+
+    const isSufficient = totalAvailableAmount >= (requiredAmount || 0);
+
+    res.json({
+      success: true,
+      data: {
+        validationResults,
+        totalAvailableAmount,
+        requiredAmount: requiredAmount || 0,
+        isSufficient,
+        summary: {
+          validSources: validationResults.filter(r => r.isValid).length,
+          invalidSources: validationResults.filter(r => !r.isValid).length,
+          totalSources: validationResults.length
+        }
+      }
+    });
+  } catch (error) {
+    console.error('驗證資金來源錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '驗證資金來源失敗'
     });
   }
 });

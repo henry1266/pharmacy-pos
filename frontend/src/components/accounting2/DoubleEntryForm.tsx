@@ -42,6 +42,9 @@ export interface AccountingEntryFormData {
   debitAmount: number;
   creditAmount: number;
   description: string;
+  // 資金來源追蹤欄位
+  sourceTransactionId?: string;
+  fundingPath?: string[];
 }
 
 interface DoubleEntryFormProps {
@@ -49,6 +52,7 @@ interface DoubleEntryFormProps {
   onChange: (entries: AccountingEntryFormData[]) => void;
   organizationId?: string;
   isCopyMode?: boolean;
+  disabled?: boolean; // 新增：禁用整個表單
 }
 
 interface AccountOption {
@@ -66,7 +70,8 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
   entries,
   onChange,
   organizationId,
-  isCopyMode = false
+  isCopyMode = false,
+  disabled = false
 }) => {
   const { accounts } = useAppSelector(state => state.account2 || { accounts: [] });
   const { organizations } = useAppSelector(state => state.organization || { organizations: [] });
@@ -450,14 +455,17 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                           );
                         })()}
                       </Box>
-                      <Tooltip title="更換科目">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenAccountSelector(index)}
-                          color="primary"
-                        >
-                          <SearchIcon />
-                        </IconButton>
+                      <Tooltip title={disabled ? "已確認的交易無法修改" : "更換科目"}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenAccountSelector(index)}
+                            color="primary"
+                            disabled={disabled}
+                          >
+                            <SearchIcon />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </Box>
                   ) : (
@@ -467,18 +475,19 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                       size="small"
                       startIcon={<SearchIcon />}
                       onClick={() => handleOpenAccountSelector(index)}
+                      disabled={disabled}
                       sx={{
                         width: '100%',
                         justifyContent: 'flex-start',
-                        color: 'text.secondary',
-                        borderColor: 'divider',
-                        '&:hover': {
+                        color: disabled ? 'text.disabled' : 'text.secondary',
+                        borderColor: disabled ? 'action.disabled' : 'divider',
+                        '&:hover': !disabled ? {
                           borderColor: 'primary.main',
                           color: 'primary.main'
-                        }
+                        } : {}
                       }}
                     >
-                      選擇會計科目
+                      {disabled ? '已確認無法修改' : '選擇會計科目'}
                     </Button>
                   )}
                 </TableCell>
@@ -501,7 +510,7 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                     onChange={(e) => updateEntry(index, 'debitAmount', parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
                     inputProps={{ min: 0, step: 0.01 }}
-                    disabled={entry.creditAmount > 0}
+                    disabled={disabled || entry.creditAmount > 0}
                     sx={{
                       '& input': {
                         textAlign: 'right'
@@ -519,7 +528,7 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                     onChange={(e) => updateEntry(index, 'creditAmount', parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
                     inputProps={{ min: 0, step: 0.01 }}
-                    disabled={entry.debitAmount > 0}
+                    disabled={disabled || entry.debitAmount > 0}
                     sx={{
                       '& input': {
                         textAlign: 'right'
@@ -535,21 +544,24 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                     fullWidth
                     value={entry.description}
                     onChange={(e) => updateEntry(index, 'description', e.target.value)}
-                    placeholder="分錄摘要"
+                    placeholder={disabled ? "已確認無法修改" : "分錄摘要"}
+                    disabled={disabled}
                   />
                 </TableCell>
 
                 {/* 操作按鈕 */}
                 <TableCell>
-                  <Tooltip title="刪除分錄">
-                    <IconButton
-                      size="small"
-                      onClick={() => removeEntry(index)}
-                      disabled={entries.length <= 1}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                  <Tooltip title={disabled ? "已確認的交易無法修改" : "刪除分錄"}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        onClick={() => removeEntry(index)}
+                        disabled={disabled || entries.length <= 1}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </TableCell>
               </TableRow>
@@ -579,36 +591,42 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
                     {isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${difference.toLocaleString()}`}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Tooltip title="將所有分錄的借方與貸方金額互換">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={swapDebitCredit}
-                        startIcon={<SwapHorizIcon />}
-                        disabled={entries.length < 2 || entries.every(entry => entry.debitAmount === 0 && entry.creditAmount === 0)}
-                        sx={{
-                          minWidth: 'auto',
-                          color: 'info.main',
-                          borderColor: 'info.main',
-                          '&:hover': {
-                            borderColor: 'info.dark',
-                            backgroundColor: 'info.light'
-                          }
-                        }}
-                      >
-                        借貸對調
-                      </Button>
+                    <Tooltip title={disabled ? "已確認的交易無法修改" : "將所有分錄的借方與貸方金額互換"}>
+                      <span>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={swapDebitCredit}
+                          startIcon={<SwapHorizIcon />}
+                          disabled={disabled || entries.length < 2 || entries.every(entry => entry.debitAmount === 0 && entry.creditAmount === 0)}
+                          sx={{
+                            minWidth: 'auto',
+                            color: disabled ? 'text.disabled' : 'info.main',
+                            borderColor: disabled ? 'action.disabled' : 'info.main',
+                            '&:hover': !disabled ? {
+                              borderColor: 'info.dark',
+                              backgroundColor: 'info.light'
+                            } : {}
+                          }}
+                        >
+                          借貸對調
+                        </Button>
+                      </span>
                     </Tooltip>
                     {!isBalanced && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={quickBalance}
-                        startIcon={<BalanceIcon />}
-                        disabled={entries.length < 2}
-                      >
-                        快速平衡
-                      </Button>
+                      <Tooltip title={disabled ? "已確認的交易無法修改" : "自動調整最後一筆分錄以達到借貸平衡"}>
+                        <span>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={quickBalance}
+                            startIcon={<BalanceIcon />}
+                            disabled={disabled || entries.length < 2}
+                          >
+                            快速平衡
+                          </Button>
+                        </span>
+                      </Tooltip>
                     )}
                   </Box>
                 </Box>
@@ -620,19 +638,31 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
 
       {/* 新增分錄按鈕 */}
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={addEntry}
-        >
-          新增分錄
-        </Button>
+        <Tooltip title={disabled ? "已確認的交易無法修改" : "新增一筆分錄"}>
+          <span>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={addEntry}
+              disabled={disabled}
+            >
+              新增分錄
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {/* 提示訊息 */}
-      {entries.length === 1 && (
+      {entries.length === 1 && !disabled && (
         <Alert severity="warning" sx={{ mt: 2 }}>
           複式記帳需要至少兩筆分錄，請新增更多分錄
+        </Alert>
+      )}
+      
+      {/* 已確認狀態提示 */}
+      {disabled && (
+        <Alert severity="info" sx={{ mt: 2 }}>
+          此交易已確認，無法修改分錄內容
         </Alert>
       )}
 

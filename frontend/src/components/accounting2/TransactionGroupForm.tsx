@@ -19,10 +19,13 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Chip,
+  FormControlLabel,
+  Switch,
+  Badge
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Delete as DeleteIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
@@ -30,7 +33,12 @@ import {
   Receipt as ReceiptIcon,
   Speed as SpeedIcon,
   Help as HelpIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  AccountTree as AccountTreeIcon,
+  Link as LinkIcon,
+  CheckCircle as CheckCircleIcon,
+  Drafts as DraftIcon,
+  Cancel as CancelledIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -39,6 +47,9 @@ import { zhTW } from 'date-fns/locale';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { DoubleEntryForm } from './DoubleEntryForm';
 import { TransactionTemplateSelector } from './TransactionTemplateSelector';
+import { FundingSourceSelector } from './FundingSourceSelector';
+import { FUNDING_TYPES, TRANSACTION_STATUS } from '@shared';
+import { transactionGroupService } from '../../services/transactionGroupService';
 
 export interface TransactionGroupFormData {
   description: string;
@@ -48,6 +59,10 @@ export interface TransactionGroupFormData {
   invoiceNo?: string;
   attachments?: File[];
   entries: AccountingEntryFormData[];
+  // 資金來源追蹤欄位
+  linkedTransactionIds?: string[];
+  sourceTransactionId?: string;
+  fundingType?: 'original' | 'extended' | 'transfer';
 }
 
 export interface AccountingEntryFormData {
@@ -55,6 +70,9 @@ export interface AccountingEntryFormData {
   debitAmount: number;
   creditAmount: number;
   description: string;
+  // 資金來源追蹤欄位
+  sourceTransactionId?: string;
+  fundingPath?: string[];
 }
 
 // 資料轉換工具函數
@@ -63,7 +81,9 @@ const convertBackendEntryToFormData = (backendEntry: any): AccountingEntryFormDa
     accountId: backendEntry.accountId || '',
     debitAmount: backendEntry.debitAmount || 0,
     creditAmount: backendEntry.creditAmount || 0,
-    description: backendEntry.description || ''
+    description: backendEntry.description || '',
+    sourceTransactionId: backendEntry.sourceTransactionId,
+    fundingPath: backendEntry.fundingPath
   };
 };
 
@@ -79,7 +99,11 @@ const convertBackendDataToFormData = (backendData: any): Partial<TransactionGrou
     invoiceNo: backendData.invoiceNo || '',
     entries: Array.isArray(backendData.entries)
       ? backendData.entries.map(convertBackendEntryToFormData)
-      : []
+      : [],
+    // 資金來源追蹤欄位
+    linkedTransactionIds: backendData.linkedTransactionIds,
+    sourceTransactionId: backendData.sourceTransactionId,
+    fundingType: backendData.fundingType || 'original'
   };
 };
 
@@ -92,6 +116,9 @@ interface TransactionGroupFormProps {
   defaultAccountId?: string;
   defaultOrganizationId?: string;
   isCopyMode?: boolean;
+  transactionId?: string; // 用於確認交易
+  currentStatus?: 'draft' | 'confirmed' | 'cancelled'; // 當前交易狀態
+  onStatusChange?: (newStatus: 'draft' | 'confirmed' | 'cancelled') => void; // 狀態變更回調
 }
 
 export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
@@ -102,7 +129,10 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
   mode = 'create',
   defaultAccountId,
   defaultOrganizationId,
-  isCopyMode = false
+  isCopyMode = false,
+  transactionId,
+  currentStatus = 'draft',
+  onStatusChange
 }) => {
   const dispatch = useAppDispatch();
   const { organizations } = useAppSelector(state => state.organization);
@@ -143,7 +173,11 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
         receiptUrl: convertedData.receiptUrl || '',
         invoiceNo: convertedData.invoiceNo || '',
         attachments: [],
-        entries
+        entries,
+        // 資金來源追蹤欄位 - 複製模式下清空
+        linkedTransactionIds: isCopyMode ? undefined : convertedData.linkedTransactionIds,
+        sourceTransactionId: isCopyMode ? undefined : convertedData.sourceTransactionId,
+        fundingType: isCopyMode ? 'original' : (convertedData.fundingType || 'original')
       };
     }
     
@@ -169,6 +203,13 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
   // 對話框狀態
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [quickStartOpen, setQuickStartOpen] = useState(false);
+
+  // 資金來源追蹤狀態
+  const [enableFundingTracking, setEnableFundingTracking] = useState(false);
+  const [fundingSourceDialogOpen, setFundingSourceDialogOpen] = useState(false);
+  
+  // 交易狀態管理
+  const [confirmingTransaction, setConfirmingTransaction] = useState(false);
 
   // 初始化表單資料
   useEffect(() => {
@@ -202,11 +243,19 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
         receiptUrl: convertedData.receiptUrl || '',
         invoiceNo: convertedData.invoiceNo || '',
         attachments: [],
-        entries
+        entries,
+        // 資金來源追蹤欄位 - 複製模式下清空
+        linkedTransactionIds: isCopyMode ? undefined : convertedData.linkedTransactionIds,
+        sourceTransactionId: isCopyMode ? undefined : convertedData.sourceTransactionId,
+        fundingType: isCopyMode ? 'original' : (convertedData.fundingType || 'original')
       };
       
       console.log('🔄 即將設定新的 formData:', newFormData);
       setFormData(newFormData);
+      
+      // 設定資金追蹤開關狀態
+      const hasLinkedTransactions = !isCopyMode && convertedData.linkedTransactionIds && convertedData.linkedTransactionIds.length > 0;
+      setEnableFundingTracking(hasLinkedTransactions);
     }
   }, [initialData, isCopyMode, defaultAccountId]);
 
@@ -369,6 +418,34 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     setTemplateDialogOpen(false);
   };
 
+  // 處理資金來源選擇
+  const handleFundingSourceSelect = (sources: any[]) => {
+    const linkedTransactionIds = sources.map(source => source._id);
+    
+    setFormData(prev => ({
+      ...prev,
+      linkedTransactionIds,
+      fundingType: linkedTransactionIds.length > 0 ? 'extended' : 'original'
+    }));
+
+    setFundingSourceDialogOpen(false);
+  };
+
+  // 處理資金追蹤開關
+  const handleFundingTrackingToggle = (enabled: boolean) => {
+    setEnableFundingTracking(enabled);
+    
+    if (!enabled) {
+      // 關閉資金追蹤時清除相關資料
+      setFormData(prev => ({
+        ...prev,
+        linkedTransactionIds: undefined,
+        sourceTransactionId: undefined,
+        fundingType: 'original'
+      }));
+    }
+  };
+
   // 處理憑證上傳
   const handleReceiptUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -420,7 +497,11 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
         // 如果 organizationId 是空字串或 undefined，則設為 null
         organizationId: formData.organizationId && formData.organizationId.trim() !== ''
           ? formData.organizationId
-          : null
+          : null,
+        // 資金來源追蹤欄位
+        linkedTransactionIds: enableFundingTracking ? formData.linkedTransactionIds : undefined,
+        sourceTransactionId: enableFundingTracking ? formData.sourceTransactionId : undefined,
+        fundingType: enableFundingTracking ? (formData.fundingType || 'original') : 'original'
       };
 
       // 檢查分錄是否完整且有效
@@ -462,13 +543,99 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     }
   };
 
+  // 確認交易
+  const handleConfirmTransaction = async () => {
+    if (!transactionId) {
+      console.error('❌ 無法確認交易：缺少交易ID');
+      return;
+    }
+
+    setConfirmingTransaction(true);
+    try {
+      console.log('🔍 確認交易:', transactionId);
+      const result = await transactionGroupService.confirm(transactionId);
+      
+      if (result.success) {
+        console.log('✅ 交易確認成功');
+        // 通知父組件狀態已變更
+        if (onStatusChange) {
+          onStatusChange('confirmed');
+        }
+      }
+    } catch (error) {
+      console.error('❌ 確認交易失敗:', error);
+    } finally {
+      setConfirmingTransaction(false);
+    }
+  };
+
+  // 獲取狀態顯示資訊
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return {
+          label: '已確認',
+          color: 'success' as const,
+          icon: <CheckCircleIcon />,
+          bgColor: '#e8f5e8'
+        };
+      case 'cancelled':
+        return {
+          label: '已取消',
+          color: 'error' as const,
+          icon: <CancelledIcon />,
+          bgColor: '#ffeaea'
+        };
+      default:
+        return {
+          label: '草稿',
+          color: 'warning' as const,
+          icon: <DraftIcon />,
+          bgColor: '#fff8e1'
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo(currentStatus);
+  const isConfirmed = currentStatus === 'confirmed';
+  const isCancelled = currentStatus === 'cancelled';
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
       <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
         {/* 基本資訊卡片 */}
         <Card sx={{ mb: 3 }}>
           <CardHeader
-            title={mode === 'create' ? '基本資訊' : '基本資訊'}
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="h6">
+                  {mode === 'create' ? '基本資訊' : '基本資訊'}
+                </Typography>
+                {mode === 'edit' && (
+                  <Badge
+                    badgeContent={statusInfo.label}
+                    color={statusInfo.color}
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        backgroundColor: statusInfo.bgColor,
+                        color: statusInfo.color === 'warning' ? '#ed6c02' :
+                               statusInfo.color === 'success' ? '#2e7d32' : '#d32f2f',
+                        fontWeight: 'bold',
+                        fontSize: '0.75rem',
+                        height: '24px',
+                        minWidth: '60px',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }
+                    }}
+                  >
+                    {statusInfo.icon}
+                  </Badge>
+                )}
+              </Box>
+            }
             avatar={<ReceiptIcon color="primary" />}
             action={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -500,10 +667,9 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               {/* 交易描述 */}
               <Grid item xs={12} md={6}>
                 <TextField
-                  key={`description-${isCopyMode ? 'copy' : 'normal'}-${formData.description}-${Date.now()}`}
                   fullWidth
                   label="交易描述"
-                  value={isCopyMode && formData.description === '' ? '' : formData.description}
+                  value={formData.description || ''}
                   onChange={(e) => {
                     console.log('🔍 描述欄位變更:', {
                       oldValue: formData.description,
@@ -515,12 +681,12 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                   error={!!errors.description}
                   helperText={errors.description}
                   required
+                  disabled={isConfirmed} // 已確認的交易不能修改
                   placeholder={isCopyMode ? "複製模式：請輸入新的交易描述" : "例如：購買辦公用品"}
                   autoComplete="off"
                   inputProps={{
                     autoComplete: 'off',
-                    'data-lpignore': 'true',
-                    value: isCopyMode && formData.description === '' ? '' : formData.description
+                    'data-lpignore': 'true'
                   }}
                 />
               </Grid>
@@ -531,6 +697,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                   label="交易日期"
                   value={formData.transactionDate}
                   onChange={(date) => handleBasicInfoChange('transactionDate', date)}
+                  disabled={isConfirmed} // 已確認的交易不能修改
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -538,6 +705,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                       error={!!errors.transactionDate}
                       helperText={errors.transactionDate}
                       required
+                      disabled={isConfirmed}
                     />
                   )}
                 />
@@ -545,12 +713,13 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
 
               {/* 機構選擇 */}
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
+                <FormControl fullWidth disabled={isConfirmed}>
                   <InputLabel>機構</InputLabel>
                   <Select
                     value={formData.organizationId || ''}
                     onChange={(e) => handleBasicInfoChange('organizationId', e.target.value || undefined)}
                     label="機構"
+                    disabled={isConfirmed} // 已確認的交易不能修改
                   >
                     <MenuItem value="">
                       <em>個人記帳</em>
@@ -572,8 +741,90 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                   value={formData.invoiceNo}
                   onChange={(e) => handleBasicInfoChange('invoiceNo', e.target.value)}
                   placeholder="例如：AB-12345678"
+                  disabled={isConfirmed} // 已確認的交易不能修改
                 />
               </Grid>
+
+              {/* 資金來源追蹤開關 */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={enableFundingTracking}
+                        onChange={(e) => handleFundingTrackingToggle(e.target.checked)}
+                        color="primary"
+                        disabled={isConfirmed} // 已確認的交易不能修改
+                      />
+                    }
+                    label="啟用資金來源追蹤"
+                    disabled={isConfirmed}
+                  />
+                  <Tooltip title="啟用後可以追蹤此交易的資金來源，建立資金流向關聯">
+                    <IconButton size="small">
+                      <HelpIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Grid>
+
+              {/* 資金來源選擇 */}
+              {enableFundingTracking && (
+                <Grid item xs={12}>
+                  <Box sx={{
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    bgcolor: 'grey.50'
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AccountTreeIcon color="primary" />
+                        資金來源追蹤
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<LinkIcon />}
+                        onClick={() => setFundingSourceDialogOpen(true)}
+                      >
+                        選擇資金來源
+                      </Button>
+                    </Box>
+
+                    {/* 顯示已選擇的資金來源 */}
+                    {formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0 ? (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {formData.linkedTransactionIds.map((id, index) => (
+                          <Chip
+                            key={id}
+                            label={`資金來源 ${index + 1}`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            onDelete={() => {
+                              const newIds = formData.linkedTransactionIds?.filter(linkedId => linkedId !== id);
+                              setFormData(prev => ({
+                                ...prev,
+                                linkedTransactionIds: newIds,
+                                fundingType: newIds && newIds.length > 0 ? 'extended' : 'original'
+                              }));
+                            }}
+                          />
+                        ))}
+                        <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center', ml: 1 }}>
+                          資金類型: {formData.fundingType === 'extended' ? '延伸使用' : '原始資金'}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        尚未選擇資金來源，此交易將標記為「原始資金」
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+              )}
 
             </Grid>
           </CardContent>
@@ -648,6 +899,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               onChange={handleEntriesChange}
               organizationId={formData.organizationId}
               isCopyMode={isCopyMode}
+              disabled={isConfirmed} // 已確認的交易不能修改分錄
             />
           </CardContent>
         </Card>
@@ -657,14 +909,45 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
           <Button
             variant="outlined"
             onClick={onCancel}
-            disabled={isLoading}
+            disabled={isLoading || confirmingTransaction}
             startIcon={<CancelIcon />}
           >
             取消
           </Button>
           
+          {/* 確認交易按鈕 - 只在編輯模式且為草稿狀態時顯示 */}
+          {mode === 'edit' && currentStatus === 'draft' && transactionId && (
+            <Tooltip title="確認交易後將無法再修改">
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={handleConfirmTransaction}
+                disabled={
+                  confirmingTransaction ||
+                  isLoading ||
+                  !!balanceError ||
+                  formData.entries.length < 2 ||
+                  Object.keys(errors).length > 0
+                }
+                startIcon={confirmingTransaction ? <SaveIcon /> : <CheckCircleIcon />}
+                sx={{
+                  borderColor: 'success.main',
+                  color: 'success.main',
+                  '&:hover': {
+                    borderColor: 'success.dark',
+                    backgroundColor: 'success.light',
+                    color: 'success.dark'
+                  }
+                }}
+              >
+                {confirmingTransaction ? '確認中...' : '確認交易'}
+              </Button>
+            </Tooltip>
+          )}
+          
           <Tooltip
             title={
+              isConfirmed ? '已確認的交易無法修改' :
               isLoading ? '處理中...' :
               !!balanceError ? balanceError :
               mode === 'create' && formData.entries.length === 0 ? '請先新增分錄' :
@@ -678,7 +961,9 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                 type="submit"
                 variant="contained"
                 disabled={
+                  isConfirmed || // 已確認的交易不能修改
                   isLoading ||
+                  confirmingTransaction ||
                   !!balanceError ||
                   (mode === 'create' && formData.entries.length < 2) ||
                   Object.keys(errors).length > 0
@@ -852,6 +1137,60 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               開始記帳
             </Button>
           </DialogActions>
+        </Dialog>
+
+        {/* 資金來源選擇對話框 */}
+        <Dialog
+          open={fundingSourceDialogOpen}
+          onClose={() => setFundingSourceDialogOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{
+            sx: {
+              height: '80vh',
+              maxHeight: '700px'
+            }
+          }}
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AccountTreeIcon color="primary" />
+                <Typography variant="h6" component="div">
+                  選擇資金來源
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={() => setFundingSourceDialogOpen(false)}
+                size="small"
+                sx={{ color: 'grey.500' }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent sx={{ p: 0 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ p: 3, pb: 0 }}>
+              選擇此交易的資金來源，建立資金流向追蹤關聯
+            </Typography>
+            <FundingSourceSelector
+              open={fundingSourceDialogOpen}
+              onClose={() => setFundingSourceDialogOpen(false)}
+              onSelect={(transaction) => {
+                const newIds = [...(formData.linkedTransactionIds || []), transaction._id];
+                setFormData(prev => ({
+                  ...prev,
+                  linkedTransactionIds: newIds,
+                  fundingType: 'extended'
+                }));
+                setFundingSourceDialogOpen(false);
+              }}
+              selectedTransactionId={formData.sourceTransactionId}
+              organizationId={formData.organizationId}
+              excludeTransactionIds={formData.linkedTransactionIds || []}
+            />
+          </DialogContent>
         </Dialog>
       </Box>
     </LocalizationProvider>

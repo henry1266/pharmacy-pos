@@ -68,6 +68,12 @@ export interface TransactionGroup {
   invoiceNo?: string;         // 發票號碼
   totalAmount: number;        // 交易總金額
   status: 'draft' | 'confirmed' | 'cancelled';
+  
+  // 資金來源追蹤功能
+  linkedTransactionIds: string[];     // 被延伸使用的交易ID陣列
+  sourceTransactionId?: string;       // 此交易的資金來源交易ID
+  fundingType: 'original' | 'extended' | 'transfer'; // 資金類型：原始/延伸/轉帳
+  
   createdBy: string;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -87,6 +93,10 @@ export interface AccountingEntry {
   // 原有欄位保留相容性
   categoryId?: string | Category2; // 類別ID (可選，用於報表分類)
   description: string;        // 分錄描述
+  
+  // 資金來源追蹤欄位
+  sourceTransactionId?: string; // 此分錄的資金來源交易ID
+  fundingPath?: string[];     // 資金流動路徑 (交易ID陣列的字串表示)
   
   // 機構與權限
   organizationId?: string;
@@ -114,6 +124,11 @@ export interface TransactionGroupFormData {
   receiptUrl?: string;        // 憑證URL
   invoiceNo?: string;         // 發票號碼
   organizationId?: string;    // 機構ID
+  
+  // 資金來源追蹤表單欄位
+  linkedTransactionIds?: string[];     // 被延伸使用的交易ID陣列
+  sourceTransactionId?: string;        // 此交易的資金來源交易ID
+  fundingType?: 'original' | 'extended' | 'transfer'; // 資金類型
 }
 
 export interface AccountingEntryFormData {
@@ -122,6 +137,10 @@ export interface AccountingEntryFormData {
   creditAmount: number;       // 貸方金額
   categoryId?: string;        // 類別ID (可選)
   description: string;        // 分錄描述
+  
+  // 資金來源追蹤表單欄位
+  sourceTransactionId?: string; // 此分錄的資金來源交易ID
+  fundingPath?: string[];     // 資金流動路徑
 }
 
 export interface Category2FormData {
@@ -244,6 +263,47 @@ export interface DebitCreditBalanceResponse {
   };
 }
 
+// 資金來源追蹤回應
+export interface FundingTrackingResponse {
+  success: boolean;
+  data: {
+    transactionId: string;
+    fundingChain: {
+      transactionId: string;
+      groupNumber: string;
+      description: string;
+      amount: number;
+      fundingType: 'original' | 'extended' | 'transfer';
+      transactionDate: string | Date;
+    }[];
+    totalFundingAmount: number;
+    fundingDepth: number;
+  };
+}
+
+// 資金流向分析回應
+export interface FundingFlowResponse {
+  success: boolean;
+  data: {
+    sourceTransaction: TransactionGroup;
+    linkedTransactions: TransactionGroup[];
+    flowChart: {
+      nodes: {
+        id: string;
+        label: string;
+        amount: number;
+        type: 'original' | 'extended' | 'transfer';
+      }[];
+      edges: {
+        from: string;
+        to: string;
+        amount: number;
+        label: string;
+      }[];
+    };
+  };
+}
+
 // 過濾器類型
 export interface AccountingRecord2Filter {
   type?: 'income' | 'expense' | 'transfer';
@@ -263,6 +323,12 @@ export interface TransactionGroupFilter {
   startDate?: string;
   endDate?: string;
   invoiceNo?: string;
+  
+  // 資金來源追蹤過濾器
+  fundingType?: 'original' | 'extended' | 'transfer';
+  sourceTransactionId?: string;
+  hasLinkedTransactions?: boolean;
+  
   page?: number;
   limit?: number;
 }
@@ -274,6 +340,11 @@ export interface AccountingEntryFilter {
   organizationId?: string;
   startDate?: string;
   endDate?: string;
+  
+  // 資金來源追蹤過濾器
+  sourceTransactionId?: string;
+  hasFundingPath?: boolean;
+  
   page?: number;
   limit?: number;
 }
@@ -349,6 +420,13 @@ export const TRANSACTION_STATUS = [
   { value: 'cancelled', label: '已取消' }
 ] as const;
 
+// 資金類型選項
+export const FUNDING_TYPES = [
+  { value: 'original', label: '原始資金', color: '#4caf50' },
+  { value: 'extended', label: '延伸使用', color: '#ff9800' },
+  { value: 'transfer', label: '資金轉移', color: '#2196f3' }
+] as const;
+
 // 記錄類型選項
 export const RECORD_TYPES = [
   { value: 'income', label: '收入' },
@@ -370,3 +448,154 @@ export const CURRENCIES = [
   { value: 'JPY', label: '日圓 (JPY)' },
   { value: 'CNY', label: '人民幣 (CNY)' }
 ] as const;
+
+// 資金來源追蹤相關 API 回應型別
+export interface FundingSource {
+  _id: string;
+  groupNumber: string;
+  description: string;
+  transactionDate: Date;
+  totalAmount: number;
+  usedAmount: number;
+  availableAmount: number;
+  fundingType: 'original' | 'extended' | 'transfer';
+  receiptUrl?: string;
+  invoiceNo?: string;
+  isAvailable: boolean;
+}
+
+export interface FundingSourcesResponse {
+  success: boolean;
+  data: {
+    fundingSources: FundingSource[];
+    total: number;
+  };
+}
+
+export interface FundingFlowTransaction {
+  _id: string;
+  groupNumber: string;
+  description: string;
+  transactionDate: Date;
+  totalAmount: number;
+  fundingType: 'original' | 'extended' | 'transfer';
+  status: 'draft' | 'confirmed' | 'cancelled';
+}
+
+export interface FundingFlowData {
+  sourceTransaction: TransactionGroup;
+  linkedTransactions: FundingFlowTransaction[];
+  fundingPath: FundingFlowTransaction[];
+  totalUsedAmount: number;
+  availableAmount: number;
+  originalSource?: TransactionGroup;
+}
+
+export interface FundingValidationResult {
+  sourceId: string;
+  isValid: boolean;
+  sourceTransaction?: {
+    _id: string;
+    groupNumber: string;
+    description: string;
+    totalAmount: number;
+    usedAmount: number;
+    availableAmount: number;
+  };
+  error?: string;
+}
+
+export interface FundingValidationData {
+  validationResults: FundingValidationResult[];
+  totalAvailableAmount: number;
+  requiredAmount: number;
+  isSufficient: boolean;
+  summary: {
+    validSources: number;
+    invalidSources: number;
+    totalSources: number;
+  };
+}
+
+export interface FundingValidationResponse {
+  success: boolean;
+  data: FundingValidationData;
+}
+
+// 資金來源分錄查詢回應
+export interface FundingSourceEntriesResponse {
+  success: boolean;
+  data: {
+    sourceTransaction: {
+      _id: string;
+      groupNumber: string;
+      description: string;
+      transactionDate: Date;
+      totalAmount: number;
+      fundingType: 'original' | 'extended' | 'transfer';
+    };
+    entries: AccountingEntry[];
+    statistics: {
+      source: {
+        totalDebit: number;
+        totalCredit: number;
+        balance: number;
+        recordCount: number;
+      };
+      linked: {
+        totalDebit: number;
+        totalCredit: number;
+        balance: number;
+        recordCount: number;
+      };
+      overall: {
+        totalDebit: number;
+        totalCredit: number;
+        balance: number;
+        recordCount: number;
+      };
+    };
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  };
+}
+
+// 資金路徑追蹤回應
+export interface FundingPathLevel {
+  transaction: {
+    _id: string;
+    groupNumber: string;
+    description: string;
+    transactionDate: Date;
+    totalAmount: number;
+    fundingType: 'original' | 'extended' | 'transfer';
+    status: 'draft' | 'confirmed' | 'cancelled';
+  };
+  entries: AccountingEntry[];
+  level: number;
+}
+
+export interface FundingPathEntriesResponse {
+  success: boolean;
+  data: {
+    targetTransaction: {
+      _id: string;
+      groupNumber: string;
+      description: string;
+      transactionDate: Date;
+      totalAmount: number;
+      fundingType: 'original' | 'extended' | 'transfer';
+    };
+    fundingPath: FundingPathLevel[];
+    pathLength: number;
+    isOriginalSource: boolean;
+  };
+}
+
+// 型別別名，用於向後相容
+export type FundingType = 'original' | 'extended' | 'transfer';
+export type TransactionStatus = 'draft' | 'confirmed' | 'cancelled';
