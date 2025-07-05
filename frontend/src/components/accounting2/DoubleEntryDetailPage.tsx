@@ -40,6 +40,7 @@ import { RootState } from '../../redux/store';
 import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
 import { fetchAccounts2, deleteTransactionGroup2 } from '../../redux/actions';
+import { RouteUtils } from '../../utils/routeUtils';
 
 interface DoubleEntryDetailPageProps {
   organizationId?: string;
@@ -192,17 +193,17 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
 
   // 處理編輯交易群組
   const handleEditTransaction = (transactionGroupId: string) => {
-    // 導航到編輯頁面，並在 URL 中加入返回參數
-    const returnUrl = `/accounting2/account/${accountId}`;
-    navigate(`/accounting2/transaction/${transactionGroupId}/edit?returnTo=${encodeURIComponent(returnUrl)}`);
+    const returnUrl = RouteUtils.createAccountDetailRoute(accountId || '');
+    const editUrl = RouteUtils.createEditTransactionRoute(transactionGroupId, { returnTo: returnUrl });
+    navigate(editUrl);
   };
 
   // 處理複製交易群組
   const handleCopyTransaction = async (transactionGroupId: string) => {
     try {
-      // 導航到複製頁面，並在 URL 中加入返回參數
-      const returnUrl = `/accounting2/account/${accountId}`;
-      navigate(`/accounting2/transaction/${transactionGroupId}/copy?returnTo=${encodeURIComponent(returnUrl)}`);
+      const returnUrl = RouteUtils.createAccountDetailRoute(accountId || '');
+      const copyUrl = RouteUtils.createCopyTransactionRoute(transactionGroupId, { returnTo: returnUrl });
+      navigate(copyUrl);
     } catch (error) {
       console.error('❌ 複製交易失敗:', error);
     }
@@ -210,19 +211,13 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
 
   // 處理新增交易（預設帶入當前科目和機構）
   const handleCreateNewTransaction = () => {
-    // 導航到新增交易頁面，並在 URL 中加入返回參數、預設科目和機構
-    const returnUrl = `/accounting2/account/${accountId}`;
-    const params = new URLSearchParams({
+    const returnUrl = RouteUtils.createAccountDetailRoute(accountId || '');
+    const newTransactionUrl = RouteUtils.createNewTransactionRoute({
       returnTo: returnUrl,
-      defaultAccountId: accountId || '',
+      defaultAccountId: accountId,
+      defaultOrganizationId: organizationId
     });
-    
-    // 如果有機構ID，也加入參數
-    if (organizationId) {
-      params.set('defaultOrganizationId', organizationId);
-    }
-    
-    navigate(`/accounting2?${params.toString()}`);
+    navigate(newTransactionUrl);
   };
 
   // 處理刪除分錄明細

@@ -54,9 +54,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { ColorPicker } from './ColorPicker';
 import { ThemePreview } from './ThemePreview';
 import { themeServiceV2 } from '../../services/themeServiceV2';
-import { EnhancedGeneratedPalette, UserTheme } from '@pharmacy-pos/shared/types/theme';
+import { EnhancedGeneratedPalette, UserTheme } from '@pharmacy-pos/shared';
 import { Material3SchemeType } from '@pharmacy-pos/shared/utils';
-import { DEFAULT_THEME_COLORS } from '@pharmacy-pos/shared/types/theme';
+import { DEFAULT_THEME_COLORS } from '@pharmacy-pos/shared';
 
 interface TabPanelProps {
   children?: React.ReactNode;

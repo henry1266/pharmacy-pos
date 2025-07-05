@@ -48,8 +48,15 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { DoubleEntryForm } from './DoubleEntryForm';
 import { TransactionTemplateSelector } from './TransactionTemplateSelector';
 import { FundingSourceSelector } from './FundingSourceSelector';
-import { FUNDING_TYPES, TRANSACTION_STATUS } from '@shared';
+import {
+  FUNDING_TYPES,
+  TRANSACTION_STATUS,
+  TransactionValidator,
+  TransactionDataConverter,
+  TransactionStatusManager
+} from '@pharmacy-pos/shared';
 import { transactionGroupService } from '../../services/transactionGroupService';
+import { TransactionUtils } from '../../utils/transactionUtils';
 
 export interface TransactionGroupFormData {
   description: string;
@@ -75,36 +82,32 @@ export interface AccountingEntryFormData {
   fundingPath?: string[];
 }
 
-// 資料轉換工具函數
-const convertBackendEntryToFormData = (backendEntry: any): AccountingEntryFormData => {
-  return {
-    accountId: backendEntry.accountId || '',
-    debitAmount: backendEntry.debitAmount || 0,
-    creditAmount: backendEntry.creditAmount || 0,
-    description: backendEntry.description || '',
-    sourceTransactionId: backendEntry.sourceTransactionId,
-    fundingPath: backendEntry.fundingPath
-  };
-};
-
+// 使用 shared 的資料轉換工具
 const convertBackendDataToFormData = (backendData: any): Partial<TransactionGroupFormData> => {
   if (!backendData) return {};
   
-  return {
-    // 保持原始的 description 值，不要自動設定預設值
-    description: backendData.description,
-    transactionDate: backendData.transactionDate ? new Date(backendData.transactionDate) : new Date(),
-    organizationId: backendData.organizationId || undefined,
-    receiptUrl: backendData.receiptUrl || '',
-    invoiceNo: backendData.invoiceNo || '',
-    entries: Array.isArray(backendData.entries)
-      ? backendData.entries.map(convertBackendEntryToFormData)
-      : [],
-    // 資金來源追蹤欄位
-    linkedTransactionIds: backendData.linkedTransactionIds,
-    sourceTransactionId: backendData.sourceTransactionId,
-    fundingType: backendData.fundingType || 'original'
-  };
+  console.log('🔍 convertBackendDataToFormData - 原始資料:', backendData);
+  
+  try {
+    // 使用 shared 的轉換工具
+    const standardData = TransactionDataConverter.convertBackendToStandard(backendData);
+    console.log('✅ 轉換後的標準資料:', standardData);
+    
+    return {
+      description: standardData.description,
+      transactionDate: standardData.transactionDate,
+      organizationId: standardData.organizationId,
+      receiptUrl: standardData.receiptUrl || '',
+      invoiceNo: standardData.invoiceNo || '',
+      entries: standardData.entries || [],
+      linkedTransactionIds: standardData.linkedTransactionIds,
+      sourceTransactionId: standardData.sourceTransactionId,
+      fundingType: standardData.fundingType || 'original'
+    };
+  } catch (error) {
+    console.error('❌ 資料轉換失敗:', error);
+    return {};
+  }
 };
 
 interface TransactionGroupFormProps {
@@ -279,89 +282,77 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     }
   }, [defaultOrganizationId, mode, initialData]);
 
-  // 表單驗證
+  // 使用 shared 的表單驗證
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    try {
+      // 準備驗證資料
+      const transactionData = {
+        description: formData.description,
+        transactionDate: formData.transactionDate,
+        entries: formData.entries || []
+      };
 
-    if (!formData.description.trim()) {
-      newErrors.description = '請輸入交易描述';
-    }
+      console.log('🔍 開始驗證交易資料:', transactionData);
 
-    if (!formData.transactionDate) {
-      newErrors.transactionDate = '請選擇交易日期';
-    }
-
-    // 分錄驗證邏輯
-    if (mode === 'create') {
-      // 建立模式：必須有完整的分錄
-      if (!formData.entries || formData.entries.length === 0) {
-        newErrors.entries = '請至少新增一筆分錄';
-        setBalanceError('');
-      } else if (formData.entries.length < 2) {
-        newErrors.entries = '複式記帳至少需要兩筆分錄';
-        setBalanceError('');
+      // 根據模式進行不同的驗證
+      let validationResult;
+      
+      if (mode === 'create') {
+        // 建立模式：完整驗證
+        validationResult = TransactionValidator.validateTransaction(transactionData);
       } else {
-        // 檢查每筆分錄是否完整
-        const invalidEntries = formData.entries.filter(entry =>
-          !entry.accountId ||
-          (!entry.debitAmount && !entry.creditAmount) ||
-          (entry.debitAmount > 0 && entry.creditAmount > 0)
-        );
-
-        if (invalidEntries.length > 0) {
-          newErrors.entries = '請完整填寫所有分錄的會計科目和金額';
-          setBalanceError('');
+        // 編輯模式：基本資訊驗證 + 可選的分錄驗證
+        const basicValidation = TransactionValidator.validateBasicInfo(transactionData);
+        
+        if (formData.entries && formData.entries.length > 0) {
+          // 如果有分錄，則驗證分錄
+          const entriesValidation = TransactionValidator.validateEntries(formData.entries);
+          const balanceValidation = TransactionValidator.validateBalance(formData.entries);
+          
+          validationResult = {
+            isValid: basicValidation.isValid && entriesValidation.isValid && balanceValidation.isValid,
+            errors: [...basicValidation.errors, ...entriesValidation.errors, ...balanceValidation.errors]
+          };
         } else {
-          // 檢查借貸平衡
-          const totalDebit = formData.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
-          const totalCredit = formData.entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
-          const difference = Math.abs(totalDebit - totalCredit);
-
-          if (difference > 0.01) {
-            setBalanceError(`借貸不平衡，差額：NT$ ${difference.toFixed(2)}`);
-          } else {
-            setBalanceError('');
-          }
+          // 編輯模式沒有分錄，只驗證基本資訊
+          validationResult = basicValidation;
         }
       }
-    } else if (mode === 'edit') {
-      // 編輯模式：分錄是可選的，但如果有分錄則必須完整
-      if (formData.entries && formData.entries.length > 0) {
-        if (formData.entries.length < 2) {
-          newErrors.entries = '如要更新分錄，複式記帳至少需要兩筆分錄';
-          setBalanceError('');
-        } else {
-          // 檢查每筆分錄是否完整
-          const invalidEntries = formData.entries.filter(entry =>
-            !entry.accountId ||
-            (!entry.debitAmount && !entry.creditAmount) ||
-            (entry.debitAmount > 0 && entry.creditAmount > 0)
-          );
+      
+      console.log('✅ 驗證結果:', validationResult);
 
-          if (invalidEntries.length > 0) {
-            newErrors.entries = '如要更新分錄，請完整填寫所有分錄的會計科目和金額';
-            setBalanceError('');
-          } else {
-            // 檢查借貸平衡
-            const totalDebit = formData.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
-            const totalCredit = formData.entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
-            const difference = Math.abs(totalDebit - totalCredit);
-
-            if (difference > 0.01) {
-              setBalanceError(`借貸不平衡，差額：NT$ ${difference.toFixed(2)}`);
-            } else {
-              setBalanceError('');
-            }
-          }
-        }
-      } else {
-        // 編輯模式沒有分錄，清除相關錯誤
+      if (validationResult.isValid) {
+        setErrors({});
         setBalanceError('');
-      }
-    }
+        return true;
+      } else {
+        // 處理驗證錯誤
+        const newErrors: Record<string, string> = {};
+        let balanceErrorMessage = '';
+        
+        validationResult.errors.forEach(errorMessage => {
+          // 檢查是否為借貸平衡錯誤
+          if (errorMessage.includes('借貸不平衡')) {
+            balanceErrorMessage = errorMessage;
+          } else if (errorMessage.includes('請輸入交易描述')) {
+            newErrors.description = errorMessage;
+          } else if (errorMessage.includes('請選擇交易日期')) {
+            newErrors.transactionDate = errorMessage;
+          } else {
+            // 其他分錄相關錯誤
+            newErrors.entries = errorMessage;
+          }
+        });
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0 && !balanceError;
+        setErrors(newErrors);
+        setBalanceError(balanceErrorMessage);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ 驗證過程發生錯誤:', error);
+      setErrors({ general: '驗證過程發生錯誤' });
+      return false;
+    }
   };
 
   // 處理基本資訊變更
@@ -569,36 +560,23 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     }
   };
 
-  // 獲取狀態顯示資訊
-  const getStatusInfo = (status: string) => {
+  // 使用 shared 的狀態管理工具
+  const statusInfo = TransactionStatusManager.getDisplayInfo(currentStatus);
+  const permissions = TransactionStatusManager.getPermissions(currentStatus);
+  
+  // 取得狀態圖示
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return {
-          label: '已確認',
-          color: 'success' as const,
-          icon: <CheckCircleIcon />,
-          bgColor: '#e8f5e8'
-        };
+        return <CheckCircleIcon />;
       case 'cancelled':
-        return {
-          label: '已取消',
-          color: 'error' as const,
-          icon: <CancelledIcon />,
-          bgColor: '#ffeaea'
-        };
+        return <CancelledIcon />;
       default:
-        return {
-          label: '草稿',
-          color: 'warning' as const,
-          icon: <DraftIcon />,
-          bgColor: '#fff8e1'
-        };
+        return <DraftIcon />;
     }
   };
 
-  const statusInfo = getStatusInfo(currentStatus);
-  const isConfirmed = currentStatus === 'confirmed';
-  const isCancelled = currentStatus === 'cancelled';
+  const statusIcon = getStatusIcon(currentStatus);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
@@ -631,7 +609,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                       }
                     }}
                   >
-                    {statusInfo.icon}
+                    {statusIcon}
                   </Badge>
                 )}
               </Box>
@@ -681,7 +659,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                   error={!!errors.description}
                   helperText={errors.description}
                   required
-                  disabled={isConfirmed} // 已確認的交易不能修改
+                  disabled={!permissions.canEdit} // 使用 shared 權限管理
                   placeholder={isCopyMode ? "複製模式：請輸入新的交易描述" : "例如：購買辦公用品"}
                   autoComplete="off"
                   inputProps={{
@@ -697,7 +675,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                   label="交易日期"
                   value={formData.transactionDate}
                   onChange={(date) => handleBasicInfoChange('transactionDate', date)}
-                  disabled={isConfirmed} // 已確認的交易不能修改
+                  disabled={!permissions.canEdit} // 使用 shared 權限管理
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -705,7 +683,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                       error={!!errors.transactionDate}
                       helperText={errors.transactionDate}
                       required
-                      disabled={isConfirmed}
+                      disabled={!permissions.canEdit} // 使用 shared 權限管理
                     />
                   )}
                 />
@@ -713,13 +691,13 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
 
               {/* 機構選擇 */}
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth disabled={isConfirmed}>
+                <FormControl fullWidth disabled={!permissions.canEdit}>
                   <InputLabel>機構</InputLabel>
                   <Select
                     value={formData.organizationId || ''}
                     onChange={(e) => handleBasicInfoChange('organizationId', e.target.value || undefined)}
                     label="機構"
-                    disabled={isConfirmed} // 已確認的交易不能修改
+                    disabled={!permissions.canEdit} // 使用 shared 權限管理
                   >
                     <MenuItem value="">
                       <em>個人記帳</em>
@@ -741,7 +719,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                   value={formData.invoiceNo}
                   onChange={(e) => handleBasicInfoChange('invoiceNo', e.target.value)}
                   placeholder="例如：AB-12345678"
-                  disabled={isConfirmed} // 已確認的交易不能修改
+                  disabled={!permissions.canEdit} // 使用 shared 權限管理
                 />
               </Grid>
 
@@ -754,11 +732,11 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                         checked={enableFundingTracking}
                         onChange={(e) => handleFundingTrackingToggle(e.target.checked)}
                         color="primary"
-                        disabled={isConfirmed} // 已確認的交易不能修改
+                        disabled={!permissions.canEdit} // 使用 shared 權限管理
                       />
                     }
                     label="啟用資金來源追蹤"
-                    disabled={isConfirmed}
+                    disabled={!permissions.canEdit} // 使用 shared 權限管理
                   />
                   <Tooltip title="啟用後可以追蹤此交易的資金來源，建立資金流向關聯">
                     <IconButton size="small">
@@ -899,7 +877,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               onChange={handleEntriesChange}
               organizationId={formData.organizationId}
               isCopyMode={isCopyMode}
-              disabled={isConfirmed} // 已確認的交易不能修改分錄
+              disabled={!permissions.canEdit} // 使用 shared 權限管理
             />
           </CardContent>
         </Card>
@@ -915,9 +893,9 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
             取消
           </Button>
           
-          {/* 確認交易按鈕 - 只在編輯模式且為草稿狀態時顯示 */}
-          {mode === 'edit' && currentStatus === 'draft' && transactionId && (
-            <Tooltip title="確認交易後將無法再修改">
+          {/* 確認交易按鈕 - 使用 shared 權限管理 */}
+          {mode === 'edit' && permissions.canConfirm && transactionId && (
+            <Tooltip title={TransactionStatusManager.getStatusChangeMessage('draft', 'confirmed')}>
               <Button
                 variant="outlined"
                 color="success"
@@ -947,7 +925,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
           
           <Tooltip
             title={
-              isConfirmed ? '已確認的交易無法修改' :
+              !permissions.canEdit ? '已確認的交易無法修改' :
               isLoading ? '處理中...' :
               !!balanceError ? balanceError :
               mode === 'create' && formData.entries.length === 0 ? '請先新增分錄' :
@@ -961,7 +939,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
                 type="submit"
                 variant="contained"
                 disabled={
-                  isConfirmed || // 已確認的交易不能修改
+                  !permissions.canEdit || // 使用 shared 權限管理
                   isLoading ||
                   confirmingTransaction ||
                   !!balanceError ||

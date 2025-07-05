@@ -39,7 +39,7 @@ import {
   ColorLens as ColorLensIcon,
 } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
-import { DEFAULT_THEME_COLORS } from '@pharmacy-pos/shared/types/theme';
+import { DEFAULT_THEME_COLORS } from '@pharmacy-pos/shared';
 
 /**
  * 顏色選擇器組件

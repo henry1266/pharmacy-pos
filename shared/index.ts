@@ -211,6 +211,19 @@ export {
   USAGE_EXAMPLES
 } from './utils';
 
+// 交易相關工具函數 - 新增的共用邏輯
+export {
+  TransactionValidator
+} from './utils/transactionValidation';
+
+export {
+  TransactionDataConverter
+} from './utils/transactionDataConverter';
+
+export {
+  TransactionStatusManager
+} from './utils/transactionStatus';
+
 // 顏色工具函數
 export {
   hexToRgb,

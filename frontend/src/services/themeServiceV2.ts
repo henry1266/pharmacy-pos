@@ -7,7 +7,7 @@ import {
   UserTheme,
   DEFAULT_THEME_COLORS,
   EnhancedGeneratedPalette
-} from '@pharmacy-pos/shared/types/theme';
+} from '@pharmacy-pos/shared';
 import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 import {
   generateThemePalette,

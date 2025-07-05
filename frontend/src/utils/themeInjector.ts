@@ -3,7 +3,7 @@
  * 將 Material 3 主題顏色注入到 CSS 變數中
  */
 
-import { UserTheme } from '@pharmacy-pos/shared/types/theme';
+import { UserTheme } from '@pharmacy-pos/shared';
 
 /**
  * 從 hex 顏色提取 RGB 分量

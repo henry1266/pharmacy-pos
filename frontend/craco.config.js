@@ -3,6 +3,11 @@ const path = require('path');
 module.exports = {
   webpack: {
     configure: (webpackConfig) => {
+      // 禁用 ModuleScopePlugin 以允許匯入 src 目錄外的檔案
+      webpackConfig.resolve.plugins = webpackConfig.resolve.plugins.filter(
+        plugin => plugin.constructor.name !== 'ModuleScopePlugin'
+      );
+
       // 配置模組解析
       webpackConfig.resolve = {
         ...webpackConfig.resolve,
@@ -14,6 +19,7 @@ module.exports = {
         alias: {
           ...webpackConfig.resolve.alias,
           '@': path.resolve(__dirname, 'src'),
+          '@pharmacy-pos/shared': path.resolve(__dirname, '../shared')
         }
       };
 

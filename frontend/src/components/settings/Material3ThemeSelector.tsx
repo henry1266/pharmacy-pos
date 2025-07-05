@@ -32,7 +32,7 @@ import {
 } from '@mui/icons-material';
 
 import { themeServiceV2 } from '../../services/themeServiceV2';
-import { EnhancedGeneratedPalette, UserTheme } from '@pharmacy-pos/shared/types/theme';
+import { EnhancedGeneratedPalette, UserTheme } from '@pharmacy-pos/shared';
 import { Material3SchemeType } from '@pharmacy-pos/shared/utils';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemePreview } from './ThemePreview';
