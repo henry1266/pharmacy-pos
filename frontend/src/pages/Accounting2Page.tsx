@@ -59,6 +59,19 @@ interface TransactionGroup {
   status?: 'draft' | 'confirmed' | 'cancelled'; // 添加狀態欄位
   createdAt: string;
   updatedAt: string;
+  // API 回應可能包含巢狀的 transactionGroup 結構
+  transactionGroup?: {
+    _id: string;
+    description: string;
+    transactionDate: string;
+    organizationId?: string;
+    invoiceNo?: string;
+    receiptUrl?: string;
+    totalAmount: number;
+    status?: 'draft' | 'confirmed' | 'cancelled';
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 interface AccountingEntry {
@@ -179,6 +192,11 @@ export const Accounting2Page: React.FC = () => {
         if (result.success && result.data) {
           const transaction = result.data;
           console.log('✅ 直接 API 獲取交易成功:', transaction);
+          console.log('🔍 API 回應的原始 transactionDate:', {
+            value: transaction.transactionGroup?.transactionDate || transaction.transactionDate,
+            type: typeof (transaction.transactionGroup?.transactionDate || transaction.transactionDate),
+            isValidDate: !isNaN(new Date(transaction.transactionGroup?.transactionDate || transaction.transactionDate).getTime())
+          });
           
           if (isCopyMode) {
             console.log('📋 透過 API 自動打開複製對話框:', transaction);
@@ -390,33 +408,78 @@ export const Accounting2Page: React.FC = () => {
                 editingTransaction: !!editingTransaction,
                 copyingTransaction: !!copyingTransaction,
                 isCopyModeParam: !!copyingTransaction,
-                editingTransactionStatus: editingTransaction?.status
+                editingTransactionStatus: editingTransaction?.status,
+                editingTransactionStructure: editingTransaction ? {
+                  hasTransactionGroup: !!editingTransaction.transactionGroup,
+                  directTransactionDate: editingTransaction.transactionDate,
+                  nestedTransactionDate: editingTransaction.transactionGroup?.transactionDate,
+                  directDescription: editingTransaction.description,
+                  nestedDescription: editingTransaction.transactionGroup?.description
+                } : null
               });
+              
+              // 安全的日期轉換函數
+              const safeDateConvert = (dateValue: any): Date => {
+                console.log('🔍 Accounting2Page safeDateConvert 輸入:', {
+                  value: dateValue,
+                  type: typeof dateValue,
+                  isString: typeof dateValue === 'string',
+                  isObject: typeof dateValue === 'object' && dateValue !== null
+                });
+                
+                if (!dateValue) {
+                  console.log('⚠️ 日期值為空，使用當前日期');
+                  return new Date();
+                }
+                
+                try {
+                  // 處理 MongoDB 的 {$date: "..."} 格式
+                  if (typeof dateValue === 'object' && dateValue.$date) {
+                    console.log('🔍 處理 MongoDB $date 格式:', dateValue.$date);
+                    const converted = new Date(dateValue.$date);
+                    const isValid = !isNaN(converted.getTime());
+                    console.log('✅ MongoDB 格式轉換結果:', { converted, isValid });
+                    return isValid ? converted : new Date();
+                  }
+                  
+                  // 處理一般格式
+                  const converted = new Date(dateValue);
+                  const isValid = !isNaN(converted.getTime());
+                  console.log('✅ 一般格式轉換結果:', { converted, isValid });
+                  return isValid ? converted : new Date();
+                } catch (error) {
+                  console.error('❌ 日期轉換失敗:', error);
+                  return new Date();
+                }
+              };
+              
               return editingTransaction ? {
-              description: editingTransaction.description,
-              transactionDate: new Date(editingTransaction.transactionDate),
-              organizationId: editingTransaction.organizationId,
-              receiptUrl: editingTransaction.receiptUrl || '',
-              invoiceNo: editingTransaction.invoiceNo || '',
-              entries: Array.isArray(editingTransaction.entries) ? editingTransaction.entries.map(entry => ({
-                accountId: entry.accountId || '',
-                debitAmount: entry.debitAmount || 0,
-                creditAmount: entry.creditAmount || 0,
-                description: entry.description || ''
-              })) : []
-            } : copyingTransaction ? {
-              description: '', // 複製時清空描述，讓用戶輸入新的摘要
-              transactionDate: new Date(), // 複製時使用今天的日期
-              organizationId: copyingTransaction.organizationId,
-              receiptUrl: '', // 複製時清空憑證 URL
-              invoiceNo: '', // 複製時清空發票號碼
-              entries: Array.isArray(copyingTransaction.entries) ? copyingTransaction.entries.map(entry => ({
-                accountId: entry.accountId || '',
-                debitAmount: entry.debitAmount || 0,
-                creditAmount: entry.creditAmount || 0,
-                description: entry.description || ''
-              })) : []
-            } : undefined;
+                description: editingTransaction.transactionGroup?.description || editingTransaction.description,
+                transactionDate: safeDateConvert(
+                  editingTransaction.transactionGroup?.transactionDate || editingTransaction.transactionDate
+                ),
+                organizationId: editingTransaction.transactionGroup?.organizationId || editingTransaction.organizationId,
+                receiptUrl: editingTransaction.transactionGroup?.receiptUrl || editingTransaction.receiptUrl || '',
+                invoiceNo: editingTransaction.transactionGroup?.invoiceNo || editingTransaction.invoiceNo || '',
+                entries: Array.isArray(editingTransaction.entries) ? editingTransaction.entries.map(entry => ({
+                  accountId: entry.accountId || '',
+                  debitAmount: entry.debitAmount || 0,
+                  creditAmount: entry.creditAmount || 0,
+                  description: entry.description || ''
+                })) : []
+              } : copyingTransaction ? {
+                description: '', // 複製時清空描述，讓用戶輸入新的摘要
+                transactionDate: new Date(), // 複製時使用今天的日期
+                organizationId: copyingTransaction.transactionGroup?.organizationId || copyingTransaction.organizationId,
+                receiptUrl: '', // 複製時清空憑證 URL
+                invoiceNo: '', // 複製時清空發票號碼
+                entries: Array.isArray(copyingTransaction.entries) ? copyingTransaction.entries.map(entry => ({
+                  accountId: entry.accountId || '',
+                  debitAmount: entry.debitAmount || 0,
+                  creditAmount: entry.creditAmount || 0,
+                  description: entry.description || ''
+                })) : []
+              } : undefined;
             })()}
             onSubmit={handleFormSubmit}
             onCancel={handleCloseDialog}

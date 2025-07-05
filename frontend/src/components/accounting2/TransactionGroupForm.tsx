@@ -84,29 +84,106 @@ export interface AccountingEntryFormData {
 
 // 使用 shared 的資料轉換工具
 const convertBackendDataToFormData = (backendData: any): Partial<TransactionGroupFormData> => {
-  if (!backendData) return {};
+  if (!backendData) {
+    console.warn('⚠️ convertBackendDataToFormData: 收到空的後端資料');
+    return {};
+  }
   
-  console.log('🔍 convertBackendDataToFormData - 原始資料:', backendData);
+  console.log('🔍 convertBackendDataToFormData - 原始資料:', {
+    hasData: !!backendData,
+    description: backendData.description,
+    transactionDate: backendData.transactionDate,
+    organizationId: backendData.organizationId,
+    hasTransactionGroup: !!backendData.transactionGroup,
+    hasEntries: !!backendData.entries,
+    dataKeys: Object.keys(backendData)
+  });
   
   try {
     // 使用 shared 的轉換工具
     const standardData = TransactionDataConverter.convertBackendToStandard(backendData);
-    console.log('✅ 轉換後的標準資料:', standardData);
+    console.log('✅ 轉換後的標準資料:', {
+      hasStandardData: !!standardData,
+      description: standardData?.description,
+      transactionDate: standardData?.transactionDate,
+      organizationId: standardData?.organizationId,
+      entriesCount: standardData?.entries?.length || 0,
+      standardDataKeys: standardData ? Object.keys(standardData) : []
+    });
     
-    return {
-      description: standardData.description,
-      transactionDate: standardData.transactionDate,
-      organizationId: standardData.organizationId,
+    // 檢查轉換結果是否有效
+    if (!standardData || Object.keys(standardData).length === 0) {
+      console.error('❌ shared 轉換工具回傳空結果');
+      throw new Error('轉換結果為空');
+    }
+    
+    // 確保所有必要欄位都有預設值
+    const result = {
+      description: standardData.description || '',
+      transactionDate: standardData.transactionDate || new Date(),
+      organizationId: standardData.organizationId || undefined,
       receiptUrl: standardData.receiptUrl || '',
       invoiceNo: standardData.invoiceNo || '',
-      entries: standardData.entries || [],
-      linkedTransactionIds: standardData.linkedTransactionIds,
-      sourceTransactionId: standardData.sourceTransactionId,
+      entries: Array.isArray(standardData.entries) ? standardData.entries : [],
+      linkedTransactionIds: standardData.linkedTransactionIds || undefined,
+      sourceTransactionId: standardData.sourceTransactionId || undefined,
       fundingType: standardData.fundingType || 'original'
     };
+    
+    console.log('🎯 最終表單資料:', {
+      description: result.description,
+      transactionDate: result.transactionDate,
+      organizationId: result.organizationId,
+      entriesCount: result.entries.length,
+      fundingType: result.fundingType,
+      hasDescription: !!result.description,
+      hasValidDate: result.transactionDate instanceof Date && !isNaN(result.transactionDate.getTime())
+    });
+    
+    // 最終驗證
+    if (!result.description && !result.transactionDate) {
+      console.error('❌ 最終結果缺少必要欄位');
+      throw new Error('轉換結果缺少必要欄位');
+    }
+    
+    return result;
   } catch (error) {
-    console.error('❌ 資料轉換失敗:', error);
-    return {};
+    console.error('❌ 資料轉換失敗:', error, backendData);
+    
+    // 嘗試直接從原始資料提取
+    console.log('🔄 嘗試直接提取資料...');
+    
+    // 安全的日期轉換函數
+    const safeDateConvert = (dateValue: any): Date => {
+      if (!dateValue) return new Date();
+      try {
+        if (typeof dateValue === 'object' && dateValue.$date) {
+          const converted = new Date(dateValue.$date);
+          return isNaN(converted.getTime()) ? new Date() : converted;
+        }
+        const converted = new Date(dateValue);
+        return isNaN(converted.getTime()) ? new Date() : converted;
+      } catch {
+        return new Date();
+      }
+    };
+    
+    const fallbackResult = {
+      description: backendData.description || backendData.transactionGroup?.description || '',
+      transactionDate: safeDateConvert(
+        backendData.transactionDate || backendData.transactionGroup?.transactionDate
+      ),
+      organizationId: backendData.organizationId || backendData.transactionGroup?.organizationId || undefined,
+      receiptUrl: backendData.receiptUrl || backendData.transactionGroup?.receiptUrl || '',
+      invoiceNo: backendData.invoiceNo || backendData.transactionGroup?.invoiceNo || '',
+      entries: [],
+      linkedTransactionIds: undefined,
+      sourceTransactionId: undefined,
+      fundingType: 'original' as const
+    };
+    
+    console.log('🆘 fallback 結果:', fallbackResult);
+    return fallbackResult;
   }
 };
 
@@ -159,32 +236,91 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
 
   // 表單狀態
   const [formData, setFormData] = useState<TransactionGroupFormData>(() => {
+    console.log('🏗️ 初始化 formData state:', {
+      hasInitialData: !!initialData,
+      isCopyMode,
+      defaultAccountId,
+      defaultOrganizationId
+    });
+    
     // 如果有初始資料，使用轉換後的資料初始化
-    if (initialData) {
-      const convertedData = convertBackendDataToFormData(initialData);
-      const entries = convertedData.entries && convertedData.entries.length >= 2
-        ? convertedData.entries
-        : createDefaultEntries(defaultAccountId);
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('🔄 使用 initialData 初始化:', initialData);
       
-      const description = isCopyMode ? '' : (convertedData.description || '');
-      console.log('🔍 初始狀態設定描述:', { isCopyMode, originalDescription: convertedData.description, finalDescription: description });
-      
-      return {
-        description,
-        transactionDate: convertedData.transactionDate || new Date(),
-        organizationId: convertedData.organizationId,
-        receiptUrl: convertedData.receiptUrl || '',
-        invoiceNo: convertedData.invoiceNo || '',
-        attachments: [],
-        entries,
-        // 資金來源追蹤欄位 - 複製模式下清空
-        linkedTransactionIds: isCopyMode ? undefined : convertedData.linkedTransactionIds,
-        sourceTransactionId: isCopyMode ? undefined : convertedData.sourceTransactionId,
-        fundingType: isCopyMode ? 'original' : (convertedData.fundingType || 'original')
-      };
+      try {
+        const convertedData = convertBackendDataToFormData(initialData);
+        console.log('✅ 初始狀態轉換結果:', convertedData);
+        
+        // 驗證轉換結果
+        if (!convertedData || Object.keys(convertedData).length === 0) {
+          console.warn('⚠️ 轉換結果為空，使用預設值');
+          return {
+            description: '',
+            transactionDate: new Date(),
+            organizationId: defaultOrganizationId,
+            receiptUrl: '',
+            invoiceNo: '',
+            attachments: [],
+            entries: createDefaultEntries(defaultAccountId)
+          };
+        }
+        
+        const entries = convertedData.entries && Array.isArray(convertedData.entries) && convertedData.entries.length >= 2
+          ? convertedData.entries
+          : createDefaultEntries(defaultAccountId);
+        
+        const description = isCopyMode ? '' : (convertedData.description || '');
+        const transactionDate = convertedData.transactionDate || new Date();
+        
+        console.log('🔍 初始狀態設定:', {
+          isCopyMode,
+          originalDescription: convertedData.description,
+          finalDescription: description,
+          transactionDate: transactionDate,
+          organizationId: convertedData.organizationId,
+          entriesCount: entries.length
+        });
+        
+        const initialFormData: TransactionGroupFormData = {
+          description,
+          transactionDate,
+          organizationId: convertedData.organizationId,
+          receiptUrl: convertedData.receiptUrl || '',
+          invoiceNo: convertedData.invoiceNo || '',
+          attachments: [],
+          entries,
+          // 資金來源追蹤欄位 - 複製模式下清空
+          linkedTransactionIds: isCopyMode ? undefined : convertedData.linkedTransactionIds,
+          sourceTransactionId: isCopyMode ? undefined : convertedData.sourceTransactionId,
+          fundingType: isCopyMode ? 'original' : (convertedData.fundingType || 'original')
+        };
+        
+        console.log('🎯 初始 formData 設定完成:', {
+          description: initialFormData.description,
+          transactionDate: initialFormData.transactionDate,
+          organizationId: initialFormData.organizationId,
+          entriesCount: initialFormData.entries.length
+        });
+        
+        return initialFormData;
+        
+      } catch (error) {
+        console.error('❌ 初始狀態轉換失敗:', error);
+        // 回傳安全的預設值
+        return {
+          description: '',
+          transactionDate: new Date(),
+          organizationId: defaultOrganizationId,
+          receiptUrl: '',
+          invoiceNo: '',
+          attachments: [],
+          entries: createDefaultEntries(defaultAccountId)
+        };
+      }
     }
     
     // 預設狀態
+    console.log('📝 使用預設狀態初始化');
     return {
       description: '',
       transactionDate: new Date(),
@@ -219,46 +355,93 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     console.log('🔄 useEffect 觸發 - initialData 變化:', {
       hasInitialData: !!initialData,
       isCopyMode,
+      initialDataKeys: initialData ? Object.keys(initialData) : [],
       initialDataDescription: initialData?.description,
+      initialDataTransactionDate: initialData?.transactionDate,
       timestamp: new Date().toISOString()
     });
     
-    if (initialData) {
-      console.log('🔄 初始化表單資料:', initialData, '複製模式:', isCopyMode);
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('🔄 開始初始化表單資料:', {
+        initialData,
+        isCopyMode,
+        defaultAccountId
+      });
       
-      // 使用轉換函數處理後端資料
-      const convertedData = convertBackendDataToFormData(initialData);
-      console.log('✅ 轉換後的表單資料:', convertedData);
-      
-      // 如果沒有分錄或分錄少於2筆，補充預設分錄
-      const entries = convertedData.entries && convertedData.entries.length >= 2
-        ? convertedData.entries
-        : createDefaultEntries(defaultAccountId);
-      
-      // 完全重置表單資料，確保複製模式下能正常編輯
-      const description = isCopyMode ? '' : (convertedData.description || '');
-      console.log('🔍 設定描述:', { isCopyMode, originalDescription: convertedData.description, finalDescription: description });
-      
-      const newFormData = {
-        description,
-        transactionDate: convertedData.transactionDate || new Date(),
-        organizationId: convertedData.organizationId,
-        receiptUrl: convertedData.receiptUrl || '',
-        invoiceNo: convertedData.invoiceNo || '',
-        attachments: [],
-        entries,
-        // 資金來源追蹤欄位 - 複製模式下清空
-        linkedTransactionIds: isCopyMode ? undefined : convertedData.linkedTransactionIds,
-        sourceTransactionId: isCopyMode ? undefined : convertedData.sourceTransactionId,
-        fundingType: isCopyMode ? 'original' : (convertedData.fundingType || 'original')
-      };
-      
-      console.log('🔄 即將設定新的 formData:', newFormData);
-      setFormData(newFormData);
-      
-      // 設定資金追蹤開關狀態
-      const hasLinkedTransactions = !isCopyMode && convertedData.linkedTransactionIds && convertedData.linkedTransactionIds.length > 0;
-      setEnableFundingTracking(hasLinkedTransactions);
+      try {
+        // 使用轉換函數處理後端資料
+        const convertedData = convertBackendDataToFormData(initialData);
+        console.log('✅ 轉換後的表單資料:', convertedData);
+        
+        // 驗證轉換結果
+        if (!convertedData || Object.keys(convertedData).length === 0) {
+          console.error('❌ 轉換結果為空，使用預設值');
+          return;
+        }
+        
+        // 如果沒有分錄或分錄少於2筆，補充預設分錄
+        const entries = convertedData.entries && Array.isArray(convertedData.entries) && convertedData.entries.length >= 2
+          ? convertedData.entries
+          : createDefaultEntries(defaultAccountId);
+        
+        // 完全重置表單資料，確保複製模式下能正常編輯
+        const description = isCopyMode ? '' : (convertedData.description || '');
+        const transactionDate = convertedData.transactionDate || new Date();
+        
+        console.log('🔍 準備設定表單資料:', {
+          isCopyMode,
+          originalDescription: convertedData.description,
+          finalDescription: description,
+          transactionDate: transactionDate,
+          organizationId: convertedData.organizationId,
+          entriesCount: entries.length
+        });
+        
+        const newFormData: TransactionGroupFormData = {
+          description,
+          transactionDate,
+          organizationId: convertedData.organizationId,
+          receiptUrl: convertedData.receiptUrl || '',
+          invoiceNo: convertedData.invoiceNo || '',
+          attachments: [],
+          entries,
+          // 資金來源追蹤欄位 - 複製模式下清空
+          linkedTransactionIds: isCopyMode ? undefined : convertedData.linkedTransactionIds,
+          sourceTransactionId: isCopyMode ? undefined : convertedData.sourceTransactionId,
+          fundingType: isCopyMode ? 'original' : (convertedData.fundingType || 'original')
+        };
+        
+        console.log('🎯 即將設定新的 formData:', {
+          description: newFormData.description,
+          transactionDate: newFormData.transactionDate,
+          organizationId: newFormData.organizationId,
+          entriesCount: newFormData.entries.length,
+          fundingType: newFormData.fundingType
+        });
+        
+        setFormData(newFormData);
+        
+        // 設定資金追蹤開關狀態
+        const hasLinkedTransactions = !isCopyMode && convertedData.linkedTransactionIds && convertedData.linkedTransactionIds.length > 0;
+        setEnableFundingTracking(hasLinkedTransactions);
+        
+        console.log('✅ 表單資料設定完成');
+        
+      } catch (error) {
+        console.error('❌ 初始化表單資料失敗:', error);
+        // 設定安全的預設值
+        setFormData({
+          description: '',
+          transactionDate: new Date(),
+          organizationId: undefined,
+          receiptUrl: '',
+          invoiceNo: '',
+          attachments: [],
+          entries: createDefaultEntries(defaultAccountId)
+        });
+      }
+    } else {
+      console.log('⚠️ 沒有 initialData 或資料為空，跳過初始化');
     }
   }, [initialData, isCopyMode, defaultAccountId]);
 
