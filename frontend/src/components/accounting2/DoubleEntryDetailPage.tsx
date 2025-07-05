@@ -13,7 +13,12 @@ import {
   CardContent,
   Divider,
   Stack,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert
 } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
 import {
@@ -24,14 +29,17 @@ import {
   Receipt,
   Edit,
   ArrowForward,
-  ContentCopy
+  ContentCopy,
+  Add,
+  Delete,
+  Warning
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
-import { fetchAccounts2 } from '../../redux/actions';
+import { fetchAccounts2, deleteTransactionGroup2 } from '../../redux/actions';
 
 interface DoubleEntryDetailPageProps {
   organizationId?: string;
@@ -59,6 +67,9 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     balance: 0,
     recordCount: 0
   });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [selectedEntryForDelete, setSelectedEntryForDelete] = useState<AccountingEntryDetail | null>(null);
 
   // 載入分錄資料函數
   const loadEntries = async () => {
@@ -195,6 +206,55 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     } catch (error) {
       console.error('❌ 複製交易失敗:', error);
     }
+  };
+
+  // 處理新增交易（預設帶入當前科目和機構）
+  const handleCreateNewTransaction = () => {
+    // 導航到新增交易頁面，並在 URL 中加入返回參數、預設科目和機構
+    const returnUrl = `/accounting2/account/${accountId}`;
+    const params = new URLSearchParams({
+      returnTo: returnUrl,
+      defaultAccountId: accountId || '',
+    });
+    
+    // 如果有機構ID，也加入參數
+    if (organizationId) {
+      params.set('defaultOrganizationId', organizationId);
+    }
+    
+    navigate(`/accounting2?${params.toString()}`);
+  };
+
+  // 處理刪除分錄明細
+  const handleDeleteEntry = async () => {
+    if (!selectedEntryForDelete) return;
+    
+    try {
+      setDeleting(true);
+      await dispatch(deleteTransactionGroup2(selectedEntryForDelete.transactionGroupId, organizationId) as any);
+      
+      // 刪除成功，重新載入分錄資料
+      await loadEntries();
+    } catch (error) {
+      console.error('❌ 刪除分錄明細失敗:', error);
+      // 錯誤處理會由 Redux action 處理
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setSelectedEntryForDelete(null);
+    }
+  };
+
+  // 開啟刪除確認對話框
+  const handleOpenDeleteDialog = (entry: AccountingEntryDetail) => {
+    setSelectedEntryForDelete(entry);
+    setDeleteDialogOpen(true);
+  };
+
+  // 關閉刪除確認對話框
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setSelectedEntryForDelete(null);
   };
 
   // 格式化交易狀態
@@ -338,6 +398,15 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
       <Paper sx={{ mb: 3 }}>
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">分錄明細（含交易流向）</Typography>
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            startIcon={<Add />}
+            onClick={handleCreateNewTransaction}
+          >
+            增加明細
+          </Button>
         </Box>
         <Divider />
         
@@ -498,11 +567,11 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
               {
                 field: 'actions',
                 headerName: '操作',
-                width: 100,
+                width: 140,
                 sortable: false,
                 filterable: false,
                 renderCell: (params: GridRenderCellParams) => (
-                  <Stack direction="row" spacing={1}>
+                  <Stack direction="row" spacing={0.5}>
                     <IconButton
                       size="small"
                       onClick={() => handleEditTransaction(params.row.transactionGroupId)}
@@ -516,6 +585,14 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
                       title="複製交易"
                     >
                       <ContentCopy />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleOpenDeleteDialog(params.row)}
+                      title="刪除明細"
+                    >
+                      <Delete />
                     </IconButton>
                   </Stack>
                 )
@@ -575,6 +652,87 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
           />
         </Box>
       </Paper>
+
+      {/* 刪除確認對話框 */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Warning color="error" />
+            <Typography variant="h6">確認刪除分錄明細</Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              <strong>警告：此操作無法復原！</strong>
+            </Typography>
+          </Alert>
+          
+          <Typography variant="body1" gutterBottom>
+            您確定要刪除這筆分錄明細嗎？
+          </Typography>
+          
+          {selectedEntryForDelete && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                <strong>交易編號：</strong>{selectedEntryForDelete.groupNumber}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>交易日期：</strong>{new Date(selectedEntryForDelete.transactionDate).toLocaleDateString('zh-TW')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>描述：</strong>{selectedEntryForDelete.description}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>金額：</strong>{formatCurrency(selectedEntryForDelete.debitAmount || selectedEntryForDelete.creditAmount || 0)}
+              </Typography>
+            </Box>
+          )}
+          
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            刪除此分錄明細將會：
+          </Typography>
+          <Box component="ul" sx={{ mt: 1, pl: 2 }}>
+            <li>
+              <Typography variant="body2" color="text.secondary">
+                永久刪除整個交易群組（包含所有相關分錄）
+              </Typography>
+            </li>
+            <li>
+              <Typography variant="body2" color="text.secondary">
+                影響相關科目的餘額計算
+              </Typography>
+            </li>
+            <li>
+              <Typography variant="body2" color="text.secondary">
+                更新統計數據和報表
+              </Typography>
+            </li>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseDeleteDialog}
+            disabled={deleting}
+          >
+            取消
+          </Button>
+          <Button
+            onClick={handleDeleteEntry}
+            color="error"
+            variant="contained"
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={16} /> : <Delete />}
+          >
+            {deleting ? '刪除中...' : '確認刪除'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

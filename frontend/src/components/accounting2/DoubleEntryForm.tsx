@@ -48,6 +48,7 @@ interface DoubleEntryFormProps {
   entries: AccountingEntryFormData[];
   onChange: (entries: AccountingEntryFormData[]) => void;
   organizationId?: string;
+  isCopyMode?: boolean;
 }
 
 interface AccountOption {
@@ -64,7 +65,8 @@ interface AccountOption {
 export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
   entries,
   onChange,
-  organizationId
+  organizationId,
+  isCopyMode = false
 }) => {
   const { accounts } = useAppSelector(state => state.account2 || { accounts: [] });
   const { organizations } = useAppSelector(state => state.organization || { organizations: [] });
@@ -173,7 +175,7 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
     return options;
   }, [availableAccounts, organizations, organizationId]);
 
-  // 確保至少有兩個空分錄
+  // 確保至少有兩個分錄，但不覆蓋現有的預設值
   React.useEffect(() => {
     if (entries.length === 0) {
       const defaultEntries: AccountingEntryFormData[] = [
@@ -193,6 +195,26 @@ export const DoubleEntryForm: React.FC<DoubleEntryFormProps> = ({
       onChange(defaultEntries);
     }
   }, [entries.length, onChange]);
+
+  // 處理複製模式下的分錄描述清空
+  React.useEffect(() => {
+    if (isCopyMode && entries.length > 0) {
+      console.log('🔄 DoubleEntryForm - 複製模式，清空分錄描述:', { isCopyMode, entriesCount: entries.length });
+      
+      // 檢查是否有分錄需要清空描述
+      const needsClear = entries.some(entry => entry.description && entry.description.trim() !== '');
+      
+      if (needsClear) {
+        const clearedEntries = entries.map(entry => ({
+          ...entry,
+          description: ''
+        }));
+        
+        console.log('✅ DoubleEntryForm - 清空分錄描述完成');
+        onChange(clearedEntries);
+      }
+    }
+  }, [isCopyMode, entries, onChange]);
 
   // 計算借貸總額
   const totalDebit = entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);

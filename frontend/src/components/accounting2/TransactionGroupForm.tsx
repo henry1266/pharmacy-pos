@@ -71,7 +71,8 @@ const convertBackendDataToFormData = (backendData: any): Partial<TransactionGrou
   if (!backendData) return {};
   
   return {
-    description: backendData.description || '',
+    // 保持原始的 description 值，不要自動設定預設值
+    description: backendData.description,
     transactionDate: backendData.transactionDate ? new Date(backendData.transactionDate) : new Date(),
     organizationId: backendData.organizationId || undefined,
     receiptUrl: backendData.receiptUrl || '',
@@ -88,6 +89,9 @@ interface TransactionGroupFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   mode?: 'create' | 'edit';
+  defaultAccountId?: string;
+  defaultOrganizationId?: string;
+  isCopyMode?: boolean;
 }
 
 export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
@@ -95,16 +99,19 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
-  mode = 'create'
+  mode = 'create',
+  defaultAccountId,
+  defaultOrganizationId,
+  isCopyMode = false
 }) => {
   const dispatch = useAppDispatch();
   const { organizations } = useAppSelector(state => state.organization);
   const { user } = useAppSelector(state => state.auth);
 
   // 建立預設的兩個空分錄
-  const createDefaultEntries = (): AccountingEntryFormData[] => [
+  const createDefaultEntries = (presetAccountId?: string): AccountingEntryFormData[] => [
     {
-      accountId: '',
+      accountId: presetAccountId || '',
       debitAmount: 0,
       creditAmount: 0,
       description: ''
@@ -124,10 +131,13 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
       const convertedData = convertBackendDataToFormData(initialData);
       const entries = convertedData.entries && convertedData.entries.length >= 2
         ? convertedData.entries
-        : createDefaultEntries();
+        : createDefaultEntries(defaultAccountId);
+      
+      const description = isCopyMode ? '' : (convertedData.description || '');
+      console.log('🔍 初始狀態設定描述:', { isCopyMode, originalDescription: convertedData.description, finalDescription: description });
       
       return {
-        description: convertedData.description || '',
+        description,
         transactionDate: convertedData.transactionDate || new Date(),
         organizationId: convertedData.organizationId,
         receiptUrl: convertedData.receiptUrl || '',
@@ -141,11 +151,11 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
     return {
       description: '',
       transactionDate: new Date(),
-      organizationId: undefined,
+      organizationId: defaultOrganizationId,
       receiptUrl: '',
       invoiceNo: '',
       attachments: [],
-      entries: createDefaultEntries()
+      entries: createDefaultEntries(defaultAccountId)
     };
   });
 
@@ -162,8 +172,15 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
 
   // 初始化表單資料
   useEffect(() => {
+    console.log('🔄 useEffect 觸發 - initialData 變化:', {
+      hasInitialData: !!initialData,
+      isCopyMode,
+      initialDataDescription: initialData?.description,
+      timestamp: new Date().toISOString()
+    });
+    
     if (initialData) {
-      console.log('🔄 初始化表單資料:', initialData);
+      console.log('🔄 初始化表單資料:', initialData, '複製模式:', isCopyMode);
       
       // 使用轉換函數處理後端資料
       const convertedData = convertBackendDataToFormData(initialData);
@@ -172,20 +189,46 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
       // 如果沒有分錄或分錄少於2筆，補充預設分錄
       const entries = convertedData.entries && convertedData.entries.length >= 2
         ? convertedData.entries
-        : createDefaultEntries();
+        : createDefaultEntries(defaultAccountId);
       
       // 完全重置表單資料，確保複製模式下能正常編輯
-      setFormData({
-        description: convertedData.description || '',
+      const description = isCopyMode ? '' : (convertedData.description || '');
+      console.log('🔍 設定描述:', { isCopyMode, originalDescription: convertedData.description, finalDescription: description });
+      
+      const newFormData = {
+        description,
         transactionDate: convertedData.transactionDate || new Date(),
         organizationId: convertedData.organizationId,
         receiptUrl: convertedData.receiptUrl || '',
         invoiceNo: convertedData.invoiceNo || '',
         attachments: [],
         entries
-      });
+      };
+      
+      console.log('🔄 即將設定新的 formData:', newFormData);
+      setFormData(newFormData);
     }
-  }, [initialData]);
+  }, [initialData, isCopyMode, defaultAccountId]);
+
+  // 監控 formData.description 的變化
+  useEffect(() => {
+    console.log('🔍 formData.description 變化:', {
+      description: formData.description,
+      isCopyMode,
+      timestamp: new Date().toISOString()
+    });
+  }, [formData.description, isCopyMode]);
+
+  // 當 defaultOrganizationId 變化時，重新設置預設機構
+  useEffect(() => {
+    if (defaultOrganizationId && mode === 'create' && !initialData) {
+      console.log('🔄 TransactionGroupForm - 重新設置預設機構，defaultOrganizationId:', defaultOrganizationId);
+      setFormData(prev => ({
+        ...prev,
+        organizationId: defaultOrganizationId
+      }));
+    }
+  }, [defaultOrganizationId, mode, initialData]);
 
   // 表單驗證
   const validateForm = (): boolean => {
@@ -457,14 +500,28 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               {/* 交易描述 */}
               <Grid item xs={12} md={6}>
                 <TextField
+                  key={`description-${isCopyMode ? 'copy' : 'normal'}-${formData.description}-${Date.now()}`}
                   fullWidth
                   label="交易描述"
-                  value={formData.description}
-                  onChange={(e) => handleBasicInfoChange('description', e.target.value)}
+                  value={isCopyMode && formData.description === '' ? '' : formData.description}
+                  onChange={(e) => {
+                    console.log('🔍 描述欄位變更:', {
+                      oldValue: formData.description,
+                      newValue: e.target.value,
+                      isCopyMode
+                    });
+                    handleBasicInfoChange('description', e.target.value);
+                  }}
                   error={!!errors.description}
                   helperText={errors.description}
                   required
-                  placeholder="例如：購買辦公用品"
+                  placeholder={isCopyMode ? "複製模式：請輸入新的交易描述" : "例如：購買辦公用品"}
+                  autoComplete="off"
+                  inputProps={{
+                    autoComplete: 'off',
+                    'data-lpignore': 'true',
+                    value: isCopyMode && formData.description === '' ? '' : formData.description
+                  }}
                 />
               </Grid>
 
@@ -590,6 +647,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               entries={formData.entries}
               onChange={handleEntriesChange}
               organizationId={formData.organizationId}
+              isCopyMode={isCopyMode}
             />
           </CardContent>
         </Card>

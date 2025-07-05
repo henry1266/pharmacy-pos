@@ -87,6 +87,16 @@ export const Accounting2Page: React.FC = () => {
   const { transactionId } = useParams<{ transactionId?: string }>();
   const isCopyMode = window.location.pathname.includes('/copy');
   const returnTo = searchParams.get('returnTo');
+  const defaultAccountId = searchParams.get('defaultAccountId');
+  const defaultOrganizationId = searchParams.get('defaultOrganizationId');
+  console.log('🔍 Accounting2Page URL 參數檢查:', {
+    searchParams: Object.fromEntries(searchParams.entries()),
+    defaultAccountId,
+    defaultOrganizationId,
+    returnTo,
+    isCopyMode,
+    pathname: window.location.pathname
+  });
   
   // Redux state
   const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroup2);
@@ -144,6 +154,16 @@ export const Accounting2Page: React.FC = () => {
       }
     }
   }, [transactionId, transactionGroups, isCopyMode]);
+
+  // 處理從科目詳情頁面的「增加明細」按鈕進入新增模式
+  useEffect(() => {
+    if (defaultAccountId && !transactionId && !dialogOpen) {
+      console.log('🆕 從科目詳情頁面自動打開新增交易對話框，預設科目ID:', defaultAccountId, '預設機構ID:', defaultOrganizationId);
+      setEditingTransaction(null);
+      setCopyingTransaction(null);
+      setDialogOpen(true);
+    }
+  }, [defaultAccountId, defaultOrganizationId, transactionId, dialogOpen]);
 
   // 處理新增交易
   const handleCreateNew = () => {
@@ -216,9 +236,10 @@ export const Accounting2Page: React.FC = () => {
           dispatch(fetchTransactionGroups2() as any);
         }, 100);
         
-        // 如果是複製模式且有 returnTo 參數，自動導航回原頁面
-        if (copyingTransaction && returnTo) {
-          console.log('🔄 複製成功，準備返回原頁面:', decodeURIComponent(returnTo));
+        // 處理返回邏輯：複製模式、新增模式（從科目詳情頁面進入）都需要返回
+        if (returnTo && (copyingTransaction || defaultAccountId)) {
+          const actionType = copyingTransaction ? '複製' : '新增';
+          console.log(`🔄 ${actionType}成功，準備返回原頁面:`, decodeURIComponent(returnTo));
           setTimeout(() => {
             navigate(decodeURIComponent(returnTo));
           }, 1000); // 延遲 1 秒讓用戶看到成功訊息
@@ -259,18 +280,15 @@ export const Accounting2Page: React.FC = () => {
 
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 1 }}>
       {/* 頁面標題 */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+      <Box sx={{ mb: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <AccountBalanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
           <Typography variant="h4" component="h1" fontWeight="bold">
             複式記帳系統
           </Typography>
         </Box>
-        <Typography variant="body1" color="text.secondary">
-          管理會計科目結構，查看分錄明細，建立複式記帳交易
-        </Typography>
       </Box>
 
       {/* 錯誤提示 */}
@@ -301,7 +319,16 @@ export const Accounting2Page: React.FC = () => {
         <DialogContent>
           <TransactionGroupForm
             mode={editingTransaction ? 'edit' : 'create'}
-            initialData={editingTransaction ? {
+            defaultAccountId={defaultAccountId || undefined}
+            defaultOrganizationId={defaultOrganizationId || undefined}
+            isCopyMode={!!copyingTransaction}
+            initialData={(() => {
+              console.log('🔍 準備 initialData:', {
+                editingTransaction: !!editingTransaction,
+                copyingTransaction: !!copyingTransaction,
+                isCopyModeParam: !!copyingTransaction
+              });
+              return editingTransaction ? {
               description: editingTransaction.description,
               transactionDate: new Date(editingTransaction.transactionDate),
               organizationId: editingTransaction.organizationId,
@@ -325,7 +352,8 @@ export const Accounting2Page: React.FC = () => {
                 creditAmount: entry.creditAmount || 0,
                 description: entry.description || ''
               })) : []
-            } : undefined}
+            } : undefined;
+            })()}
             onSubmit={handleFormSubmit}
             onCancel={handleCloseDialog}
           />

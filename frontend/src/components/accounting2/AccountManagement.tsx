@@ -297,14 +297,14 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
                   label={counterpartName}
                   size="small"
                   color="secondary"
-                  sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+                  sx={{ fontSize: '0.9rem', height: 24, mr: 0.5 }}
                 />
                 <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
                 <Chip
                   label={selectedAccount?.name || '當前'}
                   size="small"
                   color="primary"
-                  sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+                  sx={{ fontSize: '0.9rem', height: 24, ml: 0.5 }}
                 />
               </>
             ) : (
@@ -314,14 +314,14 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
                   label={selectedAccount?.name || '當前'}
                   size="small"
                   color="primary"
-                  sx={{ fontSize: '0.65rem', height: 20, mr: 0.5 }}
+                  sx={{ fontSize: '0.9rem', height: 24, mr: 0.5 }}
                 />
                 <ArrowForward sx={{ fontSize: 14, color: 'primary.main', mx: 0.25 }} />
                 <Chip
                   label={counterpartName}
                   size="small"
                   color="secondary"
-                  sx={{ fontSize: '0.65rem', height: 20, ml: 0.5 }}
+                  sx={{ fontSize: '0.9rem', height: 24, ml: 0.5 }}
                 />
               </>
             )}
@@ -361,7 +361,8 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
         return (
           <Typography
             color={isPositive ? 'success.main' : 'error.main'}
-            fontWeight="medium"
+            fontWeight="bold"
+            sx={{ fontSize: '0.95rem' }}
           >
             {isPositive ? '+' : '-'}{formatCurrency(amount)}
           </Typography>
@@ -382,7 +383,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
           <Typography
             color={runningTotal >= 0 ? 'success.main' : 'error.main'}
             fontWeight="bold"
-            variant="body2"
+            sx={{ fontSize: '1rem' }}
           >
             {formatCurrency(Math.abs(runningTotal))}
           </Typography>
@@ -852,7 +853,16 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
               <Typography variant="body2" sx={{ flexGrow: 1 }}>
                 {node.name}
               </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+              <Typography
+                variant="body2"
+                color="text.primary"
+                sx={{
+                  mr: 1,
+                  fontWeight: 'bold',
+                  fontSize: '0.95rem',
+                  color: calculateTotalBalance(node.account?._id || '', accounts) >= 0 ? 'success.main' : 'error.main'
+                }}
+              >
                 ${calculateTotalBalance(node.account?._id || '', accounts).toLocaleString()}
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -1071,55 +1081,26 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
   const [searchExpanded, setSearchExpanded] = useState(false);
 
   return (
-    <Box sx={{ p: 2 }}>
-      {/* 操作按鈕列 - 移到右上角 */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 1 }}>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          {onCreateNew && (
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<AddIcon />}
-              onClick={onCreateNew}
-            >
-              新增交易
-            </Button>
-          )}
-          <Button
-            variant="outlined"
-            startIcon={<SettingsIcon />}
-            onClick={() => setOpenStandardDialog(true)}
+    <Box sx={{ p: 0.5 }}>
+      {/* 搜尋按鈕 - 右上角 */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 0.25 }}>
+        <Tooltip title={searchExpanded ? "收合搜尋" : "展開搜尋"}>
+          <IconButton
+            color="primary"
+            onClick={() => setSearchExpanded(!searchExpanded)}
+            sx={{
+              backgroundColor: searchExpanded ? 'primary.50' : 'transparent',
+              '&:hover': { backgroundColor: searchExpanded ? 'primary.100' : 'action.hover' }
+            }}
           >
-            建立標準科目表
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-          >
-            新增科目
-          </Button>
-          
-          {/* 搜尋按鈕 */}
-          <Tooltip title={searchExpanded ? "收合搜尋" : "展開搜尋"}>
-            <IconButton
-              color="primary"
-              onClick={() => setSearchExpanded(!searchExpanded)}
-              sx={{
-                backgroundColor: searchExpanded ? 'primary.50' : 'transparent',
-                '&:hover': { backgroundColor: searchExpanded ? 'primary.100' : 'action.hover' },
-                ml: 1
-              }}
-            >
-              <SearchIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
+            <SearchIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       {/* 機構選擇與搜尋篩選 - 可展開收合 */}
       <Collapse in={searchExpanded} timeout="auto" unmountOnExit>
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper sx={{ p: 1.5, mb: 1 }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={3}>
               <FormControl fullWidth>
@@ -1197,7 +1178,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
       </Collapse>
 
       {/* 科目階層結構 - 左右分割佈局 */}
-      <Paper sx={{ height: '600px', overflow: 'hidden' }}>
+      <Paper sx={{ height: '650px', overflow: 'hidden' }}>
         <Box sx={{ display: 'flex', height: '100%' }}>
           {/* 左半邊：科目樹狀結構 */}
           <Box sx={{
@@ -1208,10 +1189,21 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
             flexDirection: 'column'
           }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccountTreeIcon sx={{ mr: 1 }} />
-                科目階層結構
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <AccountTreeIcon sx={{ mr: 1 }} />
+                  科目階層結構
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpenDialog()}
+                  sx={{ ml: 2 }}
+                >
+                  新增科目
+                </Button>
+              </Box>
             </Box>
             <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
               {loading ? (
@@ -1234,21 +1226,36 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
             display: 'flex',
             flexDirection: 'column'
           }}>
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                分錄明細
-                {selectedAccount && (
-                  <Typography variant="body2" color="text.secondary">
-                    {selectedAccount.code} - {selectedAccount.name}
+            <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Typography variant="h6">
+                    分錄明細
                   </Typography>
+                  {selectedAccount && (
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                      {selectedAccount.code} - {selectedAccount.name}
+                    </Typography>
+                  )}
+                </Box>
+                {onCreateNew && (
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={onCreateNew}
+                  >
+                    新增交易
+                  </Button>
                 )}
-              </Typography>
+              </Box>
             </Box>
             <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               {selectedAccount ? (
                 <>
                   {/* 統計摘要 */}
-                  <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
                     <Grid container spacing={2}>
                       <Grid item xs={3}>
                         <Box sx={{ textAlign: 'center' }}>
@@ -1261,7 +1268,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
                       <Grid item xs={3}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">借方總額</Typography>
-                          <Typography variant="h6" color="success.main">
+                          <Typography variant="h6" color="success.main" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
                             {formatCurrency(statistics.totalDebit)}
                           </Typography>
                         </Box>
@@ -1269,7 +1276,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
                       <Grid item xs={3}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">貸方總額</Typography>
-                          <Typography variant="h6" color="error.main">
+                          <Typography variant="h6" color="error.main" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
                             {formatCurrency(statistics.totalCredit)}
                           </Typography>
                         </Box>
@@ -1277,7 +1284,11 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
                       <Grid item xs={3}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">餘額</Typography>
-                          <Typography variant="h6" color={statistics.balance >= 0 ? 'success.main' : 'error.main'}>
+                          <Typography
+                            variant="h6"
+                            color={statistics.balance >= 0 ? 'success.main' : 'error.main'}
+                            sx={{ fontSize: '1.2rem', fontWeight: 'bold' }}
+                          >
                             {formatCurrency(statistics.balance)}
                           </Typography>
                         </Box>
@@ -1286,7 +1297,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
                   </Box>
 
                   {/* 分錄明細表格 */}
-                  <Box sx={{ flex: 1, p: 1 }}>
+                  <Box sx={{ flex: 1, p: 0.5 }}>
                     {entriesLoading ? (
                       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
                         <CircularProgress />
