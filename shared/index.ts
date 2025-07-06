@@ -20,6 +20,7 @@ export {
   // 內嵌分錄相關介面
   EmbeddedAccountingEntry,
   TransactionGroupWithEntries,
+  ReferencedByInfo,
   
   // 表單資料介面
   Account2FormData,

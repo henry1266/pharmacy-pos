@@ -161,10 +161,31 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
 
     console.log('📊 查詢結果數量:', transactionGroups.length, '/', total);
 
+    // 🆕 為每筆交易查詢被引用情況
+    console.log('🔗 開始查詢被引用情況...');
+    const transactionGroupsWithReferences = await Promise.all(
+      transactionGroups.map(async (group) => {
+        // 查詢引用此交易的其他交易
+        const referencedByTransactions = await TransactionGroupWithEntries.find({
+          linkedTransactionIds: group._id,
+          createdBy: userId
+        }).select('_id groupNumber description transactionDate totalAmount status').lean();
+
+        console.log(`📋 交易 ${group.groupNumber} 被 ${referencedByTransactions.length} 筆交易引用`);
+
+        return {
+          ...group.toObject(),
+          referencedByInfo: referencedByTransactions,
+          referencedByCount: referencedByTransactions.length,
+          isReferenced: referencedByTransactions.length > 0
+        };
+      })
+    );
+
+    console.log('✅ 被引用情況查詢完成');
+
     // 格式化回應資料
-    const formattedTransactionGroups = transactionGroups.map(group => {
-      const groupObj = group.toObject();
-      
+    const formattedTransactionGroups = transactionGroupsWithReferences.map(groupObj => {
       // 格式化內嵌分錄
       const formattedEntries = groupObj.entries.map((entry: any, index: number) => {
         const account = entry.accountId as any;
@@ -208,7 +229,11 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
         ...groupObj,
         entries: formattedEntries,
         isBalanced,
-        totalAmount: totalDebit // 使用借方總額作為交易總金額
+        totalAmount: totalDebit, // 使用借方總額作為交易總金額
+        // 保留被引用情況資訊
+        referencedByInfo: groupObj.referencedByInfo,
+        referencedByCount: groupObj.referencedByCount,
+        isReferenced: groupObj.isReferenced
       };
     });
 
@@ -250,7 +275,7 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     })
     .populate('entries.accountId', 'name code accountType normalBalance')
     .populate('entries.categoryId', 'name type color')
-    .populate('linkedTransactionIds', 'groupNumber description transactionDate totalAmount fundingType status');
+    .populate('linkedTransactionIds', 'groupNumber description transactionDate totalAmount fundingType status createdAt updatedAt');
 
     if (!transactionGroup) {
       res.status(404).json({
@@ -270,17 +295,112 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     
     // 如果有資金來源，格式化資金來源資訊
     if (transactionGroupObj.linkedTransactionIds && transactionGroupObj.linkedTransactionIds.length > 0) {
-      responseData.fundingSourcesInfo = transactionGroupObj.linkedTransactionIds.map((linkedTx: any) => ({
-        _id: linkedTx._id,
-        groupNumber: linkedTx.groupNumber,
-        description: linkedTx.description,
-        transactionDate: linkedTx.transactionDate,
-        totalAmount: linkedTx.totalAmount,
-        availableAmount: linkedTx.totalAmount, // 簡化處理，實際應該計算剩餘可用金額
-        fundingType: linkedTx.fundingType || '一般資金',
-        status: linkedTx.status
-      }));
+      console.log('🔍 GET /:id - 處理資金來源資訊，linkedTransactionIds:', transactionGroupObj.linkedTransactionIds);
+      console.log('🔍 GET /:id - linkedTransactionIds 型別檢查:', transactionGroupObj.linkedTransactionIds.map((item: any) => ({
+        value: item,
+        type: typeof item,
+        isPopulated: item && typeof item === 'object' && item.groupNumber !== undefined,
+        hasId: item && (item._id || item.toString)
+      })));
+      
+      responseData.fundingSourcesInfo = await Promise.all(
+        transactionGroupObj.linkedTransactionIds.map(async (linkedTx: any) => {
+          console.log('🔍 GET /:id - 處理單個資金來源:', {
+            linkedTx,
+            type: typeof linkedTx,
+            isPopulated: linkedTx && typeof linkedTx === 'object' && linkedTx.groupNumber !== undefined
+          });
+          
+          // 如果 linkedTx 是 ObjectId 字串或未 populate，需要重新查詢
+          let sourceTransaction = linkedTx;
+          if (typeof linkedTx === 'string' || (linkedTx && !linkedTx.groupNumber)) {
+            const sourceId = linkedTx._id || linkedTx;
+            console.log('🔍 GET /:id - 重新查詢資金來源交易:', sourceId);
+            sourceTransaction = await TransactionGroupWithEntries.findById(sourceId);
+            console.log('🔍 GET /:id - 查詢結果:', sourceTransaction ? {
+              _id: sourceTransaction._id,
+              groupNumber: sourceTransaction.groupNumber,
+              description: sourceTransaction.description
+            } : 'null');
+          }
+          
+          if (!sourceTransaction) {
+            console.warn('⚠️ GET /:id - 找不到資金來源交易:', linkedTx._id || linkedTx);
+            return {
+              _id: linkedTx._id || linkedTx,
+              groupNumber: 'TXN-未知',
+              description: '未知資金來源',
+              transactionDate: new Date(),
+              totalAmount: 0,
+              availableAmount: 0,
+              fundingType: '一般資金',
+              status: 'unknown'
+            };
+          }
+          
+          // 計算已使用金額
+          const usedTransactions = await TransactionGroupWithEntries.find({
+            linkedTransactionIds: sourceTransaction._id,
+            status: { $ne: 'cancelled' },
+            createdBy: userId
+          });
+          
+          const usedAmount = usedTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
+          const availableAmount = (sourceTransaction.totalAmount || 0) - usedAmount;
+          
+          console.log('✅ GET /:id - 資金來源詳情:', {
+            _id: sourceTransaction._id,
+            groupNumber: sourceTransaction.groupNumber,
+            description: sourceTransaction.description,
+            totalAmount: sourceTransaction.totalAmount,
+            usedAmount,
+            availableAmount
+          });
+          
+          return {
+            _id: sourceTransaction._id,
+            groupNumber: sourceTransaction.groupNumber,
+            description: sourceTransaction.description,
+            transactionDate: sourceTransaction.transactionDate,
+            totalAmount: sourceTransaction.totalAmount,
+            availableAmount: availableAmount,
+            fundingType: sourceTransaction.fundingType || '一般資金',
+            status: sourceTransaction.status
+          };
+        })
+      );
+      
+      console.log('🎯 GET /:id - 最終資金來源資訊:', responseData.fundingSourcesInfo);
+    } else {
+      console.log('ℹ️ GET /:id - 沒有資金來源需要處理');
+      responseData.fundingSourcesInfo = [];
     }
+
+    // 查詢被引用情況（誰引用了這筆交易作為資金來源）
+    console.log('🔍 GET /:id - 查詢被引用情況');
+    const referencedByTransactions = await TransactionGroupWithEntries.find({
+      linkedTransactionIds: transactionGroup._id,
+      createdBy: userId
+    }).sort({ transactionDate: 1, createdAt: 1 });
+
+    responseData.referencedByInfo = referencedByTransactions.map(tx => ({
+      _id: tx._id,
+      groupNumber: tx.groupNumber,
+      description: tx.description,
+      transactionDate: tx.transactionDate,
+      totalAmount: tx.totalAmount,
+      status: tx.status,
+      fundingType: tx.fundingType
+    }));
+
+    console.log('🎯 GET /:id - 被引用情況:', {
+      count: responseData.referencedByInfo.length,
+      transactions: responseData.referencedByInfo.map((tx: any) => ({
+        groupNumber: tx.groupNumber,
+        description: tx.description,
+        status: tx.status
+      }))
+    });
 
     res.json({
       success: true,
@@ -612,13 +732,77 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       id,
       updateData,
       { new: true, runValidators: true }
-    );
+    )
+    .populate('linkedTransactionIds', 'groupNumber description transactionDate totalAmount fundingType status createdAt updatedAt');
 
     console.log('✅ 交易群組更新成功:', updatedTransactionGroup?._id);
 
+    // 重新格式化資金來源資訊（與 GET /:id 路由邏輯一致）
+    let responseData: any = updatedTransactionGroup?.toObject();
+    
+    if (responseData && responseData.linkedTransactionIds && responseData.linkedTransactionIds.length > 0) {
+      console.log('🔍 更新後重新處理資金來源資訊，linkedTransactionIds:', responseData.linkedTransactionIds);
+      
+      responseData.fundingSourcesInfo = await Promise.all(
+        responseData.linkedTransactionIds.map(async (linkedTx: any) => {
+          // 如果 linkedTx 是 ObjectId 字串，需要重新查詢
+          let sourceTransaction = linkedTx;
+          if (typeof linkedTx === 'string' || !linkedTx.groupNumber) {
+            sourceTransaction = await TransactionGroupWithEntries.findById(linkedTx._id || linkedTx);
+          }
+          
+          if (!sourceTransaction) {
+            console.warn('⚠️ 找不到資金來源交易:', linkedTx._id || linkedTx);
+            return {
+              _id: linkedTx._id || linkedTx,
+              groupNumber: 'TXN-未知',
+              description: '未知資金來源',
+              transactionDate: new Date(),
+              totalAmount: 0,
+              availableAmount: 0,
+              fundingType: '一般資金',
+              status: 'unknown'
+            };
+          }
+          
+          // 計算已使用金額
+          const usedTransactions = await TransactionGroupWithEntries.find({
+            linkedTransactionIds: sourceTransaction._id,
+            status: { $ne: 'cancelled' },
+            createdBy: userId
+          });
+          
+          const usedAmount = usedTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
+          const availableAmount = (sourceTransaction.totalAmount || 0) - usedAmount;
+          
+          console.log('✅ 更新後資金來源詳情:', {
+            _id: sourceTransaction._id,
+            groupNumber: sourceTransaction.groupNumber,
+            description: sourceTransaction.description,
+            totalAmount: sourceTransaction.totalAmount,
+            usedAmount,
+            availableAmount
+          });
+          
+          return {
+            _id: sourceTransaction._id,
+            groupNumber: sourceTransaction.groupNumber,
+            description: sourceTransaction.description,
+            transactionDate: sourceTransaction.transactionDate,
+            totalAmount: sourceTransaction.totalAmount,
+            availableAmount: availableAmount,
+            fundingType: sourceTransaction.fundingType || '一般資金',
+            status: sourceTransaction.status
+          };
+        })
+      );
+      
+      console.log('🎯 更新後最終資金來源資訊:', responseData.fundingSourcesInfo);
+    }
+
     res.json({
       success: true,
-      data: updatedTransactionGroup,
+      data: responseData || updatedTransactionGroup,
       message: '交易群組更新成功'
     });
   } catch (error) {

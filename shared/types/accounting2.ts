@@ -98,6 +98,16 @@ export interface EmbeddedAccountingEntry {
   fundingPath?: string[];     // 資金流動路徑 (交易ID陣列的字串表示)
 }
 
+// 被引用情況資訊介面
+export interface ReferencedByInfo {
+  _id: string;
+  groupNumber: string;
+  description: string;
+  transactionDate: Date | string;
+  totalAmount: number;
+  status: 'draft' | 'confirmed' | 'cancelled';
+}
+
 // 包含內嵌分錄的交易群組介面 (新版本)
 export interface TransactionGroupWithEntries extends Omit<TransactionGroup, 'totalAmount'> {
   entries: EmbeddedAccountingEntry[]; // 內嵌分錄陣列
@@ -107,6 +117,9 @@ export interface TransactionGroupWithEntries extends Omit<TransactionGroup, 'tot
   isBalanced?: boolean;       // 借貸是否平衡 (計算欄位)
   balanceDifference?: number; // 借貸差額 (計算欄位)
   entryCount?: number;        // 分錄數量 (計算欄位)
+  
+  // 被引用情況 (後端查詢時提供)
+  referencedByInfo?: ReferencedByInfo[];
 }
 
 // 記帳分錄介面

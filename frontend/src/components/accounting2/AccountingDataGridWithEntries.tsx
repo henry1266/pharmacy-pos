@@ -43,7 +43,8 @@ import {
   ContentCopy as CopyIcon,
   CheckCircle as ConfirmIcon,
   LockOpen as UnlockIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Link as LinkIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -53,13 +54,25 @@ import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '../../../.
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { fetchTransactionGroupsWithEntries } from '../../redux/actions';
 
+// 臨時型別擴展，確保 referencedByInfo 屬性可用
+interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
+  referencedByInfo?: Array<{
+    _id: string;
+    groupNumber: string;
+    description: string;
+    transactionDate: Date | string;
+    totalAmount: number;
+    status: 'draft' | 'confirmed' | 'cancelled';
+  }>;
+}
+
 interface AccountingDataGridWithEntriesProps {
   organizationId?: string;
   onCreateNew: () => void;
-  onEdit: (transactionGroup: TransactionGroupWithEntries) => void;
-  onCopy: (transactionGroup: TransactionGroupWithEntries) => void;
+  onEdit: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
+  onCopy: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
   onDelete: (id: string) => void;
-  onView: (transactionGroup: TransactionGroupWithEntries) => void;
+  onView: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
   onConfirm: (id: string) => void;
   onUnlock: (id: string) => void;
 }
@@ -379,6 +392,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                       <TableCell align="right">金額</TableCell>
                       <TableCell align="center">狀態</TableCell>
                       <TableCell align="center">平衡</TableCell>
+                      <TableCell align="center">被引用</TableCell>
                       <TableCell align="center">操作</TableCell>
                     </TableRow>
                   </TableHead>
@@ -426,6 +440,43 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                               color={isBalanced(group.entries) ? 'success' : 'error'}
                               size="small"
                             />
+                          </TableCell>
+                          <TableCell align="center">
+                            {(group as ExtendedTransactionGroupWithEntries).referencedByInfo && (group as ExtendedTransactionGroupWithEntries).referencedByInfo!.length > 0 ? (
+                              <Tooltip
+                                title={
+                                  <Box>
+                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                      被引用情況：
+                                    </Typography>
+                                    {(group as ExtendedTransactionGroupWithEntries).referencedByInfo!.map((ref, index) => (
+                                      <Box key={ref._id} sx={{ mb: 0.5 }}>
+                                        <Typography variant="caption" display="block">
+                                          {formatDate(ref.transactionDate)} - {ref.groupNumber}
+                                        </Typography>
+                                        <Typography variant="caption" display="block" color="text.secondary">
+                                          {ref.description} ({formatCurrency(ref.totalAmount)})
+                                        </Typography>
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                }
+                                arrow
+                                placement="left"
+                              >
+                                <Chip
+                                  icon={<LinkIcon />}
+                                  label={`${(group as ExtendedTransactionGroupWithEntries).referencedByInfo!.length} 筆引用`}
+                                  color="warning"
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </Tooltip>
+                            ) : (
+                              <Typography variant="caption" color="text.secondary">
+                                -
+                              </Typography>
+                            )}
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
@@ -503,7 +554,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
 
                         {/* 展開的分錄詳情 */}
                         <TableRow>
-                          <TableCell colSpan={8} sx={{ p: 0 }}>
+                          <TableCell colSpan={9} sx={{ p: 0 }}>
                             <Collapse in={expandedRows.has(group._id)}>
                               <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
                                 <Table size="small">

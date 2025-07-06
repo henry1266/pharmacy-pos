@@ -423,71 +423,102 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         
         // 編輯和檢視模式下都需要初始化 selectedFundingSources 狀態
         if (hasLinkedTransactions && convertedData.linkedTransactionIds) {
-          console.log('🔍 初始化資金來源顯示狀態 (mode:', mode, ')');
-          console.log('🔍 initialData.fundingSourcesInfo:', (initialData as any)?.fundingSourcesInfo);
-          console.log('🔍 convertedData.linkedTransactionIds:', convertedData.linkedTransactionIds);
+          console.log('🔍 [前端] 初始化資金來源狀態');
+          console.log('📋 [前端] initialData:', initialData);
+          console.log('📋 [前端] convertedData.linkedTransactionIds:', convertedData.linkedTransactionIds);
           
-          // 優先使用 fundingSourcesInfo，如果沒有則嘗試從 linkedTransactionIds 中提取
+          // 優先使用 fundingSourcesInfo（後端提供的完整資料）
           const fundingSourcesInfo = (initialData as any)?.fundingSourcesInfo;
+          console.log('💡 [前端] 檢查 fundingSourcesInfo:', {
+            exists: !!fundingSourcesInfo,
+            isArray: Array.isArray(fundingSourcesInfo),
+            length: fundingSourcesInfo?.length || 0,
+            data: fundingSourcesInfo
+          });
           
           if (fundingSourcesInfo && Array.isArray(fundingSourcesInfo) && fundingSourcesInfo.length > 0) {
-            console.log('✅ 使用後端提供的 fundingSourcesInfo');
-            const fundingSources = fundingSourcesInfo.map((sourceInfo: any) => ({
-              _id: sourceInfo._id,
-              groupNumber: sourceInfo.groupNumber || 'TXN-未知',
-              description: sourceInfo.description || '未知資金來源',
-              transactionDate: new Date(sourceInfo.transactionDate || new Date()),
-              totalAmount: sourceInfo.totalAmount || 0,
-              availableAmount: sourceInfo.availableAmount || sourceInfo.totalAmount || 0,
-              fundingType: sourceInfo.fundingType || '一般資金'
-            }));
-            
-            setSelectedFundingSources(fundingSources);
-            console.log('✅ 資金來源狀態初始化完成 (使用 fundingSourcesInfo):', fundingSources);
-          } else {
-            console.log('⚠️ 沒有 fundingSourcesInfo，嘗試從 linkedTransactionIds 建立基本資料');
-            // 如果沒有詳細資訊，從 linkedTransactionIds 建立基本資料
-            const fundingSources = convertedData.linkedTransactionIds.map((linkedId: any, index: number) => {
-              // 檢查 linkedId 是否為物件（已 populate）還是字串，並確保不為 null
-              if (linkedId && typeof linkedId === 'object' && linkedId._id) {
-                console.log('✅ linkedTransactionIds 已 populate:', linkedId);
-                return {
-                  _id: linkedId._id,
-                  groupNumber: linkedId.groupNumber || `TXN-${index + 1}`,
-                  description: linkedId.description || `資金來源 ${index + 1}`,
-                  transactionDate: new Date(linkedId.transactionDate || new Date()),
-                  totalAmount: linkedId.totalAmount || 0,
-                  availableAmount: linkedId.totalAmount || 0,
-                  fundingType: linkedId.fundingType || '一般資金'
-                };
-              } else if (linkedId) {
-                console.log('⚠️ linkedTransactionIds 未 populate，使用基本資料:', linkedId);
-                return {
-                  _id: typeof linkedId === 'string' ? linkedId : linkedId._id || `unknown-${index}`,
-                  groupNumber: `TXN-${index + 1}`,
-                  description: `資金來源 ${index + 1}`,
-                  transactionDate: new Date(),
-                  totalAmount: 0,
-                  availableAmount: 0,
-                  fundingType: '一般資金'
-                };
-              } else {
-                console.log('⚠️ linkedId 為 null 或 undefined，使用預設資料');
-                return {
-                  _id: `unknown-${index}`,
-                  groupNumber: `TXN-${index + 1}`,
-                  description: `資金來源 ${index + 1}`,
-                  transactionDate: new Date(),
-                  totalAmount: 0,
-                  availableAmount: 0,
-                  fundingType: '一般資金'
-                };
+            console.log('✅ [前端] 使用後端提供的 fundingSourcesInfo');
+            // 使用後端提供的完整資金來源資訊 - 這是真實資料
+            const fundingSources = fundingSourcesInfo.map((sourceInfo: any, index: number) => {
+              console.log(`🔍 [前端] 處理 fundingSourcesInfo[${index}]:`, sourceInfo);
+              
+              // 確保資料完整性
+              if (!sourceInfo || !sourceInfo._id) {
+                console.warn(`⚠️ [前端] fundingSourcesInfo[${index}] 缺少 _id`);
+                return null;
               }
-            });
+              
+              const source = {
+                _id: sourceInfo._id,
+                groupNumber: sourceInfo.groupNumber || 'TXN-未知',
+                description: sourceInfo.description || '未知資金來源',
+                transactionDate: sourceInfo.transactionDate ? new Date(sourceInfo.transactionDate) : new Date(),
+                totalAmount: sourceInfo.totalAmount || 0,
+                availableAmount: sourceInfo.availableAmount || sourceInfo.totalAmount || 0,
+                fundingType: sourceInfo.fundingType || '一般資金'
+              };
+              
+              console.log(`✅ [前端] 建立資金來源[${index}]:`, source);
+              return source;
+            }).filter(Boolean);
             
+            console.log('🎯 [前端] 最終設定的 fundingSources:', fundingSources);
             setSelectedFundingSources(fundingSources);
-            console.log('✅ 資金來源狀態初始化完成 (使用基本資料):', fundingSources);
+          } else {
+            console.log('⚠️ [前端] 沒有 fundingSourcesInfo，嘗試從 linkedTransactionIds 重新查詢');
+            console.log('📋 [前端] linkedTransactionIds 詳情:', convertedData.linkedTransactionIds);
+            
+            // 如果沒有 fundingSourcesInfo，嘗試重新查詢完整資料
+            const linkedIds = convertedData.linkedTransactionIds.filter(id => id && typeof id === 'string');
+            
+            if (linkedIds.length > 0) {
+              console.log('🔄 [前端] 嘗試重新查詢資金來源資料:', linkedIds);
+              
+              // 使用 service 重新查詢完整資料
+              Promise.all(
+                linkedIds.map(async (linkedId: string) => {
+                  try {
+                    console.log(`🔍 [前端] 查詢資金來源 ID: ${linkedId}`);
+                    const result = await transactionGroupWithEntriesService.getById(linkedId);
+                    
+                    if (result.success && result.data) {
+                      const transaction = result.data;
+                      console.log(`✅ [前端] 查詢成功:`, transaction);
+                      
+                      return {
+                        _id: transaction._id,
+                        groupNumber: transaction.groupNumber || 'TXN-未知',
+                        description: transaction.description || '未知資金來源',
+                        transactionDate: new Date(transaction.transactionDate),
+                        totalAmount: transaction.totalAmount || 0,
+                        availableAmount: (transaction as any).availableAmount || transaction.totalAmount || 0,
+                        fundingType: transaction.fundingType || '一般資金'
+                      };
+                    } else {
+                      console.warn(`⚠️ [前端] 查詢失敗 ID: ${linkedId}`, result);
+                      return null;
+                    }
+                  } catch (error) {
+                    console.error(`❌ [前端] 查詢錯誤 ID: ${linkedId}`, error);
+                    return null;
+                  }
+                })
+              ).then(results => {
+                const validSources = results.filter(Boolean);
+                console.log('🎯 [前端] 重新查詢的資金來源:', validSources);
+                setSelectedFundingSources(validSources);
+              }).catch(error => {
+                console.error('❌ [前端] 批量查詢失敗:', error);
+                setSelectedFundingSources([]);
+              });
+            } else {
+              console.log('❌ [前端] 沒有有效的 linkedTransactionIds');
+              setSelectedFundingSources([]);
+            }
           }
+        } else {
+          console.log('❌ [前端] 沒有啟用資金來源追蹤或沒有 linkedTransactionIds');
+          setSelectedFundingSources([]);
         }
         
         console.log('✅ 表單資料設定完成');
@@ -753,6 +784,11 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     }
 
     try {
+      console.log('🔍 [前端] 準備提交表單資料');
+      console.log('📋 [前端] enableFundingTracking:', enableFundingTracking);
+      console.log('📋 [前端] formData.linkedTransactionIds:', formData.linkedTransactionIds);
+      console.log('📋 [前端] selectedFundingSources:', selectedFundingSources);
+      
       // 清理表單資料，確保 organizationId 格式正確
       const cleanedFormData: any = {
         description: formData.description,
@@ -763,14 +799,20 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         organizationId: formData.organizationId && formData.organizationId.trim() !== ''
           ? formData.organizationId
           : null,
-        // 資金來源追蹤欄位 - 編輯模式下保持原有資料或更新
-        linkedTransactionIds: enableFundingTracking ? formData.linkedTransactionIds :
-                             (mode === 'edit' && formData.linkedTransactionIds) ? formData.linkedTransactionIds : undefined,
-        sourceTransactionId: enableFundingTracking ? formData.sourceTransactionId :
-                            (mode === 'edit' && formData.sourceTransactionId) ? formData.sourceTransactionId : undefined,
-        fundingType: enableFundingTracking ? (formData.fundingType || 'original') :
-                    (mode === 'edit' && formData.fundingType) ? formData.fundingType : 'original'
+        // 資金來源追蹤欄位 - 確保正確存檔
+        linkedTransactionIds: enableFundingTracking && formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0
+          ? formData.linkedTransactionIds
+          : undefined,
+        sourceTransactionId: enableFundingTracking ? formData.sourceTransactionId : undefined,
+        fundingType: enableFundingTracking && formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0
+          ? 'extended'
+          : 'original'
       };
+      
+      console.log('💡 [前端] 清理後的表單資料:');
+      console.log('  - linkedTransactionIds:', cleanedFormData.linkedTransactionIds);
+      console.log('  - sourceTransactionId:', cleanedFormData.sourceTransactionId);
+      console.log('  - fundingType:', cleanedFormData.fundingType);
 
       // 檢查分錄是否完整且有效
       const hasValidEntries = formData.entries &&
@@ -1144,6 +1186,110 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                 </Grid>
               )}
 
+              {/* 被引用情況顯示 */}
+              {(initialData as any)?.referencedByInfo && (initialData as any).referencedByInfo.length > 0 && (
+                <Grid item xs={12}>
+                  <Box sx={{
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'warning.main',
+                    borderRadius: 1,
+                    bgcolor: 'warning.50'
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
+                        <LinkIcon color="warning" />
+                        被引用情況
+                      </Typography>
+                      <Chip
+                        label={`${(initialData as any).referencedByInfo.length} 筆交易引用`}
+                        color="warning"
+                        size="small"
+                      />
+                    </Box>
+
+                    {/* 顯示被引用的交易列表 - 表格格式 */}
+                    <Box sx={{ mt: 2 }}>
+                      <Table size="small" sx={{ bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden' }}>
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: 'warning.100' }}>
+                            <TableCell sx={{ fontWeight: 'bold', color: 'warning.dark' }}>日期</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', color: 'warning.dark' }}>交易編號</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', color: 'warning.dark' }}>描述</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', color: 'warning.dark' }} align="right">金額</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', color: 'warning.dark' }} align="center">狀態</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {(initialData as any).referencedByInfo.map((referencedTx: any, index: number) => (
+                            <TableRow
+                              key={referencedTx._id}
+                              sx={{
+                                '&:nth-of-type(odd)': { bgcolor: 'warning.25' },
+                                '&:hover': { bgcolor: 'warning.50' }
+                              }}
+                            >
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {new Date(referencedTx.transactionDate).toLocaleDateString('zh-TW')}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                  {referencedTx.groupNumber}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {referencedTx.description}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="right">
+                                <Typography variant="body2" sx={{ color: 'warning.dark', fontWeight: 'medium' }}>
+                                  ${referencedTx.totalAmount?.toLocaleString() || 0}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={
+                                    referencedTx.status === 'confirmed' ? '已確認' :
+                                    referencedTx.status === 'draft' ? '草稿' :
+                                    referencedTx.status === 'cancelled' ? '已取消' : '未知'
+                                  }
+                                  color={
+                                    referencedTx.status === 'confirmed' ? 'success' :
+                                    referencedTx.status === 'draft' ? 'warning' :
+                                    referencedTx.status === 'cancelled' ? 'error' : 'default'
+                                  }
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                        <TableBody>
+                          <TableRow sx={{ bgcolor: 'warning.200', borderTop: '2px solid', borderColor: 'warning.main' }}>
+                            <TableCell colSpan={3} sx={{ fontWeight: 'bold', color: 'warning.dark' }}>
+                              總計被引用金額
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 'bold', color: 'warning.dark', fontSize: '1.1rem' }}>
+                              ${(initialData as any).referencedByInfo.reduce((total: number, tx: any) =>
+                                tx.status !== 'cancelled' ? total + (tx.totalAmount || 0) : total, 0
+                              ).toLocaleString()}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                        💡 此交易被以上 {(initialData as any).referencedByInfo.length} 筆交易引用作為資金來源
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              )}
+
             </Grid>
           </CardContent>
         </Card>
@@ -1500,14 +1646,15 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
               open={fundingSourceDialogOpen}
               onClose={() => setFundingSourceDialogOpen(false)}
               onSelect={(transaction) => {
-                // 創建完整的資金來源資訊
+                // 創建完整的資金來源資訊，使用真實的可用金額
                 const fundingSourceInfo = {
                   _id: transaction._id,
                   groupNumber: transaction.groupNumber,
                   description: transaction.description,
                   transactionDate: new Date(transaction.transactionDate),
                   totalAmount: transaction.totalAmount,
-                  availableAmount: transaction.totalAmount, // 假設全額可用，實際應該計算剩餘可用金額
+                  // 使用 transaction 中的實際可用金額，如果沒有則使用總金額
+                  availableAmount: (transaction as any).availableAmount || (transaction as any).remainingAmount || transaction.totalAmount,
                   fundingType: transaction.fundingType || '一般資金'
                 };
                 
