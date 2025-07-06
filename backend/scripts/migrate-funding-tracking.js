@@ -4,8 +4,8 @@
  */
 
 const mongoose = require('mongoose');
-const TransactionGroup = require('../models/TransactionGroup').default;
-const AccountingEntry = require('../models/AccountingEntry').default;
+const TransactionGroup = require('../models/TransactionGroup');
+const AccountingEntry = require('../models/AccountingEntry');
 
 // 資料庫連接配置
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://192.168.68.79:27017/pharmacy-pos';

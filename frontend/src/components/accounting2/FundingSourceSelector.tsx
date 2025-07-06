@@ -20,18 +20,25 @@ import {
   IconButton,
   Tooltip,
   Alert,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Snackbar
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Clear as ClearIcon,
   AccountTree as AccountTreeIcon,
   TrendingFlat as TrendingFlatIcon,
-  MonetizationOn as MonetizationOnIcon
+  MonetizationOn as MonetizationOnIcon,
+  CheckCircle as CheckCircleIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { fundingTrackingService } from '../../services/transactionGroupService';
+import { fundingTrackingService, transactionGroupService } from '../../services/transactionGroupService';
 import { TransactionGroup, FundingSource } from '@pharmacy-pos/shared';
 
 interface FundingSourceSelectorProps {
@@ -79,49 +86,94 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState<FundingSourceOption[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'confirmed'>('confirmed');
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-  // 模擬資料載入（實際應該從 API 獲取）
+  // 載入資金來源（根據狀態篩選）
   useEffect(() => {
     if (open) {
       loadFundingSources();
     }
-  }, [open, organizationId]);
+  }, [open, organizationId, statusFilter]);
 
   const loadFundingSources = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // 這裡應該調用實際的 API
-      // const response = await api.getAvailableFundingSources({ organizationId, excludeIds: excludeTransactionIds });
-      
-      // 呼叫真實的 API 獲取可用資金來源
-      const response = await fundingTrackingService.getAvailableFundingSources({
-        organizationId,
-        minAmount: 0
-      });
-      
-      if (response.success && response.data) {
-        // 轉換 API 回應為組件需要的格式
-        const fundingSources: FundingSourceOption[] = response.data.fundingSources.map(source => ({
-          ...source,
-          status: 'confirmed' as const, // API 只返回已確認的交易
-          linkedTransactionIds: [], // 這個資訊需要從 TransactionGroup 獲取
-          createdBy: '', // 這個資訊需要從 TransactionGroup 獲取
-          createdAt: source.transactionDate,
-          updatedAt: source.transactionDate,
-          remainingAmount: source.availableAmount,
-          // usedAmount 和 totalAmount 已經在 FundingSource 中定義，會自動繼承
-        }));
+      if (statusFilter === 'confirmed' || statusFilter === 'all') {
+        // 載入已確認的交易（可用作資金來源）
+        const response = await fundingTrackingService.getAvailableFundingSources({
+          organizationId,
+          minAmount: 0
+        });
         
-        // 過濾掉排除的交易
-        const filteredTransactions = fundingSources.filter(
-          t => !excludeTransactionIds.includes(t._id)
-        );
+        if (response.success && response.data) {
+          // 轉換 API 回應為組件需要的格式
+          const fundingSources: FundingSourceOption[] = response.data.fundingSources.map(source => ({
+            ...source,
+            status: 'confirmed' as const,
+            linkedTransactionIds: [],
+            createdBy: '',
+            createdAt: source.transactionDate,
+            updatedAt: source.transactionDate,
+            remainingAmount: source.availableAmount,
+          }));
+          
+          // 過濾掉排除的交易
+          const filteredTransactions = fundingSources.filter(
+            t => !excludeTransactionIds.includes(t._id)
+          );
+          
+          setTransactions(filteredTransactions);
+        } else {
+          throw new Error('獲取已確認資金來源失敗');
+        }
+      }
+      
+      if (statusFilter === 'draft' || statusFilter === 'all') {
+        // 載入草稿狀態的交易（需要確認才能作為資金來源）
+        const response = await transactionGroupService.getAll({
+          organizationId,
+          status: 'draft'
+        });
         
-        setTransactions(filteredTransactions);
-      } else {
-        throw new Error('獲取資金來源失敗');
+        if (response.success && response.data) {
+          const draftTransactions: FundingSourceOption[] = response.data.groups
+            .filter(tx => tx.fundingType && tx.totalAmount > 0) // 只顯示有資金追蹤欄位且金額大於0的交易
+            .filter(tx => !excludeTransactionIds.includes(tx._id)) // 過濾排除的交易
+            .map(tx => ({
+              _id: tx._id,
+              groupNumber: tx.groupNumber,
+              description: tx.description,
+              transactionDate: new Date(tx.transactionDate), // 確保轉換為 Date 物件
+              totalAmount: tx.totalAmount || 0,
+              usedAmount: 0, // 草稿狀態的交易還沒有被使用
+              availableAmount: tx.totalAmount || 0,
+              fundingType: tx.fundingType || 'original',
+              receiptUrl: tx.receiptUrl,
+              invoiceNo: tx.invoiceNo,
+              isAvailable: true,
+              status: tx.status,
+              linkedTransactionIds: tx.linkedTransactionIds || [],
+              createdBy: tx.createdBy,
+              createdAt: tx.createdAt,
+              updatedAt: tx.updatedAt,
+              remainingAmount: tx.totalAmount || 0
+            }));
+          
+          if (statusFilter === 'draft') {
+            setTransactions(draftTransactions);
+          } else if (statusFilter === 'all') {
+            // 合併已確認和草稿交易
+            setTransactions(prev => [...prev, ...draftTransactions]);
+          }
+        }
       }
     } catch (err) {
       setError('載入資金來源失敗');
@@ -129,6 +181,39 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  // 確認交易狀態
+  const handleConfirmTransaction = async (transactionId: string) => {
+    setConfirmingId(transactionId);
+    try {
+      const response = await transactionGroupService.confirm(transactionId);
+      if (response.success) {
+        setSnackbar({
+          open: true,
+          message: '交易確認成功！現在可以作為資金來源使用。',
+          severity: 'success'
+        });
+        // 重新載入資金來源
+        await loadFundingSources();
+      } else {
+        throw new Error('確認交易失敗');
+      }
+    } catch (error) {
+      console.error('確認交易錯誤:', error);
+      setSnackbar({
+        open: true,
+        message: '確認交易失敗，請稍後再試。',
+        severity: 'error'
+      });
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
+  // 關閉提示訊息
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   // 過濾交易
@@ -220,8 +305,9 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
       </DialogTitle>
       
       <DialogContent>
-        {/* 搜尋欄 */}
-        <Box sx={{ mb: 2 }}>
+        {/* 篩選器區域 */}
+        <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+          {/* 搜尋欄 */}
           <TextField
             fullWidth
             size="small"
@@ -243,6 +329,20 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
               )
             }}
           />
+          
+          {/* 狀態篩選器 */}
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>交易狀態</InputLabel>
+            <Select
+              value={statusFilter}
+              label="交易狀態"
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'draft' | 'confirmed')}
+            >
+              <MenuItem value="confirmed">已確認</MenuItem>
+              <MenuItem value="draft">草稿</MenuItem>
+              <MenuItem value="all">全部</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         {/* 錯誤訊息 */}
@@ -268,6 +368,7 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
                   <TableCell>交易編號</TableCell>
                   <TableCell>描述</TableCell>
                   <TableCell>交易日期</TableCell>
+                  <TableCell>狀態</TableCell>
                   <TableCell>資金類型</TableCell>
                   <TableCell align="right">總金額</TableCell>
                   <TableCell align="right">剩餘金額</TableCell>
@@ -277,7 +378,7 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
               <TableBody>
                 {filteredTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={8} align="center">
                       <Typography color="text.secondary">
                         {searchTerm ? '沒有符合搜尋條件的資金來源' : '沒有可用的資金來源'}
                       </Typography>
@@ -324,6 +425,15 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
                       </TableCell>
                       
                       <TableCell>
+                        <Chip
+                          label={transaction.status === 'confirmed' ? '已確認' : '草稿'}
+                          size="small"
+                          color={transaction.status === 'confirmed' ? 'success' : 'warning'}
+                          variant={transaction.status === 'confirmed' ? 'filled' : 'outlined'}
+                        />
+                      </TableCell>
+                      
+                      <TableCell>
                         {getFundingTypeChip(transaction.fundingType)}
                       </TableCell>
                       
@@ -349,18 +459,41 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
                       </TableCell>
                       
                       <TableCell align="center">
-                        <Tooltip title="選擇此資金來源">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSelect(transaction);
-                            }}
-                          >
-                            <MonetizationOnIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                          {transaction.status === 'draft' && (
+                            <Tooltip title="確認交易">
+                              <IconButton
+                                size="small"
+                                color="success"
+                                disabled={confirmingId === transaction._id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleConfirmTransaction(transaction._id);
+                                }}
+                              >
+                                {confirmingId === transaction._id ? (
+                                  <CircularProgress size={16} />
+                                ) : (
+                                  <CheckCircleIcon />
+                                )}
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          
+                          <Tooltip title="選擇此資金來源">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              disabled={transaction.status === 'draft'}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelect(transaction);
+                              }}
+                            >
+                              <MonetizationOnIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))
@@ -387,6 +520,22 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
           取消
         </Button>
       </DialogActions>
+      
+      {/* 用戶反饋訊息 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };
