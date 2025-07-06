@@ -141,7 +141,15 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
   // 初始載入和篩選變更時重新載入
   useEffect(() => {
     loadTransactionGroups();
-  }, [organizationId, filter]);
+  }, [
+    organizationId,
+    filter.search,
+    filter.status,
+    filter.startDate,
+    filter.endDate,
+    filter.page,
+    filter.limit
+  ]);
 
   // 處理展開/收合行
   const handleExpandRow = (id: string) => {
@@ -490,9 +498,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                         </TableCell>
                                         <TableCell>
                                           <Typography variant="body2">
-                                            {typeof entry.accountId === 'string' 
-                                              ? entry.accountId 
-                                              : (entry.accountId as any)?.name || '未知科目'}
+                                            {(entry as any).accountName || '未知科目'}
                                           </Typography>
                                         </TableCell>
                                         <TableCell>

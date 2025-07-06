@@ -35,7 +35,8 @@ import {
   createTransactionGroupWithEntries,
   updateTransactionGroupWithEntries,
   deleteTransactionGroupWithEntries,
-  fetchAccounts2
+  fetchAccounts2,
+  fetchOrganizations2
 } from '../redux/actions';
 
 // 導入共享類型
@@ -117,6 +118,7 @@ export const Accounting3Page: React.FC = () => {
     console.log('🔄 Accounting3Page 初始化載入資料');
     dispatch(fetchTransactionGroupsWithEntries() as any);
     dispatch(fetchAccounts2() as any);
+    dispatch(fetchOrganizations2() as any);
   }, [dispatch]);
 
   // 監聽 Redux 狀態變化

@@ -11,7 +11,7 @@ import {
   TransactionGroupFilter
 } from '@pharmacy-pos/shared';
 
-const BASE_URL = '/api/accounting2/transaction-groups-with-entries';
+const BASE_URL = '/api/transaction-groups-with-entries';
 
 // 內嵌分錄交易群組基本 CRUD 操作
 export const transactionGroupWithEntriesService = {

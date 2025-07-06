@@ -94,6 +94,9 @@ app.use("/api/accounting2/transaction-groups-with-entries", transactionGroupsWit
 app.use("/api/accounting2/entries", accountingEntriesRoutes);
 app.use("/api/accounting2/balances", accountBalancesRoutes);
 
+// 新增直接路由支援 - 為了支援 accounting3 頁面的簡化路徑
+app.use("/api/transaction-groups-with-entries", transactionGroupsWithEntriesRoutes);
+
 // 新增機構管理路由 - 支援多機構集團化管理
 app.use("/api/organizations", organizationsRoutes);
 

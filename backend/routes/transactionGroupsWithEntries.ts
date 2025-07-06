@@ -206,7 +206,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     res.json({
       success: true,
       data: {
-        transactionGroups: formattedTransactionGroups,
+        groups: formattedTransactionGroups,
         pagination: {
           page: pageNum,
           limit: limitNum,

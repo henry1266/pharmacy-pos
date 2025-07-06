@@ -67,14 +67,14 @@ export const fetchTransactionGroupsWithEntries = (params?: {
     };
     
     const res = await axios.get<ApiResponse<{
-      transactionGroups: TransactionGroupWithEntries[];
+      groups: TransactionGroupWithEntries[];
       pagination: {
         page: number;
         limit: number;
         total: number;
         totalPages: number;
       };
-    }>>(`${API_BASE_URL}/accounting2/transaction-groups-with-entries`, config);
+    }>>(`${API_BASE_URL}/transaction-groups-with-entries`, config);
     
     console.log('📡 API 回應:', res.data);
     
@@ -83,7 +83,7 @@ export const fetchTransactionGroupsWithEntries = (params?: {
         type: ActionTypes.FETCH_TRANSACTION_GROUPS_WITH_ENTRIES_SUCCESS,
         payload: res.data.data
       });
-      console.log('✅ fetchTransactionGroupsWithEntries 成功，資料筆數:', res.data.data.transactionGroups.length);
+      console.log('✅ fetchTransactionGroupsWithEntries 成功，資料筆數:', res.data.data.groups.length);
     } else {
       throw new Error(res.data.message ?? '獲取內嵌分錄交易群組失敗');
     }
@@ -117,7 +117,7 @@ export const fetchTransactionGroupWithEntries = (id: string): AppThunk => async 
     
     const config = getAuthConfig();
     const res = await axios.get<ApiResponse<TransactionGroupWithEntries>>(
-      `${API_BASE_URL}/accounting2/transaction-groups-with-entries/${id}`, 
+      `${API_BASE_URL}/transaction-groups-with-entries/${id}`,
       config
     );
     
@@ -164,8 +164,8 @@ export const createTransactionGroupWithEntries = (
     
     const config = getAuthConfig();
     const res = await axios.post<ApiResponse<TransactionGroupWithEntries>>(
-      `${API_BASE_URL}/accounting2/transaction-groups-with-entries`, 
-      transactionData, 
+      `${API_BASE_URL}/transaction-groups-with-entries`,
+      transactionData,
       config
     );
     
@@ -219,8 +219,8 @@ export const updateTransactionGroupWithEntries = (
     
     const config = getAuthConfig();
     const res = await axios.put<ApiResponse<TransactionGroupWithEntries>>(
-      `${API_BASE_URL}/accounting2/transaction-groups-with-entries/${id}`, 
-      transactionData, 
+      `${API_BASE_URL}/transaction-groups-with-entries/${id}`,
+      transactionData,
       config
     );
     
@@ -269,7 +269,7 @@ export const deleteTransactionGroupWithEntries = (id: string): AppThunk => async
     
     const config = getAuthConfig();
     const res = await axios.delete<ApiResponse>(
-      `${API_BASE_URL}/accounting2/transaction-groups-with-entries/${id}`, 
+      `${API_BASE_URL}/transaction-groups-with-entries/${id}`,
       config
     );
     
@@ -329,14 +329,14 @@ export const searchTransactionGroupsWithEntries = (searchParams: {
     };
     
     const res = await axios.get<ApiResponse<{
-      transactionGroups: TransactionGroupWithEntries[];
+      groups: TransactionGroupWithEntries[];
       pagination: {
         page: number;
         limit: number;
         total: number;
         totalPages: number;
       };
-    }>>(`${API_BASE_URL}/accounting2/transaction-groups-with-entries/search`, config);
+    }>>(`${API_BASE_URL}/transaction-groups-with-entries/search`, config);
     
     console.log('📡 搜尋內嵌分錄交易群組 API 回應:', res.data);
     
@@ -345,7 +345,7 @@ export const searchTransactionGroupsWithEntries = (searchParams: {
         type: ActionTypes.SEARCH_TRANSACTION_GROUPS_WITH_ENTRIES_SUCCESS,
         payload: res.data.data
       });
-      console.log('✅ searchTransactionGroupsWithEntries 成功，搜尋結果筆數:', res.data.data.transactionGroups.length);
+      console.log('✅ searchTransactionGroupsWithEntries 成功，搜尋結果筆數:', res.data.data.groups.length);
     } else {
       throw new Error(res.data.message ?? '搜尋內嵌分錄交易群組失敗');
     }
@@ -381,7 +381,7 @@ export const fetchFundingChain = (transactionId: string): AppThunk => async (
     const res = await axios.get<ApiResponse<{
       sourceChain: TransactionGroupWithEntries[];
       linkedChain: TransactionGroupWithEntries[];
-    }>>(`${API_BASE_URL}/accounting2/transaction-groups-with-entries/${transactionId}/funding-chain`, config);
+    }>>(`${API_BASE_URL}/transaction-groups-with-entries/${transactionId}/funding-chain`, config);
     
     console.log('📡 資金追蹤鏈 API 回應:', res.data);
     
@@ -431,8 +431,8 @@ export const validateBalance = (
       totalCredit: number;
       difference: number;
       errors: string[];
-    }>>(`${API_BASE_URL}/accounting2/transaction-groups-with-entries/validate-balance`, 
-    { entries }, 
+    }>>(`${API_BASE_URL}/transaction-groups-with-entries/validate-balance`,
+    { entries },
     config);
     
     console.log('📡 借貸平衡驗證 API 回應:', res.data);
