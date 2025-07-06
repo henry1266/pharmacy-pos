@@ -40,7 +40,9 @@ import {
   Visibility as ViewIcon,
   Search as SearchIcon,
   FilterList as FilterIcon,
-  ContentCopy as CopyIcon
+  ContentCopy as CopyIcon,
+  CheckCircle as ConfirmIcon,
+  LockOpen as UnlockIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -56,6 +58,8 @@ interface AccountingDataGridWithEntriesProps {
   onCopy: (transactionGroup: TransactionGroupWithEntries) => void;
   onDelete: (id: string) => void;
   onView: (transactionGroup: TransactionGroupWithEntries) => void;
+  onConfirm: (id: string) => void;
+  onUnlock: (id: string) => void;
 }
 
 interface FilterOptions {
@@ -73,7 +77,9 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
   onEdit,
   onCopy,
   onDelete,
-  onView
+  onView,
+  onConfirm,
+  onUnlock
 }) => {
   // 狀態管理
   const [transactionGroups, setTransactionGroups] = useState<TransactionGroupWithEntries[]>([]);
@@ -429,7 +435,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                             />
                           </TableCell>
                           <TableCell align="center">
-                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                               <Tooltip title="檢視">
                                 <IconButton
                                   size="small"
@@ -438,14 +444,19 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                   <ViewIcon />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="編輯">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => onEdit(group)}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                              </Tooltip>
+                              
+                              {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
+                              {group.status === 'draft' && (
+                                <Tooltip title="編輯">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => onEdit(group)}
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              
                               <Tooltip title="複製">
                                 <IconButton
                                   size="small"
@@ -454,15 +465,45 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                   <CopyIcon />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="刪除">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => onDelete(group._id)}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Tooltip>
+                              
+                              {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
+                              {group.status === 'draft' && isBalanced(group.entries) && (
+                                <Tooltip title="確認交易">
+                                  <IconButton
+                                    size="small"
+                                    color="success"
+                                    onClick={() => onConfirm(group._id)}
+                                  >
+                                    <ConfirmIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              
+                              {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
+                              {group.status === 'confirmed' && (
+                                <Tooltip title="解鎖交易">
+                                  <IconButton
+                                    size="small"
+                                    color="warning"
+                                    onClick={() => onUnlock(group._id)}
+                                  >
+                                    <UnlockIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              
+                              {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
+                              {group.status === 'draft' && (
+                                <Tooltip title="刪除">
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => onDelete(group._id)}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </Box>
                           </TableCell>
                         </TableRow>
@@ -472,9 +513,6 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                           <TableCell colSpan={8} sx={{ p: 0 }}>
                             <Collapse in={expandedRows.has(group._id)}>
                               <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
-                                <Typography variant="subtitle2" gutterBottom>
-                                  分錄明細（內嵌版本）
-                                </Typography>
                                 <Table size="small">
                                   <TableHead>
                                     <TableRow>
@@ -526,12 +564,46 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                         </TableCell>
                                         <TableCell>
                                           {entry.sourceTransactionId ? (
-                                            <Chip
-                                              label="資金來源"
-                                              size="small"
-                                              variant="outlined"
-                                              color="primary"
-                                            />
+                                            <Box>
+                                              <Chip
+                                                label={`資金來源: ${(entry as any).sourceTransactionDescription || '未知交易'}`}
+                                                size="small"
+                                                variant="outlined"
+                                                color="primary"
+                                                sx={{ mb: 0.5 }}
+                                              />
+                                              
+                                              {/* 來源交易編號 */}
+                                              {(entry as any).sourceTransactionGroupNumber && (
+                                                <Typography variant="caption" display="block" color="text.secondary">
+                                                  交易編號: {(entry as any).sourceTransactionGroupNumber}
+                                                </Typography>
+                                              )}
+                                              
+                                              {/* 來源交易日期 */}
+                                              {(entry as any).sourceTransactionDate && (
+                                                <Typography variant="caption" display="block" color="text.secondary">
+                                                  交易日期: {new Date((entry as any).sourceTransactionDate).toLocaleDateString('zh-TW')}
+                                                </Typography>
+                                              )}
+                                              
+                                              {/* 來源交易總額 */}
+                                              {(entry as any).sourceTransactionAmount && (
+                                                <Typography variant="caption" display="block" color="text.secondary">
+                                                  來源總額: {formatCurrency((entry as any).sourceTransactionAmount)}
+                                                </Typography>
+                                              )}
+                                              
+                                              {/* 追蹤金額 */}
+                                              <Typography variant="caption" display="block" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                                                追蹤金額: {entry.debitAmount ? formatCurrency(entry.debitAmount) : formatCurrency(entry.creditAmount || 0)}
+                                              </Typography>
+                                              
+                                              {/* 來源ID（縮短顯示） */}
+                                              <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem', opacity: 0.7 }}>
+                                                來源ID: {entry.sourceTransactionId.slice(-8)}
+                                              </Typography>
+                                            </Box>
                                           ) : (
                                             '-'
                                           )}

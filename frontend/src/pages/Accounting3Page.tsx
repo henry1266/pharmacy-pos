@@ -35,6 +35,8 @@ import {
   createTransactionGroupWithEntries,
   updateTransactionGroupWithEntries,
   deleteTransactionGroupWithEntries,
+  confirmTransactionGroupWithEntries,
+  unlockTransactionGroupWithEntries,
   fetchAccounts2,
   fetchOrganizations2
 } from '../redux/actions';
@@ -249,6 +251,40 @@ export const Accounting3Page: React.FC = () => {
     setCopyingTransaction(transactionGroup);
     setEditingTransaction(null);
     setDialogOpen(true);
+  };
+
+  // 處理確認交易
+  const handleConfirm = async (id: string) => {
+    if (window.confirm('確定要確認這筆交易嗎？確認後將無法直接編輯。')) {
+      try {
+        await dispatch(confirmTransactionGroupWithEntries(id) as any);
+        showSnackbar('交易已成功確認', 'success');
+        // 重新載入資料以更新狀態
+        setTimeout(() => {
+          dispatch(fetchTransactionGroupsWithEntries() as any);
+        }, 100);
+      } catch (error) {
+        console.error('確認交易失敗:', error);
+        showSnackbar('確認交易失敗', 'error');
+      }
+    }
+  };
+
+  // 處理解鎖交易
+  const handleUnlock = async (id: string) => {
+    if (window.confirm('確定要解鎖這筆交易嗎？解鎖後交易將回到草稿狀態。')) {
+      try {
+        await dispatch(unlockTransactionGroupWithEntries(id) as any);
+        showSnackbar('交易已成功解鎖', 'success');
+        // 重新載入資料以更新狀態
+        setTimeout(() => {
+          dispatch(fetchTransactionGroupsWithEntries() as any);
+        }, 100);
+      } catch (error) {
+        console.error('解鎖交易失敗:', error);
+        showSnackbar('解鎖交易失敗', 'error');
+      }
+    }
   };
 
   // 處理表單提交
@@ -484,6 +520,8 @@ export const Accounting3Page: React.FC = () => {
             onView={handleView}
             onDelete={handleDelete}
             onCopy={handleCopy}
+            onConfirm={handleConfirm}
+            onUnlock={handleUnlock}
           />
         </Box>
       </Paper>

@@ -152,6 +152,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       TransactionGroupWithEntries.find(filter)
         .populate('entries.accountId', 'name code accountType normalBalance')
         .populate('entries.categoryId', 'name type color')
+        .populate('entries.sourceTransactionId', 'groupNumber description transactionDate totalAmount')
         .sort({ transactionDate: -1, createdAt: -1 })
         .skip(skip)
         .limit(limitNum),
@@ -168,12 +169,15 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       const formattedEntries = groupObj.entries.map((entry: any, index: number) => {
         const account = entry.accountId as any;
         const category = entry.categoryId as any;
+        const sourceTransaction = entry.sourceTransactionId as any;
         
         console.log(`  分錄 ${index + 1}:`, {
           accountId: account?._id,
           accountName: account?.name,
           accountCode: account?.code,
-          categoryName: category?.name
+          categoryName: category?.name,
+          sourceTransactionId: sourceTransaction?._id,
+          sourceTransactionDescription: sourceTransaction?.description
         });
 
         return {
@@ -186,7 +190,12 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
           creditAmount: entry.creditAmount || 0,
           description: entry.description || '',
           categoryId: category?._id || entry.categoryId,
-          categoryName: category?.name || ''
+          categoryName: category?.name || '',
+          sourceTransactionId: entry.sourceTransactionId,
+          sourceTransactionDescription: sourceTransaction?.description || null,
+          sourceTransactionGroupNumber: sourceTransaction?.groupNumber || null,
+          sourceTransactionDate: sourceTransaction?.transactionDate || null,
+          sourceTransactionAmount: sourceTransaction?.totalAmount || null
         };
       });
 
@@ -681,6 +690,89 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
     res.status(500).json({
       success: false,
       message: '確認交易失敗'
+    });
+  }
+});
+
+// 解鎖交易（將已確認的交易回到草稿狀態）
+router.post('/:id/unlock', auth, async (req: AuthenticatedRequest, res: express.Response) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    const { id } = req.params;
+
+    if (!userId) {
+      res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    console.log('🔍 POST /transaction-groups-with-entries/:id/unlock - 解鎖交易:', { id, userId });
+
+    // 檢查交易群組是否存在
+    const transactionGroup = await TransactionGroupWithEntries.findOne({
+      _id: id,
+      createdBy: userId
+    });
+
+    if (!transactionGroup) {
+      res.status(404).json({
+        success: false,
+        message: '找不到指定的交易群組'
+      });
+      return;
+    }
+
+    // 檢查是否為已確認狀態
+    if (transactionGroup.status !== 'confirmed') {
+      res.status(400).json({
+        success: false,
+        message: '只有已確認的交易才能解鎖'
+      });
+      return;
+    }
+
+    // 檢查是否有其他交易依賴此交易作為資金來源
+    const dependentTransactions = await TransactionGroupWithEntries.find({
+      linkedTransactionIds: transactionGroup._id,
+      status: { $ne: 'cancelled' },
+      createdBy: userId
+    });
+
+    if (dependentTransactions.length > 0) {
+      res.status(400).json({
+        success: false,
+        message: `無法解鎖此交易，因為有 ${dependentTransactions.length} 筆交易依賴此交易作為資金來源`,
+        data: {
+          dependentTransactions: dependentTransactions.map(tx => ({
+            _id: tx._id,
+            groupNumber: tx.groupNumber,
+            description: tx.description,
+            totalAmount: tx.totalAmount,
+            status: tx.status
+          }))
+        }
+      });
+      return;
+    }
+
+    // 解鎖交易（改回草稿狀態）
+    const unlockedTransactionGroup = await TransactionGroupWithEntries.findByIdAndUpdate(
+      id,
+      { status: 'draft' },
+      { new: true, runValidators: true }
+    );
+
+    console.log('🔓 交易解鎖成功:', unlockedTransactionGroup?._id);
+
+    res.json({
+      success: true,
+      data: unlockedTransactionGroup,
+      message: '交易解鎖成功，已回到草稿狀態'
+    });
+  } catch (error) {
+    console.error('解鎖交易錯誤:', error);
+    res.status(500).json({
+      success: false,
+      message: '解鎖交易失敗'
     });
   }
 });

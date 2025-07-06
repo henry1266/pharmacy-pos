@@ -35,6 +35,8 @@ export {
   createTransactionGroupWithEntries,
   updateTransactionGroupWithEntries,
   deleteTransactionGroupWithEntries,
+  confirmTransactionGroupWithEntries,
+  unlockTransactionGroupWithEntries,
   searchTransactionGroupsWithEntries,
   fetchFundingChain,
   validateBalance,

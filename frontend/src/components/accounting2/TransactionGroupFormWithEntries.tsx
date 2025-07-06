@@ -23,7 +23,12 @@ import {
   Chip,
   FormControlLabel,
   Switch,
-  Badge
+  Badge,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -329,6 +334,15 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
   // 資金來源追蹤狀態
   const [enableFundingTracking, setEnableFundingTracking] = useState(false);
   const [fundingSourceDialogOpen, setFundingSourceDialogOpen] = useState(false);
+  const [selectedFundingSources, setSelectedFundingSources] = useState<Array<{
+    _id: string;
+    groupNumber: string;
+    description: string;
+    transactionDate: Date;
+    totalAmount: number;
+    availableAmount: number;
+    fundingType: string;
+  }>>([]);
   
   // 交易狀態管理
   const [confirmingTransaction, setConfirmingTransaction] = useState(false);
@@ -954,27 +968,83 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                       </Button>
                     </Box>
 
-                    {/* 顯示已選擇的資金來源 */}
-                    {formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0 ? (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {formData.linkedTransactionIds.map((id, index) => (
-                          <Chip
-                            key={id}
-                            label={`資金來源 ${index + 1}`}
-                            size="small"
-                            color="primary"
-                            variant="outlined"
-                            onDelete={() => {
-                              const newIds = formData.linkedTransactionIds?.filter(linkedId => linkedId !== id);
-                              setFormData(prev => ({
-                                ...prev,
-                                linkedTransactionIds: newIds,
-                                fundingType: newIds && newIds.length > 0 ? 'extended' : 'original'
-                              }));
-                            }}
-                          />
-                        ))}
-                        <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center', ml: 1 }}>
+                    {/* 顯示已選擇的資金來源 - 表格格式 */}
+                    {selectedFundingSources.length > 0 ? (
+                      <Box sx={{ mt: 2 }}>
+                        <Table size="small" sx={{ bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden' }}>
+                          <TableHead>
+                            <TableRow sx={{ bgcolor: 'primary.50' }}>
+                              <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }}>日期</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }}>交易編號</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }}>描述</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }} align="right">金額</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }} align="center">操作</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {selectedFundingSources.map((source, index) => (
+                              <TableRow
+                                key={source._id}
+                                sx={{
+                                  '&:nth-of-type(odd)': { bgcolor: 'grey.50' },
+                                  '&:hover': { bgcolor: 'primary.25' }
+                                }}
+                              >
+                                <TableCell>
+                                  <Typography variant="body2">
+                                    {new Date(source.transactionDate).toLocaleDateString('zh-TW')}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                    {source.groupNumber}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2">
+                                    {source.description || `資金來源 ${index + 1}`}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 'medium' }}>
+                                    ${source.availableAmount?.toLocaleString() || 0}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell align="center">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      // 從完整資金來源列表中移除
+                                      setSelectedFundingSources(prev => prev.filter(s => s._id !== source._id));
+                                      // 從 linkedTransactionIds 中移除
+                                      const newIds = formData.linkedTransactionIds?.filter(linkedId => linkedId !== source._id);
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        linkedTransactionIds: newIds,
+                                        fundingType: newIds && newIds.length > 0 ? 'extended' : 'original'
+                                      }));
+                                    }}
+                                    sx={{ color: 'error.main' }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                          <TableBody>
+                            <TableRow sx={{ bgcolor: 'primary.100', borderTop: '2px solid', borderColor: 'primary.main' }}>
+                              <TableCell colSpan={3} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                合計
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1.1rem' }}>
+                                ${selectedFundingSources.reduce((total, source) => total + (source.availableAmount || 0), 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell></TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                           資金類型: {formData.fundingType === 'extended' ? '延伸使用' : '原始資金'}
                         </Typography>
                       </Box>
@@ -1339,6 +1409,20 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
               open={fundingSourceDialogOpen}
               onClose={() => setFundingSourceDialogOpen(false)}
               onSelect={(transaction) => {
+                // 創建完整的資金來源資訊
+                const fundingSourceInfo = {
+                  _id: transaction._id,
+                  groupNumber: transaction.groupNumber,
+                  description: transaction.description,
+                  transactionDate: new Date(transaction.transactionDate),
+                  totalAmount: transaction.totalAmount,
+                  availableAmount: transaction.totalAmount, // 假設全額可用，實際應該計算剩餘可用金額
+                  fundingType: transaction.fundingType || '一般資金'
+                };
+                
+                // 添加到完整資金來源列表
+                setSelectedFundingSources(prev => [...prev, fundingSourceInfo]);
+                
                 const newIds = [...(formData.linkedTransactionIds || []), transaction._id];
                 setFormData(prev => ({
                   ...prev,

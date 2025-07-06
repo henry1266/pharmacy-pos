@@ -82,7 +82,7 @@ export class TransactionStatusManager {
     // 定義有效的狀態轉換
     const validTransitions: Record<TransactionStatusType, TransactionStatusType[]> = {
       draft: ['confirmed', 'cancelled'],
-      confirmed: [], // 已確認的交易不能轉換到其他狀態
+      confirmed: ['draft'], // 已確認的交易可以解鎖回到草稿狀態
       cancelled: [] // 已取消的交易不能轉換到其他狀態
     };
 
@@ -95,7 +95,7 @@ export class TransactionStatusManager {
   static getAvailableTransitions(currentStatus: TransactionStatusType): TransactionStatusType[] {
     const validTransitions: Record<TransactionStatusType, TransactionStatusType[]> = {
       draft: ['confirmed', 'cancelled'],
-      confirmed: [],
+      confirmed: ['draft'], // 已確認的交易可以解鎖回到草稿狀態
       cancelled: []
     };
 
