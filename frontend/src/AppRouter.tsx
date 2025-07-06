@@ -34,6 +34,7 @@ import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import Accounting2Page from './pages/Accounting2Page';
+import Accounting3Page from './pages/Accounting3Page';
 import AccountingDetailPageWrapper from './pages/AccountingDetailPage';
 import OrganizationPage from './pages/OrganizationPage';
 import OrganizationFormPage from './pages/OrganizationFormPage';
@@ -94,6 +95,12 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting2/organization/:organizationId" element={<AccountingDetailPageWrapper />} />
       <Route path="/accounting2/account-type/:accountType" element={<AccountingDetailPageWrapper />} />
       <Route path="/accounting2/account/:accountId" element={<AccountingDetailPageWrapper />} />
+      
+      {/* Accounting3 routes - 內嵌分錄記帳系統 */}
+      <Route path="/accounting3" element={<Accounting3Page />} />
+      <Route path="/accounting3/new" element={<Accounting3Page />} />
+      <Route path="/accounting3/transaction/:transactionId/edit" element={<Accounting3Page />} />
+      <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3Page />} />
       
       {/* Organization Management routes */}
       <Route path="/organizations" element={<OrganizationPage />} />

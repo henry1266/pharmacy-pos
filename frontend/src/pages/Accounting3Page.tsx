@@ -87,6 +87,7 @@ export const Accounting3Page: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { transactionId } = useParams<{ transactionId?: string }>();
   const isCopyMode = window.location.pathname.includes('/copy');
+  const isNewMode = window.location.pathname.includes('/new');
   const returnTo = searchParams.get('returnTo');
   const defaultAccountId = searchParams.get('defaultAccountId');
   const defaultOrganizationId = searchParams.get('defaultOrganizationId');
@@ -373,6 +374,71 @@ export const Accounting3Page: React.FC = () => {
     }
   };
 
+  // 如果是新增模式，直接顯示新增表單
+  if (isNewMode) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 1 }}>
+        {/* 頁面標題 */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <AccountBalanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+            <Typography variant="h4" component="h1" fontWeight="bold">
+              新增交易
+            </Typography>
+          </Box>
+          
+          {/* 返回按鈕 */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/accounting3')}
+              sx={{ mb: 2 }}
+            >
+              返回列表
+            </Button>
+          </Box>
+        </Box>
+
+        {/* 錯誤提示 */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        {/* 新增交易表單 */}
+        <Paper sx={{ width: '100%', p: 3 }}>
+          <TransactionGroupFormWithEntries
+            mode="create"
+            defaultAccountId={defaultAccountId || undefined}
+            defaultOrganizationId={defaultOrganizationId || undefined}
+            onSubmit={async (formData) => {
+              await handleFormSubmit(formData);
+              navigate('/accounting3');
+            }}
+            onCancel={() => navigate('/accounting3')}
+          />
+        </Paper>
+
+        {/* 通知 Snackbar */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="xl" sx={{ py: 1 }}>
       {/* 頁面標題 */}
@@ -389,7 +455,7 @@ export const Accounting3Page: React.FC = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={handleCreateNew}
+            onClick={() => navigate('/accounting3/new')}
             sx={{ mb: 2 }}
           >
             新增交易
@@ -404,44 +470,20 @@ export const Accounting3Page: React.FC = () => {
         </Alert>
       )}
 
-      {/* 主要內容區域 */}
+      {/* 主要內容區域 - 只顯示交易列表 */}
       <Paper sx={{ width: '100%' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="accounting tabs">
-            <Tab 
-              label="交易列表" 
-              icon={<ListIcon />} 
-              iconPosition="start"
-              {...a11yProps(0)} 
-            />
-            <Tab 
-              label="複式記帳表單" 
-              icon={<EditIcon />} 
-              iconPosition="start"
-              {...a11yProps(1)} 
-            />
-          </Tabs>
-        </Box>
-        
-        <TabPanel value={tabValue} index={0}>
-          {/* 交易列表 */}
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            交易列表
+          </Typography>
           <AccountingDataGridWithEntries
-            onCreateNew={handleCreateNew}
+            onCreateNew={() => navigate('/accounting3/new')}
             onEdit={handleEdit}
             onView={handleView}
             onDelete={handleDelete}
             onCopy={handleCopy}
           />
-        </TabPanel>
-        
-        <TabPanel value={tabValue} index={1}>
-          {/* 複式記帳表單 */}
-          <TransactionGroupFormWithEntries
-            mode="create"
-            onSubmit={handleFormSubmit}
-            onCancel={() => setTabValue(0)}
-          />
-        </TabPanel>
+        </Box>
       </Paper>
 
       {/* 新增/編輯交易對話框 */}
