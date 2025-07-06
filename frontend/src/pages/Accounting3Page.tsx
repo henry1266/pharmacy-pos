@@ -12,12 +12,20 @@ import {
   Alert,
   Snackbar,
   Paper,
+  Card,
+  CardContent,
+  TextField,
+  InputAdornment,
+  Fab,
+  Tooltip,
 } from '@mui/material';
 import {
   AccountBalance as AccountBalanceIcon,
   ListAlt as ListIcon,
   Add as AddIcon,
   Edit as EditIcon,
+  FilterList as FilterListIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 
@@ -103,6 +111,8 @@ export const Accounting3Page: React.FC = () => {
   const [editingTransaction, setEditingTransaction] = useState<TransactionGroupWithEntries | null>(null);
   const [copyingTransaction, setCopyingTransaction] = useState<TransactionGroupWithEntries | null>(null);
   const [viewingTransaction, setViewingTransaction] = useState<TransactionGroupWithEntries | null>(null);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -496,18 +506,6 @@ export const Accounting3Page: React.FC = () => {
             內嵌分錄記帳系統
           </Typography>
         </Box>
-        
-        {/* 功能按鈕 */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/accounting3/new')}
-            sx={{ mb: 2 }}
-          >
-            新增交易
-          </Button>
-        </Box>
       </Box>
 
       {/* 錯誤提示 */}
@@ -517,13 +515,26 @@ export const Accounting3Page: React.FC = () => {
         </Alert>
       )}
 
-      {/* 主要內容區域 - 只顯示交易列表 */}
-      <Paper sx={{ width: '100%' }}>
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            交易列表
-          </Typography>
+      {/* 主要內容區域 - 仿效 PurchaseOrdersPage 設計 */}
+      <Card sx={{ mb: 3, px: 2, mx: 1 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">交易列表</Typography>
+            <Box>
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                onClick={() => setShowFilters(!showFilters)}
+                sx={{ mr: 1 }}
+              >
+                {showFilters ? '隱藏篩選' : '顯示篩選'}
+              </Button>
+            </Box>
+          </Box>
+
           <AccountingDataGridWithEntries
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(!showFilters)}
             onCreateNew={() => navigate('/accounting3/new')}
             onEdit={handleEdit}
             onView={handleView}
@@ -532,8 +543,28 @@ export const Accounting3Page: React.FC = () => {
             onConfirm={handleConfirm}
             onUnlock={handleUnlock}
           />
-        </Box>
-      </Paper>
+        </CardContent>
+      </Card>
+
+      {/* 右側固定按鈕 - 仿效 PurchaseOrdersPage */}
+      <Box
+        sx={{
+          position: 'fixed',
+          right: 5,
+          top: '40%',
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          zIndex: 1000
+        }}
+      >
+        <Tooltip title="新增交易" placement="left" arrow>
+          <Fab color="primary" size="medium" onClick={() => navigate('/accounting3/new')} aria-label="新增交易">
+            <AddIcon />
+          </Fab>
+        </Tooltip>
+      </Box>
 
       {/* 新增/編輯交易對話框 */}
       <Dialog

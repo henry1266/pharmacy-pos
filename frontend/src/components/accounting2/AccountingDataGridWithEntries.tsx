@@ -68,6 +68,7 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
 
 interface AccountingDataGridWithEntriesProps {
   organizationId?: string;
+  showFilters?: boolean;
   onCreateNew: () => void;
   onEdit: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
   onCopy: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
@@ -75,6 +76,7 @@ interface AccountingDataGridWithEntriesProps {
   onView: (transactionGroup: ExtendedTransactionGroupWithEntries) => void;
   onConfirm: (id: string) => void;
   onUnlock: (id: string) => void;
+  onToggleFilters?: () => void;
 }
 
 interface FilterOptions {
@@ -88,13 +90,15 @@ interface FilterOptions {
 
 export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntriesProps> = ({
   organizationId,
+  showFilters = false,
   onCreateNew,
   onEdit,
   onCopy,
   onDelete,
   onView,
   onConfirm,
-  onUnlock
+  onUnlock,
+  onToggleFilters
 }) => {
   const dispatch = useAppDispatch();
   
@@ -255,37 +259,10 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
       <Card>
-        <CardHeader
-          title={
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AccountBalanceIcon color="primary" />
-              <Typography variant="h6">複式記帳交易（內嵌版本）</Typography>
-            </Box>
-          }
-          action={
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="outlined"
-                startIcon={<RefreshIcon />}
-                onClick={loadTransactionGroups}
-                disabled={loading}
-              >
-                刷新
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={onCreateNew}
-              >
-                新增交易
-              </Button>
-            </Box>
-          }
-        />
-        
         <CardContent>
           {/* 篩選器 */}
-          <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
+          {showFilters && (
+            <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <FilterIcon />
               <Typography variant="h6">篩選條件</Typography>
@@ -360,6 +337,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
               </Grid>
             </Grid>
           </Paper>
+          )}
 
           {/* 交易群組表格 */}
           {transactionGroups.length === 0 ? (
