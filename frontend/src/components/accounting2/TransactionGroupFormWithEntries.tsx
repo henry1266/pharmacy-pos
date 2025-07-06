@@ -179,7 +179,7 @@ interface TransactionGroupFormWithEntriesProps {
   onSubmit: (data: TransactionGroupWithEntriesFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
-  mode?: 'create' | 'edit';
+  mode?: 'create' | 'edit' | 'view';
   defaultAccountId?: string;
   defaultOrganizationId?: string;
   isCopyMode?: boolean;
@@ -820,7 +820,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
             title={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="h6">
-                  {mode === 'create' ? '基本資訊' : '基本資訊'}
+                  {mode === 'create' ? '基本資訊' : mode === 'view' ? '交易詳情' : '基本資訊'}
                 </Typography>
                 {mode === 'edit' && (
                   <Badge
@@ -854,7 +854,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                   variant="outlined"
                   component="label"
                   startIcon={<UploadIcon />}
-                  disabled={uploadingReceipt}
+                  disabled={uploadingReceipt || mode === 'view'}
                   size="small"
                 >
                   {uploadingReceipt ? '上傳中...' : '上傳憑證'}
@@ -863,6 +863,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                     hidden
                     accept="image/*,.pdf"
                     onChange={handleReceiptUpload}
+                    disabled={mode === 'view'}
                   />
                 </Button>
                 {formData.receiptUrl && (
@@ -994,14 +995,16 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                         <AccountTreeIcon color="primary" />
                         資金來源追蹤
                       </Typography>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<LinkIcon />}
-                        onClick={() => setFundingSourceDialogOpen(true)}
-                      >
-                        選擇資金來源
-                      </Button>
+                      {mode !== 'view' && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<LinkIcon />}
+                          onClick={() => setFundingSourceDialogOpen(true)}
+                        >
+                          選擇資金來源
+                        </Button>
+                      )}
                     </Box>
 
                     {/* 顯示已選擇的資金來源 - 表格格式 */}
@@ -1014,7 +1017,9 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                               <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }}>交易編號</TableCell>
                               <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }}>描述</TableCell>
                               <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }} align="right">金額</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }} align="center">操作</TableCell>
+                              {mode !== 'view' && (
+                                <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }} align="center">操作</TableCell>
+                              )}
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -1046,37 +1051,39 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                                     ${source.availableAmount?.toLocaleString() || 0}
                                   </Typography>
                                 </TableCell>
-                                <TableCell align="center">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => {
-                                      // 從完整資金來源列表中移除
-                                      setSelectedFundingSources(prev => prev.filter(s => s._id !== source._id));
-                                      // 從 linkedTransactionIds 中移除
-                                      const newIds = formData.linkedTransactionIds?.filter(linkedId => linkedId !== source._id);
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        linkedTransactionIds: newIds,
-                                        fundingType: newIds && newIds.length > 0 ? 'extended' : 'original'
-                                      }));
-                                    }}
-                                    sx={{ color: 'error.main' }}
-                                  >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </TableCell>
+                                {mode !== 'view' && (
+                                  <TableCell align="center">
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => {
+                                        // 從完整資金來源列表中移除
+                                        setSelectedFundingSources(prev => prev.filter(s => s._id !== source._id));
+                                        // 從 linkedTransactionIds 中移除
+                                        const newIds = formData.linkedTransactionIds?.filter(linkedId => linkedId !== source._id);
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          linkedTransactionIds: newIds,
+                                          fundingType: newIds && newIds.length > 0 ? 'extended' : 'original'
+                                        }));
+                                      }}
+                                      sx={{ color: 'error.main' }}
+                                    >
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                  </TableCell>
+                                )}
                               </TableRow>
                             ))}
                           </TableBody>
                           <TableBody>
                             <TableRow sx={{ bgcolor: 'primary.100', borderTop: '2px solid', borderColor: 'primary.main' }}>
-                              <TableCell colSpan={3} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                              <TableCell colSpan={mode === 'view' ? 3 : 3} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                                 合計
                               </TableCell>
                               <TableCell align="right" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1.1rem' }}>
                                 ${selectedFundingSources.reduce((total, source) => total + (source.availableAmount || 0), 0).toLocaleString()}
                               </TableCell>
-                              <TableCell></TableCell>
+                              {mode !== 'view' && <TableCell></TableCell>}
                             </TableRow>
                           </TableBody>
                         </Table>
@@ -1103,40 +1110,42 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           <CardHeader
             title="借貸分錄"
             action={
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<SpeedIcon />}
-                  onClick={() => setTemplateDialogOpen(true)}
-                  sx={{
-                    color: 'primary.contrastText',
-                    borderColor: 'primary.contrastText',
-                    '&:hover': {
+              mode !== 'view' && (
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<SpeedIcon />}
+                    onClick={() => setTemplateDialogOpen(true)}
+                    sx={{
+                      color: 'primary.contrastText',
                       borderColor: 'primary.contrastText',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                    }
-                  }}
-                >
-                  快速範本
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<HelpIcon />}
-                  onClick={() => setQuickStartOpen(true)}
-                  sx={{
-                    color: 'primary.contrastText',
-                    borderColor: 'primary.contrastText',
-                    '&:hover': {
+                      '&:hover': {
+                        borderColor: 'primary.contrastText',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                      }
+                    }}
+                  >
+                    快速範本
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<HelpIcon />}
+                    onClick={() => setQuickStartOpen(true)}
+                    sx={{
+                      color: 'primary.contrastText',
                       borderColor: 'primary.contrastText',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                    }
-                  }}
-                >
-                  快速入門
-                </Button>
-              </Box>
+                      '&:hover': {
+                        borderColor: 'primary.contrastText',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                      }
+                    }}
+                  >
+                    快速入門
+                  </Button>
+                </Box>
+              )
             }
             sx={{
               backgroundColor: 'primary.main',
@@ -1179,7 +1188,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
             disabled={isLoading || confirmingTransaction}
             startIcon={<CancelIcon />}
           >
-            取消
+            {mode === 'view' ? '關閉' : '取消'}
           </Button>
           
           {/* 確認交易按鈕 - 使用 shared 權限管理 */}
@@ -1212,35 +1221,37 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
             </Tooltip>
           )}
           
-          <Tooltip
-            title={
-              !permissions.canEdit ? '已確認的交易無法修改' :
-              isLoading ? '處理中...' :
-              !!balanceError ? balanceError :
-              mode === 'create' && formData.entries.length === 0 ? '請先新增分錄' :
-              mode === 'create' && formData.entries.length < 2 ? '至少需要兩筆分錄' :
-              Object.keys(errors).length > 0 ? '請修正表單錯誤' :
-              mode === 'create' ? '點擊建立交易' : '點擊更新交易'
-            }
-          >
-            <span>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={
-                  !permissions.canEdit || // 使用 shared 權限管理
-                  isLoading ||
-                  confirmingTransaction ||
-                  !!balanceError ||
-                  (mode === 'create' && formData.entries.length < 2) ||
-                  Object.keys(errors).length > 0
-                }
-                startIcon={<SaveIcon />}
-              >
-                {isLoading ? '儲存中...' : mode === 'create' ? '建立交易' : '更新交易'}
-              </Button>
-            </span>
-          </Tooltip>
+          {mode !== 'view' && (
+            <Tooltip
+              title={
+                !permissions.canEdit ? '已確認的交易無法修改' :
+                isLoading ? '處理中...' :
+                !!balanceError ? balanceError :
+                mode === 'create' && formData.entries.length === 0 ? '請先新增分錄' :
+                mode === 'create' && formData.entries.length < 2 ? '至少需要兩筆分錄' :
+                Object.keys(errors).length > 0 ? '請修正表單錯誤' :
+                mode === 'create' ? '點擊建立交易' : '點擊更新交易'
+              }
+            >
+              <span>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={
+                    !permissions.canEdit || // 使用 shared 權限管理
+                    isLoading ||
+                    confirmingTransaction ||
+                    !!balanceError ||
+                    (mode === 'create' && formData.entries.length < 2) ||
+                    Object.keys(errors).length > 0
+                  }
+                  startIcon={<SaveIcon />}
+                >
+                  {isLoading ? '儲存中...' : mode === 'create' ? '建立交易' : '更新交易'}
+                </Button>
+              </span>
+            </Tooltip>
+          )}
         </Box>
 
         {/* 快速範本對話框 */}

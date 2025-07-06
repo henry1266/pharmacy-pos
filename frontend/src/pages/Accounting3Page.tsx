@@ -612,8 +612,38 @@ export const Accounting3Page: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           {viewingTransaction && (
-            <DoubleEntryDetailPageWithEntries
-              organizationId={viewingTransaction.organizationId}
+            <TransactionGroupFormWithEntries
+              mode="view"
+              transactionId={viewingTransaction._id}
+              currentStatus={viewingTransaction.status}
+              initialData={(() => {
+                const convertEntries = (entries: EmbeddedAccountingEntry[]): EmbeddedAccountingEntryFormData[] => {
+                  return Array.isArray(entries) ? entries.map(entry => ({
+                    _id: entry._id,
+                    sequence: entry.sequence || 1,
+                    accountId: typeof entry.accountId === 'string' ? entry.accountId : entry.accountId?._id || '',
+                    debitAmount: entry.debitAmount || 0,
+                    creditAmount: entry.creditAmount || 0,
+                    description: entry.description || '',
+                    sourceTransactionId: entry.sourceTransactionId,
+                    fundingPath: entry.fundingPath
+                  })) : [];
+                };
+
+                return {
+                  description: viewingTransaction.description,
+                  transactionDate: safeDateConvert(viewingTransaction.transactionDate),
+                  organizationId: viewingTransaction.organizationId,
+                  receiptUrl: viewingTransaction.receiptUrl || '',
+                  invoiceNo: viewingTransaction.invoiceNo || '',
+                  entries: convertEntries(viewingTransaction.entries || []),
+                  linkedTransactionIds: viewingTransaction.linkedTransactionIds,
+                  sourceTransactionId: viewingTransaction.sourceTransactionId,
+                  fundingType: viewingTransaction.fundingType || 'original'
+                };
+              })()}
+              onSubmit={async (data: TransactionGroupWithEntriesFormData) => {}} // 檢視模式不需要提交
+              onCancel={handleCloseDetailDialog}
             />
           )}
         </DialogContent>
