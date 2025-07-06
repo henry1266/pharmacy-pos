@@ -425,40 +425,69 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         if (hasLinkedTransactions && convertedData.linkedTransactionIds) {
           console.log('🔍 初始化資金來源顯示狀態 (mode:', mode, ')');
           console.log('🔍 initialData.fundingSourcesInfo:', (initialData as any)?.fundingSourcesInfo);
+          console.log('🔍 convertedData.linkedTransactionIds:', convertedData.linkedTransactionIds);
           
-          // 從 initialData 中提取資金來源資訊
-          const fundingSources = convertedData.linkedTransactionIds.map((linkedId: string, index: number) => {
-            // 嘗試從 initialData.fundingSourcesInfo 中找到對應的資金來源資訊
-            const sourceInfo = (initialData as any)?.fundingSourcesInfo?.find((info: any) => info._id === linkedId);
+          // 優先使用 fundingSourcesInfo，如果沒有則嘗試從 linkedTransactionIds 中提取
+          const fundingSourcesInfo = (initialData as any)?.fundingSourcesInfo;
+          
+          if (fundingSourcesInfo && Array.isArray(fundingSourcesInfo) && fundingSourcesInfo.length > 0) {
+            console.log('✅ 使用後端提供的 fundingSourcesInfo');
+            const fundingSources = fundingSourcesInfo.map((sourceInfo: any) => ({
+              _id: sourceInfo._id,
+              groupNumber: sourceInfo.groupNumber || 'TXN-未知',
+              description: sourceInfo.description || '未知資金來源',
+              transactionDate: new Date(sourceInfo.transactionDate || new Date()),
+              totalAmount: sourceInfo.totalAmount || 0,
+              availableAmount: sourceInfo.availableAmount || sourceInfo.totalAmount || 0,
+              fundingType: sourceInfo.fundingType || '一般資金'
+            }));
             
-            if (sourceInfo) {
-              console.log('✅ 找到資金來源詳細資訊:', sourceInfo);
-              return {
-                _id: sourceInfo._id,
-                groupNumber: sourceInfo.groupNumber || `TXN-${index + 1}`,
-                description: sourceInfo.description || `資金來源 ${index + 1}`,
-                transactionDate: new Date(sourceInfo.transactionDate || new Date()),
-                totalAmount: sourceInfo.totalAmount || 0,
-                availableAmount: sourceInfo.availableAmount || sourceInfo.totalAmount || 0,
-                fundingType: sourceInfo.fundingType || '一般資金'
-              };
-            } else {
-              console.log('⚠️ 未找到資金來源詳細資訊，使用基本資料:', linkedId);
-              // 如果沒有詳細資訊，創建基本的顯示資料
-              return {
-                _id: linkedId,
-                groupNumber: `TXN-${index + 1}`,
-                description: `資金來源 ${index + 1}`,
-                transactionDate: new Date(),
-                totalAmount: 0,
-                availableAmount: 0,
-                fundingType: '一般資金'
-              };
-            }
-          });
-          
-          setSelectedFundingSources(fundingSources);
-          console.log('✅ 資金來源狀態初始化完成:', fundingSources);
+            setSelectedFundingSources(fundingSources);
+            console.log('✅ 資金來源狀態初始化完成 (使用 fundingSourcesInfo):', fundingSources);
+          } else {
+            console.log('⚠️ 沒有 fundingSourcesInfo，嘗試從 linkedTransactionIds 建立基本資料');
+            // 如果沒有詳細資訊，從 linkedTransactionIds 建立基本資料
+            const fundingSources = convertedData.linkedTransactionIds.map((linkedId: any, index: number) => {
+              // 檢查 linkedId 是否為物件（已 populate）還是字串，並確保不為 null
+              if (linkedId && typeof linkedId === 'object' && linkedId._id) {
+                console.log('✅ linkedTransactionIds 已 populate:', linkedId);
+                return {
+                  _id: linkedId._id,
+                  groupNumber: linkedId.groupNumber || `TXN-${index + 1}`,
+                  description: linkedId.description || `資金來源 ${index + 1}`,
+                  transactionDate: new Date(linkedId.transactionDate || new Date()),
+                  totalAmount: linkedId.totalAmount || 0,
+                  availableAmount: linkedId.totalAmount || 0,
+                  fundingType: linkedId.fundingType || '一般資金'
+                };
+              } else if (linkedId) {
+                console.log('⚠️ linkedTransactionIds 未 populate，使用基本資料:', linkedId);
+                return {
+                  _id: typeof linkedId === 'string' ? linkedId : linkedId._id || `unknown-${index}`,
+                  groupNumber: `TXN-${index + 1}`,
+                  description: `資金來源 ${index + 1}`,
+                  transactionDate: new Date(),
+                  totalAmount: 0,
+                  availableAmount: 0,
+                  fundingType: '一般資金'
+                };
+              } else {
+                console.log('⚠️ linkedId 為 null 或 undefined，使用預設資料');
+                return {
+                  _id: `unknown-${index}`,
+                  groupNumber: `TXN-${index + 1}`,
+                  description: `資金來源 ${index + 1}`,
+                  transactionDate: new Date(),
+                  totalAmount: 0,
+                  availableAmount: 0,
+                  fundingType: '一般資金'
+                };
+              }
+            });
+            
+            setSelectedFundingSources(fundingSources);
+            console.log('✅ 資金來源狀態初始化完成 (使用基本資料):', fundingSources);
+          }
         }
         
         console.log('✅ 表單資料設定完成');
