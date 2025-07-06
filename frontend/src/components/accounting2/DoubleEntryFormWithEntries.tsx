@@ -67,8 +67,8 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
   isCopyMode = false,
   disabled = false
 }) => {
-  const { accounts } = useAppSelector(state => state.account2 || { accounts: [] });
-  const { organizations } = useAppSelector(state => state.organization || { organizations: [] });
+  const { accounts, loading: accountsLoading, error: accountsError } = useAppSelector(state => state.account2 || { accounts: [], loading: false, error: null });
+  const { organizations, loading: organizationsLoading } = useAppSelector(state => state.organization || { organizations: [], loading: false, error: null });
 
   // 科目選擇對話框狀態
   const [accountSelectorOpen, setAccountSelectorOpen] = useState(false);
@@ -420,6 +420,38 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
   const validationResult = useMemo(() => {
     return embeddedEntriesHelpers.validateEntries(entries);
   }, [entries]);
+
+  // 如果會計科目正在載入，顯示載入提示
+  if (accountsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+        <Typography variant="body1" color="text.secondary">
+          載入會計科目資料中...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // 如果會計科目載入失敗，顯示錯誤提示
+  if (accountsError) {
+    return (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        載入會計科目失敗：{accountsError}
+      </Alert>
+    );
+  }
+
+  // 如果沒有可用的會計科目，顯示提示
+  if (availableAccounts.length === 0) {
+    return (
+      <Alert severity="warning" sx={{ mb: 2 }}>
+        {organizationId ?
+          `找不到機構 ${organizationId} 的可用會計科目，請先建立會計科目。` :
+          '找不到可用的會計科目，請先建立會計科目。'
+        }
+      </Alert>
+    );
+  }
 
   return (
     <Box>

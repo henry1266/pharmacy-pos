@@ -824,7 +824,7 @@ export const transactionGroupWithEntriesReducer = (
     case ActionTypes.SEARCH_TRANSACTION_GROUPS_WITH_ENTRIES_SUCCESS:
       return {
         ...state,
-        transactionGroups: action.payload.transactionGroups || [],
+        transactionGroups: action.payload.groups || action.payload.transactionGroups || [],
         pagination: action.payload.pagination || null,
         loading: false,
         error: null

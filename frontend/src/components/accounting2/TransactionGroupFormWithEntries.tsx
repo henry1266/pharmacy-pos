@@ -421,6 +421,42 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         const hasLinkedTransactions = !isCopyMode && convertedData.linkedTransactionIds && convertedData.linkedTransactionIds.length > 0;
         setEnableFundingTracking(hasLinkedTransactions);
         
+        // 檢視模式下需要初始化 selectedFundingSources 狀態
+        if (hasLinkedTransactions && convertedData.linkedTransactionIds) {
+          console.log('🔍 檢視模式：初始化資金來源顯示狀態');
+          // 從 initialData 中提取資金來源資訊
+          const fundingSources = convertedData.linkedTransactionIds.map((linkedId: string, index: number) => {
+            // 嘗試從 initialData 中找到對應的資金來源資訊
+            const sourceInfo = (initialData as any)?.fundingSourcesInfo?.find((info: any) => info._id === linkedId);
+            
+            if (sourceInfo) {
+              return {
+                _id: sourceInfo._id,
+                groupNumber: sourceInfo.groupNumber || `TXN-${index + 1}`,
+                description: sourceInfo.description || `資金來源 ${index + 1}`,
+                transactionDate: new Date(sourceInfo.transactionDate || new Date()),
+                totalAmount: sourceInfo.totalAmount || 0,
+                availableAmount: sourceInfo.availableAmount || sourceInfo.totalAmount || 0,
+                fundingType: sourceInfo.fundingType || '一般資金'
+              };
+            } else {
+              // 如果沒有詳細資訊，創建基本的顯示資料
+              return {
+                _id: linkedId,
+                groupNumber: `TXN-${index + 1}`,
+                description: `資金來源 ${index + 1}`,
+                transactionDate: new Date(),
+                totalAmount: 0,
+                availableAmount: 0,
+                fundingType: '一般資金'
+              };
+            }
+          });
+          
+          setSelectedFundingSources(fundingSources);
+          console.log('✅ 檢視模式資金來源狀態初始化完成:', fundingSources);
+        }
+        
         console.log('✅ 表單資料設定完成');
         
       } catch (error) {
