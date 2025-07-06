@@ -249,7 +249,8 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       createdBy: userId
     })
     .populate('entries.accountId', 'name code accountType normalBalance')
-    .populate('entries.categoryId', 'name type color');
+    .populate('entries.categoryId', 'name type color')
+    .populate('linkedTransactionIds', 'groupNumber description transactionDate totalAmount fundingType status');
 
     if (!transactionGroup) {
       res.status(404).json({
@@ -259,9 +260,31 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
+    // 格式化回應資料，包含資金來源詳細資訊
+    const transactionGroupObj = transactionGroup.toObject();
+    
+    // 建立回應資料物件
+    const responseData: any = {
+      ...transactionGroupObj
+    };
+    
+    // 如果有資金來源，格式化資金來源資訊
+    if (transactionGroupObj.linkedTransactionIds && transactionGroupObj.linkedTransactionIds.length > 0) {
+      responseData.fundingSourcesInfo = transactionGroupObj.linkedTransactionIds.map((linkedTx: any) => ({
+        _id: linkedTx._id,
+        groupNumber: linkedTx.groupNumber,
+        description: linkedTx.description,
+        transactionDate: linkedTx.transactionDate,
+        totalAmount: linkedTx.totalAmount,
+        availableAmount: linkedTx.totalAmount, // 簡化處理，實際應該計算剩餘可用金額
+        fundingType: linkedTx.fundingType || '一般資金',
+        status: linkedTx.status
+      }));
+    }
+
     res.json({
       success: true,
-      data: transactionGroup
+      data: responseData
     });
   } catch (error) {
     console.error('獲取交易群組詳情錯誤:', error);

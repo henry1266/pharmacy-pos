@@ -11,8 +11,6 @@ import {
   Button,
   Alert,
   Snackbar,
-  Tabs,
-  Tab,
   Paper,
 } from '@mui/material';
 import {
@@ -261,8 +259,9 @@ export const Accounting3Page: React.FC = () => {
         showSnackbar('交易已成功確認', 'success');
         // 重新載入資料以更新狀態
         setTimeout(() => {
+          console.log('🔄 確認交易後重新載入交易列表');
           dispatch(fetchTransactionGroupsWithEntries() as any);
-        }, 100);
+        }, 500);
       } catch (error) {
         console.error('確認交易失敗:', error);
         showSnackbar('確認交易失敗', 'error');
@@ -278,8 +277,9 @@ export const Accounting3Page: React.FC = () => {
         showSnackbar('交易已成功解鎖', 'success');
         // 重新載入資料以更新狀態
         setTimeout(() => {
+          console.log('🔄 解鎖交易後重新載入交易列表');
           dispatch(fetchTransactionGroupsWithEntries() as any);
-        }, 100);
+        }, 500);
       } catch (error) {
         console.error('解鎖交易失敗:', error);
         showSnackbar('解鎖交易失敗', 'error');
@@ -324,16 +324,23 @@ export const Accounting3Page: React.FC = () => {
           fundingType: apiData.fundingType
         };
         
-        await dispatch(updateTransactionGroupWithEntries(editingTransaction._id, updateData) as any);
+        const updatedResult = await dispatch(updateTransactionGroupWithEntries(editingTransaction._id, updateData) as any);
         showSnackbar('交易已成功更新', 'success');
+        
+        // 立即更新本地編輯狀態
+        if (updatedResult && updatedResult.payload) {
+          setEditingTransaction(updatedResult.payload);
+        }
         
         setDialogOpen(false);
         setEditingTransaction(null);
         setCopyingTransaction(null);
         
+        // 增加延遲時間確保後端完成更新
         setTimeout(() => {
+          console.log('🔄 編輯成功後重新載入交易列表');
           dispatch(fetchTransactionGroupsWithEntries() as any);
-        }, 100);
+        }, 500);
         
         if (returnTo && editingTransaction) {
           console.log('🔄 編輯成功，準備返回原頁面:', decodeURIComponent(returnTo));
@@ -349,9 +356,11 @@ export const Accounting3Page: React.FC = () => {
         setEditingTransaction(null);
         setCopyingTransaction(null);
         
+        // 增加延遲時間確保後端完成創建
         setTimeout(() => {
+          console.log('🔄 新增/複製成功後重新載入交易列表');
           dispatch(fetchTransactionGroupsWithEntries() as any);
-        }, 100);
+        }, 500);
         
         if (returnTo && (copyingTransaction || defaultAccountId)) {
           const actionType = copyingTransaction ? '複製' : '新增';

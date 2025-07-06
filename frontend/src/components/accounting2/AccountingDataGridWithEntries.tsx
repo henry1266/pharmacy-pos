@@ -42,14 +42,16 @@ import {
   FilterList as FilterIcon,
   ContentCopy as CopyIcon,
   CheckCircle as ConfirmIcon,
-  LockOpen as UnlockIcon
+  LockOpen as UnlockIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { zhTW } from 'date-fns/locale';
 import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '../../../../shared';
-import { transactionGroupWithEntriesService } from '../../services/transactionGroupWithEntriesService';
+import { useAppSelector, useAppDispatch } from '../../hooks/redux';
+import { fetchTransactionGroupsWithEntries } from '../../redux/actions';
 
 interface AccountingDataGridWithEntriesProps {
   organizationId?: string;
@@ -81,18 +83,13 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
   onConfirm,
   onUnlock
 }) => {
-  // 狀態管理
-  const [transactionGroups, setTransactionGroups] = useState<TransactionGroupWithEntries[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 25,
-    total: 0,
-    pages: 0
-  });
+  const dispatch = useAppDispatch();
   
+  // 使用 Redux 狀態
+  const { transactionGroups, loading, error, pagination } = useAppSelector(state => state.transactionGroupWithEntries);
+  
+  // 本地狀態管理
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<FilterOptions>({
     search: '',
     status: '',
@@ -103,45 +100,21 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
   });
 
   // 載入交易群組資料
-  const loadTransactionGroups = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const loadTransactionGroups = () => {
+    console.log('🔍 AccountingDataGridWithEntries - 載入交易群組:', { organizationId, filter });
 
-      console.log('🔍 AccountingDataGridWithEntries - 載入交易群組:', { organizationId, filter });
+    const params: any = {
+      organizationId,
+      page: filter.page,
+      limit: filter.limit
+    };
 
-      const params: any = {
-        organizationId,
-        page: filter.page,
-        limit: filter.limit
-      };
+    if (filter.search) params.search = filter.search;
+    if (filter.status) params.status = filter.status;
+    if (filter.startDate) params.startDate = filter.startDate.toISOString();
+    if (filter.endDate) params.endDate = filter.endDate.toISOString();
 
-      if (filter.search) params.search = filter.search;
-      if (filter.status) params.status = filter.status;
-      if (filter.startDate) params.startDate = filter.startDate.toISOString();
-      if (filter.endDate) params.endDate = filter.endDate.toISOString();
-
-      const response = await transactionGroupWithEntriesService.getAll(params);
-
-      if (response.success && response.data) {
-        const groups = response.data.groups || [];
-        setTransactionGroups(groups);
-        setPagination(response.data.pagination || {
-          page: 1,
-          limit: 25,
-          total: groups.length,
-          pages: Math.ceil(groups.length / 25)
-        });
-        console.log('✅ AccountingDataGridWithEntries - 載入成功:', groups.length, '筆交易群組');
-      } else {
-        throw new Error('載入交易群組失敗');
-      }
-    } catch (err) {
-      console.error('❌ AccountingDataGridWithEntries - 載入失敗:', err);
-      setError('載入交易群組資料失敗，請稍後再試');
-    } finally {
-      setLoading(false);
-    }
+    dispatch(fetchTransactionGroupsWithEntries(params) as any);
   };
 
   // 初始載入和篩選變更時重新載入
@@ -156,6 +129,16 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
     filter.page,
     filter.limit
   ]);
+
+  // 監聽 Redux 狀態變化
+  useEffect(() => {
+    console.log('📊 AccountingDataGridWithEntries Redux 狀態變化:', {
+      transactionGroupsLength: transactionGroups.length,
+      loading,
+      error,
+      pagination
+    });
+  }, [transactionGroups, loading, error, pagination]);
 
   // 處理展開/收合行
   const handleExpandRow = (id: string) => {
@@ -267,13 +250,23 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
             </Box>
           }
           action={
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={onCreateNew}
-            >
-              新增交易
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<RefreshIcon />}
+                onClick={loadTransactionGroups}
+                disabled={loading}
+              >
+                刷新
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={onCreateNew}
+              >
+                新增交易
+              </Button>
+            </Box>
           }
         />
         
@@ -631,11 +624,11 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
               </TableContainer>
 
               {/* 分頁 */}
-              {pagination.pages > 1 && (
+              {pagination && pagination.totalPages > 1 && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
                   <Stack spacing={2} alignItems="center">
                     <Pagination
-                      count={pagination.pages}
+                      count={pagination.totalPages}
                       page={pagination.page}
                       onChange={handlePageChange}
                       color="primary"
@@ -643,7 +636,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                       showLastButton
                     />
                     <Typography variant="caption" color="text.secondary">
-                      第 {pagination.page} 頁，共 {pagination.pages} 頁 | 
+                      第 {pagination.page} 頁，共 {pagination.totalPages} 頁 |
                       顯示 {transactionGroups.length} 筆，共 {pagination.total} 筆交易群組
                     </Typography>
                   </Stack>

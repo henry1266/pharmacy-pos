@@ -421,15 +421,18 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         const hasLinkedTransactions = !isCopyMode && convertedData.linkedTransactionIds && convertedData.linkedTransactionIds.length > 0;
         setEnableFundingTracking(hasLinkedTransactions);
         
-        // 檢視模式下需要初始化 selectedFundingSources 狀態
+        // 編輯和檢視模式下都需要初始化 selectedFundingSources 狀態
         if (hasLinkedTransactions && convertedData.linkedTransactionIds) {
-          console.log('🔍 檢視模式：初始化資金來源顯示狀態');
+          console.log('🔍 初始化資金來源顯示狀態 (mode:', mode, ')');
+          console.log('🔍 initialData.fundingSourcesInfo:', (initialData as any)?.fundingSourcesInfo);
+          
           // 從 initialData 中提取資金來源資訊
           const fundingSources = convertedData.linkedTransactionIds.map((linkedId: string, index: number) => {
-            // 嘗試從 initialData 中找到對應的資金來源資訊
+            // 嘗試從 initialData.fundingSourcesInfo 中找到對應的資金來源資訊
             const sourceInfo = (initialData as any)?.fundingSourcesInfo?.find((info: any) => info._id === linkedId);
             
             if (sourceInfo) {
+              console.log('✅ 找到資金來源詳細資訊:', sourceInfo);
               return {
                 _id: sourceInfo._id,
                 groupNumber: sourceInfo.groupNumber || `TXN-${index + 1}`,
@@ -440,6 +443,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
                 fundingType: sourceInfo.fundingType || '一般資金'
               };
             } else {
+              console.log('⚠️ 未找到資金來源詳細資訊，使用基本資料:', linkedId);
               // 如果沒有詳細資訊，創建基本的顯示資料
               return {
                 _id: linkedId,
@@ -454,7 +458,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           });
           
           setSelectedFundingSources(fundingSources);
-          console.log('✅ 檢視模式資金來源狀態初始化完成:', fundingSources);
+          console.log('✅ 資金來源狀態初始化完成:', fundingSources);
         }
         
         console.log('✅ 表單資料設定完成');
@@ -660,13 +664,21 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     setEnableFundingTracking(enabled);
     
     if (!enabled) {
-      // 關閉資金追蹤時清除相關資料
-      setFormData(prev => ({
-        ...prev,
-        linkedTransactionIds: undefined,
-        sourceTransactionId: undefined,
-        fundingType: 'original'
-      }));
+      // 關閉資金追蹤時的處理
+      if (mode === 'create') {
+        // 新增模式：清除相關資料
+        setFormData(prev => ({
+          ...prev,
+          linkedTransactionIds: undefined,
+          sourceTransactionId: undefined,
+          fundingType: 'original'
+        }));
+        setSelectedFundingSources([]);
+      } else {
+        // 編輯模式：保持原有資料但標記為不啟用
+        console.log('🔄 編輯模式：關閉資金追蹤開關但保持資料');
+        // 不清除 formData 中的資金來源資料，讓用戶可以重新開啟
+      }
     }
   };
 
@@ -722,10 +734,13 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         organizationId: formData.organizationId && formData.organizationId.trim() !== ''
           ? formData.organizationId
           : null,
-        // 資金來源追蹤欄位
-        linkedTransactionIds: enableFundingTracking ? formData.linkedTransactionIds : undefined,
-        sourceTransactionId: enableFundingTracking ? formData.sourceTransactionId : undefined,
-        fundingType: enableFundingTracking ? (formData.fundingType || 'original') : 'original'
+        // 資金來源追蹤欄位 - 編輯模式下保持原有資料或更新
+        linkedTransactionIds: enableFundingTracking ? formData.linkedTransactionIds :
+                             (mode === 'edit' && formData.linkedTransactionIds) ? formData.linkedTransactionIds : undefined,
+        sourceTransactionId: enableFundingTracking ? formData.sourceTransactionId :
+                            (mode === 'edit' && formData.sourceTransactionId) ? formData.sourceTransactionId : undefined,
+        fundingType: enableFundingTracking ? (formData.fundingType || 'original') :
+                    (mode === 'edit' && formData.fundingType) ? formData.fundingType : 'original'
       };
 
       // 檢查分錄是否完整且有效
