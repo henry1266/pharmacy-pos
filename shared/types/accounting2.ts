@@ -57,7 +57,7 @@ export interface AccountingRecord2 {
   createdBy: string;
 }
 
-// 交易群組介面
+// 交易群組介面 (原始版本，保持向後相容)
 export interface TransactionGroup {
   _id: string;
   groupNumber: string;        // 交易群組編號 (如: TXN-20250102-001)
@@ -77,6 +77,36 @@ export interface TransactionGroup {
   createdBy: string;
   createdAt: string | Date;
   updatedAt: string | Date;
+}
+
+// 內嵌分錄介面 (子文檔結構)
+export interface EmbeddedAccountingEntry {
+  _id?: string;               // 分錄子文檔ID (可選，由MongoDB自動生成)
+  sequence: number;           // 在群組中的順序
+  
+  // 借貸記帳核心欄位
+  accountId: string | Account2; // 會計科目ID
+  debitAmount: number;        // 借方金額
+  creditAmount: number;       // 貸方金額
+  
+  // 原有欄位保留相容性
+  categoryId?: string | Category2; // 類別ID (可選，用於報表分類)
+  description: string;        // 分錄描述
+  
+  // 資金來源追蹤欄位
+  sourceTransactionId?: string; // 此分錄的資金來源交易ID
+  fundingPath?: string[];     // 資金流動路徑 (交易ID陣列的字串表示)
+}
+
+// 包含內嵌分錄的交易群組介面 (新版本)
+export interface TransactionGroupWithEntries extends Omit<TransactionGroup, 'totalAmount'> {
+  entries: EmbeddedAccountingEntry[]; // 內嵌分錄陣列
+  totalAmount: number;        // 自動計算的交易總金額
+  
+  // 新增驗證相關欄位
+  isBalanced?: boolean;       // 借貸是否平衡 (計算欄位)
+  balanceDifference?: number; // 借貸差額 (計算欄位)
+  entryCount?: number;        // 分錄數量 (計算欄位)
 }
 
 // 記帳分錄介面
@@ -141,6 +171,25 @@ export interface AccountingEntryFormData {
   // 資金來源追蹤表單欄位
   sourceTransactionId?: string; // 此分錄的資金來源交易ID
   fundingPath?: string[];     // 資金流動路徑
+}
+
+// 內嵌分錄表單數據類型
+export interface EmbeddedAccountingEntryFormData {
+  sequence?: number;          // 在群組中的順序 (可選，自動生成)
+  accountId: string;          // 會計科目ID
+  debitAmount: number;        // 借方金額
+  creditAmount: number;       // 貸方金額
+  categoryId?: string;        // 類別ID (可選)
+  description: string;        // 分錄描述
+  
+  // 資金來源追蹤表單欄位
+  sourceTransactionId?: string; // 此分錄的資金來源交易ID
+  fundingPath?: string[];     // 資金流動路徑
+}
+
+// 包含內嵌分錄的交易群組表單數據類型
+export interface TransactionGroupWithEntriesFormData extends TransactionGroupFormData {
+  entries: EmbeddedAccountingEntryFormData[]; // 內嵌分錄表單數據陣列
 }
 
 export interface Category2FormData {
@@ -232,6 +281,40 @@ export interface TransactionGroupListResponse {
 export interface TransactionGroupDetailResponse {
   success: boolean;
   data: TransactionGroup;
+}
+
+// 包含內嵌分錄的交易群組 API 回應類型
+export interface TransactionGroupWithEntriesListResponse {
+  success: boolean;
+  data: {
+    groups: TransactionGroupWithEntries[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  };
+}
+
+export interface TransactionGroupWithEntriesDetailResponse {
+  success: boolean;
+  data: TransactionGroupWithEntries;
+}
+
+// 內嵌分錄驗證回應
+export interface EmbeddedEntriesValidationResponse {
+  success: boolean;
+  data: {
+    isValid: boolean;
+    totalDebit: number;
+    totalCredit: number;
+    isBalanced: boolean;
+    difference: number;
+    entryCount: number;
+    errors: string[];
+    warnings: string[];
+  };
 }
 
 export interface AccountingEntryListResponse {

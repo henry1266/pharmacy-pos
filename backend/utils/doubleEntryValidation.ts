@@ -6,11 +6,11 @@ import { IAccountingEntry } from '../models/AccountingEntry';
 export class DoubleEntryValidator {
   
   /**
-   * 驗證借貸平衡
-   * @param entries 記帳分錄陣列
+   * 驗證借貸平衡（支援任何包含 debitAmount 和 creditAmount 的物件）
+   * @param entries 包含借貸金額的物件陣列
    * @returns 驗證結果
    */
-  static validateDebitCreditBalance(entries: IAccountingEntry[]) {
+  static validateDebitCreditBalance(entries: { debitAmount: number; creditAmount: number }[]) {
     const totalDebit = entries.reduce((sum, entry) => sum + entry.debitAmount, 0);
     const totalCredit = entries.reduce((sum, entry) => sum + entry.creditAmount, 0);
     const difference = Math.abs(totalDebit - totalCredit);
@@ -23,6 +23,15 @@ export class DoubleEntryValidator {
       isBalanced,
       message: isBalanced ? '借貸平衡' : `借貸不平衡，差額：${difference.toFixed(2)}`
     };
+  }
+
+  /**
+   * 驗證完整記帳分錄的借貸平衡（向後相容）
+   * @param entries 記帳分錄陣列
+   * @returns 驗證結果
+   */
+  static validateAccountingEntriesBalance(entries: IAccountingEntry[]) {
+    return this.validateDebitCreditBalance(entries);
   }
 
   /**

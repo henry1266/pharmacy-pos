@@ -39,6 +39,7 @@ import accounts2Routes from "./routes/accounts2";
 import categories2Routes from "./routes/categories2";
 import accountingRecords2Routes from "./routes/accountingRecords2";
 import transactionGroupsRoutes from "./routes/transactionGroups";
+import transactionGroupsWithEntriesRoutes from "./routes/transactionGroupsWithEntries";
 import accountingEntriesRoutes from "./routes/accountingEntries";
 import accountBalancesRoutes from "./routes/accountBalances";
 
@@ -89,6 +90,7 @@ app.use("/api/accounting2/accounts", accounts2Routes);
 app.use("/api/accounting2/categories", categories2Routes);
 app.use("/api/accounting2/records", accountingRecords2Routes);
 app.use("/api/accounting2/transaction-groups", transactionGroupsRoutes);
+app.use("/api/accounting2/transaction-groups-with-entries", transactionGroupsWithEntriesRoutes);
 app.use("/api/accounting2/entries", accountingEntriesRoutes);
 app.use("/api/accounting2/balances", accountBalancesRoutes);
 
