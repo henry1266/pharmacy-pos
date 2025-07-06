@@ -93,6 +93,6 @@ export class RouteUtils {
    */
   static extractTransactionId(pathname: string): string | null {
     const match = pathname.match(/\/transaction\/([^\/]+)/);
-    return match ? match[1] : null;
+    return match && match[1] ? match[1] : null;
   }
 }

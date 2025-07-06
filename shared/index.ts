@@ -17,12 +17,18 @@ export {
   TransactionGroup,
   AccountingEntry,
   
+  // 內嵌分錄相關介面
+  EmbeddedAccountingEntry,
+  TransactionGroupWithEntries,
+  
   // 表單資料介面
   Account2FormData,
   TransactionGroupFormData,
   AccountingEntryFormData,
   Category2FormData,
   AccountingRecord2FormData,
+  EmbeddedAccountingEntryFormData,
+  TransactionGroupWithEntriesFormData,
   
   // API 回應介面 - 使用別名避免衝突
   Account2ListResponse,
@@ -34,11 +40,14 @@ export {
   AccountingRecord2SummaryResponse,
   TransactionGroupListResponse,
   TransactionGroupDetailResponse,
+  TransactionGroupWithEntriesListResponse,
+  TransactionGroupWithEntriesDetailResponse,
   AccountingEntryListResponse,
   AccountingEntryDetailResponse,
   DebitCreditBalanceResponse,
   FundingTrackingResponse,
   FundingFlowResponse,
+  EmbeddedEntriesValidationResponse,
   
   // 過濾器介面
   AccountingRecord2Filter,

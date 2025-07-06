@@ -19,6 +19,7 @@ import {
   transactionGroup2Reducer,
   accountingEntry2Reducer,
   accountBalance2Reducer,
+  transactionGroupWithEntriesReducer,
   RootState,
   Action
 } from './reducers';
@@ -47,7 +48,9 @@ const rootReducer = combineReducers({
   organization: organization2Reducer,
   transactionGroup2: transactionGroup2Reducer,
   accountingEntry2: accountingEntry2Reducer,
-  accountBalance2: accountBalance2Reducer
+  accountBalance2: accountBalance2Reducer,
+  // 內嵌分錄交易群組 reducer
+  transactionGroupWithEntries: transactionGroupWithEntriesReducer
 });
 
 // 定義 AppDispatch 類型

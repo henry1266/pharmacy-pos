@@ -28,6 +28,20 @@ import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { Action, RootState } from './reducers';
 import { NavigateFunction } from 'react-router-dom';
 
+// 匯出內嵌分錄交易群組相關 actions
+export {
+  fetchTransactionGroupsWithEntries,
+  fetchTransactionGroupWithEntries,
+  createTransactionGroupWithEntries,
+  updateTransactionGroupWithEntries,
+  deleteTransactionGroupWithEntries,
+  searchTransactionGroupsWithEntries,
+  fetchFundingChain,
+  validateBalance,
+  clearCurrentTransactionGroupWithEntries,
+  clearTransactionGroupsWithEntriesError
+} from './transactionGroupWithEntriesActions';
+
 // API基礎URL
 export const API_BASE_URL = getApiBaseUrl();
 
@@ -992,7 +1006,7 @@ export const fetchTransactionGroups2 = (organizationId?: string): AppThunk => as
       }
       
       // 確保每個交易群組都有完整的資料結構
-      const processedTransactionGroups = transactionGroups.map(group => ({
+      const processedTransactionGroups = transactionGroups.map((group: any) => ({
         ...group,
         entries: Array.isArray(group.entries) ? group.entries : [],
         totalAmount: typeof group.totalAmount === 'number' ? group.totalAmount : 0,

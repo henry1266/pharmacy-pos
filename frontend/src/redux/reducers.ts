@@ -1,13 +1,14 @@
 import { ActionTypes } from './actionTypes';
-import { 
-  Product, 
-  Supplier, 
-  Customer, 
-  Inventory, 
-  Sale, 
-  PurchaseOrder, 
-  ShippingOrder 
+import {
+  Product,
+  Supplier,
+  Customer,
+  Inventory,
+  Sale,
+  PurchaseOrder,
+  ShippingOrder
 } from '@pharmacy-pos/shared/types/entities';
+import { TransactionGroupWithEntries as TransactionGroupWithEntriesType } from '@pharmacy-pos/shared';
 
 /**
  * 通用狀態介面
@@ -496,6 +497,31 @@ export interface AccountBalance2State {
   error: string | null;
 }
 
+// 內嵌分錄交易群組狀態介面
+export interface TransactionGroupWithEntriesState {
+  transactionGroups: TransactionGroupWithEntriesType[];
+  currentTransactionGroup: TransactionGroupWithEntriesType | null;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  } | null;
+  fundingChain: {
+    sourceChain: TransactionGroupWithEntriesType[];
+    linkedChain: TransactionGroupWithEntriesType[];
+  } | null;
+  balanceValidation: {
+    isBalanced: boolean;
+    totalDebit: number;
+    totalCredit: number;
+    difference: number;
+    errors: string[];
+  } | null;
+  loading: boolean;
+  error: string | null;
+}
+
 // 複式記帳系統 reducers
 const createInitialAccount2State = (): Account2State => ({
   accounts: [],
@@ -773,6 +799,165 @@ export const accountBalance2Reducer = (state: AccountBalance2State = createIniti
   }
 };
 
+// 內嵌分錄交易群組 reducer
+const createInitialTransactionGroupWithEntriesState = (): TransactionGroupWithEntriesState => ({
+  transactionGroups: [],
+  currentTransactionGroup: null,
+  pagination: null,
+  fundingChain: null,
+  balanceValidation: null,
+  loading: false,
+  error: null
+});
+
+export const transactionGroupWithEntriesReducer = (
+  state: TransactionGroupWithEntriesState = createInitialTransactionGroupWithEntriesState(),
+  action: Action
+): TransactionGroupWithEntriesState => {
+  switch (action.type) {
+    // 獲取交易群組列表
+    case ActionTypes.FETCH_TRANSACTION_GROUPS_WITH_ENTRIES_REQUEST:
+    case ActionTypes.SEARCH_TRANSACTION_GROUPS_WITH_ENTRIES_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.FETCH_TRANSACTION_GROUPS_WITH_ENTRIES_SUCCESS:
+    case ActionTypes.SEARCH_TRANSACTION_GROUPS_WITH_ENTRIES_SUCCESS:
+      return {
+        ...state,
+        transactionGroups: action.payload.transactionGroups || [],
+        pagination: action.payload.pagination || null,
+        loading: false,
+        error: null
+      };
+    
+    case ActionTypes.FETCH_TRANSACTION_GROUPS_WITH_ENTRIES_FAILURE:
+    case ActionTypes.SEARCH_TRANSACTION_GROUPS_WITH_ENTRIES_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 獲取單一交易群組
+    case ActionTypes.FETCH_TRANSACTION_GROUP_WITH_ENTRIES_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.FETCH_TRANSACTION_GROUP_WITH_ENTRIES_SUCCESS:
+      return {
+        ...state,
+        currentTransactionGroup: action.payload,
+        loading: false,
+        error: null
+      };
+    
+    case ActionTypes.FETCH_TRANSACTION_GROUP_WITH_ENTRIES_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 創建交易群組
+    case ActionTypes.CREATE_TRANSACTION_GROUP_WITH_ENTRIES_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.CREATE_TRANSACTION_GROUP_WITH_ENTRIES_SUCCESS:
+      return {
+        ...state,
+        transactionGroups: [...state.transactionGroups, action.payload],
+        currentTransactionGroup: action.payload,
+        loading: false,
+        error: null
+      };
+    
+    case ActionTypes.CREATE_TRANSACTION_GROUP_WITH_ENTRIES_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 更新交易群組
+    case ActionTypes.UPDATE_TRANSACTION_GROUP_WITH_ENTRIES_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.UPDATE_TRANSACTION_GROUP_WITH_ENTRIES_SUCCESS:
+      return {
+        ...state,
+        transactionGroups: state.transactionGroups.map(tg =>
+          tg._id === action.payload._id ? action.payload : tg
+        ),
+        currentTransactionGroup: action.payload,
+        loading: false,
+        error: null
+      };
+    
+    case ActionTypes.UPDATE_TRANSACTION_GROUP_WITH_ENTRIES_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 刪除交易群組
+    case ActionTypes.DELETE_TRANSACTION_GROUP_WITH_ENTRIES_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.DELETE_TRANSACTION_GROUP_WITH_ENTRIES_SUCCESS:
+      return {
+        ...state,
+        transactionGroups: state.transactionGroups.filter(tg => tg._id !== action.payload),
+        currentTransactionGroup: state.currentTransactionGroup?._id === action.payload ? null : state.currentTransactionGroup,
+        loading: false,
+        error: null
+      };
+    
+    case ActionTypes.DELETE_TRANSACTION_GROUP_WITH_ENTRIES_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 資金追蹤鏈
+    case ActionTypes.FETCH_FUNDING_CHAIN_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.FETCH_FUNDING_CHAIN_SUCCESS:
+      return {
+        ...state,
+        fundingChain: action.payload,
+        loading: false,
+        error: null
+      };
+    
+    case ActionTypes.FETCH_FUNDING_CHAIN_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 借貸平衡驗證
+    case ActionTypes.VALIDATE_BALANCE_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.VALIDATE_BALANCE_SUCCESS:
+      return {
+        ...state,
+        balanceValidation: action.payload,
+        loading: false,
+        error: null
+      };
+    
+    case ActionTypes.VALIDATE_BALANCE_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 內嵌分錄操作
+    case ActionTypes.ADD_EMBEDDED_ENTRY_REQUEST:
+    case ActionTypes.UPDATE_EMBEDDED_ENTRY_REQUEST:
+    case ActionTypes.DELETE_EMBEDDED_ENTRY_REQUEST:
+      return { ...state, loading: true, error: null };
+    
+    case ActionTypes.ADD_EMBEDDED_ENTRY_SUCCESS:
+    case ActionTypes.UPDATE_EMBEDDED_ENTRY_SUCCESS:
+    case ActionTypes.DELETE_EMBEDDED_ENTRY_SUCCESS:
+      // 這些操作通常會觸發整個交易群組的更新，所以不需要特別處理
+      return { ...state, loading: false, error: null };
+    
+    case ActionTypes.ADD_EMBEDDED_ENTRY_FAILURE:
+    case ActionTypes.UPDATE_EMBEDDED_ENTRY_FAILURE:
+    case ActionTypes.DELETE_EMBEDDED_ENTRY_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    
+    // 清除狀態
+    case ActionTypes.CLEAR_CURRENT_TRANSACTION_GROUP_WITH_ENTRIES:
+      return { ...state, currentTransactionGroup: null };
+    
+    case ActionTypes.CLEAR_TRANSACTION_GROUPS_WITH_ENTRIES_ERROR:
+      return { ...state, error: null };
+    
+    default:
+      return state;
+  }
+};
+
 export interface RootState {
   auth: AuthState;
   products: ProductsState;
@@ -791,4 +976,6 @@ export interface RootState {
   transactionGroup2: TransactionGroup2State;
   accountingEntry2: AccountingEntry2State;
   accountBalance2: AccountBalance2State;
+  // 內嵌分錄交易群組狀態
+  transactionGroupWithEntries: TransactionGroupWithEntriesState;
 }
