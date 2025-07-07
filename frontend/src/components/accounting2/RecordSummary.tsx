@@ -23,7 +23,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { zhTW } from 'date-fns/locale';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { accounting3Service } from '../../services/accounting3Service';
+import { transactionApiClient } from './core/api-clients';
 
 interface RecordSummaryProps {
   selectedOrganizationId: string | null;
@@ -54,21 +54,44 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ selectedOrganizationId })
       setLoading(true);
       setError(null);
 
-      const startDateStr = format(startDate, 'yyyy-MM-dd');
-      const endDateStr = format(endDate, 'yyyy-MM-dd');
+      console.log('🔍 RecordSummary 載入摘要 - 日期範圍:', format(startDate, 'yyyy-MM-dd'), '到', format(endDate, 'yyyy-MM-dd'));
 
-      console.log('🔍 RecordSummary 載入摘要 - 日期範圍:', startDateStr, '到', endDateStr);
+      // 使用新的 TransactionApiClient 獲取統計資料
+      const response = await transactionApiClient.getTransactionStatistics({
+        startDate: format(startDate, 'yyyy-MM-dd'),
+        endDate: format(endDate, 'yyyy-MM-dd'),
+        organizationId: selectedOrganizationId || undefined
+      });
 
-      const response = await accounting3Service.records.getSummary(startDateStr, endDateStr);
-      if (response.success) {
-        setSummaryData(response.data);
-        console.log('✅ RecordSummary 載入成功:', response.data);
+      if (response.success && response.data) {
+        // 適配資料格式：從統計資料轉換為摘要格式
+        const adaptedData: SummaryData = {
+          income: 0, // 需要從交易資料中計算收入
+          expense: 0, // 需要從交易資料中計算支出
+          balance: 0, // 收入 - 支出
+          recordCount: response.data.totalTransactions
+        };
+
+        // 如果有總金額，假設正數為收入，負數為支出
+        if (response.data.totalAmount >= 0) {
+          adaptedData.income = response.data.totalAmount;
+          adaptedData.expense = 0;
+        } else {
+          adaptedData.income = 0;
+          adaptedData.expense = Math.abs(response.data.totalAmount);
+        }
+        
+        adaptedData.balance = adaptedData.income - adaptedData.expense;
+
+        setSummaryData(adaptedData);
+        console.log('✅ RecordSummary 載入成功:', adaptedData);
       } else {
         setError('載入摘要資料失敗');
       }
     } catch (err) {
       console.error('載入摘要資料錯誤:', err);
-      setError('載入摘要資料時發生錯誤');
+      const errorMessage = err instanceof Error ? err.message : '載入摘要資料時發生錯誤';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

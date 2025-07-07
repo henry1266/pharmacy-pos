@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { Category2 } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { accounting3Service } from '../../services/accounting3Service';
+import { categoryApiClient } from './core/api-clients';
 import organizationService from '../../services/organizationService';
 import CategoryForm from './CategoryForm';
 
@@ -63,16 +63,16 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
 
       console.log('🔍 CategoryList 載入類別 - 參數:', params);
 
-      const response = await accounting3Service.categories.getAll(params);
+      const response = await categoryApiClient.getCategories(params);
       if (response.success) {
         setCategories(response.data);
         console.log('✅ CategoryList 載入成功:', response.data.length, '個類別');
       } else {
         setError('載入類別失敗');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('載入類別錯誤:', err);
-      setError('載入類別時發生錯誤');
+      setError(err.message || '載入類別時發生錯誤');
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
       let response;
       if (editingCategory) {
         // 更新類別
-        response = await accounting3Service.categories.update(editingCategory._id, submitData as any);
+        response = await categoryApiClient.updateCategory(editingCategory._id, submitData as any);
       } else {
         // 建立新類別 - 確保必填欄位存在
         const createData = {
@@ -120,7 +120,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
           type: submitData.type!,
           ...submitData
         };
-        response = await accounting3Service.categories.create(createData as any);
+        response = await categoryApiClient.createCategory(createData as any);
       }
 
       if (response.success) {
@@ -131,9 +131,9 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
       } else {
         setError(response.message || '操作失敗');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('類別操作錯誤:', err);
-      setError('操作時發生錯誤');
+      setError(err.message || '操作時發生錯誤');
     }
   };
 
@@ -152,7 +152,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
 
     try {
       setError(null);
-      const response = await accounting3Service.categories.delete(categoryId);
+      const response = await categoryApiClient.deleteCategory(categoryId);
       
       if (response.success) {
         console.log('✅ 類別刪除成功');
@@ -160,9 +160,9 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
       } else {
         setError(response.message || '刪除失敗');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('刪除類別錯誤:', err);
-      setError('刪除時發生錯誤');
+      setError(err.message || '刪除時發生錯誤');
     }
   };
 
