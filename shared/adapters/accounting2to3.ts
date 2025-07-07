@@ -5,8 +5,7 @@
 
 import {
   Account2,
-  TransactionGroupWithEntries,
-  EmbeddedAccountingEntry
+  TransactionGroupWithEntries
 } from '../types/accounting2';
 
 /**
@@ -133,7 +132,7 @@ export class AccountManagementAdapter {
     const totalCredit = entries.reduce((sum, entry) => sum + entry.creditAmount, 0);
     const balance = totalDebit - totalCredit;
     
-    const lastTransactionDate = entries.length > 0 
+    const lastTransactionDate = entries.length > 0
       ? entries[0].transactionDate // 已按日期排序，第一個是最新的
       : undefined;
 
@@ -142,7 +141,7 @@ export class AccountManagementAdapter {
       totalDebit,
       totalCredit,
       balance,
-      lastTransactionDate
+      ...(lastTransactionDate && { lastTransactionDate })
     };
   }
 

@@ -379,7 +379,7 @@ export class AccountService {
       const compatibilityResult = await compatibilityManager.checkSystemCompatibility(accountsData, transactions);
       
       if (!compatibilityResult.isCompatible) {
-        compatibilityResult.issues.forEach(issue => {
+        compatibilityResult.issues.forEach((issue: string) => {
           issues.push({
             accountId: 'system',
             accountName: 'System Validation',

@@ -528,7 +528,7 @@ export class ValidationService {
       );
 
       if (!compatibilityResult.isCompatible) {
-        compatibilityResult.issues.forEach(issue => {
+        compatibilityResult.issues.forEach((issue: string) => {
           issues.push({
             type: 'compatibility',
             severity: 'warning',
@@ -541,7 +541,7 @@ export class ValidationService {
       }
 
       // 添加相容性建議
-      compatibilityResult.recommendations.forEach(recommendation => {
+      compatibilityResult.recommendations.forEach((recommendation: string) => {
         issues.push({
           type: 'compatibility',
           severity: 'info',

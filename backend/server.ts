@@ -34,7 +34,7 @@ import overtimeRecordsRoutes from "./routes/overtimeRecords"; // 新增加班記
 import themesRoutes from "./routes/themes"; // 新增主題路由 V2
 // import userThemesRoutes from "./routes/userThemes"; // 已整合到 authRoutes 中
 
-// 新增 accounting2 模組路由
+// 新增 accounting2 模組路由 (舊版 - 保留相容性)
 import accounts2Routes from "./routes/accounts2";
 import categories2Routes from "./routes/categories2";
 import accountingRecords2Routes from "./routes/accountingRecords2";
@@ -42,6 +42,9 @@ import transactionGroupsRoutes from "./routes/transactionGroups";
 import transactionGroupsWithEntriesRoutes from "./routes/transactionGroupsWithEntries";
 import accountingEntriesRoutes from "./routes/accountingEntries";
 import accountBalancesRoutes from "./routes/accountBalances";
+
+// 新增 accounting2 重構模組路由 (新版架構)
+import { accountRoutes, transactionRoutes, fundingRoutes } from "./routes/accounting2";
 
 // 新增機構管理路由
 import organizationsRoutes from "./routes/organizations";
@@ -85,7 +88,7 @@ app.use("/api/overtime-records", overtimeRecordsRoutes); // 新增加班記錄  
 app.use("/api/themes", themesRoutes); // 新增主題路由 V2
 // app.use("/api/user-themes", userThemesRoutes); // 主題功能已整合到 /api/auth/themes/*
 
-// 新增 accounting2 模組路由 - 獨立於現有 accounting 模組
+// 新增 accounting2 模組路由 - 獨立於現有 accounting 模組 (舊版 - 保留相容性)
 app.use("/api/accounting2/accounts", accounts2Routes);
 app.use("/api/accounting2/categories", categories2Routes);
 app.use("/api/accounting2/records", accountingRecords2Routes);
@@ -93,6 +96,11 @@ app.use("/api/accounting2/transaction-groups", transactionGroupsRoutes);
 app.use("/api/accounting2/transaction-groups-with-entries", transactionGroupsWithEntriesRoutes);
 app.use("/api/accounting2/entries", accountingEntriesRoutes);
 app.use("/api/accounting2/balances", accountBalancesRoutes);
+
+// 新增 accounting2 重構模組路由 (新版架構) - 分別註冊各子路由
+app.use("/api/accounting2/accounts", accountRoutes);
+app.use("/api/accounting2/transactions", transactionRoutes);
+app.use("/api/accounting2/funding", fundingRoutes);
 
 // 新增直接路由支援 - 為了支援 accounting3 頁面的簡化路徑
 app.use("/api/transaction-groups-with-entries", transactionGroupsWithEntriesRoutes);

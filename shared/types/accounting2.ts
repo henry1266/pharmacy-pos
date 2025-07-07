@@ -380,24 +380,7 @@ export interface FundingTrackingResponse {
 // 資金流向分析回應
 export interface FundingFlowResponse {
   success: boolean;
-  data: {
-    sourceTransaction: TransactionGroup;
-    linkedTransactions: TransactionGroup[];
-    flowChart: {
-      nodes: {
-        id: string;
-        label: string;
-        amount: number;
-        type: 'original' | 'extended' | 'transfer';
-      }[];
-      edges: {
-        from: string;
-        to: string;
-        amount: number;
-        label: string;
-      }[];
-    };
-  };
+  data: FundingFlowData;
 }
 
 // 過濾器類型
@@ -580,11 +563,21 @@ export interface FundingFlowTransaction {
 
 export interface FundingFlowData {
   sourceTransaction: TransactionGroup;
-  linkedTransactions: FundingFlowTransaction[];
-  fundingPath: FundingFlowTransaction[];
+  linkedTransactions: TransactionGroup[];  // 修正：後端回傳 TransactionGroup[]
+  fundingPath: FundingFlowPathItem[];      // 修正：使用正確的路徑項目型別
   totalUsedAmount: number;
   availableAmount: number;
   originalSource?: TransactionGroup;
+}
+
+// 新增資金流向路徑項目介面
+export interface FundingFlowPathItem {
+  _id: string;
+  groupNumber: string;
+  description: string;
+  transactionDate: Date | string;
+  totalAmount: number;
+  fundingType: 'original' | 'extended' | 'transfer';
 }
 
 export interface FundingValidationResult {

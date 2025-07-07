@@ -4,8 +4,8 @@
  */
 
 import { Account2, TransactionGroupWithEntries } from '../types/accounting2';
-import { AccountManagementAdapter, AccountManagementDataProvider } from '../adapters/accounting2to3';
-import { Accounting3To2Adapter, AccountManagementFormatter } from '../adapters/accounting3to2';
+import { AccountManagementAdapter } from '../adapters/accounting2to3';
+import { Accounting3To2Adapter } from '../adapters/accounting3to2';
 
 /**
  * 版本相容性管理器
