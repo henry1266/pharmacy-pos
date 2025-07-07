@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import { Account2, AccountingRecord2 } from '../../../../../shared/types/accounting2';
+import { Account2, AccountingRecord2 } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '../../../services/organizationService';
 import accounting3Service from '../../../services/accounting3Service';
 import organizationService from '../../../services/organizationService';

@@ -32,7 +32,8 @@ import {
 } from '@mui/icons-material';
 import { Account2, ACCOUNT_TYPES } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { accounting3Service } from '../../services/accounting3Service';
+import { accountApiClient } from './core/api-clients';
+import { useAccountStore } from './stores/useAccountStore';
 import organizationService from '../../services/organizationService';
 import AccountForm from './AccountForm';
 
@@ -43,6 +44,9 @@ interface AccountListProps {
 }
 
 const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId, refreshTrigger }) => {
+  // 整合狀態管理
+  const { accounts: storeAccounts, loadAccounts: loadAccountsFromStore } = useAccountStore();
+  
   const [accounts, setAccounts] = useState<Account2[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,18 +67,25 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
     try {
       console.log('開始載入帳戶列表 - organizationId:', organizationId);
       setLoading(true);
-      const response = await accounting3Service.accounts.getAll(organizationId);
+      
+      // 使用新的 AccountApiClient
+      const response = await accountApiClient.getAccounts({ organizationId: organizationId || undefined });
       console.log('API 回應:', response);
-      if (response.success) {
+      
+      if (response.success && response.data) {
         console.log('載入帳戶成功，帳戶數量:', response.data.length);
         setAccounts(response.data);
+        
+        // 同步更新狀態管理
+        await loadAccountsFromStore();
       } else {
         console.error('API 回應失敗:', response);
         setError('載入帳戶列表失敗');
       }
     } catch (error) {
       console.error('載入帳戶列表錯誤:', error);
-      setError('載入帳戶列表失敗');
+      const errorMessage = error instanceof Error ? error.message : '載入帳戶列表失敗';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -112,7 +123,9 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
 
     try {
       setSubmitLoading(true);
-      const response = await accounting3Service.accounts.delete(accountToDelete._id);
+      
+      // 使用新的 AccountApiClient 刪除帳戶
+      const response = await accountApiClient.deleteAccount(accountToDelete._id);
       if (response.success) {
         await loadAccounts();
         setDeleteDialogOpen(false);
@@ -122,7 +135,8 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
       }
     } catch (error) {
       console.error('刪除帳戶錯誤:', error);
-      setError('刪除帳戶失敗');
+      const errorMessage = error instanceof Error ? error.message : '刪除帳戶失敗';
+      setError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }
@@ -131,16 +145,21 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
   const handleFormSubmit = async (formData: any) => {
     try {
       setSubmitLoading(true);
+      
+      // 使用新的 AccountApiClient 進行更新或創建
       if (selectedAccount) {
-        await accounting3Service.accounts.update(selectedAccount._id, formData);
+        await accountApiClient.updateAccount(selectedAccount._id, formData);
       } else {
-        await accounting3Service.accounts.create(formData);
+        await accountApiClient.createAccount(formData);
       }
+      
       await loadAccounts();
       setFormOpen(false);
+      setSelectedAccount(null);
     } catch (error) {
       console.error('提交表單錯誤:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : '提交表單失敗';
+      setError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }

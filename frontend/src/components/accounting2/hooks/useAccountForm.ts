@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Account2, Account2FormData } from '../../../../../shared/types/accounting2';
+import { Account2, Account2FormData } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '../../../services/organizationService';
-import accounting3Service from '../../../services/accounting3Service';
+import { accountApiClient } from '../core/api-clients';
+import { useAccountStore } from '../stores/useAccountStore';
+import { AccountService } from '../core/services/AccountService';
 
 interface UseAccountFormProps {
   organizations: Organization[];
@@ -35,6 +37,9 @@ export const useAccountForm = ({
   onError,
   onAccountsChange,
 }: UseAccountFormProps): UseAccountFormReturn => {
+  // 整合狀態管理
+  const { loadAccounts } = useAccountStore();
+  
   // 對話框狀態
   const [openDialog, setOpenDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account2 | null>(null);
@@ -129,29 +134,33 @@ export const useAccountForm = ({
 
       let response;
       if (editingAccount) {
-        response = await accounting3Service.accounts.update(editingAccount._id, submitData);
+        // 使用新的 AccountApiClient 更新科目
+        response = await accountApiClient.updateAccount(editingAccount._id, submitData);
         if (response.success) {
           onSuccess('會計科目更新成功');
         } else {
-          throw new Error('更新會計科目失敗');
+          throw new Error(response.error || '更新會計科目失敗');
         }
       } else {
-        response = await accounting3Service.accounts.create(submitData);
+        // 使用新的 AccountApiClient 創建科目
+        response = await accountApiClient.createAccount(submitData);
         if (response.success) {
           onSuccess('會計科目新增成功');
         } else {
-          throw new Error('新增會計科目失敗');
+          throw new Error(response.error || '新增會計科目失敗');
         }
       }
       
       handleCloseDialog();
       
-      // 重新載入資料
+      // 使用新的狀態管理重新載入資料
+      await loadAccounts();
       await onAccountsChange();
       
     } catch (error) {
       console.error('❌ 儲存會計科目失敗:', error);
-      onError('儲存會計科目失敗');
+      const errorMessage = error instanceof Error ? error.message : '儲存會計科目失敗';
+      onError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -162,7 +171,8 @@ export const useAccountForm = ({
     handleCloseDialog,
     onSuccess,
     onError,
-    onAccountsChange
+    onAccountsChange,
+    loadAccounts
   ]);
 
   return {

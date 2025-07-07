@@ -23,6 +23,24 @@ export interface Account2 {
   children?: Account2[];
 }
 
+// 科目樹狀節點介面
+export interface AccountTreeNode extends Account2 {
+  children: AccountTreeNode[];
+  level: number;
+  hasChildren: boolean;
+  isExpanded: boolean;
+  path: string[];
+}
+
+// 科目統計資料介面
+export interface AccountStatistics {
+  totalDebit: number;
+  totalCredit: number;
+  balance: number;
+  transactionCount: number;
+  lastTransactionDate?: Date;
+}
+
 export interface Category2 {
   _id: string;
   name: string;

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Account2, AccountingRecord2 } from '../../../../../shared/types/accounting2';
+import { Account2, AccountingRecord2 } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '../../../services/organizationService';
-import accounting3Service from '../../../services/accounting3Service';
 import organizationService from '../../../services/organizationService';
 import { AccountingEntryDetail } from '../../../services/doubleEntryService';
 import { transactionGroupWithEntriesService } from '../../../services/transactionGroupWithEntriesService';
+import { useAccountStore } from '../stores/useAccountStore';
+import { AccountApiClient } from '../core/api-clients/AccountApiClient';
+import { AccountService } from '../core/services/AccountService';
 
 // 通知狀態介面
 interface NotificationState {
@@ -72,6 +74,10 @@ interface UseAccountManagementReturn {
 }
 
 export const useAccountManagement = (): UseAccountManagementReturn => {
+  // 初始化 API 客戶端和 Store
+  const accountApiClient = new AccountApiClient();
+  const accountStore = useAccountStore();
+
   // 資料狀態
   const [accounts, setAccounts] = useState<Account2[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -297,7 +303,9 @@ export const useAccountManagement = (): UseAccountManagementReturn => {
       setError(null);
       console.log('📊 載入會計科目，機構ID:', selectedOrganizationId);
       
-      const response = await accounting3Service.accounts.getAll(selectedOrganizationId);
+      const response = await accountApiClient.getAccounts({
+        organizationId: selectedOrganizationId
+      });
       
       if (response.success && response.data) {
         setAccounts(response.data);
@@ -312,7 +320,7 @@ export const useAccountManagement = (): UseAccountManagementReturn => {
     } finally {
       setLoading(false);
     }
-  }, [selectedOrganizationId]);
+  }, [selectedOrganizationId, accountApiClient]);
 
   // 通知函數
   const showNotification = useCallback((message: string, severity: NotificationState['severity']) => {
@@ -353,7 +361,9 @@ export const useAccountManagement = (): UseAccountManagementReturn => {
         setError(null);
         console.log('📊 載入會計科目，機構ID:', selectedOrganizationId);
         
-        const response = await accounting3Service.accounts.getAll(selectedOrganizationId);
+        const response = await accountApiClient.getAccounts({
+          organizationId: selectedOrganizationId
+        });
         
         if (response.success && response.data) {
           setAccounts(response.data);
@@ -390,7 +400,9 @@ export const useAccountManagement = (): UseAccountManagementReturn => {
           setError(null);
           console.log('📊 載入會計科目，機構ID:', selectedOrganizationId);
           
-          const response = await accounting3Service.accounts.getAll(selectedOrganizationId);
+          const response = await accountApiClient.getAccounts({
+            organizationId: selectedOrganizationId
+          });
           
           if (response.success && response.data) {
             setAccounts(response.data);
