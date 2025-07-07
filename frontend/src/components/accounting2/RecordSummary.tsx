@@ -23,7 +23,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { zhTW } from 'date-fns/locale';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { accounting2Service } from '../../services/accounting2Service';
+import { accounting3Service } from '../../services/accounting3Service';
 
 interface RecordSummaryProps {
   selectedOrganizationId: string | null;
@@ -59,7 +59,7 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ selectedOrganizationId })
 
       console.log('🔍 RecordSummary 載入摘要 - 日期範圍:', startDateStr, '到', endDateStr);
 
-      const response = await accounting2Service.records.getSummary(startDateStr, endDateStr);
+      const response = await accounting3Service.records.getSummary(startDateStr, endDateStr);
       if (response.success) {
         setSummaryData(response.data);
         console.log('✅ RecordSummary 載入成功:', response.data);

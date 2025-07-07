@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { Category2 } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { accounting2Service } from '../../services/accounting2Service';
+import { accounting3Service } from '../../services/accounting3Service';
 import organizationService from '../../services/organizationService';
 import CategoryForm from './CategoryForm';
 
@@ -63,7 +63,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
 
       console.log('🔍 CategoryList 載入類別 - 參數:', params);
 
-      const response = await accounting2Service.categories.getAll(params);
+      const response = await accounting3Service.categories.getAll(params);
       if (response.success) {
         setCategories(response.data);
         console.log('✅ CategoryList 載入成功:', response.data.length, '個類別');
@@ -112,7 +112,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
       let response;
       if (editingCategory) {
         // 更新類別
-        response = await accounting2Service.categories.update(editingCategory._id, submitData as any);
+        response = await accounting3Service.categories.update(editingCategory._id, submitData as any);
       } else {
         // 建立新類別 - 確保必填欄位存在
         const createData = {
@@ -120,7 +120,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
           type: submitData.type!,
           ...submitData
         };
-        response = await accounting2Service.categories.create(createData as any);
+        response = await accounting3Service.categories.create(createData as any);
       }
 
       if (response.success) {
@@ -152,7 +152,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedOrganizationId }) =
 
     try {
       setError(null);
-      const response = await accounting2Service.categories.delete(categoryId);
+      const response = await accounting3Service.categories.delete(categoryId);
       
       if (response.success) {
         console.log('✅ 類別刪除成功');

@@ -8,7 +8,7 @@ import {
   FundingValidationResponse
 } from '@pharmacy-pos/shared';
 
-const BASE_URL = '/api/accounting2/transaction-groups';
+const BASE_URL = '/api/transaction-groups-with-entries';
 
 // 交易群組基本 CRUD 操作
 export const transactionGroupService = {
@@ -63,7 +63,7 @@ export const fundingTrackingService = {
     organizationId?: string;
     minAmount?: number;
   }): Promise<FundingSourcesResponse> => {
-    const response = await apiService.get(`${BASE_URL}/funding-sources/available`, { params });
+    const response = await apiService.get(`${BASE_URL}/funding/available-sources`, { params });
     return response.data;
   },
 
@@ -78,7 +78,7 @@ export const fundingTrackingService = {
     sourceTransactionIds: string[];
     requiredAmount: number;
   }): Promise<FundingValidationResponse> => {
-    const response = await apiService.post(`${BASE_URL}/funding-sources/validate`, data);
+    const response = await apiService.post(`${BASE_URL}/funding/validate-sources`, data);
     return response.data;
   },
 
@@ -174,9 +174,11 @@ export const fundingFlowHelpers = {
 };
 
 // 統一匯出
-export default {
+const transactionGroupServiceExports = {
   transactionGroupService,
   fundingTrackingService,
   fundingSourceHelpers,
   fundingFlowHelpers
 };
+
+export default transactionGroupServiceExports;

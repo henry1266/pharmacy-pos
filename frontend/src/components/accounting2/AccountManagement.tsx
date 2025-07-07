@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -21,9 +20,6 @@ import {
   Tooltip,
   Alert,
   Snackbar,
-  Card,
-  CardContent,
-  CardActions,
   InputAdornment,
   List,
   ListItem,
@@ -42,64 +38,19 @@ import {
   Search as SearchIcon,
   AccountTree as AccountTreeIcon,
   Category as CategoryIcon,
-  Settings as SettingsIcon,
   Business as BusinessIcon,
-  Visibility as VisibilityIcon,
   Launch as LaunchIcon,
-  AccountBalance as AccountBalanceIcon,
-  ArrowForward,
-  ContentCopy
+  ArrowForward
 } from '@mui/icons-material';
-import { RootState } from '../../redux/reducers';
-import {
-  fetchAccounts2,
-  createAccount2,
-  updateAccount2,
-  deleteAccount2,
-  searchAccounts2,
-  createStandardChart,
-  fetchAccountsHierarchy,
-  fetchAccountsByType,
-  fetchOrganizations2,
-  calculateAccountBalancesBatch,
-  fetchAccountBalancesSummary
-} from '../../redux/actions';
+import accounting3Service from '../../services/accounting3Service';
 import organizationService, { Organization } from '../../services/organizationService';
 import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
+import { Account2, Account2FormData } from '../../../../shared/types/accounting2';
 
-// 型別定義
-interface Account {
-  _id: string;
-  code: string;
-  name: string;
-  accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
-  type: 'cash' | 'bank' | 'credit' | 'investment' | 'other';
-  parentId?: string;
-  level: number;
-  isActive: boolean;
-  normalBalance: 'debit' | 'credit';
-  balance: number;
-  initialBalance: number;
-  currency: string;
-  description?: string;
-  organizationId?: string;
-  children?: Account[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface AccountFormData {
-  code: string;
-  name: string;
-  accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
-  type: 'cash' | 'bank' | 'credit' | 'investment' | 'other';
-  parentId?: string;
-  initialBalance: number;
-  currency: string;
-  description?: string;
-  organizationId?: string;
-}
+// 使用 Account2 作為主要型別
+type Account = Account2;
+type AccountFormData = Account2FormData;
 
 // 交易管理相關介面
 interface TransactionGroup {
@@ -140,18 +91,20 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
   onView,
   onDelete
 }) => {
-  // Redux 狀態管理
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { accounts, loading, error } = useSelector((state: RootState) => state.account2);
-  const { organizations } = useSelector((state: RootState) => state.organization);
-  const { batchBalances, summary, loading: balanceLoading } = useSelector((state: RootState) => state.accountBalance2);
   
-  // 本地狀態
+  // 本地狀態管理
+  const [accounts, setAccounts] = useState<Account2[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  
+  // 搜尋與篩選狀態
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccountType, setSelectedAccountType] = useState<string>('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<Account2 | null>(null);
   
   // 樹狀結構展開狀態
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
@@ -171,7 +124,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
   
   // 對話框狀態
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [editingAccount, setEditingAccount] = useState<Account2 | null>(null);
   const [openStandardDialog, setOpenStandardDialog] = useState(false);
   
   // 表單狀態
@@ -393,13 +346,13 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
   ];
   
   // 會計科目類型選項
-  const accountTypeOptions = [
+  const accountTypeOptions = useMemo(() => [
     { value: 'asset', label: '資產', color: '#4caf50' },
     { value: 'liability', label: '負債', color: '#f44336' },
     { value: 'equity', label: '權益', color: '#2196f3' },
     { value: 'revenue', label: '收入', color: '#ff9800' },
     { value: 'expense', label: '費用', color: '#9c27b0' }
-  ];
+  ], []);
 
   const typeOptions = [
     { value: 'cash', label: '現金' },
@@ -410,25 +363,55 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
   ];
 
   // 載入機構列表
-  const loadOrganizations = () => {
-    console.log('🏢 開始載入機構列表...');
-    dispatch(fetchOrganizations2() as any);
-  };
+  const loadOrganizations = useCallback(async () => {
+    try {
+      console.log('🏢 開始載入機構列表...');
+      const response = await organizationService.getOrganizations();
+      if (response.success && response.data) {
+        setOrganizations(response.data);
+      }
+    } catch (error) {
+      console.error('❌ 載入機構列表失敗:', error);
+      setError('載入機構列表失敗');
+    }
+  }, []);
 
   // 載入科目餘額
-  const loadAccountBalances = () => {
+  const loadAccountBalances = useCallback(async () => {
     if (accounts.length > 0) {
-      console.log('💰 開始載入科目餘額...');
-      const accountIds = accounts.map(account => account._id);
-      dispatch(calculateAccountBalancesBatch(accountIds, selectedOrganizationId) as any);
+      try {
+        setBalanceLoading(true);
+        console.log('💰 開始載入科目餘額...');
+        
+        // 使用 accounting3Service 獲取餘額
+        const balancePromises = accounts.map(async (account) => {
+          try {
+            const response = await accounting3Service.accounts.getById(account._id);
+            return {
+              accountId: account._id,
+              balance: response.success ? response.data?.balance || 0 : 0
+            };
+          } catch (error) {
+            console.warn(`獲取科目 ${account._id} 餘額失敗:`, error);
+            return { accountId: account._id, balance: 0 };
+          }
+        });
+        
+        const balanceResults = await Promise.all(balancePromises);
+        const balanceMap: Record<string, number> = {};
+        balanceResults.forEach(result => {
+          balanceMap[result.accountId] = result.balance;
+        });
+        
+        setAccountBalances(balanceMap);
+        console.log('💰 科目餘額載入完成:', balanceMap);
+      } catch (error) {
+        console.error('❌ 載入科目餘額失敗:', error);
+      } finally {
+        setBalanceLoading(false);
+      }
     }
-  };
-
-  // 載入科目餘額摘要
-  const loadBalancesSummary = () => {
-    console.log('📊 開始載入科目餘額摘要...');
-    dispatch(fetchAccountBalancesSummary(selectedOrganizationId) as any);
-  };
+  }, [accounts, selectedOrganizationId]);
 
   // 載入分錄明細
   const loadDoubleEntries = useCallback(async (accountId: string) => {
@@ -482,90 +465,157 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
   }, [selectedOrganizationId]);
 
   // 載入會計科目
-  const loadAccounts = () => {
-    console.log('📊 載入會計科目，機構ID:', selectedOrganizationId);
-    dispatch(fetchAccounts2(selectedOrganizationId) as any);
-  };
-
-  // 載入科目樹狀結構
-  const loadAccountTree = () => {
-    console.log('🌳 載入科目樹狀結構，機構ID:', selectedOrganizationId);
-    dispatch(fetchAccountsHierarchy(selectedOrganizationId) as any);
-  };
+  const loadAccounts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('📊 載入會計科目，機構ID:', selectedOrganizationId);
+      
+      const response = await accounting3Service.accounts.getAll(selectedOrganizationId);
+      
+      if (response.success && response.data) {
+        setAccounts(response.data);
+        console.log('📊 會計科目載入完成:', response.data.length);
+      } else {
+        throw new Error('載入會計科目失敗');
+      }
+    } catch (error) {
+      console.error('❌ 載入會計科目失敗:', error);
+      setError('載入會計科目失敗');
+      setAccounts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedOrganizationId]);
 
   // 搜尋會計科目
-  const searchAccounts = (searchTerm: string, accountType?: string) => {
-    if (!searchTerm.trim()) {
+  const searchAccounts = useCallback(async (searchTerm: string, accountType?: string) => {
+    if (!searchTerm.trim() && !accountType) {
       loadAccounts();
       return;
     }
 
-    if (accountType) {
-      dispatch(fetchAccountsByType(accountType) as any);
-    } else {
-      dispatch(searchAccounts2(searchTerm) as any);
+    try {
+      setLoading(true);
+      console.log('🔍 搜尋會計科目:', { searchTerm, accountType });
+      
+      // 先載入所有科目，然後在前端進行篩選
+      const response = await accounting3Service.accounts.getAll(selectedOrganizationId);
+      
+      if (response.success && response.data) {
+        setAccounts(response.data);
+      }
+    } catch (error) {
+      console.error('❌ 搜尋會計科目失敗:', error);
+      setError('搜尋會計科目失敗');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [selectedOrganizationId, loadAccounts]);
 
   // 建立標準會計科目表
-  const handleCreateStandardChart = () => {
-    dispatch(createStandardChart() as any);
-    setOpenStandardDialog(false);
-    showNotification('標準會計科目表建立成功', 'success');
+  const handleCreateStandardChart = async () => {
+    try {
+      setLoading(true);
+      console.log('📋 建立標準會計科目表...');
+      
+      // 暫時移除標準會計科目表功能，因為 accounting3Service 中沒有此方法
+      showNotification('標準會計科目表功能暫未實作', 'warning');
+      setOpenStandardDialog(false);
+      return;
+      // 已經在上面處理完畢，移除無效程式碼
+    } catch (error) {
+      console.error('❌ 建立標準會計科目表失敗:', error);
+      showNotification('建立標準會計科目表失敗', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 儲存會計科目
   const saveAccount = async () => {
     try {
-      // 建立提交資料，排除 code 欄位讓後端自動生成
+      setLoading(true);
+      // 生成科目代碼 (簡單的時間戳方式，實際應用中可能需要更複雜的邏輯)
+      const generateAccountCode = () => {
+        const timestamp = Date.now().toString().slice(-6);
+        const typePrefix = formData.accountType === 'asset' ? '1' :
+                          formData.accountType === 'liability' ? '2' :
+                          formData.accountType === 'equity' ? '3' :
+                          formData.accountType === 'revenue' ? '4' : '5';
+        return `${typePrefix}${timestamp}`;
+      };
+
+      // 建立提交資料，包含必要的 code 欄位
       const submitData = {
+        code: editingAccount?.code || generateAccountCode(), // 編輯時保留原代碼，新增時生成
         name: formData.name,
         type: formData.type,
         accountType: formData.accountType,
         initialBalance: formData.initialBalance,
         currency: formData.currency,
         description: formData.description,
-        organizationId: formData.organizationId,
-        parentId: formData.parentId || null
+        organizationId: formData.organizationId || undefined,
+        parentId: formData.parentId || undefined
       };
 
       console.log('📤 提交會計科目資料:', submitData);
 
+      let response;
       if (editingAccount) {
-        await dispatch(updateAccount2(editingAccount._id, submitData) as any);
-        showNotification('會計科目更新成功', 'success');
+        response = await accounting3Service.accounts.update(editingAccount._id, submitData);
+        if (response.success) {
+          showNotification('會計科目更新成功', 'success');
+        } else {
+          throw new Error('更新會計科目失敗');
+        }
       } else {
-        await dispatch(createAccount2(submitData) as any);
-        showNotification('會計科目新增成功', 'success');
+        response = await accounting3Service.accounts.create(submitData);
+        if (response.success) {
+          showNotification('會計科目新增成功', 'success');
+        } else {
+          throw new Error('新增會計科目失敗');
+        }
       }
       
       handleCloseDialog();
       
-      // 強制重新載入資料
-      setTimeout(() => {
-        console.log('🔄 強制重新載入會計科目資料');
-        loadAccounts();
-        loadAccountTree();
-      }, 500);
+      // 重新載入資料
+      await loadAccounts();
       
     } catch (error) {
       console.error('❌ 儲存會計科目失敗:', error);
       showNotification('儲存會計科目失敗', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
   // 刪除會計科目
-  const handleDeleteAccount = (accountId: string) => {
+  const handleDeleteAccount = async (accountId: string) => {
     if (!window.confirm('確定要刪除此會計科目嗎？')) {
       return;
     }
 
-    dispatch(deleteAccount2(accountId, selectedOrganizationId) as any);
-    showNotification('會計科目刪除成功', 'success');
+    try {
+      setLoading(true);
+      const response = await accounting3Service.accounts.delete(accountId);
+      if (response.success) {
+        showNotification('會計科目刪除成功', 'success');
+        await loadAccounts();
+      } else {
+        throw new Error('刪除會計科目失敗');
+      }
+    } catch (error) {
+      console.error('❌ 刪除會計科目失敗:', error);
+      showNotification('刪除會計科目失敗', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 處理對話框
-  const handleOpenDialog = (account?: Account) => {
+  const handleOpenDialog = (account?: Account2) => {
     if (account) {
       setEditingAccount(account);
       setFormData({
@@ -615,12 +665,12 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
     name: string;
     type: 'organization' | 'accountType' | 'account';
     accountType?: string;
-    account?: Account;
+    account?: Account2;
     children: OrganizationNode[];
   }
 
   // 計算包含子科目的總餘額
-  const calculateTotalBalance = useCallback((accountId: string, accounts: Account[]): number => {
+  const calculateTotalBalance = useCallback((accountId: string, accounts: Account2[]): number => {
     const account = accounts.find(acc => acc._id === accountId);
     if (!account) return 0;
     
@@ -654,7 +704,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
       const orgName = organization?.name || '個人帳戶';
       
       // 按會計科目類型分組
-      const accountsByType = (orgAccounts as Account[]).reduce((acc, account) => {
+      const accountsByType = (orgAccounts as Account2[]).reduce((acc, account) => {
         if (!acc[account.accountType]) acc[account.accountType] = [];
         acc[account.accountType].push(account);
         return acc;
@@ -673,7 +723,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
         const typeAccounts = accountsByType[typeOption.value] || [];
         if (typeAccounts.length > 0) {
           // 建立父子階層結構
-          const buildAccountTree = (accounts: Account[], parentId: string | null = null): OrganizationNode[] => {
+          const buildAccountTree = (accounts: Account2[], parentId: string | null = null): OrganizationNode[] => {
             return accounts
               .filter(account => {
                 if (parentId === null) {
@@ -706,24 +756,6 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
 
     return tree;
   }, [accounts, organizations, accountTypeOptions]);
-
-  // 處理節點點擊導航
-  const handleNodeClick = (node: OrganizationNode) => {
-    switch (node.type) {
-      case 'organization':
-        navigate(`/accounting2/organization/${node.id}`);
-        break;
-      case 'accountType':
-        const orgId = node.id.split('-')[0];
-        navigate(`/accounting2/organization/${orgId}/type/${node.accountType}`);
-        break;
-      case 'account':
-        if (node.account) {
-          navigate(`/accounting2/account/${node.account._id}`);
-        }
-        break;
-    }
-  };
 
   // 處理新增子科目
   const handleAddChildAccount = (parentNode: OrganizationNode) => {
@@ -993,62 +1025,22 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
   useEffect(() => {
     loadOrganizations();
     loadAccounts();
-    loadAccountTree();
-  }, []);
+  }, [loadOrganizations, loadAccounts]);
 
   // 當科目載入完成後，載入餘額
   useEffect(() => {
     if (accounts.length > 0 && !balanceLoading) {
       loadAccountBalances();
-      loadBalancesSummary();
     }
-  }, [accounts.length, selectedOrganizationId]);
-
-  // 處理批量餘額計算結果
-  useEffect(() => {
-    if (batchBalances && batchBalances.length > 0) {
-      const balanceMap: Record<string, number> = {};
-      batchBalances.forEach((balance: any) => {
-        if (balance.accountId) {
-          balanceMap[balance.accountId] = balance.actualBalance || 0;
-        }
-      });
-      setAccountBalances(balanceMap);
-      console.log('💰 科目餘額映射更新:', balanceMap);
-    }
-  }, [batchBalances]);
-
-  // 處理餘額摘要結果，提取各科目的實際餘額
-  useEffect(() => {
-    if (summary && summary.summary) {
-      const balanceMap: Record<string, number> = {};
-      
-      // 遍歷所有科目類型
-      Object.values(summary.summary).forEach((typeData: any) => {
-        if (typeData.accounts && Array.isArray(typeData.accounts)) {
-          typeData.accounts.forEach((account: any) => {
-            if (account._id && typeof account.actualBalance === 'number') {
-              balanceMap[account._id] = account.actualBalance;
-            }
-          });
-        }
-      });
-      
-      // 合併到現有的餘額映射
-      setAccountBalances(prev => ({ ...prev, ...balanceMap }));
-      console.log('📊 從餘額摘要更新科目餘額映射:', balanceMap);
-    }
-  }, [summary]);
+  }, [accounts.length, selectedOrganizationId, balanceLoading, loadAccountBalances]);
 
   // 機構選擇變更時重新載入資料
   useEffect(() => {
     console.log('🔄 機構選擇變更，selectedOrganizationId:', selectedOrganizationId);
-    // 只有在機構列表載入完成後才執行
     if (organizations.length > 0) {
       loadAccounts();
-      loadAccountTree();
     }
-  }, [selectedOrganizationId, organizations.length]);
+  }, [selectedOrganizationId, organizations.length, loadAccounts]);
 
   // 搜尋效果
   useEffect(() => {
@@ -1057,18 +1049,18 @@ const AccountManagement: React.FC<AccountManagementProps> = ({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, selectedAccountType]);
+  }, [searchTerm, selectedAccountType, searchAccounts]);
 
-  // 監聽 Redux 錯誤狀態
+  // 監聽錯誤狀態
   useEffect(() => {
     if (error) {
       showNotification(error, 'error');
     }
   }, [error]);
 
-  // 監聽 Redux 狀態變化，當 accounts 更新時重新渲染
+  // 監聽狀態變化
   useEffect(() => {
-    console.log('📊 Redux accounts 狀態變化:', {
+    console.log('📊 會計科目狀態變化:', {
       accountsLength: accounts.length,
       loading,
       error,
