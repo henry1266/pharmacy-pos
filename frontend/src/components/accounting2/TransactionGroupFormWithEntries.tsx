@@ -225,7 +225,32 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     }
   };
 
-  // 處理資金來源選擇
+  // 處理資金來源選擇（帶同步功能）
+  const handleFundingSourceSelectWithSync = (transaction: any, syncToEntries: boolean) => {
+    console.log('🔍 選擇資金來源（同步模式）:', { transaction, syncToEntries });
+    
+    // 先執行原有的交易群組層級邏輯
+    handleFundingSourceSelect(transaction);
+    
+    // 如果啟用同步，為所有借方分錄設定相同的資金來源
+    if (syncToEntries && formData.entries) {
+      const updatedEntries = formData.entries.map(entry => {
+        // 只為借方分錄（debitAmount > 0）設定資金來源
+        if (entry.debitAmount && entry.debitAmount > 0) {
+          return {
+            ...entry,
+            sourceTransactionId: transaction._id
+          };
+        }
+        return entry;
+      });
+      
+      handleEntriesChange(updatedEntries);
+      console.log('✅ 已同步資金來源到借方分錄');
+    }
+  };
+
+  // 處理資金來源選擇（原有功能）
   const handleFundingSourceSelect = (transaction: any) => {
     console.log('🔍 選擇資金來源:', transaction);
     
@@ -389,6 +414,8 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           open={fundingSourceDialogOpen}
           onClose={() => setFundingSourceDialogOpen(false)}
           onSelect={handleFundingSourceSelect}
+          onSelectWithSync={handleFundingSourceSelectWithSync}
+          showSyncOption={true}
           organizationId={formData.organizationId}
           excludeTransactionIds={transactionId ? [transactionId] : []}
         />

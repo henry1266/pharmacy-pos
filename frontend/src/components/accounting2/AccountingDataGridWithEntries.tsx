@@ -253,6 +253,90 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
     return Math.abs(totalDebit - totalCredit) < 0.01; // 允許小數點誤差
   };
 
+  // 計算剩餘可用金額（使用後端提供的精確資料）
+  const calculateAvailableAmount = (group: ExtendedTransactionGroupWithEntries) => {
+    const totalAmount = calculateTotalAmount(group.entries);
+    
+    if (!group.referencedByInfo || group.referencedByInfo.length === 0) {
+      return totalAmount; // 沒有被引用，全額可用
+    }
+    
+    // 🎯 使用後端提供的精確已使用金額資料
+    // 計算實際已使用金額（從 referencedByInfo 中獲取，排除已取消的交易）
+    const actualUsedAmount = group.referencedByInfo
+      .filter(ref => ref.status !== 'cancelled') // 排除已取消的交易
+      .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0);
+    
+    // 剩餘可用金額 = 總金額 - 實際已使用金額
+    const availableAmount = totalAmount - actualUsedAmount;
+    
+    console.log(`💰 交易 ${group.groupNumber} 剩餘可用金額計算:`, {
+      totalAmount,
+      actualUsedAmount,
+      availableAmount,
+      referencedByCount: group.referencedByInfo.length,
+      referencedBy: group.referencedByInfo.map(ref => ({
+        groupNumber: ref.groupNumber,
+        amount: ref.totalAmount,
+        status: ref.status
+      }))
+    });
+    
+    // 確保不會是負數
+    return Math.max(0, availableAmount);
+  };
+
+  // 取得剩餘可用狀態顏色
+  const getAvailableAmountColor = (availableAmount: number, totalAmount: number) => {
+    if (totalAmount === 0) return 'default';
+    const percentage = (availableAmount / totalAmount) * 100;
+    if (percentage >= 100) return 'success';
+    if (percentage >= 50) return 'warning';
+    return 'error';
+  };
+
+  // 取得剩餘可用狀態標籤
+  const getAvailableAmountChip = (group: ExtendedTransactionGroupWithEntries) => {
+    const totalAmount = calculateTotalAmount(group.entries);
+    const availableAmount = calculateAvailableAmount(group);
+    const color = getAvailableAmountColor(availableAmount, totalAmount);
+    
+    if (totalAmount === 0) {
+      return <Chip label="無金額" color="default" size="small" />;
+    }
+    
+    const percentage = Math.round((availableAmount / totalAmount) * 100);
+    
+    return (
+      <Tooltip
+        title={
+          <Box>
+            <Typography variant="caption" display="block">
+              總金額: {formatCurrency(totalAmount)}
+            </Typography>
+            <Typography variant="caption" display="block">
+              已使用: {formatCurrency(totalAmount - availableAmount)}
+            </Typography>
+            <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
+              剩餘可用: {formatCurrency(availableAmount)}
+            </Typography>
+            <Typography variant="caption" display="block">
+              可用比例: {percentage}%
+            </Typography>
+          </Box>
+        }
+        arrow
+      >
+        <Chip
+          label={`${formatCurrency(availableAmount)} (${percentage}%)`}
+          color={color}
+          size="small"
+          variant={availableAmount === totalAmount ? 'filled' : 'outlined'}
+        />
+      </Tooltip>
+    );
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -390,6 +474,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                       <TableCell align="center">狀態</TableCell>
                       <TableCell align="center">平衡</TableCell>
                       <TableCell align="center">被引用</TableCell>
+                      <TableCell align="center">剩餘可用</TableCell>
                       <TableCell align="center">操作</TableCell>
                     </TableRow>
                   </TableHead>
@@ -476,6 +561,9 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                             )}
                           </TableCell>
                           <TableCell align="center">
+                            {getAvailableAmountChip(group as ExtendedTransactionGroupWithEntries)}
+                          </TableCell>
+                          <TableCell align="center">
                             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                               <Tooltip title="檢視">
                                 <IconButton
@@ -551,7 +639,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
 
                         {/* 展開的分錄詳情 */}
                         <TableRow>
-                          <TableCell colSpan={9} sx={{ p: 0 }}>
+                          <TableCell colSpan={10} sx={{ p: 0 }}>
                             <Collapse in={expandedRows.has(group._id)}>
                               <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
                                 <Table size="small">

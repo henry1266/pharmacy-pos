@@ -25,7 +25,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Snackbar
+  Snackbar,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -82,7 +84,9 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
   onSelect,
   selectedTransactionId,
   organizationId,
-  excludeTransactionIds = []
+  excludeTransactionIds = [],
+  showSyncOption = false,
+  onSelectWithSync
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
@@ -90,6 +94,7 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'confirmed'>('confirmed');
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [syncToEntries, setSyncToEntries] = useState(true); // 預設啟用同步到分錄
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -251,7 +256,12 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
       updatedAt: fundingSource.updatedAt
     } as TransactionGroup;
     
-    onSelect(transactionGroup);
+    // 如果有同步回調且顯示同步選項，使用同步回調
+    if (showSyncOption && onSelectWithSync) {
+      onSelectWithSync(transactionGroup, syncToEntries);
+    } else {
+      onSelect(transactionGroup);
+    }
     onClose();
   };
 
@@ -514,6 +524,29 @@ export const FundingSourceSelector: React.FC<FundingSourceSelectorProps> = ({
             <br />• 延伸使用：使用其他交易的資金進行新的交易
             <br />• 資金轉移：在不同帳戶間轉移資金
           </Typography>
+          
+          {/* 同步選項 */}
+          {showSyncOption && (
+            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={syncToEntries}
+                    onChange={(e) => setSyncToEntries(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    <strong>同步到分錄：</strong>自動為借方分錄設定相同的資金來源
+                  </Typography>
+                }
+              />
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ ml: 4 }}>
+                啟用此選項可減少重複操作，系統會自動為所有借方分錄設定選擇的資金來源
+              </Typography>
+            </Box>
+          )}
         </Alert>
       </DialogContent>
       
