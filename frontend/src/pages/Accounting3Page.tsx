@@ -26,6 +26,7 @@ import {
   Edit as EditIcon,
   FilterList as FilterListIcon,
   Search as SearchIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 
@@ -444,16 +445,7 @@ export const Accounting3Page: React.FC = () => {
             </Typography>
           </Box>
           
-          {/* 返回按鈕 */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/accounting3')}
-              sx={{ mb: 2 }}
-            >
-              返回列表
-            </Button>
-          </Box>
+          {/* 移除原本的返回按鈕，改為右側固定按鈕 */}
         </Box>
 
         {/* 錯誤提示 */}
@@ -476,6 +468,26 @@ export const Accounting3Page: React.FC = () => {
             onCancel={() => navigate('/accounting3')}
           />
         </Paper>
+
+        {/* 右側固定按鈕 - 返回列表 */}
+        <Box
+          sx={{
+            position: 'fixed',
+            right: 5,
+            top: '40%',
+            transform: 'translateY(-50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            zIndex: 1000
+          }}
+        >
+          <Tooltip title="返回列表" placement="left" arrow>
+            <Fab color="secondary" size="medium" onClick={() => navigate('/accounting3')} aria-label="返回列表">
+              <ArrowBackIcon />
+            </Fab>
+          </Tooltip>
+        </Box>
 
         {/* 通知 Snackbar */}
         <Snackbar

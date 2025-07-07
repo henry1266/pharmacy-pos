@@ -284,6 +284,16 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     setFundingSourceDialogOpen(false);
   };
 
+  // 借貸對調功能
+  const swapDebitCredit = () => {
+    const newEntries = formData.entries.map(entry => ({
+      ...entry,
+      debitAmount: entry.creditAmount,
+      creditAmount: entry.debitAmount
+    }));
+    handleEntriesChange(newEntries);
+  };
+
   // 使用 shared 的狀態管理工具
   const statusInfo = TransactionStatusManager.getDisplayInfo(currentStatus);
   const permissions = TransactionStatusManager.getPermissions(currentStatus);

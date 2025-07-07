@@ -31,8 +31,7 @@ import {
   ArrowForward,
   Business as BusinessIcon,
   Category as CategoryIcon,
-  Search as SearchIcon,
-  SwapHoriz as SwapHorizIcon
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { useAppSelector } from '../../hooks/redux';
 import { AccountSelector } from './AccountSelector';
@@ -747,45 +746,21 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
                   <Typography variant="body2" color={balanceInfo.isBalanced ? 'success.main' : 'error.main'}>
                     {balanceInfo.isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${balanceInfo.difference.toLocaleString()}`}
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Tooltip title={disabled ? "已確認的交易無法修改" : "將所有分錄的借方與貸方金額互換"}>
+                  {!balanceInfo.isBalanced && (
+                    <Tooltip title={disabled ? "已確認的交易無法修改" : "自動調整最後一筆分錄以達到借貸平衡"}>
                       <span>
                         <Button
                           size="small"
                           variant="outlined"
-                          onClick={swapDebitCredit}
-                          startIcon={<SwapHorizIcon />}
-                          disabled={disabled || entries.length < 2 || entries.every(entry => entry.debitAmount === 0 && entry.creditAmount === 0)}
-                          sx={{
-                            minWidth: 'auto',
-                            color: disabled ? 'text.disabled' : 'info.main',
-                            borderColor: disabled ? 'action.disabled' : 'info.main',
-                            '&:hover': !disabled ? {
-                              borderColor: 'info.dark',
-                              backgroundColor: 'info.light'
-                            } : {}
-                          }}
+                          onClick={quickBalance}
+                          startIcon={<BalanceIcon />}
+                          disabled={disabled || entries.length < 2}
                         >
-                          借貸對調
+                          快速平衡
                         </Button>
                       </span>
                     </Tooltip>
-                    {!balanceInfo.isBalanced && (
-                      <Tooltip title={disabled ? "已確認的交易無法修改" : "自動調整最後一筆分錄以達到借貸平衡"}>
-                        <span>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={quickBalance}
-                            startIcon={<BalanceIcon />}
-                            disabled={disabled || entries.length < 2}
-                          >
-                            快速平衡
-                          </Button>
-                        </span>
-                      </Tooltip>
-                    )}
-                  </Box>
+                  )}
                 </Box>
               </TableCell>
             </TableRow>

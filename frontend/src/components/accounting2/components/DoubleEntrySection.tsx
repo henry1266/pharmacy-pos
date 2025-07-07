@@ -10,7 +10,8 @@ import {
 import {
   Speed as SpeedIcon,
   Help as HelpIcon,
-  SwapHoriz as SwapHorizIcon
+  SwapHoriz as SwapHorizIcon,
+  Balance as BalanceIcon
 } from '@mui/icons-material';
 import { DoubleEntryFormWithEntries } from '../DoubleEntryFormWithEntries';
 import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared';
@@ -43,6 +44,15 @@ export interface DoubleEntrySectionProps {
   
   // 借貸對調功能
   onSwapDebitCredit: () => void;
+  
+  // 快速平衡功能
+  onQuickBalance: () => void;
+  balanceInfo: {
+    isBalanced: boolean;
+    totalDebit: number;
+    totalCredit: number;
+    difference: number;
+  };
 }
 
 export const DoubleEntrySection: React.FC<DoubleEntrySectionProps> = ({
@@ -56,7 +66,9 @@ export const DoubleEntrySection: React.FC<DoubleEntrySectionProps> = ({
   balanceError,
   onOpenTemplateDialog,
   onOpenQuickStartDialog,
-  onSwapDebitCredit
+  onSwapDebitCredit,
+  onQuickBalance,
+  balanceInfo
 }) => {
   return (
     <Card sx={{ mb: 3, boxShadow: 2 }}>

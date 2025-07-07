@@ -125,9 +125,10 @@ export const embeddedEntriesHelpers = {
       if (!entry.accountId) {
         errors.push(`第 ${index + 1} 筆分錄缺少會計科目`);
       }
-      if (!entry.description || entry.description.trim() === '') {
-        errors.push(`第 ${index + 1} 筆分錄缺少描述`);
-      }
+      // 移除描述欄位驗證，因為 UI 中已不再使用此欄位
+      // if (!entry.description || entry.description.trim() === '') {
+      //   errors.push(`第 ${index + 1} 筆分錄缺少描述`);
+      // }
       if ((entry.debitAmount || 0) === 0 && (entry.creditAmount || 0) === 0) {
         errors.push(`第 ${index + 1} 筆分錄借方和貸方金額不能都為零`);
       }
@@ -161,10 +162,11 @@ export const embeddedEntriesHelpers = {
 
   // 格式化分錄顯示
   formatEntryDisplay: (entry: any): string => {
-    const amount = entry.debitAmount > 0 ? 
-      `借：$${entry.debitAmount.toLocaleString('zh-TW')}` : 
+    const amount = entry.debitAmount > 0 ?
+      `借：$${entry.debitAmount.toLocaleString('zh-TW')}` :
       `貸：$${entry.creditAmount.toLocaleString('zh-TW')}`;
-    return `${entry.accountName || entry.accountId} - ${entry.description} (${amount})`;
+    // 移除描述欄位，因為 UI 中已不再使用此欄位
+    return `${entry.accountName || entry.accountId} (${amount})`;
   },
 
   // 計算交易總金額
