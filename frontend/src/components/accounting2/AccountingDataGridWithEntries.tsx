@@ -51,7 +51,7 @@ import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '../../../.
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { fetchTransactionGroupsWithEntries } from '../../redux/actions';
 
-// 臨時型別擴展，確保 referencedByInfo 屬性可用
+// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
 interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
   referencedByInfo?: Array<{
     _id: string;
@@ -60,6 +60,14 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
     transactionDate: Date | string;
     totalAmount: number;
     status: 'draft' | 'confirmed' | 'cancelled';
+  }>;
+  fundingSourceUsages?: Array<{
+    sourceTransactionId: string;
+    usedAmount: number;
+    sourceTransactionDescription?: string;
+    sourceTransactionGroupNumber?: string;
+    sourceTransactionDate?: Date | string;
+    sourceTransactionAmount?: number;
   }>;
 }
 
@@ -295,45 +303,137 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
     return 'error';
   };
 
-  // 取得剩餘可用狀態標籤
-  const getAvailableAmountChip = (group: ExtendedTransactionGroupWithEntries) => {
+  // 渲染整合的資金狀態
+  const renderIntegratedFundingStatus = (group: ExtendedTransactionGroupWithEntries) => {
     const totalAmount = calculateTotalAmount(group.entries);
     const availableAmount = calculateAvailableAmount(group);
-    const color = getAvailableAmountColor(availableAmount, totalAmount);
+    const hasReferences = group.referencedByInfo && group.referencedByInfo.length > 0;
+    const hasFundingSources = group.fundingSourceUsages && group.fundingSourceUsages.length > 0;
     
-    if (totalAmount === 0) {
-      return <Chip label="無金額" color="default" size="small" />;
+    // 如果有資金來源使用，優先顯示資金來源資訊
+    if (hasFundingSources) {
+      const totalUsedAmount = group.fundingSourceUsages!.reduce((sum, usage) => sum + usage.usedAmount, 0);
+      
+      return (
+        <Tooltip
+          title={
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                💰 資金來源追蹤 ({group.fundingSourceUsages!.length} 筆)
+              </Typography>
+              
+              {group.fundingSourceUsages!.map((usage, index) => (
+                <Box key={usage.sourceTransactionId} sx={{ mb: 1, pb: 1, borderBottom: index < group.fundingSourceUsages!.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5, fontWeight: 'bold' }}>
+                    來源 {index + 1}: {usage.sourceTransactionDescription || '未知交易'}
+                  </Typography>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+                    <strong>編號：</strong>{usage.sourceTransactionGroupNumber || 'N/A'}
+                  </Typography>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+                    <strong>使用金額：</strong>{formatCurrency(usage.usedAmount)}
+                  </Typography>
+                </Box>
+              ))}
+              
+              <Typography variant="caption" display="block" sx={{ mt: 1, fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)', pt: 1 }}>
+                <strong>總使用金額：</strong>{formatCurrency(totalUsedAmount)}
+              </Typography>
+            </Box>
+          }
+          arrow
+          placement="left"
+        >
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Chip
+              label={`💰 ${group.fundingSourceUsages!.length} 個來源`}
+              size="small"
+              variant="outlined"
+              color="primary"
+              sx={{ cursor: 'help' }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              {formatCurrency(totalUsedAmount)}
+            </Typography>
+          </Stack>
+        </Tooltip>
+      );
     }
     
-    const percentage = Math.round((availableAmount / totalAmount) * 100);
+    // 如果被引用，顯示被引用和剩餘可用狀態
+    if (hasReferences) {
+      const percentage = totalAmount > 0 ? Math.round((availableAmount / totalAmount) * 100) : 0;
+      const color = getAvailableAmountColor(availableAmount, totalAmount);
+      
+      return (
+        <Tooltip
+          title={
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                🔗 被引用情況 ({group.referencedByInfo!.length} 筆)
+              </Typography>
+              
+              {group.referencedByInfo!.map((ref, index) => (
+                <Box key={ref._id} sx={{ mb: 1, pb: 1, borderBottom: index < group.referencedByInfo!.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+                    <strong>{formatDate(ref.transactionDate)}</strong> - {ref.groupNumber}
+                  </Typography>
+                  <Typography variant="caption" display="block" color="text.secondary">
+                    {ref.description} ({formatCurrency(ref.totalAmount)})
+                  </Typography>
+                </Box>
+              ))}
+              
+              <Typography variant="caption" display="block" sx={{ mt: 1, fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)', pt: 1 }}>
+                <strong>總金額：</strong>{formatCurrency(totalAmount)}
+              </Typography>
+              <Typography variant="caption" display="block">
+                <strong>已使用：</strong>{formatCurrency(totalAmount - availableAmount)}
+              </Typography>
+              <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
+                <strong>剩餘可用：</strong>{formatCurrency(availableAmount)} ({percentage}%)
+              </Typography>
+            </Box>
+          }
+          arrow
+          placement="left"
+        >
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Chip
+              icon={<LinkIcon />}
+              label={`🔗 ${group.referencedByInfo!.length} 筆引用`}
+              color="warning"
+              size="small"
+              variant="outlined"
+              sx={{ cursor: 'help' }}
+            />
+            <Chip
+              label={`${formatCurrency(availableAmount)} (${percentage}%)`}
+              color={color}
+              size="small"
+              variant={availableAmount === totalAmount ? 'filled' : 'outlined'}
+            />
+          </Stack>
+        </Tooltip>
+      );
+    }
+    
+    // 沒有資金追蹤的情況
+    if (totalAmount === 0) {
+      return (
+        <Typography variant="caption" color="text.secondary">
+          無金額交易
+        </Typography>
+      );
+    }
     
     return (
-      <Tooltip
-        title={
-          <Box>
-            <Typography variant="caption" display="block">
-              總金額: {formatCurrency(totalAmount)}
-            </Typography>
-            <Typography variant="caption" display="block">
-              已使用: {formatCurrency(totalAmount - availableAmount)}
-            </Typography>
-            <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
-              剩餘可用: {formatCurrency(availableAmount)}
-            </Typography>
-            <Typography variant="caption" display="block">
-              可用比例: {percentage}%
-            </Typography>
-          </Box>
-        }
-        arrow
-      >
-        <Chip
-          label={`${formatCurrency(availableAmount)} (${percentage}%)`}
-          color={color}
-          size="small"
-          variant={availableAmount === totalAmount ? 'filled' : 'outlined'}
-        />
-      </Tooltip>
+      <Chip
+        label="💸 可完全使用"
+        color="success"
+        size="small"
+        variant="filled"
+      />
     );
   };
 
@@ -472,9 +572,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                       <TableCell>交易編號</TableCell>
                       <TableCell align="right">金額</TableCell>
                       <TableCell align="center">狀態</TableCell>
-                      <TableCell align="center">平衡</TableCell>
-                      <TableCell align="center">被引用</TableCell>
-                      <TableCell align="center">剩餘可用</TableCell>
+                      <TableCell align="center">資金狀態</TableCell>
                       <TableCell align="center">操作</TableCell>
                     </TableRow>
                   </TableHead>
@@ -517,51 +615,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                             {getStatusChip(group.status || 'draft')}
                           </TableCell>
                           <TableCell align="center">
-                            <Chip
-                              label={isBalanced(group.entries) ? '已平衡' : '未平衡'}
-                              color={isBalanced(group.entries) ? 'success' : 'error'}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell align="center">
-                            {(group as ExtendedTransactionGroupWithEntries).referencedByInfo && (group as ExtendedTransactionGroupWithEntries).referencedByInfo!.length > 0 ? (
-                              <Tooltip
-                                title={
-                                  <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                      被引用情況：
-                                    </Typography>
-                                    {(group as ExtendedTransactionGroupWithEntries).referencedByInfo!.map((ref, index) => (
-                                      <Box key={ref._id} sx={{ mb: 0.5 }}>
-                                        <Typography variant="caption" display="block">
-                                          {formatDate(ref.transactionDate)} - {ref.groupNumber}
-                                        </Typography>
-                                        <Typography variant="caption" display="block" color="text.secondary">
-                                          {ref.description} ({formatCurrency(ref.totalAmount)})
-                                        </Typography>
-                                      </Box>
-                                    ))}
-                                  </Box>
-                                }
-                                arrow
-                                placement="left"
-                              >
-                                <Chip
-                                  icon={<LinkIcon />}
-                                  label={`${(group as ExtendedTransactionGroupWithEntries).referencedByInfo!.length} 筆引用`}
-                                  color="warning"
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              </Tooltip>
-                            ) : (
-                              <Typography variant="caption" color="text.secondary">
-                                -
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell align="center">
-                            {getAvailableAmountChip(group as ExtendedTransactionGroupWithEntries)}
+                            {renderIntegratedFundingStatus(group as ExtendedTransactionGroupWithEntries)}
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
@@ -639,7 +693,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
 
                         {/* 展開的分錄詳情 */}
                         <TableRow>
-                          <TableCell colSpan={10} sx={{ p: 0 }}>
+                          <TableCell colSpan={8} sx={{ p: 0 }}>
                             <Collapse in={expandedRows.has(group._id)}>
                               <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
                                 <Table size="small">
@@ -650,7 +704,6 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                       <TableCell>摘要</TableCell>
                                       <TableCell align="right">借方</TableCell>
                                       <TableCell align="right">貸方</TableCell>
-                                      <TableCell>資金來源</TableCell>
                                     </TableRow>
                                   </TableHead>
                                   <TableBody>
@@ -691,56 +744,10 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                             '-'
                                           )}
                                         </TableCell>
-                                        <TableCell>
-                                          {entry.sourceTransactionId ? (
-                                            <Box>
-                                              <Chip
-                                                label={`資金來源: ${(entry as any).sourceTransactionDescription || '未知交易'}`}
-                                                size="small"
-                                                variant="outlined"
-                                                color="primary"
-                                                sx={{ mb: 0.5 }}
-                                              />
-                                              
-                                              {/* 來源交易編號 */}
-                                              {(entry as any).sourceTransactionGroupNumber && (
-                                                <Typography variant="caption" display="block" color="text.secondary">
-                                                  交易編號: {(entry as any).sourceTransactionGroupNumber}
-                                                </Typography>
-                                              )}
-                                              
-                                              {/* 來源交易日期 */}
-                                              {(entry as any).sourceTransactionDate && (
-                                                <Typography variant="caption" display="block" color="text.secondary">
-                                                  交易日期: {new Date((entry as any).sourceTransactionDate).toLocaleDateString('zh-TW')}
-                                                </Typography>
-                                              )}
-                                              
-                                              {/* 來源交易總額 */}
-                                              {(entry as any).sourceTransactionAmount && (
-                                                <Typography variant="caption" display="block" color="text.secondary">
-                                                  來源總額: {formatCurrency((entry as any).sourceTransactionAmount)}
-                                                </Typography>
-                                              )}
-                                              
-                                              {/* 追蹤金額 */}
-                                              <Typography variant="caption" display="block" color="text.secondary" sx={{ fontWeight: 'bold' }}>
-                                                追蹤金額: {entry.debitAmount ? formatCurrency(entry.debitAmount) : formatCurrency(entry.creditAmount || 0)}
-                                              </Typography>
-                                              
-                                              {/* 來源ID（縮短顯示） */}
-                                              <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                                                來源ID: {String(entry.sourceTransactionId).slice(-8)}
-                                              </Typography>
-                                            </Box>
-                                          ) : (
-                                            '-'
-                                          )}
-                                        </TableCell>
                                       </TableRow>
                                     )) : (
                                       <TableRow>
-                                        <TableCell colSpan={6} align="center">
+                                        <TableCell colSpan={5} align="center">
                                           <Typography variant="body2" color="text.secondary">
                                             此交易群組尚無分錄資料
                                           </Typography>

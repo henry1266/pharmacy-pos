@@ -185,7 +185,7 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     console.log('✅ 被引用情況查詢完成');
 
     // 格式化回應資料
-    const formattedTransactionGroups = transactionGroupsWithReferences.map(groupObj => {
+    const formattedTransactionGroups = await Promise.all(transactionGroupsWithReferences.map(async (groupObj) => {
       // 格式化內嵌分錄
       const formattedEntries = groupObj.entries.map((entry: any, index: number) => {
         const account = entry.accountId as any;
@@ -225,6 +225,42 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       const totalCredit = formattedEntries.reduce((sum, e) => sum + e.creditAmount, 0);
       const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01; // 允許小數點誤差
 
+      // 🆕 填充 fundingSourceUsages 資料
+      let fundingSourceUsages: any[] = [];
+      if (groupObj.fundingSourceUsages && groupObj.fundingSourceUsages.length > 0) {
+        console.log(`🔍 處理交易 ${groupObj.groupNumber} 的資金來源使用明細:`, groupObj.fundingSourceUsages);
+        
+        fundingSourceUsages = await Promise.all(
+          groupObj.fundingSourceUsages.map(async (usage: any) => {
+            // 查詢資金來源交易的詳細資訊
+            const sourceTransaction = await TransactionGroupWithEntries.findById(usage.sourceTransactionId);
+            
+            if (sourceTransaction) {
+              return {
+                sourceTransactionId: usage.sourceTransactionId,
+                usedAmount: usage.usedAmount,
+                sourceTransactionDescription: sourceTransaction.description,
+                sourceTransactionGroupNumber: sourceTransaction.groupNumber,
+                sourceTransactionDate: sourceTransaction.transactionDate,
+                sourceTransactionAmount: sourceTransaction.totalAmount
+              };
+            } else {
+              console.warn(`⚠️ 找不到資金來源交易: ${usage.sourceTransactionId}`);
+              return {
+                sourceTransactionId: usage.sourceTransactionId,
+                usedAmount: usage.usedAmount,
+                sourceTransactionDescription: '未知交易',
+                sourceTransactionGroupNumber: 'TXN-未知',
+                sourceTransactionDate: new Date(),
+                sourceTransactionAmount: 0
+              };
+            }
+          })
+        );
+        
+        console.log(`✅ 交易 ${groupObj.groupNumber} 資金來源使用明細處理完成:`, fundingSourceUsages);
+      }
+
       return {
         ...groupObj,
         entries: formattedEntries,
@@ -233,9 +269,11 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
         // 保留被引用情況資訊
         referencedByInfo: groupObj.referencedByInfo,
         referencedByCount: groupObj.referencedByCount,
-        isReferenced: groupObj.isReferenced
+        isReferenced: groupObj.isReferenced,
+        // 🆕 添加資金來源使用明細
+        fundingSourceUsages
       };
-    });
+    }));
 
     res.json({
       success: true,
@@ -338,22 +376,46 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
             };
           }
           
-          // 計算已使用金額
+          // 計算已使用金額（按比例分配）
           const usedTransactions = await TransactionGroupWithEntries.find({
             linkedTransactionIds: sourceTransaction._id,
             status: { $ne: 'cancelled' },
             createdBy: userId
-          });
+          }).populate('linkedTransactionIds', 'totalAmount');
           
-          const usedAmount = usedTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
-          const availableAmount = (sourceTransaction.totalAmount || 0) - usedAmount;
+          // 🆕 按比例分配計算已使用金額
+          let totalUsedAmount = 0;
+          
+          for (const tx of usedTransactions) {
+            // 獲取此交易的所有資金來源
+            const allSources = tx.linkedTransactionIds as any[];
+            if (allSources && allSources.length > 0) {
+              // 計算所有資金來源的總金額
+              const totalSourceAmount = allSources.reduce((sum, src) => {
+                const srcAmount = typeof src === 'object' ? src.totalAmount : 0;
+                return sum + (srcAmount || 0);
+              }, 0);
+              
+              // 按比例分配此交易對當前資金來源的使用金額
+              if (totalSourceAmount > 0) {
+                const sourceRatio = (sourceTransaction.totalAmount || 0) / totalSourceAmount;
+                const allocatedAmount = (tx.totalAmount || 0) * sourceRatio;
+                totalUsedAmount += allocatedAmount;
+              }
+            } else {
+              // 如果沒有多個資金來源，使用完整金額
+              totalUsedAmount += (tx.totalAmount || 0);
+            }
+          }
+          
+          const availableAmount = (sourceTransaction.totalAmount || 0) - totalUsedAmount;
           
           console.log('✅ GET /:id - 資金來源詳情:', {
             _id: sourceTransaction._id,
             groupNumber: sourceTransaction.groupNumber,
             description: sourceTransaction.description,
             totalAmount: sourceTransaction.totalAmount,
-            usedAmount,
+            usedAmount: totalUsedAmount,
             availableAmount
           });
           
@@ -548,6 +610,51 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       sourceTransactionId: sourceTransactionId ? new mongoose.Types.ObjectId(sourceTransactionId) : undefined
     };
 
+    // 🆕 處理精確資金來源使用追蹤
+    if (req.body.fundingSourceUsages && Array.isArray(req.body.fundingSourceUsages)) {
+      console.log('🔍 處理精確資金來源使用明細:', req.body.fundingSourceUsages);
+      
+      transactionGroupData.fundingSourceUsages = req.body.fundingSourceUsages.map((usage: any) => ({
+        sourceTransactionId: new mongoose.Types.ObjectId(usage.sourceTransactionId),
+        usedAmount: parseFloat(usage.usedAmount) || 0,
+        description: usage.description || ''
+      }));
+      
+      console.log('✅ 設定精確資金使用明細:', transactionGroupData.fundingSourceUsages);
+    } else if (linkedTransactionIds && linkedTransactionIds.length > 0) {
+      // 🆕 如果沒有提供精確明細，但有 linkedTransactionIds，自動計算按比例分配
+      console.log('🔍 自動計算資金來源按比例分配...');
+      
+      const fundingSourceUsages = [];
+      
+      // 查詢所有資金來源的總金額
+      const sourceTransactions = await TransactionGroupWithEntries.find({
+        _id: { $in: linkedTransactionIds.map((id: string) => new mongoose.Types.ObjectId(id)) },
+        createdBy: userId,
+        status: 'confirmed'
+      });
+      
+      const totalSourceAmount = sourceTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
+      
+      if (totalSourceAmount > 0) {
+        for (const sourceTx of sourceTransactions) {
+          const sourceRatio = (sourceTx.totalAmount || 0) / totalSourceAmount;
+          const allocatedAmount = totalAmount * sourceRatio;
+          
+          fundingSourceUsages.push({
+            sourceTransactionId: sourceTx._id,
+            usedAmount: allocatedAmount,
+            description: `按比例分配 (${(sourceRatio * 100).toFixed(2)}%)`
+          });
+          
+          console.log(`💰 資金來源 ${sourceTx.groupNumber} 分配金額: ${allocatedAmount.toFixed(2)} (${(sourceRatio * 100).toFixed(2)}%)`);
+        }
+        
+        transactionGroupData.fundingSourceUsages = fundingSourceUsages;
+        console.log('✅ 自動設定按比例分配的資金使用明細');
+      }
+    }
+
     // 處理 organizationId
     try {
       const validOrganizationId = safeObjectId(organizationId);
@@ -680,6 +787,57 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     }
     if (sourceTransactionId !== undefined) {
       updateData.sourceTransactionId = sourceTransactionId ? new mongoose.Types.ObjectId(sourceTransactionId) : undefined;
+    }
+
+    // 🆕 處理精確資金來源使用追蹤更新
+    if (req.body.fundingSourceUsages !== undefined) {
+      if (Array.isArray(req.body.fundingSourceUsages)) {
+        console.log('🔍 更新精確資金來源使用明細:', req.body.fundingSourceUsages);
+        
+        updateData.fundingSourceUsages = req.body.fundingSourceUsages.map((usage: any) => ({
+          sourceTransactionId: new mongoose.Types.ObjectId(usage.sourceTransactionId),
+          usedAmount: parseFloat(usage.usedAmount) || 0,
+          description: usage.description || ''
+        }));
+        
+        console.log('✅ 更新精確資金使用明細:', updateData.fundingSourceUsages);
+      } else {
+        // 如果傳入 null 或空值，清空資金使用明細
+        updateData.fundingSourceUsages = [];
+        console.log('🗑️ 清空資金使用明細');
+      }
+    } else if (linkedTransactionIds !== undefined && linkedTransactionIds.length > 0) {
+      // 🆕 如果更新了 linkedTransactionIds 但沒有提供精確明細，重新計算按比例分配
+      console.log('🔍 重新計算資金來源按比例分配...');
+      
+      const fundingSourceUsages = [];
+      
+      // 查詢所有資金來源的總金額
+      const sourceTransactions = await TransactionGroupWithEntries.find({
+        _id: { $in: linkedTransactionIds.map((id: string) => new mongoose.Types.ObjectId(id)) },
+        createdBy: userId,
+        status: 'confirmed'
+      });
+      
+      const totalSourceAmount = sourceTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
+      const currentTotalAmount = updateData.totalAmount || transactionGroup.totalAmount || 0;
+      
+      if (totalSourceAmount > 0 && currentTotalAmount > 0) {
+        for (const sourceTx of sourceTransactions) {
+          const sourceRatio = (sourceTx.totalAmount || 0) / totalSourceAmount;
+          const allocatedAmount = currentTotalAmount * sourceRatio;
+          
+          fundingSourceUsages.push({
+            sourceTransactionId: sourceTx._id as mongoose.Types.ObjectId,
+            usedAmount: allocatedAmount
+          });
+          
+          console.log(`💰 更新資金來源 ${sourceTx.groupNumber} 分配金額: ${allocatedAmount.toFixed(2)} (${(sourceRatio * 100).toFixed(2)}%)`);
+        }
+        
+        updateData.fundingSourceUsages = fundingSourceUsages;
+        console.log('✅ 重新設定按比例分配的資金使用明細');
+      }
     }
 
     // 如果有分錄更新，重新建立內嵌分錄
@@ -1099,7 +1257,7 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
       .sort({ transactionDate: -1, createdAt: -1 })
       .limit(50); // 限制返回數量
 
-    // 計算每個資金來源的已使用金額
+    // 計算每個資金來源的已使用金額（按比例分配）
     const sourcesWithUsage = await Promise.all(
       fundingSources.map(async (source) => {
         // 查找所有使用此資金來源的交易
@@ -1107,10 +1265,42 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
           linkedTransactionIds: source._id,
           status: { $ne: 'cancelled' },
           createdBy: userId
-        });
+        }).populate('linkedTransactionIds', 'totalAmount');
 
-        const usedAmount = linkedTransactions.reduce((sum, tx) => sum + (tx.totalAmount || 0), 0);
-        const availableAmount = (source.totalAmount || 0) - usedAmount;
+        // 🆕 按比例分配計算已使用金額
+        let totalUsedAmount = 0;
+        
+        for (const tx of linkedTransactions) {
+          // 獲取此交易的所有資金來源
+          const allSources = tx.linkedTransactionIds as any[];
+          if (allSources && allSources.length > 0) {
+            // 計算所有資金來源的總金額
+            const totalSourceAmount = allSources.reduce((sum, src) => {
+              const srcAmount = typeof src === 'object' ? src.totalAmount : 0;
+              return sum + (srcAmount || 0);
+            }, 0);
+            
+            // 按比例分配此交易對當前資金來源的使用金額
+            if (totalSourceAmount > 0) {
+              const sourceRatio = (source.totalAmount || 0) / totalSourceAmount;
+              const allocatedAmount = (tx.totalAmount || 0) * sourceRatio;
+              totalUsedAmount += allocatedAmount;
+              
+              console.log(`💰 資金來源 ${source.groupNumber} 在交易 ${tx.groupNumber} 中的分配:`, {
+                sourceAmount: source.totalAmount,
+                totalSourceAmount,
+                sourceRatio: sourceRatio.toFixed(4),
+                transactionAmount: tx.totalAmount,
+                allocatedAmount: allocatedAmount.toFixed(2)
+              });
+            }
+          } else {
+            // 如果沒有多個資金來源，使用完整金額
+            totalUsedAmount += (tx.totalAmount || 0);
+          }
+        }
+
+        const availableAmount = (source.totalAmount || 0) - totalUsedAmount;
 
         return {
           _id: source._id,
@@ -1118,7 +1308,7 @@ router.get('/funding/available-sources', auth, async (req: AuthenticatedRequest,
           description: source.description,
           transactionDate: source.transactionDate,
           totalAmount: source.totalAmount || 0,
-          usedAmount,
+          usedAmount: totalUsedAmount,
           availableAmount,
           fundingType: source.fundingType,
           receiptUrl: source.receiptUrl,

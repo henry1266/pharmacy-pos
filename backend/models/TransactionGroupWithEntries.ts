@@ -18,6 +18,13 @@ export interface IEmbeddedAccountingEntry {
   fundingPath?: string[];     // 資金流動路徑 (交易ID陣列的字串表示)
 }
 
+// 資金來源使用明細介面
+export interface IFundingSourceUsage {
+  sourceTransactionId: mongoose.Types.ObjectId | string;  // 資金來源交易ID
+  usedAmount: number;                                      // 實際使用金額
+  description?: string;                                    // 使用說明
+}
+
 // 更新後的交易群組介面
 export interface ITransactionGroupWithEntries extends Document {
   groupNumber: string;        // 交易群組編號 (如: TXN-20250102-001)
@@ -30,9 +37,12 @@ export interface ITransactionGroupWithEntries extends Document {
   status: 'draft' | 'confirmed' | 'cancelled';
   
   // 資金來源追蹤功能
-  linkedTransactionIds: (mongoose.Types.ObjectId | string)[]; // 被延伸使用的交易ID陣列
+  linkedTransactionIds: (mongoose.Types.ObjectId | string)[]; // 被延伸使用的交易ID陣列（保留向後相容）
   sourceTransactionId?: mongoose.Types.ObjectId | string;     // 此交易的資金來源交易ID
   fundingType: 'original' | 'extended' | 'transfer';          // 資金類型：原始/延伸/轉帳
+  
+  // 🆕 精確資金來源使用追蹤
+  fundingSourceUsages?: IFundingSourceUsage[];                // 資金來源使用明細
   
   // 內嵌分錄陣列 - 新增的核心欄位
   entries: IEmbeddedAccountingEntry[];
@@ -41,6 +51,28 @@ export interface ITransactionGroupWithEntries extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// 資金來源使用明細子文檔 Schema
+const FundingSourceUsageSchema: Schema = new Schema({
+  sourceTransactionId: {
+    type: Schema.Types.ObjectId,
+    ref: 'TransactionGroupWithEntries',
+    required: true
+  },
+  usedAmount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: 200
+  }
+}, {
+  _id: false, // 不需要獨立的 _id
+  timestamps: false
+});
 
 // 內嵌分錄子文檔 Schema
 const EmbeddedAccountingEntrySchema: Schema = new Schema({
@@ -154,6 +186,10 @@ const TransactionGroupWithEntriesSchema: Schema = new Schema({
     enum: ['original', 'extended', 'transfer'],
     default: 'original'
   },
+  
+  // 🆕 精確資金來源使用追蹤
+  fundingSourceUsages: [FundingSourceUsageSchema],
+  
   // 內嵌分錄陣列 - 核心新增欄位
   entries: {
     type: [EmbeddedAccountingEntrySchema],
