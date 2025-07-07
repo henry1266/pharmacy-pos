@@ -498,6 +498,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       const validAccountId = validateObjectId(entry.accountId, `分錄 ${index + 1} 會計科目`);
       const validCategoryId = safeObjectId(entry.categoryId);
       const validOrganizationId = safeObjectId(organizationId);
+      const validSourceTransactionId = safeObjectId(entry.sourceTransactionId);
 
       const entryData: any = {
         sequence: index + 1,
@@ -514,6 +515,18 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       
       if (validOrganizationId) {
         entryData.organizationId = validOrganizationId;
+      }
+
+      // 🆕 處理分錄層級的資金來源
+      if (validSourceTransactionId) {
+        entryData.sourceTransactionId = validSourceTransactionId;
+        console.log(`✅ 分錄 ${index + 1} 設定資金來源:`, validSourceTransactionId);
+      }
+
+      // 🆕 處理資金路徑（如果有提供）
+      if (entry.fundingPath && Array.isArray(entry.fundingPath)) {
+        entryData.fundingPath = entry.fundingPath;
+        console.log(`✅ 分錄 ${index + 1} 設定資金路徑:`, entry.fundingPath);
       }
 
       return entryData;
@@ -692,6 +705,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         const embeddedEntries = entries.map((entry: any, index: number) => {
           const validAccountId = validateObjectId(entry.accountId, `分錄 ${index + 1} 會計科目`);
           const validCategoryId = safeObjectId(entry.categoryId);
+          const validSourceTransactionId = safeObjectId(entry.sourceTransactionId);
 
           const entryData: any = {
             sequence: index + 1,
@@ -707,6 +721,18 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
           
           if (transactionGroup.organizationId) {
             entryData.organizationId = transactionGroup.organizationId;
+          }
+
+          // 🆕 處理分錄層級的資金來源
+          if (validSourceTransactionId) {
+            entryData.sourceTransactionId = validSourceTransactionId;
+            console.log(`✅ 更新分錄 ${index + 1} 資金來源:`, validSourceTransactionId);
+          }
+
+          // 🆕 處理資金路徑（如果有提供）
+          if (entry.fundingPath && Array.isArray(entry.fundingPath)) {
+            entryData.fundingPath = entry.fundingPath;
+            console.log(`✅ 更新分錄 ${index + 1} 資金路徑:`, entry.fundingPath);
           }
 
           return entryData;

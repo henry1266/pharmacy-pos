@@ -642,7 +642,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                               
                                               {/* 來源ID（縮短顯示） */}
                                               <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                                                來源ID: {entry.sourceTransactionId.slice(-8)}
+                                                來源ID: {String(entry.sourceTransactionId).slice(-8)}
                                               </Typography>
                                             </Box>
                                           ) : (

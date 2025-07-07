@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -35,12 +35,14 @@ import {
   Warning
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
+import { AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
 import { accounting3Service } from '../../services/accounting3Service';
 import { transactionGroupService } from '../../services/transactionGroupService';
+import { transactionGroupWithEntriesService } from '../../services/transactionGroupWithEntriesService';
 import { Account2 } from '../../../../shared/types/accounting2';
 import { RouteUtils } from '../../utils/routeUtils';
+import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '../../../../shared/types/accounting2';
 
 interface DoubleEntryDetailPageProps {
   organizationId?: string;
@@ -73,7 +75,7 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
   const [selectedEntryForDelete, setSelectedEntryForDelete] = useState<AccountingEntryDetail | null>(null);
 
   // 載入分錄資料函數
-  const loadEntries = async () => {
+  const loadEntries = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -84,17 +86,77 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
         throw new Error('缺少 accountId 參數');
       }
 
-      const response = await doubleEntryService.getByAccount(accountId, {
+      // 使用 transactionGroupWithEntriesService 載入資料
+      const response = await transactionGroupWithEntriesService.getAll({
         organizationId,
         limit: 1000
       });
 
       console.log('📊 DoubleEntryDetailPage - API 回應:', response);
 
-      if (response.success) {
-        setEntries(response.data.entries);
-        setStatistics(response.data.statistics);
-        console.log('✅ DoubleEntryDetailPage - 分錄載入成功:', response.data.entries.length);
+      if (response.success && response.data) {
+        const transactionGroups: TransactionGroupWithEntries[] = response.data.groups;
+        
+        // 轉換資料格式並篩選出與當前科目相關的分錄
+        const entriesData: AccountingEntryDetail[] = [];
+        let totalDebit = 0;
+        let totalCredit = 0;
+
+        transactionGroups.forEach((group) => {
+          group.entries.forEach((entry: EmbeddedAccountingEntry) => {
+            // 只處理與當前科目相關的分錄
+            if (entry.accountId?.toString() === accountId) {
+              // 找到對方科目 - 使用動態屬性存取
+              const counterpartAccounts = group.entries
+                .filter((e: EmbeddedAccountingEntry) => e.accountId?.toString() !== accountId)
+                .map((e: any) => e.accountName) // 使用 any 來存取 accountName
+                .filter(Boolean);
+
+              // 找到當前科目的帳戶資訊
+              const accountInfo = accounts.find(a => a._id === accountId);
+
+              const entryDetail: AccountingEntryDetail = {
+                _id: entry._id || `${group._id}-${entry.accountId}`,
+                transactionGroupId: group._id,
+                groupNumber: group.groupNumber,
+                groupDescription: group.description,
+                transactionDate: typeof group.transactionDate === 'string' ? group.transactionDate : group.transactionDate.toISOString(),
+                description: entry.description || group.description,
+                sequence: entry.sequence || 1,
+                accountId: entry.accountId?.toString() || '',
+                debitAmount: entry.debitAmount || 0,
+                creditAmount: entry.creditAmount || 0,
+                status: group.status,
+                counterpartAccounts,
+                // 使用型別守衛處理 accountInfo
+                accountCode: accountInfo && 'code' in accountInfo ? accountInfo.code : '',
+                accountType: accountInfo && 'accountType' in accountInfo ? accountInfo.accountType : 'asset',
+                accountName: (entry as any).accountName || '', // 使用動態屬性存取
+                createdAt: typeof group.createdAt === 'string' ? group.createdAt : group.createdAt.toISOString(),
+                updatedAt: typeof group.updatedAt === 'string' ? group.updatedAt : group.updatedAt.toISOString()
+              };
+
+              entriesData.push(entryDetail);
+              
+              // 累計統計
+              totalDebit += entry.debitAmount || 0;
+              totalCredit += entry.creditAmount || 0;
+            }
+          });
+        });
+
+        // 計算餘額
+        const balance = totalDebit - totalCredit;
+
+        setEntries(entriesData);
+        setStatistics({
+          totalDebit,
+          totalCredit,
+          balance,
+          recordCount: entriesData.length
+        });
+        
+        console.log('✅ DoubleEntryDetailPage - 分錄載入成功:', entriesData.length);
       } else {
         throw new Error('載入分錄失敗');
       }
@@ -104,10 +166,10 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     } finally {
       setLoading(false);
     }
-  };
+  }, [accountId, organizationId, accounts]); // 添加 accounts 依賴項
 
   // 載入帳戶資料
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       setAccountsLoading(true);
       const response = await accounting3Service.accounts.getAll(organizationId);
@@ -119,7 +181,7 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     } finally {
       setAccountsLoading(false);
     }
-  };
+  }, [organizationId]);
 
   // 確保 accounts 資料已載入
   useEffect(() => {
@@ -127,14 +189,15 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
       console.log('🔄 DoubleEntryDetailPage - 載入 accounts 資料');
       loadAccounts();
     }
-  }, [accounts.length, accountsLoading, organizationId]);
+  }, [accounts.length, accountsLoading, organizationId, loadAccounts]);
 
   // 載入分錄資料
   useEffect(() => {
     if (accountId && accounts.length > 0) {
       loadEntries();
     }
-  }, [organizationId, accountId, accounts.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId, accounts.length]); // 移除 loadEntries 依賴項避免循環依賴
 
 
   // 計算當前加總（依排序由下到上，即按顯示順序從最舊累計到當前行）
@@ -270,20 +333,6 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setSelectedEntryForDelete(null);
-  };
-
-  // 格式化交易狀態
-  const getStatusChip = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return <Chip label="已確認" color="success" size="small" />;
-      case 'draft':
-        return <Chip label="草稿" color="warning" size="small" />;
-      case 'cancelled':
-        return <Chip label="已取消" color="error" size="small" />;
-      default:
-        return <Chip label="未知" color="default" size="small" />;
-    }
   };
 
   // 載入狀態

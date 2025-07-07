@@ -48,6 +48,8 @@ interface FundingSourceSelectorProps {
   selectedTransactionId?: string;
   organizationId?: string;
   excludeTransactionIds?: string[]; // 排除的交易ID（避免循環引用）
+  showSyncOption?: boolean; // 是否顯示同步到分錄的選項
+  onSelectWithSync?: (transaction: TransactionGroup, syncToEntries: boolean) => void; // 帶同步選項的選擇回調
 }
 
 // 擴展 FundingSource 以包含 TransactionGroup 的必要欄位

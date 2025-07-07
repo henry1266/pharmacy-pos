@@ -36,11 +36,15 @@ import {
 } from '@mui/icons-material';
 import { useAppSelector } from '../../hooks/redux';
 import { AccountSelector } from './AccountSelector';
+import { FundingSourceSelector } from './FundingSourceSelector';
 import {
   EmbeddedAccountingEntryFormData,
-  Account2
+  Account2,
+  TransactionGroupWithEntries,
+  TransactionGroup
 } from '@pharmacy-pos/shared';
 import { embeddedEntriesHelpers } from '../../services/transactionGroupWithEntriesService';
+import transactionGroupWithEntriesService from '../../services/transactionGroupWithEntriesService';
 
 interface DoubleEntryFormWithEntriesProps {
   entries: EmbeddedAccountingEntryFormData[];
@@ -73,6 +77,11 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
   // 科目選擇對話框狀態
   const [accountSelectorOpen, setAccountSelectorOpen] = useState(false);
   const [currentEditingIndex, setCurrentEditingIndex] = useState<number>(-1);
+
+  // 分錄資金來源選擇對話框狀態
+  const [entryFundingSourceOpen, setEntryFundingSourceOpen] = useState(false);
+  const [currentFundingEditingIndex, setCurrentFundingEditingIndex] = useState<number>(-1);
+  const [selectedFundingSources, setSelectedFundingSources] = useState<TransactionGroupWithEntries[]>([]);
 
   // 過濾可用的會計科目
   const availableAccounts: AccountOption[] = accounts.filter(account =>
@@ -308,6 +317,40 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
     setCurrentEditingIndex(-1);
   }, []);
 
+  // 開啟分錄資金來源選擇對話框
+  const handleOpenEntryFundingSource = useCallback((index: number) => {
+    setCurrentFundingEditingIndex(index);
+    setEntryFundingSourceOpen(true);
+  }, []);
+
+  // 處理分錄資金來源選擇
+  const handleEntryFundingSourceSelect = useCallback((sourceTransaction: TransactionGroup) => {
+    if (currentFundingEditingIndex >= 0) {
+      // 為分錄設定資金來源
+      updateEntry(currentFundingEditingIndex, 'sourceTransactionId', sourceTransaction._id);
+      
+      console.log('🔗 設定分錄資金來源:', {
+        entryIndex: currentFundingEditingIndex,
+        sourceTransactionId: sourceTransaction._id,
+        sourceDescription: sourceTransaction.description
+      });
+    }
+    setEntryFundingSourceOpen(false);
+    setCurrentFundingEditingIndex(-1);
+  }, [currentFundingEditingIndex, updateEntry]);
+
+  // 關閉分錄資金來源選擇對話框
+  const handleCloseEntryFundingSource = useCallback(() => {
+    setEntryFundingSourceOpen(false);
+    setCurrentFundingEditingIndex(-1);
+  }, []);
+
+  // 移除分錄資金來源
+  const handleRemoveEntryFundingSource = useCallback((index: number) => {
+    updateEntry(index, 'sourceTransactionId', undefined);
+    console.log('🗑️ 移除分錄資金來源:', { entryIndex: index });
+  }, [updateEntry]);
+
   // 快速平衡功能
   const quickBalance = () => {
     if (entries.length < 2) return;
@@ -460,12 +503,13 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell width="5%">序號</TableCell>
-              <TableCell width="30%">會計科目</TableCell>
-              <TableCell width="18%">交易流向</TableCell>
-              <TableCell width="13%">借方金額</TableCell>
-              <TableCell width="13%">貸方金額</TableCell>
-              <TableCell width="16%">摘要</TableCell>
+              <TableCell width="4%">序號</TableCell>
+              <TableCell width="25%">會計科目</TableCell>
+              <TableCell width="15%">交易流向</TableCell>
+              <TableCell width="12%">借方金額</TableCell>
+              <TableCell width="12%">貸方金額</TableCell>
+              <TableCell width="15%">摘要</TableCell>
+              <TableCell width="12%">資金來源</TableCell>
               <TableCell width="5%">操作</TableCell>
             </TableRow>
           </TableHead>
@@ -598,6 +642,77 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
                   />
                 </TableCell>
 
+                {/* 資金來源 */}
+                <TableCell>
+                  {entry.sourceTransactionId ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Chip
+                        label="已設定"
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ fontSize: '0.7rem' }}
+                      />
+                      <Tooltip title={disabled ? "已確認的交易無法修改" : "移除資金來源"}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemoveEntryFundingSource(index)}
+                            disabled={disabled}
+                            color="error"
+                            sx={{ p: 0.25 }}
+                          >
+                            <DeleteIcon sx={{ fontSize: 14 }} />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Box>
+                  ) : (
+                    // 根據借貸方向決定是否顯示資金來源選擇
+                    entry.debitAmount > 0 ? (
+                      // 借方分錄：顯示資金來源選擇（推薦）
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        disabled={disabled}
+                        sx={{
+                          fontSize: '0.7rem',
+                          minWidth: 'auto',
+                          px: 1,
+                          py: 0.5
+                        }}
+                        onClick={() => handleOpenEntryFundingSource(index)}
+                      >
+                        選擇來源
+                      </Button>
+                    ) : entry.creditAmount > 0 ? (
+                      // 貸方分錄：顯示次要選擇（可選）
+                      <Button
+                        size="small"
+                        variant="text"
+                        color="secondary"
+                        disabled={disabled}
+                        sx={{
+                          fontSize: '0.65rem',
+                          minWidth: 'auto',
+                          px: 0.5,
+                          py: 0.25,
+                          opacity: 0.7
+                        }}
+                        onClick={() => handleOpenEntryFundingSource(index)}
+                      >
+                        可選來源
+                      </Button>
+                    ) : (
+                      // 未設定金額：顯示提示
+                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
+                        請先設定金額
+                      </Typography>
+                    )
+                  )}
+                </TableCell>
+
                 {/* 操作按鈕 */}
                 <TableCell>
                   <Tooltip title={disabled ? "已確認的交易無法修改" : "刪除分錄"}>
@@ -637,7 +752,10 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
                   NT$ {balanceInfo.totalCredit.toLocaleString()}
                 </Typography>
               </TableCell>
-              <TableCell colSpan={2}>
+              <TableCell>
+                {/* 資金來源欄位 - 空白 */}
+              </TableCell>
+              <TableCell>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body2" color={balanceInfo.isBalanced ? 'success.main' : 'error.main'}>
                     {balanceInfo.isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${balanceInfo.difference.toLocaleString()}`}
@@ -759,6 +877,15 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
           />
         </DialogContent>
       </Dialog>
+
+      {/* 分錄資金來源選擇對話框 */}
+      <FundingSourceSelector
+        open={entryFundingSourceOpen}
+        onClose={handleCloseEntryFundingSource}
+        onSelect={handleEntryFundingSourceSelect}
+        organizationId={organizationId}
+        excludeTransactionIds={[]} // 可以根據需要排除特定交易
+      />
 
     </Box>
   );

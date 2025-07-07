@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Tooltip } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -13,12 +13,13 @@ import {
   TransactionStatusManager,
   TransactionGroupWithEntriesFormData
 } from '@pharmacy-pos/shared';
-import { transactionGroupWithEntriesService } from '../../services/transactionGroupWithEntriesService';
+import { transactionGroupWithEntriesService, embeddedFundingTrackingService } from '../../services/transactionGroupWithEntriesService';
 
 // 導入重構後的模組
 import { useTransactionForm } from './hooks/useTransactionForm';
 import { BasicInfoSection } from './components/BasicInfoSection';
 import { DoubleEntrySection } from './components/DoubleEntrySection';
+import { FundingSourceSelector } from './FundingSourceSelector';
 
 interface TransactionGroupFormWithEntriesProps {
   initialData?: Partial<TransactionGroupWithEntriesFormData>;
@@ -82,6 +83,57 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     availableAmount: number;
     fundingType: string;
   }>>([]);
+
+  // 載入已選的資金來源（編輯/檢視模式）
+  useEffect(() => {
+    const loadSelectedFundingSources = async () => {
+      // 只在編輯/檢視模式且有 linkedTransactionIds 時載入
+      if ((mode === 'edit' || mode === 'view') &&
+          initialData?.linkedTransactionIds &&
+          initialData.linkedTransactionIds.length > 0) {
+        
+        try {
+          console.log('🔍 載入已選資金來源:', initialData.linkedTransactionIds);
+          
+          // 設置資金追蹤為啟用狀態
+          setEnableFundingTracking(true);
+          
+          // 載入每個關聯交易的詳細資料
+          const fundingSourcePromises = initialData.linkedTransactionIds.map(async (transactionId) => {
+            try {
+              const response = await transactionGroupWithEntriesService.getById(transactionId);
+              if (response.success && response.data) {
+                return {
+                  _id: response.data._id,
+                  groupNumber: response.data.groupNumber,
+                  description: response.data.description,
+                  transactionDate: new Date(response.data.transactionDate),
+                  totalAmount: response.data.totalAmount || 0,
+                  availableAmount: response.data.totalAmount || 0, // 假設全額可用
+                  fundingType: response.data.fundingType || 'original'
+                };
+              }
+              return null;
+            } catch (error) {
+              console.error(`❌ 載入資金來源 ${transactionId} 失敗:`, error);
+              return null;
+            }
+          });
+          
+          const fundingSources = await Promise.all(fundingSourcePromises);
+          const validFundingSources = fundingSources.filter(source => source !== null);
+          
+          console.log('✅ 載入的資金來源:', validFundingSources);
+          setSelectedFundingSources(validFundingSources);
+          
+        } catch (error) {
+          console.error('❌ 載入資金來源失敗:', error);
+        }
+      }
+    };
+
+    loadSelectedFundingSources();
+  }, [mode, initialData?.linkedTransactionIds]);
 
   // 提交表單
   const handleSubmit = async (event: React.FormEvent) => {
@@ -171,6 +223,40 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         setSelectedFundingSources([]);
       }
     }
+  };
+
+  // 處理資金來源選擇
+  const handleFundingSourceSelect = (transaction: any) => {
+    console.log('🔍 選擇資金來源:', transaction);
+    
+    // 更新選中的資金來源列表
+    const newFundingSource = {
+      _id: transaction._id,
+      groupNumber: transaction.groupNumber,
+      description: transaction.description,
+      transactionDate: transaction.transactionDate,
+      totalAmount: transaction.totalAmount,
+      availableAmount: transaction.totalAmount, // 假設全額可用
+      fundingType: transaction.fundingType || 'original'
+    };
+    
+    setSelectedFundingSources(prev => {
+      // 避免重複添加
+      if (prev.some(source => source._id === transaction._id)) {
+        return prev;
+      }
+      return [...prev, newFundingSource];
+    });
+    
+    // 更新表單資料
+    const currentLinkedIds = formData.linkedTransactionIds || [];
+    if (!currentLinkedIds.includes(transaction._id)) {
+      const newLinkedIds = [...currentLinkedIds, transaction._id];
+      handleBasicInfoChange('linkedTransactionIds', newLinkedIds);
+      handleBasicInfoChange('fundingType', 'extended');
+    }
+    
+    setFundingSourceDialogOpen(false);
   };
 
   // 使用 shared 的狀態管理工具
@@ -298,10 +384,18 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           )}
         </Box>
 
-        {/* TODO: 對話框組件將在下一步實作 */}
+        {/* 資金來源選擇對話框 */}
+        <FundingSourceSelector
+          open={fundingSourceDialogOpen}
+          onClose={() => setFundingSourceDialogOpen(false)}
+          onSelect={handleFundingSourceSelect}
+          organizationId={formData.organizationId}
+          excludeTransactionIds={transactionId ? [transactionId] : []}
+        />
+
+        {/* TODO: 其他對話框組件將在下一步實作 */}
         {/* 快速範本對話框 */}
         {/* 快速入門對話框 */}
-        {/* 資金來源選擇對話框 */}
 
       </Box>
     </LocalizationProvider>
