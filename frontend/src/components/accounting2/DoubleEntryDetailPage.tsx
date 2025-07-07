@@ -18,7 +18,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert
+  Alert,
+  Tooltip
 } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
 import {
@@ -30,9 +31,12 @@ import {
   Edit,
   ArrowForward,
   ContentCopy,
-  Add,
   Delete,
-  Warning
+  Warning,
+  Visibility as ViewIcon,
+  CheckCircle as ConfirmIcon,
+  LockOpen as UnlockIcon,
+  Link as LinkIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AccountingEntryDetail } from '../../services/doubleEntryService';
@@ -43,6 +47,26 @@ import { transactionGroupWithEntriesService } from '../../services/transactionGr
 import { Account2 } from '../../../../shared/types/accounting2';
 import { RouteUtils } from '../../utils/routeUtils';
 import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '../../../../shared/types/accounting2';
+
+// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
+interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
+  referencedByInfo?: Array<{
+    _id: string;
+    groupNumber: string;
+    description: string;
+    transactionDate: Date | string;
+    totalAmount: number;
+    status: 'draft' | 'confirmed' | 'cancelled';
+  }>;
+  fundingSourceUsages?: Array<{
+    sourceTransactionId: string;
+    usedAmount: number;
+    sourceTransactionDescription?: string;
+    sourceTransactionGroupNumber?: string;
+    sourceTransactionDate?: Date | string;
+    sourceTransactionAmount?: number;
+  }>;
+}
 
 interface DoubleEntryDetailPageProps {
   organizationId?: string;
@@ -287,15 +311,102 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     }
   };
 
-  // 處理新增交易（預設帶入當前科目和機構）
-  const handleCreateNewTransaction = () => {
+  // 處理檢視交易
+  const handleViewTransaction = (transactionGroupId: string) => {
     const returnUrl = RouteUtils.createAccountDetailRoute(accountId || '');
-    const newTransactionUrl = RouteUtils.createNewTransactionRoute({
-      returnTo: returnUrl,
-      defaultAccountId: accountId,
-      defaultOrganizationId: organizationId
-    });
-    navigate(newTransactionUrl);
+    const viewUrl = `/accounting3/view/${transactionGroupId}?returnTo=${encodeURIComponent(returnUrl)}`;
+    navigate(viewUrl);
+  };
+
+  // 處理確認交易
+  const handleConfirmTransaction = async (transactionGroupId: string) => {
+    if (window.confirm('確定要確認這筆交易嗎？確認後將無法直接編輯。')) {
+      try {
+        await transactionGroupWithEntriesService.confirm(transactionGroupId);
+        // 重新載入分錄資料
+        await loadEntries();
+      } catch (error) {
+        console.error('❌ 確認交易失敗:', error);
+        setError('確認交易失敗，請稍後再試');
+      }
+    }
+  };
+
+  // 處理解鎖交易 (暫時禁用，等待後端 API 支援)
+  const handleUnlockTransaction = async (transactionGroupId: string) => {
+    // TODO: 等待後端實作解鎖 API
+    console.warn('解鎖功能暫未實作，交易ID:', transactionGroupId);
+    setError('解鎖功能暫未開放，請聯繫系統管理員');
+  };
+
+
+  // 渲染整合的資金狀態
+  const renderIntegratedFundingStatus = (group: ExtendedTransactionGroupWithEntries) => {
+    const totalAmount = calculateTotalAmount(group.entries);
+    const hasReferences = group.referencedByInfo && group.referencedByInfo.length > 0;
+    const hasFundingSources = group.fundingSourceUsages && group.fundingSourceUsages.length > 0;
+    
+    // 如果有資金來源使用，優先顯示資金來源資訊
+    if (hasFundingSources) {
+      const totalUsedAmount = group.fundingSourceUsages!.reduce((sum, usage) => sum + usage.usedAmount, 0);
+      
+      return (
+        <Stack direction="column" spacing={0.5} alignItems="center">
+          <Chip
+            label={`💰 ${group.fundingSourceUsages!.length} 筆`}
+            size="small"
+            variant="outlined"
+            color="primary"
+            sx={{ cursor: 'help' }}
+          />
+          <Typography variant="caption" color="text.secondary">
+            {formatCurrency(totalUsedAmount)}
+          </Typography>
+        </Stack>
+      );
+    }
+    
+    // 如果被引用，顯示被引用狀態
+    if (hasReferences) {
+      return (
+        <Stack direction="column" spacing={0.5} alignItems="center">
+          <Chip
+            icon={<LinkIcon />}
+            label={` ${group.referencedByInfo!.length} 筆`}
+            color="warning"
+            size="small"
+            variant="outlined"
+            sx={{ cursor: 'help' }}
+          />
+          <Chip
+            label={formatCurrency(totalAmount)}
+            color="success"
+            size="small"
+            variant="filled"
+          />
+        </Stack>
+      );
+    }
+    
+    // 沒有資金追蹤的情況
+    if (totalAmount === 0) {
+      return (
+        <Typography variant="caption" color="text.secondary">
+          無金額交易
+        </Typography>
+      );
+    }
+    
+    return (
+      <Typography variant="body2" color="success.main" sx={{ textAlign: 'center' }}>
+        ✓
+      </Typography>
+    );
+  };
+
+  // 計算交易群組總金額
+  const calculateTotalAmount = (entries: EmbeddedAccountingEntry[]) => {
+    return entries.reduce((total, entry) => total + (entry.debitAmount || 0), 0);
   };
 
   // 處理刪除分錄明細
@@ -462,15 +573,6 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
       <Paper sx={{ mb: 3 }}>
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">分錄明細（含交易流向）</Typography>
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            startIcon={<Add />}
-            onClick={handleCreateNewTransaction}
-          >
-            增加明細
-          </Button>
         </Box>
         <Divider />
         
@@ -629,36 +731,103 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
                 }
               },
               {
+                field: 'fundingStatus',
+                headerName: '資金狀態',
+                width: 120,
+                align: 'center',
+                headerAlign: 'center',
+                sortable: false,
+                filterable: false,
+                renderCell: (params: GridRenderCellParams) => {
+                  // 模擬資金狀態顯示
+                  const transactionGroup = {
+                    _id: params.row.transactionGroupId,
+                    groupNumber: params.row.groupNumber,
+                    entries: [{ debitAmount: params.row.debitAmount || 0, creditAmount: params.row.creditAmount || 0 }],
+                    referencedByInfo: [], // 這裡需要從實際數據獲取
+                    fundingSourceUsages: [] // 這裡需要從實際數據獲取
+                  } as ExtendedTransactionGroupWithEntries;
+                  
+                  return renderIntegratedFundingStatus(transactionGroup);
+                }
+              },
+              {
                 field: 'actions',
                 headerName: '操作',
-                width: 140,
+                width: 180,
                 sortable: false,
                 filterable: false,
                 renderCell: (params: GridRenderCellParams) => (
-                  <Stack direction="row" spacing={0.5}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleEditTransaction(params.row.transactionGroupId)}
-                      title="編輯交易"
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleCopyTransaction(params.row.transactionGroupId)}
-                      title="複製交易"
-                    >
-                      <ContentCopy />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => handleOpenDeleteDialog(params.row)}
-                      title="刪除明細"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Stack>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    <Tooltip title="檢視">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleViewTransaction(params.row.transactionGroupId)}
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                    </Tooltip>
+                    
+                    {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
+                    {params.row.status === 'draft' && (
+                      <Tooltip title="編輯">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEditTransaction(params.row.transactionGroupId)}
+                        >
+                          <Edit />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    
+                    <Tooltip title="複製">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleCopyTransaction(params.row.transactionGroupId)}
+                      >
+                        <ContentCopy />
+                      </IconButton>
+                    </Tooltip>
+                    
+                    {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
+                    {params.row.status === 'draft' && (
+                      <Tooltip title="確認交易">
+                        <IconButton
+                          size="small"
+                          color="success"
+                          onClick={() => handleConfirmTransaction(params.row.transactionGroupId)}
+                        >
+                          <ConfirmIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    
+                    {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
+                    {params.row.status === 'confirmed' && (
+                      <Tooltip title="解鎖交易">
+                        <IconButton
+                          size="small"
+                          color="warning"
+                          onClick={() => handleUnlockTransaction(params.row.transactionGroupId)}
+                        >
+                          <UnlockIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    
+                    {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
+                    {params.row.status === 'draft' && (
+                      <Tooltip title="刪除">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleOpenDeleteDialog(params.row)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
                 )
               }
             ] as GridColDef[]}

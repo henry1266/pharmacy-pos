@@ -13,7 +13,6 @@ import {
   IconButton,
   Chip,
   Typography,
-  Collapse,
   Button,
   Tooltip,
   Alert,
@@ -29,8 +28,6 @@ import {
   Pagination
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
@@ -41,7 +38,8 @@ import {
   ContentCopy as CopyIcon,
   CheckCircle as ConfirmIcon,
   LockOpen as UnlockIcon,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -111,7 +109,6 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
   const { transactionGroups, loading, error, pagination } = useAppSelector(state => state.transactionGroupWithEntries);
   
   // 本地狀態管理
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<FilterOptions>({
     search: '',
     status: '',
@@ -183,17 +180,6 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
       pagination
     });
   }, [transactionGroups, loading, error, pagination]);
-
-  // 處理展開/收合行
-  const handleExpandRow = (id: string) => {
-    const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedRows(newExpanded);
-  };
 
   // 處理篩選變更
   const handleFilterChange = (field: keyof FilterOptions, value: any) => {
@@ -433,6 +419,67 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
     );
   };
 
+  // 渲染交易流向圖
+  const renderTransactionFlow = (group: ExtendedTransactionGroupWithEntries) => {
+    if (!group.entries || group.entries.length < 2) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 找到主要的借方和貸方科目
+    const debitEntries = group.entries.filter(entry => (entry.debitAmount || 0) > 0);
+    const creditEntries = group.entries.filter(entry => (entry.creditAmount || 0) > 0);
+
+    if (debitEntries.length === 0 || creditEntries.length === 0) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 取第一個借方和貸方科目作為代表
+    const fromAccount = creditEntries[0];
+    const toAccount = debitEntries[0];
+
+    // 獲取科目名稱
+    const fromAccountName = (fromAccount as any).accountName || '未知科目';
+    const toAccountName = (toAccount as any).accountName || '未知科目';
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
+        <Chip
+          label={fromAccountName}
+          size="medium"
+          color="secondary"
+          sx={{
+            fontSize: '0.8rem',
+            height: 28,
+            mr: 0.5,
+            maxWidth: 90,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.8rem'
+            }
+          }}
+        />
+        <ArrowForwardIcon sx={{ fontSize: 18, color: 'primary.main', mx: 0.25 }} />
+        <Chip
+          label={toAccountName}
+          size="medium"
+          color="primary"
+          sx={{
+            fontSize: '0.8rem',
+            height: 28,
+            ml: 0.5,
+            maxWidth: 90,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.8rem'
+            }
+          }}
+        />
+      </Box>
+    );
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -562,10 +609,10 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell width="50px"></TableCell>
                       <TableCell>交易描述</TableCell>
                       <TableCell>交易日期</TableCell>
                       <TableCell>交易編號</TableCell>
+                      <TableCell align="center">交易流向</TableCell>
                       <TableCell align="right">金額</TableCell>
                       <TableCell align="center">狀態</TableCell>
                       <TableCell align="center">資金狀態</TableCell>
@@ -574,183 +621,107 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                   </TableHead>
                   <TableBody>
                     {transactionGroups.map((group) => (
-                      <React.Fragment key={group._id}>
-                        {/* 主要交易行 */}
-                        <TableRow hover>
-                          <TableCell>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleExpandRow(group._id)}
-                            >
-                              {expandedRows.has(group._id) ? (
-                                <ExpandLessIcon />
-                              ) : (
-                                <ExpandMoreIcon />
-                              )}
-                            </IconButton>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {group.description}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            {formatDate(group.transactionDate)}
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" fontFamily="monospace">
-                              {group.groupNumber}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" fontWeight="medium">
-                              {formatCurrency(calculateTotalAmount(group.entries))}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="center">
-                            {getStatusChip(group.status || 'draft')}
-                          </TableCell>
-                          <TableCell align="center">
-                            {renderIntegratedFundingStatus(group as ExtendedTransactionGroupWithEntries)}
-                          </TableCell>
-                          <TableCell align="center">
-                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                              <Tooltip title="檢視">
+                      <TableRow key={group._id} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="medium">
+                            {group.description}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(group.transactionDate)}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontFamily="monospace">
+                            {group.groupNumber}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          {renderTransactionFlow(group as ExtendedTransactionGroupWithEntries)}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body2" fontWeight="medium">
+                            {formatCurrency(calculateTotalAmount(group.entries))}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          {getStatusChip(group.status || 'draft')}
+                        </TableCell>
+                        <TableCell align="center">
+                          {renderIntegratedFundingStatus(group as ExtendedTransactionGroupWithEntries)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                            <Tooltip title="檢視">
+                              <IconButton
+                                size="small"
+                                onClick={() => onView(group)}
+                              >
+                                <ViewIcon />
+                              </IconButton>
+                            </Tooltip>
+                            
+                            {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
+                            {group.status === 'draft' && (
+                              <Tooltip title="編輯">
                                 <IconButton
                                   size="small"
-                                  onClick={() => onView(group)}
+                                  onClick={() => onEdit(group)}
                                 >
-                                  <ViewIcon />
+                                  <EditIcon />
                                 </IconButton>
                               </Tooltip>
-                              
-                              {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
-                              {group.status === 'draft' && (
-                                <Tooltip title="編輯">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => onEdit(group)}
-                                  >
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                              
-                              <Tooltip title="複製">
+                            )}
+                            
+                            <Tooltip title="複製">
+                              <IconButton
+                                size="small"
+                                onClick={() => onCopy(group)}
+                              >
+                                <CopyIcon />
+                              </IconButton>
+                            </Tooltip>
+                            
+                            {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
+                            {group.status === 'draft' && isBalanced(group.entries) && (
+                              <Tooltip title="確認交易">
                                 <IconButton
                                   size="small"
-                                  onClick={() => onCopy(group)}
+                                  color="success"
+                                  onClick={() => onConfirm(group._id)}
                                 >
-                                  <CopyIcon />
+                                  <ConfirmIcon />
                                 </IconButton>
                               </Tooltip>
-                              
-                              {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
-                              {group.status === 'draft' && isBalanced(group.entries) && (
-                                <Tooltip title="確認交易">
-                                  <IconButton
-                                    size="small"
-                                    color="success"
-                                    onClick={() => onConfirm(group._id)}
-                                  >
-                                    <ConfirmIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                              
-                              {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
-                              {group.status === 'confirmed' && (
-                                <Tooltip title="解鎖交易">
-                                  <IconButton
-                                    size="small"
-                                    color="warning"
-                                    onClick={() => onUnlock(group._id)}
-                                  >
-                                    <UnlockIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                              
-                              {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
-                              {group.status === 'draft' && (
-                                <Tooltip title="刪除">
-                                  <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() => onDelete(group._id)}
-                                  >
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-
-                        {/* 展開的分錄詳情 */}
-                        <TableRow>
-                          <TableCell colSpan={8} sx={{ p: 0 }}>
-                            <Collapse in={expandedRows.has(group._id)}>
-                              <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
-                                <Table size="small">
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell>序號</TableCell>
-                                      <TableCell>會計科目</TableCell>
-                                      <TableCell align="right">借方</TableCell>
-                                      <TableCell align="right">貸方</TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    {group.entries && group.entries.length > 0 ? group.entries
-                                      .sort((a, b) => a.sequence - b.sequence)
-                                      .map((entry) => (
-                                      <TableRow key={entry._id || `${group._id}-${entry.sequence}`}>
-                                        <TableCell>
-                                          <Typography variant="body2" fontFamily="monospace">
-                                            {entry.sequence}
-                                          </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Typography variant="body2">
-                                            {(entry as any).accountName || '未知科目'}
-                                          </Typography>
-                                        </TableCell>
-                                        <TableCell align="right">
-                                          {entry.debitAmount && entry.debitAmount > 0 ? (
-                                            <Typography variant="body2" color="success.main">
-                                              {formatCurrency(entry.debitAmount)}
-                                            </Typography>
-                                          ) : (
-                                            '-'
-                                          )}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                          {entry.creditAmount && entry.creditAmount > 0 ? (
-                                            <Typography variant="body2" color="error.main">
-                                              {formatCurrency(entry.creditAmount)}
-                                            </Typography>
-                                          ) : (
-                                            '-'
-                                          )}
-                                        </TableCell>
-                                      </TableRow>
-                                    )) : (
-                                      <TableRow>
-                                        <TableCell colSpan={4} align="center">
-                                          <Typography variant="body2" color="text.secondary">
-                                            此交易群組尚無分錄資料
-                                          </Typography>
-                                        </TableCell>
-                                      </TableRow>
-                                    )}
-                                  </TableBody>
-                                </Table>
-                              </Box>
-                            </Collapse>
-                          </TableCell>
-                        </TableRow>
-                      </React.Fragment>
+                            )}
+                            
+                            {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
+                            {group.status === 'confirmed' && (
+                              <Tooltip title="解鎖交易">
+                                <IconButton
+                                  size="small"
+                                  color="warning"
+                                  onClick={() => onUnlock(group._id)}
+                                >
+                                  <UnlockIcon />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            
+                            {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
+                            {group.status === 'draft' && (
+                              <Tooltip title="刪除">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => onDelete(group._id)}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
                     ))}
                   </TableBody>
                 </Table>
