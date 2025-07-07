@@ -25,7 +25,6 @@ import {
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  Balance as BalanceIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   ArrowForward,
@@ -502,7 +501,7 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell width="4%">序號</TableCell>
+              <TableCell width="6%">序號</TableCell>
               <TableCell width="25%">會計科目</TableCell>
               <TableCell width="15%">交易流向</TableCell>
               <TableCell width="15%">借方金額</TableCell>
@@ -738,30 +737,17 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
                   NT$ {balanceInfo.totalCredit.toLocaleString()}
                 </Typography>
               </TableCell>
-              <TableCell>
-                {/* 資金來源欄位 - 空白 */}
+              <TableCell sx={{ pl: 1 }}>
+                <Typography
+                  variant="body2"
+                  color={balanceInfo.isBalanced ? 'success.main' : 'error.main'}
+                  sx={{ textAlign: 'left' }}
+                >
+                  {balanceInfo.isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${balanceInfo.difference.toLocaleString()}`}
+                </Typography>
               </TableCell>
               <TableCell>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" color={balanceInfo.isBalanced ? 'success.main' : 'error.main'}>
-                    {balanceInfo.isBalanced ? '✓ 借貸平衡' : `✗ 差額：NT$ ${balanceInfo.difference.toLocaleString()}`}
-                  </Typography>
-                  {!balanceInfo.isBalanced && (
-                    <Tooltip title={disabled ? "已確認的交易無法修改" : "自動調整最後一筆分錄以達到借貸平衡"}>
-                      <span>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={quickBalance}
-                          startIcon={<BalanceIcon />}
-                          disabled={disabled || entries.length < 2}
-                        >
-                          快速平衡
-                        </Button>
-                      </span>
-                    </Tooltip>
-                  )}
-                </Box>
+                {/* 操作欄位 - 空白 */}
               </TableCell>
             </TableRow>
           </TableBody>

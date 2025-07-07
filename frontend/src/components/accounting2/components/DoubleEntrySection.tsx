@@ -80,6 +80,27 @@ export const DoubleEntrySection: React.FC<DoubleEntrySectionProps> = ({
               <Button
                 variant="outlined"
                 size="small"
+                startIcon={<BalanceIcon />}
+                onClick={onQuickBalance}
+                disabled={!permissions.canEdit || entries.length < 2 || balanceInfo.isBalanced}
+                sx={{
+                  color: 'primary.contrastText',
+                  borderColor: 'primary.contrastText',
+                  '&:hover': {
+                    borderColor: 'primary.contrastText',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                  },
+                  '&:disabled': {
+                    color: 'rgba(255, 255, 255, 0.3)',
+                    borderColor: 'rgba(255, 255, 255, 0.3)'
+                  }
+                }}
+              >
+                快速平衡
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
                 startIcon={<SwapHorizIcon />}
                 onClick={onSwapDebitCredit}
                 disabled={!permissions.canEdit || entries.length < 2 || entries.every(entry => entry.debitAmount === 0 && entry.creditAmount === 0)}

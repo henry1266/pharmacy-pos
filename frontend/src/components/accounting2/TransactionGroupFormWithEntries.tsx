@@ -284,6 +284,28 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     setFundingSourceDialogOpen(false);
   };
 
+  // 快速平衡功能
+  const quickBalance = () => {
+    if (formData.entries.length < 2) return;
+
+    const newEntries = [...formData.entries];
+    const lastEntry = newEntries[newEntries.length - 1];
+    
+    // 計算借貸總額
+    const totalDebit = newEntries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
+    const totalCredit = newEntries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
+    
+    if (totalDebit > totalCredit) {
+      lastEntry.creditAmount = totalDebit - (totalCredit - (lastEntry.creditAmount || 0));
+      lastEntry.debitAmount = 0;
+    } else if (totalCredit > totalDebit) {
+      lastEntry.debitAmount = totalCredit - (totalDebit - (lastEntry.debitAmount || 0));
+      lastEntry.creditAmount = 0;
+    }
+
+    handleEntriesChange(newEntries);
+  };
+
   // 借貸對調功能
   const swapDebitCredit = () => {
     const newEntries = formData.entries.map(entry => ({
@@ -293,6 +315,21 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     }));
     handleEntriesChange(newEntries);
   };
+
+  // 計算平衡資訊
+  const balanceInfo = React.useMemo(() => {
+    const totalDebit = formData.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
+    const totalCredit = formData.entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
+    const difference = Math.abs(totalDebit - totalCredit);
+    const isBalanced = difference < 0.01;
+
+    return {
+      totalDebit,
+      totalCredit,
+      difference,
+      isBalanced
+    };
+  }, [formData.entries]);
 
   // 使用 shared 的狀態管理工具
   const statusInfo = TransactionStatusManager.getDisplayInfo(currentStatus);
@@ -344,6 +381,8 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           onOpenTemplateDialog={() => setTemplateDialogOpen(true)}
           onOpenQuickStartDialog={() => setQuickStartOpen(true)}
           onSwapDebitCredit={swapDebitCredit}
+          onQuickBalance={quickBalance}
+          balanceInfo={balanceInfo}
         />
 
         {/* 操作按鈕 */}
