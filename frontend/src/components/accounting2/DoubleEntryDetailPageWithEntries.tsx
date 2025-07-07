@@ -35,13 +35,12 @@ import {
   Warning
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../redux/store';
 import { transactionGroupWithEntriesService } from '../../services/transactionGroupWithEntriesService';
 import { formatCurrency } from '../../utils/formatters';
-import { fetchAccounts2 } from '../../redux/actions';
+import { accounting3Service } from '../../services/accounting3Service';
 import { RouteUtils } from '../../utils/routeUtils';
 import { EmbeddedAccountingEntry, TransactionGroupWithEntries } from '../../../../shared';
+import { Account2 } from '../../../../shared/types/accounting2';
 
 interface DoubleEntryDetailPageWithEntriesProps {
   organizationId?: string;
@@ -69,21 +68,15 @@ interface StatisticsData {
   recordCount: number;
 }
 
-const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntriesProps> = ({ 
-  organizationId: propOrganizationId 
+const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntriesProps> = ({
+  organizationId: propOrganizationId
 }) => {
   const { accountId } = useParams<{ accountId?: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  
-  // Redux 狀態
-  const { accounts, loading: accountsLoading } = useSelector((state: RootState) => state.account2);
-  
-  // 找到當前科目並取得其 organizationId
-  const currentAccount = accountId ? accounts.find(a => a._id === accountId) : null;
-  const organizationId = propOrganizationId || currentAccount?.organizationId || '';
   
   // 本地狀態
+  const [accounts, setAccounts] = useState<Account2[]>([]);
+  const [accountsLoading, setAccountsLoading] = useState(true);
   const [entries, setEntries] = useState<AccountingEntryDetailWithEntries[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +89,32 @@ const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntrie
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [selectedEntryForDelete, setSelectedEntryForDelete] = useState<AccountingEntryDetailWithEntries | null>(null);
+  
+  // 找到當前科目並取得其 organizationId
+  const currentAccount = accountId ? accounts.find(a => a._id === accountId) : null;
+  const organizationId = propOrganizationId || currentAccount?.organizationId || '';
+
+  // 載入帳戶資料函數
+  const loadAccounts = async () => {
+    try {
+      setAccountsLoading(true);
+      console.log('🔄 DoubleEntryDetailPageWithEntries - 載入帳戶資料');
+      
+      const response = await accounting3Service.accounts.getAll(organizationId);
+      
+      if (response.success && response.data) {
+        setAccounts(response.data);
+        console.log('✅ DoubleEntryDetailPageWithEntries - 帳戶載入成功:', response.data.length);
+      } else {
+        throw new Error('載入帳戶失敗');
+      }
+    } catch (err) {
+      console.error('❌ DoubleEntryDetailPageWithEntries - 載入帳戶失敗:', err);
+      setError('載入帳戶資料失敗，請稍後再試');
+    } finally {
+      setAccountsLoading(false);
+    }
+  };
 
   // 載入分錄資料函數
   const loadEntries = async () => {
@@ -185,13 +204,10 @@ const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntrie
     }
   };
 
-  // 確保 accounts 資料已載入
+  // 載入帳戶資料
   useEffect(() => {
-    if (accounts.length === 0 && !accountsLoading) {
-      console.log('🔄 DoubleEntryDetailPageWithEntries - 載入 accounts 資料');
-      dispatch(fetchAccounts2() as any);
-    }
-  }, [accounts.length, accountsLoading, dispatch]);
+    loadAccounts();
+  }, [organizationId]);
 
   // 載入分錄資料
   useEffect(() => {

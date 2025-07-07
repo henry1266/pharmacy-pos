@@ -33,7 +33,7 @@ import {
   Receipt
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { accounting2Service } from '../../services/accounting2Service';
+import { accounting3Service } from '../../services/accounting3Service';
 import { AccountingRecord2, Category2, Account2 } from '@pharmacy-pos/shared/types/accounting2';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -82,8 +82,8 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
 
       // 先載入帳戶和類別，再載入記錄
       const [categoriesRes, accountsRes] = await Promise.all([
-        accounting2Service.categories.getAll({ organizationId }),
-        accounting2Service.accounts.getAll(organizationId)
+        accounting3Service.categories.getAll({ organizationId }),
+        accounting3Service.accounts.getAll(organizationId)
       ]);
 
       console.log('📊 DetailPage - 類別載入結果:', categoriesRes);
@@ -99,7 +99,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       }
 
       // 載入記錄
-      const recordsRes = await accounting2Service.records.getAll({
+      const recordsRes = await accounting3Service.records.getAll({
         organizationId,
         categoryId,
         accountId,
@@ -257,10 +257,10 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
   const handleDeleteRecord = async (recordId: string) => {
     if (window.confirm('確定要刪除這筆記錄嗎？')) {
       try {
-        const result = await accounting2Service.records.delete(recordId);
+        const result = await accounting3Service.records.delete(recordId);
         if (result.success) {
           // 重新載入記錄
-          const recordsRes = await accounting2Service.records.getAll({
+          const recordsRes = await accounting3Service.records.getAll({
             organizationId,
             categoryId,
             accountId,
@@ -300,7 +300,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       
       console.log('🚀 新增記錄 - 清理後的提交數據:', cleanData);
       
-      const result = await accounting2Service.records.create(cleanData);
+      const result = await accounting3Service.records.create(cleanData);
       
       console.log('✅ 新增記錄 - API 回應:', result);
       
@@ -320,7 +320,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
         // 延遲重新載入以確保後端數據已更新
         setTimeout(async () => {
           try {
-            const recordsRes = await accounting2Service.records.getAll({
+            const recordsRes = await accounting3Service.records.getAll({
               organizationId,
               categoryId,
               accountId,
@@ -350,7 +350,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       
       setTimeout(async () => {
         try {
-          const recordsRes = await accounting2Service.records.getAll({
+          const recordsRes = await accounting3Service.records.getAll({
             organizationId,
             categoryId,
             accountId,
@@ -408,7 +408,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
         updateData: cleanData
       });
       
-      const result = await accounting2Service.records.update(selectedRecord._id, cleanData);
+      const result = await accounting3Service.records.update(selectedRecord._id, cleanData);
       
       console.log('✅ 編輯記錄 - API 回應:', result);
       
@@ -429,7 +429,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
         // 延遲重新載入以確保後端數據已更新
         setTimeout(async () => {
           try {
-            const recordsRes = await accounting2Service.records.getAll({
+            const recordsRes = await accounting3Service.records.getAll({
               organizationId,
               categoryId,
               accountId,
@@ -459,7 +459,7 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       
       setTimeout(async () => {
         try {
-          const recordsRes = await accounting2Service.records.getAll({
+          const recordsRes = await accounting3Service.records.getAll({
             organizationId,
             categoryId,
             accountId,

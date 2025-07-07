@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
-  CardHeader,
   CardContent,
   Table,
   TableBody,
@@ -35,7 +34,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  AccountBalance as AccountBalanceIcon,
   Receipt as ReceiptIcon,
   Visibility as ViewIcon,
   Search as SearchIcon,
@@ -43,7 +41,6 @@ import {
   ContentCopy as CopyIcon,
   CheckCircle as ConfirmIcon,
   LockOpen as UnlockIcon,
-  Refresh as RefreshIcon,
   Link as LinkIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -136,8 +133,30 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
 
   // 初始載入和篩選變更時重新載入
   useEffect(() => {
-    loadTransactionGroups();
+    console.log('🔍 AccountingDataGridWithEntries - 載入交易群組:', {
+      organizationId,
+      search: filter.search,
+      status: filter.status,
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+      page: filter.page,
+      limit: filter.limit
+    });
+
+    const params: any = {
+      organizationId,
+      page: filter.page,
+      limit: filter.limit
+    };
+
+    if (filter.search) params.search = filter.search;
+    if (filter.status) params.status = filter.status;
+    if (filter.startDate) params.startDate = filter.startDate.toISOString();
+    if (filter.endDate) params.endDate = filter.endDate.toISOString();
+
+    dispatch(fetchTransactionGroupsWithEntries(params) as any);
   }, [
+    dispatch,
     organizationId,
     filter.search,
     filter.status,
@@ -145,7 +164,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
     filter.endDate,
     filter.page,
     filter.limit
-  ]);
+  ]); // 直接在 useEffect 中執行邏輯，避免函數依賴項問題
 
   // 監聽 Redux 狀態變化
   useEffect(() => {

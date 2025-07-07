@@ -32,7 +32,7 @@ import {
 } from '@mui/icons-material';
 import { Account2, ACCOUNT_TYPES } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { accounting2Service } from '../../services/accounting2Service';
+import { accounting3Service } from '../../services/accounting3Service';
 import organizationService from '../../services/organizationService';
 import AccountForm from './AccountForm';
 
@@ -63,7 +63,7 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
     try {
       console.log('開始載入帳戶列表 - organizationId:', organizationId);
       setLoading(true);
-      const response = await accounting2Service.accounts.getAll(organizationId);
+      const response = await accounting3Service.accounts.getAll(organizationId);
       console.log('API 回應:', response);
       if (response.success) {
         console.log('載入帳戶成功，帳戶數量:', response.data.length);
@@ -112,7 +112,7 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
 
     try {
       setSubmitLoading(true);
-      const response = await accounting2Service.accounts.delete(accountToDelete._id);
+      const response = await accounting3Service.accounts.delete(accountToDelete._id);
       if (response.success) {
         await loadAccounts();
         setDeleteDialogOpen(false);
@@ -132,9 +132,9 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
     try {
       setSubmitLoading(true);
       if (selectedAccount) {
-        await accounting2Service.accounts.update(selectedAccount._id, formData);
+        await accounting3Service.accounts.update(selectedAccount._id, formData);
       } else {
-        await accounting2Service.accounts.create(formData);
+        await accounting3Service.accounts.create(formData);
       }
       await loadAccounts();
       setFormOpen(false);

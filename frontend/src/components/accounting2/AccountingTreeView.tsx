@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { Account2, Category2, AccountingRecord2 } from '@pharmacy-pos/shared/types/accounting2';
-import { accounting2Service } from '../../services/accounting2Service';
+import { accounting3Service } from '../../services/accounting3Service';
 
 interface AccountingTreeViewProps {
   selectedOrganizationId: string | null;
@@ -84,9 +84,9 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
     setLoading(true);
     try {
       const [accountsRes, categoriesRes, recordsRes] = await Promise.all([
-        accounting2Service.accounts.getAll(selectedOrganizationId),
-        accounting2Service.categories.getAll({ organizationId: selectedOrganizationId }),
-        accounting2Service.records.getAll({
+        accounting3Service.accounts.getAll(selectedOrganizationId),
+        accounting3Service.categories.getAll({ organizationId: selectedOrganizationId }),
+        accounting3Service.records.getAll({
           organizationId: selectedOrganizationId,
           page: 1,
           limit: 1000 // 載入所有記錄用於計算總額

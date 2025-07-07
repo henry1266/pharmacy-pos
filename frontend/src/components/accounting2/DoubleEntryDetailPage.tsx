@@ -35,11 +35,11 @@ import {
   Warning
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../redux/store';
 import { doubleEntryService, AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
-import { fetchAccounts2, deleteTransactionGroup2 } from '../../redux/actions';
+import { accounting3Service } from '../../services/accounting3Service';
+import { transactionGroupService } from '../../services/transactionGroupService';
+import { Account2 } from '../../../../shared/types/accounting2';
 import { RouteUtils } from '../../utils/routeUtils';
 
 interface DoubleEntryDetailPageProps {
@@ -49,10 +49,10 @@ interface DoubleEntryDetailPageProps {
 const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizationId: propOrganizationId }) => {
   const { accountId } = useParams<{ accountId?: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   
-  // Redux 狀態
-  const { accounts, loading: accountsLoading } = useSelector((state: RootState) => state.account2);
+  // 本地狀態
+  const [accounts, setAccounts] = useState<Account2[]>([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
   
   // 找到當前科目並取得其 organizationId
   const currentAccount = accountId ? accounts.find(a => a._id === accountId) : null;
@@ -106,13 +106,28 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     }
   };
 
+  // 載入帳戶資料
+  const loadAccounts = async () => {
+    try {
+      setAccountsLoading(true);
+      const response = await accounting3Service.accounts.getAll(organizationId);
+      if (response.success) {
+        setAccounts(response.data);
+      }
+    } catch (error) {
+      console.error('❌ 載入帳戶失敗:', error);
+    } finally {
+      setAccountsLoading(false);
+    }
+  };
+
   // 確保 accounts 資料已載入
   useEffect(() => {
     if (accounts.length === 0 && !accountsLoading) {
       console.log('🔄 DoubleEntryDetailPage - 載入 accounts 資料');
-      dispatch(fetchAccounts2() as any);
+      loadAccounts();
     }
-  }, [accounts.length, accountsLoading, dispatch]);
+  }, [accounts.length, accountsLoading, organizationId]);
 
   // 載入分錄資料
   useEffect(() => {
@@ -226,13 +241,18 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     
     try {
       setDeleting(true);
-      await dispatch(deleteTransactionGroup2(selectedEntryForDelete.transactionGroupId, organizationId) as any);
+      // 使用 transactionGroupService 刪除交易群組
+      const response = await transactionGroupService.delete(selectedEntryForDelete.transactionGroupId);
       
-      // 刪除成功，重新載入分錄資料
-      await loadEntries();
+      if (response.success) {
+        // 刪除成功，重新載入分錄資料
+        await loadEntries();
+      } else {
+        throw new Error(response.message || '刪除失敗');
+      }
     } catch (error) {
       console.error('❌ 刪除分錄明細失敗:', error);
-      // 錯誤處理會由 Redux action 處理
+      setError('刪除分錄明細失敗，請稍後再試');
     } finally {
       setDeleting(false);
       setDeleteDialogOpen(false);

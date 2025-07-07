@@ -130,13 +130,13 @@ export const Accounting2Page: React.FC = () => {
     severity: 'success'
   });
 
-  // 載入交易群組、會計科目和機構資料
+  // 載入交易群組、會計科目和機構資料 - 只在組件掛載時執行一次
   useEffect(() => {
     console.log('🔄 Accounting2Page 初始化載入資料');
     dispatch(fetchTransactionGroups2() as any);
     dispatch(fetchAccounts2() as any);
     dispatch(fetchOrganizations2() as any);
-  }, [dispatch]);
+  }, []); // 移除 dispatch 依賴項，避免無限循環
 
   // 監聽 Redux 狀態變化，用於除錯
   useEffect(() => {

@@ -40,7 +40,7 @@ import { zhTW } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { AccountingRecord2, Account2, Category2 } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { accounting2Service } from '../../services/accounting2Service';
+import { accounting3Service } from '../../services/accounting3Service';
 import organizationService from '../../services/organizationService';
 import RecordForm from './RecordForm';
 
@@ -100,7 +100,7 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
 
       console.log('🔍 RecordList 載入記錄 - 參數:', params);
 
-      const response = await accounting2Service.records.getAll(params);
+      const response = await accounting3Service.records.getAll(params);
       if (response.success) {
         setRecords(response.data.records);
         setPagination(response.data.pagination);
@@ -119,7 +119,7 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
   // 載入帳戶資料
   const loadAccounts = async () => {
     try {
-      const response = await accounting2Service.accounts.getAll(selectedOrganizationId);
+      const response = await accounting3Service.accounts.getAll(selectedOrganizationId);
       if (response.success) {
         setAccounts(response.data);
         console.log('✅ RecordList 載入帳戶成功:', response.data.length, '個帳戶');
@@ -133,7 +133,7 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
   const loadCategories = async () => {
     try {
       const params = selectedOrganizationId ? { organizationId: selectedOrganizationId } : {};
-      const response = await accounting2Service.categories.getAll(params);
+      const response = await accounting3Service.categories.getAll(params);
       if (response.success) {
         setCategories(response.data);
         console.log('✅ RecordList 載入類別成功:', response.data.length, '個類別');
@@ -176,10 +176,10 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
       let response;
       if (editingRecord) {
         // 更新記錄
-        response = await accounting2Service.records.update(editingRecord._id, recordData as any);
+        response = await accounting3Service.records.update(editingRecord._id, recordData as any);
       } else {
         // 建立新記錄
-        response = await accounting2Service.records.create(recordData as any);
+        response = await accounting3Service.records.create(recordData as any);
       }
 
       if (response.success) {
@@ -212,7 +212,7 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
 
     try {
       setError(null);
-      const response = await accounting2Service.records.delete(recordId);
+      const response = await accounting3Service.records.delete(recordId);
       
       if (response.success) {
         console.log('✅ 記錄刪除成功');
