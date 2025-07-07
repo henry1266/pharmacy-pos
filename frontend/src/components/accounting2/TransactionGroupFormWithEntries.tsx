@@ -333,6 +333,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           onEntriesChange={handleEntriesChange}
           onOpenTemplateDialog={() => setTemplateDialogOpen(true)}
           onOpenQuickStartDialog={() => setQuickStartOpen(true)}
+          onSwapDebitCredit={swapDebitCredit}
         />
 
         {/* 操作按鈕 */}

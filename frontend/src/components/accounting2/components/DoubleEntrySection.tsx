@@ -9,7 +9,8 @@ import {
 } from '@mui/material';
 import {
   Speed as SpeedIcon,
-  Help as HelpIcon
+  Help as HelpIcon,
+  SwapHoriz as SwapHorizIcon
 } from '@mui/icons-material';
 import { DoubleEntryFormWithEntries } from '../DoubleEntryFormWithEntries';
 import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared';
@@ -39,6 +40,9 @@ export interface DoubleEntrySectionProps {
   // 對話框控制
   onOpenTemplateDialog: () => void;
   onOpenQuickStartDialog: () => void;
+  
+  // 借貸對調功能
+  onSwapDebitCredit: () => void;
 }
 
 export const DoubleEntrySection: React.FC<DoubleEntrySectionProps> = ({
@@ -51,7 +55,8 @@ export const DoubleEntrySection: React.FC<DoubleEntrySectionProps> = ({
   errors,
   balanceError,
   onOpenTemplateDialog,
-  onOpenQuickStartDialog
+  onOpenQuickStartDialog,
+  onSwapDebitCredit
 }) => {
   return (
     <Card sx={{ mb: 3, boxShadow: 2 }}>
@@ -60,6 +65,27 @@ export const DoubleEntrySection: React.FC<DoubleEntrySectionProps> = ({
         action={
           mode !== 'view' && (
             <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<SwapHorizIcon />}
+                onClick={onSwapDebitCredit}
+                disabled={!permissions.canEdit || entries.length < 2 || entries.every(entry => entry.debitAmount === 0 && entry.creditAmount === 0)}
+                sx={{
+                  color: 'primary.contrastText',
+                  borderColor: 'primary.contrastText',
+                  '&:hover': {
+                    borderColor: 'primary.contrastText',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                  },
+                  '&:disabled': {
+                    color: 'rgba(255, 255, 255, 0.3)',
+                    borderColor: 'rgba(255, 255, 255, 0.3)'
+                  }
+                }}
+              >
+                借貸對調
+              </Button>
               <Button
                 variant="outlined"
                 size="small"

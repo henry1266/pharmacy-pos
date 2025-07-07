@@ -506,11 +506,10 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
               <TableCell width="4%">序號</TableCell>
               <TableCell width="25%">會計科目</TableCell>
               <TableCell width="15%">交易流向</TableCell>
-              <TableCell width="12%">借方金額</TableCell>
-              <TableCell width="12%">貸方金額</TableCell>
-              <TableCell width="15%">摘要</TableCell>
-              <TableCell width="12%">資金來源</TableCell>
-              <TableCell width="5%">操作</TableCell>
+              <TableCell width="15%">借方金額</TableCell>
+              <TableCell width="15%">貸方金額</TableCell>
+              <TableCell width="15%">資金來源</TableCell>
+              <TableCell width="8%">操作</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -627,18 +626,6 @@ export const DoubleEntryFormWithEntries: React.FC<DoubleEntryFormWithEntriesProp
                         textAlign: 'right'
                       }
                     }}
-                  />
-                </TableCell>
-
-                {/* 摘要 */}
-                <TableCell>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    value={entry.description}
-                    onChange={(e) => updateEntry(index, 'description', e.target.value)}
-                    placeholder={disabled ? "已確認無法修改" : "分錄摘要"}
-                    disabled={disabled}
                   />
                 </TableCell>
 

@@ -344,9 +344,9 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
           arrow
           placement="left"
         >
-          <Stack direction="row" spacing={0.5} alignItems="center">
+          <Stack direction="column" spacing={0.5} alignItems="center">
             <Chip
-              label={`💰 ${group.fundingSourceUsages!.length} 個來源`}
+              label={`💰 ${group.fundingSourceUsages!.length} 筆`}
               size="small"
               variant="outlined"
               color="primary"
@@ -362,7 +362,6 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
     
     // 如果被引用，顯示被引用和剩餘可用狀態
     if (hasReferences) {
-      const percentage = totalAmount > 0 ? Math.round((availableAmount / totalAmount) * 100) : 0;
       const color = getAvailableAmountColor(availableAmount, totalAmount);
       
       return (
@@ -391,24 +390,24 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                 <strong>已使用：</strong>{formatCurrency(totalAmount - availableAmount)}
               </Typography>
               <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
-                <strong>剩餘可用：</strong>{formatCurrency(availableAmount)} ({percentage}%)
+                <strong>剩餘可用：</strong>{formatCurrency(availableAmount)}
               </Typography>
             </Box>
           }
           arrow
           placement="left"
         >
-          <Stack direction="row" spacing={0.5} alignItems="center">
+          <Stack direction="column" spacing={0.5} alignItems="center">
             <Chip
               icon={<LinkIcon />}
-              label={`🔗 ${group.referencedByInfo!.length} 筆引用`}
+              label={` ${group.referencedByInfo!.length} 筆`}
               color="warning"
               size="small"
               variant="outlined"
               sx={{ cursor: 'help' }}
             />
             <Chip
-              label={`${formatCurrency(availableAmount)} (${percentage}%)`}
+              label={formatCurrency(availableAmount)}
               color={color}
               size="small"
               variant={availableAmount === totalAmount ? 'filled' : 'outlined'}
@@ -428,12 +427,9 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
     }
     
     return (
-      <Chip
-        label="💸 可完全使用"
-        color="success"
-        size="small"
-        variant="filled"
-      />
+      <Typography variant="body2" color="success.main" sx={{ textAlign: 'center' }}>
+        ✓
+      </Typography>
     );
   };
 
@@ -701,7 +697,6 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                     <TableRow>
                                       <TableCell>序號</TableCell>
                                       <TableCell>會計科目</TableCell>
-                                      <TableCell>摘要</TableCell>
                                       <TableCell align="right">借方</TableCell>
                                       <TableCell align="right">貸方</TableCell>
                                     </TableRow>
@@ -719,11 +714,6 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                         <TableCell>
                                           <Typography variant="body2">
                                             {(entry as any).accountName || '未知科目'}
-                                          </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Typography variant="body2">
-                                            {entry.description}
                                           </Typography>
                                         </TableCell>
                                         <TableCell align="right">
@@ -747,7 +737,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                                       </TableRow>
                                     )) : (
                                       <TableRow>
-                                        <TableCell colSpan={5} align="center">
+                                        <TableCell colSpan={4} align="center">
                                           <Typography variant="body2" color="text.secondary">
                                             此交易群組尚無分錄資料
                                           </Typography>
