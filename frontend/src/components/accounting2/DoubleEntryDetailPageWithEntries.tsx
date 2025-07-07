@@ -35,9 +35,8 @@ import {
   Warning
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { transactionGroupWithEntriesService } from '../../services/transactionGroupWithEntriesService';
 import { formatCurrency } from '../../utils/formatters';
-import { accounting3Service } from '../../services/accounting3Service';
+import { accountApiClient, transactionApiClient } from './core/api-clients';
 import { RouteUtils } from '../../utils/routeUtils';
 import { EmbeddedAccountingEntry, TransactionGroupWithEntries } from '../../../../shared';
 import { Account2 } from '../../../../shared/types/accounting2';
@@ -100,14 +99,9 @@ const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntrie
       setAccountsLoading(true);
       console.log('🔄 DoubleEntryDetailPageWithEntries - 載入帳戶資料');
       
-      const response = await accounting3Service.accounts.getAll(organizationId);
-      
-      if (response.success && response.data) {
-        setAccounts(response.data);
-        console.log('✅ DoubleEntryDetailPageWithEntries - 帳戶載入成功:', response.data.length);
-      } else {
-        throw new Error('載入帳戶失敗');
-      }
+      const response = await accountApiClient.getAccounts({ organizationId });
+      setAccounts(response.data);
+      console.log('✅ DoubleEntryDetailPageWithEntries - 帳戶載入成功:', response.data.length);
     } catch (err) {
       console.error('❌ DoubleEntryDetailPageWithEntries - 載入帳戶失敗:', err);
       setError('載入帳戶資料失敗，請稍後再試');
@@ -128,33 +122,37 @@ const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntrie
         throw new Error('缺少 accountId 參數');
       }
 
-      // 使用內嵌分錄服務獲取該科目的所有交易群組
-      const response = await transactionGroupWithEntriesService.getAll({
+      // 使用交易 API 客戶端獲取該科目的所有交易群組
+      const response = await transactionApiClient.getTransactions({
         organizationId,
         limit: 1000
       });
 
       console.log('📊 DoubleEntryDetailPageWithEntries - API 回應:', response);
 
-      if (response.success && response.data) {
-        const allGroups = response.data.groups || [];
-        // 篩選包含當前科目的交易群組
-        const transactionGroups = allGroups.filter(group =>
-          group.entries.some(entry => entry.accountId === accountId)
-        );
-        
-        // 將交易群組轉換為分錄明細格式
-        const entriesData: AccountingEntryDetailWithEntries[] = [];
-        let totalDebit = 0;
-        let totalCredit = 0;
+      const allGroups = response.data.groups || [];
+      
+      // 由於基本交易群組沒有 entries，需要逐一獲取詳細資料
+      const entriesData: AccountingEntryDetailWithEntries[] = [];
+      let totalDebit = 0;
+      let totalCredit = 0;
 
-        transactionGroups.forEach((group: TransactionGroupWithEntries) => {
+      for (const group of allGroups) {
+        try {
+          // 獲取包含分錄的詳細交易資料
+          const detailResponse = await transactionApiClient.getTransactionById(group._id);
+          const detailedGroup = detailResponse.data;
+          
+          // 檢查是否包含當前科目
+          const hasCurrentAccount = detailedGroup.entries.some(entry => entry.accountId === accountId);
+          if (!hasCurrentAccount) continue;
+          
           // 找到當前科目的分錄
-          const currentAccountEntries = group.entries.filter(entry => entry.accountId === accountId);
+          const currentAccountEntries = detailedGroup.entries.filter(entry => entry.accountId === accountId);
           
           currentAccountEntries.forEach((entry: EmbeddedAccountingEntry) => {
             // 計算對方科目
-            const counterpartAccounts = group.entries
+            const counterpartAccounts = detailedGroup.entries
               .filter(e => e.accountId !== accountId)
               .map(e => {
                 const account = accounts.find(a => a._id === e.accountId);
@@ -162,17 +160,17 @@ const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntrie
               });
 
             const entryDetail: AccountingEntryDetailWithEntries = {
-              _id: entry._id || `${group._id}-${entry.sequence}`,
+              _id: entry._id || `${detailedGroup._id}-${entry.sequence}`,
               accountId: typeof entry.accountId === 'string' ? entry.accountId : (entry.accountId as any)?._id || entry.accountId,
               sequence: entry.sequence,
               debitAmount: entry.debitAmount,
               creditAmount: entry.creditAmount,
               description: entry.description,
-              transactionGroupId: group._id,
-              groupNumber: group.groupNumber,
-              transactionDate: typeof group.transactionDate === 'string'
-                ? group.transactionDate
-                : group.transactionDate.toISOString(),
+              transactionGroupId: detailedGroup._id,
+              groupNumber: detailedGroup.groupNumber,
+              transactionDate: typeof detailedGroup.transactionDate === 'string'
+                ? detailedGroup.transactionDate
+                : detailedGroup.transactionDate.toISOString(),
               counterpartAccounts
             };
 
@@ -182,20 +180,21 @@ const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntrie
             totalDebit += entry.debitAmount || 0;
             totalCredit += entry.creditAmount || 0;
           });
-        });
-
-        setEntries(entriesData);
-        setStatistics({
-          totalDebit,
-          totalCredit,
-          balance: totalDebit - totalCredit,
-          recordCount: entriesData.length
-        });
-
-        console.log('✅ DoubleEntryDetailPageWithEntries - 分錄載入成功:', entriesData.length);
-      } else {
-        throw new Error('載入分錄失敗');
+        } catch (error) {
+          console.warn(`⚠️ 無法載入交易詳情 ${group._id}:`, error);
+          continue;
+        }
       }
+
+      setEntries(entriesData);
+      setStatistics({
+        totalDebit,
+        totalCredit,
+        balance: totalDebit - totalCredit,
+        recordCount: entriesData.length
+      });
+
+      console.log('✅ DoubleEntryDetailPageWithEntries - 分錄載入成功:', entriesData.length);
     } catch (err) {
       console.error('❌ DoubleEntryDetailPageWithEntries - 載入分錄失敗:', err);
       setError('載入分錄資料失敗，請稍後再試');
@@ -321,17 +320,11 @@ const DoubleEntryDetailPageWithEntries: React.FC<DoubleEntryDetailPageWithEntrie
     try {
       setDeleting(true);
       
-      // 使用內嵌分錄服務刪除交易群組
-      const response = await transactionGroupWithEntriesService.delete(
-        selectedEntryForDelete.transactionGroupId
-      );
+      // 使用交易 API 客戶端刪除交易群組
+      await transactionApiClient.deleteTransaction(selectedEntryForDelete.transactionGroupId);
       
-      if (response.success) {
-        // 刪除成功，重新載入分錄資料
-        await loadEntries();
-      } else {
-        throw new Error(response.message || '刪除失敗');
-      }
+      // 刪除成功，重新載入分錄資料
+      await loadEntries();
     } catch (error) {
       console.error('❌ 刪除分錄明細失敗:', error);
       setError('刪除分錄明細失敗，請稍後再試');

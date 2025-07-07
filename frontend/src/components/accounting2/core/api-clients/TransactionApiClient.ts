@@ -9,7 +9,7 @@ import type {
   EmbeddedAccountingEntry,
   TransactionGroupFilter,
   TransactionGroupListResponse,
-  TransactionGroupDetailResponse
+  TransactionGroupWithEntriesDetailResponse
 } from '@pharmacy-pos/shared';
 
 // 本地介面定義（shared 包中未定義的類型）
@@ -138,14 +138,14 @@ export class TransactionApiClient {
   /**
    * 獲取單一交易詳情
    */
-  async getTransactionById(id: string): Promise<TransactionGroupDetailResponse> {
+  async getTransactionById(id: string): Promise<TransactionGroupWithEntriesDetailResponse> {
     try {
       const cacheKey = `transaction_${id}`;
-      const cached = this.getFromCache<TransactionGroupDetailResponse>(cacheKey);
+      const cached = this.getFromCache<TransactionGroupWithEntriesDetailResponse>(cacheKey);
       if (cached) return cached;
 
       const response = await apiService.get(`${this.baseUrl}/${id}`);
-      const result = response.data as TransactionGroupDetailResponse;
+      const result = response.data as TransactionGroupWithEntriesDetailResponse;
       
       this.setCache(cacheKey, result);
       return result;
@@ -157,10 +157,10 @@ export class TransactionApiClient {
   /**
    * 建立新交易
    */
-  async createTransaction(transactionData: Partial<TransactionGroupWithEntries>): Promise<TransactionGroupDetailResponse> {
+  async createTransaction(transactionData: Partial<TransactionGroupWithEntries>): Promise<TransactionGroupWithEntriesDetailResponse> {
     try {
       const response = await apiService.post(this.baseUrl, transactionData);
-      const result = response.data as TransactionGroupDetailResponse;
+      const result = response.data as TransactionGroupWithEntriesDetailResponse;
       
       // 清除相關快取
       this.clearCache('transactions');
@@ -174,10 +174,10 @@ export class TransactionApiClient {
   /**
    * 更新交易
    */
-  async updateTransaction(id: string, transactionData: Partial<TransactionGroupWithEntries>): Promise<TransactionGroupDetailResponse> {
+  async updateTransaction(id: string, transactionData: Partial<TransactionGroupWithEntries>): Promise<TransactionGroupWithEntriesDetailResponse> {
     try {
       const response = await apiService.put(`${this.baseUrl}/${id}`, transactionData);
-      const result = response.data as TransactionGroupDetailResponse;
+      const result = response.data as TransactionGroupWithEntriesDetailResponse;
       
       // 清除相關快取
       this.clearCache('transactions');
@@ -210,10 +210,10 @@ export class TransactionApiClient {
   /**
    * 確認交易
    */
-  async confirmTransaction(id: string): Promise<TransactionGroupDetailResponse> {
+  async confirmTransaction(id: string): Promise<TransactionGroupWithEntriesDetailResponse> {
     try {
       const response = await apiService.post(`${this.baseUrl}/${id}/confirm`);
-      const result = response.data as TransactionGroupDetailResponse;
+      const result = response.data as TransactionGroupWithEntriesDetailResponse;
       
       // 清除相關快取
       this.clearCache('transactions');
@@ -228,10 +228,10 @@ export class TransactionApiClient {
   /**
    * 取消交易
    */
-  async cancelTransaction(id: string, reason?: string): Promise<TransactionGroupDetailResponse> {
+  async cancelTransaction(id: string, reason?: string): Promise<TransactionGroupWithEntriesDetailResponse> {
     try {
       const response = await apiService.post(`${this.baseUrl}/${id}/cancel`, { reason });
-      const result = response.data as TransactionGroupDetailResponse;
+      const result = response.data as TransactionGroupWithEntriesDetailResponse;
       
       // 清除相關快取
       this.clearCache('transactions');

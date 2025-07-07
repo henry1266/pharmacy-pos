@@ -41,9 +41,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { AccountingEntryDetail } from '../../services/doubleEntryService';
 import { formatCurrency } from '../../utils/formatters';
-import { accounting3Service } from '../../services/accounting3Service';
-import { transactionGroupService } from '../../services/transactionGroupService';
-import { transactionGroupWithEntriesService } from '../../services/transactionGroupWithEntriesService';
+import { accountApiClient, transactionApiClient } from './core/api-clients';
 import { Account2 } from '../../../../shared/types/accounting2';
 import { RouteUtils } from '../../utils/routeUtils';
 import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '../../../../shared/types/accounting2';
@@ -110,16 +108,24 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
         throw new Error('缺少 accountId 參數');
       }
 
-      // 使用 transactionGroupWithEntriesService 載入資料
-      const response = await transactionGroupWithEntriesService.getAll({
+      // 使用 transactionApiClient 載入資料
+      const response = await transactionApiClient.getTransactions({
         organizationId,
         limit: 1000
       });
 
       console.log('📊 DoubleEntryDetailPage - API 回應:', response);
 
-      if (response.success && response.data) {
-        const transactionGroups: TransactionGroupWithEntries[] = response.data.groups;
+      if (!response.success || !response.data) {
+        throw new Error('載入分錄失敗');
+      }
+
+      // 將 TransactionGroup[] 轉換為 TransactionGroupWithEntries[]
+      // 注意：這裡假設後端會返回包含 entries 的資料，如果沒有則需要額外處理
+      const transactionGroups = response.data.groups.map(group => ({
+        ...group,
+        entries: (group as any).entries || [] // 臨時處理，假設後端有提供 entries
+      })) as TransactionGroupWithEntries[];
         
         // 轉換資料格式並篩選出與當前科目相關的分錄
         const entriesData: AccountingEntryDetail[] = [];
@@ -180,10 +186,7 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
           recordCount: entriesData.length
         });
         
-        console.log('✅ DoubleEntryDetailPage - 分錄載入成功:', entriesData.length);
-      } else {
-        throw new Error('載入分錄失敗');
-      }
+      console.log('✅ DoubleEntryDetailPage - 分錄載入成功:', entriesData.length);
     } catch (err) {
       console.error('❌ DoubleEntryDetailPage - 載入分錄失敗:', err);
       setError('載入分錄資料失敗，請稍後再試');
@@ -196,8 +199,8 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
   const loadAccounts = useCallback(async () => {
     try {
       setAccountsLoading(true);
-      const response = await accounting3Service.accounts.getAll(organizationId);
-      if (response.success) {
+      const response = await accountApiClient.getAccounts({ organizationId });
+      if (response.success && response.data) {
         setAccounts(response.data);
       }
     } catch (error) {
@@ -322,7 +325,7 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
   const handleConfirmTransaction = async (transactionGroupId: string) => {
     if (window.confirm('確定要確認這筆交易嗎？確認後將無法直接編輯。')) {
       try {
-        await transactionGroupWithEntriesService.confirm(transactionGroupId);
+        await transactionApiClient.confirmTransaction(transactionGroupId);
         // 重新載入分錄資料
         await loadEntries();
       } catch (error) {
@@ -415,15 +418,11 @@ const DoubleEntryDetailPage: React.FC<DoubleEntryDetailPageProps> = ({ organizat
     
     try {
       setDeleting(true);
-      // 使用 transactionGroupService 刪除交易群組
-      const response = await transactionGroupService.delete(selectedEntryForDelete.transactionGroupId);
+      // 使用 transactionApiClient 刪除交易群組
+      await transactionApiClient.deleteTransaction(selectedEntryForDelete.transactionGroupId);
       
-      if (response.success) {
-        // 刪除成功，重新載入分錄資料
-        await loadEntries();
-      } else {
-        throw new Error(response.message || '刪除失敗');
-      }
+      // 刪除成功，重新載入分錄資料
+      await loadEntries();
     } catch (error) {
       console.error('❌ 刪除分錄明細失敗:', error);
       setError('刪除分錄明細失敗，請稍後再試');

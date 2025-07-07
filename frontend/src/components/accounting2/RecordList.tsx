@@ -38,9 +38,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { zhTW } from 'date-fns/locale';
 import { format } from 'date-fns';
-import { AccountingRecord2, Account2, Category2 } from '@pharmacy-pos/shared/types/accounting2';
+import { AccountingRecord2, Account2, Category2, TransactionGroup } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { accounting3Service } from '../../services/accounting3Service';
+import { accountApiClient, transactionApiClient, categoryApiClient } from './core/api-clients';
 import organizationService from '../../services/organizationService';
 import RecordForm from './RecordForm';
 
@@ -60,14 +60,14 @@ interface RecordFilter {
 }
 
 const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refreshTrigger }) => {
-  const [records, setRecords] = useState<AccountingRecord2[]>([]);
+  const [records, setRecords] = useState<TransactionGroup[]>([]);
   const [accounts, setAccounts] = useState<Account2[]>([]);
   const [categories, setCategories] = useState<Category2[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<AccountingRecord2 | null>(null);
+  const [editingRecord, setEditingRecord] = useState<TransactionGroup | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -100,14 +100,15 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
 
       console.log('🔍 RecordList 載入記錄 - 參數:', params);
 
-      const response = await accounting3Service.records.getAll(params);
-      if (response.success) {
-        setRecords(response.data.records);
-        setPagination(response.data.pagination);
-        console.log('✅ RecordList 載入成功:', response.data.records.length, '筆記錄');
-      } else {
-        setError('載入記帳記錄失敗');
-      }
+      const response = await transactionApiClient.getTransactions(params);
+      setRecords(response.data.groups || []);
+      setPagination({
+        page: response.data.pagination?.page || 1,
+        limit: response.data.pagination?.limit || 20,
+        total: response.data.pagination?.total || 0,
+        pages: response.data.pagination?.pages || 0
+      });
+      console.log('✅ RecordList 載入成功:', (response.data.groups || []).length, '筆記錄');
     } catch (err) {
       console.error('載入記帳記錄錯誤:', err);
       setError('載入記帳記錄時發生錯誤');
@@ -119,11 +120,10 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
   // 載入帳戶資料
   const loadAccounts = async () => {
     try {
-      const response = await accounting3Service.accounts.getAll(selectedOrganizationId);
-      if (response.success) {
-        setAccounts(response.data);
-        console.log('✅ RecordList 載入帳戶成功:', response.data.length, '個帳戶');
-      }
+      const params = selectedOrganizationId ? { organizationId: selectedOrganizationId } : {};
+      const response = await accountApiClient.getAccounts(params);
+      setAccounts(response.data);
+      console.log('✅ RecordList 載入帳戶成功:', response.data.length, '個帳戶');
     } catch (err) {
       console.error('載入帳戶錯誤:', err);
     }
@@ -133,11 +133,9 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
   const loadCategories = async () => {
     try {
       const params = selectedOrganizationId ? { organizationId: selectedOrganizationId } : {};
-      const response = await accounting3Service.categories.getAll(params);
-      if (response.success) {
-        setCategories(response.data);
-        console.log('✅ RecordList 載入類別成功:', response.data.length, '個類別');
-      }
+      const response = await categoryApiClient.getCategories(params);
+      setCategories(response.data);
+      console.log('✅ RecordList 載入類別成功:', response.data.length, '個類別');
     } catch (err) {
       console.error('載入類別錯誤:', err);
     }
@@ -167,60 +165,51 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
   }, [selectedOrganizationId, refreshTrigger]);
 
   // 處理表單提交
-  const handleFormSubmit = async (recordData: Partial<AccountingRecord2>) => {
+  const handleFormSubmit = async (recordData: Partial<TransactionGroup>) => {
     try {
       setError(null);
 
       console.log('📤 RecordList 提交記錄資料:', recordData);
 
-      let response;
       if (editingRecord) {
         // 更新記錄
-        response = await accounting3Service.records.update(editingRecord._id, recordData as any);
+        await transactionApiClient.updateTransaction(editingRecord._id, recordData as any);
       } else {
         // 建立新記錄
-        response = await accounting3Service.records.create(recordData as any);
+        await transactionApiClient.createTransaction(recordData as any);
       }
 
-      if (response.success) {
-        console.log('✅ 記錄操作成功');
-        setFormOpen(false);
-        setEditingRecord(null);
-        await loadRecords(); // 重新載入資料
-        await loadAccounts(); // 重新載入帳戶餘額
-      } else {
-        setError(response.message || '操作失敗');
-      }
+      console.log('✅ 記錄操作成功');
+      setFormOpen(false);
+      setEditingRecord(null);
+      await loadRecords(); // 重新載入資料
+      await loadAccounts(); // 重新載入帳戶餘額
     } catch (err) {
       console.error('記錄操作錯誤:', err);
       setError('操作時發生錯誤');
     }
   };
 
-  // 處理編輯
-  const handleEdit = (record: AccountingRecord2) => {
-    console.log('🔍 RecordList 編輯記錄:', record);
-    setEditingRecord(record);
-    setFormOpen(true);
+  // 處理編輯 (暫時禁用，因為 RecordForm 不支援 TransactionGroup)
+  const handleEdit = (record: TransactionGroup) => {
+    console.log('⚠️ RecordList 編輯功能暫時禁用 - TransactionGroup 與 RecordForm 不相容');
+    // TODO: 需要建立支援 TransactionGroup 的表單組件
+    alert('編輯功能暫時不可用，請使用新增功能');
   };
 
   // 處理刪除
   const handleDelete = async (recordId: string) => {
-    if (!window.confirm('確定要刪除此記帳記錄嗎？')) {
+    if (!window.confirm('確定要刪除此交易記錄嗎？')) {
       return;
     }
 
     try {
       setError(null);
-      const response = await accounting3Service.records.delete(recordId);
+      await transactionApiClient.deleteTransaction(recordId);
       
-      if (response.success) {
-        console.log('✅ 記錄刪除成功');
-        await loadRecords(); // 重新載入資料
-        await loadAccounts(); // 重新載入帳戶餘額
-      } else {
-        setError(response.message || '刪除失敗');
-      }
+      console.log('✅ 記錄刪除成功');
+      await loadRecords(); // 重新載入資料
+      await loadAccounts(); // 重新載入帳戶餘額
     } catch (err) {
       console.error('刪除記錄錯誤:', err);
       setError('刪除時發生錯誤');
@@ -258,31 +247,31 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
     });
   };
 
-  // 取得記錄類型圖示
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'income':
+  // 取得交易狀態圖示
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'confirmed':
         return <IncomeIcon color="success" />;
-      case 'expense':
-        return <ExpenseIcon color="error" />;
-      case 'transfer':
-        return <TransferIcon color="info" />;
+      case 'draft':
+        return <EditIcon color="warning" />;
+      case 'cancelled':
+        return <DeleteIcon color="error" />;
       default:
-        return null;
+        return <TransferIcon color="info" />;
     }
   };
 
-  // 取得記錄類型標籤
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'income':
-        return '收入';
-      case 'expense':
-        return '支出';
-      case 'transfer':
-        return '轉帳';
+  // 取得交易狀態標籤
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return '已確認';
+      case 'draft':
+        return '草稿';
+      case 'cancelled':
+        return '已取消';
       default:
-        return type;
+        return status;
     }
   };
 
@@ -299,54 +288,48 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
   };
 
   // 渲染記錄項目
-  const renderRecordItem = (record: AccountingRecord2) => (
+  const renderRecordItem = (record: TransactionGroup) => (
     <ListItem key={record._id} divider>
       <ListItemText
         primary={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {getTypeIcon(record.type)}
+            {getStatusIcon(record.status)}
             <Typography variant="body1" fontWeight="medium">
-              {record.description || getCategoryName(record.categoryId as string)}
+              {record.description}
             </Typography>
-            <Chip 
-              label={getTypeLabel(record.type)} 
-              size="small" 
-              color={record.type === 'income' ? 'success' : record.type === 'expense' ? 'error' : 'info'}
+            <Chip
+              label={getStatusLabel(record.status)}
+              size="small"
+              color={record.status === 'confirmed' ? 'success' : record.status === 'draft' ? 'warning' : 'error'}
             />
+            {record.groupNumber && (
+              <Chip
+                label={record.groupNumber}
+                size="small"
+                variant="outlined"
+              />
+            )}
           </Box>
         }
         secondary={
           <Box>
             <Typography variant="body2" color="text.secondary">
-              類別：{getCategoryName(record.categoryId as string)} | 
-              帳戶：{getAccountName(record.accountId as string)}
+              資金類型：{record.fundingType === 'original' ? '原始資金' : record.fundingType === 'extended' ? '延伸使用' : '資金轉移'}
+              {record.invoiceNo && ` | 發票號碼：${record.invoiceNo}`}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {format(new Date(record.date), 'yyyy/MM/dd HH:mm', { locale: zhTW })}
+              {format(new Date(record.transactionDate), 'yyyy/MM/dd HH:mm', { locale: zhTW })}
             </Typography>
-            {record.tags && record.tags.length > 0 && (
-              <Box sx={{ mt: 1 }}>
-                {record.tags.map((tag, index) => (
-                  <Chip
-                    key={index}
-                    label={tag}
-                    size="small"
-                    variant="outlined"
-                    sx={{ mr: 0.5 }}
-                  />
-                ))}
-              </Box>
-            )}
           </Box>
         }
       />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
-        <Typography 
-          variant="h6" 
-          color={record.type === 'income' ? 'success.main' : 'error.main'}
+        <Typography
+          variant="h6"
+          color={record.status === 'confirmed' ? 'success.main' : record.status === 'cancelled' ? 'error.main' : 'text.primary'}
           fontWeight="bold"
         >
-          {record.type === 'income' ? '+' : '-'}${record.amount.toLocaleString()}
+          ${record.totalAmount.toLocaleString()}
         </Typography>
       </Box>
       <ListItemSecondaryAction>
@@ -355,6 +338,8 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
           aria-label="編輯"
           onClick={() => handleEdit(record)}
           size="small"
+          disabled
+          title="編輯功能暫時不可用"
         >
           <EditIcon />
         </IconButton>
@@ -545,7 +530,7 @@ const RecordList: React.FC<RecordListProps> = ({ selectedOrganizationId, refresh
           open={formOpen}
           onClose={handleFormClose}
           onSubmit={handleFormSubmit}
-          record={editingRecord}
+          record={null}
           organizations={organizations}
           selectedOrganizationId={selectedOrganizationId}
           accounts={accounts}
