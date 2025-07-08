@@ -28,7 +28,7 @@ export const accountsApi = {
   getAll: async (organizationId?: string | null): Promise<Account2ListResponse> => {
     const params = organizationId ? { organizationId } : {};
     // 使用樹狀結構 API 確保階層關係正確
-    const response = await apiService.get('/api/accounts2/tree/hierarchy', { params });
+    const response = await apiService.get('/api/accounting2/accounts/tree/hierarchy', { params });
     
     // 將樹狀結構扁平化為陣列，保持階層資訊
     const flattenTree = (nodes: any[]): any[] => {
