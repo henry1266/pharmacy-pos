@@ -24,11 +24,34 @@ const BASE_URL = '/api';
 
 // 帳戶管理 API - 使用 accounting3 簡化路徑
 export const accountsApi = {
-  // 獲取所有帳戶
+  // 獲取所有帳戶 - 使用階層查詢 API
   getAll: async (organizationId?: string | null): Promise<Account2ListResponse> => {
     const params = organizationId ? { organizationId } : {};
-    const response = await apiService.get(`${BASE_URL}/accounts`, { params });
-    return response.data;
+    // 使用樹狀結構 API 確保階層關係正確
+    const response = await apiService.get('/api/accounts2/tree/hierarchy', { params });
+    
+    // 將樹狀結構扁平化為陣列，保持階層資訊
+    const flattenTree = (nodes: any[]): any[] => {
+      const result: any[] = [];
+      const traverse = (nodeList: any[]) => {
+        nodeList.forEach(node => {
+          result.push(node);
+          if (node.children && node.children.length > 0) {
+            traverse(node.children);
+          }
+        });
+      };
+      traverse(nodes);
+      return result;
+    };
+    
+    const apiResponse = response.data;
+    const flattenedData = flattenTree(apiResponse.data || []);
+    
+    return {
+      success: apiResponse.success || true,
+      data: flattenedData
+    };
   },
 
   // 獲取單一帳戶
