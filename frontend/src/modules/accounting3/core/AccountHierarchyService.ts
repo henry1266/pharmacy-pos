@@ -94,8 +94,73 @@ export class AccountHierarchyService {
 
   /**
    * 建立階層樹狀結構
+   * 支援組織-科目的兩層結構
    */
   private buildHierarchyTree(accounts: Account2[]): AccountHierarchyNode[] {
+    // 檢查是否為組織層級的資料（包含 children 屬性且 accountType 為 'organization'）
+    const hasOrganizationLevel = accounts.some(account =>
+      (account as any).accountType === 'organization' ||
+      (account as any).children !== undefined
+    );
+
+    if (hasOrganizationLevel) {
+      // 處理組織-科目階層結構
+      return this.buildOrganizationHierarchy(accounts);
+    } else {
+      // 處理純科目階層結構
+      return this.buildAccountHierarchy(accounts);
+    }
+  }
+
+  /**
+   * 建立組織-科目階層結構
+   */
+  private buildOrganizationHierarchy(organizations: any[]): AccountHierarchyNode[] {
+    return organizations.map(org => {
+      const orgNode: AccountHierarchyNode = {
+        _id: org._id,
+        name: org.name,
+        code: org.code || org.name,
+        accountType: 'organization' as any,
+        type: 'organization' as any,
+        level: 0,
+        isActive: true,
+        balance: 0,
+        initialBalance: 0,
+        currency: 'TWD',
+        normalBalance: 'debit' as any, // 組織節點預設借方
+        organizationId: org.organizationId,
+        createdBy: org.createdBy || '',
+        createdAt: org.createdAt || new Date(),
+        updatedAt: org.updatedAt || new Date(),
+        children: [],
+        hasChildren: false,
+        isExpanded: true, // 組織層級預設展開
+        path: [],
+        version: 'v3',
+        compatibilityMode: 'hybrid',
+        permissions: {
+          canEdit: false, // 組織節點不可編輯
+          canDelete: false,
+          canAddChild: true,
+          canMove: false
+        }
+      };
+
+      // 處理組織下的科目
+      if (org.children && Array.isArray(org.children)) {
+        orgNode.children = this.buildAccountHierarchy(org.children, 1); // 科目從第1層開始
+        orgNode.hasChildren = orgNode.children.length > 0;
+      }
+
+      return orgNode;
+    });
+  }
+
+  /**
+   * 建立純科目階層結構
+   */
+  private buildAccountHierarchy(accounts: Account2[], baseLevel: number = 0): AccountHierarchyNode[] {
     // 建立階層節點映射
     const nodeMap = new Map<string, AccountHierarchyNode>();
     
@@ -103,58 +168,86 @@ export class AccountHierarchyService {
     accounts.forEach(account => {
       const node: AccountHierarchyNode = {
         ...account,
-        children: [],
-        level: 0, // 初始化為0，稍後動態計算
+        children: account.children ? this.buildAccountHierarchy(account.children, baseLevel + 1) : [],
+        level: baseLevel, // 使用基礎層級
         hasChildren: false,
-        isExpanded: false, // 初始化為false，稍後根據層級設定
+        isExpanded: false,
         path: [],
         version: 'v3',
         compatibilityMode: 'hybrid',
         permissions: this.calculatePermissions(account)
       };
+      
+      // 如果已經有 children 資料（來自 API），直接使用
+      if (account.children && Array.isArray(account.children)) {
+        node.children = this.buildAccountHierarchy(account.children, baseLevel + 1);
+        node.hasChildren = node.children.length > 0;
+      }
+      
       nodeMap.set(account._id, node);
     });
 
-    // 建立父子關係並計算層級
-    const rootNodes: AccountHierarchyNode[] = [];
-    
-    accounts.forEach(account => {
-      const node = nodeMap.get(account._id)!;
+    // 如果沒有預先建立的 children，則建立父子關係
+    if (!accounts.some(acc => acc.children)) {
+      const rootNodes: AccountHierarchyNode[] = [];
       
-      if (account.parentId && nodeMap.has(account.parentId)) {
-        // 有父節點
-        const parentNode = nodeMap.get(account.parentId)!;
-        parentNode.children.push(node);
-        parentNode.hasChildren = true;
+      accounts.forEach(account => {
+        const node = nodeMap.get(account._id)!;
         
-        // 動態計算層級（如 accounting2）
-        node.level = parentNode.level + 1;
-        
-        // 設定路徑（如 accounting2）
-        node.path = [...parentNode.path, parentNode._id];
-      } else {
-        // 根節點
-        rootNodes.push(node);
-        node.level = 0;
-        node.path = [];
-      }
-    });
-
-    // 設定展開狀態（根據動態計算的層級）
-    const setExpandedState = (nodes: AccountHierarchyNode[]) => {
-      nodes.forEach(node => {
-        node.isExpanded = node.level <= this.config.defaultExpandLevel;
-        if (node.children.length > 0) {
-          setExpandedState(node.children);
+        if (account.parentId && nodeMap.has(account.parentId)) {
+          // 有父節點
+          const parentNode = nodeMap.get(account.parentId)!;
+          parentNode.children.push(node);
+          parentNode.hasChildren = true;
+          
+          // 動態計算層級
+          node.level = parentNode.level + 1;
+          
+          // 設定路徑
+          node.path = [...parentNode.path, parentNode._id];
+        } else {
+          // 根節點
+          rootNodes.push(node);
+          node.level = baseLevel;
+          node.path = [];
         }
       });
-    };
-    setExpandedState(rootNodes);
 
-    // 排序子節點（使用與 accounting2 相同的邏輯）
-    this.sortHierarchyNodes(rootNodes);
-    
-    return rootNodes;
+      // 設定展開狀態
+      const setExpandedState = (nodes: AccountHierarchyNode[]) => {
+        nodes.forEach(node => {
+          node.isExpanded = node.level <= this.config.defaultExpandLevel;
+          if (node.children.length > 0) {
+            setExpandedState(node.children);
+          }
+        });
+      };
+      setExpandedState(rootNodes);
+
+      // 排序節點
+      this.sortHierarchyNodes(rootNodes);
+      
+      return rootNodes;
+    } else {
+      // 已經有預建的階層結構，直接返回根節點
+      const rootNodes = Array.from(nodeMap.values()).filter(node => !node.parentId);
+      
+      // 設定展開狀態
+      const setExpandedState = (nodes: AccountHierarchyNode[]) => {
+        nodes.forEach(node => {
+          node.isExpanded = node.level <= this.config.defaultExpandLevel;
+          if (node.children.length > 0) {
+            setExpandedState(node.children);
+          }
+        });
+      };
+      setExpandedState(rootNodes);
+
+      // 排序節點
+      this.sortHierarchyNodes(rootNodes);
+      
+      return rootNodes;
+    }
   }
 
   /**

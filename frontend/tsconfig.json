@@ -27,7 +27,12 @@
       "@accounting2/ui/*": ["./modules/accounting2/components/ui/*"],
       "@accounting2/core/*": ["./modules/accounting2/core/*"],
       "@accounting2/types/*": ["./modules/accounting2/types/*"],
-      "@accounting2/utils/*": ["./modules/accounting2/utils/*"]
+      "@accounting2/utils/*": ["./modules/accounting2/utils/*"],
+      "@accounting3/*": ["./modules/accounting3/*"],
+      "@accounting3/components/*": ["./modules/accounting3/components/*"],
+      "@accounting3/features/*": ["./modules/accounting3/components/features/*"],
+      "@accounting3/core/*": ["./modules/accounting3/core/*"],
+      "@accounting3/types/*": ["./modules/accounting3/types/*"]
     },
     
     /* React 開發設定 */

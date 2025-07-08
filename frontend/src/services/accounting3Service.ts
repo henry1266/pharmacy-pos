@@ -24,34 +24,91 @@ const BASE_URL = '/api';
 
 // 帳戶管理 API - 使用 accounting3 簡化路徑
 export const accountsApi = {
-  // 獲取所有帳戶 - 使用階層查詢 API
+  // 獲取所有帳戶 - 使用階層查詢 API，保持完整多層級樹狀結構
   getAll: async (organizationId?: string | null): Promise<Account2ListResponse> => {
     const params = organizationId ? { organizationId } : {};
-    // 使用樹狀結構 API 確保階層關係正確
-    const response = await apiService.get('/api/accounting2/accounts/tree/hierarchy', { params });
     
-    // 將樹狀結構扁平化為陣列，保持階層資訊
-    const flattenTree = (nodes: any[]): any[] => {
-      const result: any[] = [];
-      const traverse = (nodeList: any[]) => {
-        nodeList.forEach(node => {
-          result.push(node);
-          if (node.children && node.children.length > 0) {
-            traverse(node.children);
-          }
-        });
+    if (organizationId) {
+      // 如果指定組織ID，直接獲取該組織的完整科目樹狀結構
+      const response = await apiService.get('/api/accounting2/accounts/tree/hierarchy', { params });
+      const apiResponse = response.data;
+      
+      return {
+        success: apiResponse.success || true,
+        data: apiResponse.data || []
       };
-      traverse(nodes);
-      return result;
-    };
-    
-    const apiResponse = response.data;
-    const flattenedData = flattenTree(apiResponse.data || []);
-    
-    return {
-      success: apiResponse.success || true,
-      data: flattenedData
-    };
+    } else {
+      // 如果沒有指定組織ID，建立組織-科目的完整多層級階層
+      try {
+        // 1. 獲取所有組織
+        const orgsResponse = await apiService.get('/api/organizations');
+        const organizations = orgsResponse.data?.data || [];
+        
+        // 2. 為每個組織獲取完整的科目樹狀結構
+        const organizationTrees = await Promise.all(
+          organizations.map(async (org: any) => {
+            try {
+              const accountsResponse = await apiService.get('/api/accounting2/accounts/tree/hierarchy', {
+                params: { organizationId: org._id }
+              });
+              
+              // 獲取該組織的完整科目樹（保持所有層級）
+              const accountTree = accountsResponse.data?.data || [];
+              
+              return {
+                _id: `org_${org._id}`,
+                name: org.name,
+                code: org.code || org.name,
+                accountType: 'organization' as any,
+                type: 'organization' as any,
+                level: 0,
+                isActive: true,
+                balance: 0,
+                initialBalance: 0,
+                currency: 'TWD',
+                normalBalance: 'debit' as any,
+                organizationId: org._id,
+                createdBy: '',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                // 保持完整的多層級科目樹狀結構
+                children: accountTree
+              };
+            } catch (error) {
+              console.warn(`獲取組織 ${org.name} 的科目失敗:`, error);
+              return {
+                _id: `org_${org._id}`,
+                name: org.name,
+                code: org.code || org.name,
+                accountType: 'organization' as any,
+                type: 'organization' as any,
+                level: 0,
+                isActive: true,
+                balance: 0,
+                initialBalance: 0,
+                currency: 'TWD',
+                normalBalance: 'debit' as any,
+                organizationId: org._id,
+                createdBy: '',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                children: []
+              };
+            }
+          })
+        );
+        
+        return {
+          success: true,
+          data: organizationTrees
+        };
+      } catch (error) {
+        console.error('建立組織階層失敗:', error);
+        // 降級處理：直接獲取樹狀結構
+        const response = await apiService.get('/api/accounting2/accounts/tree/hierarchy');
+        return response.data;
+      }
+    }
   },
 
   // 獲取單一帳戶

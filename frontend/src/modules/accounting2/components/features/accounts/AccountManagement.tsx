@@ -19,14 +19,12 @@ import {
 import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
 import { useAccountManagement } from '../../../core/hooks/useAccountManagement';
 import { useAccountForm } from '../../../core/hooks/useAccountForm';
-import {
-  AccountSearchPanel,
-  AccountTreeView,
-  AccountStatistics,
-  AccountDetailsPanel,
-  AccountEntryGrid,
-  AccountForm
-} from './index';
+import { AccountSearchPanel } from './AccountSearchPanel';
+import { AccountTreeView } from './AccountTreeView';
+import { AccountStatistics } from './AccountStatistics';
+import { AccountDetailsPanel } from './AccountDetailsPanel';
+import { AccountEntryGrid } from './AccountEntryGrid';
+import { AccountForm } from './AccountForm';
 
 // 交易管理相關介面
 interface TransactionGroup {
