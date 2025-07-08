@@ -52,8 +52,138 @@ export const accountsApi = {
                 params: { organizationId: org._id }
               });
               
-              // 獲取該組織的完整科目樹（保持所有層級）
+              // 獲取該組織的完整科目樹
               const accountTree = accountsResponse.data?.data || [];
+              
+              console.log(`🌳 組織 ${org.name} 的科目樹結構:`, {
+                總科目數: accountTree.length,
+                科目詳情: accountTree.map((acc: any) => ({
+                  名稱: acc.name,
+                  代碼: acc.code,
+                  類型: acc.accountType,
+                  父節點: acc.parentId ? '有' : '無',
+                  子節點數: acc.children?.length || 0,
+                  子節點: acc.children?.map((child: any) => child.name) || [],
+                  完整子節點: acc.children || []
+                }))
+              });
+              
+              // 特別檢查廠商科目
+              const vendorAccount = accountTree.find((acc: any) => acc.name === '廠商');
+              if (vendorAccount) {
+                console.log('🏪 廠商科目詳細檢查:', {
+                  名稱: vendorAccount.name,
+                  代碼: vendorAccount.code,
+                  子科目數: vendorAccount.children?.length || 0,
+                  子科目詳情: vendorAccount.children || [],
+                  原始children屬性: vendorAccount.children
+                });
+              }
+              
+              // 遞歸處理科目節點，確保每個節點都有正確的 hasChildren 屬性
+              const processAccountNode = (account: any): any => {
+                // 先檢查是否有子科目，避免清空原始資料
+                const hasOriginalChildren = account.children && Array.isArray(account.children) && account.children.length > 0;
+                
+                const processedAccount = {
+                  ...account,
+                  hasChildren: hasOriginalChildren,
+                  children: hasOriginalChildren ? account.children.map(processAccountNode) : []
+                };
+                
+                if (hasOriginalChildren) {
+                  console.log(`🔄 處理科目 "${account.name}" 的子科目:`, {
+                    科目名稱: account.name,
+                    原始子科目數: account.children.length,
+                    處理後子科目數: processedAccount.children.length,
+                    子科目名稱: processedAccount.children.map((child: any) => child.name),
+                    hasChildren: processedAccount.hasChildren
+                  });
+                } else {
+                  console.log(`📝 處理科目 "${account.name}": 無子科目`);
+                }
+                
+                return processedAccount;
+              };
+              
+              // 處理所有科目節點
+              const processedAccountTree = accountTree.map(processAccountNode);
+              
+              // 按會計科目類型分組，但只對根節點科目分組
+              // 保持子科目的完整樹狀結構
+              const accountTypeGroups = processedAccountTree.reduce((groups: any, account: any) => {
+                // 只處理根節點科目（沒有 parentId 的科目）
+                if (!account.parentId) {
+                  const accountType = account.accountType;
+                  if (!groups[accountType]) {
+                    groups[accountType] = [];
+                  }
+                  groups[accountType].push(account);
+                }
+                return groups;
+              }, {});
+              
+              // 建立會計科目類型節點
+              const accountTypeNodes = Object.entries(accountTypeGroups).map(([accountType, accounts]: [string, any]) => {
+                const typeNames = {
+                  'asset': '資產',
+                  'liability': '負債',
+                  'equity': '權益',
+                  'revenue': '收入',
+                  'expense': '支出'
+                };
+                
+                // 計算該類型下所有科目的總餘額（包含子科目）
+                const calculateTotalBalance = (accounts: any[]): number => {
+                  return accounts.reduce((total, account) => {
+                    let accountTotal = account.balance || 0;
+                    if (account.children && account.children.length > 0) {
+                      accountTotal += calculateTotalBalance(account.children);
+                    }
+                    return total + accountTotal;
+                  }, 0);
+                };
+                
+                const totalBalance = calculateTotalBalance(accounts);
+                
+                console.log(`📊 ${typeNames[accountType as keyof typeof typeNames]} 類型統計:`, {
+                  科目數量: accounts.length,
+                  總餘額: totalBalance,
+                  科目列表: accounts.map((acc: any) => ({
+                    名稱: acc.name,
+                    餘額: acc.balance,
+                    子科目數: acc.children?.length || 0
+                  }))
+                });
+                
+                return {
+                  _id: `${org._id}_${accountType}`,
+                  name: typeNames[accountType as keyof typeof typeNames] || accountType,
+                  code: accountType.toUpperCase(),
+                  accountType: accountType as any,
+                  type: 'category' as any,
+                  level: 1,
+                  isActive: true,
+                  balance: totalBalance,
+                  initialBalance: 0,
+                  currency: 'TWD',
+                  normalBalance: accountType === 'asset' || accountType === 'expense' ? 'debit' as any : 'credit' as any,
+                  organizationId: org._id,
+                  createdBy: '',
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  children: accounts,
+                  hasChildren: accounts.length > 0,
+                  // 添加統計資訊
+                  statistics: {
+                    balance: totalBalance,
+                    accountCount: accounts.length,
+                    childAccountCount: accounts.reduce((count: number, acc: any) => {
+                      return count + (acc.children?.length || 0);
+                    }, 0)
+                  }
+                };
+              });
               
               return {
                 _id: `org_${org._id}`,
@@ -71,8 +201,9 @@ export const accountsApi = {
                 createdBy: '',
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                // 保持完整的多層級科目樹狀結構
-                children: accountTree
+                // 建立三層結構：組織 → 會計科目類型 → 具體科目
+                children: accountTypeNodes,
+                hasChildren: accountTypeNodes.length > 0
               };
             } catch (error) {
               console.warn(`獲取組織 ${org.name} 的科目失敗:`, error);
@@ -92,7 +223,8 @@ export const accountsApi = {
                 createdBy: '',
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                children: []
+                children: [],
+                hasChildren: false
               };
             }
           })

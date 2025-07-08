@@ -35,6 +35,7 @@ import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import Accounting2Page from './pages/Accounting2Page';
 import Accounting3Page from './pages/Accounting3Page';
+import AccountsManagementPage from './pages/AccountsManagementPage';
 import AccountingDetailPageWrapper from './pages/AccountingDetailPage';
 import OrganizationPage from './pages/OrganizationPage';
 import OrganizationFormPage from './pages/OrganizationFormPage';
@@ -101,6 +102,9 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting3/new" element={<Accounting3Page />} />
       <Route path="/accounting3/transaction/:transactionId/edit" element={<Accounting3Page />} />
       <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3Page />} />
+      
+      {/* Accounting3 科目管理路由 */}
+      <Route path="/accounting3/accounts" element={<AccountsManagementPage />} />
       
       {/* Organization Management routes */}
       <Route path="/organizations" element={<OrganizationPage />} />

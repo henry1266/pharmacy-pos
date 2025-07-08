@@ -18,8 +18,8 @@ import {
   InputAdornment,
   Fab,
   Tooltip,
-  Tabs,
-  Tab,
+  Breadcrumbs,
+  Link,
 } from '@mui/material';
 import {
   AccountBalance as AccountBalanceIcon,
@@ -39,9 +39,6 @@ import { DoubleEntryFormWithEntries } from '../modules/accounting2/components/fe
 import { TransactionGroupFormWithEntries } from '../modules/accounting2/components/features/transactions/TransactionGroupFormWithEntries';
 import DoubleEntryDetailPageWithEntries from '../modules/accounting2/components/features/transactions/DoubleEntryDetailPageWithEntries';
 import { AccountingDataGridWithEntries } from '../modules/accounting2/components/ui/AccountingDataGridWithEntries';
-
-// 導入 accounting3 階層管理組件
-import { AccountHierarchyManager } from '../modules/accounting3/components/features/accounts/AccountHierarchyManager';
 
 // 導入內嵌分錄 Redux actions
 import {
@@ -63,38 +60,6 @@ import {
   EmbeddedAccountingEntryFormData
 } from '../../../shared/types/accounting2';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`accounting-tabpanel-${index}`}
-      aria-labelledby={`accounting-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `accounting-tab-${index}`,
-    'aria-controls': `accounting-tabpanel-${index}`,
-  };
-}
 
 // 移除本地介面定義，使用 shared 的 TransactionGroupWithEntriesFormData
 
@@ -112,8 +77,7 @@ export const Accounting3Page: React.FC = () => {
   // Redux state - 使用內嵌分錄狀態
   const { transactionGroups, loading, error } = useAppSelector(state => state.transactionGroupWithEntries);
   
-  // Local state - 標籤頁管理
-  const [tabValue, setTabValue] = useState(0); // 0: 交易管理, 1: 科目管理
+  // Local state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<TransactionGroupWithEntries | null>(null);
@@ -224,11 +188,6 @@ export const Accounting3Page: React.FC = () => {
       setDialogOpen(true);
     }
   }, [defaultAccountId, defaultOrganizationId, transactionId, dialogOpen]);
-
-  // Tab 切換處理
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
 
   // 處理新增交易
   const handleCreateNew = () => {
@@ -534,64 +493,54 @@ export const Accounting3Page: React.FC = () => {
         </Alert>
       )}
 
-      {/* 主要內容區域 - 標籤頁系統 */}
+      {/* 麵包屑導航 */}
+      <Box sx={{ mb: 2 }}>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Typography
+            color="text.primary"
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <ReceiptIcon fontSize="small" />
+            交易管理
+          </Typography>
+        </Breadcrumbs>
+      </Box>
+
+      {/* 主要內容區域 - 交易管理 */}
       <Card sx={{ mb: 3, px: 2, mx: 1 }}>
         <CardContent>
-          {/* 標籤頁導航 */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            <Tabs value={tabValue} onChange={handleTabChange} aria-label="accounting tabs">
-              <Tab
-                icon={<ReceiptIcon />}
-                label="交易管理"
-                {...a11yProps(0)}
-                sx={{ minHeight: 48 }}
-              />
-              <Tab
-                icon={<AccountTreeIcon />}
-                label="科目管理"
-                {...a11yProps(1)}
-                sx={{ minHeight: 48 }}
-              />
-            </Tabs>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">交易列表</Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<AccountTreeIcon />}
+                onClick={() => navigate('/accounting3/accounts')}
+                sx={{ mr: 1 }}
+              >
+                科目管理
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                {showFilters ? '隱藏篩選' : '顯示篩選'}
+              </Button>
+            </Box>
           </Box>
 
-          {/* 交易管理標籤頁 */}
-          <TabPanel value={tabValue} index={0}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">交易列表</Typography>
-              <Box>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterListIcon />}
-                  onClick={() => setShowFilters(!showFilters)}
-                  sx={{ mr: 1 }}
-                >
-                  {showFilters ? '隱藏篩選' : '顯示篩選'}
-                </Button>
-              </Box>
-            </Box>
-
-            <AccountingDataGridWithEntries
-              showFilters={showFilters}
-              onToggleFilters={() => setShowFilters(!showFilters)}
-              onCreateNew={() => navigate('/accounting3/new')}
-              onEdit={handleEdit}
-              onView={handleView}
-              onDelete={handleDelete}
-              onCopy={handleCopy}
-              onConfirm={handleConfirm}
-              onUnlock={handleUnlock}
-            />
-          </TabPanel>
-
-          {/* 科目管理標籤頁 */}
-          <TabPanel value={tabValue} index={1}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">科目階層管理</Typography>
-            </Box>
-
-            <AccountHierarchyManager />
-          </TabPanel>
+          <AccountingDataGridWithEntries
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(!showFilters)}
+            onCreateNew={() => navigate('/accounting3/new')}
+            onEdit={handleEdit}
+            onView={handleView}
+            onDelete={handleDelete}
+            onCopy={handleCopy}
+            onConfirm={handleConfirm}
+            onUnlock={handleUnlock}
+          />
         </CardContent>
       </Card>
 

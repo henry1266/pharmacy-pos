@@ -108,9 +108,8 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
     overscanCount: 5,
   }));
   
-  // 搜尋和過濾狀態
+  // 搜尋狀態
   const [searchText, setSearchText] = useState('');
-  const [filter, setFilter] = useState<AccountHierarchyFilter>({});
   
   // 展開狀態管理
   const [expandState, setExpandState] = useState<HierarchyExpandState>(() => ({
@@ -262,7 +261,36 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
     setError(null);
     
     try {
+      console.log('🔄 AccountHierarchyManager 開始載入階層資料，organizationId:', organizationId);
       const nodes = await accountHierarchyService.loadHierarchy(organizationId);
+      
+      console.log('📊 AccountHierarchyManager 載入完成:', {
+        總節點數: nodes.length,
+        節點詳情: nodes.map(node => ({
+          名稱: node.name,
+          hasChildren: node.hasChildren,
+          子科目數: node.children?.length || 0,
+          子科目名稱: node.children?.map(child => child.name) || []
+        }))
+      });
+      
+      // 特別檢查廠商科目
+      const vendor = nodes.find(node => node.name === '廠商');
+      if (vendor) {
+        console.log('🏪 AccountHierarchyManager 找到廠商科目:', {
+          名稱: vendor.name,
+          hasChildren: vendor.hasChildren,
+          子科目數: vendor.children?.length || 0,
+          子科目詳情: vendor.children?.map(child => ({
+            名稱: child.name,
+            代碼: child.code,
+            ID: child._id
+          })) || []
+        });
+      } else {
+        console.log('❌ AccountHierarchyManager 找不到廠商科目');
+      }
+      
       setHierarchyNodes(nodes);
       
       // 自動展開到預設層級
@@ -270,6 +298,7 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
         expandState.expandToLevel(config.defaultExpandLevel);
       }
     } catch (err) {
+      console.error('❌ AccountHierarchyManager 載入失敗:', err);
       setError(err instanceof Error ? err.message : '載入階層資料失敗');
     } finally {
       setLoading(false);
@@ -281,26 +310,50 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
     loadHierarchy();
   }, [loadHierarchy]);
 
-  // 應用搜尋和過濾
+  // 應用搜尋（移除過濾邏輯）
   useEffect(() => {
+    console.log('🔍 AccountHierarchyManager 開始處理:', {
+      原始節點數: hierarchyNodes.length,
+      搜尋文字: searchText
+    });
+    
     let filtered = hierarchyNodes;
     
-    // 應用搜尋
+    // 只應用搜尋，移除所有過濾邏輯
     if (searchText.trim()) {
+      console.log('🔍 開始搜尋處理...');
       filtered = accountHierarchyService.searchHierarchy(
         filtered,
         searchText,
         ['code', 'name', 'description']
       );
+      console.log('🔍 搜尋後節點數:', filtered.length);
+    } else {
+      console.log('✅ 無搜尋條件，顯示所有節點');
     }
     
-    // 應用過濾器
-    if (Object.keys(filter).length > 0) {
-      filtered = accountHierarchyService.filterHierarchy(filtered, filter);
+    // 檢查廠商科目
+    const vendor = filtered.find(node => node.name === '廠商');
+    if (vendor) {
+      console.log('🏪 最終的廠商科目:', {
+        名稱: vendor.name,
+        hasChildren: vendor.hasChildren,
+        子科目數: vendor.children?.length || 0,
+        子科目名稱: vendor.children?.map(child => child.name) || []
+      });
+    } else {
+      console.log('❌ 找不到廠商科目');
+      console.log('🔍 當前所有節點:', filtered.map(node => ({
+        名稱: node.name,
+        代碼: node.code,
+        isActive: node.isActive,
+        hasChildren: node.hasChildren
+      })));
     }
     
+    console.log('✅ AccountHierarchyManager 處理完成，最終節點數:', filtered.length);
     setFilteredNodes(filtered);
-  }, [hierarchyNodes, searchText, filter]);
+  }, [hierarchyNodes, searchText]);
 
   // 更新服務配置
   useEffect(() => {

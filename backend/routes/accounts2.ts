@@ -697,25 +697,82 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
 
     // 獲取所有科目並按層級排序
     const accounts = await Account2.find(filter)
-      .sort({ level: 1, code: 1 })
-      .populate('children');
+      .sort({ level: 1, code: 1 });
 
-    // 建立樹狀結構
+    console.log('🌳 找到的科目數量:', accounts.length);
+    console.log('🌳 科目層級分布:', accounts.reduce((acc, account) => {
+      acc[account.level] = (acc[account.level] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>));
+
+    // 建立樹狀結構 - 支援完整多層級並計算統計金額
     const buildTree = (accounts: IAccount2[], parentId: string | null = null): any[] => {
-      return accounts
+      const children = accounts
         .filter(account => {
           if (parentId === null) {
             return !account.parentId || account.parentId.toString() === '';
           }
           return account.parentId && account.parentId.toString() === parentId;
         })
-        .map(account => ({
-          ...account.toObject(),
-          children: buildTree(accounts, account._id.toString())
-        }));
+        .map(account => {
+          const accountObj = account.toObject();
+          const childNodes = buildTree(accounts, account._id.toString());
+          
+          // 計算統計金額：自身金額 + 所有子科目金額總和
+          const calculateTotalBalance = (node: any, children: any[]): number => {
+            const selfBalance = node.balance || 0;
+            const childrenBalance = children.reduce((sum, child) => {
+              return sum + (child.statistics?.totalBalance || child.balance || 0);
+            }, 0);
+            return selfBalance + childrenBalance;
+          };
+          
+          const totalBalance = calculateTotalBalance(accountObj, childNodes);
+          const childCount = childNodes.length;
+          const descendantCount = childNodes.reduce((count, child) => {
+            return count + 1 + (child.statistics?.descendantCount || 0);
+          }, 0);
+          
+          console.log(`🌳 建立樹狀節點 "${account.name}":`, {
+            ID: account._id.toString(),
+            parentId: account.parentId?.toString() || null,
+            子節點數: childNodes.length,
+            子節點名稱: childNodes.map(child => child.name),
+            自身金額: accountObj.balance || 0,
+            子科目總金額: totalBalance - (accountObj.balance || 0),
+            統計總金額: totalBalance
+          });
+          
+          return {
+            ...accountObj,
+            children: childNodes,
+            hasChildren: childNodes.length > 0,
+            // 添加統計資訊
+            statistics: {
+              balance: accountObj.balance || 0,           // 自身餘額
+              totalBalance: totalBalance,                 // 包含子科目的總餘額
+              childCount: childCount,                     // 直接子科目數量
+              descendantCount: descendantCount,           // 所有後代科目數量
+              hasTransactions: false,                     // 是否有交易記錄（待實作）
+              lastTransactionDate: null                   // 最後交易日期（待實作）
+            }
+          };
+        });
+      
+      return children;
     };
 
     const tree = buildTree(accounts);
+    
+    console.log('🌳 最終樹狀結構:', {
+      根節點數: tree.length,
+      根節點詳情: tree.map((node: any) => ({
+        名稱: node.name,
+        hasChildren: node.hasChildren,
+        子節點數: node.children?.length || 0,
+        子節點名稱: node.children?.map((child: any) => child.name) || []
+      }))
+    });
 
     res.json({
       success: true,

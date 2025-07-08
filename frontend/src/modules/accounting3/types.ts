@@ -29,7 +29,11 @@ export interface AccountHierarchyNode extends Account2 {
     totalTransactions: number;
     totalDebit: number;
     totalCredit: number;
-    balance: number;
+    balance: number;                    // 自身餘額
+    totalBalance: number;               // 包含子科目的總餘額
+    childCount: number;                 // 直接子科目數量
+    descendantCount: number;            // 所有後代科目數量
+    hasTransactions: boolean;           // 是否有交易記錄
     lastTransactionDate?: Date | string;
   };
 }

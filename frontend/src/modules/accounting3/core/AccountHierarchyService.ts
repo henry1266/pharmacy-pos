@@ -97,16 +97,38 @@ export class AccountHierarchyService {
    * 支援組織-科目的兩層結構
    */
   private buildHierarchyTree(accounts: Account2[]): AccountHierarchyNode[] {
+    console.log('🌳 buildHierarchyTree 開始分析資料結構:', {
+      總數量: accounts.length,
+      資料樣本: accounts.slice(0, 3).map(acc => ({
+        名稱: acc.name,
+        accountType: (acc as any).accountType,
+        type: (acc as any).type,
+        hasChildren: !!(acc as any).children,
+        childrenCount: (acc as any).children?.length || 0
+      }))
+    });
+    
     // 檢查是否為組織層級的資料（包含 children 屬性且 accountType 為 'organization'）
     const hasOrganizationLevel = accounts.some(account =>
       (account as any).accountType === 'organization' ||
       (account as any).children !== undefined
     );
 
+    console.log('🔍 階層結構判斷:', {
+      hasOrganizationLevel,
+      判斷依據: accounts.map(acc => ({
+        名稱: acc.name,
+        accountType: (acc as any).accountType,
+        hasChildren: !!(acc as any).children
+      }))
+    });
+
     if (hasOrganizationLevel) {
+      console.log('🏢 使用組織階層結構處理');
       // 處理組織-科目階層結構
       return this.buildOrganizationHierarchy(accounts);
     } else {
+      console.log('📊 使用純科目階層結構處理');
       // 處理純科目階層結構
       return this.buildAccountHierarchy(accounts);
     }
@@ -116,7 +138,20 @@ export class AccountHierarchyService {
    * 建立組織-科目階層結構
    */
   private buildOrganizationHierarchy(organizations: any[]): AccountHierarchyNode[] {
+    console.log('🏢 buildOrganizationHierarchy 開始處理組織:', organizations.length);
+    
     return organizations.map(org => {
+      console.log('🏢 處理組織:', {
+        名稱: org.name,
+        ID: org._id,
+        子節點數: org.children?.length || 0,
+        子節點類型: org.children?.map((child: any) => ({
+          名稱: child.name,
+          類型: child.accountType || child.type,
+          子科目數: child.children?.length || 0
+        })) || []
+      });
+      
       const orgNode: AccountHierarchyNode = {
         _id: org._id,
         name: org.name,
@@ -149,8 +184,41 @@ export class AccountHierarchyService {
 
       // 處理組織下的科目
       if (org.children && Array.isArray(org.children)) {
+        console.log(`🔧 開始處理組織 "${org.name}" 的子節點...`);
         orgNode.children = this.buildAccountHierarchy(org.children, 1); // 科目從第1層開始
         orgNode.hasChildren = orgNode.children.length > 0;
+        
+        console.log(`✅ 組織 "${org.name}" 處理完成:`, {
+          子節點數: orgNode.children.length,
+          hasChildren: orgNode.hasChildren,
+          子節點名稱: orgNode.children.map(child => child.name)
+        });
+        
+        // 特別檢查廠商科目
+        const findVendorInChildren = (nodes: AccountHierarchyNode[]): AccountHierarchyNode | null => {
+          for (const node of nodes) {
+            if (node.name === '廠商') {
+              return node;
+            }
+            if (node.children.length > 0) {
+              const found = findVendorInChildren(node.children);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+        
+        const vendor = findVendorInChildren(orgNode.children);
+        if (vendor) {
+          console.log(`🏪 在組織 "${org.name}" 中找到廠商科目:`, {
+            名稱: vendor.name,
+            hasChildren: vendor.hasChildren,
+            子科目數: vendor.children.length,
+            子科目名稱: vendor.children.map(child => child.name)
+          });
+        } else {
+          console.log(`❌ 在組織 "${org.name}" 中找不到廠商科目`);
+        }
       }
 
       return orgNode;
@@ -161,15 +229,23 @@ export class AccountHierarchyService {
    * 建立純科目階層結構
    */
   private buildAccountHierarchy(accounts: Account2[], baseLevel: number = 0): AccountHierarchyNode[] {
+    console.log(`🔧 buildAccountHierarchy 開始處理 ${accounts.length} 個科目，基礎層級: ${baseLevel}`);
+    
     // 建立階層節點映射
     const nodeMap = new Map<string, AccountHierarchyNode>();
     
     // 初始化所有節點
     accounts.forEach(account => {
+      console.log(`📝 處理科目: ${account.name}`, {
+        hasChildren: !!(account.children && account.children.length > 0),
+        childrenCount: account.children?.length || 0,
+        childrenNames: account.children?.map((child: any) => child.name) || []
+      });
+      
       const node: AccountHierarchyNode = {
         ...account,
-        children: account.children ? this.buildAccountHierarchy(account.children, baseLevel + 1) : [],
-        level: baseLevel, // 使用基礎層級
+        children: [],
+        level: baseLevel,
         hasChildren: false,
         isExpanded: false,
         path: [],
@@ -178,10 +254,16 @@ export class AccountHierarchyService {
         permissions: this.calculatePermissions(account)
       };
       
-      // 如果已經有 children 資料（來自 API），直接使用
-      if (account.children && Array.isArray(account.children)) {
+      // 遞歸處理子科目
+      if (account.children && Array.isArray(account.children) && account.children.length > 0) {
         node.children = this.buildAccountHierarchy(account.children, baseLevel + 1);
-        node.hasChildren = node.children.length > 0;
+        node.hasChildren = true;
+        
+        console.log(`✅ 科目 "${account.name}" 處理完成:`, {
+          子科目數: node.children.length,
+          hasChildren: node.hasChildren,
+          子科目名稱: node.children.map(child => child.name)
+        });
       }
       
       nodeMap.set(account._id, node);
@@ -229,8 +311,18 @@ export class AccountHierarchyService {
       
       return rootNodes;
     } else {
-      // 已經有預建的階層結構，直接返回根節點
-      const rootNodes = Array.from(nodeMap.values()).filter(node => !node.parentId);
+      // 已經有預建的階層結構，直接返回所有根節點
+      const rootNodes = Array.from(nodeMap.values());
+      
+      console.log('📋 buildAccountHierarchy 預建階層結構處理完成:', {
+        根節點數: rootNodes.length,
+        根節點詳情: rootNodes.map(node => ({
+          名稱: node.name,
+          hasChildren: node.hasChildren,
+          子科目數: node.children.length,
+          子科目名稱: node.children.map(child => child.name)
+        }))
+      });
       
       // 設定展開狀態
       const setExpandedState = (nodes: AccountHierarchyNode[]) => {
@@ -245,6 +337,11 @@ export class AccountHierarchyService {
 
       // 排序節點
       this.sortHierarchyNodes(rootNodes);
+      
+      console.log('✅ buildAccountHierarchy 最終返回:', {
+        根節點數: rootNodes.length,
+        根節點名稱: rootNodes.map(node => node.name)
+      });
       
       return rootNodes;
     }
@@ -287,14 +384,36 @@ export class AccountHierarchyService {
    * 過濾階層節點
    */
   public filterHierarchy(
-    nodes: AccountHierarchyNode[], 
+    nodes: AccountHierarchyNode[],
     filter: AccountHierarchyFilter
   ): AccountHierarchyNode[] {
-    return nodes.filter(node => this.matchesFilter(node, filter))
+    console.log('🔧 AccountHierarchyService.filterHierarchy 開始過濾:', {
+      節點數: nodes.length,
+      過濾條件: filter
+    });
+    
+    // 如果沒有過濾條件，返回所有節點
+    if (!filter || Object.keys(filter).length === 0) {
+      console.log('✅ 無過濾條件，返回所有節點');
+      return nodes;
+    }
+    
+    const results = nodes.filter(node => this.matchesFilter(node, filter))
       .map(node => ({
         ...node,
         children: this.filterHierarchy(node.children, filter)
       }));
+    
+    console.log('✅ 過濾完成，結果數量:', results.length);
+    results.forEach(result => {
+      console.log('📋 過濾結果:', {
+        名稱: result.name,
+        子科目數: result.children.length,
+        子科目名稱: result.children.map(child => child.name)
+      });
+    });
+    
+    return results;
   }
 
   /**
@@ -507,6 +626,18 @@ export class AccountHierarchyService {
     searchText: string,
     searchFields: ('code' | 'name' | 'description')[] = ['code', 'name']
   ): AccountHierarchyNode[] {
+    console.log('🔍 AccountHierarchyService.searchHierarchy 開始搜尋:', {
+      節點數: nodes.length,
+      搜尋文字: searchText,
+      搜尋欄位: searchFields
+    });
+    
+    // 如果沒有搜尋文字，返回所有節點
+    if (!searchText.trim()) {
+      console.log('✅ 無搜尋文字，返回所有節點');
+      return nodes;
+    }
+    
     const results: AccountHierarchyNode[] = [];
     const searchLower = searchText.toLowerCase();
 
@@ -519,17 +650,45 @@ export class AccountHierarchyService {
         });
 
         if (matches) {
-          results.push(node);
-        }
-
-        // 遞歸搜尋子節點
-        if (node.children.length > 0) {
-          searchRecursive(node.children);
+          // 匹配的節點保留完整的子科目結構
+          const matchedNode = {
+            ...node,
+            children: [...node.children] // 保留所有子科目
+          };
+          results.push(matchedNode);
+          
+          console.log('🎯 找到匹配節點:', {
+            名稱: node.name,
+            代碼: node.code,
+            子科目數: node.children.length,
+            子科目名稱: node.children.map(child => child.name)
+          });
+        } else {
+          // 即使當前節點不匹配，也要檢查子節點
+          const matchingChildren = this.searchHierarchy(node.children, searchText, searchFields);
+          if (matchingChildren.length > 0) {
+            // 如果有子節點匹配，包含父節點但只保留匹配的子節點
+            const nodeWithMatchingChildren = {
+              ...node,
+              children: matchingChildren
+            };
+            results.push(nodeWithMatchingChildren);
+          }
         }
       });
     };
 
     searchRecursive(nodes);
+    
+    console.log('✅ 搜尋完成，結果數量:', results.length);
+    results.forEach(result => {
+      console.log('📋 搜尋結果:', {
+        名稱: result.name,
+        子科目數: result.children.length,
+        子科目名稱: result.children.map(child => child.name)
+      });
+    });
+    
     return results;
   }
 

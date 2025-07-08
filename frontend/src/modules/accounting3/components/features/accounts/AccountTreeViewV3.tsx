@@ -84,14 +84,14 @@ const NodeActions = styled(Box)(({ theme }) => ({
 
 const AccountCode = styled(Typography)(({ theme }) => ({
   fontFamily: 'monospace',
-  fontSize: '0.75rem',
+  fontSize: '0.875rem', // 增大字體
   color: theme.palette.text.secondary,
   minWidth: 80,
   textAlign: 'left',
 }));
 
 const AccountName = styled(Typography)({
-  fontSize: '0.875rem',
+  fontSize: '1rem', // 增大字體
   fontWeight: 500,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -99,10 +99,10 @@ const AccountName = styled(Typography)({
 });
 
 const AccountType = styled(Chip)(({ theme }) => ({
-  height: 20,
-  fontSize: '0.625rem',
+  height: 24, // 增大高度
+  fontSize: '0.75rem', // 增大字體
   '& .MuiChip-label': {
-    padding: '0 6px',
+    padding: '0 8px', // 增大內邊距
   },
 }));
 
@@ -145,13 +145,25 @@ const NodeIcon: React.FC<{ node: AccountHierarchyNode; isExpanded: boolean }> = 
 NodeIcon.displayName = 'NodeIcon';
 
 // 展開/收合圖示組件
-const ExpandIcon: React.FC<{ 
-  hasChildren: boolean; 
-  isExpanded: boolean; 
+const ExpandIcon: React.FC<{
+  node: AccountHierarchyNode;
+  isExpanded: boolean;
   onClick: () => void;
-}> = memo(({ hasChildren, isExpanded, onClick }) => {
-  if (!hasChildren) {
-    return <Box width={24} />; // 佔位符
+}> = memo(({ node, isExpanded, onClick }) => {
+  // 嚴格檢查是否有子科目 - 同時檢查 hasChildren 屬性和 children 陣列
+  const hasRealChildren = (node.hasChildren === true) ||
+                          (node.children && Array.isArray(node.children) && node.children.length > 0);
+  
+  console.log(`🔍 ExpandIcon 檢查 "${node.name}":`, {
+    hasChildren: node.hasChildren,
+    childrenArray: node.children,
+    childrenLength: node.children?.length || 0,
+    hasRealChildren,
+    最終判斷: hasRealChildren ? '顯示展開按鈕' : '不顯示展開按鈕'
+  });
+
+  if (!hasRealChildren) {
+    return <Box width={24} />; // 佔位符，不顯示展開按鈕
   }
 
   return (
@@ -224,9 +236,21 @@ const NodeLabel: React.FC<{
           />
         )}
         {renderConfig.showNodeBalances && node.statistics && (
-          <Typography variant="caption" color="text.secondary">
-            餘額: {node.statistics.balance.toLocaleString()}
-          </Typography>
+          <Box display="flex" flexDirection="column" alignItems="flex-end" ml={1}>
+            <Typography variant="caption" color="text.secondary">
+              自身: {node.statistics.balance?.toLocaleString() || '0'}
+            </Typography>
+            {node.statistics.totalBalance !== node.statistics.balance && (
+              <Typography variant="caption" color="primary.main" fontWeight="bold">
+                含子科目: {node.statistics.totalBalance?.toLocaleString() || '0'}
+              </Typography>
+            )}
+            {node.statistics.childCount > 0 && (
+              <Typography variant="caption" color="text.disabled" fontSize="0.7rem">
+                {node.statistics.childCount}個子科目
+              </Typography>
+            )}
+          </Box>
         )}
       </NodeInfo>
       
@@ -369,7 +393,7 @@ const TreeNode: React.FC<{
         >
           <Box display="flex" alignItems="center">
             <ExpandIcon
-              hasChildren={node.hasChildren}
+              node={node}
               isExpanded={isExpanded}
               onClick={handleToggle}
             />
