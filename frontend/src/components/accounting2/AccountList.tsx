@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -32,7 +32,7 @@ import {
 } from '@mui/icons-material';
 import { Account2, ACCOUNT_TYPES } from '@pharmacy-pos/shared/types/accounting2';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import { accountApiClient } from './core/api-clients';
+import { accountApiClient, useErrorHandler, useNotification } from './core';
 import { useAccountStore } from './stores/useAccountStore';
 import organizationService from '../../services/organizationService';
 import AccountForm from './AccountForm';
@@ -47,6 +47,10 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
   // 整合狀態管理
   const { accounts: storeAccounts, loadAccounts: loadAccountsFromStore } = useAccountStore();
   
+  // 錯誤處理和通知
+  const { handleError, clearError } = useErrorHandler();
+  const { showSuccess, showError } = useNotification();
+  
   const [accounts, setAccounts] = useState<Account2[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +58,6 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
   const [selectedAccount, setSelectedAccount] = useState<Account2 | undefined>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<Account2 | null>(null);
-  const [error, setError] = useState<string>('');
   const [submitLoading, setSubmitLoading] = useState(false);
 
   useEffect(() => {
@@ -63,10 +66,11 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
     loadOrganizations();
   }, [organizationId, refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       console.log('開始載入帳戶列表 - organizationId:', organizationId);
       setLoading(true);
+      clearError();
       
       // 使用新的 AccountApiClient
       const response = await accountApiClient.getAccounts({ organizationId: organizationId || undefined });
@@ -80,18 +84,17 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
         await loadAccountsFromStore();
       } else {
         console.error('API 回應失敗:', response);
-        setError('載入帳戶列表失敗');
+        showError('載入帳戶列表失敗');
       }
     } catch (error) {
       console.error('載入帳戶列表錯誤:', error);
-      const errorMessage = error instanceof Error ? error.message : '載入帳戶列表失敗';
-      setError(errorMessage);
+      handleError(error, { operation: 'loadAccounts', organizationId });
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, clearError, showError, handleError, loadAccountsFromStore]);
 
-  const loadOrganizations = async () => {
+  const loadOrganizations = useCallback(async () => {
     try {
       const response = await organizationService.getOrganizations();
       if (response.success) {
@@ -99,8 +102,9 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
       }
     } catch (error) {
       console.error('載入機構列表錯誤:', error);
+      handleError(error, { operation: 'loadOrganizations' });
     }
-  };
+  }, [handleError]);
 
   const handleCreate = () => {
     setSelectedAccount(undefined);
@@ -118,7 +122,7 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (!accountToDelete) return;
 
     try {
@@ -130,47 +134,56 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
         await loadAccounts();
         setDeleteDialogOpen(false);
         setAccountToDelete(null);
+        showSuccess(`帳戶「${accountToDelete.name}」已成功刪除`);
       } else {
-        setError('刪除帳戶失敗');
+        showError('刪除帳戶失敗');
       }
     } catch (error) {
       console.error('刪除帳戶錯誤:', error);
-      const errorMessage = error instanceof Error ? error.message : '刪除帳戶失敗';
-      setError(errorMessage);
+      handleError(error, {
+        operation: 'deleteAccount',
+        accountId: accountToDelete._id,
+        accountName: accountToDelete.name
+      });
     } finally {
       setSubmitLoading(false);
     }
-  };
+  }, [accountToDelete, loadAccounts, showSuccess, showError, handleError]);
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = useCallback(async (formData: any) => {
     try {
       setSubmitLoading(true);
       
       // 使用新的 AccountApiClient 進行更新或創建
       if (selectedAccount) {
         await accountApiClient.updateAccount(selectedAccount._id, formData);
+        showSuccess(`帳戶「${formData.name || selectedAccount.name}」已成功更新`);
       } else {
         await accountApiClient.createAccount(formData);
+        showSuccess(`帳戶「${formData.name}」已成功建立`);
       }
       
       await loadAccounts();
       setFormOpen(false);
-      setSelectedAccount(null);
+      setSelectedAccount(undefined);
     } catch (error) {
       console.error('提交表單錯誤:', error);
-      const errorMessage = error instanceof Error ? error.message : '提交表單失敗';
-      setError(errorMessage);
+      handleError(error, {
+        operation: selectedAccount ? 'updateAccount' : 'createAccount',
+        accountData: formData
+      });
     } finally {
       setSubmitLoading(false);
     }
-  };
+  }, [selectedAccount, loadAccounts, showSuccess, handleError]);
 
-  const getAccountTypeLabel = (type: string) => {
+  // 使用 useMemo 優化計算
+  const getAccountTypeLabel = useCallback((type: string) => {
     const accountType = ACCOUNT_TYPES.find(t => t.value === type);
     return accountType ? accountType.label : type;
-  };
+  }, []);
 
-  const getAccountTypeColor = (type: string) => {
+  const getAccountTypeColor = useCallback((type: string) => {
     const colors: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
       cash: 'success',
       bank: 'primary',
@@ -179,11 +192,21 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
       other: 'default'
     };
     return colors[type] || 'default';
-  };
+  }, []);
 
-  const formatBalance = (balance: number, currency: string) => {
+  const formatBalance = useCallback((balance: number, currency: string) => {
     return `${currency} ${balance.toLocaleString()}`;
-  };
+  }, []);
+
+  // 計算統計資料
+  const accountStats = useMemo(() => {
+    const totalCount = accounts.length;
+    const twdBalance = accounts
+      .filter(acc => acc.currency === 'TWD')
+      .reduce((sum, acc) => sum + acc.balance, 0);
+    
+    return { totalCount, twdBalance };
+  }, [accounts]);
 
   if (loading) {
     return (
@@ -209,13 +232,6 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
         </Button>
       </Box>
 
-      {/* 錯誤訊息 */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
-      )}
-
       {/* 帳戶統計卡片 */}
       <Box display="flex" gap={2} mb={3}>
         <Card sx={{ flex: 1 }}>
@@ -224,7 +240,7 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
               總帳戶數
             </Typography>
             <Typography variant="h4">
-              {accounts.length}
+              {accountStats.totalCount}
             </Typography>
           </CardContent>
         </Card>
@@ -234,10 +250,7 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
               總餘額 (TWD)
             </Typography>
             <Typography variant="h4">
-              {accounts
-                .filter(acc => acc.currency === 'TWD')
-                .reduce((sum, acc) => sum + acc.balance, 0)
-                .toLocaleString()}
+              {accountStats.twdBalance.toLocaleString()}
             </Typography>
           </CardContent>
         </Card>
@@ -371,4 +384,5 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
   );
 };
 
-export default AccountList;
+// 使用 React.memo 優化組件重新渲染
+export default React.memo(AccountList);

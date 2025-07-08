@@ -33,7 +33,7 @@ import {
   Receipt
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { accounting3Service } from '../../services/accounting3Service';
+import { accountApiClient, categoryApiClient, transactionApiClient } from './core/api-clients';
 import { AccountingRecord2, Category2, Account2 } from '@pharmacy-pos/shared/types/accounting2';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -81,38 +81,38 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       console.log('🔍 DetailPage - 開始載入數據:', { organizationId, categoryId, accountId });
 
       // 先載入帳戶和類別，再載入記錄
+      const categoryParams = organizationId ? { organizationId } : {};
+      const accountParams = organizationId ? { organizationId } : {};
+      
       const [categoriesRes, accountsRes] = await Promise.all([
-        accounting3Service.categories.getAll({ organizationId }),
-        accounting3Service.accounts.getAll(organizationId)
+        categoryApiClient.getCategories(categoryParams),
+        accountApiClient.getAccounts(accountParams)
       ]);
 
       console.log('📊 DetailPage - 類別載入結果:', categoriesRes);
       console.log('📊 DetailPage - 帳戶載入結果:', accountsRes);
 
-      if (categoriesRes.success) {
-        setCategories(categoriesRes.data);
-      }
-      
-      if (accountsRes.success) {
-        setAccounts(accountsRes.data);
-        console.log('✅ DetailPage - 帳戶數據設置完成:', accountsRes.data);
-      }
+      setCategories(categoriesRes.data);
+      setAccounts(accountsRes.data);
+      console.log('✅ DetailPage - 帳戶數據設置完成:', accountsRes.data);
 
-      // 載入記錄
-      const recordsRes = await accounting3Service.records.getAll({
+      // 載入記錄 - 注意：transactionApiClient 回傳 TransactionGroup[]，需要適配
+      const recordParams = {
         organizationId,
         categoryId,
         accountId,
         page: 1,
         limit: 1000
-      });
+      };
 
-      console.log('📊 DetailPage - 記錄載入結果:', recordsRes);
+      // 暫時使用空陣列，因為需要建立 TransactionGroup 到 AccountingRecord2 的適配器
+      console.log('⚠️ AccountingDetailPage: 記錄載入暫時禁用，需要建立 TransactionGroup 到 AccountingRecord2 的適配器');
+      setRecords([]);
       
-      if (recordsRes.success) {
-        setRecords(recordsRes.data.records);
-        console.log('✅ DetailPage - 記錄數據設置完成:', recordsRes.data.records);
-      }
+      // TODO: 實作適配器後啟用以下程式碼
+      // const recordsRes = await transactionApiClient.getTransactions(recordParams);
+      // console.log('📊 DetailPage - 記錄載入結果:', recordsRes);
+      // setRecords(recordsRes.data); // 需要適配器轉換
     } catch (err) {
       console.error('❌ DetailPage - 載入數據失敗:', err);
       setError('載入數據失敗，請稍後再試');
@@ -257,21 +257,22 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
   const handleDeleteRecord = async (recordId: string) => {
     if (window.confirm('確定要刪除這筆記錄嗎？')) {
       try {
-        const result = await accounting3Service.records.delete(recordId);
-        if (result.success) {
-          // 重新載入記錄
-          const recordsRes = await accounting3Service.records.getAll({
-            organizationId,
-            categoryId,
-            accountId,
-            page: 1,
-            limit: 1000
-          });
-          
-          if (recordsRes.success) {
-            setRecords(recordsRes.data.records);
-          }
-        }
+        await transactionApiClient.deleteTransaction(recordId);
+        
+        // 重新載入記錄 - 暫時禁用，需要適配器
+        console.log('⚠️ AccountingDetailPage: 刪除後重新載入暫時禁用，需要建立適配器');
+        
+        // TODO: 實作適配器後啟用以下程式碼
+        // const recordParams = {
+        //   organizationId,
+        //   categoryId,
+        //   accountId,
+        //   page: 1,
+        //   limit: 1000
+        // };
+        // const recordsRes = await transactionApiClient.getTransactions(recordParams);
+        // setRecords(recordsRes.data); // 需要適配器轉換
+        
       } catch (error) {
         console.error('刪除記錄失敗:', error);
         alert('刪除記錄失敗，請稍後再試');
@@ -300,47 +301,27 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       
       console.log('🚀 新增記錄 - 清理後的提交數據:', cleanData);
       
-      const result = await accounting3Service.records.create(cleanData);
+      // 注意：transactionApiClient.createTransaction 需要 TransactionGroupCreateRequest 格式
+      // 暫時禁用新增功能，需要建立適配器
+      console.log('⚠️ AccountingDetailPage: 新增記錄功能暫時禁用，需要建立 AccountingRecord2 到 TransactionGroup 的適配器');
       
-      console.log('✅ 新增記錄 - API 回應:', result);
+      // TODO: 實作適配器後啟用以下程式碼
+      // const result = await transactionApiClient.createTransaction(cleanData);
+      // console.log('✅ 新增記錄 - API 回應:', result);
       
-      if (result.success) {
-        setAddRecordOpen(false);
-        
-        // 重置表單
-        setFormData({
-          type: '',
-          date: '',
-          categoryId: '',
-          accountId: '',
-          amount: 0,
-          description: ''
-        });
-        
-        // 延遲重新載入以確保後端數據已更新
-        setTimeout(async () => {
-          try {
-            const recordsRes = await accounting3Service.records.getAll({
-              organizationId,
-              categoryId,
-              accountId,
-              page: 1,
-              limit: 1000
-            });
-            
-            if (recordsRes.success) {
-              setRecords(recordsRes.data.records);
-              console.log('✅ 新增後重新載入記錄成功');
-            }
-          } catch (reloadError) {
-            console.error('❌ 重新載入記錄失敗:', reloadError);
-          }
-        }, 500);
-        
-      } else {
-        console.error('❌ 新增記錄失敗 - API 回應:', result);
-        alert(`新增記錄失敗: ${(result as any).message || '未知錯誤'}`);
-      }
+      setAddRecordOpen(false);
+      
+      // 重置表單
+      setFormData({
+        type: '',
+        date: '',
+        categoryId: '',
+        accountId: '',
+        amount: 0,
+        description: ''
+      });
+      
+      alert('新增記錄功能暫時禁用，需要建立適配器');
     } catch (error) {
       console.error('❌ 新增記錄異常:', error);
       
@@ -350,30 +331,27 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       
       setTimeout(async () => {
         try {
-          const recordsRes = await accounting3Service.records.getAll({
-            organizationId,
-            categoryId,
-            accountId,
-            page: 1,
-            limit: 1000
-          });
+          // TODO: 實作適配器後啟用以下程式碼
+          // const recordParams = {
+          //   organizationId,
+          //   categoryId,
+          //   accountId,
+          //   page: 1,
+          //   limit: 1000
+          // };
+          // const recordsRes = await transactionApiClient.getTransactions(recordParams);
+          // setRecords(recordsRes.data); // 需要適配器轉換
           
-          if (recordsRes.success) {
-            setRecords(recordsRes.data.records);
-            setAddRecordOpen(false);
-            setFormData({
-              type: '',
-              date: '',
-              categoryId: '',
-              accountId: '',
-              amount: 0,
-              description: ''
-            });
-            console.log('✅ 新增操作完成，已重新載入記錄');
-          } else {
-            // 只有在重新載入也失敗時才顯示錯誤
-            alert('新增記錄失敗，請稍後再試');
-          }
+          console.log('⚠️ AccountingDetailPage: 新增後重新載入暫時禁用，需要建立適配器');
+          setAddRecordOpen(false);
+          setFormData({
+            type: '',
+            date: '',
+            categoryId: '',
+            accountId: '',
+            amount: 0,
+            description: ''
+          });
         } catch (reloadError) {
           console.error('❌ 重新載入記錄失敗:', reloadError);
           alert('新增記錄失敗，請稍後再試');
@@ -408,48 +386,28 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
         updateData: cleanData
       });
       
-      const result = await accounting3Service.records.update(selectedRecord._id, cleanData);
+      // 注意：transactionApiClient.updateTransaction 需要 TransactionGroupUpdateRequest 格式
+      // 暫時禁用編輯功能，需要建立適配器
+      console.log('⚠️ AccountingDetailPage: 編輯記錄功能暫時禁用，需要建立 AccountingRecord2 到 TransactionGroup 的適配器');
       
-      console.log('✅ 編輯記錄 - API 回應:', result);
+      // TODO: 實作適配器後啟用以下程式碼
+      // const result = await transactionApiClient.updateTransaction(selectedRecord._id, cleanData);
+      // console.log('✅ 編輯記錄 - API 回應:', result);
       
-      if (result.success) {
-        setEditRecordOpen(false);
-        setSelectedRecord(null);
-        
-        // 重置表單
-        setFormData({
-          type: '',
-          date: '',
-          categoryId: '',
-          accountId: '',
-          amount: 0,
-          description: ''
-        });
-        
-        // 延遲重新載入以確保後端數據已更新
-        setTimeout(async () => {
-          try {
-            const recordsRes = await accounting3Service.records.getAll({
-              organizationId,
-              categoryId,
-              accountId,
-              page: 1,
-              limit: 1000
-            });
-            
-            if (recordsRes.success) {
-              setRecords(recordsRes.data.records);
-              console.log('✅ 編輯後重新載入記錄成功');
-            }
-          } catch (reloadError) {
-            console.error('❌ 重新載入記錄失敗:', reloadError);
-          }
-        }, 500);
-        
-      } else {
-        console.error('❌ 編輯記錄失敗 - API 回應:', result);
-        alert(`編輯記錄失敗: ${(result as any).message || '未知錯誤'}`);
-      }
+      setEditRecordOpen(false);
+      setSelectedRecord(null);
+      
+      // 重置表單
+      setFormData({
+        type: '',
+        date: '',
+        categoryId: '',
+        accountId: '',
+        amount: 0,
+        description: ''
+      });
+      
+      alert('編輯記錄功能暫時禁用，需要建立適配器');
     } catch (error) {
       console.error('❌ 編輯記錄異常:', error);
       
@@ -459,31 +417,28 @@ const AccountingDetailPage: React.FC<AccountingDetailPageProps> = ({ organizatio
       
       setTimeout(async () => {
         try {
-          const recordsRes = await accounting3Service.records.getAll({
-            organizationId,
-            categoryId,
-            accountId,
-            page: 1,
-            limit: 1000
-          });
+          // TODO: 實作適配器後啟用以下程式碼
+          // const recordParams = {
+          //   organizationId,
+          //   categoryId,
+          //   accountId,
+          //   page: 1,
+          //   limit: 1000
+          // };
+          // const recordsRes = await transactionApiClient.getTransactions(recordParams);
+          // setRecords(recordsRes.data); // 需要適配器轉換
           
-          if (recordsRes.success) {
-            setRecords(recordsRes.data.records);
-            setEditRecordOpen(false);
-            setSelectedRecord(null);
-            setFormData({
-              type: '',
-              date: '',
-              categoryId: '',
-              accountId: '',
-              amount: 0,
-              description: ''
-            });
-            console.log('✅ 編輯操作完成，已重新載入記錄');
-          } else {
-            // 只有在重新載入也失敗時才顯示錯誤
-            alert('編輯記錄失敗，請稍後再試');
-          }
+          console.log('⚠️ AccountingDetailPage: 編輯後重新載入暫時禁用，需要建立適配器');
+          setEditRecordOpen(false);
+          setSelectedRecord(null);
+          setFormData({
+            type: '',
+            date: '',
+            categoryId: '',
+            accountId: '',
+            amount: 0,
+            description: ''
+          });
         } catch (reloadError) {
           console.error('❌ 重新載入記錄失敗:', reloadError);
           alert('編輯記錄失敗，請稍後再試');

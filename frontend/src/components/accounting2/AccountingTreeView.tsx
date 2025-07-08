@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { Account2, Category2, AccountingRecord2 } from '@pharmacy-pos/shared/types/accounting2';
-import { accounting3Service } from '../../services/accounting3Service';
+import { accountApiClient, transactionApiClient, categoryApiClient } from './core/api-clients';
 
 interface AccountingTreeViewProps {
   selectedOrganizationId: string | null;
@@ -83,19 +83,27 @@ const AccountingTreeView: React.FC<AccountingTreeViewProps> = ({
   const loadData = async () => {
     setLoading(true);
     try {
+      const accountParams = selectedOrganizationId ? { organizationId: selectedOrganizationId } : {};
+      const categoryParams = selectedOrganizationId ? { organizationId: selectedOrganizationId } : {};
+      const recordParams = {
+        organizationId: selectedOrganizationId,
+        page: 1,
+        limit: 1000 // 載入所有記錄用於計算總額
+      };
+
       const [accountsRes, categoriesRes, recordsRes] = await Promise.all([
-        accounting3Service.accounts.getAll(selectedOrganizationId),
-        accounting3Service.categories.getAll({ organizationId: selectedOrganizationId }),
-        accounting3Service.records.getAll({
-          organizationId: selectedOrganizationId,
-          page: 1,
-          limit: 1000 // 載入所有記錄用於計算總額
-        })
+        accountApiClient.getAccounts(accountParams),
+        categoryApiClient.getCategories(categoryParams),
+        transactionApiClient.getTransactions(recordParams)
       ]);
 
-      if (accountsRes.success) setAccounts(accountsRes.data);
-      if (categoriesRes.success) setCategories(categoriesRes.data);
-      if (recordsRes.success) setRecords(recordsRes.data.records);
+      setAccounts(accountsRes.data);
+      setCategories(categoriesRes.data);
+      // 注意：transactionApiClient 回傳的是 TransactionGroup[]，但此組件需要 AccountingRecord2[]
+      // 暫時使用空陣列，後續需要建立適配器或使用不同的 API
+      setRecords([]);
+      
+      console.log('⚠️ AccountingTreeView: 記錄載入暫時禁用，需要建立 TransactionGroup 到 AccountingRecord2 的適配器');
     } catch (error) {
       console.error('載入資料失敗:', error);
     } finally {
