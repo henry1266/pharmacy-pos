@@ -31,10 +31,10 @@ import {
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 
 // 導入內嵌分錄組件
-import { DoubleEntryFormWithEntries } from '../components/accounting2/DoubleEntryFormWithEntries';
-import { TransactionGroupFormWithEntries } from '../components/accounting2/TransactionGroupFormWithEntries';
-import DoubleEntryDetailPageWithEntries from '../components/accounting2/DoubleEntryDetailPageWithEntries';
-import { AccountingDataGridWithEntries } from '../components/accounting2/AccountingDataGridWithEntries';
+import { DoubleEntryFormWithEntries } from '../modules/accounting2/components/features/transactions/DoubleEntryFormWithEntries';
+import { TransactionGroupFormWithEntries } from '../modules/accounting2/components/features/transactions/TransactionGroupFormWithEntries';
+import DoubleEntryDetailPageWithEntries from '../modules/accounting2/components/features/transactions/DoubleEntryDetailPageWithEntries';
+import { AccountingDataGridWithEntries } from '../modules/accounting2/components/ui/AccountingDataGridWithEntries';
 
 // 導入內嵌分錄 Redux actions
 import {

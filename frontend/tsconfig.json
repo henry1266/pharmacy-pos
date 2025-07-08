@@ -20,8 +20,14 @@
       "@utils/*": ["./utils/*"],
       "@types/*": ["./types/*"],
       "@redux/*": ["./redux/*"],
-      "@shared/*": ["../../shared/*"],
-      "@shared": ["../../shared"]
+      "@accounting2/*": ["./modules/accounting2/*"],
+      "@accounting2/components/*": ["./modules/accounting2/components/*"],
+      "@accounting2/pages/*": ["./modules/accounting2/components/pages/*"],
+      "@accounting2/features/*": ["./modules/accounting2/components/features/*"],
+      "@accounting2/ui/*": ["./modules/accounting2/components/ui/*"],
+      "@accounting2/core/*": ["./modules/accounting2/core/*"],
+      "@accounting2/types/*": ["./modules/accounting2/types/*"],
+      "@accounting2/utils/*": ["./modules/accounting2/utils/*"]
     },
     
     /* React 開發設定 */

@@ -19,6 +19,20 @@ module.exports = {
         alias: {
           ...webpackConfig.resolve.alias,
           '@': path.resolve(__dirname, 'src'),
+          '@components': path.resolve(__dirname, 'src/components'),
+          '@pages': path.resolve(__dirname, 'src/pages'),
+          '@services': path.resolve(__dirname, 'src/services'),
+          '@utils': path.resolve(__dirname, 'src/utils'),
+          '@types': path.resolve(__dirname, 'src/types'),
+          '@redux': path.resolve(__dirname, 'src/redux'),
+          '@accounting2': path.resolve(__dirname, 'src/modules/accounting2'),
+          '@accounting2/components': path.resolve(__dirname, 'src/modules/accounting2/components'),
+          '@accounting2/pages': path.resolve(__dirname, 'src/modules/accounting2/components/pages'),
+          '@accounting2/features': path.resolve(__dirname, 'src/modules/accounting2/components/features'),
+          '@accounting2/ui': path.resolve(__dirname, 'src/modules/accounting2/components/ui'),
+          '@accounting2/core': path.resolve(__dirname, 'src/modules/accounting2/core'),
+          '@accounting2/types': path.resolve(__dirname, 'src/modules/accounting2/types'),
+          '@accounting2/utils': path.resolve(__dirname, 'src/modules/accounting2/utils'),
           '@pharmacy-pos/shared': path.resolve(__dirname, '../shared')
         }
       };

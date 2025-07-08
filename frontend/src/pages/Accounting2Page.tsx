@@ -16,8 +16,8 @@ import {
   AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
-import { TransactionGroupForm } from '../components/accounting2/TransactionGroupForm';
-import AccountManagement from '../components/accounting2/AccountManagement';
+import { TransactionGroupForm } from '../modules/accounting2/components/features/transactions/TransactionGroupForm';
+import AccountManagement from '../modules/accounting2/components/features/accounts/AccountManagement';
 import {
   fetchTransactionGroups2,
   createTransactionGroup2,

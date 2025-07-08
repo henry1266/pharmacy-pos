@@ -30,7 +30,7 @@ import {
   Category
 } from '@mui/icons-material';
 import { RootState } from '../redux/store';
-import { default as DoubleEntryDetailPage } from '../components/accounting2/DoubleEntryDetailPage';
+import { default as DoubleEntryDetailPage } from '../modules/accounting2/components/features/transactions/DoubleEntryDetailPage';
 
 const AccountingDetailPageWrapper: React.FC = () => {
   const { organizationId, accountType, categoryId, accountId } = useParams<{

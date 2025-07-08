@@ -3,146 +3,65 @@
  */
 
 /**
- * 格式化貨幣顯示
- * @param amount 金額
- * @param currency 貨幣符號，預設為 NT$
- * @returns 格式化後的貨幣字串
+ * 格式化金額顯示
  */
-export const formatCurrency = (amount: number, currency: string = 'NT$'): string => {
-  if (isNaN(amount)) return `${currency} 0`;
-  
-  return `${currency} ${amount.toLocaleString('zh-TW', {
+export const formatCurrency = (amount: number, currency = 'TWD'): string => {
+  return new Intl.NumberFormat('zh-TW', {
+    style: 'currency',
+    currency,
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-  })}`;
+    maximumFractionDigits: 2,
+  }).format(amount);
 };
 
 /**
- * 格式化日期顯示
- * @param date 日期
- * @param format 格式類型
- * @returns 格式化後的日期字串
+ * 格式化數字（千分位）
  */
-export const formatDate = (
-  date: string | Date, 
-  format: 'short' | 'long' | 'datetime' = 'short'
-): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  if (isNaN(dateObj.getTime())) return '無效日期';
+export const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('zh-TW').format(num);
+};
+
+/**
+ * 格式化日期
+ */
+export const formatDate = (date: Date | string, format = 'YYYY-MM-DD'): string => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
   
   switch (format) {
-    case 'short':
-      return dateObj.toLocaleDateString('zh-TW');
-    case 'long':
-      return dateObj.toLocaleDateString('zh-TW', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long'
-      });
-    case 'datetime':
-      return dateObj.toLocaleString('zh-TW');
+    case 'YYYY-MM-DD':
+      return `${year}-${month}-${day}`;
+    case 'YYYY/MM/DD':
+      return `${year}/${month}/${day}`;
+    case 'MM/DD':
+      return `${month}/${day}`;
     default:
-      return dateObj.toLocaleDateString('zh-TW');
+      return `${year}-${month}-${day}`;
   }
 };
 
 /**
- * 格式化數字顯示
- * @param num 數字
- * @param decimals 小數位數
- * @returns 格式化後的數字字串
+ * 格式化時間
  */
-export const formatNumber = (num: number, decimals: number = 0): string => {
-  if (isNaN(num)) return '0';
-  
-  return num.toLocaleString('zh-TW', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  });
+export const formatTime = (date: Date | string): string => {
+  const d = new Date(date);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 };
 
 /**
- * 格式化百分比顯示
- * @param value 數值 (0-1 之間)
- * @param decimals 小數位數
- * @returns 格式化後的百分比字串
+ * 格式化日期時間
  */
-export const formatPercentage = (value: number, decimals: number = 1): string => {
-  if (isNaN(value)) return '0%';
-  
+export const formatDateTime = (date: Date | string): string => {
+  return `${formatDate(date)} ${formatTime(date)}`;
+};
+
+/**
+ * 格式化百分比
+ */
+export const formatPercentage = (value: number, decimals = 2): string => {
   return `${(value * 100).toFixed(decimals)}%`;
-};
-
-/**
- * 格式化檔案大小顯示
- * @param bytes 位元組數
- * @returns 格式化後的檔案大小字串
- */
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-};
-
-/**
- * 截斷文字並添加省略號
- * @param text 原始文字
- * @param maxLength 最大長度
- * @returns 截斷後的文字
- */
-export const truncateText = (text: string, maxLength: number): string => {
-  if (!text || text.length <= maxLength) return text;
-  
-  return `${text.substring(0, maxLength)}...`;
-};
-
-/**
- * 格式化電話號碼
- * @param phone 電話號碼
- * @returns 格式化後的電話號碼
- */
-export const formatPhone = (phone: string): string => {
-  if (!phone) return '';
-  
-  // 移除所有非數字字符
-  const cleaned = phone.replace(/\D/g, '');
-  
-  // 台灣手機號碼格式 (09XX-XXX-XXX)
-  if (cleaned.length === 10 && cleaned.startsWith('09')) {
-    return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
-  }
-  
-  // 台灣市話格式 (0X-XXXX-XXXX)
-  if (cleaned.length === 9 || cleaned.length === 10) {
-    if (cleaned.length === 9) {
-      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
-    } else {
-      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
-    }
-  }
-  
-  return phone; // 如果不符合格式，返回原始值
-};
-
-/**
- * 格式化統一編號
- * @param taxId 統一編號
- * @returns 格式化後的統一編號
- */
-export const formatTaxId = (taxId: string): string => {
-  if (!taxId) return '';
-  
-  const cleaned = taxId.replace(/\D/g, '');
-  
-  if (cleaned.length === 8) {
-    return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
-  }
-  
-  return taxId;
 };

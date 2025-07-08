@@ -3,7 +3,7 @@
  * 統一處理交易資料轉換和驗證
  */
 
-import { TransactionGroupFormData, AccountingEntryFormData } from '../components/accounting2/TransactionGroupForm';
+import { TransactionGroupFormData, AccountingEntryFormData } from '../modules/accounting2/components/features/transactions/TransactionGroupForm';
 
 export interface BackendTransactionData {
   transactionGroup?: any;
