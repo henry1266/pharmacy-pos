@@ -237,11 +237,19 @@ const NodeLabel: React.FC<{
         )}
         {renderConfig.showNodeBalances && node.statistics && (
           <Box display="flex" flexDirection="column" alignItems="flex-end" ml={1}>
-            <Typography variant="caption" color="text.secondary">
-              自身: {node.statistics.balance?.toLocaleString() || '0'}
+            <Typography
+              variant="caption"
+              color={node.statistics.balance >= 0 ? "success.main" : "error.main"}
+              fontWeight="bold"
+            >
+              淨額: {node.statistics.balance?.toLocaleString() || '0'}
             </Typography>
             {node.statistics.totalBalance !== node.statistics.balance && (
-              <Typography variant="caption" color="primary.main" fontWeight="bold">
+              <Typography
+                variant="caption"
+                color={node.statistics.totalBalance >= 0 ? "primary.main" : "warning.main"}
+                fontWeight="bold"
+              >
                 含子科目: {node.statistics.totalBalance?.toLocaleString() || '0'}
               </Typography>
             )}

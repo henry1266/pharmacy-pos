@@ -22,6 +22,7 @@ import {
 
 // 導入 accounting3 階層管理組件
 import { AccountHierarchyManager } from '../modules/accounting3/components/features/accounts/AccountHierarchyManager';
+import { AccountTransactionList } from '../modules/accounting3/components/features/accounts/AccountTransactionList';
 
 // 導入 accounting2 科目表單組件
 import { AccountForm } from '../modules/accounting2/components/features/accounts/AccountForm';
@@ -55,6 +56,7 @@ export const AccountsManagementPage: React.FC = () => {
   const [accountFormOpen, setAccountFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account2 | null>(null);
   const [parentAccount, setParentAccount] = useState<Account2 | null>(null); // 父科目資訊
+  const [selectedAccount, setSelectedAccount] = useState<Account2 | null>(null); // 選中的科目
   const [formLoading, setFormLoading] = useState(false);
   const [hierarchyKey, setHierarchyKey] = useState(0); // 用於強制重新載入階層
   
@@ -87,7 +89,7 @@ export const AccountsManagementPage: React.FC = () => {
   // 處理科目選擇
   const handleAccountSelect = (account: Account2) => {
     console.log('選擇科目:', account);
-    // 可以導航到科目詳情頁面或執行其他操作
+    setSelectedAccount(account);
   };
 
   // 處理新增科目
@@ -218,20 +220,44 @@ export const AccountsManagementPage: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* 主要內容區域 */}
-      <Paper sx={{ height: 'calc(100vh - 200px)', minHeight: 600 }}>
-        <AccountHierarchyManager
-          key={hierarchyKey}
-          onAccountSelect={handleAccountSelect}
-          onAccountCreate={handleAccountCreateChild}
-          onAccountEdit={handleAccountEdit}
-          onAccountDelete={handleAccountDelete}
-          showToolbar={true}
-          showSearch={true}
-          showSettings={true}
-          height="100%"
-        />
-      </Paper>
+      {/* 主要內容區域 - 左右布局 */}
+      <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', minHeight: 600 }}>
+        {/* 左側：科目階層管理 */}
+        <Paper sx={{ width: '40%', minWidth: 400 }}>
+          <AccountHierarchyManager
+            key={hierarchyKey}
+            onAccountSelect={handleAccountSelect}
+            onAccountCreate={handleAccountCreateChild}
+            onAccountEdit={handleAccountEdit}
+            onAccountDelete={handleAccountDelete}
+            showToolbar={true}
+            showSearch={true}
+            showSettings={true}
+            height="100%"
+          />
+        </Paper>
+
+        {/* 右側：選中科目的交易內容 */}
+        <Box sx={{ width: '60%', minWidth: 500 }}>
+          <AccountTransactionList
+            selectedAccount={selectedAccount}
+            onTransactionView={(transaction) => {
+              console.log('查看交易:', transaction);
+              // 可以打開交易詳情對話框
+            }}
+            onTransactionEdit={(transaction) => {
+              console.log('編輯交易:', transaction);
+              // 導航到交易編輯頁面
+              navigate(`/accounting3/transaction/${transaction._id}/edit`);
+            }}
+            onAddTransaction={(accountId) => {
+              console.log('為科目新增交易:', accountId);
+              // 導航到新增交易頁面，並預設選中的科目
+              navigate(`/accounting3/new?defaultAccountId=${accountId}`);
+            }}
+          />
+        </Box>
+      </Box>
 
       {/* 右側固定按鈕 */}
       <Box

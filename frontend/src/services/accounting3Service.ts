@@ -374,11 +374,174 @@ export const recordsApi = {
   }
 };
 
+// 交易管理 API - 使用 accounting3 簡化路徑
+export const transactionsApi = {
+  // 獲取所有交易
+  getAll: async (filter?: {
+    accountId?: string;
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ success: boolean; data: any[]; total?: number }> => {
+    const response = await apiService.get('/api/accounting2/transaction-groups-with-entries', { params: filter });
+    return response.data;
+  },
+
+  // 獲取科目相關交易
+  getByAccount: async (accountId: string, filter?: {
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ success: boolean; data: any[]; total?: number }> => {
+    try {
+      console.log('🔍 getByAccount 開始查詢:', { accountId, filter });
+      
+      // 使用 transaction-groups-with-entries API
+      const params = {
+        ...filter,
+        page: filter?.page || 1,
+        limit: filter?.limit || 50
+      };
+      
+      const response = await apiService.get('/api/accounting2/transaction-groups-with-entries', { params });
+      
+      console.log('📡 API 回應:', {
+        status: response.status,
+        dataStructure: {
+          hasData: !!response.data,
+          dataKeys: response.data ? Object.keys(response.data) : [],
+          dataType: typeof response.data,
+          success: response.data?.success,
+          dataArray: Array.isArray(response.data?.data),
+          dataLength: response.data?.data?.length
+        }
+      });
+      
+      // 檢查回應結構
+      if (!response.data) {
+        console.warn('❌ API 回應無資料');
+        return { success: false, data: [] };
+      }
+      
+      // 處理不同的回應格式
+      let transactions: any[] = [];
+      
+      if (response.data.success && Array.isArray(response.data.data)) {
+        // 格式: { success: true, data: [...] }
+        console.log('📋 格式: success + data 陣列');
+        transactions = response.data.data;
+      } else if (response.data.success && response.data.data && typeof response.data.data === 'object') {
+        // 格式: { success: true, data: { ... } } - 檢查物件內部
+        console.log('📋 格式: success + data 物件，檢查內部結構:', response.data.data);
+        const dataObj = response.data.data;
+        
+        if (Array.isArray(dataObj.groups)) {
+          console.log('📋 找到 groups 陣列，長度:', dataObj.groups.length);
+          transactions = dataObj.groups;
+        } else if (Array.isArray(dataObj.transactionGroups)) {
+          console.log('📋 找到 transactionGroups 陣列，長度:', dataObj.transactionGroups.length);
+          transactions = dataObj.transactionGroups;
+        } else if (Array.isArray(dataObj.transactions)) {
+          console.log('📋 找到 transactions 陣列，長度:', dataObj.transactions.length);
+          transactions = dataObj.transactions;
+        } else if (Array.isArray(dataObj.entries)) {
+          console.log('📋 找到 entries 陣列，長度:', dataObj.entries.length);
+          transactions = dataObj.entries;
+        } else if (Array.isArray(dataObj.data)) {
+          console.log('📋 找到 data 陣列，長度:', dataObj.data.length);
+          transactions = dataObj.data;
+        } else {
+          console.log('❌ data 物件內找不到陣列屬性');
+          console.log('🔍 可用屬性:', Object.keys(dataObj));
+          console.log('🔍 屬性詳情:', dataObj);
+          return { success: false, data: [] };
+        }
+      } else if (Array.isArray(response.data)) {
+        // 格式: [...]
+        console.log('📋 格式: 直接陣列');
+        transactions = response.data;
+      } else if (response.data.transactionGroups && Array.isArray(response.data.transactionGroups)) {
+        // 格式: { transactionGroups: [...] }
+        console.log('📋 格式: transactionGroups 陣列');
+        transactions = response.data.transactionGroups;
+      } else {
+        console.warn('❌ 無法識別的 API 回應格式:', response.data);
+        console.log('🔍 回應資料類型:', typeof response.data);
+        console.log('🔍 回應資料鍵值:', response.data ? Object.keys(response.data) : 'null');
+        return { success: false, data: [] };
+      }
+      
+      console.log('📊 原始交易數量:', transactions.length);
+      
+      // 過濾包含指定科目的交易
+      const filteredTransactions = transactions.filter((transaction: any) => {
+        if (!transaction.entries || !Array.isArray(transaction.entries)) {
+          return false;
+        }
+        
+        return transaction.entries.some((entry: any) => {
+          const entryAccountId = typeof entry.accountId === 'string'
+            ? entry.accountId
+            : entry.accountId?._id;
+          return entryAccountId === accountId;
+        });
+      });
+      
+      console.log('✅ 過濾後交易數量:', filteredTransactions.length);
+      
+      return {
+        success: true,
+        data: filteredTransactions,
+        total: filteredTransactions.length
+      };
+      
+    } catch (error) {
+      console.error('❌ 獲取科目交易失敗:', error);
+      return { success: false, data: [] };
+    }
+  },
+
+  // 獲取單一交易
+  getById: async (id: string): Promise<{ success: boolean; data?: any }> => {
+    const response = await apiService.get(`/api/accounting2/transaction-groups-with-entries/${id}`);
+    return response.data;
+  },
+
+  // 新增交易
+  create: async (data: any): Promise<{ success: boolean; data?: any; message?: string }> => {
+    const response = await apiService.post('/api/accounting2/transaction-groups-with-entries', data);
+    return response.data;
+  },
+
+  // 更新交易
+  update: async (id: string, data: any): Promise<{ success: boolean; data?: any; message?: string }> => {
+    const response = await apiService.put(`/api/accounting2/transaction-groups-with-entries/${id}`, data);
+    return response.data;
+  },
+
+  // 確認交易
+  confirm: async (id: string): Promise<{ success: boolean; data?: any; message?: string }> => {
+    const response = await apiService.post(`/api/accounting2/transaction-groups-with-entries/${id}/confirm`);
+    return response.data;
+  },
+
+  // 刪除交易
+  delete: async (id: string): Promise<{ success: boolean; message?: string }> => {
+    const response = await apiService.delete(`/api/accounting2/transaction-groups-with-entries/${id}`);
+    return response.data;
+  }
+};
+
 // 統一的 accounting3 服務 - 使用簡化路徑
 const accounting3ServiceExports = {
   accounts: accountsApi,
   categories: categoriesApi,
-  records: recordsApi
+  records: recordsApi,
+  transactions: transactionsApi
 };
 
 export const accounting3Service = accounting3ServiceExports;

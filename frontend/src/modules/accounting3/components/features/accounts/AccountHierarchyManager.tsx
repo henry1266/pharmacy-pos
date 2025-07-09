@@ -16,14 +16,17 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Divider
+  Divider,
+  Collapse
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
   Refresh as RefreshIcon,
   Settings as SettingsIcon,
-  AccountTree as AccountTreeIcon
+  AccountTree as AccountTreeIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 
 import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
@@ -110,6 +113,7 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
   
   // 搜尋狀態
   const [searchText, setSearchText] = useState('');
+  const [searchExpanded, setSearchExpanded] = useState(false);
   
   // 展開狀態管理
   const [expandState, setExpandState] = useState<HierarchyExpandState>(() => ({
@@ -371,9 +375,12 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
   };
 
   // 處理科目選擇
-  const handleAccountSelect = (account: Account2) => {
-    selectionState.selectNode(account._id);
-    onAccountSelect?.(account);
+  const handleAccountSelect = (nodeId: string) => {
+    const node = findNodeById(hierarchyNodes, nodeId);
+    if (node) {
+      selectionState.selectNode(nodeId);
+      onAccountSelect?.(node as Account2);
+    }
   };
 
   // 工具函數
@@ -478,6 +485,18 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
                 重新載入
               </Button>
               
+              {showSearch && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<SearchIcon />}
+                  endIcon={searchExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  onClick={() => setSearchExpanded(!searchExpanded)}
+                >
+                  搜尋科目
+                </Button>
+              )}
+              
               {onAccountCreate && (
                 <Button
                   variant="contained"
@@ -491,89 +510,35 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
             </Box>
           </Box>
 
-          {/* 搜尋列 */}
+          {/* 搜尋展開區域 */}
           {showSearch && (
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-              <TextField
-                size="small"
-                placeholder="搜尋科目代碼、名稱或描述..."
-                value={searchText}
-                onChange={handleSearchChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ flexGrow: 1 }}
-              />
-              
-              {searchText && (
-                <Chip
-                  label={`找到 ${getAllNodeIds(filteredNodes).length} 個結果`}
+            <Collapse in={searchExpanded}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+                <TextField
                   size="small"
-                  color="primary"
-                  variant="outlined"
+                  placeholder="搜尋科目代碼、名稱或描述..."
+                  value={searchText}
+                  onChange={handleSearchChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    )
+                  }}
+                  sx={{ flexGrow: 1 }}
                 />
-              )}
-            </Box>
-          )}
-
-          {/* 設定選項 */}
-          {showSettings && (
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-              <FormControlLabel
-                control={
-                  <Switch
+                
+                {searchText && (
+                  <Chip
+                    label={`找到 ${getAllNodeIds(filteredNodes).length} 個結果`}
                     size="small"
-                    checked={config.showBalances}
-                    onChange={(e) => handleConfigChange('showBalances', e.target.checked)}
+                    color="primary"
+                    variant="outlined"
                   />
-                }
-                label="顯示餘額"
-              />
-              
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={config.showStatistics}
-                    onChange={(e) => handleConfigChange('showStatistics', e.target.checked)}
-                  />
-                }
-                label="顯示統計"
-              />
-              
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={config.showInactiveAccounts}
-                    onChange={(e) => handleConfigChange('showInactiveAccounts', e.target.checked)}
-                  />
-                }
-                label="顯示停用科目"
-              />
-              
-              <Divider orientation="vertical" flexItem />
-              
-              <Button
-                size="small"
-                onClick={expandState.expandAll}
-                disabled={loading}
-              >
-                全部展開
-              </Button>
-              
-              <Button
-                size="small"
-                onClick={expandState.collapseAll}
-                disabled={loading}
-              >
-                全部收合
-              </Button>
-            </Box>
+                )}
+              </Box>
+            </Collapse>
           )}
         </Box>
       )}
@@ -599,7 +564,7 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
             expansionState={expandState}
             selectionState={selectionState}
             onNodeToggle={expandState.toggleNode}
-            onNodeSelect={(nodeId) => selectionState.selectNode(nodeId)}
+            onNodeSelect={handleAccountSelect}
             onNodeEdit={(nodeId) => {
               const node = findNodeById(hierarchyNodes, nodeId);
               if (node && onAccountEdit) {

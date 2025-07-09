@@ -85,6 +85,9 @@ export class AccountHierarchyService {
       // 建立階層結構
       const hierarchyNodes = this.buildHierarchyTree(normalizedAccounts);
       
+      // 計算統計資料
+      await this.calculateStatistics(hierarchyNodes, organizationId);
+      
       return hierarchyNodes;
     } catch (error) {
       console.error('載入科目階層失敗:', error);
@@ -690,6 +693,200 @@ export class AccountHierarchyService {
     });
     
     return results;
+  }
+
+  /**
+   * 計算科目統計資料
+   */
+  private async calculateStatistics(nodes: AccountHierarchyNode[], organizationId?: string | null): Promise<void> {
+    console.log('📊 開始計算科目統計資料...');
+    
+    // 載入所有交易資料來計算統計
+    try {
+      const transactionsResponse = await accounting3Service.transactions.getAll({
+        limit: 1000 // 設定較大的限制以獲取更多交易資料
+      });
+      const transactions = transactionsResponse.success ? transactionsResponse.data : [];
+      
+      console.log(`📊 載入 ${transactions.length} 筆交易資料`);
+      
+      // 遞歸計算每個節點的統計
+      this.calculateNodeStatistics(nodes, transactions);
+      
+      console.log('✅ 科目統計資料計算完成');
+    } catch (error) {
+      console.error('❌ 計算統計資料失敗:', error);
+      // 如果無法載入交易資料，設定預設統計值
+      this.setDefaultStatistics(nodes);
+    }
+  }
+
+  /**
+   * 遞歸計算節點統計資料
+   */
+  private calculateNodeStatistics(nodes: AccountHierarchyNode[], transactions: any[]): void {
+    console.log(`📊 開始計算 ${nodes.length} 個節點的統計資料，總交易數: ${transactions.length}`);
+    
+    nodes.forEach(node => {
+      console.log(`🔍 處理科目 "${node.name}" (ID: ${node._id})`);
+      
+      // 計算自身統計 - 檢查多種可能的 accountId 格式
+      const nodeTransactions = transactions.filter(t => {
+        if (!t.entries || !Array.isArray(t.entries)) {
+          return false;
+        }
+        
+        return t.entries.some((entry: any) => {
+          // 處理不同的 accountId 格式
+          const entryAccountId = typeof entry.accountId === 'string'
+            ? entry.accountId
+            : entry.accountId?._id || entry.account?._id || entry.account;
+            
+          const matches = entryAccountId === node._id;
+          
+          if (matches) {
+            console.log(`✅ 找到匹配交易:`, {
+              科目名稱: node.name,
+              科目ID: node._id,
+              交易ID: t._id,
+              分錄類型: entry.type,
+              分錄金額: entry.amount,
+              entryAccountId,
+              原始entry: entry
+            });
+          }
+          
+          return matches;
+        });
+      });
+      
+      console.log(`📋 科目 "${node.name}" 找到 ${nodeTransactions.length} 筆相關交易`);
+      
+      let totalDebit = 0;
+      let totalCredit = 0;
+      
+      nodeTransactions.forEach(transaction => {
+        transaction.entries?.forEach((entry: any) => {
+          const entryAccountId = typeof entry.accountId === 'string'
+            ? entry.accountId
+            : entry.accountId?._id || entry.account?._id || entry.account;
+            
+          if (entryAccountId === node._id) {
+            const amount = entry.amount || 0;
+            
+            if (entry.type === 'debit') {
+              totalDebit += amount;
+              console.log(`💰 借方: +${amount}, 累計: ${totalDebit}`);
+            } else if (entry.type === 'credit') {
+              totalCredit += amount;
+              console.log(`💸 貸方: +${amount}, 累計: ${totalCredit}`);
+            }
+          }
+        });
+      });
+      
+      // 計算淨額（借方 - 貸方）
+      const netAmount = totalDebit - totalCredit;
+      
+      console.log(`🧮 科目 "${node.name}" 計算結果:`, {
+        借方總額: totalDebit,
+        貸方總額: totalCredit,
+        淨額: netAmount,
+        交易筆數: nodeTransactions.length
+      });
+      
+      // 遞歸計算子科目統計
+      if (node.children.length > 0) {
+        console.log(`🌳 開始計算 "${node.name}" 的 ${node.children.length} 個子科目`);
+        this.calculateNodeStatistics(node.children, transactions);
+        
+        // 計算包含子科目的總淨額
+        const childrenNetAmount = this.calculateChildrenNetAmount(node.children);
+        const totalNetAmount = netAmount + childrenNetAmount;
+        
+        console.log(`👨‍👩‍👧‍👦 科目 "${node.name}" 子科目統計:`, {
+          子科目淨額總和: childrenNetAmount,
+          自身淨額: netAmount,
+          總淨額: totalNetAmount
+        });
+        
+        node.statistics = {
+          totalTransactions: nodeTransactions.length,
+          totalDebit,
+          totalCredit,
+          balance: netAmount, // 自身淨額
+          totalBalance: totalNetAmount, // 包含子科目的總淨額
+          childCount: node.children.length,
+          descendantCount: this.countDescendants(node.children),
+          hasTransactions: nodeTransactions.length > 0,
+          lastTransactionDate: nodeTransactions.length > 0
+            ? new Date(Math.max(...nodeTransactions.map(t => new Date(t.date).getTime())))
+            : undefined
+        };
+      } else {
+        // 葉節點
+        node.statistics = {
+          totalTransactions: nodeTransactions.length,
+          totalDebit,
+          totalCredit,
+          balance: netAmount,
+          totalBalance: netAmount, // 葉節點的總淨額等於自身淨額
+          childCount: 0,
+          descendantCount: 0,
+          hasTransactions: nodeTransactions.length > 0,
+          lastTransactionDate: nodeTransactions.length > 0
+            ? new Date(Math.max(...nodeTransactions.map(t => new Date(t.date).getTime())))
+            : undefined
+        };
+      }
+      
+      console.log(`✅ 科目 "${node.name}" 最終統計:`, {
+        自身淨額: node.statistics.balance,
+        總淨額: node.statistics.totalBalance,
+        交易筆數: node.statistics.totalTransactions,
+        子科目數: node.statistics.childCount
+      });
+    });
+  }
+
+  /**
+   * 計算子科目的總淨額
+   */
+  private calculateChildrenNetAmount(children: AccountHierarchyNode[]): number {
+    return children.reduce((total, child) => {
+      return total + (child.statistics?.totalBalance || 0);
+    }, 0);
+  }
+
+  /**
+   * 計算後代科目數量
+   */
+  private countDescendants(children: AccountHierarchyNode[]): number {
+    return children.reduce((count, child) => {
+      return count + 1 + this.countDescendants(child.children);
+    }, 0);
+  }
+
+  /**
+   * 設定預設統計值
+   */
+  private setDefaultStatistics(nodes: AccountHierarchyNode[]): void {
+    nodes.forEach(node => {
+      node.statistics = {
+        totalTransactions: 0,
+        totalDebit: 0,
+        totalCredit: 0,
+        balance: 0,
+        totalBalance: 0,
+        childCount: node.children.length,
+        descendantCount: this.countDescendants(node.children),
+        hasTransactions: false
+      };
+      
+      if (node.children.length > 0) {
+        this.setDefaultStatistics(node.children);
+      }
+    });
   }
 
   /**
