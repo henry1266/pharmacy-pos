@@ -533,6 +533,35 @@ export const transactionsApi = {
   delete: async (id: string): Promise<{ success: boolean; message?: string }> => {
     const response = await apiService.delete(`/api/accounting2/transaction-groups-with-entries/${id}`);
     return response.data;
+  },
+
+  // 🆕 新增高效能聚合統計 API
+  getAccountStatisticsAggregate: async (organizationId?: string): Promise<{ success: boolean; data: any[]; meta?: any }> => {
+    try {
+      console.log('🚀 開始調用聚合統計 API:', { organizationId });
+      
+      const params = new URLSearchParams();
+      if (organizationId) {
+        params.append('organizationId', organizationId);
+      }
+      
+      const url = `/api/accounting2/transactions/account-statistics-aggregate${params.toString() ? '?' + params.toString() : ''}`;
+      console.log('📡 請求 URL:', url);
+      
+      const response = await apiService.get(url);
+      
+      console.log('✅ 聚合統計 API 回應:', {
+        status: response.status,
+        success: response.data?.success,
+        dataLength: response.data?.data?.length,
+        queryTime: response.data?.meta?.queryTime
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ 聚合統計 API 調用失敗:', error);
+      return { success: false, data: [] };
+    }
   }
 };
 

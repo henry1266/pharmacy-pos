@@ -519,6 +519,96 @@ export class TransactionController {
   }
 
   /**
+   * 取得科目統計聚合資料 - 高效能版本
+   * GET /api/accounting2/transactions/account-statistics-aggregate
+   */
+  static async getAccountStatisticsAggregate(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id || req.query.userId as string;
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      const { organizationId } = req.query;
+
+      // 使用 MongoDB aggregation pipeline 進行高效能統計
+      const TransactionGroupWithEntries = require('../../models/TransactionGroupWithEntries').default;
+      
+      const pipeline = [
+        // 1. 基本過濾條件
+        {
+          $match: {
+            createdBy: userId,
+            status: 'confirmed', // 只統計已確認的交易
+            ...(organizationId && { organizationId: organizationId })
+          }
+        },
+        // 2. 展開分錄陣列
+        { $unwind: '$entries' },
+        // 3. 按科目ID分組並統計
+        {
+          $group: {
+            _id: '$entries.accountId',
+            totalDebit: { $sum: '$entries.debitAmount' },
+            totalCredit: { $sum: '$entries.creditAmount' },
+            transactionCount: { $sum: 1 },
+            lastTransactionDate: { $max: '$transactionDate' }
+          }
+        },
+        // 4. 計算淨額
+        {
+          $addFields: {
+            balance: { $subtract: ['$totalDebit', '$totalCredit'] }
+          }
+        },
+        // 5. 排序（可選）
+        { $sort: { _id: 1 } }
+      ];
+
+      console.log('🔄 執行科目統計聚合查詢...');
+      const startTime = Date.now();
+      
+      const aggregateResults = await TransactionGroupWithEntries.aggregate(pipeline);
+      
+      const endTime = Date.now();
+      console.log(`✅ 聚合查詢完成，耗時: ${endTime - startTime}ms，結果數量: ${aggregateResults.length}`);
+
+      // 轉換為前端期望的格式
+      const statistics = aggregateResults.map((result: any) => ({
+        accountId: result._id,
+        totalDebit: result.totalDebit || 0,
+        totalCredit: result.totalCredit || 0,
+        balance: result.balance || 0,
+        totalBalance: result.balance || 0, // 對於聚合結果，balance 等於 totalBalance
+        transactionCount: result.transactionCount || 0,
+        hasTransactions: result.transactionCount > 0,
+        lastTransactionDate: result.lastTransactionDate
+      }));
+
+      res.json({
+        success: true,
+        data: statistics,
+        meta: {
+          totalAccounts: statistics.length,
+          queryTime: endTime - startTime,
+          generatedAt: new Date()
+        }
+      });
+    } catch (error) {
+      console.error('取得科目統計聚合資料錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '取得科目統計聚合資料失敗'
+      });
+    }
+  }
+
+  /**
    * 批次建立交易
    * POST /api/accounting2/transactions/batch
    */

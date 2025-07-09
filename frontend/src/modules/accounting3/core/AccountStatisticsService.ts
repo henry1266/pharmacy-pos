@@ -25,57 +25,40 @@ export class AccountStatisticsService {
   }
 
   /**
-   * 計算科目統計資料 - 強制批量載入優化版本
+   * 計算科目統計資料 - 優先使用高效能聚合 API
    */
   public async calculateStatistics(nodes: AccountHierarchyNode[], organizationId?: string | null): Promise<void> {
-    console.log('📊 開始計算科目統計資料（強制批量載入優化版本）...');
+    console.log('📊 開始計算科目統計資料（聚合 API 優先版本）...');
     
     try {
-      // 強制使用批量載入
-      console.log('🔄 載入所有交易資料...');
-      const response = await accounting3Service.transactions.getAll();
+      // 🚀 優先嘗試使用高效能聚合 API
+      const aggregateResponse = await accounting3Service.transactions.getAccountStatisticsAggregate(organizationId || undefined);
       
-      if (!response.success) {
-        console.error('❌ 載入交易資料失敗，使用預設值');
-        this.setDefaultStatistics(nodes);
-        return;
-      }
-      
-      let allTransactions = response.data || [];
-      
-      // 如果有指定機構，過濾交易資料
-      if (organizationId) {
-        allTransactions = allTransactions.filter((transaction: any) =>
-          transaction.organizationId === organizationId
-        );
-        console.log(`🏢 已過濾機構 ${organizationId} 的交易資料，共 ${allTransactions.length} 筆`);
-      }
-      
-      console.log(`📦 載入完成，共 ${allTransactions.length} 筆交易資料`);
-      
-      // 詳細檢查資料結構
-      if (allTransactions.length > 0) {
-        const sampleTransaction = allTransactions[0];
-        console.log('🔍 交易資料結構檢查:', {
-          交易ID: sampleTransaction._id,
-          有分錄: !!sampleTransaction.entries,
-          分錄數量: sampleTransaction.entries?.length || 0,
-          分錄樣本: sampleTransaction.entries?.slice(0, 2).map((e: any) => ({
-            accountId: e.accountId,
-            account: e.account,
-            debitAmount: e.debitAmount,
-            creditAmount: e.creditAmount,
-            解析後accountId: typeof e.accountId === 'string'
-              ? e.accountId
-              : e.accountId?._id || e.account?._id || e.account
-          })) || []
+      if (aggregateResponse.success && aggregateResponse.data && aggregateResponse.data.length > 0) {
+        console.log('✅ 使用聚合 API 成功，統計數據:', {
+          科目數量: aggregateResponse.data.length,
+          查詢時間: aggregateResponse.meta?.queryTime || 'N/A',
+          樣本數據: aggregateResponse.data.slice(0, 3)
         });
+        
+        // 使用聚合結果更新節點統計
+        this.applyAggregateStatistics(nodes, aggregateResponse.data);
+        
+        console.log('🚀 聚合 API 統計計算完成');
+        return;
+      } else {
+        console.warn('⚠️ 聚合 API 無數據，降級使用個別載入方法');
       }
+    } catch (error) {
+      console.warn('⚠️ 聚合 API 調用失敗，降級使用個別載入方法:', error);
+    }
+    
+    try {
+      // 降級方案：使用個別載入方法
+      console.log('🔄 使用個別載入方法...');
+      await this.calculateNodeStatisticsAsync(nodes);
       
-      // 使用批量計算方法
-      this.calculateNodeStatisticsBatch(nodes, allTransactions);
-      
-      console.log('✅ 科目統計資料計算完成');
+      console.log('✅ 個別載入統計計算完成');
     } catch (error) {
       console.error('❌ 計算科目統計資料時發生錯誤:', error);
       this.setDefaultStatistics(nodes);
@@ -331,6 +314,92 @@ export class AccountStatisticsService {
     return children.reduce((count, child) => {
       return count + 1 + this.countDescendants(child.children);
     }, 0);
+  }
+
+  /**
+   * 應用聚合統計結果到節點樹
+   */
+  private applyAggregateStatistics(nodes: AccountHierarchyNode[], aggregateData: any[]): void {
+    console.log('🔄 開始應用聚合統計結果到節點樹...');
+    
+    // 建立 accountId 到統計資料的映射
+    const statisticsMap = new Map<string, any>();
+    aggregateData.forEach(stat => {
+      statisticsMap.set(stat.accountId, stat);
+    });
+    
+    console.log('📊 聚合統計映射表:', {
+      總科目數: statisticsMap.size,
+      科目ID樣本: Array.from(statisticsMap.keys()).slice(0, 5),
+      統計樣本: Array.from(statisticsMap.values()).slice(0, 3)
+    });
+    
+    // 遞歸應用統計資料到節點
+    this.applyStatisticsToNodes(nodes, statisticsMap);
+    
+    console.log('✅ 聚合統計結果應用完成');
+  }
+
+  /**
+   * 遞歸應用統計資料到節點
+   */
+  private applyStatisticsToNodes(nodes: AccountHierarchyNode[], statisticsMap: Map<string, any>): void {
+    nodes.forEach(node => {
+      const stat = statisticsMap.get(node._id);
+      
+      if (stat) {
+        // 直接使用聚合結果
+        node.statistics = {
+          totalTransactions: stat.transactionCount || 0,
+          totalDebit: stat.totalDebit || 0,
+          totalCredit: stat.totalCredit || 0,
+          balance: stat.balance || 0,
+          totalBalance: stat.totalBalance || stat.balance || 0,
+          childCount: node.children.length,
+          descendantCount: this.countDescendants(node.children),
+          hasTransactions: stat.hasTransactions || false,
+          lastTransactionDate: stat.lastTransactionDate ? new Date(stat.lastTransactionDate) : undefined
+        };
+        
+        console.log(`📈 科目 "${node.name}" 聚合統計:`, {
+          科目ID: node._id,
+          交易數量: stat.transactionCount,
+          借方總額: stat.totalDebit,
+          貸方總額: stat.totalCredit,
+          淨額: stat.balance
+        });
+      } else {
+        // 沒有統計資料的科目設為預設值
+        node.statistics = {
+          totalTransactions: 0,
+          totalDebit: 0,
+          totalCredit: 0,
+          balance: 0,
+          totalBalance: 0,
+          childCount: node.children.length,
+          descendantCount: this.countDescendants(node.children),
+          hasTransactions: false
+        };
+        
+        console.log(`📝 科目 "${node.name}" 無統計資料，使用預設值`);
+      }
+      
+      // 遞歸處理子節點
+      if (node.children.length > 0) {
+        this.applyStatisticsToNodes(node.children, statisticsMap);
+        
+        // 重新計算包含子科目的總淨額
+        const childrenNetAmount = this.calculateChildrenNetAmount(node.children);
+        const selfBalance = node.statistics?.balance || 0;
+        node.statistics.totalBalance = selfBalance + childrenNetAmount;
+        
+        console.log(`🌳 科目 "${node.name}" 包含子科目統計:`, {
+          自身淨額: selfBalance,
+          子科目淨額: childrenNetAmount,
+          總淨額: node.statistics.totalBalance
+        });
+      }
+    });
   }
 
   /**

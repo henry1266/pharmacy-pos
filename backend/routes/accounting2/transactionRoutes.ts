@@ -21,6 +21,9 @@ router.get('/export', TransactionController.exportTransactions);
 // GET /api/accounting2/transactions/statistics - 取得交易統計
 router.get('/statistics', TransactionController.getTransactionStatistics);
 
+// GET /api/accounting2/transactions/account-statistics-aggregate - 取得科目統計聚合資料（高效能版本）
+router.get('/account-statistics-aggregate', TransactionController.getAccountStatisticsAggregate);
+
 // GET /api/accounting2/transactions/:id - 取得單一交易群組
 router.get('/:id', TransactionController.getTransactionById);
 
