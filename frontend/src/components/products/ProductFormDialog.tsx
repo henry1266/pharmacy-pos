@@ -12,7 +12,9 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  SelectChangeEvent
+  SelectChangeEvent,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import { getProductCategories } from '../../services/productCategoryService';
 
@@ -34,6 +36,7 @@ interface Product {
   minStock?: string | number;
   supplier?: string;
   description?: string;
+  excludeFromStock?: boolean;
   [key: string]: any;
 }
 
@@ -310,6 +313,29 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               margin="dense"
               multiline
               rows={3}
+            />
+          </Grid>
+          <Grid item xs={12} {...({} as any)}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="excludeFromStock"
+                  checked={currentProduct?.excludeFromStock ?? false}
+                  onChange={(e) => {
+                    const syntheticEvent = {
+                      target: {
+                        name: 'excludeFromStock',
+                        value: e.target.checked.toString(),
+                        checked: e.target.checked,
+                        type: 'checkbox'
+                      }
+                    } as unknown as ChangeEvent<HTMLInputElement>;
+                    handleInputChange(syntheticEvent);
+                  }}
+                  color="primary"
+                />
+              }
+              label="不扣庫存（毛利以數量×(售價-進價)計算）"
             />
           </Grid>
         </Grid>

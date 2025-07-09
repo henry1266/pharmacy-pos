@@ -690,7 +690,7 @@ const filteredSales = useMemo(() => {
               autoHeight
               rowsPerPageOptions={[10, 25, 50, 100]}
               pageSize={25}
-              sortModel={[{ field: 'date', sort: 'desc' }]} // 預設按日期降序排序
+              sortModel={[{ field: 'saleNumber', sort: 'desc' }]} // 預設按銷貨編號降序排序
               getRowId={(row) => row.id}
               getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
               localeText={{

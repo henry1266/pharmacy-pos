@@ -325,7 +325,6 @@ async function checkProductExists(productId: string): Promise<ProductCheckResult
 // 檢查產品庫存
 async function checkProductInventory(product: mongoose.Document, quantity: number): Promise<InventoryCheckResult> {
   try {
-    // 獲取所有庫存記錄
     // 確保 _id 是有效的 ObjectId
     if (!isValidObjectId(product._id.toString())) {
       return {
@@ -338,14 +337,22 @@ async function checkProductInventory(product: mongoose.Document, quantity: numbe
       };
     }
     
+    // 安全地訪問產品屬性
+    const productDoc = product as any;
+    
+    // 檢查產品是否設定為「不扣庫存」
+    if (productDoc.excludeFromStock === true) {
+      console.log(`產品 ${productDoc.name ?? '未知'} 設定為不扣庫存，跳過庫存檢查`);
+      return { success: true };
+    }
+    
+    // 獲取所有庫存記錄
     const inventories = await Inventory.find({ product: product._id }).lean();
     console.log(`找到 ${inventories.length} 個庫存記錄`);
     
     // 計算總庫存量
     let totalQuantity = calculateTotalInventory(inventories);
     
-    // 安全地訪問產品屬性
-    const productDoc = product as any;
     console.log(`產品 ${productDoc.name ?? '未知'} 總庫存量: ${totalQuantity}，銷售數量: ${quantity}`);
     
     // 不再檢查庫存是否足夠，允許負庫存
@@ -564,6 +571,26 @@ async function createInventoryRecord(item: SaleItem, sale: SaleDocument): Promis
     console.error(`產品 ${item.product} 的數量無效`);
     return;
   }
+
+  // 檢查產品是否設定為「不扣庫存」
+  try {
+    const product = await BaseProduct.findById(item.product);
+    if (!product) {
+      console.error(`找不到產品ID: ${item.product}`);
+      return;
+    }
+
+    const productDoc = product as any;
+    if (productDoc.excludeFromStock === true) {
+      // 為「不扣庫存」產品創建特殊的庫存記錄，用於毛利計算
+      await createNoStockSaleRecord(item, sale, productDoc);
+      return;
+    }
+  } catch (err) {
+    console.error(`檢查產品 ${item.product} 的不扣庫存設定時出錯:`, err);
+    // 如果檢查失敗，為了安全起見，仍然創建庫存記錄
+  }
+
   const inventoryRecord = new Inventory({
     product: item.product,
     quantity: -item.quantity, // 負數表示庫存減少
@@ -576,6 +603,40 @@ async function createInventoryRecord(item: SaleItem, sale: SaleDocument): Promis
   
   await inventoryRecord.save();
   console.log(`為產品 ${item.product} 創建銷售庫存記錄，數量: -${item.quantity}, 總金額: ${item.subtotal || 0}`);
+}
+
+// 為「不扣庫存」產品創建特殊的銷售記錄
+async function createNoStockSaleRecord(item: SaleItem, sale: SaleDocument, product: any): Promise<void> {
+  try {
+    // 計算單價（售價）
+    const unitPrice = item.subtotal ? item.subtotal / item.quantity : 0;
+    
+    // 獲取產品的進價（成本價）
+    const costPrice = product.purchasePrice || 0;
+    
+    // 計算毛利：數量 × (售價 - 進價)
+    const grossProfit = item.quantity * (unitPrice - costPrice);
+    
+    // 創建特殊的庫存記錄，用於毛利計算
+    const inventoryRecord = new Inventory({
+      product: item.product,
+      quantity: 0, // 不扣庫存，數量設為0
+      totalAmount: Number(item.subtotal), // 銷售總額
+      saleNumber: sale.saleNumber,
+      type: 'sale-no-stock', // 特殊類型標記
+      saleId: sale._id,
+      lastUpdated: new Date(),
+      // 添加毛利計算相關欄位
+      costPrice: costPrice,
+      unitPrice: unitPrice,
+      grossProfit: grossProfit
+    });
+    
+    await inventoryRecord.save();
+    console.log(`為不扣庫存產品 ${product.name ?? '未知'} 創建毛利記錄，數量: ${item.quantity}, 售價: ${unitPrice}, 進價: ${costPrice}, 毛利: ${grossProfit}`);
+  } catch (err) {
+    console.error(`創建不扣庫存產品的毛利記錄時出錯:`, err);
+  }
 }
 
 // 更新客戶積分
@@ -744,10 +805,10 @@ async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest
 // 處理更新銷售的庫存變更
 async function handleInventoryForUpdatedSale(originalSale: SaleDocument, updatedSale: SaleDocument): Promise<void> {
   try {
-    // 刪除原有的銷售庫存記錄
+    // 刪除原有的銷售庫存記錄（包括 sale 和 sale-no-stock 類型）
     await Inventory.deleteMany({
       saleId: originalSale._id,
-      type: 'sale'
+      type: { $in: ['sale', 'sale-no-stock'] }
     });
     
     // 為更新後的銷售項目創建新的庫存記錄
@@ -833,10 +894,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // 處理刪除銷售的庫存恢復
 async function handleInventoryForDeletedSale(sale: SaleDocument): Promise<void> {
   try {
-    // 刪除與此銷售相關的所有庫存記錄（這會自動恢復庫存）
+    // 刪除與此銷售相關的所有庫存記錄（包括 sale 和 sale-no-stock 類型）
     const deletedInventories = await Inventory.deleteMany({
       saleId: sale._id,
-      type: 'sale'
+      type: { $in: ['sale', 'sale-no-stock'] }
     });
     
     console.log(`已刪除 ${deletedInventories.deletedCount} 個與銷售 ${sale.saleNumber} 相關的庫存記錄`);

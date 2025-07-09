@@ -288,19 +288,25 @@ async function validateProductsAndInventory(items: ShippingOrderItem[]): Promise
     
     item.product = product._id as Types.ObjectId;
     
-    // 檢查庫存
-    const inventorySum = await Inventory.aggregate([
-      { $match: { product: product._id } },
-      { $group: { _id: null, total: { $sum: "$quantity" } } }
-    ]);
-    
-    const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
-    
-    if (availableQuantity < item.dquantity) {
-      return {
-        valid: false,
-        error: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}`
-      };
+    // 檢查產品是否設定為「不扣庫存」
+    const productDoc = product as any;
+    if (productDoc.excludeFromStock === true) {
+      console.log(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，跳過庫存檢查`);
+    } else {
+      // 檢查庫存
+      const inventorySum = await Inventory.aggregate([
+        { $match: { product: product._id } },
+        { $group: { _id: null, total: { $sum: "$quantity" } } }
+      ]);
+      
+      const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
+      
+      if (availableQuantity < item.dquantity) {
+        return {
+          valid: false,
+          error: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}`
+        };
+      }
     }
   }
   
@@ -671,6 +677,24 @@ async function createShippingInventoryRecords(shippingOrder: ShippingOrderDocume
   try {
     for (const item of shippingOrder.items) {
       if (!item.product) continue;
+      
+      // 檢查產品是否設定為「不扣庫存」
+      try {
+        const product = await BaseProduct.findById(item.product);
+        if (!product) {
+          console.error(`找不到產品ID: ${item.product}`);
+          continue;
+        }
+
+        const productDoc = product as any;
+        if (productDoc.excludeFromStock === true) {
+          console.log(`產品 ${item.dname} (${item.did}) 設定為不扣庫存，跳過庫存記錄創建`);
+          continue;
+        }
+      } catch (err) {
+        console.error(`檢查產品 ${item.product} 的不扣庫存設定時出錯:`, err);
+        // 如果檢查失敗，為了安全起見，仍然創建庫存記錄
+      }
       
       // 為每個出貨單項目創建新的庫存記錄
       const inventory = new Inventory({

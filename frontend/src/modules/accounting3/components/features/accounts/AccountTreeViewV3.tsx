@@ -12,6 +12,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Button,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -26,6 +27,7 @@ import {
   VisibilityOff,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import { Link } from 'react-router-dom';
 import {
   AccountHierarchyNode,
   AccountHierarchyConfig,
@@ -299,13 +301,26 @@ const NodeLabel: React.FC<{
       </NodeInfo>
       
       <NodeActions>
-        <Tooltip title={node.isActive ? "停用科目" : "啟用科目"}>
-          <IconButton
+        <Tooltip title="查看科目詳情">
+          <Button
+            component={Link}
+            to={`/accounting3/accounts/${node._id}`}
             size="small"
-            onClick={handleActionClick(onVisibilityToggle)}
+            variant="text"
+            sx={{
+              minWidth: 'auto',
+              fontSize: '0.75rem',
+              padding: '4px 8px',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+              },
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {node.isActive ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
-          </IconButton>
+            DETAIL
+          </Button>
         </Tooltip>
         
         {node.permissions.canAddChild && (

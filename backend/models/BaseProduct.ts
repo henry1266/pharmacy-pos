@@ -14,7 +14,9 @@ type BaseProductDocumentFields = {
 };
 
 // 使用類型別名替代聯合類型
-type IBaseProductDocument = Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'> & mongoose.Document & BaseProductDocumentFields;
+type IBaseProductDocument = Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'> & mongoose.Document & BaseProductDocumentFields & {
+  excludeFromStock?: boolean;
+};
 
 interface IProductDocument extends Omit<IProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
   category?: mongoose.Types.ObjectId;
@@ -87,6 +89,10 @@ const BaseProductSchema = new Schema<IBaseProductDocument>({
   isActive: {
     type: Boolean,
     default: true
+  },
+  excludeFromStock: {
+    type: Boolean,
+    default: false
   }
 }, {
   discriminatorKey: 'productType',

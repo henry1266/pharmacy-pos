@@ -249,7 +249,8 @@ router.post(
         description,
         supplier,
         minStock,
-        barcode
+        barcode,
+        excludeFromStock
       } = req.body;
 
       // 檢查產品代碼是否已存在
@@ -278,6 +279,7 @@ router.post(
         supplier,
         minStock: minStock !== undefined ? parseInt(minStock) : 10,
         barcode,
+        excludeFromStock: excludeFromStock === true || excludeFromStock === 'true',
         productType: ProductType.PRODUCT,
         isActive: true
       });
@@ -347,7 +349,8 @@ router.post(
         minStock,
         barcode,
         healthInsuranceCode,
-        healthInsurancePrice
+        healthInsurancePrice,
+        excludeFromStock
       } = req.body;
 
       if (await checkProductCodeExistence(code, res)) {
@@ -368,6 +371,7 @@ router.post(
         barcode,
         healthInsuranceCode,
         healthInsurancePrice: parseFloatOrDefault(healthInsurancePrice, 0),
+        excludeFromStock: excludeFromStock === true || excludeFromStock === 'true',
         productType: ProductType.MEDICINE,
         isActive: true
       });

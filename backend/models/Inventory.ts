@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 // 庫存類型枚舉
-export type InventoryType = 'purchase' | 'sale' | 'return' | 'adjustment' | 'ship';
+export type InventoryType = 'purchase' | 'sale' | 'return' | 'adjustment' | 'ship' | 'sale-no-stock';
 
 // 庫存介面
 export interface IInventory {
@@ -21,6 +21,10 @@ export interface IInventory {
   lastUpdated: Date;
   notes?: string;
   createdBy?: mongoose.Types.ObjectId; // 創建者ID
+  // 新增「不扣庫存」毛利計算相關欄位
+  costPrice?: number; // 進價（成本價）
+  unitPrice?: number; // 售價（單價）
+  grossProfit?: number; // 毛利
 }
 
 // 庫存文檔介面
@@ -53,7 +57,7 @@ const InventorySchema = new Schema<IInventoryDocument>({
   },
   type: {
     type: String,
-    enum: ["purchase", "sale", "return", "adjustment", "ship"],
+    enum: ["purchase", "sale", "return", "adjustment", "ship", "sale-no-stock"],
     default: "purchase",
     index: true // 為 type 添加索引
   },
@@ -97,6 +101,19 @@ const InventorySchema = new Schema<IInventoryDocument>({
   createdBy: { // 創建者ID
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
+  },
+  // 新增「不扣庫存」毛利計算相關欄位
+  costPrice: { // 進價（成本價）
+    type: Number,
+    default: 0
+  },
+  unitPrice: { // 售價（單價）
+    type: Number,
+    default: 0
+  },
+  grossProfit: { // 毛利
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true // 自動添加 createdAt 和 updatedAt

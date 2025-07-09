@@ -72,6 +72,7 @@ interface CurrentProduct {
   barcode: string;
   healthInsuranceCode: string;
   healthInsurancePrice: number;
+  excludeFromStock?: boolean;
 }
 
 
@@ -93,10 +94,11 @@ const ProductsPage: React.FC = () => {
     sellingPrice: 0,
     description: '',
     supplier: '',
-    minStock: 10,
+    minStock: 0,
     barcode: '',
     healthInsuranceCode: '',
-    healthInsurancePrice: 0
+    healthInsurancePrice: 0,
+    excludeFromStock: false
   });
   const [editMode, setEditMode] = useState<boolean>(false);
   const [productType, setProductType] = useState<ProductType>('product');
@@ -227,10 +229,11 @@ const ProductsPage: React.FC = () => {
       sellingPrice: 0,
       description: '',
       supplier: '',
-      minStock: 10,
+      minStock: 0,
       barcode: '',
       healthInsuranceCode: '',
-      healthInsurancePrice: 0
+      healthInsurancePrice: 0,
+      excludeFromStock: false
     });
     setOpenDialog(true);
   };
@@ -269,7 +272,8 @@ const ProductsPage: React.FC = () => {
         minStock: (product as { minStock?: number }).minStock ?? 10,
         barcode: product.barcode ?? '',
         healthInsuranceCode: (product as { healthInsuranceCode?: string }).healthInsuranceCode ?? '',
-        healthInsurancePrice: (product as { healthInsurancePrice?: number }).healthInsurancePrice ?? 0
+        healthInsurancePrice: (product as { healthInsurancePrice?: number }).healthInsurancePrice ?? 0,
+        excludeFromStock: (product as { excludeFromStock?: boolean }).excludeFromStock ?? false
       });
       setOpenDialog(true);
     }
@@ -279,10 +283,20 @@ const ProductsPage: React.FC = () => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent): void => {
     const { name, value } = e.target;
     if (name) {
-      setCurrentProduct(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      // 檢查是否為 HTMLInputElement 且為 checkbox 類型
+      if ('type' in e.target && e.target.type === 'checkbox') {
+        const checked = (e.target as HTMLInputElement).checked;
+        setCurrentProduct(prev => ({
+          ...prev,
+          [name]: checked
+        }));
+      } else {
+        // 處理其他類型的輸入
+        setCurrentProduct(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      }
     }
   };
   
@@ -310,7 +324,8 @@ const ProductsPage: React.FC = () => {
         sellingPrice: Number(currentProduct.sellingPrice) || 0,
         description: currentProduct.description?.trim() || '',
         supplier: currentProduct.supplier || '',
-        minStock: Number(currentProduct.minStock) || 10
+        minStock: Number(currentProduct.minStock) || 0,
+        excludeFromStock: Boolean(currentProduct.excludeFromStock)
       };
       
       // 根據產品類型添加特有屬性

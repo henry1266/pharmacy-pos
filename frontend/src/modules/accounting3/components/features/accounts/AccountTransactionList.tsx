@@ -40,16 +40,44 @@ import {
   Assessment as AssessmentIcon,
   MoreVert as MoreVertIcon,
   Info as InfoIcon,
-  ContentCopy as ContentCopyIcon
+  ContentCopy as ContentCopyIcon,
+  CheckCircle as ConfirmIcon,
+  LockOpen as UnlockIcon,
+  Delete as DeleteIcon,
+  Link as LinkIcon
 } from '@mui/icons-material';
 import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
-import { TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
+import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared/types/accounting2';
 import { accounting3Service } from '../../../../../services/accounting3Service';
+
+// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
+interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
+  referencedByInfo?: Array<{
+    _id: string;
+    groupNumber: string;
+    description: string;
+    transactionDate: Date | string;
+    totalAmount: number;
+    status: 'draft' | 'confirmed' | 'cancelled';
+  }>;
+  fundingSourceUsages?: Array<{
+    sourceTransactionId: string;
+    usedAmount: number;
+    sourceTransactionDescription?: string;
+    sourceTransactionGroupNumber?: string;
+    sourceTransactionDate?: Date | string;
+    sourceTransactionAmount?: number;
+  }>;
+}
 
 interface AccountTransactionListProps {
   selectedAccount: Account2 | null;
-  onTransactionView?: (transaction: TransactionGroupWithEntries) => void;
-  onTransactionEdit?: (transaction: TransactionGroupWithEntries) => void;
+  onTransactionView?: (transaction: ExtendedTransactionGroupWithEntries) => void;
+  onTransactionEdit?: (transaction: ExtendedTransactionGroupWithEntries) => void;
+  onTransactionConfirm?: (id: string) => void;
+  onTransactionUnlock?: (id: string) => void;
+  onTransactionDelete?: (id: string) => void;
+  onTransactionCopy?: (transaction: ExtendedTransactionGroupWithEntries) => void;
   onAddTransaction?: (accountId: string) => void;
 }
 
@@ -61,19 +89,23 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   selectedAccount,
   onTransactionView,
   onTransactionEdit,
+  onTransactionConfirm,
+  onTransactionUnlock,
+  onTransactionDelete,
+  onTransactionCopy,
   onAddTransaction
 }) => {
-  const [transactions, setTransactions] = useState<TransactionGroupWithEntries[]>([]);
+  const [transactions, setTransactions] = useState<ExtendedTransactionGroupWithEntries[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // 彈出式對話框狀態
   const [transactionDetailOpen, setTransactionDetailOpen] = useState(false);
-  const [selectedTransactionForDetail, setSelectedTransactionForDetail] = useState<TransactionGroupWithEntries | null>(null);
+  const [selectedTransactionForDetail, setSelectedTransactionForDetail] = useState<ExtendedTransactionGroupWithEntries | null>(null);
   
   // 操作選單狀態
   const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(null);
-  const [selectedTransactionForAction, setSelectedTransactionForAction] = useState<TransactionGroupWithEntries | null>(null);
+  const [selectedTransactionForAction, setSelectedTransactionForAction] = useState<ExtendedTransactionGroupWithEntries | null>(null);
 
   // 載入選中科目的交易
   useEffect(() => {
@@ -154,8 +186,187 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
     return entries.reduce((total, entry) => total + (entry.debitAmount || 0), 0);
   };
 
+  // 檢查借貸平衡
+  const isBalanced = (entries: EmbeddedAccountingEntry[]) => {
+    const totalDebit = entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
+    const totalCredit = entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
+    return Math.abs(totalDebit - totalCredit) < 0.01; // 允許小數點誤差
+  };
+
+  // 計算剩餘可用金額（使用後端提供的精確資料）
+  const calculateAvailableAmount = (group: ExtendedTransactionGroupWithEntries) => {
+    const totalAmount = calculateTotalAmount(group.entries);
+    
+    if (!group.referencedByInfo || group.referencedByInfo.length === 0) {
+      return totalAmount; // 沒有被引用，全額可用
+    }
+    
+    // 🎯 使用後端提供的精確已使用金額資料
+    // 計算實際已使用金額（從 referencedByInfo 中獲取，排除已取消的交易）
+    const actualUsedAmount = group.referencedByInfo
+      .filter(ref => ref.status !== 'cancelled') // 排除已取消的交易
+      .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0);
+    
+    // 剩餘可用金額 = 總金額 - 實際已使用金額
+    const availableAmount = totalAmount - actualUsedAmount;
+    
+    console.log(`💰 交易 ${(group as any).groupNumber} 剩餘可用金額計算:`, {
+      totalAmount,
+      actualUsedAmount,
+      availableAmount,
+      referencedByCount: group.referencedByInfo.length,
+      referencedBy: group.referencedByInfo.map(ref => ({
+        groupNumber: ref.groupNumber,
+        amount: ref.totalAmount,
+        status: ref.status
+      }))
+    });
+    
+    // 確保不會是負數
+    return Math.max(0, availableAmount);
+  };
+
+  // 取得剩餘可用狀態顏色
+  const getAvailableAmountColor = (availableAmount: number, totalAmount: number) => {
+    if (totalAmount === 0) return 'default';
+    const percentage = (availableAmount / totalAmount) * 100;
+    if (percentage >= 100) return 'success';
+    if (percentage >= 50) return 'warning';
+    return 'error';
+  };
+
+  // 渲染整合的資金狀態
+  const renderIntegratedFundingStatus = (group: ExtendedTransactionGroupWithEntries) => {
+    const totalAmount = calculateTotalAmount(group.entries);
+    const availableAmount = calculateAvailableAmount(group);
+    const hasReferences = group.referencedByInfo && group.referencedByInfo.length > 0;
+    const hasFundingSources = group.fundingSourceUsages && group.fundingSourceUsages.length > 0;
+    
+    // 如果有資金來源使用，優先顯示資金來源資訊
+    if (hasFundingSources) {
+      const totalUsedAmount = group.fundingSourceUsages!.reduce((sum, usage) => sum + usage.usedAmount, 0);
+      
+      return (
+        <Tooltip
+          title={
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                💰 資金來源追蹤 ({group.fundingSourceUsages!.length} 筆)
+              </Typography>
+              
+              {group.fundingSourceUsages!.map((usage, index) => (
+                <Box key={usage.sourceTransactionId} sx={{ mb: 1, pb: 1, borderBottom: index < group.fundingSourceUsages!.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5, fontWeight: 'bold' }}>
+                    來源 {index + 1}: {usage.sourceTransactionDescription || '未知交易'}
+                  </Typography>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+                    <strong>編號：</strong>{usage.sourceTransactionGroupNumber || 'N/A'}
+                  </Typography>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+                    <strong>使用金額：</strong>{formatCurrency(usage.usedAmount)}
+                  </Typography>
+                </Box>
+              ))}
+              
+              <Typography variant="caption" display="block" sx={{ mt: 1, fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)', pt: 1 }}>
+                <strong>總使用金額：</strong>{formatCurrency(totalUsedAmount)}
+              </Typography>
+            </Box>
+          }
+          arrow
+          placement="left"
+        >
+          <Stack direction="column" spacing={0.5} alignItems="center">
+            <Chip
+              label={`💰 ${group.fundingSourceUsages!.length} 筆`}
+              size="small"
+              variant="outlined"
+              color="primary"
+              sx={{ cursor: 'help' }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              {formatCurrency(totalUsedAmount)}
+            </Typography>
+          </Stack>
+        </Tooltip>
+      );
+    }
+    
+    // 如果被引用，顯示被引用和剩餘可用狀態
+    if (hasReferences) {
+      const color = getAvailableAmountColor(availableAmount, totalAmount);
+      
+      return (
+        <Tooltip
+          title={
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                🔗 被引用情況 ({group.referencedByInfo!.length} 筆)
+              </Typography>
+              
+              {group.referencedByInfo!.map((ref, index) => (
+                <Box key={ref._id} sx={{ mb: 1, pb: 1, borderBottom: index < group.referencedByInfo!.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+                    <strong>{formatDate(ref.transactionDate)}</strong> - {ref.groupNumber}
+                  </Typography>
+                  <Typography variant="caption" display="block" color="text.secondary">
+                    {ref.description} ({formatCurrency(ref.totalAmount)})
+                  </Typography>
+                </Box>
+              ))}
+              
+              <Typography variant="caption" display="block" sx={{ mt: 1, fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)', pt: 1 }}>
+                <strong>總金額：</strong>{formatCurrency(totalAmount)}
+              </Typography>
+              <Typography variant="caption" display="block">
+                <strong>已使用：</strong>{formatCurrency(totalAmount - availableAmount)}
+              </Typography>
+              <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
+                <strong>剩餘可用：</strong>{formatCurrency(availableAmount)}
+              </Typography>
+            </Box>
+          }
+          arrow
+          placement="left"
+        >
+          <Stack direction="column" spacing={0.5} alignItems="center">
+            <Chip
+              icon={<LinkIcon />}
+              label={` ${group.referencedByInfo!.length} 筆`}
+              color="warning"
+              size="small"
+              variant="outlined"
+              sx={{ cursor: 'help' }}
+            />
+            <Chip
+              label={formatCurrency(availableAmount)}
+              color={color}
+              size="small"
+              variant={availableAmount === totalAmount ? 'filled' : 'outlined'}
+            />
+          </Stack>
+        </Tooltip>
+      );
+    }
+    
+    // 沒有資金追蹤的情況
+    if (totalAmount === 0) {
+      return (
+        <Typography variant="caption" color="text.secondary">
+          無金額交易
+        </Typography>
+      );
+    }
+    
+    return (
+      <Typography variant="body2" color="success.main" sx={{ textAlign: 'center' }}>
+        ✓
+      </Typography>
+    );
+  };
+
   // 計算科目在交易中的金額（考慮借貸方向）
-  const getAccountAmountInTransaction = (transaction: TransactionGroupWithEntries, accountId: string) => {
+  const getAccountAmountInTransaction = (transaction: ExtendedTransactionGroupWithEntries, accountId: string) => {
     if (!transaction.entries) return 0;
     
     const accountEntry = transaction.entries.find(entry =>
@@ -274,13 +485,13 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   }, [selectedAccount, transactions]);
 
   // 處理交易編號點擊
-  const handleTransactionNumberClick = (transaction: TransactionGroupWithEntries) => {
+  const handleTransactionNumberClick = (transaction: ExtendedTransactionGroupWithEntries) => {
     setSelectedTransactionForDetail(transaction);
     setTransactionDetailOpen(true);
   };
 
   // 處理列點擊（彈出操作選單）
-  const handleRowClick = (event: React.MouseEvent<HTMLElement>, transaction: TransactionGroupWithEntries) => {
+  const handleRowClick = (event: React.MouseEvent<HTMLElement>, transaction: ExtendedTransactionGroupWithEntries) => {
     event.preventDefault();
     setActionMenuAnchor(event.currentTarget);
     setSelectedTransactionForAction(transaction);
@@ -311,25 +522,53 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   // 處理複製交易
   const handleCopyTransaction = async () => {
     if (selectedTransactionForAction) {
-      try {
-        // 複製交易資料到剪貼簿
-        const transactionData = {
-          編號: (selectedTransactionForAction as any).groupNumber || 'N/A',
-          描述: selectedTransactionForAction.description,
-          日期: formatDate(selectedTransactionForAction.transactionDate),
-          狀態: getStatusLabel(selectedTransactionForAction.status),
-          金額: formatCurrency(calculateTotalAmount(selectedTransactionForAction.entries || []))
-        };
-        
-        const textToCopy = Object.entries(transactionData)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join('\n');
-        
-        await navigator.clipboard.writeText(textToCopy);
-        console.log('交易資料已複製到剪貼簿');
-      } catch (err) {
-        console.error('複製失敗:', err);
+      if (onTransactionCopy) {
+        onTransactionCopy(selectedTransactionForAction);
+      } else {
+        try {
+          // 複製交易資料到剪貼簿
+          const transactionData = {
+            編號: (selectedTransactionForAction as any).groupNumber || 'N/A',
+            描述: selectedTransactionForAction.description,
+            日期: formatDate(selectedTransactionForAction.transactionDate),
+            狀態: getStatusLabel(selectedTransactionForAction.status),
+            金額: formatCurrency(calculateTotalAmount(selectedTransactionForAction.entries || []))
+          };
+          
+          const textToCopy = Object.entries(transactionData)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n');
+          
+          await navigator.clipboard.writeText(textToCopy);
+          console.log('交易資料已複製到剪貼簿');
+        } catch (err) {
+          console.error('複製失敗:', err);
+        }
       }
+    }
+    handleActionMenuClose();
+  };
+
+  // 處理確認交易
+  const handleConfirmTransaction = () => {
+    if (selectedTransactionForAction && onTransactionConfirm) {
+      onTransactionConfirm(selectedTransactionForAction._id);
+    }
+    handleActionMenuClose();
+  };
+
+  // 處理解鎖交易
+  const handleUnlockTransaction = () => {
+    if (selectedTransactionForAction && onTransactionUnlock) {
+      onTransactionUnlock(selectedTransactionForAction._id);
+    }
+    handleActionMenuClose();
+  };
+
+  // 處理刪除交易
+  const handleDeleteTransaction = () => {
+    if (selectedTransactionForAction && onTransactionDelete) {
+      onTransactionDelete(selectedTransactionForAction._id);
     }
     handleActionMenuClose();
   };
@@ -466,8 +705,39 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
         <ListItemIcon>
           <ContentCopyIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>複製資料</ListItemText>
+        <ListItemText>複製交易</ListItemText>
       </MenuItem>
+
+      {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
+      {onTransactionConfirm && selectedTransactionForAction?.status === 'draft' &&
+       selectedTransactionForAction.entries && isBalanced(selectedTransactionForAction.entries) && (
+        <MenuItem onClick={handleConfirmTransaction}>
+          <ListItemIcon>
+            <ConfirmIcon fontSize="small" color="success" />
+          </ListItemIcon>
+          <ListItemText>確認交易</ListItemText>
+        </MenuItem>
+      )}
+
+      {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
+      {onTransactionUnlock && selectedTransactionForAction?.status === 'confirmed' && (
+        <MenuItem onClick={handleUnlockTransaction}>
+          <ListItemIcon>
+            <UnlockIcon fontSize="small" color="warning" />
+          </ListItemIcon>
+          <ListItemText>解鎖交易</ListItemText>
+        </MenuItem>
+      )}
+
+      {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
+      {onTransactionDelete && selectedTransactionForAction?.status === 'draft' && (
+        <MenuItem onClick={handleDeleteTransaction}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>刪除交易</ListItemText>
+        </MenuItem>
+      )}
     </Menu>
   );
 
@@ -545,7 +815,7 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   );
 
   // 渲染交易流向圖
-  const renderTransactionFlow = (transaction: TransactionGroupWithEntries) => {
+  const renderTransactionFlow = (transaction: ExtendedTransactionGroupWithEntries) => {
     if (!transaction.entries || transaction.entries.length < 2) {
       return <Typography variant="caption" color="text.disabled">-</Typography>;
     }
@@ -693,6 +963,8 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
                     <TableCell align="right">本科目金額</TableCell>
                     <TableCell align="right">累計餘額</TableCell>
                     <TableCell align="center">狀態</TableCell>
+                    <TableCell align="center">資金狀態</TableCell>
+                    <TableCell align="center">操作</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -752,6 +1024,104 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
                           color={getStatusColor(transaction.status)}
                           size="small"
                         />
+                      </TableCell>
+                      <TableCell align="center">
+                        {renderIntegratedFundingStatus(transaction)}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                          <Tooltip title="檢視">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onTransactionView) onTransactionView(transaction);
+                              }}
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Tooltip>
+                          
+                          {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
+                          {transaction.status === 'draft' && onTransactionEdit && (
+                            <Tooltip title="編輯">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTransactionEdit(transaction);
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          
+                          <Tooltip title="複製">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onTransactionCopy) {
+                                  onTransactionCopy(transaction);
+                                } else {
+                                  handleCopyTransaction();
+                                }
+                              }}
+                            >
+                              <ContentCopyIcon />
+                            </IconButton>
+                          </Tooltip>
+                          
+                          {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
+                          {transaction.status === 'draft' && transaction.entries &&
+                           isBalanced(transaction.entries) && onTransactionConfirm && (
+                            <Tooltip title="確認交易">
+                              <IconButton
+                                size="small"
+                                color="success"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTransactionConfirm(transaction._id);
+                                }}
+                              >
+                                <ConfirmIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          
+                          {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
+                          {transaction.status === 'confirmed' && onTransactionUnlock && (
+                            <Tooltip title="解鎖交易">
+                              <IconButton
+                                size="small"
+                                color="warning"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTransactionUnlock(transaction._id);
+                                }}
+                              >
+                                <UnlockIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          
+                          {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
+                          {transaction.status === 'draft' && onTransactionDelete && (
+                            <Tooltip title="刪除">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTransactionDelete(transaction._id);
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}

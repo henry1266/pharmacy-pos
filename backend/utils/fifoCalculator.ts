@@ -71,6 +71,7 @@ export interface ProfitMarginResult {
   hasNegativeInventory: boolean;
   remainingNegativeQuantity?: number;
   pendingProfitCalculation?: boolean;
+  isNoStockSale?: boolean; // 新增：標記為不扣庫存銷售
 }
 
 export interface InventoryRecord {
@@ -78,7 +79,7 @@ export interface InventoryRecord {
   product: Types.ObjectId;
   quantity: number;
   totalAmount?: number;
-  type: 'purchase' | 'sale' | 'ship' | 'return' | 'adjustment';
+  type: 'purchase' | 'sale' | 'ship' | 'return' | 'adjustment' | 'sale-no-stock';
   lastUpdated?: Date;
   purchaseOrderNumber?: string;
   purchaseOrderId?: Types.ObjectId;
@@ -86,6 +87,10 @@ export interface InventoryRecord {
   saleId?: Types.ObjectId;
   shippingOrderNumber?: string;
   shippingOrderId?: Types.ObjectId;
+  // 新增「不扣庫存」毛利計算相關欄位
+  costPrice?: number;
+  unitPrice?: number;
+  grossProfit?: number;
 }
 
 export interface FIFOSummary {
@@ -382,6 +387,10 @@ export const prepareInventoryForFIFO = (inventories: InventoryRecord[]): Prepare
       };
       
       stockOut.push(saleRecord);
+    } else if (inv.type === 'sale-no-stock') {
+      // 「不扣庫存」產品的銷售記錄，不加入 stockOut，因為不需要 FIFO 匹配
+      // 毛利已經在庫存記錄中預先計算好了
+      console.log(`跳過不扣庫存產品的 FIFO 處理: ${drug_id}, 預計算毛利: ${inv.grossProfit || 0}`);
     } else if (inv.type === 'ship') {
       const shipRecord: StockOutRecord = {
         timestamp,
@@ -490,7 +499,7 @@ export const calculateProductFIFO = (inventories: InventoryRecord[]): FIFOCalcul
     const sales: SaleRecord[] = stockOut.map(out => ({
       drug_id: out.drug_id,
       timestamp: out.timestamp,
-      unit_price: inventories.find(inv => 
+      unit_price: inventories.find(inv =>
         inv._id.toString() === out.source_id
       )?.totalAmount ? (inventories.find(inv =>
         inv._id.toString() === out.source_id
@@ -499,8 +508,32 @@ export const calculateProductFIFO = (inventories: InventoryRecord[]): FIFOCalcul
     
     const profitMargins = calculateProfitMargins(fifoMatches, sales);
     
+    // 處理「不扣庫存」產品的毛利
+    const noStockProfits = inventories
+      .filter(inv => inv.type === 'sale-no-stock')
+      .map(inv => ({
+        drug_id: inv.product.toString(),
+        saleTime: inv.lastUpdated || new Date(),
+        totalQuantity: Math.abs(inv.quantity || 0),
+        totalCost: (inv.costPrice || 0) * Math.abs(inv.quantity || 0),
+        totalRevenue: inv.totalAmount || 0,
+        grossProfit: inv.grossProfit || 0,
+        profitMargin: inv.totalAmount && inv.totalAmount > 0
+          ? ((inv.grossProfit || 0) / inv.totalAmount * 100).toFixed(2) + '%'
+          : '0.00%',
+        costBreakdown: [] as CostPart[],
+        orderNumber: inv.saleNumber || '未知訂單',
+        orderId: inv.saleId ? inv.saleId.toString() : null,
+        orderType: 'sale' as const,
+        hasNegativeInventory: false,
+        isNoStockSale: true // 標記為不扣庫存銷售
+      }));
+    
+    // 合併 FIFO 毛利和不扣庫存毛利
+    const allProfitMargins = [...profitMargins, ...noStockProfits];
+    
     // 計算總結
-    const summary = profitMargins.reduce((sum, item) => {
+    const summary = allProfitMargins.reduce((sum, item) => {
       sum.totalCost += item.totalCost;
       sum.totalRevenue += item.totalRevenue;
       sum.totalProfit += item.grossProfit;
@@ -519,7 +552,7 @@ export const calculateProductFIFO = (inventories: InventoryRecord[]): FIFOCalcul
     return {
       success: true,
       fifoMatches,
-      profitMargins,
+      profitMargins: allProfitMargins, // 使用合併後的毛利結果
       summary: {
         ...summary,
         averageProfitMargin

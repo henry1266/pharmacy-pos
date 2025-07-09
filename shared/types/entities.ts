@@ -82,6 +82,7 @@ export interface BaseProduct {
   isMedicine?: boolean;
   productType?: 'product' | 'medicine';
   isActive?: boolean;
+  excludeFromStock?: boolean; // 不扣庫存選項
   date?: string | Date;
   createdAt: string | Date;
   updatedAt: string | Date;
