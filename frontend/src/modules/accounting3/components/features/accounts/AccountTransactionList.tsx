@@ -91,9 +91,9 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
     try {
       console.log('載入科目交易:', accountId);
       
-      // 使用 accounting3Service 的交易 API
+      // 使用 accounting3Service 的交易 API - 提高限制確保與左側統計一致
       const response = await accounting3Service.transactions.getByAccount(accountId, {
-        limit: 100, // 限制載入數量
+        limit: 10000, // 與左側統計保持一致的限制
         page: 1
       });
       

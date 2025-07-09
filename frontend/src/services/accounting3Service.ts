@@ -404,7 +404,7 @@ export const transactionsApi = {
       const params = {
         ...filter,
         page: filter?.page || 1,
-        limit: filter?.limit || 50
+        limit: filter?.limit || 10000 // 預設提高限制，確保獲取完整資料
       };
       
       const response = await apiService.get('/api/accounting2/transaction-groups-with-entries', { params });

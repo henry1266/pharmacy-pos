@@ -208,20 +208,49 @@ const NodeLabel: React.FC<{
     }
   };
 
-  // 格式化淨額顯示
+  // 格式化淨額顯示 - 增強調試資訊和錯誤處理
   const formattedNetAmount = useMemo(() => {
-    if (!node.statistics) return null;
+    // 詳細調試日誌：檢查統計資料
+    console.log(`🔍 科目 "${node.name}" (ID: ${node._id}) 統計資料詳細檢查:`, {
+      hasStatistics: !!node.statistics,
+      statisticsKeys: node.statistics ? Object.keys(node.statistics) : [],
+      statistics: node.statistics,
+      totalBalance: node.statistics?.totalBalance,
+      balance: node.statistics?.balance,
+      totalDebit: node.statistics?.totalDebit,
+      totalCredit: node.statistics?.totalCredit,
+      totalTransactions: node.statistics?.totalTransactions,
+      hasTransactions: node.statistics?.hasTransactions
+    });
     
-    const netAmount = node.statistics.totalBalance || 0;
-    if (netAmount === 0) return null;
+    if (!node.statistics) {
+      console.log(`❌ 科目 "${node.name}" 沒有統計資料，將顯示為空`);
+      return null;
+    }
     
-    return new Intl.NumberFormat('zh-TW', {
+    // 優先使用 totalBalance，如果沒有則使用 balance
+    const netAmount = node.statistics.totalBalance !== undefined
+      ? node.statistics.totalBalance
+      : (node.statistics.balance || 0);
+    
+    console.log(`💰 科目 "${node.name}" 最終淨額計算:`, {
+      使用的值: netAmount,
+      來源: node.statistics.totalBalance !== undefined ? 'totalBalance' : 'balance',
+      原始totalBalance: node.statistics.totalBalance,
+      原始balance: node.statistics.balance
+    });
+    
+    // 顯示所有金額（包括 0）以便調試，但標記零值
+    const formatted = new Intl.NumberFormat('zh-TW', {
       style: 'currency',
       currency: 'TWD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(netAmount);
-  }, [node.statistics]);
+    
+    console.log(`✅ 科目 "${node.name}" 格式化結果: ${formatted}`);
+    return formatted;
+  }, [node.statistics, node.name, node._id]);
 
   return (
     <NodeContent>
@@ -250,8 +279,8 @@ const NodeLabel: React.FC<{
             variant="outlined"
           />
         )}
-        {/* 顯示淨額（如果有統計資料且不為零） */}
-        {formattedNetAmount && (
+        {/* 顯示淨額（如果有統計資料） - 暫時顯示所有金額包括 0 以便調試 */}
+        {formattedNetAmount !== null && (
           <Typography
             variant="caption"
             sx={{

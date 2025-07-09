@@ -301,6 +301,16 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
       if (config.autoExpand) {
         expandState.expandToLevel(config.defaultExpandLevel);
       }
+      
+      // 載入完成後立即計算統計資料
+      console.log('🔄 開始計算統計資料...');
+      const { accountStatisticsService } = await import('../../../core/AccountStatisticsService');
+      await accountStatisticsService.calculateStatistics(nodes, organizationId);
+      console.log('✅ 統計資料計算完成');
+      
+      // 強制重新渲染以顯示統計資料
+      setHierarchyNodes([...nodes]);
+      
     } catch (err) {
       console.error('❌ AccountHierarchyManager 載入失敗:', err);
       setError(err instanceof Error ? err.message : '載入階層資料失敗');
