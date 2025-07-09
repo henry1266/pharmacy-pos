@@ -41,7 +41,7 @@ import AccountTreeViewV3 from './AccountTreeViewV3';
 interface AccountHierarchyManagerProps {
   organizationId?: string | null;
   onAccountSelect?: (account: Account2) => void;
-  onAccountCreate?: () => void;
+  onAccountCreate?: (parentAccount?: Account2) => void;
   onAccountEdit?: (account: Account2) => void;
   onAccountDelete?: (accountId: string) => void;
   
@@ -467,11 +467,6 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
       {showToolbar && (
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AccountTreeIcon />
-              科目階層管理
-            </Typography>
-            
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 variant="outlined"
@@ -488,7 +483,7 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
                   variant="contained"
                   size="small"
                   startIcon={<AddIcon />}
-                  onClick={onAccountCreate}
+                  onClick={() => onAccountCreate()}
                 >
                   新增科目
                 </Button>
@@ -618,7 +613,10 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
             }}
             onNodeAdd={(parentNodeId) => {
               console.log('Add child node to:', parentNodeId);
-              onAccountCreate?.();
+              const parentNode = findNodeById(hierarchyNodes, parentNodeId);
+              if (parentNode && onAccountCreate) {
+                onAccountCreate(parentNode);
+              }
             }}
             onNodeVisibilityToggle={(nodeId) => {
               console.log('Toggle visibility for:', nodeId);

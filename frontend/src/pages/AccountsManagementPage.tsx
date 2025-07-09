@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -23,8 +23,17 @@ import {
 // 導入 accounting3 階層管理組件
 import { AccountHierarchyManager } from '../modules/accounting3/components/features/accounts/AccountHierarchyManager';
 
+// 導入 accounting2 科目表單組件
+import { AccountForm } from '../modules/accounting2/components/features/accounts/AccountForm';
+
 // 導入共享類型
-import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
+import { Account2, Account2FormData } from '@pharmacy-pos/shared/types/accounting2';
+import { Organization } from '@pharmacy-pos/shared/types/organization';
+
+// 導入服務
+import { accounting3Service } from '../services/accounting3Service';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { fetchOrganizations2 } from '../redux/actions';
 
 /**
  * 科目管理頁面
@@ -37,6 +46,17 @@ import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
  */
 export const AccountsManagementPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  
+  // Redux 狀態
+  const { organizations } = useAppSelector(state => state.organization);
+  
+  // 本地狀態
+  const [accountFormOpen, setAccountFormOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account2 | null>(null);
+  const [parentAccount, setParentAccount] = useState<Account2 | null>(null); // 父科目資訊
+  const [formLoading, setFormLoading] = useState(false);
+  const [hierarchyKey, setHierarchyKey] = useState(0); // 用於強制重新載入階層
   
   // 通知狀態
   const [snackbar, setSnackbar] = useState<{
@@ -48,6 +68,11 @@ export const AccountsManagementPage: React.FC = () => {
     message: '',
     severity: 'success'
   });
+
+  // 載入組織資料
+  useEffect(() => {
+    dispatch(fetchOrganizations2() as any);
+  }, [dispatch]);
 
   // 顯示通知
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
@@ -66,26 +91,91 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   // 處理新增科目
-  const handleAccountCreate = () => {
-    console.log('新增科目');
-    showSnackbar('新增科目功能開發中', 'info');
-    // TODO: 實作新增科目功能
+  const handleAccountCreate = (parentAccount?: Account2) => {
+    console.log('新增科目', parentAccount ? `，父科目: ${parentAccount.name}` : '');
+    setEditingAccount(null); // 新增時不設定 editingAccount
+    setParentAccount(parentAccount || null); // 設定父科目資訊
+    setAccountFormOpen(true);
+  };
+
+  // 處理新增子科目
+  const handleAccountCreateChild = (parentAccountInfo: Account2) => {
+    console.log('新增子科目，父科目:', parentAccountInfo.name);
+    setEditingAccount(null); // 新增時不設定 editingAccount
+    setParentAccount(parentAccountInfo); // 設定父科目資訊
+    setAccountFormOpen(true);
   };
 
   // 處理編輯科目
   const handleAccountEdit = (account: Account2) => {
     console.log('編輯科目:', account);
-    showSnackbar('編輯科目功能開發中', 'info');
-    // TODO: 實作編輯科目功能
+    setEditingAccount(account);
+    setAccountFormOpen(true);
   };
 
   // 處理刪除科目
-  const handleAccountDelete = (accountId: string) => {
+  const handleAccountDelete = async (accountId: string) => {
     console.log('刪除科目:', accountId);
     if (window.confirm('確定要刪除這個科目嗎？此操作無法復原。')) {
-      showSnackbar('刪除科目功能開發中', 'info');
-      // TODO: 實作刪除科目功能
+      try {
+        const response = await accounting3Service.accounts.delete(accountId);
+        if (response.success) {
+          showSnackbar('科目已成功刪除', 'success');
+          // 強制重新載入階層
+          setHierarchyKey(prev => prev + 1);
+        } else {
+          showSnackbar(response.message || '刪除科目失敗', 'error');
+        }
+      } catch (error) {
+        console.error('刪除科目失敗:', error);
+        showSnackbar('刪除科目失敗', 'error');
+      }
     }
+  };
+
+  // 處理表單提交
+  const handleFormSubmit = async (formData: Account2FormData) => {
+    setFormLoading(true);
+    try {
+      if (editingAccount && editingAccount._id) {
+        // 更新科目（只有當 editingAccount 有 _id 時才是編輯模式）
+        const response = await accounting3Service.accounts.update(editingAccount._id, formData);
+        if (response.success) {
+          showSnackbar('科目已成功更新', 'success');
+          setAccountFormOpen(false);
+          setEditingAccount(null);
+          setParentAccount(null);
+          // 強制重新載入階層
+          setHierarchyKey(prev => prev + 1);
+        } else {
+          showSnackbar('更新科目失敗', 'error');
+        }
+      } else {
+        // 新增科目
+        const response = await accounting3Service.accounts.create(formData);
+        if (response.success) {
+          showSnackbar('科目已成功建立', 'success');
+          setAccountFormOpen(false);
+          setParentAccount(null);
+          // 強制重新載入階層
+          setHierarchyKey(prev => prev + 1);
+        } else {
+          showSnackbar('建立科目失敗', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('表單提交失敗:', error);
+      showSnackbar((editingAccount && editingAccount._id) ? '更新科目失敗' : '建立科目失敗', 'error');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // 關閉表單
+  const handleFormClose = () => {
+    setAccountFormOpen(false);
+    setEditingAccount(null);
+    setParentAccount(null); // 清除父科目資訊
   };
 
   return (
@@ -131,8 +221,9 @@ export const AccountsManagementPage: React.FC = () => {
       {/* 主要內容區域 */}
       <Paper sx={{ height: 'calc(100vh - 200px)', minHeight: 600 }}>
         <AccountHierarchyManager
+          key={hierarchyKey}
           onAccountSelect={handleAccountSelect}
-          onAccountCreate={handleAccountCreate}
+          onAccountCreate={handleAccountCreateChild}
           onAccountEdit={handleAccountEdit}
           onAccountDelete={handleAccountDelete}
           showToolbar={true}
@@ -167,16 +258,27 @@ export const AccountsManagementPage: React.FC = () => {
         </Tooltip>
         
         <Tooltip title="新增科目" placement="left" arrow>
-          <Fab 
-            color="primary" 
-            size="medium" 
-            onClick={handleAccountCreate} 
+          <Fab
+            color="primary"
+            size="medium"
+            onClick={() => handleAccountCreate()}
             aria-label="新增科目"
           >
             <AddIcon />
           </Fab>
         </Tooltip>
       </Box>
+
+      {/* 科目表單對話框 */}
+      <AccountForm
+        open={accountFormOpen}
+        onClose={handleFormClose}
+        onSubmit={handleFormSubmit}
+        account={editingAccount}
+        parentAccount={parentAccount}
+        organizations={organizations}
+        loading={formLoading}
+      />
 
       {/* 通知 Snackbar */}
       <Snackbar
