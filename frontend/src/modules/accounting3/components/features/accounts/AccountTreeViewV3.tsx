@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -208,6 +208,21 @@ const NodeLabel: React.FC<{
     }
   };
 
+  // 格式化淨額顯示
+  const formattedNetAmount = useMemo(() => {
+    if (!node.statistics) return null;
+    
+    const netAmount = node.statistics.totalBalance || 0;
+    if (netAmount === 0) return null;
+    
+    return new Intl.NumberFormat('zh-TW', {
+      style: 'currency',
+      currency: 'TWD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(netAmount);
+  }, [node.statistics]);
+
   return (
     <NodeContent>
       <NodeInfo>
@@ -235,30 +250,22 @@ const NodeLabel: React.FC<{
             variant="outlined"
           />
         )}
-        {renderConfig.showNodeBalances && node.statistics && (
-          <Box display="flex" flexDirection="column" alignItems="flex-end" ml={1}>
-            <Typography
-              variant="caption"
-              color={node.statistics.balance >= 0 ? "success.main" : "error.main"}
-              fontWeight="bold"
-            >
-              淨額: {node.statistics.balance?.toLocaleString() || '0'}
-            </Typography>
-            {node.statistics.totalBalance !== node.statistics.balance && (
-              <Typography
-                variant="caption"
-                color={node.statistics.totalBalance >= 0 ? "primary.main" : "warning.main"}
-                fontWeight="bold"
-              >
-                含子科目: {node.statistics.totalBalance?.toLocaleString() || '0'}
-              </Typography>
-            )}
-            {node.statistics.childCount > 0 && (
-              <Typography variant="caption" color="text.disabled" fontSize="0.7rem">
-                {node.statistics.childCount}個子科目
-              </Typography>
-            )}
-          </Box>
+        {/* 顯示淨額（如果有統計資料且不為零） */}
+        {formattedNetAmount && (
+          <Typography
+            variant="caption"
+            sx={{
+              fontFamily: 'monospace',
+              fontSize: '0.75rem',
+              color: 'text.secondary',
+              backgroundColor: 'action.hover',
+              padding: '2px 6px',
+              borderRadius: 1,
+              minWidth: 'fit-content',
+            }}
+          >
+            {formattedNetAmount}
+          </Typography>
         )}
       </NodeInfo>
       
