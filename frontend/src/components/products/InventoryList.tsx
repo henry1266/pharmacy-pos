@@ -28,9 +28,10 @@ import { Link as RouterLink } from 'react-router-dom';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import ChartModal from './ChartModal';
 
-// 擴展 Product 型別以包含可能的 sellingPrice 屬性
+// 擴展 Product 型別以包含可能的 sellingPrice 和 excludeFromStock 屬性
 interface ExtendedProduct extends Product {
   sellingPrice?: number;
+  excludeFromStock?: boolean;
 }
 
 // 定義庫存記錄的型別
@@ -202,9 +203,19 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
         let stock = 0;
         const processedInventories = [...mergedInventories].reverse().map(inv => {
           const quantity = inv.totalQuantity ?? 0;
-          // All transaction types use the same stock calculation
-          // ship and sale types already have negative quantities
-          stock += quantity;
+          
+          // 檢查是否為「不扣庫存」產品
+          const isExcludeFromStock = inv.product?.excludeFromStock === true;
+          
+          // 如果是「不扣庫存」產品且為銷售類型，則不影響庫存計算
+          if (isExcludeFromStock && inv.type === 'sale') {
+            // 不扣庫存的銷售不影響庫存數量
+            console.log(`不扣庫存產品銷售 ${inv.saleNumber}，不影響庫存計算`);
+          } else {
+            // 正常庫存計算：進貨增加，銷售和出貨減少
+            stock += quantity;
+          }
+          
           return {
             ...inv,
             currentStock: stock
@@ -217,6 +228,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
         // 計算損益總和：銷售-進貨+出貨
         let totalProfitLoss = 0;
         processedInventories.forEach(inv => {
+          // 檢查是否為「不扣庫存」產品
+          const isExcludeFromStock = inv.product?.excludeFromStock === true;
+          
           // 計算實際交易價格
           let price = 0;
           // Calculate unit price for any transaction type with totalAmount and totalQuantity
@@ -239,17 +253,36 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
           }
           
           // 計算該記錄的損益
-          const recordCost = price * Math.abs(inv.totalQuantity ?? 0);
-          
-          if (inv.type === 'sale') {
-            // 銷售記錄：增加損益
-            totalProfitLoss += recordCost;
-          } else if (inv.type === 'purchase') {
-            // 進貨記錄：減少損益
-            totalProfitLoss -= recordCost;
-          } else if (inv.type === 'ship') {
-            // 出貨記錄：增加損益
-            totalProfitLoss += recordCost;
+          if (inv.type === 'sale' && isExcludeFromStock) {
+            // 「不扣庫存」產品的銷售：使用簡單毛利計算 = 數量 × (實際售價 - 設定進價)
+            // 實際售價：優先使用 totalAmount / totalQuantity，若無則使用設定售價
+            let actualSellingPrice = 0;
+            if (inv.totalAmount && inv.totalQuantity) {
+              actualSellingPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+            } else {
+              actualSellingPrice = inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+            }
+            
+            // 設定進價：使用產品的 cost 或 purchasePrice
+            const setCostPrice = inv.product?.cost ?? inv.product?.purchasePrice ?? 0;
+            const quantity = Math.abs(inv.totalQuantity ?? 0);
+            const simpleProfit = quantity * (actualSellingPrice - setCostPrice);
+            totalProfitLoss += simpleProfit;
+            console.log(`不扣庫存產品 ${inv.saleNumber} 毛利計算: ${quantity} × (${actualSellingPrice} - ${setCostPrice}) = ${simpleProfit}`);
+          } else {
+            // 正常損益計算
+            const recordCost = price * Math.abs(inv.totalQuantity ?? 0);
+            
+            if (inv.type === 'sale') {
+              // 銷售記錄：增加損益
+              totalProfitLoss += recordCost;
+            } else if (inv.type === 'purchase') {
+              // 進貨記錄：減少損益
+              totalProfitLoss -= recordCost;
+            } else if (inv.type === 'ship') {
+              // 出貨記錄：增加損益
+              totalProfitLoss += recordCost;
+            }
           }
         });
         

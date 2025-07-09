@@ -20,6 +20,7 @@ interface Product {
   unit?: string;
   healthInsuranceCode?: string;
   healthInsurancePrice?: number | string;
+  excludeFromStock?: boolean;
   [key: string]: any;
 }
 
@@ -113,12 +114,33 @@ const commonColumns = {
     }
   }),
   
+  // 不扣庫存欄位渲染函數
+  excludeFromStock: (headerName: string = '不扣庫存', width: number = 100): GridColDef => ({
+    field: 'excludeFromStock',
+    headerName,
+    width,
+    renderCell: (params: GridRenderCellParams) => {
+      const isExcluded = params.row.excludeFromStock;
+      return (
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 500,
+            color: isExcluded ? 'warning.main' : 'text.secondary'
+          }}
+        >
+          {isExcluded ? '是' : '否'}
+        </Typography>
+      );
+    }
+  }),
+
   // 操作按鈕渲染函數
   actions: (
-    handleEditProduct: (id: string, productType: string) => void, 
-    handleDeleteProduct: (id: string) => void, 
-    productType: string, 
-    headerName: string = '操作', 
+    handleEditProduct: (id: string, productType: string) => void,
+    handleDeleteProduct: (id: string) => void,
+    productType: string,
+    headerName: string = '操作',
     width: number = 180
   ): GridColDef => ({
     field: 'actions',
@@ -172,9 +194,9 @@ const commonColumns = {
  * 創建商品表格列定義
  */
 const createProductColumns = (
-  handleEditProduct: (id: string, productType: string) => void, 
-  handleDeleteProduct: (id: string) => void, 
-  getTotalInventory: (id: string) => string, 
+  handleEditProduct: (id: string, productType: string) => void,
+  handleDeleteProduct: (id: string) => void,
+  getTotalInventory: (id: string) => string,
   categories: Category[] = []
 ): GridColDef[] => {
   return [
@@ -182,6 +204,7 @@ const createProductColumns = (
     commonColumns.name(),
     { field: 'sellingPrice', headerName: '售價', width: 150, type: 'number' },
     commonColumns.inventory(getTotalInventory),
+    commonColumns.excludeFromStock(),
     commonColumns.category(categories),
     { field: 'unit', headerName: '單位', width: 80 },
     commonColumns.purchasePrice(),
@@ -193,15 +216,16 @@ const createProductColumns = (
  * 創建藥品表格列定義
  */
 const createMedicineColumns = (
-  handleEditProduct: (id: string, productType: string) => void, 
-  handleDeleteProduct: (id: string) => void, 
-  getTotalInventory: (id: string) => string, 
+  handleEditProduct: (id: string, productType: string) => void,
+  handleDeleteProduct: (id: string) => void,
+  getTotalInventory: (id: string) => string,
   categories: Category[] = []
 ): GridColDef[] => {
   return [
     commonColumns.code('藥品編號', 80),
     commonColumns.name('藥品名稱', 180),
     commonColumns.inventory(getTotalInventory, '庫存', 70),
+    commonColumns.excludeFromStock(),
     commonColumns.purchasePrice('進貨價', 100),
     { field: 'healthInsuranceCode', headerName: '健保碼', width: 100 },
     { field: 'healthInsurancePrice', headerName: '健保價', width: 100, type: 'number' },

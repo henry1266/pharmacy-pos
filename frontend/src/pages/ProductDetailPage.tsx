@@ -46,6 +46,7 @@ interface Product {
   sellingPrice?: number;
   description?: string;
   productType: 'product' | 'medicine';
+  excludeFromStock?: boolean;
   [key: string]: any;
 }
 

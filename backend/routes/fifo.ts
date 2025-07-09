@@ -54,7 +54,36 @@ router.get('/product/:productId', async (req: Request, res: Response): Promise<v
       return;
     }
     
+    // 檢查產品是否為「不扣庫存」
+    const product = (inventories[0] as any).product;
+    console.log('🔍 產品詳情頁面 FIFO 計算:', {
+      productId: req.params.productId,
+      productName: product.name,
+      excludeFromStock: product.excludeFromStock
+    });
+    
+    if (product.excludeFromStock) {
+      console.log('🚫 不扣庫存產品，返回空的 FIFO 結果');
+      
+      // 對於「不扣庫存」產品，返回空的 FIFO 結果
+      res.json({
+        success: true,
+        summary: {
+          totalCost: 0,
+          totalRevenue: 0,
+          totalProfit: 0,
+          averageProfitMargin: '0.00%'
+        },
+        profitMargins: [],
+        fifoMatches: [],
+        message: '此產品設定為「不扣庫存」，毛利以數量×(售價-進價)計算，不使用 FIFO 成本計算'
+      });
+      return;
+    }
+    
+    // 一般產品使用 FIFO 計算
     const fifoResult = calculateProductFIFO(inventories);
+    console.log('✅ 一般產品 FIFO 計算完成');
     res.json(fifoResult);
   } catch (err: any) {
     console.error('FIFO計算錯誤:', err.message);
@@ -75,14 +104,62 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
       return;
     }
     
+    console.log('🔍 處理銷售訂單:', req.params.saleId);
+    
     const itemsWithProfit: any[] = [];
     let totalProfit = 0;
     let totalCost = 0;
+    let totalRevenue = 0;
     
     for (const item of (sale as any).items) {
+      console.log('📦 處理銷售項目:', item.product._id, '數量:', item.quantity);
+      console.log('🔍 產品資訊:', {
+        name: item.product.name,
+        excludeFromStock: item.product.excludeFromStock,
+        purchasePrice: item.product.purchasePrice,
+        sellingPrice: item.price
+      });
+      
+      const itemRevenue = item.price * item.quantity;
+      
+      // 檢查是否為「不扣庫存」產品
+      if (item.product.excludeFromStock) {
+        console.log('🚫 不扣庫存產品，直接計算毛利');
+        
+        const purchasePrice = item.product.purchasePrice || 0;
+        const itemTotalCost = purchasePrice * item.quantity;
+        const itemTotalProfit = itemRevenue - itemTotalCost;
+        
+        const itemProfit = {
+          ...item.toObject(),
+          fifoProfit: {
+            totalCost: itemTotalCost,
+            grossProfit: itemTotalProfit,
+            profitMargin: itemRevenue > 0 ? ((itemTotalProfit / itemRevenue) * 100).toFixed(2) + '%' : '0.00%'
+          }
+        };
+        
+        itemsWithProfit.push(itemProfit);
+        totalProfit += itemTotalProfit;
+        totalCost += itemTotalCost;
+        totalRevenue += itemRevenue;
+        
+        console.log('✅ 不扣庫存產品毛利計算完成:', {
+          itemTotalCost,
+          itemTotalProfit,
+          itemRevenue,
+          profitMargin: itemProfit.fifoProfit.profitMargin
+        });
+        
+        continue;
+      }
+      
+      // 一般產品使用 FIFO 計算
       const inventories = await Inventory.find({ product: new Types.ObjectId(item.product._id) })
         .populate('product')
         .sort({ lastUpdated: 1 });
+      
+      console.log('📋 找到庫存記錄數量:', inventories.length);
       
       if (inventories.length === 0) {
         itemsWithProfit.push({
@@ -93,28 +170,53 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
             profitMargin: '0.00%'
           }
         });
+        totalRevenue += itemRevenue;
         continue;
       }
       
+      // 使用 calculateProductFIFO 計算該產品的完整 FIFO 結果
       const fifoResult = calculateProductFIFO(inventories);
-      const profitRecord = fifoResult.profitMargins.find((p: any) => 
-        p.orderType === 'sale' && 
-        p.orderId === req.params.saleId
-      );
+      console.log('🧮 FIFO 計算結果:', {
+        success: fifoResult.success,
+        profitMarginsCount: fifoResult.profitMargins?.length || 0,
+        summary: fifoResult.summary
+      });
       
-      if (profitRecord) {
+      // 查找與此銷售訂單相關的毛利記錄
+      const profitRecords = fifoResult.profitMargins?.filter((p: any) =>
+        p.orderType === 'sale' &&
+        p.orderId === req.params.saleId
+      ) || [];
+      
+      console.log('💰 找到相關毛利記錄:', profitRecords.length);
+      
+      if (profitRecords.length > 0) {
+        // 計算該產品在此銷售中的總毛利
+        const itemTotalCost = profitRecords.reduce((sum, p) => sum + p.totalCost, 0);
+        const itemTotalProfit = profitRecords.reduce((sum, p) => sum + p.grossProfit, 0);
+        
         const itemProfit = {
           ...item.toObject(),
           fifoProfit: {
-            totalCost: profitRecord.totalCost,
-            grossProfit: profitRecord.grossProfit,
-            profitMargin: profitRecord.profitMargin
+            totalCost: itemTotalCost,
+            grossProfit: itemTotalProfit,
+            profitMargin: itemRevenue > 0 ? ((itemTotalProfit / itemRevenue) * 100).toFixed(2) + '%' : '0.00%'
           }
         };
+        
         itemsWithProfit.push(itemProfit);
-        totalProfit += profitRecord.grossProfit;
-        totalCost += profitRecord.totalCost;
+        totalProfit += itemTotalProfit;
+        totalCost += itemTotalCost;
+        totalRevenue += itemRevenue;
+        
+        console.log('✅ FIFO 產品毛利計算完成:', {
+          itemTotalCost,
+          itemTotalProfit,
+          itemRevenue
+        });
       } else {
+        // 沒有找到相關記錄，可能是數據問題
+        console.log('⚠️ 未找到相關毛利記錄，使用預設值');
         itemsWithProfit.push({
           ...item.toObject(),
           fifoProfit: {
@@ -123,21 +225,30 @@ router.get('/sale/:saleId', async (req: Request, res: Response): Promise<void> =
             profitMargin: '0.00%'
           }
         });
+        totalRevenue += itemRevenue;
       }
     }
     
-    const totalRevenue = (sale as any).totalAmount ?? 0;
-    const totalProfitMargin = totalRevenue > 0 
-      ? ((totalProfit / totalRevenue) * 100).toFixed(2) + '%' 
+    const calculatedTotalRevenue = (sale as any).totalAmount ?? totalRevenue;
+    const totalProfitMargin = calculatedTotalRevenue > 0
+      ? ((totalProfit / calculatedTotalRevenue) * 100).toFixed(2) + '%'
       : '0.00%';
+    
+    console.log('📊 最終計算結果:', {
+      totalCost,
+      totalProfit,
+      calculatedTotalRevenue,
+      totalProfitMargin
+    });
     
     res.json({
       success: true,
       items: itemsWithProfit,
       summary: {
         totalCost,
-        totalRevenue,
-        totalProfit,
+        totalRevenue: calculatedTotalRevenue,
+        totalProfit, // 保持原有欄位
+        grossProfit: totalProfit, // 新增 grossProfit 欄位以兼容前端
         totalProfitMargin
       }
     });

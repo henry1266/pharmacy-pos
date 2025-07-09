@@ -10,8 +10,13 @@ interface ExtendedInventory extends Omit<Inventory, 'type'> {
   shippingOrderNumber?: string;
   totalAmount?: number;
   totalQuantity?: number;
-  type: 'purchase' | 'sale' | 'ship' | 'adjustment' | 'return';
+  type: 'purchase' | 'sale' | 'ship' | 'adjustment' | 'return' | 'sale-no-stock';
   currentStock?: number;
+}
+
+// 擴展的產品介面，包含 excludeFromStock 屬性
+interface ExtendedProduct extends Product {
+  excludeFromStock?: boolean;
 }
 
 // 定義合併後的庫存記錄類型
@@ -56,6 +61,13 @@ interface CategoryDetailData {
 const calculateProductData = async (productId: string): Promise<ProductCalculationResult> => {
   try {
     const inventories = await getInventoryByProduct(productId);
+
+    // 檢查是否為「不扣庫存」產品
+    const firstRecord = inventories[0];
+    const product = firstRecord?.product as ExtendedProduct;
+    const isExcludeFromStock = product?.excludeFromStock;
+    
+    console.log(`[calculateProductData] 產品 ${productId} excludeFromStock:`, isExcludeFromStock);
 
     // Filter records (same logic as original)
     const filteredInventories = inventories.filter(inv => {
@@ -140,7 +152,13 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
       if (inv.type === 'purchase') {
         currentStock += Math.abs(quantity); // 進貨增加庫存
       } else if (inv.type === 'sale') {
-        currentStock -= Math.abs(quantity); // 銷售減少庫存
+        // 對於「不扣庫存」產品，銷售不影響庫存數量
+        if (!isExcludeFromStock) {
+          currentStock -= Math.abs(quantity); // 銷售減少庫存
+        }
+      } else if (inv.type === 'sale-no-stock') {
+        // 「不扣庫存」產品的銷售記錄，不影響庫存
+        console.log(`[calculateProductData] 處理 sale-no-stock 記錄: 數量=${quantity}, 不影響庫存`);
       } else if (inv.type === 'ship') {
         currentStock -= Math.abs(quantity); // 出貨減少庫存
       }
@@ -154,31 +172,93 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
 
     // Calculate profit/loss (修正損益計算邏輯)
     let totalProfitLoss = 0;
-    processedInventories.forEach(inv => {
-      let unitPrice = 0;
+    
+    if (isExcludeFromStock) {
+      // 「不扣庫存」產品：使用 數量 × (實際售價 - 設定進價) 計算
+      console.log(`[calculateProductData] 「不扣庫存」產品使用 數量×(實際售價-設定進價) 計算`);
       
-      // 優先使用交易記錄中的實際金額計算單價
-      if (inv.totalAmount && inv.totalQuantity && inv.totalQuantity !== 0) {
-        unitPrice = Math.abs(inv.totalAmount) / Math.abs(inv.totalQuantity);
-      } else if (typeof inv.product !== 'string' && inv.product?.price) {
-        // 備用：使用產品設定的價格
-        unitPrice = inv.product.price;
-      }
+      // 獲取產品設定的進價
+      const product = processedInventories[0]?.product as ExtendedProduct;
+      const setCostPrice = product?.cost || product?.purchasePrice || 0;
+      
+      console.log(`[calculateProductData] 產品設定進價: ${setCostPrice}`);
+      
+      // 處理銷售記錄
+      const salesRecords = processedInventories.filter(inv => inv.type === 'sale' || inv.type === 'sale-no-stock');
+      salesRecords.forEach(inv => {
+        const quantity = Math.abs(inv.totalQuantity);
+        
+        // 計算實際售價
+        let actualSalePrice = 0;
+        if (inv.totalAmount && inv.totalQuantity && inv.totalQuantity !== 0) {
+          actualSalePrice = Math.abs(inv.totalAmount) / Math.abs(inv.totalQuantity);
+        }
+        
+        // 計算毛利：數量 × (實際售價 - 設定進價)
+        const profit = quantity * (actualSalePrice - setCostPrice);
+        totalProfitLoss += profit;
+        
+        console.log(`[calculateProductData] 銷售毛利計算:`);
+        console.log(`  - 數量: ${quantity}`);
+        console.log(`  - 實際售價: ${actualSalePrice}`);
+        console.log(`  - 設定進價: ${setCostPrice}`);
+        console.log(`  - 毛利: ${quantity} × (${actualSalePrice} - ${setCostPrice}) = ${profit}`);
+      });
+      
+      // 處理出貨記錄
+      const shipRecords = processedInventories.filter(inv => inv.type === 'ship');
+      shipRecords.forEach(inv => {
+        const quantity = Math.abs(inv.totalQuantity);
+        
+        // 計算實際出貨價
+        let actualShipPrice = 0;
+        if (inv.totalAmount && inv.totalQuantity && inv.totalQuantity !== 0) {
+          actualShipPrice = Math.abs(inv.totalAmount) / Math.abs(inv.totalQuantity);
+        }
+        
+        // 計算出貨毛利：數量 × (實際出貨價 - 設定進價)
+        const shipProfit = quantity * (actualShipPrice - setCostPrice);
+        totalProfitLoss += shipProfit;
+        
+        console.log(`[calculateProductData] 出貨毛利計算:`);
+        console.log(`  - 數量: ${quantity}`);
+        console.log(`  - 實際出貨價: ${actualShipPrice}`);
+        console.log(`  - 設定進價: ${setCostPrice}`);
+        console.log(`  - 毛利: ${quantity} × (${actualShipPrice} - ${setCostPrice}) = ${shipProfit}`);
+      });
+    } else {
+      // 一般產品：使用原本的計算方式
+      processedInventories.forEach(inv => {
+        let unitPrice = 0;
+        
+        // 優先使用交易記錄中的實際金額計算單價
+        if (inv.totalAmount && inv.totalQuantity && inv.totalQuantity !== 0) {
+          unitPrice = Math.abs(inv.totalAmount) / Math.abs(inv.totalQuantity);
+        } else if (typeof inv.product !== 'string' && inv.product?.price) {
+          // 備用：使用產品設定的價格
+          unitPrice = inv.product.price;
+        }
 
-      const recordAmount = unitPrice * Math.abs(inv.totalQuantity);
+        const recordAmount = unitPrice * Math.abs(inv.totalQuantity);
 
-      // 損益計算邏輯：
-      // - 銷售 (sale): 正向收入，增加利潤
-      // - 進貨 (purchase): 負向成本，減少利潤
-      // - 出貨 (ship): 正向收入，增加利潤（出貨是銷售給客戶）
-      if (inv.type === 'sale') {
-        totalProfitLoss += recordAmount; // 銷售收入
-      } else if (inv.type === 'purchase') {
-        totalProfitLoss -= recordAmount; // 進貨成本
-      } else if (inv.type === 'ship') {
-        totalProfitLoss += recordAmount; // 出貨收入
-      }
-    });
+        // 損益計算邏輯：
+        // - 銷售 (sale): 正向收入，增加利潤
+        // - 進貨 (purchase): 負向成本，減少利潤
+        // - 出貨 (ship): 正向收入，增加利潤（出貨是銷售給客戶）
+        if (inv.type === 'sale') {
+          totalProfitLoss += recordAmount; // 銷售收入
+          console.log(`[calculateProductData] 一般產品 sale 損益: 金額=${recordAmount}`);
+        } else if (inv.type === 'purchase') {
+          totalProfitLoss -= recordAmount; // 進貨成本
+          console.log(`[calculateProductData] 一般產品 purchase 損益: 金額=-${recordAmount}`);
+        } else if (inv.type === 'ship') {
+          totalProfitLoss += recordAmount; // 出貨收入
+          console.log(`[calculateProductData] 一般產品 ship 損益: 金額=${recordAmount}`);
+        }
+      });
+    }
+
+    console.log(`[calculateProductData] 產品 ${productId} 最終結果: 庫存=${currentStock}, 損益=${totalProfitLoss}`);
 
     return {
       profitLoss: totalProfitLoss,

@@ -3,6 +3,13 @@ import axios from 'axios';
 import { Inventory, Product } from '@pharmacy-pos/shared/types/entities';
 
 /**
+ * 擴展的產品介面，包含 excludeFromStock 屬性
+ */
+interface ExtendedProduct extends Product {
+  excludeFromStock?: boolean;
+}
+
+/**
  * 庫存記錄介面（擴展）
  */
 interface InventoryRecord extends Inventory {
@@ -119,7 +126,40 @@ const useInventoryData = (productId?: string) => {
     
     if (productInv.length === 0) return '0';
     
-    const total = productInv.reduce((sum, item) => sum + (parseInt(item.quantity.toString()) ?? 0), 0);
+    // 檢查是否為「不扣庫存」產品
+    const firstRecord = productInv[0];
+    const product = firstRecord?.product as ExtendedProduct;
+    const isExcludeFromStock = product?.excludeFromStock;
+    
+    console.log(`[getTotalInventory] 產品 ${id} excludeFromStock:`, isExcludeFromStock);
+    
+    let total = 0;
+    
+    if (isExcludeFromStock) {
+      // 「不扣庫存」產品：只計算進貨和出貨記錄，排除銷售記錄
+      productInv.forEach(item => {
+        const quantity = parseInt(item.quantity.toString()) || 0;
+        console.log(`[getTotalInventory] 處理記錄 - 類型: ${item.type}, 數量: ${quantity}`);
+        
+        if (item.type === 'purchase' || item.type === 'ship') {
+          total += quantity;
+        } else if ((item.type as any) === 'sale-no-stock') {
+          // 「不扣庫存」的銷售記錄不影響庫存
+          console.log(`[getTotalInventory] 跳過 sale-no-stock 記錄，數量: ${quantity}`);
+        } else if (item.type === 'sale') {
+          // 一般銷售記錄也不影響「不扣庫存」產品的庫存
+          console.log(`[getTotalInventory] 跳過一般 sale 記錄，數量: ${quantity}`);
+        } else if (item.type === 'adjustment' || item.type === 'return') {
+          // 調整和退貨記錄仍然影響庫存
+          total += quantity;
+        }
+      });
+    } else {
+      // 一般產品：正常計算所有記錄
+      total = productInv.reduce((sum, item) => sum + (parseInt(item.quantity.toString()) ?? 0), 0);
+    }
+    
+    console.log(`[getTotalInventory] 產品 ${id} 最終庫存:`, total);
     return total.toString();
   };
 

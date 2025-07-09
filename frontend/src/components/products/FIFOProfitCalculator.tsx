@@ -69,6 +69,7 @@ interface ProfitMargin {
 interface FIFOData {
   success: boolean;
   error?: string;
+  message?: string;
   summary: FIFOSummary;
   profitMargins: ProfitMargin[];
   fifoMatches: FIFOMatch[];
@@ -555,6 +556,10 @@ const FIFOProfitCalculator: React.FC<FIFOProfitCalculatorProps> = ({ productId }
   }
 
   if (fifoData.profitMargins.length === 0) {
+    // 檢查是否有特殊訊息（如「不扣庫存」產品）
+    if (fifoData.message) {
+      return <StatusDisplay>{fifoData.message}</StatusDisplay>;
+    }
     return <StatusDisplay>無銷售記錄，無法計算毛利</StatusDisplay>;
   }
 

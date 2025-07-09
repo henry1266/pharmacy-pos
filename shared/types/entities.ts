@@ -200,7 +200,7 @@ export interface Inventory {
   product: string | Product; // 產品ID或產品對象
   quantity: number;
   totalAmount?: number;
-  type: 'purchase' | 'sale' | 'adjustment' | 'return' | 'ship';
+  type: 'purchase' | 'sale' | 'adjustment' | 'return' | 'ship' | 'sale-no-stock';
   referenceId?: string; // 參考ID（如銷售ID、採購ID等）
   purchaseOrderId?: string;
   purchaseOrderNumber?: string;

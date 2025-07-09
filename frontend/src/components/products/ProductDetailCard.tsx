@@ -48,6 +48,7 @@ interface Product {
   healthInsurancePrice?: string | number;
   description?: string;
   productType?: string;
+  excludeFromStock?: boolean;
   [key: string]: any;
 }
 
@@ -169,6 +170,11 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
               </Typography>
               <Typography variant="body2">
                 <strong>健保價:</strong> <span style={{ color: '#ed6c02' }}>NT$ {parseFloat(product.healthInsurancePrice?.toString() ?? '0').toFixed(2)}</span>
+              </Typography>
+              <Typography variant="body2">
+                <strong>不扣庫存:</strong> <span style={{ color: product.excludeFromStock ? '#ff9800' : '#757575' }}>
+                  {product.excludeFromStock ? '是' : '否'}
+                </span>
               </Typography>
             </Box>
           </Box>

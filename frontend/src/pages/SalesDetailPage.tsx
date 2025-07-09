@@ -94,6 +94,7 @@ interface FifoData {
   summary: {
     totalCost: number;
     totalProfit: number;
+    grossProfit?: number; // 新增 grossProfit 欄位以兼容後端回傳
     totalProfitMargin: string;
   };
   items?: FifoItem[];
@@ -176,9 +177,9 @@ const getCollapsibleDetails = (sale: Sale, fifoLoading: boolean, fifoError: stri
     });
     details.push({
       label: '總毛利',
-      value: fifoData.summary.totalProfit,
-      icon: <TrendingUpIcon color={fifoData.summary.totalProfit >= 0 ? 'success' : 'error'} fontSize="small" />,
-      color: fifoData.summary.totalProfit >= 0 ? 'success.main' : 'error.main',
+      value: fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0,
+      icon: <TrendingUpIcon color={(fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0) >= 0 ? 'success' : 'error'} fontSize="small" />,
+      color: (fifoData.summary.totalProfit || fifoData.summary.grossProfit || 0) >= 0 ? 'success.main' : 'error.main',
       fontWeight: 'bold',
       condition: true,
       valueFormatter: val => typeof val === 'number' ? val.toFixed(2) : 'N/A'
@@ -469,24 +470,41 @@ const SalesDetailPage: FC = () => {
     try {
       setFifoLoading(true);
       
-      const response = await axios.get<ApiResponse<FifoData> | FifoData>(`/api/fifo/sale/${id}`);
+      console.log('🔍 開始獲取 FIFO 數據，銷售ID:', id);
+      const response = await axios.get(`/api/fifo/sale/${id}`);
       
-      // 檢查是否為包裝的 API 回應格式
-      if (response.data && 'success' in response.data && 'data' in response.data) {
-        const apiResponse = response.data as ApiResponse<FifoData>;
-        if (apiResponse.success && apiResponse.data) {
-          setFifoData(apiResponse.data);
-        } else {
-          throw new Error('FIFO API 回應格式不正確');
-        }
+      console.log('📡 FIFO API 原始回應:', response.data);
+      console.log('📊 回應狀態:', response.status);
+      console.log('📋 回應標頭:', response.headers);
+      
+      // 後端回傳格式：{ success: true, items: [...], summary: {...} }
+      if (response.data && response.data.success && response.data.summary) {
+        console.log('✅ FIFO API 回應格式正確');
+        console.log('💰 Summary 資料:', response.data.summary);
+        console.log('📦 Items 資料:', response.data.items);
+        
+        // 直接使用後端回傳的格式，將 items 和 summary 組合成 FifoData
+        const fifoData: FifoData = {
+          summary: response.data.summary,
+          items: response.data.items || []
+        };
+        
+        console.log('🎯 處理後的 FifoData:', fifoData);
+        setFifoData(fifoData);
+        setFifoError(null);
       } else {
-        // 直接的 FifoData 格式
-        setFifoData(response.data as FifoData);
+        console.error('❌ FIFO API 回應格式不正確:', response.data);
+        throw new Error('FIFO API 回應格式不正確');
       }
-      
-      setFifoError(null);
     } catch (err: any) {
-      console.error('獲取FIFO毛利數據失敗:', err);
+      console.error('💥 獲取FIFO毛利數據失敗:', err);
+      console.error('📄 錯誤詳情:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        config: err.config
+      });
+      
       let errorMsg = '獲取FIFO毛利數據失敗';
       
       if (err.response?.data?.message) {

@@ -302,7 +302,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
     }
     
     const inventory = await Inventory.find({ product: req.params.productId.toString() })
-      .populate('product')
+      .populate('product') // 包含完整產品資訊，包括 excludeFromStock
       .populate('purchaseOrderId', 'poid orderNumber pobill')
       .populate('saleId', 'saleNumber');
     

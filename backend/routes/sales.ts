@@ -620,7 +620,7 @@ async function createNoStockSaleRecord(item: SaleItem, sale: SaleDocument, produ
     // 創建特殊的庫存記錄，用於毛利計算
     const inventoryRecord = new Inventory({
       product: item.product,
-      quantity: 0, // 不扣庫存，數量設為0
+      quantity: item.quantity, // 保持實際銷售數量，不扣庫存的邏輯在 FIFO 計算時處理
       totalAmount: Number(item.subtotal), // 銷售總額
       saleNumber: sale.saleNumber,
       type: 'sale-no-stock', // 特殊類型標記

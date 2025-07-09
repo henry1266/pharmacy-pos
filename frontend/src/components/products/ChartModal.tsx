@@ -141,6 +141,9 @@ const ChartModal: FC<ChartModalProps> = ({
 
   // 計算實際交易價格
   const calculatePrice = (inv: InventoryRecord): number => {
+    // 檢查是否為「不扣庫存」產品
+    const isExcludeFromStock = inv.product?.excludeFromStock === true;
+    
     if (inv.totalAmount && inv.totalQuantity) {
       return inv.totalAmount / Math.abs(inv.totalQuantity);
     } else {
@@ -149,7 +152,14 @@ const ChartModal: FC<ChartModalProps> = ({
         // 進貨記錄：優先使用進貨價
         return inv.product?.purchasePrice ?? inv.product?.price ?? 0;
       } else if (inv.type === 'sale' || inv.type === 'ship') {
-        // 銷售/出貨記錄：優先使用售價
+        // 銷售/出貨記錄：優先使用實際售價
+        if (isExcludeFromStock && inv.type === 'sale') {
+          // 「不扣庫存」產品的銷售：優先顯示實際售價
+          if (inv.totalAmount && inv.totalQuantity) {
+            return inv.totalAmount / Math.abs(inv.totalQuantity);
+          }
+          return inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+        }
         return inv.product?.sellingPrice ?? inv.product?.price ?? 0;
       } else {
         // 其他記錄：使用通用價格
