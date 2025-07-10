@@ -93,10 +93,10 @@ module.exports = {
     port: 3000,
     open: true,
     hot: true,
-    // Code Server 環境 proxy 配置
+    // 動態 proxy 配置 - 從環境變數讀取
     proxy: {
       '/api': {
-        target: 'http://192.168.68.151:8080/proxy/5000',
+        target: process.env.REACT_APP_PROXY_TARGET,
         changeOrigin: true,
         secure: false,
         logLevel: 'debug'

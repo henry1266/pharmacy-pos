@@ -1,7 +1,7 @@
 import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // Code Server 環境 - 使用 proxy 路徑
-const API_BASE_URL = 'http://192.168.68.151:8080/proxy/5000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // 創建axios實例
 const apiService = axios.create({

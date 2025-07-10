@@ -29,7 +29,7 @@ const createAxiosAdapter = (): HttpClient => {
   };
 
   const getApiBaseUrl = (): string => {
-    return 'http://192.168.68.151:8080/proxy/5000';
+    return process.env.REACT_APP_API_BASE_URL;
   };
 
   const buildFullUrl = (url: string): string => {
