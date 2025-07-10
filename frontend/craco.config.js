@@ -93,6 +93,15 @@ module.exports = {
     port: 3000,
     open: true,
     hot: true,
+    // 動態 proxy 配置 - 從環境變數讀取 API 服務器地址
+    proxy: {
+      '/api': {
+        target: `http://${process.env.REACT_APP_API_HOST || '192.168.68.151'}:${process.env.REACT_APP_API_PORT || '5000'}`,
+        changeOrigin: true,
+        secure: false,
+        logLevel: 'debug'
+      }
+    }
   },
   // TypeScript 配置
   typescript: {
