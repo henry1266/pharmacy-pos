@@ -29,8 +29,8 @@ const createAxiosAdapter = (): HttpClient => {
   };
 
   const getApiBaseUrl = (): string => {
-    //return process.env.REACT_APP_API_BASE_URL;
-    return 'http://192.168.68.90:5000';
+    return process.env.REACT_APP_API_BASE_URL;
+    //return 'http://192.168.68.90:5000';
   };
 
   const buildFullUrl = (url: string): string => {

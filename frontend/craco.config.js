@@ -1,4 +1,5 @@
 const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 module.exports = {
   webpack: {
@@ -93,10 +94,10 @@ module.exports = {
     port: 3000,
     open: true,
     hot: true,
-    // 動態 proxy 配置 - 從環境變數讀取
+    // 動態 proxy 配置 - 從環境變數讀取，提供預設值
     proxy: {
       '/api': {
-        target: 'http://192.168.68.90:5000',
+        target: process.env.REACT_APP_PROXY_TARGET,
         changeOrigin: true,
         secure: false,
         logLevel: 'debug'
