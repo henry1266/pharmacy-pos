@@ -57,12 +57,20 @@ export class ThemeServiceV2 {
   private httpClient: HttpClientImpl;
 
   constructor() {
-    // 優先使用環境變數，如果沒有則動態生成
+    // 優先使用環境變數，如果沒有則報錯
     if (process.env.REACT_APP_API_URL) {
       this.baseUrl = process.env.REACT_APP_API_URL;
     } else {
-      const host = process.env.REACT_APP_API_HOST || '192.168.68.90';
-      const port = process.env.REACT_APP_API_PORT || '5000';
+      const host = process.env.REACT_APP_API_HOST;
+      const port = process.env.REACT_APP_API_PORT;
+      
+      if (!host) {
+        throw new Error('環境變數 REACT_APP_API_HOST 未設置');
+      }
+      if (!port) {
+        throw new Error('環境變數 REACT_APP_API_PORT 未設置');
+      }
+      
       this.baseUrl = `http://${host}:${port}`;
     }
     this.httpClient = new HttpClientImpl();

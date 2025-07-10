@@ -190,7 +190,10 @@ export abstract class BaseApiClient {
 export const createApiClient = <T extends BaseApiClient>(
   ClientClass: new (httpClient: HttpClient, baseUrl: string) => T,
   httpClient: HttpClient,
-  baseUrl: string = '/api'
+  baseUrl: string
 ): T => {
+  if (!baseUrl) {
+    throw new Error('baseUrl 參數為必填項，請提供有效的 API 基礎 URL');
+  }
   return new ClientClass(httpClient, baseUrl);
 };
