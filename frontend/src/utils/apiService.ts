@@ -5,7 +5,7 @@ import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'ax
  * @returns {string} API基礎URL
  */
 const getApiBaseUrl = (): string => {
-  const ip = localStorage.getItem("apiServerIp") ?? "192.168.68.90";
+  const ip = localStorage.getItem("apiServerIp") ?? "192.168.68.151";
   return `http://${ip}:5000`; // 假設後端運行在5000埠
 };
 

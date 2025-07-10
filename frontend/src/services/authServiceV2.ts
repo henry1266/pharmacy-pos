@@ -21,16 +21,31 @@ import type {
 } from '@pharmacy-pos/shared/types/api';
 import type { EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
 
-// 創建 axios 適配器，包含認證 header
+// 創建 axios 適配器，包含認證 header 和動態 API URL
 const createAxiosAdapter = (): HttpClient => {
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return token ? { 'x-auth-token': token } : {};
   };
 
+  const getApiBaseUrl = (): string => {
+    const ip = localStorage.getItem("apiServerIp") ?? "192.168.68.151";
+    return `http://${ip}:5000`;
+  };
+
+  const buildFullUrl = (url: string): string => {
+    // 如果 URL 已經是完整的 HTTP URL，直接使用
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // 否則組合基礎 URL
+    const baseUrl = getApiBaseUrl();
+    return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
+  };
+
   return {
     get: async (url: string, config?: any) => {
-      const response = await axios.get(url, {
+      const response = await axios.get(buildFullUrl(url), {
         ...config,
         headers: {
           ...getAuthHeaders(),
@@ -40,7 +55,7 @@ const createAxiosAdapter = (): HttpClient => {
       return { data: response.data };
     },
     post: async (url: string, data?: any, config?: any) => {
-      const response = await axios.post(url, data, {
+      const response = await axios.post(buildFullUrl(url), data, {
         ...config,
         headers: {
           ...getAuthHeaders(),
@@ -50,7 +65,7 @@ const createAxiosAdapter = (): HttpClient => {
       return { data: response.data };
     },
     put: async (url: string, data?: any, config?: any) => {
-      const response = await axios.put(url, data, {
+      const response = await axios.put(buildFullUrl(url), data, {
         ...config,
         headers: {
           ...getAuthHeaders(),
@@ -60,7 +75,7 @@ const createAxiosAdapter = (): HttpClient => {
       return { data: response.data };
     },
     delete: async (url: string, config?: any) => {
-      const response = await axios.delete(url, {
+      const response = await axios.delete(buildFullUrl(url), {
         ...config,
         headers: {
           ...getAuthHeaders(),
