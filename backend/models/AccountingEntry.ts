@@ -88,7 +88,6 @@ const AccountingEntrySchema: Schema = new Schema({
 });
 
 // 索引
-AccountingEntrySchema.index({ transactionGroupId: 1, sequence: 1 });
 AccountingEntrySchema.index({ accountId: 1, createdAt: -1 });
 AccountingEntrySchema.index({ createdBy: 1, createdAt: -1 });
 AccountingEntrySchema.index({ organizationId: 1, createdAt: -1 });
@@ -100,7 +99,7 @@ AccountingEntrySchema.index({ sourceTransactionId: 1 });
 AccountingEntrySchema.index({ sourceTransactionId: 1, accountId: 1 });
 AccountingEntrySchema.index({ fundingPath: 1 });
 
-// 複合索引：確保同一交易群組內序號唯一
+// 複合索引：確保同一交易群組內序號唯一（移除重複的一般索引）
 AccountingEntrySchema.index({ transactionGroupId: 1, sequence: 1 }, { unique: true });
 
 // 驗證：借方或貸方金額必須有一個大於0

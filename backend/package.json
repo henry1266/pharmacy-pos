@@ -9,7 +9,7 @@
     "server": "nodemon --exec ts-node server.ts",
     "server:js": "nodemon server.js",
     "client": "npm start --prefix ../frontend",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "npm run server",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "test": "jest",

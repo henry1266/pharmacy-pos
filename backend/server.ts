@@ -3,7 +3,11 @@ import path from "path";
 import cors from "cors";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import dotenv from "dotenv";
 import connectDB from "./config/db";
+
+// 載入環境變數
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
@@ -123,7 +127,9 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const PORT: number = process.env.SERVER_PORT ? parseInt(process.env.SERVER_PORT) :
+                     process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const HOST: string = process.env.SERVER_HOST || 'localhost';
 
 // 創建 HTTP 伺服器和 Socket.IO 實例
 const server = createServer(app);
@@ -168,7 +174,10 @@ io.on('connection', (socket) => {
 // 將 io 實例附加到 app，讓路由可以使用
 app.set('io', io);
 
-server.listen(PORT, () => console.log(`伺服器已啟動，監聽埠號: ${PORT}`));
+server.listen(PORT, HOST, () => {
+  console.log(`伺服器已啟動，監聽位址: ${HOST}:${PORT}`);
+  console.log(`API 基礎 URL: http://${HOST}:${PORT}/api`);
+});
 
 // 優雅地處理伺服器關閉
 process.on('SIGTERM', () => {
