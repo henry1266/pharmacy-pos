@@ -29,7 +29,7 @@ const createAxiosAdapter = (): HttpClient => {
   };
 
   const getApiBaseUrl = (): string => {
-    const ip = localStorage.getItem("apiServerIp") ?? "192.168.68.151";
+    const ip = localStorage.getItem("apiServerIp");
     return `http://${ip}:5000`;
   };
 
