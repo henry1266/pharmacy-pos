@@ -226,8 +226,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         { text: '監測列表', path: '/settings/monitored-products' },
       ]
     },
-    { text: '記帳系統 v2', icon: isAccounting2Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, path: '/accounting2' },
-    { text: '內嵌分錄記帳系統', icon: isAccounting3Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, path: '/accounting3' },
+    { text: '記帳系統 v2', icon: isAccounting2Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, path: '/accounting2', adminOnly: true },
+    { text: '內嵌分錄記帳系統', icon: isAccounting3Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, path: '/accounting3', adminOnly: true },
     { text: '機構管理', icon: isOrganizationPath(location.pathname) ? <BusinessOutlinedIcon /> : <BusinessIcon />, path: '/organizations', adminOnly: true },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports', adminOnly: true },
     { text: '系統設定', icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, subItems: [
