@@ -61,7 +61,7 @@ export class ThemeServiceV2 {
     if (process.env.REACT_APP_API_URL) {
       this.baseUrl = process.env.REACT_APP_API_URL;
     } else {
-      const host = process.env.REACT_APP_API_HOST || 'localhost';
+      const host = process.env.REACT_APP_API_HOST || '192.168.68.90';
       const port = process.env.REACT_APP_API_PORT || '5000';
       this.baseUrl = `http://${host}:${port}`;
     }
