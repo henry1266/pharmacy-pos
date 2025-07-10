@@ -29,8 +29,7 @@ const createAxiosAdapter = (): HttpClient => {
   };
 
   const getApiBaseUrl = (): string => {
-    const ip = localStorage.getItem("apiServerIp");
-    return `http://${ip}:5000`;
+    return 'http://192.168.68.151:8080/proxy/5000';
   };
 
   const buildFullUrl = (url: string): string => {

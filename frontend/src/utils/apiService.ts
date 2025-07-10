@@ -1,25 +1,16 @@
 import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
-/**
- * 獲取API基礎URL，優先從localStorage讀取，否則使用默認值
- * @returns {string} API基礎URL
- */
-const getApiBaseUrl = (): string => {
-  const ip = localStorage.getItem("apiServerIp") ?? "192.168.68.151";
-  return `http://${ip}:5000`; // 假設後端運行在5000埠
-};
+// Code Server 環境 - 使用 proxy 路徑
+const API_BASE_URL = 'http://192.168.68.151:8080/proxy/5000';
 
 // 創建axios實例
 const apiService = axios.create({
-  baseURL: getApiBaseUrl() // 初始baseURL
+  baseURL: API_BASE_URL
 });
 
-// 添加請求攔截器，動態更新baseURL並附加token
+// 添加請求攔截器，附加token
 apiService.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    // 每次請求前檢查是否有新的IP設定
-    config.baseURL = getApiBaseUrl();
-    
     const token = localStorage.getItem('token');
     if (token && config.headers) {
       config.headers['x-auth-token'] = token;
