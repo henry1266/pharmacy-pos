@@ -89,19 +89,21 @@ class SocketService {
     }
 
     // 智能檢測後端 URL
-    // 如果是 localhost，使用 localhost:5000
-    // 如果是其他 IP，使用該 IP:5000
+    // 優先使用環境變數，如果沒有則根據當前主機名動態生成
     let serverUrl: string;
     
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      serverUrl = 'http://localhost:5000';
-    } else {
-      serverUrl = `${window.location.protocol}//${window.location.hostname}:5000`;
-    }
-    
-    // 允許環境變數覆蓋
-    if (process.env.REACT_APP_API_URL) {
+    if (process.env.REACT_APP_SERVER_URL) {
+      serverUrl = process.env.REACT_APP_SERVER_URL;
+    } else if (process.env.REACT_APP_API_URL) {
       serverUrl = process.env.REACT_APP_API_URL;
+    } else {
+      // 動態生成 URL
+      const port = process.env.REACT_APP_API_PORT || '5000';
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        serverUrl = `http://localhost:${port}`;
+      } else {
+        serverUrl = `${window.location.protocol}//${window.location.hostname}:${port}`;
+      }
     }
     
     console.log('WebSocket 嘗試連接到:', serverUrl);

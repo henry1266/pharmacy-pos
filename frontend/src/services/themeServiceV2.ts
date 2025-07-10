@@ -57,7 +57,14 @@ export class ThemeServiceV2 {
   private httpClient: HttpClientImpl;
 
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    // 優先使用環境變數，如果沒有則動態生成
+    if (process.env.REACT_APP_API_URL) {
+      this.baseUrl = process.env.REACT_APP_API_URL;
+    } else {
+      const host = process.env.REACT_APP_API_HOST || 'localhost';
+      const port = process.env.REACT_APP_API_PORT || '5000';
+      this.baseUrl = `http://${host}:${port}`;
+    }
     this.httpClient = new HttpClientImpl();
   }
 

@@ -11,7 +11,8 @@
 export const getApiBaseUrl = (): string => {
   const savedIp = localStorage.getItem('apiServerIp');
   if (savedIp) {
-    return `http://${savedIp}:5000/api`;
+    const port = process.env.REACT_APP_API_PORT || '5000';
+    return `http://${savedIp}:${port}/api`;
   }
   
   // 使用環境變數，如果沒有則使用預設值
