@@ -1,253 +1,72 @@
-import { io, Socket } from 'socket.io-client';
+/**
+ * WebSocket 服務 - 已停用
+ * 此服務已被停用，所有方法都是空操作
+ * 保持介面完整性以避免破壞依賴程式碼
+ */
+
+// 導入類型定義但不實際使用
+// import { io, Socket } from 'socket.io-client';
 
 class SocketService {
-  private socket: Socket | null = null;
+  private socket: any = null;
   private isConnected: boolean = false;
   private tabId: string;
   private isMainTab: boolean = false;
   private connectionCheckInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    // 為每個分頁生成唯一 ID
+    // 生成唯一 ID（保持介面一致性）
     this.tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.initTabCoordination();
+    console.log('🚫 SocketService 已停用 - 所有 WebSocket 功能已禁用');
   }
 
-  // 初始化分頁協調機制
-  private initTabCoordination(): void {
-    // 檢查是否為主分頁
-    this.checkMainTab();
-    
-    // 監聽其他分頁的狀態
-    window.addEventListener('storage', this.handleStorageChange.bind(this));
-    window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
-    
-    // 定期檢查主分頁狀態
-    this.connectionCheckInterval = setInterval(() => {
-      this.checkMainTab();
-    }, 5000);
-  }
-
-  // 檢查是否為主分頁
-  private checkMainTab(): void {
-    const mainTabId = localStorage.getItem('socket_main_tab');
-    const mainTabTimestamp = localStorage.getItem('socket_main_tab_timestamp');
-    const now = Date.now();
-    
-    // 如果沒有主分頁或主分頁超時（10秒），則成為主分頁
-    if (!mainTabId || !mainTabTimestamp || (now - parseInt(mainTabTimestamp)) > 10000) {
-      this.becomeMainTab();
-    } else if (mainTabId === this.tabId) {
-      this.isMainTab = true;
-      // 更新時間戳
-      localStorage.setItem('socket_main_tab_timestamp', now.toString());
-    } else {
-      this.isMainTab = false;
-    }
-  }
-
-  // 成為主分頁
-  private becomeMainTab(): void {
-    this.isMainTab = true;
-    localStorage.setItem('socket_main_tab', this.tabId);
-    localStorage.setItem('socket_main_tab_timestamp', Date.now().toString());
-    console.log(`🎯 分頁 ${this.tabId} 成為主 WebSocket 連線`);
-  }
-
-  // 處理 Storage 變化
-  private handleStorageChange(event: StorageEvent): void {
-    if (event.key === 'socket_main_tab' && event.newValue !== this.tabId) {
-      this.isMainTab = false;
-      if (this.socket && this.isConnected) {
-        console.log(`🔄 分頁 ${this.tabId} 讓出 WebSocket 連線`);
-        this.disconnect();
-      }
-    }
-  }
-
-  // 頁面卸載前處理
-  private handleBeforeUnload(): void {
-    if (this.isMainTab) {
-      localStorage.removeItem('socket_main_tab');
-      localStorage.removeItem('socket_main_tab_timestamp');
-    }
-    if (this.connectionCheckInterval) {
-      clearInterval(this.connectionCheckInterval);
-    }
-  }
-
-  // 初始化 Socket 連接
+  // 空操作 - 初始化 Socket 連接
   connect(): void {
-    // 只有主分頁才能建立 WebSocket 連線
-    if (!this.isMainTab) {
-      console.log(`⏸️ 分頁 ${this.tabId} 非主分頁，跳過 WebSocket 連線`);
-      return;
-    }
-
-    if (this.socket && this.isConnected) {
-      return; // 已經連接，不需要重複連接
-    }
-
-    // 智能檢測後端 URL
-    // 優先使用環境變數，如果沒有則根據當前主機名動態生成
-    let serverUrl: string;
-    
-    if (process.env.REACT_APP_SERVER_URL) {
-      serverUrl = process.env.REACT_APP_SERVER_URL;
-    } else if (process.env.REACT_APP_API_URL) {
-      serverUrl = process.env.REACT_APP_API_URL;
-    } else {
-      // 動態生成 URL
-      const port = process.env.REACT_APP_API_PORT || '5000';
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        serverUrl = `http://localhost:${port}`;
-      } else {
-        serverUrl = `${window.location.protocol}//${window.location.hostname}:${port}`;
-      }
-    }
-    
-    console.log('WebSocket 嘗試連接到:', serverUrl);
-    
-    this.socket = io(serverUrl, {
-      transports: ['websocket', 'polling'],
-      timeout: 20000,
-    });
-
-    this.socket.on('connect', () => {
-      console.log('✅ WebSocket 已連接:', this.socket?.id);
-      console.log('連接到伺服器:', serverUrl);
-      this.isConnected = true;
-    });
-
-    this.socket.on('disconnect', (reason) => {
-      console.log('❌ WebSocket 已斷線:', reason);
-      this.isConnected = false;
-      
-      // 自動重連邏輯
-      if (reason === 'io server disconnect') {
-        // 伺服器主動斷線，需要手動重連
-        console.log('🔄 嘗試重新連接...');
-        setTimeout(() => {
-          this.socket?.connect();
-        }, 5000);
-      }
-    });
-
-    this.socket.on('connect_error', (error) => {
-      console.error('❌ WebSocket 連接錯誤:', error);
-      console.error('嘗試連接的 URL:', serverUrl);
-      this.isConnected = false;
-    });
+    console.log('🚫 SocketService 已停用 - connect() 方法無效');
   }
 
-  // 斷開連接
+  // 空操作 - 斷開連接
   disconnect(): void {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.isConnected = false;
-    }
+    console.log('🚫 SocketService 已停用 - disconnect() 方法無效');
   }
 
-  // 加入 sales-new2 房間
+  // 空操作 - 加入 sales-new2 房間
   joinSalesNew2Room(): void {
-    if (this.socket && this.isConnected) {
-      this.socket.emit('join-sales-new2');
-      console.log('🏠 已加入 sales-new2 房間');
-    } else {
-      console.warn('⚠️ 無法加入房間：WebSocket 未連接');
-      // 延遲重試
-      setTimeout(() => {
-        if (this.socket && this.isConnected) {
-          this.joinSalesNew2Room();
-        }
-      }, 2000);
-    }
+    console.log('🚫 SocketService 已停用 - joinSalesNew2Room() 方法無效');
   }
 
-  // 離開 sales-new2 房間
+  // 空操作 - 離開 sales-new2 房間
   leaveSalesNew2Room(): void {
-    if (this.socket && this.isConnected) {
-      this.socket.emit('leave-sales-new2');
-      console.log('🚪 已離開 sales-new2 房間');
-    }
+    console.log('🚫 SocketService 已停用 - leaveSalesNew2Room() 方法無效');
   }
 
-  // 監聽銷售記錄建立事件
+  // 空操作 - 監聽銷售記錄建立事件
   onSaleCreated(callback: (data: any) => void): void {
-    if (this.socket) {
-      // 先移除舊的監聽器，避免重複註冊
-      this.socket.off('sale-created');
-      this.socket.off('sale-created-broadcast');
-      
-      // 監聽房間事件
-      this.socket.on('sale-created', (data) => {
-        console.log('📥 收到房間 sale-created 事件:', data);
-        callback(data);
-      });
-      
-      // 監聽廣播事件（備用）
-      this.socket.on('sale-created-broadcast', (data) => {
-        console.log('📥 收到廣播 sale-created 事件:', data);
-        callback(data);
-      });
-      
-      console.log('🎧 已註冊 sale-created 事件監聽器（房間 + 廣播）');
-    } else {
-      console.warn('⚠️ 無法註冊 sale-created 監聽器：Socket 未連接');
-    }
+    console.log('🚫 SocketService 已停用 - onSaleCreated() 方法無效');
   }
 
-  // 監聽銷售記錄更新事件
+  // 空操作 - 監聽銷售記錄更新事件
   onSaleUpdated(callback: (data: any) => void): void {
-    if (this.socket) {
-      // 先移除舊的監聽器，避免重複註冊
-      this.socket.off('sale-updated');
-      this.socket.off('sale-updated-broadcast');
-      
-      // 監聽房間事件
-      this.socket.on('sale-updated', (data) => {
-        console.log('📥 收到房間 sale-updated 事件:', data);
-        callback(data);
-      });
-      
-      // 監聽廣播事件（備用）
-      this.socket.on('sale-updated-broadcast', (data) => {
-        console.log('📥 收到廣播 sale-updated 事件:', data);
-        callback(data);
-      });
-      
-      console.log('🎧 已註冊 sale-updated 事件監聽器（房間 + 廣播）');
-    } else {
-      console.warn('⚠️ 無法註冊 sale-updated 監聽器：Socket 未連接');
-    }
+    console.log('🚫 SocketService 已停用 - onSaleUpdated() 方法無效');
   }
 
-  // 移除事件監聽器
+  // 空操作 - 移除事件監聽器
   offSaleCreated(): void {
-    if (this.socket) {
-      this.socket.off('sale-created');
-      this.socket.off('sale-created-broadcast');
-      console.log('🔇 已移除 sale-created 事件監聽器（房間 + 廣播）');
-    }
+    console.log('🚫 SocketService 已停用 - offSaleCreated() 方法無效');
   }
 
   offSaleUpdated(): void {
-    if (this.socket) {
-      this.socket.off('sale-updated');
-      this.socket.off('sale-updated-broadcast');
-      console.log('🔇 已移除 sale-updated 事件監聽器（房間 + 廣播）');
-    }
+    console.log('🚫 SocketService 已停用 - offSaleUpdated() 方法無效');
   }
 
-  // 檢查連接狀態
+  // 返回 false - 檢查連接狀態
   isSocketConnected(): boolean {
-    return this.isConnected && this.socket?.connected === true;
+    return false;
   }
 
-  // 獲取 Socket 實例（用於調試）
-  getSocket(): Socket | null {
-    return this.socket;
+  // 返回 null - 獲取 Socket 實例
+  getSocket(): any {
+    return null;
   }
 }
 
