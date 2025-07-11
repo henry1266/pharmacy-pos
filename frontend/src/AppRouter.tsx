@@ -12,7 +12,6 @@ import SalesNew2Page from './pages/SalesNew2Page';
 import SalesListPage from './pages/SalesListPage';
 import SalesEditPage from './pages/SalesEditPage';
 import SalesDetailPage from './pages/SalesDetailPage';
-import WebSocketTestPage from './pages/WebSocketTestPage';
 import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
@@ -79,7 +78,6 @@ const AppRouter: React.FC = () => {
       <Route path="/sales/new2" element={<SalesNew2Page />} />
       <Route path="/sales/edit/:id" element={<SalesEditPage />} />
       <Route path="/sales/:id" element={<SalesDetailPage />} />
-      <Route path="/websocket-test" element={<WebSocketTestPage />} />
       
       <Route path="/reports" element={<ReportsPage />} />
       
