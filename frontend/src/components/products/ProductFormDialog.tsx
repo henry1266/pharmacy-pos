@@ -26,6 +26,7 @@ interface Product {
   code?: string;
   shortCode?: string;
   name?: string;
+  subtitle?: string;
   barcode?: string;
   healthInsuranceCode?: string;
   healthInsurancePrice?: string | number;
@@ -162,6 +163,17 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               fullWidth
               margin="dense"
               required
+            />
+          </Grid>
+          <Grid item xs={12} {...({} as any)}>
+            <TextField
+              name="subtitle"
+              label="副標題"
+              value={currentProduct?.subtitle ?? ''}
+              onChange={handleInputChange}
+              fullWidth
+              margin="dense"
+              helperText="商品名稱下方的副標題說明"
             />
           </Grid>
           

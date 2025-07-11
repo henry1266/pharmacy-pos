@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@mui/material';
-import { Print as PrintIcon, Edit as EditIcon } from '@mui/icons-material';
-import { downloadShippingOrderPdf } from '../../services/pdf/shippingOrderPdf';
+import { Print as PrintIcon, Edit as EditIcon, PrintOutlined as PrintOutlinedIcon } from '@mui/icons-material';
+import { downloadShippingOrderPdf, downloadShippingOrderPdfV2 } from '../../services/pdf/shippingOrderPdf';
 
 interface ShippingOrder {
   soid?: string;
@@ -31,6 +31,15 @@ export const useShippingOrderActions = ({
       await downloadShippingOrderPdf(orderId, shippingOrder.soid);
     } catch (error) {
       console.error('列印出貨單時發生錯誤:', error);
+    }
+  };
+
+  const handlePrintV2Click = async () => {
+    try {
+      if (!shippingOrder || !orderId) return;
+      await downloadShippingOrderPdfV2(orderId, shippingOrder.soid);
+    } catch (error) {
+      console.error('列印出貨單簡化版時發生錯誤:', error);
     }
   };
 
@@ -65,7 +74,22 @@ export const useShippingOrderActions = ({
     </Button>
   );
 
-  return [editButton, printButton];
+  const printV2Button = (
+    <Button
+      key="print-v2"
+      variant="outlined"
+      color="info"
+      size="small"
+      startIcon={<PrintOutlinedIcon />}
+      onClick={handlePrintV2Click}
+      disabled={isPrintButtonDisabled}
+      sx={{ ml: 1 }}
+    >
+      簡化列印
+    </Button>
+  );
+
+  return [editButton, printButton, printV2Button];
 };
 
 // 保持向後兼容的組件導出

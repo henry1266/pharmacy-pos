@@ -255,7 +255,7 @@ async function handleShippingOrderId(soid?: string): Promise<{ soid?: string; er
 }
 
 // 驗證產品項目並檢查庫存的輔助函數
-async function validateProductsAndInventory(items: ShippingOrderItem[]): Promise<{ valid: boolean; error?: string; items?: ShippingOrderItem[] }> {
+async function validateProductsAndInventory(items: ShippingOrderItem[], allowNegativeInventory: boolean = true): Promise<{ valid: boolean; error?: string; items?: ShippingOrderItem[] }> {
   for (const item of items) {
     // 檢查項目完整性 - 修正：允許 dtotalCost 為 0
     if (!item.did || !item.dname ||
@@ -301,11 +301,14 @@ async function validateProductsAndInventory(items: ShippingOrderItem[]): Promise
       
       const availableQuantity = inventorySum.length > 0 ? inventorySum[0].total : 0;
       
-      if (availableQuantity < item.dquantity) {
+      // 新增：允許負庫存的邏輯
+      if (!allowNegativeInventory && availableQuantity < item.dquantity) {
         return {
           valid: false,
           error: `藥品 ${item.dname} (${item.did}) 庫存不足，目前庫存: ${availableQuantity}，需要: ${item.dquantity}`
         };
+      } else if (allowNegativeInventory && availableQuantity < item.dquantity) {
+        console.log(`產品 ${item.dname} (${item.did}) 允許負庫存，目前庫存: ${availableQuantity}，需要: ${item.dquantity}，將產生負庫存: ${availableQuantity - item.dquantity}`);
       }
     }
   }
@@ -363,8 +366,8 @@ router.post('/', [
     // 生成唯一訂單號
     const orderNumber = await OrderNumberService.generateUniqueOrderNumber('shipping', soid);
 
-    // 驗證產品並檢查庫存
-    const productsResult = await validateProductsAndInventory(items);
+    // 驗證產品並檢查庫存 - 允許負庫存
+    const productsResult = await validateProductsAndInventory(items, true);
     if (!productsResult.valid) {
       res.status(400).json(createErrorResponse(productsResult.error || ERROR_MESSAGES.GENERIC.VALIDATION_FAILED));
       return;

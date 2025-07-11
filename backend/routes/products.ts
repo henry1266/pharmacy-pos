@@ -242,6 +242,7 @@ router.post(
       const {
         code,
         name,
+        subtitle,
         category,
         unit,
         purchasePrice,
@@ -271,6 +272,7 @@ router.post(
         code: code?.trim() ?? await generateNextProductCode(),
         shortCode: req.body.shortCode?.trim() ?? '',
         name,
+        subtitle,
         category,
         unit,
         purchasePrice: purchasePrice ? parseFloat(purchasePrice) : 0,
@@ -340,6 +342,7 @@ router.post(
       const {
         code,
         name,
+        subtitle,
         category,
         unit,
         purchasePrice,
@@ -361,6 +364,7 @@ router.post(
         code: code?.trim() ?? await generateNextMedicineCode(),
         shortCode: req.body.shortCode?.trim() ?? '',
         name,
+        subtitle,
         category,
         unit,
         purchasePrice: parseFloatOrDefault(purchasePrice, 0),

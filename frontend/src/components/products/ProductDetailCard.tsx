@@ -37,6 +37,7 @@ interface Product {
   name: string;
   code: string;
   shortCode?: string;
+  subtitle?: string;
   unit?: string;
   barcode?: string;
   healthInsuranceCode?: string;
@@ -92,9 +93,16 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
     }}>
       <CardHeader
         title={
-          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-            {product.name}
-          </Typography>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              {product.name}
+            </Typography>
+            {product.subtitle && (
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                {product.subtitle}
+              </Typography>
+            )}
+          </Box>
         }
         subheader={
           <Paper sx={{

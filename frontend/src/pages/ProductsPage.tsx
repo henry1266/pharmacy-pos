@@ -26,6 +26,7 @@ interface ProductWithId {
   _id: string;
   code: string;
   name: string;
+  subtitle?: string;
   description?: string;
   price: number;
   cost?: number;
@@ -62,6 +63,7 @@ interface CurrentProduct {
   code: string;
   shortCode: string;
   name: string;
+  subtitle: string;
   category: string;
   unit: string;
   purchasePrice: number;
@@ -88,6 +90,7 @@ const ProductsPage: React.FC = () => {
     code: '',
     shortCode: '',
     name: '',
+    subtitle: '',
     category: '',
     unit: '',
     purchasePrice: 0,
@@ -223,6 +226,7 @@ const ProductsPage: React.FC = () => {
       code: '',
       shortCode: '',
       name: '',
+      subtitle: '',
       category: '',
       unit: '',
       purchasePrice: 0,
@@ -263,6 +267,7 @@ const ProductsPage: React.FC = () => {
         code: product.code ?? '',
         shortCode: (product as { shortCode?: string }).shortCode ?? '',
         name: product.name ?? '',
+        subtitle: (product as { subtitle?: string }).subtitle ?? '',
         category: categoryId,
         unit: product.unit ?? '',
         purchasePrice: (product as { purchasePrice?: number }).purchasePrice ?? 0,
@@ -318,6 +323,7 @@ const ProductsPage: React.FC = () => {
         code: currentProduct.code?.trim() || '',
         shortCode: currentProduct.shortCode?.trim() || '',
         name: currentProduct.name.trim(),
+        subtitle: currentProduct.subtitle?.trim() || '',
         category: currentProduct.category || '',
         unit: currentProduct.unit.trim(),
         purchasePrice: Number(currentProduct.purchasePrice) || 0,

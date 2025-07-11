@@ -65,6 +65,7 @@ export interface BaseProduct {
   code: string;
   shortCode?: string;
   name: string;
+  subtitle?: string;
   description?: string;
   price: number;
   cost?: number;

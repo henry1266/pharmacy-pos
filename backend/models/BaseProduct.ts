@@ -51,6 +51,9 @@ const BaseProductSchema = new Schema<IBaseProductDocument>({
     type: String,
     required: true
   },
+  subtitle: {
+    type: String
+  },
   category: {
     type: Schema.Types.ObjectId,
     ref: 'ProductCategory'
