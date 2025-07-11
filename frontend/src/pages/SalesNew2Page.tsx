@@ -136,7 +136,8 @@ const SalesNew2Page: FC = () => {
     loading: salesLoading,
     error: salesError,
     isTestMode: salesTestMode,
-    refreshSales
+    refreshSales,
+    searchSales
   } = useSalesListData();
 
   // Determine data sources based on test mode
@@ -171,6 +172,7 @@ const SalesNew2Page: FC = () => {
 
   // Sales list search state
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [wildcardMode, setWildcardMode] = useState<boolean>(false);
 
   // Focus barcode function
   const focusBarcode = useCallback(() => {
@@ -319,6 +321,22 @@ const SalesNew2Page: FC = () => {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    // 使用 debounce 避免過於頻繁的搜尋請求
+    const timeoutId = setTimeout(() => {
+      searchSales(value, wildcardMode);
+    }, 300);
+    
+    // 清理之前的 timeout
+    return () => clearTimeout(timeoutId);
+  };
+
+  // 處理萬用字元模式切換
+  const handleWildcardModeChange = (enabled: boolean) => {
+    setWildcardMode(enabled);
+    // 如果有搜尋條件，立即重新搜尋
+    if (searchTerm.trim()) {
+      searchSales(searchTerm, enabled);
+    }
   };
 
   let panelWidth: string;
@@ -525,6 +543,8 @@ const SalesNew2Page: FC = () => {
             isTestMode={salesTestMode}
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}
+            wildcardMode={wildcardMode}
+            onWildcardModeChange={handleWildcardModeChange}
           />
         </Box>
 

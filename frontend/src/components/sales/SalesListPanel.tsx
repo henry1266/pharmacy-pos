@@ -15,7 +15,10 @@ import {
   Divider,
   Collapse,
   IconButton,
-  Link
+  Link,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -24,11 +27,13 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   UnfoldMore as UnfoldMoreIcon,
-  UnfoldLess as UnfoldLessIcon
+  UnfoldLess as UnfoldLessIcon,
+  FilterAlt as FilterAltIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { Sale } from '../../hooks/useSalesListData';
+import WildcardSearchHelp from '../common/WildcardSearchHelp';
 
 interface SalesListPanelProps {
   sales: Sale[];
@@ -38,6 +43,9 @@ interface SalesListPanelProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onSaleClick?: (sale: Sale) => void;
+  // 新增萬用字元搜尋相關屬性
+  wildcardMode?: boolean;
+  onWildcardModeChange?: (enabled: boolean) => void;
 }
 
 // 付款方式和狀態的映射函數
@@ -74,7 +82,9 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
   isTestMode,
   searchTerm,
   onSearchChange,
-  onSaleClick
+  onSaleClick,
+  wildcardMode = false,
+  onWildcardModeChange
 }) => {
   // 摺疊狀態管理
   const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set());
@@ -193,7 +203,7 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
           <TextField
             fullWidth
             size="small"
-            placeholder="搜索銷售記錄..."
+            placeholder={wildcardMode ? "萬用字元搜尋 (支援 * 和 ?)..." : "搜索銷售記錄..."}
             value={searchTerm}
             onChange={handleSearchChange}
             InputProps={{
@@ -201,9 +211,49 @@ const SalesListPanel: React.FC<SalesListPanelProps> = ({
                 <InputAdornment position="start">
                   <SearchIcon />
                 </InputAdornment>
-              )
+              ),
+              endAdornment: wildcardMode ? (
+                <InputAdornment position="end">
+                  <Chip
+                    label="萬用字元"
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem', height: 20 }}
+                  />
+                </InputAdornment>
+              ) : undefined
             }}
           />
+          
+          {/* 萬用字元模式切換 */}
+          {onWildcardModeChange && (
+            <Tooltip title={wildcardMode ? "切換到一般搜尋" : "切換到萬用字元搜尋"}>
+              <ToggleButton
+                value="wildcard"
+                selected={wildcardMode}
+                onChange={() => onWildcardModeChange(!wildcardMode)}
+                size="small"
+                sx={{
+                  flexShrink: 0,
+                  px: 1,
+                  minWidth: 'auto',
+                  '&.Mui-selected': {
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark'
+                    }
+                  }
+                }}
+              >
+                <FilterAltIcon fontSize="small" />
+              </ToggleButton>
+            </Tooltip>
+          )}
+          
+          {/* 萬用字元搜尋說明按鈕 */}
+          <WildcardSearchHelp />
           
           {/* 一鍵展開/收起按鈕 */}
           <IconButton

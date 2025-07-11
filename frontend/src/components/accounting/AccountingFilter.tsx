@@ -29,30 +29,39 @@ interface AccountingFilterProps {
   setEndDate: (date: Date | null) => void;
   filterShift: ShiftFilter;
   setFilterShift: (shift: ShiftFilter) => void;
+  searchText: string; // 新增搜尋文字參數
+  setSearchText: (text: string) => void; // 新增搜尋文字設定函數
   onAddClick: () => void;
 }
 
 /**
  * 記帳系統篩選組件
  */
-const AccountingFilter: React.FC<AccountingFilterProps> = ({ 
-  startDate, 
-  setStartDate, 
-  endDate, 
-  setEndDate, 
-  filterShift, 
-  setFilterShift, 
-  onAddClick 
+const AccountingFilter: React.FC<AccountingFilterProps> = ({
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  filterShift,
+  setFilterShift,
+  searchText, // 新增搜尋文字參數
+  setSearchText, // 新增搜尋文字設定函數
+  onAddClick
 }) => {
   // 處理班別選擇變更
   const handleShiftChange = (e: SelectChangeEvent<string>): void => {
     setFilterShift(e.target.value as ShiftFilter);
   };
 
+  // 處理搜尋文字變更
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchText(e.target.value);
+  };
+
   return (
     <Paper sx={{ p: 2, mb: 3 }}>
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={2.4}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
             <DatePicker
               label="開始日期"
@@ -64,7 +73,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={2.4}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
             <DatePicker
               label="結束日期"
@@ -76,7 +85,7 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={2.4}>
           <FormControl fullWidth>
             <InputLabel>班別</InputLabel>
             <Select
@@ -91,7 +100,17 @@ const AccountingFilter: React.FC<AccountingFilterProps> = ({
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={2.4}>
+          <TextField
+            fullWidth
+            label="搜尋內容"
+            placeholder="搜尋項目名稱或備註..."
+            value={searchText}
+            onChange={handleSearchChange}
+            variant="outlined"
+          />
+        </Grid>
+        <Grid item xs={12} sm={2.4}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               component={Link}

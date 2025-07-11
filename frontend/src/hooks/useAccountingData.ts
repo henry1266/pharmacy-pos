@@ -21,6 +21,7 @@ const useAccountingData = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [filterShift, setFilterShift] = useState<'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | ''>('');
+  const [searchText, setSearchText] = useState<string>(''); // 新增搜尋文字狀態
 
   // Fetch records based on filters
   const fetchRecords = useCallback(async () => {
@@ -37,6 +38,9 @@ const useAccountingData = () => {
       if (filterShift) {
         (filters as any).shift = filterShift;
       }
+      if (searchText && searchText.trim()) {
+        (filters as any).search = searchText.trim(); // 新增搜尋參數，使用類型斷言
+      }
       
       const records = await accountingServiceV2.getAccountingRecords(filters);
       setRecords(records);
@@ -47,7 +51,7 @@ const useAccountingData = () => {
     } finally {
       setLoading(false);
     }
-  }, [startDate, endDate, filterShift]);
+  }, [startDate, endDate, filterShift, searchText]); // 新增 searchText 依賴
 
   // Initial fetch and fetch on filter change
   useEffect(() => {
@@ -108,6 +112,8 @@ const useAccountingData = () => {
     setEndDate,
     filterShift,
     setFilterShift,
+    searchText, // 新增搜尋文字狀態
+    setSearchText, // 新增搜尋文字設定函數
     // Actions
     fetchRecords, // Expose refetch capability
     deleteRecord,

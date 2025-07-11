@@ -52,6 +52,7 @@ interface AccountingQueryParams {
   endDate?: string;
   shift?: string;
   date?: string;
+  search?: string; // 新增內文搜尋參數
 }
 
 // 定義每日摘要介面
@@ -87,7 +88,7 @@ const router: express.Router = express.Router();
 // @access  Private
 router.get('/', auth, async (req: Request, res: Response) => {
   try {
-    const { startDate, endDate, shift } = req.query as AccountingQueryParams;
+    const { startDate, endDate, shift, search } = req.query as AccountingQueryParams;
     
     const query: Record<string, any> = {};
     
@@ -98,6 +99,15 @@ router.get('/', auth, async (req: Request, res: Response) => {
     }
     
     if (shift) query.shift = shift.toString();
+    
+    // 新增內文搜尋邏輯
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i'); // 不區分大小寫的正則表達式
+      query.$or = [
+        { 'items.category': searchRegex }, // 搜尋項目類別
+        { 'items.note': searchRegex },     // 搜尋項目備註
+      ];
+    }
     
     const accountingRecords = await Accounting.find(query).sort({ date: -1, shift: 1 });
     

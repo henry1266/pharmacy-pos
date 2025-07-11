@@ -40,6 +40,8 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
     setEndDate,
     filterShift,
     setFilterShift,
+    searchText, // 新增搜尋文字狀態
+    setSearchText, // 新增搜尋文字設定函數
     fetchRecords,
     deleteRecord,
     fetchEditData,
@@ -185,6 +187,8 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
         setEndDate={setEndDate}
         filterShift={filterShift}
         setFilterShift={setFilterShift}
+        searchText={searchText} // 新增搜尋文字參數
+        setSearchText={setSearchText} // 新增搜尋文字設定函數
         onAddClick={handleOpenAddDialog}
       />
 

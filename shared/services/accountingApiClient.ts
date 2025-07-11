@@ -60,6 +60,11 @@ export const buildQueryParams = (filters: AccountingFilters): URLSearchParams =>
     params.append('shift', filters.shift);
   }
   
+  // 新增搜尋參數支援
+  if (filters.search && filters.search.trim()) {
+    params.append('search', filters.search.trim());
+  }
+  
   return params;
 };
 

@@ -16,6 +16,8 @@ export interface SalesQueryParams {
   status?: string;
   page?: number;
   limit?: number;
+  search?: string;
+  wildcardSearch?: string;
 }
 
 /**

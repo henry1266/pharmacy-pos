@@ -160,7 +160,7 @@ const useSalesListData = () => {
   }, [lastFetchTime]);
 
   // 獲取銷售數據（帶防重複機制）
-  const fetchSales = useCallback(async (): Promise<void> => {
+  const fetchSales = useCallback(async (searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
     // 防重複請求檢查
     if (!canFetch()) {
       console.log('🚫 銷售數據請求過於頻繁，已跳過');
@@ -174,7 +174,7 @@ const useSalesListData = () => {
     if (isTestMode) {
       await fetchTestModeSales();
     } else {
-      await fetchProductionSales();
+      await fetchProductionSales(searchParams);
     }
   }, [isTestMode, canFetch]);
 
@@ -206,13 +206,24 @@ const useSalesListData = () => {
   };
 
   // 生產模式下獲取銷售數據
-  const fetchProductionSales = async (): Promise<void> => {
+  const fetchProductionSales = async (searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
     try {
-      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
+      const params: Record<string, string> = {};
+      
+      // 添加搜尋參數
+      if (searchParams?.wildcardSearch) {
+        params.wildcardSearch = searchParams.wildcardSearch;
+      } else if (searchParams?.search) {
+        params.search = searchParams.search;
+      }
+      
+      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales', { params });
       const salesData = response.data.data ?? [];
       if (Array.isArray(salesData)) {
-        // 過濾當天且前八碼相符的記錄
-        const filteredSales = filterTodaySalesWithMatchingPrefix(salesData);
+        // 如果有搜尋參數，不進行日期過濾，讓後端處理
+        const filteredSales = (searchParams?.search || searchParams?.wildcardSearch)
+          ? salesData
+          : filterTodaySalesWithMatchingPrefix(salesData);
         setSales(filteredSales);
       } else {
         console.warn('API 回傳的資料格式不正確:', response.data);
@@ -236,12 +247,28 @@ const useSalesListData = () => {
     fetchSales();
   }, [fetchSales]);
 
+  // 搜尋銷售記錄
+  const searchSales = useCallback((searchTerm: string, wildcardMode: boolean = false) => {
+    if (!searchTerm.trim()) {
+      // 如果搜尋條件為空，重新載入所有記錄
+      fetchSales();
+      return;
+    }
+
+    const searchParams = wildcardMode
+      ? { wildcardSearch: searchTerm }
+      : { search: searchTerm };
+    
+    fetchSales(searchParams);
+  }, [fetchSales]);
+
   return {
     sales,
     loading,
     error,
     isTestMode,
-    refreshSales
+    refreshSales,
+    searchSales
   };
 };
 

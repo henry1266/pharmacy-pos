@@ -77,4 +77,5 @@ export interface AccountingFilters {
   startDate?: Date | null;
   endDate?: Date | null;
   shift?: 'morning' | 'afternoon' | 'evening' | '早' | '中' | '晚' | '';
+  search?: string; // 新增內文搜尋參數
 }

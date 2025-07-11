@@ -20,7 +20,9 @@ import {
   Popover,
   CircularProgress,
   Fade,
-  Skeleton
+  Skeleton,
+  ToggleButton,
+  Tooltip
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -29,13 +31,15 @@ import {
   Search as SearchIcon,
   Visibility as VisibilityIcon,
   ArrowBack as ArrowBackIcon,
-  ViewList as ViewListIcon
+  ViewList as ViewListIcon,
+  FilterAlt as FilterAltIcon
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridLocaleText } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import SalesPreview from '../components/sales/SalesPreview'; // Import the SalesPreview component
+import WildcardSearchHelp from '../components/common/WildcardSearchHelp';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
 
 // API 回應型別定義
@@ -214,6 +218,7 @@ const SalesListPage: FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [wildcardMode, setWildcardMode] = useState<boolean>(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
@@ -233,14 +238,14 @@ const SalesListPage: FC = () => {
   }, []);
 
   // 獲取銷售數據
-  const fetchSales = async (testModeEnabled: boolean): Promise<void> => {
+  const fetchSales = async (testModeEnabled: boolean, searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
     setLoading(true);
     setError(null);
     
     if (testModeEnabled) {
       await fetchTestModeSales();
     } else {
-      await fetchProductionSales();
+      await fetchProductionSales(searchParams);
     }
   };
 
@@ -270,9 +275,18 @@ const SalesListPage: FC = () => {
   };
 
   // 生產模式下獲取銷售數據
-  const fetchProductionSales = async (): Promise<void> => {
+  const fetchProductionSales = async (searchParams?: { search?: string; wildcardSearch?: string }): Promise<void> => {
     try {
-      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
+      const params: Record<string, string> = {};
+      
+      // 添加搜尋參數
+      if (searchParams?.wildcardSearch) {
+        params.wildcardSearch = searchParams.wildcardSearch;
+      } else if (searchParams?.search) {
+        params.search = searchParams.search;
+      }
+      
+      const response = await axios.get<ApiResponse<Sale[]>>('/api/sales', { params });
       // 後端回傳的是 ApiResponse 格式: { success, message, data, timestamp }
       const salesData = response.data.data ?? [];
       if (Array.isArray(salesData)) {
@@ -299,28 +313,43 @@ const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
   setSearchTerm(e.target.value);
 };
 
-/** 依搜尋字串產生過濾後的銷售清單 */
+// 使用 useEffect 處理搜尋的 debounce
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    handleSearch(searchTerm);
+  }, 300);
+  
+  return () => clearTimeout(timeoutId);
+}, [searchTerm, wildcardMode]);
+
+/** 執行搜尋 */
+const handleSearch = (searchValue: string): void => {
+  if (!searchValue.trim()) {
+    // 如果搜尋條件為空，重新載入所有記錄
+    fetchSales(isTestMode);
+    return;
+  }
+
+  const searchParams = wildcardMode
+    ? { wildcardSearch: searchValue }
+    : { search: searchValue };
+  
+  fetchSales(isTestMode, searchParams);
+};
+
+/** 處理萬用字元模式切換 */
+const handleWildcardModeChange = (enabled: boolean): void => {
+  setWildcardMode(enabled);
+  // 如果有搜尋條件，立即重新搜尋
+  if (searchTerm.trim()) {
+    handleSearch(searchTerm);
+  }
+};
+
+/** 為DataGrid準備行數據 */
 const filteredSales = useMemo(() => {
-  const keyword = searchTerm.trim().toLowerCase();
-
-  const filtered = sales.filter(({ customer, items, _id, saleNumber, date }) => {
-    /** 收集所有可搜尋欄位；必要時只要 push 新欄位即可 */
-    const searchableFields: string[] = [
-      customer?.name ?? '',
-      items.map(item => item.product?.name ?? '').join(' '),
-      String(_id ?? ''),          // ← 先轉字串再比對
-      String(saleNumber ?? ''),
-      date ? format(new Date(date), 'yyyy-MM-dd') : ''
-    ];
-
-    // 只要任一欄位包含關鍵字即通過
-    return searchableFields.some(field =>
-      field.toLowerCase().includes(keyword)
-    );
-  });
-
   // 為DataGrid準備行數據
-  return filtered.map(sale => ({
+  return sales.map(sale => ({
     id: sale._id, // DataGrid需要唯一的id字段
     _id: sale._id, // 保留原始_id用於操作
     saleNumber: sale.saleNumber ?? '無單號',
@@ -333,7 +362,7 @@ const filteredSales = useMemo(() => {
     paymentStatus: sale.paymentStatus,
     ...sale // 保留其他屬性
   }));
-}, [sales, searchTerm]);   // ← 依賴項
+}, [sales]);   // ← 依賴項
 
   // 處理刪除銷售記錄
   const handleDeleteSale = async (id: string): Promise<void> => {
@@ -643,19 +672,59 @@ const filteredSales = useMemo(() => {
       
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <TextField
-            fullWidth
-            placeholder="搜索銷售記錄（銷貨單號、客戶名稱、產品、ID、日期）"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-          />
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <TextField
+              fullWidth
+              placeholder={wildcardMode ? "萬用字元搜尋 (支援 * 和 ?)..." : "搜索銷售記錄（銷貨單號、客戶名稱、產品、ID、日期）"}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: wildcardMode ? (
+                  <InputAdornment position="end">
+                    <Chip
+                      label="萬用字元"
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ fontSize: '0.7rem', height: 20 }}
+                    />
+                  </InputAdornment>
+                ) : undefined
+              }}
+            />
+            
+            {/* 萬用字元模式切換 */}
+            <Tooltip title={wildcardMode ? "切換到一般搜尋" : "切換到萬用字元搜尋"}>
+              <ToggleButton
+                value="wildcard"
+                selected={wildcardMode}
+                onChange={() => handleWildcardModeChange(!wildcardMode)}
+                size="small"
+                sx={{
+                  flexShrink: 0,
+                  px: 1,
+                  minWidth: 'auto',
+                  '&.Mui-selected': {
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark'
+                    }
+                  }
+                }}
+              >
+                <FilterAltIcon fontSize="small" />
+              </ToggleButton>
+            </Tooltip>
+            
+            {/* 萬用字元搜尋說明按鈕 */}
+            <WildcardSearchHelp />
+          </Box>
         </CardContent>
       </Card>
       
