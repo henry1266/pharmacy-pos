@@ -97,7 +97,7 @@ module.exports = {
     // 動態 proxy 配置 - 從環境變數讀取，提供預設值
     proxy: {
       '/api': {
-        target: process.env.REACT_APP_PROXY_TARGET,
+        target: process.env.REACT_APP_API_BASE_URL,
         changeOrigin: true,
         secure: false,
         logLevel: 'debug'
