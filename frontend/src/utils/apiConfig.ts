@@ -10,30 +10,12 @@
  * @throws {Error} 如果環境變數未設置
  */
 export const getApiBaseUrl = (): string => {
-  const savedIp = localStorage.getItem('apiServerIp');
-  if (savedIp) {
-    const port = process.env.REACT_APP_API_PORT;
-    if (!port) {
-      throw new Error('環境變數 REACT_APP_API_PORT 未設置');
-    }
-    return `http://${savedIp}:${port}/api`;
-  }
   
   // 使用環境變數，如果沒有則報錯
-  if (process.env.REACT_APP_API_URL) {
-    return `${process.env.REACT_APP_API_URL}/api`;
+  if (process.env.REACT_APP_API_BASE_URL) {
+    return `${process.env.REACT_APP_API_BASE_URL}/api`;
   } else {
-    const host = process.env.REACT_APP_API_HOST;
-    const port = process.env.REACT_APP_API_PORT;
-    
-    if (!host) {
-      throw new Error('環境變數 REACT_APP_API_HOST 未設置');
-    }
-    if (!port) {
-      throw new Error('環境變數 REACT_APP_API_PORT 未設置');
-    }
-    
-    return `http://${host}:${port}/api`;
+    throw new Error('環境變數 REACT_APP_API_BASE_URL 未設置');
   }
 };
 

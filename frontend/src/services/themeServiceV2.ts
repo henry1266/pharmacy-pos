@@ -58,20 +58,10 @@ export class ThemeServiceV2 {
 
   constructor() {
     // 優先使用環境變數，如果沒有則報錯
-    if (process.env.REACT_APP_API_URL) {
-      this.baseUrl = process.env.REACT_APP_API_URL;
+    if (process.env.REACT_APP_API_BASE_URL) {
+      this.baseUrl = `${process.env.REACT_APP_API_BASE_URL}`;
     } else {
-      const host = process.env.REACT_APP_API_HOST;
-      const port = process.env.REACT_APP_API_PORT;
-      
-      if (!host) {
-        throw new Error('環境變數 REACT_APP_API_HOST 未設置');
-      }
-      if (!port) {
-        throw new Error('環境變數 REACT_APP_API_PORT 未設置');
-      }
-      
-      this.baseUrl = `http://${host}:${port}`;
+      throw new Error('環境變數 REACT_APP_API_BASE_URL 未設置');
     }
     this.httpClient = new HttpClientImpl();
   }
