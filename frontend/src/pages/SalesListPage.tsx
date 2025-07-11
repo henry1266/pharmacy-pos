@@ -364,6 +364,11 @@ const filteredSales = useMemo(() => {
   }));
 }, [sales]);   // ← 依賴項
 
+// 計算總金額
+const totalAmount = useMemo(() => {
+  return filteredSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
+}, [filteredSales]);
+
   // 處理刪除銷售記錄
   const handleDeleteSale = async (id: string): Promise<void> => {
     if (isTestMode) {
@@ -638,10 +643,84 @@ const filteredSales = useMemo(() => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" component="h1">
-          銷售記錄 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
-        </Typography>
-        <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h5" component="h1">
+            銷售記錄 {isTestMode && <Typography component="span" sx={{ fontSize: '0.8em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+          </Typography>
+          {/* 總金額顯示 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minWidth: 'fit-content'
+          }}>
+            <Typography variant="caption" sx={{ fontSize: '0.8rem', mr: 1 }}>
+              總計
+            </Typography>
+            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              ${totalAmount.toLocaleString()}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* 搜尋區域 */}
+          <TextField
+            size="small"
+            placeholder={wildcardMode ? "萬用字元搜尋 (支援 * 和 ?)..." : "搜索銷售記錄"}
+            value={searchTerm}
+            onChange={handleSearchChange}
+            sx={{ minWidth: 250 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+              endAdornment: wildcardMode ? (
+                <InputAdornment position="end">
+                  <Chip
+                    label="萬用字元"
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem', height: 20 }}
+                  />
+                </InputAdornment>
+              ) : undefined
+            }}
+          />
+          
+          {/* 萬用字元模式切換 */}
+          <Tooltip title={wildcardMode ? "切換到一般搜尋" : "切換到萬用字元搜尋"}>
+            <ToggleButton
+              value="wildcard"
+              selected={wildcardMode}
+              onChange={() => handleWildcardModeChange(!wildcardMode)}
+              size="small"
+              sx={{
+                flexShrink: 0,
+                px: 1,
+                minWidth: 'auto',
+                '&.Mui-selected': {
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark'
+                  }
+                }
+              }}
+            >
+              <FilterAltIcon fontSize="small" />
+            </ToggleButton>
+          </Tooltip>
+          
+          {/* 萬用字元搜尋說明按鈕 */}
+          <WildcardSearchHelp />
+          
           <Button
             variant="contained"
             color="primary"
@@ -663,70 +742,12 @@ const filteredSales = useMemo(() => {
           <Button
             variant="outlined"
             startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/')} // Assuming '/' is the dashboard or home
+            onClick={() => navigate('/')}
           >
             返回首頁
           </Button>
         </Box>
       </Box>
-      
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <TextField
-              fullWidth
-              placeholder={wildcardMode ? "萬用字元搜尋 (支援 * 和 ?)..." : "搜索銷售記錄（銷貨單號、客戶名稱、產品、ID、日期）"}
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: wildcardMode ? (
-                  <InputAdornment position="end">
-                    <Chip
-                      label="萬用字元"
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                      sx={{ fontSize: '0.7rem', height: 20 }}
-                    />
-                  </InputAdornment>
-                ) : undefined
-              }}
-            />
-            
-            {/* 萬用字元模式切換 */}
-            <Tooltip title={wildcardMode ? "切換到一般搜尋" : "切換到萬用字元搜尋"}>
-              <ToggleButton
-                value="wildcard"
-                selected={wildcardMode}
-                onChange={() => handleWildcardModeChange(!wildcardMode)}
-                size="small"
-                sx={{
-                  flexShrink: 0,
-                  px: 1,
-                  minWidth: 'auto',
-                  '&.Mui-selected': {
-                    backgroundColor: 'primary.main',
-                    color: 'primary.contrastText',
-                    '&:hover': {
-                      backgroundColor: 'primary.dark'
-                    }
-                  }
-                }}
-              >
-                <FilterAltIcon fontSize="small" />
-              </ToggleButton>
-            </Tooltip>
-            
-            {/* 萬用字元搜尋說明按鈕 */}
-            <WildcardSearchHelp />
-          </Box>
-        </CardContent>
-      </Card>
       
       <Box sx={{
         width: '100%',
@@ -766,6 +787,13 @@ const filteredSales = useMemo(() => {
               }}
               getRowId={(row) => row.id}
               getRowClassName={(params) => `row-${params.indexRelativeToCurrentPage}`}
+              getRowHeight={(params) => {
+                // 根據產品數量動態調整列高
+                const itemCount = params.model.items?.length || 1;
+                const baseHeight = 52; // 基礎高度
+                const itemHeight = 24; // 每個產品項目的高度
+                return Math.max(baseHeight, baseHeight + (itemCount - 1) * itemHeight);
+              }}
               localeText={{
                 ...TABLE_LOCALE_TEXT,
                 paginationLabelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) =>

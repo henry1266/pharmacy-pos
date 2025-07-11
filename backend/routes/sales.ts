@@ -189,6 +189,143 @@ async function performWildcardSearch(wildcardSearch: string): Promise<any[]> {
   }
 }
 
+/**
+ * 使用 aggregation 進行普通搜尋，支援關聯資料搜尋
+ * 不進行萬用字元轉換，直接使用正規表達式搜尋
+ */
+async function performRegularSearch(searchTerm: string): Promise<any[]> {
+  if (!searchTerm || searchTerm.trim() === '') {
+    return [];
+  }
+
+  // 清理輸入，防止 ReDoS 攻擊
+  const cleanSearch = searchTerm.trim().substring(0, 100); // 限制長度
+  
+  try {
+    // 直接使用正規表達式，不進行萬用字元轉換
+    const searchRegex = new RegExp(cleanSearch, 'i');
+    
+    // 使用與萬用字元搜尋相同的 aggregation pipeline
+    const pipeline: any[] = [
+      // 1. 關聯客戶資料
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customer',
+          foreignField: '_id',
+          as: 'customerData'
+        }
+      },
+      // 2. 關聯產品資料
+      {
+        $lookup: {
+          from: 'baseproducts',
+          localField: 'items.product',
+          foreignField: '_id',
+          as: 'productData'
+        }
+      },
+      // 3. 關聯收銀員資料
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'cashier',
+          foreignField: '_id',
+          as: 'cashierData'
+        }
+      },
+      // 4. 搜尋條件
+      {
+        $match: {
+          $or: [
+            { saleNumber: searchRegex },
+            { notes: searchRegex },
+            { 'customerData.name': searchRegex },
+            { 'productData.name': searchRegex }
+          ]
+        }
+      },
+      // 5. 重組資料結構，模擬 populate() 的效果
+      {
+        $addFields: {
+          // 填充客戶資料
+          customer: {
+            $cond: {
+              if: { $gt: [{ $size: '$customerData' }, 0] },
+              then: { $arrayElemAt: ['$customerData', 0] },
+              else: '$customer'
+            }
+          },
+          // 填充收銀員資料
+          cashier: {
+            $cond: {
+              if: { $gt: [{ $size: '$cashierData' }, 0] },
+              then: { $arrayElemAt: ['$cashierData', 0] },
+              else: '$cashier'
+            }
+          },
+          // 重組 items 陣列，填充產品資料
+          items: {
+            $map: {
+              input: '$items',
+              as: 'item',
+              in: {
+                $mergeObjects: [
+                  '$$item',
+                  {
+                    product: {
+                      $let: {
+                        vars: {
+                          matchedProduct: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: '$productData',
+                                  cond: { $eq: ['$$this._id', '$$item.product'] }
+                                }
+                              },
+                              0
+                            ]
+                          }
+                        },
+                        in: {
+                          $cond: {
+                            if: { $ne: ['$$matchedProduct', null] },
+                            then: '$$matchedProduct',
+                            else: '$$item.product'
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      // 6. 清理臨時欄位
+      {
+        $project: {
+          customerData: 0,
+          productData: 0,
+          cashierData: 0
+        }
+      },
+      // 7. 排序
+      {
+        $sort: { saleNumber: -1 as 1 | -1 }
+      }
+    ];
+
+    const results = await Sale.aggregate(pipeline);
+    return results;
+  } catch (error) {
+    console.error('普通搜尋 aggregation 錯誤:', error);
+    return [];
+  }
+}
+
 // 型別定義
 // 使用 shared 的 SaleCreateRequest，並擴展本地需要的欄位
 interface SaleCreationRequest extends SaleCreateRequest {
@@ -244,19 +381,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
     // 如果有一般搜尋參數（向後兼容）
     else if (search && typeof search === 'string') {
-      const searchRegex = new RegExp(search, 'i');
-      const query = {
-        $or: [
-          { saleNumber: searchRegex },
-          { notes: searchRegex }
-        ]
-      };
-      
-      sales = await Sale.find(query)
-        .populate('customer')
-        .populate('items.product')
-        .populate('cashier')
-        .sort({ saleNumber: -1 });
+      sales = await performRegularSearch(search);
     }
     // 沒有搜尋參數，返回所有記錄
     else {
