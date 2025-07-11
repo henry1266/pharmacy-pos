@@ -178,8 +178,13 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
     const monitoredProductCodes = monitored.map((p: any) => p.productCode);
 
     const products = await BaseProduct.find(
-      { code: { $in: monitoredProductCodes } }, 
-      '_id code name'
+      {
+        $or: [
+          { code: { $in: monitoredProductCodes } },
+          { shortCode: { $in: monitoredProductCodes } }
+        ]
+      },
+      '_id code shortCode name'
     );
     
     if (!products || products.length === 0) {
@@ -201,7 +206,7 @@ router.get('/unaccounted-sales', auth, async (req: Request, res: Response) => {
 
     const sales = await Inventory.find({
       product: { $in: monitoredProductIds },
-      type: 'sale',
+      type: { $in: ['sale', 'sale-no-stock'] },
       accountingId: null,
       saleNumber: { $regex: `^${datePrefix}` }
     }).sort({ lastUpdated: 1 });
@@ -416,8 +421,13 @@ router.post(
       
       if (monitoredProductCodes.length > 0) {
         const products = await BaseProduct.find(
-          { code: { $in: monitoredProductCodes } }, 
-          '_id'
+          {
+            $or: [
+              { code: { $in: monitoredProductCodes } },
+              { shortCode: { $in: monitoredProductCodes } }
+            ]
+          },
+          '_id code shortCode'
         );
         monitoredProductIds = products.map((p: any) => p._id);
       }
@@ -427,7 +437,7 @@ router.post(
         // 2. 查找符合條件的銷售記錄 (僅限監測產品)
         unaccountedSales = await Inventory.find({
           product: { $in: monitoredProductIds }, // *** 只查找監測產品 ***
-          type: 'sale',
+          type: { $in: ['sale', 'sale-no-stock'] },
           accountingId: null,
           saleNumber: { $regex: `^${datePrefix}` }
         }).populate('product', 'name'); // Populate product name
@@ -588,8 +598,13 @@ router.put(
       
       if (monitoredProductCodes.length > 0) {
         const products = await BaseProduct.find(
-          { code: { $in: monitoredProductCodes } }, 
-          '_id'
+          {
+            $or: [
+              { code: { $in: monitoredProductCodes } },
+              { shortCode: { $in: monitoredProductCodes } }
+            ]
+          },
+          '_id code shortCode'
         );
         monitoredProductIds = products.map((p: any) => p._id);
       }
@@ -597,7 +612,7 @@ router.put(
       if (monitoredProductIds.length > 0) {
         currentUnaccountedSales = await Inventory.find({
           product: { $in: monitoredProductIds },
-          type: 'sale',
+          type: { $in: ['sale', 'sale-no-stock'] },
           accountingId: null, // Find currently unlinked sales
           saleNumber: { $regex: `^${datePrefix}` }
         }).populate('product', 'name');
