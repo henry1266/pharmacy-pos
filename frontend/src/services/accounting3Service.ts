@@ -286,31 +286,31 @@ export const accountsApi = {
 
   // 新增帳戶
   create: async (data: Account2FormData): Promise<Account2DetailResponse> => {
-    const response = await apiService.post(`${BASE_URL}/accounts`, data);
+    const response = await apiService.post('/api/accounts', data);
     return response.data;
   },
 
   // 更新帳戶
   update: async (id: string, data: Partial<Account2FormData>): Promise<Account2DetailResponse> => {
-    const response = await apiService.put(`${BASE_URL}/accounts/${id}`, data);
+    const response = await apiService.put(`/api/accounts/${id}`, data);
     return response.data;
   },
 
   // 刪除帳戶
   delete: async (id: string): Promise<ApiResponse> => {
-    const response = await apiService.delete(`${BASE_URL}/accounts/${id}`);
+    const response = await apiService.delete(`/api/accounts/${id}`);
     return response.data;
   },
 
   // 獲取帳戶餘額
   getBalance: async (id: string): Promise<{ success: boolean; data: AccountBalance }> => {
-    const response = await apiService.get(`${BASE_URL}/accounts/${id}/balance`);
+    const response = await apiService.get(`/api/accounts/${id}/balance`);
     return response.data;
   },
 
   // 調整帳戶餘額
   updateBalance: async (id: string, balance: number): Promise<{ success: boolean; data: AccountBalance; message: string }> => {
-    const response = await apiService.put(`${BASE_URL}/accounts/${id}/balance`, { balance });
+    const response = await apiService.put(`/api/accounts/${id}/balance`, { balance });
     return response.data;
   }
 };

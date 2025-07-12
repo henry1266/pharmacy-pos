@@ -107,6 +107,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     }
   };
 
+  // 驗證並修正 type 值
+  const validateAccountType = (type: string | undefined): 'cash' | 'bank' | 'credit' | 'investment' | 'other' => {
+    const validTypes = ['cash', 'bank', 'credit', 'investment', 'other'];
+    return validTypes.includes(type || '') ? type as any : 'other';
+  };
+
   // 當 account 或 parentAccount 變化時更新表單資料
   useEffect(() => {
     if (account) {
@@ -114,7 +120,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         code: account.code || '',
         name: account.name || '',
         accountType: account.accountType || (parentAccount?.accountType || 'asset'),
-        type: account.type || (parentAccount?.type || 'other'),
+        type: validateAccountType(account.type) || validateAccountType(parentAccount?.type),
         parentId: account.parentId || '',
         initialBalance: account.initialBalance || 0,
         currency: account.currency || 'TWD',
@@ -132,7 +138,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         code: autoCode,
         name: '',
         accountType,
-        type: parentAccount?.type || 'other',
+        type: validateAccountType(parentAccount?.type),
         parentId: parentAccount?._id || '',
         initialBalance: 0,
         currency: 'TWD',
@@ -176,7 +182,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     }
 
     try {
-      await onSubmit(formData);
+      // 添加 isActive 狀態到提交資料
+      const submitData = {
+        ...formData,
+        isActive
+      };
+      
+      console.log('提交科目資料:', submitData);
+      await onSubmit(submitData);
       onClose();
     } catch (error) {
       console.error('提交表單失敗:', error);

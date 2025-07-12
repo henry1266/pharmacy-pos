@@ -464,17 +464,28 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
   };
 
   const findNodeById = (nodes: AccountHierarchyNode[], nodeId: string): AccountHierarchyNode | null => {
+    console.log(`🔍 搜尋節點 ID: ${nodeId}，在 ${nodes.length} 個節點中`);
+    
     for (const node of nodes) {
+      console.log(`檢查節點: ${node.name} (ID: ${node._id})`);
+      
       if (node._id === nodeId) {
+        console.log(`✅ 找到匹配節點: ${node.name}`);
         return node;
       }
-      if (node.children.length > 0) {
+      
+      // 檢查子節點
+      if (node.children && node.children.length > 0) {
+        console.log(`🔍 搜尋 ${node.name} 的 ${node.children.length} 個子節點`);
         const found = findNodeById(node.children, nodeId);
         if (found) {
+          console.log(`✅ 在 ${node.name} 的子節點中找到: ${found.name}`);
           return found;
         }
       }
     }
+    
+    console.log(`❌ 未找到節點 ID: ${nodeId}`);
     return null;
   };
 
@@ -590,7 +601,11 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
               console.log('Add child node to:', parentNodeId);
               const parentNode = findNodeById(hierarchyNodes, parentNodeId);
               if (parentNode && onAccountCreate) {
+                console.log('找到父節點:', parentNode.name);
                 onAccountCreate(parentNode);
+              } else {
+                console.error('找不到父節點，ID:', parentNodeId);
+                console.log('當前所有節點:', hierarchyNodes.map(n => ({ id: n._id, name: n.name })));
               }
             }}
             onNodeVisibilityToggle={(nodeId) => {
