@@ -600,12 +600,34 @@ export const transactionsApi = {
   }
 };
 
+// 資金來源追蹤 API
+export const fundingTrackingApi = {
+  // 獲取可用的資金來源
+  getAvailableFundingSources: async (params?: {
+    organizationId?: string;
+    minAmount?: number;
+  }): Promise<{ success: boolean; data?: { fundingSources: any[] } }> => {
+    try {
+      console.log('[Accounting3] 🔍 獲取可用資金來源:', params);
+      const response = await apiService.get('/api/accounting2/funding-tracking/available-sources', { params });
+      return response.data;
+    } catch (error) {
+      console.error('[Accounting3] 獲取資金來源失敗:', error);
+      return { success: false, data: { fundingSources: [] } };
+    }
+  }
+};
+
 // 統一的 accounting3 服務 - 使用簡化路徑
 const accounting3ServiceExports = {
   accounts: accountsApi,
   categories: categoriesApi,
   records: recordsApi,
-  transactions: transactionsApi
+  transactions: transactionsApi,
+  // 新增資金來源追蹤方法
+  getAvailableFundingSources: fundingTrackingApi.getAvailableFundingSources,
+  getAll: transactionsApi.getAll,
+  confirm: transactionsApi.confirm
 };
 
 export const accounting3Service = accounting3ServiceExports;
