@@ -39,12 +39,14 @@ import {
   CheckCircle as ConfirmIcon,
   LockOpen as UnlockIcon,
   Link as LinkIcon,
-  ArrowForward as ArrowForwardIcon
+  ArrowForward as ArrowForwardIcon,
+  OpenInNew as OpenInNewIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { zhTW } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared';
 import { useAppSelector, useAppDispatch } from '../../../../hooks/redux';
 import { fetchTransactionGroupsWithEntries } from '../../../../redux/actions';
@@ -104,6 +106,7 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
   onToggleFilters
 }) => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   
   // 使用 Redux 狀態
   const { transactionGroups, loading, error, pagination } = useAppSelector(state => state.transactionGroupWithEntries);
@@ -651,7 +654,16 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                         </TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                            <Tooltip title="檢視">
+                            <Tooltip title="查看詳情">
+                              <IconButton
+                                size="small"
+                                onClick={() => navigate(`/accounting3/transaction/${group._id}`)}
+                              >
+                                <OpenInNewIcon />
+                              </IconButton>
+                            </Tooltip>
+                            
+                            <Tooltip title="快速檢視">
                               <IconButton
                                 size="small"
                                 onClick={() => onView(group)}

@@ -36,6 +36,7 @@ import Accounting2Page from './pages/Accounting2Page';
 import Accounting3Page from './pages/Accounting3Page';
 import AccountsManagementPage from './pages/AccountsManagementPage';
 import AccountDetailPage from './pages/AccountDetailPage';
+import TransactionDetailPage from './pages/TransactionDetailPage';
 import AccountingDetailPageWrapper from './pages/AccountingDetailPage';
 import OrganizationPage from './pages/OrganizationPage';
 import OrganizationFormPage from './pages/OrganizationFormPage';
@@ -99,6 +100,7 @@ const AppRouter: React.FC = () => {
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
       <Route path="/accounting3" element={<Accounting3Page />} />
       <Route path="/accounting3/new" element={<Accounting3Page />} />
+      <Route path="/accounting3/transaction/:transactionId" element={<TransactionDetailPage />} />
       <Route path="/accounting3/transaction/:transactionId/edit" element={<Accounting3Page />} />
       <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3Page />} />
       
