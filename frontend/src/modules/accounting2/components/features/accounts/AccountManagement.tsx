@@ -19,9 +19,7 @@ import {
 import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
 import { useAccountManagement } from '../../../core/hooks/useAccountManagement';
 import { useAccountForm } from '../../../core/hooks/useAccountForm';
-import { AccountSearchPanel } from './AccountSearchPanel';
 import { AccountTreeView } from './AccountTreeView';
-import { AccountStatistics } from './AccountStatistics';
 import { AccountDetailsPanel } from './AccountDetailsPanel';
 import { AccountEntryGrid } from './AccountEntryGrid';
 import { AccountForm } from './AccountForm';
@@ -201,20 +199,14 @@ export const AccountManagement: React.FC<AccountManagementProps> = ({
         </Tooltip>
       </Box>
 
-      {/* 搜尋篩選面板 - 可展開收合 */}
-      <Collapse in={searchExpanded} timeout="auto" unmountOnExit>
-        <AccountSearchPanel
-          searchTerm={searchTerm}
-          selectedAccountType={selectedAccountType}
-          selectedOrganizationId={selectedOrganizationId}
-          organizations={organizations}
-          loading={loading}
-          onSearchTermChange={setSearchTerm}
-          onAccountTypeChange={setSelectedAccountType}
-          onOrganizationChange={setSelectedOrganizationId}
-          onReset={handleSearchReset}
-        />
-      </Collapse>
+      {/* 搜尋篩選面板已移除 - 功能已整合至 accounting3 */}
+      {searchExpanded && (
+        <Paper sx={{ p: 2, mb: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            搜尋功能已遷移至 accounting3 模組
+          </Typography>
+        </Paper>
+      )}
 
       {/* 主要內容區域 - 左右分割佈局 */}
       <Paper sx={{ height: '650px', overflow: 'hidden' }}>
@@ -295,8 +287,12 @@ export const AccountManagement: React.FC<AccountManagementProps> = ({
             <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               {selectedAccount ? (
                 <>
-                  {/* 統計摘要 */}
-                  <AccountStatistics statistics={statistics} />
+                  {/* 統計摘要已移除 - 功能已整合至 accounting3 */}
+                  <Paper sx={{ p: 1, mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      統計功能已遷移至 accounting3 模組
+                    </Typography>
+                  </Paper>
 
                   {/* 分錄明細表格 */}
                   <Box sx={{ flex: 1, p: 0.5 }}>
