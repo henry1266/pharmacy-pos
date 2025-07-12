@@ -280,25 +280,25 @@ export const accountsApi = {
 
   // 獲取單一帳戶
   getById: async (id: string): Promise<Account2DetailResponse> => {
-    const response = await apiService.get(`${BASE_URL}/accounts/${id}`);
+    const response = await apiService.get(`/api/accounts2/${id}`);
     return response.data;
   },
 
   // 新增帳戶
   create: async (data: Account2FormData): Promise<Account2DetailResponse> => {
-    const response = await apiService.post('/api/accounts', data);
+    const response = await apiService.post('/api/accounts2', data);
     return response.data;
   },
 
   // 更新帳戶
   update: async (id: string, data: Partial<Account2FormData>): Promise<Account2DetailResponse> => {
-    const response = await apiService.put(`/api/accounts/${id}`, data);
+    const response = await apiService.put(`/api/accounts2/${id}`, data);
     return response.data;
   },
 
   // 刪除帳戶
   delete: async (id: string): Promise<ApiResponse> => {
-    const response = await apiService.delete(`/api/accounts/${id}`);
+    const response = await apiService.delete(`/api/accounts2/${id}`);
     return response.data;
   },
 

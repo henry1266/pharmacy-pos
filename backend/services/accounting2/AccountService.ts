@@ -49,7 +49,12 @@ export class AccountService {
       const savedAccount = await account.save();
 
       // 使用適配器確保與 Accounting3 相容性
-      const savedAccountData = savedAccount.toObject() as Account2Type;
+      const savedAccountData = {
+        ...savedAccount.toObject(),
+        _id: savedAccount._id.toString(),
+        parentId: savedAccount.parentId?.toString() || null,
+        organizationId: savedAccount.organizationId?.toString() || null
+      } as Account2Type;
       const normalizedAccount = AccountManagementAdapter.normalizeAccount(savedAccountData);
       
       console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})`);
@@ -375,7 +380,12 @@ export class AccountService {
         _id: t._id.toString()
       })) as TransactionGroupType[];
 
-      const accountsData = accounts as Account2Type[];
+      const accountsData = accounts.map(account => ({
+        ...account,
+        _id: account._id.toString(),
+        parentId: account.parentId?.toString() || null,
+        organizationId: account.organizationId?.toString() || null
+      })) as Account2Type[];
       const compatibilityResult = await compatibilityManager.checkSystemCompatibility(accountsData, transactions);
       
       if (!compatibilityResult.isCompatible) {

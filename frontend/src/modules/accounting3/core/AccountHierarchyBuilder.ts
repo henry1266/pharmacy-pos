@@ -4,7 +4,6 @@
  */
 
 import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
-import { Accounting2To3Adapter } from '../adapters/compatibility';
 import {
   AccountHierarchyNode,
   AccountHierarchyConfig,
@@ -114,8 +113,8 @@ export class AccountHierarchyBuilder {
         version: 'v3',
         compatibilityMode: 'hybrid',
         permissions: {
-          canEdit: false, // 組織節點不可編輯
-          canDelete: false,
+          canEdit: true, // 允許編輯組織節點
+          canDelete: false, // 組織節點不可刪除
           canAddChild: true,
           canMove: false
         }
@@ -248,12 +247,18 @@ export class AccountHierarchyBuilder {
    * 計算節點權限
    */
   private calculatePermissions(account: Account3): AccountHierarchyNode['permissions'] {
-    // 基本權限邏輯 (可根據實際需求擴展)
+    // 放寬權限邏輯，允許更多操作但在 UI 層面提供警告
+    const isSystemAccount = account.code && (
+      account.code.startsWith('1') || // 資產科目
+      account.code.startsWith('2') || // 負債科目
+      account.code.startsWith('3')    // 權益科目
+    );
+    
     return {
-      canEdit: account.isActive,
-      canDelete: account.isActive && account.balance === 0,
+      canEdit: account.isActive, // 活躍科目可編輯
+      canDelete: account.isActive && !isSystemAccount, // 非系統科目可刪除（UI 層面會檢查餘額）
       canAddChild: account.isActive && account.level < this.config.maxDepth,
-      canMove: account.isActive && account.level > 1
+      canMove: account.isActive && account.level > 1 && !isSystemAccount
     };
   }
 

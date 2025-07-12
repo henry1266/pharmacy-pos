@@ -5,7 +5,7 @@ export interface IAccount2 extends Document {
   name: string;               // 科目名稱
   accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   type: 'cash' | 'bank' | 'credit' | 'investment' | 'other'; // 保留原有類型相容性
-  parentId?: string;          // 父科目ID
+  parentId?: mongoose.Types.ObjectId | null;          // 父科目ID
   level: number;              // 科目層級
   isActive: boolean;
   normalBalance: 'debit' | 'credit'; // 正常餘額方向
@@ -15,7 +15,7 @@ export interface IAccount2 extends Document {
   initialBalance: number;
   currency: string;
   description?: string;
-  organizationId?: string; // 機構 ID（可選，支援個人帳戶）
+  organizationId?: mongoose.Types.ObjectId | null; // 機構 ID（可選，支援個人帳戶）
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;

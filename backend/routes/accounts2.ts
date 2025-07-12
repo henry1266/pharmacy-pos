@@ -342,20 +342,29 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     };
     
     // 如果有父科目 ID，加入到資料中
-    if (parentId && parentId !== null && parentId !== '') {
+    if (parentId && parentId !== null && parentId !== '' && parentId.trim() !== '') {
       console.log('✅ 設定父科目 ID:', parentId);
-      try {
-        const parentObjectId = new mongoose.Types.ObjectId(parentId);
-        console.log('✅ 父科目 ObjectId 轉換成功:', parentObjectId);
-        accountData.parentId = parentObjectId;
-      } catch (parentIdError) {
-        console.error('❌ 父科目 ObjectId 轉換失敗:', parentIdError);
-        res.status(400).json({
-          success: false,
-          message: '父科目ID格式無效'
-        });
-        return;
+      
+      // 檢查是否為虛擬節點 ID（包含底線的格式）
+      if (parentId.includes('_')) {
+        console.log('⚠️ 檢測到虛擬節點 ID，忽略 parentId:', parentId);
+        // 不設定 parentId，讓它成為根節點
+      } else {
+        try {
+          const parentObjectId = new mongoose.Types.ObjectId(parentId);
+          console.log('✅ 父科目 ObjectId 轉換成功:', parentObjectId);
+          accountData.parentId = parentObjectId;
+        } catch (parentIdError) {
+          console.error('❌ 父科目 ObjectId 轉換失敗:', parentIdError);
+          res.status(400).json({
+            success: false,
+            message: '父科目ID格式無效'
+          });
+          return;
+        }
       }
+    } else {
+      console.log('ℹ️ 無父科目 ID，建立為根節點');
     }
     
     // 只有當 organizationId 有值且不為 null 時才加入
@@ -454,35 +463,62 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
-    const { name, type, currency, description, isActive } = req.body;
+    const { name, type, accountType, currency, description, isActive, parentId, code, initialBalance } = req.body;
+
+    console.log('🔍 PUT /accounts2/:id - 接收到的更新資料:', {
+      id,
+      name,
+      type,
+      accountType,
+      currency,
+      description,
+      isActive,
+      parentId,
+      parentIdType: typeof parentId,
+      code,
+      initialBalance,
+      body: req.body
+    });
 
     // 檢查帳戶是否存在
-    const account = await Account2.findOne({ 
-      _id: id, 
-      createdBy: userId 
+    const account = await Account2.findOne({
+      _id: id,
+      createdBy: userId
     });
 
     if (!account) {
-      res.status(404).json({ 
-        success: false, 
-        message: '找不到指定的帳戶' 
+      res.status(404).json({
+        success: false,
+        message: '找不到指定的帳戶'
       });
       return;
     }
 
     // 檢查帳戶名稱是否重複（排除自己）
     if (name && name !== account.name) {
-      const existingAccount = await Account2.findOne({ 
-        name, 
+      const duplicateFilter: any = {
+        name,
         createdBy: userId,
         isActive: true,
         _id: { $ne: id }
-      });
+      };
+      
+      // 在相同範圍內檢查重複（個人或機構）
+      if (account.organizationId) {
+        duplicateFilter.organizationId = account.organizationId;
+      } else {
+        duplicateFilter.$or = [
+          { organizationId: { $exists: false } },
+          { organizationId: null }
+        ];
+      }
+
+      const existingAccount = await Account2.findOne(duplicateFilter);
 
       if (existingAccount) {
-        res.status(400).json({ 
-          success: false, 
-          message: '帳戶名稱已存在' 
+        res.status(400).json({
+          success: false,
+          message: '帳戶名稱已存在'
         });
         return;
       }
@@ -492,9 +528,43 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     const updateData: Partial<IAccount2> = {};
     if (name !== undefined) updateData.name = name;
     if (type !== undefined) updateData.type = type;
+    if (accountType !== undefined) updateData.accountType = accountType;
     if (currency !== undefined) updateData.currency = currency;
     if (description !== undefined) updateData.description = description;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (code !== undefined) updateData.code = code;
+    if (initialBalance !== undefined) updateData.initialBalance = initialBalance;
+
+    // 處理 parentId：過濾掉虛擬節點 ID
+    if (parentId !== undefined) {
+      if (parentId && parentId !== null && parentId !== '' && parentId.trim() !== '') {
+        console.log('✅ 處理父科目 ID:', parentId);
+        
+        // 檢查是否為虛擬節點 ID（包含底線的格式）
+        if (parentId.includes('_')) {
+          console.log('⚠️ 檢測到虛擬節點 ID，清除 parentId:', parentId);
+          updateData.parentId = null; // 清除父科目關係
+        } else {
+          try {
+            const parentObjectId = new mongoose.Types.ObjectId(parentId);
+            console.log('✅ 父科目 ObjectId 轉換成功:', parentObjectId);
+            updateData.parentId = parentObjectId;
+          } catch (parentIdError) {
+            console.error('❌ 父科目 ObjectId 轉換失敗:', parentIdError);
+            res.status(400).json({
+              success: false,
+              message: '父科目ID格式無效'
+            });
+            return;
+          }
+        }
+      } else {
+        console.log('ℹ️ 清除父科目 ID');
+        updateData.parentId = null;
+      }
+    }
+
+    console.log('📝 最終的更新資料:', updateData);
 
     const updatedAccount = await Account2.findByIdAndUpdate(
       id,
@@ -502,16 +572,50 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       { new: true, runValidators: true }
     );
 
+    console.log('✅ 帳戶更新成功:', {
+      id: updatedAccount._id,
+      code: updatedAccount.code,
+      name: updatedAccount.name,
+      accountType: updatedAccount.accountType,
+      parentId: updatedAccount.parentId
+    });
+
     res.json({
       success: true,
       data: updatedAccount,
       message: '帳戶更新成功'
     });
   } catch (error) {
-    console.error('更新帳戶錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '更新帳戶失敗' 
+    console.error('❌ 更新帳戶時發生錯誤:', error);
+    console.error('❌ 錯誤堆疊:', error.stack);
+    console.error('❌ 請求資料:', req.body);
+    
+    // 檢查是否為 MongoDB 相關錯誤
+    if (error.name === 'ValidationError') {
+      console.error('❌ MongoDB 驗證錯誤:', error.errors);
+      res.status(400).json({
+        success: false,
+        message: '資料驗證失敗',
+        error: error.message,
+        details: error.errors
+      });
+      return;
+    }
+    
+    if (error.name === 'CastError') {
+      console.error('❌ MongoDB 型別轉換錯誤:', error);
+      res.status(400).json({
+        success: false,
+        message: 'ID 格式錯誤',
+        error: error.message
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: '更新帳戶失敗',
+      error: error.message
     });
   }
 });
@@ -527,31 +631,115 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
       return;
     }
 
-    const account = await Account2.findOne({ 
-      _id: id, 
-      createdBy: userId 
+    console.log('🗑️ 開始刪除科目:', { id, userId });
+
+    const account = await Account2.findOne({
+      _id: id,
+      createdBy: userId
     });
 
     if (!account) {
-      res.status(404).json({ 
-        success: false, 
-        message: '找不到指定的帳戶' 
+      console.log('❌ 找不到指定的科目:', id);
+      res.status(404).json({
+        success: false,
+        message: '找不到指定的帳戶'
       });
       return;
     }
 
+    console.log('📋 找到科目:', {
+      name: account.name,
+      code: account.code,
+      balance: account.balance,
+      isActive: account.isActive
+    });
+
+    // 檢查是否已經被刪除
+    if (!account.isActive) {
+      console.log('⚠️ 科目已經被刪除');
+      res.status(400).json({
+        success: false,
+        message: '此科目已經被刪除'
+      });
+      return;
+    }
+
+    // 檢查是否有子科目
+    const childAccounts = await Account2.find({
+      parentId: id,
+      createdBy: userId,
+      isActive: true
+    });
+
+    if (childAccounts.length > 0) {
+      console.log('❌ 科目有子科目，無法刪除:', {
+        子科目數量: childAccounts.length,
+        子科目名稱: childAccounts.map(child => child.name)
+      });
+      res.status(400).json({
+        success: false,
+        message: `此科目有 ${childAccounts.length} 個子科目，請先刪除子科目後再刪除此科目`,
+        details: {
+          childAccounts: childAccounts.map(child => ({
+            id: child._id,
+            name: child.name,
+            code: child.code
+          }))
+        }
+      });
+      return;
+    }
+
+    // 檢查是否有交易記錄（這裡可以加入檢查交易記錄的邏輯）
+    // TODO: 檢查是否有相關的交易記錄
+
     // 軟刪除：設定為非活躍狀態
-    await Account2.findByIdAndUpdate(id, { isActive: false });
+    const updatedAccount = await Account2.findByIdAndUpdate(
+      id,
+      {
+        isActive: false,
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+
+    console.log('✅ 科目刪除成功:', {
+      id: updatedAccount._id,
+      name: updatedAccount.name,
+      isActive: updatedAccount.isActive
+    });
 
     res.json({
       success: true,
-      message: '帳戶刪除成功'
+      message: `科目「${account.name}」已成功刪除`,
+      data: {
+        deletedAccount: {
+          id: account._id,
+          name: account.name,
+          code: account.code,
+          balance: account.balance
+        }
+      }
     });
   } catch (error) {
-    console.error('刪除帳戶錯誤:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: '刪除帳戶失敗' 
+    console.error('❌ 刪除帳戶錯誤:', error);
+    console.error('❌ 錯誤堆疊:', error.stack);
+    
+    // 檢查是否為 MongoDB 相關錯誤
+    if (error.name === 'CastError') {
+      console.error('❌ MongoDB 型別轉換錯誤:', error);
+      res.status(400).json({
+        success: false,
+        message: 'ID 格式錯誤',
+        error: error.message
+      });
+      return;
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: '刪除帳戶失敗',
+      error: error.message
     });
   }
 });

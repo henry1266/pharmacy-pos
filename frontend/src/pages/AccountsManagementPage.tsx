@@ -115,20 +115,52 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   // 處理編輯科目
-  const handleAccountEdit = (account: Account2) => {
+  const handleAccountEdit = async (account: Account2) => {
     console.log('編輯科目:', account);
     setEditingAccount(account);
+    
+    // 如果科目有父科目ID，載入父科目資訊
+    if (account.parentId) {
+      try {
+        console.log('載入父科目資訊，parentId:', account.parentId);
+        const parentResponse = await accounting3Service.accounts.getById(account.parentId);
+        if (parentResponse.success) {
+          console.log('父科目載入成功:', parentResponse.data);
+          setParentAccount(parentResponse.data);
+        } else {
+          console.warn('載入父科目失敗:', parentResponse);
+          setParentAccount(null);
+        }
+      } catch (error) {
+        console.error('載入父科目時發生錯誤:', error);
+        setParentAccount(null);
+        showSnackbar('載入父科目資訊失敗', 'warning');
+      }
+    } else {
+      setParentAccount(null);
+    }
+    
     setAccountFormOpen(true);
   };
 
   // 處理刪除科目
   const handleAccountDelete = async (accountId: string) => {
     console.log('刪除科目:', accountId);
-    if (window.confirm('確定要刪除這個科目嗎？此操作無法復原。')) {
+    
+    // 增強的刪除確認邏輯
+    const confirmMessage = selectedAccount?.balance && selectedAccount.balance !== 0
+      ? `此科目有餘額 ${selectedAccount.balance}，確定要刪除嗎？\n\n注意：刪除有餘額的科目可能會影響財務報表的準確性。\n\n此操作無法復原。`
+      : '確定要刪除這個科目嗎？此操作無法復原。';
+    
+    if (window.confirm(confirmMessage)) {
       try {
         const response = await accounting3Service.accounts.delete(accountId);
         if (response.success) {
           showSnackbar('科目已成功刪除', 'success');
+          // 清除選中的科目（如果是被刪除的科目）
+          if (selectedAccount?._id === accountId) {
+            setSelectedAccount(null);
+          }
           // 強制重新載入階層
           setHierarchyKey(prev => prev + 1);
         } else {
@@ -136,7 +168,8 @@ export const AccountsManagementPage: React.FC = () => {
         }
       } catch (error) {
         console.error('刪除科目失敗:', error);
-        showSnackbar('刪除科目失敗', 'error');
+        const errorMessage = error instanceof Error ? error.message : '刪除科目失敗';
+        showSnackbar(errorMessage, 'error');
       }
     }
   };

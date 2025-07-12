@@ -182,13 +182,22 @@ export const AccountForm: React.FC<AccountFormProps> = ({
     }
 
     try {
+      // 處理 parentId：過濾掉虛擬節點 ID
+      const processedParentId = formData.parentId &&
+        formData.parentId.includes('_') ?
+        '' : // 虛擬節點 ID 包含底線，設為空字串
+        formData.parentId;
+
       // 添加 isActive 狀態到提交資料
       const submitData = {
         ...formData,
+        parentId: processedParentId,
         isActive
       };
       
       console.log('提交科目資料:', submitData);
+      console.log('原始 parentId:', formData.parentId, '→ 處理後:', processedParentId);
+      
       await onSubmit(submitData);
       onClose();
     } catch (error) {

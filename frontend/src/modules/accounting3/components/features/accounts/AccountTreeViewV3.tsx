@@ -346,11 +346,21 @@ const NodeLabel: React.FC<{
         )}
         
         {node.permissions.canDelete && (
-          <Tooltip title="刪除科目">
+          <Tooltip title={
+            node.statistics?.balance && node.statistics.balance !== 0
+              ? `刪除科目（餘額：${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD' }).format(node.statistics.balance)}）`
+              : "刪除科目"
+          }>
             <IconButton
               size="small"
               onClick={handleActionClick(onDelete)}
               color="error"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'error.main',
+                  color: 'error.contrastText',
+                }
+              }}
             >
               <Delete fontSize="small" />
             </IconButton>

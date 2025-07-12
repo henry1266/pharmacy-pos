@@ -6,7 +6,6 @@
 
 import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 import { accounting3Service } from '../../../services/accounting3Service';
-import { Accounting2To3Adapter } from '../adapters/compatibility';
 import {
   AccountHierarchyNode,
   AccountHierarchyConfig,
@@ -85,12 +84,12 @@ export class AccountHierarchyService {
         throw new Error('載入科目失敗');
       }
 
-      // 轉換科目資料為 accounting3 格式
-      const convertedAccounts = Accounting2To3Adapter.convertAccounts(response.data);
+      // 直接使用回應資料（已經是正確格式）
+      const accountsData = response.data;
       
       // 使用階層建構服務建立階層結構
       const hierarchyBuilder = createAccountHierarchyBuilder(this.config);
-      const hierarchyNodes = hierarchyBuilder.buildHierarchyTree(convertedAccounts);
+      const hierarchyNodes = hierarchyBuilder.buildHierarchyTree(accountsData);
       
       // 使用統計服務計算統計資料
       await accountStatisticsService.calculateStatistics(hierarchyNodes, organizationId);
