@@ -2,8 +2,11 @@
  * Accounting3 組件匯出
  */
 
-// 功能組件
+// 功能組件 - 帳戶
 export * from './features/accounts';
 
-// UI 組件 (預留)
-// export * from './ui';
+// 功能組件 - 交易
+export * from './features/transactions';
+
+// UI 組件
+export * from './ui';

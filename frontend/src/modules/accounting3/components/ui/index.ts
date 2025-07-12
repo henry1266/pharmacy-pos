@@ -1,4 +1,4 @@
-export { BasicInfoSection3, type BasicInfoSection3Props } from './BasicInfoSection3';
-export { DoubleEntrySection3, type DoubleEntrySection3Props } from './DoubleEntrySection3';
 export { FundingSourceSelector3 } from './FundingSourceSelector3';
-export { AccountingDataGridWithEntries3 } from './AccountingDataGridWithEntries3';
+export { default as AccountingDataGridWithEntries3 } from './AccountingDataGridWithEntries3';
+export { default as BasicInfoSection3 } from './BasicInfoSection3';
+export { default as DoubleEntrySection3 } from './DoubleEntrySection3';

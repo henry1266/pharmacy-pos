@@ -1,5 +1,5 @@
 import React from 'react';
-import { TransactionEntryForm } from '../../../../accounting2/components/features/transactions/TransactionEntryForm';
+import { TransactionEntryForm3 } from './TransactionEntryForm3';
 import {
   EmbeddedAccountingEntryFormData
 } from '@pharmacy-pos/shared';
@@ -29,7 +29,7 @@ export const DoubleEntryFormWithEntries3: React.FC<DoubleEntryFormWithEntries3Pr
     disabled: props.disabled
   });
 
-  return <TransactionEntryForm {...props} />;
+  return <TransactionEntryForm3 {...props} />;
 };
 
 export default DoubleEntryFormWithEntries3;
