@@ -2,12 +2,12 @@ import express, { Application, Request, Response } from "express";
 import path from "path";
 import cors from "cors";
 import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
 
 // 載入環境變數
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 
 // 導入已轉換為 TypeScript 的路由
 import authRoutes from "./routes/auth";
@@ -90,7 +90,6 @@ app.use("/api/csv-import", csvImportApiRoutes); // 新增CSV匯入REST API
 app.use("/api/employee-schedules", employeeSchedulesRoutes); // 新增員工排班API路由
 app.use("/api/overtime-records", overtimeRecordsRoutes); // 新增加班記錄  API路由
 app.use("/api/themes", themesRoutes); // 新增主題路由 V2
-// app.use("/api/user-themes", userThemesRoutes); // 主題功能已整合到 /api/auth/themes/*
 
 // 新增 accounting2 模組路由 - 獨立於現有 accounting 模組 (舊版 - 保留相容性)
 app.use("/api/accounting2/accounts", accounts2Routes);
@@ -131,48 +130,8 @@ const PORT: number = process.env.SERVER_PORT ? parseInt(process.env.SERVER_PORT)
                      process.env.PORT ? parseInt(process.env.PORT) : 5000;
 const HOST: string = process.env.SERVER_HOST || 'localhost';
 
-// 創建 HTTP 伺服器和 Socket.IO 實例
+// 創建 HTTP 伺服器
 const server = createServer(app);
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: true, // 允許所有來源（開發環境）
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
-
-// Socket.IO 連接處理
-io.on('connection', (socket) => {
-  console.log(`🔗 用戶已連接: ${socket.id}`);
-  
-  // 用戶加入 sales-new2 房間
-  socket.on('join-sales-new2', () => {
-    socket.join('sales-new2');
-    console.log(`🏠 用戶 ${socket.id} 加入 sales-new2 房間`);
-    
-    // 確認房間成員數量
-    const roomSize = io.sockets.adapter.rooms.get('sales-new2')?.size || 0;
-    console.log(`📊 sales-new2 房間目前有 ${roomSize} 個用戶`);
-  });
-  
-  // 用戶離開 sales-new2 房間
-  socket.on('leave-sales-new2', () => {
-    socket.leave('sales-new2');
-    console.log(`🚪 用戶 ${socket.id} 離開 sales-new2 房間`);
-    
-    // 確認房間成員數量
-    const roomSize = io.sockets.adapter.rooms.get('sales-new2')?.size || 0;
-    console.log(`📊 sales-new2 房間目前有 ${roomSize} 個用戶`);
-  });
-  
-  // 處理斷線
-  socket.on('disconnect', () => {
-    console.log(`❌ 用戶已斷線: ${socket.id}`);
-  });
-});
-
-// 將 io 實例附加到 app，讓路由可以使用
-app.set('io', io);
 
 server.listen(PORT, HOST, () => {
   console.log(`伺服器已啟動，監聽位址: ${HOST}:${PORT}`);
