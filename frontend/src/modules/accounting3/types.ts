@@ -1,12 +1,12 @@
 /**
  * Accounting3 科目階層結構型別定義
- * 整合 accounting2 階層管理功能到 accounting3 系統
+ * 獨立的階層管理功能，不依賴 accounting2
  */
 
-import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
+import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 
-// 科目階層節點介面 (基於 accounting2 的 Account2，但擴展為樹狀結構)
-export interface AccountHierarchyNode extends Account2 {
+// 科目階層節點介面 (基於 accounting3 的 Account3，擴展為樹狀結構)
+export interface AccountHierarchyNode extends Account3 {
   // 樹狀結構屬性
   children: AccountHierarchyNode[];
   hasChildren: boolean;

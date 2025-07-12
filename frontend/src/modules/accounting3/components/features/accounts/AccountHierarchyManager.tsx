@@ -29,7 +29,7 @@ import {
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 
-import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
+import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 import { accountHierarchyService } from '../../../core/AccountHierarchyService';
 import {
   AccountHierarchyNode,
@@ -43,9 +43,9 @@ import AccountTreeViewV3 from './AccountTreeViewV3';
 
 interface AccountHierarchyManagerProps {
   organizationId?: string | null;
-  onAccountSelect?: (account: Account2) => void;
-  onAccountCreate?: (parentAccount?: Account2) => void;
-  onAccountEdit?: (account: Account2) => void;
+  onAccountSelect?: (account: Account3) => void;
+  onAccountCreate?: (parentAccount?: Account3) => void;
+  onAccountEdit?: (account: Account3) => void;
   onAccountDelete?: (accountId: string) => void;
   
   // 配置選項
@@ -389,7 +389,7 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
     const node = findNodeById(hierarchyNodes, nodeId);
     if (node) {
       selectionState.selectNode(nodeId);
-      onAccountSelect?.(node as Account2);
+      onAccountSelect?.(node as Account3);
     }
   };
 

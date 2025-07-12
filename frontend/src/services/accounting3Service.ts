@@ -1,23 +1,58 @@
 import apiService from '../utils/apiService';
 import {
-  Account2,
-  Category2,
-  AccountingRecord2,
-  Account2FormData,
-  Category2FormData,
-  AccountingRecord2FormData,
-  Account2ListResponse,
-  Account2DetailResponse,
-  Category2ListResponse,
-  Category2DetailResponse,
-  AccountingRecord2ListResponse,
-  AccountingRecord2DetailResponse,
-  AccountingRecord2SummaryResponse,
-  AccountingRecord2Filter,
-  AccountBalance,
-  CategoryReorderItem,
-  ApiResponse
-} from '@pharmacy-pos/shared/types/accounting2';
+  Account3,
+  Category3,
+  Account3FormData,
+  Category3FormData,
+  AccountingEntry3FormData,
+  Account3ListResponse,
+  Account3DetailResponse,
+  Category3ListResponse,
+  Category3DetailResponse,
+  AccountingEntry3ListResponse,
+  AccountingEntry3DetailResponse,
+  AccountingEntry3Filter,
+  ApiResponse3
+} from '@pharmacy-pos/shared/types/accounting3';
+
+// 為了向後相容，定義一些缺失的型別
+interface AccountBalance {
+  accountId: string;
+  accountName: string;
+  balance: number;
+  currency: string;
+}
+
+interface CategoryReorderItem {
+  id: string;
+  sortOrder: number;
+}
+
+// 型別別名以保持相容性
+type Account2 = Account3;
+type Category2 = Category3;
+type Account2FormData = Account3FormData;
+type Category2FormData = Category3FormData;
+type AccountingRecord2FormData = AccountingEntry3FormData;
+type Account2ListResponse = Account3ListResponse;
+type Account2DetailResponse = Account3DetailResponse;
+type Category2ListResponse = Category3ListResponse;
+type Category2DetailResponse = Category3DetailResponse;
+type AccountingRecord2ListResponse = AccountingEntry3ListResponse;
+type AccountingRecord2DetailResponse = AccountingEntry3DetailResponse;
+type AccountingRecord2Filter = AccountingEntry3Filter;
+type ApiResponse = ApiResponse3;
+
+// 暫時定義缺失的回應型別
+interface AccountingRecord2SummaryResponse {
+  success: boolean;
+  data: {
+    income: number;
+    expense: number;
+    balance: number;
+    recordCount: number;
+  };
+}
 
 // accounting3 使用簡化的 API 路徑
 const BASE_URL = '/api';

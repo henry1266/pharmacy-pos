@@ -1,15 +1,12 @@
 /**
  * Accounting3 模組統一導出
- * 整合 accounting2 科目階層結構到 accounting3 系統
+ * 獨立的會計系統，不依賴 accounting2
  */
 
-// 核心服務
-export { AccountHierarchyService } from './core/AccountHierarchyService';
+// 核心型別 (重新導出 shared 型別)
+export * from '@pharmacy-pos/shared/types/accounting3';
 
-// 組件匯出
-export * from './components';
-
-// 型別定義
+// 階層管理型別
 export type {
   AccountHierarchyNode,
   AccountHierarchyConfig,
@@ -25,6 +22,15 @@ export type {
   HierarchyLevel,
   HierarchyPath
 } from './types';
+
+// 相容性適配器
+export * from './adapters/compatibility';
+
+// 核心服務
+export { AccountHierarchyService } from './core/AccountHierarchyService';
+
+// 組件匯出
+export * from './components';
 
 // 常數導出
 export { HIERARCHY_CONSTANTS } from './types';

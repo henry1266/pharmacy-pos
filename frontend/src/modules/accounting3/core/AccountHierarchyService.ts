@@ -1,12 +1,12 @@
 /**
  * Accounting3 科目階層管理服務
- * 整合 accounting2 階層功能到 accounting3 系統
+ * 獨立的階層管理功能，不依賴 accounting2
  * 重構後的精簡版本，委託具體邏輯給專門的服務類
  */
 
-import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
+import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 import { accounting3Service } from '../../../services/accounting3Service';
-import { AccountManagementAdapter } from '@pharmacy-pos/shared/adapters/accounting2to3';
+import { Accounting2To3Adapter } from '../adapters/compatibility';
 import {
   AccountHierarchyNode,
   AccountHierarchyConfig,
@@ -85,12 +85,12 @@ export class AccountHierarchyService {
         throw new Error('載入科目失敗');
       }
 
-      // 標準化科目資料
-      const normalizedAccounts = AccountManagementAdapter.normalizeAccounts(response.data);
+      // 轉換科目資料為 accounting3 格式
+      const convertedAccounts = Accounting2To3Adapter.convertAccounts(response.data);
       
       // 使用階層建構服務建立階層結構
       const hierarchyBuilder = createAccountHierarchyBuilder(this.config);
-      const hierarchyNodes = hierarchyBuilder.buildHierarchyTree(normalizedAccounts);
+      const hierarchyNodes = hierarchyBuilder.buildHierarchyTree(convertedAccounts);
       
       // 使用統計服務計算統計資料
       await accountStatisticsService.calculateStatistics(hierarchyNodes, organizationId);
@@ -178,7 +178,7 @@ export class AccountHierarchyService {
   public async executeOperation(
     operation: 'create' | 'update' | 'delete' | 'move',
     nodeId: string,
-    data?: Partial<Account2>
+    data?: Partial<Account3>
   ): Promise<HierarchyOperationResult> {
     try {
       let result: HierarchyOperationResult;
@@ -214,7 +214,7 @@ export class AccountHierarchyService {
   /**
    * 建立新節點
    */
-  private async createNode(data: Partial<Account2>): Promise<HierarchyOperationResult> {
+  private async createNode(data: Partial<Account3>): Promise<HierarchyOperationResult> {
     const response = await accounting3Service.accounts.create(data as any);
     
     return {
@@ -229,7 +229,7 @@ export class AccountHierarchyService {
   /**
    * 更新節點
    */
-  private async updateNode(nodeId: string, data: Partial<Account2>): Promise<HierarchyOperationResult> {
+  private async updateNode(nodeId: string, data: Partial<Account3>): Promise<HierarchyOperationResult> {
     const response = await accounting3Service.accounts.update(nodeId, data as any);
     
     return {
@@ -259,7 +259,7 @@ export class AccountHierarchyService {
   /**
    * 移動節點
    */
-  private async moveNode(nodeId: string, data: Partial<Account2>): Promise<HierarchyOperationResult> {
+  private async moveNode(nodeId: string, data: Partial<Account3>): Promise<HierarchyOperationResult> {
     // 移動操作通常是更新父節點ID
     return this.updateNode(nodeId, { parentId: data.parentId });
   }

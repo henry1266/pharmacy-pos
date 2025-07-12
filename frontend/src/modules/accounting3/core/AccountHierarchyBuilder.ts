@@ -3,8 +3,8 @@
  * 專門處理科目階層樹狀結構的建立邏輯
  */
 
-import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
-import { AccountManagementAdapter } from '@pharmacy-pos/shared/adapters/accounting2to3';
+import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
+import { Accounting2To3Adapter } from '../adapters/compatibility';
 import {
   AccountHierarchyNode,
   AccountHierarchyConfig,
@@ -35,7 +35,7 @@ export class AccountHierarchyBuilder {
    * 建立階層樹狀結構
    * 支援組織-科目的兩層結構
    */
-  public buildHierarchyTree(accounts: Account2[]): AccountHierarchyNode[] {
+  public buildHierarchyTree(accounts: Account3[]): AccountHierarchyNode[] {
     console.log('🌳 buildHierarchyTree 開始分析資料結構:', {
       總數量: accounts.length,
       資料樣本: accounts.slice(0, 3).map(acc => ({
@@ -141,7 +141,7 @@ export class AccountHierarchyBuilder {
   /**
    * 建立純科目階層結構
    */
-  private buildAccountHierarchy(accounts: Account2[], baseLevel: number = 0): AccountHierarchyNode[] {
+  private buildAccountHierarchy(accounts: Account3[], baseLevel: number = 0): AccountHierarchyNode[] {
     console.log(`🔧 buildAccountHierarchy 開始處理 ${accounts.length} 個科目，基礎層級: ${baseLevel}`);
     
     // 建立階層節點映射
@@ -247,7 +247,7 @@ export class AccountHierarchyBuilder {
   /**
    * 計算節點權限
    */
-  private calculatePermissions(account: Account2): AccountHierarchyNode['permissions'] {
+  private calculatePermissions(account: Account3): AccountHierarchyNode['permissions'] {
     // 基本權限邏輯 (可根據實際需求擴展)
     return {
       canEdit: account.isActive,

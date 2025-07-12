@@ -7,6 +7,7 @@ import {
   AccountHierarchyNode,
   AccountHierarchyFilter,
 } from '../types';
+// 注意：這些型別仍然來自本地 types，因為它們是 UI 特定的型別
 
 /**
  * 科目階層過濾服務類

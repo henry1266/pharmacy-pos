@@ -15,6 +15,9 @@ export type {
   UnaccountedSale
 } from './accounting';
 
+// Accounting3 相關型別 (新一代會計系統)
+export * from './accounting3';
+
 // API 相關型別
 export * from './api';
 
