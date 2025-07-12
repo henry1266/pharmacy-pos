@@ -87,8 +87,48 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
       setLoading(true);
       setError(null);
 
+      // 驗證和清理 transactionId
+      console.log('🔍 TransactionDetailView - 原始 transactionId:', transactionId);
+      console.log('🔍 TransactionDetailView - transactionId 類型:', typeof transactionId);
+      
+      let cleanTransactionId = transactionId;
+      
+      // 檢查是否是無效的 ID
+      if (!transactionId || transactionId === '[object Object]' || transactionId === 'undefined' || transactionId === 'null') {
+        console.error('❌ TransactionDetailView - 無效的 transactionId:', transactionId);
+        setError('無效的交易ID');
+        return;
+      }
+      
+      // 如果是物件，嘗試提取 ID
+      if (typeof transactionId === 'object' && transactionId !== null) {
+        console.log('🔍 TransactionDetailView - 處理物件類型的 transactionId');
+        const idObj = transactionId as any;
+        
+        if (typeof idObj.toString === 'function') {
+          cleanTransactionId = idObj.toString();
+        } else if (idObj.$oid) {
+          cleanTransactionId = idObj.$oid;
+        } else if (idObj.toHexString && typeof idObj.toHexString === 'function') {
+          cleanTransactionId = idObj.toHexString();
+        } else {
+          cleanTransactionId = String(transactionId);
+        }
+        
+        console.log('✅ TransactionDetailView - 清理後的 ID:', cleanTransactionId);
+        
+        // 再次檢查清理後的 ID
+        if (cleanTransactionId === '[object Object]') {
+          console.error('❌ TransactionDetailView - 清理後仍然是無效 ID');
+          setError('無法解析交易ID');
+          return;
+        }
+      }
+      
+      console.log('🚀 TransactionDetailView - 使用 ID 調用 API:', cleanTransactionId);
+
       // 獲取交易詳細資料
-      const response = await accounting3Service.transactions.getById(transactionId);
+      const response = await accounting3Service.transactions.getById(cleanTransactionId);
       
       if (response.success && response.data) {
         setTransaction(response.data);
@@ -610,13 +650,104 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                       資金來源交易
                     </Typography>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => navigate(`/accounting3/transaction/${transaction.sourceTransactionId}`)}
-                    >
-                      查看來源交易
-                    </Button>
+                    {(() => {
+                      // 提取 ObjectId 字串 - 處理完整交易物件
+                      const extractObjectId = (idValue: any): string => {
+                        if (!idValue) return '';
+                        
+                        // 如果已經是字串，直接返回
+                        if (typeof idValue === 'string') {
+                          return idValue;
+                        }
+                        
+                        // 如果是物件，檢查各種可能的 ObjectId 格式
+                        if (typeof idValue === 'object' && idValue !== null) {
+                          // 優先檢查是否是完整的交易物件（有 _id 屬性）
+                          if (idValue._id) {
+                            // 如果 _id 是 MongoDB ObjectId 格式: {$oid: "actual_id"}
+                            if (typeof idValue._id === 'object' && idValue._id.$oid) {
+                              return idValue._id.$oid;
+                            }
+                            // 如果 _id 是直接的字串
+                            if (typeof idValue._id === 'string') {
+                              return idValue._id;
+                            }
+                          }
+                          
+                          // MongoDB 標準格式: {$oid: "actual_id"}
+                          if (idValue.$oid && typeof idValue.$oid === 'string') {
+                            return idValue.$oid;
+                          }
+                          
+                          // 檢查是否有 toHexString 方法（Mongoose ObjectId）
+                          if (typeof idValue.toHexString === 'function') {
+                            try {
+                              return idValue.toHexString();
+                            } catch (e) {
+                              console.warn('❌ toHexString() 失敗:', e);
+                            }
+                          }
+                          
+                          // 檢查是否有 toString 方法
+                          if (typeof idValue.toString === 'function') {
+                            try {
+                              const stringValue = idValue.toString();
+                              if (stringValue !== '[object Object]') {
+                                return stringValue;
+                              }
+                            } catch (e) {
+                              console.warn('❌ toString() 失敗:', e);
+                            }
+                          }
+                        }
+                        
+                        // 最後嘗試直接字串轉換
+                        const stringValue = String(idValue);
+                        if (stringValue !== '[object Object]') {
+                          return stringValue;
+                        }
+                        
+                        console.error('❌ 無法提取 ObjectId:', idValue);
+                        return '';
+                      };
+                      
+                      const cleanSourceId = extractObjectId(transaction.sourceTransactionId);
+                      console.log('🔍 資金來源交易 ID 提取:', { 原始: transaction.sourceTransactionId, 提取後: cleanSourceId });
+                      
+                      // 驗證 ID 是否有效（MongoDB ObjectId 應該是 24 個字符的十六進制字串）
+                      const isValidObjectId = (id: string): boolean => {
+                        return id && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+                      };
+                      
+                      const isValid = cleanSourceId && isValidObjectId(cleanSourceId);
+                      
+                      // 調試信息
+                      console.log('🔍 資金來源交易驗證:', {
+                        原始ID: transaction.sourceTransactionId,
+                        提取ID: cleanSourceId,
+                        ID長度: cleanSourceId?.length,
+                        正則測試: cleanSourceId ? /^[0-9a-fA-F]{24}$/.test(cleanSourceId) : false,
+                        最終有效: isValid
+                      });
+                      
+                      return (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            if (isValid) {
+                              console.log('✅ 導航到來源交易:', `/accounting3/transaction/${cleanSourceId}`);
+                              navigate(`/accounting3/transaction/${cleanSourceId}`);
+                            } else {
+                              console.error('❌ 無效的來源交易 ID:', transaction.sourceTransactionId);
+                            }
+                          }}
+                          disabled={!isValid}
+                        >
+                          {isValid ? '查看來源交易' : '無效來源交易'}
+                        </Button>
+                      );
+                    })()}
                   </Box>
                 )}
 
@@ -626,16 +757,119 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
                       關聯交易 ({transaction.linkedTransactionIds.length} 筆)
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {transaction.linkedTransactionIds.map((linkedId) => (
-                        <Button
-                          key={linkedId}
-                          variant="outlined"
-                          size="small"
-                          onClick={() => navigate(`/accounting3/transaction/${linkedId}`)}
-                        >
-                          查看關聯交易
-                        </Button>
-                      ))}
+                      {transaction.linkedTransactionIds.map((linkedId, index) => {
+                        // 提取 ObjectId 字串 - 處理完整交易物件
+                        const extractObjectId = (idValue: any): string => {
+                          if (!idValue) return '';
+                          
+                          // 如果已經是字串，直接返回
+                          if (typeof idValue === 'string') {
+                            return idValue;
+                          }
+                          
+                          // 如果是物件，檢查各種可能的 ObjectId 格式
+                          if (typeof idValue === 'object' && idValue !== null) {
+                            // 優先檢查是否是完整的交易物件（有 _id 屬性）
+                            if (idValue._id) {
+                              // 如果 _id 是 MongoDB ObjectId 格式: {$oid: "actual_id"}
+                              if (typeof idValue._id === 'object' && idValue._id.$oid) {
+                                return idValue._id.$oid;
+                              }
+                              // 如果 _id 是直接的字串
+                              if (typeof idValue._id === 'string') {
+                                return idValue._id;
+                              }
+                            }
+                            
+                            // MongoDB 標準格式: {$oid: "actual_id"}
+                            if (idValue.$oid && typeof idValue.$oid === 'string') {
+                              return idValue.$oid;
+                            }
+                            
+                            // 檢查是否有 toHexString 方法（Mongoose ObjectId）
+                            if (typeof idValue.toHexString === 'function') {
+                              try {
+                                return idValue.toHexString();
+                              } catch (e) {
+                                console.warn('❌ toHexString() 失敗:', e);
+                              }
+                            }
+                            
+                            // 檢查是否有 toString 方法
+                            if (typeof idValue.toString === 'function') {
+                              try {
+                                const stringValue = idValue.toString();
+                                if (stringValue !== '[object Object]') {
+                                  return stringValue;
+                                }
+                              } catch (e) {
+                                console.warn('❌ toString() 失敗:', e);
+                              }
+                            }
+                          }
+                          
+                          // 最後嘗試直接字串轉換
+                          const stringValue = String(idValue);
+                          if (stringValue !== '[object Object]') {
+                            return stringValue;
+                          }
+                          
+                          console.error('❌ 無法提取 ObjectId:', idValue);
+                          return '';
+                        };
+                        
+                        // 詳細調試原始資料
+                        const isValidObject = linkedId && typeof linkedId === 'object' && linkedId !== null;
+                        console.log('🔍 關聯交易原始資料詳細分析:', {
+                          linkedId,
+                          type: typeof linkedId,
+                          isArray: Array.isArray(linkedId),
+                          isObject: typeof linkedId === 'object',
+                          isNull: linkedId === null,
+                          keys: isValidObject ? Object.keys(linkedId) : 'N/A',
+                          stringified: JSON.stringify(linkedId),
+                          hasOid: isValidObject && '$oid' in (linkedId as any),
+                          oidValue: isValidObject ? (linkedId as any).$oid : 'N/A'
+                        });
+                        
+                        const cleanLinkedId = extractObjectId(linkedId);
+                        console.log('🔍 關聯交易 ID 提取結果:', { 原始: linkedId, 提取後: cleanLinkedId });
+                        
+                        // 驗證 ID 是否有效（MongoDB ObjectId 應該是 24 個字符的十六進制字串）
+                        const isValidObjectId = (id: string): boolean => {
+                          return id && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+                        };
+                        
+                        const isValid = cleanLinkedId && isValidObjectId(cleanLinkedId);
+                        
+                        // 調試信息
+                        console.log('🔍 關聯交易驗證結果:', {
+                          原始ID: linkedId,
+                          提取ID: cleanLinkedId,
+                          ID長度: cleanLinkedId?.length,
+                          正則測試: cleanLinkedId ? /^[0-9a-fA-F]{24}$/.test(cleanLinkedId) : false,
+                          最終有效: isValid
+                        });
+                        
+                        return (
+                          <Button
+                            key={cleanLinkedId || index}
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                              if (isValid) {
+                                console.log('✅ 導航到關聯交易:', `/accounting3/transaction/${cleanLinkedId}`);
+                                navigate(`/accounting3/transaction/${cleanLinkedId}`);
+                              } else {
+                                console.error('❌ 無效的關聯交易 ID:', linkedId);
+                              }
+                            }}
+                            disabled={!isValid}
+                          >
+                            {isValid ? `關聯交易 ${index + 1}` : `無效交易 ${index + 1}`}
+                          </Button>
+                        );
+                      })}
                     </Box>
                   </Box>
                 )}

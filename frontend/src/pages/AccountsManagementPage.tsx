@@ -285,9 +285,87 @@ export const AccountsManagementPage: React.FC = () => {
               // 可以打開交易詳情對話框
             }}
             onTransactionEdit={(transaction) => {
-              console.log('編輯交易:', transaction);
-              // 導航到交易編輯頁面
-              navigate(`/accounting3/transaction/${transaction._id}/edit`);
+              console.log('🔍 編輯交易 - 原始物件:', transaction);
+              console.log('🔍 _id 屬性詳細信息:', {
+                _id: transaction._id,
+                type: typeof transaction._id,
+                stringified: JSON.stringify(transaction._id)
+              });
+              
+              // 專門處理 MongoDB ObjectId 格式的提取邏輯
+              const extractObjectId = (idValue: any): string => {
+                if (!idValue) return '';
+                
+                // 如果已經是字串，直接返回
+                if (typeof idValue === 'string') {
+                  return idValue;
+                }
+                
+                // 如果是物件，檢查是否有 $oid 屬性（MongoDB 標準格式）
+                if (typeof idValue === 'object' && idValue !== null) {
+                  // 優先檢查 $oid 屬性（這是 MongoDB 的標準格式）
+                  if (idValue.$oid && typeof idValue.$oid === 'string') {
+                    console.log('✅ 找到 $oid 屬性:', idValue.$oid);
+                    return idValue.$oid;
+                  }
+                  
+                  // 檢查是否有 toString 方法
+                  if (typeof idValue.toString === 'function') {
+                    try {
+                      const stringValue = idValue.toString();
+                      if (stringValue !== '[object Object]') {
+                        console.log('✅ 使用 toString():', stringValue);
+                        return stringValue;
+                      }
+                    } catch (e) {
+                      console.warn('❌ toString() 失敗:', e);
+                    }
+                  }
+                  
+                  // 檢查是否有 toHexString 方法（Mongoose ObjectId）
+                  if (typeof idValue.toHexString === 'function') {
+                    try {
+                      const hexString = idValue.toHexString();
+                      console.log('✅ 使用 toHexString():', hexString);
+                      return hexString;
+                    } catch (e) {
+                      console.warn('❌ toHexString() 失敗:', e);
+                    }
+                  }
+                }
+                
+                // 最後嘗試直接字串轉換
+                const stringValue = String(idValue);
+                if (stringValue !== '[object Object]') {
+                  console.log('✅ 使用 String() 轉換:', stringValue);
+                  return stringValue;
+                }
+                
+                console.error('❌ 無法提取 ObjectId:', idValue);
+                return '';
+              };
+              
+              const transactionId = extractObjectId(transaction._id);
+              console.log('🎯 最終提取的交易 ID:', transactionId);
+              
+              // 驗證 ID 是否有效（MongoDB ObjectId 應該是 24 個字符的十六進制字串）
+              const isValidObjectId = (id: string): boolean => {
+                return /^[0-9a-fA-F]{24}$/.test(id);
+              };
+              
+              if (transactionId && isValidObjectId(transactionId)) {
+                console.log('✅ 導航到編輯頁面:', `/accounting3/transaction/${transactionId}/edit`);
+                navigate(`/accounting3/transaction/${transactionId}/edit`);
+              } else {
+                console.error('❌ 交易 ID 無效或格式錯誤:', {
+                  transaction,
+                  extractedId: transactionId,
+                  isValidFormat: isValidObjectId(transactionId),
+                  idType: typeof transaction._id,
+                  idValue: transaction._id
+                });
+                showSnackbar(`無法編輯交易：交易 ID 無效 (${transactionId})`, 'error');
+              }
             }}
             onAddTransaction={(accountId) => {
               console.log('為科目新增交易:', accountId);

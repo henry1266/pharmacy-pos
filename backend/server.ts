@@ -108,6 +108,7 @@ app.use("/api/accounting2/funding", fundingRoutes);
 // 新增直接路由支援 - 為了支援 accounting3 頁面的簡化路徑
 app.use("/api/transaction-groups-with-entries", transactionGroupsWithEntriesRoutes);
 app.use("/api/accounts", accounts2Routes);
+app.use("/api/accounts2", accounts2Routes); // 添加 accounts2 路徑支援
 app.use("/api/categories", categories2Routes);
 app.use("/api/records", accountingRecords2Routes);
 app.use("/api/entries", accountingEntriesRoutes);

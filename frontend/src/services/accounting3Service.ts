@@ -65,7 +65,7 @@ export const accountsApi = {
     
     if (organizationId) {
       // 如果指定組織ID，直接獲取該組織的完整科目樹狀結構
-      const response = await apiService.get('/api/accounting2/accounts/tree/hierarchy', { params });
+      const response = await apiService.get('api/accounting2/accounts/tree/hierarchy', { params });
       const apiResponse = response.data;
       
       return {
@@ -76,14 +76,14 @@ export const accountsApi = {
       // 如果沒有指定組織ID，建立組織-科目的完整多層級階層
       try {
         // 1. 獲取所有組織
-        const orgsResponse = await apiService.get('/api/organizations');
+        const orgsResponse = await apiService.get('api/organizations');
         const organizations = orgsResponse.data?.data || [];
         
         // 2. 為每個組織獲取完整的科目樹狀結構
         const organizationTrees = await Promise.all(
           organizations.map(async (org: any) => {
             try {
-              const accountsResponse = await apiService.get('/api/accounting2/accounts/tree/hierarchy', {
+              const accountsResponse = await apiService.get('api/accounting2/accounts/tree/hierarchy', {
                 params: { organizationId: org._id }
               });
               
@@ -272,7 +272,7 @@ export const accountsApi = {
       } catch (error) {
         console.error('建立組織階層失敗:', error);
         // 降級處理：直接獲取樹狀結構
-        const response = await apiService.get('/api/accounting2/accounts/tree/hierarchy');
+        const response = await apiService.get('api/accounting2/accounts/tree/hierarchy');
         return response.data;
       }
     }
@@ -280,37 +280,37 @@ export const accountsApi = {
 
   // 獲取單一帳戶
   getById: async (id: string): Promise<Account2DetailResponse> => {
-    const response = await apiService.get(`/api/accounts2/${id}`);
+    const response = await apiService.get(`api/accounts2/${id}`);
     return response.data;
   },
 
   // 新增帳戶
   create: async (data: Account2FormData): Promise<Account2DetailResponse> => {
-    const response = await apiService.post('/api/accounts2', data);
+    const response = await apiService.post('api/accounts2', data);
     return response.data;
   },
 
   // 更新帳戶
   update: async (id: string, data: Partial<Account2FormData>): Promise<Account2DetailResponse> => {
-    const response = await apiService.put(`/api/accounts2/${id}`, data);
+    const response = await apiService.put(`api/accounts2/${id}`, data);
     return response.data;
   },
 
   // 刪除帳戶
   delete: async (id: string): Promise<ApiResponse> => {
-    const response = await apiService.delete(`/api/accounts2/${id}`);
+    const response = await apiService.delete(`api/accounts2/${id}`);
     return response.data;
   },
 
   // 獲取帳戶餘額
   getBalance: async (id: string): Promise<{ success: boolean; data: AccountBalance }> => {
-    const response = await apiService.get(`/api/accounts/${id}/balance`);
+    const response = await apiService.get(`api/accounts/${id}/balance`);
     return response.data;
   },
 
   // 調整帳戶餘額
   updateBalance: async (id: string, balance: number): Promise<{ success: boolean; data: AccountBalance; message: string }> => {
-    const response = await apiService.put(`/api/accounts/${id}/balance`, { balance });
+    const response = await apiService.put(`api/accounts/${id}/balance`, { balance });
     return response.data;
   }
 };
@@ -420,7 +420,7 @@ export const transactionsApi = {
     page?: number;
     limit?: number;
   }): Promise<{ success: boolean; data: any[]; total?: number }> => {
-    const response = await apiService.get('/api/accounting2/transaction-groups-with-entries', { params: filter });
+    const response = await apiService.get('api/accounting2/transaction-groups-with-entries', { params: filter });
     return response.data;
   },
 
@@ -442,7 +442,7 @@ export const transactionsApi = {
         limit: filter?.limit || 10000 // 預設提高限制，確保獲取完整資料
       };
       
-      const response = await apiService.get('/api/accounting2/transaction-groups-with-entries', { params });
+      const response = await apiService.get('api/accounting2/transaction-groups-with-entries', { params });
       
       console.log('📡 API 回應:', {
         status: response.status,
@@ -542,31 +542,31 @@ export const transactionsApi = {
 
   // 獲取單一交易
   getById: async (id: string): Promise<{ success: boolean; data?: any }> => {
-    const response = await apiService.get(`/api/accounting2/transaction-groups-with-entries/${id}`);
+    const response = await apiService.get(`api/accounting2/transaction-groups-with-entries/${id}`);
     return response.data;
   },
 
   // 新增交易
   create: async (data: any): Promise<{ success: boolean; data?: any; message?: string }> => {
-    const response = await apiService.post('/api/accounting2/transaction-groups-with-entries', data);
+    const response = await apiService.post('api/accounting2/transaction-groups-with-entries', data);
     return response.data;
   },
 
   // 更新交易
   update: async (id: string, data: any): Promise<{ success: boolean; data?: any; message?: string }> => {
-    const response = await apiService.put(`/api/accounting2/transaction-groups-with-entries/${id}`, data);
+    const response = await apiService.put(`api/accounting2/transaction-groups-with-entries/${id}`, data);
     return response.data;
   },
 
   // 確認交易
   confirm: async (id: string): Promise<{ success: boolean; data?: any; message?: string }> => {
-    const response = await apiService.post(`/api/accounting2/transaction-groups-with-entries/${id}/confirm`);
+    const response = await apiService.post(`api/accounting2/transaction-groups-with-entries/${id}/confirm`);
     return response.data;
   },
 
   // 刪除交易
   delete: async (id: string): Promise<{ success: boolean; message?: string }> => {
-    const response = await apiService.delete(`/api/accounting2/transaction-groups-with-entries/${id}`);
+    const response = await apiService.delete(`api/accounting2/transaction-groups-with-entries/${id}`);
     return response.data;
   },
 
@@ -580,7 +580,7 @@ export const transactionsApi = {
         params.append('organizationId', organizationId);
       }
       
-      const url = `/api/accounting2/transactions/account-statistics-aggregate${params.toString() ? '?' + params.toString() : ''}`;
+      const url = `api/accounting2/transactions/account-statistics-aggregate${params.toString() ? '?' + params.toString() : ''}`;
       console.log('📡 請求 URL:', url);
       
       const response = await apiService.get(url);
@@ -609,7 +609,7 @@ export const fundingTrackingApi = {
   }): Promise<{ success: boolean; data?: { fundingSources: any[] } }> => {
     try {
       console.log('[Accounting3] 🔍 獲取可用資金來源:', params);
-      const response = await apiService.get('/api/accounting2/funding-tracking/available-sources', { params });
+      const response = await apiService.get('api/accounting2/funding-tracking/available-sources', { params });
       return response.data;
     } catch (error) {
       console.error('[Accounting3] 獲取資金來源失敗:', error);
