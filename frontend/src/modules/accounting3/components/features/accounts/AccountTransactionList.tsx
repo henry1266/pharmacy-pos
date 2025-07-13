@@ -957,8 +957,8 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>交易描述</TableCell>
                     <TableCell>交易日期</TableCell>
+                    <TableCell>交易描述</TableCell>
                     <TableCell align="center">交易流向</TableCell>
                     <TableCell align="right">本科目金額</TableCell>
                     <TableCell align="right">累計餘額</TableCell>
@@ -980,6 +980,10 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
                         }
                       }}
                     >
+                      
+                      <TableCell>
+                        {formatDate(transaction.transactionDate)}
+                      </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight="medium">
                           {transaction.description}
@@ -987,9 +991,6 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
                         <Typography variant="caption" color="text.secondary" fontFamily="monospace">
                           #{(transaction as any).groupNumber || 'N/A'}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {formatDate(transaction.transactionDate)}
                       </TableCell>
                       <TableCell align="center">
                         {renderTransactionFlow(transaction)}

@@ -612,8 +612,9 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>交易描述</TableCell>
                       <TableCell>交易日期</TableCell>
+                      <TableCell>交易描述</TableCell>
+                      
                       <TableCell>交易編號</TableCell>
                       <TableCell align="center">交易流向</TableCell>
                       <TableCell align="right">金額</TableCell>
@@ -626,13 +627,14 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                     {transactionGroups.map((group) => (
                       <TableRow key={group._id} hover>
                         <TableCell>
+                          {formatDate(group.transactionDate)}
+                        </TableCell>
+                        <TableCell>
                           <Typography variant="body2" fontWeight="medium">
                             {group.description}
                           </Typography>
                         </TableCell>
-                        <TableCell>
-                          {formatDate(group.transactionDate)}
-                        </TableCell>
+
                         <TableCell>
                           <Typography variant="body2" fontFamily="monospace">
                             {group.groupNumber}

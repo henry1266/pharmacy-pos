@@ -204,21 +204,6 @@ export const BalanceValidator3: React.FC<BalanceValidator3Props> = ({
           </Alert>
         )}
 
-        {/* 操作提示 */}
-        {!balanceInfo.isBalanced && (
-          <Box sx={{ mt: 2, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="caption" color="text.secondary">
-              💡 提示：
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • 使用「快速平衡」自動調整最後一筆分錄
-              <br />
-              • 使用「借貸對調」交換所有分錄的借貸方向
-              <br />
-              • 複式記帳要求借方總額等於貸方總額
-            </Typography>
-          </Box>
-        )}
       </CardContent>
     </Card>
   );
