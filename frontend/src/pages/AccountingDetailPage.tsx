@@ -109,7 +109,7 @@ const AccountingDetailPageWrapper: React.FC = () => {
               href="#"
               onClick={(e) => { e.preventDefault(); navigate('/accounting2'); }}
             >
-              會計科目管理
+              會計科目管理123456789
             </Link>
             <Typography color="text.primary">機構詳情</Typography>
           </Breadcrumbs>

@@ -42,7 +42,7 @@ const AccountTypeSettingsPage: React.FC = () => {
           帳戶類型設定
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          管理會計科目的類型分類，包括資產、負債、權益、收入、費用等類型的設定
+          管理會計科目的類型分類，包括資產、負債、權益、收入、費用等類型的設定123
         </Typography>
       </Box>
 
