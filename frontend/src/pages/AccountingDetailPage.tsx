@@ -30,7 +30,7 @@ import {
   Category
 } from '@mui/icons-material';
 import { RootState } from '../redux/store';
-import { default as DoubleEntryDetailPage } from '../modules/accounting2/components/features/transactions/DoubleEntryDetailPage';
+//import { default as DoubleEntryDetailPage } from '../modules/accounting2/components/features/transactions/DoubleEntryDetailPage';
 
 const AccountingDetailPageWrapper: React.FC = () => {
   const { organizationId, accountType, categoryId, accountId } = useParams<{
@@ -109,7 +109,7 @@ const AccountingDetailPageWrapper: React.FC = () => {
               href="#"
               onClick={(e) => { e.preventDefault(); navigate('/accounting2'); }}
             >
-              會計科目管理123456789
+              會計科目管理12345
             </Link>
             <Typography color="text.primary">機構詳情</Typography>
           </Breadcrumbs>
@@ -392,10 +392,7 @@ const AccountingDetailPageWrapper: React.FC = () => {
       );
     }
 
-    if (accountId) {
-      // 使用新的複式記帳詳情頁面組件
-      return <DoubleEntryDetailPage organizationId={organizationId} />;
-    }
+
 
     // 預設情況
     return (

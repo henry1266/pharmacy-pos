@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useAppSelector } from '@/hooks/redux';
 import { AccountSelector } from '../accounts/AccountSelector';
-import { FundingSourceSelector } from '../../ui/FundingSourceSelector';
+//import { FundingSourceSelector } from '../../ui/FundingSourceSelector';
 import { EntryTable } from './EntryTable';
 import { BalanceValidator } from './BalanceValidator';
 import {
@@ -353,14 +353,7 @@ export const TransactionEntryForm: React.FC<TransactionEntryFormProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* 分錄資金來源選擇對話框 */}
-      <FundingSourceSelector
-        open={entryFundingSourceOpen}
-        onClose={handleCloseEntryFundingSource}
-        onSelect={handleEntryFundingSourceSelect}
-        organizationId={organizationId}
-        excludeTransactionIds={[]}
-      />
+
     </Box>
   );
 };
