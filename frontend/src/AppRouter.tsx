@@ -7,19 +7,23 @@ import SuppliersPage from './pages/SuppliersPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
+// 銷售管理頁面元件
 import SalesPage from './pages/SalesPage';
 import SalesNew2Page from './pages/SalesNew2Page';
 import SalesListPage from './pages/SalesListPage';
 import SalesEditPage from './pages/SalesEditPage';
 import SalesDetailPage from './pages/SalesDetailPage';
 import ReportsPage from './pages/ReportsPage';
+// 進貨管理頁面元件
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import PurchaseOrderFormPage from './pages/PurchaseOrderFormPage';
 import PurchaseOrderDetailPage from './pages/PurchaseOrderDetailPage';
 import PurchaseOrdersSupplierFilterPage from './pages/PurchaseOrdersSupplierFilterPage';
+// 出貨管理頁面元件
 import ShippingOrdersPage from './pages/ShippingOrdersPage';
 import ShippingOrderFormPage from './pages/ShippingOrderFormPage';
 import ShippingOrderDetailPage from './pages/ShippingOrderDetailPage';
+// 記帳管理頁面元件
 import AccountingPage from './pages/AccountingPage';
 import AccountingNewPage from './pages/AccountingNewPage';
 import AccountingCategoryPage from './pages/AccountingCategoryPage';
@@ -36,8 +40,6 @@ import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
 
 import OrganizationPage from './pages/OrganizationPage';
 import OrganizationFormPage from './pages/OrganizationFormPage';
-
-
 
 // 員工管理頁面元件
   import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage';
