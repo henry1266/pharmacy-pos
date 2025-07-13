@@ -33,24 +33,25 @@ import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
-import Accounting2Page from './pages/Accounting2Page';
-import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
-import Accounting3TransactionPage from './pages/Accounting3TransactionPage';
-import AccountsManagementPage from './pages/AccountsManagementPage';
-import AccountDetailPage from './pages/AccountDetailPage';
-import TransactionDetailPage from './pages/TransactionDetailPage';
-import AccountingDetailPageWrapper from './pages/AccountingDetailPage';
+
 import OrganizationPage from './pages/OrganizationPage';
 import OrganizationFormPage from './pages/OrganizationFormPage';
+
+
 
 // 員工管理頁面元件
   import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage';
   import EmployeeListPage from './pages/employees/EmployeeListPage';
   import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage';
-  
-import Overtime from './components/employees/Overtime';
-
-// AdminRoute guard removed - all routes are now accessible
+  import OvertimeManagementPage from './pages/employees/OvertimeManagementPage';
+// 會計管理頁面元件
+  import Accounting2Page from './pages/Accounting2Page';
+  import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
+  import Accounting3TransactionPage from './pages/Accounting3TransactionPage';
+  import AccountsManagementPage from './pages/AccountsManagementPage';
+  import AccountDetailPage from './pages/AccountDetailPage';
+  import TransactionDetailPage from './pages/TransactionDetailPage';
+  import AccountingDetailPageWrapper from './pages/AccountingDetailPage';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {
@@ -144,7 +145,7 @@ const AppRouter: React.FC = () => {
       <Route path="/employees" element={<EmployeeListPage />} />
       <Route path="/employees/basic-info/new" element={<EmployeeBasicInfoPage />} />
       <Route path="/employees/basic-info/:id" element={<EmployeeBasicInfoPage />} />
-      <Route path="/employees/overtime" element={<Overtime />} />
+      <Route path="/employees/overtime" element={<OvertimeManagementPage />} />
       
       {/* Fallback for any unmatched route within the protected area */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
