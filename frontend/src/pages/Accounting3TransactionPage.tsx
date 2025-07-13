@@ -36,7 +36,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 
 // 導入內嵌分錄組件
 import { DoubleEntryFormWithEntries } from '../modules/accounting2/components/features/transactions/DoubleEntryFormWithEntries';
-import { TransactionGroupFormWithEntries } from '../modules/accounting2/components/features/transactions/TransactionGroupFormWithEntries';
+import { TransactionGroupFormWithEntries } from '../modules/accounting3/components/features/transactions/TransactionGroupFormWithEntries';
 import DoubleEntryDetailPageWithEntries from '../modules/accounting2/components/features/transactions/DoubleEntryDetailPageWithEntries';
 import { AccountingDataGridWithEntries } from '../modules/accounting3/components/ui/AccountingDataGridWithEntries';
 
