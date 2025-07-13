@@ -8,6 +8,13 @@ import {
   Box,
   Button,
   Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material';
 import {
   AccountBalance as AccountBalanceIcon
@@ -43,60 +50,56 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
       const sourceInfo = transaction.sourceTransactionId as any;
       
       return (
-        <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid', borderColor: 'grey.200' }}>
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary">
-                日期
-              </Typography>
-              <Typography variant="caption" display="block">
-                {sourceInfo.transactionDate ? formatDate(sourceInfo.transactionDate) : '未知日期'}
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary">
-                交易描述
-              </Typography>
-              <Typography variant="caption" display="block">
-                <strong>{sourceInfo.groupNumber || '未知編號'}</strong> - {sourceInfo.description || '無描述'}
-              </Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" color="text.secondary">
-                金額
-              </Typography>
-              <Typography variant="caption" display="block" fontWeight="medium">
-                {sourceInfo.totalAmount ? formatAmount(sourceInfo.totalAmount) : '未知金額'}
-              </Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" color="text.secondary">
-                狀態
-              </Typography>
-              <Typography variant="caption" display="block">
-                {sourceInfo.status === 'confirmed' ? '已確認' : sourceInfo.status === 'cancelled' ? '已取消' : '草稿'}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sx={{ mt: 1 }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
-                onClick={() => {
-                  if (isValid) {
-                    console.log('✅ 導航到來源交易:', `/accounting3/transaction/${cleanSourceId}`);
-                    navigate(`/accounting3/transaction/${cleanSourceId}`);
-                  } else {
-                    console.error('❌ 無效的來源交易 ID:', transaction.sourceTransactionId);
-                  }
-                }}
-                disabled={!isValid}
-              >
-                {isValid ? '查看來源交易' : '無效來源交易'}
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
+        <TableContainer component={Paper} sx={{ mt: 1 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>日期</TableCell>
+                <TableCell>交易描述</TableCell>
+                <TableCell align="right">金額</TableCell>
+                <TableCell align="center">狀態</TableCell>
+                <TableCell align="center">操作</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  {sourceInfo.transactionDate ? formatDate(sourceInfo.transactionDate) : '未知日期'}
+                </TableCell>
+                <TableCell>
+                  <strong>{sourceInfo.groupNumber || '未知編號'}</strong> - {sourceInfo.description || '無描述'}
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'medium' }}>
+                  {sourceInfo.totalAmount ? formatAmount(sourceInfo.totalAmount) : '未知金額'}
+                </TableCell>
+                <TableCell align="center">
+                  <Chip
+                    label={sourceInfo.status === 'confirmed' ? '已確認' : sourceInfo.status === 'cancelled' ? '已取消' : '草稿'}
+                    color={sourceInfo.status === 'confirmed' ? 'success' : sourceInfo.status === 'cancelled' ? 'error' : 'default'}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      if (isValid) {
+                        console.log('✅ 導航到來源交易:', `/accounting3/transaction/${cleanSourceId}`);
+                        navigate(`/accounting3/transaction/${cleanSourceId}`);
+                      } else {
+                        console.error('❌ 無效的來源交易 ID:', transaction.sourceTransactionId);
+                      }
+                    }}
+                    disabled={!isValid}
+                  >
+                    {isValid ? '查看' : '無效'}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
       );
     } else {
       // 如果只有 ID，顯示簡化格式
@@ -128,98 +131,94 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
 
     return (
       <Box>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          關聯交易 ({transaction.linkedTransactionIds.length} 筆)
-        </Typography>
-        <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
-          {transaction.linkedTransactionIds.map((linkedId, index) => {
-            const cleanLinkedId = extractObjectId(linkedId);
-            const isValid = cleanLinkedId && isValidObjectId(cleanLinkedId);
-            
-            // 如果有關聯交易資訊，顯示詳細格式
-            if (typeof linkedId === 'object' && linkedId !== null) {
-              const linkedInfo = linkedId as any;
-              
-              return (
-                <Box key={cleanLinkedId || index} sx={{ mb: 1, p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid', borderColor: 'grey.200' }}>
-                  <Grid container spacing={1}>
-                    <Grid item xs={12}>
-                      <Typography variant="body2" color="text.secondary">
-                        日期
-                      </Typography>
-                      <Typography variant="caption" display="block">
+        <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>日期</TableCell>
+                <TableCell>交易描述</TableCell>
+                <TableCell align="right">金額</TableCell>
+                <TableCell align="center">狀態</TableCell>
+                <TableCell align="center">操作</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {transaction.linkedTransactionIds.map((linkedId, index) => {
+                const cleanLinkedId = extractObjectId(linkedId);
+                const isValid = cleanLinkedId && isValidObjectId(cleanLinkedId);
+                
+                // 如果有關聯交易資訊，顯示詳細格式
+                if (typeof linkedId === 'object' && linkedId !== null) {
+                  const linkedInfo = linkedId as any;
+                  
+                  return (
+                    <TableRow key={cleanLinkedId || index}>
+                      <TableCell>
                         {linkedInfo.transactionDate ? formatDate(linkedInfo.transactionDate) : '未知日期'}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="body2" color="text.secondary">
-                        交易描述
-                      </Typography>
-                      <Typography variant="caption" display="block">
+                      </TableCell>
+                      <TableCell>
                         <strong>{linkedInfo.groupNumber || '未知編號'}</strong> - {linkedInfo.description || '無描述'}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">
-                        金額
-                      </Typography>
-                      <Typography variant="caption" display="block" fontWeight="medium">
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'medium' }}>
                         {linkedInfo.totalAmount ? formatAmount(linkedInfo.totalAmount) : '未知金額'}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">
-                        狀態
-                      </Typography>
-                      <Typography variant="caption" display="block">
-                        {linkedInfo.status === 'confirmed' ? '已確認' : linkedInfo.status === 'cancelled' ? '已取消' : '草稿'}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sx={{ mt: 1 }}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        onClick={() => {
-                          if (isValid) {
-                            console.log('✅ 導航到關聯交易:', `/accounting3/transaction/${cleanLinkedId}`);
-                            navigate(`/accounting3/transaction/${cleanLinkedId}`);
-                          } else {
-                            console.error('❌ 無效的關聯交易 ID:', linkedId);
-                          }
-                        }}
-                        disabled={!isValid}
-                      >
-                        {isValid ? `查看關聯交易 ${index + 1}` : `無效交易 ${index + 1}`}
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Box>
-              );
-            } else {
-              // 如果只有 ID，顯示簡化格式
-              return (
-                <Button
-                  key={cleanLinkedId || index}
-                  variant="outlined"
-                  size="small"
-                  sx={{ mb: 1, mr: 1 }}
-                  onClick={() => {
-                    if (isValid) {
-                      console.log('✅ 導航到關聯交易:', `/accounting3/transaction/${cleanLinkedId}`);
-                      navigate(`/accounting3/transaction/${cleanLinkedId}`);
-                    } else {
-                      console.error('❌ 無效的關聯交易 ID:', linkedId);
-                    }
-                  }}
-                  disabled={!isValid}
-                >
-                  {isValid ? `關聯交易 ${index + 1}` : `無效交易 ${index + 1}`}
-                </Button>
-              );
-            }
-          })}
-        </Box>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          label={linkedInfo.status === 'confirmed' ? '已確認' : linkedInfo.status === 'cancelled' ? '已取消' : '草稿'}
+                          color={linkedInfo.status === 'confirmed' ? 'success' : linkedInfo.status === 'cancelled' ? 'error' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            if (isValid) {
+                              console.log('✅ 導航到關聯交易:', `/accounting3/transaction/${cleanLinkedId}`);
+                              navigate(`/accounting3/transaction/${cleanLinkedId}`);
+                            } else {
+                              console.error('❌ 無效的關聯交易 ID:', linkedId);
+                            }
+                          }}
+                          disabled={!isValid}
+                        >
+                          {isValid ? '查看' : '無效'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                } else {
+                  // 如果只有 ID，顯示簡化格式
+                  return (
+                    <TableRow key={cleanLinkedId || index}>
+                      <TableCell colSpan={4}>
+                        關聯交易 {index + 1} (僅 ID)
+                      </TableCell>
+                      <TableCell align="center">
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            if (isValid) {
+                              console.log('✅ 導航到關聯交易:', `/accounting3/transaction/${cleanLinkedId}`);
+                              navigate(`/accounting3/transaction/${cleanLinkedId}`);
+                            } else {
+                              console.error('❌ 無效的關聯交易 ID:', linkedId);
+                            }
+                          }}
+                          disabled={!isValid}
+                        >
+                          {isValid ? '查看' : '無效'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     );
   };
@@ -254,80 +253,40 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
       .reduce((sum, ref) => sum + ref.totalAmount, 0);
 
     return (
-      <>
-        <Box sx={{ mb: 2 }}>
-          <Chip
-            label={`被 ${transaction.referencedByInfo.length} 筆交易引用`}
-            color="warning"
-            size="small"
-            sx={{ mr: 1 }}
-          />
-          {(() => {
-            if (usedAmount > 0 && usedAmount < transaction.totalAmount) {
-              return (
-                <Chip
-                  label="部分已使用"
-                  color="info"
-                  size="small"
-                />
-              );
-            } else if (usedAmount >= transaction.totalAmount) {
-              return (
-                <Chip
-                  label="已全部使用"
-                  color="error"
-                  size="small"
-                />
-              );
-            }
-            return null;
-          })()}
-        </Box>
-        
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          流向詳情
-        </Typography>
-        <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
-          {transaction.referencedByInfo.map((ref, index) => (
-            <Box key={ref._id} sx={{ mb: 1, p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid', borderColor: 'grey.200' }}>
-              <Grid container spacing={1}>
-                <Grid item xs={12}>
-                  <Typography variant="body2" color="text.secondary">
-                    日期
-                  </Typography>
-                  <Typography variant="caption" display="block">
+      <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>日期</TableCell>
+                <TableCell>交易描述</TableCell>
+                <TableCell align="right">金額</TableCell>
+                <TableCell align="center">狀態</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {transaction.referencedByInfo.map((ref, index) => (
+                <TableRow key={ref._id}>
+                  <TableCell>
                     {formatDate(ref.transactionDate)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="body2" color="text.secondary">
-                    交易描述
-                  </Typography>
-                  <Typography variant="caption" display="block">
+                  </TableCell>
+                  <TableCell>
                     <strong>{ref.groupNumber}</strong> - {ref.description}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    金額
-                  </Typography>
-                  <Typography variant="caption" display="block" fontWeight="medium">
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'medium' }}>
                     {formatAmount(ref.totalAmount)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    狀態
-                  </Typography>
-                  <Typography variant="caption" display="block">
-                    {ref.status === 'confirmed' ? '已確認' : ref.status === 'cancelled' ? '已取消' : '草稿'}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-          ))}
-        </Box>
-      </>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Chip
+                      label={ref.status === 'confirmed' ? '已確認' : ref.status === 'cancelled' ? '已取消' : '草稿'}
+                      color={ref.status === 'confirmed' ? 'success' : ref.status === 'cancelled' ? 'error' : 'default'}
+                      size="small"
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
     );
   };
 
@@ -343,20 +302,29 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         {/* 來源區塊 */}
         {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
           <Box sx={{ mb: 3, p: 2, bgcolor: 'primary.50', borderRadius: 1, border: '1px solid', borderColor: 'primary.200' }}>
-            <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 512 512"
-                style={{
-                  width: '1rem',
-                  height: '1rem',
-                  fill: 'currentColor'
-                }}
-              >
-                <path d="M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0c53 0 96-43 96-96l0-256c0-53-43-96-96-96l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32zm-9.4 182.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L242.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"/>
-              </svg>
-              來源
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 512 512"
+                  style={{
+                    width: '1rem',
+                    height: '1rem',
+                    fill: 'currentColor'
+                  }}
+                >
+                  <path d="M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0c53 0 96-43 96-96l0-256c0-53-43-96-96-96l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32zm-9.4 182.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L242.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"/>
+                </svg>
+                來源
+              </Typography>
+              {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
+                <Chip
+                  label={`${(transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0)} 筆`}
+                  color="primary"
+                  size="small"
+                />
+              )}
+            </Box>
             
             {transaction.sourceTransactionId && (
               <Box sx={{ mb: 2 }}>
@@ -429,20 +397,53 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         
         {/* 流向區塊 */}
         <Box sx={{ p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
-          <Typography variant="subtitle2" gutterBottom sx={{ color: 'warning.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 576 512"
-              style={{
-                width: '1rem',
-                height: '1rem',
-                fill: 'currentColor'
-              }}
-            >
-              <path d="M534.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L434.7 224 224 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM192 96c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-53 0-96 43-96 96l0 256c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z"/>
-            </svg>
-            流向
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ color: 'warning.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 576 512"
+                style={{
+                  width: '1rem',
+                  height: '1rem',
+                  fill: 'currentColor'
+                }}
+              >
+                <path d="M534.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L434.7 224 224 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM192 96c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-53 0-96 43-96 96l0 256c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z"/>
+              </svg>
+              流向
+            </Typography>
+            {transaction.referencedByInfo && transaction.referencedByInfo.length > 0 && (
+              <Chip
+                label={`${transaction.referencedByInfo.length} 筆`}
+                color="warning"
+                size="small"
+              />
+            )}
+            {(() => {
+              const usedAmount = transaction.referencedByInfo
+                ?.filter(ref => ref.status !== 'cancelled')
+                .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
+              
+              if (usedAmount > 0 && usedAmount < transaction.totalAmount) {
+                return (
+                  <Chip
+                    label="部分已使用"
+                    color="info"
+                    size="small"
+                  />
+                );
+              } else if (usedAmount >= transaction.totalAmount) {
+                return (
+                  <Chip
+                    label="已全部使用"
+                    color="error"
+                    size="small"
+                  />
+                );
+              }
+              return null;
+            })()}
+          </Box>
           
           {renderReferencedByInfo()}
         </Box>
