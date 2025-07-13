@@ -9,7 +9,10 @@ import {
   Button,
   Chip,
 } from '@mui/material';
-import { AccountBalance as AccountBalanceIcon } from '@mui/icons-material';
+import {
+  AccountBalance as AccountBalanceIcon
+} from '@mui/icons-material';
+
 import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 import { formatAmount, formatDate, extractObjectId, isValidObjectId } from '../utils/transactionUtils';
@@ -340,8 +343,19 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         {/* 來源區塊 */}
         {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
           <Box sx={{ mb: 3, p: 2, bgcolor: 'primary.50', borderRadius: 1, border: '1px solid', borderColor: 'primary.200' }}>
-            <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-              📊 來源
+            <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                style={{
+                  width: '1rem',
+                  height: '1rem',
+                  fill: 'currentColor'
+                }}
+              >
+                <path d="M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0c53 0 96-43 96-96l0-256c0-53-43-96-96-96l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32zm-9.4 182.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L242.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"/>
+              </svg>
+              來源
             </Typography>
             
             {transaction.sourceTransactionId && (
@@ -359,8 +373,19 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         
         {/* 交易區塊 */}
         <Box sx={{ mb: 3, p: 2, bgcolor: 'info.50', borderRadius: 1, border: '1px solid', borderColor: 'info.200' }}>
-          <Typography variant="subtitle2" gutterBottom sx={{ color: 'info.main', fontWeight: 'bold' }}>
-            💰 交易
+          <Typography variant="subtitle2" gutterBottom sx={{ color: 'info.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 448 512"
+              style={{
+                width: '1rem',
+                height: '1rem',
+                fill: 'currentColor'
+              }}
+            >
+              <path d="M438.6 150.6c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.7 96 32 96C14.3 96 0 110.3 0 128s14.3 32 32 32l306.7 0-41.4 41.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l96-96zm-333.3 352c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 416 416 416c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 41.4-41.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96z"/>
+            </svg>
+            交易
           </Typography>
           
           <Grid container spacing={2}>
@@ -404,8 +429,19 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         
         {/* 流向區塊 */}
         <Box sx={{ p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
-          <Typography variant="subtitle2" gutterBottom sx={{ color: 'warning.main', fontWeight: 'bold' }}>
-            🔗 流向
+          <Typography variant="subtitle2" gutterBottom sx={{ color: 'warning.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 576 512"
+              style={{
+                width: '1rem',
+                height: '1rem',
+                fill: 'currentColor'
+              }}
+            >
+              <path d="M534.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L434.7 224 224 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM192 96c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-53 0-96 43-96 96l0 256c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z"/>
+            </svg>
+            流向
           </Typography>
           
           {renderReferencedByInfo()}

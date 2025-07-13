@@ -15,6 +15,7 @@ import {
   Description as DescriptionIcon,
   Business as BusinessIcon,
   Receipt as ReceiptIcon,
+  Input as InputIcon
 } from '@mui/icons-material';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 import { formatAmount, formatDate, getStatusInfo, getFundingTypeInfo } from '../utils/transactionUtils';
