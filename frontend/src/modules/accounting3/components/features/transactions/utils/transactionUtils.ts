@@ -18,14 +18,14 @@ export const formatAmount = (amount: number): string => {
  * 格式化日期
  */
 export const formatDate = (date: string | Date): string => {
-  return format(new Date(date), 'yyyy年MM月dd日 HH:mm', { locale: zhTW });
+  return format(new Date(date), 'yyyy/MM/dd', { locale: zhTW });
 };
 
 /**
  * 格式化日期 - 僅年月日
  */
 export const formatDateOnly = (date: string | Date): string => {
-  return format(new Date(date), 'yyyy年MM月dd日', { locale: zhTW });
+  return format(new Date(date), 'yyyy/MM/dd', { locale: zhTW });
 };
 
 /**
