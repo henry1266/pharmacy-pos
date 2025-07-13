@@ -22,6 +22,13 @@ export const formatDate = (date: string | Date): string => {
 };
 
 /**
+ * 格式化日期 - 僅年月日
+ */
+export const formatDateOnly = (date: string | Date): string => {
+  return format(new Date(date), 'yyyy年MM月dd日', { locale: zhTW });
+};
+
+/**
  * 獲取狀態顯示資訊
  */
 export const getStatusInfo = (status: string) => {

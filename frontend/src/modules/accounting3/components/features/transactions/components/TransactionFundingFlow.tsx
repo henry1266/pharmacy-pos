@@ -15,14 +15,16 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Tooltip,
 } from '@mui/material';
 import {
-  AccountBalance as AccountBalanceIcon
+  AccountBalance as AccountBalanceIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
-import { formatAmount, formatDate, extractObjectId, isValidObjectId } from '../utils/transactionUtils';
+import { formatAmount, formatDate, formatDateOnly, extractObjectId, isValidObjectId } from '../utils/transactionUtils';
 
 interface TransactionFundingFlowProps {
   transaction: TransactionGroupWithEntries3;
@@ -64,10 +66,14 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             <TableBody>
               <TableRow>
                 <TableCell>
-                  {sourceInfo.transactionDate ? formatDate(sourceInfo.transactionDate) : '未知日期'}
+                  {sourceInfo.transactionDate ? formatDateOnly(sourceInfo.transactionDate) : '未知日期'}
                 </TableCell>
                 <TableCell>
-                  <strong>{sourceInfo.groupNumber || '未知編號'}</strong> - {sourceInfo.description || '無描述'}
+                  <Tooltip title={`編號: ${sourceInfo.groupNumber || '未知編號'}`} arrow>
+                    <span style={{ cursor: 'help' }}>
+                      {sourceInfo.description || '無描述'}
+                    </span>
+                  </Tooltip>
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'medium' }}>
                   {sourceInfo.totalAmount ? formatAmount(sourceInfo.totalAmount) : '未知金額'}
@@ -154,10 +160,14 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                   return (
                     <TableRow key={cleanLinkedId || index}>
                       <TableCell>
-                        {linkedInfo.transactionDate ? formatDate(linkedInfo.transactionDate) : '未知日期'}
+                        {linkedInfo.transactionDate ? formatDateOnly(linkedInfo.transactionDate) : '未知日期'}
                       </TableCell>
                       <TableCell>
-                        <strong>{linkedInfo.groupNumber || '未知編號'}</strong> - {linkedInfo.description || '無描述'}
+                        <Tooltip title={`編號: ${linkedInfo.groupNumber || '未知編號'}`} arrow>
+                          <span style={{ cursor: 'help' }}>
+                            {linkedInfo.description || '無描述'}
+                          </span>
+                        </Tooltip>
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 'medium' }}>
                         {linkedInfo.totalAmount ? formatAmount(linkedInfo.totalAmount) : '未知金額'}
@@ -236,6 +246,67 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     return Math.max(0, transaction.totalAmount - usedAmount);
   };
 
+  // 渲染交易流向圖
+  const renderTransactionFlow = () => {
+    if (!transaction.entries || transaction.entries.length < 2) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 找到主要的借方和貸方科目
+    const debitEntries = transaction.entries.filter(entry => (entry.debitAmount || 0) > 0);
+    const creditEntries = transaction.entries.filter(entry => (entry.creditAmount || 0) > 0);
+
+    if (debitEntries.length === 0 || creditEntries.length === 0) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 取第一個借方和貸方科目作為代表
+    const fromAccount = creditEntries[0];
+    const toAccount = debitEntries[0];
+
+    // 獲取科目名稱
+    const fromAccountName = (fromAccount as any).accountName || '未知科目';
+    const toAccountName = (toAccount as any).accountName || '未知科目';
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
+        <Chip
+          label={fromAccountName}
+          size="small"
+          color="secondary"
+          sx={{
+            fontSize: '0.75rem',
+            height: 24,
+            mr: 0.5,
+            maxWidth: 80,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.75rem'
+            }
+          }}
+        />
+        <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
+        <Chip
+          label={toAccountName}
+          size="small"
+          color="primary"
+          sx={{
+            fontSize: '0.75rem',
+            height: 24,
+            ml: 0.5,
+            maxWidth: 80,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.75rem'
+            }
+          }}
+        />
+      </Box>
+    );
+  };
+
   // 渲染流向詳情
   const renderReferencedByInfo = () => {
     if (!transaction.referencedByInfo || transaction.referencedByInfo.length === 0) {
@@ -261,16 +332,21 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                 <TableCell>交易描述</TableCell>
                 <TableCell align="right">金額</TableCell>
                 <TableCell align="center">狀態</TableCell>
+                <TableCell align="center">操作</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {transaction.referencedByInfo.map((ref, index) => (
                 <TableRow key={ref._id}>
                   <TableCell>
-                    {formatDate(ref.transactionDate)}
+                    {formatDateOnly(ref.transactionDate)}
                   </TableCell>
                   <TableCell>
-                    <strong>{ref.groupNumber}</strong> - {ref.description}
+                    <Tooltip title={`編號: ${ref.groupNumber}`} arrow>
+                      <span style={{ cursor: 'help' }}>
+                        {ref.description}
+                      </span>
+                    </Tooltip>
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'medium' }}>
                     {formatAmount(ref.totalAmount)}
@@ -281,6 +357,24 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                       color={ref.status === 'confirmed' ? 'success' : ref.status === 'cancelled' ? 'error' : 'default'}
                       size="small"
                     />
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        const cleanRefId = extractObjectId(ref._id);
+                        if (cleanRefId && isValidObjectId(cleanRefId)) {
+                          console.log('✅ 導航到流向交易:', `/accounting3/transaction/${cleanRefId}`);
+                          navigate(`/accounting3/transaction/${cleanRefId}`);
+                        } else {
+                          console.error('❌ 無效的流向交易 ID:', ref._id);
+                        }
+                      }}
+                      disabled={!ref._id || !isValidObjectId(extractObjectId(ref._id))}
+                    >
+                      {ref._id && isValidObjectId(extractObjectId(ref._id)) ? '查看' : '無效'}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -336,6 +430,37 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             )}
 
             {renderLinkedTransactions()}
+            
+            {/* 來源區塊總計 */}
+            <Box sx={{ mt: 2, p: 1, bgcolor: 'primary.100', borderRadius: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                來源總計：{(() => {
+                  let total = 0;
+                  
+                  // 計算來源交易金額
+                  if (transaction.sourceTransactionId && typeof transaction.sourceTransactionId === 'object') {
+                    const sourceInfo = transaction.sourceTransactionId as any;
+                    if (sourceInfo.totalAmount) {
+                      total += sourceInfo.totalAmount;
+                    }
+                  }
+                  
+                  // 計算關聯交易金額
+                  if (transaction.linkedTransactionIds) {
+                    transaction.linkedTransactionIds.forEach(linkedId => {
+                      if (typeof linkedId === 'object' && linkedId !== null) {
+                        const linkedInfo = linkedId as any;
+                        if (linkedInfo.totalAmount) {
+                          total += linkedInfo.totalAmount;
+                        }
+                      }
+                    });
+                  }
+                  
+                  return formatAmount(total);
+                })()}
+              </Typography>
+            </Box>
           </Box>
         )}
         
@@ -356,43 +481,55 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             交易
           </Typography>
           
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                日期
-              </Typography>
-              <Typography variant="body1">
-                {formatDate(transaction.transactionDate)}
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                交易描述
-              </Typography>
-              <Typography variant="body1">
-                {transaction.description}
-              </Typography>
-            </Grid>
-
-            <Grid item xs={6}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                金額
-              </Typography>
-              <Typography variant="h6" color="primary">
-                {formatAmount(transaction.totalAmount)}
-              </Typography>
-            </Grid>
-
-            <Grid item xs={6}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                剩餘可用金額
-              </Typography>
-              <Typography variant="h6" color="success.main">
-                {formatAmount(calculateAvailableAmount())}
-              </Typography>
-            </Grid>
-          </Grid>
+          <TableContainer component={Paper} sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>日期</TableCell>
+                  <TableCell>交易描述</TableCell>
+                  <TableCell align="right">金額</TableCell>
+                  <TableCell align="center">狀態</TableCell>
+                  <TableCell align="center">操作</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    {formatDateOnly(transaction.transactionDate)}
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title={`編號: ${transaction.groupNumber}`} arrow>
+                      <span style={{ cursor: 'help' }}>
+                        {transaction.description}
+                      </span>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'medium' }}>
+                    {formatAmount(transaction.totalAmount)}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Chip
+                      label={transaction.status === 'confirmed' ? '已確認' : transaction.status === 'cancelled' ? '已取消' : '草稿'}
+                      color={transaction.status === 'confirmed' ? 'success' : transaction.status === 'cancelled' ? 'error' : 'default'}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        // 當前交易，可以重新整理或其他操作
+                        window.location.reload();
+                      }}
+                    >
+                      重新整理
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
         
         {/* 流向區塊 */}
@@ -446,6 +583,20 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
           </Box>
           
           {renderReferencedByInfo()}
+          
+          {/* 流向區塊餘額 */}
+          <Box sx={{ mt: 2, p: 1, bgcolor: 'warning.100', borderRadius: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+              剩餘餘額：{(() => {
+                const usedAmount = transaction.referencedByInfo
+                  ?.filter(ref => ref.status !== 'cancelled')
+                  .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
+                
+                const remainingAmount = Math.max(0, transaction.totalAmount - usedAmount);
+                return formatAmount(remainingAmount);
+              })()}
+            </Typography>
+          </Box>
         </Box>
       </CardContent>
     </Card>

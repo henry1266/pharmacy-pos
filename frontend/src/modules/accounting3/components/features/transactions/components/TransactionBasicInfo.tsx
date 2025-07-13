@@ -15,7 +15,8 @@ import {
   Description as DescriptionIcon,
   Business as BusinessIcon,
   Receipt as ReceiptIcon,
-  Input as InputIcon
+  Input as InputIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 import { formatAmount, formatDate, getStatusInfo, getFundingTypeInfo } from '../utils/transactionUtils';
@@ -33,6 +34,86 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
   const statusInfo = getStatusInfo(transaction.status);
   const fundingTypeInfo = getFundingTypeInfo(transaction.fundingType);
 
+  // 渲染交易流向圖
+  const renderTransactionFlow = () => {
+    if (!transaction.entries || transaction.entries.length < 2) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 找到主要的借方和貸方科目
+    const debitEntries = transaction.entries.filter(entry => (entry.debitAmount || 0) > 0);
+    const creditEntries = transaction.entries.filter(entry => (entry.creditAmount || 0) > 0);
+
+    if (debitEntries.length === 0 || creditEntries.length === 0) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 取第一個借方和貸方科目作為代表
+    const fromAccount = creditEntries[0];
+    const toAccount = debitEntries[0];
+
+    // 獲取科目名稱 - 處理不同的數據結構
+    const getAccountName = (entry: any) => {
+      // 如果 accountId 是物件，直接取 name
+      if (typeof entry.accountId === 'object' && entry.accountId?.name) {
+        return entry.accountId.name;
+      }
+      
+      // 如果有 accountName 屬性
+      if (entry.accountName) {
+        return entry.accountName;
+      }
+      
+      // 如果有 account 屬性
+      if (entry.account?.name) {
+        return entry.account.name;
+      }
+      
+      return '未知科目';
+    };
+
+    const fromAccountName = getAccountName(fromAccount);
+    const toAccountName = getAccountName(toAccount);
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
+        <Chip
+          label={fromAccountName}
+          size="small"
+          color="secondary"
+          sx={{
+            fontSize: '0.75rem',
+            height: 24,
+            mr: 0.5,
+            maxWidth: 80,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.75rem'
+            }
+          }}
+        />
+        <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
+        <Chip
+          label={toAccountName}
+          size="small"
+          color="primary"
+          sx={{
+            fontSize: '0.75rem',
+            height: 24,
+            ml: 0.5,
+            maxWidth: 80,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.75rem'
+            }
+          }}
+        />
+      </Box>
+    );
+  };
+
   return (
     <Card>
       <CardContent>
@@ -43,7 +124,20 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
         <Divider sx={{ mb: 2 }} />
         
         <Grid container spacing={2}>
-          <Grid item xs={12}>
+          <Grid item xs={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <CalendarIcon fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                交易日期
+              </Typography>
+            </Box>
+            <Typography variant="body1">
+              {formatDate(transaction.transactionDate)}
+            </Typography>
+          </Grid>
+          
+          
+          <Grid item xs={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <DescriptionIcon fontSize="small" />
               <Typography variant="body2" color="text.secondary">
@@ -56,16 +150,13 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
           </Grid>
 
           <Grid item xs={6}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <CalendarIcon fontSize="small" />
-              <Typography variant="body2" color="text.secondary">
-                交易日期
-              </Typography>
-            </Box>
-            <Typography variant="body1">
-              {formatDate(transaction.transactionDate)}
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              交易流向
             </Typography>
+            {renderTransactionFlow()}
           </Grid>
+
+
 
           <Grid item xs={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -100,6 +191,8 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
               sx={{ backgroundColor: fundingTypeInfo.color, color: 'white' }}
             />
           </Grid>
+
+
 
           {transaction.invoiceNo && (
             <Grid item xs={12}>
