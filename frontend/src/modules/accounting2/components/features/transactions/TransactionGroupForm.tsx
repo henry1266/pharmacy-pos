@@ -1318,7 +1318,7 @@ export const TransactionGroupForm: React.FC<TransactionGroupFormProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AccountTreeIcon color="primary" />
                 <Typography variant="h6" component="div">
-                  選擇資金來源
+                  選擇資金來源12345
                 </Typography>
               </Box>
               <IconButton

@@ -35,7 +35,7 @@ import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { accountApiClient, useErrorHandler, useNotification } from '../../../core';
 import { useAccountStore } from '../../../core/stores/useAccountStore';
 import organizationService from '@services/organizationService';
-import AccountForm from './AccountForm';
+//import AccountForm from './AccountForm';
 
 interface AccountListProps {
   onAddAccount?: () => void;
@@ -347,16 +347,6 @@ const AccountList: React.FC<AccountListProps> = ({ onAddAccount, organizationId,
         </Table>
       </TableContainer>
 
-      {/* 帳戶表單對話框 */}
-      <AccountForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        account={selectedAccount}
-        loading={submitLoading}
-        organizations={organizations}
-        selectedOrganizationId={organizationId}
-      />
 
       {/* 刪除確認對話框 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>

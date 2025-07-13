@@ -612,9 +612,8 @@ export const AccountingDataGridWithEntries: React.FC<AccountingDataGridWithEntri
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>交易日期12345</TableCell>
+                      <TableCell>交易日期</TableCell>
                       <TableCell>交易描述</TableCell>
-                      
                       <TableCell>交易編號</TableCell>
                       <TableCell align="center">交易流向</TableCell>
                       <TableCell align="right">金額</TableCell>

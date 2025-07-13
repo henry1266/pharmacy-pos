@@ -24,11 +24,11 @@ import {
 import { AccountHierarchyManager } from '../modules/accounting3/components/features/accounts/AccountHierarchyManager';
 import { AccountTransactionList } from '../modules/accounting3/components/features/accounts/AccountTransactionList';
 
-// 導入 accounting2 科目表單組件
-import { AccountForm } from '../modules/accounting2/components/features/accounts/AccountForm';
+// 導入 accounting3 科目表單組件
+import { AccountForm } from '../modules/accounting3/components/features/accounts/AccountForm';
 
 // 導入共享類型
-import { Account2, Account2FormData } from '@pharmacy-pos/shared/types/accounting2';
+import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 
 // 導入服務
@@ -54,9 +54,9 @@ export const AccountsManagementPage: React.FC = () => {
   
   // 本地狀態
   const [accountFormOpen, setAccountFormOpen] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<Account2 | null>(null);
-  const [parentAccount, setParentAccount] = useState<Account2 | null>(null); // 父科目資訊
-  const [selectedAccount, setSelectedAccount] = useState<Account2 | null>(null); // 選中的科目
+  const [editingAccount, setEditingAccount] = useState<Account3 | null>(null);
+  const [parentAccount, setParentAccount] = useState<Account3 | null>(null); // 父科目資訊
+  const [selectedAccount, setSelectedAccount] = useState<Account3 | null>(null); // 選中的科目
   const [formLoading, setFormLoading] = useState(false);
   const [hierarchyKey, setHierarchyKey] = useState(0); // 用於強制重新載入階層
   
@@ -87,13 +87,13 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   // 處理科目選擇
-  const handleAccountSelect = (account: Account2) => {
+  const handleAccountSelect = (account: Account3) => {
     console.log('選擇科目:', account);
     setSelectedAccount(account);
   };
 
   // 處理新增科目
-  const handleAccountCreate = (parentAccount?: Account2) => {
+  const handleAccountCreate = (parentAccount?: Account3) => {
     console.log('新增科目', parentAccount ? `，父科目: ${parentAccount.name}` : '');
     setEditingAccount(null); // 新增時不設定 editingAccount
     setParentAccount(parentAccount || null); // 設定父科目資訊
@@ -101,7 +101,7 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   // 處理新增子科目
-  const handleAccountCreateChild = (parentAccountInfo: Account2) => {
+  const handleAccountCreateChild = (parentAccountInfo: Account3) => {
     if (!parentAccountInfo) {
       console.error('新增子科目失敗：父科目資訊為空');
       showSnackbar('新增子科目失敗：父科目資訊不完整', 'error');
@@ -115,7 +115,7 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   // 處理編輯科目
-  const handleAccountEdit = async (account: Account2) => {
+  const handleAccountEdit = async (account: Account3) => {
     console.log('編輯科目:', account);
     setEditingAccount(account);
     
@@ -175,7 +175,7 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   // 處理表單提交
-  const handleFormSubmit = async (formData: Account2FormData) => {
+  const handleFormSubmit = async (formData: Account3FormData) => {
     setFormLoading(true);
     try {
       if (editingAccount && editingAccount._id) {
@@ -255,7 +255,7 @@ export const AccountsManagementPage: React.FC = () => {
           </Typography>
         </Box>
         <Typography variant="body1" color="text.secondary">
-          管理會計科目的階層結構，包括新增、編輯、刪除科目以及調整階層關係
+          管理會計科目的階層結構，包括新增、編輯、刪除科目以及調整階層關係123456
         </Typography>
       </Box>
 
