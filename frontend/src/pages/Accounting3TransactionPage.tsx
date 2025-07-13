@@ -60,10 +60,11 @@ import {
   EmbeddedAccountingEntryFormData
 } from '../../../shared/types/accounting2';
 
-
-// 移除本地介面定義，使用 shared 的 TransactionGroupWithEntriesFormData
-
-export const Accounting3Page: React.FC = () => {
+/**
+ * 會計系統交易列表頁面
+ * 專門用於管理交易的頁面
+ */
+export const Accounting3TransactionPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -97,7 +98,7 @@ export const Accounting3Page: React.FC = () => {
 
   // 載入交易群組和會計科目資料
   useEffect(() => {
-    console.log('🔄 Accounting3Page 初始化載入資料');
+    console.log('🔄 Accounting3TransactionPage 初始化載入資料');
     dispatch(fetchTransactionGroupsWithEntries() as any);
     dispatch(fetchAccounts2() as any);
     dispatch(fetchOrganizations2() as any);
@@ -370,7 +371,7 @@ export const Accounting3Page: React.FC = () => {
     setCopyingTransaction(null);
     
     if (isCopyMode && transactionId && returnTo) {
-      navigate('/accounting3');
+      navigate('/accounting3/transaction');
     }
   };
 
@@ -405,13 +406,46 @@ export const Accounting3Page: React.FC = () => {
         {/* 頁面標題 */}
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <AccountBalanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+            <ReceiptIcon sx={{ fontSize: 32, color: 'primary.main' }} />
             <Typography variant="h4" component="h1" fontWeight="bold">
               新增交易
             </Typography>
           </Box>
           
-          {/* 移除原本的返回按鈕，改為右側固定按鈕 */}
+          {/* 麵包屑導航 */}
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link
+              color="inherit"
+              href="/accounting3"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/accounting3');
+              }}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            >
+              <AccountBalanceIcon fontSize="small" />
+              會計系統
+            </Link>
+            <Link
+              color="inherit"
+              href="/accounting3/transaction"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/accounting3/transaction');
+              }}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            >
+              <ReceiptIcon fontSize="small" />
+              交易管理
+            </Link>
+            <Typography
+              color="text.primary"
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            >
+              <AddIcon fontSize="small" />
+              新增交易
+            </Typography>
+          </Breadcrumbs>
         </Box>
 
         {/* 錯誤提示 */}
@@ -429,9 +463,9 @@ export const Accounting3Page: React.FC = () => {
             defaultOrganizationId={defaultOrganizationId || undefined}
             onSubmit={async (formData) => {
               await handleFormSubmit(formData);
-              navigate('/accounting3');
+              navigate('/accounting3/transaction');
             }}
-            onCancel={() => navigate('/accounting3')}
+            onCancel={() => navigate('/accounting3/transaction')}
           />
         </Paper>
 
@@ -448,8 +482,8 @@ export const Accounting3Page: React.FC = () => {
             zIndex: 1000
           }}
         >
-          <Tooltip title="返回列表" placement="left" arrow>
-            <Fab color="secondary" size="medium" onClick={() => navigate('/accounting3')} aria-label="返回列表">
+          <Tooltip title="返回交易列表" placement="left" arrow>
+            <Fab color="secondary" size="medium" onClick={() => navigate('/accounting3/transaction')} aria-label="返回交易列表">
               <ArrowBackIcon />
             </Fab>
           </Tooltip>
@@ -479,23 +513,26 @@ export const Accounting3Page: React.FC = () => {
       {/* 頁面標題 */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <AccountBalanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <ReceiptIcon sx={{ fontSize: 32, color: 'primary.main' }} />
           <Typography variant="h4" component="h1" fontWeight="bold">
-            會計管理系統 (Accounting3)
+            交易管理
           </Typography>
         </Box>
-      </Box>
-
-      {/* 錯誤提示 */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {/* 麵包屑導航 */}
-      <Box sx={{ mb: 2 }}>
+        
+        {/* 麵包屑導航 */}
         <Breadcrumbs aria-label="breadcrumb">
+          <Link
+            color="inherit"
+            href="/accounting3"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate('/accounting3');
+            }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <AccountBalanceIcon fontSize="small" />
+            會計系統
+          </Link>
           <Typography
             color="text.primary"
             sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
@@ -505,6 +542,13 @@ export const Accounting3Page: React.FC = () => {
           </Typography>
         </Breadcrumbs>
       </Box>
+
+      {/* 錯誤提示 */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       {/* 主要內容區域 - 交易管理 */}
       <Card sx={{ mb: 3, px: 2, mx: 1 }}>
@@ -533,7 +577,7 @@ export const Accounting3Page: React.FC = () => {
           <AccountingDataGridWithEntries
             showFilters={showFilters}
             onToggleFilters={() => setShowFilters(!showFilters)}
-            onCreateNew={() => navigate('/accounting3/new')}
+            onCreateNew={() => navigate('/accounting3/transaction/new')}
             onEdit={handleEdit}
             onView={handleView}
             onDelete={handleDelete}
@@ -544,7 +588,7 @@ export const Accounting3Page: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* 右側固定按鈕 - 仿效 PurchaseOrdersPage */}
+      {/* 右側固定按鈕 */}
       <Box
         sx={{
           position: 'fixed',
@@ -558,7 +602,7 @@ export const Accounting3Page: React.FC = () => {
         }}
       >
         <Tooltip title="新增交易" placement="left" arrow>
-          <Fab color="primary" size="medium" onClick={() => navigate('/accounting3/new')} aria-label="新增交易">
+          <Fab color="primary" size="medium" onClick={() => navigate('/accounting3/transaction/new')} aria-label="新增交易">
             <AddIcon />
           </Fab>
         </Tooltip>
@@ -733,4 +777,4 @@ export const Accounting3Page: React.FC = () => {
   );
 };
 
-export default Accounting3Page;
+export default Accounting3TransactionPage;

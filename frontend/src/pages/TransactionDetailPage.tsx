@@ -37,7 +37,7 @@ const TransactionDetailPage: React.FC = () => {
   // 處理刪除交易
   const handleDelete = () => {
     // 刪除後返回交易列表
-    navigate('/accounting3');
+    navigate('/accounting3/transaction');
   };
 
   return (

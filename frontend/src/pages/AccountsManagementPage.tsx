@@ -370,7 +370,7 @@ export const AccountsManagementPage: React.FC = () => {
             onAddTransaction={(accountId) => {
               console.log('為科目新增交易:', accountId);
               // 導航到新增交易頁面，並預設選中的科目
-              navigate(`/accounting3/new?defaultAccountId=${accountId}`);
+              navigate(`/accounting3/transaction/new?defaultAccountId=${accountId}`);
             }}
           />
         </Box>
@@ -393,8 +393,8 @@ export const AccountsManagementPage: React.FC = () => {
           <Fab 
             color="secondary" 
             size="medium" 
-            onClick={() => navigate('/accounting3')} 
-            aria-label="返回交易管理"
+            onClick={() => navigate('/accounting3')}
+            aria-label="返回會計系統"
           >
             <ArrowBackIcon />
           </Fab>

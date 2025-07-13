@@ -33,7 +33,8 @@ import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import Accounting2Page from './pages/Accounting2Page';
-import Accounting3Page from './pages/Accounting3Page';
+import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
+import Accounting3TransactionPage from './pages/Accounting3TransactionPage';
 import AccountsManagementPage from './pages/AccountsManagementPage';
 import AccountDetailPage from './pages/AccountDetailPage';
 import TransactionDetailPage from './pages/TransactionDetailPage';
@@ -98,11 +99,12 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting2/account/:accountId" element={<AccountingDetailPageWrapper />} />
       
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
-      <Route path="/accounting3" element={<Accounting3Page />} />
-      <Route path="/accounting3/new" element={<Accounting3Page />} />
+      <Route path="/accounting3" element={<Accounting3DashboardPage />} />
+      <Route path="/accounting3/transaction" element={<Accounting3TransactionPage />} />
+      <Route path="/accounting3/transaction/new" element={<Accounting3TransactionPage />} />
       <Route path="/accounting3/transaction/:transactionId" element={<TransactionDetailPage />} />
-      <Route path="/accounting3/transaction/:transactionId/edit" element={<Accounting3Page />} />
-      <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3Page />} />
+      <Route path="/accounting3/transaction/:transactionId/edit" element={<Accounting3TransactionPage />} />
+      <Route path="/accounting3/transaction/:transactionId/copy" element={<Accounting3TransactionPage />} />
       
       {/* Accounting3 科目管理路由 */}
       <Route path="/accounting3/accounts" element={<AccountsManagementPage />} />

@@ -93,18 +93,18 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
   // 處理新增交易
   const handleAddTransaction = () => {
     const returnTo = encodeURIComponent(`/accounting3/accounts/${accountId}`);
-    navigate(`/accounting3/new?defaultAccountId=${accountId}&returnTo=${returnTo}`);
+    navigate(`/accounting3/transaction/new?defaultAccountId=${accountId}&returnTo=${returnTo}`);
   };
 
   // 處理查看交易
   const handleTransactionView = (transaction: TransactionGroupWithEntries) => {
-    navigate(`/accounting3/transactions/${transaction._id}`);
+    navigate(`/accounting3/transaction/${transaction._id}`);
   };
 
   // 處理編輯交易
   const handleTransactionEdit = (transaction: TransactionGroupWithEntries) => {
     const returnTo = encodeURIComponent(`/accounting3/accounts/${accountId}`);
-    navigate(`/accounting3/transactions/${transaction._id}/edit?returnTo=${returnTo}`);
+    navigate(`/accounting3/transaction/${transaction._id}/edit?returnTo=${returnTo}`);
   };
 
   // 處理確認交易
@@ -151,7 +151,7 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
   // 處理複製交易
   const handleTransactionCopy = (transaction: TransactionGroupWithEntries) => {
     const returnTo = encodeURIComponent(`/accounting3/accounts/${accountId}`);
-    navigate(`/accounting3/new?copyFrom=${transaction._id}&returnTo=${returnTo}`);
+    navigate(`/accounting3/transaction/${transaction._id}/copy?returnTo=${returnTo}`);
   };
 
   if (!currentAccount) {
