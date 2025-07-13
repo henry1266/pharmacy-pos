@@ -192,8 +192,6 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
             />
           </Grid>
 
-
-
           {transaction.invoiceNo && (
             <Grid item xs={12}>
               <Typography variant="body2" color="text.secondary" gutterBottom>

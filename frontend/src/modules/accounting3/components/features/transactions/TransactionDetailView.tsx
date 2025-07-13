@@ -19,8 +19,6 @@ import {
   TransactionBreadcrumbs,
   TransactionActions,
   TransactionBasicInfo,
-  TransactionEntriesTable,
-  TransactionSystemInfo,
   TransactionFundingFlow,
 } from './components';
 
@@ -113,18 +111,6 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
           <TransactionFundingFlow transaction={transaction} />
         </Grid>
 
-        {/* 分錄明細表格 */}
-        <Grid item xs={12}>
-          <TransactionEntriesTable 
-            transaction={transaction} 
-            accounts={accounts} 
-          />
-        </Grid>
-
-        {/* 系統資訊 */}
-        <Grid item xs={12}>
-          <TransactionSystemInfo transaction={transaction} />
-        </Grid>
       </Grid>
     </Box>
   );
