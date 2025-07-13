@@ -23,7 +23,6 @@ import {
 // 導入 accounting3 階層管理組件
 import { AccountHierarchyManager } from '../modules/accounting3/components/features/accounts/AccountHierarchyManager';
 import { AccountTransactionList } from '../modules/accounting3/components/features/accounts/AccountTransactionList';
-
 // 導入 accounting3 科目表單組件
 import { AccountForm } from '../modules/accounting3/components/features/accounts/AccountForm';
 
@@ -255,7 +254,7 @@ export const AccountsManagementPage: React.FC = () => {
           </Typography>
         </Box>
         <Typography variant="body1" color="text.secondary">
-          管理會計科目的階層結構，包括新增、編輯、刪除科目以及調整階層關係123456
+          管理會計科目的階層結構，包括新增、編輯、刪除科目以及調整階層關係
         </Typography>
       </Box>
 

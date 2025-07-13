@@ -50,7 +50,6 @@ export const TYPE_OPTIONS = [
   { value: 'bank', label: '銀行' },
   { value: 'credit', label: '信用' },
   { value: 'investment', label: '投資' },
-  { value: 'other', label: '其他' }
 ] as const;
 
 // DataGrid 本地化文字

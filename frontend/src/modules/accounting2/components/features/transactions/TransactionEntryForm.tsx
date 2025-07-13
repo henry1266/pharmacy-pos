@@ -340,7 +340,7 @@ export const TransactionEntryForm: React.FC<TransactionEntryFormProps> = ({
       >
         <DialogTitle>
           <Typography variant="h6" component="div">
-            選擇會計科目12345
+            選擇會計科目
           </Typography>
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>

@@ -36,7 +36,7 @@ import {
   Cancel as CancelledIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TransactionGroupWithEntriesFormData } from '@pharmacy-pos/shared';
+import { TransactionGroupWithEntries3FormData } from '@pharmacy-pos/shared/types/accounting3';
 
 // 型別定義
 interface FundingSource {
@@ -75,8 +75,8 @@ interface Permissions {
 
 export interface BasicInfoSectionProps {
   // 表單資料
-  formData: TransactionGroupWithEntriesFormData;
-  onFormDataChange: (field: keyof TransactionGroupWithEntriesFormData, value: any) => void;
+  formData: TransactionGroupWithEntries3FormData;
+  onFormDataChange: (field: keyof TransactionGroupWithEntries3FormData, value: any) => void;
   
   // 驗證錯誤
   errors: Record<string, string>;
@@ -320,7 +320,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AccountTreeIcon color="primary" />
-                    資金來源追蹤1234
+                    資金來源追蹤
                   </Typography>
                   {mode !== 'view' && (
                     <Button
@@ -329,7 +329,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                       startIcon={<LinkIcon />}
                       onClick={onOpenFundingSourceDialog}
                     >
-                      選擇資金來源12345
+                      選擇資金來源
                     </Button>
                   )}
                 </Box>

@@ -17,7 +17,7 @@ import {
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { TransactionGroupForm } from '../modules/accounting2/components/features/transactions/TransactionGroupForm';
-import AccountManagement from '../modules/accounting2/components/features/accounts/AccountManagement';
+//import AccountManagement from '../modules/accounting2/components/features/accounts/AccountManagement';
 import {
   fetchTransactionGroups2,
   createTransactionGroup2,
@@ -366,13 +366,6 @@ export const Accounting2Page: React.FC = () => {
         </Alert>
       )}
 
-      {/* 科目管理 */}
-      <AccountManagement
-        onCreateNew={handleCreateNew}
-        onEdit={handleEdit}
-        onView={handleView}
-        onDelete={handleDelete}
-      />
 
       {/* 新增/編輯交易對話框 */}
       <Dialog
