@@ -4,7 +4,7 @@ import { Organization } from '@pharmacy-pos/shared/types/organization';
 import organizationService from '@services/organizationService';
 import { AccountingEntryDetail } from '@services/doubleEntryService';
 import { transactionGroupWithEntriesService } from '@services/transactionGroupWithEntriesService';
-import { useAccountStore } from '../stores/useAccountStore';
+//import { useAccountStore } from '../stores/useAccountStore';
 import { AccountApiClient } from '../api-clients/AccountApiClient';
 //import { AccountService } from '../services/AccountService';
 
@@ -76,7 +76,7 @@ interface UseAccountManagementReturn {
 export const useAccountManagement = (): UseAccountManagementReturn => {
   // 初始化 API 客戶端和 Store
   const accountApiClient = new AccountApiClient();
-  const accountStore = useAccountStore();
+  //const accountStore = useAccountStore();
 
   // 資料狀態
   const [accounts, setAccounts] = useState<Account2[]>([]);
