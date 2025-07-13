@@ -15,8 +15,11 @@ import {
   Palette as PaletteIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
-  Security as SecurityIcon
+  Security as SecurityIcon,
+  AccountBalance as AccountingIcon
 } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Button, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 
 /**
  * 設定頁面標籤介面
@@ -86,17 +89,23 @@ const SettingsPage: React.FC = () => {
               aria-controls="settings-tabpanel-0"
             />
             <Tab
-              icon={<NotificationsIcon />}
-              label="通知設定"
+              icon={<AccountingIcon />}
+              label="會計設定"
               id="settings-tab-1"
               aria-controls="settings-tabpanel-1"
+            />
+            <Tab
+              icon={<NotificationsIcon />}
+              label="通知設定"
+              id="settings-tab-2"
+              aria-controls="settings-tabpanel-2"
               disabled
             />
             <Tab
               icon={<SecurityIcon />}
               label="安全性設定"
-              id="settings-tab-2"
-              aria-controls="settings-tabpanel-2"
+              id="settings-tab-3"
+              aria-controls="settings-tabpanel-3"
               disabled
             />
           </Tabs>
@@ -108,6 +117,37 @@ const SettingsPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              會計系統設定
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              管理會計系統的各項設定，包括帳戶類型、科目設定等
+            </Typography>
+            
+            <List>
+              <ListItem>
+                <ListItemIcon>
+                  <AccountingIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="帳戶類型管理"
+                  secondary="設定和管理會計科目的類型分類（資產、負債、權益、收入、費用）"
+                />
+                <Button
+                  component={RouterLink}
+                  to="/settings/account-types"
+                  variant="outlined"
+                  size="small"
+                >
+                  管理
+                </Button>
+              </ListItem>
+            </List>
+          </Box>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
               通知設定
@@ -118,7 +158,7 @@ const SettingsPage: React.FC = () => {
           </Box>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={3}>
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
               安全性設定

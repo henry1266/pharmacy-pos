@@ -1,5 +1,23 @@
 // Accounting2 模組的 TypeScript 類型定義
 
+// 帳戶類型介面
+export interface IAccountType {
+  _id: string;
+  code: string;                    // 類型代碼 (如: asset, liability)
+  name: string;                    // 類型名稱 (如: 資產, 負債)
+  label: string;                   // 顯示標籤
+  description?: string;            // 描述
+  codePrefix: string;              // 科目代號前綴 (如: 1, 2, 3)
+  normalBalance: 'debit' | 'credit'; // 正常餘額方向
+  isSystem: boolean;               // 是否為系統預設類型
+  isActive: boolean;               // 是否啟用
+  sortOrder: number;               // 排序順序
+  organizationId?: string;         // 機構ID (可選，支援個人設定)
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  createdBy: string;
+}
+
 export interface Account2 {
   _id: string;
   code: string;               // 會計科目代碼 (如: 1101, 2201)
