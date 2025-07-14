@@ -522,10 +522,6 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           excludeTransactionIds={transactionId ? [transactionId] : []}
         />
 
-        {/* TODO: 其他對話框組件將在下一步實作 */}
-        {/* 快速範本對話框 */}
-        {/* 快速入門對話框 */}
-
       </Box>
     </LocalizationProvider>
   );

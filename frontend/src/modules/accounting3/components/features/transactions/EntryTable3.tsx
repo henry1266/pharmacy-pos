@@ -20,7 +20,8 @@ import {
   Delete as DeleteIcon,
   AccountBalance as AccountIcon,
   Link as LinkIcon,
-  LinkOff as LinkOffIcon
+  LinkOff as LinkOffIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared';
 
@@ -89,6 +90,72 @@ export const EntryTable3: React.FC<EntryTable3Props> = ({
     }).format(amount);
   };
 
+  // 渲染交易流向
+  const renderTransactionFlow = () => {
+    if (entries.length < 2) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 找到主要的借方和貸方科目
+    const debitEntries = entries.filter(entry => (entry.debitAmount || 0) > 0);
+    const creditEntries = entries.filter(entry => (entry.creditAmount || 0) > 0);
+
+    if (debitEntries.length === 0 || creditEntries.length === 0) {
+      return <Typography variant="caption" color="text.disabled">-</Typography>;
+    }
+
+    // 取第一個借方和貸方科目作為代表
+    const fromAccount = creditEntries[0];
+    const toAccount = debitEntries[0];
+
+    // 獲取科目名稱
+    const fromAccountName = getAccountName(fromAccount.accountId).replace(' (請選擇科目)', '').split(' (')[0] || '未選擇';
+    const toAccountName = getAccountName(toAccount.accountId).replace(' (請選擇科目)', '').split(' (')[0] || '未選擇';
+
+    // 如果科目未選擇，顯示提示
+    if (fromAccountName === '請選擇科目' || toAccountName === '請選擇科目') {
+      return <Typography variant="caption" color="text.disabled">請先選擇科目</Typography>;
+    }
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
+        <Chip
+          label={fromAccountName}
+          size="small"
+          color="secondary"
+          sx={{
+            fontSize: '0.75rem',
+            height: 24,
+            mr: 0.5,
+            maxWidth: 80,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.75rem'
+            }
+          }}
+        />
+        <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
+        <Chip
+          label={toAccountName}
+          size="small"
+          color="primary"
+          sx={{
+            fontSize: '0.75rem',
+            height: 24,
+            ml: 0.5,
+            maxWidth: 80,
+            '& .MuiChip-label': {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.75rem'
+            }
+          }}
+        />
+      </Box>
+    );
+  };
+
   // 處理金額輸入
   const handleAmountChange = (index: number, field: 'debitAmount' | 'creditAmount', value: string) => {
     const numericValue = parseFloat(value) || 0;
@@ -101,10 +168,11 @@ export const EntryTable3: React.FC<EntryTable3Props> = ({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell width="40%">會計科目</TableCell>
-              <TableCell width="15%" align="right">借方金額</TableCell>
-              <TableCell width="15%" align="right">貸方金額</TableCell>
-              <TableCell width="20%">摘要</TableCell>
+              <TableCell width="30%">會計科目</TableCell>
+              <TableCell width="12%" align="right">借方金額</TableCell>
+              <TableCell width="12%" align="right">貸方金額</TableCell>
+              <TableCell width="18%">摘要</TableCell>
+              <TableCell width="18%" align="center">交易流向</TableCell>
               <TableCell width="10%" align="center">操作</TableCell>
             </TableRow>
           </TableHead>
@@ -204,6 +272,11 @@ export const EntryTable3: React.FC<EntryTable3Props> = ({
                   />
                 </TableCell>
 
+                {/* 交易流向 - 只在第一行顯示 */}
+                <TableCell align="center">
+                  {index === 0 ? renderTransactionFlow() : null}
+                </TableCell>
+
                 {/* 操作 */}
                 <TableCell align="center">
                   <IconButton
@@ -255,6 +328,9 @@ export const EntryTable3: React.FC<EntryTable3Props> = ({
                     variant="outlined"
                   />
                 </Box>
+              </TableCell>
+              <TableCell align="center">
+                {/* 交易流向欄位在合計行留空 */}
               </TableCell>
               <TableCell align="center">
                 <Button

@@ -127,38 +127,6 @@ export const DoubleEntrySection3: React.FC<DoubleEntrySection3Props> = ({
               >
                 借貸對調
               </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<SpeedIcon />}
-                onClick={onOpenTemplateDialog}
-                sx={{
-                  color: 'primary.contrastText',
-                  borderColor: 'primary.contrastText',
-                  '&:hover': {
-                    borderColor: 'primary.contrastText',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  }
-                }}
-              >
-                快速範本
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<HelpIcon />}
-                onClick={onOpenQuickStartDialog}
-                sx={{
-                  color: 'primary.contrastText',
-                  borderColor: 'primary.contrastText',
-                  '&:hover': {
-                    borderColor: 'primary.contrastText',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  }
-                }}
-              >
-                快速入門
-              </Button>
             </Box>
           )
         }
