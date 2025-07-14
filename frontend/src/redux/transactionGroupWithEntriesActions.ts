@@ -159,44 +159,133 @@ export const createTransactionGroupWithEntries = (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   try {
-    console.log('🔍 createTransactionGroupWithEntries 開始:', transactionData);
+    console.log('🚀 [Redux] createTransactionGroupWithEntries 開始:', {
+      description: transactionData.description,
+      organizationId: transactionData.organizationId,
+      entriesCount: transactionData.entries?.length || 0,
+      fundingType: transactionData.fundingType,
+      hasLinkedTransactions: !!(transactionData.linkedTransactionIds?.length),
+      entriesDetail: transactionData.entries?.map(entry => ({
+        accountId: entry.accountId,
+        debitAmount: entry.debitAmount,
+        creditAmount: entry.creditAmount,
+        description: entry.description
+      }))
+    });
+    
+    // 前端資料驗證
+    if (!transactionData.description?.trim()) {
+      throw new Error('交易描述不能為空');
+    }
+    
+    if (!transactionData.entries || transactionData.entries.length < 2) {
+      throw new Error('至少需要兩筆分錄');
+    }
+    
+    // 檢查借貸平衡
+    const totalDebit = transactionData.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
+    const totalCredit = transactionData.entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
+    if (Math.abs(totalDebit - totalCredit) >= 0.01) {
+      throw new Error(`借貸不平衡：借方 ${totalDebit.toFixed(2)}，貸方 ${totalCredit.toFixed(2)}`);
+    }
+    
+    // 檢查每筆分錄的有效性
+    const invalidEntries = transactionData.entries.filter(entry =>
+      !entry.accountId ||
+      (entry.debitAmount === 0 && entry.creditAmount === 0) ||
+      (entry.debitAmount > 0 && entry.creditAmount > 0)
+    );
+    
+    if (invalidEntries.length > 0) {
+      console.error('❌ [Redux] 發現無效分錄:', invalidEntries);
+      throw new Error('存在無效分錄：每筆分錄必須選擇科目且只能填入借方或貸方金額');
+    }
+    
     dispatch({ type: ActionTypes.CREATE_TRANSACTION_GROUP_WITH_ENTRIES_REQUEST });
     
     const config = getAuthConfig();
+    console.log('📡 [Redux] 發送 API 請求到:', `${API_BASE_URL}/transaction-groups-with-entries`);
+    console.log('📡 [Redux] 請求配置:', {
+      headers: config.headers,
+      dataSize: JSON.stringify(transactionData).length
+    });
+    
     const res = await axios.post<ApiResponse<TransactionGroupWithEntries>>(
       `${API_BASE_URL}/transaction-groups-with-entries`,
       transactionData,
       config
     );
     
-    console.log('📡 創建內嵌分錄交易群組 API 回應:', res.data);
+    console.log('📡 [Redux] 創建內嵌分錄交易群組 API 回應:', {
+      status: res.status,
+      success: res.data.success,
+      hasData: !!res.data.data,
+      message: res.data.message,
+      dataId: res.data.data?._id
+    });
     
     if (res.data.success && res.data.data) {
       dispatch({
         type: ActionTypes.CREATE_TRANSACTION_GROUP_WITH_ENTRIES_SUCCESS,
         payload: res.data.data
       });
-      console.log('✅ createTransactionGroupWithEntries 成功:', res.data.data);
+      console.log('✅ [Redux] createTransactionGroupWithEntries 成功:', {
+        id: res.data.data._id,
+        description: res.data.data.description,
+        entriesCount: res.data.data.entries?.length || 0
+      });
       return res.data.data;
     } else {
-      throw new Error(res.data.message ?? '創建內嵌分錄交易群組失敗');
+      const errorMsg = res.data.message ?? '建立交易群組失敗';
+      console.error('❌ [Redux] API 回應失敗:', { success: res.data.success, message: errorMsg });
+      throw new Error(errorMsg);
     }
   } catch (err: any) {
-    console.error('❌ createTransactionGroupWithEntries 失敗:', err);
-    console.error('❌ 錯誤詳情:', err.response?.data);
+    console.error('❌ [Redux] createTransactionGroupWithEntries 失敗:', err);
+    console.error('❌ [Redux] 錯誤詳情:', {
+      message: err.message,
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      responseData: err.response?.data,
+      requestData: {
+        description: transactionData.description,
+        organizationId: transactionData.organizationId,
+        entriesCount: transactionData.entries?.length || 0
+      }
+    });
     
-    let errorMessage = '創建內嵌分錄交易群組失敗';
-    if (err.response?.status === 401) {
+    let errorMessage = '建立交易群組失敗';
+    
+    // 網路錯誤
+    if (err.code === 'NETWORK_ERROR' || err.code === 'ECONNREFUSED') {
+      errorMessage = '網路連線失敗，請檢查網路狀態';
+    }
+    // HTTP 狀態碼錯誤
+    else if (err.response?.status === 401) {
       errorMessage = '認證失敗，請重新登入';
     } else if (err.response?.status === 400) {
       errorMessage = err.response?.data?.message || '請求資料格式錯誤';
+    } else if (err.response?.status === 403) {
+      errorMessage = '權限不足，無法執行此操作';
+    } else if (err.response?.status === 404) {
+      errorMessage = 'API 端點不存在';
+    } else if (err.response?.status === 422) {
+      errorMessage = err.response?.data?.message || '資料驗證失敗';
     } else if (err.response?.status === 500) {
       errorMessage = err.response?.data?.message || '伺服器內部錯誤';
-    } else if (err.response?.data?.message) {
+    } else if (err.response?.status >= 500) {
+      errorMessage = '伺服器錯誤，請稍後再試';
+    }
+    // API 回應中的錯誤訊息
+    else if (err.response?.data?.message) {
       errorMessage = err.response.data.message;
-    } else if (err.message) {
+    }
+    // JavaScript 錯誤
+    else if (err.message) {
       errorMessage = err.message;
     }
+    
+    console.error('❌ [Redux] 最終錯誤訊息:', errorMessage);
     
     dispatch({
       type: ActionTypes.CREATE_TRANSACTION_GROUP_WITH_ENTRIES_FAILURE,

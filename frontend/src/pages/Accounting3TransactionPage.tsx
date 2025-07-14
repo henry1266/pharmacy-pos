@@ -266,27 +266,69 @@ export const Accounting3TransactionPage: React.FC = () => {
   // 處理表單提交
   const handleFormSubmit = async (formData: TransactionGroupWithEntriesFormData) => {
     try {
-      console.log('🔍 handleFormSubmit 開始:', { editingTransaction, copyingTransaction, isCopyMode, returnTo, formData });
+      console.log('🚀 [Accounting3] handleFormSubmit 開始:', {
+        mode: editingTransaction ? 'edit' : 'create',
+        isCopyMode: !!copyingTransaction,
+        transactionId: editingTransaction?._id,
+        returnTo,
+        formDataSummary: {
+          description: formData.description,
+          organizationId: formData.organizationId,
+          entriesCount: formData.entries?.length || 0,
+          hasLinkedTransactions: !!(formData.linkedTransactionIds?.length),
+          fundingType: formData.fundingType
+        }
+      });
+      
+      // 資料驗證
+      if (!formData.description?.trim()) {
+        throw new Error('交易描述不能為空');
+      }
+      
+      if (!formData.entries || formData.entries.length < 2) {
+        throw new Error('至少需要兩筆分錄');
+      }
+      
+      // 檢查借貸平衡
+      const totalDebit = formData.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
+      const totalCredit = formData.entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
+      if (Math.abs(totalDebit - totalCredit) >= 0.01) {
+        throw new Error(`借貸不平衡：借方 ${totalDebit.toFixed(2)}，貸方 ${totalCredit.toFixed(2)}`);
+      }
       
       // 轉換表單資料為 Redux action 期望的格式
       const convertFormDataToApiData = (data: TransactionGroupWithEntriesFormData): Omit<TransactionGroupWithEntries, '_id' | 'createdAt' | 'updatedAt'> => {
-        return {
-          description: data.description,
+        const converted = {
+          description: data.description?.trim() || '',
           transactionDate: data.transactionDate,
-          organizationId: data.organizationId,
-          receiptUrl: data.receiptUrl || '',
-          invoiceNo: data.invoiceNo || '',
+          organizationId: data.organizationId?.trim() || null,
+          receiptUrl: data.receiptUrl?.trim() || '',
+          invoiceNo: data.invoiceNo?.trim() || '',
           entries: data.entries || [],
           linkedTransactionIds: data.linkedTransactionIds || [],
           sourceTransactionId: data.sourceTransactionId,
           fundingType: data.fundingType || 'original',
           status: 'draft' // 預設狀態
         } as Omit<TransactionGroupWithEntries, '_id' | 'createdAt' | 'updatedAt'>;
+        
+        console.log('📊 [Accounting3] 轉換後的 API 資料:', {
+          ...converted,
+          entries: converted.entries.map(entry => ({
+            accountId: entry.accountId,
+            debitAmount: entry.debitAmount,
+            creditAmount: entry.creditAmount,
+            description: entry.description
+          }))
+        });
+        
+        return converted;
       };
 
       const apiData = convertFormDataToApiData(formData);
       
       if (editingTransaction) {
+        console.log('🔧 [Accounting3] 執行更新操作:', editingTransaction._id);
+        
         // 對於更新操作，使用 Partial 類型
         const updateData: Partial<TransactionGroupWithEntries> = {
           description: apiData.description,
@@ -301,6 +343,8 @@ export const Accounting3TransactionPage: React.FC = () => {
         };
         
         const updatedResult = await dispatch(updateTransactionGroupWithEntries(editingTransaction._id, updateData) as any);
+        console.log('✅ [Accounting3] 更新操作完成:', updatedResult);
+        
         showSnackbar('交易已成功更新', 'success');
         
         // 立即更新本地編輯狀態
@@ -325,7 +369,11 @@ export const Accounting3TransactionPage: React.FC = () => {
           }, 1000);
         }
       } else {
-        await dispatch(createTransactionGroupWithEntries(apiData) as any);
+        console.log('🆕 [Accounting3] 執行建立操作');
+        
+        const createResult = await dispatch(createTransactionGroupWithEntries(apiData) as any);
+        console.log('✅ [Accounting3] 建立操作完成:', createResult);
+        
         showSnackbar(copyingTransaction ? '交易已成功複製' : '交易已成功建立', 'success');
         
         setDialogOpen(false);
@@ -347,8 +395,38 @@ export const Accounting3TransactionPage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('表單提交失敗:', error);
-      showSnackbar(editingTransaction ? '更新交易失敗' : '建立交易失敗', 'error');
+      console.error('❌ [Accounting3] 表單提交失敗:', error);
+      console.error('❌ [Accounting3] 錯誤詳情:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        editingTransaction: !!editingTransaction,
+        copyingTransaction: !!copyingTransaction,
+        formDataSummary: {
+          description: formData.description,
+          organizationId: formData.organizationId,
+          entriesCount: formData.entries?.length || 0
+        }
+      });
+      
+      // 根據錯誤類型顯示更具體的錯誤訊息
+      let errorMessage = editingTransaction ? '更新交易失敗' : '建立交易失敗';
+      if (error instanceof Error) {
+        if (error.message.includes('建立交易群組失敗')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('借貸不平衡')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('認證失敗')) {
+          errorMessage = '認證失敗，請重新登入';
+        } else if (error.message.includes('請求資料格式錯誤')) {
+          errorMessage = '資料格式錯誤，請檢查輸入內容';
+        } else if (error.message.includes('伺服器內部錯誤')) {
+          errorMessage = '伺服器錯誤，請稍後再試';
+        } else {
+          errorMessage = `${errorMessage}：${error.message}`;
+        }
+      }
+      
+      showSnackbar(errorMessage, 'error');
     }
   };
 

@@ -29,9 +29,25 @@ const validateObjectId = (id: string, fieldName: string): mongoose.Types.ObjectI
 };
 
 // 輔助函數：安全轉換 ObjectId（可選欄位）
-const safeObjectId = (id?: string): mongoose.Types.ObjectId | undefined => {
-  if (!id || id === 'null' || id === 'undefined' || id.trim() === '') return undefined;
-  if (!mongoose.Types.ObjectId.isValid(id)) return undefined;
+const safeObjectId = (id?: string | null | undefined): mongoose.Types.ObjectId | undefined => {
+  // 檢查是否為空值或無效值
+  if (!id || id === 'null' || id === 'undefined') return undefined;
+  
+  // 確保 id 是字串類型
+  if (typeof id !== 'string') {
+    console.warn('⚠️ [Backend] safeObjectId 收到非字串類型的 id:', { id, type: typeof id });
+    return undefined;
+  }
+  
+  // 檢查字串是否為空
+  if (id.trim() === '') return undefined;
+  
+  // 驗證 ObjectId 格式
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.warn('⚠️ [Backend] safeObjectId 收到無效的 ObjectId 格式:', id);
+    return undefined;
+  }
+  
   return new mongoose.Types.ObjectId(id);
 };
 
@@ -498,27 +514,70 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       fundingType = 'original'
     } = req.body;
 
-    console.log('🔍 POST /transaction-groups-with-entries - 建立交易群組:', {
-      description,
+    console.log('🚀 [Backend] POST /transaction-groups-with-entries - 建立交易群組:', {
+      description: description?.substring(0, 50) + (description?.length > 50 ? '...' : ''),
       transactionDate,
       organizationId,
-      receiptUrl,
-      invoiceNo,
+      receiptUrl: receiptUrl ? '有' : '無',
+      invoiceNo: invoiceNo ? '有' : '無',
       entriesCount: entries?.length,
-      userId
+      userId,
+      requestBodyKeys: Object.keys(req.body),
+      entriesDetail: entries?.map((entry: any, index: number) => ({
+        index: index + 1,
+        accountId: entry.accountId,
+        debitAmount: entry.debitAmount,
+        creditAmount: entry.creditAmount,
+        description: entry.description?.substring(0, 30)
+      }))
     });
 
     // 驗證必填欄位
-    if (!description || !transactionDate || !entries || !Array.isArray(entries) || entries.length === 0) {
+    if (!description || typeof description !== 'string' || description.trim() === '') {
+      console.error('❌ [Backend] 交易描述驗證失敗:', { description, type: typeof description });
       res.status(400).json({
         success: false,
-        message: '請填寫所有必填欄位，並至少提供一筆分錄'
+        message: '交易描述不能為空'
+      });
+      return;
+    }
+
+    if (!transactionDate) {
+      console.error('❌ [Backend] 交易日期驗證失敗:', { transactionDate });
+      res.status(400).json({
+        success: false,
+        message: '交易日期不能為空'
+      });
+      return;
+    }
+
+    // 驗證日期格式
+    const parsedDate = new Date(transactionDate);
+    if (isNaN(parsedDate.getTime())) {
+      console.error('❌ [Backend] 交易日期格式錯誤:', { transactionDate, parsedDate });
+      res.status(400).json({
+        success: false,
+        message: '交易日期格式錯誤'
+      });
+      return;
+    }
+
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
+      console.error('❌ [Backend] 分錄資料驗證失敗:', {
+        entries,
+        isArray: Array.isArray(entries),
+        length: entries?.length
+      });
+      res.status(400).json({
+        success: false,
+        message: '請至少提供一筆分錄'
       });
       return;
     }
 
     // 驗證分錄數量
     if (entries.length < 2) {
+      console.error('❌ [Backend] 分錄數量不足:', { entriesLength: entries.length });
       res.status(400).json({
         success: false,
         message: '複式記帳至少需要兩筆分錄'
@@ -528,10 +587,19 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
 
     // 驗證每筆分錄的資料完整性
     try {
+      console.log('🔍 [Backend] 開始驗證分錄資料完整性...');
       entries.forEach((entry, index) => {
+        console.log(`🔍 [Backend] 驗證分錄 ${index + 1}:`, {
+          accountId: entry.accountId,
+          debitAmount: entry.debitAmount,
+          creditAmount: entry.creditAmount,
+          description: entry.description
+        });
         validateEntryData(entry, index);
       });
+      console.log('✅ [Backend] 分錄資料完整性驗證通過');
     } catch (error) {
+      console.error('❌ [Backend] 分錄資料驗證失敗:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '分錄資料驗證失敗'
@@ -540,59 +608,135 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     }
 
     // 驗證借貸平衡
+    console.log('🔍 [Backend] 開始驗證借貸平衡...');
     const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
+    console.log('📊 [Backend] 借貸平衡驗證結果:', {
+      isBalanced: balanceValidation.isBalanced,
+      message: balanceValidation.message,
+      totalDebit: entries.reduce((sum: number, entry: any) => sum + (parseFloat(entry.debitAmount) || 0), 0),
+      totalCredit: entries.reduce((sum: number, entry: any) => sum + (parseFloat(entry.creditAmount) || 0), 0)
+    });
+    
     if (!balanceValidation.isBalanced) {
+      console.error('❌ [Backend] 借貸平衡驗證失敗:', balanceValidation.message);
       res.status(400).json({
         success: false,
         message: balanceValidation.message
       });
       return;
     }
+    
+    console.log('✅ [Backend] 借貸平衡驗證通過');
 
     // 計算交易總金額（借方總額）
-    const totalAmount = entries.reduce((sum: number, entry: any) => sum + (entry.debitAmount || 0), 0);
+    console.log('🔍 [Backend] 計算交易總金額...');
+    const totalAmount = entries.reduce((sum: number, entry: any) => {
+      const debitAmount = parseFloat(entry.debitAmount) || 0;
+      console.log(`💰 [Backend] 分錄借方金額: ${debitAmount}`);
+      return sum + debitAmount;
+    }, 0);
+    console.log(`💰 [Backend] 交易總金額: ${totalAmount}`);
+
+    if (totalAmount <= 0) {
+      console.error('❌ [Backend] 交易總金額必須大於0:', { totalAmount });
+      res.status(400).json({
+        success: false,
+        message: '交易總金額必須大於0'
+      });
+      return;
+    }
 
     // 生成交易群組編號
-    const groupNumber = await generateGroupNumber();
+    console.log('🔍 [Backend] 生成交易群組編號...');
+    let groupNumber: string;
+    try {
+      groupNumber = await generateGroupNumber();
+      console.log(`✅ [Backend] 交易群組編號生成成功: ${groupNumber}`);
+    } catch (error) {
+      console.error('❌ [Backend] 生成交易群組編號失敗:', error);
+      res.status(500).json({
+        success: false,
+        message: '生成交易群組編號失敗'
+      });
+      return;
+    }
 
     // 建立內嵌分錄資料
-    const embeddedEntries = entries.map((entry: any, index: number) => {
-      const validAccountId = validateObjectId(entry.accountId, `分錄 ${index + 1} 會計科目`);
-      const validCategoryId = safeObjectId(entry.categoryId);
-      const validOrganizationId = safeObjectId(organizationId);
-      const validSourceTransactionId = safeObjectId(entry.sourceTransactionId);
+    console.log('🔍 [Backend] 建立內嵌分錄資料...');
+    let embeddedEntries: any[];
+    try {
+      embeddedEntries = entries.map((entry: any, index: number) => {
+        console.log(`🔍 [Backend] 處理分錄 ${index + 1}:`, {
+          accountId: entry.accountId,
+          categoryId: entry.categoryId,
+          debitAmount: entry.debitAmount,
+          creditAmount: entry.creditAmount
+        });
 
-      const entryData: any = {
-        sequence: index + 1,
-        accountId: validAccountId,
-        debitAmount: parseFloat(entry.debitAmount) || 0,
-        creditAmount: parseFloat(entry.creditAmount) || 0,
-        description: entry.description || description
-      };
+        let validAccountId: mongoose.Types.ObjectId;
+        try {
+          validAccountId = validateObjectId(entry.accountId, `分錄 ${index + 1} 會計科目`);
+        } catch (error) {
+          console.error(`❌ [Backend] 分錄 ${index + 1} 會計科目ID驗證失敗:`, error);
+          throw new Error(`分錄 ${index + 1} 會計科目ID格式錯誤: ${entry.accountId}`);
+        }
 
-      // 只有當有效時才加入可選欄位
-      if (validCategoryId) {
-        entryData.categoryId = validCategoryId;
-      }
-      
-      if (validOrganizationId) {
-        entryData.organizationId = validOrganizationId;
-      }
+        const validCategoryId = safeObjectId(entry.categoryId);
+        const validOrganizationId = safeObjectId(organizationId);
+        const validSourceTransactionId = safeObjectId(entry.sourceTransactionId);
 
-      // 🆕 處理分錄層級的資金來源
-      if (validSourceTransactionId) {
-        entryData.sourceTransactionId = validSourceTransactionId;
-        console.log(`✅ 分錄 ${index + 1} 設定資金來源:`, validSourceTransactionId);
-      }
+        const entryData: any = {
+          sequence: index + 1,
+          accountId: validAccountId,
+          debitAmount: parseFloat(entry.debitAmount) || 0,
+          creditAmount: parseFloat(entry.creditAmount) || 0,
+          description: entry.description || description
+        };
 
-      // 🆕 處理資金路徑（如果有提供）
-      if (entry.fundingPath && Array.isArray(entry.fundingPath)) {
-        entryData.fundingPath = entry.fundingPath;
-        console.log(`✅ 分錄 ${index + 1} 設定資金路徑:`, entry.fundingPath);
-      }
+        // 只有當有效時才加入可選欄位
+        if (validCategoryId) {
+          entryData.categoryId = validCategoryId;
+          console.log(`✅ [Backend] 分錄 ${index + 1} 設定分類:`, validCategoryId);
+        }
+        
+        if (validOrganizationId) {
+          entryData.organizationId = validOrganizationId;
+          console.log(`✅ [Backend] 分錄 ${index + 1} 設定機構:`, validOrganizationId);
+        }
 
-      return entryData;
-    });
+        // 🆕 處理分錄層級的資金來源
+        if (validSourceTransactionId) {
+          entryData.sourceTransactionId = validSourceTransactionId;
+          console.log(`✅ [Backend] 分錄 ${index + 1} 設定資金來源:`, validSourceTransactionId);
+        }
+
+        // 🆕 處理資金路徑（如果有提供）
+        if (entry.fundingPath && Array.isArray(entry.fundingPath)) {
+          entryData.fundingPath = entry.fundingPath;
+          console.log(`✅ [Backend] 分錄 ${index + 1} 設定資金路徑:`, entry.fundingPath);
+        }
+
+        console.log(`✅ [Backend] 分錄 ${index + 1} 資料處理完成:`, {
+          sequence: entryData.sequence,
+          accountId: entryData.accountId,
+          debitAmount: entryData.debitAmount,
+          creditAmount: entryData.creditAmount,
+          hasCategoryId: !!entryData.categoryId,
+          hasOrganizationId: !!entryData.organizationId,
+          hasSourceTransactionId: !!entryData.sourceTransactionId
+        });
+
+        return entryData;
+      });
+      console.log(`✅ [Backend] 內嵌分錄資料建立完成，共 ${embeddedEntries.length} 筆`);
+    } catch (error) {
+      console.error('❌ [Backend] 建立內嵌分錄資料失敗:', error);
+      res.status(400).json({
+        success: false,
+        message: error instanceof Error ? error.message : '建立分錄資料失敗'
+      });
+      return;
+    }
 
     // 建立交易群組資料
     const transactionGroupData: any = {

@@ -139,29 +139,20 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
+    console.log('🚀 [Accounting3] 開始提交表單:', {
+      mode,
+      isCopyMode,
+      formDataKeys: Object.keys(formData),
+      entriesCount: formData.entries?.length || 0,
+      organizationId: formData.organizationId
+    });
+    
     if (!validateForm()) {
+      console.warn('⚠️ [Accounting3] 表單驗證失敗，停止提交');
       return;
     }
 
     try {
-      // 清理表單資料
-      const cleanedFormData: any = {
-        description: formData.description,
-        transactionDate: formData.transactionDate,
-        receiptUrl: formData.receiptUrl,
-        invoiceNo: formData.invoiceNo,
-        organizationId: formData.organizationId && formData.organizationId.trim() !== ''
-          ? formData.organizationId
-          : null,
-        linkedTransactionIds: enableFundingTracking && formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0
-          ? formData.linkedTransactionIds
-          : undefined,
-        sourceTransactionId: enableFundingTracking ? formData.sourceTransactionId : undefined,
-        fundingType: enableFundingTracking && formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0
-          ? 'extended'
-          : 'original'
-      };
-
       // 檢查分錄是否完整且有效
       const hasValidEntries = formData.entries &&
         formData.entries.length >= 2 &&
@@ -176,15 +167,76 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
       const totalCredit = formData.entries?.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0) || 0;
       const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
 
-      if (mode === 'create') {
-        cleanedFormData.entries = formData.entries;
-      } else if (mode === 'edit' && hasValidEntries && isBalanced) {
-        cleanedFormData.entries = formData.entries;
+      console.log('📊 [Accounting3] 表單資料驗證:', {
+        hasValidEntries,
+        isBalanced,
+        totalDebit,
+        totalCredit,
+        entriesDetail: formData.entries?.map(entry => ({
+          accountId: entry.accountId,
+          debitAmount: entry.debitAmount,
+          creditAmount: entry.creditAmount,
+          description: entry.description
+        }))
+      });
+
+      if (!hasValidEntries) {
+        console.error('❌ [Accounting3] 分錄資料無效');
+        throw new Error('分錄資料無效：請確保每筆分錄都有選擇科目且填入正確的借方或貸方金額');
       }
+
+      if (!isBalanced) {
+        console.error('❌ [Accounting3] 借貸不平衡');
+        throw new Error(`借貸不平衡：借方 ${totalDebit.toFixed(2)}，貸方 ${totalCredit.toFixed(2)}`);
+      }
+
+      // 清理表單資料
+      const cleanedFormData: any = {
+        description: formData.description?.trim() || '',
+        transactionDate: formData.transactionDate,
+        receiptUrl: formData.receiptUrl?.trim() || '',
+        invoiceNo: formData.invoiceNo?.trim() || '',
+        organizationId: formData.organizationId && formData.organizationId.trim() !== ''
+          ? formData.organizationId.trim()
+          : null,
+        linkedTransactionIds: enableFundingTracking && formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0
+          ? formData.linkedTransactionIds
+          : undefined,
+        sourceTransactionId: enableFundingTracking ? formData.sourceTransactionId : undefined,
+        fundingType: enableFundingTracking && formData.linkedTransactionIds && formData.linkedTransactionIds.length > 0
+          ? 'extended'
+          : 'original',
+        entries: formData.entries
+      };
+
+      console.log('📤 [Accounting3] 準備提交的清理後資料:', {
+        ...cleanedFormData,
+        entries: cleanedFormData.entries?.map((entry: any) => ({
+          accountId: entry.accountId,
+          debitAmount: entry.debitAmount,
+          creditAmount: entry.creditAmount,
+          description: entry.description
+        }))
+      });
       
       await onSubmit(cleanedFormData);
+      console.log('✅ [Accounting3] 表單提交成功');
     } catch (error) {
       console.error('❌ [Accounting3] 提交交易群組失敗:', error);
+      console.error('❌ [Accounting3] 錯誤詳情:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        formData: {
+          description: formData.description,
+          organizationId: formData.organizationId,
+          entriesCount: formData.entries?.length,
+          totalDebit: formData.entries?.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0),
+          totalCredit: formData.entries?.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0)
+        }
+      });
+      
+      // 重新拋出錯誤，讓上層處理
+      throw error;
     }
   };
 
