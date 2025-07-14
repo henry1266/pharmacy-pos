@@ -10,8 +10,8 @@ import {
 import { useAppSelector } from '@/hooks/redux';
 import { AccountSelector3 } from '../accounts/AccountSelector3';
 import { FundingSourceSelector3 } from '../../ui/FundingSourceSelector3';
-import { EntryTable3 } from './index';
-import { BalanceValidator3 } from './index';
+import { EntryTable3 } from './EntryTable3';
+//import { BalanceValidator3 } from './BalanceValidator3';
 import {
   EmbeddedAccountingEntryFormData,
   TransactionGroupWithEntries,
@@ -45,11 +45,6 @@ interface AccountOption {
  * - 管理分錄資料狀態
  * - 處理科目和資金來源選擇
  * - 提供統一的業務邏輯接口
- * 
- * 重構改進：
- * - 獨立於 accounting2，使用 accounting3 的組件
- * - 優化型別安全和錯誤處理
- * - 改善效能和使用者體驗
  */
 export const TransactionEntryForm3: React.FC<TransactionEntryForm3Props> = ({
   entries,
@@ -323,16 +318,6 @@ export const TransactionEntryForm3: React.FC<TransactionEntryForm3Props> = ({
         onOpenAccountSelector={handleOpenAccountSelector}
         onOpenFundingSource={handleOpenEntryFundingSource}
         onRemoveFundingSource={handleRemoveEntryFundingSource}
-      />
-
-      {/* 平衡驗證器 */}
-      <BalanceValidator3
-        entries={entries}
-        balanceInfo={balanceInfo}
-        validationResult={validationResult}
-        disabled={disabled}
-        onQuickBalance={handleQuickBalance}
-        onSwapDebitCredit={handleSwapDebitCredit}
       />
 
       {/* 科目選擇對話框 */}

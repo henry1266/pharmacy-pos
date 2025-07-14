@@ -13,7 +13,7 @@ import {
   SwapHoriz as SwapHorizIcon,
   Balance as BalanceIcon
 } from '@mui/icons-material';
-import { DoubleEntryFormWithEntries } from '../../../accounting2/components/features/transactions/DoubleEntryFormWithEntries';
+import { DoubleEntryFormWithEntries3 } from '../../../accounting3/components/features/transactions/DoubleEntryFormWithEntries3';
 import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared';
 
 // 型別定義
@@ -187,7 +187,7 @@ export const DoubleEntrySection3: React.FC<DoubleEntrySection3Props> = ({
         )}
 
         {/* 借貸分錄表單 */}
-        <DoubleEntryFormWithEntries
+        <DoubleEntryFormWithEntries3
           entries={entries}
           onChange={onEntriesChange}
           organizationId={organizationId}
