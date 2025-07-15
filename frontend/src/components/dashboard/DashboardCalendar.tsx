@@ -17,9 +17,10 @@ import {
 
 interface DashboardCalendarProps {
   selectedDate?: string;
+  onDateSelect?: (date: string) => void;
 }
 
-const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate }) => {
+const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate, onDateSelect }) => {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -78,7 +79,11 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate }) => {
 
   const handleDateClick = (day: number) => {
     const dateStr = formatDateForUrl(day);
-    navigate(`/dashboard/${dateStr}`);
+    if (onDateSelect) {
+      onDateSelect(dateStr);
+    } else {
+      navigate(`/dashboard/${dateStr}`);
+    }
   };
 
   const handlePrevMonth = () => {

@@ -70,6 +70,7 @@ export interface ShippingOrdersTableProps {
   handlePreviewMouseEnter: (e: React.MouseEvent, id: string) => void;
   handlePreviewMouseLeave: () => void;
   renderSupplierHeader: () => ReactNode;
+  handleUnlock?: (id: string) => void;
 }
 
 // 表格行編輯 Props
@@ -101,6 +102,8 @@ export interface ActionButtonsProps {
   onPreviewMouseEnter: (e: React.MouseEvent) => void;
   onPreviewMouseLeave: () => void;
   isDeleteDisabled?: boolean;
+  status?: string;
+  onUnlock?: () => void;
 }
 
 // 檔案上傳 Props

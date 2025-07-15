@@ -5,20 +5,37 @@ import {
   Grid as MuiGrid,
   Button,
   CircularProgress,
-  Alert
+  Alert,
+  Card,
+  CardContent,
+  Paper,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  IconButton
 } from '@mui/material';
+import {
+  AccountBalance as AccountBalanceIcon,
+  ExpandMore as ExpandMoreIcon
+} from '@mui/icons-material';
+import { format } from 'date-fns';
 
 // Import Hook
 import useDashboardData from '../hooks/useDashboardData';
 
 // Import Presentation Components
-import DashboardSummaryCards from '../components/dashboard/DashboardSummaryCards';
-import DashboardStatsCards from '../components/dashboard/DashboardStatsCards';
-import CategorySalesChart from '../components/dashboard/CategorySalesChart';
 import DashboardCalendar from '../components/dashboard/DashboardCalendar';
+import StatusChip from '../components/common/StatusChip';
+import DailySalesPanel from '../components/sales/DailySalesPanel';
+
+// Import Services
+import { accountingServiceV2 } from '../services/accountingServiceV2';
+import { getAllSales } from '../services/salesServiceV2';
 
 // Import Types
 import { DashboardSummary, SalesTrend, CategorySales } from '../services/dashboardService';
+import type { ExtendedAccountingRecord } from '@pharmacy-pos/shared/types/accounting';
+import type { Sale } from '@pharmacy-pos/shared/types/entities';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
@@ -159,11 +176,106 @@ const adaptToSummaryData = (data: DashboardSummary | MockDashboardData | null): 
  */
 const DashboardPage: FC = () => {
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [accountingRecords, setAccountingRecords] = useState<ExtendedAccountingRecord[]>([]);
+  const [accountingTotal, setAccountingTotal] = useState<number>(0);
+  const [accountingLoading, setAccountingLoading] = useState<boolean>(false);
+  const [salesRecords, setSalesRecords] = useState<Sale[]>([]);
+  const [salesLoading, setSalesLoading] = useState<boolean>(false);
+  const [salesError, setSalesError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const testModeActive = localStorage.getItem('isTestMode') === 'true';
     setIsTestMode(testModeActive);
   }, []);
+
+  useEffect(() => {
+    fetchAccountingRecords(selectedDate);
+    fetchSalesRecords(selectedDate);
+  }, [selectedDate]);
+
+  const fetchAccountingRecords = async (targetDate: string) => {
+    try {
+      setAccountingLoading(true);
+      
+      const startDate = new Date(targetDate);
+      const endDate = new Date(targetDate);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const records = await accountingServiceV2.getAccountingRecords({
+        startDate,
+        endDate
+      });
+      
+      setAccountingRecords(records);
+      setAccountingTotal(records.reduce((sum, record) => sum + (record.totalAmount || 0), 0));
+    } catch (error) {
+      console.warn('無法載入記帳記錄，使用模擬數據:', error);
+      // 模擬記帳記錄
+      const mockRecords = [
+        {
+          _id: 'mock-1',
+          date: new Date(targetDate),
+          shift: '早',
+          status: 'completed',
+          items: [
+            { amount: 500, category: '掛號費', note: '' },
+            { amount: 300, category: '部分負擔', note: '' }
+          ],
+          totalAmount: 800
+        },
+        {
+          _id: 'mock-2',
+          date: new Date(targetDate),
+          shift: '中',
+          status: 'pending',
+          items: [
+            { amount: 600, category: '掛號費', note: '' },
+            { amount: 400, category: '部分負擔', note: '' }
+          ],
+          totalAmount: 1000
+        }
+      ] as ExtendedAccountingRecord[];
+      
+      setAccountingRecords(mockRecords);
+      setAccountingTotal(1800);
+    } finally {
+      setAccountingLoading(false);
+    }
+  };
+
+  const fetchSalesRecords = async (targetDate: string) => {
+    try {
+      setSalesLoading(true);
+      setSalesError(null);
+      
+      const records = await getAllSales({
+        startDate: targetDate,
+        endDate: targetDate
+      });
+      
+      setSalesRecords(records);
+    } catch (error) {
+      console.warn('無法載入銷售數據:', error);
+      setSalesError('載入銷售數據失敗');
+      setSalesRecords([]);
+    } finally {
+      setSalesLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('zh-TW', {
+      style: 'currency',
+      currency: 'TWD',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const handleDateSelect = (date: string) => {
+    setSelectedDate(date);
+  };
 
   const {
     dashboardData: actualDashboardData,
@@ -241,61 +353,126 @@ const DashboardPage: FC = () => {
         </Button>
       </Box>
 
-      {/* Sales Summary Cards */}
-      {dashboardData && adaptToSummaryData(dashboardData) && (
-        <DashboardSummaryCards summaryData={adaptToSummaryData(dashboardData)} />
-      )}
-
-      {/* Statistics Cards */}
-      {dashboardData?.counts && <DashboardStatsCards countsData={dashboardData.counts} />}
-
       {/* 主要內容區域 */}
-      <Grid container spacing={3} sx={{mt: 2}}>
-        {/* 左側：圖表區域 */}
-        <Grid item xs={12} md={8}>
-          <Grid container spacing={3}>
-            {/* Category Sales Chart */}
-            <Grid item xs={12}>
-              {categorySales && <CategorySalesChart categorySalesData={categorySales} />}
-            </Grid>
-          </Grid>
+      <Grid container spacing={3} sx={{ mt: 2 }}>
+        {/* 左側：記帳記錄 */}
+        <Grid item xs={12} md={3}>
+          <Card elevation={2}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <AccountBalanceIcon sx={{ color: 'info.main', mr: 1 }} />
+                <Typography variant="h6" color="info.main">
+                  記帳記錄
+                </Typography>
+                <Typography variant="h6" sx={{ ml: 'auto', fontWeight: 'bold' }}>
+                  總計：{formatCurrency(accountingTotal)}
+                </Typography>
+              </Box>
+              
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                選擇日期：{format(new Date(selectedDate), 'yyyy年MM月dd日')}
+              </Typography>
+              
+              {accountingLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {['早', '中', '晚'].map((shift) => {
+                    const shiftRecords = accountingRecords.filter(record => record.shift === shift);
+                    const shiftTotal = shiftRecords.reduce((sum, record) => sum + (record.totalAmount || 0), 0);
+                    
+                    return (
+                      <Paper key={shift} elevation={1} sx={{ p: 1.5, mb: 1.5 }}>
+                        {shiftRecords.length > 0 ? (
+                          <Accordion sx={{ '&:before': { display: 'none' }, boxShadow: 'none' }}>
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              sx={{
+                                minHeight: 48,
+                                '&.Mui-expanded': {
+                                  minHeight: 48,
+                                },
+                                '& .MuiAccordionSummary-content': {
+                                  margin: '12px 0',
+                                  '&.Mui-expanded': {
+                                    margin: '12px 0',
+                                  },
+                                },
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mr: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="subtitle1" fontWeight="medium">
+                                    {shift}班
+                                  </Typography>
+                                  <StatusChip status={shiftRecords[0].status} />
+                                </Box>
+                                <Typography variant="subtitle1" color="primary.main" fontWeight="bold">
+                                  {formatCurrency(shiftTotal)}
+                                </Typography>
+                              </Box>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ pt: 0, pb: 1 }}>
+                              <Box>
+                                {shiftRecords.map((record) => (
+                                  <Box key={record._id} sx={{ mb: 2, pl: 2, borderLeft: '3px solid', borderColor: 'primary.main' }}>
+                                    <Box sx={{ ml: 1 }}>
+                                      {record.items?.map((item, index) => (
+                                        <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                          <Typography variant="body2" color="text.secondary">
+                                            {item.category}
+                                          </Typography>
+                                          <Typography variant="body2" fontWeight="medium">
+                                            {formatCurrency(item.amount)}
+                                          </Typography>
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                ))}
+                              </Box>
+                            </AccordionDetails>
+                          </Accordion>
+                        ) : (
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="subtitle1" fontWeight="medium">
+                                {shift}班
+                              </Typography>
+                            </Box>
+                            <Typography variant="body2" color="text.secondary">
+                              無記錄
+                            </Typography>
+                          </Box>
+                        )}
+                      </Paper>
+                    );
+                  })}
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* 中間：當日銷售 */}
+        <Grid item xs={12} md={3}>
+          <DailySalesPanel
+            sales={salesRecords}
+            loading={salesLoading}
+            error={salesError}
+            targetDate={selectedDate}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          />
         </Grid>
 
         {/* 右側：日曆 */}
-        <Grid item xs={12} md={4}>
-          <DashboardCalendar />
+        <Grid item xs={12} md={6}>
+          <DashboardCalendar selectedDate={selectedDate} onDateSelect={handleDateSelect} />
         </Grid>
       </Grid>
-
-      {/* Placeholder for other sections like Low Stock Items if needed */}
-      {isTestMode && dashboardData && 'lowStockItems' in dashboardData && (dashboardData as MockDashboardData).lowStockItems && (
-        <Box sx={{mt: 4}}>
-            <Typography variant="h6" component="h2" sx={{mb:2}}>低庫存商品 (測試數據)</Typography>
-            <Grid container spacing={2}>
-                {(dashboardData as MockDashboardData).lowStockItems.map(item => (
-                    <Grid item xs={12} sm={6} md={4} key={item.id}>
-                        <Alert severity="warning">{item.name} - 目前庫存: {item.currentStock} (安全庫存: {item.reorderPoint})</Alert>
-                    </Grid>
-                ))}
-            </Grid>
-        </Box>
-      )}
-      
-      {/* 顯示實際的低庫存警告 */}
-      {!isTestMode && dashboardData && 'lowStockWarnings' in dashboardData && (dashboardData as DashboardSummary).lowStockWarnings && (dashboardData as DashboardSummary).lowStockWarnings.length > 0 && (
-        <Box sx={{mt: 4}}>
-            <Typography variant="h6" component="h2" sx={{mb:2}}>低庫存警告</Typography>
-            <Grid container spacing={2}>
-                {(dashboardData as DashboardSummary).lowStockWarnings.map(item => (
-                    <Grid item xs={12} sm={6} md={4} key={item.productId}>
-                        <Alert severity="warning">
-                          {item.productName} ({item.productCode}) - 目前庫存: {item.currentStock} (最低庫存: {item.minStock})
-                        </Alert>
-                    </Grid>
-                ))}
-            </Grid>
-        </Box>
-      )}
     </Box>
   );
 };

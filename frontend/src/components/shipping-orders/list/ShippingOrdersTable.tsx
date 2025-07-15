@@ -28,7 +28,8 @@ const ShippingOrdersTable: FC<ShippingOrdersTableProps> = ({
   handleDeleteClick,
   handlePreviewMouseEnter,
   handlePreviewMouseLeave,
-  renderSupplierHeader
+  renderSupplierHeader,
+  handleUnlock
 }) => {
   // 表格列定義
   const columns: GridColDef[] = [
@@ -61,6 +62,8 @@ const ShippingOrdersTable: FC<ShippingOrdersTableProps> = ({
           onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e, params.row._id)}
           onPreviewMouseLeave={handlePreviewMouseLeave}
           isDeleteDisabled={params.row.status === 'completed'}
+          status={params.row.status}
+          onUnlock={() => handleUnlock && handleUnlock(params.row._id)}
         />
       )
     }
@@ -231,7 +234,8 @@ ShippingOrdersTable.propTypes = {
   handleDeleteClick: PropTypes.func.isRequired,
   handlePreviewMouseEnter: PropTypes.func.isRequired,
   handlePreviewMouseLeave: PropTypes.func.isRequired,
-  renderSupplierHeader: PropTypes.func.isRequired
+  renderSupplierHeader: PropTypes.func.isRequired,
+  handleUnlock: PropTypes.func
 } as any;
 
 // 移除 defaultProps，因為這些屬性已在 PropTypes 中標記為可選

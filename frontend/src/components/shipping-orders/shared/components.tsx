@@ -24,7 +24,8 @@ import {
   Check as CheckIcon,
   Close as CloseIcon,
   Visibility as VisibilityIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 import StatusChip from '../../common/StatusChip';
 import PaymentStatusChip from '../../common/PaymentStatusChip';
@@ -157,29 +158,50 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
   onDelete,
   onPreviewMouseEnter,
   onPreviewMouseLeave,
-  isDeleteDisabled = false
-}) => (
-  <Box>
-    <IconButton 
-      size="small" 
-      onClick={onView}
-      onMouseEnter={onPreviewMouseEnter}
-      onMouseLeave={onPreviewMouseLeave}
-    >
-      <VisibilityIcon fontSize="small" />
-    </IconButton>
-    <IconButton size="small" onClick={onEdit}>
-      <EditIcon fontSize="small" />
-    </IconButton>
-    <IconButton 
-      size="small" 
-      onClick={onDelete}
-      disabled={isDeleteDisabled}
-    >
-      <DeleteIcon fontSize="small" />
-    </IconButton>
-  </Box>
-);
+  isDeleteDisabled = false,
+  status,
+  onUnlock
+}) => {
+  const isCompleted = status === 'completed';
+
+  return (
+    <Box>
+      <IconButton
+        size="small"
+        onClick={onView}
+        onMouseEnter={onPreviewMouseEnter}
+        onMouseLeave={onPreviewMouseLeave}
+      >
+        <VisibilityIcon fontSize="small" />
+      </IconButton>
+      
+      {isCompleted ? (
+        // 已完成狀態：只顯示鎖符號
+        <IconButton
+          size="small"
+          onClick={onUnlock}
+          title="點擊解鎖並改為待處理"
+        >
+          <LockIcon fontSize="small" />
+        </IconButton>
+      ) : (
+        // 待處理或其他狀態：顯示編輯和刪除按鈕
+        <>
+          <IconButton size="small" onClick={onEdit}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={onDelete}
+            disabled={isDeleteDisabled}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </>
+      )}
+    </Box>
+  );
+};
 
 // 檔案上傳組件
 export const FileUpload: FC<FileUploadProps> = ({
@@ -318,7 +340,9 @@ ActionButtons.propTypes = {
   onDelete: PropTypes.func.isRequired,
   onPreviewMouseEnter: PropTypes.func.isRequired,
   onPreviewMouseLeave: PropTypes.func.isRequired,
-  isDeleteDisabled: PropTypes.bool
+  isDeleteDisabled: PropTypes.bool,
+  status: PropTypes.string,
+  onUnlock: PropTypes.func
 } as any;
 
 FileUpload.propTypes = {

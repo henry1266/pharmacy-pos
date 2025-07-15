@@ -26,6 +26,8 @@ import { useShippingOrdersBatchFifo } from '../hooks/useShippingOrdersBatchFifo'
 // Import Service functions for CSV import
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
 import { fetchShippingOrders } from '../redux/actions';
+import { ShippingOrderApiClient } from '../../../shared/services/shippingOrderApiClient';
+import axios from 'axios';
 
 // Import Presentation Components
 import ShippingOrderPreview from '../components/shipping-orders/ShippingOrderPreview';
@@ -192,6 +194,33 @@ const ShippingOrdersPage: React.FC = () => {
   const handleView = (id: string): void => {
     navigate(`/shipping-orders/${id}`);
   };
+
+  // --- Unlock Handler ---
+  const handleUnlock = useCallback(async (id: string): Promise<void> => {
+    try {
+      // 創建 API 客戶端實例
+      const apiClient = new ShippingOrderApiClient(axios);
+      
+      // 更新狀態為待處理
+      await apiClient.updateShippingOrder(id, { status: 'pending' });
+      
+      // 重新載入資料
+      dispatch(fetchShippingOrders());
+      
+      setSnackbar({
+        open: true,
+        message: '出貨單已解鎖並改為待處理狀態',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('解鎖出貨單時發生錯誤:', error);
+      setSnackbar({
+        open: true,
+        message: '解鎖出貨單失敗，請稍後再試',
+        severity: 'error'
+      });
+    }
+  }, [dispatch]);
 
   // --- Preview Handlers ---
   const handlePreviewMouseEnter = useCallback((event: React.MouseEvent<HTMLElement>, id: string): void => {
@@ -402,6 +431,7 @@ const ShippingOrdersPage: React.FC = () => {
             handlePreviewMouseEnter={handlePreviewMouseEnter}
             handlePreviewMouseLeave={handlePreviewMouseLeave}
             renderSupplierHeader={renderSupplierHeader}
+            handleUnlock={handleUnlock}
           />
         </CardContent>
       </Card>
