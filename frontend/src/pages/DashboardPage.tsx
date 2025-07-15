@@ -14,7 +14,6 @@ import useDashboardData from '../hooks/useDashboardData';
 // Import Presentation Components
 import DashboardSummaryCards from '../components/dashboard/DashboardSummaryCards';
 import DashboardStatsCards from '../components/dashboard/DashboardStatsCards';
-import SalesTrendChart from '../components/dashboard/SalesTrendChart';
 import CategorySalesChart from '../components/dashboard/CategorySalesChart';
 import DashboardCalendar from '../components/dashboard/DashboardCalendar';
 
@@ -255,11 +254,6 @@ const DashboardPage: FC = () => {
         {/* 左側：圖表區域 */}
         <Grid item xs={12} md={8}>
           <Grid container spacing={3}>
-            {/* Sales Trend Chart */}
-            <Grid item xs={12}>
-              {salesTrend && <SalesTrendChart salesTrendData={salesTrend} />}
-            </Grid>
-
             {/* Category Sales Chart */}
             <Grid item xs={12}>
               {categorySales && <CategorySalesChart categorySalesData={categorySales} />}

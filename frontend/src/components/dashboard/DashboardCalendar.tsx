@@ -28,6 +28,7 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate }) => {
   const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
   
   // 獲取當月第一天是星期幾（0=星期日, 1=星期一, ...）
+  // 由於我們的星期標題是「日一二三四五六」，所以不需要調整
   const firstDayWeekday = firstDayOfMonth.getDay();
   
   // 獲取當月天數
@@ -131,25 +132,25 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate }) => {
         </Box>
 
         {/* 星期標題 */}
-        <Grid container spacing={1} sx={{ mb: 1 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, mb: 1 }}>
           {weekdays.map((weekday) => (
-            <Grid item xs key={weekday} sx={{ textAlign: 'center' }}>
-              <Typography 
-                variant="body2" 
-                fontWeight="600" 
+            <Box key={weekday} sx={{ textAlign: 'center' }}>
+              <Typography
+                variant="body2"
+                fontWeight="600"
                 color="text.secondary"
                 sx={{ py: 1 }}
               >
                 {weekday}
               </Typography>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
 
         {/* 日曆格子 */}
-        <Grid container spacing={1}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
           {calendarDays.map((day, index) => (
-            <Grid item xs key={index} sx={{ textAlign: 'center' }}>
+            <Box key={index} sx={{ textAlign: 'center' }}>
               {day ? (
                 <Box
                   onClick={() => handleDateClick(day)}
@@ -162,20 +163,20 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate }) => {
                     borderRadius: 1,
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    bgcolor: isSelected(day) 
-                      ? 'primary.main' 
-                      : isToday(day) 
-                        ? 'primary.light' 
+                    bgcolor: isSelected(day)
+                      ? 'primary.main'
+                      : isToday(day)
+                        ? 'primary.light'
                         : 'transparent',
-                    color: isSelected(day) 
-                      ? 'primary.contrastText' 
-                      : isToday(day) 
-                        ? 'primary.main' 
+                    color: isSelected(day)
+                      ? 'primary.contrastText'
+                      : isToday(day)
+                        ? 'primary.main'
                         : 'text.primary',
                     fontWeight: isToday(day) || isSelected(day) ? 'bold' : 'normal',
                     '&:hover': {
-                      bgcolor: isSelected(day) 
-                        ? 'primary.dark' 
+                      bgcolor: isSelected(day)
+                        ? 'primary.dark'
                         : 'action.hover',
                       transform: 'scale(1.05)'
                     }
@@ -188,9 +189,9 @@ const DashboardCalendar: FC<DashboardCalendarProps> = ({ selectedDate }) => {
               ) : (
                 <Box sx={{ height: 40 }} />
               )}
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
 
         {/* 說明文字 */}
         <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>

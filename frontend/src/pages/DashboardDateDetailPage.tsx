@@ -28,8 +28,9 @@ import StatusChip from '../components/common/StatusChip';
 import { getAllSales } from '../services/salesServiceV2';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
-import type { Sale } from '@pharmacy-pos/shared/types/entities';
+import type { Sale, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
 import DailySalesPanel from '../components/sales/DailySalesPanel';
+import DailyPurchasePanel from '../components/purchase/DailyPurchasePanel';
 
 interface DailyStats {
   date: string;
@@ -38,6 +39,7 @@ interface DailyStats {
   salesRecords: Sale[];
   purchaseTotal: number;
   purchaseCount: number;
+  purchaseRecords: PurchaseOrder[];
   shippingTotal: number;
   shippingCount: number;
   profitLoss: number;
@@ -52,6 +54,7 @@ const DashboardDateDetailPage: FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [purchaseSearchTerm, setPurchaseSearchTerm] = useState('');
 
   useEffect(() => {
     if (date) {
@@ -128,15 +131,31 @@ const DashboardDateDetailPage: FC = () => {
       // 獲取真實的進貨數據
       let purchaseTotal = 0;
       let purchaseCount = 0;
+      let purchaseRecords: PurchaseOrder[] = [];
       try {
-        const purchaseOrders = await purchaseOrderServiceV2.searchPurchaseOrders({
-          startDate: targetDate,
-          endDate: targetDate
+        console.log('正在獲取進貨數據，目標日期:', targetDate);
+        
+        // 先嘗試獲取所有進貨單，然後在前端過濾
+        purchaseRecords = await purchaseOrderServiceV2.getAllPurchaseOrders();
+        console.log('獲取到的所有進貨單數量:', purchaseRecords.length);
+        
+        // 在前端過濾指定日期的進貨單
+        const targetDateFormatted = format(new Date(targetDate), 'yyyy-MM-dd');
+        purchaseRecords = purchaseRecords.filter(order => {
+          if (!order.orderDate) return false;
+          const orderDate = format(new Date(order.orderDate), 'yyyy-MM-dd');
+          return orderDate === targetDateFormatted;
         });
-        purchaseCount = purchaseOrders.length;
-        purchaseTotal = purchaseOrders.reduce((sum, order) => {
-          return sum + (order.items?.reduce((itemSum, item) => itemSum + (item.quantity * item.price), 0) || 0);
+        
+        console.log(`過濾後 ${targetDate} 的進貨單數量:`, purchaseRecords.length);
+        console.log('進貨單詳細資料:', purchaseRecords);
+        
+        purchaseCount = purchaseRecords.length;
+        purchaseTotal = purchaseRecords.reduce((sum, order) => {
+          return sum + (order.totalAmount || 0);
         }, 0);
+        
+        console.log('進貨單統計 - 數量:', purchaseCount, '總金額:', purchaseTotal);
       } catch (purchaseError) {
         console.warn('無法載入進貨數據:', purchaseError);
       }
@@ -167,6 +186,7 @@ const DashboardDateDetailPage: FC = () => {
         salesRecords,
         purchaseTotal,
         purchaseCount,
+        purchaseRecords,
         shippingTotal,
         shippingCount,
         profitLoss,
@@ -352,6 +372,18 @@ const DashboardDateDetailPage: FC = () => {
             targetDate={dailyStats.date}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
+          />
+        </Grid>
+
+        {/* 當日進貨 */}
+        <Grid item xs={12} md={3}>
+          <DailyPurchasePanel
+            purchaseOrders={dailyStats.purchaseRecords}
+            loading={loading}
+            error={error}
+            targetDate={dailyStats.date}
+            searchTerm={purchaseSearchTerm}
+            onSearchChange={setPurchaseSearchTerm}
           />
         </Grid>
       </Grid>
