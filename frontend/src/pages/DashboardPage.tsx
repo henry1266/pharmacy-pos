@@ -16,6 +16,7 @@ import DashboardSummaryCards from '../components/dashboard/DashboardSummaryCards
 import DashboardStatsCards from '../components/dashboard/DashboardStatsCards';
 import SalesTrendChart from '../components/dashboard/SalesTrendChart';
 import CategorySalesChart from '../components/dashboard/CategorySalesChart';
+import DashboardCalendar from '../components/dashboard/DashboardCalendar';
 
 // Import Types
 import { DashboardSummary, SalesTrend, CategorySales } from '../services/dashboardService';
@@ -249,16 +250,26 @@ const DashboardPage: FC = () => {
       {/* Statistics Cards */}
       {dashboardData?.counts && <DashboardStatsCards countsData={dashboardData.counts} />}
 
-      {/* Charts */}
+      {/* 主要內容區域 */}
       <Grid container spacing={3} sx={{mt: 2}}>
-        {/* Sales Trend Chart */}
-        <Grid item xs={12} md={6}>
-          {salesTrend && <SalesTrendChart salesTrendData={salesTrend} />}
+        {/* 左側：圖表區域 */}
+        <Grid item xs={12} md={8}>
+          <Grid container spacing={3}>
+            {/* Sales Trend Chart */}
+            <Grid item xs={12}>
+              {salesTrend && <SalesTrendChart salesTrendData={salesTrend} />}
+            </Grid>
+
+            {/* Category Sales Chart */}
+            <Grid item xs={12}>
+              {categorySales && <CategorySalesChart categorySalesData={categorySales} />}
+            </Grid>
+          </Grid>
         </Grid>
 
-        {/* Category Sales Chart */}
+        {/* 右側：日曆 */}
         <Grid item xs={12} md={4}>
-          {categorySales && <CategorySalesChart categorySalesData={categorySales} />}
+          <DashboardCalendar />
         </Grid>
       </Grid>
 

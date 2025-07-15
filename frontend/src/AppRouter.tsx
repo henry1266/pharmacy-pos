@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
+import DashboardDateDetailPage from './pages/DashboardDateDetailPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SuppliersPage from './pages/SuppliersPage';
@@ -63,6 +64,7 @@ const AppRouter: React.FC = () => {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard/:date" element={<DashboardDateDetailPage />} />
       
       {/* Product Routes */}
       <Route path="/products" element={<ProductsPage />} />
