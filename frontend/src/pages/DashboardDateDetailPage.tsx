@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  ShoppingCart as ShoppingCartIcon,
   AccountBalance as AccountBalanceIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
@@ -30,6 +29,7 @@ import { getAllSales } from '../services/salesServiceV2';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
 import type { Sale } from '@pharmacy-pos/shared/types/entities';
+import DailySalesPanel from '../components/sales/DailySalesPanel';
 
 interface DailyStats {
   date: string;
@@ -51,6 +51,7 @@ const DashboardDateDetailPage: FC = () => {
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (date) {
@@ -113,6 +114,7 @@ const DashboardDateDetailPage: FC = () => {
       let salesCount = 0;
       let salesRecords: Sale[] = [];
       try {
+        // 獲取所有銷售記錄，過濾邏輯交給 DailySalesPanel 處理
         salesRecords = await getAllSales({
           startDate: targetDate,
           endDate: targetDate
@@ -342,53 +344,15 @@ const DashboardDateDetailPage: FC = () => {
         </Grid>
 
         {/* 右側：當日銷售 */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={2}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <ShoppingCartIcon sx={{ color: 'primary.main', mr: 1 }} />
-                <Typography variant="h6" color="primary.main">
-                  當日銷售
-                </Typography>
-                <Typography variant="h6" sx={{ ml: 'auto', fontWeight: 'bold' }}>
-                  總計：{formatCurrency(dailyStats.salesTotal)}
-                </Typography>
-              </Box>
-              
-              {dailyStats.salesRecords.length > 0 ? (
-                <Box sx={{ maxHeight: '600px', overflowY: 'auto' }}>
-                  {dailyStats.salesRecords.map((sale) => (
-                    <Paper key={sale._id} elevation={1} sx={{ p: 2, mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="subtitle2" fontWeight="medium">
-                          {sale.saleNumber || `銷售-${sale._id?.slice(-6)}`}
-                        </Typography>
-                        <Typography variant="h6" color="primary.main" fontWeight="bold">
-                          {formatCurrency(sale.totalAmount || 0)}
-                        </Typography>
-                      </Box>
-                      
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        客戶：{typeof sale.customer === 'string' ? sale.customer : sale.customer?.name || '一般客戶'}
-                      </Typography>
-                      
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        付款狀態：{sale.paymentStatus || '未知'}
-                      </Typography>
-                      
-                      <Typography variant="caption" color="text.secondary">
-                        {format(new Date(sale.date || sale.createdAt), 'HH:mm')}
-                      </Typography>
-                    </Paper>
-                  ))}
-                </Box>
-              ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                  今日無銷售記錄
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={3}>
+          <DailySalesPanel
+            sales={dailyStats.salesRecords}
+            loading={loading}
+            error={error}
+            targetDate={dailyStats.date}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          />
         </Grid>
       </Grid>
 
@@ -396,7 +360,7 @@ const DashboardDateDetailPage: FC = () => {
 
       {/* 詳細分析區域 */}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={3}>
           <Card elevation={2}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -426,7 +390,7 @@ const DashboardDateDetailPage: FC = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={3}>
           <Card elevation={2}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
