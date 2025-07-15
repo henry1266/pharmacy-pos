@@ -16,9 +16,7 @@ import {
   CardContent
 } from '@mui/material';
 import {
-  Close as CloseIcon,
-  Inventory as InventoryIcon,
-  MonetizationOn as MonetizationOnIcon
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { Link as RouterLink } from 'react-router-dom';
@@ -78,6 +76,20 @@ const ChartModal: FC<ChartModalProps> = ({
   const [selectedOrderNumber, setSelectedOrderNumber] = useState<string | null>(null);
   const [tooltipData, setTooltipData] = useState<any>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+  
+  // 篩選狀態管理
+  const [filterType, setFilterType] = useState<'purchase' | 'ship' | 'sale' | null>(null);
+  
+  const handleCardClick = (cardId: string) => {
+    // 根據卡片類型設置篩選
+    if (cardId.includes('purchase')) {
+      setFilterType(filterType === 'purchase' ? null : 'purchase');
+    } else if (cardId.includes('ship')) {
+      setFilterType(filterType === 'ship' ? null : 'ship');
+    } else if (cardId.includes('sale')) {
+      setFilterType(filterType === 'sale' ? null : 'sale');
+    }
+  };
 
   // 輔助函數：從MongoDB格式的對象ID中提取$oid值
   const extractOidFromMongoId = (mongoId: string | { $oid: string } | { _id: string | { $oid: string } } | undefined): string => {
@@ -168,9 +180,110 @@ const ChartModal: FC<ChartModalProps> = ({
     }
   };
 
+  // 計算各類型的數量和金額統計
+  const inventoryStats = useMemo(() => {
+    let purchaseQuantity = 0;
+    let shipQuantity = 0;
+    let saleQuantity = 0;
+    let purchaseAmount = 0;
+    let shipAmount = 0;
+    let saleAmount = 0;
+    let calculatedProfitLoss = 0;
+
+    inventoryData.forEach((inv) => {
+      const quantity = Math.abs(inv.totalQuantity ?? 0);
+      
+      // 統計數量
+      switch (inv.type) {
+        case 'purchase':
+          purchaseQuantity += quantity;
+          break;
+        case 'ship':
+          shipQuantity += quantity;
+          break;
+        case 'sale':
+          saleQuantity += quantity;
+          break;
+      }
+      
+      // 計算實際交易價格
+      let price = 0;
+      if (inv.totalAmount && inv.totalQuantity) {
+        price = inv.totalAmount / Math.abs(inv.totalQuantity);
+      } else {
+        if (inv.type === 'purchase') {
+          price = inv.product?.purchasePrice ?? inv.product?.price ?? 0;
+        } else if (inv.type === 'sale' || inv.type === 'ship') {
+          price = inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+        } else {
+          price = inv.product?.price ?? 0;
+        }
+      }
+
+      const amount = price * quantity;
+
+      // 統計金額
+      switch (inv.type) {
+        case 'purchase':
+          purchaseAmount += amount;
+          break;
+        case 'ship':
+          shipAmount += amount;
+          break;
+        case 'sale':
+          saleAmount += amount;
+          break;
+      }
+
+      // 計算損益 - 複製 InventoryList.tsx 的邏輯
+      const isExcludeFromStock = inv.product?.excludeFromStock === true;
+
+      // 計算該記錄的損益
+      if (inv.type === 'sale' && isExcludeFromStock) {
+        // 「不扣庫存」產品的銷售：使用毛利計算
+        let actualSellingPrice = 0;
+        if (inv.totalAmount && inv.totalQuantity) {
+          actualSellingPrice = inv.totalAmount / Math.abs(inv.totalQuantity);
+        } else {
+          actualSellingPrice = inv.product?.sellingPrice ?? inv.product?.price ?? 0;
+        }
+        
+        const setCostPrice = inv.product?.cost ?? inv.product?.purchasePrice ?? 0;
+        const simpleProfit = quantity * (actualSellingPrice - setCostPrice);
+        calculatedProfitLoss += simpleProfit;
+      } else {
+        // 正常損益計算
+        const recordCost = price * quantity;
+        
+        if (inv.type === 'sale') {
+          calculatedProfitLoss += recordCost; // 銷售增加損益
+        } else if (inv.type === 'purchase') {
+          calculatedProfitLoss -= recordCost; // 進貨減少損益
+        } else if (inv.type === 'ship') {
+          calculatedProfitLoss += recordCost; // 出貨增加損益
+        }
+      }
+    });
+
+    return {
+      purchaseQuantity,
+      shipQuantity,
+      saleQuantity,
+      purchaseAmount,
+      shipAmount,
+      saleAmount,
+      profitLoss: calculatedProfitLoss
+    };
+  }, [inventoryData]);
+
   // 準備 DataGrid 的行數據
   const rows = useMemo(() => {
-    return inventoryData.map((inv, index) => {
+    // 先根據篩選條件過濾數據
+    const filteredData = filterType
+      ? inventoryData.filter(inv => inv.type === filterType)
+      : inventoryData;
+    
+    return filteredData.map((inv, index) => {
       const { orderNumber, orderLink } = getOrderInfo(inv);
       const typeDisplay = getTypeDisplay(inv.type);
       const quantity = inv.totalQuantity ?? 0;
@@ -194,7 +307,7 @@ const ChartModal: FC<ChartModalProps> = ({
         isSelected: orderNumber === selectedOrderNumber
       };
     });
-  }, [inventoryData, selectedOrderNumber]);
+  }, [inventoryData, selectedOrderNumber, filterType]);
 
   // 定義 DataGrid 的欄位
   const columns: GridColDef[] = [
@@ -339,74 +452,251 @@ const ChartModal: FC<ChartModalProps> = ({
             </Box>
           </Grid>
           
-          {/* 右側：庫存清單 */}
+          {/* 右側 */}
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2, height: 'fit-content' }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                庫存清單
-              </Typography>
-              
-              {/* 庫存摘要資訊 - Dashboard 風格 */}
+              {/* 庫存計算公式 - 八個等大格子 */}
               <Box sx={{ mb: 3 }}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  {/* 第一行 */}
+                  {/* 總庫存 */}
+                  <Grid item xs={3}>
                     <Card
-                      elevation={2}
+                      elevation={3}
                       sx={{
+                        height: 90,
                         borderRadius: 2,
-                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: 'primary.main',
+                        bgcolor: 'primary.light',
                         '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: 4
+                          transform: 'translateY(-2px)',
+                          boxShadow: 6
                         }
                       }}
                     >
-                      <CardContent sx={{ p: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <InventoryIcon color="primary" fontSize="medium" />
-                          <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
-                            總庫存數量
-                          </Typography>
-                        </Box>
-                        <Typography
-                          variant="h5"
-                          fontWeight="bold"
-                          color="primary.main"
-                        >
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          📦總庫存
+                        </Typography>
+                        <Typography variant="h5" color="primary.main" fontWeight="bold">
                           {currentStock}
                         </Typography>
                       </CardContent>
                     </Card>
                   </Grid>
-                  
-                  <Grid item xs={12} sm={6}>
+
+                  {/* 進貨數量 */}
+                  <Grid item xs={3}>
                     <Card
-                      elevation={2}
+                      elevation={3}
+                      onClick={() => handleCardClick('purchaseQuantity')}
                       sx={{
+                        height: 90,
                         borderRadius: 2,
-                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: 'success.main',
+                        bgcolor: filterType === 'purchase' ? 'success.light' : 'transparent',
                         '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: 4
+                          transform: 'translateY(-2px)',
+                          boxShadow: 6
                         }
                       }}
                     >
-                      <CardContent sx={{ p: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <MonetizationOnIcon
-                            sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
-                            fontSize="medium"
-                          />
-                          <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
-                            損益總和
-                          </Typography>
-                        </Box>
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          進貨數量
+                        </Typography>
+                        <Typography variant="h5" color="success.main" fontWeight="bold">
+                          {inventoryStats.purchaseQuantity}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* 出貨數量 */}
+                  <Grid item xs={3}>
+                    <Card
+                      elevation={3}
+                      onClick={() => handleCardClick('shipQuantity')}
+                      sx={{
+                        height: 90,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: 'warning.main',
+                        bgcolor: filterType === 'ship' ? 'warning.light' : 'transparent',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: 6
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          出貨數量
+                        </Typography>
+                        <Typography variant="h5" color="warning.main" fontWeight="bold">
+                          {inventoryStats.shipQuantity}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* 銷售數量 */}
+                  <Grid item xs={3}>
+                    <Card
+                      elevation={3}
+                      onClick={() => handleCardClick('saleQuantity')}
+                      sx={{
+                        height: 90,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: 'error.main',
+                        bgcolor: filterType === 'sale' ? 'error.light' : 'transparent',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: 6
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          銷售數量
+                        </Typography>
+                        <Typography variant="h5" color="error.main" fontWeight="bold">
+                          {inventoryStats.saleQuantity}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* 第二行 */}
+                  {/* 損益總和 */}
+                  <Grid item xs={3}>
+                    <Card
+                      elevation={4}
+                      sx={{
+                        height: 90,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: inventoryStats.profitLoss >= 0 ? 'success.main' : 'error.main',
+                        bgcolor: inventoryStats.profitLoss >= 0 ? 'success.light' : 'error.light',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: 8
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          💰損益總和
+                        </Typography>
                         <Typography
-                          variant="h5"
+                          variant="h6"
                           fontWeight="bold"
-                          sx={{ color: profitLoss >= 0 ? '#00C853' : '#FF1744' }}
+                          sx={{ color: inventoryStats.profitLoss >= 0 ? 'success.main' : 'error.main' }}
                         >
-                          ${profitLoss.toFixed(2)}
+                          ${inventoryStats.profitLoss.toFixed(0)}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* 進貨金額 */}
+                  <Grid item xs={3}>
+                    <Card
+                      elevation={3}
+                      onClick={() => handleCardClick('purchaseAmount')}
+                      sx={{
+                        height: 90,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: 'success.main',
+                        bgcolor: filterType === 'purchase' ? 'success.light' : 'transparent',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: 6
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          進貨金額
+                        </Typography>
+                        <Typography variant="h6" color="success.main" fontWeight="bold">
+                          ${inventoryStats.purchaseAmount.toFixed(0)}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* 出貨金額 */}
+                  <Grid item xs={3}>
+                    <Card
+                      elevation={3}
+                      onClick={() => handleCardClick('shipAmount')}
+                      sx={{
+                        height: 90,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: 'warning.main',
+                        bgcolor: filterType === 'ship' ? 'warning.light' : 'transparent',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: 6
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          出貨金額
+                        </Typography>
+                        <Typography variant="h6" color="warning.main" fontWeight="bold">
+                          ${inventoryStats.shipAmount.toFixed(0)}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* 銷售金額 */}
+                  <Grid item xs={3}>
+                    <Card
+                      elevation={3}
+                      onClick={() => handleCardClick('saleAmount')}
+                      sx={{
+                        height: 90,
+                        borderRadius: 2,
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: 'error.main',
+                        bgcolor: filterType === 'sale' ? 'error.light' : 'transparent',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: 6
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                          銷售金額
+                        </Typography>
+                        <Typography variant="h6" color="error.main" fontWeight="bold">
+                          ${inventoryStats.saleAmount.toFixed(0)}
                         </Typography>
                       </CardContent>
                     </Card>
@@ -415,6 +705,41 @@ const ChartModal: FC<ChartModalProps> = ({
               </Box>
               
               <Divider sx={{ mb: 2 }} />
+              
+              {/* 篩選狀態顯示 */}
+              {filterType && (
+                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    目前篩選：
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1,
+                      bgcolor: filterType === 'purchase' ? 'success.light' :
+                               filterType === 'ship' ? 'warning.light' : 'error.light',
+                      color: filterType === 'purchase' ? 'success.main' :
+                             filterType === 'ship' ? 'warning.main' : 'error.main',
+                      fontWeight: 'medium'
+                    }}
+                  >
+                    {filterType === 'purchase' ? '進貨' :
+                     filterType === 'ship' ? '出貨' : '銷售'}
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setFilterType(null);
+                    }}
+                    sx={{ ml: 1 }}
+                  >
+                    清除篩選
+                  </Button>
+                </Box>
+              )}
               
               {/* 庫存記錄 DataGrid */}
               <Box sx={{ height: 500, width: '100%' }}>
