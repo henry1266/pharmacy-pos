@@ -25,6 +25,9 @@ export * from './utils';
 // 組件
 export * from './components';
 
+// 頁面
+export * from './pages';
+
 // 模組資訊
 export const EMPLOYEE_MODULE_INFO = {
   name: 'employees',

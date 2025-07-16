@@ -16,7 +16,7 @@ import axios from 'axios';
 import {
   EmployeeForm,
   EmployeeAccountManager
-} from '../../modules/employees/components';
+} from '../components';
 
 // 定義 API 回應格式
 interface ApiResponse<T> {

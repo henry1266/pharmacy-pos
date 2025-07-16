@@ -43,10 +43,7 @@ import OrganizationPage from './pages/OrganizationPage';
 import OrganizationFormPage from './pages/OrganizationFormPage';
 
 // 員工管理頁面元件
-  import EmployeeBasicInfoPage from './pages/employees/EmployeeBasicInfoPage';
-  import EmployeeListPage from './pages/employees/EmployeeListPage';
-  import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage';
-  import OvertimeManagementPage from './pages/employees/OvertimeManagementPage';
+  import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
 // 會計管理頁面元件
   import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
   import Accounting3TransactionPage from './pages/Accounting3TransactionPage';
