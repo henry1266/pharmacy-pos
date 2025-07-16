@@ -9,7 +9,7 @@ import {
   Paper,
   CircularProgress
 } from '@mui/material';
-import overtimeRecordService from '../../../services/overtimeRecordService';
+import { overtimeRecordService } from '../../../modules/employees';
 import WorkHoursStatCard from './WorkHoursStatCard';
 
 // 定義加班統計資料介面

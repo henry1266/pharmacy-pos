@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { formatDateString } from '../utils/calendarUtils';
-import { SchedulesByDate } from '../services/employeeScheduleService';
+import { SchedulesByDate } from '../modules/employees';
 
 /**
  * 排班操作 Hook 參數介面

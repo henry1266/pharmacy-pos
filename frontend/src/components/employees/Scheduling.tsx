@@ -10,12 +10,12 @@ import {
   DialogContent,
   Button
 } from '@mui/material';
-import useEmployeeScheduling from '../../hooks/useEmployeeScheduling';
+import { useEmployeeScheduling } from '../../modules/employees';
 import useCalendarGrid from '../../hooks/useCalendarGrid';
 import useKeyboardNavigation from '../../hooks/useKeyboardNavigation';
 import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
 import useScheduleOperations from '../../hooks/useScheduleOperations';
-import { SchedulesByDate } from '../../services/employeeScheduleService';
+import { SchedulesByDate } from '../../modules/employees';
 import ShiftSelectionModal from './ShiftSelectionModal';
 import QuickSelectPanel from './QuickSelectPanel';
 import CalendarDateCell from './scheduling/CalendarDateCell';

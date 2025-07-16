@@ -1,3 +1,8 @@
+/**
+ * 員工排班服務 - 核心服務層
+ * 提供員工排班管理相關的 API 操作
+ */
+
 import axios from 'axios';
 
 /**
@@ -204,7 +209,7 @@ export const deleteSchedule = async (id: string): Promise<{ success: boolean; me
 /**
  * 員工排班服務
  */
-const employeeScheduleService = {
+export const employeeScheduleService = {
   getSchedules,
   getSchedulesByDate,
   createSchedule,

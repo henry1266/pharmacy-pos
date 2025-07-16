@@ -1,20 +1,21 @@
+/**
+ * 員工排班管理 Hook
+ * 重構自原始 useEmployeeScheduling，適配新的模組化架構
+ */
+
 import { useState, useCallback } from 'react';
-import {
-  getSchedules,
-  getSchedulesByDate,
-  createSchedule,
-  updateSchedule,
-  deleteSchedule,
+import { employeeScheduleService } from '../employeeScheduleService';
+import type {
   EmployeeSchedule,
   ScheduleData,
   SchedulesByDate
-} from '../services/employeeScheduleService';
+} from '../employeeScheduleService';
 
 /**
  * 員工排班管理 Hook
  * 提供排班資料的獲取、創建、更新和刪除功能
  */
-const useEmployeeScheduling = () => {
+export const useEmployeeScheduling = () => {
   const [schedules, setSchedules] = useState<EmployeeSchedule[]>([]);
   const [schedulesGroupedByDate, setSchedulesGroupedByDate] = useState<SchedulesByDate>({});
   const [loading, setLoading] = useState<boolean>(false);
@@ -30,7 +31,7 @@ const useEmployeeScheduling = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getSchedules(startDate, endDate, employeeId);
+      const data = await employeeScheduleService.getSchedules(startDate, endDate, employeeId);
       setSchedules(data);
     } catch (err: any) {
       setError(err.response?.data?.msg ?? '獲取排班資料失敗');
@@ -49,7 +50,7 @@ const useEmployeeScheduling = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getSchedulesByDate(startDate, endDate);
+      const data = await employeeScheduleService.getSchedulesByDate(startDate, endDate);
       setSchedulesGroupedByDate(data);
     } catch (err: any) {
       setError(err.response?.data?.msg ?? '獲取排班資料失敗');
@@ -68,7 +69,7 @@ const useEmployeeScheduling = () => {
     setLoading(true);
     setError(null);
     try {
-      const newSchedule = await createSchedule(scheduleData);
+      const newSchedule = await employeeScheduleService.createSchedule(scheduleData);
       setSchedules(prev => [...prev, newSchedule]);
       return newSchedule;
     } catch (err: any) {
@@ -90,7 +91,7 @@ const useEmployeeScheduling = () => {
     setLoading(true);
     setError(null);
     try {
-      const updatedSchedule = await updateSchedule(id, scheduleData);
+      const updatedSchedule = await employeeScheduleService.updateSchedule(id, scheduleData);
       setSchedules(prev => 
         prev.map(schedule => 
           schedule._id === id ? updatedSchedule : schedule
@@ -115,7 +116,7 @@ const useEmployeeScheduling = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await deleteSchedule(id);
+      const result = await employeeScheduleService.deleteSchedule(id);
       setSchedules(prev => prev.filter(schedule => schedule._id !== id));
       return result;
     } catch (err: any) {

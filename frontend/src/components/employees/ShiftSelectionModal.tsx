@@ -23,7 +23,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
+import { employeeService } from '../../modules/employees';
 import { Employee, Schedule, Schedules, ScheduleData } from './ShiftSection';
 
 /**
@@ -85,20 +85,9 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
     const fetchEmployees = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('未登入或權限不足');
-        }
-
-        const config = {
-          headers: {
-            'x-auth-token': token
-          }
-        };
-
-        const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
+        const employeesResponse = await employeeService.getAllEmployees();
         // 過濾掉主管，只保留一般員工
-        const filteredEmployees = response.data.employees.filter(employee => {
+        const filteredEmployees = employeesResponse.employees.filter(employee => {
           const position = employee.position?.toLowerCase() ?? '';
           return !position.includes('主管') &&
                  !position.includes('經理') &&

@@ -1,5 +1,5 @@
 /**
- * 員工服務 V2
+ * 員工服務 - 核心服務層
  * 基於統一 API 客戶端架構的員工管理服務
  */
 
@@ -94,7 +94,7 @@ export const resetEmployeePassword = apiClient.resetEmployeePassword.bind(apiCli
 export const toggleEmployeeAccountStatus = apiClient.toggleEmployeeAccountStatus.bind(apiClient);
 
 // 業務邏輯方法
-export const employeeServiceV2 = {
+export const employeeService = {
   // 基本 CRUD 操作
   getAllEmployees,
   getEmployeeById,
@@ -297,4 +297,4 @@ export type {
 };
 
 // 預設匯出
-export default employeeServiceV2;
+export default employeeService;

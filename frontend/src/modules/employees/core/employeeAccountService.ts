@@ -1,7 +1,33 @@
+/**
+ * 員工帳號服務 - 核心服務層
+ * 提供員工帳號管理相關的 API 操作
+ */
+
 import axios from 'axios';
 import { EmployeeAccount, Role } from '@pharmacy-pos/shared/types/entities';
 
 const API_URL = '/api/employee-accounts';
+
+/**
+ * 創建員工帳號的資料介面
+ */
+export interface CreateEmployeeAccountData {
+  employeeId: string;
+  username: string;
+  email?: string;
+  password: string;
+  role: Role;
+}
+
+/**
+ * 更新員工帳號的資料介面
+ */
+export interface UpdateEmployeeAccountData {
+  username?: string;
+  email?: string;
+  password?: string;
+  role?: Role;
+}
 
 /**
  * 獲取員工帳號資訊
@@ -33,17 +59,6 @@ export const getEmployeeAccount = async (employeeId: string): Promise<EmployeeAc
 };
 
 /**
- * 創建員工帳號的資料介面
- */
-interface CreateEmployeeAccountData {
-  employeeId: string;
-  username: string;
-  email?: string;
-  password: string;
-  role: Role;
-}
-
-/**
  * 創建員工帳號
  * @param {CreateEmployeeAccountData} accountData - 帳號資料
  * @returns {Promise<EmployeeAccount>} 創建結果
@@ -72,16 +87,6 @@ export const createEmployeeAccount = async (accountData: CreateEmployeeAccountDa
     );
   }
 };
-
-/**
- * 更新員工帳號的資料介面
- */
-interface UpdateEmployeeAccountData {
-  username?: string;
-  email?: string;
-  password?: string;
-  role?: Role;
-}
 
 /**
  * 更新員工帳號
@@ -172,7 +177,10 @@ export const unbindEmployeeAccount = async (employeeId: string): Promise<any> =>
   }
 };
 
-const employeeAccountService = {
+/**
+ * 員工帳號服務
+ */
+export const employeeAccountService = {
   getEmployeeAccount,
   createEmployeeAccount,
   updateEmployeeAccount,

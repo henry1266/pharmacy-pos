@@ -12,7 +12,7 @@ import {
 import OvertimeRecordDialog from './OvertimeRecordDialog';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
 import { OvertimeStatus } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
-import { OvertimeRecord } from '../../../services/overtimeRecordService';
+import { OvertimeRecord } from '../../../modules/employees';
 
 // 定義表單數據介面
 interface FormData {

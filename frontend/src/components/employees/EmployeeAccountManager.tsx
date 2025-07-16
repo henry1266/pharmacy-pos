@@ -15,7 +15,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
-import employeeAccountService from '../../services/employeeAccountService';
+import { employeeAccountService } from '../../modules/employees';
 import FormField from './account/FormField';
 import AccountDialog from './account/AccountDialog';
 import { EmployeeAccount, Role } from '@pharmacy-pos/shared/types/entities';

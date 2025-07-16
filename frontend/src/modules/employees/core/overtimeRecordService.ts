@@ -1,7 +1,15 @@
+/**
+ * 加班記錄服務 - 核心服務層
+ * 提供與加班記錄相關的 API 操作
+ * 包括獨立的加班記錄和排班系統中的加班記錄
+ */
+
 import axios from 'axios';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 
-// 定義 OvertimeRecord 類型
+/**
+ * 加班記錄類型
+ */
 export interface OvertimeRecord {
   _id: string;
   employeeId: string;
@@ -18,12 +26,6 @@ export interface OvertimeRecord {
   updatedAt: string | Date;
   [key: string]: any;
 }
-
-/**
- * 加班記錄服務
- * 提供與加班記錄相關的 API 操作
- * 包括獨立的加班記錄和排班系統中的加班記錄
- */
 
 /**
  * 加班記錄狀態類型
@@ -426,7 +428,7 @@ export const getMonthlyOvertimeStats = async (year: number, month: number): Prom
 /**
  * 加班記錄服務
  */
-const overtimeRecordService = {
+export const overtimeRecordService = {
   getOvertimeRecords,
   getOvertimeRecordById,
   createOvertimeRecord,

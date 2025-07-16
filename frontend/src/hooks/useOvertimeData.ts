@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
-import { OvertimeRecord } from '../services/overtimeRecordService';
+import { OvertimeRecord } from '../modules/employees';
 
 /**
  * 加班狀態類型

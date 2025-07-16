@@ -7,7 +7,7 @@ import {
   formatEmployeeHours,
   ShiftType
 } from '@pharmacy-pos/shared/utils';
-import { SchedulesByDate, EmployeeSchedule } from '../services/employeeScheduleService';
+import { SchedulesByDate, EmployeeSchedule } from '../modules/employees';
 
 /**
  * 排班介面 (與 workHoursUtils 中的 Schedule 相容)

@@ -25,7 +25,7 @@ import OvertimeManager from '../../components/employees/OvertimeManager';
 import AccountDialog from '../../components/employees/account/AccountDialog';
 import FormField from '../../components/employees/account/FormField';
 import EmployeeAccountRow from '../../components/employees/account/EmployeeAccountRow';
-import useEmployeeAccounts from '../../hooks/useEmployeeAccounts';
+import { useEmployeeAccounts } from '../../modules/employees';
 import { getRoleName, getRoleColor, roleOptions } from '../../utils/roleUtils';
 
 /**

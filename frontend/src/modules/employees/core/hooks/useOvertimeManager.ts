@@ -1,10 +1,16 @@
+/**
+ * 加班管理 Hook
+ * 重構自原始 useOvertimeManager，適配新的模組化架構
+ */
+
 import { useState, useEffect, useCallback } from 'react';
-import overtimeRecordService, {
+import { overtimeRecordService } from '../overtimeRecordService';
+import { employeeService } from '../employeeService';
+import { Employee } from '@pharmacy-pos/shared/types/entities';
+import type {
   OvertimeRecord,
   OvertimeRecordCreateData
-} from '../services/overtimeRecordService';
-import employeeServiceV2 from '../services/employeeServiceV2';
-import { Employee } from '@pharmacy-pos/shared/types/entities';
+} from '../overtimeRecordService';
 
 /**
  * 排班系統加班記錄介面
@@ -64,9 +70,9 @@ interface OvertimeManagerProps {
 
 /**
  * 加班管理業務邏輯 Hook
- * 從 OvertimeManager 組件中提取的業務邏輯
+ * 提供加班記錄的完整管理功能
  */
-const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeManagerProps) => {
+export const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeManagerProps) => {
   // 基本狀態
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +101,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
   // 獲取員工列表
   const fetchEmployees = useCallback(async (): Promise<void> => {
     try {
-      const response = await employeeServiceV2.getAllEmployees({ limit: 1000 });
+      const response = await employeeService.getAllEmployees({ limit: 1000 });
       setEmployees(response.employees);
     } catch (err: any) {
       setError(err.message);
@@ -109,7 +115,7 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
       // 先獲取所有員工信息
       let allEmployees: Employee[] = [];
       try {
-        const response = await employeeServiceV2.getAllEmployees({ limit: 1000 });
+        const response = await employeeService.getAllEmployees({ limit: 1000 });
         allEmployees = response.employees || [];
         console.log(`獲取到 ${allEmployees.length} 名員工信息`);
       } catch (empErr) {
@@ -269,8 +275,8 @@ const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeMana
     try {
       // 將擴展格式轉換為 API 需要的格式
       const apiData: OvertimeRecordCreateData = {
-        employeeId: typeof recordData.employeeId === 'object' ? recordData.employeeId._id : recordData.employeeId,
-        date: typeof recordData.date === 'string' ? recordData.date : formatDateToYYYYMMDD(recordData.date),
+        employeeId: typeof recordData.employeeId === 'object' ? recordData.employeeId._id : recordData.employeeId || '',
+        date: typeof recordData.date === 'string' ? recordData.date : formatDateToYYYYMMDD(recordData.date || new Date()),
         hours: recordData.hours ?? 0,
         description: recordData.description,
         status: recordData.status

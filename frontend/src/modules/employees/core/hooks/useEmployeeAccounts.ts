@@ -1,6 +1,11 @@
+/**
+ * 員工帳號管理 Hook
+ * 重構自原始 useEmployeeAccounts，適配新的模組化架構
+ */
+
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
-import employeeAccountService from '../services/employeeAccountService';
-import employeeServiceV2 from '../services/employeeServiceV2';
+import { employeeAccountService } from '../employeeAccountService';
+import { employeeService } from '../employeeService';
 import { EmployeeWithAccount } from '@pharmacy-pos/shared/types/entities';
 import { PasswordValidation, ValidationResult } from '@pharmacy-pos/shared/types/utils';
 
@@ -31,9 +36,9 @@ interface FormErrors {
 
 /**
  * 員工帳號管理 Hook
- * 重構自 EmployeeAccountsPage 中的狀態管理和業務邏輯
+ * 提供員工帳號的 CRUD 操作和表單管理功能
  */
-const useEmployeeAccounts = () => {
+export const useEmployeeAccounts = () => {
   // 基本狀態
   const [employees, setEmployees] = useState<EmployeeWithAccount[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -64,7 +69,7 @@ const useEmployeeAccounts = () => {
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
     try {
-      const employeesWithAccounts = await employeeServiceV2.getEmployeesWithAccountStatus();
+      const employeesWithAccounts = await employeeService.getEmployeesWithAccountStatus();
       // 確保 employeesWithAccounts 是陣列
       if (Array.isArray(employeesWithAccounts)) {
         setEmployees(employeesWithAccounts);
