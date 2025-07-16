@@ -17,7 +17,7 @@ import { accounting3Service } from '../../../../../services/accounting3Service';
 
 // 導入 accounting3 專用的 hooks 和組件
 import { useTransactionForm3 } from '../../../core/hooks/useTransactionForm3';
-import { BasicInfoSection3 } from '../../ui/BasicInfoSection3';
+import { BasicInfoSection } from '../../ui/BasicInfoSection';
 import { DoubleEntrySection3 } from '../../ui/DoubleEntrySection3';
 import { FundingSourceSelector3 } from '../../ui/FundingSourceSelector3';
 
@@ -392,7 +392,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
       <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
         
         {/* 基本資訊區塊 */}
-        <BasicInfoSection3
+        <BasicInfoSection
           formData={formData}
           onFormDataChange={handleBasicInfoChange}
           errors={validation.errors}
