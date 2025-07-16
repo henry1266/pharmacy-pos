@@ -23,7 +23,7 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { employeeService } from '../../modules/employees';
+import { employeeService } from '../core';
 import { Employee, Schedule, Schedules, ScheduleData } from './ShiftSection';
 
 /**
@@ -85,7 +85,50 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
     const fetchEmployees = async () => {
       setLoading(true);
       try {
-        const employeesResponse = await employeeService.getAllEmployees();
+        console.log('開始獲取員工資料...');
+        
+        // 直接測試 API 端點
+        const token = localStorage.getItem('token');
+        console.log('使用的 token:', token ? '已設置' : '未設置');
+        
+        try {
+          const directResponse = await fetch('/api/employees', {
+            headers: {
+              'x-auth-token': token || '',
+              'Content-Type': 'application/json'
+            }
+          });
+          const directData = await directResponse.json();
+          console.log('直接 API 調用結果:', directData);
+        } catch (directErr) {
+          console.error('直接 API 調用失敗:', directErr);
+        }
+        
+        const employeesResponse = await employeeService.getAllEmployees({ limit: 1000 });
+        console.log('API 回應:', employeesResponse);
+        console.log('API 回應的 pagination:', employeesResponse.pagination);
+        
+        // 檢查回應格式
+        if (!employeesResponse) {
+          console.error('API 回應為空');
+          setError('API 回應為空');
+          return;
+        }
+        
+        if (!employeesResponse.employees) {
+          console.error('API 回應中沒有 employees 欄位:', employeesResponse);
+          setError('API 回應格式錯誤：缺少 employees 欄位');
+          return;
+        }
+        
+        if (!Array.isArray(employeesResponse.employees)) {
+          console.error('employees 不是陣列:', typeof employeesResponse.employees, employeesResponse.employees);
+          setError('API 回應格式錯誤：employees 不是陣列');
+          return;
+        }
+        
+        console.log(`獲取到 ${employeesResponse.employees.length} 名員工`);
+        
         // 過濾掉主管，只保留一般員工
         const filteredEmployees = employeesResponse.employees.filter(employee => {
           const position = employee.position?.toLowerCase() ?? '';
@@ -96,11 +139,14 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                  !position.includes('director') &&
                  !position.includes('長');
         });
+        
+        console.log(`過濾後剩餘 ${filteredEmployees.length} 名員工:`, filteredEmployees);
         setEmployees(filteredEmployees);
         setError(null);
       } catch (err: any) {
         console.error('獲取員工資料失敗:', err);
-        setError(err.response?.data?.msg ?? '獲取員工資料失敗');
+        console.error('錯誤詳情:', err.response?.data);
+        setError(err.response?.data?.message || err.response?.data?.msg || err.message || '獲取員工資料失敗');
       } finally {
         setLoading(false);
       }

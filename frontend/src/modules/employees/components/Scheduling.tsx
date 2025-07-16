@@ -10,12 +10,12 @@ import {
   DialogContent,
   Button
 } from '@mui/material';
-import { useEmployeeScheduling } from '../../modules/employees';
-import useCalendarGrid from '../../hooks/useCalendarGrid';
-import useKeyboardNavigation from '../../hooks/useKeyboardNavigation';
-import useWorkHoursCalculation from '../../hooks/useWorkHoursCalculation';
-import useScheduleOperations from '../../hooks/useScheduleOperations';
-import { SchedulesByDate } from '../../modules/employees';
+import { useEmployeeScheduling } from '../core';
+import useCalendarGrid from '../../../hooks/useCalendarGrid';
+import useKeyboardNavigation from '../../../hooks/useKeyboardNavigation';
+import useWorkHoursCalculation from '../../../hooks/useWorkHoursCalculation';
+import useScheduleOperations from '../../../hooks/useScheduleOperations';
+import { SchedulesByDate } from '../types';
 import ShiftSelectionModal from './ShiftSelectionModal';
 import QuickSelectPanel from './QuickSelectPanel';
 import CalendarDateCell from './scheduling/CalendarDateCell';
@@ -30,7 +30,7 @@ import {
   getLeaveTypeText,
   getBorderStyle,
   getBorderColor
-} from '../../utils/calendarUtils';
+} from '../../../utils/calendarUtils';
 
 // 定義排班資料介面
 interface Schedule {

@@ -12,7 +12,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 
 // 自定義 Hook
-import { useOvertimeManager } from '../../modules/employees';
+import { useOvertimeManager } from '../core';
 
 // 子組件
 import OvertimeFilters from './overtime/OvertimeFilters';
@@ -26,7 +26,7 @@ import {
   OvertimeStatus
 } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 // 從 overtimeRecordService 導入類型
-import { OvertimeRecord } from '../../modules/employees';
+import { OvertimeRecord } from '../types';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
 
 // 定義排班記錄介面

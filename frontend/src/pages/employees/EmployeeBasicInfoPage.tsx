@@ -13,8 +13,10 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import EmployeeForm from '../../components/employees/EmployeeForm';
-import EmployeeAccountManager from '../../components/employees/EmployeeAccountManager';
+import {
+  EmployeeForm,
+  EmployeeAccountManager
+} from '../../modules/employees/components';
 
 // 定義 API 回應格式
 interface ApiResponse<T> {

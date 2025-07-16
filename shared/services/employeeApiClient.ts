@@ -109,28 +109,30 @@ export class EmployeeApiClient extends BaseApiClient {
    */
   async getAllEmployees(params?: EmployeeQueryParams): Promise<EmployeeListResponse> {
     const response = await this.get<{
-      success: boolean;
-      message: string;
-      data: {
-        employees: Employee[];
-        totalCount: number;
-        page: number;
-        limit: number;
-      };
+      employees: Employee[];
+      totalCount: number;
+      page: number;
+      limit: number;
     }>('', params);
 
-    if (response.success && response.data && Array.isArray(response.data.employees)) {
+    console.log('employeeApiClient 收到的回應:', response);
+    console.log('response.employees:', response.employees);
+    console.log('Array.isArray(response.employees):', Array.isArray(response.employees));
+
+    if (response && Array.isArray(response.employees)) {
+      console.log('條件檢查通過，返回員工資料');
       return {
-        employees: response.data.employees,
+        employees: response.employees,
         pagination: {
-          total: response.data.totalCount,
-          page: response.data.page,
-          limit: response.data.limit,
-          totalPages: Math.ceil(response.data.totalCount / response.data.limit)
+          total: response.totalCount,
+          page: response.page,
+          limit: response.limit,
+          totalPages: Math.ceil(response.totalCount / response.limit)
         }
       };
     }
 
+    console.log('條件檢查失敗，返回空陣列');
     return {
       employees: [],
       pagination: {

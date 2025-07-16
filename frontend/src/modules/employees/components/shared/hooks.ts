@@ -4,7 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { EmployeeAccount, Employee } from '@pharmacy-pos/shared/types/entities';
-import { OvertimeRecord } from '../../../modules/employees';
+import { OvertimeRecord } from '../../types';
 import { FormData, FormErrors } from './types';
 import {
   clearFieldError,

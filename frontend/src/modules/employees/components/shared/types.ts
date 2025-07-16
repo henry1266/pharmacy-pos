@@ -5,7 +5,7 @@
 import { ChangeEvent } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { Role, Employee, EmployeeAccount } from '@pharmacy-pos/shared/types/entities';
-import { OvertimeRecord, OvertimeRecordStatus } from '../../../modules/employees';
+import { OvertimeRecord, OvertimeRecordStatus } from '../../types';
 
 // 表單資料介面
 export interface FormData {

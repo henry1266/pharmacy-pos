@@ -11,7 +11,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import Scheduling from '../../components/employees/Scheduling';
+import { Scheduling } from '../../modules/employees/components';
 
 // 定義介面
 interface User {

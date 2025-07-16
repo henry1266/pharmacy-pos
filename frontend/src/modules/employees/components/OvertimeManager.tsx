@@ -29,10 +29,11 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { overtimeRecordService, employeeService, OvertimeRecord, OvertimeRecordStatus } from '../../modules/employees';
+import { overtimeRecordService, employeeService } from '../core';
+import { OvertimeRecord, OvertimeRecordStatus } from '../types';
 import OvertimeRecordDialog from './overtime/OvertimeRecordDialog';
 import OvertimeRecordRow from './overtime/OvertimeRecordRow';
-import useOvertimeData from '../../hooks/useOvertimeData';
+import useOvertimeData from '../../../hooks/useOvertimeData';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
 
 // 定義簡化的員工介面，用於加班數據處理
