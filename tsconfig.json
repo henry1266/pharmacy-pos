@@ -3,12 +3,11 @@
     /* 基本選項 */
     "target": "ES2020",
     "module": "ESNext",
-    "lib": ["ES2020"],
     "moduleResolution": "node",
     
     /* 輸出選項 */
     "declaration": false,
-    "sourceMap": false,
+    "sourceMap": true,
     "noEmit": true,
     
     /* 路徑解析 */
@@ -23,7 +22,7 @@
     /* 嚴格性檢查 - 漸進式啟用 */
     "strict": false,
     "noImplicitAny": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "strictFunctionTypes": false,
     "strictBindCallApply": false,
     "strictPropertyInitialization": false,

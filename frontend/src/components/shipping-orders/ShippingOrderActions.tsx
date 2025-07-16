@@ -1,10 +1,11 @@
 import React from 'react';
-import { Button } from '@mui/material';
-import { Print as PrintIcon, Edit as EditIcon, PrintOutlined as PrintOutlinedIcon } from '@mui/icons-material';
+import { Button, IconButton } from '@mui/material';
+import { Print as PrintIcon, Edit as EditIcon, PrintOutlined as PrintOutlinedIcon, Lock as LockIcon } from '@mui/icons-material';
 import { downloadShippingOrderPdf, downloadShippingOrderPdfV2 } from '../../services/pdf/shippingOrderPdf';
 
 interface ShippingOrder {
   soid?: string;
+  status?: string;
   [key: string]: any;
 }
 
@@ -15,6 +16,7 @@ interface ShippingOrderActionsProps {
   productDetailsLoading: boolean;
   fifoLoading: boolean;
   onEdit: () => void;
+  onUnlock?: () => void;
 }
 
 export const useShippingOrderActions = ({
@@ -23,7 +25,8 @@ export const useShippingOrderActions = ({
   orderLoading,
   productDetailsLoading,
   fifoLoading,
-  onEdit
+  onEdit,
+  onUnlock
 }: ShippingOrderActionsProps): React.ReactNode[] => {
   const handlePrintClick = async () => {
     try {
@@ -45,8 +48,20 @@ export const useShippingOrderActions = ({
 
   const isEditButtonDisabled = !shippingOrder || orderLoading;
   const isPrintButtonDisabled = !shippingOrder || orderLoading || productDetailsLoading || fifoLoading;
+  const isCompleted = shippingOrder?.status === 'completed';
 
-  const editButton = (
+  // 根據狀態決定顯示編輯按鈕還是鎖符號
+  const editOrLockButton = isCompleted ? (
+    <IconButton
+      key="unlock"
+      size="small"
+      onClick={onUnlock}
+      title="點擊解鎖並改為待處理"
+      disabled={orderLoading}
+    >
+      <LockIcon fontSize="small" />
+    </IconButton>
+  ) : (
     <Button
       key="edit"
       variant="contained"
@@ -89,7 +104,7 @@ export const useShippingOrderActions = ({
     </Button>
   );
 
-  return [editButton, printButton, printV2Button];
+  return [editOrLockButton, printButton, printV2Button];
 };
 
 // 保持向後兼容的組件導出

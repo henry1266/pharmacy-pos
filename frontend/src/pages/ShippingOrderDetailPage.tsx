@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '../hooks/redux';
 import { Typography, Stack } from '@mui/material';
+import axios from 'axios';
 
 import { fetchShippingOrder } from '../redux/actions';
 import DetailLayout from '../components/DetailLayout';
@@ -99,6 +100,28 @@ const ShippingOrderDetailPage: React.FC = () => {
     }
   };
 
+  // 處理解鎖按鈕點擊事件
+  const handleUnlock = useCallback(async (): Promise<void> => {
+    if (!id) return;
+    
+    try {
+      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+      const response = await axios.put(`${API_BASE_URL}/shipping-orders/${id}`, {
+        status: 'pending'
+      });
+      
+      if (response.status === 200) {
+        // 重新載入出貨單資料
+        dispatch(fetchShippingOrder(id));
+        console.log('出貨單已解鎖並改為待處理狀態');
+      }
+    } catch (error: any) {
+      console.error('解鎖出貨單時發生錯誤:', error);
+      const errorMessage = error.response?.data?.message || error.message || '未知錯誤';
+      alert(`解鎖失敗: ${errorMessage}`);
+    }
+  }, [id, dispatch]);
+
   const mainContent = (
     <Stack spacing={3}>
       {currentShippingOrder && (
@@ -139,7 +162,8 @@ const ShippingOrderDetailPage: React.FC = () => {
     orderLoading: orderLoading ?? false,
     productDetailsLoading: productDetailsLoading,
     fifoLoading: fifoLoading,
-    onEdit: handleEditClick
+    onEdit: handleEditClick,
+    onUnlock: handleUnlock
   });
 
   return (

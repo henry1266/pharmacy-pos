@@ -25,8 +25,7 @@ import { useShippingOrdersBatchFifo } from '../hooks/useShippingOrdersBatchFifo'
 
 // Import Service functions for CSV import
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
-import { fetchShippingOrders } from '../redux/actions';
-import { ShippingOrderApiClient } from '../../../shared/services/shippingOrderApiClient';
+import { fetchShippingOrders, API_BASE_URL } from '../redux/actions';
 import axios from 'axios';
 
 // Import Presentation Components
@@ -198,25 +197,29 @@ const ShippingOrdersPage: React.FC = () => {
   // --- Unlock Handler ---
   const handleUnlock = useCallback(async (id: string): Promise<void> => {
     try {
-      // 創建 API 客戶端實例
-      const apiClient = new ShippingOrderApiClient(axios);
-      
-      // 更新狀態為待處理
-      await apiClient.updateShippingOrder(id, { status: 'pending' });
-      
-      // 重新載入資料
-      dispatch(fetchShippingOrders());
-      
-      setSnackbar({
-        open: true,
-        message: '出貨單已解鎖並改為待處理狀態',
-        severity: 'success'
+      // 直接使用 axios 調用 API，避免 ShippingOrderApiClient 的複雜性
+      const response = await axios.put(`${API_BASE_URL}/shipping-orders/${id}`, {
+        status: 'pending'
       });
-    } catch (error) {
+      
+      if (response.data.success) {
+        // 重新載入資料
+        dispatch(fetchShippingOrders());
+        
+        setSnackbar({
+          open: true,
+          message: '出貨單已解鎖並改為待處理狀態',
+          severity: 'success'
+        });
+      } else {
+        throw new Error(response.data.message || '更新失敗');
+      }
+    } catch (error: any) {
       console.error('解鎖出貨單時發生錯誤:', error);
+      const errorMessage = error.response?.data?.message || error.message || '解鎖出貨單失敗，請稍後再試';
       setSnackbar({
         open: true,
-        message: '解鎖出貨單失敗，請稍後再試',
+        message: errorMessage,
         severity: 'error'
       });
     }
