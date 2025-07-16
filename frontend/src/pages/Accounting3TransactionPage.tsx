@@ -36,7 +36,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 
 // 導入內嵌分錄組件
 import { TransactionGroupFormWithEntries } from '../modules/accounting3/components/features/transactions/TransactionGroupFormWithEntries';
-import { AccountingDataGridWithEntries } from '../modules/accounting3/components/ui/AccountingDataGridWithEntries';
+import { AccountingDataGridWithEntries } from '../modules/accounting3/components/ui';
 
 // 導入內嵌分錄 Redux actions
 import {
