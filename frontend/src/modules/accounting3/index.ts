@@ -23,8 +23,8 @@ export type {
   HierarchyPath
 } from './types';
 
-// 相容性適配器
-export * from './adapters/compatibility';
+// 適配器 (預留給未來的外部系統整合)
+// export * from './adapters';
 
 // 核心服務
 export { AccountHierarchyService } from './core/AccountHierarchyService';
