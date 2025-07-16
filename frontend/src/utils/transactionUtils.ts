@@ -3,7 +3,11 @@
  * 統一處理交易資料轉換和驗證
  */
 
-import { TransactionGroupFormData, AccountingEntryFormData } from '../modules/accounting2/components/features/transactions/TransactionGroupForm';
+import {
+  TransactionGroupFormData,
+  TransactionGroupWithEntriesFormData,
+  AccountingEntryFormData
+} from '@pharmacy-pos/shared/types/accounting2';
 
 export interface BackendTransactionData {
   transactionGroup?: any;
@@ -22,7 +26,7 @@ export class TransactionUtils {
   /**
    * 轉換後端交易資料為前端表單格式
    */
-  static convertBackendToFormData(backendData: BackendTransactionData): Partial<TransactionGroupFormData> {
+  static convertBackendToFormData(backendData: BackendTransactionData): Partial<TransactionGroupWithEntriesFormData> {
     if (!backendData) {
       console.warn('⚠️ convertBackendToFormData: 收到空的後端資料');
       return {};
@@ -71,7 +75,7 @@ export class TransactionUtils {
   /**
    * 準備複製模式的表單資料
    */
-  static prepareCopyModeData(originalData: Partial<TransactionGroupFormData>): Partial<TransactionGroupFormData> {
+  static prepareCopyModeData(originalData: Partial<TransactionGroupWithEntriesFormData>): Partial<TransactionGroupWithEntriesFormData> {
     return {
       ...originalData,
       description: '', // 複製時清空描述
@@ -124,7 +128,7 @@ export class TransactionUtils {
   /**
    * 驗證表單資料完整性
    */
-  static validateFormData(formData: TransactionGroupFormData): {
+  static validateFormData(formData: TransactionGroupWithEntriesFormData): {
     isValid: boolean;
     errors: string[];
   } {
@@ -181,7 +185,7 @@ export class TransactionUtils {
   /**
    * 清理表單資料，準備提交到後端
    */
-  static cleanFormDataForSubmission(formData: TransactionGroupFormData): any {
+  static cleanFormDataForSubmission(formData: TransactionGroupWithEntriesFormData): any {
     return {
       description: formData.description?.trim(),
       transactionDate: formData.transactionDate,

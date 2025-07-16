@@ -48,7 +48,6 @@ import OrganizationFormPage from './pages/OrganizationFormPage';
   import EmployeeSchedulingPage from './pages/employees/EmployeeSchedulingPage';
   import OvertimeManagementPage from './pages/employees/OvertimeManagementPage';
 // 會計管理頁面元件
-  import Accounting2Page from './pages/Accounting2Page';
   import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
   import Accounting3TransactionPage from './pages/Accounting3TransactionPage';
   import AccountsManagementPage from './pages/AccountsManagementPage';
@@ -95,15 +94,7 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting/categories" element={<AccountingCategoryPage />} />
       <Route path="/accounting/categories/all" element={<AllCategoriesDetailPage />} />
       <Route path="/accounting/categories/:categoryId" element={<AccountingCategoryDetailPage />} />
-      
-      {/* Accounting2 routes */}
-      <Route path="/accounting2" element={<Accounting2Page />} />
-      <Route path="/accounting2/transaction/:transactionId/edit" element={<Accounting2Page />} />
-      <Route path="/accounting2/transaction/:transactionId/copy" element={<Accounting2Page />} />
-      <Route path="/accounting2/organization/:organizationId" element={<AccountingDetailPageWrapper />} />
-      <Route path="/accounting2/account-type/:accountType" element={<AccountingDetailPageWrapper />} />
-      <Route path="/accounting2/account/:accountId" element={<AccountingDetailPageWrapper />} />
-      
+
       {/* Accounting3 routes - 內嵌分錄記帳系統 */}
       <Route path="/accounting3" element={<Accounting3DashboardPage />} />
       <Route path="/accounting3/transaction" element={<Accounting3TransactionPage />} />
