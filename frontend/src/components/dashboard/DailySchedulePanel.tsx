@@ -22,10 +22,11 @@ import { zhTW } from 'date-fns/locale';
 // Import hooks and services
 import { useEmployeeScheduling } from '../../modules/employees/core/hooks/useEmployeeScheduling';
 import { useShiftTimeConfig } from '../../modules/employees/core/hooks/useShiftTimeConfig';
+import { useOvertimeManager } from '../../modules/employees/core/hooks/useOvertimeManager';
 import { employeeService } from '../../modules/employees/core/employeeService';
 
 // Import types
-import type { EmployeeSchedule, ShiftTimesMap } from '../../modules/employees/types';
+import type { EmployeeSchedule, ShiftTimesMap, OvertimeRecord } from '../../modules/employees/types';
 import type { Employee } from '@pharmacy-pos/shared/types/entities';
 
 interface DailySchedulePanelProps {
@@ -33,16 +34,31 @@ interface DailySchedulePanelProps {
 }
 
 interface ShiftSchedule {
-  shift: 'morning' | 'afternoon' | 'evening';
+  shift: 'morning' | 'afternoon' | 'evening' | 'overtime';
   shiftName: string;
   timeRange: string;
   employees: EmployeeSchedule[];
+  overtimeRecords?: any[];
   color: string;
 }
 
 const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   const { schedulesGroupedByDate, loading, error, fetchSchedulesByDate } = useEmployeeScheduling();
   const { shiftTimesMap, loading: shiftConfigLoading } = useShiftTimeConfig();
+  
+  // 根據選定日期計算月份和年份
+  const selectedDateObj = new Date(selectedDate);
+  const selectedMonth = selectedDateObj.getMonth();
+  const selectedYear = selectedDateObj.getFullYear();
+  
+  const {
+    overtimeRecords,
+    loading: overtimeLoading,
+    setSelectedMonth,
+    setSelectedYear,
+    fetchOvertimeRecords
+  } = useOvertimeManager({ isAdmin: true });
+  
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
@@ -63,6 +79,11 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
       name: '晚班',
       color: '#3F51B5',
       timeRange: shiftTimesMap.evening ? `${shiftTimesMap.evening.start} - ${shiftTimesMap.evening.end}` : '19:00 - 20:30'
+    },
+    overtime: {
+      name: '加班',
+      color: '#E91E63',
+      timeRange: '額外登記'
     }
   }), [shiftTimesMap]);
 
@@ -104,11 +125,30 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     }
   }, [selectedDate, loadScheduleData, loadEmployees]);
 
+  // 同步 useOvertimeManager 的月份設置
+  useEffect(() => {
+    if (selectedDate) {
+      const dateObj = new Date(selectedDate);
+      const month = dateObj.getMonth();
+      const year = dateObj.getFullYear();
+      
+      // 設置月份和年份，然後重新獲取加班記錄
+      setSelectedMonth(month);
+      setSelectedYear(year);
+      
+      // 延遲一點時間確保月份設置生效後再獲取記錄
+      setTimeout(() => {
+        fetchOvertimeRecords();
+      }, 100);
+    }
+  }, [selectedDate, setSelectedMonth, setSelectedYear, fetchOvertimeRecords]);
+
   // 手動重新整理功能
   const handleRefresh = useCallback(() => {
     loadScheduleData();
     loadEmployees();
-  }, [loadScheduleData, loadEmployees]);
+    fetchOvertimeRecords();
+  }, [loadScheduleData, loadEmployees, fetchOvertimeRecords]);
 
   // 測試 API 連接
   const testApiConnection = useCallback(async () => {
@@ -205,37 +245,107 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     return colors[hash % colors.length];
   }, []);
 
+  /**
+   * 獲取當日的加班記錄
+   */
+  const getDailyOvertimeRecords = useCallback(() => {
+    if (!overtimeRecords || !selectedDate) {
+      console.log('getDailyOvertimeRecords: 缺少必要數據', {
+        overtimeRecordsLength: overtimeRecords?.length || 0,
+        selectedDate
+      });
+      return [];
+    }
+    
+    console.log('getDailyOvertimeRecords: 開始篩選', {
+      totalRecords: overtimeRecords.length,
+      selectedDate,
+      allRecords: overtimeRecords.map(r => ({
+        id: r._id,
+        date: r.date,
+        formattedDate: new Date(r.date).toISOString().split('T')[0]
+      }))
+    });
+    
+    const filteredRecords = overtimeRecords.filter(record => {
+      const recordDate = new Date(record.date).toISOString().split('T')[0];
+      const matches = recordDate === selectedDate;
+      
+      if (matches) {
+        console.log('找到匹配的加班記錄:', {
+          recordId: record._id,
+          recordDate,
+          selectedDate,
+          employeeId: record.employeeId,
+          hours: record.hours
+        });
+      }
+      
+      return matches;
+    });
+    
+    console.log('getDailyOvertimeRecords: 篩選結果', {
+      filteredCount: filteredRecords.length,
+      records: filteredRecords
+    });
+    
+    return filteredRecords;
+  }, [overtimeRecords, selectedDate]);
+
   // 準備班次數據
   const shiftData: ShiftSchedule[] = React.useMemo(() => {
     const daySchedules = schedulesGroupedByDate[selectedDate];
+    const dailyOvertimeRecords = getDailyOvertimeRecords();
 
     return Object.keys(shiftBaseConfig).map((shift) => {
       const baseConfig = shiftBaseConfig[shift];
-      const shiftEmployees = daySchedules ? (daySchedules[shift as keyof typeof daySchedules] || []) : [];
       
-      return {
-        shift: shift as 'morning' | 'afternoon' | 'evening',
-        shiftName: baseConfig.name,
-        timeRange: baseConfig.timeRange,
-        employees: shiftEmployees,
-        color: baseConfig.color
-      };
+      if (shift === 'overtime') {
+        // 加班項目
+        return {
+          shift: shift as 'overtime',
+          shiftName: baseConfig.name,
+          timeRange: baseConfig.timeRange,
+          employees: [],
+          overtimeRecords: dailyOvertimeRecords,
+          color: baseConfig.color
+        };
+      } else {
+        // 正常班次
+        const shiftEmployees = daySchedules ? (daySchedules[shift as keyof typeof daySchedules] || []) : [];
+        
+        return {
+          shift: shift as 'morning' | 'afternoon' | 'evening',
+          shiftName: baseConfig.name,
+          timeRange: baseConfig.timeRange,
+          employees: shiftEmployees,
+          color: baseConfig.color
+        };
+      }
     });
-  }, [schedulesGroupedByDate, selectedDate, shiftBaseConfig]);
+  }, [schedulesGroupedByDate, selectedDate, shiftBaseConfig, getDailyOvertimeRecords]);
 
-  const totalEmployees = React.useMemo(() => 
-    shiftData.reduce((sum, shift) => sum + shift.employees.length, 0), 
+  const totalEmployees = React.useMemo(() =>
+    shiftData.reduce((sum, shift) => {
+      if (shift.shift === 'overtime') {
+        return sum + (shift.overtimeRecords?.length || 0);
+      }
+      return sum + shift.employees.length;
+    }, 0),
     [shiftData]
   );
   
-  const totalLeaves = React.useMemo(() => 
-    shiftData.reduce((sum, shift) => 
-      sum + shift.employees.filter(emp => emp.leaveType).length, 0
-    ), 
+  const totalLeaves = React.useMemo(() =>
+    shiftData.reduce((sum, shift) => {
+      if (shift.shift === 'overtime') {
+        return sum;
+      }
+      return sum + shift.employees.filter(emp => emp.leaveType).length;
+    }, 0),
     [shiftData]
   );
 
-  if (loading || employeesLoading || shiftConfigLoading) {
+  if (loading || employeesLoading || shiftConfigLoading || overtimeLoading) {
     return (
       <Card elevation={2}>
         <CardContent>
@@ -325,81 +435,164 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                       bgcolor: shift.color
                     }}
                   />
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight="medium">
-                      {shift.shiftName}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {shift.timeRange}
-                    </Typography>
-                  </Box>
+                  <Typography variant="subtitle2" fontWeight="medium">
+                    {shift.shiftName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                    {shift.timeRange}
+                  </Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  {shift.employees.length} 人
+                  {shift.shift === 'overtime'
+                    ? `${shift.overtimeRecords?.length || 0} 筆`
+                    : `${shift.employees.length} 人`
+                  }
                 </Typography>
               </Box>
 
-              {/* 員工頭像並排顯示 */}
+              {/* 員工頭像並排顯示或加班記錄顯示 */}
               <Box sx={{ pl: 1, pr: 1, pb: 1 }}>
-                {shift.employees.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-                    此班次無排班
-                  </Typography>
-                ) : (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-                    {shift.employees.map((employee) => (
-                      <Tooltip
-                        key={employee._id}
-                        title={
-                          <Box>
-                            <Typography variant="body2" fontWeight="medium">
-                              {getEmployeeName(employee.employeeId)}
-                            </Typography>
-                            <Typography variant="caption" color="inherit">
-                              職位: {getEmployeePosition(employee.employeeId)}
-                            </Typography>
-                          </Box>
-                        }
-                        placement="top"
-                        arrow
-                      >
-                        <Box sx={{ position: 'relative' }}>
-                          <Avatar
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              fontSize: '0.875rem',
-                              bgcolor: getEmployeeAvatarColor(employee.employeeId),
-                              cursor: 'pointer',
-                              '&:hover': {
-                                transform: 'scale(1.1)',
-                                transition: 'transform 0.2s ease-in-out'
-                              }
-                            }}
+                {shift.shift === 'overtime' ? (
+                  /* 加班記錄顯示 */
+                  shift.overtimeRecords && shift.overtimeRecords.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                      {shift.overtimeRecords.map((overtimeRecord) => {
+                        const employeeId = typeof overtimeRecord.employeeId === 'object' && overtimeRecord.employeeId && '_id' in overtimeRecord.employeeId
+                          ? (overtimeRecord.employeeId as any)._id
+                          : (overtimeRecord.employeeId as string) || '';
+                        const employeeName = typeof overtimeRecord.employeeId === 'object' && overtimeRecord.employeeId && 'name' in overtimeRecord.employeeId
+                          ? (overtimeRecord.employeeId as any).name
+                          : getEmployeeName(employeeId);
+                        
+                        return (
+                          <Tooltip
+                            key={overtimeRecord._id}
+                            title={
+                              <Box>
+                                <Typography variant="body2" fontWeight="medium">
+                                  {employeeName}
+                                </Typography>
+                                <Typography variant="caption" color="inherit">
+                                  加班時數: {(overtimeRecord.hours * 60)} 分鐘
+                                </Typography>
+                                {overtimeRecord.description && (
+                                  <Typography variant="caption" color="inherit" display="block">
+                                    說明: {overtimeRecord.description}
+                                  </Typography>
+                                )}
+                                <Typography variant="caption" color="inherit" display="block">
+                                  狀態: {overtimeRecord.status === 'approved' ? '已核准' :
+                                        overtimeRecord.status === 'pending' ? '待審核' : '已拒絕'}
+                                </Typography>
+                              </Box>
+                            }
+                            placement="top"
+                            arrow
                           >
-                            {getEmployeeName(employee.employeeId).charAt(0)}
-                          </Avatar>
-                          {employee.leaveType && (
-                            <Chip
-                              label={getLeaveTypeLabel(employee.leaveType)}
-                              size="small"
-                              color={getLeaveTypeColor(employee.leaveType)}
-                              sx={{ 
-                                position: 'absolute',
-                                top: -8,
-                                right: -8,
-                                fontSize: '0.6rem',
-                                height: 16,
-                                '& .MuiChip-label': {
-                                  px: 0.5
+                            <Box sx={{ position: 'relative' }}>
+                              <Avatar
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  fontSize: '0.875rem',
+                                  bgcolor: getEmployeeAvatarColor(employeeId),
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    transform: 'scale(1.1)',
+                                    transition: 'transform 0.2s ease-in-out'
+                                  }
+                                }}
+                              >
+                                {employeeName.charAt(0)}
+                              </Avatar>
+                              <Chip
+                                label={`${overtimeRecord.hours * 60}m`}
+                                size="small"
+                                color={overtimeRecord.status === 'approved' ? 'success' :
+                                       overtimeRecord.status === 'pending' ? 'warning' : 'error'}
+                                sx={{
+                                  position: 'absolute',
+                                  top: -8,
+                                  right: -8,
+                                  fontSize: '0.6rem',
+                                  height: 16,
+                                  '& .MuiChip-label': {
+                                    px: 0.5
+                                  }
+                                }}
+                              />
+                            </Box>
+                          </Tooltip>
+                        );
+                      })}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                      當日無加班記錄
+                    </Typography>
+                  )
+                ) : (
+                  /* 正常班次員工顯示 */
+                  shift.employees.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                      此班次無排班
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                      {shift.employees.map((employee) => (
+                        <Tooltip
+                          key={employee._id}
+                          title={
+                            <Box>
+                              <Typography variant="body2" fontWeight="medium">
+                                {getEmployeeName(employee.employeeId)}
+                              </Typography>
+                              <Typography variant="caption" color="inherit">
+                                職位: {getEmployeePosition(employee.employeeId)}
+                              </Typography>
+                            </Box>
+                          }
+                          placement="top"
+                          arrow
+                        >
+                          <Box sx={{ position: 'relative' }}>
+                            <Avatar
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                fontSize: '0.875rem',
+                                bgcolor: getEmployeeAvatarColor(employee.employeeId),
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  transform: 'scale(1.1)',
+                                  transition: 'transform 0.2s ease-in-out'
                                 }
                               }}
-                            />
-                          )}
-                        </Box>
-                      </Tooltip>
-                    ))}
-                  </Box>
+                            >
+                              {getEmployeeName(employee.employeeId).charAt(0)}
+                            </Avatar>
+                            {employee.leaveType && (
+                              <Chip
+                                label={getLeaveTypeLabel(employee.leaveType)}
+                                size="small"
+                                color={getLeaveTypeColor(employee.leaveType)}
+                                sx={{
+                                  position: 'absolute',
+                                  top: -8,
+                                  right: -8,
+                                  fontSize: '0.6rem',
+                                  height: 16,
+                                  '& .MuiChip-label': {
+                                    px: 0.5
+                                  }
+                                }}
+                              />
+                            )}
+                          </Box>
+                        </Tooltip>
+                      ))}
+                    </Box>
+                  )
                 )}
               </Box>
 
