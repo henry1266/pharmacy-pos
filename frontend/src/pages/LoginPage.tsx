@@ -137,12 +137,8 @@ const LoginPage = () => {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('loginTime', Math.floor(Date.now() / 1000).toString());
         
-        // 根據用戶角色決定首頁導向
-        if (user.role === 'staff') {
-          window.location.replace('/sales');
-        } else {
-          window.location.replace('/dashboard');
-        }
+        // 所有用戶登入後都導向 dashboard
+        window.location.replace('/dashboard');
       }, 600);
 
     } catch (err: unknown) {

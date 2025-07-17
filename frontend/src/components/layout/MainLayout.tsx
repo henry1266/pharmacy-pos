@@ -202,7 +202,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isEmployeePath = (path: string): boolean => path.startsWith('/employees');
 
   const menuItems: MenuItem[] = [
-    { text: '儀表板', icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, path: '/dashboard', adminOnly: true },
+    { text: '儀表板', icon: (location.pathname === '/dashboard') ? <DashboardOutlinedIcon /> : <DashboardIcon />, path: '/dashboard' },
     { text: '銷售管理', icon: (location.pathname.startsWith('/sales')) ? <SellOutlinedIcon /> : <SellIcon />, path: '/sales' },
     { text: '商品管理', icon: isProductPath(location.pathname) ? <LocalMallOutlinedIcon /> : <LocalMallIcon />, subItems: [
         { text: '商品列表', path: '/products', icon: <ListAltIcon fontSize="small" sx={{ ml: 1 }} /> },
