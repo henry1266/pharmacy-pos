@@ -31,7 +31,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { overtimeRecordService, employeeService } from '../core';
 import { OvertimeRecord, OvertimeRecordStatus } from '../types';
-import OvertimeRecordDialog from './overtime/OvertimeRecordDialog';
+import ManualOvertimeDialog from './overtime/ManualOvertimeDialog';
+import TimeCalculationOvertimeDialog from './overtime/TimeCalculationOvertimeDialog';
 import OvertimeRecordRow from './overtime/OvertimeRecordRow';
 import useOvertimeData from '../../../hooks/useOvertimeData';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
@@ -94,13 +95,23 @@ interface ProcessedOvertimeData {
   [employeeId: string]: ProcessedOvertimeGroup;
 }
 
-// 定義表單數據介面
-interface FormData {
+// 定義手動輸入表單數據介面
+interface ManualFormData {
   employeeId: string;
   date: string;
   hours: string | number;
   description: string;
   status: OvertimeRecordStatus;
+}
+
+// 定義時間計算表單數據介面
+interface TimeCalculationFormData {
+  employeeId: string;
+  date: string;
+  hours: string | number;
+  description: string;
+  status: OvertimeRecordStatus;
+  currentTime: string;
 }
 
 // 定義表單錯誤介面
@@ -144,7 +155,8 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   const [scheduleOvertimeRecords, setScheduleOvertimeRecords] = useState<ScheduleOvertimeRecords>({});
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<OvertimeRecord | null>(null);
-  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
+  const [manualDialogOpen, setManualDialogOpen] = useState<boolean>(false);
+  const [timeCalculationDialogOpen, setTimeCalculationDialogOpen] = useState<boolean>(false);
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   
@@ -153,12 +165,21 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   // 預設選擇當前月份
   const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth()); // 當前月份
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear()); // 當前年份
-  const [formData, setFormData] = useState<FormData>({
+  const [manualFormData, setManualFormData] = useState<ManualFormData>({
     employeeId: '',
     date: new Date().toISOString().split('T')[0],
     hours: '',
     description: '',
     status: 'pending'
+  });
+  
+  const [timeCalculationFormData, setTimeCalculationFormData] = useState<TimeCalculationFormData>({
+    employeeId: '',
+    date: new Date().toISOString().split('T')[0],
+    hours: '',
+    description: '',
+    status: 'pending',
+    currentTime: ''
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -565,11 +586,11 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
     loadAllData();
   }, [employeeId, selectedYear, selectedMonth]);
 
-  // 處理表單輸入變更
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent): void => {
+  // 處理手動輸入表單變更
+  const handleManualInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent): void => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setManualFormData({
+      ...manualFormData,
       [name]: value
     });
 
@@ -582,21 +603,38 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
     }
   };
 
-  // 驗證表單
-  const validateForm = (): boolean => {
+  // 處理時間計算表單變更
+  const handleTimeCalculationInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent): void => {
+    const { name, value } = e.target;
+    setTimeCalculationFormData({
+      ...timeCalculationFormData,
+      [name]: value
+    });
+
+    // 清除對應欄位的錯誤訊息
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: ''
+      });
+    }
+  };
+
+  // 驗證手動輸入表單
+  const validateManualForm = (): boolean => {
     const errors: FormErrors = {};
 
-    if (!formData.employeeId) {
+    if (!manualFormData.employeeId) {
       errors.employeeId = '請選擇員工';
     }
 
-    if (!formData.date) {
+    if (!manualFormData.date) {
       errors.date = '請選擇日期';
     }
 
-    if (!formData.hours) {
+    if (!manualFormData.hours) {
       errors.hours = '請輸入加班時數';
-    } else if (isNaN(Number(formData.hours)) || Number(formData.hours) <= 0 || Number(formData.hours) > 24) {
+    } else if (isNaN(Number(manualFormData.hours)) || Number(manualFormData.hours) <= 0 || Number(manualFormData.hours) > 24) {
       errors.hours = '加班時數必須在 0.5 到 24 小時之間';
     }
 
@@ -604,9 +642,31 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
     return Object.keys(errors).length === 0;
   };
 
-  // 開啟創建加班記錄對話框
-  const handleOpenCreateDialog = (): void => {
-    setFormData({
+  // 驗證時間計算表單
+  const validateTimeCalculationForm = (): boolean => {
+    const errors: FormErrors = {};
+
+    if (!timeCalculationFormData.employeeId) {
+      errors.employeeId = '請選擇員工';
+    }
+
+    if (!timeCalculationFormData.date) {
+      errors.date = '請選擇日期';
+    }
+
+    if (!timeCalculationFormData.hours) {
+      errors.hours = '請輸入加班時數';
+    } else if (isNaN(Number(timeCalculationFormData.hours)) || Number(timeCalculationFormData.hours) <= 0 || Number(timeCalculationFormData.hours) > 24) {
+      errors.hours = '加班時數必須在 0.5 到 24 小時之間';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // 開啟手動輸入對話框
+  const handleOpenManualDialog = (): void => {
+    setManualFormData({
       employeeId: employeeId ?? '',
       date: new Date().toISOString().split('T')[0],
       hours: '',
@@ -614,14 +674,28 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
       status: 'pending'
     });
     setFormErrors({});
-    setCreateDialogOpen(true);
+    setManualDialogOpen(true);
+  };
+
+  // 開啟時間計算對話框
+  const handleOpenTimeCalculationDialog = (): void => {
+    setTimeCalculationFormData({
+      employeeId: employeeId ?? '',
+      date: new Date().toISOString().split('T')[0],
+      hours: '',
+      description: '',
+      status: 'pending',
+      currentTime: ''
+    });
+    setFormErrors({});
+    setTimeCalculationDialogOpen(true);
   };
 
   // 開啟編輯加班記錄對話框
   const handleOpenEditDialog = (record: OvertimeRecord): void => {
     setSelectedRecord(record);
     const empId = record.employee && typeof record.employee === 'object' ? record.employee._id : record.employeeId;
-    setFormData({
+    setManualFormData({
       employeeId: typeof empId === 'string' ? empId : '',
       date: new Date(record.date).toISOString().split('T')[0],
       hours: record.hours,
@@ -640,24 +714,49 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
 
   // 關閉所有對話框
   const handleCloseDialogs = (): void => {
-    setCreateDialogOpen(false);
+    setManualDialogOpen(false);
+    setTimeCalculationDialogOpen(false);
     setEditDialogOpen(false);
     setDeleteDialogOpen(false);
     setSelectedRecord(null);
   };
 
-  // 創建加班記錄
-  const handleCreateRecord = async (): Promise<void> => {
-    if (!validateForm()) return;
+  // 創建手動輸入加班記錄
+  const handleCreateManualRecord = async (): Promise<void> => {
+    if (!validateManualForm()) return;
 
     setSubmitting(true);
     try {
       await overtimeRecordService.createOvertimeRecord({
-        employeeId: formData.employeeId,
-        date: formData.date,
-        hours: parseFloat(formData.hours as string),
-        description: formData.description,
-        status: formData.status
+        employeeId: manualFormData.employeeId,
+        date: manualFormData.date,
+        hours: parseFloat(manualFormData.hours as string),
+        description: manualFormData.description,
+        status: manualFormData.status
+      });
+
+      setSuccessMessage('加班記錄創建成功');
+      handleCloseDialogs();
+      fetchOvertimeRecords();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 創建時間計算加班記錄
+  const handleCreateTimeCalculationRecord = async (): Promise<void> => {
+    if (!validateTimeCalculationForm()) return;
+
+    setSubmitting(true);
+    try {
+      await overtimeRecordService.createOvertimeRecord({
+        employeeId: timeCalculationFormData.employeeId,
+        date: timeCalculationFormData.date,
+        hours: parseFloat(timeCalculationFormData.hours as string),
+        description: timeCalculationFormData.description,
+        status: timeCalculationFormData.status
       });
 
       setSuccessMessage('加班記錄創建成功');
@@ -672,17 +771,17 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
 
   // 更新加班記錄
   const handleUpdateRecord = async (): Promise<void> => {
-    if (!validateForm()) return;
+    if (!validateManualForm()) return;
 
     setSubmitting(true);
     try {
       if (selectedRecord) {
         await overtimeRecordService.updateOvertimeRecord(selectedRecord._id, {
-          employeeId: formData.employeeId,
-          date: formData.date,
-          hours: parseFloat(formData.hours as string),
-          description: formData.description,
-          status: formData.status
+          employeeId: manualFormData.employeeId,
+          date: manualFormData.date,
+          hours: parseFloat(manualFormData.hours as string),
+          description: manualFormData.description,
+          status: manualFormData.status
         });
 
         setSuccessMessage('加班記錄更新成功');
@@ -786,14 +885,24 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
             加班記錄管理
           </Typography>
           {isAdmin && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleOpenCreateDialog}
-            >
-              新增加班記錄
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleOpenManualDialog}
+              >
+                手動輸入加班
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleOpenTimeCalculationDialog}
+              >
+                時間計算加班
+              </Button>
+            </Box>
           )}
         </Box>
 
@@ -1084,34 +1193,50 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
         )}
       </Paper>
 
-      {/* 創建加班記錄對話框 */}
-      <OvertimeRecordDialog
-        open={createDialogOpen}
+      {/* 手動輸入加班記錄對話框 */}
+      <ManualOvertimeDialog
+        open={manualDialogOpen}
         onClose={handleCloseDialogs}
-        title="新增加班記錄"
-        formData={formData}
+        title="手動輸入加班記錄"
+        formData={manualFormData}
         formErrors={formErrors}
         employees={employees}
         employeeId={employeeId}
         isAdmin={isAdmin}
         submitting={submitting}
-        onInputChange={handleInputChange}
-        onSubmit={handleCreateRecord}
+        onInputChange={handleManualInputChange}
+        onSubmit={handleCreateManualRecord}
+        submitButtonText="新增"
+      />
+
+      {/* 時間計算加班記錄對話框 */}
+      <TimeCalculationOvertimeDialog
+        open={timeCalculationDialogOpen}
+        onClose={handleCloseDialogs}
+        title="時間計算加班記錄"
+        formData={timeCalculationFormData}
+        formErrors={formErrors}
+        employees={employees}
+        employeeId={employeeId}
+        isAdmin={isAdmin}
+        submitting={submitting}
+        onInputChange={handleTimeCalculationInputChange}
+        onSubmit={handleCreateTimeCalculationRecord}
         submitButtonText="新增"
       />
 
       {/* 編輯加班記錄對話框 */}
-      <OvertimeRecordDialog
+      <ManualOvertimeDialog
         open={editDialogOpen}
         onClose={handleCloseDialogs}
         title="編輯加班記錄"
-        formData={formData}
+        formData={manualFormData}
         formErrors={formErrors}
         employees={employees}
         employeeId={employeeId}
         isAdmin={isAdmin}
         submitting={submitting}
-        onInputChange={handleInputChange}
+        onInputChange={handleManualInputChange}
         onSubmit={handleUpdateRecord}
         submitButtonText="更新"
       />

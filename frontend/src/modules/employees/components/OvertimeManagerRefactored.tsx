@@ -42,16 +42,18 @@ interface ScheduleOvertimeRecords {
 }
 
 // 定義表單數據介面
-interface FormData {
+interface OvertimeRefactoredFormData {
   employeeId: string;
   date: string;
   hours: string | number;
   description: string;
   status: OvertimeStatus;
+  inputMode: 'manual' | 'time'; // 新增：輸入模式
+  currentTime: string; // 新增：當前時間輸入
 }
 
 // 定義表單錯誤介面
-interface FormErrors {
+interface OvertimeRefactoredFormErrors {
   employeeId?: string;
   date?: string;
   hours?: string;
@@ -103,14 +105,16 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   // 表單狀態
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<OvertimeRefactoredFormData>({
     employeeId: '',
     date: new Date().toISOString().split('T')[0],
     hours: '',
     description: '',
-    status: 'pending'
+    status: 'pending',
+    inputMode: 'manual',
+    currentTime: ''
   });
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [formErrors, setFormErrors] = useState<OvertimeRefactoredFormErrors>({});
 
   // 處理表單輸入變更
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
@@ -136,7 +140,9 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
       date: new Date().toISOString().split('T')[0],
       hours: '',
       description: '',
-      status: 'pending'
+      status: 'pending',
+      inputMode: 'manual',
+      currentTime: ''
     });
     setFormErrors({});
     setCreateDialogOpen(true);
@@ -163,7 +169,9 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
       date: new Date(record.date).toISOString().split('T')[0],
       hours: record.hours,
       description: record.description || '',
-      status: record.status as OvertimeStatus
+      status: record.status as OvertimeStatus,
+      inputMode: 'manual',
+      currentTime: ''
     });
     setFormErrors({});
     setEditDialogOpen(true);

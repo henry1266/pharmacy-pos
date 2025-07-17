@@ -15,16 +15,18 @@ import { OvertimeStatus } from '@pharmacy-pos/shared/utils/overtimeDataProcessor
 import { OvertimeRecord } from '../../types';
 
 // 定義表單數據介面
-interface FormData {
+interface OvertimeDialogFormData {
   employeeId: string;
   date: string;
   hours: string | number;
   description: string;
   status: OvertimeStatus;
+  inputMode: 'manual' | 'time'; // 新增：輸入模式
+  currentTime: string; // 新增：當前時間輸入
 }
 
 // 定義表單錯誤介面
-interface FormErrors {
+interface OvertimeDialogFormErrors {
   employeeId?: string;
   date?: string;
   hours?: string;
@@ -41,8 +43,8 @@ interface OvertimeDialogsProps {
   deleteDialogOpen: boolean;
   
   // 表單數據
-  formData: FormData;
-  formErrors: FormErrors;
+  formData: OvertimeDialogFormData;
+  formErrors: OvertimeDialogFormErrors;
   employees: Employee[];
   selectedRecord: OvertimeRecord | null;
   
