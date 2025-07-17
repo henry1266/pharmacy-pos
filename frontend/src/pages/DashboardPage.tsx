@@ -25,6 +25,7 @@ import useDashboardData from '../hooks/useDashboardData';
 
 // Import Presentation Components
 import DashboardCalendar from '../components/dashboard/DashboardCalendar';
+import DailySchedulePanel from '../components/dashboard/DailySchedulePanel';
 import StatusChip from '../components/common/StatusChip';
 import DailySalesPanel from '../components/sales/DailySalesPanel';
 
@@ -355,7 +356,9 @@ const DashboardPage: FC = () => {
 
       {/* 主要內容區域 */}
       <Grid container spacing={3} sx={{ mt: 2 }}>
-        {/* 左側：記帳記錄 */}
+       
+
+        {/* 左中：記帳記錄 */}
         <Grid item xs={12} md={3}>
           <Card elevation={2}>
             <CardContent>
@@ -468,8 +471,12 @@ const DashboardPage: FC = () => {
           />
         </Grid>
 
+         {/* 左側：當日班表 */}
+        <Grid item xs={12} md={3}>
+          <DailySchedulePanel selectedDate={selectedDate} />
+        </Grid>
         {/* 右側：日曆 */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={3}>
           <DashboardCalendar selectedDate={selectedDate} onDateSelect={handleDateSelect} />
         </Grid>
       </Grid>

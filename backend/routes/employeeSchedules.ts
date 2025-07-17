@@ -535,14 +535,18 @@ router.get('/by-date', [
     // 將排班按日期和班次分組
     interface ScheduleEntry {
       _id: mongoose.Types.ObjectId;
+      date: string;
+      shift: string;
+      employeeId: string;
       employee: {
         _id: mongoose.Types.ObjectId;
         name: string;
         department: string;
         position: string;
       };
-      shift: string;
       leaveType: string | null;
+      createdAt: Date;
+      updatedAt: Date;
     }
     
     interface GroupedSchedules {
@@ -566,16 +570,21 @@ router.get('/by-date', [
         };
       }
       
+      // 修正資料結構，讓它符合前端期望的 EmployeeSchedule 介面
       groupedSchedules[dateStr][schedule.shift as keyof typeof groupedSchedules[string]].push({
         _id: schedule._id,
+        date: dateStr,
+        shift: schedule.shift,
+        employeeId: (schedule.employeeId as any)._id.toString(), // 修正：使用 employeeId 而不是 employee
         employee: schedule.employeeId as unknown as {
           _id: mongoose.Types.ObjectId;
           name: string;
           department: string;
           position: string;
         },
-        shift: schedule.shift,
-        leaveType: schedule.leaveType
+        leaveType: schedule.leaveType,
+        createdAt: schedule.createdAt,
+        updatedAt: schedule.updatedAt
       });
     });
     

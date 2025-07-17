@@ -131,105 +131,6 @@
 3. **自動型別檢查**: 使用 TypeScript 編譯時檢查
 4. **一致性驗證**: 自動化腳本檢查型別一致性
 
-## 專案結構
-
-### Monorepo 根目錄結構
-```
-pharmacy-pos/
-├── package.json              # 根專案配置
-├── pnpm-workspace.yaml       # pnpm workspace 配置
-├── tsconfig.json             # TypeScript 專案參考配置
-├── backend/                  # 後端服務
-├── frontend/                 # 前端應用
-├── shared/                   # 共享模組
-├── scripts/                  # 開發工具腳本
-├── config/                   # 全域配置文件
-├── csv/                      # CSV 模板和示例
-├── test/                     # 整合測試
-├── 報告/                     # 開發報告和文檔
-├── 開發指南/                 # 開發規範和指南
-├── setup.sh                  # Linux/Mac 安裝腳本
-├── setup.bat                 # Windows 安裝腳本
-├── start.bat                 # Windows 啟動腳本
-└── README.md                 # 專案說明文檔
-```
-
-### Shared 模組結構
-```
-shared/
-├── package.json              # 共享模組配置
-├── tsconfig.json             # TypeScript 配置
-├── index.ts                  # 統一匯出檔案
-├── types/                    # 型別定義
-│   ├── entities.ts              # 基礎實體型別
-│   ├── api.ts                   # API 相關型別
-│   ├── forms.ts                 # 表單型別
-│   ├── accounting.ts            # 會計型別
-│   ├── business.ts              # 業務邏輯型別
-│   ├── models.ts                # 資料模型型別
-│   └── utils.ts                 # 工具函數型別
-├── services/                 # V2 統一 API 客戶端
-│   ├── baseApiClient.ts         # 基礎 API 客戶端抽象類
-│   ├── accountingApiClient.ts   # 會計服務 API 客戶端
-│   ├── productApiClient.ts      # 產品服務 API 客戶端
-│   ├── supplierApiClient.ts     # 供應商服務 API 客戶端
-│   ├── customerApiClient.ts     # 客戶服務 API 客戶端
-│   ├── salesApiClient.ts        # 銷售服務 API 客戶端
-│   ├── shippingOrderApiClient.ts # 出貨訂單服務 API 客戶端
-│   ├── purchaseOrderApiClient.ts # 採購訂單服務 API 客戶端
-│   ├── inventoryApiClient.ts    # 庫存服務 API 客戶端
-│   └── employeeApiClient.ts     # 員工服務 API 客戶端
-├── utils/                    # 工具函數
-│   ├── dateUtils.ts             # 日期工具
-│   ├── stringUtils.ts           # 字串工具
-│   ├── numberUtils.ts           # 數字工具
-│   ├── validationUtils.ts       # 驗證工具
-│   ├── workHoursUtils.ts        # 工時計算工具
-│   ├── roleUtils.ts             # 角色工具
-│   └── accountingTypeConverters.ts # 型別轉換工具
-├── constants/                # 常數定義
-│   ├── actionTypes.ts           # Redux Action 型別
-│   └── index.ts                 # 系統常數
-├── enums/                    # 列舉定義
-├── schemas/                  # 驗證 Schema
-└── README.md                 # 模組說明文檔
-```
-
-### 後端結構
-```
-backend/
-├── package.json              # 後端專案配置
-├── tsconfig.json             # TypeScript 配置
-├── server.ts                 # 主入口文件
-├── config/                   # 後端配置
-├── middleware/               # 中間件
-├── models/                   # 數據模型
-├── routes/                   # API 路由
-├── scripts/                  # 輔助腳本
-├── utils/                    # 工具函數
-└── test/                     # 後端測試
-```
-
-### 前端結構
-```
-frontend/
-├── package.json              # 前端專案配置
-├── tsconfig.json             # TypeScript 配置
-├── craco.config.js           # CRACO 配置
-├── public/                   # 靜態文件
-└── src/
-    ├── components/              # 可重用組件
-    ├── hooks/                   # 自定義 React Hooks
-    ├── pages/                   # 頁面組件
-    ├── redux/                   # Redux 狀態管理
-    ├── services/                # API 服務層
-    ├── utils/                   # 前端工具函數
-    ├── tests/                   # 前端測試
-    ├── types/                   # 前端特定型別
-    ├── setupProxy.ts            # 開發代理配置
-    └── App.tsx                  # 應用入口
-```
-
 ## 安裝說明
 
 ### 系統需求
@@ -248,15 +149,10 @@ cd pharmacy-pos
 ```
 
 #### 2. 安裝 pnpm（如果尚未安裝）
-```bash
 npm install -g pnpm
-```
 
 #### 3. 安裝所有依賴
-```bash
-# 安裝根專案和所有子專案的依賴
 pnpm install
-```
 
 #### 4. 建構 Shared 模組
 ```bash
@@ -270,19 +166,7 @@ pnpm --filter shared build
 3. 設置 MongoDB 連接字符串
 
 #### 6. 啟動開發環境
-```bash
-# 同時啟動前後端開發服務器
-pnpm dev
-```
-
-或者分別啟動：
-```bash
-# 啟動後端服務
-pnpm --filter backend dev
-
-# 啟動前端服務（另一個終端）
-pnpm --filter frontend start
-```
+pnpm run dev
 
 ### 快速啟動腳本
 系統提供了便捷的安裝和啟動腳本：
@@ -301,35 +185,10 @@ chmod +x setup.sh  # 設置執行權限
 
 ### 開發工具指令
 
-#### 型別檢查
-```bash
-# 檢查所有專案的型別
-pnpm type-check
-
-# 檢查型別一致性
-pnpm check-types
-```
-
 #### 建構專案
-```bash
+
 # 建構所有專案
-pnpm build
-
-# 建構特定專案
-pnpm --filter shared build
-pnpm --filter backend build
-pnpm --filter frontend build
-```
-
-#### 執行測試
-```bash
-# 執行所有測試
-pnpm test
-
-# 執行特定專案測試
-pnpm --filter backend test
-pnpm --filter frontend test
-```
+pnpm run build
 
 ## 開發指南
 
@@ -384,14 +243,6 @@ pnpm --filter frontend test
 8. **穩定的API層**: 所有API調用封裝在服務層
 9. **延後抽象**: 只有在多處使用時才抽離為共用組件
 
-### 測試策略
-系統採用多層次的測試策略：
-
-- **單元測試**: 測試獨立的函數和組件
-- **集成測試**: 測試組件之間的交互
-- **API測試**: 測試後端API的功能
-- **端到端測試**: 測試完整的用戶流程
-
 ## 使用指南
 
 ### 產品管理
@@ -408,56 +259,6 @@ pnpm --filter frontend test
 7. 點擊「保存」按鈕完成產品創建
 
 產品列表頁面提供了多種過濾和排序選項，幫助用戶快速找到所需產品。用戶可以按產品類型、庫存狀態、價格範圍等條件進行過濾，也可以按名稱、價格、庫存量等字段進行排序。
-
-### 供應商CSV匯入
-系統支持通過CSV文件批量導入供應商數據，大大提高了數據輸入效率。使用此功能時，請按照以下步驟操作：
-
-1. 在「供應商管理」頁面點擊「匯入CSV」按鈕
-2. 系統會提供CSV模板下載選項，點擊下載並按照模板格式準備數據
-3. CSV文件應包含以下字段：
-   - 必填欄位：shortCode(簡碼), name(供應商名稱)
-   - 可選欄位：code(供應商編號), contactPerson(聯絡人), phone(電話), email(電子郵件), address(地址), taxId(稅號), paymentTerms(付款條件), notes(備註)
-4. 準備好CSV文件後，點擊「選擇文件」按鈕上傳文件
-5. 系統會驗證CSV文件格式，如有錯誤會顯示詳細的錯誤信息
-6. 驗證通過後，點擊「匯入」按鈕開始導入數據
-7. 導入完成後，系統會顯示匯入結果摘要，包括成功導入的記錄數和失敗的記錄數
-8. 如有失敗記錄，系統會提供詳細的錯誤原因，幫助用戶修正數據
-
-### 記帳報表使用
-記帳報表是系統中最強大的分析工具之一，提供了多種視圖和過濾選項，幫助藥局分析財務數據。使用此功能時，請按照以下步驟操作：
-
-1. 在系統導航菜單中選擇「報表」
-2. 從報表類型下拉選單中選擇「記帳報表」
-3. 使用日期範圍選擇器設置要分析的時間段
-4. 使用類別選擇器過濾特定類別的交易
-5. 選擇圖表類型：
-   - 柱狀圖：適合比較不同類別或時間段的數值
-   - 折線圖：適合顯示隨時間變化的趨勢
-   - 餅圖：適合顯示各類別的比例分布
-6. 選擇分組方式：
-   - 按日期分組：顯示每天的數據
-   - 按班別分組：顯示不同班次的數據
-   - 按類別分組：顯示不同交易類別的數據
-7. 使用標籤頁切換在圖表視圖和表格視圖之間
-8. 表格視圖提供了詳細的交易記錄，可以按任何列進行排序
-9. 點擊「導出CSV」按鈕將當前數據導出為CSV文件，方便進一步分析或報告生成
-10. 查看頁面底部的摘要統計區域，了解關鍵指標如總收入、總支出和淨利潤
-
-### 庫存報表使用
-庫存報表提供了對藥局庫存狀況的全面視圖，幫助用戶監控庫存水平和價值。使用此功能時，請按照以下步驟操作：
-
-1. 在系統導航菜單中選擇「報表」
-2. 從報表類型下拉選單中選擇「庫存報表」
-3. 系統會顯示所有庫存項目的列表，包括商品和藥品
-4. 使用過濾選項按產品類型、庫存水平或其他條件過濾數據
-5. 查看摘要區域，了解按產品類型分組的統計數據
-6. 分析關鍵指標：
-   - 庫存價值：當前庫存的總成本
-   - 潛在收入：如果所有庫存按零售價售出的總收入
-   - 潛在利潤：潛在收入減去庫存價值
-   - 低庫存項目數：庫存低於警告閾值的產品數量
-7. 點擊任何產品行查看該產品的詳細庫存歷史
-8. 使用「導出」按鈕將報表導出為CSV或PDF格式
 
 ## FIFO庫存管理
 
