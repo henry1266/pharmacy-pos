@@ -34,7 +34,7 @@ import { OvertimeRecord, OvertimeRecordStatus } from '../types';
 import ManualOvertimeDialog from './overtime/ManualOvertimeDialog';
 import TimeCalculationOvertimeDialog from './overtime/TimeCalculationOvertimeDialog';
 import OvertimeRecordRow from './overtime/OvertimeRecordRow';
-import useOvertimeData from '../../../hooks/useOvertimeData';
+import useOvertimeData from '../core/hooks/useOvertimeData';
 import { Employee } from '@pharmacy-pos/shared/types/entities';
 
 // 定義簡化的員工介面，用於加班數據處理
