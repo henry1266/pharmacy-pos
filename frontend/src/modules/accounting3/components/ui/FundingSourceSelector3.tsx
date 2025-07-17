@@ -40,7 +40,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { fundingTrackingService, transactionGroupService } from '@services/transactionGroupService';
+import { fundingTrackingService, transactionGroupService } from '../../services/transactionGroupService';
 import { TransactionGroup, FundingSource, TransactionGroupWithEntries } from '@pharmacy-pos/shared';
 
 interface FundingSourceSelector3Props {

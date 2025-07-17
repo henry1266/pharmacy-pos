@@ -1,4 +1,4 @@
-import apiService from '../utils/apiService';
+import apiService from '../../../utils/apiService';
 import {
   TransactionGroupFormData,
   TransactionGroupListResponse,
