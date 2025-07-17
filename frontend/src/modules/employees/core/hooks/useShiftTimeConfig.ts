@@ -18,9 +18,9 @@ import type {
 export const useShiftTimeConfig = () => {
   const [configs, setConfigs] = useState<ShiftTimeConfig[]>([]);
   const [shiftTimesMap, setShiftTimesMap] = useState<ShiftTimesMap>({
-    morning: { start: '08:30', end: '12:00' },
-    afternoon: { start: '15:00', end: '18:00' },
-    evening: { start: '19:00', end: '20:30' }
+    morning: { start: '', end: '' },
+    afternoon: { start: '', end: '' },
+    evening: { start: '', end: '' }
   });
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

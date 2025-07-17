@@ -8,7 +8,9 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  Button
+  Button,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { useEmployeeScheduling } from '../core';
 import useCalendarGrid from '../../../hooks/useCalendarGrid';
@@ -22,6 +24,7 @@ import CalendarDateCell from './scheduling/CalendarDateCell';
 import WorkHoursDialog from './scheduling/WorkHoursDialog';
 import SchedulingHeader from './scheduling/SchedulingHeader';
 import MonthNavigation from './scheduling/MonthNavigation';
+import ShiftTimeConfigManager from './scheduling/ShiftTimeConfigManager';
 import {
   formatDateString,
   formatMonth,
@@ -85,6 +88,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
   const [editMode, setEditMode] = useState<boolean>(false);
   const [quickSelectDialogOpen, setQuickSelectDialogOpen] = useState<boolean>(false);
   const [workHoursDialogOpen, setWorkHoursDialogOpen] = useState<boolean>(false);
+  const [currentTab, setCurrentTab] = useState<number>(0);
 
   const {
     schedulesGroupedByDate,
@@ -186,6 +190,11 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
     setSelectedDate(null);
   };
 
+  // 處理標籤頁切換
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setCurrentTab(newValue);
+  };
+
   // 全局樣式覆蓋
   const globalStyles = {
     '.MuiListItemText-primary': {
@@ -198,75 +207,107 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
       <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
         <SchedulingHeader isAdmin={isAdmin} error={error} />
         
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
-          <MonthNavigation
-            currentDate={currentDate}
-            formatMonth={formatMonth}
-            onPrevMonth={handlePrevMonth}
-            onNextMonth={handleNextMonth}
-            onToday={handleToday}
-            onWorkHoursClick={() => setWorkHoursDialogOpen(true)}
-            isAdmin={isAdmin}
-            editMode={editMode}
-            onToggleEditMode={toggleEditMode}
-          />
+        {/* 標籤頁導航 */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tabs value={currentTab} onChange={handleTabChange} aria-label="排班系統標籤">
+            <Tab label="排班管理" />
+            {isAdmin && <Tab label="班次時間配置" />}
+            <Tab label="工時統計" />
+          </Tabs>
         </Box>
-        
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Grid container spacing={0.5}>
-            {/* 日曆區域 */}
-            <Grid item xs={12} {...({} as any)}>
-              {/* 編輯模式下不再顯示內嵌的快速選擇面板，改為彈出框 */}
-              
-              {/* 日曆部分 */}
-              <Grid container spacing={0.3}>
-            {/* 星期標題 */}
-            {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
-              <Grid item xs={12/7} key={`weekday-${day}`} {...({} as any)}>
-                <Box sx={{
-                  p: 0.5,
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  bgcolor: 'primary.main',
-                  color: 'white',
-                  borderRadius: '4px 4px 0 0',
-                  fontSize: '1rem'
-                }}>
-                  {day}
-                </Box>
-              </Grid>
-            ))}
+
+        {/* 標籤頁內容 */}
+        {currentTab === 0 && (
+          <>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
+              <MonthNavigation
+                currentDate={currentDate}
+                formatMonth={formatMonth}
+                onPrevMonth={handlePrevMonth}
+                onNextMonth={handleNextMonth}
+                onToday={handleToday}
+                onWorkHoursClick={() => setWorkHoursDialogOpen(true)}
+                isAdmin={isAdmin}
+                editMode={editMode}
+                onToggleEditMode={toggleEditMode}
+              />
+            </Box>
             
-            {/* 日期格子 */}
-            {calendarGrid.map((dateObj: DateObject, index: number) => (
-              <Grid item xs={12/7} key={`date-${formatDateString(dateObj.date)}-${dateObj.isCurrentMonth}`} {...({} as any)}>
-                <CalendarDateCell
-                  dateObj={dateObj}
-                  index={index}
-                  schedules={getSchedulesForDate(dateObj.date) as unknown as SchedulesByShift}
-                  scheduleCount={getScheduleCount(dateObj.date)}
-                  editMode={editMode}
-                  isNavigationActive={isNavigationActive}
-                  selectedCell={selectedCell}
-                  isAdmin={isAdmin}
-                  onDateClick={handleDateClick}
-                  onCellSelect={handleCellSelect}
-                  getBorderStyle={getBorderStyle}
-                  getBorderColor={getBorderColor}
-                  getEmployeeAbbreviation={getEmployeeAbbreviation}
-                  getBorderColorByLeaveType={(schedule) => getBorderColorByLeaveType(schedule as { leaveType?: 'sick' | 'personal' | 'overtime' | null; employee: { _id: string; name: string; }; })}
-                  getLeaveTypeText={getLeaveTypeText}
-                  formatDateString={formatDateString}
-                />
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={0.5}>
+                {/* 日曆區域 */}
+                <Grid item xs={12} {...({} as any)}>
+                  {/* 編輯模式下不再顯示內嵌的快速選擇面板，改為彈出框 */}
+                  
+                  {/* 日曆部分 */}
+                  <Grid container spacing={0.3}>
+                {/* 星期標題 */}
+                {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
+                  <Grid item xs={12/7} key={`weekday-${day}`} {...({} as any)}>
+                    <Box sx={{
+                      p: 0.5,
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      borderRadius: '4px 4px 0 0',
+                      fontSize: '1rem'
+                    }}>
+                      {day}
+                    </Box>
+                  </Grid>
+                ))}
+                
+                {/* 日期格子 */}
+                {calendarGrid.map((dateObj: DateObject, index: number) => (
+                  <Grid item xs={12/7} key={`date-${formatDateString(dateObj.date)}-${dateObj.isCurrentMonth}`} {...({} as any)}>
+                    <CalendarDateCell
+                      dateObj={dateObj}
+                      index={index}
+                      schedules={getSchedulesForDate(dateObj.date) as unknown as SchedulesByShift}
+                      scheduleCount={getScheduleCount(dateObj.date)}
+                      editMode={editMode}
+                      isNavigationActive={isNavigationActive}
+                      selectedCell={selectedCell}
+                      isAdmin={isAdmin}
+                      onDateClick={handleDateClick}
+                      onCellSelect={handleCellSelect}
+                      getBorderStyle={getBorderStyle}
+                      getBorderColor={getBorderColor}
+                      getEmployeeAbbreviation={getEmployeeAbbreviation}
+                      getBorderColorByLeaveType={(schedule) => getBorderColorByLeaveType(schedule as { leaveType?: 'sick' | 'personal' | 'overtime' | null; employee: { _id: string; name: string; }; })}
+                      getLeaveTypeText={getLeaveTypeText}
+                      formatDateString={formatDateString}
+                    />
+                  </Grid>
+                ))}
+                  </Grid>
+                </Grid>
               </Grid>
-            ))}
-              </Grid>
-            </Grid>
-          </Grid>
+            )}
+          </>
+        )}
+
+        {/* 班次時間配置標籤頁 */}
+        {currentTab === 1 && isAdmin && (
+          <ShiftTimeConfigManager />
+        )}
+
+        {/* 工時統計標籤頁 */}
+        {currentTab === 2 && (
+          <Box sx={{ p: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => setWorkHoursDialogOpen(true)}
+              sx={{ mb: 2 }}
+            >
+              查看工時統計
+            </Button>
+          </Box>
         )}
       </Paper>
       

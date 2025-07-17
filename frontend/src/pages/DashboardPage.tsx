@@ -186,6 +186,7 @@ const DashboardPage: FC = () => {
   const [salesError, setSalesError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+
   useEffect(() => {
     const testModeActive = localStorage.getItem('isTestMode') === 'true';
     setIsTestMode(testModeActive);
@@ -273,6 +274,7 @@ const DashboardPage: FC = () => {
       minimumFractionDigits: 0
     }).format(amount);
   };
+
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);

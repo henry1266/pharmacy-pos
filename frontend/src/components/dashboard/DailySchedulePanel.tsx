@@ -10,16 +10,11 @@ import {
   Avatar,
   Divider,
   Button,
-  Tooltip,
-  AvatarGroup
+  Tooltip
 } from '@mui/material';
 import {
   Schedule as ScheduleIcon,
-  Person as PersonIcon,
-  AccessTime as AccessTimeIcon,
-  Warning as WarningIcon,
-  Refresh as RefreshIcon,
-  Info as InfoIcon
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -39,7 +34,6 @@ interface DailySchedulePanelProps {
 interface ShiftSchedule {
   shift: 'morning' | 'afternoon' | 'evening';
   shiftName: string;
-  timeRange: string;
   employees: EmployeeSchedule[];
   color: string;
 }
@@ -50,11 +44,11 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   const [employeesLoading, setEmployeesLoading] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
-  // 預設班次配置（如果資料庫沒有時間資料時使用）
-  const defaultShiftConfig: Record<string, { name: string; time: string; color: string }> = {
-    morning: { name: '早班', time: '08:00-16:00', color: '#4CAF50' },
-    afternoon: { name: '中班', time: '16:00-24:00', color: '#FF9800' },
-    evening: { name: '晚班', time: '00:00-08:00', color: '#3F51B5' }
+  // 班次基本配置（僅包含名稱和顏色）
+  const shiftBaseConfig: Record<string, { name: string; color: string }> = {
+    morning: { name: '早班', color: '#4CAF50' },
+    afternoon: { name: '中班', color: '#FF9800' },
+    evening: { name: '晚班', color: '#3F51B5' }
   };
 
   const loadEmployees = useCallback(async () => {
@@ -167,32 +161,22 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     return leaveType ? colorMap[leaveType] || 'default' : 'default';
   }, []);
 
-  // 獲取實際班次時間範圍
-  const getShiftTimeRange = useCallback((shift: 'morning' | 'afternoon' | 'evening', employees: EmployeeSchedule[]): string => {
-    // 如果有員工資料且包含時間資訊，使用實際時間
-    if (employees.length > 0 && employees[0].startTime && employees[0].endTime) {
-      return `${employees[0].startTime}-${employees[0].endTime}`;
-    }
-    // 否則使用預設時間
-    return defaultShiftConfig[shift].time;
-  }, []);
-
   // 準備班次數據
   const shiftData: ShiftSchedule[] = React.useMemo(() => {
     const daySchedules = schedulesGroupedByDate[selectedDate];
 
-    return Object.entries(defaultShiftConfig).map(([shift, config]) => {
+    return Object.keys(shiftBaseConfig).map((shift) => {
+      const baseConfig = shiftBaseConfig[shift];
       const shiftEmployees = daySchedules ? (daySchedules[shift as keyof typeof daySchedules] || []) : [];
       
       return {
         shift: shift as 'morning' | 'afternoon' | 'evening',
-        shiftName: config.name,
-        timeRange: getShiftTimeRange(shift as 'morning' | 'afternoon' | 'evening', shiftEmployees),
+        shiftName: baseConfig.name,
         employees: shiftEmployees,
-        color: config.color
+        color: baseConfig.color
       };
     });
-  }, [schedulesGroupedByDate, selectedDate, getShiftTimeRange]);
+  }, [schedulesGroupedByDate, selectedDate]);
 
   const totalEmployees = React.useMemo(() => 
     shiftData.reduce((sum, shift) => sum + shift.employees.length, 0), 
@@ -299,13 +283,6 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                   <Typography variant="subtitle2" fontWeight="medium">
                     {shift.shiftName}
                   </Typography>
-                  <Chip
-                    icon={<AccessTimeIcon />}
-                    label={shift.timeRange}
-                    size="small"
-                    variant="outlined"
-                    sx={{ fontSize: '0.7rem', height: 20 }}
-                  />
                 </Box>
                 <Typography variant="body2" color="text.secondary">
                   {shift.employees.length} 人
@@ -331,21 +308,6 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                             <Typography variant="caption" color="inherit">
                               職位: {getEmployeePosition(employee.employeeId)}
                             </Typography>
-                            {getEmployeePhone(employee.employeeId) && (
-                              <Typography variant="caption" color="inherit" sx={{ display: 'block' }}>
-                                電話: {getEmployeePhone(employee.employeeId)}
-                              </Typography>
-                            )}
-                            {employee.startTime && employee.endTime && (
-                              <Typography variant="caption" color="inherit" sx={{ display: 'block' }}>
-                                時間: {employee.startTime} - {employee.endTime}
-                              </Typography>
-                            )}
-                            {employee.leaveType && (
-                              <Typography variant="caption" color="inherit" sx={{ display: 'block' }}>
-                                狀態: {getLeaveTypeLabel(employee.leaveType)}
-                              </Typography>
-                            )}
                           </Box>
                         }
                         placement="top"
@@ -412,4 +374,5 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   );
 };
 
+export { DailySchedulePanel };
 export default DailySchedulePanel;
