@@ -17,7 +17,7 @@ import {
   TransactionGroupWithEntries,
   TransactionGroup
 } from '@pharmacy-pos/shared';
-import { embeddedEntriesHelpers } from '@services/transactionGroupWithEntriesService';
+import { embeddedEntriesHelpers } from '../../../services/transactionGroupWithEntriesService';
 
 interface TransactionEntryForm3Props {
   entries: EmbeddedAccountingEntryFormData[];
