@@ -166,6 +166,23 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
     }
   };
 
+  // Handle Unlock - Change status from completed to pending
+  const handleUnlock = async (record: ExtendedAccountingRecord): Promise<void> => {
+    if (window.confirm('確定要解鎖此記帳記錄並改為待處理狀態嗎？')) {
+      setFormLoading(true);
+      try {
+        await accountingServiceV2.updateAccountingRecord(record._id, { status: 'pending' });
+        showSnackbar('記帳記錄已解鎖', 'success');
+        fetchRecords(); // Refetch records after unlock
+      } catch (err: any) {
+        console.error('解鎖記帳記錄失敗:', err);
+        showSnackbar(err.message ?? '解鎖記帳記錄失敗', 'error');
+      } finally {
+        setFormLoading(false);
+      }
+    }
+  };
+
   // Show Snackbar utility
   const showSnackbar = (message: string, severity: AlertSeverity): void => {
     setSnackbarMessage(message);
@@ -205,6 +222,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
         loading={loadingRecords ?? formLoading}
         onEdit={handleOpenEditDialog}
         onDelete={handleDelete}
+        onUnlock={handleUnlock}
       />
 
       {/* Edit Form Dialog (only for editing) */}

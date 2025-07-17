@@ -1,8 +1,9 @@
 import React from 'react';
 import { DataGrid, GridColDef, GridRowHeightParams, GridValueFormatterParams } from '@mui/x-data-grid';
-import { Paper, IconButton, Box } from '@mui/material';
+import { Paper, IconButton, Box, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import LockIcon from '@mui/icons-material/Lock';
 import { format } from 'date-fns';
 import StatusChip from '../common/StatusChip';
 import type { AccountingItem, ExtendedAccountingRecord } from '@pharmacy-pos/shared/types/accounting';
@@ -24,16 +25,18 @@ interface AccountingDataGridProps {
   loading: boolean;
   onEdit: (record: ExtendedAccountingRecord) => void;
   onDelete: (id: string) => void;
+  onUnlock?: (record: ExtendedAccountingRecord) => void;
 }
 
 /**
  * 記帳系統數據表格組件
  */
-const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({ 
-  records, 
-  loading, 
-  onEdit, 
-  onDelete 
+const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
+  records,
+  loading,
+  onEdit,
+  onDelete,
+  onUnlock
 }) => {
   // 定義班別顏色
   const shiftColors: Record<string, string> = {
@@ -106,22 +109,40 @@ const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
       sortable: false,
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => (
-        <div>
-          <IconButton
-            color="primary"
-            onClick={() => onEdit((params.row as GridRow).rawRecord)}
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            color="error"
-            onClick={() => onDelete(params.row.id as string)}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </div>
-      )
+      renderCell: (params) => {
+        const row = params.row as GridRow;
+        const isCompleted = row.status === 'completed';
+        
+        return (
+          <div>
+            {isCompleted ? (
+              <Tooltip title="點擊解鎖並改為待處理">
+                <IconButton
+                  color="primary"
+                  onClick={() => onUnlock?.(row.rawRecord)}
+                >
+                  <LockIcon />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <>
+                <IconButton
+                  color="primary"
+                  onClick={() => onEdit(row.rawRecord)}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton
+                  color="error"
+                  onClick={() => onDelete(params.row.id as string)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </>
+            )}
+          </div>
+        );
+      }
     }
   ];
 

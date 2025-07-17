@@ -3,15 +3,15 @@
  * 這個版本展示了如何使用 shared 模組來減少重複代碼
  */
 
-import axios from 'axios';
 import { AccountingApiClient, createAccountingApiClient } from '@pharmacy-pos/shared';
+import apiService from '../utils/apiService';
 
-// 創建 axios 適配器以符合 HttpClient 介面
+// 創建 axios 適配器以符合 HttpClient 介面，使用配置了攔截器的 apiService
 const axiosAdapter = {
-  get: axios.get.bind(axios),
-  post: axios.post.bind(axios),
-  put: axios.put.bind(axios),
-  delete: axios.delete.bind(axios)
+  get: apiService.get.bind(apiService),
+  post: apiService.post.bind(apiService),
+  put: apiService.put.bind(apiService),
+  delete: apiService.delete.bind(apiService)
 };
 
 // 創建統一的會計 API 客戶端實例
