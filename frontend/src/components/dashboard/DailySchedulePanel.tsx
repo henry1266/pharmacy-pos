@@ -21,10 +21,11 @@ import { zhTW } from 'date-fns/locale';
 
 // Import hooks and services
 import { useEmployeeScheduling } from '../../modules/employees/core/hooks/useEmployeeScheduling';
+import { useShiftTimeConfig } from '../../modules/employees/core/hooks/useShiftTimeConfig';
 import { employeeService } from '../../modules/employees/core/employeeService';
 
 // Import types
-import type { EmployeeSchedule } from '../../modules/employees/types';
+import type { EmployeeSchedule, ShiftTimesMap } from '../../modules/employees/types';
 import type { Employee } from '@pharmacy-pos/shared/types/entities';
 
 interface DailySchedulePanelProps {
@@ -34,22 +35,36 @@ interface DailySchedulePanelProps {
 interface ShiftSchedule {
   shift: 'morning' | 'afternoon' | 'evening';
   shiftName: string;
+  timeRange: string;
   employees: EmployeeSchedule[];
   color: string;
 }
 
 const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   const { schedulesGroupedByDate, loading, error, fetchSchedulesByDate } = useEmployeeScheduling();
+  const { shiftTimesMap, loading: shiftConfigLoading } = useShiftTimeConfig();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
-  // 班次基本配置（僅包含名稱和顏色）
-  const shiftBaseConfig: Record<string, { name: string; color: string }> = {
-    morning: { name: '早班', color: '#4CAF50' },
-    afternoon: { name: '中班', color: '#FF9800' },
-    evening: { name: '晚班', color: '#3F51B5' }
-  };
+  // 班次基本配置（包含名稱、顏色和時段區間）
+  const shiftBaseConfig: Record<string, { name: string; color: string; timeRange: string }> = React.useMemo(() => ({
+    morning: {
+      name: '早班',
+      color: '#4CAF50',
+      timeRange: shiftTimesMap.morning ? `${shiftTimesMap.morning.start} - ${shiftTimesMap.morning.end}` : '08:30 - 12:00'
+    },
+    afternoon: {
+      name: '中班',
+      color: '#FF9800',
+      timeRange: shiftTimesMap.afternoon ? `${shiftTimesMap.afternoon.start} - ${shiftTimesMap.afternoon.end}` : '15:00 - 18:00'
+    },
+    evening: {
+      name: '晚班',
+      color: '#3F51B5',
+      timeRange: shiftTimesMap.evening ? `${shiftTimesMap.evening.start} - ${shiftTimesMap.evening.end}` : '19:00 - 20:30'
+    }
+  }), [shiftTimesMap]);
 
   const loadEmployees = useCallback(async () => {
     try {
@@ -161,6 +176,35 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     return leaveType ? colorMap[leaveType] || 'default' : 'default';
   }, []);
 
+  /**
+   * 為員工生成固定的頭像顏色
+   * 基於員工ID生成一致的顏色
+   */
+  const getEmployeeAvatarColor = useCallback((employeeId: string): string => {
+    const colors = [
+      '#1976d2', // 藍色
+      '#388e3c', // 綠色
+      '#f57c00', // 橙色
+      '#7b1fa2', // 紫色
+      '#d32f2f', // 紅色
+      '#0288d1', // 淺藍色
+      '#689f38', // 淺綠色
+      '#f9a825', // 黃色
+      '#5d4037', // 棕色
+      '#455a64', // 藍灰色
+      '#e91e63', // 粉紅色
+      '#00796b'  // 青色
+    ];
+    
+    // 使用員工ID的字符碼總和來選擇顏色
+    let hash = 0;
+    for (let i = 0; i < employeeId.length; i++) {
+      hash += employeeId.charCodeAt(i);
+    }
+    
+    return colors[hash % colors.length];
+  }, []);
+
   // 準備班次數據
   const shiftData: ShiftSchedule[] = React.useMemo(() => {
     const daySchedules = schedulesGroupedByDate[selectedDate];
@@ -172,11 +216,12 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
       return {
         shift: shift as 'morning' | 'afternoon' | 'evening',
         shiftName: baseConfig.name,
+        timeRange: baseConfig.timeRange,
         employees: shiftEmployees,
         color: baseConfig.color
       };
     });
-  }, [schedulesGroupedByDate, selectedDate]);
+  }, [schedulesGroupedByDate, selectedDate, shiftBaseConfig]);
 
   const totalEmployees = React.useMemo(() => 
     shiftData.reduce((sum, shift) => sum + shift.employees.length, 0), 
@@ -190,7 +235,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     [shiftData]
   );
 
-  if (loading || employeesLoading) {
+  if (loading || employeesLoading || shiftConfigLoading) {
     return (
       <Card elevation={2}>
         <CardContent>
@@ -280,9 +325,14 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                       bgcolor: shift.color
                     }}
                   />
-                  <Typography variant="subtitle2" fontWeight="medium">
-                    {shift.shiftName}
-                  </Typography>
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight="medium">
+                      {shift.shiftName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {shift.timeRange}
+                    </Typography>
+                  </Box>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
                   {shift.employees.length} 人
@@ -319,7 +369,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                               width: 40,
                               height: 40,
                               fontSize: '0.875rem',
-                              bgcolor: shift.color,
+                              bgcolor: getEmployeeAvatarColor(employee.employeeId),
                               cursor: 'pointer',
                               '&:hover': {
                                 transform: 'scale(1.1)',
