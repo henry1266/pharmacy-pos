@@ -46,7 +46,7 @@ import OrganizationFormPage from './pages/OrganizationFormPage';
   import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
 // 會計管理頁面元件
   import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
-  import Accounting3TransactionPage from './pages/Accounting3TransactionPage';
+  import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
   import AccountsManagementPage from './pages/AccountsManagementPage';
   import AccountDetailPage from './pages/AccountDetailPage';
   import TransactionDetailPage from './pages/TransactionDetailPage';

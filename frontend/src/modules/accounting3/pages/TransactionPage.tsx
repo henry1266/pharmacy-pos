@@ -32,11 +32,11 @@ import {
   AccountTree as AccountTreeIcon,
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
-import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 
 // 導入內嵌分錄組件
-import { TransactionGroupFormWithEntries } from '../modules/accounting3/components/features/transactions/TransactionGroupFormWithEntries';
-import { AccountingDataGridWithEntries } from '../modules/accounting3/components/ui';
+import { TransactionGroupFormWithEntries } from '../components/features/transactions/TransactionGroupFormWithEntries';
+import { AccountingDataGridWithEntries } from '../components/ui';
 
 // 導入內嵌分錄 Redux actions
 import {
@@ -48,7 +48,7 @@ import {
   unlockTransactionGroupWithEntries,
   fetchAccounts2,
   fetchOrganizations2
-} from '../redux/actions';
+} from '../../../redux/actions';
 
 // 導入共享類型
 import {
@@ -56,7 +56,7 @@ import {
   EmbeddedAccountingEntry,
   TransactionGroupWithEntriesFormData,
   EmbeddedAccountingEntryFormData
-} from '../../../shared/types/accounting2';
+} from '../../../../../shared/types/accounting2';
 
 /**
  * 會計系統交易列表頁面
