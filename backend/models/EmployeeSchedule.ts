@@ -11,6 +11,16 @@ const EmployeeScheduleSchema = new Schema({
     enum: ["morning", "afternoon", "evening"],
     required: true
   },
+  startTime: {
+    type: String,
+    required: false,
+    default: '08:00'
+  },
+  endTime: {
+    type: String,
+    required: false,
+    default: '16:00'
+  },
   employeeId: {
     type: Schema.Types.ObjectId,
     ref: 'employee',

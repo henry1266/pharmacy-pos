@@ -42,6 +42,14 @@ export type {
   MonthlyOvertimeStats
 } from '../core/overtimeRecordService';
 
+export type {
+  // 班次時間配置類型
+  ShiftTimeConfig,
+  ShiftTimeConfigData,
+  ShiftTimeConfigUpdateData,
+  ShiftTimesMap
+} from '../core/shiftTimeConfigService';
+
 // 員工模組專用的業務類型定義
 
 /**

@@ -9,7 +9,9 @@ import {
   Chip,
   Avatar,
   Divider,
-  Button
+  Button,
+  Tooltip,
+  AvatarGroup
 } from '@mui/material';
 import {
   Schedule as ScheduleIcon,
@@ -48,8 +50,8 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   const [employeesLoading, setEmployeesLoading] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
-  // 班次配置
-  const shiftConfig: Record<string, { name: string; time: string; color: string }> = {
+  // 預設班次配置（如果資料庫沒有時間資料時使用）
+  const defaultShiftConfig: Record<string, { name: string; time: string; color: string }> = {
     morning: { name: '早班', time: '08:00-16:00', color: '#4CAF50' },
     afternoon: { name: '中班', time: '16:00-24:00', color: '#FF9800' },
     evening: { name: '晚班', time: '00:00-08:00', color: '#3F51B5' }
@@ -110,7 +112,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
       }
 
       const testDate = new Date().toISOString().split('T')[0];
-      const response = await fetch(`/api/employee-schedules?startDate=${testDate}&endDate=${testDate}`, {
+      const response = await fetch(`/api/employee-schedules/by-date?startDate=${testDate}&endDate=${testDate}`, {
         headers: {
           'x-auth-token': token,
           'Content-Type': 'application/json'
@@ -132,6 +134,11 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   const getEmployeePosition = useCallback((employeeId: string): string => {
     const employee = employees.find(emp => emp._id === employeeId);
     return employee ? employee.position : '未知職位';
+  }, [employees]);
+
+  const getEmployeePhone = useCallback((employeeId: string): string => {
+    const employee = employees.find(emp => emp._id === employeeId);
+    return employee ? employee.phone : '';
   }, [employees]);
 
   const formatDate = useCallback((dateStr: string): string => {
@@ -160,18 +167,32 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     return leaveType ? colorMap[leaveType] || 'default' : 'default';
   }, []);
 
+  // 獲取實際班次時間範圍
+  const getShiftTimeRange = useCallback((shift: 'morning' | 'afternoon' | 'evening', employees: EmployeeSchedule[]): string => {
+    // 如果有員工資料且包含時間資訊，使用實際時間
+    if (employees.length > 0 && employees[0].startTime && employees[0].endTime) {
+      return `${employees[0].startTime}-${employees[0].endTime}`;
+    }
+    // 否則使用預設時間
+    return defaultShiftConfig[shift].time;
+  }, []);
+
   // 準備班次數據
   const shiftData: ShiftSchedule[] = React.useMemo(() => {
     const daySchedules = schedulesGroupedByDate[selectedDate];
 
-    return Object.entries(shiftConfig).map(([shift, config]) => ({
-      shift: shift as 'morning' | 'afternoon' | 'evening',
-      shiftName: config.name,
-      timeRange: config.time,
-      employees: daySchedules ? (daySchedules[shift as keyof typeof daySchedules] || []) : [],
-      color: config.color
-    }));
-  }, [schedulesGroupedByDate, selectedDate, shiftConfig]);
+    return Object.entries(defaultShiftConfig).map(([shift, config]) => {
+      const shiftEmployees = daySchedules ? (daySchedules[shift as keyof typeof daySchedules] || []) : [];
+      
+      return {
+        shift: shift as 'morning' | 'afternoon' | 'evening',
+        shiftName: config.name,
+        timeRange: getShiftTimeRange(shift as 'morning' | 'afternoon' | 'evening', shiftEmployees),
+        employees: shiftEmployees,
+        color: config.color
+      };
+    });
+  }, [schedulesGroupedByDate, selectedDate, getShiftTimeRange]);
 
   const totalEmployees = React.useMemo(() => 
     shiftData.reduce((sum, shift) => sum + shift.employees.length, 0), 
@@ -245,6 +266,11 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
           </Box>
         </Box>
 
+        {/* 日期顯示 */}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {formatDate(selectedDate)}
+        </Typography>
+
         {/* 班次列表 */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {shiftData.map((shift, index) => (
@@ -286,59 +312,80 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                 </Typography>
               </Box>
 
-              {/* 員工詳細列表 */}
+              {/* 員工頭像並排顯示 */}
               <Box sx={{ pl: 1, pr: 1, pb: 1 }}>
                 {shift.employees.length === 0 ? (
                   <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
                     此班次無排班
                   </Typography>
                 ) : (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                     {shift.employees.map((employee) => (
-                      <Box
+                      <Tooltip
                         key={employee._id}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          p: 1.5,
-                          bgcolor: 'background.paper',
-                          borderRadius: 1,
-                          border: '1px solid',
-                          borderColor: 'divider'
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Avatar
-                            sx={{
-                              width: 32,
-                              height: 32,
-                              fontSize: '0.875rem',
-                              bgcolor: shift.color
-                            }}
-                          >
-                            {getEmployeeName(employee.employeeId).charAt(0)}
-                          </Avatar>
+                        title={
                           <Box>
                             <Typography variant="body2" fontWeight="medium">
                               {getEmployeeName(employee.employeeId)}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {getEmployeePosition(employee.employeeId)}
+                            <Typography variant="caption" color="inherit">
+                              職位: {getEmployeePosition(employee.employeeId)}
                             </Typography>
+                            {getEmployeePhone(employee.employeeId) && (
+                              <Typography variant="caption" color="inherit" sx={{ display: 'block' }}>
+                                電話: {getEmployeePhone(employee.employeeId)}
+                              </Typography>
+                            )}
+                            {employee.startTime && employee.endTime && (
+                              <Typography variant="caption" color="inherit" sx={{ display: 'block' }}>
+                                時間: {employee.startTime} - {employee.endTime}
+                              </Typography>
+                            )}
+                            {employee.leaveType && (
+                              <Typography variant="caption" color="inherit" sx={{ display: 'block' }}>
+                                狀態: {getLeaveTypeLabel(employee.leaveType)}
+                              </Typography>
+                            )}
                           </Box>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        }
+                        placement="top"
+                        arrow
+                      >
+                        <Box sx={{ position: 'relative' }}>
+                          <Avatar
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              fontSize: '0.875rem',
+                              bgcolor: shift.color,
+                              cursor: 'pointer',
+                              '&:hover': {
+                                transform: 'scale(1.1)',
+                                transition: 'transform 0.2s ease-in-out'
+                              }
+                            }}
+                          >
+                            {getEmployeeName(employee.employeeId).charAt(0)}
+                          </Avatar>
                           {employee.leaveType && (
                             <Chip
                               label={getLeaveTypeLabel(employee.leaveType)}
                               size="small"
                               color={getLeaveTypeColor(employee.leaveType)}
-                              sx={{ fontSize: '0.7rem', height: 20 }}
+                              sx={{ 
+                                position: 'absolute',
+                                top: -8,
+                                right: -8,
+                                fontSize: '0.6rem',
+                                height: 16,
+                                '& .MuiChip-label': {
+                                  px: 0.5
+                                }
+                              }}
                             />
                           )}
                         </Box>
-                      </Box>
+                      </Tooltip>
                     ))}
                   </Box>
                 )}

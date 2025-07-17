@@ -12,9 +12,13 @@ export { useEmployeeScheduling, default as useEmployeeSchedulingDefault } from '
 // 加班管理 Hook
 export { useOvertimeManager, default as useOvertimeManagerDefault } from './useOvertimeManager';
 
+// 班次時間配置管理 Hook
+export { useShiftTimeConfig, default as useShiftTimeConfigDefault } from './useShiftTimeConfig';
+
 // 統一的 hooks 集合
 export const employeeCoreHooks = {
   useEmployeeAccounts: () => import('./useEmployeeAccounts').then(m => m.useEmployeeAccounts),
   useEmployeeScheduling: () => import('./useEmployeeScheduling').then(m => m.useEmployeeScheduling),
-  useOvertimeManager: () => import('./useOvertimeManager').then(m => m.useOvertimeManager)
+  useOvertimeManager: () => import('./useOvertimeManager').then(m => m.useOvertimeManager),
+  useShiftTimeConfig: () => import('./useShiftTimeConfig').then(m => m.useShiftTimeConfig)
 };

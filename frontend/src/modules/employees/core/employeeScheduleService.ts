@@ -22,6 +22,8 @@ export interface EmployeeSchedule {
   _id: string;
   date: string;
   shift: 'morning' | 'afternoon' | 'evening';
+  startTime?: string;
+  endTime?: string;
   employeeId: string;
   employee?: {
     _id: string;

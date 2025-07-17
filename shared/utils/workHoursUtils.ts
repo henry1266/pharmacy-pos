@@ -72,12 +72,15 @@ export interface FormattedEmployeeHours {
   sickLeaveHours: string;
 }
 
-// 班次時間定義
-export const SHIFT_TIMES: Record<ShiftType, ShiftTime> = {
+// 預設班次時間定義（作為後備）
+export const DEFAULT_SHIFT_TIMES: Record<ShiftType, ShiftTime> = {
   morning: { start: '08:30', end: '12:00' },
   afternoon: { start: '15:00', end: '18:00' },
   evening: { start: '19:00', end: '20:30' }
 };
+
+// 動態班次時間（可由配置覆蓋）
+export let SHIFT_TIMES: Record<ShiftType, ShiftTime> = { ...DEFAULT_SHIFT_TIMES };
 
 // 班次名稱列表
 export const SHIFT_NAMES: ShiftType[] = ['morning', 'afternoon', 'evening'];
@@ -89,6 +92,22 @@ export const SHIFT_NAMES: ShiftType[] = ['morning', 'afternoon', 'evening'];
  */
 export const calculateShiftHours = (shift: ShiftType): number => {
   const { start, end } = SHIFT_TIMES[shift];
+  
+  // 安全檢查：確保 start 和 end 都存在且為字串
+  if (!start || !end || typeof start !== 'string' || typeof end !== 'string') {
+    console.warn(`班次 ${shift} 的時間配置無效:`, { start, end });
+    // 返回預設班次時間的工時
+    const defaultShift = DEFAULT_SHIFT_TIMES[shift];
+    if (defaultShift) {
+      const [startHour, startMinute] = defaultShift.start.split(':').map(Number);
+      const [endHour, endMinute] = defaultShift.end.split(':').map(Number);
+      const startTimeInMinutes = startHour * 60 + startMinute;
+      const endTimeInMinutes = endHour * 60 + endMinute;
+      return (endTimeInMinutes - startTimeInMinutes) / 60;
+    }
+    return 0; // 如果連預設值都沒有，返回 0
+  }
+  
   const [startHour, startMinute] = start.split(':').map(Number);
   const [endHour, endMinute] = end.split(':').map(Number);
   
@@ -105,6 +124,12 @@ export const calculateShiftHours = (shift: ShiftType): number => {
  * @returns 小時差
  */
 export const calculateHoursBetween = (startTime: string, endTime: string): number => {
+  // 安全檢查：確保 startTime 和 endTime 都存在且為字串
+  if (!startTime || !endTime || typeof startTime !== 'string' || typeof endTime !== 'string') {
+    console.warn('時間參數無效:', { startTime, endTime });
+    return 0;
+  }
+  
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
   
@@ -255,4 +280,47 @@ export const formatHours = (hours: number, decimals: number = 1): string => {
  */
 export const isValidHours = (hours: number, maxHours: number = 24): boolean => {
   return typeof hours === 'number' && hours >= 0 && hours <= maxHours && !isNaN(hours);
+};
+
+/**
+ * 更新班次時間配置
+ * @param shiftTimesConfig - 新的班次時間配置
+ */
+export const updateShiftTimes = (shiftTimesConfig: Partial<Record<ShiftType, ShiftTime>>): void => {
+  Object.keys(shiftTimesConfig).forEach(shift => {
+    const shiftType = shift as ShiftType;
+    if (shiftTimesConfig[shiftType]) {
+      SHIFT_TIMES[shiftType] = shiftTimesConfig[shiftType]!;
+    }
+  });
+};
+
+/**
+ * 重置班次時間為預設值
+ */
+export const resetShiftTimesToDefault = (): void => {
+  SHIFT_TIMES = { ...DEFAULT_SHIFT_TIMES };
+};
+
+/**
+ * 獲取當前班次時間配置
+ * @returns 當前班次時間配置
+ */
+export const getCurrentShiftTimes = (): Record<ShiftType, ShiftTime> => {
+  return { ...SHIFT_TIMES };
+};
+
+/**
+ * 使用自定義班次時間計算工時
+ * @param shift - 班次類型
+ * @param customTimes - 自定義班次時間（可選）
+ * @returns 工時數（小時）
+ */
+export const calculateShiftHoursWithCustomTimes = (
+  shift: ShiftType,
+  customTimes?: Record<ShiftType, ShiftTime>
+): number => {
+  const times = customTimes || SHIFT_TIMES;
+  const { start, end } = times[shift];
+  return calculateHoursBetween(start, end);
 };

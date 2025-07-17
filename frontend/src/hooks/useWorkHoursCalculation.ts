@@ -1,13 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import {
   SHIFT_NAMES,
   calculateShiftHours,
   initializeEmployeeHours,
   allocateHoursByLeaveType,
   formatEmployeeHours,
-  ShiftType
+  updateShiftTimes,
+  ShiftType,
+  ShiftTime
 } from '@pharmacy-pos/shared/utils';
 import { SchedulesByDate, EmployeeSchedule } from '../modules/employees';
+import { useShiftTimeConfig } from '../modules/employees/core/hooks/useShiftTimeConfig';
 
 /**
  * 排班介面 (與 workHoursUtils 中的 Schedule 相容)
@@ -106,6 +109,31 @@ const processDateSchedules = (
  * 使用工具函數處理員工排班數據的工時統計計算
  */
 const useWorkHoursCalculation = (schedulesGroupedByDate: SchedulesByDate) => {
+  const { shiftTimesMap, fetchConfigs } = useShiftTimeConfig();
+
+  // 初始化時獲取班次時間配置
+  useEffect(() => {
+    fetchConfigs();
+  }, [fetchConfigs]);
+
+  // 當班次時間配置變更時，更新共享工具函數中的配置
+  useEffect(() => {
+    if (Object.keys(shiftTimesMap).length > 0) {
+      const shiftTimesConfig: Partial<Record<ShiftType, ShiftTime>> = {};
+      
+      Object.entries(shiftTimesMap).forEach(([shift, config]) => {
+        if (config) {
+          shiftTimesConfig[shift as ShiftType] = {
+            start: config.start,
+            end: config.end
+          };
+        }
+      });
+      
+      updateShiftTimes(shiftTimesConfig);
+    }
+  }, [shiftTimesMap]);
+
   // 計算每位員工的本月工時
   const calculateEmployeeMonthlyHours = useMemo<EmployeeMonthlyHours[]>(() => {
     const employeeHoursData: EmployeeHoursData = {
@@ -127,11 +155,12 @@ const useWorkHoursCalculation = (schedulesGroupedByDate: SchedulesByDate) => {
     return Object.keys(employeeHoursData.names)
       .map(employeeId => formatEmployeeHours(employeeId, employeeHoursData))
       .sort((a, b) => parseFloat(b.hours) - parseFloat(a.hours));
-  }, [schedulesGroupedByDate]);
+  }, [schedulesGroupedByDate, shiftTimesMap]);
 
   return {
     calculateEmployeeMonthlyHours,
-    calculateShiftHours
+    calculateShiftHours,
+    shiftTimesMap
   };
 };
 

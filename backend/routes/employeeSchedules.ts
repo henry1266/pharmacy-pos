@@ -15,6 +15,25 @@ import {
 
 const router: express.Router = express.Router();
 
+// 預設班次時間函數
+const getDefaultStartTime = (shift: string): string => {
+  switch (shift) {
+    case 'morning': return '08:00';
+    case 'afternoon': return '16:00';
+    case 'evening': return '00:00';
+    default: return '08:00';
+  }
+};
+
+const getDefaultEndTime = (shift: string): string => {
+  switch (shift) {
+    case 'morning': return '16:00';
+    case 'afternoon': return '24:00';
+    case 'evening': return '08:00';
+    default: return '16:00';
+  }
+};
+
 // @route   GET api/employee-schedules
 // @desc    Get employee schedules with date range filter
 // @access  Private
@@ -537,6 +556,8 @@ router.get('/by-date', [
       _id: mongoose.Types.ObjectId;
       date: string;
       shift: string;
+      startTime: string;
+      endTime: string;
       employeeId: string;
       employee: {
         _id: mongoose.Types.ObjectId;
@@ -575,6 +596,8 @@ router.get('/by-date', [
         _id: schedule._id,
         date: dateStr,
         shift: schedule.shift,
+        startTime: (schedule as any).startTime || getDefaultStartTime(schedule.shift),
+        endTime: (schedule as any).endTime || getDefaultEndTime(schedule.shift),
         employeeId: (schedule.employeeId as any)._id.toString(), // 修正：使用 employeeId 而不是 employee
         employee: schedule.employeeId as unknown as {
           _id: mongoose.Types.ObjectId;

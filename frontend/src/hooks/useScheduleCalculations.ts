@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { SchedulesByDate, EmployeeSchedule } from '../modules/employees';
+import { SchedulesByDate, EmployeeSchedule, useShiftTimeConfig } from '../modules/employees';
 
 /**
  * 員工工時數據介面
@@ -41,23 +41,19 @@ interface ShiftTimes {
  * 處理工時計算、班次時間等邏輯
  */
 const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
-  // 班次時間定義
+  // 使用動態班次時間配置
+  const { shiftTimesMap, calculateShiftHours: calculateDynamicShiftHours } = useShiftTimeConfig();
+  
+  // 班次時間定義（使用動態配置）
   const shiftTimes: ShiftTimes = {
-    morning: { start: '08:30', end: '12:00' },
-    afternoon: { start: '15:00', end: '18:00' },
-    evening: { start: '19:00', end: '20:30' }
+    morning: shiftTimesMap.morning,
+    afternoon: shiftTimesMap.afternoon,
+    evening: shiftTimesMap.evening
   };
 
-  // 計算班次工時
+  // 計算班次工時（使用動態配置）
   const calculateShiftHours = (shift: string): number => {
-    const { start, end } = shiftTimes[shift];
-    const [startHour, startMinute] = start.split(':').map(Number);
-    const [endHour, endMinute] = end.split(':').map(Number);
-    
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const endTimeInMinutes = endHour * 60 + endMinute;
-    
-    return (endTimeInMinutes - startTimeInMinutes) / 60;
+    return calculateDynamicShiftHours(shift as 'morning' | 'afternoon' | 'evening');
   };
 
   // 處理單個排班記錄的工時計算
@@ -146,7 +142,7 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
         sickLeaveHours: sickLeaveHours.toFixed(1)
       };
     }).sort((a, b) => parseFloat(b.hours) - parseFloat(a.hours));
-  }, [schedulesGroupedByDate]);
+  }, [schedulesGroupedByDate, shiftTimesMap]);
 
   // 獲取員工姓名的最後一個字作為縮寫
   const getEmployeeAbbreviation = (employee: { name?: string }): string => {
