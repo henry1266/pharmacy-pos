@@ -183,6 +183,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
     }
   };
 
+
   // Show Snackbar utility
   const showSnackbar = (message: string, severity: AlertSeverity): void => {
     setSnackbarMessage(message);

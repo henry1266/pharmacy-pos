@@ -12,22 +12,29 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  IconButton
+  IconButton,
+  Snackbar
 } from '@mui/material';
 import {
   AccountBalance as AccountBalanceIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 // Import Hook
 import useDashboardData from '../hooks/useDashboardData';
+import useAccountingData from '../hooks/useAccountingData';
 
 // Import Presentation Components
 import DashboardCalendar from '../components/dashboard/DashboardCalendar';
 import DailySchedulePanel from '../components/dashboard/DailySchedulePanel';
 import StatusChip from '../components/common/StatusChip';
 import DailySalesPanel from '../components/sales/DailySalesPanel';
+import AccountingForm from '../components/accounting/AccountingForm';
 
 // Import Services
 import { accountingServiceV2 } from '../services/accountingServiceV2';
@@ -35,8 +42,8 @@ import { getAllSales } from '../services/salesServiceV2';
 
 // Import Types
 import { DashboardSummary, SalesTrend, CategorySales } from '../services/dashboardService';
-import type { ExtendedAccountingRecord } from '@pharmacy-pos/shared/types/accounting';
-import type { Sale } from '@pharmacy-pos/shared/types/entities';
+import type { ExtendedAccountingRecord, FormData } from '@pharmacy-pos/shared/types/accounting';
+import type { Sale, AccountingRecord } from '@pharmacy-pos/shared/types/entities';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
@@ -176,6 +183,7 @@ const adaptToSummaryData = (data: DashboardSummary | MockDashboardData | null): 
  * Includes Test Mode logic.
  */
 const DashboardPage: FC = () => {
+  const navigate = useNavigate();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [accountingRecords, setAccountingRecords] = useState<ExtendedAccountingRecord[]>([]);
@@ -185,6 +193,30 @@ const DashboardPage: FC = () => {
   const [salesLoading, setSalesLoading] = useState<boolean>(false);
   const [salesError, setSalesError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Edit dialog states
+  const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [formLoading, setFormLoading] = useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData>({
+    date: new Date(),
+    shift: '',
+    status: 'pending',
+    items: [
+      { amount: 0, category: '掛號費', note: '' },
+      { amount: 0, category: '部分負擔', note: '' }
+    ],
+    unaccountedSales: []
+  });
+
+  // Snackbar states
+  const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+
+  // Use accounting hook for edit functionality
+  const { fetchEditData } = useAccountingData();
 
 
   useEffect(() => {
@@ -267,6 +299,13 @@ const DashboardPage: FC = () => {
     }
   };
 
+  // Show Snackbar utility
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning'): void => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setOpenSnackbar(true);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-TW', {
       style: 'currency',
@@ -278,6 +317,104 @@ const DashboardPage: FC = () => {
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
+  };
+
+  // Handle Edit - Open edit dialog
+  const handleEditRecord = async (record: ExtendedAccountingRecord) => {
+    setFormLoading(true);
+    setEditMode(true);
+    setCurrentId(record._id);
+    const result = await fetchEditData(record);
+    if (result.success) {
+      setFormData(result.data);
+      setOpenEditDialog(true);
+    } else {
+      showSnackbar(result.error ?? '載入編輯資料失敗', 'error');
+      // Reset state if fetch fails
+      setEditMode(false);
+      setCurrentId(null);
+    }
+    setFormLoading(false);
+  };
+
+  // Close Edit Dialog
+  const handleCloseEditDialog = (): void => {
+    setOpenEditDialog(false);
+    // Reset form state when closing
+    setEditMode(false);
+    setCurrentId(null);
+    setFormData({
+      date: new Date(),
+      shift: '',
+      status: 'pending',
+      items: [
+        { amount: 0, category: '掛號費', note: '' },
+        { amount: 0, category: '部分負擔', note: '' }
+      ],
+      unaccountedSales: []
+    });
+  };
+
+  // Handle Form Submission
+  const handleSubmit = async (): Promise<void> => {
+    // Basic Validation
+    if (!formData.date || !formData.shift) {
+      showSnackbar('請選擇日期和班別', 'error');
+      return;
+    }
+    const validItems = formData.items.filter(item => item.amount && item.category);
+    if (validItems.length === 0) {
+      showSnackbar('至少需要一個有效的項目', 'error');
+      return;
+    }
+
+    setFormLoading(true);
+    try {
+      const submitData = {
+        ...formData,
+        items: validItems // Submit only valid items
+      };
+
+      if (editMode && currentId) {
+        await accountingServiceV2.updateAccountingRecord(currentId, submitData as Partial<AccountingRecord>);
+        showSnackbar('記帳記錄已更新', 'success');
+        handleCloseEditDialog();
+        fetchAccountingRecords(selectedDate); // Refetch records after update
+      }
+    } catch (err: any) {
+      console.error('提交記帳記錄失敗:', err);
+      showSnackbar(err.message ?? '提交記帳記錄失敗', 'error');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Handle Delete
+  const handleDeleteRecord = async (id: string) => {
+    if (window.confirm('確定要刪除此記帳記錄嗎？')) {
+      try {
+        await accountingServiceV2.deleteAccountingRecord(id);
+        // Refresh accounting records
+        fetchAccountingRecords(selectedDate);
+      } catch (error) {
+        console.error('刪除記帳記錄失敗:', error);
+        alert('刪除記帳記錄失敗');
+      }
+    }
+  };
+
+  // Handle Unlock - Change status from completed to pending
+  const handleUnlockRecord = async (record: ExtendedAccountingRecord) => {
+    if (window.confirm('確定要解鎖此記帳記錄並改為待處理狀態嗎？')) {
+      try {
+        await accountingServiceV2.updateAccountingRecord(record._id, { status: 'pending' });
+        // Refresh accounting records
+        fetchAccountingRecords(selectedDate);
+      } catch (error) {
+        console.error('解鎖記帳記錄失敗:', error);
+        alert('解鎖記帳記錄失敗');
+      }
+    }
   };
 
   const {
@@ -414,9 +551,51 @@ const DashboardPage: FC = () => {
                                   </Typography>
                                   <StatusChip status={shiftRecords[0].status} />
                                 </Box>
-                                <Typography variant="subtitle1" color="primary.main" fontWeight="bold">
-                                  {formatCurrency(shiftTotal)}
-                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="subtitle1" color="primary.main" fontWeight="bold">
+                                    {formatCurrency(shiftTotal)}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                    {shiftRecords[0].status === 'completed' ? (
+                                      <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUnlockRecord(shiftRecords[0]);
+                                        }}
+                                        title="解鎖並改為待處理"
+                                      >
+                                        <LockIcon fontSize="small" />
+                                      </IconButton>
+                                    ) : (
+                                      <>
+                                        <IconButton
+                                          size="small"
+                                          color="primary"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditRecord(shiftRecords[0]);
+                                          }}
+                                          title="編輯"
+                                        >
+                                          <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                          size="small"
+                                          color="error"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteRecord(shiftRecords[0]._id);
+                                          }}
+                                          title="刪除"
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      </>
+                                    )}
+                                  </Box>
+                                </Box>
                               </Box>
                             </AccordionSummary>
                             <AccordionDetails sx={{ pt: 0, pb: 1 }}>
@@ -482,6 +661,33 @@ const DashboardPage: FC = () => {
           <DashboardCalendar selectedDate={selectedDate} onDateSelect={handleDateSelect} />
         </Grid>
       </Grid>
+
+      {/* Edit Form Dialog */}
+      <AccountingForm
+        open={openEditDialog}
+        onClose={handleCloseEditDialog}
+        formData={formData}
+        setFormData={setFormData}
+        editMode={editMode}
+        onSubmit={handleSubmit}
+        loadingSales={formLoading}
+      />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

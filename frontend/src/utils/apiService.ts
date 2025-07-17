@@ -13,7 +13,9 @@ apiService.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     const token = localStorage.getItem('token');
     if (token && config.headers) {
+      // 同時設定兩種認證方式以確保相容性
       config.headers['x-auth-token'] = token;
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -36,8 +38,9 @@ apiService.interceptors.response.use(
       // 清除本地存儲的token和用戶資訊
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // 移除axios預設標頭中的token
+      // 移除axios預設標頭中的token（兩種格式）
       delete apiService.defaults.headers.common['x-auth-token'];
+      delete apiService.defaults.headers.common['Authorization'];
       // 強制重新導向到登入頁面
       // 使用 window.location.replace 可以避免在瀏覽歷史中留下紀錄
       if (window.location.pathname !== '/login') {

@@ -500,18 +500,18 @@ router.post(
 );
 
 // @route   PUT api/accounting/:id
-// @desc    更新記帳記錄 (注意：此處未處理總額重新計算，可能需要根據業務邏輯調整)
+// @desc    更新記帳記錄
 // @access  Private
 router.put(
   '/:id',
   auth,
   [
-    check('date', '日期為必填欄位').not().isEmpty(),
-    check('shift', '班別為必填欄位').isIn(['早', '中', '晚']),
-    check('items', '至少需要一個項目').isArray().not().isEmpty(),
-    check('items.*.amount', '金額必須為數字').isFloat(),
-    check('items.*.category', '名目為必填欄位').not().isEmpty(),
-    check('status', '狀態為必填欄位').optional().isIn(['pending', 'completed']) // Add status validation
+    check('date', '日期為必填欄位').optional().not().isEmpty(),
+    check('shift', '班別為必填欄位').optional().isIn(['早', '中', '晚']),
+    check('items', '至少需要一個項目').optional().isArray().not().isEmpty(),
+    check('items.*.amount', '金額必須為數字').optional().isFloat(),
+    check('items.*.category', '名目為必填欄位').optional().not().isEmpty(),
+    check('status', '狀態必須為有效值').optional().isIn(['pending', 'completed'])
   ],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -535,22 +535,6 @@ router.put(
 
     try {
       const { date, shift, items, status } = req.body as AccountingRequest;
-      const accountingDate = new Date(date);
-
-      // 使用已驗證的ID創建安全的ObjectId
-      const safeParamId = new mongoose.Types.ObjectId(id);
-      
-      // 使用參數化查詢而非直接構建查詢對象
-      const existingRecord = await Accounting.findOne({
-        date: accountingDate,
-        shift: shift.toString(),
-        _id: { $ne: safeParamId }
-      });
-
-      if (existingRecord) {
-        res.status(400).json({ msg: '該日期和班別已有其他記帳記錄' });
-        return;
-      }
 
       let accounting = await Accounting.findById(id);
       if (!accounting) {
@@ -563,78 +547,204 @@ router.put(
         return;
       }
 
-      // --- Start: New logic for handling status change and sales re-linking ---
-
-      // 1. Always unlink previously associated sales regardless of the final status
-      const unlinkResult = await Inventory.updateMany(
-        { accountingId: accounting._id },
-        { $set: { accountingId: null } }
-      );
+      const accountingDate = date ? new Date(date) : accounting.date;
+      const accountingShift = shift || accounting.shift;
       
-      if (unlinkResult.modifiedCount > 0) {
-        console.log(`Unlinked ${unlinkResult.modifiedCount} previous sales from accounting record ${accounting._id} during update.`);
-      }
-
-      // The 'items' array from req.body *already* contains only the manual items (filtered by frontend)
-      const manualItemsFromRequest = items || []; // Use items directly from request
-      let finalItems = manualItemsFromRequest;
-      let finalTotalAmount = manualItemsFromRequest.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+      // 判斷是否為僅更新狀態的請求
+      const isStatusOnlyUpdate = !items && !date && !shift && status;
+      
+      let finalItems: AccountingItem[];
+      let finalTotalAmount: number;
       let linkedSaleIds: Types.ObjectId[] = [];
-      let currentUnaccountedSales: any[] = []; // Define outside the if block
+      
+      if (isStatusOnlyUpdate) {
+        // 僅更新狀態：保持現有的所有項目不變
+        finalItems = accounting.items;
+        finalTotalAmount = accounting.totalAmount;
+        
+        // 處理狀態變更的銷售記錄關聯 - 完整模擬所有事件
+        if (status === 'completed' && accounting.status === 'pending') {
+          // 狀態從 pending 變為 completed：執行完整的關聯邏輯
+          console.log(`Status change: pending -> completed for accounting record ${accounting._id}`);
+          
+          // 0. 先清空現有的銷售記錄關聯（模擬編輯時的清空操作）
+          const unlinkResult = await Inventory.updateMany(
+            { accountingId: accounting._id },
+            { $set: { accountingId: null } }
+          );
+          console.log(`Cleared ${unlinkResult.modifiedCount} existing sales associations before re-linking`);
+          
+          // 1. 重新獲取該日期的所有未關聯監測產品銷售記錄
+          let datePrefix: string;
+          try {
+            datePrefix = format(accountingDate, 'yyyyMMdd');
+          } catch (formatError) {
+            console.error('日期格式化錯誤 during status completion:', formatError);
+            throw new Error('日期格式化錯誤');
+          }
 
-      // 2. Always re-fetch current sales to include in items and total, regardless of final status
-      // Re-fetch logic (similar to POST route)
-      let datePrefix: string;
-      try {
-        datePrefix = format(accountingDate, 'yyyyMMdd');
-      } catch (formatError) {
-        console.error('內部日期格式化錯誤 during update:', formatError);
-        throw new Error('內部日期格式化錯誤'); 
-      }
-      
-      const monitored = await MonitoredProduct.find({}, 'productCode');
-      const monitoredProductCodes = monitored.map((p: any) => p.productCode);
-      let monitoredProductIds: Types.ObjectId[] = [];
-      
-      if (monitoredProductCodes.length > 0) {
-        const products = await BaseProduct.find(
-          {
-            $or: [
-              { code: { $in: monitoredProductCodes } },
-              { shortCode: { $in: monitoredProductCodes } }
-            ]
-          },
-          '_id code shortCode'
+          // 2. 獲取監測產品列表
+          const monitored = await MonitoredProduct.find({}, 'productCode');
+          const monitoredProductCodes = monitored.map((p: any) => p.productCode);
+          let monitoredProductIds: Types.ObjectId[] = [];
+          
+          if (monitoredProductCodes.length > 0) {
+            const products = await BaseProduct.find(
+              {
+                $or: [
+                  { code: { $in: monitoredProductCodes } },
+                  { shortCode: { $in: monitoredProductCodes } }
+                ]
+              },
+              '_id code shortCode'
+            );
+            monitoredProductIds = products.map((p: any) => p._id);
+          }
+          
+          // 3. 查找該日期所有未關聯的監測產品銷售記錄
+          let unaccountedSales: any[] = [];
+          if (monitoredProductIds.length > 0) {
+            unaccountedSales = await Inventory.find({
+              product: { $in: monitoredProductIds },
+              type: { $in: ['sale', 'sale-no-stock'] },
+              accountingId: null, // 只關聯尚未被其他記帳記錄關聯的銷售
+              saleNumber: { $regex: `^${datePrefix}` }
+            }).populate('product', 'name'); // 需要產品名稱來生成項目
+          }
+          
+          // 4. 先清空現有的自動關聯項目，然後重新加入所有監測產品
+          // 模擬清空事件：移除所有自動關聯項目
+          const manualItems = accounting.items.filter((item: any) => !item.isAutoLinked);
+          console.log(`Cleared ${accounting.items.length - manualItems.length} existing auto-linked items`);
+          
+          // 重新加入所有未關聯的監測產品銷售記錄
+          if (unaccountedSales.length > 0) {
+            const newSalesItems: AccountingItem[] = unaccountedSales.map((sale: any) => ({
+              amount: sale.totalAmount ?? 0,
+              category: '其他自費',
+              categoryId: null as Types.ObjectId | null,
+              note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`,
+              isAutoLinked: true
+            }));
+            
+            // 合併手動項目和新的銷售項目
+            finalItems = [...manualItems, ...newSalesItems];
+            
+            // 重新計算總金額
+            finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+            
+            console.log(`Added ${newSalesItems.length} new sales items to accounting record ${accounting._id} after clearing existing auto-linked items`);
+            
+            // 關聯所有未關聯的銷售記錄
+            linkedSaleIds = unaccountedSales.map((sale: any) => sale._id);
+            
+            // 執行實際的銷售記錄關聯操作
+            if (linkedSaleIds.length > 0) {
+              await Inventory.updateMany(
+                { _id: { $in: linkedSaleIds } },
+                { $set: { accountingId: accounting._id } }
+              );
+              console.log(`Linked ${linkedSaleIds.length} sales to accounting record ${accounting._id} during status change to completed.`);
+            }
+          } else {
+            // 如果沒有新的銷售記錄，只保留手動項目
+            finalItems = manualItems;
+            finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+            console.log(`No new sales items found, kept only ${manualItems.length} manual items`);
+          }
+          
+        } else if (status === 'pending' && accounting.status === 'completed') {
+          // 狀態從 completed 變為 pending：取消關聯銷售記錄
+          console.log(`Status change: completed -> pending for accounting record ${accounting._id}`);
+          const unlinkResult = await Inventory.updateMany(
+            { accountingId: accounting._id },
+            { $set: { accountingId: null } }
+          );
+          console.log(`Unlinked ${unlinkResult.modifiedCount} sales from accounting record ${accounting._id} during status change to pending.`);
+        }
+      } else {
+        // 完整更新：重新處理項目和自動關聯
+        const manualItemsFromRequest = items || accounting.items.filter((item: any) => !item.isAutoLinked);
+
+        // 檢查日期和班別衝突（如果有更新的話）
+        if (date || shift) {
+          const safeParamId = new mongoose.Types.ObjectId(id);
+          const existingRecord = await Accounting.findOne({
+            date: accountingDate,
+            shift: accountingShift.toString(),
+            _id: { $ne: safeParamId }
+          });
+
+          if (existingRecord) {
+            res.status(400).json({ msg: '該日期和班別已有其他記帳記錄' });
+            return;
+          }
+        }
+
+        // 1. Always unlink previously associated sales regardless of the final status
+        const unlinkResult = await Inventory.updateMany(
+          { accountingId: accounting._id },
+          { $set: { accountingId: null } }
         );
-        monitoredProductIds = products.map((p: any) => p._id);
-      }
-      
-      if (monitoredProductIds.length > 0) {
-        currentUnaccountedSales = await Inventory.find({
-          product: { $in: monitoredProductIds },
-          type: { $in: ['sale', 'sale-no-stock'] },
-          accountingId: null, // Find currently unlinked sales
-          saleNumber: { $regex: `^${datePrefix}` }
-        }).populate('product', 'name');
-      }
+        
+        if (unlinkResult.modifiedCount > 0) {
+          console.log(`Unlinked ${unlinkResult.modifiedCount} previous sales from accounting record ${accounting._id} during update.`);
+        }
 
-      const newSalesItems: AccountingItem[] = currentUnaccountedSales.map((sale: any) => ({
-        amount: sale.totalAmount ?? 0,
-        category: '其他自費',
-        categoryId: null as Types.ObjectId | null,
-        note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`,
-        isAutoLinked: true
-      }));
+        // 2. Re-fetch current sales to include in items and total
+        let datePrefix: string;
+        try {
+          datePrefix = format(accountingDate, 'yyyyMMdd');
+        } catch (formatError) {
+          console.error('內部日期格式化錯誤 during update:', formatError);
+          throw new Error('內部日期格式化錯誤'); 
+        }
+        
+        const monitored = await MonitoredProduct.find({}, 'productCode');
+        const monitoredProductCodes = monitored.map((p: any) => p.productCode);
+        let monitoredProductIds: Types.ObjectId[] = [];
+        
+        if (monitoredProductCodes.length > 0) {
+          const products = await BaseProduct.find(
+            {
+              $or: [
+                { code: { $in: monitoredProductCodes } },
+                { shortCode: { $in: monitoredProductCodes } }
+              ]
+            },
+            '_id code shortCode'
+          );
+          monitoredProductIds = products.map((p: any) => p._id);
+        }
+        
+        let currentUnaccountedSales: any[] = [];
+        if (monitoredProductIds.length > 0) {
+          currentUnaccountedSales = await Inventory.find({
+            product: { $in: monitoredProductIds },
+            type: { $in: ['sale', 'sale-no-stock'] },
+            accountingId: null, // Find currently unlinked sales
+            saleNumber: { $regex: `^${datePrefix}` }
+          }).populate('product', 'name');
+        }
 
-      // Always merge manual items and current sales for storage
-      finalItems = [...manualItemsFromRequest, ...newSalesItems];
-      finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount ?? 0), 0);
-      linkedSaleIds = currentUnaccountedSales.map((sale: any) => sale._id); // Prepare IDs to link if completed
+        const newSalesItems: AccountingItem[] = currentUnaccountedSales.map((sale: any) => ({
+          amount: sale.totalAmount ?? 0,
+          category: '其他自費',
+          categoryId: null as Types.ObjectId | null,
+          note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`,
+          isAutoLinked: true
+        }));
+
+        // Merge manual items and current sales for storage
+        finalItems = [...manualItemsFromRequest, ...newSalesItems];
+        finalTotalAmount = finalItems.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+        linkedSaleIds = currentUnaccountedSales.map((sale: any) => sale._id); // Prepare IDs to link if completed
+      }
 
       // 3. Update the accounting record
       accounting.date = accountingDate;
-      accounting.shift = shift;
-      accounting.items = finalItems; 
+      if (shift) accounting.shift = shift; // Only update shift if provided
+      accounting.items = finalItems;
       accounting.totalAmount = finalTotalAmount;
       if (status) accounting.status = status;
 
@@ -649,7 +759,6 @@ router.put(
         console.log(`Linked ${linkedSaleIds.length} current sales to accounting record ${accounting._id} upon completion.`);
       }
       
-      // --- End: New logic ---
       res.json(accounting);
     } catch (err) {
       console.error('更新記帳記錄失敗:', (err as Error).message);
