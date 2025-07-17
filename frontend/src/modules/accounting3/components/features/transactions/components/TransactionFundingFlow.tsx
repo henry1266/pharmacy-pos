@@ -59,7 +59,7 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                 <TableCell>日期</TableCell>
                 <TableCell>交易描述</TableCell>
                 <TableCell align="right">金額</TableCell>
-                <TableCell align="center">狀態</TableCell>
+                <TableCell align="center">餘額</TableCell>
                 <TableCell align="center">操作</TableCell>
               </TableRow>
             </TableHead>
@@ -79,11 +79,26 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                   {sourceInfo.totalAmount ? formatAmount(sourceInfo.totalAmount) : '未知金額'}
                 </TableCell>
                 <TableCell align="center">
-                  <Chip
-                    label={sourceInfo.status === 'confirmed' ? '已確認' : sourceInfo.status === 'cancelled' ? '已取消' : '草稿'}
-                    color={sourceInfo.status === 'confirmed' ? 'success' : sourceInfo.status === 'cancelled' ? 'error' : 'default'}
-                    size="small"
-                  />
+                  {(() => {
+                    // 計算來源交易的剩餘餘額
+                    const totalAmount = sourceInfo.totalAmount || 0;
+                    const usedAmount = sourceInfo.referencedByInfo
+                      ?.filter(ref => ref.status !== 'cancelled')
+                      .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0) || 0;
+                    const remainingAmount = Math.max(0, totalAmount - usedAmount);
+                    
+                    return (
+                      <Tooltip title={`總金額: ${formatAmount(totalAmount)}, 已使用: ${formatAmount(usedAmount)}, 剩餘: ${formatAmount(remainingAmount)}`} arrow>
+                        <span style={{
+                          fontWeight: 'medium',
+                          color: remainingAmount === totalAmount ? '#2e7d32' :
+                                 remainingAmount > 0 ? '#ed6c02' : '#d32f2f'
+                        }}>
+                          {formatAmount(remainingAmount)}
+                        </span>
+                      </Tooltip>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell align="center">
                   <Button
@@ -144,7 +159,7 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                 <TableCell>日期</TableCell>
                 <TableCell>交易描述</TableCell>
                 <TableCell align="right">金額</TableCell>
-                <TableCell align="center">狀態</TableCell>
+                <TableCell align="center">餘額</TableCell>
                 <TableCell align="center">操作</TableCell>
               </TableRow>
             </TableHead>
@@ -173,11 +188,26 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                         {linkedInfo.totalAmount ? formatAmount(linkedInfo.totalAmount) : '未知金額'}
                       </TableCell>
                       <TableCell align="center">
-                        <Chip
-                          label={linkedInfo.status === 'confirmed' ? '已確認' : linkedInfo.status === 'cancelled' ? '已取消' : '草稿'}
-                          color={linkedInfo.status === 'confirmed' ? 'success' : linkedInfo.status === 'cancelled' ? 'error' : 'default'}
-                          size="small"
-                        />
+                        {(() => {
+                          // 計算關聯交易的剩餘餘額
+                          const totalAmount = linkedInfo.totalAmount || 0;
+                          const usedAmount = linkedInfo.referencedByInfo
+                            ?.filter(ref => ref.status !== 'cancelled')
+                            .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0) || 0;
+                          const remainingAmount = Math.max(0, totalAmount - usedAmount);
+                          
+                          return (
+                            <Tooltip title={`總金額: ${formatAmount(totalAmount)}, 已使用: ${formatAmount(usedAmount)}, 剩餘: ${formatAmount(remainingAmount)}`} arrow>
+                              <span style={{
+                                fontWeight: 'medium',
+                                color: remainingAmount === totalAmount ? '#2e7d32' :
+                                       remainingAmount > 0 ? '#ed6c02' : '#d32f2f'
+                              }}>
+                                {formatAmount(remainingAmount)}
+                              </span>
+                            </Tooltip>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell align="center">
                         <Button
@@ -331,7 +361,7 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                 <TableCell>日期</TableCell>
                 <TableCell>交易描述</TableCell>
                 <TableCell align="right">金額</TableCell>
-                <TableCell align="center">狀態</TableCell>
+                <TableCell align="center">餘額</TableCell>
                 <TableCell align="center">操作</TableCell>
               </TableRow>
             </TableHead>
@@ -352,11 +382,11 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                     {formatAmount(ref.totalAmount)}
                   </TableCell>
                   <TableCell align="center">
-                    <Chip
-                      label={ref.status === 'confirmed' ? '已確認' : ref.status === 'cancelled' ? '已取消' : '草稿'}
-                      color={ref.status === 'confirmed' ? 'success' : ref.status === 'cancelled' ? 'error' : 'default'}
-                      size="small"
-                    />
+                    <Tooltip title={`使用金額: ${formatAmount(ref.totalAmount)}`} arrow>
+                      <span style={{ fontWeight: 'medium', color: '#d32f2f' }}>
+                        {formatAmount(ref.totalAmount)}
+                      </span>
+                    </Tooltip>
                   </TableCell>
                   <TableCell align="center">
                     <Button
@@ -488,7 +518,7 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                   <TableCell>日期</TableCell>
                   <TableCell>交易描述</TableCell>
                   <TableCell align="right">金額</TableCell>
-                  <TableCell align="center">狀態</TableCell>
+                  <TableCell align="center">餘額</TableCell>
                   <TableCell align="center">操作</TableCell>
                 </TableRow>
               </TableHead>
@@ -508,11 +538,26 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                     {formatAmount(transaction.totalAmount)}
                   </TableCell>
                   <TableCell align="center">
-                    <Chip
-                      label={transaction.status === 'confirmed' ? '已確認' : transaction.status === 'cancelled' ? '已取消' : '草稿'}
-                      color={transaction.status === 'confirmed' ? 'success' : transaction.status === 'cancelled' ? 'error' : 'default'}
-                      size="small"
-                    />
+                    {(() => {
+                      // 計算當前交易的剩餘餘額
+                      const totalAmount = transaction.totalAmount || 0;
+                      const usedAmount = transaction.referencedByInfo
+                        ?.filter(ref => ref.status !== 'cancelled')
+                        .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0) || 0;
+                      const remainingAmount = Math.max(0, totalAmount - usedAmount);
+                      
+                      return (
+                        <Tooltip title={`總金額: ${formatAmount(totalAmount)}, 已使用: ${formatAmount(usedAmount)}, 剩餘: ${formatAmount(remainingAmount)}`} arrow>
+                          <span style={{
+                            fontWeight: 'medium',
+                            color: remainingAmount === totalAmount ? '#2e7d32' :
+                                   remainingAmount > 0 ? '#ed6c02' : '#d32f2f'
+                          }}>
+                            {formatAmount(remainingAmount)}
+                          </span>
+                        </Tooltip>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell align="center">
                     <Button
