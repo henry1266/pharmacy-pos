@@ -10,11 +10,13 @@ import {
   Avatar,
   Divider,
   Button,
-  Tooltip
+  Tooltip,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Schedule as ScheduleIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  AccessTime as AccessTimeIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -25,9 +27,13 @@ import { useShiftTimeConfig } from '../../modules/employees/core/hooks/useShiftT
 import { useOvertimeManager } from '../../modules/employees/core/hooks/useOvertimeManager';
 import { employeeService } from '../../modules/employees/core/employeeService';
 
+// Import overtime components
+import TimeCalculationOvertimeDialog from '../../modules/employees/components/overtime/TimeCalculationOvertimeDialog';
+
 // Import types
 import type { EmployeeSchedule, ShiftTimesMap, OvertimeRecord } from '../../modules/employees/types';
 import type { Employee } from '@pharmacy-pos/shared/types/entities';
+import { OvertimeStatus } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 
 interface DailySchedulePanelProps {
   selectedDate: string;
@@ -56,12 +62,26 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     loading: overtimeLoading,
     setSelectedMonth,
     setSelectedYear,
-    fetchOvertimeRecords
+    fetchOvertimeRecords,
+    createOvertimeRecord
   } = useOvertimeManager({ isAdmin: true });
   
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
+
+  // 打卡按鈕相關狀態
+  const [overtimeDialogOpen, setOvertimeDialogOpen] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [overtimeFormData, setOvertimeFormData] = useState({
+    employeeId: '',
+    date: selectedDate,
+    hours: '',
+    description: '',
+    status: 'pending' as OvertimeStatus,
+    currentTime: ''
+  });
+  const [overtimeFormErrors, setOvertimeFormErrors] = useState<Record<string, string>>({});
 
   // 班次基本配置（包含名稱、顏色和時段區間）
   const shiftBaseConfig: Record<string, { name: string; color: string; timeRange: string }> = React.useMemo(() => ({
@@ -83,7 +103,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     overtime: {
       name: '加班',
       color: '#E91E63',
-      timeRange: '額外登記'
+      timeRange: '' // 將由按鈕替代
     }
   }), [shiftTimesMap]);
 
@@ -149,6 +169,95 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     loadEmployees();
     fetchOvertimeRecords();
   }, [loadScheduleData, loadEmployees, fetchOvertimeRecords]);
+
+  // 打卡按鈕點擊處理
+  const handleOvertimeClockIn = useCallback(() => {
+    setOvertimeFormData({
+      employeeId: '',
+      date: selectedDate,
+      hours: '',
+      description: '',
+      status: 'pending' as OvertimeStatus,
+      currentTime: ''
+    });
+    setOvertimeFormErrors({});
+    setOvertimeDialogOpen(true);
+  }, [selectedDate]);
+
+  // 關閉加班對話框
+  const handleCloseOvertimeDialog = useCallback(() => {
+    setOvertimeDialogOpen(false);
+    setOvertimeFormData({
+      employeeId: '',
+      date: selectedDate,
+      hours: '',
+      description: '',
+      status: 'pending' as OvertimeStatus,
+      currentTime: ''
+    });
+    setOvertimeFormErrors({});
+  }, [selectedDate]);
+
+  // 處理表單輸入變更
+  const handleOvertimeInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
+    const { name, value } = e.target;
+    setOvertimeFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // 清除對應的錯誤訊息
+    if (overtimeFormErrors[name]) {
+      setOvertimeFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  }, [overtimeFormErrors]);
+
+  // 提交加班記錄
+  const handleSubmitOvertimeRecord = useCallback(async () => {
+    // 驗證表單
+    const errors: Record<string, string> = {};
+    
+    if (!overtimeFormData.employeeId) {
+      errors.employeeId = '請選擇員工';
+    }
+    
+    if (!overtimeFormData.date) {
+      errors.date = '請選擇日期';
+    }
+    
+    if (!overtimeFormData.hours || parseFloat(overtimeFormData.hours.toString()) <= 0) {
+      errors.hours = '請輸入有效的加班時數';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setOvertimeFormErrors(errors);
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      const success = await createOvertimeRecord({
+        employeeId: overtimeFormData.employeeId,
+        date: overtimeFormData.date,
+        hours: parseFloat(overtimeFormData.hours.toString()),
+        description: overtimeFormData.description,
+        status: overtimeFormData.status
+      });
+      
+      if (success) {
+        handleCloseOvertimeDialog();
+        // 重新載入數據以顯示新的加班記錄
+        fetchOvertimeRecords();
+      }
+    } catch (error) {
+      console.error('提交加班記錄失敗:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [overtimeFormData, createOvertimeRecord, handleCloseOvertimeDialog, fetchOvertimeRecords]);
 
   // 測試 API 連接
   const testApiConnection = useCallback(async () => {
@@ -438,9 +547,28 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                   <Typography variant="subtitle2" fontWeight="medium">
                     {shift.shiftName}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                    {shift.timeRange}
-                  </Typography>
+                  {shift.shift === 'overtime' ? (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<AccessTimeIcon />}
+                      onClick={handleOvertimeClockIn}
+                      sx={{
+                        ml: 1,
+                        minWidth: 'auto',
+                        fontSize: '0.75rem',
+                        py: 0.5,
+                        px: 1
+                      }}
+                    >
+                      打卡
+                    </Button>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                      {shift.timeRange}
+                    </Typography>
+                  )}
                 </Box>
                 <Typography variant="body2" color="text.secondary">
                   {shift.shift === 'overtime'
@@ -612,6 +740,22 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
             </Typography>
           </Box>
         )}
+
+        {/* 時間計算加班對話框 */}
+        <TimeCalculationOvertimeDialog
+          open={overtimeDialogOpen}
+          onClose={handleCloseOvertimeDialog}
+          title="加班打卡"
+          formData={overtimeFormData}
+          formErrors={overtimeFormErrors}
+          employees={employees}
+          employeeId={null}
+          isAdmin={true}
+          submitting={submitting}
+          onInputChange={handleOvertimeInputChange}
+          onSubmit={handleSubmitOvertimeRecord}
+          submitButtonText="確認打卡"
+        />
       </CardContent>
     </Card>
   );

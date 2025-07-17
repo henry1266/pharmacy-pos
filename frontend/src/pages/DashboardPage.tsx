@@ -474,7 +474,7 @@ const DashboardPage: FC = () => {
         </Grid>
 
          {/* 左側：當日班表 */}
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={2.5}>
           <DailySchedulePanel selectedDate={selectedDate} />
         </Grid>
         {/* 右側：日曆 */}

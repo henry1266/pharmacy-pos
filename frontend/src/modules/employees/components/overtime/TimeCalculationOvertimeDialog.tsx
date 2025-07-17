@@ -206,9 +206,21 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <AccessTime color="primary" />
-          {title}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AccessTime color="primary" />
+            {title}
+          </div>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isManualMode}
+                onChange={handleManualModeToggle}
+                color="primary"
+              />
+            }
+            label="手動調整"
+          />
         </div>
       </DialogTitle>
       <DialogContent>
@@ -250,6 +262,7 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
               value={formData.date}
               onChange={onInputChange}
               fullWidth
+              disabled={!isManualMode}
               InputLabelProps={{
                 shrink: true,
               }}
@@ -258,61 +271,24 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
             />
           </Grid>
           
-          <Grid item xs={12}>
-            <Typography variant="subtitle2" sx={{ mb: 2, color: 'primary.main' }}>
-              時間計算模式
-            </Typography>
-            
-            <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
-              <TextField
-                label="選擇時間"
-                value={selectedTime}
-                onChange={handleTimeChange}
-                type="time"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                inputProps={{
-                  step: 60, // 1分鐘間隔
-                }}
-                helperText="預設為當前時間，可手動調整"
-                sx={{ flex: 1 }}
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={isManualMode}
-                    onChange={handleManualModeToggle}
-                    color="primary"
-                  />
-                }
-                label="手動調整"
-              />
-            </Box>
-
-            {calculationResult && (
-              <Box sx={{ mb: 2 }}>
-                
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                  <Chip
-                    label={`最鄰近班別: ${getShiftDisplayName(calculationResult.nearestShift)}`}
-                    color="primary"
-                    size="small"
-                  />
-                  <Chip
-                    label={`下班時間: ${calculationResult.shiftEndTime}`}
-                    color="secondary"
-                    size="small"
-                  />
-                  <Chip
-                    label={`加班時數: ${calculationResult.hours} 小時`}
-                    color="success"
-                    size="small"
-                  />
-                </Box>
-              </Box>
-            )}
-
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="選擇時間"
+              value={selectedTime}
+              onChange={handleTimeChange}
+              type="time"
+              fullWidth
+              disabled={!isManualMode}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              inputProps={{
+                step: 60, // 1分鐘間隔
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
             <TextField
               label="計算得出的加班時數"
               name="hours"
@@ -320,30 +296,29 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
               onChange={onInputChange}
               fullWidth
               type="number"
+              disabled={!isManualMode}
               inputProps={{ min: 0, max: 24, step: 0.01 }}
               error={!!formErrors.hours}
-              helperText={formErrors.hours || '系統自動計算，您也可以手動調整'}
               InputProps={{
                 endAdornment: <InputAdornment position="end">小時</InputAdornment>,
               }}
             />
           </Grid>
           
-          {/* 加班原因 - 只在手動模式時顯示 */}
-          {isManualMode && (
-            <Grid item xs={12}>
-              <TextField
-                label="加班原因/說明"
-                name="description"
-                value=""
-                onChange={onInputChange}
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="請描述加班原因或工作內容..."
-              />
-            </Grid>
-          )}
+          {/* 加班原因/說明 - 自動模式時顯示但不可編輯，手動模式時可編輯 */}
+          <Grid item xs={12}>
+            <TextField
+              label="加班原因/說明"
+              name="description"
+              value={formData.description}
+              onChange={onInputChange}
+              fullWidth
+              multiline
+              rows={3}
+              disabled={!isManualMode}
+              placeholder={isManualMode ? "請描述加班原因或工作內容..." : "系統自動計算的加班說明"}
+            />
+          </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
