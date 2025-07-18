@@ -253,15 +253,12 @@ export const AccountsManagementPage: React.FC = () => {
             科目階層管理
           </Typography>
         </Box>
-        <Typography variant="body1" color="text.secondary">
-          管理會計科目的階層結構，包括新增、編輯、刪除科目以及調整階層關係
-        </Typography>
       </Box>
 
       {/* 主要內容區域 - 左右布局 */}
       <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', minHeight: 600 }}>
         {/* 左側：科目階層管理 */}
-        <Paper sx={{ width: '40%', minWidth: 400 }}>
+        <Paper sx={{ width: '27%', minWidth: 400 }}>
           <AccountHierarchyManager
             key={hierarchyKey}
             onAccountSelect={handleAccountSelect}
@@ -276,7 +273,7 @@ export const AccountsManagementPage: React.FC = () => {
         </Paper>
 
         {/* 右側：選中科目的交易內容 */}
-        <Box sx={{ width: '60%', minWidth: 500 }}>
+        <Box sx={{ width: '73%', minWidth: 500 }}>
           <AccountTransactionList
             selectedAccount={selectedAccount}
             onTransactionView={(transaction) => {

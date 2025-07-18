@@ -308,8 +308,8 @@ const TreeNode: React.FC<{
         {/* 右側區域：數字列 - 絕對定位，完全不受縮排影響 */}
         <Box sx={{
           position: 'absolute',
-          right: '230px', // 數字列往右移，減少左側空白
-          width: '120px',
+          right: '110px', // 數字列往右移，減少左側空白
+          width: '100px',
           textAlign: 'left',
           display: 'flex',
           alignItems: 'center'
@@ -342,7 +342,7 @@ const TreeNode: React.FC<{
         {/* 操作按鈕區域 */}
         <Box className="node-actions" sx={{
           position: 'absolute',
-          right: '130px', // 操作列往左移一點
+          right: '10px', // 操作列往左移一點
           display: 'flex',
           alignItems: 'center',
           gap: 0.5,
