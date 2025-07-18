@@ -25,6 +25,7 @@ import {
   Add,
   Visibility,
   VisibilityOff,
+  Info,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
@@ -55,42 +56,6 @@ const StyledTreeContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-const NodeContent = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  width: '100%',
-  minHeight: 40,
-  padding: theme.spacing(0.5, 1),
-  borderRadius: theme.shape.borderRadius,
-}));
-
-const NodeInfo = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-  flex: 1,
-  minWidth: 0,
-});
-
-const NodeActions = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(0.5),
-  opacity: 0,
-  transition: 'opacity 0.2s',
-  '.tree-item:hover &': {
-    opacity: 1,
-  },
-}));
-
-const AccountCode = styled(Typography)(({ theme }) => ({
-  fontFamily: 'monospace',
-  fontSize: '0.875rem', // 增大字體
-  color: theme.palette.text.secondary,
-  minWidth: 80,
-  textAlign: 'left',
-}));
 
 const AccountName = styled(Typography)({
   fontSize: '1rem', // 增大字體
@@ -100,17 +65,7 @@ const AccountName = styled(Typography)({
   whiteSpace: 'nowrap',
 });
 
-const AccountType = styled(Chip)(({ theme }) => ({
-  height: 24, // 增大高度
-  fontSize: '0.75rem', // 增大字體
-  '& .MuiChip-label': {
-    padding: '0 8px', // 增大內邊距
-  },
-}));
 
-const IndentContainer = styled(Box)<{ level: number }>(({ level }) => ({
-  paddingLeft: level * 24,
-}));
 
 // 介面定義
 interface AccountTreeViewV3Props {
@@ -184,194 +139,6 @@ const ExpandIcon: React.FC<{
 
 ExpandIcon.displayName = 'ExpandIcon';
 
-// 節點標籤組件
-const NodeLabel: React.FC<{
-  node: AccountHierarchyNode;
-  config: AccountHierarchyConfig;
-  renderConfig: HierarchyRenderConfig;
-  onEdit: () => void;
-  onDelete: () => void;
-  onAdd: () => void;
-  onVisibilityToggle: () => void;
-}> = memo(({ node, config, renderConfig, onEdit, onDelete, onAdd, onVisibilityToggle }) => {
-  const handleActionClick = useCallback((action: () => void) => (event: React.MouseEvent) => {
-    event.stopPropagation();
-    action();
-  }, []);
-
-  const getAccountTypeColor = (type: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    switch (type) {
-      case 'asset': return 'success';
-      case 'liability': return 'error';
-      case 'equity': return 'info';
-      case 'revenue': return 'primary';
-      case 'expense': return 'warning';
-      default: return 'default';
-    }
-  };
-
-  // 格式化淨額顯示 - 增強調試資訊和錯誤處理
-  const formattedNetAmount = useMemo(() => {
-    // 詳細調試日誌：檢查統計資料
-    console.log(`🔍 科目 "${node.name}" (ID: ${node._id}) 統計資料詳細檢查:`, {
-      hasStatistics: !!node.statistics,
-      statisticsKeys: node.statistics ? Object.keys(node.statistics) : [],
-      statistics: node.statistics,
-      totalBalance: node.statistics?.totalBalance,
-      balance: node.statistics?.balance,
-      totalDebit: node.statistics?.totalDebit,
-      totalCredit: node.statistics?.totalCredit,
-      totalTransactions: node.statistics?.totalTransactions,
-      hasTransactions: node.statistics?.hasTransactions
-    });
-    
-    if (!node.statistics) {
-      console.log(`❌ 科目 "${node.name}" 沒有統計資料，將顯示為空`);
-      return null;
-    }
-    
-    // 優先使用 totalBalance，如果沒有則使用 balance
-    const netAmount = node.statistics.totalBalance !== undefined
-      ? node.statistics.totalBalance
-      : (node.statistics.balance || 0);
-    
-    console.log(`💰 科目 "${node.name}" 最終淨額計算:`, {
-      使用的值: netAmount,
-      來源: node.statistics.totalBalance !== undefined ? 'totalBalance' : 'balance',
-      原始totalBalance: node.statistics.totalBalance,
-      原始balance: node.statistics.balance
-    });
-    
-    // 顯示所有金額（包括 0）以便調試，但標記零值
-    const formatted = new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(netAmount);
-    
-    console.log(`✅ 科目 "${node.name}" 格式化結果: ${formatted}`);
-    return formatted;
-  }, [node.statistics, node.name, node._id]);
-
-  return (
-    <NodeContent>
-      <NodeInfo>
-        {renderConfig.showNodeCodes && (
-          <AccountCode variant="caption">
-            {node.code}
-          </AccountCode>
-        )}
-        <AccountName>
-          {node.name}
-        </AccountName>
-        {node.type && (
-          <AccountType
-            label={node.type}
-            size="small"
-            color={getAccountTypeColor(node.type)}
-            variant="outlined"
-          />
-        )}
-        {!node.isActive && (
-          <Chip
-            label="停用"
-            size="small"
-            color="default"
-            variant="outlined"
-          />
-        )}
-        {/* 顯示淨額（如果有統計資料） - 暫時顯示所有金額包括 0 以便調試 */}
-        {formattedNetAmount !== null && (
-          <Typography
-            variant="caption"
-            sx={{
-              fontFamily: 'monospace',
-              fontSize: '0.75rem',
-              color: 'text.secondary',
-              backgroundColor: 'action.hover',
-              padding: '2px 6px',
-              borderRadius: 1,
-              minWidth: 'fit-content',
-            }}
-          >
-            {formattedNetAmount}
-          </Typography>
-        )}
-      </NodeInfo>
-      
-      <NodeActions>
-        <Tooltip title="查看科目詳情">
-          <Button
-            component={Link}
-            to={`/accounting3/accounts/${node._id}`}
-            size="small"
-            variant="text"
-            sx={{
-              minWidth: 'auto',
-              fontSize: '0.75rem',
-              padding: '4px 8px',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-              },
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            DETAIL
-          </Button>
-        </Tooltip>
-        
-        {node.permissions.canAddChild && (
-          <Tooltip title="新增子科目">
-            <IconButton
-              size="small"
-              onClick={handleActionClick(onAdd)}
-            >
-              <Add fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-        
-        {node.permissions.canEdit && (
-          <Tooltip title="編輯科目">
-            <IconButton
-              size="small"
-              onClick={handleActionClick(onEdit)}
-            >
-              <Edit fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-        
-        {node.permissions.canDelete && (
-          <Tooltip title={
-            node.statistics?.balance && node.statistics.balance !== 0
-              ? `刪除科目（餘額：${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD' }).format(node.statistics.balance)}）`
-              : "刪除科目"
-          }>
-            <IconButton
-              size="small"
-              onClick={handleActionClick(onDelete)}
-              color="error"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'error.main',
-                  color: 'error.contrastText',
-                }
-              }}
-            >
-              <Delete fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-      </NodeActions>
-    </NodeContent>
-  );
-});
-
-NodeLabel.displayName = 'NodeLabel';
 
 // 樹狀節點組件
 const TreeNode: React.FC<{
@@ -414,9 +181,33 @@ const TreeNode: React.FC<{
   const isDragging = dragState.draggedNodeId === node._id;
   const isDragOver = dragState.dragOverNodeId === node._id;
 
-  const handleNodeClick = useCallback(() => {
+  const handleNodeClick = useCallback((event: React.MouseEvent) => {
+    // 檢查點擊的目標是否為操作按鈕或其子元素
+    const target = event.target as HTMLElement;
+    const isActionButton = target.closest('.node-actions') ||
+                          target.closest('button') ||
+                          target.closest('a') ||
+                          target.tagName === 'BUTTON' ||
+                          target.tagName === 'A';
+    
+    // 如果點擊的是操作按鈕，不處理展開收合
+    if (isActionButton) {
+      onNodeSelect(node._id);
+      return;
+    }
+    
+    // 檢查是否有子科目可以展開收合
+    const hasRealChildren = (node.hasChildren === true) ||
+                           (node.children && Array.isArray(node.children) && node.children.length > 0);
+    
+    // 如果有子科目，點擊列時觸發展開收合
+    if (hasRealChildren) {
+      onNodeToggle(node._id);
+    }
+    
+    // 同時觸發選擇事件
     onNodeSelect(node._id);
-  }, [onNodeSelect, node._id]);
+  }, [onNodeSelect, onNodeToggle, node._id, node.hasChildren, node.children]);
 
   const handleToggle = useCallback(() => {
     onNodeToggle(node._id);
@@ -449,42 +240,193 @@ const TreeNode: React.FC<{
 
   return (
     <Box>
-      <IndentContainer level={level}>
-        <Box
-          className={`tree-item ${isSelected ? 'selected' : ''}`}
-          style={nodeStyle}
-          draggable={renderConfig.enableDragDrop}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onClick={handleNodeClick}
-          sx={{ cursor: 'pointer' }}
-        >
-          <Box display="flex" alignItems="center">
-            <ExpandIcon
-              node={node}
-              isExpanded={isExpanded}
-              onClick={handleToggle}
-            />
-            {renderConfig.showNodeIcons && (
-              <Box mr={1}>
-                <NodeIcon node={node} isExpanded={isExpanded} />
-              </Box>
-            )}
-            <Box flex={1}>
-              <NodeLabel
-                node={node}
-                config={config}
-                renderConfig={renderConfig}
-                onEdit={() => onNodeEdit(node._id)}
-                onDelete={() => onNodeDelete(node._id)}
-                onAdd={() => onNodeAdd(node._id)}
-                onVisibilityToggle={() => onNodeVisibilityToggle(node._id)}
-              />
+      <Box
+        className={`tree-item ${isSelected ? 'selected' : ''}`}
+        style={nodeStyle}
+        draggable={renderConfig.enableDragDrop}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onClick={handleNodeClick}
+        sx={{
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          minHeight: '40px', // 減少行距
+          padding: '6px 0', // 減少上下內邊距
+          borderBottom: '1px solid rgba(0, 0, 0, 0.06)', // 淡淡的框線
+          '&:hover': {
+            borderBottom: '1px solid rgba(0, 0, 0, 0.12)', // hover 時框線稍微深一點
+          }
+        }}
+      >
+        {/* 左側區域：縮排 + 展開按鈕 + 圖示 + 帳戶名稱 */}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: level * 2, // 減少縮排間距，讓整體更緊湊
+          flex: 1,
+          minWidth: 0
+        }}>
+          <ExpandIcon
+            node={node}
+            isExpanded={isExpanded}
+            onClick={handleToggle}
+          />
+          {renderConfig.showNodeIcons && (
+            <Box mr={1}>
+              <NodeIcon node={node} isExpanded={isExpanded} />
             </Box>
+          )}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 0,
+            overflow: 'hidden',
+            flex: 1
+          }}>
+            <AccountName sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {node.name}
+            </AccountName>
+            {!node.isActive && (
+              <Chip
+                label="停用"
+                size="small"
+                color="default"
+                variant="outlined"
+                sx={{ ml: 1, flexShrink: 0 }}
+              />
+            )}
           </Box>
         </Box>
-      </IndentContainer>
+        
+        {/* 右側區域：數字列 - 絕對定位，完全不受縮排影響 */}
+        <Box sx={{
+          position: 'absolute',
+          right: '230px', // 數字列往右移，減少左側空白
+          width: '120px',
+          textAlign: 'left',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          {node.statistics && (
+            <Typography
+              variant="caption"
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: '0.85rem', // 增大字體
+                color: 'text.secondary',
+                backgroundColor: 'action.hover',
+                padding: '2px 6px',
+                borderRadius: 1,
+                display: 'inline-block',
+              }}
+            >
+              {new Intl.NumberFormat('zh-TW', {
+                style: 'currency',
+                currency: 'TWD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }).format(node.statistics.totalBalance !== undefined
+                ? node.statistics.totalBalance
+                : (node.statistics.balance || 0))}
+            </Typography>
+          )}
+        </Box>
+        
+        {/* 操作按鈕區域 */}
+        <Box className="node-actions" sx={{
+          position: 'absolute',
+          right: '130px', // 操作列往左移一點
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          opacity: 0,
+          transition: 'opacity 0.2s',
+          '.tree-item:hover &': {
+            opacity: 1,
+          },
+        }}>
+          {/* 只有子目錄（沒有子科目的葉節點）才顯示 DETAIL 按鈕 */}
+          {!((node.hasChildren === true) || (node.children && Array.isArray(node.children) && node.children.length > 0)) && (
+            <Tooltip title="查看科目詳情">
+              <IconButton
+                component={Link}
+                to={`/accounting3/accounts/${node._id}`}
+                size="small"
+                sx={{
+                  color: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                  },
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Info fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          
+          {node.permissions.canAddChild && (
+            <Tooltip title="新增子科目">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNodeAdd(node._id);
+                }}
+              >
+                <Add fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          
+          {node.permissions.canEdit && (
+            <Tooltip title="編輯科目">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNodeEdit(node._id);
+                }}
+              >
+                <Edit fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          
+          {node.permissions.canDelete && (
+            <Tooltip title={
+              node.statistics?.balance && node.statistics.balance !== 0
+                ? `刪除科目（餘額：${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD' }).format(node.statistics.balance)}）`
+                : "刪除科目"
+            }>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNodeDelete(node._id);
+                }}
+                color="error"
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'error.main',
+                    color: 'error.contrastText',
+                  }
+                }}
+              >
+                <Delete fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+      </Box>
       
       <Collapse in={isExpanded} timeout="auto" unmountOnExit>
         {node.children?.map((childNode) => (

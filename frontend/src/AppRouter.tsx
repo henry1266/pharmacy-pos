@@ -104,10 +104,10 @@ const AppRouter: React.FC = () => {
       <Route path="/accounting3/accounts" element={<AccountsManagementPage />} />
       <Route path="/accounting3/accounts/:accountId" element={<AccountDetailPage />} />
       
-      {/* Organization Management routes */}
-      <Route path="/organizations" element={<OrganizationPage />} />
-      <Route path="/organizations/new" element={<OrganizationFormPage />} />
-      <Route path="/organizations/:id/edit" element={<OrganizationFormPage />} />
+      {/* Accounting3 機構管理路由 */}
+      <Route path="/accounting3/organizations" element={<OrganizationPage />} />
+      <Route path="/accounting3/organizations/new" element={<OrganizationFormPage />} />
+      <Route path="/accounting3/organizations/:id/edit" element={<OrganizationFormPage />} />
       
       {/* Settings routes (assuming they require login) */}
       <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}

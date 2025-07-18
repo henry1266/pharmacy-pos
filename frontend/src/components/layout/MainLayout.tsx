@@ -102,6 +102,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [accountingSubMenuOpen, setAccountingSubMenuOpen] = useState<boolean>(false);
+  const [accounting3SubMenuOpen, setAccounting3SubMenuOpen] = useState<boolean>(false);
   const [productSubMenuOpen, setProductSubMenuOpen] = useState<boolean>(false);
   const [settingSubMenuOpen, setSettingSubMenuOpen] = useState<boolean>(false);
   const [employeeSubMenuOpen, setEmployeeSubMenuOpen] = useState<boolean>(false);
@@ -197,7 +198,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isAccountingPath = (path: string): boolean => (path.startsWith('/accounting') && !path.startsWith('/accounting2') && !path.startsWith('/accounting3')) || path.startsWith('/settings/monitored-products');
   const isAccounting2Path = (path: string): boolean => path.startsWith('/accounting2');
   const isAccounting3Path = (path: string): boolean => path.startsWith('/accounting3');
-  const isOrganizationPath = (path: string): boolean => path.startsWith('/organizations');
+  const isOrganizationPath = (path: string): boolean => path.startsWith('/accounting3/organizations');
   const isSettingPath = (path: string): boolean => /^\/settings(\/|$)/.test(path);
   const isEmployeePath = (path: string): boolean => path.startsWith('/employees');
 
@@ -226,8 +227,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         { text: '監測列表', path: '/settings/monitored-products' },
       ]
     },
-    { text: '會計系統', icon: isAccounting3Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon />, path: '/accounting3', adminOnly: true },
-    { text: '機構管理', icon: isOrganizationPath(location.pathname) ? <BusinessOutlinedIcon /> : <BusinessIcon />, path: '/organizations', adminOnly: true },
+    { text: '會計系統', icon: isAccounting3Path(location.pathname) ? <AccountBalanceWalletOutlinedIcon /> : <AccountBalanceWalletIcon /> , subItems: [
+        { text: '會計首頁', path: '/accounting3' },
+        { text: '會計列表', path: '/accounting3/transaction', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
+        { text: '會計科目', path: '/accounting3/accounts' },
+        { text: '機構管理', path: '/accounting3/organizations', icon: <BusinessIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
+      ]
+    },
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports', adminOnly: true },
     { text: '系統設定', icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, subItems: [
         { text: '設定列表', path: '/settings' },
@@ -246,6 +252,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleSettingClick = () => setSettingSubMenuOpen(!settingSubMenuOpen);
   const handleAccountingClick = () => setAccountingSubMenuOpen(!accountingSubMenuOpen);
+  const handleAccounting3Click = () => setAccounting3SubMenuOpen(!accounting3SubMenuOpen);
   const handleProductClick = () => setProductSubMenuOpen(!productSubMenuOpen);
   const handleEmployeeClick = () => setEmployeeSubMenuOpen(!employeeSubMenuOpen);
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
@@ -297,6 +304,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         isOpen = accountingSubMenuOpen;
         handleClick = handleAccountingClick;
         isActive = isAccountingPath(location.pathname);
+        break;
+      case '會計系統':
+        isOpen = accounting3SubMenuOpen;
+        handleClick = handleAccounting3Click;
+        isActive = isAccounting3Path(location.pathname);
         break;
       case '商品管理':
         isOpen = productSubMenuOpen;
