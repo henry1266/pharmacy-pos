@@ -28,8 +28,12 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
+import { InputAdornment } from '@mui/material';
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useSupplierData from '../hooks/useSupplierData';
 
@@ -154,6 +158,8 @@ const SuppliersPage: FC<{}> = () => {
   const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '', severity: 'success' });
   const [localSuppliers, setLocalSuppliers] = useState<SupplierData[]>([]);
   const [localSelectedSupplier, setLocalSelectedSupplier] = useState<SupplierData | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filteredSuppliers, setFilteredSuppliers] = useState<SupplierData[]>([]);
 
   // 定義 showSnackbar 函數
   const showSnackbar = (message: string, severity: AlertProps['severity'] = 'success'): void => {
@@ -205,8 +211,23 @@ const SuppliersPage: FC<{}> = () => {
     }
   }, [isTestMode, actualSelectedSupplier, localSuppliers]);
 
+  // 搜尋過濾邏輯
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredSuppliers(localSuppliers);
+    } else {
+      const filtered = localSuppliers.filter(supplier =>
+        supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        supplier.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        supplier.shortCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        supplier.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        supplier.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredSuppliers(filtered);
+    }
+  }, [localSuppliers, searchTerm]);
 
-  const suppliers = localSuppliers;
+  const suppliers = filteredSuppliers;
   const loading = isTestMode ? false : actualLoading;
   const error = isTestMode ? null : actualError;
   const selectedSupplier = isTestMode ? localSelectedSupplier : (actualSelectedSupplier as unknown as SupplierData | null);
@@ -241,9 +262,18 @@ const SuppliersPage: FC<{}> = () => {
     {
       field: 'actions',
       headerName: '操作',
-      width: 120,
+      width: 150,
       renderCell: (params: { row: SupplierData }) => (
         <Box>
+          <Tooltip title="查看詳情">
+            <IconButton
+              color="info"
+              onClick={(e) => { e.stopPropagation(); navigate(`/suppliers/${params.row.id}`); }}
+              size="small"
+            >
+              <VisibilityIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="編輯">
             <IconButton
               color="primary"
@@ -270,6 +300,14 @@ const SuppliersPage: FC<{}> = () => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target;
     setCurrentSupplierState({ ...currentSupplierState, [name]: value });
+  };
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleClearSearch = (): void => {
+    setSearchTerm('');
   };
 
   const handleEditSupplier = (id: string): void => {
@@ -486,24 +524,50 @@ const SuppliersPage: FC<{}> = () => {
   };
 
   const actionButtons = (
-    <Box>
-      <Button
-        variant="outlined"
-        color="primary"
-        startIcon={<UploadFileIcon />}
-        onClick={handleOpenImportDialog}
-        sx={{ mr: 2 }}
-      >
-        匯入CSV {isTestMode && "(模擬)"}
-      </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={handleAddSupplier}
-      >
-        添加供應商 {isTestMode && "(模擬)"}
-      </Button>
+    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' } }}>
+      <TextField
+        placeholder="搜尋供應商..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+        size="small"
+        sx={{ minWidth: { xs: '100%', sm: '300px' } }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon color="action" />
+            </InputAdornment>
+          ),
+          endAdornment: searchTerm && (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={handleClearSearch}
+                edge="end"
+              >
+                <ClearIcon />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+      <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<UploadFileIcon />}
+          onClick={handleOpenImportDialog}
+        >
+          匯入CSV {isTestMode && "(模擬)"}
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleAddSupplier}
+        >
+          添加供應商 {isTestMode && "(模擬)"}
+        </Button>
+      </Box>
     </Box>
   );
 
