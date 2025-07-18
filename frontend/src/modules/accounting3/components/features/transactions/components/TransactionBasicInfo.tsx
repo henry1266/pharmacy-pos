@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 import { formatAmount, formatDate, getStatusInfo, getFundingTypeInfo } from '../utils';
+import { embeddedFundingTrackingService } from '../../../../services/transactionGroupWithEntriesService';
 
 interface TransactionBasicInfoProps {
   transaction: TransactionGroupWithEntries3;
@@ -33,6 +34,49 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
 }) => {
   const statusInfo = getStatusInfo(transaction.status);
   const fundingTypeInfo = getFundingTypeInfo(transaction.fundingType);
+  
+  // 資金流向狀態
+  const [fundingFlow, setFundingFlow] = useState<any>(null);
+  const [loadingFundingFlow, setLoadingFundingFlow] = useState(false);
+
+  // 獲取資金流向資訊
+  useEffect(() => {
+    const fetchFundingFlow = async () => {
+      if (!transaction._id) return;
+      
+      try {
+        setLoadingFundingFlow(true);
+        const response = await embeddedFundingTrackingService.getFundingFlow(transaction._id);
+        if (response.success) {
+          setFundingFlow(response.data);
+        }
+      } catch (error) {
+        console.error('獲取資金流向失敗:', error);
+      } finally {
+        setLoadingFundingFlow(false);
+      }
+    };
+
+    fetchFundingFlow();
+  }, [transaction._id]);
+
+  // 計算剩餘可用金額
+  const calculateRemainingAmount = (): number => {
+    if (fundingFlow && fundingFlow.availableAmount !== undefined) {
+      return fundingFlow.availableAmount;
+    }
+    
+    // 如果沒有資金流向資料，使用基本計算
+    const totalAmount = transaction.totalAmount || 0;
+    const linkedCount = transaction.linkedTransactionIds?.length || 0;
+    
+    if (linkedCount === 0) {
+      return totalAmount; // 沒有被引用，全額可用
+    }
+    
+    // 如果有被引用但沒有詳細資料，返回 0（保守估計）
+    return 0;
+  };
 
   // 渲染交易流向圖
   const renderTransactionFlow = () => {
@@ -179,6 +223,32 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
               color={statusInfo.color as any}
               size="small"
             />
+          </Grid>
+
+          <Grid item xs={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <MoneyIcon fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                剩餘可用金額
+              </Typography>
+            </Box>
+            {loadingFundingFlow ? (
+              <Typography variant="body2" color="text.secondary">
+                載入中...
+              </Typography>
+            ) : (
+              <Typography
+                variant="h6"
+                color={calculateRemainingAmount() > 0 ? "success.main" : "error.main"}
+              >
+                {formatAmount(calculateRemainingAmount())}
+              </Typography>
+            )}
+            {fundingFlow && fundingFlow.totalUsedAmount > 0 && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                已使用: {formatAmount(fundingFlow.totalUsedAmount)}
+              </Typography>
+            )}
           </Grid>
 
           <Grid item xs={6}>
