@@ -9,6 +9,7 @@
 ```
 features/
 ├── accounts/             # 科目管理功能組件
+├── organizations/        # 機構管理功能組件
 ├── transactions/         # 交易管理功能組件
 └── README.md            # 本文件
 ```
@@ -34,7 +35,20 @@ features/
 - 拖拽操作支援
 - 搜尋和過濾功能
 
-### 2. 交易管理 (Transactions)
+### 2. 機構管理 (Organizations)
+**路徑**: `./organizations/`
+
+**核心組件**:
+- [`OrganizationForm`](./organizations/OrganizationForm.tsx) - 機構建立/編輯表單
+
+**功能特色**:
+- 機構基本資訊管理
+- 表單驗證和錯誤處理
+- 支援建立和編輯模式
+- 完整的 CRUD 操作
+- 響應式表單設計
+
+### 3. 交易管理 (Transactions)
 **路徑**: `./transactions/`
 
 **核心組件**:
@@ -62,10 +76,10 @@ features/
 
 ### 1. 科目管理組件
 ```tsx
-import { 
-  AccountTypeManagement, 
-  AccountForm, 
-  AccountHierarchyManager 
+import {
+  AccountTypeManagement,
+  AccountForm,
+  AccountHierarchyManager
 } from '@/modules/accounting3/components/features/accounts';
 
 // 科目類型管理頁面
@@ -99,7 +113,58 @@ function HierarchyPage() {
 }
 ```
 
-### 2. 交易管理組件
+### 2. 機構管理組件
+```tsx
+import { OrganizationForm } from '@/modules/accounting3/components/features/organizations';
+
+// 機構表單對話框
+function OrganizationFormDialog({ open, onClose, organization }) {
+  const handleSubmit = async (data) => {
+    if (organization) {
+      await updateOrganization(organization._id, data);
+    } else {
+      await createOrganization(data);
+    }
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <OrganizationForm
+        organization={organization}
+        onSubmit={handleSubmit}
+        onCancel={onClose}
+        loading={loading}
+      />
+    </Dialog>
+  );
+}
+
+// 機構管理頁面
+function OrganizationManagePage() {
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingOrg, setEditingOrg] = useState(null);
+
+  return (
+    <Container>
+      <Button onClick={() => setFormOpen(true)}>
+        新增機構
+      </Button>
+      
+      <OrganizationFormDialog
+        open={formOpen}
+        organization={editingOrg}
+        onClose={() => {
+          setFormOpen(false);
+          setEditingOrg(null);
+        }}
+      />
+    </Container>
+  );
+}
+```
+
+### 3. 交易管理組件
 ```tsx
 import { 
   TransactionDetailView, 

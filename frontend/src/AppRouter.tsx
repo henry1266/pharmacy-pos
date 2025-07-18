@@ -39,15 +39,15 @@ import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
 import AccountTypeSettingsPage from './pages/settings/AccountTypeSettingsPage';
 
-import OrganizationPage from './pages/OrganizationPage';
-import OrganizationFormPage from './pages/OrganizationFormPage';
+import OrganizationPage from './modules/accounting3/pages/OrganizationPage';
+import OrganizationFormPage from './modules/accounting3/pages/OrganizationFormPage';
 
 // 員工管理頁面元件
   import { EmployeeBasicInfoPage, EmployeeListPage, EmployeeSchedulingPage, OvertimeManagementPage } from './modules/employees';
 // 會計管理頁面元件
   import Accounting3DashboardPage from './pages/Accounting3DashboardPage';
   import Accounting3TransactionPage from './modules/accounting3/pages/TransactionPage';
-  import AccountsManagementPage from './pages/AccountsManagementPage';
+  import AccountsManagementPage from './modules/accounting3/pages/AccountsManagementPage';
   import AccountDetailPage from './pages/AccountDetailPage';
   import TransactionDetailPage from './pages/TransactionDetailPage';
   import AccountingDetailPageWrapper from './pages/AccountingDetailPage';

@@ -13,7 +13,7 @@ import {
   TransactionStatusManager,
   TransactionGroupWithEntriesFormData
 } from '@pharmacy-pos/shared';
-import { accounting3Service } from '../../../../../services/accounting3Service';
+import { accounting3Service } from '../../../services/accounting3Service';
 
 // 導入 accounting3 專用的 hooks 和組件
 import { useTransactionForm3 } from '../../../core/hooks/useTransactionForm3';

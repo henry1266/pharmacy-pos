@@ -11,8 +11,7 @@ import {
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 
 // 導入自定義 Hook
-import { useTransactionDetail } from './hooks/useTransactionDetail';
-import { useTransactionActions } from './hooks/useTransactionActions';
+import { useTransactionDetail, useTransactionActions } from './hooks';
 
 // 導入子組件
 import {

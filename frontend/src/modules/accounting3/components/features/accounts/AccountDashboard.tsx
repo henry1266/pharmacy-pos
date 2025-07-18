@@ -23,7 +23,7 @@ import {
   MonetizationOn as MonetizationOnIcon,
 } from '@mui/icons-material';
 import { Account2, TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
-import { accounting3Service } from '../../../../../services/accounting3Service';
+import { accounting3Service } from '../../../services/accounting3Service';
 
 interface AccountDashboardProps {
   selectedAccount: Account2;

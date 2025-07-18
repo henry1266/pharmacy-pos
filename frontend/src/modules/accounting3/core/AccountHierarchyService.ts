@@ -5,7 +5,7 @@
  */
 
 import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
-import { accounting3Service } from '../../../services/accounting3Service';
+import { accounting3Service } from '../services/accounting3Service';
 import {
   AccountHierarchyNode,
   AccountHierarchyConfig,

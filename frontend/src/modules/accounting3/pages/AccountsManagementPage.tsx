@@ -21,10 +21,10 @@ import {
 } from '@mui/icons-material';
 
 // 導入 accounting3 階層管理組件
-import { AccountHierarchyManager } from '../modules/accounting3/components/features/accounts/AccountHierarchyManager';
-import { AccountTransactionList } from '../modules/accounting3/components/features/accounts/AccountTransactionList';
+import { AccountHierarchyManager } from '../components/features/accounts/AccountHierarchyManager';
+import { AccountTransactionList } from '../components/features/accounts/AccountTransactionList';
 // 導入 accounting3 科目表單組件
-import { AccountForm } from '../modules/accounting3/components/features/accounts/AccountForm';
+import { AccountForm } from '../components/features/accounts/AccountForm';
 
 // 導入共享類型
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
@@ -32,8 +32,8 @@ import { Organization } from '@pharmacy-pos/shared/types/organization';
 
 // 導入服務
 import { accounting3Service } from '../services/accounting3Service';
-import { useAppSelector, useAppDispatch } from '../hooks/redux';
-import { fetchOrganizations2 } from '../redux/actions';
+import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
+import { fetchOrganizations2 } from '../../../redux/actions';
 
 /**
  * 科目管理頁面

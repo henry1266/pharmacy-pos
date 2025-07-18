@@ -3,7 +3,7 @@
  * 專門處理科目統計資料的計算邏輯
  */
 
-import { accounting3Service } from '../../../services/accounting3Service';
+import { accounting3Service } from '../services/accounting3Service';
 import { AccountHierarchyNode } from '../types';
 
 /**

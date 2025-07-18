@@ -4,8 +4,8 @@ import {
   EmbeddedAccountingEntry3,
   Account3
 } from '@pharmacy-pos/shared/types/accounting3';
-import { accounting3Service } from '../../../../../../services/accounting3Service';
-import { cleanAndValidateTransactionId } from '../utils/transactionUtils';
+import { accounting3Service } from '../../../../services/accounting3Service';
+import { cleanAndValidateTransactionId } from '../utils';
 
 interface UseTransactionDetailReturn {
   transaction: TransactionGroupWithEntries3 | null;

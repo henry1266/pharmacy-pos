@@ -19,7 +19,7 @@ import {
   ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
-import { formatAmount, formatDate, getStatusInfo, getFundingTypeInfo } from '../utils/transactionUtils';
+import { formatAmount, formatDate, getStatusInfo, getFundingTypeInfo } from '../utils';
 
 interface TransactionBasicInfoProps {
   transaction: TransactionGroupWithEntries3;

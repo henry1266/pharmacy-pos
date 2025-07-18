@@ -7,7 +7,7 @@ import {
   OrganizationApiResponse,
   OrganizationListApiResponse
 } from '@pharmacy-pos/shared/types/organization';
-import { getApiBaseUrl } from '../utils/apiConfig';
+import { getApiBaseUrl } from '../../../utils/apiConfig';
 
 const API_BASE_URL = getApiBaseUrl();
 

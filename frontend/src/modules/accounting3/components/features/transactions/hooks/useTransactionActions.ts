@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
-import { accounting3Service } from '../../../../../../services/accounting3Service';
+import { accounting3Service } from '../../../../services/accounting3Service';
 
 interface UseTransactionActionsProps {
   transaction: TransactionGroupWithEntries3 | null;

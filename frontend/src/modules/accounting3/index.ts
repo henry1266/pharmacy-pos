@@ -29,6 +29,9 @@ export type {
 // 核心服務
 export { AccountHierarchyService } from './core/AccountHierarchyService';
 
+// 業務服務
+export { default as organizationService } from './services/organizationService';
+
 // 組件匯出
 export * from './components';
 
