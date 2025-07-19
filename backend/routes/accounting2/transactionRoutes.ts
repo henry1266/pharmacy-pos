@@ -24,8 +24,14 @@ router.get('/statistics', TransactionController.getTransactionStatistics);
 // GET /api/accounting2/transactions/account-statistics-aggregate - 取得科目統計聚合資料（高效能版本）
 router.get('/account-statistics-aggregate', TransactionController.getAccountStatisticsAggregate);
 
+// GET /api/accounting2/transactions/:id/balance - 計算交易餘額
+router.get('/:id/balance', TransactionController.calculateTransactionBalance);
+
 // GET /api/accounting2/transactions/:id - 取得單一交易群組
 router.get('/:id', TransactionController.getTransactionById);
+
+// POST /api/accounting2/transactions/calculate-balances - 批次計算交易餘額
+router.post('/calculate-balances', TransactionController.calculateMultipleTransactionBalances);
 
 // POST /api/accounting2/transactions - 建立交易群組
 router.post('/', TransactionController.createTransaction);

@@ -1,6 +1,5 @@
 import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
 import Account2 from '../../models/Account2';
-import { AccountManagementAdapter } from '../../../shared/adapters/accounting2to3';
 import { Accounting3To2Adapter } from '../../../shared/adapters/accounting3to2';
 import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';
 import { TransactionGroupWithEntries as TransactionGroupType, Account2 as Account2Type } from '../../../shared/types/accounting2';
@@ -434,6 +433,158 @@ export class TransactionService {
       if (debitAmount > 0 && creditAmount > 0) {
         throw new Error('分錄不能同時有借方和貸方金額');
       }
+    }
+  }
+
+  /**
+   * 計算交易的真實餘額
+   * @param transactionId 交易群組ID
+   * @param userId 使用者ID
+   * @returns 交易餘額資訊
+   */
+  static async calculateTransactionBalance(
+    transactionId: string,
+    userId: string
+  ): Promise<{
+    transactionId: string;
+    totalAmount: number;
+    usedAmount: number;
+    availableAmount: number;
+    referencedByCount: number;
+    referencedByTransactions: Array<{
+      transactionId: string;
+      groupNumber: string;
+      description: string;
+      usedAmount: number;
+      transactionDate: Date;
+    }>;
+  }> {
+    try {
+      // 1. 獲取原始交易
+      const sourceTransaction = await TransactionGroupWithEntries.findOne({
+        _id: transactionId,
+        createdBy: userId,
+        status: 'confirmed' // 只計算已確認的交易
+      }).lean();
+
+      if (!sourceTransaction) {
+        throw new Error('交易不存在、未確認或無權限存取');
+      }
+
+      const totalAmount = sourceTransaction.totalAmount || 0;
+
+      // 2. 查找所有引用此交易的其他交易
+      const referencingTransactions = await TransactionGroupWithEntries.find({
+        createdBy: userId,
+        status: 'confirmed', // 只計算已確認的引用交易
+        'entries.sourceTransactionId': transactionId
+      })
+      .populate('entries.accountId', 'name code')
+      .lean();
+
+      console.log(`🔍 找到 ${referencingTransactions.length} 筆引用交易`);
+
+      // 3. 計算每筆引用交易使用的金額
+      const referencedByTransactions = [];
+      let totalUsedAmount = 0;
+
+      for (const refTransaction of referencingTransactions) {
+        // 找到引用原始交易的分錄
+        const referencingEntries = refTransaction.entries?.filter(
+          (entry: any) => entry.sourceTransactionId?.toString() === transactionId
+        ) || [];
+
+        // 計算此交易使用的金額（借方或貸方的總和）
+        const usedInThisTransaction = referencingEntries.reduce((sum: number, entry: any) => {
+          return sum + (entry.debitAmount || 0) + (entry.creditAmount || 0);
+        }, 0);
+
+        if (usedInThisTransaction > 0) {
+          referencedByTransactions.push({
+            transactionId: refTransaction._id.toString(),
+            groupNumber: refTransaction.groupNumber || '',
+            description: refTransaction.description || '',
+            usedAmount: usedInThisTransaction,
+            transactionDate: refTransaction.transactionDate || refTransaction.createdAt
+          });
+
+          totalUsedAmount += usedInThisTransaction;
+        }
+      }
+
+      // 4. 計算可用餘額
+      const availableAmount = Math.max(0, totalAmount - totalUsedAmount);
+
+      const result = {
+        transactionId,
+        totalAmount,
+        usedAmount: totalUsedAmount,
+        availableAmount,
+        referencedByCount: referencedByTransactions.length,
+        referencedByTransactions
+      };
+
+      console.log(`💰 交易餘額計算完成:`, {
+        transactionId,
+        totalAmount,
+        usedAmount: totalUsedAmount,
+        availableAmount,
+        referencedByCount: referencedByTransactions.length
+      });
+
+      return result;
+    } catch (error) {
+      console.error('計算交易餘額錯誤:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 批次計算多筆交易的餘額
+   * @param transactionIds 交易群組ID陣列
+   * @param userId 使用者ID
+   * @returns 交易餘額資訊陣列
+   */
+  static async calculateMultipleTransactionBalances(
+    transactionIds: string[],
+    userId: string
+  ): Promise<Array<{
+    transactionId: string;
+    totalAmount: number;
+    usedAmount: number;
+    availableAmount: number;
+    referencedByCount: number;
+    success: boolean;
+    error?: string;
+  }>> {
+    try {
+      const results = [];
+
+      for (const transactionId of transactionIds) {
+        try {
+          const balance = await this.calculateTransactionBalance(transactionId, userId);
+          results.push({
+            ...balance,
+            success: true
+          });
+        } catch (error) {
+          results.push({
+            transactionId,
+            totalAmount: 0,
+            usedAmount: 0,
+            availableAmount: 0,
+            referencedByCount: 0,
+            success: false,
+            error: error instanceof Error ? error.message : '計算失敗'
+          });
+        }
+      }
+
+      console.log(`📊 批次餘額計算完成: ${results.length} 筆交易`);
+      return results;
+    } catch (error) {
+      console.error('批次計算交易餘額錯誤:', error);
+      throw error;
     }
   }
 

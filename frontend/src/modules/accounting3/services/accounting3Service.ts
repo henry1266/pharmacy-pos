@@ -546,6 +546,20 @@ export const transactionsApi = {
     return response.data;
   },
 
+  // 計算交易餘額
+  getBalance: async (id: string): Promise<{ success: boolean; data?: any }> => {
+    const response = await apiService.get(`api/accounting2/transactions/${id}/balance`);
+    return response.data;
+  },
+
+  // 批次計算交易餘額
+  calculateBalances: async (transactionIds: string[]): Promise<{ success: boolean; data?: any }> => {
+    const response = await apiService.post('api/accounting2/transactions/calculate-balances', {
+      transactionIds
+    });
+    return response.data;
+  },
+
   // 新增交易
   create: async (data: any): Promise<{ success: boolean; data?: any; message?: string }> => {
     const response = await apiService.post('api/accounting2/transaction-groups-with-entries', data);

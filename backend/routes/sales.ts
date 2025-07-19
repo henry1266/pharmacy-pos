@@ -9,7 +9,6 @@ import Customer from '../models/Customer';
 // 使用 shared 架構的 API 類型
 import { ApiResponse, ErrorResponse, SaleCreateRequest } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
-import { Server as SocketIOServer } from 'socket.io';
 
 // 引入通用訂單單號生成服務
 import OrderNumberService from '../utils/OrderNumberService';
@@ -543,28 +542,6 @@ router.post(
         timestamp: new Date()
       };
       
-      // 發送 WebSocket 事件通知所有在 sales-new2 房間的用戶
-      const io: SocketIOServer = req.app.get('io');
-      if (io) {
-        const eventData = {
-          message: '新的銷售記錄已建立',
-          saleId: sale._id,
-          timestamp: new Date()
-        };
-        
-        console.log('📤 發送 sale-created 事件到 sales-new2 房間:', eventData);
-        
-        // 檢查房間成員數量
-        const roomSize = io.sockets.adapter.rooms.get('sales-new2')?.size || 0;
-        console.log(`📊 sales-new2 房間目前有 ${roomSize} 個用戶`);
-        
-        io.to('sales-new2').emit('sale-created', eventData);
-        
-        // 也發送到所有連接的客戶端（備用方案）
-        io.emit('sale-created-broadcast', eventData);
-      } else {
-        console.warn('⚠️ Socket.IO 實例未找到，無法發送 WebSocket 事件');
-      }
       
       res.json(response);
     } catch (err: unknown) {
@@ -1045,15 +1022,6 @@ router.put('/:id', async (req: Request, res: Response) => {
       timestamp: new Date()
     };
 
-    // 發送 WebSocket 事件通知所有在 sales-new2 房間的用戶
-    const io: SocketIOServer = req.app.get('io');
-    if (io) {
-      io.to('sales-new2').emit('sale-updated', {
-        message: '銷售記錄已更新',
-        saleId: updatedSale._id,
-        timestamp: new Date()
-      });
-    }
 
     res.json(response);
   } catch (err: unknown) {
@@ -1186,15 +1154,6 @@ router.delete('/:id', async (req: Request, res: Response) => {
       timestamp: new Date()
     };
 
-    // 發送 WebSocket 事件通知所有在 sales-new2 房間的用戶
-    const io: SocketIOServer = req.app.get('io');
-    if (io) {
-      io.to('sales-new2').emit('sale-deleted', {
-        message: '銷售記錄已刪除',
-        saleId: req.params.id,
-        timestamp: new Date()
-      });
-    }
 
     res.json(response);
   } catch (err: unknown) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -25,6 +25,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 import { formatAmount, formatDate, formatDateOnly, extractObjectId, isValidObjectId } from '../utils/transactionUtils';
+import { accounting3Service } from '../../../../services/accounting3Service';
 
 interface TransactionFundingFlowProps {
   transaction: TransactionGroupWithEntries3;
@@ -37,6 +38,166 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
   transaction
 }) => {
   const navigate = useNavigate();
+  const [linkedTransactionDetails, setLinkedTransactionDetails] = useState<{[key: string]: any}>({});
+  const [loading, setLoading] = useState(false);
+  
+  // 調試：檢查交易的完整結構
+  console.log('🔍 TransactionFundingFlow 渲染，交易資訊:', {
+    id: transaction._id,
+    hasSourceTransaction: !!transaction.sourceTransactionId,
+    sourceTransactionType: typeof transaction.sourceTransactionId,
+    sourceTransactionId: transaction.sourceTransactionId,
+    linkedTransactionIds: transaction.linkedTransactionIds,
+    totalAmount: transaction.totalAmount,
+    description: transaction.description,
+    fullTransaction: transaction
+  });
+
+  // 獲取關聯交易和來源交易的詳細資訊（使用新的餘額計算 API）
+  useEffect(() => {
+    const fetchLinkedTransactionDetails = async () => {
+      console.log('🚀 開始獲取關聯交易和來源交易詳情:', {
+        hasLinkedTransactionIds: !!transaction.linkedTransactionIds,
+        linkedTransactionIdsLength: transaction.linkedTransactionIds?.length,
+        linkedTransactionIds: transaction.linkedTransactionIds,
+        hasSourceTransactionId: !!transaction.sourceTransactionId,
+        sourceTransactionId: transaction.sourceTransactionId
+      });
+
+      // 收集所有需要查詢餘額的交易 ID
+      const allTransactionIds: string[] = [];
+      
+      // 添加關聯交易 ID
+      if (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0) {
+        for (const linkedId of transaction.linkedTransactionIds) {
+          const cleanId = extractObjectId(linkedId);
+          if (cleanId && isValidObjectId(cleanId)) {
+            allTransactionIds.push(cleanId);
+          }
+        }
+      }
+      
+      // 添加來源交易 ID
+      if (transaction.sourceTransactionId) {
+        const cleanSourceId = extractObjectId(transaction.sourceTransactionId);
+        if (cleanSourceId && isValidObjectId(cleanSourceId)) {
+          allTransactionIds.push(cleanSourceId);
+        }
+      }
+      
+      // 添加流向交易 ID
+      if (transaction.referencedByInfo && transaction.referencedByInfo.length > 0) {
+        for (const ref of transaction.referencedByInfo) {
+          const cleanRefId = extractObjectId(ref._id);
+          if (cleanRefId && isValidObjectId(cleanRefId)) {
+            allTransactionIds.push(cleanRefId);
+          }
+        }
+      }
+
+      if (allTransactionIds.length === 0) {
+        console.log('⚠️ 沒有有效的交易 ID，跳過 API 調用');
+        return;
+      }
+
+      setLoading(true);
+      const details: {[key: string]: any} = {};
+
+      try {
+        console.log('💰 使用新的餘額計算 API 獲取真實餘額資訊');
+        console.log('📋 所有交易 IDs:', allTransactionIds);
+
+        // 使用新的批次餘額計算 API
+        const balanceResponse = await accounting3Service.transactions.calculateBalances(allTransactionIds);
+        
+        console.log('📡 餘額計算 API 回應:', {
+          success: balanceResponse.success,
+          hasData: !!balanceResponse.data,
+          balancesCount: balanceResponse.data?.balances?.length || 0,
+          summary: balanceResponse.data?.summary,
+          balances: balanceResponse.data?.balances
+        });
+
+        if (balanceResponse.success && balanceResponse.data?.balances) {
+          for (const balance of balanceResponse.data.balances) {
+            if (balance.success) {
+              console.log('✅ 獲取真實餘額成功:', {
+                transactionId: balance.transactionId,
+                totalAmount: balance.totalAmount,
+                usedAmount: balance.usedAmount,
+                availableAmount: balance.availableAmount,
+                referencedByCount: balance.referencedByCount
+              });
+
+              // 同時獲取交易基本資訊
+              try {
+                const transactionResponse = await accounting3Service.transactions.getById(balance.transactionId);
+                if (transactionResponse.success && transactionResponse.data) {
+                  details[balance.transactionId] = {
+                    ...transactionResponse.data,
+                    // 使用真實計算的餘額資訊
+                    totalAmount: balance.totalAmount,
+                    usedAmount: balance.usedAmount,
+                    availableAmount: balance.availableAmount,
+                    referencedByCount: balance.referencedByCount,
+                    referencedByTransactions: balance.referencedByTransactions,
+                    // 標記這是真實計算的餘額
+                    hasRealBalance: true
+                  };
+                } else {
+                  // 如果無法獲取交易詳情，至少保存餘額資訊
+                  details[balance.transactionId] = {
+                    _id: balance.transactionId,
+                    id: balance.transactionId,
+                    totalAmount: balance.totalAmount,
+                    usedAmount: balance.usedAmount,
+                    availableAmount: balance.availableAmount,
+                    referencedByCount: balance.referencedByCount,
+                    referencedByTransactions: balance.referencedByTransactions,
+                    hasRealBalance: true,
+                    description: '無法獲取交易詳情'
+                  };
+                }
+              } catch (error) {
+                console.warn('⚠️ 獲取交易詳情失敗，但餘額計算成功:', balance.transactionId, error);
+                details[balance.transactionId] = {
+                  _id: balance.transactionId,
+                  id: balance.transactionId,
+                  totalAmount: balance.totalAmount,
+                  usedAmount: balance.usedAmount,
+                  availableAmount: balance.availableAmount,
+                  referencedByCount: balance.referencedByCount,
+                  referencedByTransactions: balance.referencedByTransactions,
+                  hasRealBalance: true,
+                  description: '無法獲取交易詳情'
+                };
+              }
+            } else {
+              console.error('❌ 餘額計算失敗:', {
+                transactionId: balance.transactionId,
+                error: balance.error
+              });
+            }
+          }
+        }
+        
+        console.log('🎯 最終獲取的詳情:', {
+          detailsKeys: Object.keys(details),
+          detailsCount: Object.keys(details).length,
+          hasRealBalanceData: Object.values(details).some((d: any) => d.hasRealBalance),
+          details: details
+        });
+        
+        setLinkedTransactionDetails(details);
+      } catch (error) {
+        console.error('❌ 獲取關聯交易詳情失敗:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLinkedTransactionDetails();
+  }, [transaction.linkedTransactionIds, transaction.sourceTransactionId, transaction.referencedByInfo]);
 
   // 渲染來源交易資訊
   const renderSourceTransaction = () => {
@@ -58,8 +219,8 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
               <TableRow>
                 <TableCell>日期</TableCell>
                 <TableCell>交易描述</TableCell>
-                <TableCell align="right">金額</TableCell>
-                <TableCell align="center">餘額</TableCell>
+                <TableCell align="center">本次</TableCell>
+                <TableCell align="center">餘額/總額</TableCell>
                 <TableCell align="center">操作</TableCell>
               </TableRow>
             </TableHead>
@@ -75,29 +236,175 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                     </span>
                   </Tooltip>
                 </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'medium' }}>
-                  {sourceInfo.totalAmount ? formatAmount(sourceInfo.totalAmount) : '未知金額'}
-                </TableCell>
                 <TableCell align="center">
                   {(() => {
-                    // 計算來源交易的剩餘餘額
-                    const totalAmount = sourceInfo.totalAmount || 0;
-                    const usedAmount = sourceInfo.referencedByInfo
-                      ?.filter(ref => ref.status !== 'cancelled')
-                      .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0) || 0;
-                    const remainingAmount = Math.max(0, totalAmount - usedAmount);
+                    // 從來源交易實際使用的金額
+                    // 檢查來源交易資訊中是否有使用金額的記錄
+                    let usedFromThisSource = 0;
+                    
+                    // 如果來源交易資訊中有 usedAmount 或類似欄位
+                    if (sourceInfo.usedAmount !== undefined) {
+                      usedFromThisSource = sourceInfo.usedAmount;
+                    } else if (sourceInfo.allocatedAmount !== undefined) {
+                      usedFromThisSource = sourceInfo.allocatedAmount;
+                    } else {
+                      // 如果沒有明確的使用金額，需要計算
+                      // 檢查是否有多個來源，如果有則需要按比例分配
+                      const totalSources = (transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0);
+                      if (totalSources > 1) {
+                        // 多來源情況：需要按比例分配當前交易的總金額
+                        const currentTransactionAmount = transaction.totalAmount || 0;
+                        const sourceAmount = sourceInfo.totalAmount || 0;
+                        
+                        // 計算所有來源的總金額
+                        let totalSourceAmount = 0;
+                        if (transaction.sourceTransactionId && typeof transaction.sourceTransactionId === 'object') {
+                          const sourceData = transaction.sourceTransactionId as any;
+                          totalSourceAmount += sourceData.totalAmount || 0;
+                        }
+                        if (transaction.linkedTransactionIds) {
+                          transaction.linkedTransactionIds.forEach(linkedId => {
+                            if (typeof linkedId === 'object' && linkedId !== null) {
+                              const linkedData = linkedId as any;
+                              totalSourceAmount += linkedData.totalAmount || 0;
+                            }
+                          });
+                        }
+                        
+                        // 按比例分配
+                        if (totalSourceAmount > 0) {
+                          usedFromThisSource = Math.round((sourceAmount / totalSourceAmount) * currentTransactionAmount);
+                        } else {
+                          usedFromThisSource = currentTransactionAmount;
+                        }
+                      } else {
+                        // 單一來源：使用當前交易的總金額
+                        usedFromThisSource = transaction.totalAmount || 0;
+                      }
+                    }
+                    
+                    console.log('🔍 來源交易使用金額計算:', {
+                      sourceInfo,
+                      usedFromThisSource,
+                      currentTransactionTotal: transaction.totalAmount,
+                      hasMultipleSources: (transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0) > 1
+                    });
                     
                     return (
-                      <Tooltip title={`總金額: ${formatAmount(totalAmount)}, 已使用: ${formatAmount(usedAmount)}, 剩餘: ${formatAmount(remainingAmount)}`} arrow>
+                      <Tooltip title={`從此來源使用金額: ${formatAmount(usedFromThisSource)}`} arrow>
                         <span style={{
                           fontWeight: 'medium',
-                          color: remainingAmount === totalAmount ? '#2e7d32' :
-                                 remainingAmount > 0 ? '#ed6c02' : '#d32f2f'
+                          color: '#1976d2'
                         }}>
-                          {formatAmount(remainingAmount)}
+                          {formatAmount(usedFromThisSource)}
                         </span>
                       </Tooltip>
                     );
+                  })()}
+                </TableCell>
+                <TableCell align="center">
+                  {(() => {
+                    // 來源交易區塊：使用餘額計算 API 獲取的真實資料
+                    const cleanSourceId = extractObjectId(transaction.sourceTransactionId);
+                    
+                    // 檢查是否有從 API 獲取的來源交易餘額資料
+                    if (cleanSourceId && linkedTransactionDetails[cleanSourceId] && linkedTransactionDetails[cleanSourceId].hasRealBalance) {
+                      const sourceBalanceData = linkedTransactionDetails[cleanSourceId];
+                      const totalAmount = sourceBalanceData.totalAmount || 0;
+                      let availableAmount = sourceBalanceData.availableAmount || 0;
+                      
+                      // 計算從這個來源使用的金額
+                      let usedFromThisSource = 0;
+                      if (sourceInfo.usedAmount !== undefined) {
+                        usedFromThisSource = sourceInfo.usedAmount;
+                      } else if (sourceInfo.allocatedAmount !== undefined) {
+                        usedFromThisSource = sourceInfo.allocatedAmount;
+                      } else {
+                        // 按比例分配計算使用金額
+                        const totalSources = (transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0);
+                        if (totalSources > 1) {
+                          const currentTransactionAmount = transaction.totalAmount || 0;
+                          const sourceAmount = sourceInfo.totalAmount || 0;
+                          
+                          let totalSourceAmount = 0;
+                          if (transaction.sourceTransactionId && typeof transaction.sourceTransactionId === 'object') {
+                            const sourceData = transaction.sourceTransactionId as any;
+                            totalSourceAmount += sourceData.totalAmount || 0;
+                          }
+                          if (transaction.linkedTransactionIds) {
+                            transaction.linkedTransactionIds.forEach(linkedId => {
+                              if (typeof linkedId === 'object' && linkedId !== null) {
+                                const linkedData = linkedId as any;
+                                totalSourceAmount += linkedData.totalAmount || 0;
+                              }
+                            });
+                          }
+                          
+                          if (totalSourceAmount > 0) {
+                            usedFromThisSource = Math.round((sourceAmount / totalSourceAmount) * currentTransactionAmount);
+                          } else {
+                            usedFromThisSource = currentTransactionAmount;
+                          }
+                        } else {
+                          usedFromThisSource = transaction.totalAmount || 0;
+                        }
+                      }
+                      
+                      // 如果這個來源被當前交易完全使用，餘額應該減去使用的金額
+                      // 但由於 API 餘額可能還沒有反映當前交易的使用情況，我們需要手動調整
+                      if (usedFromThisSource >= totalAmount) {
+                        // 如果使用金額等於或超過總額，餘額為0
+                        availableAmount = 0;
+                      } else if (availableAmount + usedFromThisSource > totalAmount) {
+                        // 如果 API 餘額加上使用金額超過總額，說明 API 餘額還沒更新
+                        availableAmount = Math.max(0, totalAmount - usedFromThisSource);
+                      }
+                      
+                      console.log('🔍 來源交易餘額計算:', {
+                        sourceId: cleanSourceId,
+                        totalAmount,
+                        originalAvailableAmount: sourceBalanceData.availableAmount,
+                        usedFromThisSource,
+                        adjustedAvailableAmount: availableAmount,
+                        sourceBalanceData
+                      });
+                      
+                      return (
+                        <Tooltip title={`來源交易總額: ${formatAmount(totalAmount)}, 使用金額: ${formatAmount(usedFromThisSource)}, 調整後剩餘: ${formatAmount(availableAmount)}`} arrow>
+                          <span style={{
+                            fontWeight: 'medium',
+                            color: availableAmount === totalAmount ? '#2e7d32' :
+                                   availableAmount > 0 ? '#ed6c02' : '#d32f2f'
+                          }}>
+                            {formatAmount(availableAmount)}/{formatAmount(totalAmount)}
+                          </span>
+                        </Tooltip>
+                      );
+                    } else if (loading) {
+                      return (
+                        <span style={{ color: '#666', fontStyle: 'italic' }}>
+                          載入餘額中...
+                        </span>
+                      );
+                    } else {
+                      // 回退到原始資料顯示
+                      const totalAmount = sourceInfo.totalAmount || 0;
+                      const remainingAfterCurrentUse = sourceInfo.availableAmount !== undefined
+                        ? sourceInfo.availableAmount
+                        : totalAmount;
+                      
+                      return (
+                        <Tooltip title={`來源交易總額: ${formatAmount(totalAmount)}, 回退計算剩餘: ${formatAmount(remainingAfterCurrentUse)}`} arrow>
+                          <span style={{
+                            fontWeight: 'medium',
+                            color: remainingAfterCurrentUse === totalAmount ? '#2e7d32' :
+                                   remainingAfterCurrentUse > 0 ? '#ed6c02' : '#d32f2f'
+                          }}>
+                            {formatAmount(remainingAfterCurrentUse)}/{formatAmount(totalAmount)}
+                          </span>
+                        </Tooltip>
+                      );
+                    }
                   })()}
                 </TableCell>
                 <TableCell align="center">
@@ -158,8 +465,8 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
               <TableRow>
                 <TableCell>日期</TableCell>
                 <TableCell>交易描述</TableCell>
-                <TableCell align="right">金額</TableCell>
-                <TableCell align="center">餘額</TableCell>
+                <TableCell align="center">本次</TableCell>
+                <TableCell align="center">餘額/總額</TableCell>
                 <TableCell align="center">操作</TableCell>
               </TableRow>
             </TableHead>
@@ -184,29 +491,174 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                           </span>
                         </Tooltip>
                       </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'medium' }}>
-                        {linkedInfo.totalAmount ? formatAmount(linkedInfo.totalAmount) : '未知金額'}
-                      </TableCell>
                       <TableCell align="center">
                         {(() => {
-                          // 計算關聯交易的剩餘餘額
-                          const totalAmount = linkedInfo.totalAmount || 0;
-                          const usedAmount = linkedInfo.referencedByInfo
-                            ?.filter(ref => ref.status !== 'cancelled')
-                            .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0) || 0;
-                          const remainingAmount = Math.max(0, totalAmount - usedAmount);
+                          // 從關聯交易實際使用的金額
+                          // 檢查關聯交易資訊中是否有使用金額的記錄
+                          let usedFromThisSource = 0;
+                          
+                          // 如果關聯交易資訊中有 usedAmount 或類似欄位
+                          if (linkedInfo.usedAmount !== undefined) {
+                            usedFromThisSource = linkedInfo.usedAmount;
+                          } else if (linkedInfo.allocatedAmount !== undefined) {
+                            usedFromThisSource = linkedInfo.allocatedAmount;
+                          } else {
+                            // 如果沒有明確的使用金額，需要計算
+                            // 檢查是否有多個來源，如果有則需要按比例分配
+                            const totalSources = (transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0);
+                            if (totalSources > 1) {
+                              // 多來源情況：需要從後端 API 或其他地方獲取實際分配金額
+                              // 暫時按比例分配當前交易的總金額
+                              const currentTransactionAmount = transaction.totalAmount || 0;
+                              const sourceAmount = linkedInfo.totalAmount || 0;
+                              
+                              // 計算所有來源的總金額
+                              let totalSourceAmount = 0;
+                              if (transaction.sourceTransactionId && typeof transaction.sourceTransactionId === 'object') {
+                                const sourceInfo = transaction.sourceTransactionId as any;
+                                totalSourceAmount += sourceInfo.totalAmount || 0;
+                              }
+                              if (transaction.linkedTransactionIds) {
+                                transaction.linkedTransactionIds.forEach(linkedId => {
+                                  if (typeof linkedId === 'object' && linkedId !== null) {
+                                    const linkedData = linkedId as any;
+                                    totalSourceAmount += linkedData.totalAmount || 0;
+                                  }
+                                });
+                              }
+                              
+                              // 按比例分配
+                              if (totalSourceAmount > 0) {
+                                usedFromThisSource = Math.round((sourceAmount / totalSourceAmount) * currentTransactionAmount);
+                              } else {
+                                usedFromThisSource = currentTransactionAmount;
+                              }
+                            } else {
+                              // 單一來源：使用當前交易的總金額
+                              usedFromThisSource = transaction.totalAmount || 0;
+                            }
+                          }
+                          
+                          console.log('🔍 關聯交易使用金額計算:', {
+                            linkedInfo,
+                            usedFromThisSource,
+                            currentTransactionTotal: transaction.totalAmount,
+                            hasMultipleSources: (transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0) > 1
+                          });
                           
                           return (
-                            <Tooltip title={`總金額: ${formatAmount(totalAmount)}, 已使用: ${formatAmount(usedAmount)}, 剩餘: ${formatAmount(remainingAmount)}`} arrow>
+                            <Tooltip title={`從此關聯交易使用金額: ${formatAmount(usedFromThisSource)}`} arrow>
                               <span style={{
                                 fontWeight: 'medium',
-                                color: remainingAmount === totalAmount ? '#2e7d32' :
-                                       remainingAmount > 0 ? '#ed6c02' : '#d32f2f'
+                                color: '#1976d2'
                               }}>
-                                {formatAmount(remainingAmount)}
+                                {formatAmount(usedFromThisSource)}
                               </span>
                             </Tooltip>
                           );
+                        })()}
+                      </TableCell>
+                      <TableCell align="center">
+                        {(() => {
+                          // 關聯交易區塊：使用餘額計算 API 獲取的真實資料
+                          
+                          // 檢查是否有從 API 獲取的關聯交易餘額資料
+                          if (cleanLinkedId && linkedTransactionDetails[cleanLinkedId] && linkedTransactionDetails[cleanLinkedId].hasRealBalance) {
+                            const linkedBalanceData = linkedTransactionDetails[cleanLinkedId];
+                            const totalAmount = linkedBalanceData.totalAmount || 0;
+                            let availableAmount = linkedBalanceData.availableAmount || 0;
+                            
+                            // 計算從這個關聯交易使用的金額
+                            let usedFromThisSource = 0;
+                            if (linkedInfo.usedAmount !== undefined) {
+                              usedFromThisSource = linkedInfo.usedAmount;
+                            } else if (linkedInfo.allocatedAmount !== undefined) {
+                              usedFromThisSource = linkedInfo.allocatedAmount;
+                            } else {
+                              // 按比例分配計算使用金額
+                              const totalSources = (transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0);
+                              if (totalSources > 1) {
+                                const currentTransactionAmount = transaction.totalAmount || 0;
+                                const sourceAmount = linkedInfo.totalAmount || 0;
+                                
+                                let totalSourceAmount = 0;
+                                if (transaction.sourceTransactionId && typeof transaction.sourceTransactionId === 'object') {
+                                  const sourceData = transaction.sourceTransactionId as any;
+                                  totalSourceAmount += sourceData.totalAmount || 0;
+                                }
+                                if (transaction.linkedTransactionIds) {
+                                  transaction.linkedTransactionIds.forEach(linkedId => {
+                                    if (typeof linkedId === 'object' && linkedId !== null) {
+                                      const linkedData = linkedId as any;
+                                      totalSourceAmount += linkedData.totalAmount || 0;
+                                    }
+                                  });
+                                }
+                                
+                                if (totalSourceAmount > 0) {
+                                  usedFromThisSource = Math.round((sourceAmount / totalSourceAmount) * currentTransactionAmount);
+                                } else {
+                                  usedFromThisSource = currentTransactionAmount;
+                                }
+                              } else {
+                                usedFromThisSource = transaction.totalAmount || 0;
+                              }
+                            }
+                            
+                            // 如果這個關聯交易被當前交易完全使用，餘額應該減去使用的金額
+                            if (usedFromThisSource >= totalAmount) {
+                              // 如果使用金額等於或超過總額，餘額為0
+                              availableAmount = 0;
+                            } else if (availableAmount + usedFromThisSource > totalAmount) {
+                              // 如果 API 餘額加上使用金額超過總額，說明 API 餘額還沒更新
+                              availableAmount = Math.max(0, totalAmount - usedFromThisSource);
+                            }
+                            
+                            console.log('🔍 關聯交易餘額計算:', {
+                              linkedId: cleanLinkedId,
+                              totalAmount,
+                              originalAvailableAmount: linkedBalanceData.availableAmount,
+                              usedFromThisSource,
+                              adjustedAvailableAmount: availableAmount,
+                              linkedBalanceData
+                            });
+                            
+                            return (
+                              <Tooltip title={`關聯交易總額: ${formatAmount(totalAmount)}, 使用金額: ${formatAmount(usedFromThisSource)}, 調整後剩餘: ${formatAmount(availableAmount)}`} arrow>
+                                <span style={{
+                                  fontWeight: 'medium',
+                                  color: availableAmount === totalAmount ? '#2e7d32' :
+                                         availableAmount > 0 ? '#ed6c02' : '#d32f2f'
+                                }}>
+                                  {formatAmount(availableAmount)}/{formatAmount(totalAmount)}
+                                </span>
+                              </Tooltip>
+                            );
+                          } else if (loading) {
+                            return (
+                              <span style={{ color: '#666', fontStyle: 'italic' }}>
+                                載入餘額中...
+                              </span>
+                            );
+                          } else {
+                            // 回退到原始資料顯示
+                            const totalAmount = linkedInfo.totalAmount || 0;
+                            const remainingAfterCurrentUse = linkedInfo.availableAmount !== undefined
+                              ? linkedInfo.availableAmount
+                              : totalAmount;
+                            
+                            return (
+                              <Tooltip title={`關聯交易總額: ${formatAmount(totalAmount)}, 回退計算剩餘: ${formatAmount(remainingAfterCurrentUse)}`} arrow>
+                                <span style={{
+                                  fontWeight: 'medium',
+                                  color: remainingAfterCurrentUse === totalAmount ? '#2e7d32' :
+                                         remainingAfterCurrentUse > 0 ? '#ed6c02' : '#d32f2f'
+                                }}>
+                                  {formatAmount(remainingAfterCurrentUse)}/{formatAmount(totalAmount)}
+                                </span>
+                              </Tooltip>
+                            );
+                          }
                         })()}
                       </TableCell>
                       <TableCell align="center">
@@ -360,8 +812,8 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
               <TableRow>
                 <TableCell>日期</TableCell>
                 <TableCell>交易描述</TableCell>
-                <TableCell align="right">金額</TableCell>
-                <TableCell align="center">餘額</TableCell>
+                <TableCell align="center">本次</TableCell>
+                <TableCell align="center">餘額/總額</TableCell>
                 <TableCell align="center">操作</TableCell>
               </TableRow>
             </TableHead>
@@ -378,15 +830,74 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                       </span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'medium' }}>
-                    {formatAmount(ref.totalAmount)}
+                  <TableCell align="center">
+                    {(() => {
+                      // 流向交易使用的金額
+                      const refTotalAmount = ref.totalAmount || 0;
+                      
+                      return (
+                        <Tooltip title={`流向交易使用金額: ${formatAmount(refTotalAmount)}`} arrow>
+                          <span style={{
+                            fontWeight: 'medium',
+                            color: '#d32f2f'
+                          }}>
+                            {formatAmount(refTotalAmount)}
+                          </span>
+                        </Tooltip>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell align="center">
-                    <Tooltip title={`使用金額: ${formatAmount(ref.totalAmount)}`} arrow>
-                      <span style={{ fontWeight: 'medium', color: '#d32f2f' }}>
-                        {formatAmount(ref.totalAmount)}
-                      </span>
-                    </Tooltip>
+                    {(() => {
+                      // 流向交易的餘額狀態：使用餘額計算 API 獲取的真實資料
+                      const cleanRefId = extractObjectId(ref._id);
+                      
+                      // 檢查是否有從 API 獲取的流向交易餘額資料
+                      if (cleanRefId && linkedTransactionDetails[cleanRefId] && linkedTransactionDetails[cleanRefId].hasRealBalance) {
+                        const refBalanceData = linkedTransactionDetails[cleanRefId];
+                        const totalAmount = refBalanceData.totalAmount || 0;
+                        const availableAmount = refBalanceData.availableAmount || 0;
+                        
+                        console.log('🔍 流向交易使用 API 餘額資料:', {
+                          refId: cleanRefId,
+                          totalAmount,
+                          availableAmount,
+                          refBalanceData
+                        });
+                        
+                        return (
+                          <Tooltip title={`流向交易總額: ${formatAmount(totalAmount)}, API 計算剩餘: ${formatAmount(availableAmount)}`} arrow>
+                            <span style={{
+                              fontWeight: 'medium',
+                              color: availableAmount === totalAmount ? '#2e7d32' :
+                                     availableAmount > 0 ? '#ed6c02' : '#d32f2f'
+                            }}>
+                              {formatAmount(availableAmount)}/{formatAmount(totalAmount)}
+                            </span>
+                          </Tooltip>
+                        );
+                      } else if (loading) {
+                        return (
+                          <span style={{ color: '#666', fontStyle: 'italic' }}>
+                            載入餘額中...
+                          </span>
+                        );
+                      } else {
+                        // 回退到原始顯示方式
+                        const refTotalAmount = ref.totalAmount || 0;
+                        
+                        return (
+                          <Tooltip title={`流向交易狀態: 已使用 ${formatAmount(refTotalAmount)}`} arrow>
+                            <span style={{
+                              fontWeight: 'medium',
+                              color: '#d32f2f'
+                            }}>
+                              已使用/{formatAmount(refTotalAmount)}
+                            </span>
+                          </Tooltip>
+                        );
+                      }
+                    })()}
                   </TableCell>
                   <TableCell align="center">
                     <Button
@@ -517,8 +1028,8 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                 <TableRow>
                   <TableCell>日期</TableCell>
                   <TableCell>交易描述</TableCell>
-                  <TableCell align="right">金額</TableCell>
-                  <TableCell align="center">餘額</TableCell>
+                  <TableCell align="center">本次</TableCell>
+                  <TableCell align="center">餘額/總額</TableCell>
                   <TableCell align="center">操作</TableCell>
                 </TableRow>
               </TableHead>
@@ -534,26 +1045,51 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                       </span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'medium' }}>
-                    {formatAmount(transaction.totalAmount)}
+                  <TableCell align="center">
+                    {(() => {
+                      // 本次金額（當前交易的總金額）
+                      const currentTransactionAmount = transaction.totalAmount || 0;
+                      
+                      return (
+                        <Tooltip title={`當前交易總金額: ${formatAmount(currentTransactionAmount)}`} arrow>
+                          <span style={{
+                            fontWeight: 'medium',
+                            color: '#1976d2'
+                          }}>
+                            {formatAmount(currentTransactionAmount)}
+                          </span>
+                        </Tooltip>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell align="center">
                     {(() => {
-                      // 計算當前交易的剩餘餘額
-                      const totalAmount = transaction.totalAmount || 0;
-                      const usedAmount = transaction.referencedByInfo
+                      // 當前交易區塊：顯示當前交易本身的餘額狀態
+                      const currentTransactionAmount = transaction.totalAmount || 0;
+                      
+                      // 計算當前交易被其他交易使用的金額
+                      const usedByOthersAmount = transaction.referencedByInfo
                         ?.filter(ref => ref.status !== 'cancelled')
                         .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0) || 0;
-                      const remainingAmount = Math.max(0, totalAmount - usedAmount);
+                      
+                      // 計算當前交易的實際剩餘金額
+                      const currentRemainingAmount = Math.max(0, currentTransactionAmount - usedByOthersAmount);
+                      
+                      console.log('🔍 當前交易自身狀態:', {
+                        currentTransactionAmount,
+                        usedByOthersAmount,
+                        currentRemainingAmount,
+                        referencedByInfo: transaction.referencedByInfo
+                      });
                       
                       return (
-                        <Tooltip title={`總金額: ${formatAmount(totalAmount)}, 已使用: ${formatAmount(usedAmount)}, 剩餘: ${formatAmount(remainingAmount)}`} arrow>
+                        <Tooltip title={`當前交易總金額: ${formatAmount(currentTransactionAmount)}, 被其他交易使用: ${formatAmount(usedByOthersAmount)}, 當前剩餘: ${formatAmount(currentRemainingAmount)}`} arrow>
                           <span style={{
                             fontWeight: 'medium',
-                            color: remainingAmount === totalAmount ? '#2e7d32' :
-                                   remainingAmount > 0 ? '#ed6c02' : '#d32f2f'
+                            color: currentRemainingAmount === currentTransactionAmount ? '#2e7d32' :
+                                   currentRemainingAmount > 0 ? '#ed6c02' : '#d32f2f'
                           }}>
-                            {formatAmount(remainingAmount)}
+                            {formatAmount(currentRemainingAmount)}/{formatAmount(currentTransactionAmount)}
                           </span>
                         </Tooltip>
                       );

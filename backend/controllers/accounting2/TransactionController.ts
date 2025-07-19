@@ -609,6 +609,92 @@ export class TransactionController {
   }
 
   /**
+   * 計算交易餘額
+   * GET /api/accounting2/transactions/:id/balance
+   */
+  static async calculateTransactionBalance(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id || req.query.userId as string;
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      const balance = await TransactionService.calculateTransactionBalance(id, userId);
+      
+      res.json({
+        success: true,
+        data: balance
+      });
+    } catch (error) {
+      console.error('計算交易餘額錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '計算交易餘額失敗'
+      });
+    }
+  }
+
+  /**
+   * 批次計算交易餘額
+   * POST /api/accounting2/transactions/calculate-balances
+   */
+  static async calculateMultipleTransactionBalances(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id || req.body.userId;
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '未提供使用者身份'
+        });
+        return;
+      }
+
+      const { transactionIds } = req.body;
+      
+      if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: '請提供有效的交易ID陣列'
+        });
+        return;
+      }
+
+      const balances = await TransactionService.calculateMultipleTransactionBalances(transactionIds, userId);
+      
+      const successful = balances.filter(b => b.success);
+      const failed = balances.filter(b => !b.success);
+      
+      console.log(`💰 批次餘額計算完成: 成功 ${successful.length} 筆，失敗 ${failed.length} 筆`);
+      
+      res.json({
+        success: failed.length === 0,
+        message: `批次餘額計算完成：成功 ${successful.length} 筆，失敗 ${failed.length} 筆`,
+        data: {
+          balances,
+          summary: {
+            total: transactionIds.length,
+            successful: successful.length,
+            failed: failed.length
+          }
+        }
+      });
+    } catch (error) {
+      console.error('批次計算交易餘額錯誤:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '批次計算交易餘額失敗'
+      });
+    }
+  }
+
+  /**
    * 批次建立交易
    * POST /api/accounting2/transactions/batch
    */
