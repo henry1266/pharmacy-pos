@@ -484,7 +484,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            POS系統 {isTestMode && <Typography component="span" sx={{ fontSize: '0.7em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
+            POS {isTestMode && <Typography component="span" sx={{ fontSize: '0.7em', color: 'orange', fontWeight: 'bold' }}>(測試模式)</Typography>}
             {timeLeft && <Typography component="span" sx={{ fontSize: '0.7em', color: 'lightcoral', marginLeft: 1 }}>{timeLeft}</Typography>}
           </Typography>
 
@@ -535,7 +535,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Box sx={{ overflow: 'auto', mt: 2 }}>
             <Box sx={{ px: 3, mb: 3 }}>
               <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
-                興安藥局
+                {isTestMode ? '測試模式' : (user?.username ?? '興安藥局')}
               </Typography>
             </Box>
             <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
@@ -572,7 +572,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Box sx={{ overflow: 'auto', mt: 2 }}>
             <Box sx={{ px: 3, mb: 3 }}>
               <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
-                興安藥局
+                {isTestMode ? '測試模式' : (user?.username ?? '興安藥局')}
               </Typography>
             </Box>
             <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
@@ -604,7 +604,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Box sx={{ overflow: 'auto', mt: 2 }}>
             <Box sx={{ px: 3, mb: 3 }}>
               <Typography variant="h6" component="div" sx={{ color: 'var(--text-light)', fontWeight: 600 }}>
-                興安藥局
+                {isTestMode ? '測試模式' : (user?.username ?? '興安藥局')}
               </Typography>
             </Box>
             <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />

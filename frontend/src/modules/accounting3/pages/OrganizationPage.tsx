@@ -215,9 +215,6 @@ const OrganizationPage: React.FC = () => {
             組織管理
           </Typography>
         </Box>
-        <Typography variant="body1" color="text.secondary">
-          管理系統中的組織資料，包括新增、編輯、刪除組織以及狀態管理
-        </Typography>
       </Box>
 
       {/* 工具列 */}

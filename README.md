@@ -413,32 +413,6 @@ const EmployeeComponent = () => {
 - Henry Chen - 項目負責人
 - 藥局POS開發團隊
 
-## 貢獻指南
-
-我們歡迎社區成員為藥局POS系統做出貢獻。如果您想參與開發，請按照以下步驟操作：
-
-1. Fork 本倉庫到您的GitHub帳戶
-2. 創建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 創建Pull Request
-
-在提交代碼前，請確保您的代碼符合項目的代碼規範，並通過所有測試。我們特別歡迎以下類型的貢獻：
-
-- 錯誤修復
-- 性能優化
-- 新功能開發
-- 文檔改進
-- 測試覆蓋率提高
-
 ## 許可證
 
 本項目採用 MIT 許可證 - 詳情請查看 LICENSE 文件
-
-## 聯繫方式
-
-如有問題或建議，請聯繫：zxh1266@gmail.com
-
----
-
-*最後更新: 2025年6月25日*
