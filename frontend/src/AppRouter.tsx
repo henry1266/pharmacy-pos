@@ -34,7 +34,6 @@ import AllCategoriesDetailPage from './pages/AllCategoriesDetailPage';
 import ProductCategoryPage from './pages/ProductCategoryPage';
 import CategoryDetailPage from './pages/CategoryDetailPage';
 import MonitoredProductsSettingsPage from './pages/MonitoredProductsSettingsPage';
-import SettingsIpPage from './pages/SettingsIpPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountSettingsPage from './pages/settings/AccountSettingsPage';
 import EmployeeAccountsPage from './pages/settings/EmployeeAccountsPage';
@@ -115,7 +114,6 @@ const AppRouter: React.FC = () => {
       
       {/* Settings routes (assuming they require login) */}
       <Route path="/settings" element={<SettingsPage />} /> {/* Add the theme settings route */}
-      <Route path="/settings/ip" element={<SettingsIpPage />} /> {/* Add the new IP settings route */}
       <Route path="/settings/account" element={<AccountSettingsPage />} /> {/* Add the account settings route */}
       <Route path="/settings/employee-accounts" element={<EmployeeAccountsPage />} />
       <Route path="/settings/account-types" element={<AccountTypeSettingsPage />} /> {/* Add the account types settings route */}

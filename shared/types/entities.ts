@@ -27,6 +27,16 @@ export interface Employee {
   gender?: 'male' | 'female' | 'other' | '男' | '女' | '其他';
   department?: string;
   salary?: number;
+  insuranceDate?: string | Date;
+  education?: string;
+  nativePlace?: string;
+  experience?: string;
+  rewards?: string;
+  injuries?: string;
+  additionalInfo?: string;
+  idCardFront?: string;
+  idCardBack?: string;
+  signDate?: string | Date;
   emergencyContact?: {
     name: string;
     phone: string;

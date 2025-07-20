@@ -14,8 +14,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
-  EmployeeForm,
-  EmployeeAccountManager
+  EmployeeForm
 } from '../components';
 
 // 定義 API 回應格式
@@ -287,10 +286,6 @@ const EmployeeBasicInfoPage: React.FC = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           {isEditMode ? '編輯員工資料' : '新增員工'}
         </Typography>
-        <Typography variant="body1" sx={{ mb: 3 }}>
-          請填寫員工基本資料表，所有標記 * 的欄位為必填項目。
-        </Typography>
-        
         <EmployeeForm
           onSubmit={handleSubmit as any}
           initialData={employee as any}
@@ -298,21 +293,6 @@ const EmployeeBasicInfoPage: React.FC = () => {
         />
       </Paper>
 
-      {/* 只在編輯模式下顯示帳號管理元件 */}
-      {isEditMode && employee && (
-        <EmployeeAccountManager
-          employeeId={employee._id}
-          employeeName={employee.name}
-          onAccountChange={() => {
-            // 當帳號變更時，可以在這裡處理相關邏輯
-            setSnackbar({
-              open: true,
-              message: '員工帳號已更新',
-              severity: 'success'
-            });
-          }}
-        />
-      )}
 
       {/* 提示訊息 */}
       <Snackbar

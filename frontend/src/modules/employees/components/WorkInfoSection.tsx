@@ -28,6 +28,7 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ formData, errors, onC
       />
       
       <EmployeeFormField
+        type="select"
         name="department"
         label="所屬部門"
         value={formData.department}
@@ -35,6 +36,10 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ formData, errors, onC
         error={!!errors.department}
         helperText={errors.department}
         required
+        options={[
+          { value: '主管', label: '主管' },
+          { value: '員工', label: '員工' }
+        ]}
       />
       
       <EmployeeFormField

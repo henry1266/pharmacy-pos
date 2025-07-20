@@ -282,6 +282,7 @@ router.post(
         additionalInfo,
         idCardFront,
         idCardBack,
+        signDate,
         userId
       } = req.body;
 
@@ -305,31 +306,14 @@ router.post(
         additionalInfo,
         idCardFront,
         idCardBack,
+        signDate,
         userId: userId ?? (req as any).user.id // 使用當前登入用戶ID作為預設值
       });
 
       const savedEmployee = await newEmployee.save();
       
       // 轉換 Mongoose Document 到 shared 類型
-      const savedEmpAny = savedEmployee as any;
-      const employeeData: SharedEmployee = {
-        _id: savedEmployee._id.toString(),
-        name: savedEmployee.name,
-        phone: savedEmployee.phone,
-        email: savedEmployee.email,
-        address: savedEmployee.address,
-        position: savedEmployee.position,
-        hireDate: savedEmployee.hireDate,
-        birthDate: savedEmployee.birthDate,
-        idNumber: savedEmployee.idNumber,
-        gender: savedEmployee.gender,
-        department: savedEmployee.department,
-        salary: savedEmployee.salary,
-        emergencyContact: savedEmpAny.emergencyContact,
-        notes: savedEmpAny.notes,
-        createdAt: savedEmpAny.createdAt as Date,
-        updatedAt: savedEmpAny.updatedAt as Date
-      };
+      const employeeData = convertToSharedEmployee(savedEmployee);
 
       const response: ApiResponse<SharedEmployee> = {
         success: true,
@@ -375,7 +359,7 @@ function prepareUpdateFields(requestBody: any): any {
     'name', 'gender', 'birthDate', 'idNumber', 'education',
     'nativePlace', 'address', 'phone', 'position', 'department',
     'hireDate', 'salary', 'insuranceDate', 'experience', 'rewards',
-    'injuries', 'additionalInfo', 'idCardFront', 'idCardBack'
+    'injuries', 'additionalInfo', 'idCardFront', 'idCardBack', 'signDate'
   ];
   
   // 只允許更新預定義的欄位，避免惡意注入其他欄位
@@ -404,6 +388,16 @@ function convertToSharedEmployee(employee: any): SharedEmployee {
     gender: employee.gender,
     department: employee.department,
     salary: employee.salary,
+    insuranceDate: employee.insuranceDate,
+    education: employee.education,
+    nativePlace: employee.nativePlace,
+    experience: employee.experience,
+    rewards: employee.rewards,
+    injuries: employee.injuries,
+    additionalInfo: employee.additionalInfo,
+    idCardFront: employee.idCardFront,
+    idCardBack: employee.idCardBack,
+    signDate: employee.signDate,
     emergencyContact: employee.emergencyContact,
     notes: employee.notes,
     createdAt: employee.createdAt,

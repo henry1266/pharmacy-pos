@@ -237,7 +237,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { text: '報表功能', icon: <BarChartIcon />, path: '/reports', adminOnly: true },
     { text: '系統設定', icon: isSettingPath(location.pathname) ? <SettingsOutlinedIcon /> : <SettingsIcon />, subItems: [
         { text: '設定列表', path: '/settings' },
-        { text: 'ip設定', path: '/settings/ip', icon: <CategoryIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '個人帳號', path: '/settings/account', icon: <PersonIcon fontSize="small" sx={{ ml: 1 }} /> },
         { text: '員工帳號管理', path: '/settings/employee-accounts', icon: <PeopleIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
       ]

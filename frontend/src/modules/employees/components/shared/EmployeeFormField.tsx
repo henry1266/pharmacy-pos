@@ -8,7 +8,8 @@ import {
   FormControlLabel,
   Radio,
   FormHelperText,
-  TextFieldProps
+  TextFieldProps,
+  MenuItem
 } from '@mui/material';
 
 // 直接使用 MuiGrid
@@ -38,7 +39,7 @@ interface GridSizeType {
  * 重構自各個表單區塊中重複的字段結構
  */
 interface EmployeeFormFieldProps extends Omit<TextFieldProps, 'error'> {
-  type?: 'text' | 'email' | 'tel' | 'number' | 'date' | 'radio';
+  type?: 'text' | 'email' | 'tel' | 'number' | 'date' | 'radio' | 'select';
   name: string;
   label: string;
   value?: string | number;
@@ -91,6 +92,31 @@ const EmployeeFormField: React.FC<EmployeeFormFieldProps> = ({
           </RadioGroup>
           {error && <FormHelperText>{helperText}</FormHelperText>}
         </FormControl>
+      );
+    }
+
+    if (type === 'select') {
+      return (
+        <TextField
+          required={required}
+          fullWidth
+          id={name}
+          name={name}
+          label={label}
+          select
+          value={value}
+          onChange={onChange}
+          error={!!error}
+          helperText={helperText}
+          margin="normal"
+          {...props}
+        >
+          {options.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
       );
     }
 

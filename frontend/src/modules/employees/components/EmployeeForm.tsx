@@ -7,7 +7,6 @@ import {
 import PersonalInfoSection from './PersonalInfoSection';
 import ContactInfoSection from './ContactInfoSection';
 import WorkInfoSection from './WorkInfoSection';
-import IDCardSection from './IDCardSection';
 import AdditionalInfoSection from './AdditionalInfoSection';
 import FormSection from './shared/FormSection';
 
@@ -129,6 +128,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSubmit, initialData = nul
       }
       if (formattedData.insuranceDate) {
         formattedData.insuranceDate = new Date(formattedData.insuranceDate).toISOString().split('T')[0];
+      }
+      if (formattedData.signDate) {
+        formattedData.signDate = new Date(formattedData.signDate).toISOString().split('T')[0];
       }
       
       setFormData(formattedData);
@@ -284,16 +286,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSubmit, initialData = nul
           errors={errors}
           onChange={handleChange('work')}
         />
-      </FormSection>
-      
-      <FormSection title="身分證影像">
-        <IDCardSection
-          formData={formData}
-          errors={errors}
-          onFileChange={handleFileChange}
-        />
-      </FormSection>
-      
+      </FormSection>    
       <FormSection title="其他資訊">
         <AdditionalInfoSection
           formData={formData}

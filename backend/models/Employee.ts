@@ -51,6 +51,46 @@ const EmployeeSchema = new Schema<IEmployeeDocument>({
   salary: {
     type: Number
   },
+  insuranceDate: {
+    type: Date,
+    required: false
+  },
+  education: {
+    type: String,
+    required: false
+  },
+  nativePlace: {
+    type: String,
+    required: false
+  },
+  experience: {
+    type: String,
+    required: false
+  },
+  rewards: {
+    type: String,
+    required: false
+  },
+  injuries: {
+    type: String,
+    required: false
+  },
+  additionalInfo: {
+    type: String,
+    required: false
+  },
+  idCardFront: {
+    type: String,
+    required: false
+  },
+  idCardBack: {
+    type: String,
+    required: false
+  },
+  signDate: {
+    type: Date,
+    required: false
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user'
