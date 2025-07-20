@@ -17,8 +17,10 @@ import {
   MenuItem,
   SelectChangeEvent
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import authService from '../services/authServiceV2';
 import { LoginRequest } from '@pharmacy-pos/shared/types/api';
+import { useTestMode } from '../testMode';
 
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
@@ -36,6 +38,7 @@ interface Credentials extends LoginRequest {
 }
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [credentials, setCredentials] = useState<Credentials>({
     loginType: 'username',
     username: '',
@@ -43,14 +46,22 @@ const LoginPage = () => {
     password: ''
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const [snackbar, setSnackbar] = useState<SnackbarState>({ 
-    open: false, 
-    message: '', 
-    severity: 'error' 
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    open: false,
+    message: '',
+    severity: 'error'
   });
   const [particlesInit, setParticlesInit] = useState<boolean>(false);
   const [formVisible, setFormVisible] = useState<boolean>(true);
-  const [isTestMode, setIsTestMode] = useState<boolean>(false);
+  
+  // 使用測試模式 Hook
+  const {
+    isTestMode,
+    isTestModeEnabled,
+    toggleTestMode,
+    performTestLogin,
+    loading: testModeLoading
+  } = useTestMode();
 
   useEffect(() => {
     initParticlesEngine(async (engine: Engine) => {
@@ -87,7 +98,7 @@ const LoginPage = () => {
   };
 
   const handleTestModeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsTestMode(event.target.checked);
+    toggleTestMode(event.target.checked);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -95,21 +106,31 @@ const LoginPage = () => {
     setLoading(true);
 
     if (isTestMode) {
-      // Test mode: bypass actual login
-      setFormVisible(false);
-      setTimeout(() => {
-        // In test mode, set mock token and user info for dashboard access
-        localStorage.setItem('token', 'test-mode-token');
-        localStorage.setItem('user', JSON.stringify({
-          name: 'Test User',
-          username: 'test',
-          email: 'test@example.com',
-          role: '測試模式'
-        }));
-        localStorage.setItem('isTestMode', 'true');
-        localStorage.setItem('loginTime', Math.floor(Date.now() / 1000).toString());
-        window.location.replace('/dashboard');
-      }, 600);
+      try {
+        // 使用測試模式服務進行登入
+        const result = await performTestLogin();
+        
+        setSnackbar({
+          open: true,
+          message: result.message,
+          severity: 'success'
+        });
+        
+        // 觸發淡出動畫然後使用 React Router 導航
+        setFormVisible(false);
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 600);
+        
+      } catch (error: any) {
+        setSnackbar({
+          open: true,
+          message: error.message || '測試模式登入失敗',
+          severity: 'error'
+        });
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -130,7 +151,7 @@ const LoginPage = () => {
       const response = await authService.login(loginData);
       const { token, user } = response;
 
-      // 觸發淡出動畫然後重定向
+      // 觸發淡出動畫然後使用 React Router 導航
       setFormVisible(false);
       setTimeout(() => {
         localStorage.setItem('token', token);
@@ -138,7 +159,7 @@ const LoginPage = () => {
         localStorage.setItem('loginTime', Math.floor(Date.now() / 1000).toString());
         
         // 所有用戶登入後都導向 dashboard
-        window.location.replace('/dashboard');
+        navigate('/dashboard', { replace: true });
       }, 600);
 
     } catch (err: unknown) {
@@ -217,7 +238,7 @@ const LoginPage = () => {
                           name="loginType"
                           value={credentials.loginType}
                           onChange={handleChange}
-                          disabled={loading ?? isTestMode}
+                          disabled={loading || testModeLoading || isTestMode}
                           label="登入方式"
                           sx={{ color: '#fff' }}
                         >
@@ -235,7 +256,7 @@ const LoginPage = () => {
                           value={credentials.username}
                           onChange={handleChange}
                           required={!isTestMode && credentials.loginType === 'username'}
-                          disabled={loading ?? isTestMode ?? credentials.loginType !== 'username'}
+                          disabled={loading || testModeLoading || isTestMode || credentials.loginType !== 'username'}
                           InputProps={{ sx: { color: '#fff' } }}
                           InputLabelProps={{ sx: { color: '#bbb' } }}
                           sx={{ mb: 2 }}
@@ -249,7 +270,7 @@ const LoginPage = () => {
                           value={credentials.email}
                           onChange={handleChange}
                           required={!isTestMode && credentials.loginType === 'email'}
-                          disabled={loading ?? isTestMode ?? credentials.loginType !== 'email'}
+                          disabled={loading || testModeLoading || isTestMode || credentials.loginType !== 'email'}
                           InputProps={{ sx: { color: '#fff' } }}
                           InputLabelProps={{ sx: { color: '#bbb' } }}
                           sx={{ mb: 2 }}
@@ -265,28 +286,30 @@ const LoginPage = () => {
                         value={credentials.password}
                         onChange={handleChange}
                         required={!isTestMode}
-                        disabled={loading ?? isTestMode}
+                        disabled={loading || testModeLoading || isTestMode}
                         InputProps={{ sx: { color: '#fff' } }}
                         InputLabelProps={{ sx: { color: '#bbb' } }}
                       />
                     </Grid>
-                    <Grid item xs={12}>
-                      <FormControlLabel
-                        control={<Checkbox checked={isTestMode} onChange={handleTestModeChange} sx={{ color: '#00bfff', '&.Mui-checked': { color: '#00ffff' } }} />}
-                        label={<Typography sx={{ color: '#e0f7fa' }}>測試模式</Typography>}
-                        disabled={loading}
-                      />
-                    </Grid>
+                    {isTestModeEnabled && (
+                      <Grid item xs={12}>
+                        <FormControlLabel
+                          control={<Checkbox checked={isTestMode} onChange={handleTestModeChange} sx={{ color: '#00bfff', '&.Mui-checked': { color: '#00ffff' } }} />}
+                          label={<Typography sx={{ color: '#e0f7fa' }}>測試模式</Typography>}
+                          disabled={loading || testModeLoading}
+                        />
+                      </Grid>
+                    )}
                     <Grid item xs={12}>
                       <Button
                         type="submit"
                         fullWidth
                         variant="contained"
                         color="primary"
-                        disabled={loading}
+                        disabled={loading || testModeLoading}
                         sx={{ mt: 1, height: 48 }}
                       >
-                        {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : '登入'}
+                        {(loading || testModeLoading) ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : '登入'}
                       </Button>
                     </Grid>
                   </Grid>

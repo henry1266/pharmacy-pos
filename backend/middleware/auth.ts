@@ -10,6 +10,13 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+// 測試模式配置
+const TEST_MODE_ENABLED = process.env.REACT_APP_TEST_MODE === 'true';
+const TEST_MODE_TOKEN = 'test-mode-token';
+const TEST_MODE_USER = {
+  id: 'test-user-id'
+};
+
 const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   // 從請求頭獲取 token - 支援兩種格式
   let token = req.header("x-auth-token");
@@ -24,6 +31,7 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
   
   console.log(`Auth middleware - Request path: ${req.originalUrl}`);
   console.log(`Token found: ${token ? 'Yes' : 'No'}`);
+  console.log(`Test mode enabled: ${TEST_MODE_ENABLED}`);
 
   // 檢查是否有 token
   if (!token) {
@@ -37,13 +45,21 @@ const auth = (req: AuthenticatedRequest, res: Response, next: NextFunction): voi
     return;
   }
 
+  // 檢查是否為測試模式 token
+  if (TEST_MODE_ENABLED && token === TEST_MODE_TOKEN) {
+    console.log("Test mode token detected, bypassing JWT verification");
+    req.user = TEST_MODE_USER;
+    next();
+    return;
+  }
+
   try {
-    // 驗證 token
-    console.log("Verifying token...");
+    // 驗證 JWT token
+    console.log("Verifying JWT token...");
     const decoded = jwt.verify(token, config.get("jwtSecret")) as any;
     
     // Log decoded token information (excluding sensitive parts)
-    console.log("Token verified successfully. User ID:", decoded.user?.id);
+    console.log("JWT token verified successfully. User ID:", decoded.user?.id);
     
     if (!decoded.user?.id) {
       console.error("Token payload missing user ID");

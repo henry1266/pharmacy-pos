@@ -39,6 +39,7 @@ import AccountingForm from '../components/accounting/AccountingForm';
 // Import Services
 import { accountingServiceV2 } from '../services/accountingServiceV2';
 import { getAllSales } from '../services/salesServiceV2';
+import testModeDataService from '../testMode/services/TestModeDataService';
 
 // Import Types
 import { DashboardSummary, SalesTrend, CategorySales } from '../services/dashboardService';
@@ -48,105 +49,23 @@ import type { Sale, AccountingRecord } from '@pharmacy-pos/shared/types/entities
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
 
-// 模擬數據的類型定義
-interface MockLowStockItem {
-  id: string;
-  name: string;
-  currentStock: number;
-  reorderPoint: number;
-}
-
-// 模擬 SummaryData 類型
-interface MockSalesSummary {
-  total: number;
-  today: number;
-  month: number;
-}
-
-interface MockCounts {
-  products: number;
-  suppliers: number;
-  customers: number;
-  purchaseOrders: number;
-  orders: number;
-  salesToday: number;
-}
-
-interface MockDashboardData {
-  totalSalesToday: number;
-  totalOrdersToday: number;
-  newCustomersToday: number;
-  pendingPurchaseOrders: number;
-  counts: MockCounts;
-  lowStockItems: MockLowStockItem[];
-  salesSummary: MockSalesSummary;
-}
-
-interface MockPageData {
-  dashboardData: MockDashboardData;
-  salesTrend: SalesTrend[];
-  categorySales: CategorySales[];
-}
-
-// Mock data for test mode
-const mockPageData: MockPageData = {
-  dashboardData: {
-    totalSalesToday: 12345.67,
-    totalOrdersToday: 152,
-    newCustomersToday: 23,
-    pendingPurchaseOrders: 5,
-    counts: {
-      products: 580,
-      suppliers: 45,
-      customers: 1203,
-      purchaseOrders: 78,
-      salesToday: 152,
-      orders: 152, // 添加 orders 屬性以匹配 DashboardStatsCards 期望的類型
-    },
-    lowStockItems: [
-      { id: '1', name: '測試藥品A (低庫存)', currentStock: 3, reorderPoint: 5 },
-      { id: '2', name: '測試藥品B (低庫存)', currentStock: 1, reorderPoint: 3 },
-    ],
-    // 添加 salesSummary 屬性以匹配 DashboardSummaryCards 期望的類型
-    salesSummary: {
-      total: 123456.78,
-      today: 12345.67,
-      month: 98765.43
-    }
-  },
-  salesTrend: [
-    { date: '2025-05-01', totalSales: 1200 },
-    { date: '2025-05-02', totalSales: 1500 },
-    { date: '2025-05-03', totalSales: 900 },
-    { date: '2025-05-04', totalSales: 1500 },
-    { date: '2025-05-05', totalSales: 1300 },
-    { date: '2025-05-06', totalSales: 1600 },
-    { date: '2025-05-07', totalSales: 1400 },
-  ],
-  categorySales: [
-    { category: '感冒藥 (測試)', totalSales: 500 },
-    { category: '維他命 (測試)', totalSales: 3500 },
-    { category: '保健品 (測試)', totalSales: 2500 },
-    { category: '醫療器材 (測試)', totalSales: 1500 },
-    { category: '其他 (測試)', totalSales: 1000 },
-  ],
-};
+// Mock 數據已移至統一的測試數據模組
 
 /**
- * 將 DashboardSummary 或 MockDashboardData 轉換為 SummaryData 類型
+ * 將 DashboardSummary 轉換為 SummaryData 類型
  */
-const adaptToSummaryData = (data: DashboardSummary | MockDashboardData | null): { salesSummary: { total: number, today: number, month: number }, counts: { orders: number } } | null => {
+const adaptToSummaryData = (data: DashboardSummary | any | null): { salesSummary: { total: number, today: number, month: number }, counts: { orders: number } } | null => {
   if (!data) {
     console.warn('adaptToSummaryData: data is null or undefined');
     return null;
   }
   
   try {
-    // 檢查是否為 MockDashboardData 類型（有 totalSalesToday 屬性）
+    // 檢查是否為測試數據類型（有 totalSalesToday 屬性）
     if ('totalSalesToday' in data) {
-      // 確保 MockDashboardData 有必要的屬性
+      // 確保測試數據有必要的屬性
       if (!data.salesSummary || !data.counts?.orders) {
-        console.error('adaptToSummaryData: MockDashboardData missing required properties', data);
+        console.error('adaptToSummaryData: Test data missing required properties', data);
         return null;
       }
       
@@ -430,9 +349,10 @@ const DashboardPage: FC = () => {
   const isLoading = isTestMode ? false : actualLoading;
   const hasError = isTestMode ? false : !!actualError; // In test mode, we use mock data on actual error, so effectively no error is shown to user for data loading
 
-  const dashboardData = isTestMode && (actualError || !actualDashboardData) ? mockPageData.dashboardData : actualDashboardData;
-  const salesTrend = isTestMode && (actualError || !actualSalesTrend) ? mockPageData.salesTrend : actualSalesTrend;
-  const categorySales = isTestMode && (actualError || !actualCategorySales) ? mockPageData.categorySales : actualCategorySales;
+  // 使用統一的測試數據服務
+  const dashboardData = isTestMode ? testModeDataService.getDashboardData(actualDashboardData as any, actualError) : actualDashboardData;
+  const salesTrend = isTestMode ? testModeDataService.getSalesTrend(actualSalesTrend, actualError) : actualSalesTrend;
+  const categorySales = isTestMode ? testModeDataService.getCategorySales(actualCategorySales, actualError) : actualCategorySales;
 
   const handleRefetch = (): void => {
     if (!isTestMode) {

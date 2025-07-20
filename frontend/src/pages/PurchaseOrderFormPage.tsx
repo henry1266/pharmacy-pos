@@ -20,6 +20,8 @@ import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
 import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
 import ActionButtons from '../components/purchase-order-form/ActionButtons';
+import TestModeConfig from '../testMode/config/TestModeConfig';
+import testModeDataService from '../testMode/services/TestModeDataService';
 
 // =================================================================
 // 1. 型別定義 (Type Definitions)
@@ -87,17 +89,7 @@ interface RenderInitialStateProps {
   suppliers: ISupplier[];
 }
 
-// Helper constants for test mode
-const MOCK_PRODUCTS_FOR_TEST_MODE: ExtendedProduct[] = [
-  { id: 'mockProd1', _id: 'mockProd1', name: '模擬產品A (測試)', unit: '瓶', purchasePrice: 50, stock: 100, did: 'T001', dname: '模擬產品A (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' }, code: 'T001', price: 60, createdAt: new Date(), updatedAt: new Date() },
-  { id: 'mockProd2', _id: 'mockProd2', name: '模擬產品B (測試)', unit: '盒', purchasePrice: 120, stock: 50, did: 'T002', dname: '模擬產品B (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商Y' }, code: 'T002', price: 150, createdAt: new Date(), updatedAt: new Date() },
-  { id: 'mockProd3', _id: 'mockProd3', name: '模擬產品C (測試)', unit: '支', purchasePrice: 75, stock: 200, did: 'T003', dname: '模擬產品C (測試)', category: { name: '測試分類' }, supplier: { name: '模擬供應商X' }, code: 'T003', price: 90, createdAt: new Date(), updatedAt: new Date() },
-];
-
-const MOCK_SUPPLIERS_FOR_TEST_MODE: ISupplier[] = [
-  { id: 'mockSup1', _id: 'mockSup1', name: '模擬供應商X (測試)' },
-  { id: 'mockSup2', _id: 'mockSup2', name: '模擬供應商Y (測試)' },
-];
+// 移除內部 mock 數據定義，改用統一的測試數據服務
 
 // Helper function to adjust purchase order items with multiplier and rounding
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
@@ -202,12 +194,7 @@ const PurchaseOrderFormPage: React.FC = () => {
   const isEditMode = !!id;
 
   const isGlobalTestMode = useMemo(() => {
-    try {
-      return localStorage.getItem('token') === 'test-mode-token';
-    } catch (e) {
-      console.error('Failed to access localStorage:', e);
-      return false;
-    }
+    return TestModeConfig.isEnabled();
   }, []);
 
   const [snackbar, setSnackbar] = useState<ISnackbarState>({ open: false, message: '', severity: 'success' });
@@ -239,19 +226,20 @@ const PurchaseOrderFormPage: React.FC = () => {
   let productsLoaded = initialProductsLoaded;
 
   if (isGlobalTestMode) {
-    const currentMockProducts = MOCK_PRODUCTS_FOR_TEST_MODE;
-    const currentMockSuppliers = MOCK_SUPPLIERS_FOR_TEST_MODE;
+    // 使用統一的測試數據服務
+    const testProducts = testModeDataService.getPurchaseOrderProducts(products as any, dataError);
+    const testSuppliers = testModeDataService.getPurchaseOrderSuppliers(suppliers as any, dataError);
 
     if (!products || products.length === 0 || (dataError && !productsLoaded)) {
-      products = currentMockProducts;
+      products = testProducts as ExtendedProduct[];
       productsLoaded = true;
     }
     if (!suppliers || suppliers.length === 0 || (dataError && !suppliersLoaded)) {
-      suppliers = currentMockSuppliers;
+      suppliers = testSuppliers as ISupplier[];
       suppliersLoaded = true;
     }
-    // If there was an error but we have mock data, clear the error and loading state
-    if (dataError && (products === currentMockProducts || suppliers === currentMockSuppliers)) {
+    // 如果有錯誤但我們有測試數據，清除錯誤和載入狀態
+    if (dataError && (testProducts.length > 0 || testSuppliers.length > 0)) {
       dataError = null;
     }
     if (dataLoading && (productsLoaded || suppliersLoaded)) {

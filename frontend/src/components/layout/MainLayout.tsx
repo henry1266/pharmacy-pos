@@ -145,6 +145,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const loginTimeStr = localStorage.getItem('loginTime');
+    const testModeActive = localStorage.getItem('isTestMode') === 'true';
+
+    console.log('🕐 JWT 過期檢查:', { token: !!token, loginTimeStr, testModeActive });
+
+    // 如果是測試模式，跳過 JWT 過期檢查
+    if (testModeActive) {
+      console.log('🧪 測試模式，跳過 JWT 過期檢查');
+      setTimeLeft(' (測試模式 - 無過期時間)');
+      return;
+    }
 
     if (token && loginTimeStr) {
       const loginTimestamp = parseInt(loginTimeStr, 10);
@@ -156,6 +166,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         const remainingSeconds = expiryTimestamp - now;
 
         if (remainingSeconds <= 0) {
+          console.log('❌ JWT Token 已過期，執行登出');
           setTimeLeft('已過期');
           if (location.pathname !== '/login') {
             handleLogout();
@@ -192,7 +203,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     } else {
       setTimeLeft('');
     }
-  }, [location.pathname, handleLogout]);
+  }, [location.pathname, handleLogout, isTestMode]);
 
   const isProductPath = (path: string): boolean => path.startsWith('/products') || path.startsWith('/product-categories');
   const isAccountingPath = (path: string): boolean => (path.startsWith('/accounting') && !path.startsWith('/accounting2') && !path.startsWith('/accounting3')) || path.startsWith('/settings/monitored-products');

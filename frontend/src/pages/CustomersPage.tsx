@@ -32,6 +32,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useCustomerData from '../hooks/useCustomerData';
+import testModeDataService from '../testMode/services/TestModeDataService';
 
 // 定義客戶資料介面
 interface Customer {
@@ -138,35 +139,7 @@ const initialCustomerState: CustomerFormState = {
   membershipLevel: 'regular',
 };
 
-// Mock data for test mode
-const mockCustomersData: Customer[] = [
-  {
-    id: 'mockCust001',
-    code: 'MKC001',
-    name: '模擬客戶張三',
-    phone: '0911222333',
-    email: 'test1@example.com',
-    address: '模擬地址一',
-    idCardNumber: 'A123456789',
-    birthdate: '1990-01-15',
-    notes: '這是模擬客戶資料。',
-    membershipLevel: 'platinum',
-    // level will be mapped
-  },
-  {
-    id: 'mockCust002',
-    code: 'MKC002',
-    name: '模擬客戶李四',
-    phone: '0955666777',
-    email: 'test2@example.com',
-    address: '模擬地址二',
-    idCardNumber: 'B987654321',
-    birthdate: '1985-05-20',
-    notes: '另一筆模擬客戶資料。',
-    membershipLevel: 'regular',
-    // level will be mapped
-  },
-];
+// Mock 數據已移至統一的測試數據模組
 
 // ---
 // Extracted Component for Customer Form Dialog
@@ -293,17 +266,18 @@ CustomerDetailPanel.propTypes = {
 
 // Helper to determine the source of customer data
 const getCustomerDataSource = (
-  isTestMode: boolean, 
-  actualCustomers: Customer[] | null, 
-  actualError: string | null, 
+  isTestMode: boolean,
+  actualCustomers: Customer[] | null,
+  actualError: string | null,
   showSnackbarCallback: (message: string, severity?: SnackbarState['severity']) => void
 ): Customer[] => {
   if (isTestMode) {
+    // 使用統一的測試數據服務
+    const testCustomers = testModeDataService.getCustomers(actualCustomers as any, actualError);
     if (actualError || !actualCustomers || actualCustomers.length === 0) {
       showSnackbarCallback('測試模式：載入實際客戶資料失敗，已使用模擬數據。', 'info');
-      return mockCustomersData;
     }
-    return actualCustomers;
+    return testCustomers as Customer[];
   }
   return actualCustomers || []; // Return empty array if actualCustomers is null/undefined
 };

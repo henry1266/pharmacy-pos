@@ -3,6 +3,8 @@ import { productServiceV2 } from '../services/productServiceV2';
 import { getAllSuppliers } from '../services/supplierServiceV2';
 import { getProductCategories } from '../services/productCategoryService'; // Keep category service separate or integrate
 import { Product, Supplier, Category } from '@pharmacy-pos/shared/types/entities';
+import TestModeConfig from '../testMode/config/TestModeConfig';
+import testModeDataService from '../testMode/services/TestModeDataService';
 
 /**
  * 產品類型

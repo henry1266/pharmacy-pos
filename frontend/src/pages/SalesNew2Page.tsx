@@ -35,76 +35,11 @@ import CheckoutSuccessEffect from '../components/sales/CheckoutSuccessEffect';
 
 // Import types
 import { Product, Customer } from '@pharmacy-pos/shared/types/entities';
+import TestModeConfig from '../testMode/config/TestModeConfig';
+import testModeDataService from '../testMode/services/TestModeDataService';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
-
-// Mock data for test mode
-interface MockSalesPageData {
-  products: Product[];
-  customers: Customer[];
-}
-
-// 創建符合 Product 類型的模擬數據
-const mockSalesPageData: MockSalesPageData = {
-  products: [
-    {
-      _id: 'mockProd001',
-      code: 'MOCK001',
-      name: '測試藥品X (模擬)',
-      cost: 100,
-      price: 150,
-      stock: 50,
-      unit: '盒',
-      category: { name: '測試分類' } as any,
-      supplier: { name: '測試供應商' } as any,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: 'mockProd002',
-      code: 'MOCK002',
-      name: '測試藥品Y (模擬)',
-      cost: 200,
-      price: 250,
-      stock: 30,
-      unit: '盒',
-      category: { name: '測試分類' } as any,
-      supplier: { name: '測試供應商' } as any,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: 'mockProd003',
-      code: 'MOCK003',
-      name: '測試保健品Z (模擬)',
-      cost: 250,
-      price: 300,
-      stock: 0,
-      unit: '盒',
-      category: { name: '測試分類' } as any,
-      supplier: { name: '測試供應商' } as any,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-  ],
-  customers: [
-    {
-      _id: 'mockCust001',
-      name: '測試客戶A (模擬)',
-      phone: '0912345678',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: 'mockCust002',
-      name: '測試客戶B (模擬)',
-      phone: '0987654321',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-  ],
-};
 
 const SalesNew2Page: FC = () => {
   const theme = useTheme();
@@ -118,7 +53,7 @@ const SalesNew2Page: FC = () => {
   const [lastSaleData, setLastSaleData] = useState<{ totalAmount: number; saleNumber: string } | null>(null);
 
   useEffect(() => {
-    const testModeActive = localStorage.getItem('isTestMode') === 'true';
+    const testModeActive = TestModeConfig.isEnabled();
     setIsTestMode(testModeActive);
   }, []);
 
@@ -140,12 +75,15 @@ const SalesNew2Page: FC = () => {
     searchSales
   } = useSalesListData();
 
-  // Determine data sources based on test mode
+  // 使用測試數據服務獲取數據
   const { products, customers, loading, error } = useMemo(() => {
-    const useMockData = isTestMode && (actualError || !actualProducts || !actualCustomers);
     return {
-      products: useMockData ? mockSalesPageData.products : actualProducts,
-      customers: useMockData ? mockSalesPageData.customers : actualCustomers,
+      products: isTestMode
+        ? testModeDataService.getProducts(actualProducts as any, actualError)
+        : actualProducts,
+      customers: isTestMode
+        ? testModeDataService.getCustomers(actualCustomers as any, actualError) as unknown as Customer[]
+        : actualCustomers,
       loading: isTestMode ? false : actualLoading,
       error: isTestMode ? null : actualError,
     };

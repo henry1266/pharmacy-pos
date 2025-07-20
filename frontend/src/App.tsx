@@ -106,23 +106,6 @@ const fallbackTheme = createTheme({
   },
 });
 
-// 簡單檢查身份驗證令牌
-const isAuthenticated = (): boolean => {
-  const token = localStorage.getItem('token');
-  // 通過檢查令牌是否存在且未過期來實現令牌驗證
-  if (token) {
-    try {
-      // 基本檢查 - 在生產環境中，應使用適當的 JWT 驗證
-      const tokenData = JSON.parse(atob(token.split('.')[1]));
-      const expirationTime = tokenData.exp * 1000; // 轉換為毫秒
-      return Date.now() < expirationTime;
-    } catch (error) {
-      console.error('Token validation error:', error);
-      return false;
-    }
-  }
-  return false;
-};
 
 // 處理受保護路由的元件
 interface ProtectedRouteProps {
@@ -130,11 +113,40 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  if (!isAuthenticated()) {
-    // 將他們重定向到 /login 頁面，但保存他們被重定向時嘗試訪問的當前位置。
+  const token = localStorage.getItem('token');
+  const isTestMode = localStorage.getItem('isTestMode') === 'true';
+  
+  // 調試信息
+  console.log('🔐 ProtectedRoute 檢查:', { token: !!token, isTestMode });
+  
+  if (!token) {
+    console.log('❌ 沒有 token，重定向到登入頁面');
     return <Navigate to="/login" replace />;
   }
-  return <>{children}</>;
+  
+  // 如果是測試模式，直接允許訪問
+  if (isTestMode) {
+    console.log('✅ 測試模式，允許訪問');
+    return <>{children}</>;
+  }
+  
+  // 正常模式的 JWT 驗證
+  try {
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const expirationTime = tokenData.exp * 1000;
+    const isValid = Date.now() < expirationTime;
+    
+    if (!isValid) {
+      console.log('❌ Token 已過期，重定向到登入頁面');
+      return <Navigate to="/login" replace />;
+    }
+    
+    console.log('✅ 正常模式，Token 有效');
+    return <>{children}</>;
+  } catch (error) {
+    console.error('❌ Token 驗證錯誤:', error);
+    return <Navigate to="/login" replace />;
+  }
 };
 
 const App: React.FC = () => {
@@ -152,30 +164,46 @@ const App: React.FC = () => {
     
     // 優化的存儲變更監聽器
     const handleStorageChange = (event: StorageEvent) => {
+      console.log('📦 Storage 變更事件:', { key: event.key, newValue: event.newValue, oldValue: event.oldValue });
+      
+      // 忽略測試模式相關的 storage 變更
+      if (event.key === 'isTestMode') {
+        console.log('🧪 忽略測試模式 storage 變更');
+        return;
+      }
+      
+      // 忽略主題和 WebSocket 相關的 storage 變更
+      if (event.key?.startsWith('socket_') || event.key?.startsWith('theme_')) {
+        console.log('🎨 忽略主題/WebSocket storage 變更');
+        return;
+      }
+      
       // 只處理認證相關的變更
       if (event.key === 'token' || event.key === 'user') {
         const newToken = localStorage.getItem('token');
+        const isTestMode = localStorage.getItem('isTestMode') === 'true';
+        
+        console.log('🔐 處理認證相關變更:', { newToken: !!newToken, isTestMode });
         
         // 更新 axios 標頭
         if (newToken) {
           // 同時設定兩種認證方式以確保相容性
           axios.defaults.headers.common['x-auth-token'] = newToken;
           axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+          console.log('✅ 已更新 axios 標頭');
         } else {
           delete axios.defaults.headers.common['x-auth-token'];
           delete axios.defaults.headers.common['Authorization'];
-          // 只有在登出時才重新載入
-          if (event.key === 'token' && !newToken) {
+          console.log('❌ 已清除 axios 標頭');
+          
+          // 只有在非測試模式且確實是登出時才重新載入
+          if (event.key === 'token' && !newToken && !isTestMode) {
+            console.log('🔄 非測試模式登出，重新載入頁面');
             window.location.reload();
+          } else if (isTestMode) {
+            console.log('🧪 測試模式，不重新載入頁面');
           }
         }
-      }
-      
-      // 忽略主題和 WebSocket 相關的 storage 變更
-      if (event.key?.startsWith('socket_') ||
-          event.key?.startsWith('theme_') ||
-          event.key === 'isTestMode') {
-        return;
       }
     };
     

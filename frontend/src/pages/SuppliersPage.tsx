@@ -36,6 +36,8 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { InputAdornment } from '@mui/material';
 import CommonListPageLayout from '../components/common/CommonListPageLayout';
 import useSupplierData from '../hooks/useSupplierData';
+import { TestModeConfig } from '../testMode';
+import testModeDataService from '../testMode/services/TestModeDataService';
 
 // 定義供應商資料介面
 interface SupplierData {
@@ -87,31 +89,7 @@ interface ImportResult {
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
 
-// Mock data for test mode
-const mockSuppliersData: SupplierData[] = [
-  {
-    id: 'mockSup001',
-    code: 'MKSUP001',
-    shortCode: 'MS1',
-    name: '測試供應商甲 (模擬)',
-    contactPerson: '陳先生',
-    phone: '02-12345678',
-    taxId: '12345678',
-    paymentTerms: '月結30天',
-    notes: '這是模擬的供應商資料。'
-  },
-  {
-    id: 'mockSup002',
-    code: 'MKSUP002',
-    shortCode: 'MS2',
-    name: '測試供應商乙 (模擬)',
-    contactPerson: '林小姐',
-    phone: '03-87654321',
-    taxId: '87654321',
-    paymentTerms: '貨到付款',
-    notes: '這是另一筆模擬供應商資料，用於測試。'
-  },
-];
+// Mock 數據已移至統一的測試數據模組
 
 const SuppliersPage: FC<{}> = () => {
   const navigate = useNavigate();
@@ -175,16 +153,16 @@ const SuppliersPage: FC<{}> = () => {
 
   useEffect(() => {
     if (isTestMode) {
+      // 使用統一的測試數據服務
+      const testSuppliers = testModeDataService.getSuppliers(actualSuppliers as any, actualError);
+      const convertedSuppliers = testSuppliers.map(supplier => ({
+        ...supplier,
+        id: supplier._id || supplier.id
+      })) as unknown as SupplierData[];
+      setLocalSuppliers(convertedSuppliers);
+      
       if (actualError || !actualSuppliers || actualSuppliers.length === 0) {
-        setLocalSuppliers(mockSuppliersData);
         showSnackbar('測試模式：載入實際供應商資料失敗，已使用模擬數據。', 'info');
-      } else {
-        // 轉換 _id 為 id 以符合 DataGrid 需求
-        const convertedSuppliers = actualSuppliers.map(supplier => ({
-          ...supplier,
-          id: supplier._id
-        })) as unknown as SupplierData[];
-        setLocalSuppliers(convertedSuppliers);
       }
     } else {
       // 轉換 _id 為 id 以符合 DataGrid 需求
