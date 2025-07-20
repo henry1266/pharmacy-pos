@@ -77,6 +77,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   // 從localStorage獲取當前IP設定，如果沒有則使用默認值
   const [apiIpAddress, setApiIpAddress] = useState<string>('');
   const [mongodbIpAddress, setMongodbIpAddress] = useState<string>('');
+  const [pharmacyName, setPharmacyName] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
@@ -111,6 +112,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
     } else {
       // 默認值，通常與API伺服器相同
       setMongodbIpAddress(process.env.REACT_APP_DEFAULT_MONGODB_IP ?? '192.168.68.90'); // Use env var or fallback
+    }
+
+    const savedPharmacyName = localStorage.getItem('pharmacyName');
+    if (savedPharmacyName) {
+      setPharmacyName(savedPharmacyName);
+    } else {
+      // 默認值
+      setPharmacyName('興安藥局');
     }
   }, [open]);
 
@@ -158,6 +167,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
     setMongodbIpAddress(e.target.value);
   };
 
+  // 處理藥局名稱輸入變更
+  const handlePharmacyNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setPharmacyName(e.target.value);
+  };
+
   // 處理帳號表單輸入變更
   const handleAccountInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -199,13 +213,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       return;
     }
 
+    // 驗證藥局名稱
+    if (!pharmacyName.trim()) {
+      setSnackbar({
+        open: true,
+        message: '藥局名稱不能為空',
+        severity: 'error'
+      });
+      return;
+    }
+
     // 設置保存中狀態
     setIsSaving(true);
 
     try {
-      // 保存IP地址到localStorage
+      // 保存IP地址和藥局名稱到localStorage
       localStorage.setItem('apiServerIp', apiIpAddress);
       localStorage.setItem('mongodbServerIp', mongodbIpAddress);
+      localStorage.setItem('pharmacyName', pharmacyName.trim());
       
       // 同步MongoDB設定到後端
       await syncMongoDBConfig(mongodbIpAddress);
@@ -213,7 +238,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       // 顯示成功提示
       setSnackbar({
         open: true,
-        message: 'IP設定已保存並同步到後端，請重新整理頁面以套用更改',
+        message: '設定已保存並同步到後端，請重新整理頁面以套用更改',
         severity: 'success'
       });
       
@@ -377,7 +402,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 API伺服器設定
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                請輸入API伺服器的IP地址，例如：192.168.68.90
+                請輸入API伺服器的IP地址：
               </Typography>
               <TextField
                 fullWidth
@@ -385,7 +410,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 variant="outlined"
                 value={apiIpAddress}
                 onChange={handleApiIpChange}
-                placeholder="例如：192.168.68.90"
+                placeholder="例如：192.168.68.XX"
                 helperText="設定後需要重新整理頁面以套用更改"
                 sx={{ mb: 3 }}
               />
@@ -396,7 +421,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 MongoDB伺服器設定
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                請輸入MongoDB資料庫伺服器的IP地址，例如：192.168.68.90
+                請輸入MongoDB資料庫伺服器的IP地址：
               </Typography>
               <TextField
                 fullWidth
@@ -404,7 +429,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 variant="outlined"
                 value={mongodbIpAddress}
                 onChange={handleMongodbIpChange}
-                placeholder="例如：192.168.68.90"
+                placeholder="例如：192.168.68.XX"
                 helperText="設定後需要重新整理頁面以套用更改"
                 sx={{ mb: 2 }}
               />

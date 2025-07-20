@@ -138,7 +138,7 @@ const SettingsIpPage: React.FC = () => {
             API伺服器設定
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            請輸入API伺服器的IP地址，例如：192.168.68.90
+            請輸入API伺服器的IP地址：
           </Typography>
           <TextField
             fullWidth
@@ -146,7 +146,7 @@ const SettingsIpPage: React.FC = () => {
             variant="outlined"
             value={apiIpAddress}
             onChange={handleApiIpChange}
-            placeholder="例如：192.168.68.90"
+            placeholder="例如：192.168.68.XX"
             helperText="設定後需要重新整理頁面以套用更改"
             sx={{ mb: 3 }}
           />
@@ -157,15 +157,15 @@ const SettingsIpPage: React.FC = () => {
             MongoDB伺服器設定
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            請輸入MongoDB資料庫伺服器的IP地址，例如：192.168.68.90
+            請輸入MongoDB資料庫伺服器的IP地址：
           </Typography>
           <TextField
             fullWidth
-            label="MongoDB伺服器IP地址"
+            label="MongoDB伺服器IP地址123456"
             variant="outlined"
             value={mongodbIpAddress}
             onChange={handleMongodbIpChange}
-            placeholder="例如：192.168.68.90"
+            placeholder="例如：192.168.68.XX"
             helperText="設定後需要重新整理頁面以套用更改"
             sx={{ mb: 2 }}
           />
