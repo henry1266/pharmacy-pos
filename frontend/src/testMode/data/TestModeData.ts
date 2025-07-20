@@ -1,4 +1,4 @@
-import type { Product, Customer, Sale } from '@pharmacy-pos/shared/types/entities';
+import type { Product, Customer, Sale, Category } from '@pharmacy-pos/shared/types/entities';
 import type { DashboardSummary, SalesTrend, CategorySales } from '../../services/dashboardService';
 
 /**
@@ -176,6 +176,45 @@ export const mockProductsData: Product[] = [
     unit: '盒',
     category: { name: '感冒藥' } as any,
     supplier: { name: '測試供應商' } as any,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
+// ===== 產品分類數據 =====
+export const mockCategoriesData: Category[] = [
+  {
+    _id: 'mockCat001',
+    name: '感冒藥',
+    description: '感冒相關藥品分類',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: 'mockCat002',
+    name: '保健品',
+    description: '保健食品分類',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: 'mockCat003',
+    name: '維他命',
+    description: '維他命補充品分類',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: 'mockCat004',
+    name: '醫療器材',
+    description: '醫療器材用品分類',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: 'mockCat005',
+    name: '測試分類',
+    description: '測試用分類',
     createdAt: new Date(),
     updatedAt: new Date()
   }
@@ -508,6 +547,7 @@ export interface TestModeDataCollection {
   suppliers: TestSupplierData[];
   customers: TestCustomerData[];
   products: Product[];
+  categories: Category[];
   sales: ExtendedSale[];
   employees: TestEmployeeData[];
   dashboard: {
@@ -525,6 +565,7 @@ export const getAllTestModeData = (): TestModeDataCollection => ({
   suppliers: mockSuppliersData,
   customers: mockCustomersData,
   products: mockProductsData,
+  categories: mockCategoriesData,
   sales: mockSalesData,
   employees: mockEmployeesData,
   dashboard: {
@@ -542,6 +583,7 @@ export const getAllTestModeData = (): TestModeDataCollection => ({
 export const getTestSuppliers = (): TestSupplierData[] => mockSuppliersData;
 export const getTestCustomers = (): TestCustomerData[] => mockCustomersData;
 export const getTestProducts = (): Product[] => mockProductsData;
+export const getTestCategories = (): Category[] => mockCategoriesData;
 export const getTestSales = (): ExtendedSale[] => mockSalesData;
 export const getTestEmployees = (): TestEmployeeData[] => mockEmployeesData;
 export const getTestDashboardData = (): MockDashboardData => mockDashboardData;

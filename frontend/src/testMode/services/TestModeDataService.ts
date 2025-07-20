@@ -4,6 +4,7 @@ import {
   getTestSuppliers,
   getTestCustomers,
   getTestProducts,
+  getTestCategories,
   getTestSales,
   getTestEmployees,
   getTestDashboardData,
@@ -19,7 +20,7 @@ import {
   type TestPurchaseOrderSupplier,
   type ExtendedSale
 } from '../data/TestModeData';
-import type { Product, Customer, Sale } from '@pharmacy-pos/shared/types/entities';
+import type { Product, Customer, Sale, Category } from '@pharmacy-pos/shared/types/entities';
 import type { SalesTrend, CategorySales } from '../../services/dashboardService';
 
 /**
@@ -76,6 +77,20 @@ class TestModeDataService {
       return actualProducts || [];
     }
     return actualProducts || [];
+  }
+
+  /**
+   * 獲取產品分類數據
+   */
+  getCategories(actualCategories: Category[] | null, actualError: string | null): Category[] {
+    if (TestModeConfig.isEnabled()) {
+      if (this.shouldUseTestData(actualCategories, actualError)) {
+        console.log('測試模式：使用模擬產品分類數據');
+        return getTestCategories();
+      }
+      return actualCategories || [];
+    }
+    return actualCategories || [];
   }
 
   /**
@@ -244,7 +259,7 @@ class TestModeDataService {
    * 根據數據類型自動選擇實際數據或測試數據
    */
   getData<T>(
-    dataType: 'suppliers' | 'customers' | 'products' | 'sales' | 'employees' | 'dashboard' | 'salesTrend' | 'categorySales',
+    dataType: 'suppliers' | 'customers' | 'products' | 'categories' | 'sales' | 'employees' | 'dashboard' | 'salesTrend' | 'categorySales',
     actualData: T | null,
     actualError: string | null
   ): T {
@@ -255,6 +270,8 @@ class TestModeDataService {
         return this.getCustomers(actualData as any, actualError) as T;
       case 'products':
         return this.getProducts(actualData as any, actualError) as T;
+      case 'categories':
+        return this.getCategories(actualData as any, actualError) as T;
       case 'sales':
         return this.getSales(actualData as any, actualError) as T;
       case 'employees':

@@ -38,7 +38,15 @@ const useProductData = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await productServiceV2.getAllProducts();
+      
+      // 使用測試數據服務來決定是否使用測試數據
+      let data;
+      try {
+        const actualData = await productServiceV2.getAllProducts();
+        data = testModeDataService.getProducts(actualData, null);
+      } catch (actualError) {
+        data = testModeDataService.getProducts(null, actualError);
+      }
 
       // Separate products and medicines
       const productsList: ProductWithId[] = [];
@@ -79,7 +87,16 @@ const useProductData = () => {
   const fetchSuppliers = useCallback(async () => {
     try {
       setError(null);
-      const data = await getAllSuppliers();
+      
+      // 使用測試數據服務來決定是否使用測試數據
+      let data;
+      try {
+        const actualData = await getAllSuppliers();
+        data = testModeDataService.getSuppliers(actualData, null);
+      } catch (actualError) {
+        data = testModeDataService.getSuppliers(null, actualError);
+      }
+      
       setSuppliers(data);
     } catch (err: any) {
       console.error('獲取供應商失敗 (hook):', err);
@@ -91,7 +108,16 @@ const useProductData = () => {
   const fetchCategories = useCallback(async () => {
     try {
       setError(null);
-      const data = await getProductCategories(); // Using dedicated category service
+      
+      // 使用測試數據服務來決定是否使用測試數據
+      let data;
+      try {
+        const actualData = await getProductCategories(); // Using dedicated category service
+        data = testModeDataService.getCategories(actualData, null);
+      } catch (actualError) {
+        data = testModeDataService.getCategories(null, actualError);
+      }
+      
       setCategories(data);
     } catch (err: any) {
       console.error('獲取產品分類失敗 (hook):', err);
@@ -104,6 +130,19 @@ const useProductData = () => {
     try {
       setLoading(true); // Indicate loading during delete
       setError(null);
+      
+      // 測試模式下模擬刪除操作
+      if (TestModeConfig.isEnabled()) {
+        console.log('測試模式：模擬刪除產品操作');
+        await testModeDataService.simulateApiSuccess('刪除產品');
+        
+        // Update local state optimistically
+        setProducts(prev => prev.filter(p => p.id !== id));
+        setMedicines(prev => prev.filter(p => p.id !== id));
+        
+        return true;
+      }
+      
       await productServiceV2.deleteProduct(id);
 
       // Update local state optimistically or refetch
@@ -130,6 +169,25 @@ const useProductData = () => {
       setLoading(true);
       setError(null);
       let savedProductData;
+
+      // 測試模式下模擬保存操作
+      if (TestModeConfig.isEnabled()) {
+        console.log('測試模式：模擬保存產品操作');
+        await testModeDataService.simulateApiSuccess(editMode ? '更新產品' : '新增產品');
+        
+        // 創建模擬的保存結果
+        savedProductData = {
+          ...productData,
+          _id: productData.id || `mock_${Date.now()}`,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        // Refetch products to ensure data consistency
+        await fetchProducts();
+        
+        return { ...savedProductData, id: savedProductData._id };
+      }
 
       if (editMode) {
         // Update product
