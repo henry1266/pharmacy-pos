@@ -111,12 +111,12 @@ const OrganizationPage: React.FC = () => {
 
   // 處理新增組織
   const handleAddOrganization = () => {
-    navigate('/accounting3/organization/new');
+    navigate('/accounting3/organizations/new');
   };
 
   // 處理編輯組織
   const handleEditOrganization = (organization: Organization) => {
-    navigate(`/accounting3/organization/${organization._id}/edit`);
+    navigate(`/accounting3/organizations/${organization._id}/edit`);
   };
 
   // 處理刪除組織 - 開啟確認對話框

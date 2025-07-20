@@ -136,11 +136,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
     try {
       const userData = await authService.getCurrentUser();
       setCurrentUser(userData);
-      setAccountFormData({
-        ...accountFormData,
+      setAccountFormData(prevFormData => ({
+        ...prevFormData,
         username: userData.username ?? '',
         email: userData.email ?? ''
-      });
+      }));
     } catch (error: any) {
       setSnackbar({
         open: true,

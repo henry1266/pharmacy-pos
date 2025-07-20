@@ -201,11 +201,11 @@ const AccountSettingsPage: React.FC = () => {
     try {
       const userData = await authService.getCurrentUser();
       setCurrentUser(userData);
-      setFormData({
-        ...formData,
+      setFormData(prevFormData => ({
+        ...prevFormData,
         username: userData.username ?? '',
         email: userData.email ?? ''
-      });
+      }));
     } catch (error: any) {
       setAlert({
         show: true,
@@ -215,7 +215,7 @@ const AccountSettingsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [formData]);
+  }, []);
 
   // 獲取當前用戶資訊
   useEffect(() => {

@@ -216,11 +216,11 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
       if (mode === 'create') {
         await organizationService.createOrganization(formData);
         setSuccess('機構建立成功！');
-        setTimeout(() => navigate('/organizations'), 1500);
+        setTimeout(() => navigate('/accounting3/organizations'), 1500);
       } else {
         await organizationService.updateOrganization(organizationId!, formData);
         setSuccess('機構更新成功！');
-        setTimeout(() => navigate('/organizations'), 1500);
+        setTimeout(() => navigate('/accounting3/organizations'), 1500);
       }
     } catch (err: any) {
       setError(err.message);
@@ -231,7 +231,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
 
   // 處理取消
   const handleCancel = () => {
-    navigate('/organizations');
+    navigate('/accounting3/organizations');
   };
 
   // 處理輸入變更

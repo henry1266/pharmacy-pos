@@ -33,7 +33,7 @@ const createAxiosAdapter = (): HttpClient => {
           ...config?.headers
         }
       });
-      return response.data;
+      return { data: response.data };
     },
     post: async (url: string, data?: any, config?: any) => {
       const response = await axios.post(url, data, {
@@ -43,7 +43,7 @@ const createAxiosAdapter = (): HttpClient => {
           ...config?.headers
         }
       });
-      return response.data;
+      return { data: response.data };
     },
     put: async (url: string, data?: any, config?: any) => {
       const response = await axios.put(url, data, {
@@ -53,7 +53,7 @@ const createAxiosAdapter = (): HttpClient => {
           ...config?.headers
         }
       });
-      return response.data;
+      return { data: response.data };
     },
     delete: async (url: string, config?: any) => {
       const response = await axios.delete(url, {
@@ -63,7 +63,7 @@ const createAxiosAdapter = (): HttpClient => {
           ...config?.headers
         }
       });
-      return response.data;
+      return { data: response.data };
     }
   };
 };

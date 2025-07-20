@@ -31,7 +31,11 @@ export interface IUser {
   password: string;
   role: UserRole;
   settings: IUserSettings;
+  isActive: boolean;
+  lastLogin?: Date;
   date: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // 用戶文檔介面
@@ -85,10 +89,19 @@ const UserSchema = new Schema<IUserDocument>({
     type: mongoose.Schema.Types.Mixed, // Use Mixed type for flexibility
     default: {}
   },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  lastLogin: {
+    type: Date
+  },
   date: {
     type: Date,
     default: Date.now
   }
+}, {
+  timestamps: true // 自動添加 createdAt 和 updatedAt
 });
 
 const User = mongoose.model<IUserDocument>("user", UserSchema);

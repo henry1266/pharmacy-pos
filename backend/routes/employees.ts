@@ -2,9 +2,10 @@ import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
 import Employee from '../models/Employee';
+import User from '../models/User';
 import mongoose from 'mongoose';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
-import { Employee as SharedEmployee } from '@pharmacy-pos/shared/types/entities';
+import { Employee as SharedEmployee, EmployeeWithAccount } from '@pharmacy-pos/shared/types/entities';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
 const router: express.Router = express.Router();
@@ -55,6 +56,91 @@ router.get('/', auth, async (req: Request, res: Response) => {
       message: '員工列表獲取成功',
       data: {
         employees: employeeList,
+        totalCount,
+        page,
+        limit
+      },
+      timestamp: new Date()
+    };
+
+    res.json(response);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : 'Unknown error');
+    const errorResponse: ErrorResponse = {
+      success: false,
+      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
+      timestamp: new Date()
+    };
+    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+});
+
+// @route   GET api/employees/with-accounts
+// @desc    Get all employees with their account status
+// @access  Private
+router.get('/with-accounts', auth, async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 0;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || '';
+    const sortField = (req.query.sortField as string) || 'name';
+    const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+
+    // 建立搜尋條件
+    const searchQuery = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { department: { $regex: search, $options: 'i' } },
+            { position: { $regex: search, $options: 'i' } }
+          ]
+        }
+      : {};
+
+    // 計算總筆數
+    const totalCount = await Employee.countDocuments(searchQuery);
+
+    // 取得分頁資料
+    const employees = await Employee.find(searchQuery)
+      .sort({ [sortField]: sortOrder })
+      .skip(page * limit)
+      .limit(limit);
+
+    // 取得所有用戶帳號資料
+    const users = await User.find({});
+    const userMap = new Map(users.map(user => [user._id.toString(), user]));
+
+    // 轉換為 EmployeeWithAccount 格式
+    const employeesWithAccounts: EmployeeWithAccount[] = employees.map(emp => {
+      const employeeData = convertToSharedEmployee(emp);
+      const user = userMap.get(emp.userId?.toString() || '');
+      
+      return {
+        ...employeeData,
+        account: user ? {
+          _id: user._id.toString(),
+          employeeId: emp._id.toString(),
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
+        } : null
+      };
+    });
+
+    const response: ApiResponse<{
+      employees: EmployeeWithAccount[];
+      totalCount: number;
+      page: number;
+      limit: number;
+    }> = {
+      success: true,
+      message: '員工帳號狀態列表獲取成功',
+      data: {
+        employees: employeesWithAccounts,
         totalCount,
         page,
         limit
