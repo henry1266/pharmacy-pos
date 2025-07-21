@@ -357,16 +357,6 @@ const SalesNew2Page: FC = () => {
             width: isMobile ? '100%' : 'auto'
           }}>
             <Button
-              variant="contained"
-              color="secondary"
-              onClick={() => navigate('/sales/new')}
-              size={isMobile ? 'small' : 'medium'}
-              fullWidth={isMobile}
-              sx={{ mt: isMobile ? 1 : 0 }}
-            >
-              切換到 v1 版本
-            </Button>
-            <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
               onClick={refreshSales}

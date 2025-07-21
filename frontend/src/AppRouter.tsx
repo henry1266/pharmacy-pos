@@ -11,7 +11,6 @@ import SuppliersReportPage from './pages/SuppliersReportPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 // 銷售管理頁面元件
-import SalesPage from './pages/SalesPage';
 import SalesNew2Page from './pages/SalesNew2Page';
 import SalesListPage from './pages/SalesListPage';
 import SalesEditPage from './pages/SalesEditPage';
@@ -83,7 +82,6 @@ const AppRouter: React.FC = () => {
       
       {/* Sales routes */}
       <Route path="/sales" element={<SalesListPage />} />
-      <Route path="/sales/new" element={<SalesPage />} />
       <Route path="/sales/new2" element={<SalesNew2Page />} />
       <Route path="/sales/edit/:id" element={<SalesEditPage />} />
       <Route path="/sales/:id" element={<SalesDetailPage />} />

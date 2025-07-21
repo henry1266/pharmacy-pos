@@ -237,7 +237,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                         onChange={(e) => onPriceChange(index, parseFloat(e.target.value) || 0)}
                         size="small"
                         sx={{ width: '90px' }}
-                        inputProps={{ min: 0, step: "0.01" }}
+                        inputProps={{ min: 0, step: "1" }}
                       />
                     ) : (
                       <TextField
@@ -247,7 +247,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                         onChange={(e) => onSubtotalChange(index, parseFloat(e.target.value) || 0)}
                         size="small"
                         sx={{ width: '90px' }}
-                        inputProps={{ min: 0, step: "0.01" }}
+                        inputProps={{ min: 0, step: "1" }}
                       />
                     )}
                     <IconButton 
@@ -292,7 +292,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-            ${totalAmount?.toFixed(2) ?? '0.00'}
+            ${totalAmount?.toFixed(2) ?? '0.0'}
           </Typography>
           {discount && discount > 0 && (
             <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>

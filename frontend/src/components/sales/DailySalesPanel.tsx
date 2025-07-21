@@ -35,6 +35,27 @@ import { zhTW } from 'date-fns/locale';
 import type { Sale } from '@pharmacy-pos/shared/types/entities';
 import WildcardSearchHelp from '../common/WildcardSearchHelp';
 
+// 共用樣式常數
+const STYLES = {
+  typography: {
+    small: { fontSize: '0.75rem', lineHeight: 1.2 },
+    medium: { fontSize: '0.8rem', lineHeight: 1.2 },
+    large: { fontSize: '0.9rem', lineHeight: 1.2 },
+    ellipsis: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap' as const
+    }
+  },
+  chip: {
+    small: { fontSize: '0.7rem', height: 20 }
+  },
+  spacing: {
+    itemPadding: { py: 0.25, px: 1.5 },
+    minHeight: '44px'
+  }
+} as const;
+
 interface DailySalesPanelProps {
   sales: Sale[];
   loading: boolean;
@@ -47,6 +68,21 @@ interface DailySalesPanelProps {
   wildcardMode?: boolean;
   onWildcardModeChange?: (enabled: boolean) => void;
 }
+
+// 輔助函數
+const getCustomerName = (customer: Sale['customer']): string => {
+  return typeof customer === 'string' ? customer : customer?.name ?? '一般客戶';
+};
+
+const getProductName = (product: any): string => {
+  return typeof product === 'object' && product?.name
+    ? product.name
+    : (typeof product === 'string' ? product : '未知商品');
+};
+
+const formatSaleDate = (date: string | Date | undefined, formatStr: string = 'MM/dd HH:mm'): string => {
+  return date ? format(new Date(date), formatStr, { locale: zhTW }) : '';
+};
 
 // 付款方式和狀態的映射函數
 const getPaymentMethodText = (method: string): string => {
@@ -148,11 +184,11 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
 
     return dailySales.filter(({ customer, items, _id, saleNumber, date }) => {
       const searchableFields: string[] = [
-        typeof customer === 'string' ? customer : customer?.name ?? '',
-        items.map(item => typeof item.product === 'object' && item.product?.name ? item.product.name : (typeof item.product === 'string' ? item.product : '')).join(' '),
+        getCustomerName(customer),
+        items.map(item => getProductName(item.product)).join(' '),
         String(_id ?? ''),
         String(saleNumber ?? ''),
-        date ? format(new Date(date), 'yyyy-MM-dd') : ''
+        formatSaleDate(date, 'yyyy-MM-dd')
       ];
 
       return searchableFields.some(field =>
@@ -255,7 +291,7 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
                     size="small"
                     color="primary"
                     variant="outlined"
-                    sx={{ fontSize: '0.7rem', height: 20 }}
+                    sx={STYLES.chip.small}
                   />
                 </InputAdornment>
               ) : undefined
@@ -375,11 +411,8 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
                             variant="subtitle2"
                             sx={{
                               fontWeight: 'bold',
-                              fontSize: '0.9rem',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              lineHeight: 1.2,
+                              ...STYLES.typography.large,
+                              ...STYLES.typography.ellipsis,
                               flex: '0 1 auto',
                               minWidth: 0
                             }}
@@ -392,8 +425,7 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
                             sx={{
                               fontWeight: 'bold',
                               color: 'primary.main',
-                              fontSize: '0.8rem',
-                              lineHeight: 1.2,
+                              ...STYLES.typography.medium,
                               flexShrink: 0
                             }}
                           >
@@ -404,16 +436,13 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
                             variant="caption"
                             color="textSecondary"
                             sx={{
-                              fontSize: '0.8rem',
-                              lineHeight: 1.2,
+                              ...STYLES.typography.medium,
+                              ...STYLES.typography.ellipsis,
                               textAlign: 'right',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
                               flexShrink: 0
                             }}
                           >
-                            {sale.date ? format(new Date(sale.date), 'MM/dd HH:mm', { locale: zhTW }) : ''}
+                            {formatSaleDate(sale.date)}
                           </Typography>
                         </Box>
                       </Box>
@@ -447,13 +476,15 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
                         }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
                             <PersonIcon sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="textSecondary" sx={{
-                              fontSize: '0.8rem',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}>
-                              {typeof sale.customer === 'string' ? sale.customer : sale.customer?.name ?? '一般客戶'}
+                            <Typography
+                              variant="body2"
+                              color="textSecondary"
+                              sx={{
+                                ...STYLES.typography.medium,
+                                ...STYLES.typography.ellipsis
+                              }}
+                            >
+                              {getCustomerName(sale.customer)}
                             </Typography>
                           </Box>
                           
@@ -463,24 +494,39 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
                               label={getPaymentMethodText(sale.paymentMethod)}
                               size="small"
                               variant="outlined"
-                              sx={{ fontSize: '0.7rem', height: 20 }}
+                              sx={STYLES.chip.small}
                             />
                             <Chip
                               label={getPaymentStatusInfo(sale.paymentStatus).text}
                               color={getPaymentStatusInfo(sale.paymentStatus).color}
                               size="small"
-                              sx={{ fontSize: '0.7rem', height: 20 }}
+                              sx={STYLES.chip.small}
                             />
                           </Box>
                         </Box>
                         
                         <Box sx={{ mb: 1 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 'medium', mb: 0.5, fontSize: '0.8rem' }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 'medium',
+                              mb: 0.5,
+                              ...STYLES.typography.medium
+                            }}
+                          >
                             商品明細：
                           </Typography>
                           {sale.items?.map((item, itemIndex) => (
-                            <Typography key={itemIndex} variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem', ml: 1 }}>
-                              • {typeof item.product === 'object' && item.product?.name ? item.product.name : (typeof item.product === 'string' ? item.product : '未知商品')} x {item.quantity}
+                            <Typography
+                              key={itemIndex}
+                              variant="body2"
+                              color="textSecondary"
+                              sx={{
+                                ...STYLES.typography.small,
+                                ml: 1
+                              }}
+                            >
+                              • {getProductName(item.product)} x {item.quantity}
                             </Typography>
                           ))}
                         </Box>
@@ -492,7 +538,7 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
                             color="primary"
                             underline="hover"
                             sx={{
-                              fontSize: '0.75rem',
+                              ...STYLES.typography.small,
                               fontWeight: 'medium',
                               cursor: 'pointer'
                             }}
