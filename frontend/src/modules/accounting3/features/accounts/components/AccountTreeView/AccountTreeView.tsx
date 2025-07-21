@@ -35,7 +35,7 @@ import {
   HierarchyExpandState,
   HierarchySelectionState,
   HierarchyRenderConfig,
-} from '../../types';
+} from '../../../../types';
 
 // 樣式化組件
 const StyledTreeContainer = styled(Box)(({ theme }) => ({

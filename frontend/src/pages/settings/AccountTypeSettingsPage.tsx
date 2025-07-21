@@ -8,7 +8,7 @@ import {
   Link
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import AccountTypeManagement from '../../modules/accounting3/features/accounts/AccountTypeManagement';
+import { AccountTypeManagement } from '../../modules/accounting3/features/accounts/components';
 
 const AccountTypeSettingsPage: React.FC = () => {
   const navigate = useNavigate();

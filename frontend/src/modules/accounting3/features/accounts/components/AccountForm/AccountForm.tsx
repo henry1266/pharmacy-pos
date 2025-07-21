@@ -5,19 +5,19 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Switch,
   Grid,
   Box,
-  Alert
 } from '@mui/material';
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
+import {
+  BasicInfoFields,
+  OrganizationSelector,
+  AccountTypeFields,
+  BalanceAndCurrencyFields,
+  ParentAccountField,
+  FormStatusAndDescription
+} from './components';
 
 // 表單 Props 介面
 interface AccountFormProps {
@@ -30,24 +30,6 @@ interface AccountFormProps {
   organizations?: Organization[];
   selectedOrganizationId?: string | null;
 }
-
-// 科目類型選項
-const ACCOUNT_TYPES = [
-  { value: 'asset', label: '資產' },
-  { value: 'liability', label: '負債' },
-  { value: 'equity', label: '權益' },
-  { value: 'revenue', label: '收入' },
-  { value: 'expense', label: '費用' }
-];
-
-// 帳戶類型選項
-const ACCOUNT_SUB_TYPES = [
-  { value: 'cash', label: '現金' },
-  { value: 'bank', label: '銀行' },
-  { value: 'credit', label: '信用卡' },
-  { value: 'investment', label: '投資' },
-  { value: 'other', label: '其他' }
-];
 
 // 科目代號前綴對應表
 const ACCOUNT_CODE_PREFIXES = {
@@ -256,175 +238,53 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         <Box sx={{ pt: 1 }}>
           <Grid container spacing={2}>
             {/* 基本資訊 */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="科目代號"
-                value={formData.code}
-                onChange={(e) => handleInputChange('code', e.target.value)}
-                error={!!errors.code}
-                helperText={errors.code}
-                placeholder="例如：1101"
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="科目名稱"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                error={!!errors.name}
-                helperText={errors.name}
-                placeholder="例如：現金"
-                required
-              />
-            </Grid>
+            <BasicInfoFields
+              code={formData.code}
+              name={formData.name}
+              onCodeChange={handleCodeChange}
+              onNameChange={(value) => handleInputChange('name', value)}
+              errors={errors}
+            />
 
             {/* 機構選擇 */}
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>所屬機構</InputLabel>
-                <Select
-                  value={formData.organizationId || selectedOrganizationId || ''}
-                  label="所屬機構"
-                  disabled={true} // 在新增科目時機構應該已經選定
-                >
-                  {organizations.map((org) => (
-                    <MenuItem key={org._id} value={org._id}>
-                      {org.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {parentAccount && (
-                  <Box sx={{ mt: 1, fontSize: '0.875rem', color: 'text.secondary' }}>
-                    機構資訊已從父科目繼承
-                  </Box>
-                )}
-              </FormControl>
-            </Grid>
+            <OrganizationSelector
+              organizationId={formData.organizationId}
+              organizations={organizations}
+              selectedOrganizationId={selectedOrganizationId}
+              parentAccount={parentAccount}
+            />
 
             {/* 科目類型 */}
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={!!errors.accountType}>
-                <InputLabel>科目類型 *</InputLabel>
-                <Select
-                  value={formData.accountType}
-                  onChange={(e) => handleInputChange('accountType', e.target.value)}
-                  label="科目類型 *"
-                >
-                  {ACCOUNT_TYPES.map((type) => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.accountType && (
-                  <Alert severity="error" sx={{ mt: 1 }}>
-                    {errors.accountType}
-                  </Alert>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={!!errors.type}>
-                <InputLabel>帳戶類型 *</InputLabel>
-                <Select
-                  value={formData.type}
-                  onChange={(e) => handleInputChange('type', e.target.value)}
-                  label="帳戶類型 *"
-                >
-                  {ACCOUNT_SUB_TYPES.map((type) => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.type && (
-                  <Alert severity="error" sx={{ mt: 1 }}>
-                    {errors.type}
-                  </Alert>
-                )}
-              </FormControl>
-            </Grid>
+            <AccountTypeFields
+              accountType={formData.accountType}
+              type={formData.type}
+              onAccountTypeChange={(value) => handleInputChange('accountType', value)}
+              onTypeChange={(value) => handleInputChange('type', value)}
+              errors={errors}
+            />
 
             {/* 期初餘額與幣別 */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="期初餘額"
-                type="number"
-                value={formData.initialBalance}
-                onChange={(e) => handleInputChange('initialBalance', parseFloat(e.target.value) || 0)}
-                inputProps={{ step: 0.01 }}
-                InputLabelProps={{
-                  shrink: true, // 強制標籤收縮，避免重疊
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="幣別"
-                value={formData.currency}
-                onChange={(e) => handleInputChange('currency', e.target.value)}
-                placeholder="TWD"
-              />
-            </Grid>
+            <BalanceAndCurrencyFields
+              initialBalance={formData.initialBalance}
+              currency={formData.currency}
+              onInitialBalanceChange={(value) => handleInputChange('initialBalance', value)}
+              onCurrencyChange={(value) => handleInputChange('currency', value)}
+            />
 
             {/* 上層科目 */}
-            <Grid item xs={12}>
-              {parentAccount ? (
-                <TextField
-                  fullWidth
-                  label="上層科目"
-                  value={`${parentAccount.code} - ${parentAccount.name}`}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                  variant="filled"
-                  helperText="此科目將作為子科目建立"
-                />
-              ) : (
-                <TextField
-                  fullWidth
-                  label="上層科目ID"
-                  value={formData.parentId}
-                  onChange={(e) => handleInputChange('parentId', e.target.value)}
-                  placeholder="選填，如果是子科目請填入上層科目ID"
-                />
-              )}
-            </Grid>
+            <ParentAccountField
+              parentId={formData.parentId}
+              parentAccount={parentAccount}
+              onParentIdChange={(value) => handleInputChange('parentId', value)}
+            />
 
-            {/* 狀態開關 */}
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="啟用此科目"
-              />
-            </Grid>
-
-            {/* 描述 */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="描述"
-                multiline
-                rows={3}
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="科目的詳細說明（選填）"
-              />
-            </Grid>
+            {/* 狀態開關和描述 */}
+            <FormStatusAndDescription
+              isActive={isActive}
+              description={formData.description}
+              onIsActiveChange={setIsActive}
+              onDescriptionChange={(value) => handleInputChange('description', value)}
+            />
           </Grid>
         </Box>
       </DialogContent>

@@ -1,29 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
-  Typography,
   Grid,
-  Card,
-  CardContent,
-  Paper,
-  Divider,
-  Chip,
-  LinearProgress,
   Alert,
   CircularProgress,
 } from '@mui/material';
-import {
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  AccountBalance as AccountBalanceIcon,
-  Assessment as AssessmentIcon,
-  Timeline as TimelineIcon,
-  CalendarToday as CalendarTodayIcon,
-  Receipt as ReceiptIcon,
-  MonetizationOn as MonetizationOnIcon,
-} from '@mui/icons-material';
 import { Account2, TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
-import { accounting3Service } from '../../services/accounting3Service';
+import { accounting3Service } from '../../../../services/accounting3Service';
+import {
+  StatisticsCards,
+  TransactionOverview,
+  StatusDistribution,
+  MonthlyTrend
+} from './components';
 
 interface AccountDashboardProps {
   selectedAccount: Account2;
@@ -235,252 +224,38 @@ export const AccountDashboard: React.FC<AccountDashboardProps> = ({
   return (
     <Box sx={{ p: 2 }}>
       {/* 主要統計卡片 */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <AssessmentIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="body2" color="text.secondary">
-                  交易筆數
-                </Typography>
-              </Box>
-              <Typography variant="h4" fontWeight="bold">
-                {statistics.totalTransactions}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                總交易數量
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <TrendingUpIcon color="success" sx={{ mr: 1 }} />
-                <Typography variant="body2" color="text.secondary">
-                  借方總額
-                </Typography>
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color="success.main">
-                {formatCurrency(statistics.totalDebitAmount)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                累計借方金額
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <TrendingDownIcon color="error" sx={{ mr: 1 }} />
-                <Typography variant="body2" color="text.secondary">
-                  貸方總額
-                </Typography>
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color="error.main">
-                {formatCurrency(statistics.totalCreditAmount)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                累計貸方金額
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <AccountBalanceIcon color="info" sx={{ mr: 1 }} />
-                <Typography variant="body2" color="text.secondary">
-                  淨額
-                </Typography>
-                {trendPercentage !== null && (
-                  <Chip
-                    label={`${trendPercentage > 0 ? '+' : ''}${trendPercentage.toFixed(1)}%`}
-                    size="small"
-                    color={trendPercentage > 0 ? 'success' : 'error'}
-                    sx={{ ml: 1 }}
-                  />
-                )}
-              </Box>
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-                color={statistics.netAmount >= 0 ? 'success.main' : 'error.main'}
-              >
-                {formatCurrency(statistics.netAmount)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                借方 - 貸方
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <StatisticsCards
+        totalTransactions={statistics.totalTransactions}
+        totalDebitAmount={statistics.totalDebitAmount}
+        totalCreditAmount={statistics.totalCreditAmount}
+        netAmount={statistics.netAmount}
+        trendPercentage={trendPercentage}
+        formatCurrency={formatCurrency}
+      />
 
       {/* 詳細資訊區域 */}
       <Grid container spacing={3}>
         {/* 交易概覽 */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ReceiptIcon />
-                交易概覽
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      平均交易金額
-                    </Typography>
-                    <Typography variant="h6" fontWeight="bold">
-                      {formatCurrency(statistics.averageTransactionAmount)}
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={6}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      最後交易日期
-                    </Typography>
-                    <Typography variant="h6" fontWeight="bold">
-                      {formatDate(statistics.lastTransactionDate)}
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={6}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      首次交易日期
-                    </Typography>
-                    <Typography variant="body1">
-                      {formatDate(statistics.firstTransactionDate)}
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={6}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      活躍月份
-                    </Typography>
-                    <Typography variant="body1">
-                      {statistics.monthlyTrend.length} 個月
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+        <TransactionOverview
+          averageTransactionAmount={statistics.averageTransactionAmount}
+          lastTransactionDate={statistics.lastTransactionDate}
+          firstTransactionDate={statistics.firstTransactionDate}
+          monthlyTrendLength={statistics.monthlyTrend.length}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+        />
 
         {/* 狀態分佈 */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TimelineIcon />
-                交易狀態分佈
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">已確認</Typography>
-                  <Typography variant="body2" fontWeight="bold">
-                    {statistics.statusDistribution.confirmed}
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={(statistics.statusDistribution.confirmed / statistics.totalTransactions) * 100}
-                  color="success"
-                  sx={{ height: 8, borderRadius: 4 }}
-                />
-              </Box>
-              
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">草稿</Typography>
-                  <Typography variant="body2" fontWeight="bold">
-                    {statistics.statusDistribution.draft}
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={(statistics.statusDistribution.draft / statistics.totalTransactions) * 100}
-                  color="warning"
-                  sx={{ height: 8, borderRadius: 4 }}
-                />
-              </Box>
-              
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">已取消</Typography>
-                  <Typography variant="body2" fontWeight="bold">
-                    {statistics.statusDistribution.cancelled}
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={(statistics.statusDistribution.cancelled / statistics.totalTransactions) * 100}
-                  color="error"
-                  sx={{ height: 8, borderRadius: 4 }}
-                />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        <StatusDistribution
+          statusDistribution={statistics.statusDistribution}
+          totalTransactions={statistics.totalTransactions}
+        />
 
         {/* 月度趨勢 */}
-        {statistics.monthlyTrend.length > 0 && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CalendarTodayIcon />
-                  月度趨勢
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                
-                <Box sx={{ overflowX: 'auto' }}>
-                  <Grid container spacing={1} sx={{ minWidth: 600 }}>
-                    {statistics.monthlyTrend.slice(-6).map((monthData, index) => (
-                      <Grid item xs={2} key={monthData.month}>
-                        <Paper sx={{ p: 1, textAlign: 'center' }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {monthData.month}
-                          </Typography>
-                          <Typography variant="body2" fontWeight="bold">
-                            {monthData.transactionCount} 筆
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color={monthData.netAmount >= 0 ? 'success.main' : 'error.main'}
-                          >
-                            {formatCurrency(monthData.netAmount)}
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
+        <MonthlyTrend
+          monthlyTrend={statistics.monthlyTrend}
+          formatCurrency={formatCurrency}
+        />
       </Grid>
     </Box>
   );
