@@ -74,7 +74,7 @@ export const LEGACY_API_PATHS = {
     delete: (id: string) => `api/accounts2/${id}`,
     balance: (id: string) => `api/accounts/${id}/balance`,
     updateBalance: (id: string) => `api/accounts/${id}/balance`,
-    hierarchy: 'api/accounting2/accounts/tree/hierarchy'
+    hierarchy: 'api/accounts2/tree/hierarchy'
   },
   
   // 類別相關
@@ -160,7 +160,7 @@ export class OrganizationHierarchyBuilder {
             });
             
             // 處理科目節點
-            const processedAccountTree = accountTree.map(this.processAccountNode);
+            const processedAccountTree = accountTree.map((account: any) => this.processAccountNode(account));
             
             // 按會計科目類型分組
             const accountTypeGroups = this.groupAccountsByType(processedAccountTree);
@@ -193,16 +193,77 @@ export class OrganizationHierarchyBuilder {
     const processedAccount = {
       ...account,
       hasChildren: hasOriginalChildren,
-      children: hasOriginalChildren ? account.children.map(this.processAccountNode.bind(this)) : []
+      children: hasOriginalChildren ? account.children.map((child: any) => this.processAccountNode(child)) : []
     };
     
-    if (hasOriginalChildren) {
-      console.log(`🔄 處理科目 "${account.name}" 的子科目:`, {
-        科目名稱: account.name,
-        原始子科目數: account.children.length,
+    console.log(`🔄 處理科目 "${account.name}":`, {
+      科目名稱: account.name,
+      科目代碼: account.code,
+      科目ID: account._id,
+      原始子科目數: account.children?.length || 0,
+      處理後子科目數: processedAccount.children.length,
+      子科目名稱: processedAccount.children.map((child: any) => child.name),
+      hasChildren: processedAccount.hasChildren,
+      是否為廠商: account.name === '廠商' || account.name.includes('廠商'),
+      是否為竹文診所: account.name === '竹文診所' || account.name.includes('竹文')
+    });
+    
+    // 特別檢查廠商科目
+    if (account.name === '廠商' || account.name.includes('廠商')) {
+      console.log('🏪 發現廠商科目，詳細檢查:', {
+        廠商科目: account.name,
+        子科目原始資料: account.children,
+        子科目處理後: processedAccount.children,
+        hasChildren: processedAccount.hasChildren,
+        子科目詳細資訊: processedAccount.children.map((child: any) => ({
+          名稱: child.name,
+          ID: child._id,
+          hasChildren: child.hasChildren,
+          子節點數: child.children?.length || 0
+        }))
+      });
+      
+      // 檢查是否有竹文診所
+      const zhuwenClinic = processedAccount.children.find((child: any) =>
+        child.name === '竹文診所' || child.name.includes('竹文')
+      );
+      
+      if (zhuwenClinic) {
+        console.log('🏥 在廠商科目下找到竹文診所:', {
+          竹文診所名稱: zhuwenClinic.name,
+          竹文診所ID: zhuwenClinic._id,
+          竹文診所hasChildren: zhuwenClinic.hasChildren,
+          竹文診所子節點數: zhuwenClinic.children?.length || 0,
+          竹文診所子節點詳情: zhuwenClinic.children?.map((grandChild: any) => ({
+            名稱: grandChild.name,
+            ID: grandChild._id,
+            hasChildren: grandChild.hasChildren
+          })) || []
+        });
+      } else {
+        console.log('❌ 在廠商科目下找不到竹文診所');
+        console.log('🔍 廠商科目的所有子科目:', processedAccount.children.map((child: any) => child.name));
+      }
+    }
+    
+    // 特別檢查竹文診所科目
+    if (account.name === '竹文診所' || account.name.includes('竹文')) {
+      console.log('🏥 發現竹文診所科目，詳細檢查:', {
+        竹文診所科目: account.name,
+        竹文診所ID: account._id,
+        原始hasChildren: account.hasChildren,
+        處理後hasChildren: processedAccount.hasChildren,
+        原始子科目數: account.children?.length || 0,
         處理後子科目數: processedAccount.children.length,
-        子科目名稱: processedAccount.children.map((child: any) => child.name),
-        hasChildren: processedAccount.hasChildren
+        子科目原始資料: account.children,
+        子科目處理後: processedAccount.children,
+        子科目詳細資訊: processedAccount.children.map((child: any) => ({
+          名稱: child.name,
+          ID: child._id,
+          代碼: child.code,
+          hasChildren: child.hasChildren,
+          子節點數: child.children?.length || 0
+        }))
       });
     }
     
@@ -213,6 +274,16 @@ export class OrganizationHierarchyBuilder {
    * 按會計科目類型分組
    */
   private static groupAccountsByType(accountTree: any[]): Record<string, any[]> {
+    console.log('🔄 開始按類型分組科目:', {
+      總科目數: accountTree.length,
+      科目詳情: accountTree.map(acc => ({
+        名稱: acc.name,
+        類型: acc.accountType,
+        父節點: acc.parentId ? '有' : '無',
+        子節點數: acc.children?.length || 0
+      }))
+    });
+    
     return accountTree.reduce((groups: any, account: any) => {
       // 只處理根節點科目（沒有 parentId 的科目）
       if (!account.parentId) {
@@ -221,6 +292,15 @@ export class OrganizationHierarchyBuilder {
           groups[accountType] = [];
         }
         groups[accountType].push(account);
+        
+        console.log(`📂 將科目 "${account.name}" 加入 ${accountType} 類型組:`, {
+          科目名稱: account.name,
+          科目類型: accountType,
+          子節點數: account.children?.length || 0,
+          該類型組目前科目數: groups[accountType].length
+        });
+      } else {
+        console.log(`⏭️ 跳過子科目 "${account.name}" (有父節點)`);
       }
       return groups;
     }, {});
@@ -248,11 +328,19 @@ export class OrganizationHierarchyBuilder {
         科目列表: accounts.map((acc: any) => ({
           名稱: acc.name,
           餘額: acc.balance,
-          子科目數: acc.children?.length || 0
+          子科目數: acc.children?.length || 0,
+          hasChildren: acc.hasChildren
         }))
       });
       
-      return {
+      // 確保每個科目都有正確的 hasChildren 屬性
+      const processedAccounts = accounts.map((acc: any) => ({
+        ...acc,
+        hasChildren: (acc.children && acc.children.length > 0) || acc.hasChildren === true,
+        children: acc.children || []
+      }));
+      
+      const typeNode = {
         _id: `${orgId}_${accountType}`,
         name: typeNames[accountType as keyof typeof typeNames] || accountType,
         code: accountType.toUpperCase(),
@@ -268,16 +356,34 @@ export class OrganizationHierarchyBuilder {
         createdBy: '',
         createdAt: new Date(),
         updatedAt: new Date(),
-        children: accounts,
-        hasChildren: accounts.length > 0,
+        children: processedAccounts,
+        hasChildren: processedAccounts.length > 0,
         statistics: {
           balance: totalBalance,
           accountCount: accounts.length,
           childAccountCount: accounts.reduce((count: number, acc: any) => {
             return count + (acc.children?.length || 0);
           }, 0)
+        },
+        permissions: {
+          canEdit: true,
+          canDelete: false,
+          canAddChild: true
         }
       };
+      
+      console.log(`🏗️ 建立類型節點 "${typeNode.name}":`, {
+        ID: typeNode._id,
+        hasChildren: typeNode.hasChildren,
+        子科目數: typeNode.children.length,
+        子科目詳情: typeNode.children.map((child: any) => ({
+          名稱: child.name,
+          hasChildren: child.hasChildren,
+          子節點數: child.children?.length || 0
+        }))
+      });
+      
+      return typeNode;
     });
   }
 

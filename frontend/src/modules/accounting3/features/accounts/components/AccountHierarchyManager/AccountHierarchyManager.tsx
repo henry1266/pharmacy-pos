@@ -3,7 +3,7 @@
  * 整合 accounting2 階層功能的主要管理組件
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -115,69 +115,116 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
   const [searchText, setSearchText] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   
-  // 展開狀態管理
-  const [expandState, setExpandState] = useState<HierarchyExpandState>(() => ({
-    expandedNodes: new Set<string>(),
-    autoExpandedNodes: new Set<string>(),
-    expandNode: (nodeId: string) => {
-      setExpandState(prev => {
-        const newExpanded = new Set(prev.expandedNodes);
-        newExpanded.add(nodeId);
-        return { ...prev, expandedNodes: newExpanded };
+  // 展開狀態管理 - 使用簡單的 Set 狀態
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  
+  // 展開狀態操作函數
+  const toggleNode = useCallback((nodeId: string) => {
+    console.log(`🔄 toggleNode 被調用，nodeId: ${nodeId}`);
+    
+    // 找到要展開的節點，檢查其數據結構
+    let targetNode = findNodeById(filteredNodes, nodeId);
+    if (!targetNode) {
+      targetNode = findNodeById(hierarchyNodes, nodeId);
+    }
+    
+    if (targetNode) {
+      console.log(`🎯 找到目標節點: ${targetNode.name}`, {
+        節點名稱: targetNode.name,
+        節點ID: targetNode._id,
+        hasChildren: targetNode.hasChildren,
+        children陣列: targetNode.children,
+        children長度: targetNode.children?.length || 0,
+        children詳情: targetNode.children?.map(child => ({
+          名稱: child.name,
+          ID: child._id,
+          hasChildren: child.hasChildren
+        })) || []
       });
-    },
-    collapseNode: (nodeId: string) => {
-      setExpandState(prev => {
-        const newExpanded = new Set(prev.expandedNodes);
+      
+      // 特別檢查竹文診所
+      if (targetNode.name === '竹文診所' || targetNode.name.includes('竹文')) {
+        console.log(`🏥 竹文診所展開檢查:`, {
+          是否有子節點: (targetNode.hasChildren === true) || (targetNode.children && Array.isArray(targetNode.children) && targetNode.children.length > 0),
+          hasChildren屬性: targetNode.hasChildren,
+          children陣列存在: !!targetNode.children,
+          children是陣列: Array.isArray(targetNode.children),
+          children長度: targetNode.children?.length || 0,
+          應該顯示展開按鈕: (targetNode.hasChildren === true) || (targetNode.children && Array.isArray(targetNode.children) && targetNode.children.length > 0)
+        });
+      }
+    } else {
+      console.error(`❌ toggleNode: 找不到節點 ID: ${nodeId}`);
+    }
+    
+    setExpandedNodes(prev => {
+      const newExpanded = new Set(prev);
+      const wasExpanded = newExpanded.has(nodeId);
+      
+      if (wasExpanded) {
+        console.log(`📁 收合節點: ${nodeId}`);
         newExpanded.delete(nodeId);
-        return { ...prev, expandedNodes: newExpanded };
-      });
-    },
-    toggleNode: (nodeId: string) => {
-      setExpandState(prev => {
-        const newExpanded = new Set(prev.expandedNodes);
-        if (newExpanded.has(nodeId)) {
-          newExpanded.delete(nodeId);
-        } else {
-          newExpanded.add(nodeId);
-        }
-        return { ...prev, expandedNodes: newExpanded };
-      });
-    },
-    expandAll: () => {
-      const allNodeIds = getAllNodeIds(hierarchyNodes);
-      setExpandState(prev => ({
-        ...prev,
-        expandedNodes: new Set(allNodeIds)
-      }));
-    },
-    collapseAll: () => {
-      setExpandState(prev => ({
-        ...prev,
-        expandedNodes: new Set()
-      }));
-    },
+      } else {
+        console.log(`📂 展開節點: ${nodeId}`);
+        newExpanded.add(nodeId);
+      }
+      
+      console.log(`✅ 展開狀態更新完成，當前展開的節點:`, Array.from(newExpanded));
+      return newExpanded;
+    });
+  }, [filteredNodes, hierarchyNodes]);
+  
+  const expandNode = useCallback((nodeId: string) => {
+    setExpandedNodes(prev => {
+      const newExpanded = new Set(prev);
+      newExpanded.add(nodeId);
+      return newExpanded;
+    });
+  }, []);
+  
+  const collapseNode = useCallback((nodeId: string) => {
+    setExpandedNodes(prev => {
+      const newExpanded = new Set(prev);
+      newExpanded.delete(nodeId);
+      return newExpanded;
+    });
+  }, []);
+  
+  const expandAll = useCallback(() => {
+    const allNodeIds = getAllNodeIds(hierarchyNodes);
+    setExpandedNodes(new Set(allNodeIds));
+  }, [hierarchyNodes]);
+  
+  const collapseAll = useCallback(() => {
+    setExpandedNodes(new Set());
+  }, []);
+  
+  // 建立展開狀態物件
+  const expandState = useMemo<HierarchyExpandState>(() => ({
+    expandedNodes,
+    autoExpandedNodes: new Set<string>(),
+    expandNode,
+    collapseNode,
+    toggleNode,
+    expandAll,
+    collapseAll,
     expandToLevel: (level: number) => {
       const nodeIds = getNodeIdsToLevel(hierarchyNodes, level);
-      setExpandState(prev => ({
-        ...prev,
-        expandedNodes: new Set(nodeIds)
-      }));
+      setExpandedNodes(new Set(nodeIds));
     },
     expandToNode: (nodeId: string) => {
       const path = accountHierarchyService.getNodePath(hierarchyNodes, nodeId);
-      const pathIds = path.slice(0, -1).map(node => node._id); // 不包含目標節點本身
-      setExpandState(prev => {
-        const newExpanded = new Set(prev.expandedNodes);
+      const pathIds = path.slice(0, -1).map(node => node._id);
+      setExpandedNodes(prev => {
+        const newExpanded = new Set(prev);
         pathIds.forEach(id => newExpanded.add(id));
-        return { ...prev, expandedNodes: newExpanded };
+        return newExpanded;
       });
     },
     expandByFilter: (filterCriteria: AccountHierarchyFilter) => {
-      // 實作根據過濾條件展開節點的邏輯
       console.log('expandByFilter not implemented yet', filterCriteria);
     }
-  }));
+  }), [expandedNodes, expandNode, collapseNode, toggleNode, expandAll, collapseAll, hierarchyNodes]);
   
   // 選擇狀態管理
   const [selectionState, setSelectionState] = useState<HierarchySelectionState>(() => ({
@@ -299,7 +346,8 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
       
       // 自動展開到預設層級
       if (config.autoExpand) {
-        expandState.expandToLevel(config.defaultExpandLevel);
+        const nodeIds = getNodeIdsToLevel(nodes, config.defaultExpandLevel);
+        setExpandedNodes(new Set(nodeIds));
       }
       
       // 載入完成後立即計算統計資料
@@ -317,7 +365,7 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
     } finally {
       setLoading(false);
     }
-  }, [organizationId, config.autoExpand, config.defaultExpandLevel, expandState]);
+  }, [organizationId, config.autoExpand, config.defaultExpandLevel]);
 
   // 初始載入
   useEffect(() => {
@@ -386,10 +434,41 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
 
   // 處理科目選擇
   const handleAccountSelect = (nodeId: string) => {
-    const node = findNodeById(hierarchyNodes, nodeId);
+    console.log(`🎯 handleAccountSelect 被調用，nodeId: ${nodeId}`);
+    
+    // 先在 filteredNodes 中搜尋，如果找不到再在 hierarchyNodes 中搜尋
+    let node = findNodeById(filteredNodes, nodeId);
+    if (!node) {
+      console.log(`⚠️ 在 filteredNodes 中找不到節點，嘗試在 hierarchyNodes 中搜尋`);
+      node = findNodeById(hierarchyNodes, nodeId);
+    }
+    
     if (node) {
+      console.log(`✅ 找到節點: ${node.name}，準備選擇`);
+      
+      // 特別檢查竹文診所的數據結構
+      if (node.name === '竹文診所' || node.name.includes('竹文')) {
+        console.log(`🏥 竹文診所節點詳細檢查:`, {
+          節點名稱: node.name,
+          節點ID: node._id,
+          hasChildren: node.hasChildren,
+          children陣列: node.children,
+          children長度: node.children?.length || 0,
+          children詳情: node.children?.map(child => ({
+            名稱: child.name,
+            ID: child._id,
+            hasChildren: child.hasChildren,
+            子節點數: child.children?.length || 0
+          })) || [],
+          展開狀態: expandedNodes.has(nodeId),
+          節點完整數據: node
+        });
+      }
+      
       selectionState.selectNode(nodeId);
       onAccountSelect?.(node as Account3);
+    } else {
+      console.error(`❌ 無法找到節點 ID: ${nodeId}`);
     }
   };
 
@@ -584,10 +663,13 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
             renderConfig={renderConfig}
             expansionState={expandState}
             selectionState={selectionState}
-            onNodeToggle={expandState.toggleNode}
+            onNodeToggle={toggleNode}
             onNodeSelect={handleAccountSelect}
             onNodeEdit={(nodeId) => {
-              const node = findNodeById(hierarchyNodes, nodeId);
+              let node = findNodeById(filteredNodes, nodeId);
+              if (!node) {
+                node = findNodeById(hierarchyNodes, nodeId);
+              }
               if (node && onAccountEdit) {
                 onAccountEdit(node);
               }
@@ -599,13 +681,17 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
             }}
             onNodeAdd={(parentNodeId) => {
               console.log('Add child node to:', parentNodeId);
-              const parentNode = findNodeById(hierarchyNodes, parentNodeId);
+              let parentNode = findNodeById(filteredNodes, parentNodeId);
+              if (!parentNode) {
+                parentNode = findNodeById(hierarchyNodes, parentNodeId);
+              }
               if (parentNode && onAccountCreate) {
                 console.log('找到父節點:', parentNode.name);
                 onAccountCreate(parentNode);
               } else {
                 console.error('找不到父節點，ID:', parentNodeId);
-                console.log('當前所有節點:', hierarchyNodes.map(n => ({ id: n._id, name: n.name })));
+                console.log('當前 filteredNodes:', filteredNodes.map(n => ({ id: n._id, name: n.name })));
+                console.log('當前 hierarchyNodes:', hierarchyNodes.map(n => ({ id: n._id, name: n.name })));
               }
             }}
             onNodeVisibilityToggle={(nodeId) => {
