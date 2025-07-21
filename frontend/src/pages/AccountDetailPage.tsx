@@ -27,7 +27,7 @@ import {
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 
 // 導入相關組件
-import { AccountTransactionList } from '../modules/accounting3/components/features/accounts/AccountTransactionList';
+import { AccountTransactionList } from '../modules/accounting3/features/accounts/AccountTransactionList';
 import {
   fetchAccounts2,
   confirmTransactionGroupWithEntries,

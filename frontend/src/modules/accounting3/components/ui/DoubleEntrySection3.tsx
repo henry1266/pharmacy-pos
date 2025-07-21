@@ -13,7 +13,7 @@ import {
   SwapHoriz as SwapHorizIcon,
   Balance as BalanceIcon
 } from '@mui/icons-material';
-import { DoubleEntryFormWithEntries3 } from '../../../accounting3/components/features/transactions/DoubleEntryFormWithEntries3';
+import { DoubleEntryFormWithEntries3 } from '../../features/transactions/DoubleEntryFormWithEntries3';
 import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared';
 
 // 型別定義

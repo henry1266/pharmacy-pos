@@ -21,10 +21,10 @@ import {
 } from '@mui/icons-material';
 
 // 導入 accounting3 階層管理組件
-import { AccountHierarchyManager } from '../components/features/accounts/AccountHierarchyManager';
-import { AccountTransactionList } from '../components/features/accounts/AccountTransactionList';
+import { AccountHierarchyManager } from '../features/accounts/AccountHierarchyManager';
+import { AccountTransactionList } from '../features/accounts/AccountTransactionList';
 // 導入 accounting3 科目表單組件
-import { AccountForm } from '../components/features/accounts/AccountForm';
+import { AccountForm } from '../features/accounts/AccountForm';
 
 // 導入共享類型
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
