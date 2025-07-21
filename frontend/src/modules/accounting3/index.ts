@@ -32,8 +32,14 @@ export { AccountHierarchyService } from './core/AccountHierarchyService';
 // 業務服務
 export { default as organizationService } from './services/organizationService';
 
-// 組件匯出
+// Features 導出 (新的功能模組架構)
+export * from './features';
+
+// 組件匯出 (舊的組件架構，保持向後相容)
 export * from './components';
+
+// 核心功能導出
+export * from './core';
 
 // 常數導出
 export { HIERARCHY_CONSTANTS } from './types';

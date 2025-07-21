@@ -26,7 +26,7 @@ import {
   AccountBalance as HeadquartersIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { organizationService } from '../../index';
+import organizationService from '../../services/organizationService';
 import {
   Organization,
   OrganizationType,
