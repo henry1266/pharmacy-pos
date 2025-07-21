@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { productServiceV2 } from '../services/productServiceV2';
+import { productServiceV2, ProductFilters } from '../services/productServiceV2';
 import { getAllSuppliers } from '../services/supplierServiceV2';
 import { getProductCategories } from '../services/productCategoryService'; // Keep category service separate or integrate
 import { Product, Supplier, Category } from '@pharmacy-pos/shared/types/entities';
@@ -28,13 +28,14 @@ interface ProductWithId extends ExtendedProduct {
 const useProductData = () => {
   const [products, setProducts] = useState<ProductWithId[]>([]);
   const [medicines, setMedicines] = useState<ProductWithId[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductWithId[]>([]); // 統一的產品列表
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch all products (using service)
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (filters?: ProductFilters) => {
     try {
       setLoading(true);
       setError(null);
@@ -42,8 +43,14 @@ const useProductData = () => {
       // 使用測試數據服務來決定是否使用測試數據
       let data;
       try {
-        const actualData = await productServiceV2.getAllProducts();
-        data = testModeDataService.getProducts(actualData, null);
+        // 如果有篩選條件，使用新的篩選 API
+        if (filters && Object.keys(filters).length > 0) {
+          const response = await productServiceV2.getFilteredProducts(filters);
+          data = testModeDataService.getProducts(response.data, null);
+        } else {
+          const actualData = await productServiceV2.getAllProducts();
+          data = testModeDataService.getProducts(actualData, null);
+        }
       } catch (actualError) {
         data = testModeDataService.getProducts(null, actualError);
       }
@@ -51,11 +58,15 @@ const useProductData = () => {
       // Separate products and medicines
       const productsList: ProductWithId[] = [];
       const medicinesList: ProductWithId[] = [];
+      const unifiedList: ProductWithId[] = [];
       
       data.forEach(item => {
         // 將 item 轉換為 ExtendedProduct 型別
         const extendedItem = item;
         const product = { ...extendedItem, id: item._id ?? (item as any).id }; // Map _id to id
+        
+        // 添加到統一列表
+        unifiedList.push(product);
         
         if (extendedItem.productType === 'product') {
           productsList.push(product);
@@ -66,15 +77,20 @@ const useProductData = () => {
           console.warn('Product without productType:', extendedItem);
           // 檢查是否有藥品特有的欄位
           if ((extendedItem as any).healthInsuranceCode || (extendedItem as any).healthInsurancePrice) {
-            medicinesList.push({ ...product, productType: 'medicine' });
+            const medicineProduct = { ...product, productType: 'medicine' as const };
+            medicinesList.push(medicineProduct);
+            unifiedList[unifiedList.length - 1] = medicineProduct;
           } else {
-            productsList.push({ ...product, productType: 'product' });
+            const regularProduct = { ...product, productType: 'product' as const };
+            productsList.push(regularProduct);
+            unifiedList[unifiedList.length - 1] = regularProduct;
           }
         }
       });
 
       setProducts(productsList);
       setMedicines(medicinesList);
+      setAllProducts(unifiedList);
     } catch (err: any) {
       console.error('獲取產品失敗 (hook):', err);
       setError('獲取產品失敗');
@@ -82,6 +98,11 @@ const useProductData = () => {
       setLoading(false);
     }
   }, []);
+
+  // 新增：篩選產品的方法
+  const fetchFilteredProducts = useCallback(async (filters: ProductFilters) => {
+    return fetchProducts(filters);
+  }, [fetchProducts]);
 
   // Fetch all suppliers (using service)
   const fetchSuppliers = useCallback(async () => {
@@ -248,11 +269,13 @@ const useProductData = () => {
   return {
     products,
     medicines,
+    allProducts, // 新增：統一的產品列表
     suppliers,
     categories,
     loading, // Primarily reflects product loading state now
     error,
     fetchProducts, // Expose if manual refresh is needed
+    fetchFilteredProducts, // 新增：篩選產品的方法
     handleDeleteProduct,
     handleSaveProduct
   };

@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 // Import hooks
 import useSalesData from '../hooks/useSalesData';
 import useSaleManagement from '../hooks/useSaleManagement';
+import usePackageData from '../hooks/usePackageData';
 import { type UserShortcut } from '../hooks/useUserSettings';
 
 // Import sub-components
@@ -49,12 +50,19 @@ const SalesPage: FC = () => {
   }, []);
 
   // Use the custom hook to fetch data
-  const { 
-    products: actualProducts, 
-    customers: actualCustomers, 
-    loading: actualLoading, 
-    error: actualError 
+  const {
+    products: actualProducts,
+    customers: actualCustomers,
+    loading: actualLoading,
+    error: actualError
   } = useSalesData();
+
+  // Use the package data hook
+  const {
+    packages,
+    loading: packagesLoading,
+    error: packagesError
+  } = usePackageData();
 
   // 使用測試數據服務獲取數據
   const products = isTestMode
@@ -100,6 +108,11 @@ const SalesPage: FC = () => {
     toggleInputMode,
     handleSaveSale: handleSaveSaleHook
   } = useSaleManagement(showSnackbar);
+
+  // 套餐選擇處理函數（舊版銷售頁面暫不支援套餐功能）
+  const handleSelectPackage = useCallback((packageItem: any) => {
+    showSnackbar('舊版銷售頁面暫不支援套餐功能，請使用 v2 版本', 'warning');
+  }, [showSnackbar]);
   
   // 創建一個適配器函數來處理 SaleInfoCard 的 onInputChange 類型
   const handleSaleInfoChange = (
@@ -263,8 +276,10 @@ const SalesPage: FC = () => {
         <Grid item xs={12} md={8}>
           <SalesProductInput
             products={products ?? []} // Ensure products is an array
+            packages={packages ?? []} // 提供空陣列作為預設值
             barcodeInputRef={barcodeInputRef}
             onSelectProduct={handleSelectProduct}
+            onSelectPackage={handleSelectPackage}
             showSnackbar={showSnackbar}
           />
 

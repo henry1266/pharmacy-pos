@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import useSalesData from '../hooks/useSalesData';
 import useSaleManagementV2 from '../hooks/useSaleManagementV2';
 import useSalesListData from '../hooks/useSalesListData';
+import usePackageData from '../hooks/usePackageData';
 import { type UserShortcut } from '../hooks/useUserSettings';
 
 // Import sub-components
@@ -74,6 +75,13 @@ const SalesNew2Page: FC = () => {
     refreshSales,
     searchSales
   } = useSalesListData();
+
+  // Use the package data hook
+  const {
+    packages,
+    loading: packagesLoading,
+    error: packagesError
+  } = usePackageData();
 
   // 使用測試數據服務獲取數據
   const { products, customers, loading, error } = useMemo(() => {
@@ -140,6 +148,7 @@ const SalesNew2Page: FC = () => {
     inputModes,
     handleSaleInfoChange: originalHandleSaleInfoChange,
     handleSelectProduct,
+    handleSelectPackage,
     handleQuantityChange,
     handlePriceChange,
     handleSubtotalChange,
@@ -517,8 +526,10 @@ const SalesNew2Page: FC = () => {
                 }}>
                   <SalesProductInput
                     products={products ?? []}
+                    packages={packages ?? []}
                     barcodeInputRef={barcodeInputRef}
                     onSelectProduct={handleSelectProduct}
+                    onSelectPackage={handleSelectPackage}
                     showSnackbar={showSnackbar}
                   />
 

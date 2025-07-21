@@ -1,21 +1,28 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
   Grid,
   Paper,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Button,
+  Tabs,
+  Tab
 } from '@mui/material';
-import { useLocation } from 'react-router-dom';
-import ProductTabs from '../components/products/ProductTabs';
+import AddIcon from '@mui/icons-material/Add';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { LocalOffer as PackageIcon } from '@mui/icons-material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ProductFormDialog from '../components/products/ProductFormDialog';
 import CsvImportDialog from '../components/products/CsvImportDialog';
 import ProductDetailCard from '../components/products/ProductDetailCard';
 import ProductSearchBar from '../components/products/ProductSearchBar';
+import DataTable from '../components/tables/DataTable';
 import useProductData from '../hooks/useProductData';
 import useInventoryData from '../hooks/useInventoryData';
 import useCsvImport from '../hooks/useCsvImport';
 import { createProductColumns, createMedicineColumns } from '../components/products/ProductTableColumns';
+import { ProductFilters } from '../services/productServiceV2';
 
 // 產品類型
 type ProductType = 'product' | 'medicine';
@@ -49,14 +56,6 @@ interface ProductWithId {
   [key: string]: any;
 }
 
-// 定義搜尋參數類型
-interface SearchParams {
-  code?: string;
-  name?: string;
-  healthInsuranceCode?: string;
-  [key: string]: string | undefined;
-}
-
 // 定義當前產品類型
 interface CurrentProduct {
   id?: string;
@@ -77,12 +76,11 @@ interface CurrentProduct {
   excludeFromStock?: boolean;
 }
 
-
 const ProductsPage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   // 基本狀態管理
-  const [tabValue, setTabValue] = useState<number>(0);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithId | null>(null);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [openCsvDialog, setOpenCsvDialog] = useState<boolean>(false);
@@ -106,25 +104,25 @@ const ProductsPage: React.FC = () => {
   const [editMode, setEditMode] = useState<boolean>(false);
   const [productType, setProductType] = useState<ProductType>('product');
   
-  // 搜尋參數狀態
-  const [searchParams, setSearchParams] = useState<SearchParams>({
-    code: '',
-    name: '',
-    healthInsuranceCode: ''
+  // 篩選狀態
+  const [filters, setFilters] = useState<ProductFilters>({
+    search: '',
+    productType: 'all'
   });
   
-  // 過濾後的產品列表
-  const [filteredProducts, setFilteredProducts] = useState<ProductWithId[]>([]);
-  const [filteredMedicines, setFilteredMedicines] = useState<ProductWithId[]>([]);
+  // 顯示的產品列表
+  const [displayProducts, setDisplayProducts] = useState<ProductWithId[]>([]);
   
   // 使用自定義Hook獲取數據和操作函數
   const { 
+    allProducts,
     products, 
     medicines, 
     suppliers, 
     categories,
     loading, 
     fetchProducts,
+    fetchFilteredProducts,
     handleDeleteProduct,
     handleSaveProduct: saveProduct
   } = useProductData();
@@ -139,16 +137,62 @@ const ProductsPage: React.FC = () => {
     handleCsvFileChange,
     handleCsvImport,
     resetCsvImport
-  } = useCsvImport(tabValue, fetchProducts);
+  } = useCsvImport(0, fetchProducts); // 使用固定值 0，因為不再使用 tabValue
   
-  // 創建表格列定義
+  // 創建表格列定義 - 使用統一的產品列定義
   const productColumns = createProductColumns(handleEditProduct, handleDeleteProduct, getTotalInventory, categories);
-  const medicineColumns = createMedicineColumns(handleEditProduct, handleDeleteProduct, getTotalInventory, categories);
   
-  // 處理標籤切換
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number): void => {
-    setTabValue(newValue);
-  };
+  // 防抖的篩選處理函數
+  const debouncedFilterProducts = useMemo(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    return (newFilters: ProductFilters) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(async () => {
+        try {
+          // 如果只是搜尋文字變更，使用本地篩選提升效能
+          if (newFilters.search &&
+              newFilters.productType === filters.productType &&
+              newFilters.category === filters.category &&
+              newFilters.supplier === filters.supplier) {
+            
+            const searchLower = newFilters.search.toLowerCase();
+            const localFiltered = allProducts.filter(item => {
+              return (
+                item.code.toLowerCase().includes(searchLower) ||
+                item.name.toLowerCase().includes(searchLower) ||
+                ((item as any).healthInsuranceCode && (item as any).healthInsuranceCode.toLowerCase().includes(searchLower))
+              );
+            });
+            setDisplayProducts(localFiltered);
+          } else {
+            // 其他篩選條件變更時使用 API
+            await fetchFilteredProducts(newFilters);
+            setDisplayProducts(allProducts);
+          }
+        } catch (error) {
+          console.error('篩選產品時發生錯誤:', error);
+          // 如果 API 失敗，使用本地篩選作為備用
+          const localFiltered = allProducts.filter(item => {
+            if (!newFilters.search) return true;
+            const searchLower = newFilters.search.toLowerCase();
+            return (
+              item.code.toLowerCase().includes(searchLower) ||
+              item.name.toLowerCase().includes(searchLower) ||
+              ((item as any).healthInsuranceCode && (item as any).healthInsuranceCode.toLowerCase().includes(searchLower))
+            );
+          });
+          setDisplayProducts(localFiltered);
+        }
+      }, 300); // 300ms 防抖延遲
+    };
+  }, [fetchFilteredProducts, allProducts, filters]);
+
+  // 處理篩選變更
+  const handleFiltersChange = useCallback((newFilters: ProductFilters): void => {
+    setFilters(newFilters);
+    debouncedFilterProducts(newFilters);
+  }, [debouncedFilterProducts]);
   
   // 處理行點擊
   const handleRowClick = (params: any): void => {
@@ -156,57 +200,21 @@ const ProductsPage: React.FC = () => {
     setSelectedProduct({
       ...product,
       id: product.id ?? product._id,
-      productType: tabValue === 0 ? 'product' : 'medicine'
+      productType: product.productType || 'product'
     });
   };
   
-  // 處理搜尋參數變更
-  const handleSearchChange = (newSearchParams: SearchParams): void => {
-    setSearchParams(newSearchParams);
-  };
-  
-  // 過濾產品列表
+  // 初始化顯示所有產品
   useEffect(() => {
-    // 過濾商品
-    const filterProducts = (): ProductWithId[] => {
-      return products.filter(product => {
-        const codeMatch = !searchParams.code || 
-          product.code.toLowerCase().includes(searchParams.code.toLowerCase());
-        
-        const nameMatch = !searchParams.name || 
-          product.name.toLowerCase().includes(searchParams.name.toLowerCase());
-        
-        return codeMatch && nameMatch;
-      });
-    };
-    
-    // 過濾藥品
-    const filterMedicines = (): ProductWithId[] => {
-      return medicines.filter(medicine => {
-        const codeMatch = !searchParams.code || 
-          medicine.code.toLowerCase().includes(searchParams.code.toLowerCase());
-        
-        const nameMatch = !searchParams.name || 
-          medicine.name.toLowerCase().includes(searchParams.name.toLowerCase());
-        
-        const healthInsuranceCodeMatch = !searchParams.healthInsuranceCode || 
-          (medicine as { healthInsuranceCode?: string }).healthInsuranceCode?.toLowerCase().includes(searchParams.healthInsuranceCode?.toLowerCase() ?? '');
-        
-        return codeMatch && nameMatch && healthInsuranceCodeMatch;
-      });
-    };
-    
-    setFilteredProducts(filterProducts());
-    setFilteredMedicines(filterMedicines());
-  }, [products, medicines, searchParams]);
+    if (allProducts.length > 0) {
+      setDisplayProducts(allProducts);
+    }
+  }, [allProducts]);
   
   // 處理從 ProductDetailPage 傳來的編輯狀態
   useEffect(() => {
     const state = location.state as any;
     if (state?.shouldOpenEditDialog && state?.editProductId && state?.productType) {
-      // 設置正確的標籤頁
-      setTabValue(state.productType === 'medicine' ? 1 : 0);
-      
       // 等待產品數據載入後再觸發編輯
       const timer = setTimeout(() => {
         handleEditProduct(state.editProductId, state.productType);
@@ -216,12 +224,12 @@ const ProductsPage: React.FC = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [location.state, products, medicines]);
+  }, [location.state, allProducts]);
   
   // 打開新增產品對話框
   const handleAddProduct = (): void => {
     setEditMode(false);
-    setProductType(tabValue === 0 ? 'product' : 'medicine');
+    setProductType('product'); // 預設為產品類型
     setCurrentProduct({
       code: '',
       shortCode: '',
@@ -247,10 +255,8 @@ const ProductsPage: React.FC = () => {
     setEditMode(true);
     setProductType(type);
     
-    // 根據類型獲取產品
-    const product = type === 'product' 
-      ? products.find(p => p.id === id)
-      : medicines.find(p => p.id === id);
+    // 從統一列表中查找產品
+    const product = allProducts.find(p => p.id === id);
     
     if (product) {
       // 處理分類和供應商 - 如果是物件則取 _id，如果是字串則直接使用
@@ -384,31 +390,65 @@ const ProductsPage: React.FC = () => {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        藥品管理
+        產品管理
       </Typography>
       
-      {/* 寬搜尋器 */}
-      <ProductSearchBar 
-        searchParams={searchParams}
-        onSearchChange={handleSearchChange}
-        tabValue={tabValue}
-      />
+      {/* 搜尋列 */}
+      <Box sx={{ mb: 2 }}>
+        <ProductSearchBar
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          categories={categories}
+          suppliers={suppliers}
+          resultCount={displayProducts.length}
+          totalCount={allProducts.length}
+        />
+      </Box>
+      
+      {/* 操作按鈕 */}
+      <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddProduct}
+        >
+          新增產品
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<PackageIcon />}
+          onClick={() => navigate('/products/packages')}
+        >
+          套餐管理
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<CloudUploadIcon />}
+          onClick={handleOpenCsvImport}
+        >
+          CSV 匯入
+        </Button>
+      </Box>
       
       <Grid container spacing={2}>
         {/* 左側表格區域 */}
         <Grid item xs={12} md={8}>
-          <ProductTabs 
-            tabValue={tabValue} 
-            handleTabChange={handleTabChange}
-            handleAddProduct={handleAddProduct}
-            handleOpenCsvImport={handleOpenCsvImport}
-            products={filteredProducts}
-            medicines={filteredMedicines}
-            loading={loading}
-            onRowClick={handleRowClick}
-            productColumns={productColumns}
-            medicineColumns={medicineColumns}
-          />
+          <Paper sx={{ height: 'calc(100vh - 300px)', width: '100%' }}>
+            <DataTable
+              rows={displayProducts}
+              columns={productColumns}
+              loading={loading}
+              onRowClick={handleRowClick}
+              disablePagination={false}
+              getRowId={(row) => row.id || row._id}
+              initialState={{
+                pagination: {
+                  pageSize: 100, // 增加每頁顯示數量
+                },
+              }}
+              rowsPerPageOptions={[50, 100, 200, 500]}
+            />
+          </Paper>
         </Grid>
         
         {/* 右側詳情區域 */}
@@ -452,7 +492,7 @@ const ProductsPage: React.FC = () => {
       <CsvImportDialog 
         open={openCsvDialog}
         onClose={() => setOpenCsvDialog(false)}
-        tabValue={tabValue}
+        tabValue={0}
         csvFile={csvFile}
         csvImportLoading={csvImportLoading}
         csvImportError={csvImportError}

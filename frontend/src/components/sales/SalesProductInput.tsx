@@ -6,10 +6,12 @@ import {
   Autocomplete,
   ListItem,
   ListItemText,
-  Typography
+  Typography,
+  Chip
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { createFilterOptions } from '@mui/material/Autocomplete';
+import { Package } from '@pharmacy-pos/shared/types/package';
 
 // 定義產品的型別
 interface Product {
@@ -23,45 +25,74 @@ interface Product {
   sellingPrice?: number;
 }
 
+// 統一的搜尋項目類型
+type SearchItem = Product | Package;
+
 interface SalesProductInputProps {
   products: Product[];
+  packages: Package[];
   barcodeInputRef: React.RefObject<HTMLInputElement>;
   onSelectProduct: (product: Product) => void;
+  onSelectPackage: (packageItem: Package) => void;
   showSnackbar: (message: string, severity: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const SalesProductInput: React.FC<SalesProductInputProps> = ({
   products,
+  packages,
   barcodeInputRef,
   onSelectProduct,
+  onSelectPackage,
   showSnackbar
 }) => {
   const [barcode, setBarcode] = useState<string>('');
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [filteredItems, setFilteredItems] = useState<SearchItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<SearchItem | null>(null);
 
-  // Custom filter: enable multi-field search
+  // 判斷是否為套餐
+  const isPackage = (item: SearchItem): item is Package => {
+    return 'totalPrice' in item && 'items' in item;
+  };
+
+  // Custom filter: enable multi-field search for both products and packages
   const filterOptions = createFilterOptions({
-    stringify: (option: Product) =>
-      `${option.name} ${option.code} ${option.shortCode} ${option.barcode} ${option.healthInsuranceCode}`
+    stringify: (option: SearchItem) => {
+      if (isPackage(option)) {
+        return `${option.name} ${option.code} ${option.shortCode || ''}`;
+      } else {
+        return `${option.name} ${option.code} ${option.shortCode} ${option.barcode} ${option.healthInsuranceCode}`;
+      }
+    }
   });
 
-  // When user types, filter from original product list
+  // When user types, filter from both products and packages
   const handleBarcodeAutocompleteChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
     setBarcode(value);
     if (value.trim() !== '') {
       const searchTerm = value.trim().toLowerCase();
-      const results = products.filter(product =>
-        product.name?.toLowerCase().includes(searchTerm) ??
-        product.code?.toLowerCase().includes(searchTerm) ??
-        product.shortCode?.toLowerCase().includes(searchTerm) ??
-        product.barcode?.toLowerCase().includes(searchTerm) ??
+      
+      // 搜尋產品
+      const productResults = products.filter(product =>
+        product.name?.toLowerCase().includes(searchTerm) ||
+        product.code?.toLowerCase().includes(searchTerm) ||
+        product.shortCode?.toLowerCase().includes(searchTerm) ||
+        product.barcode?.toLowerCase().includes(searchTerm) ||
         product.healthInsuranceCode?.toLowerCase().includes(searchTerm)
-      ).slice(0, 20);
-      setFilteredProducts(results);
+      );
+
+      // 搜尋套餐
+      const packageResults = packages.filter(pkg =>
+        pkg.name?.toLowerCase().includes(searchTerm) ||
+        pkg.code?.toLowerCase().includes(searchTerm) ||
+        pkg.shortCode?.toLowerCase().includes(searchTerm)
+      );
+
+      // 合併結果，套餐優先顯示
+      const allResults = [...packageResults, ...productResults].slice(0, 20);
+      setFilteredItems(allResults);
     } else {
-      setFilteredProducts([]);
+      setFilteredItems([]);
     }
   };
 
@@ -69,32 +100,51 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
     if (!barcode.trim()) return;
 
     try {
-      // 如果已經有選中的產品（通過下拉選單點選），直接使用它
-      if (selectedProduct) {
-        onSelectProduct(selectedProduct);
-        setSelectedProduct(null); // 重置選中狀態，避免影響下次選擇
+      // 如果已經有選中的項目（通過下拉選單點選），直接使用它
+      if (selectedItem) {
+        if (isPackage(selectedItem)) {
+          if (onSelectPackage) {
+            onSelectPackage(selectedItem);
+          } else {
+            showSnackbar('套餐選擇功能尚未實作', 'warning');
+          }
+        } else {
+          onSelectProduct(selectedItem);
+        }
+        setSelectedItem(null); // 重置選中狀態，避免影響下次選擇
       } 
       // 否則嘗試精確匹配
-      else if (filteredProducts.length > 0) {
+      else if (filteredItems.length > 0) {
         // 優先使用精確匹配
-        const exactMatch = filteredProducts.find(
-          p => String(p.code) === barcode.trim() || 
-               String(p.barcode) === barcode.trim() || 
-               String(p.shortCode) === barcode.trim() ||
-               String(p.healthInsuranceCode) === barcode.trim()
-        );
+        const exactMatch = filteredItems.find(item => {
+          if (isPackage(item)) {
+            return String(item.code) === barcode.trim() || 
+                   String(item.shortCode) === barcode.trim();
+          } else {
+            return String(item.code) === barcode.trim() || 
+                   String(item.barcode) === barcode.trim() || 
+                   String(item.shortCode) === barcode.trim() ||
+                   String(item.healthInsuranceCode) === barcode.trim();
+          }
+        });
         
-        // 如果沒有精確匹配，但有過濾結果，使用第一個結果
-        // 這裡不再自動選擇第一個結果，除非是精確匹配
         if (exactMatch) {
-          onSelectProduct(exactMatch);
+          if (isPackage(exactMatch)) {
+            if (onSelectPackage) {
+              onSelectPackage(exactMatch);
+            } else {
+              showSnackbar('套餐選擇功能尚未實作', 'warning');
+            }
+          } else {
+            onSelectProduct(exactMatch);
+          }
         } else {
           // 如果沒有精確匹配，顯示警告
-          showSnackbar(`找不到與 "${barcode}" 精確匹配的產品，請從下拉選單選擇`, 'warning');
+          showSnackbar(`找不到與 "${barcode}" 精確匹配的產品或套餐，請從下拉選單選擇`, 'warning');
           return; // 提前返回，不清空輸入框，讓用戶可以從下拉選單選擇
         }
       } else {
-        // 在所有產品中查找精確匹配
+        // 在所有產品和套餐中查找精確匹配
         const product = products.find(
           p => String(p.barcode) === barcode.trim() || 
                String(p.code) === barcode.trim() || 
@@ -102,10 +152,21 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                String(p.healthInsuranceCode) === barcode.trim()
         );
         
+        const packageItem = packages.find(
+          pkg => String(pkg.code) === barcode.trim() || 
+                 String(pkg.shortCode) === barcode.trim()
+        );
+        
         if (product) {
           onSelectProduct(product);
+        } else if (packageItem) {
+          if (onSelectPackage) {
+            onSelectPackage(packageItem);
+          } else {
+            showSnackbar('套餐選擇功能尚未實作', 'warning');
+          }
         } else {
-          showSnackbar(`找不到條碼/代碼 ${barcode} 對應的產品`, 'warning');
+          showSnackbar(`找不到條碼/代碼 ${barcode} 對應的產品或套餐`, 'warning');
         }
       }
     } catch (err: any) {
@@ -114,24 +175,49 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
     }
 
     setBarcode('');
-    setFilteredProducts([]);
+    setFilteredItems([]);
     if (barcodeInputRef.current) {
       barcodeInputRef.current.focus();
     }
   };
 
-  const renderOption = (props: any, option: Product): React.ReactNode => (
-    <ListItem {...props} key={option._id}>
+  const renderOption = (props: any, option: SearchItem): React.ReactNode => (
+    <ListItem {...props} key={option._id || (option as Package).id}>
       <ListItemText
-        primary={<Typography sx={{ color: 'black' }}>{option.name}</Typography>}
+        primary={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ color: 'black' }}>{option.name}</Typography>
+            {isPackage(option) && (
+              <Chip 
+                label="套餐" 
+                size="small" 
+                color="primary" 
+                variant="outlined"
+              />
+            )}
+          </Box>
+        }
         secondary={
           <>
-            <Typography variant="body2" sx={{ color: 'black' }}>
-              代碼: {option.code || 'N/A'} | 健保碼: {option.healthInsuranceCode || 'N/A'}
-            </Typography>
-            <Typography variant="body2" display="block" sx={{ color: 'black' }}>
-              價格: ${(option.sellingPrice ?? option.price)?.toFixed(0) || 'N/A'}
-            </Typography>
+            {isPackage(option) ? (
+              <>
+                <Typography variant="body2" sx={{ color: 'black' }}>
+                  套餐編號: {option.code} | 簡碼: {option.shortCode || 'N/A'}
+                </Typography>
+                <Typography variant="body2" display="block" sx={{ color: 'black' }}>
+                  總價: ${option.totalPrice?.toFixed(0) || 'N/A'} | 包含 {option.items?.length || 0} 項商品
+                </Typography>
+              </>
+            ) : (
+              <>
+                <Typography variant="body2" sx={{ color: 'black' }}>
+                  代碼: {option.code || 'N/A'} | 健保碼: {(option as Product).healthInsuranceCode || 'N/A'}
+                </Typography>
+                <Typography variant="body2" display="block" sx={{ color: 'black' }}>
+                  價格: ${((option as Product).sellingPrice ?? (option as Product).price)?.toFixed(0) || 'N/A'}
+                </Typography>
+              </>
+            )}
           </>
         }
       />
@@ -143,7 +229,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
       <Autocomplete
         freeSolo
         fullWidth
-        options={filteredProducts}
+        options={filteredItems}
         getOptionLabel={(option) =>
           typeof option === 'string' ? option : option.name ?? ''
         }
@@ -157,10 +243,18 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
         }}
         onChange={(event, newValue) => {
           if (newValue && typeof newValue !== 'string') {
-            onSelectProduct(newValue);
-            setSelectedProduct(newValue);
+            if (isPackage(newValue)) {
+              if (onSelectPackage) {
+                onSelectPackage(newValue);
+              } else {
+                showSnackbar('套餐選擇功能尚未實作', 'warning');
+              }
+            } else {
+              onSelectProduct(newValue);
+            }
+            setSelectedItem(newValue);
             setBarcode('');
-            setFilteredProducts([]);
+            setFilteredItems([]);
             barcodeInputRef.current?.focus();
           }
         }}
@@ -168,7 +262,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
           <TextField
             {...params}
             inputRef={barcodeInputRef}
-            label="掃描條碼 / 輸入產品名稱、代碼、健保碼"
+            label="掃描條碼 / 輸入產品名稱、代碼、健保碼或套餐"
             variant="outlined"
             size="small"
             onKeyDown={(e) => {

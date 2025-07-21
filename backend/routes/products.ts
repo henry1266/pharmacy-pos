@@ -53,21 +53,82 @@ const upload = multer({
 });
 
 // @route   GET api/products
-// @desc    獲取所有產品
+// @desc    獲取所有產品（支援篩選參數）
 // @access  Public
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    // 使用 $ne: false 查詢條件來獲取活躍產品
-    // 注意：直接使用 isActive: true 在此資料庫中有查詢問題
-    const products = await BaseProduct.find({ isActive: { $ne: false } })
+    const {
+      search,
+      productType,
+      category,
+      supplier,
+      minPrice,
+      maxPrice,
+      stockStatus,
+      sortBy = 'code',
+      sortOrder = 'asc'
+    } = req.query;
+
+    // 基本查詢條件
+    let query: any = { isActive: { $ne: false } };
+
+    // 搜尋條件（名稱、代碼、簡碼、條碼、健保代碼）
+    if (search && typeof search === 'string') {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      query.$or = [
+        { name: searchRegex },
+        { code: searchRegex },
+        { shortCode: searchRegex },
+        { barcode: searchRegex },
+        { healthInsuranceCode: searchRegex }
+      ];
+    }
+
+    // 產品類型篩選
+    if (productType && productType !== 'all') {
+      query.productType = productType;
+    }
+
+    // 分類篩選
+    if (category && typeof category === 'string') {
+      query.category = category;
+    }
+
+    // 供應商篩選
+    if (supplier && typeof supplier === 'string') {
+      query.supplier = supplier;
+    }
+
+    // 價格區間篩選
+    if (minPrice || maxPrice) {
+      query.sellingPrice = {};
+      if (minPrice) query.sellingPrice.$gte = parseFloat(minPrice as string);
+      if (maxPrice) query.sellingPrice.$lte = parseFloat(maxPrice as string);
+    }
+
+    // 排序設定
+    const sortOptions: any = {};
+    sortOptions[sortBy as string] = sortOrder === 'desc' ? -1 : 1;
+
+    const products = await BaseProduct.find(query)
       .populate('category', 'name')
       .populate('supplier', 'name')
-      .sort({ code: 1 });
+      .sort(sortOptions);
     
     res.json({
       success: true,
       message: '產品列表獲取成功',
       data: products,
+      filters: {
+        search,
+        productType,
+        category,
+        supplier,
+        priceRange: { min: minPrice, max: maxPrice },
+        stockStatus,
+        sort: { by: sortBy, order: sortOrder }
+      },
+      count: products.length,
       timestamp: new Date()
     } as ApiResponse<IBaseProductDocument[]>);
   } catch (err) {

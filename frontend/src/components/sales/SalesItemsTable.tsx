@@ -29,6 +29,7 @@ interface SalesItem {
   price: number | string;
   quantity: number | string;
   subtotal: number;
+  packageName?: string; // 套餐名稱（如果來自套餐）
 }
 
 interface SalesItemsTableProps {
@@ -139,7 +140,25 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                   {index + 1}
                 </TableCell>
                 <TableCell component="th" scope="row" sx={{ pl: isMobile ? 1 : 2, pr: isMobile ? 0 : 1 }}>
-                  {item.name}
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                      {item.name}
+                    </Typography>
+                    {item.packageName && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'text.secondary',
+                          fontSize: '0.75rem',
+                          fontStyle: 'italic',
+                          display: 'block',
+                          mt: 0.25
+                        }}
+                      >
+                        來自套餐: {item.packageName}
+                      </Typography>
+                    )}
+                  </Box>
                 </TableCell>
                 {!isMobile && <TableCell align="right" sx={{ px: 1 }}>{item.code}</TableCell>}
                 <TableCell align="right" sx={{ px: 1 }}>

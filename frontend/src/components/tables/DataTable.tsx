@@ -83,9 +83,10 @@ interface DataTableProps {
   rows: DataRow[];
   title?: string;
   loading?: boolean;
-  pageSize?: number;
   checkboxSelection?: boolean;
   onRowClick?: (params: GridRowParams) => void;
+  height?: number | string;
+  disablePagination?: boolean;
   [key: string]: any; // 允許其他 DataGrid 屬性
 }
 
@@ -97,9 +98,10 @@ const DataTable: React.FC<DataTableProps> = ({
   rows,
   title,
   loading = false,
-  pageSize = 50,
   checkboxSelection = false,
   onRowClick,
+  height = 600,
+  disablePagination = false,
   ...rest
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -160,12 +162,19 @@ const DataTable: React.FC<DataTableProps> = ({
     minWidth: 50, // 設置最小寬度
   }));
 
-  // 初始狀態
-  const initialState: GridInitialState = {
+  // 動態計算高度
+  const dynamicHeight = typeof height === 'number' ? height :
+                       height === 'auto' ? Math.min(rows.length * 52 + 100, 800) :
+                       600;
+
+  // 初始狀態 - 優先使用傳入的 initialState，否則使用預設值
+  const defaultInitialState: GridInitialState = disablePagination ? {} : {
     pagination: {
-      pageSize: 50, // 設置初始頁面大小為50
+      pageSize: 50,
     },
   };
+  
+  const finalInitialState = rest.initialState || defaultInitialState;
 
   return (
     <Paper elevation={2} sx={{ width: '100%', overflow: 'hidden' }}>
@@ -176,28 +185,24 @@ const DataTable: React.FC<DataTableProps> = ({
           </Typography>
         </Box>
       )}
-      <Box sx={{ width: '100%', height: 600 }} ref={gridRef} tabIndex={0}>
+      <Box sx={{ width: '100%', height: dynamicHeight }} ref={gridRef} tabIndex={0}>
         <DataGrid
           rows={rows}
           columns={columnsWithResizing}
           loading={loading}
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          hideFooterPagination={disablePagination}
+          rowsPerPageOptions={disablePagination ? [] : [25, 50, 100]}
           checkboxSelection={checkboxSelection}
           disableSelectionOnClick
           onRowClick={handleRowClickInternal}
-          initialState={{
-            ...initialState,
-            pagination: {
-              pageSize: pageSize,
-            },
-          }}
+          initialState={finalInitialState}
           sx={{
             height: '100%',
             width: '100%',
             '& .MuiDataGrid-main': { overflow: 'hidden' },
             '& .MuiDataGrid-virtualScroller': {
               overflow: 'auto',
-              marginTop: '0 !important' // 移除第一排的空白
+              marginTop: '0 !important'
             },
             '& .MuiDataGrid-columnHeaders': {
               backgroundColor: 'action.hover',
@@ -206,6 +211,10 @@ const DataTable: React.FC<DataTableProps> = ({
               position: 'sticky',
               top: 0,
               zIndex: 1,
+            },
+            // 隱藏分頁工具列（當禁用分頁時）
+            '& .MuiDataGrid-footerContainer': {
+              display: disablePagination ? 'none' : 'flex'
             }
           }}
           {...rest}

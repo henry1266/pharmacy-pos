@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { createSale } from '../services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
+import { Package } from '@pharmacy-pos/shared/types/package';
 
 /**
  * 銷售項目介面
@@ -13,6 +14,7 @@ interface SaleItem {
   price: number;
   quantity: number;
   subtotal: number;
+  packageName?: string; // 套餐名稱（如果來自套餐）
 }
 
 /**
@@ -62,7 +64,7 @@ const useSaleManagementV2 = (
 
   // Calculate Total Amount whenever items or discount change
   useEffect(() => {
-    const total = currentSale.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = currentSale.items.reduce((sum, item) => sum + item.subtotal, 0);
     setCurrentSale(prev => ({
       ...prev,
       totalAmount: total - prev.discount
@@ -110,6 +112,89 @@ const useSaleManagementV2 = (
         showSnackbar(`已添加 ${product.name}`, 'success');
       }
       return { ...prevSale, items: updatedItems };
+    });
+  }, [showSnackbar]);
+
+  // Handler for adding a package to the sale
+  const handleSelectPackage = useCallback((packageItem: Package | null) => {
+    if (!packageItem) return;
+    
+    setCurrentSale(prevSale => {
+      // 將套餐展開為其包含的各個商品項目
+      const newItems: SaleItem[] = [];
+      const newModes: InputMode[] = [];
+      
+      if (packageItem.items && packageItem.items.length > 0) {
+        packageItem.items.forEach(packageItemDetail => {
+          // 檢查是否已存在相同的商品
+          const existingItemIndex = prevSale.items.findIndex(item =>
+            item.product === packageItemDetail.productId &&
+            item.name === packageItemDetail.productName
+          );
+          
+          if (existingItemIndex >= 0) {
+            // 如果商品已存在，增加數量
+            const updatedItems = [...prevSale.items];
+            updatedItems[existingItemIndex].quantity += packageItemDetail.quantity;
+            updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
+            return { ...prevSale, items: updatedItems };
+          } else {
+            // 創建新的銷售項目
+            const newItem: SaleItem = {
+              product: packageItemDetail.productId,
+              productDetails: undefined, // 可以後續從產品列表中查找
+              name: packageItemDetail.productName,
+              code: packageItemDetail.productCode || packageItem.code,
+              price: packageItemDetail.unitPrice || (packageItemDetail.subtotal / packageItemDetail.quantity),
+              quantity: packageItemDetail.quantity,
+              subtotal: packageItemDetail.subtotal,
+              packageName: packageItem.name // 單獨存儲套餐名稱
+            };
+            newItems.push(newItem);
+            
+            // 根據套餐項目的 priceMode 設置對應的輸入模式
+            // 套餐中的 'unit' 對應銷售中的 'price'，'subtotal' 保持不變
+            const inputMode: InputMode = packageItemDetail.priceMode === 'unit' ? 'price' : 'subtotal';
+            newModes.push(inputMode);
+          }
+        });
+        
+        if (newItems.length > 0) {
+          const updatedItems = [...prevSale.items, ...newItems];
+          setInputModes(prevModes => [...prevModes, ...newModes]);
+          showSnackbar(`已添加套餐 ${packageItem.name} 的 ${newItems.length} 個商品項目`, 'success');
+          return { ...prevSale, items: updatedItems };
+        }
+      } else {
+        // 如果套餐沒有詳細項目，則作為整體項目添加
+        const existingItemIndex = prevSale.items.findIndex(item =>
+          item.product === packageItem._id && item.code === packageItem.code
+        );
+        
+        let updatedItems;
+        if (existingItemIndex >= 0) {
+          updatedItems = [...prevSale.items];
+          updatedItems[existingItemIndex].quantity += 1;
+          updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
+          showSnackbar(`已增加套餐 ${packageItem.name} 的數量`, 'success');
+        } else {
+          const newItem: SaleItem = {
+            product: packageItem._id,
+            productDetails: undefined,
+            name: `[套餐] ${packageItem.name}`,
+            code: packageItem.code,
+            price: packageItem.totalPrice,
+            quantity: 1,
+            subtotal: packageItem.totalPrice
+          };
+          updatedItems = [...prevSale.items, newItem];
+          setInputModes(prevModes => [...prevModes, 'price']);
+          showSnackbar(`已添加套餐 ${packageItem.name}`, 'success');
+        }
+        return { ...prevSale, items: updatedItems };
+      }
+      
+      return prevSale; // 如果沒有變更，返回原狀態
     });
   }, [showSnackbar]);
 
@@ -249,6 +334,7 @@ const useSaleManagementV2 = (
     inputModes,
     handleSaleInfoChange,
     handleSelectProduct,
+    handleSelectPackage,
     handleQuantityChange,
     handlePriceChange,
     handleSubtotalChange,
