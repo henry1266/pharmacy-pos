@@ -385,7 +385,7 @@ const ShippingOrderFormPage: React.FC = () => {
               </Button>
             </Box>
             
-            <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
+            <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
               <ProductItemForm 
                 currentItem={currentItem}
                 handleItemInputChange={handleItemInputChange}

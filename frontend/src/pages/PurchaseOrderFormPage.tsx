@@ -616,7 +616,7 @@ const PurchaseOrderFormPage: React.FC = () => {
               <CardContent sx={{ pb: 1, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>藥品項目</Typography>
                 
-                <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
+                <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
                   <ProductItemForm
                     currentItem={currentItem}
                     handleItemInputChange={handleItemInputChange}
