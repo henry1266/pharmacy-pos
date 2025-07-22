@@ -47,7 +47,6 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
 }) => {
   const [barcode, setBarcode] = useState<string>('');
   const [filteredItems, setFilteredItems] = useState<SearchItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<SearchItem | null>(null);
 
   // 判斷是否為套餐
   const isPackage = (item: SearchItem): item is Package => {
@@ -69,6 +68,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
   const handleBarcodeAutocompleteChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
     setBarcode(value);
+    
     if (value.trim() !== '') {
       const searchTerm = value.trim().toLowerCase();
       
@@ -100,21 +100,8 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
     if (!barcode.trim()) return;
 
     try {
-      // 如果已經有選中的項目（通過下拉選單點選），直接使用它
-      if (selectedItem) {
-        if (isPackage(selectedItem)) {
-          if (onSelectPackage) {
-            onSelectPackage(selectedItem);
-          } else {
-            showSnackbar('套餐選擇功能尚未實作', 'warning');
-          }
-        } else {
-          onSelectProduct(selectedItem);
-        }
-        setSelectedItem(null); // 重置選中狀態，避免影響下次選擇
-      } 
-      // 否則嘗試精確匹配
-      else if (filteredItems.length > 0) {
+      // 嘗試精確匹配
+      if (filteredItems.length > 0) {
         // 優先使用精確匹配
         const exactMatch = filteredItems.find(item => {
           if (isPackage(item)) {
@@ -242,7 +229,15 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
           }
         }}
         onChange={(event, newValue) => {
+          // 防止重複觸發
+          if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          
           if (newValue && typeof newValue !== 'string') {
+            console.log('Autocomplete onChange triggered for:', newValue.name);
+            
             if (isPackage(newValue)) {
               if (onSelectPackage) {
                 onSelectPackage(newValue);
@@ -252,7 +247,6 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             } else {
               onSelectProduct(newValue);
             }
-            setSelectedItem(newValue);
             setBarcode('');
             setFilteredItems([]);
             barcodeInputRef.current?.focus();

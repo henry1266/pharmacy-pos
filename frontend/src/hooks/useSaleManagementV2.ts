@@ -83,11 +83,18 @@ const useSaleManagementV2 = (
   // Handler for adding a product to the sale
   const handleSelectProduct = useCallback((product: Product | null) => {
     if (!product) return;
+    
+    console.log('handleSelectProduct called with:', product.name, product._id);
+    
     setCurrentSale(prevSale => {
+      console.log('Current sale items before update:', prevSale.items.length);
+      
       // 確保使用嚴格比較並檢查產品代碼以避免影響其他產品
       const existingItemIndex = prevSale.items.findIndex(item =>
         item.product === product._id && item.code === product.code
       );
+      
+      console.log('Existing item index:', existingItemIndex);
       
       let updatedItems;
       if (existingItemIndex >= 0) {
@@ -96,6 +103,7 @@ const useSaleManagementV2 = (
         updatedItems[existingItemIndex].quantity += 1;
         updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
         showSnackbar(`已增加 ${product.name} 的數量`, 'success');
+        console.log('Updated existing item quantity to:', updatedItems[existingItemIndex].quantity);
       } else {
         // 添加新項目，不影響其他項目
         const newItem: SaleItem = {
@@ -110,7 +118,10 @@ const useSaleManagementV2 = (
         updatedItems = [...prevSale.items, newItem];
         setInputModes(prevModes => [...prevModes, 'price']); // Add mode for new item
         showSnackbar(`已添加 ${product.name}`, 'success');
+        console.log('Added new item:', newItem.name);
       }
+      
+      console.log('Final items count:', updatedItems.length);
       return { ...prevSale, items: updatedItems };
     });
   }, [showSnackbar]);
