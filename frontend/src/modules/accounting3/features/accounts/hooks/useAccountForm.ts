@@ -3,7 +3,7 @@
  * 管理科目表單的狀態和驗證
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { AccountFormData } from '../types';
 
 interface UseAccountFormOptions {
@@ -40,16 +40,61 @@ const defaultFormData: AccountFormData = {
   description: ''
 };
 
+// 驗證規則配置 - 減少重複的驗證邏輯
+interface ValidationRule {
+  required: boolean;
+  message: string;
+  validator: (value: string) => boolean;
+  formatMessage?: string;
+  formatValidator?: (value: string) => boolean;
+}
+
+const validationRules: Record<string, ValidationRule> = {
+  name: {
+    required: true,
+    message: '科目名稱為必填',
+    validator: (value: string) => value.trim().length > 0
+  },
+  code: {
+    required: true,
+    message: '科目代碼為必填',
+    formatMessage: '科目代碼格式不正確',
+    validator: (value: string) => value.trim().length > 0,
+    formatValidator: (value: string) => /^\d{2,8}$/.test(value)
+  },
+  organizationId: {
+    required: true,
+    message: '組織為必填',
+    validator: (value: string) => Boolean(value)
+  },
+  createdBy: {
+    required: true,
+    message: '建立者為必填',
+    validator: (value: string) => Boolean(value)
+  }
+};
+
 export const useAccountForm = (options: UseAccountFormOptions = {}): UseAccountFormReturn => {
   const { initialData, onSuccess, onError } = options;
   
-  const [formData, setFormData] = useState<AccountFormData>({
+  // 使用 useMemo 避免重複計算初始表單資料
+  const initialFormData = useMemo(() => ({
     ...defaultFormData,
     ...initialData
-  });
+  }), [initialData]);
   
+  const [formData, setFormData] = useState<AccountFormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+
+  // 抽取錯誤清除邏輯
+  const clearFieldError = useCallback((field: string) => {
+    setErrors(prev => {
+      if (!prev[field]) return prev;
+      const { [field]: removed, ...rest } = prev;
+      return rest;
+    });
+  }, []);
 
   const updateField = useCallback((field: keyof AccountFormData, value: any) => {
     setFormData(prev => ({
@@ -58,39 +103,41 @@ export const useAccountForm = (options: UseAccountFormOptions = {}): UseAccountF
     }));
     
     // 清除該欄位的錯誤
-    if (errors[field as string]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field as string];
-        return newErrors;
-      });
+    clearFieldError(field as string);
+  }, [clearFieldError]);
+
+  // 抽取通用驗證邏輯
+  const validateField = useCallback((
+    fieldName: string,
+    value: any,
+    errors: FormErrors
+  ) => {
+    const rule = validationRules[fieldName];
+    if (!rule) return;
+    
+    if (rule.required && !rule.validator(value)) {
+      errors[fieldName] = rule.message;
+      return;
     }
-  }, [errors]);
+    
+    // 特殊格式驗證（如 code 欄位）
+    if (fieldName === 'code' && value.trim() && rule.formatValidator && !rule.formatValidator(value)) {
+      errors[fieldName] = rule.formatMessage!;
+    }
+  }, []);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = '科目名稱為必填';
-    }
-
-    if (!formData.code.trim()) {
-      newErrors.code = '科目代碼為必填';
-    } else if (!/^\d{2,8}$/.test(formData.code)) {
-      newErrors.code = '科目代碼格式不正確';
-    }
-
-    if (!formData.organizationId) {
-      newErrors.organizationId = '組織為必填';
-    }
-
-    if (!formData.createdBy) {
-      newErrors.createdBy = '建立者為必填';
-    }
+    // 使用統一的驗證邏輯
+    validateField('name', formData.name, newErrors);
+    validateField('code', formData.code, newErrors);
+    validateField('organizationId', formData.organizationId, newErrors);
+    validateField('createdBy', formData.createdBy, newErrors);
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, validateField]);
 
   const submitForm = useCallback(async (): Promise<void> => {
     if (!validateForm()) {
@@ -116,9 +163,9 @@ export const useAccountForm = (options: UseAccountFormOptions = {}): UseAccountF
   }, [formData, validateForm, onSuccess, onError]);
 
   const resetForm = useCallback(() => {
-    setFormData({ ...defaultFormData, ...initialData });
+    setFormData(initialFormData);
     setErrors({});
-  }, [initialData]);
+  }, [initialFormData]);
 
   return {
     formData,
