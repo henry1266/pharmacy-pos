@@ -179,7 +179,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
   };
 
   const renderOption = (props: any, option: SearchItem): React.ReactNode => (
-    <ListItem {...props} key={option._id || (option as Package).id}>
+    <ListItem {...props} key={option._id}>
       <ListItemText
         primary={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -259,7 +259,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             return;
           }
           
-          const itemId = isPackage(newValue) ? newValue._id || newValue.id : newValue._id;
+          const itemId = newValue._id;
           
           // 檢查是否是重複選擇同一個項目
           if (lastSelectedItemRef.current === itemId) {
@@ -324,7 +324,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                     return;
                   }
                   
-                  const itemId = isPackage(firstItem) ? firstItem._id || firstItem.id : firstItem._id;
+                  const itemId = firstItem._id;
                   if (lastSelectedItemRef.current === itemId) {
                     return;
                   }

@@ -4,6 +4,91 @@
  */
 
 /**
+ * 套餐項目（與包裝單位不同的概念）
+ */
+export interface PackageItem {
+  productId: string;
+  productCode: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  unit: string;
+  subtotal: number;
+  priceMode: 'unit' | 'subtotal';
+}
+
+/**
+ * 套餐定義（與包裝單位不同的概念）
+ */
+export interface Package {
+  _id?: string;
+  code: string;
+  shortCode?: string;
+  name: string;
+  description?: string;
+  items: PackageItem[];
+  totalPrice: number;
+  isActive: boolean;
+  category?: string;
+  tags?: string[];
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * 套餐篩選條件
+ */
+export interface PackageFilters {
+  search?: string;
+  category?: string;
+  isActive?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  tags?: string[];
+}
+
+/**
+ * 套餐創建請求
+ */
+export interface PackageCreateRequest {
+  name: string;
+  shortCode?: string;
+  description?: string;
+  items: Omit<PackageItem, 'productCode' | 'productName' | 'unitPrice' | 'unit'>[];
+  category?: string;
+  tags?: string[];
+  isActive?: boolean;
+  createdBy?: string;
+}
+
+/**
+ * 套餐更新請求
+ */
+export interface PackageUpdateRequest {
+  name: string;
+  shortCode?: string;
+  description?: string;
+  items: Omit<PackageItem, 'productCode' | 'productName' | 'unitPrice' | 'unit'>[];
+  category?: string;
+  tags?: string[];
+  isActive?: boolean;
+  updatedBy?: string;
+}
+
+/**
+ * 套餐統計資訊
+ */
+export interface PackageStats {
+  totalPackages: number;
+  activePackages: number;
+  inactivePackages: number;
+  totalValue: number;
+  averageDiscount: number;
+}
+
+/**
  * 產品包裝單位配置
  */
 export interface ProductPackageUnit {
