@@ -131,7 +131,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
                 sx={{
                   '& > *': {
                     padding: '4px 12px',
-                    fontSize: '0.875rem'
+                    fontSize: '1rem'
                   },
                   height: '40px'
                 }}
@@ -209,18 +209,18 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
                       <ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} />
                     </TableCell>
                     <TableCell align="center" sx={{ width: 'auto', minWidth: '180px' }}>
-                      <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>
                         {item.dname}
                       </Typography>
                     </TableCell>
                     <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
-                      <Typography variant="body2">{item.dquantity}</Typography>
+                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>{item.dquantity}</Typography>
                     </TableCell>
                     <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>
-                      <Typography variant="body2">{Number(item.dtotalCost).toLocaleString()}</Typography>
+                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>{Number(item.dtotalCost).toLocaleString()}</Typography>
                     </TableCell>
                     <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
-                      <Typography variant="body2">
+                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>
                         {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
                       </Typography>
                     </TableCell>
