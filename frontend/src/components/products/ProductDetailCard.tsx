@@ -7,9 +7,12 @@ import {
   Typography,
   Grid,
   Divider,
-  Paper
+  Paper,
+  Chip
 } from '@mui/material';
 import InventoryList from './InventoryList';
+import { PackageInventoryDisplay } from '../package-units';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 /**
  * 供應商介面
@@ -50,6 +53,8 @@ interface Product {
   description?: string;
   productType?: string;
   excludeFromStock?: boolean;
+  packageUnits?: ProductPackageUnit[];
+  stock?: number;
   [key: string]: any;
 }
 
@@ -187,6 +192,49 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             </Box>
           </Box>
         </Paper>
+
+        {/* 包裝單位資訊區塊 */}
+        {product.packageUnits && product.packageUnits.length > 0 && (
+          <Paper sx={{ p: 1.5, mb: 1.5, backgroundColor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                包裝單位配置
+              </Typography>
+              <Typography variant="subtitle1" sx={{ color: 'text.secondary', mx: 0.5 }}>
+                |
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, flex: 1 }}>
+                {product.packageUnits
+                  .sort((a, b) => b.priority - a.priority)
+                  .map((unit, index) => (
+                    <Chip
+                      key={unit._id}
+                      label={`${unit.unitName}: ${unit.unitValue}${unit.isBaseUnit ? ' (基礎)' : ''}`}
+                      size="small"
+                      variant={unit.isBaseUnit ? 'filled' : 'outlined'}
+                      color={unit.isBaseUnit ? 'primary' : 'default'}
+                      sx={{ fontSize: '0.75rem' }}
+                    />
+                  ))}
+              </Box>
+            </Box>
+            
+            {/* 當前庫存的包裝顯示 */}
+            {product.stock !== undefined && product.stock > 0 && (
+              <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'medium' }}>
+                  當前庫存包裝顯示:
+                </Typography>
+                <PackageInventoryDisplay
+                  totalQuantity={product.stock}
+                  packageUnits={product.packageUnits}
+                  showBreakdown={true}
+                  variant="detailed"
+                />
+              </Box>
+            )}
+          </Paper>
+        )}
         
         {/* 備註區塊 */}
         {product.description && (
@@ -211,7 +259,11 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             庫存清單
           </Typography>
 
-          <InventoryList productId={product.id} productName={product.name} />
+          <InventoryList
+            productId={product.id}
+            productName={product.name}
+            packageUnits={product.packageUnits}
+          />
         </Paper>
       </CardContent>
     </Card>

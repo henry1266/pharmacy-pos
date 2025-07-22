@@ -125,8 +125,8 @@ export const usePackageData = (): UsePackageDataReturn => {
       const updatedPackage = await PackageService.updatePackage(id, { ...packageData, id });
       
       // 更新本地狀態
-      setPackages(prev => 
-        prev.map(pkg => pkg.id === id ? updatedPackage : pkg)
+      setPackages(prev =>
+        prev.map(pkg => pkg._id === id ? updatedPackage : pkg)
       );
       
       return updatedPackage;
@@ -144,7 +144,7 @@ export const usePackageData = (): UsePackageDataReturn => {
       await PackageService.deletePackage(id);
       
       // 更新本地狀態
-      setPackages(prev => prev.filter(pkg => pkg.id !== id));
+      setPackages(prev => prev.filter(pkg => pkg._id !== id));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '刪除套餐失敗';
       setError(errorMessage);
@@ -159,8 +159,8 @@ export const usePackageData = (): UsePackageDataReturn => {
       const updatedPackage = await PackageService.togglePackageActive(id);
       
       // 更新本地狀態
-      setPackages(prev => 
-        prev.map(pkg => pkg.id === id ? updatedPackage : pkg)
+      setPackages(prev =>
+        prev.map(pkg => pkg._id === id ? updatedPackage : pkg)
       );
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '切換套餐狀態失敗';
@@ -171,7 +171,7 @@ export const usePackageData = (): UsePackageDataReturn => {
 
   // 根據 ID 獲取套餐
   const getPackageById = useCallback((id: string): Package | undefined => {
-    return packages.find(pkg => pkg.id === id || pkg._id === id);
+    return packages.find(pkg => pkg._id === id);
   }, [packages]);
 
   // 清除錯誤

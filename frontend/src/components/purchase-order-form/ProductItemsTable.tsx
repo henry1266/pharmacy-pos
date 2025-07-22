@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, FC, ChangeEvent, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
-import { 
+import {
   Box,
   Paper,
   IconButton,
@@ -20,6 +20,8 @@ import {
 import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import ProductCodeLink from '../common/ProductCodeLink';
+import { PackageInventoryDisplay } from '../package-units';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 // 定義項目介面
 interface Item {
@@ -28,6 +30,7 @@ interface Item {
   dname: string;
   dquantity: string | number;
   dtotalCost: string | number;
+  packageUnits?: ProductPackageUnit[];
   [key: string]: any;
 }
 
@@ -347,9 +350,19 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                                 <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
                                   {item.dname}
                                 </Typography>
-                                <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
-                                  {item.dquantity}
-                                </Typography>
+                                <Box sx={{ textAlign: 'center' }}>
+                                  {item.packageUnits && item.packageUnits.length > 0 ? (
+                                    <PackageInventoryDisplay
+                                      packageUnits={item.packageUnits}
+                                      totalQuantity={Number(item.dquantity)}
+                                      variant="compact"
+                                    />
+                                  ) : (
+                                    <Typography variant="body2" sx={{ fontSize: '1rem' }}>
+                                      {item.dquantity}
+                                    </Typography>
+                                  )}
+                                </Box>
                                 <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
                                   {Number(item.dtotalCost).toLocaleString()}
                                 </Typography>

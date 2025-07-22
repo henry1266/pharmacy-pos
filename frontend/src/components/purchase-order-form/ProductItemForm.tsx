@@ -13,6 +13,8 @@ import Grid from '@mui/material/Grid';
 import { Add as AddIcon, BarChart as BarChartIcon } from '@mui/icons-material';
 import PriceTooltip from '../form-widgets/PriceTooltip';
 import ChartModal from '../products/ChartModal';
+import { PackageQuantityInput } from '../package-units';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import PropTypes from 'prop-types';
 
 // 定義產品介面
@@ -25,6 +27,7 @@ interface Product {
   healthInsuranceCode?: string;
   barcode?: string;
   purchasePrice?: string | number;
+  packageUnits?: ProductPackageUnit[];
   [key: string]: any;
 }
 
@@ -451,45 +454,55 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
               </Button>
             </Grid>
 
-            {/* 大包裝 */}
-            <Grid item xs={12} sm={1.5}>
-              <TextField
-                fullWidth
-                label="大包裝"
-                name="packageQuantity"
-                type="number"
-                value={packageQuantityValue}
-                onChange={handleSubQuantityChange}
-                onFocus={handleFocus}
-                onBlur={handleSubQuantityBlur}
-                onKeyDown={handleQuantityKeyDown}
-                inputProps={{ min: "0" }}
-                disabled={subQuantitiesDisabled}
-                size="small"
-              />
-            </Grid>
-
-            {/* 乘號 */}
-            <Grid item xs={12} sm={0.5} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography variant="body2">×</Typography>
-            </Grid>
-
-            {/* 數量 */}
-            <Grid item xs={12} sm={1.5}>
-              <TextField
-                fullWidth
-                label="數量"
-                name="boxQuantity"
-                type="number"
-                value={boxQuantityValue}
-                onChange={handleSubQuantityChange}
-                onFocus={handleFocus}
-                onBlur={handleSubQuantityBlur}
-                onKeyDown={handleQuantityKeyDown}
-                inputProps={{ min: "0" }}
-                disabled={subQuantitiesDisabled}
-                size="small"
-              />
+            {/* 包裝單位輸入 */}
+            <Grid item xs={12} sm={3.5}>
+              {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 ? (
+                <PackageQuantityInput
+                  packageUnits={selectedProduct.packageUnits}
+                  value={Number(dQuantityValue) || 0}
+                  onChange={(quantity) => {
+                    handleItemInputChange({ target: { name: 'dquantity', value: quantity.toString() } });
+                  }}
+                  disabled={mainQuantityDisabled}
+                  variant="outlined"
+                  label="包裝單位輸入"
+                />
+              ) : (
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  {/* 大包裝 */}
+                  <TextField
+                    fullWidth
+                    label="大包裝"
+                    name="packageQuantity"
+                    type="number"
+                    value={packageQuantityValue}
+                    onChange={handleSubQuantityChange}
+                    onFocus={handleFocus}
+                    onBlur={handleSubQuantityBlur}
+                    onKeyDown={handleQuantityKeyDown}
+                    inputProps={{ min: "0" }}
+                    disabled={subQuantitiesDisabled}
+                    size="small"
+                  />
+                  {/* 乘號 */}
+                  <Typography variant="body2" sx={{ mx: 0.5 }}>×</Typography>
+                  {/* 數量 */}
+                  <TextField
+                    fullWidth
+                    label="數量"
+                    name="boxQuantity"
+                    type="number"
+                    value={boxQuantityValue}
+                    onChange={handleSubQuantityChange}
+                    onFocus={handleFocus}
+                    onBlur={handleSubQuantityBlur}
+                    onKeyDown={handleQuantityKeyDown}
+                    inputProps={{ min: "0" }}
+                    disabled={subQuantitiesDisabled}
+                    size="small"
+                  />
+                </Box>
+              )}
             </Grid>
           </Grid>
         </Grid>

@@ -153,15 +153,28 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
     const canDelete = packageUnits.length > 1;
 
     return (
-      <Card 
-        elevation={1} 
-        sx={{ 
-          mb: 1,
+      <Card
+        elevation={1}
+        sx={{
+          mb: isMobile ? 1.5 : 1,
           border: unit.isBaseUnit ? `2px solid ${theme.palette.primary.main}` : undefined,
-          backgroundColor: unit.isBaseUnit ? theme.palette.primary.light + '10' : undefined
+          backgroundColor: unit.isBaseUnit ? theme.palette.primary.light + '10' : undefined,
+          borderRadius: isMobile ? 2 : 1,
+          '&:hover': {
+            elevation: 2,
+            transform: 'translateY(-1px)',
+            transition: 'all 0.2s ease-in-out'
+          }
         }}
       >
-        <CardContent sx={{ pb: 1 }}>
+        <CardContent sx={{
+          pb: isMobile ? 2 : 1,
+          px: isMobile ? 2 : 2,
+          pt: isMobile ? 2 : 2,
+          '&:last-child': {
+            pb: isMobile ? 2 : 1
+          }
+        }}>
           <Grid container spacing={2} alignItems="center">
             {/* 拖拽手柄 */}
             <Grid item xs="auto">
@@ -169,88 +182,158 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
             </Grid>
 
             {/* 單位名稱 */}
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={isMobile ? 12 : 3}>
               {isEditing ? (
                 <TextField
-                  size="small"
+                  size={isMobile ? "medium" : "small"}
                   label="單位名稱"
                   value={editingUnit.unitName}
                   onChange={(e) => setEditingUnit({ ...editingUnit, unitName: e.target.value })}
                   fullWidth
+                  sx={{
+                    '& .MuiInputBase-root': {
+                      height: isMobile ? 48 : 'auto'
+                    }
+                  }}
                 />
               ) : (
-                <Box>
-                  <Typography variant="subtitle2" fontWeight="bold">
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 0.5
+                }}>
+                  <Typography
+                    variant={isMobile ? "body1" : "subtitle2"}
+                    fontWeight="bold"
+                    sx={{ fontSize: isMobile ? '1rem' : '0.875rem' }}
+                  >
                     {unit.unitName}
-                    {unit.isBaseUnit && (
-                      <Chip 
-                        label="基礎單位" 
-                        size="small" 
-                        color="primary" 
-                        sx={{ ml: 1, fontSize: '0.7rem' }}
-                      />
-                    )}
                   </Typography>
+                  {unit.isBaseUnit && (
+                    <Chip
+                      label="基礎單位"
+                      size={isMobile ? "medium" : "small"}
+                      color="primary"
+                      sx={{
+                        fontSize: isMobile ? '0.75rem' : '0.7rem',
+                        height: isMobile ? 24 : 20
+                      }}
+                    />
+                  )}
                 </Box>
               )}
             </Grid>
 
             {/* 單位值 */}
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={isMobile ? 6 : 2}>
               {isEditing ? (
                 <TextField
-                  size="small"
+                  size={isMobile ? "medium" : "small"}
                   type="number"
                   label="單位值"
                   value={editingUnit.unitValue}
                   onChange={(e) => setEditingUnit({ ...editingUnit, unitValue: parseInt(e.target.value) || 1 })}
                   fullWidth
                   inputProps={{ min: 1 }}
+                  sx={{
+                    '& .MuiInputBase-root': {
+                      height: isMobile ? 48 : 'auto'
+                    }
+                  }}
                 />
               ) : (
-                <Typography variant="body2">
-                  {unit.unitValue} {baseUnit?.unitName || '個'}
-                </Typography>
+                <Box>
+                  <Typography
+                    variant={isMobile ? "body2" : "body2"}
+                    sx={{
+                      fontSize: isMobile ? '0.875rem' : '0.875rem',
+                      fontWeight: isMobile ? 500 : 'normal'
+                    }}
+                  >
+                    {unit.unitValue} {baseUnit?.unitName || '個'}
+                  </Typography>
+                  {isMobile && (
+                    <Typography variant="caption" color="text.secondary">
+                      單位值
+                    </Typography>
+                  )}
+                </Box>
               )}
             </Grid>
 
             {/* 優先級 */}
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={isMobile ? 6 : 2}>
               {isEditing ? (
                 <TextField
-                  size="small"
+                  size={isMobile ? "medium" : "small"}
                   type="number"
                   label="優先級"
                   value={editingUnit.priority || 0}
                   onChange={(e) => setEditingUnit({ ...editingUnit, priority: parseInt(e.target.value) || 0 })}
                   fullWidth
+                  sx={{
+                    '& .MuiInputBase-root': {
+                      height: isMobile ? 48 : 'auto'
+                    }
+                  }}
                 />
               ) : (
-                <Typography variant="body2" color="text.secondary">
-                  優先級: {unit.priority || 0}
-                </Typography>
+                <Box>
+                  <Typography
+                    variant={isMobile ? "body2" : "body2"}
+                    color="text.secondary"
+                    sx={{
+                      fontSize: isMobile ? '0.875rem' : '0.875rem',
+                      fontWeight: isMobile ? 500 : 'normal'
+                    }}
+                  >
+                    {isMobile ? unit.priority || 0 : `優先級: ${unit.priority || 0}`}
+                  </Typography>
+                  {isMobile && (
+                    <Typography variant="caption" color="text.secondary">
+                      優先級
+                    </Typography>
+                  )}
+                </Box>
               )}
             </Grid>
 
             {/* 操作按鈕 */}
             <Grid item xs={12} sm="auto">
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <Box sx={{
+                display: 'flex',
+                gap: 0.5,
+                flexDirection: isMobile ? 'row' : 'row',
+                justifyContent: isMobile ? 'flex-end' : 'flex-start',
+                flexWrap: 'wrap'
+              }}>
                 {isEditing ? (
                   <>
-                    <IconButton size="small" onClick={handleSaveEdit} color="primary">
+                    <IconButton
+                      size={isMobile ? "medium" : "small"}
+                      onClick={handleSaveEdit}
+                      color="primary"
+                      sx={{ minWidth: isMobile ? 44 : 'auto' }}
+                    >
                       <SaveIcon />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setEditingUnit(null)}>
+                    <IconButton
+                      size={isMobile ? "medium" : "small"}
+                      onClick={() => setEditingUnit(null)}
+                      sx={{ minWidth: isMobile ? 44 : 'auto' }}
+                    >
                       <CancelIcon />
                     </IconButton>
                   </>
                 ) : (
                   <>
                     <Tooltip title="編輯">
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size={isMobile ? "medium" : "small"}
                         onClick={() => handleEditUnit(unit)}
                         disabled={disabled}
+                        sx={{ minWidth: isMobile ? 44 : 'auto' }}
                       >
                         <EditIcon />
                       </IconButton>
@@ -259,11 +342,15 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
                     {!unit.isBaseUnit && (
                       <Tooltip title="設為基礎單位">
                         <Button
-                          size="small"
+                          size={isMobile ? "medium" : "small"}
                           variant="outlined"
                           onClick={() => handleSetBaseUnit(unit.unitName)}
                           disabled={disabled}
-                          sx={{ minWidth: 'auto', px: 1 }}
+                          sx={{
+                            minWidth: 'auto',
+                            px: isMobile ? 1.5 : 1,
+                            fontSize: isMobile ? '0.875rem' : '0.75rem'
+                          }}
                         >
                           基礎
                         </Button>
@@ -271,11 +358,12 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
                     )}
                     
                     <Tooltip title="刪除">
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size={isMobile ? "medium" : "small"}
                         onClick={() => handleDeleteUnit(unit.unitName)}
                         disabled={disabled || !canDelete}
                         color="error"
+                        sx={{ minWidth: isMobile ? 44 : 'auto' }}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -293,25 +381,43 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
   return (
     <Box>
       {/* 標題和操作 */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" fontWeight="bold">
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        mb: 2,
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 1 : 0
+      }}>
+        <Typography
+          variant={isMobile ? "subtitle1" : "h6"}
+          fontWeight="bold"
+          sx={{ mb: isMobile ? 1 : 0 }}
+        >
           包裝單位配置
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{
+          display: 'flex',
+          gap: 1,
+          flexDirection: isMobile ? 'column' : 'row',
+          width: isMobile ? '100%' : 'auto'
+        }}>
           <Button
             variant="outlined"
-            size="small"
+            size={isMobile ? "medium" : "small"}
             onClick={validateConfig}
             startIcon={<CheckCircleIcon />}
+            fullWidth={isMobile}
           >
             驗證配置
           </Button>
           <Button
             variant="contained"
-            size="small"
+            size={isMobile ? "medium" : "small"}
             onClick={() => setShowAddDialog(true)}
             startIcon={<AddIcon />}
             disabled={disabled}
+            fullWidth={isMobile}
           >
             新增單位
           </Button>
@@ -360,53 +466,97 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
       </Box>
 
       {/* 新增單位對話框 */}
-      <Dialog 
-        open={showAddDialog} 
+      <Dialog
+        open={showAddDialog}
         onClose={() => setShowAddDialog(false)}
         maxWidth="sm"
         fullWidth
         fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            borderRadius: isMobile ? 0 : 2,
+            m: isMobile ? 0 : 2
+          }
+        }}
       >
-        <DialogTitle>新增包裝單位</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+        <DialogTitle sx={{
+          pb: isMobile ? 1 : 2,
+          fontSize: isMobile ? '1.25rem' : '1.5rem'
+        }}>
+          新增包裝單位
+        </DialogTitle>
+        <DialogContent sx={{
+          px: isMobile ? 2 : 3,
+          pb: isMobile ? 2 : 3
+        }}>
+          <Grid container spacing={isMobile ? 2 : 2} sx={{ mt: 0.5 }}>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
+                size={isMobile ? "medium" : "medium"}
                 label="單位名稱"
                 value={newUnit.unitName}
                 onChange={(e) => setNewUnit({ ...newUnit, unitName: e.target.value })}
                 placeholder="例如：盒、排、瓶"
+                variant="outlined"
+                sx={{
+                  '& .MuiInputBase-root': {
+                    height: isMobile ? 56 : 'auto'
+                  }
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
+                size={isMobile ? "medium" : "medium"}
                 type="number"
                 label="單位值"
                 value={newUnit.unitValue}
                 onChange={(e) => setNewUnit({ ...newUnit, unitValue: parseInt(e.target.value) || 1 })}
                 inputProps={{ min: 1 }}
                 helperText={`相當於 ${newUnit.unitValue || 1} ${baseUnit?.unitName || '個'}`}
+                variant="outlined"
+                sx={{
+                  '& .MuiInputBase-root': {
+                    height: isMobile ? 56 : 'auto'
+                  }
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
+                size={isMobile ? "medium" : "medium"}
                 type="number"
                 label="優先級"
                 value={newUnit.priority}
                 onChange={(e) => setNewUnit({ ...newUnit, priority: parseInt(e.target.value) || 0 })}
                 helperText="數字越大優先級越高"
+                variant="outlined"
+                sx={{
+                  '& .MuiInputBase-root': {
+                    height: isMobile ? 56 : 'auto'
+                  }
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
+              <FormControl
+                fullWidth
+                size={isMobile ? "medium" : "medium"}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    height: isMobile ? 56 : 'auto'
+                  }
+                }}
+              >
                 <InputLabel>單位類型</InputLabel>
                 <Select
                   value={newUnit.isBaseUnit ? 'base' : 'package'}
                   onChange={(e) => setNewUnit({ ...newUnit, isBaseUnit: e.target.value === 'base' })}
                   label="單位類型"
+                  variant="outlined"
                 >
                   <MenuItem value="package">包裝單位</MenuItem>
                   <MenuItem value="base">基礎單位</MenuItem>
@@ -415,14 +565,33 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowAddDialog(false)}>
+        <DialogActions sx={{
+          px: isMobile ? 2 : 3,
+          pb: isMobile ? 2 : 2,
+          gap: isMobile ? 1 : 0.5,
+          flexDirection: isMobile ? 'column-reverse' : 'row'
+        }}>
+          <Button
+            onClick={() => setShowAddDialog(false)}
+            size={isMobile ? "large" : "medium"}
+            fullWidth={isMobile}
+            sx={{
+              height: isMobile ? 48 : 'auto',
+              fontSize: isMobile ? '1rem' : '0.875rem'
+            }}
+          >
             取消
           </Button>
-          <Button 
+          <Button
             onClick={handleAddUnit}
             variant="contained"
+            size={isMobile ? "large" : "medium"}
             disabled={!newUnit.unitName || !newUnit.unitValue}
+            fullWidth={isMobile}
+            sx={{
+              height: isMobile ? 48 : 'auto',
+              fontSize: isMobile ? '1rem' : '0.875rem'
+            }}
           >
             新增
           </Button>

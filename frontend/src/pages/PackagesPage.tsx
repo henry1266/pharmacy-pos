@@ -100,7 +100,7 @@ const PackagesPage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (packageToDelete) {
       try {
-        await deletePackage(packageToDelete.id || packageToDelete._id!);
+        await deletePackage(packageToDelete._id!);
         setDeleteDialogOpen(false);
         setPackageToDelete(null);
       } catch (error) {
@@ -112,7 +112,7 @@ const PackagesPage: React.FC = () => {
   // 處理切換啟用狀態
   const handleToggleActive = async (pkg: Package) => {
     try {
-      await togglePackageActive(pkg.id || pkg._id!);
+      await togglePackageActive(pkg._id!);
     } catch (error) {
       console.error('切換套餐狀態失敗:', error);
     }
@@ -138,7 +138,7 @@ const PackagesPage: React.FC = () => {
     try {
       if (editMode && selectedPackage) {
         // 更新套餐
-        await PackageService.updatePackage(selectedPackage.id || selectedPackage._id!, packageData as PackageUpdateRequest);
+        await PackageService.updatePackage(selectedPackage._id!, packageData as PackageUpdateRequest);
       } else {
         // 新增套餐
         await PackageService.createPackage(packageData as PackageCreateRequest);
@@ -366,7 +366,7 @@ const PackagesPage: React.FC = () => {
       {/* 套餐列表 */}
       <Grid container spacing={2}>
         {filteredPackages.map((pkg) => (
-          <Grid item xs={12} md={6} lg={4} key={pkg.id || pkg._id}>
+          <Grid item xs={12} md={6} lg={4} key={pkg._id}>
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flexGrow: 1 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>

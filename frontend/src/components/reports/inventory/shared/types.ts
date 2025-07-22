@@ -2,6 +2,8 @@
  * 庫存報表模組共用型別定義
  */
 
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
+
 // 篩選條件的型別
 export interface InventoryFilterValues {
   supplier?: string;
@@ -43,6 +45,7 @@ export interface GroupedProduct {
   totalPotentialRevenue: number;
   totalPotentialProfit: number;
   transactions: Transaction[];
+  packageUnits?: ProductPackageUnit[];
 }
 
 // 交易項目的型別
@@ -70,6 +73,7 @@ export interface TransactionItem {
   lastUpdated?: Date;
   totalAmount?: number;
   orderNumber?: string;
+  packageUnits?: ProductPackageUnit[];
 }
 
 // 圖表數據項目的型別

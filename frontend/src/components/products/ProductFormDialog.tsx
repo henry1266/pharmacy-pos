@@ -14,9 +14,14 @@ import {
   CircularProgress,
   SelectChangeEvent,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Typography,
+  Divider,
+  Box
 } from '@mui/material';
 import { getProductCategories } from '../../services/productCategoryService';
+import { PackageUnitsConfig } from '../package-units';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 /**
  * 產品介面
@@ -38,6 +43,7 @@ interface Product {
   supplier?: string;
   description?: string;
   excludeFromStock?: boolean;
+  packageUnits?: ProductPackageUnit[];
   [key: string]: any;
 }
 
@@ -72,6 +78,7 @@ interface ProductFormDialogProps {
   categories?: Category[];
   handleInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
   handleSave: () => void;
+  onPackageUnitsChange?: (packageUnits: ProductPackageUnit[]) => void;
 }
 
 /**
@@ -88,6 +95,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
   categories: propCategories = [],
   handleInputChange,
   handleSave,
+  onPackageUnitsChange,
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(false);
@@ -349,6 +357,28 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               }
               label="不扣庫存（毛利以數量×(售價-進價)計算）"
             />
+          </Grid>
+
+          {/* 包裝單位配置區塊 */}
+          <Grid item xs={12} {...({} as any)}>
+            <Divider sx={{ my: 2 }} />
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" sx={{ mb: 1, color: 'primary.main' }}>
+                包裝單位配置
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                設定商品的包裝單位，例如：1盒=10排，1排=10粒。系統將自動進行單位轉換和顯示。
+              </Typography>
+            </Box>
+            
+            {onPackageUnitsChange && (
+              <PackageUnitsConfig
+                productId={currentProduct?.id}
+                packageUnits={currentProduct?.packageUnits || []}
+                onPackageUnitsChange={onPackageUnitsChange}
+                disabled={false}
+              />
+            )}
           </Grid>
         </Grid>
       </DialogContent>

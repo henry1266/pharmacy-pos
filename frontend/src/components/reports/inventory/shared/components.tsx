@@ -37,6 +37,7 @@ import {
   sortTransactionsByOrderNumber
 } from './utils';
 import SingleProductProfitLossChart from '../SingleProductProfitLossChart';
+import { PackageInventoryDisplay } from '../../../package-units';
 
 // 自定義懸浮視窗組件
 export const CustomTooltip: FC<CustomTooltipProps> = ({ 
@@ -192,7 +193,21 @@ export const ExpandableRow: FC<ExpandableRowProps> = ({ item, formatCurrency: fo
         <TableCell>{item.productName}</TableCell>
         <TableCell>{item.category}</TableCell>
         <TableCell>{item.supplier ? item.supplier.name : '-'}</TableCell>
-        <TableCell align="right">{item.totalQuantity}</TableCell>
+        <TableCell align="right">
+          <Box>
+            <Typography variant="body2" component="div">
+              {item.totalQuantity}
+            </Typography>
+            {/* 包裝單位顯示 */}
+            {item.packageUnits && item.packageUnits.length > 0 && (
+              <PackageInventoryDisplay
+                totalQuantity={item.totalQuantity}
+                packageUnits={item.packageUnits}
+                variant="compact"
+              />
+            )}
+          </Box>
+        </TableCell>
         <TableCell>{item.unit}</TableCell>
         <TableCell align="right">{formatCurrencyProp(item.price)}</TableCell>
         <TableCell align="right">{formatCurrencyProp(item.totalInventoryValue)}</TableCell>
@@ -387,30 +402,51 @@ export const ErrorAlert: FC<{ message: string }> = ({ message }) => (
 export const SummaryCards: FC<{
   totalInventoryQuantity: number;
   totalProfitLoss: number;
-}> = ({ totalInventoryQuantity, totalProfitLoss }) => (
-  <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-    <Paper sx={{ flex: 1, p: 2 }}>
-      <Typography variant="h6" color="primary" gutterBottom>
-        總庫存數量
-      </Typography>
-      <Typography variant="h4" component="div">
-        {totalInventoryQuantity.toLocaleString()}
-      </Typography>
-    </Paper>
-    <Paper sx={{ flex: 1, p: 2 }}>
-      <Typography variant="h6" color="secondary" gutterBottom>
-        總損益
-      </Typography>
-      <Typography
-        variant="h4"
-        component="div"
-        sx={{ color: totalProfitLoss >= 0 ? 'success.main' : 'error.main' }}
-      >
-        {formatCurrency(totalProfitLoss)}
-      </Typography>
-    </Paper>
-  </Box>
-);
+  groupedData?: any[];
+}> = ({ totalInventoryQuantity, totalProfitLoss, groupedData = [] }) => {
+  // 計算總包裝單位顯示（取第一個有包裝單位的產品作為示例）
+  const sampleProductWithPackages = groupedData.find(product =>
+    product.packageUnits && product.packageUnits.length > 0
+  );
+
+  return (
+    <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+      <Paper sx={{ flex: 1, p: 2 }}>
+        <Typography variant="h6" color="primary" gutterBottom>
+          總庫存數量
+        </Typography>
+        <Typography variant="h4" component="div">
+          {totalInventoryQuantity.toLocaleString()}
+        </Typography>
+        {/* 如果有包裝單位配置的產品，顯示包裝單位總計示例 */}
+        {sampleProductWithPackages && (
+          <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              包裝單位總計示例：
+            </Typography>
+            <PackageInventoryDisplay
+              totalQuantity={totalInventoryQuantity}
+              packageUnits={sampleProductWithPackages.packageUnits}
+              variant="compact"
+            />
+          </Box>
+        )}
+      </Paper>
+      <Paper sx={{ flex: 1, p: 2 }}>
+        <Typography variant="h6" color="secondary" gutterBottom>
+          總損益
+        </Typography>
+        <Typography
+          variant="h4"
+          component="div"
+          sx={{ color: totalProfitLoss >= 0 ? 'success.main' : 'error.main' }}
+        >
+          {formatCurrency(totalProfitLoss)}
+        </Typography>
+      </Paper>
+    </Box>
+  );
+};
 
 // 庫存數據表格組件
 export const InventoryDataTable: FC<{
@@ -507,7 +543,8 @@ ErrorAlert.propTypes = {
 
 SummaryCards.propTypes = {
   totalInventoryQuantity: PropTypes.number.isRequired,
-  totalProfitLoss: PropTypes.number.isRequired
+  totalProfitLoss: PropTypes.number.isRequired,
+  groupedData: PropTypes.array
 };
 
 InventoryDataTable.propTypes = {

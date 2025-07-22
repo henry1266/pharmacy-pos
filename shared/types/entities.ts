@@ -3,6 +3,8 @@
  * 這些型別在前後端都會使用
  */
 
+import { ProductPackageUnit } from './package';
+
 /**
  * 基礎時間戳記介面
  */
@@ -94,6 +96,7 @@ export interface BaseProduct {
   productType?: 'product' | 'medicine';
   isActive?: boolean;
   excludeFromStock?: boolean; // 不扣庫存選項
+  packageUnits?: ProductPackageUnit[]; // 包裝單位配置
   date?: string | Date;
   createdAt: string | Date;
   updatedAt: string | Date;

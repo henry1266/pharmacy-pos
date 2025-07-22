@@ -59,6 +59,7 @@ const InventoryTable: FC<InventoryTableProps> = ({ filters }) => {
       <SummaryCards
         totalInventoryQuantity={totalInventoryQuantity}
         totalProfitLoss={totalProfitLoss}
+        groupedData={groupedData}
       />
 
       {/* 庫存表格 */}

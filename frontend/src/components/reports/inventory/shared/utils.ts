@@ -203,7 +203,8 @@ export const processInventoryData = (data: TransactionItem[]): {
         totalInventoryValue: 0,
         totalPotentialRevenue: 0,
         totalPotentialProfit: 0,
-        transactions: []
+        transactions: [],
+        packageUnits: item.packageUnits || []
       };
     }
     

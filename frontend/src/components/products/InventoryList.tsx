@@ -26,6 +26,8 @@ import {
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import { Product } from '@pharmacy-pos/shared/types/entities';
+import { PackageInventoryDisplay } from '../package-units';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import ChartModal from './ChartModal';
 
 // 擴展 Product 型別以包含可能的 sellingPrice 和 excludeFromStock 屬性
@@ -78,9 +80,10 @@ interface OrderInfo {
 interface InventoryListProps {
   productId: string;
   productName?: string;
+  packageUnits?: ProductPackageUnit[];
 }
 
-const InventoryList: React.FC<InventoryListProps> = ({ productId, productName }) => {
+const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, packageUnits }) => {
   const [inventories, setInventories] = useState<InventoryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -498,6 +501,18 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName })
                 >
                   {currentStock}
                 </Typography>
+                
+                {/* 包裝單位顯示 */}
+                {packageUnits && packageUnits.length > 0 && currentStock > 0 && (
+                  <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <PackageInventoryDisplay
+                      totalQuantity={currentStock}
+                      packageUnits={packageUnits}
+                      showBreakdown={true}
+                      variant="compact"
+                    />
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>

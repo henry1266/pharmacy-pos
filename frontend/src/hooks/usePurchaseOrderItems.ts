@@ -1,6 +1,7 @@
 import { useState, useCallback, RefObject, ChangeEvent } from 'react';
 import { productServiceV2 } from '../services/productServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 /**
  * 當前項目介面
@@ -11,6 +12,7 @@ interface CurrentItem {
   dquantity: string;
   dtotalCost: string;
   product: string | null; // 產品ID
+  packageUnits?: ProductPackageUnit[];
 }
 
 /**
@@ -82,6 +84,7 @@ const usePurchaseOrderItems = ({
     dquantity: '',
     dtotalCost: '',
     product: null, // 產品ID
+    packageUnits: [], // 包裝單位數據
   });
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
   const [editingItem, setEditingItem] = useState<CurrentItem | null>(null);
@@ -101,9 +104,10 @@ const usePurchaseOrderItems = ({
         did: newValue.code, // 使用產品代碼作為 'did'
         dname: newValue.name,
         product: newValue._id, // 存儲實際的產品ID
+        packageUnits: newValue.packageUnits || [], // 傳遞包裝單位數據
       }));
     } else {
-      setCurrentItem(prev => ({ ...prev, did: '', dname: '', product: null }));
+      setCurrentItem(prev => ({ ...prev, did: '', dname: '', product: null, packageUnits: [] }));
     }
   }, []);
 
@@ -128,7 +132,7 @@ const usePurchaseOrderItems = ({
       }
     }
 
-    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
+    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null, packageUnits: [] });
     if (productInputRef.current) {
         setTimeout(() => productInputRef.current?.focus(), 100);
     }
