@@ -874,6 +874,31 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
           </Grid>
         </Grid>
         
+        {/* 總計區域 - 水平對齊 */}
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          {/* 來源總計 */}
+          <Grid item xs={12} md={6}>
+            {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
+              <Box sx={{ pt: 2, pb: 2, borderTop: '1px solid #e0e0e0', minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                  來源總計：{formatAmount(transaction.totalAmount || 0)}
+                </Typography>
+              </Box>
+            )}
+          </Grid>
+          
+          {/* 流向總計 */}
+          <Grid item xs={12} md={6}>
+            {transaction.referencedByInfo && transaction.referencedByInfo.length > 0 && (
+              <Box sx={{ pt: 2, pb: 2, borderTop: '1px solid #e0e0e0', minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
+                  流向總計：{formatAmount(calculateFlowTotal())}
+                </Typography>
+              </Box>
+            )}
+          </Grid>
+        </Grid>
+        
       </CardContent>
     </Card>
   );

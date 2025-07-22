@@ -181,15 +181,10 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
           </Grid>
           
           <Grid item xs={6}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <ReceiptIcon fontSize="small" />
-              <Typography variant="body2" color="text.secondary">
-                交易編號
-              </Typography>
-            </Box>
-            <Typography variant="body1" fontWeight="medium">
-              {transaction.groupNumber}
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              交易流向
             </Typography>
+            {renderTransactionFlow()}
           </Grid>
 
           <Grid item xs={6}>
@@ -205,13 +200,6 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
           </Grid>
 
           <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              交易流向
-            </Typography>
-            {renderTransactionFlow()}
-          </Grid>
-
-          <Grid item xs={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <MoneyIcon fontSize="small" />
               <Typography variant="body2" color="text.secondary">
@@ -223,18 +211,20 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
             </Typography>
           </Grid>
 
-          <Grid item xs={6}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              交易狀態
-            </Typography>
-            <Chip
-              label={statusInfo.label}
-              color={statusInfo.color as any}
-              size="small"
-            />
-          </Grid>
 
           <Grid item xs={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <ReceiptIcon fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                交易編號
+              </Typography>
+            </Box>
+            <Typography variant="body1" fontWeight="medium">
+              {transaction.groupNumber}
+            </Typography>
+          </Grid>
+
+                    <Grid item xs={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <MoneyIcon fontSize="small" />
               <Typography variant="body2" color="text.secondary">
@@ -259,6 +249,19 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
               </Typography>
             )}
           </Grid>
+          
+          <Grid item xs={6}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              交易狀態
+            </Typography>
+            <Chip
+              label={statusInfo.label}
+              color={statusInfo.color as any}
+              size="small"
+            />
+          </Grid>
+
+
 
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
