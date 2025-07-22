@@ -33,6 +33,72 @@ interface FundingStatusDisplayProps {
   transaction: ExtendedTransactionGroupWithEntries;
 }
 
+// 工具函數 - 提取到組件外部避免重複創建
+const formatDate = (date: Date | string) => {
+  const d = new Date(date);
+  return d.toLocaleDateString('zh-TW');
+};
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('zh-TW', {
+    style: 'currency',
+    currency: 'TWD'
+  }).format(amount);
+};
+
+const calculateTotalAmount = (entries: any[]) => {
+  return entries.reduce((total, entry) => total + (entry.debitAmount || 0), 0);
+};
+
+// 可重用的詳情項目組件
+const DetailItem: React.FC<{
+  label: string;
+  value: string;
+  isLast?: boolean;
+}> = ({ label, value, isLast = false }) => (
+  <Box sx={{
+    mb: 1,
+    pb: 1,
+    borderBottom: !isLast ? '1px solid rgba(255,255,255,0.2)' : 'none'
+  }}>
+    <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+      <strong>{label}：</strong>{value}
+    </Typography>
+  </Box>
+);
+
+// 可重用的摘要項目組件
+const SummaryItem: React.FC<{
+  label: string;
+  value: string;
+  isBold?: boolean;
+}> = ({ label, value, isBold = false }) => (
+  <Typography
+    variant="caption"
+    display="block"
+    sx={{ fontWeight: isBold ? 'bold' : 'normal' }}
+  >
+    <strong>{label}：</strong>{value}
+  </Typography>
+);
+
+// 可重用的 Tooltip 內容組件
+const TooltipContent: React.FC<{
+  title: string;
+  items: React.ReactNode;
+  summary: React.ReactNode;
+}> = ({ title, items, summary }) => (
+  <Box>
+    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+      {title}
+    </Typography>
+    {items}
+    <Box sx={{ mt: 1, borderTop: '1px solid rgba(255,255,255,0.2)', pt: 1 }}>
+      {summary}
+    </Box>
+  </Box>
+);
+
 /**
  * 資金狀態顯示組件
  * 顯示交易的資金來源和使用狀態
@@ -40,25 +106,6 @@ interface FundingStatusDisplayProps {
 export const FundingStatusDisplay: React.FC<FundingStatusDisplayProps> = ({
   transaction
 }) => {
-  // 格式化日期
-  const formatDate = (date: Date | string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('zh-TW');
-  };
-
-  // 格式化貨幣
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD'
-    }).format(amount);
-  };
-
-  // 計算交易群組總金額
-  const calculateTotalAmount = (entries: any[]) => {
-    return entries.reduce((total, entry) => total + (entry.debitAmount || 0), 0);
-  };
-
   // 計算剩餘可用金額（使用後端提供的精確資料）
   const calculateAvailableAmount = (group: ExtendedTransactionGroupWithEntries) => {
     const totalAmount = calculateTotalAmount(group.entries);
@@ -101,6 +148,63 @@ export const FundingStatusDisplay: React.FC<FundingStatusDisplayProps> = ({
     return 'error';
   };
 
+  // 渲染資金來源詳情
+  const renderFundingSourceDetails = (usages: NonNullable<ExtendedTransactionGroupWithEntries['fundingSourceUsages']>) => {
+    return (
+      <>
+        {usages.map((usage, index) => (
+          <DetailItem
+            key={usage.sourceTransactionId}
+            label={`來源 ${index + 1}`}
+            value={`${usage.sourceTransactionDescription || '未知交易'} (編號: ${usage.sourceTransactionGroupNumber || 'N/A'}) - ${formatCurrency(usage.usedAmount)}`}
+            isLast={index === usages.length - 1}
+          />
+        ))}
+      </>
+    );
+  };
+
+  // 渲染引用詳情
+  const renderReferenceDetails = (references: NonNullable<ExtendedTransactionGroupWithEntries['referencedByInfo']>) => {
+    return (
+      <>
+        {references.map((ref, index) => (
+          <DetailItem
+            key={ref._id}
+            label={`${formatDate(ref.transactionDate)} - ${ref.groupNumber}`}
+            value={`${ref.description} (${formatCurrency(ref.totalAmount)})`}
+            isLast={index === references.length - 1}
+          />
+        ))}
+      </>
+    );
+  };
+
+  // 可重用的 Tooltip 包裝組件
+  const TooltipWrapper: React.FC<{
+    title: string;
+    count: number;
+    details: React.ReactNode;
+    summary: React.ReactNode;
+    children: React.ReactNode;
+  }> = ({ title, count, details, summary, children }) => (
+    <Tooltip
+      title={
+        <TooltipContent
+          title={`${title} (${count} 筆)`}
+          items={details}
+          summary={summary}
+        />
+      }
+      arrow
+      placement="left"
+    >
+      <Stack direction="column" spacing={0.5} alignItems="center">
+        {children}
+      </Stack>
+    </Tooltip>
+  );
+
   // 渲染整合的資金狀態
   const renderIntegratedFundingStatus = () => {
     const totalAmount = calculateTotalAmount(transaction.entries);
@@ -113,48 +217,23 @@ export const FundingStatusDisplay: React.FC<FundingStatusDisplayProps> = ({
       const totalUsedAmount = transaction.fundingSourceUsages!.reduce((sum, usage) => sum + usage.usedAmount, 0);
       
       return (
-        <Tooltip
-          title={
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                💰 資金來源追蹤 ({transaction.fundingSourceUsages!.length} 筆)
-              </Typography>
-              
-              {transaction.fundingSourceUsages!.map((usage, index) => (
-                <Box key={usage.sourceTransactionId} sx={{ mb: 1, pb: 1, borderBottom: index < transaction.fundingSourceUsages!.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
-                  <Typography variant="caption" display="block" sx={{ mb: 0.5, fontWeight: 'bold' }}>
-                    來源 {index + 1}: {usage.sourceTransactionDescription || '未知交易'}
-                  </Typography>
-                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
-                    <strong>編號：</strong>{usage.sourceTransactionGroupNumber || 'N/A'}
-                  </Typography>
-                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
-                    <strong>使用金額：</strong>{formatCurrency(usage.usedAmount)}
-                  </Typography>
-                </Box>
-              ))}
-              
-              <Typography variant="caption" display="block" sx={{ mt: 1, fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)', pt: 1 }}>
-                <strong>總使用金額：</strong>{formatCurrency(totalUsedAmount)}
-              </Typography>
-            </Box>
-          }
-          arrow
-          placement="left"
+        <TooltipWrapper
+          title="💰 資金來源追蹤"
+          count={transaction.fundingSourceUsages!.length}
+          details={renderFundingSourceDetails(transaction.fundingSourceUsages!)}
+          summary={<SummaryItem label="總使用金額" value={formatCurrency(totalUsedAmount)} isBold />}
         >
-          <Stack direction="column" spacing={0.5} alignItems="center">
-            <Chip
-              label={`💰 ${transaction.fundingSourceUsages!.length} 筆`}
-              size="small"
-              variant="outlined"
-              color="primary"
-              sx={{ cursor: 'help' }}
-            />
-            <Typography variant="caption" color="text.secondary">
-              {formatCurrency(totalUsedAmount)}
-            </Typography>
-          </Stack>
-        </Tooltip>
+          <Chip
+            label={`💰 ${transaction.fundingSourceUsages!.length} 筆`}
+            size="small"
+            variant="outlined"
+            color="primary"
+            sx={{ cursor: 'help' }}
+          />
+          <Typography variant="caption" color="text.secondary">
+            {formatCurrency(totalUsedAmount)}
+          </Typography>
+        </TooltipWrapper>
       );
     }
     
@@ -163,55 +242,33 @@ export const FundingStatusDisplay: React.FC<FundingStatusDisplayProps> = ({
       const color = getAvailableAmountColor(availableAmount, totalAmount);
       
       return (
-        <Tooltip
-          title={
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                🔗 被引用情況 ({transaction.referencedByInfo!.length} 筆)
-              </Typography>
-              
-              {transaction.referencedByInfo!.map((ref, index) => (
-                <Box key={ref._id} sx={{ mb: 1, pb: 1, borderBottom: index < transaction.referencedByInfo!.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
-                  <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
-                    <strong>{formatDate(ref.transactionDate)}</strong> - {ref.groupNumber}
-                  </Typography>
-                  <Typography variant="caption" display="block" color="text.secondary">
-                    {ref.description} ({formatCurrency(ref.totalAmount)})
-                  </Typography>
-                </Box>
-              ))}
-              
-              <Typography variant="caption" display="block" sx={{ mt: 1, fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)', pt: 1 }}>
-                <strong>總金額：</strong>{formatCurrency(totalAmount)}
-              </Typography>
-              <Typography variant="caption" display="block">
-                <strong>已使用：</strong>{formatCurrency(totalAmount - availableAmount)}
-              </Typography>
-              <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
-                <strong>剩餘可用：</strong>{formatCurrency(availableAmount)}
-              </Typography>
-            </Box>
+        <TooltipWrapper
+          title="🔗 被引用情況"
+          count={transaction.referencedByInfo!.length}
+          details={renderReferenceDetails(transaction.referencedByInfo!)}
+          summary={
+            <>
+              <SummaryItem label="總金額" value={formatCurrency(totalAmount)} />
+              <SummaryItem label="已使用" value={formatCurrency(totalAmount - availableAmount)} />
+              <SummaryItem label="剩餘可用" value={formatCurrency(availableAmount)} isBold />
+            </>
           }
-          arrow
-          placement="left"
         >
-          <Stack direction="column" spacing={0.5} alignItems="center">
-            <Chip
-              icon={<LinkIcon />}
-              label={` ${transaction.referencedByInfo!.length} 筆`}
-              color="warning"
-              size="small"
-              variant="outlined"
-              sx={{ cursor: 'help' }}
-            />
-            <Chip
-              label={formatCurrency(availableAmount)}
-              color={color}
-              size="small"
-              variant={availableAmount === totalAmount ? 'filled' : 'outlined'}
-            />
-          </Stack>
-        </Tooltip>
+          <Chip
+            icon={<LinkIcon />}
+            label={` ${transaction.referencedByInfo!.length} 筆`}
+            color="warning"
+            size="small"
+            variant="outlined"
+            sx={{ cursor: 'help' }}
+          />
+          <Chip
+            label={formatCurrency(availableAmount)}
+            color={color}
+            size="small"
+            variant={availableAmount === totalAmount ? 'filled' : 'outlined'}
+          />
+        </TooltipWrapper>
       );
     }
     

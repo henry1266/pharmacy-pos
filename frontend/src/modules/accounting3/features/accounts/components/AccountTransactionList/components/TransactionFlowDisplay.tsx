@@ -7,7 +7,7 @@ import {
 import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 import { TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
 
-// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
+// 共享型別定義 - 應該提取到共享文件中
 interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
   referencedByInfo?: Array<{
     _id: string;
@@ -31,6 +31,50 @@ interface TransactionFlowDisplayProps {
   transaction: ExtendedTransactionGroupWithEntries;
 }
 
+// 可重用的 Chip 樣式配置
+const FLOW_CHIP_STYLES = {
+  fontSize: '0.75rem',
+  height: 24,
+  maxWidth: 80,
+  '& .MuiChip-label': {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    fontSize: '0.75rem'
+  }
+} as const;
+
+// 可重用的流向 Chip 組件
+const FlowChip: React.FC<{
+  label: string;
+  color: 'primary' | 'secondary';
+  position: 'from' | 'to';
+}> = ({ label, color, position }) => (
+  <Chip
+    label={label}
+    size="small"
+    color={color}
+    sx={{
+      ...FLOW_CHIP_STYLES,
+      ...(position === 'from' ? { mr: 0.5 } : { ml: 0.5 })
+    }}
+  />
+);
+
+// 工具函數 - 提取到組件外部
+const hasValidEntries = (entries: any[]): boolean => {
+  return entries && entries.length >= 2;
+};
+
+const getAccountEntries = (entries: any[]) => {
+  const debitEntries = entries.filter(entry => (entry.debitAmount || 0) > 0);
+  const creditEntries = entries.filter(entry => (entry.creditAmount || 0) > 0);
+  return { debitEntries, creditEntries };
+};
+
+const getAccountName = (account: any): string => {
+  return account?.accountName || '未知科目';
+};
+
 /**
  * 交易流向顯示組件
  * 顯示交易的借貸方向和科目流向
@@ -40,14 +84,14 @@ export const TransactionFlowDisplay: React.FC<TransactionFlowDisplayProps> = ({
 }) => {
   // 渲染交易流向圖
   const renderTransactionFlow = () => {
-    if (!transaction.entries || transaction.entries.length < 2) {
+    // 早期返回 - 無效的分錄資料
+    if (!hasValidEntries(transaction.entries)) {
       return <Typography variant="caption" color="text.disabled">-</Typography>;
     }
 
-    // 找到主要的借方和貸方科目
-    const debitEntries = transaction.entries.filter(entry => (entry.debitAmount || 0) > 0);
-    const creditEntries = transaction.entries.filter(entry => (entry.creditAmount || 0) > 0);
+    const { debitEntries, creditEntries } = getAccountEntries(transaction.entries);
 
+    // 早期返回 - 缺少借方或貸方分錄
     if (debitEntries.length === 0 || creditEntries.length === 0) {
       return <Typography variant="caption" color="text.disabled">-</Typography>;
     }
@@ -56,44 +100,21 @@ export const TransactionFlowDisplay: React.FC<TransactionFlowDisplayProps> = ({
     const fromAccount = creditEntries[0];
     const toAccount = debitEntries[0];
 
-    // 獲取科目名稱
-    const fromAccountName = (fromAccount as any).accountName || '未知科目';
-    const toAccountName = (toAccount as any).accountName || '未知科目';
+    const fromAccountName = getAccountName(fromAccount);
+    const toAccountName = getAccountName(toAccount);
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
-        <Chip
+        <FlowChip
           label={fromAccountName}
-          size="small"
           color="secondary"
-          sx={{
-            fontSize: '0.75rem',
-            height: 24,
-            mr: 0.5,
-            maxWidth: 80,
-            '& .MuiChip-label': {
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              fontSize: '0.75rem'
-            }
-          }}
+          position="from"
         />
         <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
-        <Chip
+        <FlowChip
           label={toAccountName}
-          size="small"
           color="primary"
-          sx={{
-            fontSize: '0.75rem',
-            height: 24,
-            ml: 0.5,
-            maxWidth: 80,
-            '& .MuiChip-label': {
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              fontSize: '0.75rem'
-            }
-          }}
+          position="to"
         />
       </Box>
     );
