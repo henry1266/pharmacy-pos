@@ -101,12 +101,12 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
 
       <Grid container spacing={3}>
         {/* 基本資訊卡片 */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={3.5}>
           <TransactionBasicInfo transaction={transaction} />
         </Grid>
 
         {/* 資金流向追蹤卡片 */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={8.5}>
           <TransactionFundingFlow transaction={transaction} />
         </Grid>
 

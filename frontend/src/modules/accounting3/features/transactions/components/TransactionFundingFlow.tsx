@@ -166,60 +166,21 @@ const TransactionTable: React.FC<{ children: React.ReactNode }> = ({ children })
 
 // 流向區塊組件
 const FlowSection: React.FC<{
-  type: keyof typeof SECTION_STYLES;
   title: string;
   count?: number;
   children: React.ReactNode;
   summary?: React.ReactNode;
-  borderRadius?: string;
-}> = ({ type, title, count, children, summary, borderRadius = '8px 8px 0 0' }) => {
-  const style = SECTION_STYLES[type];
-  
+}> = ({ title, count, children, summary }) => {
   return (
-    <Box sx={{
-      mb: 1,
-      p: 2,
-      pl: 6,
-      borderRadius,
-      border: `4px solid ${style.borderColor}`,
-      borderBottom: type === 'current' ? `2px solid ${style.borderColor}` : `2px solid ${style.borderColor}`,
-      borderTop: type === 'source' ? `4px solid ${style.borderColor}` : `2px solid ${style.borderColor}`,
-      position: 'relative',
-      '&::after': {
-        content: `"${style.icon}\\A${style.label.split('').join('\\A')}"`,
-        whiteSpace: 'pre-line',
-        position: 'absolute',
-        top: '50%',
-        left: -2,
-        transform: 'translateY(-50%)',
-        bgcolor: style.borderColor,
-        color: 'white',
-        px: 1,
-        py: 2,
-        borderRadius: 1,
-        fontSize: '0.7rem',
-        fontWeight: 'bold',
-        zIndex: 1,
-        lineHeight: 1.1,
-        textAlign: 'center',
-        display: 'block',
-        width: '20px'
-      }
-    }}>
+    <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Typography variant="subtitle2" sx={{
-          color: style.iconColor,
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.5
-        }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
           {title}
         </Typography>
         {count !== undefined && count > 0 && (
           <Chip
             label={`${count} 筆`}
-            color={style.chipColor}
+            color="primary"
             size="small"
           />
         )}
@@ -228,7 +189,7 @@ const FlowSection: React.FC<{
       {children}
       
       {summary && (
-        <Box sx={{ mt: 2, p: 1, bgcolor: style.bgColor, borderRadius: 1 }}>
+        <Box sx={{ mt: 2, p: 1, bgcolor: 'white', borderRadius: 1 }}>
           {summary}
         </Box>
       )}
@@ -841,88 +802,75 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         </Typography>
         <Divider sx={{ mb: 2 }} />
         
-        {/* 來源區塊 */}
-        {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
-          <FlowSection
-            type="source"
-            title="來源"
-            count={(transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0)}
-            borderRadius="8px 8px 0 0"
-            summary={
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                來源總計：{formatAmount(calculateSourceTotal())}
-              </Typography>
-            }
-          >
-            {transaction.sourceTransactionId && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  資金來源交易
-                </Typography>
-                {renderSourceTransaction()}
-              </Box>
+        {/* 兩欄式佈局 */}
+        <Grid container spacing={2}>
+          {/* 左欄：來源區塊 */}
+          <Grid item xs={12} md={6}>
+            {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
+              <FlowSection
+                title="來源"
+                count={(transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0)}
+                summary={
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                    來源總計：{formatAmount(calculateSourceTotal())}
+                  </Typography>
+                }
+              >
+                {transaction.sourceTransactionId && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      資金來源交易
+                    </Typography>
+                    {renderSourceTransaction()}
+                  </Box>
+                )}
+                {renderLinkedTransactions()}
+              </FlowSection>
             )}
-            {renderLinkedTransactions()}
-          </FlowSection>
-        )}
-        
-        {/* 交易區塊 */}
-        <FlowSection
-          type="current"
-          title="交易"
-          borderRadius="0"
-        >
-          <TransactionTable>
-            <TransactionTableRow
-              transactionInfo={transaction}
-              transactionId={transaction._id}
-              index={-1}
-              type="current"
-            />
-          </TransactionTable>
-        </FlowSection>
-        
-        {/* 流向區塊 */}
-        <FlowSection
-          type="flow"
-          title="流向"
-          count={transaction.referencedByInfo?.length}
-          borderRadius="0 0 8px 8px"
-          summary={
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#f57c00' }}>
-              剩餘餘額：{formatAmount(calculateRemainingAmount())}
-            </Typography>
-          }
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            {(() => {
-              const usedAmount = transaction.referencedByInfo
-                ?.filter(ref => ref.status !== 'cancelled')
-                .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
-              
-              if (usedAmount > 0 && usedAmount < transaction.totalAmount) {
-                return (
-                  <Chip
-                    label="部分已使用"
-                    color="info"
-                    size="small"
-                  />
-                );
-              } else if (usedAmount >= transaction.totalAmount) {
-                return (
-                  <Chip
-                    label="已全部使用"
-                    color="error"
-                    size="small"
-                  />
-                );
-              }
-              return null;
-            })()}
-          </Box>
+          </Grid>
           
-          {renderReferencedByInfo()}
-        </FlowSection>
+          {/* 右欄：流向區塊 */}
+          <Grid item xs={12} md={6}>
+            <FlowSection
+              title="流向"
+              count={transaction.referencedByInfo?.length}
+              summary={
+                <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#f57c00' }}>
+                  剩餘餘額：{formatAmount(calculateRemainingAmount())}
+                </Typography>
+              }
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                {(() => {
+                  const usedAmount = transaction.referencedByInfo
+                    ?.filter(ref => ref.status !== 'cancelled')
+                    .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
+                  
+                  if (usedAmount > 0 && usedAmount < transaction.totalAmount) {
+                    return (
+                      <Chip
+                        label="部分已使用"
+                        color="info"
+                        size="small"
+                      />
+                    );
+                  } else if (usedAmount >= transaction.totalAmount) {
+                    return (
+                      <Chip
+                        label="已全部使用"
+                        color="error"
+                        size="small"
+                      />
+                    );
+                  }
+                  return null;
+                })()}
+              </Box>
+              
+              {renderReferencedByInfo()}
+            </FlowSection>
+          </Grid>
+        </Grid>
       </CardContent>
     </Card>
   );
