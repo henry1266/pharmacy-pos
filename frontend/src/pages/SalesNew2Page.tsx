@@ -36,7 +36,7 @@ import CustomProductsDialog from '../components/sales/CustomProductsDialog';
 import SaleInfoCard from '../components/sales/SaleInfoCard';
 import SalesProductInput from '../components/sales/SalesProductInput';
 import SalesItemsTable from '../components/sales/SalesItemsTable';
-import DailySalesPanel from '../components/sales/DailySalesPanel';
+import DailySalesPanel from '../components/dashboard/panels/DailySalesPanel';
 import CheckoutSuccessEffect from '../components/sales/CheckoutSuccessEffect';
 
 // Import types

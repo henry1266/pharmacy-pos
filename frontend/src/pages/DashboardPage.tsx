@@ -33,7 +33,7 @@ import useAccountingData from '../hooks/useAccountingData';
 import DashboardCalendar from '../components/dashboard/DashboardCalendar';
 import DailySchedulePanel from '../components/dashboard/DailySchedulePanel';
 import StatusChip from '../components/common/StatusChip';
-import DailySalesPanel from '../components/sales/DailySalesPanel';
+import DailySalesPanel from '../components/dashboard/panels/DailySalesPanel';
 import AccountingForm from '../components/accounting/AccountingForm';
 
 // Import Services

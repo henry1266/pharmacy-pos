@@ -33,8 +33,8 @@ import {
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import type { PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
-import { purchaseOrderServiceV2 } from '../../services/purchaseOrderServiceV2';
-import WildcardSearchHelp from '../common/WildcardSearchHelp';
+import { purchaseOrderServiceV2 } from '../../../services/purchaseOrderServiceV2';
+import WildcardSearchHelp from '../../common/WildcardSearchHelp';
 
 interface DailyPurchasePanelProps {
   purchaseOrders: PurchaseOrder[];

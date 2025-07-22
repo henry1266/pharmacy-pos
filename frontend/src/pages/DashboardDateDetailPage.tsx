@@ -22,7 +22,7 @@ import StatusChip from '../components/common/StatusChip';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
 import type { PurchaseOrder, ShippingOrder } from '@pharmacy-pos/shared/types/entities';
-import DailyPurchasePanel from '../components/purchase/DailyPurchasePanel';
+import DailyPurchasePanel from '../components/dashboard/panels/DailyPurchasePanel';
 import DailyShippingPanel from '../components/shipping/DailyShippingPanel';
 
 interface DailyStats {
