@@ -78,18 +78,19 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
   }, [items.length]);
   
   return (
-    <TableContainer 
+    <TableContainer
       component={Paper}
-      sx={{ 
-        maxHeight: '350px', 
-        overflow: 'auto' 
+      sx={{
+        height: '100%',
+        maxHeight: '100%',
+        overflow: 'auto'
       }}
       ref={tableContainerRef}
     >
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell align="center" width="60px">序號</TableCell>
+            <TableCell align="center" width="80px">序號</TableCell>
             <TableCell>藥品代碼</TableCell>
             <TableCell>藥品名稱</TableCell>
             <TableCell align="right">數量</TableCell>

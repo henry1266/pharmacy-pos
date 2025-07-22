@@ -552,7 +552,16 @@ const PurchaseOrderFormPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 1.5, md: 2 }, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{
+      p: { xs: 1, sm: 1.5, md: 2 },
+      height: 'calc(100vh - 120px)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      '@media (max-width: 600px)': {
+        height: 'calc(100vh - 56px)'
+      }
+    }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h5" component="h1">
           {isEditMode ? '編輯進貨單' : '新增進貨單'}
