@@ -1,17 +1,12 @@
-import React, { useEffect, useRef, FC, ChangeEvent } from 'react';
+import React, { useEffect, useRef, FC, ChangeEvent, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
 import { 
   Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   IconButton,
   TextField,
-  Typography
+  Typography,
+  Divider
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -22,7 +17,8 @@ import {
   Close as CloseIcon,
   DragIndicator as DragIndicatorIcon
 } from '@mui/icons-material';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
+import { StrictModeDroppable } from '../common/StrictModeDroppable';
 import ProductCodeLink from '../common/ProductCodeLink';
 
 // 定義項目介面
@@ -56,7 +52,7 @@ interface ProductItemsTableProps {
  * @param {ProductItemsTableProps} props - 組件屬性
  * @returns {React.ReactElement} 藥品項目表格組件
  */
-const ProductItemsTable: FC<ProductItemsTableProps> = ({
+const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
   items,
   editingItemIndex,
   editingItem,
@@ -70,17 +66,127 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
   totalAmount,
   codeField
 }) => {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    if (tableContainerRef.current && items.length > 0) {
+    if (containerRef.current && items.length > 0) {
       setTimeout(() => {
-        const scrollHeight = tableContainerRef.current?.scrollHeight ?? 0;
-        tableContainerRef.current.scrollTop = scrollHeight;
+        const scrollHeight = containerRef.current?.scrollHeight ?? 0;
+        containerRef.current.scrollTop = scrollHeight;
       }, 100);
     }
   }, [items.length]);
   
+  // 使用 useCallback 穩定拖拽處理函數
+  const onDragEnd = useCallback((result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+    
+    if (handleDragEnd && typeof handleDragEnd === 'function') {
+      handleDragEnd(result);
+    }
+  }, [handleDragEnd]);
+
+  // 如果沒有項目，顯示簡化版本（不使用拖拽）
+  if (!items || items.length === 0) {
+    return (
+      <Box sx={{ height: '100%', position: 'relative' }}>
+        {/* 固定的表格標題 */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: 'white'
+          }}
+        >
+          <Paper sx={{ p: 1 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+                gap: 1,
+                alignItems: 'center',
+                minHeight: '40px',
+                fontWeight: 'bold',
+                fontSize: '1.1rem',
+                borderBottom: '2px solid #e0e0e0',
+                pb: 1
+              }}
+            >
+              <Typography variant="subtitle2" align="center">序號</Typography>
+              <Typography variant="subtitle2" align="center">藥品代碼</Typography>
+              <Typography variant="subtitle2" align="center">藥品名稱</Typography>
+              <Typography variant="subtitle2" align="center">數量</Typography>
+              <Typography variant="subtitle2" align="center">總成本</Typography>
+              <Typography variant="subtitle2" align="center">單價</Typography>
+              <Typography variant="subtitle2" align="center">操作</Typography>
+            </Box>
+          </Paper>
+        </Box>
+
+        {/* 空狀態內容 */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '56px',
+            bottom: '56px',
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="body2" color="textSecondary">
+              尚未添加藥品項目
+            </Typography>
+          </Paper>
+        </Box>
+
+        {/* 固定的總計欄 */}
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: 'white'
+          }}
+        >
+          <Paper sx={{ p: 1 }}>
+            <Divider sx={{ mb: 1 }} />
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+                gap: 1,
+                alignItems: 'center',
+                minHeight: '40px',
+                fontWeight: 'bold'
+              }}
+            >
+              <Box></Box>
+              <Box></Box>
+              <Typography variant="subtitle1" align="center">總計：</Typography>
+              <Box></Box>
+              <Typography variant="subtitle1" align="center">
+                {totalAmount.toLocaleString()}
+              </Typography>
+              <Box></Box>
+              <Box></Box>
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>
       {/* 固定的表格標題 */}
@@ -94,21 +200,29 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
           backgroundColor: 'white'
         }}
       >
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ '& > *': { padding: '6px 12px' } }}>
-                <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>序號</TableCell>
-                <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>藥品代碼</TableCell>
-                <TableCell align="center" sx={{ width: 'auto', minWidth: '180px' }}>藥品名稱</TableCell>
-                <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>數量</TableCell>
-                <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>總成本</TableCell>
-                <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>單價</TableCell>
-                <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>操作</TableCell>
-              </TableRow>
-            </TableHead>
-          </Table>
-        </TableContainer>
+        <Paper sx={{ p: 1 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+              gap: 1,
+              alignItems: 'center',
+              minHeight: '40px',
+              fontWeight: 'bold',
+              fontSize: '1.1rem',
+              borderBottom: '2px solid #e0e0e0',
+              pb: 1
+            }}
+          >
+            <Typography variant="subtitle2" align="center">序號</Typography>
+            <Typography variant="subtitle2" align="center">藥品代碼</Typography>
+            <Typography variant="subtitle2" align="center">藥品名稱</Typography>
+            <Typography variant="subtitle2" align="center">數量</Typography>
+            <Typography variant="subtitle2" align="center">總成本</Typography>
+            <Typography variant="subtitle2" align="center">單價</Typography>
+            <Typography variant="subtitle2" align="center">操作</Typography>
+          </Box>
+        </Paper>
       </Box>
 
       {/* 可滾動的表格內容 */}
@@ -122,166 +236,159 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
           overflow: 'auto'
         }}
       >
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <TableContainer
-            component={Paper}
-            sx={{ height: '100%' }}
-            ref={tableContainerRef}
-          >
-            <Table size="small">
-              <Droppable droppableId="items-table">
-                {(provided) => (
-                  <TableBody {...provided.droppableProps} ref={provided.innerRef}>
-                    {items.map((item, index) => (
-                      <Draggable
-                        key={`item-${item._id ?? index}-${index}`}
-                        draggableId={`item-${item._id ?? index}-${index}`}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <TableRow
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <StrictModeDroppable droppableId="product-items-list">
+            {(provided, snapshot) => (
+              <Paper
+                sx={{
+                  height: '100%',
+                  p: 1,
+                  backgroundColor: snapshot.isDraggingOver ? '#f5f5f5' : 'inherit'
+                }}
+                ref={containerRef}
+              >
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  style={{ minHeight: '100%' }}
+                >
+                  {items.map((item, index) => (
+                    <Draggable
+                      key={`item-${index}-${item.did || 'unknown'}`}
+                      draggableId={`item-${index}-${item.did || 'unknown'}`}
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          style={{
+                            ...provided.draggableProps.style,
+                            marginBottom: '8px'
+                          }}
+                        >
+                          <Box
                             sx={{
-                              '& > *': {
-                                padding: '4px 12px',
-                                fontSize: '1rem'
-                              },
-                              height: '40px',
-                              backgroundColor: snapshot.isDragging ? '#f5f5f5' : 'inherit',
+                              display: 'grid',
+                              gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+                              gap: 1,
+                              alignItems: 'center',
+                              minHeight: '40px',
+                              p: 1,
+                              backgroundColor: snapshot.isDragging ? '#e3f2fd' : 'white',
+                              border: snapshot.isDragging ? '2px solid #2196f3' : '1px solid #e0e0e0',
+                              borderRadius: 1,
+                              boxShadow: snapshot.isDragging ? '0 4px 8px rgba(0,0,0,0.2)' : 'none',
                               '&:hover': {
-                                backgroundColor: snapshot.isDragging ? '#f5f5f5' : '#fafafa'
+                                backgroundColor: snapshot.isDragging ? '#e3f2fd' : '#fafafa'
                               }
                             }}
                           >
-                {editingItemIndex === index && editingItem ? (
-                  // 編輯模式
-                  <>
-                            <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                                <Box {...provided.dragHandleProps} sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}>
-                                  <DragIndicatorIcon fontSize="small" sx={{ color: '#999' }} />
+                            {editingItemIndex === index && editingItem ? (
+                              // 編輯模式
+                              <>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                                  <Box {...provided.dragHandleProps} sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}>
+                                    <DragIndicatorIcon fontSize="small" sx={{ color: '#999' }} />
+                                  </Box>
+                                  <Typography variant="caption">{index + 1}</Typography>
                                 </Box>
-                                <Typography variant="caption">{index + 1}</Typography>
-                              </Box>
-                            </TableCell>
-                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        value={editingItem.did}
-                        disabled
-                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: 'auto', minWidth: '180px' }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        value={editingItem.dname}
-                        disabled
-                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        name="dquantity"
-                        type="number"
-                        value={editingItem.dquantity}
-                        onChange={handleEditingItemChange}
-                        inputProps={{ min: 0 }}
-                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        name="dtotalCost"
-                        type="number"
-                        value={editingItem.dtotalCost}
-                        onChange={handleEditingItemChange}
-                        inputProps={{ min: 0 }}
-                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
-                      <Typography variant="caption">
-                        {Number(editingItem.dquantity) > 0 ? (Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2) : '0.00'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
-                      <IconButton size="small" color="primary" onClick={handleSaveEditItem}>
-                        <CheckIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" color="error" onClick={handleCancelEditItem}>
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </>
-                ) : (
-                  // 顯示模式
-                  <>
-                    <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>
-                      <Typography variant="caption">{index + 1}</Typography>
-                    </TableCell>
-                    {/* @ts-ignore */}
-                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
-                      <ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} />
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: 'auto', minWidth: '180px' }}>
-                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>
-                        {item.dname}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
-                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>{item.dquantity}</Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>
-                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>{Number(item.dtotalCost).toLocaleString()}</Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
-                      <Typography variant="body2" sx={{ fontSize: '1rem' }}>
-                        {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
-                        <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0} sx={{ padding: '2px' }}>
-                          <ArrowUpwardIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1} sx={{ padding: '2px' }}>
-                          <ArrowDownwardIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleEditItem(index)} sx={{ padding: '2px' }}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleRemoveItem(index)} sx={{ padding: '2px' }}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  value={editingItem.did}
+                                  disabled
+                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
+                                />
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  value={editingItem.dname}
+                                  disabled
+                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
+                                />
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  name="dquantity"
+                                  type="number"
+                                  value={editingItem.dquantity}
+                                  onChange={handleEditingItemChange}
+                                  inputProps={{ min: 0 }}
+                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
+                                />
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  name="dtotalCost"
+                                  type="number"
+                                  value={editingItem.dtotalCost}
+                                  onChange={handleEditingItemChange}
+                                  inputProps={{ min: 0 }}
+                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
+                                />
+                                <Typography variant="caption" align="center">
+                                  {Number(editingItem.dquantity) > 0 ? (Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2) : '0.00'}
+                                </Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
+                                  <IconButton size="small" color="primary" onClick={handleSaveEditItem}>
+                                    <CheckIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton size="small" color="error" onClick={handleCancelEditItem}>
+                                    <CloseIcon fontSize="small" />
+                                  </IconButton>
+                                </Box>
+                              </>
+                            ) : (
+                              // 顯示模式
+                              <>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                                  <Box {...provided.dragHandleProps} sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}>
+                                    <DragIndicatorIcon fontSize="small" sx={{ color: '#999' }} />
+                                  </Box>
+                                  <Typography variant="caption">{index + 1}</Typography>
+                                </Box>
+                                <Box sx={{ textAlign: 'center' }}>
+                                  <ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} />
+                                </Box>
+                                <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
+                                  {item.dname}
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
+                                  {item.dquantity}
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
+                                  {Number(item.dtotalCost).toLocaleString()}
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
+                                  {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
+                                </Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
+                                  <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0} sx={{ padding: '2px' }}>
+                                    <ArrowUpwardIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1} sx={{ padding: '2px' }}>
+                                    <ArrowDownwardIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton size="small" onClick={() => handleEditItem(index)} sx={{ padding: '2px' }}>
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton size="small" onClick={() => handleRemoveItem(index)} sx={{ padding: '2px' }}>
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Box>
+                              </>
                             )}
-                          </TableRow>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                    {items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={7} align="center">
-                          尚未添加藥品項目
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                )}
-              </Droppable>
-            </Table>
-          </TableContainer>
+                          </Box>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              </Paper>
+            )}
+          </StrictModeDroppable>
         </DragDropContext>
       </Box>
 
@@ -296,35 +403,36 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
           backgroundColor: 'white'
         }}
       >
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableBody>
-              <TableRow
-                sx={{
-                  borderTop: '2px solid #e0e0e0',
-                  '& > *': {
-                    fontWeight: 'bold',
-                    padding: '6px 12px'
-                  },
-                  height: '48px'
-                }}
-              >
-                <TableCell sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}></TableCell>
-                <TableCell colSpan={3} align="center">
-                  <Typography variant="subtitle1">總計：</Typography>
-                </TableCell>
-                <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>
-                  <Typography variant="subtitle1">{totalAmount.toLocaleString()}</Typography>
-                </TableCell>
-                <TableCell colSpan={2}></TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Paper sx={{ p: 1 }}>
+          <Divider sx={{ mb: 1 }} />
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+              gap: 1,
+              alignItems: 'center',
+              minHeight: '40px',
+              fontWeight: 'bold'
+            }}
+          >
+            <Box></Box>
+            <Box></Box>
+            <Typography variant="subtitle1" align="center">總計：</Typography>
+            <Box></Box>
+            <Typography variant="subtitle1" align="center">
+              {totalAmount.toLocaleString()}
+            </Typography>
+            <Box></Box>
+            <Box></Box>
+          </Box>
+        </Paper>
       </Box>
     </Box>
   );
-};
+});
+
+// 設置 displayName 以便於調試
+ProductItemsTable.displayName = 'ProductItemsTable';
 
 // 新增缺少的 props validation
 ProductItemsTable.propTypes = {
