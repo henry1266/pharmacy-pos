@@ -180,7 +180,18 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
             </Typography>
           </Grid>
           
-          
+          <Grid item xs={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <ReceiptIcon fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                交易編號
+              </Typography>
+            </Box>
+            <Typography variant="body1" fontWeight="medium">
+              {transaction.groupNumber}
+            </Typography>
+          </Grid>
+
           <Grid item xs={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <DescriptionIcon fontSize="small" />
@@ -199,8 +210,6 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
             </Typography>
             {renderTransactionFlow()}
           </Grid>
-
-
 
           <Grid item xs={6}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>

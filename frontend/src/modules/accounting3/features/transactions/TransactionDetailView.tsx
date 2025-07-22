@@ -80,14 +80,9 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
 
       {/* 頁面標題和操作按鈕 */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
-            交易詳情
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            {transaction.groupNumber}
-          </Typography>
-        </Box>
+        <Typography variant="h4" component="h1" gutterBottom>
+          交易詳情
+        </Typography>
         
         {showActions && (
           <TransactionActions

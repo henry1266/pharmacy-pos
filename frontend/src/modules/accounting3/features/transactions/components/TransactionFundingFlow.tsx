@@ -89,7 +89,7 @@ const CHIP_STYLES = {
   }
 };
 
-const TABLE_HEADERS = ['日期', '交易描述', '本次', '餘額/總額', '操作'];
+const TABLE_HEADERS = ['日期', '交易描述', '本次', '餘額/總額'];
 
 // 可重用的 Tooltip 組件
 const AmountTooltip: React.FC<{ amount: number; tooltip: string }> = ({ amount, tooltip }) => (
@@ -342,6 +342,21 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     const cleanId = extractObjectId(transactionId);
     const isValid = cleanId && isValidObjectId(cleanId);
     
+    // 處理行點擊事件
+    const handleRowClick = () => {
+      if (type === 'current') {
+        window.location.reload();
+        return;
+      }
+      
+      if (isValid) {
+        console.log(`✅ 導航到交易: /accounting3/transaction/${cleanId}`);
+        navigate(`/accounting3/transaction/${cleanId}`);
+      } else {
+        console.error('❌ 無效的交易 ID:', transactionId);
+      }
+    };
+    
     // 當前交易行
     if (type === 'current') {
       const currentTransactionAmount = transaction.totalAmount || 0;
@@ -351,11 +366,18 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
       const currentRemainingAmount = Math.max(0, currentTransactionAmount - usedByOthersAmount);
       
       return (
-        <TableRow key="current">
+        <TableRow
+          key="current"
+          onClick={handleRowClick}
+          sx={{
+            cursor: 'pointer',
+            '&:hover': { backgroundColor: '#f5f5f5' }
+          }}
+        >
           <TableCell>{formatDateOnly(transaction.transactionDate)}</TableCell>
           <TableCell>
             <Tooltip title={`編號: ${transaction.groupNumber}`} arrow>
-              <span style={{ cursor: 'help' }}>{transaction.description}</span>
+              <span style={{ cursor: 'pointer' }}>{transaction.description}</span>
             </Tooltip>
           </TableCell>
           <TableCell align="center">
@@ -370,11 +392,6 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
               totalAmount={currentTransactionAmount}
               tooltip={`交易總金額: ${formatAmount(currentTransactionAmount)}, 被其他交易使用: ${formatAmount(usedByOthersAmount)}, 當前剩餘: ${formatAmount(currentRemainingAmount)}`}
             />
-          </TableCell>
-          <TableCell align="center">
-            <Button variant="outlined" size="small" onClick={() => window.location.reload()}>
-              重新整理
-            </Button>
           </TableCell>
         </TableRow>
       );
@@ -411,11 +428,18 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
       }
       
       return (
-        <TableRow key={transactionInfo._id}>
+        <TableRow
+          key={transactionInfo._id}
+          onClick={handleRowClick}
+          sx={{
+            cursor: isValid ? 'pointer' : 'default',
+            '&:hover': isValid ? { backgroundColor: '#f5f5f5' } : {}
+          }}
+        >
           <TableCell>{formatDateOnly(transactionInfo.transactionDate)}</TableCell>
           <TableCell>
             <Tooltip title={`編號: ${transactionInfo.groupNumber}`} arrow>
-              <span style={{ cursor: 'help' }}>{transactionInfo.description}</span>
+              <span style={{ cursor: isValid ? 'pointer' : 'default' }}>{transactionInfo.description}</span>
             </Tooltip>
           </TableCell>
           <TableCell align="center">
@@ -425,9 +449,6 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             />
           </TableCell>
           <TableCell align="center">{balanceDisplay}</TableCell>
-          <TableCell align="center">
-            <NavigationButton transactionId={transactionInfo._id} navigate={navigate} />
-          </TableCell>
         </TableRow>
       );
     }
@@ -455,13 +476,20 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
       }
       
       return (
-        <TableRow key={cleanId || index}>
+        <TableRow
+          key={cleanId || index}
+          onClick={handleRowClick}
+          sx={{
+            cursor: isValid ? 'pointer' : 'default',
+            '&:hover': isValid ? { backgroundColor: '#f5f5f5' } : {}
+          }}
+        >
           <TableCell>
             {transactionInfo.transactionDate ? formatDateOnly(transactionInfo.transactionDate) : '未知日期'}
           </TableCell>
           <TableCell>
             <Tooltip title={`編號: ${transactionInfo.groupNumber || '未知編號'}`} arrow>
-              <span style={{ cursor: 'help' }}>
+              <span style={{ cursor: isValid ? 'pointer' : 'default' }}>
                 {transactionInfo.description || '無描述'}
               </span>
             </Tooltip>
@@ -473,21 +501,22 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             />
           </TableCell>
           <TableCell align="center">{balanceDisplay}</TableCell>
-          <TableCell align="center">
-            <NavigationButton transactionId={transactionId} navigate={navigate} />
-          </TableCell>
         </TableRow>
       );
     }
     
     // 只有 ID 的情況
     return (
-      <TableRow key={cleanId || index}>
+      <TableRow
+        key={cleanId || index}
+        onClick={handleRowClick}
+        sx={{
+          cursor: isValid ? 'pointer' : 'default',
+          '&:hover': isValid ? { backgroundColor: '#f5f5f5' } : {}
+        }}
+      >
         <TableCell colSpan={4}>
           {type === 'source' ? '來源交易' : '關聯交易'} {(index || 0) + 1} (僅 ID)
-        </TableCell>
-        <TableCell align="center">
-          <NavigationButton transactionId={transactionId} navigate={navigate} />
         </TableCell>
       </TableRow>
     );
