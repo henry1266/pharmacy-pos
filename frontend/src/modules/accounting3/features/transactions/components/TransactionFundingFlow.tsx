@@ -296,13 +296,21 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     return total;
   };
 
-  // 工具函數：計算剩餘金額
-  const calculateRemainingAmount = () => {
+  // 工具函數：計算流向總計
+  const calculateFlowTotal = () => {
     const usedAmount = transaction.referencedByInfo
       ?.filter(ref => ref.status !== 'cancelled')
       .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
     
-    return Math.max(0, transaction.totalAmount - usedAmount);
+    return usedAmount;
+  };
+
+  // 工具函數：計算剩餘金額（來源總計 - 流向總計）
+  const calculateRemainingAmount = () => {
+    const sourceTotal = calculateSourceTotal();
+    const flowTotal = calculateFlowTotal();
+    
+    return Math.max(0, sourceTotal - flowTotal);
   };
 
   // 檢查是否有多個來源
@@ -817,11 +825,6 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
               <FlowSection
                 title="來源"
                 count={(transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0)}
-                summary={
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                    來源總計：{formatAmount(calculateSourceTotal())}
-                  </Typography>
-                }
               >
                 {transaction.sourceTransactionId && (
                   <Box sx={{ mb: 2 }}>
@@ -865,16 +868,72 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                 }
                 return null;
               })()}
-              summary={
-                <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#f57c00' }}>
-                  剩餘餘額：{formatAmount(calculateRemainingAmount())}
-                </Typography>
-              }
             >
               {renderReferencedByInfo()}
             </FlowSection>
           </Grid>
         </Grid>
+        
+        {/* 總計卡片 */}
+        <Box sx={{ mt: 2 }}>
+          <Table size="small">
+            <TableBody>
+              <TableRow>
+                <TableCell sx={{ border: 'none' }}></TableCell>
+                <TableCell sx={{ border: 'none' }}></TableCell>
+                <TableCell align="center" sx={{ border: 'none' }}>
+                  <Card sx={{ bgcolor: '#fff3e0', minWidth: 80 }}>
+                    <CardContent sx={{ py: 1, px: 2, '&:last-child': { pb: 1 } }}>
+                      <Typography
+                        variant="h6"
+                        align="center"
+                        sx={{
+                          fontWeight: 'bold',
+                          color: calculateRemainingAmount() > 0 ? '#f57c00' : '#666'
+                        }}
+                      >
+                        {formatAmount(calculateRemainingAmount())}
+                      </Typography>
+                      <Typography variant="caption" align="center" display="block" color="text.secondary">
+                        餘額
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </TableCell>
+                <TableCell align="center" sx={{ border: 'none', fontSize: '1.2rem', color: 'text.secondary' }}>
+                  =
+                </TableCell>
+                <TableCell align="center" sx={{ border: 'none' }}>
+                  <Card sx={{ bgcolor: '#e8f5e8', minWidth: 80 }}>
+                    <CardContent sx={{ py: 1, px: 2, '&:last-child': { pb: 1 } }}>
+                      <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+                        {formatAmount(calculateSourceTotal())}
+                      </Typography>
+                      <Typography variant="caption" align="center" display="block" color="text.secondary">
+                        來源總計
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </TableCell>
+                <TableCell align="center" sx={{ border: 'none', fontSize: '1.2rem', color: 'text.secondary' }}>
+                  -
+                </TableCell>
+                <TableCell align="center" sx={{ border: 'none' }}>
+                  <Card sx={{ bgcolor: '#ffebee', minWidth: 80 }}>
+                    <CardContent sx={{ py: 1, px: 2, '&:last-child': { pb: 1 } }}>
+                      <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
+                        {formatAmount(calculateFlowTotal())}
+                      </Typography>
+                      <Typography variant="caption" align="center" display="block" color="text.secondary">
+                        流向總計
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Box>
       </CardContent>
     </Card>
   );
