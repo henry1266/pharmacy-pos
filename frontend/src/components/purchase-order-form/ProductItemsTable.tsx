@@ -91,16 +91,16 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
         }}
       >
         <TableContainer component={Paper}>
-          <Table>
+          <Table size="small">
             <TableHead>
-              <TableRow>
-                <TableCell align="center" width="80px">序號</TableCell>
-                <TableCell>藥品代碼</TableCell>
-                <TableCell>藥品名稱</TableCell>
-                <TableCell align="right">數量</TableCell>
-                <TableCell align="right">總成本</TableCell>
-                <TableCell align="right">單價</TableCell>
-                <TableCell align="center">操作</TableCell>
+              <TableRow sx={{ '& > *': { padding: '6px 12px' } }}>
+                <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>序號</TableCell>
+                <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>藥品代碼</TableCell>
+                <TableCell align="center" sx={{ width: 'auto', minWidth: '180px' }}>藥品名稱</TableCell>
+                <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>數量</TableCell>
+                <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>總成本</TableCell>
+                <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>單價</TableCell>
+                <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>操作</TableCell>
               </TableRow>
             </TableHead>
           </Table>
@@ -123,33 +123,44 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
           sx={{ height: '100%' }}
           ref={tableContainerRef}
         >
-          <Table>
+          <Table size="small">
             <TableBody>
             {items.map((item, index) => (
-              <TableRow key={`item-${item._id ?? index}-${index}`}>
+              <TableRow
+                key={`item-${item._id ?? index}-${index}`}
+                sx={{
+                  '& > *': {
+                    padding: '4px 12px',
+                    fontSize: '0.875rem'
+                  },
+                  height: '40px'
+                }}
+              >
                 {editingItemIndex === index && editingItem ? (
                   // 編輯模式
                   <>
-                    <TableCell align="center">
-                      <Typography variant="body2">{index + 1}</Typography>
+                    <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>
+                      <Typography variant="caption">{index + 1}</Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
                       <TextField
                         fullWidth
                         size="small"
                         value={editingItem.did}
                         disabled
+                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="center" sx={{ width: 'auto', minWidth: '180px' }}>
                       <TextField
                         fullWidth
                         size="small"
                         value={editingItem.dname}
                         disabled
+                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
                       <TextField
                         fullWidth
                         size="small"
@@ -158,9 +169,10 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
                         value={editingItem.dquantity}
                         onChange={handleEditingItemChange}
                         inputProps={{ min: 0 }}
+                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>
                       <TextField
                         fullWidth
                         size="small"
@@ -169,46 +181,61 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
                         value={editingItem.dtotalCost}
                         onChange={handleEditingItemChange}
                         inputProps={{ min: 0 }}
+                        sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                       />
                     </TableCell>
-                    <TableCell align="right">
-                      {Number(editingItem.dquantity) > 0 ? (Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2) : '0.00'}
+                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
+                      <Typography variant="caption">
+                        {Number(editingItem.dquantity) > 0 ? (Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2) : '0.00'}
+                      </Typography>
                     </TableCell>
-                    <TableCell align="center">
-                      <IconButton color="primary" onClick={handleSaveEditItem}>
-                        <CheckIcon />
+                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
+                      <IconButton size="small" color="primary" onClick={handleSaveEditItem}>
+                        <CheckIcon fontSize="small" />
                       </IconButton>
-                      <IconButton color="error" onClick={handleCancelEditItem}>
-                        <CloseIcon />
+                      <IconButton size="small" color="error" onClick={handleCancelEditItem}>
+                        <CloseIcon fontSize="small" />
                       </IconButton>
                     </TableCell>
                   </>
                 ) : (
                   // 顯示模式
                   <>
-                    <TableCell align="center">
-                      <Typography variant="body2">{index + 1}</Typography>
+                    <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>
+                      <Typography variant="caption">{index + 1}</Typography>
                     </TableCell>
                     {/* @ts-ignore */}
-                    <TableCell><ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} /></TableCell> {/* MODIFIED LINE */}
-                    <TableCell>{item.dname}</TableCell>
-                    <TableCell align="right">{item.dquantity}</TableCell>
-                    <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
-                    <TableCell align="right">
-                      {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
+                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
+                      <ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} />
                     </TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                        <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0}>
+                    <TableCell align="center" sx={{ width: 'auto', minWidth: '180px' }}>
+                      <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                        {item.dname}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
+                      <Typography variant="body2">{item.dquantity}</Typography>
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>
+                      <Typography variant="body2">{Number(item.dtotalCost).toLocaleString()}</Typography>
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: '70px', minWidth: '70px', maxWidth: '70px' }}>
+                      <Typography variant="body2">
+                        {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
+                        <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0} sx={{ padding: '2px' }}>
                           <ArrowUpwardIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1}>
+                        <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1} sx={{ padding: '2px' }}>
                           <ArrowDownwardIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" onClick={() => handleEditItem(index)}>
+                        <IconButton size="small" onClick={() => handleEditItem(index)} sx={{ padding: '2px' }}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" onClick={() => handleRemoveItem(index)}>
+                        <IconButton size="small" onClick={() => handleRemoveItem(index)} sx={{ padding: '2px' }}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Box>
@@ -241,20 +268,24 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
         }}
       >
         <TableContainer component={Paper}>
-          <Table>
+          <Table size="small">
             <TableBody>
               <TableRow
                 sx={{
                   backgroundColor: '#f5f5f5',
                   borderTop: '2px solid #e0e0e0',
-                  '& > *': { fontWeight: 'bold' }
+                  '& > *': {
+                    fontWeight: 'bold',
+                    padding: '6px 12px'
+                  },
+                  height: '48px'
                 }}
               >
-                <TableCell width="80px"></TableCell>
-                <TableCell colSpan={3} align="right">
+                <TableCell sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}></TableCell>
+                <TableCell colSpan={3} align="center">
                   <Typography variant="subtitle1">總計：</Typography>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="center" sx={{ width: '90px', minWidth: '90px', maxWidth: '90px' }}>
                   <Typography variant="subtitle1">{totalAmount.toLocaleString()}</Typography>
                 </TableCell>
                 <TableCell colSpan={2}></TableCell>

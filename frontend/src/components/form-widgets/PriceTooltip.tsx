@@ -161,48 +161,48 @@ const PriceTooltip: React.FC<PriceTooltipProps> = ({
 
   return (
     <>
-      <Grid container spacing={1}>
-        <Grid item xs={12}>
-          <Button
-            variant="outlined"
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 0.5, alignItems: 'flex-start' }}>
+        <Tooltip
+          title={
+            <Box component="div" sx={{ whiteSpace: 'pre-line', p: 1 , fontSize: '1.2rem'}}>
+              {getPriceTooltipText()}
+            </Box>
+          }
+          placement="top"
+          arrow
+        >
+          <TextField
+            label="總成本"
+            name="dtotalCost"
+            type="number"
+            value={currentItem.dtotalCost}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleItemInputChange({
+              target: {
+                name: e.target.name,
+                value: e.target.value
+              }
+            })}
+            inputProps={{ min: 0 }}
+            onKeyDown={handleKeyDown}
             size="small"
-            startIcon={<CalculateIcon />}
-            onClick={handleSimulateFIFO}
-            fullWidth
-            sx={{ mb: 1 }}
-            disabled={!currentItem.product || currentItem.dquantity === undefined || currentItem.dquantity === null || currentItem.dquantity === ''}
-          >
-            FIFO模擬計算
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <Tooltip 
-            title={
-              <Box component="div" sx={{ whiteSpace: 'pre-line', p: 1 , fontSize: '1.2rem'}}>
-                {getPriceTooltipText()}
-              </Box>
-            }
-            placement="top"
-            arrow
-          >
-            <TextField
-              fullWidth
-              label="總成本"
-              name="dtotalCost"
-              type="number"
-              value={currentItem.dtotalCost}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleItemInputChange({
-                target: {
-                  name: e.target.name,
-                  value: e.target.value
-                }
-              })}
-              inputProps={{ min: 0 }}
-              onKeyDown={handleKeyDown}
-            />
-          </Tooltip>
-        </Grid>
-      </Grid>
+            sx={{ flex: 1 }}
+          />
+        </Tooltip>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={handleSimulateFIFO}
+          disabled={!currentItem.product || currentItem.dquantity === undefined || currentItem.dquantity === null || currentItem.dquantity === ''}
+          sx={{
+            minWidth: '40px',
+            height: '32px',
+            px: 1
+          }}
+          title="FIFO模擬計算"
+        >
+          <CalculateIcon fontSize="small" />
+        </Button>
+      </Box>
 
       {/* FIFO模擬結果對話框 */}
       <FIFOSimulationDialog

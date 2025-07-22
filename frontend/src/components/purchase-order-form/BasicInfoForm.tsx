@@ -108,8 +108,8 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
           基本資訊
         </Typography>
         
-        <Grid container spacing={1}>
-          <Grid item md={2} sm={4} xs={12}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
               label="進貨單號"
@@ -122,7 +122,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               helperText="留空將自動生成"
             />
           </Grid>
-          <Grid item md={2} sm={4} xs={12}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
               label="發票號碼"
@@ -133,17 +133,17 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               size="small"
             />
           </Grid>
-          <Grid item md={2} sm={4} xs={12}>
+          <Grid item xs={12}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
                 label="發票日期"
                 value={formData?.pobilldate}
                 onChange={handleDateChange}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                renderInput={(params) => <TextField {...params} fullWidth size="small" />}
               />
             </LocalizationProvider>
           </Grid>
-          <Grid item md={3} sm={6} xs={12}>
+          <Grid item xs={12}>
             <SupplierSelect
               suppliers={suppliers ?? []}
               selectedSupplier={selectedSupplier}
@@ -151,13 +151,13 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               label={isEditMode ? "進貨商 (僅供查看)" : "進貨商 (可用名稱或簡碼)"}
             />
           </Grid>
-          <Grid item md={1.5} sm={3} xs={12}>
+          <Grid item xs={12}>
             <Box
               sx={{
                 backgroundColor: getPaymentStatusBackgroundColor()
               }}
             >
-              <FormControl fullWidth>
+              <FormControl fullWidth size="small">
                <InputLabel id="payment-status-select-label">付款狀態</InputLabel>
                   <Select
                     labelId="payment-status-select-label"
@@ -174,39 +174,15 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             </FormControl>
             </Box>
           </Grid>
-          <Grid item md={3} sm={6} xs={12}>
-            <TextField
-              fullWidth
-              label="備註"
-              name="notes"
-              value={formData?.notes}
-              onChange={handleInputChange}
-              variant="outlined"
-              size="small"
-              multiline
-              rows={1}
-            />
-          </Grid>
-          <Grid item md={1.5} sm={3} xs={12}>
-            <TextField
-              fullWidth
-              label="倍率模式 (%)"
-              name="multiplierMode"
-              value={formData?.multiplierMode}
-              onChange={handleInputChange}
-              variant="outlined"
-              size="small"
-              type="number"
-              inputProps={{ step: "0.1" }}
-            />
-          </Grid>
-          <Grid item md={1.5} sm={3} xs={12}>
+          
+          
+          <Grid item xs={12}>
             <Box
               sx={{
                 backgroundColor: getStatusBackgroundColor()
               }}
             >
-              <FormControl fullWidth>
+              <FormControl fullWidth size="small">
                 <InputLabel>狀態</InputLabel>
                 <Select
                   name="status"
@@ -220,6 +196,32 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 </Select>
               </FormControl>
             </Box>
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="倍率模式 (%)"
+              name="multiplierMode"
+              value={formData?.multiplierMode}
+              onChange={handleInputChange}
+              variant="outlined"
+              size="small"
+              type="number"
+              inputProps={{ step: "0.1" }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="備註"
+              name="notes"
+              value={formData?.notes}
+              onChange={handleInputChange}
+              variant="outlined"
+              size="small"
+              multiline
+              rows={2}
+            />
           </Grid>
         </Grid>
       </CardContent>

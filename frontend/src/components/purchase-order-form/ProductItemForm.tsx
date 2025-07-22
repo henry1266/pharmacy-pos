@@ -342,151 +342,157 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   };
 
   return (
-    <Grid container spacing={1} alignItems="flex-start" sx={{ mb: 0.5 }}>
-      {/* @ts-ignore */}
-      <Grid item xs={12} sm={6} md={4.5}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-          <Box sx={{ flex: 1 }}>
-            <Autocomplete
-              id="product-select"
-              options={products ?? []}
-              getOptionLabel={(option) => `${option.code ?? 'N/A'} - ${option.name}`}
-              value={products?.find(p => p._id === currentItem.product) ?? null}
-              onChange={handleProductChangeWithChart}
-              filterOptions={(options, state) => filterProducts(options, state.inputValue)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === 'Tab') {
-                  if ((event.target as HTMLInputElement).value) {
-                    const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
-                    if (filteredOptions.length > 0) {
-                      handleProductChangeWithChart(event, filteredOptions[0]);
-                      event.preventDefault();
-                      const dquantityInput = document.querySelector('input[name="dquantity"]');
-                      const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
-                      if (dquantityInput && !(dquantityInput as HTMLInputElement).disabled) {
-                        (dquantityInput as HTMLInputElement).focus();
-                      } else if (packageQuantityInput && !(packageQuantityInput as HTMLInputElement).disabled) {
-                        (packageQuantityInput as HTMLInputElement).focus();
+    <Box sx={{ mb: 1 }}>
+      <Grid container spacing={1}>
+        {/* 第一排：選擇藥品、總數量、總成本、新增按鈕、大包裝計算 */}
+        <Grid item xs={12}>
+          <Grid container spacing={1} alignItems="flex-start">
+            {/* 選擇藥品 */}
+            <Grid item xs={12} sm={4.5}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Autocomplete
+                    id="product-select"
+                    options={products ?? []}
+                    getOptionLabel={(option) => `${option.code ?? 'N/A'} - ${option.name}`}
+                    value={products?.find(p => p._id === currentItem.product) ?? null}
+                    onChange={handleProductChangeWithChart}
+                    filterOptions={(options, state) => filterProducts(options, state.inputValue)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === 'Tab') {
+                        if ((event.target as HTMLInputElement).value) {
+                          const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
+                          if (filteredOptions.length > 0) {
+                            handleProductChangeWithChart(event, filteredOptions[0]);
+                            event.preventDefault();
+                            const dquantityInput = document.querySelector('input[name="dquantity"]');
+                            const packageQuantityInput = document.querySelector('input[name="packageQuantity"]');
+                            if (dquantityInput && !(dquantityInput as HTMLInputElement).disabled) {
+                              (dquantityInput as HTMLInputElement).focus();
+                            } else if (packageQuantityInput && !(packageQuantityInput as HTMLInputElement).disabled) {
+                              (packageQuantityInput as HTMLInputElement).focus();
+                            }
+                            return;
+                          }
+                        }
                       }
-                      return;
-                    }
-                  }
-                }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  inputRef={productInputRef}
-                  id="product-select-input"
-                  label="選擇藥品"
-                  fullWidth
-                />
-              )}
-            />
-          </Box>
-          <IconButton
-            onClick={handleChartButtonClick}
-            disabled={!selectedProduct}
-            color="primary"
-            sx={{
-              mt: 1,
-              minWidth: 40,
-              height: 40
-            }}
-            title="查看商品圖表分析"
-          >
-            <BarChartIcon />
-          </IconButton>
-        </Box>
-      </Grid>
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        inputRef={productInputRef}
+                        id="product-select-input"
+                        label="選擇藥品"
+                        fullWidth
+                        size="small"
+                      />
+                    )}
+                  />
+                </Box>
+                <IconButton
+                  onClick={handleChartButtonClick}
+                  disabled={!selectedProduct}
+                  color="primary"
+                  sx={{
+                    mt: 0.5,
+                    height: 30
+                  }}
+                  title="查看商品圖表分析"
+                >
+                  <BarChartIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Grid>
 
-      {/* @ts-ignore */}
-      <Grid item xs={12} sm={6} md={3}>
-        <Grid container spacing={1}>
-          {/* @ts-ignore */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="總數量"
-              name="dquantity"
-              type="number"
-              value={dQuantityValue}
-              onChange={handleMainQuantityChange}
-              onFocus={handleFocus}
-              onKeyDown={handleQuantityKeyDown}
-              inputProps={{ min: "0", step: "0.01" }}
-              disabled={mainQuantityDisabled}
-            />
-          </Grid>
-          {/* @ts-ignore */}
-          <Grid item xs={5}>
-            <TextField
-              fullWidth
-              label="大包裝"
-              name="packageQuantity"
-              type="number"
-              value={packageQuantityValue}
-              onChange={handleSubQuantityChange}
-              onFocus={handleFocus}
-              onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
-              onKeyDown={handleQuantityKeyDown}
-              inputProps={{ min: "0" }}
-              disabled={subQuantitiesDisabled}
-              size="small"
-            />
-          </Grid>
-          {/* @ts-ignore */}
-          <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="body1">*</Typography>
-          </Grid>
-          {/* @ts-ignore */}
-          <Grid item xs={5}>
-            <TextField
-              fullWidth
-              label="數量"
-              name="boxQuantity"
-              type="number"
-              value={boxQuantityValue}
-              onChange={handleSubQuantityChange}
-              onFocus={handleFocus}
-              onBlur={handleSubQuantityBlur} // Calculate dquantity on blur
-              onKeyDown={handleQuantityKeyDown}
-              inputProps={{ min: "0" }}
-              disabled={subQuantitiesDisabled}
-              size="small"
-            />
+            {/* 總數量 */}
+            <Grid item xs={12} sm={2.5}>
+              <TextField
+                fullWidth
+                label="總數量"
+                name="dquantity"
+                type="number"
+                value={dQuantityValue}
+                onChange={handleMainQuantityChange}
+                onFocus={handleFocus}
+                onKeyDown={handleQuantityKeyDown}
+                inputProps={{ min: "0", step: "1" }}
+                disabled={mainQuantityDisabled}
+                size="small"
+              />
+            </Grid>
+
+            {/* 總成本 */}
+            <Grid item xs={12} sm={2.5}>
+              <PriceTooltip
+                currentItem={{...currentItem, dquantity: dQuantityValue}}
+                handleItemInputChange={handleItemInputChange}
+                getProductPurchasePrice={getProductPurchasePrice}
+                calculateTotalCost={calculateTotalCost}
+                isInventorySufficient={isInventorySufficient}
+                handleAddItem={handleAddItem}
+              />
+            </Grid>
+
+            {/* 新增按鈕 */}
+            <Grid item xs={12} sm={2}>
+              <Button
+                variant="contained"
+                onClick={handleAddItem}
+                fullWidth
+                size="small"
+                sx={{
+                  height: '32px',
+                  minHeight: '32px',
+                  minWidth: '32px',
+                  px: 1
+                }}
+              >
+                <AddIcon fontSize="small" />
+              </Button>
+            </Grid>
+
+            {/* 大包裝 */}
+            <Grid item xs={12} sm={1.5}>
+              <TextField
+                fullWidth
+                label="大包裝"
+                name="packageQuantity"
+                type="number"
+                value={packageQuantityValue}
+                onChange={handleSubQuantityChange}
+                onFocus={handleFocus}
+                onBlur={handleSubQuantityBlur}
+                onKeyDown={handleQuantityKeyDown}
+                inputProps={{ min: "0" }}
+                disabled={subQuantitiesDisabled}
+                size="small"
+              />
+            </Grid>
+
+            {/* 乘號 */}
+            <Grid item xs={12} sm={0.5} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Typography variant="body2">×</Typography>
+            </Grid>
+
+            {/* 數量 */}
+            <Grid item xs={12} sm={1.5}>
+              <TextField
+                fullWidth
+                label="數量"
+                name="boxQuantity"
+                type="number"
+                value={boxQuantityValue}
+                onChange={handleSubQuantityChange}
+                onFocus={handleFocus}
+                onBlur={handleSubQuantityBlur}
+                onKeyDown={handleQuantityKeyDown}
+                inputProps={{ min: "0" }}
+                disabled={subQuantitiesDisabled}
+                size="small"
+              />
+            </Grid>
           </Grid>
         </Grid>
-      </Grid>
-
-      {/* @ts-ignore */}
-      <Grid item xs={12} sm={6} md={3}>
-        {/* @ts-ignore */}
-        <PriceTooltip
-          currentItem={{...currentItem, dquantity: dQuantityValue}}
-          handleItemInputChange={handleItemInputChange}
-          getProductPurchasePrice={getProductPurchasePrice}
-          calculateTotalCost={calculateTotalCost}
-          isInventorySufficient={isInventorySufficient}
-          handleAddItem={handleAddItem}
-        />
-      </Grid>
-      {/* @ts-ignore */}
-      <Grid item xs={12} sm={6} md={1.5}>
-        <Button
-          variant="contained"
-          onClick={handleAddItem}
-          fullWidth
-          size="small"
-          sx={{
-            height: '40px',
-            minHeight: '40px',
-            minWidth: '40px',
-            px: 1
-          }}
-        >
-          <AddIcon />
-        </Button>
       </Grid>
       
       {/* 圖表彈出視窗 */}
@@ -524,7 +530,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
           return totalProfitLoss;
         })() : 0}
       />
-    </Grid>
+    </Box>
   );
 };
 

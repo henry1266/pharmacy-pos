@@ -8,7 +8,8 @@ import {
   Snackbar,
   Alert,
   Button,
-  CircularProgress
+  CircularProgress,
+  Grid
 } from '@mui/material';
 import { format } from 'date-fns';
 import { Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
@@ -571,50 +572,58 @@ const PurchaseOrderFormPage: React.FC = () => {
       </Box>
 
       <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <BasicInfoForm
-          formData={formData}
-          handleInputChange={handleFormInputChange}
-          handleDateChange={handleDateChange}
-          handleSupplierChange={handleSupplierChange}
-          suppliers={suppliers || []}
-          selectedSupplier={selectedSupplier}
-          isEditMode={isEditMode}
-          isTestMode={isGlobalTestMode}
-        />
+        <Grid container spacing={2} sx={{ flex: 1, minHeight: 0 }}>
+          {/* 左側：基本資訊 */}
+          <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <BasicInfoForm
+              formData={formData}
+              handleInputChange={handleFormInputChange}
+              handleDateChange={handleDateChange}
+              handleSupplierChange={handleSupplierChange}
+              suppliers={suppliers || []}
+              selectedSupplier={selectedSupplier}
+              isEditMode={isEditMode}
+              isTestMode={isGlobalTestMode}
+            />
+          </Grid>
 
-        <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <CardContent sx={{ pb: 1, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>藥品項目</Typography>
-            
-            <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
-              <ProductItemForm
-                currentItem={currentItem}
-                handleItemInputChange={handleItemInputChange}
-                handleProductChange={handleProductChange}
-                handleAddItem={handleAddItem}
-                products={products || []}
-                productInputRef={productInputRef}
-                isTestMode={isGlobalTestMode}
-              />
-            </Box>
-            
-            <Box sx={{ flex: 1, overflowY: 'auto', minHeight: '200px' }}>
-              <ProductItemsTable
-                items={formData.items}
-                editingItemIndex={editingItemIndex}
-                editingItem={editingItem}
-                handleEditItem={handleEditItem}
-                handleSaveEditItem={handleSaveEditItem}
-                handleCancelEditItem={handleCancelEditItem}
-                handleRemoveItem={handleRemoveItem}
-                handleMoveItem={handleMoveItem}
-                handleEditingItemChange={handleEditingItemChange}
-                totalAmount={totalAmountForDisplay}
-                codeField="did"
-              />
-            </Box>
-          </CardContent>
-        </Card>
+          {/* 右側：藥品項目 */}
+          <Grid item xs={12} md={9} sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <CardContent sx={{ pb: 1, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <Typography variant="h6" sx={{ mb: 1 }}>藥品項目</Typography>
+                
+                <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
+                  <ProductItemForm
+                    currentItem={currentItem}
+                    handleItemInputChange={handleItemInputChange}
+                    handleProductChange={handleProductChange}
+                    handleAddItem={handleAddItem}
+                    products={products || []}
+                    productInputRef={productInputRef}
+                    isTestMode={isGlobalTestMode}
+                  />
+                </Box>
+                
+                <Box sx={{ flex: 1, overflowY: 'auto', minHeight: '200px' }}>
+                  <ProductItemsTable
+                    items={formData.items}
+                    editingItemIndex={editingItemIndex}
+                    editingItem={editingItem}
+                    handleEditItem={handleEditItem}
+                    handleSaveEditItem={handleSaveEditItem}
+                    handleCancelEditItem={handleCancelEditItem}
+                    handleRemoveItem={handleRemoveItem}
+                    handleMoveItem={handleMoveItem}
+                    handleEditingItemChange={handleEditingItemChange}
+                    totalAmount={totalAmountForDisplay}
+                    codeField="did"
+                  />
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
 
         <GenericConfirmDialog
           open={confirmDialogOpen}
