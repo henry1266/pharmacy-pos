@@ -50,6 +50,192 @@ interface BalanceCalculationResult {
   totalAmount: number;
 }
 
+// 樣式常數
+const SECTION_STYLES = {
+  source: {
+    borderColor: '#1976d2',
+    bgColor: '#bbdefb',
+    iconColor: '#1976d2',
+    chipColor: 'primary' as const,
+    icon: '💰',
+    label: '來源'
+  },
+  current: {
+    borderColor: '#2e7d32',
+    bgColor: '#c8e6c9',
+    iconColor: '#2e7d32',
+    chipColor: 'success' as const,
+    icon: '🔄',
+    label: '當前交易'
+  },
+  flow: {
+    borderColor: '#f57c00',
+    bgColor: '#ffe0b2',
+    iconColor: '#f57c00',
+    chipColor: 'warning' as const,
+    icon: '📤',
+    label: '流向'
+  }
+};
+
+const CHIP_STYLES = {
+  fontSize: '0.75rem',
+  height: 24,
+  maxWidth: 80,
+  '& .MuiChip-label': {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    fontSize: '0.75rem'
+  }
+};
+
+const TABLE_HEADERS = ['日期', '交易描述', '本次', '餘額/總額', '操作'];
+
+// 可重用的 Tooltip 組件
+const AmountTooltip: React.FC<{ amount: number; tooltip: string }> = ({ amount, tooltip }) => (
+  <Tooltip title={tooltip} arrow>
+    <span style={{ fontWeight: 'medium' }}>
+      {formatAmount(amount)}
+    </span>
+  </Tooltip>
+);
+
+const BalanceTooltip: React.FC<{
+  availableAmount: number;
+  totalAmount: number;
+  tooltip: string
+}> = ({ availableAmount, totalAmount, tooltip }) => (
+  <Tooltip title={tooltip} arrow>
+    <span style={{
+      fontWeight: 'medium',
+      color: availableAmount === totalAmount ? '#2e7d32' :
+             availableAmount > 0 ? '#ed6c02' : '#d32f2f'
+    }}>
+      {formatAmount(availableAmount)}/{formatAmount(totalAmount)}
+    </span>
+  </Tooltip>
+);
+
+// 導航按鈕組件
+const NavigationButton: React.FC<{
+  transactionId: string | any;
+  label?: string;
+  navigate: (path: string) => void;
+}> = ({ transactionId, label = '查看', navigate }) => {
+  const cleanId = extractObjectId(transactionId);
+  const isValid = cleanId && isValidObjectId(cleanId);
+  
+  return (
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={() => {
+        if (isValid) {
+          console.log(`✅ 導航到交易: /accounting3/transaction/${cleanId}`);
+          navigate(`/accounting3/transaction/${cleanId}`);
+        } else {
+          console.error('❌ 無效的交易 ID:', transactionId);
+        }
+      }}
+      disabled={!isValid}
+    >
+      {isValid ? label : '無效'}
+    </Button>
+  );
+};
+
+// 交易表格組件
+const TransactionTable: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <TableContainer component={Paper} sx={{ mt: 1 }}>
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          {TABLE_HEADERS.map((header) => (
+            <TableCell key={header} align={header === '日期' || header === '交易描述' ? 'left' : 'center'}>
+              {header}
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {children}
+      </TableBody>
+    </Table>
+  </TableContainer>
+);
+
+// 流向區塊組件
+const FlowSection: React.FC<{
+  type: keyof typeof SECTION_STYLES;
+  title: string;
+  count?: number;
+  children: React.ReactNode;
+  summary?: React.ReactNode;
+  borderRadius?: string;
+}> = ({ type, title, count, children, summary, borderRadius = '8px 8px 0 0' }) => {
+  const style = SECTION_STYLES[type];
+  
+  return (
+    <Box sx={{
+      mb: 1,
+      p: 2,
+      pl: 6,
+      borderRadius,
+      border: `4px solid ${style.borderColor}`,
+      borderBottom: type === 'current' ? `2px solid ${style.borderColor}` : `2px solid ${style.borderColor}`,
+      borderTop: type === 'source' ? `4px solid ${style.borderColor}` : `2px solid ${style.borderColor}`,
+      position: 'relative',
+      '&::after': {
+        content: `"${style.icon}\\A${style.label.split('').join('\\A')}"`,
+        whiteSpace: 'pre-line',
+        position: 'absolute',
+        top: '50%',
+        left: -2,
+        transform: 'translateY(-50%)',
+        bgcolor: style.borderColor,
+        color: 'white',
+        px: 1,
+        py: 2,
+        borderRadius: 1,
+        fontSize: '0.7rem',
+        fontWeight: 'bold',
+        zIndex: 1,
+        lineHeight: 1.1,
+        textAlign: 'center',
+        display: 'block',
+        width: '20px'
+      }
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Typography variant="subtitle2" sx={{
+          color: style.iconColor,
+          fontWeight: 'bold',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5
+        }}>
+          {title}
+        </Typography>
+        {count !== undefined && count > 0 && (
+          <Chip
+            label={`${count} 筆`}
+            color={style.chipColor}
+            size="small"
+          />
+        )}
+      </Box>
+      
+      {children}
+      
+      {summary && (
+        <Box sx={{ mt: 2, p: 1, bgcolor: style.bgColor, borderRadius: 1 }}>
+          {summary}
+        </Box>
+      )}
+    </Box>
+  );
+};
+
 /**
  * 交易資金流向追蹤組件
  */
@@ -144,50 +330,40 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     };
   }, [linkedTransactionDetails]);
 
-  // 渲染金額顯示
-  const renderAmountDisplay = (amount: number, tooltip: string) => (
-    <Tooltip title={tooltip} arrow>
-      <span style={{ fontWeight: 'medium' }}>
-        {formatAmount(amount)}
-      </span>
-    </Tooltip>
-  );
-
-  // 渲染餘額顯示
-  const renderBalanceDisplay = (availableAmount: number, totalAmount: number, tooltip: string) => (
-    <Tooltip title={tooltip} arrow>
-      <span style={{
-        fontWeight: 'medium',
-        color: availableAmount === totalAmount ? '#2e7d32' :
-               availableAmount > 0 ? '#ed6c02' : '#d32f2f'
-      }}>
-        {formatAmount(availableAmount)}/{formatAmount(totalAmount)}
-      </span>
-    </Tooltip>
-  );
-
-  // 渲染導航按鈕
-  const renderNavigationButton = (transactionId: string | any, label: string = '查看') => {
-    const cleanId = extractObjectId(transactionId);
-    const isValid = cleanId && isValidObjectId(cleanId);
+  // 工具函數：計算總計金額
+  const calculateSourceTotal = () => {
+    let total = 0;
     
-    return (
-      <Button
-        variant="outlined"
-        size="small"
-        onClick={() => {
-          if (isValid) {
-            console.log(`✅ 導航到交易: /accounting3/transaction/${cleanId}`);
-            navigate(`/accounting3/transaction/${cleanId}`);
-          } else {
-            console.error('❌ 無效的交易 ID:', transactionId);
+    // 計算來源交易金額
+    if (transaction.sourceTransactionId && typeof transaction.sourceTransactionId === 'object') {
+      const sourceInfo = transaction.sourceTransactionId as any;
+      if (sourceInfo.totalAmount) {
+        total += sourceInfo.totalAmount;
+      }
+    }
+    
+    // 計算關聯交易金額
+    if (transaction.linkedTransactionIds) {
+      transaction.linkedTransactionIds.forEach(linkedId => {
+        if (typeof linkedId === 'object' && linkedId !== null) {
+          const linkedInfo = linkedId as any;
+          if (linkedInfo.totalAmount) {
+            total += linkedInfo.totalAmount;
           }
-        }}
-        disabled={!isValid}
-      >
-        {isValid ? label : '無效'}
-      </Button>
-    );
+        }
+      });
+    }
+    
+    return total;
+  };
+
+  // 工具函數：計算剩餘金額
+  const calculateRemainingAmount = () => {
+    const usedAmount = transaction.referencedByInfo
+      ?.filter(ref => ref.status !== 'cancelled')
+      .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
+    
+    return Math.max(0, transaction.totalAmount - usedAmount);
   };
 
   // 檢查是否有多個來源
@@ -195,17 +371,17 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     return (transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0) > 1;
   }, [transaction.sourceTransactionId, transaction.linkedTransactionIds]);
 
-  // 渲染通用的交易表格行
-  const renderTransactionRow = (
-    transactionInfo: any,
-    transactionId: string | any,
-    index?: number,
-    type: 'source' | 'linked' | 'referenced' | 'current' = 'linked'
-  ) => {
+  // 交易表格行組件
+  const TransactionTableRow: React.FC<{
+    transactionInfo: any;
+    transactionId: string | any;
+    index?: number;
+    type: 'source' | 'linked' | 'referenced' | 'current';
+  }> = ({ transactionInfo, transactionId, index, type }) => {
     const cleanId = extractObjectId(transactionId);
     const isValid = cleanId && isValidObjectId(cleanId);
     
-    // 處理當前交易的特殊情況
+    // 當前交易行
     if (type === 'current') {
       const currentTransactionAmount = transaction.totalAmount || 0;
       const usedByOthersAmount = transaction.referencedByInfo
@@ -222,14 +398,17 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             </Tooltip>
           </TableCell>
           <TableCell align="center">
-            {renderAmountDisplay(currentTransactionAmount, `交易總金額: ${formatAmount(currentTransactionAmount)}`)}
+            <AmountTooltip
+              amount={currentTransactionAmount}
+              tooltip={`交易總金額: ${formatAmount(currentTransactionAmount)}`}
+            />
           </TableCell>
           <TableCell align="center">
-            {renderBalanceDisplay(
-              currentRemainingAmount,
-              currentTransactionAmount,
-              `交易總金額: ${formatAmount(currentTransactionAmount)}, 被其他交易使用: ${formatAmount(usedByOthersAmount)}, 當前剩餘: ${formatAmount(currentRemainingAmount)}`
-            )}
+            <BalanceTooltip
+              availableAmount={currentRemainingAmount}
+              totalAmount={currentTransactionAmount}
+              tooltip={`交易總金額: ${formatAmount(currentTransactionAmount)}, 被其他交易使用: ${formatAmount(usedByOthersAmount)}, 當前剩餘: ${formatAmount(currentRemainingAmount)}`}
+            />
           </TableCell>
           <TableCell align="center">
             <Button variant="outlined" size="small" onClick={() => window.location.reload()}>
@@ -240,7 +419,7 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
       );
     }
     
-    // 處理流向交易的特殊情況
+    // 流向交易行
     if (type === 'referenced') {
       const refTotalAmount = transactionInfo.totalAmount || 0;
       const cleanRefId = extractObjectId(transactionInfo._id);
@@ -251,10 +430,12 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         const totalAmount = refBalanceData.totalAmount || 0;
         const availableAmount = refBalanceData.availableAmount || 0;
         
-        balanceDisplay = renderBalanceDisplay(
-          availableAmount,
-          totalAmount,
-          `流向交易總額: ${formatAmount(totalAmount)}, API 計算剩餘: ${formatAmount(availableAmount)}`
+        balanceDisplay = (
+          <BalanceTooltip
+            availableAmount={availableAmount}
+            totalAmount={totalAmount}
+            tooltip={`流向交易總額: ${formatAmount(totalAmount)}, API 計算剩餘: ${formatAmount(availableAmount)}`}
+          />
         );
       } else if (loading) {
         balanceDisplay = <span style={{ color: '#666', fontStyle: 'italic' }}>載入餘額中...</span>;
@@ -277,17 +458,20 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             </Tooltip>
           </TableCell>
           <TableCell align="center">
-            {renderAmountDisplay(refTotalAmount, `流向交易使用金額: ${formatAmount(refTotalAmount)}`)}
+            <AmountTooltip
+              amount={refTotalAmount}
+              tooltip={`流向交易使用金額: ${formatAmount(refTotalAmount)}`}
+            />
           </TableCell>
           <TableCell align="center">{balanceDisplay}</TableCell>
           <TableCell align="center">
-            {renderNavigationButton(transactionInfo._id)}
+            <NavigationButton transactionId={transactionInfo._id} navigate={navigate} />
           </TableCell>
         </TableRow>
       );
     }
     
-    // 處理來源和關聯交易
+    // 來源和關聯交易行
     if (typeof transactionInfo === 'object' && transactionInfo !== null) {
       const usedAmount = calculateUsedAmount(transactionInfo, hasMultipleSources);
       const balanceInfo = calculateBalanceInfo(cleanId || '', transactionInfo, usedAmount);
@@ -300,7 +484,13 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
           ? `來源交易總額: ${formatAmount(balanceInfo.totalAmount)}, 使用金額: ${formatAmount(usedAmount)}, 調整後剩餘: ${formatAmount(balanceInfo.availableAmount)}`
           : `關聯交易總額: ${formatAmount(balanceInfo.totalAmount)}, 使用金額: ${formatAmount(usedAmount)}, 調整後剩餘: ${formatAmount(balanceInfo.availableAmount)}`;
         
-        balanceDisplay = renderBalanceDisplay(balanceInfo.availableAmount, balanceInfo.totalAmount, tooltipText);
+        balanceDisplay = (
+          <BalanceTooltip
+            availableAmount={balanceInfo.availableAmount}
+            totalAmount={balanceInfo.totalAmount}
+            tooltip={tooltipText}
+          />
+        );
       }
       
       return (
@@ -316,27 +506,27 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             </Tooltip>
           </TableCell>
           <TableCell align="center">
-            {renderAmountDisplay(
-              usedAmount,
-              `從此${type === 'source' ? '來源' : '關聯交易'}使用金額: ${formatAmount(usedAmount)}`
-            )}
+            <AmountTooltip
+              amount={usedAmount}
+              tooltip={`從此${type === 'source' ? '來源' : '關聯交易'}使用金額: ${formatAmount(usedAmount)}`}
+            />
           </TableCell>
           <TableCell align="center">{balanceDisplay}</TableCell>
           <TableCell align="center">
-            {renderNavigationButton(transactionId)}
+            <NavigationButton transactionId={transactionId} navigate={navigate} />
           </TableCell>
         </TableRow>
       );
     }
     
-    // 處理只有 ID 的情況
+    // 只有 ID 的情況
     return (
       <TableRow key={cleanId || index}>
         <TableCell colSpan={4}>
           {type === 'source' ? '來源交易' : '關聯交易'} {(index || 0) + 1} (僅 ID)
         </TableCell>
         <TableCell align="center">
-          {renderNavigationButton(transactionId)}
+          <NavigationButton transactionId={transactionId} navigate={navigate} />
         </TableCell>
       </TableRow>
     );
@@ -507,33 +697,23 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     const cleanSourceId = extractObjectId(transaction.sourceTransactionId);
     console.log('🔍 資金來源交易 ID 提取:', { 原始: transaction.sourceTransactionId, 提取後: cleanSourceId });
     
-    const isValid = cleanSourceId && isValidObjectId(cleanSourceId);
-    
     // 如果有來源交易資訊，顯示詳細格式
     if (typeof transaction.sourceTransactionId === 'object' && transaction.sourceTransactionId !== null) {
       const sourceInfo = transaction.sourceTransactionId as any;
       
       return (
-        <TableContainer component={Paper} sx={{ mt: 1 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>日期</TableCell>
-                <TableCell>交易描述</TableCell>
-                <TableCell align="center">本次</TableCell>
-                <TableCell align="center">餘額/總額</TableCell>
-                <TableCell align="center">操作</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {renderTransactionRow(sourceInfo, transaction.sourceTransactionId, 0, 'source')}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <TransactionTable>
+          <TransactionTableRow
+            transactionInfo={sourceInfo}
+            transactionId={transaction.sourceTransactionId}
+            index={0}
+            type="source"
+          />
+        </TransactionTable>
       );
     } else {
       // 如果只有 ID，顯示簡化格式
-      return renderNavigationButton(transaction.sourceTransactionId, '查看來源交易');
+      return <NavigationButton transactionId={transaction.sourceTransactionId} label="查看來源交易" navigate={navigate} />;
     }
   };
 
@@ -545,24 +725,19 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
 
     return (
       <Box>
-        <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>日期</TableCell>
-                <TableCell>交易描述</TableCell>
-                <TableCell align="center">本次</TableCell>
-                <TableCell align="center">餘額/總額</TableCell>
-                <TableCell align="center">操作</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {transaction.linkedTransactionIds.map((linkedId, index) =>
-                renderTransactionRow(linkedId, linkedId, index, 'linked')
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Box sx={{ maxHeight: 300 }}>
+          <TransactionTable>
+            {transaction.linkedTransactionIds.map((linkedId, index) => (
+              <TransactionTableRow
+                key={index}
+                transactionInfo={linkedId}
+                transactionId={linkedId}
+                index={index}
+                type="linked"
+              />
+            ))}
+          </TransactionTable>
+        </Box>
       </Box>
     );
   };
@@ -579,6 +754,23 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     
     return Math.max(0, transaction.totalAmount - usedAmount);
   };
+
+  // 交易流向 Chip 組件
+  const FlowChip: React.FC<{ label: string; color: 'primary' | 'secondary'; margin?: string }> = ({
+    label,
+    color,
+    margin = '0'
+  }) => (
+    <Chip
+      label={label}
+      size="small"
+      color={color}
+      sx={{
+        ...CHIP_STYLES,
+        margin
+      }}
+    />
+  );
 
   // 渲染交易流向圖
   const renderTransactionFlow = () => {
@@ -604,39 +796,9 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
-        <Chip
-          label={fromAccountName}
-          size="small"
-          color="secondary"
-          sx={{
-            fontSize: '0.75rem',
-            height: 24,
-            mr: 0.5,
-            maxWidth: 80,
-            '& .MuiChip-label': {
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              fontSize: '0.75rem'
-            }
-          }}
-        />
+        <FlowChip label={fromAccountName} color="secondary" margin="0 0.5rem 0 0" />
         <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
-        <Chip
-          label={toAccountName}
-          size="small"
-          color="primary"
-          sx={{
-            fontSize: '0.75rem',
-            height: 24,
-            ml: 0.5,
-            maxWidth: 80,
-            '& .MuiChip-label': {
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              fontSize: '0.75rem'
-            }
-          }}
-        />
+        <FlowChip label={toAccountName} color="primary" margin="0 0 0 0.5rem" />
       </Box>
     );
   };
@@ -654,24 +816,19 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
     }
 
     return (
-      <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>日期</TableCell>
-              <TableCell>交易描述</TableCell>
-              <TableCell align="center">本次</TableCell>
-              <TableCell align="center">餘額/總額</TableCell>
-              <TableCell align="center">操作</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {transaction.referencedByInfo.map((ref, index) =>
-              renderTransactionRow(ref, ref._id, index, 'referenced')
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Box sx={{ maxHeight: 300 }}>
+        <TransactionTable>
+          {transaction.referencedByInfo.map((ref, index) => (
+            <TransactionTableRow
+              key={index}
+              transactionInfo={ref}
+              transactionId={ref._id}
+              index={index}
+              type="referenced"
+            />
+          ))}
+        </TransactionTable>
+      </Box>
     );
   };
 
@@ -686,59 +843,17 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
         
         {/* 來源區塊 */}
         {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
-          <Box sx={{
-            mb: 1,
-            p: 2,
-            pl: 6,
-            borderRadius: '8px 8px 0 0',
-            border: '4px solid #1976d2',
-            borderBottom: '2px solid #1976d2',
-            position: 'relative',
-            '&::after': {
-              content: '"💰\\A來\\A源"',
-              whiteSpace: 'pre-line',
-              position: 'absolute',
-              top: '50%',
-              left: -2,
-              transform: 'translateY(-50%)',
-              bgcolor: '#1976d2',
-              color: 'white',
-              px: 1,
-              py: 2,
-              borderRadius: 1,
-              fontSize: '0.7rem',
-              fontWeight: 'bold',
-              zIndex: 1,
-              lineHeight: 1.1,
-              textAlign: 'center',
-              display: 'block',
-              width: '20px'
-            }
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 512 512"
-                  style={{
-                    width: '1rem',
-                    height: '1rem',
-                    fill: 'currentColor'
-                  }}
-                >
-                  <path d="M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0c53 0 96-43 96-96l0-256c0-53-43-96-96-96l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32zm-9.4 182.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L242.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"/>
-                </svg>
-                來源
+          <FlowSection
+            type="source"
+            title="來源"
+            count={(transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0)}
+            borderRadius="8px 8px 0 0"
+            summary={
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                來源總計：{formatAmount(calculateSourceTotal())}
               </Typography>
-              {(transaction.sourceTransactionId || (transaction.linkedTransactionIds && transaction.linkedTransactionIds.length > 0)) && (
-                <Chip
-                  label={`${(transaction.sourceTransactionId ? 1 : 0) + (transaction.linkedTransactionIds?.length || 0)} 筆`}
-                  color="primary"
-                  size="small"
-                />
-              )}
-            </Box>
-            
+            }
+          >
             {transaction.sourceTransactionId && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -747,157 +862,39 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
                 {renderSourceTransaction()}
               </Box>
             )}
-
             {renderLinkedTransactions()}
-            
-            {/* 來源區塊總計 */}
-            <Box sx={{ mt: 2, p: 1, bgcolor: '#bbdefb', borderRadius: 1 }}>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                來源總計：{(() => {
-                  let total = 0;
-                  
-                  // 計算來源交易金額
-                  if (transaction.sourceTransactionId && typeof transaction.sourceTransactionId === 'object') {
-                    const sourceInfo = transaction.sourceTransactionId as any;
-                    if (sourceInfo.totalAmount) {
-                      total += sourceInfo.totalAmount;
-                    }
-                  }
-                  
-                  // 計算關聯交易金額
-                  if (transaction.linkedTransactionIds) {
-                    transaction.linkedTransactionIds.forEach(linkedId => {
-                      if (typeof linkedId === 'object' && linkedId !== null) {
-                        const linkedInfo = linkedId as any;
-                        if (linkedInfo.totalAmount) {
-                          total += linkedInfo.totalAmount;
-                        }
-                      }
-                    });
-                  }
-                  
-                  return formatAmount(total);
-                })()}
-              </Typography>
-            </Box>
-          </Box>
+          </FlowSection>
         )}
         
         {/* 交易區塊 */}
-        <Box sx={{
-          mb: 1,
-          p: 2,
-          pl: 6,
-          borderRadius: 0,
-          border: '4px solid #2e7d32',
-          borderTop: '2px solid #2e7d32',
-          borderBottom: '2px solid #2e7d32',
-          position: 'relative',
-          '&::after': {
-            content: '"🔄\\A當\\A前\\A交\\A易"',
-            whiteSpace: 'pre-line',
-            position: 'absolute',
-            top: '50%',
-            left: -2,
-            transform: 'translateY(-50%)',
-            bgcolor: '#2e7d32',
-            color: 'white',
-            px: 1,
-            py: 2,
-            borderRadius: 1,
-            fontSize: '0.7rem',
-            fontWeight: 'bold',
-            zIndex: 1,
-            lineHeight: 1.1,
-            textAlign: 'center',
-            display: 'block',
-            width: '20px'
-          }
-        }}>
-          <Typography variant="subtitle2" gutterBottom sx={{ color: '#2e7d32', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 448 512"
-              style={{
-                width: '1rem',
-                height: '1rem',
-                fill: 'currentColor'
-              }}
-            >
-              <path d="M438.6 150.6c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.7 96 32 96C14.3 96 0 110.3 0 128s14.3 32 32 32l306.7 0-41.4 41.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l96-96zm-333.3 352c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 416 416 416c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 41.4-41.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96z"/>
-            </svg>
-            交易
-          </Typography>
-          
-          <TableContainer component={Paper} sx={{ mt: 1 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>日期</TableCell>
-                  <TableCell>交易描述</TableCell>
-                  <TableCell align="center">本次</TableCell>
-                  <TableCell align="center">餘額/總額</TableCell>
-                  <TableCell align="center">操作</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {renderTransactionRow(transaction, transaction._id, -1, 'current')}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+        <FlowSection
+          type="current"
+          title="交易"
+          borderRadius="0"
+        >
+          <TransactionTable>
+            <TransactionTableRow
+              transactionInfo={transaction}
+              transactionId={transaction._id}
+              index={-1}
+              type="current"
+            />
+          </TransactionTable>
+        </FlowSection>
         
         {/* 流向區塊 */}
-        <Box sx={{
-          p: 2,
-          pl: 6,
-          borderRadius: '0 0 8px 8px',
-          border: '4px solid #f57c00',
-          borderTop: '2px solid #f57c00',
-          position: 'relative',
-          '&::after': {
-            content: '"📤\\A流\\A向"',
-            whiteSpace: 'pre-line',
-            position: 'absolute',
-            top: '50%',
-            left: -2,
-            transform: 'translateY(-50%)',
-            bgcolor: '#f57c00',
-            color: 'white',
-            px: 1,
-            py: 2,
-            borderRadius: 1,
-            fontSize: '0.7rem',
-            fontWeight: 'bold',
-            zIndex: 1,
-            lineHeight: 1.1,
-            textAlign: 'center',
-            display: 'block',
-            width: '20px'
-          }
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ color: 'warning.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 576 512"
-                style={{
-                  width: '1rem',
-                  height: '1rem',
-                  fill: 'currentColor'
-                }}
-              >
-                <path d="M534.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L434.7 224 224 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM192 96c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-53 0-96 43-96 96l0 256c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z"/>
-              </svg>
-              流向
+        <FlowSection
+          type="flow"
+          title="流向"
+          count={transaction.referencedByInfo?.length}
+          borderRadius="0 0 8px 8px"
+          summary={
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#f57c00' }}>
+              剩餘餘額：{formatAmount(calculateRemainingAmount())}
             </Typography>
-            {transaction.referencedByInfo && transaction.referencedByInfo.length > 0 && (
-              <Chip
-                label={`${transaction.referencedByInfo.length} 筆`}
-                color="warning"
-                size="small"
-              />
-            )}
+          }
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             {(() => {
               const usedAmount = transaction.referencedByInfo
                 ?.filter(ref => ref.status !== 'cancelled')
@@ -925,21 +922,7 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
           </Box>
           
           {renderReferencedByInfo()}
-          
-          {/* 流向區塊餘額 */}
-          <Box sx={{ mt: 2, p: 1, bgcolor: '#ffe0b2', borderRadius: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#f57c00' }}>
-              剩餘餘額：{(() => {
-                const usedAmount = transaction.referencedByInfo
-                  ?.filter(ref => ref.status !== 'cancelled')
-                  .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
-                
-                const remainingAmount = Math.max(0, transaction.totalAmount - usedAmount);
-                return formatAmount(remainingAmount);
-              })()}
-            </Typography>
-          </Box>
-        </Box>
+        </FlowSection>
       </CardContent>
     </Card>
   );
