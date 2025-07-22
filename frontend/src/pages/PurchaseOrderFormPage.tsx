@@ -12,6 +12,7 @@ import {
   Grid
 } from '@mui/material';
 import { format } from 'date-fns';
+import { DropResult } from 'react-beautiful-dnd';
 import { Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
@@ -504,6 +505,25 @@ const PurchaseOrderFormPage: React.FC = () => {
     navigate('/purchase-orders');
   };
 
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) {
+      return;
+    }
+
+    const newItems = Array.from(formData.items);
+    const [reorderedItem] = newItems.splice(sourceIndex, 1);
+    newItems.splice(destinationIndex, 0, reorderedItem);
+
+    setFormData(prev => ({ ...prev, items: newItems }));
+  };
+
   // 計算倍率係數
   const getMultiplier = (): number => {
     const multiplierValue = parseFloat(formData.multiplierMode as string);
@@ -616,6 +636,7 @@ const PurchaseOrderFormPage: React.FC = () => {
                     handleRemoveItem={handleRemoveItem}
                     handleMoveItem={handleMoveItem}
                     handleEditingItemChange={handleEditingItemChange}
+                    handleDragEnd={handleDragEnd}
                     totalAmount={totalAmountForDisplay}
                     codeField="did"
                   />

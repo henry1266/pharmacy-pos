@@ -12,6 +12,7 @@ import {
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
+import { DropResult } from 'react-beautiful-dnd';
 
 // Import service functions
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
@@ -444,6 +445,25 @@ const PurchaseOrderEditPage: React.FC = () => {
 
   const handleCancel = () => navigate('/purchase-orders');
 
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) {
+      return;
+    }
+
+    const newItems = Array.from(formData.items);
+    const [reorderedItem] = newItems.splice(sourceIndex, 1);
+    newItems.splice(destinationIndex, 0, reorderedItem);
+
+    setFormData(prev => ({ ...prev, items: newItems }));
+  };
+
   const totalAmount = formData.items.reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0);
 
   if (loading && !orderDataLoaded && !productsLoaded && !suppliersLoaded) {
@@ -497,6 +517,7 @@ const PurchaseOrderEditPage: React.FC = () => {
               handleRemoveItem={handleRemoveItem}
               handleMoveItem={handleMoveItem}
               handleEditingItemChange={handleEditingItemChange}
+              handleDragEnd={handleDragEnd}
               totalAmount={totalAmount}
             />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>

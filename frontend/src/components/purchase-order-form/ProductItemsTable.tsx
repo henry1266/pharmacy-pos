@@ -13,14 +13,16 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import { 
+import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   ArrowUpward as ArrowUpwardIcon,
   ArrowDownward as ArrowDownwardIcon,
   Check as CheckIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  DragIndicator as DragIndicatorIcon
 } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import ProductCodeLink from '../common/ProductCodeLink';
 
 // 定義項目介面
@@ -44,6 +46,7 @@ interface ProductItemsTableProps {
   handleRemoveItem: (index: number) => void;
   handleMoveItem: (index: number, direction: 'up' | 'down') => void;
   handleEditingItemChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleDragEnd: (result: DropResult) => void;
   totalAmount: number;
   codeField?: string;
 }
@@ -63,6 +66,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
   handleRemoveItem,
   handleMoveItem,
   handleEditingItemChange,
+  handleDragEnd,
   totalAmount,
   codeField
 }) => {
@@ -118,30 +122,49 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
           overflow: 'auto'
         }}
       >
-        <TableContainer
-          component={Paper}
-          sx={{ height: '100%' }}
-          ref={tableContainerRef}
-        >
-          <Table size="small">
-            <TableBody>
-            {items.map((item, index) => (
-              <TableRow
-                key={`item-${item._id ?? index}-${index}`}
-                sx={{
-                  '& > *': {
-                    padding: '4px 12px',
-                    fontSize: '1rem'
-                  },
-                  height: '40px'
-                }}
-              >
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <TableContainer
+            component={Paper}
+            sx={{ height: '100%' }}
+            ref={tableContainerRef}
+          >
+            <Table size="small">
+              <Droppable droppableId="items-table">
+                {(provided) => (
+                  <TableBody {...provided.droppableProps} ref={provided.innerRef}>
+                    {items.map((item, index) => (
+                      <Draggable
+                        key={`item-${item._id ?? index}-${index}`}
+                        draggableId={`item-${item._id ?? index}-${index}`}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <TableRow
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            sx={{
+                              '& > *': {
+                                padding: '4px 12px',
+                                fontSize: '1rem'
+                              },
+                              height: '40px',
+                              backgroundColor: snapshot.isDragging ? '#f5f5f5' : 'inherit',
+                              '&:hover': {
+                                backgroundColor: snapshot.isDragging ? '#f5f5f5' : '#fafafa'
+                              }
+                            }}
+                          >
                 {editingItemIndex === index && editingItem ? (
                   // 編輯模式
                   <>
-                    <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>
-                      <Typography variant="caption">{index + 1}</Typography>
-                    </TableCell>
+                            <TableCell align="center" sx={{ width: '80px', minWidth: '80px', maxWidth: '80px' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                                <Box {...provided.dragHandleProps} sx={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}>
+                                  <DragIndicatorIcon fontSize="small" sx={{ color: '#999' }} />
+                                </Box>
+                                <Typography variant="caption">{index + 1}</Typography>
+                              </Box>
+                            </TableCell>
                     <TableCell align="center" sx={{ width: '110px', minWidth: '110px', maxWidth: '110px' }}>
                       <TextField
                         fullWidth
@@ -241,19 +264,25 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
                       </Box>
                     </TableCell>
                   </>
+                            )}
+                          </TableRow>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    {items.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          尚未添加藥品項目
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
                 )}
-              </TableRow>
-            ))}
-            {items.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} align="center">
-                  尚未添加藥品項目
-                </TableCell>
-              </TableRow>
-            )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </Droppable>
+            </Table>
+          </TableContainer>
+        </DragDropContext>
       </Box>
 
       {/* 固定的總計欄 */}
@@ -272,7 +301,6 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
             <TableBody>
               <TableRow
                 sx={{
-                  backgroundColor: '#f5f5f5',
                   borderTop: '2px solid #e0e0e0',
                   '& > *': {
                     fontWeight: 'bold',
@@ -322,6 +350,7 @@ ProductItemsTable.propTypes = {
   handleRemoveItem: PropTypes.func.isRequired,
   handleMoveItem: PropTypes.func.isRequired,
   handleEditingItemChange: PropTypes.func.isRequired,
+  handleDragEnd: PropTypes.func.isRequired,
   totalAmount: PropTypes.number.isRequired,
   codeField: PropTypes.string
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
