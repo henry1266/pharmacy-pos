@@ -874,66 +874,6 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
           </Grid>
         </Grid>
         
-        {/* 總計卡片 */}
-        <Box sx={{ mt: 2 }}>
-          <Table size="small">
-            <TableBody>
-              <TableRow>
-                <TableCell sx={{ border: 'none' }}></TableCell>
-                <TableCell sx={{ border: 'none' }}></TableCell>
-                <TableCell align="center" sx={{ border: 'none' }}>
-                  <Card sx={{ bgcolor: '#fff3e0', minWidth: 80 }}>
-                    <CardContent sx={{ py: 1, px: 2, '&:last-child': { pb: 1 } }}>
-                      <Typography
-                        variant="h6"
-                        align="center"
-                        sx={{
-                          fontWeight: 'bold',
-                          color: calculateRemainingAmount() > 0 ? '#f57c00' : '#666'
-                        }}
-                      >
-                        {formatAmount(calculateRemainingAmount())}
-                      </Typography>
-                      <Typography variant="caption" align="center" display="block" color="text.secondary">
-                        餘額
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </TableCell>
-                <TableCell align="center" sx={{ border: 'none', fontSize: '1.2rem', color: 'text.secondary' }}>
-                  =
-                </TableCell>
-                <TableCell align="center" sx={{ border: 'none' }}>
-                  <Card sx={{ bgcolor: '#e8f5e8', minWidth: 80 }}>
-                    <CardContent sx={{ py: 1, px: 2, '&:last-child': { pb: 1 } }}>
-                      <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
-                        {formatAmount(calculateSourceTotal())}
-                      </Typography>
-                      <Typography variant="caption" align="center" display="block" color="text.secondary">
-                        來源總計
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </TableCell>
-                <TableCell align="center" sx={{ border: 'none', fontSize: '1.2rem', color: 'text.secondary' }}>
-                  -
-                </TableCell>
-                <TableCell align="center" sx={{ border: 'none' }}>
-                  <Card sx={{ bgcolor: '#ffebee', minWidth: 80 }}>
-                    <CardContent sx={{ py: 1, px: 2, '&:last-child': { pb: 1 } }}>
-                      <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
-                        {formatAmount(calculateFlowTotal())}
-                      </Typography>
-                      <Typography variant="caption" align="center" display="block" color="text.secondary">
-                        流向總計
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </Box>
       </CardContent>
     </Card>
   );
