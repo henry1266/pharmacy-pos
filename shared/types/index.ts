@@ -26,6 +26,9 @@ export * from './forms';
 // 工具型別
 export * from './utils';
 
+// 包裝單位相關型別
+export * from './package';
+
 // 主題相關型別
 export * from './theme';
 

@@ -4,6 +4,7 @@ import {
   Product as IProduct,
   Medicine as IMedicine
 } from '@pharmacy-pos/shared/types/entities';
+import { BaseProductWithPackageUnits } from '@pharmacy-pos/shared/types/package';
 import { ProductType } from '@pharmacy-pos/shared/enums';
 
 // 擴展 Mongoose Document 介面，處理 ObjectId 與 string 的差異
@@ -14,7 +15,7 @@ type BaseProductDocumentFields = {
 };
 
 // 使用類型別名替代聯合類型
-type IBaseProductDocument = Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'> & mongoose.Document & BaseProductDocumentFields & {
+type IBaseProductDocument = Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'> & mongoose.Document & BaseProductDocumentFields & BaseProductWithPackageUnits & {
   excludeFromStock?: boolean;
 };
 
@@ -94,6 +95,15 @@ const BaseProductSchema = new Schema<IBaseProductDocument>({
     default: true
   },
   excludeFromStock: {
+    type: Boolean,
+    default: false
+  },
+  // 包裝單位相關欄位
+  defaultDisplayUnit: {
+    type: String,
+    trim: true
+  },
+  enablePackageMode: {
     type: Boolean,
     default: false
   }
