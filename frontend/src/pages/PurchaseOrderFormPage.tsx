@@ -552,13 +552,16 @@ const PurchaseOrderFormPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-      <Typography variant="h5" component="h1" gutterBottom>
-        {isEditMode ? '編輯進貨單' : '新增進貨單'}
-        {isGlobalTestMode && <Typography variant="caption" color="secondary" sx={{ ml: 1 }}>(測試模式)</Typography>}
-      </Typography>
+    <Box sx={{ p: { xs: 1, sm: 1.5, md: 2 }, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+        <Typography variant="h5" component="h1">
+          {isEditMode ? '編輯進貨單' : '新增進貨單'}
+          {isGlobalTestMode && <Typography variant="caption" color="secondary" sx={{ ml: 1 }}>(測試模式)</Typography>}
+        </Typography>
+        <ActionButtons onCancel={handleCancel} />
+      </Box>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <BasicInfoForm
           formData={formData}
           handleInputChange={handleFormInputChange}
@@ -570,14 +573,10 @@ const PurchaseOrderFormPage: React.FC = () => {
           isTestMode={isGlobalTestMode}
         />
 
-        <Card sx={{ mb: 1 }}>
-          <CardContent sx={{ pb: 1 }}>
-            <Typography variant="h6">藥品項目</Typography>
-            <Box>
-              <ActionButtons
-                onCancel={handleCancel}
-              />
-            </Box>
+        <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <CardContent sx={{ pb: 1, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>藥品項目</Typography>
+            
             <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
               <ProductItemForm
                 currentItem={currentItem}
@@ -589,7 +588,8 @@ const PurchaseOrderFormPage: React.FC = () => {
                 isTestMode={isGlobalTestMode}
               />
             </Box>
-            <Box sx={{ height: 'calc(100vh - 550px)', minHeight: '250px', overflowY: 'auto' }}>
+            
+            <Box sx={{ flex: 1, overflowY: 'auto', minHeight: '200px' }}>
               <ProductItemsTable
                 items={formData.items}
                 editingItemIndex={editingItemIndex}
@@ -600,7 +600,7 @@ const PurchaseOrderFormPage: React.FC = () => {
                 handleRemoveItem={handleRemoveItem}
                 handleMoveItem={handleMoveItem}
                 handleEditingItemChange={handleEditingItemChange}
-                totalAmount={totalAmountForDisplay} 
+                totalAmount={totalAmountForDisplay}
                 codeField="did"
               />
             </Box>

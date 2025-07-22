@@ -25,12 +25,13 @@ const ActionButtons: FC<ActionButtonsProps> = ({
   onCancel
 }) => {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3, mb: 3 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 0 }}>
       <Button
         variant="outlined"
         startIcon={<ArrowBackIcon />}
         onClick={onCancel}
         tabIndex={-1}
+        size="small"
       >
         取消
       </Button>
@@ -40,6 +41,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({
         startIcon={<SaveIcon />}
         disabled={loading}
         tabIndex={-1}
+        size="small"
       >
         {loading ? '儲存中...' : '儲存進貨單'}
       </Button>

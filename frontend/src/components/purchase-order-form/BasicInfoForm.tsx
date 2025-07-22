@@ -85,8 +85,8 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
   };
 
   return (
-    <Card sx={{ mb: 2 }}>
-      <CardContent>
+    <Card sx={{ mb: 1 }}>
+      <CardContent sx={{ pb: 1, '&:last-child': { pb: 1 } }}>
         {isTestMode && (
           <Typography
             variant="caption"
@@ -108,8 +108,8 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
           基本資訊
         </Typography>
         
-        <Grid container spacing={2}>
-          <Grid item md={2} sm={6} xs={12}>
+        <Grid container spacing={1}>
+          <Grid item md={2} sm={4} xs={12}>
             <TextField
               fullWidth
               label="進貨單號"
@@ -117,11 +117,12 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               value={formData?.poid}
               onChange={handleInputChange}
               variant="outlined"
+              size="small"
               disabled={isEditMode}
               helperText="留空將自動生成"
             />
           </Grid>
-          <Grid item md={2} sm={6} xs={12}>
+          <Grid item md={2} sm={4} xs={12}>
             <TextField
               fullWidth
               label="發票號碼"
@@ -129,9 +130,10 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               value={formData?.pobill}
               onChange={handleInputChange}
               variant="outlined"
+              size="small"
             />
           </Grid>
-          <Grid item md={2} sm={6} xs={12}>
+          <Grid item md={2} sm={4} xs={12}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhTW}>
               <DatePicker
                 label="發票日期"
@@ -141,15 +143,15 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               />
             </LocalizationProvider>
           </Grid>
-          <Grid item md={2} sm={6} xs={12}>
+          <Grid item md={3} sm={6} xs={12}>
             <SupplierSelect
               suppliers={suppliers ?? []}
-              selectedSupplier={selectedSupplier} 
+              selectedSupplier={selectedSupplier}
               onChange={handleSupplierChange}
               label={isEditMode ? "進貨商 (僅供查看)" : "進貨商 (可用名稱或簡碼)"}
             />
           </Grid>
-          <Grid item md={2} sm={6} xs={12}>
+          <Grid item md={1.5} sm={3} xs={12}>
             <Box
               sx={{
                 backgroundColor: getPaymentStatusBackgroundColor()
@@ -172,7 +174,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             </FormControl>
             </Box>
           </Grid>
-          <Grid item md={6} sm={6} xs={12}>
+          <Grid item md={3} sm={6} xs={12}>
             <TextField
               fullWidth
               label="備註"
@@ -180,11 +182,12 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               value={formData?.notes}
               onChange={handleInputChange}
               variant="outlined"
+              size="small"
               multiline
               rows={1}
             />
           </Grid>
-          <Grid item md={2} sm={2} xs={12}>
+          <Grid item md={1.5} sm={3} xs={12}>
             <TextField
               fullWidth
               label="倍率模式 (%)"
@@ -192,12 +195,12 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               value={formData?.multiplierMode}
               onChange={handleInputChange}
               variant="outlined"
+              size="small"
               type="number"
               inputProps={{ step: "0.1" }}
-              helperText="正數增加，負數減少"
             />
           </Grid>
-          <Grid item md={2} sm={6} xs={12}>
+          <Grid item md={1.5} sm={3} xs={12}>
             <Box
               sx={{
                 backgroundColor: getStatusBackgroundColor()

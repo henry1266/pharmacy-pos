@@ -342,9 +342,9 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   };
 
   return (
-    <Grid container spacing={2} alignItems="flex-start" sx={{ mb: 1 }}>
+    <Grid container spacing={1} alignItems="flex-start" sx={{ mb: 0.5 }}>
       {/* @ts-ignore */}
-      <Grid item xs={12} sm={6} md={4}>
+      <Grid item xs={12} sm={6} md={4.5}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ flex: 1 }}>
             <Autocomplete
@@ -460,9 +460,9 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
       </Grid>
 
       {/* @ts-ignore */}
-      <Grid item xs={12} sm={6} md={2.5}>
+      <Grid item xs={12} sm={6} md={3}>
         {/* @ts-ignore */}
-        <PriceTooltip 
+        <PriceTooltip
           currentItem={{...currentItem, dquantity: dQuantityValue}}
           handleItemInputChange={handleItemInputChange}
           getProductPurchasePrice={getProductPurchasePrice}
@@ -472,15 +472,20 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
         />
       </Grid>
       {/* @ts-ignore */}
-      <Grid item xs={12} sm={6} md={2.5}>
+      <Grid item xs={12} sm={6} md={1.5}>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
           onClick={handleAddItem}
           fullWidth
-          sx={{ height: '100%' }}
+          size="small"
+          sx={{
+            height: '40px',
+            minHeight: '40px',
+            minWidth: '40px',
+            px: 1
+          }}
         >
-          添加項目
+          <AddIcon />
         </Button>
       </Grid>
       
