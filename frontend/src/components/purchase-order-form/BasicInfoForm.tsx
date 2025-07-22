@@ -53,6 +53,7 @@ interface BasicInfoFormProps {
   selectedSupplier?: Supplier | null;
   isEditMode?: boolean;
   isTestMode?: boolean;
+  invoiceInputRef?: React.RefObject<HTMLInputElement>;
 }
 
 /**
@@ -68,7 +69,8 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
   suppliers,
   selectedSupplier,
   isEditMode,
-  isTestMode
+  isTestMode,
+  invoiceInputRef
 }) => {
   // 將巢狀三元運算子拆解為獨立陳述式
   const getPaymentStatusBackgroundColor = () => {
@@ -131,6 +133,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               onChange={handleInputChange}
               variant="outlined"
               size="small"
+              inputRef={invoiceInputRef}
             />
           </Grid>
           <Grid item xs={12}>
@@ -246,7 +249,8 @@ BasicInfoForm.propTypes = {
   suppliers: PropTypes.array,
   selectedSupplier: PropTypes.object,
   isEditMode: PropTypes.bool,
-  isTestMode: PropTypes.bool
+  isTestMode: PropTypes.bool,
+  invoiceInputRef: PropTypes.object
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 // 過濾供應商的函數

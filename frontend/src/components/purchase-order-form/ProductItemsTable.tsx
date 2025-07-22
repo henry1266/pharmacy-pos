@@ -99,8 +99,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
             top: 0,
             left: 0,
             right: 0,
-            zIndex: 10,
-            backgroundColor: 'white'
+            zIndex: 10
           }}
         >
           <Paper sx={{ p: 1 }}>
@@ -113,7 +112,6 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                 minHeight: '40px',
                 fontWeight: 'bold',
                 fontSize: '1.1rem',
-                borderBottom: '2px solid #e0e0e0',
                 pb: 1
               }}
             >
@@ -155,8 +153,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
             bottom: 0,
             left: 0,
             right: 0,
-            zIndex: 10,
-            backgroundColor: 'white'
+            zIndex: 10
           }}
         >
           <Paper sx={{ p: 1 }}>
@@ -196,8 +193,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 10,
-          backgroundColor: 'white'
+          zIndex: 10
         }}
       >
         <Paper sx={{ p: 1 }}>
@@ -210,7 +206,6 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
               minHeight: '40px',
               fontWeight: 'bold',
               fontSize: '1.1rem',
-              borderBottom: '2px solid #e0e0e0',
               pb: 1
             }}
           >
@@ -243,7 +238,6 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                 sx={{
                   height: '100%',
                   p: 1,
-                  backgroundColor: snapshot.isDraggingOver ? '#f5f5f5' : 'inherit'
                 }}
                 ref={containerRef}
               >
@@ -275,7 +269,6 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                               alignItems: 'center',
                               minHeight: '40px',
                               p: 1,
-                              backgroundColor: snapshot.isDragging ? '#e3f2fd' : 'white',
                               border: snapshot.isDragging ? '2px solid #2196f3' : '1px solid #e0e0e0',
                               borderRadius: 1,
                               boxShadow: snapshot.isDragging ? '0 4px 8px rgba(0,0,0,0.2)' : 'none',

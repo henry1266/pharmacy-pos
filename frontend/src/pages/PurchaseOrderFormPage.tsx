@@ -588,10 +588,12 @@ const PurchaseOrderFormPage: React.FC = () => {
           {isEditMode ? '編輯進貨單' : '新增進貨單'}
           {isGlobalTestMode && <Typography variant="caption" color="secondary" sx={{ ml: 1 }}>(測試模式)</Typography>}
         </Typography>
-        <ActionButtons onCancel={handleCancel} />
       </Box>
 
       <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <ActionButtons onCancel={handleCancel} />
+        </Box>
         <Grid container spacing={2} sx={{ flex: 1, minHeight: 0 }}>
           {/* 左側：基本資訊 */}
           <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -604,6 +606,7 @@ const PurchaseOrderFormPage: React.FC = () => {
               selectedSupplier={selectedSupplier}
               isEditMode={isEditMode}
               isTestMode={isGlobalTestMode}
+              invoiceInputRef={invoiceInputRef}
             />
           </Grid>
 
