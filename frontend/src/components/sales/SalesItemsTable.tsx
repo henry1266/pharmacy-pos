@@ -41,7 +41,7 @@ interface SalesItemsTableProps {
   onToggleInputMode: (index: number) => void;
   onSubtotalChange: (index: number, subtotal: number) => void;
   totalAmount?: number;
-  discount?: number;
+  discount?: number | string;
   onQuantityInputComplete?: () => void;
 }
 
@@ -275,7 +275,12 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
     {/* 固定在底部的總計欄位 */}
     <Paper sx={{
       mt: 1,
-      p: 2,
+      p: {
+        xs: 1.5,         // 小手機
+        sm: 1,           // 平板：大幅減少內距
+        md: 1.25,        // 平板橫向：大幅減少內距
+        lg: 2            // 桌面
+      },
       backgroundColor: 'grey.50',
       borderTop: '2px solid',
       borderColor: 'primary.main'
@@ -285,18 +290,59 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: 1
+        gap: {
+          xs: 1,           // 小手機
+          sm: 1,           // 平板：減少間距
+          md: 1.5,         // 平板橫向：減少間距
+          lg: 1            // 桌面
+        }
       }}>
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 'bold',
+            fontSize: {
+              xs: '1.1rem',    // 小手機
+              sm: '1.15rem',   // 平板：稍微縮小
+              md: '1.2rem',    // 平板橫向：稍微縮小
+              lg: '1.25rem'    // 桌面
+            }
+          }}
+        >
           總計:
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 'bold',
+              color: 'primary.main',
+              fontSize: {
+                xs: '1.5rem',    // 小手機
+                sm: '1.6rem',    // 平板：稍微縮小
+                md: '1.7rem',    // 平板橫向：稍微縮小
+                lg: '1.75rem'    // 桌面
+              }
+            }}
+          >
             ${totalAmount?.toFixed(2) ?? '0.0'}
           </Typography>
-          {discount && discount > 0 && (
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-              (折扣: ${discount.toFixed(2)})
+          {/* 只有在有折扣且折扣大於0時才顯示折扣信息 */}
+          {discount != null && discount !== '' && Number(discount) > 0 && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                fontSize: {
+                  xs: '0.7rem',    // 小手機
+                  sm: '0.7rem',    // 平板：稍微縮小
+                  md: '0.75rem',   // 平板橫向：稍微縮小
+                  lg: '0.75rem'    // 桌面
+                },
+                mt: -0.5 // 減少上方間距
+              }}
+            >
+              (折扣: ${Number(discount).toFixed(2)})
             </Typography>
           )}
         </Box>

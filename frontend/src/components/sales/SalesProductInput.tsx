@@ -120,9 +120,24 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             onSelectProduct(exactMatch);
           }
         } else {
-          // 如果沒有精確匹配，顯示警告
-          showSnackbar(`找不到與 "${barcode}" 精確匹配的產品或套餐，請從下拉選單選擇`, 'warning');
-          return; // 提前返回，不清空輸入框，讓用戶可以從下拉選單選擇
+          // 如果沒有精確匹配，選擇第一個搜尋結果
+          const firstItem = filteredItems[0];
+          if (firstItem) {
+            if (isPackage(firstItem)) {
+              if (onSelectPackage) {
+                onSelectPackage(firstItem);
+                showSnackbar(`已選擇第一個搜尋結果：${firstItem.name}`, 'info');
+              } else {
+                showSnackbar('套餐選擇功能尚未實作', 'warning');
+              }
+            } else {
+              onSelectProduct(firstItem);
+              showSnackbar(`已選擇第一個搜尋結果：${firstItem.name}`, 'info');
+            }
+          } else {
+            showSnackbar(`找不到與 "${barcode}" 匹配的產品或套餐`, 'warning');
+            return; // 提前返回，不清空輸入框
+          }
         }
       } else {
         // 在所有產品和套餐中查找精確匹配
@@ -298,14 +313,56 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             size="small"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                // 檢查是否有下拉選單打開
-                // 如果有選項且下拉選單可見，讓 Autocomplete 處理 Enter 鍵
+                e.preventDefault();
+                
+                // 如果有搜尋結果，直接選擇第一個項目
                 if (filteredItems.length > 0) {
-                  // 有搜尋結果，讓 Autocomplete 處理鍵盤導航和選擇
-                  return;
+                  const firstItem = filteredItems[0];
+                  
+                  // 防止重複觸發的檢查
+                  if (isProcessingRef.current) {
+                    return;
+                  }
+                  
+                  const itemId = isPackage(firstItem) ? firstItem._id || firstItem.id : firstItem._id;
+                  if (lastSelectedItemRef.current === itemId) {
+                    return;
+                  }
+                  
+                  // 設置處理標誌
+                  isProcessingRef.current = true;
+                  lastSelectedItemRef.current = itemId;
+                  
+                  try {
+                    if (isPackage(firstItem)) {
+                      if (onSelectPackage) {
+                        onSelectPackage(firstItem);
+                        showSnackbar(`已選擇：${firstItem.name}`, 'success');
+                      } else {
+                        showSnackbar('套餐選擇功能尚未實作', 'warning');
+                      }
+                    } else {
+                      onSelectProduct(firstItem);
+                      showSnackbar(`已選擇：${firstItem.name}`, 'success');
+                    }
+                    
+                    // 清空狀態
+                    setBarcode('');
+                    setFilteredItems([]);
+                    
+                    // 重新聚焦
+                    if (barcodeInputRef.current) {
+                      barcodeInputRef.current.focus();
+                    }
+                  } finally {
+                    // 重置處理標誌
+                    setTimeout(() => {
+                      isProcessingRef.current = false;
+                      lastSelectedItemRef.current = null;
+                    }, 300);
+                  }
                 } else {
                   // 沒有搜尋結果，執行提交邏輯
-                  e.preventDefault();
                   handleBarcodeSubmit();
                 }
               }

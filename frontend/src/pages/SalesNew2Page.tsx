@@ -9,12 +9,17 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
-  Paper
+  Paper,
+  Drawer,
+  Fab,
+  Badge
 } from '@mui/material';
 import {
   Save as SaveIcon,
   ArrowBack as ArrowBackIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Receipt as ReceiptIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,8 +49,9 @@ const Grid = MuiGrid;
 
 const SalesNew2Page: FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm")); // 真正的手機
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "lg")); // 平板
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg")); // 小螢幕（包含手機和平板）
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("xl"));
   const navigate = useNavigate();
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -171,6 +177,7 @@ const SalesNew2Page: FC = () => {
   const [customDialogOpen, setCustomDialogOpen] = useState<boolean>(false);
   const [selectedShortcut, setSelectedShortcut] = useState<UserShortcut | null>(null);
   const [infoExpanded, setInfoExpanded] = useState<boolean>(!isMobile);
+  const [salesDrawerOpen, setSalesDrawerOpen] = useState<boolean>(false);
 
   const handleQuantityInputComplete = useCallback(() => {
     focusBarcode();
@@ -292,12 +299,27 @@ const SalesNew2Page: FC = () => {
 
   return (
     <Box sx={{
-      height: 'calc(100vh - 120px)', // 進一步減少預留空間，增加可視區域
+      height: {
+        xs: 'calc(100vh - 100px)', // 小螢幕
+        sm: 'calc(100vh - 60px)',  // 平板：進一步減少預留空間
+        md: 'calc(100vh - 70px)',  // 平板橫向：進一步減少預留空間
+        lg: 'calc(100vh - 120px)'  // 桌面：保持原有
+      },
       display: 'flex',
       flexDirection: 'column',
       overflow: 'visible', // 改為 visible 讓按鈕可以超出最外層邊界
-      p: { xs: 1, sm: 1.5, md: 2 }, // 減少 padding 增加可視區域
-      px: { xs: 1, sm: 1.5, md: 2, lg: 3 }, // 減少左右 padding
+      p: {
+        xs: 0.5,         // 小螢幕
+        sm: 1,           // 平板：減少 padding
+        md: 1.5,         // 平板橫向：減少 padding
+        lg: 2            // 桌面：保持原有
+      },
+      px: {
+        xs: 1,           // 小螢幕
+        sm: 1,           // 平板：減少左右 padding
+        md: 1.5,         // 平板橫向：減少左右 padding
+        lg: 3            // 桌面：保持原有
+      },
       boxSizing: 'border-box'
     }}>
       {selectedShortcut && (
@@ -311,37 +333,59 @@ const SalesNew2Page: FC = () => {
         />
       )}
 
-      {/* Header - 固定高度 */}
+      {/* Header - 固定高度，平板時大幅縮減 */}
       <Box sx={{
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        mb: { xs: 2, sm: 2, md: 3 },
-        gap: { xs: 1, sm: 2 },
+        mb: {
+          xs: 1,           // 小手機
+          sm: 0.5,         // 平板：進一步減少
+          md: 1,           // 平板橫向：進一步減少
+          lg: 3            // 桌面：保持原有
+        },
+        gap: {
+          xs: 0.5,         // 小手機
+          sm: 0.5,         // 平板：保持最小
+          md: 0.5,         // 平板橫向：進一步減少
+          lg: 2            // 桌面：保持原有
+        },
         overflow: 'visible' // 允許快捷按鈕區域正常顯示
       }}>
         {/* Title and Action Buttons Row */}
         <Box sx={{
           display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
+          flexDirection: isSmallMobile ? 'column' : 'row', // 只有真正的小手機才垂直排列
           justifyContent: 'space-between',
-          alignItems: isMobile ? 'flex-start' : 'center',
-          gap: { xs: 1, sm: 2 }
+          alignItems: isSmallMobile ? 'flex-start' : 'center',
+          gap: {
+            xs: 1,           // 小手機
+            sm: 1,           // 平板：減少間距
+            md: 1.5,         // 平板橫向：減少間距
+            lg: 2            // 桌面：保持原有
+          }
         }}>
           <Typography
-            variant={isMobile ? 'h5' : 'h4'}
+            variant={isSmallMobile ? 'h5' : isTablet ? 'h5' : 'h4'} // 平板使用較小標題
             component="h1"
-            gutterBottom={isMobile}
+            gutterBottom={isSmallMobile}
             sx={{
-              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem', lg: '2.125rem' },
-              fontWeight: 500
+              fontSize: {
+                xs: '1.5rem',      // 小手機
+                sm: '1.4rem',      // 平板：縮小
+                md: '1.5rem',      // 平板橫向：縮小
+                lg: '2rem',        // 桌面
+                xl: '2rem'     // 大桌面
+              },
+              fontWeight: 500,
+              lineHeight: 1.1     // 縮小行高
             }}
           >
             銷售作業 v2 {isTestMode && (
               <Typography
                 component="span"
                 sx={{
-                  fontSize: { xs: '0.75em', sm: '0.8em' },
+                  fontSize: { xs: '0.75em', sm: '0.75em' }, // 平板也使用小字體
                   color: 'orange',
                   fontWeight: 'bold'
                 }}
@@ -352,48 +396,77 @@ const SalesNew2Page: FC = () => {
           </Typography>
           <Box sx={{
             display: 'flex',
-            gap: { xs: 0.5, sm: 1 },
-            flexDirection: isMobile ? 'column' : 'row',
-            width: isMobile ? '100%' : 'auto'
+            gap: {
+              xs: 0.5,         // 小手機
+              sm: 0.5,         // 平板：減少間距
+              md: 1,           // 平板橫向：減少間距
+              lg: 1.5          // 桌面：保持原有
+            },
+            flexDirection: isSmallMobile ? 'column' : 'row', // 只有真正的小手機才垂直排列
+            width: isSmallMobile ? '100%' : 'auto',
+            alignItems: 'center'
           }}>
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
               onClick={refreshSales}
               disabled={salesLoading}
-              size={isMobile ? 'small' : 'medium'}
-              fullWidth={isMobile}
-              sx={{ mt: isMobile ? 1 : 0 }}
+              size={isSmallMobile ? 'small' : isTablet ? 'small' : 'medium'} // 平板使用小按鈕
+              fullWidth={isSmallMobile}
+              sx={{
+                mt: isSmallMobile ? 1 : 0,
+                minWidth: isTablet ? '100px' : 'auto', // 平板縮小最小寬度
+                px: isTablet ? 1.5 : 1.5 // 平板減少內距
+              }}
               title="手動刷新當天銷售記錄"
             >
-              刷新清單
+              {isTablet ? '刷新' : '刷新清單'} {/* 平板使用較短文字 */}
             </Button>
             <Button
               variant="outlined"
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/sales')}
-              size={isMobile ? 'small' : 'medium'}
-              fullWidth={isMobile}
-              sx={{ mt: isMobile ? 1 : 0 }}
+              size={isSmallMobile ? 'small' : isTablet ? 'small' : 'medium'} // 平板使用小按鈕
+              fullWidth={isSmallMobile}
+              sx={{
+                mt: isSmallMobile ? 1 : 0,
+                minWidth: isTablet ? '100px' : 'auto', // 平板縮小最小寬度
+                px: isTablet ? 1.5 : 1.5 // 平板減少內距
+              }}
             >
-              返回銷售列表
+              {isTablet ? '返回' : '返回銷售列表'} {/* 平板使用較短文字 */}
             </Button>
           </Box>
         </Box>
         
-        {/* Shortcut Buttons Row */}
+        {/* Shortcut Buttons Row - 平板時大幅縮減 */}
         <Box sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: { xs: 2, sm: 2.5, md: 3 },
+          gap: {
+            xs: 1,           // 小手機：減少間距
+            sm: 1,           // 平板：減少間距
+            md: 1.5,         // 平板橫向：減少間距
+            lg: 2            // 桌面：減少間距
+          },
           alignItems: 'center',
           justifyContent: 'center',
-          p: { xs: 2.5, sm: 3, md: 3.5 },
+          p: {
+            xs: 1,           // 小手機：減少內距
+            sm: 0.75,        // 平板：進一步減少內距
+            md: 1,           // 平板橫向：進一步減少內距
+            lg: 2            // 桌面：大幅減少內距
+          },
           position: 'relative',
           overflow: 'hidden',
           background: `linear-gradient(135deg, rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.4) 0%, rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.03) 50%, rgba(var(--surface-r), var(--surface-g), var(--surface-b), 0.6) 100%)`,
           boxShadow: `0 1px 3px 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.08), 0 4px 12px 0 rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 0 rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.03)`,
-          borderRadius: 'var(--shape-corner-extra-large, 28px)',
+          borderRadius: {
+            xs: '16px',
+            sm: '12px',      // 平板：縮小圓角
+            md: '16px',      // 平板橫向：縮小圓角
+            lg: 'var(--shape-corner-extra-large, 28px)' // 桌面：保持原有
+          },
           border: `1px solid rgba(var(--outline-r), var(--outline-g), var(--outline-b), 0.12)`,
           '&::before': {
             content: '""',
@@ -412,18 +485,33 @@ const SalesNew2Page: FC = () => {
             sx={{
               color: `rgba(var(--primary-r), var(--primary-g), var(--primary-b), 0.85)`,
               fontWeight: 600,
-              fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-              mr: { xs: 1, sm: 2 },
+              fontSize: {
+                xs: '1rem',
+                sm: '0.9rem',    // 平板：縮小字體
+                md: '1rem',      // 平板橫向：縮小字體
+                lg: '1.2rem'     // 桌面：保持原有
+              },
+              mr: {
+                xs: 1,
+                sm: 1,           // 平板：減少間距
+                md: 1.5,         // 平板橫向：減少間距
+                lg: 2            // 桌面：保持原有
+              },
               textShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
               display: 'flex',
               alignItems: 'center',
-              gap: 1
+              gap: 0.5         // 減少圖示間距
             }}
           >
             <Box
               component="span"
               sx={{
-                fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.4rem' },
+                fontSize: {
+                  xs: '1.2rem',
+                  sm: '1.1rem',    // 平板：縮小圖示
+                  md: '1.2rem',    // 平板橫向：縮小圖示
+                  lg: '1.4rem'     // 桌面：保持原有
+                },
                 filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
               }}
             >
@@ -448,32 +536,33 @@ const SalesNew2Page: FC = () => {
         overflow: 'visible', // 改為 visible 讓按鈕可以超出主容器邊界
         minHeight: 0 // 重要：讓 flex 子元素能正確縮小
       }}>
-        {/* Left Panel - Sales List */}
-        <Box sx={{
-          width: isMobile ? '100%' : panelWidth,
-          minWidth: isMobile ? 'auto' : '280px',
-          maxWidth: isMobile ? '100%' : '360px',
-          height: isMobile ? '35%' : '100%',
-          flexShrink: 0,
- 
-        }}>
-          <SalesListPanel
-            sales={sales}
-            loading={salesLoading}
-            error={salesError}
-            isTestMode={salesTestMode}
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-          />
-        </Box>
+        {/* Left Panel - Sales List - 只在非手機版顯示 */}
+        {!isMobile && (
+          <Box sx={{
+            width: panelWidth,
+            minWidth: '280px',
+            maxWidth: '360px',
+            height: '100%',
+            flexShrink: 0,
+          }}>
+            <SalesListPanel
+              sales={sales}
+              loading={salesLoading}
+              error={salesError}
+              isTestMode={salesTestMode}
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+            />
+          </Box>
+        )}
 
-        {/* Right Panel - Sales Input */}
+        {/* Right Panel - Sales Input - 在手機版佔滿全寬 */}
         <Box sx={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          height: isMobile ? '65%' : '100%',
+          height: '100%',
           overflow: 'visible', // 改為 visible 讓按鈕可以超出更外層邊界
           ml: { xs: 0, sm: 0.5, md: 1 } // 增加左邊距避免被覆蓋
         }}>
@@ -562,32 +651,101 @@ const SalesNew2Page: FC = () => {
                 </Box>
               </Grid>
 
-              {/* 右側資訊欄 */}
-              <Grid item xs={12} lg={3} sx={{ height: '100%' }}>
+              {/* 右側資訊欄 - 平板專用水平佈局 */}
+              <Grid item xs={12} sm={12} md={12} lg={3} sx={{ height: '100%' }}>
                 <Box
                   sx={{
                     display: 'flex',
-                    flexDirection: 'column',
+                    flexDirection: {
+                      xs: 'column',    // 小手機：垂直排列
+                      sm: 'row',       // 平板：水平排列
+                      md: 'row',       // 平板橫向：水平排列
+                      lg: 'column'     // 桌面：垂直排列
+                    },
                     height: '100%',
-                    gap: { xs: 1, sm: 2, md: 3 },
+                    gap: {
+                      xs: 1,           // 小手機
+                      sm: 1,           // 平板：緊湊間距
+                      md: 1.5,         // 平板橫向：稍微增加
+                      lg: 2            // 桌面
+                    },
                     pl: { xs: 0, lg: 0.5 }
                   }}
                 >
-                  <SaleInfoCard
-                    saleData={currentSale}
-                    customers={customers ?? []}
-                    isMobile={isMobile}
-                    expanded={infoExpanded}
-                    onExpandToggle={() => setInfoExpanded(!infoExpanded)}
-                    onInputChange={handleSaleInfoChange}
-                  />
+                  {/* 基本資訊區域 */}
+                  <Box sx={{
+                    flex: {
+                      xs: 1,           // 小手機：允許擴展
+                      sm: 1,           // 平板：佔一半空間
+                      md: 1,           // 平板橫向：佔一半空間
+                      lg: 0            // 桌面：不佔主要空間
+                    },
+                    maxHeight: {
+                      xs: 'none',      // 小手機不限制
+                      sm: '100%',      // 平板：限制在容器內
+                      md: '100%',      // 平板橫向：限制在容器內
+                      lg: 'none'       // 桌面不限制
+                    },
+                    overflow: {
+                      xs: 'visible',   // 小手機可見
+                      sm: 'auto',      // 平板：允許滾動
+                      md: 'auto',      // 平板橫向：允許滾動
+                      lg: 'visible'    // 桌面可見
+                    },
+                    flexShrink: 0,   // 不縮小
+                    pr: {
+                      xs: 0,           // 小手機
+                      sm: 1,           // 平板：右邊距
+                      md: 1,           // 平板橫向：右邊距
+                      lg: 0            // 桌面
+                    }
+                  }}>
+                    <SaleInfoCard
+                      saleData={currentSale}
+                      customers={customers ?? []}
+                      isMobile={isMobile}
+                      expanded={infoExpanded}
+                      onExpandToggle={() => setInfoExpanded(!infoExpanded)}
+                      onInputChange={handleSaleInfoChange}
+                    />
+                  </Box>
                   
-                  {/* 儲存按鈕 - 放在基本資訊下方 */}
+                  {/* 儲存按鈕區域 - 平板時在右側，其他時在下方 */}
                   <Box sx={{
                     display: 'flex',
-                    justifyContent: 'center',
-                    mt: 'auto',
-                    pt: { xs: 2, sm: 2, md: 3 }
+                    flexDirection: 'column',
+                    justifyContent: {
+                      xs: 'flex-start', // 小手機：頂部對齊
+                      sm: 'center',     // 平板：居中對齊
+                      md: 'center',     // 平板橫向：居中對齊
+                      lg: 'flex-start'  // 桌面：頂部對齊
+                    },
+                    alignItems: 'center',
+                    flex: {
+                      xs: 0,           // 小手機：不擴展
+                      sm: 1,           // 平板：佔一半空間
+                      md: 1,           // 平板橫向：佔一半空間
+                      lg: 0            // 桌面：不擴展
+                    },
+                    mt: {
+                      xs: 'auto',      // 小手機：推到底部
+                      sm: 0,           // 平板：不推到底部
+                      md: 0,           // 平板橫向：不推到底部
+                      lg: 'auto'       // 桌面：推到底部
+                    },
+                    pt: {
+                      xs: 2,           // 小手機
+                      sm: 0,           // 平板：無上邊距
+                      md: 0,           // 平板橫向：無上邊距
+                      lg: 3            // 桌面
+                    },
+                    pb: {
+                      xs: 0,           // 小手機
+                      sm: 8,           // 平板：預留浮動按鈕空間
+                      md: 8,           // 平板橫向：預留浮動按鈕空間
+                      lg: 0            // 桌面
+                    },
+                    flexShrink: 0    // 不縮小
                   }}>
                     <Button
                       variant="contained"
@@ -595,14 +753,42 @@ const SalesNew2Page: FC = () => {
                       startIcon={<SaveIcon />}
                       onClick={handleSaveSale}
                       disabled={currentSale.items.length === 0 || (loading && !isTestMode)}
-                      size={isMobile ? 'medium' : 'large'}
-                      fullWidth
+                      size={isMobile ? 'medium' : isTablet ? 'medium' : 'large'}
+                      fullWidth={false}
                       sx={{
-                        minHeight: { xs: '48px', sm: '52px', md: '56px' },
-                        fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' }
+                        minHeight: {
+                          xs: '48px',      // 小手機
+                          sm: '48px',      // 平板：縮小高度
+                          md: '52px',      // 平板橫向：稍微增加
+                          lg: '56px'       // 桌面
+                        },
+                        fontSize: {
+                          xs: '0.875rem',  // 小手機
+                          sm: '0.875rem',  // 平板：縮小字體
+                          md: '0.95rem',   // 平板橫向：稍微增加
+                          lg: '1.125rem'   // 桌面
+                        },
+                        minWidth: {
+                          xs: '200px',     // 小手機
+                          sm: '180px',     // 平板：縮小寬度
+                          md: '200px',     // 平板橫向：稍微增加
+                          lg: '200px'      // 桌面
+                        },
+                        maxWidth: {
+                          xs: '280px',     // 小手機
+                          sm: '220px',     // 平板：縮小最大寬度
+                          md: '260px',     // 平板橫向：稍微增加
+                          lg: '280px'      // 桌面
+                        },
+                        px: {
+                          xs: 2,           // 小手機
+                          sm: 1.5,         // 平板：縮小內距
+                          md: 2,           // 平板橫向：稍微增加
+                          lg: 2            // 桌面
+                        }
                       }}
                     >
-                      儲存銷售記錄 {isTestMode && "(模擬)"}
+                      {isTablet ? '結帳' : '結帳'} {isTestMode && "(模擬)"}
                     </Button>
                   </Box>
                 </Box>
@@ -611,6 +797,127 @@ const SalesNew2Page: FC = () => {
           </Paper>
         </Box>
       </Box>
+
+      {/* 手機版浮動按鈕 - 銷售紀錄 */}
+      {isMobile && (
+        <Fab
+          color="primary"
+          aria-label="銷售紀錄"
+          onClick={() => setSalesDrawerOpen(true)}
+          sx={{
+            position: 'fixed',
+            bottom: isTablet ? 120 : 24, // 平板大幅提高位置，避免與總計重疊
+            left: isTablet ? 24 : undefined,  // 平板改為左側
+            right: isTablet ? undefined : 24, // 小手機保持右側
+            zIndex: 1000,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            '&:hover': {
+              boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+            }
+          }}
+        >
+          <Badge
+            badgeContent={sales.length}
+            color="secondary"
+            max={99}
+            sx={{
+              '& .MuiBadge-badge': {
+                fontSize: '0.7rem',
+                minWidth: '18px',
+                height: '18px',
+                top: -8,
+                right: -8
+              }
+            }}
+          >
+            <ReceiptIcon />
+          </Badge>
+        </Fab>
+      )}
+
+      {/* 手機版銷售紀錄抽屜 */}
+      <Drawer
+        anchor="bottom"
+        open={salesDrawerOpen}
+        onClose={() => setSalesDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            height: isTablet ? '60vh' : '70vh', // 平板使用較小高度
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            overflow: 'hidden'
+          }
+        }}
+        ModalProps={{
+          keepMounted: true, // 保持掛載以提升性能
+        }}
+      >
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%'
+        }}>
+          {/* 抽屜標題列 */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <ReceiptIcon color="primary" />
+              <Typography variant="h6" component="h2">
+                銷售紀錄
+                {isTestMode && (
+                  <Typography component="span" sx={{
+                    fontSize: '0.8em',
+                    color: 'orange',
+                    fontWeight: 'bold',
+                    ml: 1
+                  }}>
+                    (測試模式)
+                  </Typography>
+                )}
+              </Typography>
+              <Badge
+                badgeContent={sales.length}
+                color="primary"
+                sx={{
+                  '& .MuiBadge-badge': {
+                    fontSize: '0.7rem',
+                    minWidth: '16px',
+                    height: '16px'
+                  }
+                }}
+              />
+            </Box>
+            <Button
+              variant="text"
+              startIcon={<CloseIcon />}
+              onClick={() => setSalesDrawerOpen(false)}
+              size="small"
+              sx={{ minWidth: 'auto', px: 1 }}
+            >
+              關閉
+            </Button>
+          </Box>
+          
+          {/* 銷售紀錄內容 */}
+          <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            <SalesListPanel
+              sales={sales}
+              loading={salesLoading}
+              error={salesError}
+              isTestMode={salesTestMode}
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+            />
+          </Box>
+        </Box>
+      </Drawer>
 
       {/* 結帳成功特效 */}
       <CheckoutSuccessEffect

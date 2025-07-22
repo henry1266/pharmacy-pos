@@ -11,7 +11,9 @@ import {
   MenuItem,
   Collapse,
   CardHeader,
-  SelectChangeEvent
+  SelectChangeEvent,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { Customer } from '@pharmacy-pos/shared/types/entities';
@@ -41,17 +43,53 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
   onExpandToggle,
   onInputChange
 }) => {
+  const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "lg"));
+  const noteRows = isTablet ? 1 : 2; // 平板使用1行，其他使用2行
+
   return (
     <Card sx={{
-      maxWidth: { xs: '100%', lg: 250, xl: 270 },
-      minWidth: { xs: '100%', lg: 200, xl: 220 },
-      boxShadow: 2
+      maxWidth: {
+        xs: '100%',
+        sm: '100%',      // 平板全寬
+        md: '100%',      // 平板橫向全寬
+        lg: 250,
+        xl: 270
+      },
+      minWidth: {
+        xs: '100%',
+        sm: '100%',      // 平板全寬
+        md: '100%',      // 平板橫向全寬
+        lg: 200,
+        xl: 220
+      },
+      boxShadow: {
+        xs: 2,
+        sm: 1,           // 平板：減少陰影
+        md: 1,           // 平板橫向：減少陰影
+        lg: 2            // 桌面：保持原有
+      },
+      // 平板專用的緊湊樣式
+      ...(isTablet && {
+        '& .MuiCardHeader-root': {
+          pb: 0.5,       // 減少標題下方間距
+        },
+        '& .MuiCardContent-root': {
+          pt: 0.5,       // 減少內容上方間距
+          pb: 1,         // 減少內容下方間距
+        }
+      })
     }}>
       <CardHeader
         title="基本資訊"
         titleTypographyProps={{
           variant: 'h6',
-          fontSize: { xs: '1rem', sm: '1.1rem' },
+          fontSize: {
+            xs: '1rem',      // 小手機
+            sm: '1.1rem',    // 平板
+            md: '1.15rem',   // 平板橫向
+            lg: '1.1rem'     // 桌面
+          },
           fontWeight: 600
         }}
         action={
@@ -66,17 +104,42 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
         }
         sx={{
           pb: expanded ? 1 : 2,
-          px: { xs: 2, sm: 2.5 },
-          pt: { xs: 2, sm: 2.5 }
+          px: {
+            xs: 2,           // 小手機
+            sm: 1.5,         // 平板：減少內距
+            md: 2,           // 平板橫向：減少內距
+            lg: 2.5          // 桌面
+          },
+          pt: {
+            xs: 2,           // 小手機
+            sm: 1.5,         // 平板：減少內距
+            md: 2,           // 平板橫向：減少內距
+            lg: 2.5          // 桌面
+          }
         }}
       />
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{
           pt: 0,
-          px: { xs: 2, sm: 2.5 },
-          pb: { xs: 2, sm: 2.5 }
+          px: {
+            xs: 2,           // 小手機
+            sm: 1.5,         // 平板：減少內距
+            md: 2,           // 平板橫向：減少內距
+            lg: 2.5          // 桌面
+          },
+          pb: {
+            xs: 2,           // 小手機
+            sm: 1.5,         // 平板：減少內距
+            md: 2,           // 平板橫向：減少內距
+            lg: 2.5          // 桌面
+          }
         }}>
-          <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+          <Grid container spacing={{
+            xs: 1.5,         // 小手機
+            sm: 1,           // 平板：減少間距
+            md: 1.5,         // 平板橫向：減少間距
+            lg: 2            // 桌面
+          }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -143,7 +206,7 @@ const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
                 onChange={onInputChange}
                 size="small"
                 multiline
-                rows={2}
+                rows={noteRows}
               />
             </Grid>
           </Grid>
