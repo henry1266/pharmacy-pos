@@ -298,8 +298,16 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             size="small"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                e.preventDefault();
-                handleBarcodeSubmit();
+                // 檢查是否有下拉選單打開
+                // 如果有選項且下拉選單可見，讓 Autocomplete 處理 Enter 鍵
+                if (filteredItems.length > 0) {
+                  // 有搜尋結果，讓 Autocomplete 處理鍵盤導航和選擇
+                  return;
+                } else {
+                  // 沒有搜尋結果，執行提交邏輯
+                  e.preventDefault();
+                  handleBarcodeSubmit();
+                }
               }
             }}
           />
