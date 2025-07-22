@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { createSale } from '../services/salesServiceV2';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import { Package } from '@pharmacy-pos/shared/types/package';
@@ -61,6 +61,8 @@ const useSaleManagementV2 = (
 ) => {
   const [currentSale, setCurrentSale] = useState<SaleData>(initialSaleState);
   const [inputModes, setInputModes] = useState<InputMode[]>([]);
+  const isProcessingProductRef = useRef<boolean>(false);
+  const lastProcessedProductRef = useRef<string | null>(null);
 
   // Calculate Total Amount whenever items or discount change
   useEffect(() => {
@@ -84,46 +86,71 @@ const useSaleManagementV2 = (
   const handleSelectProduct = useCallback((product: Product | null) => {
     if (!product) return;
     
+    // 防重複調用檢查
+    if (isProcessingProductRef.current) {
+      console.log('handleSelectProduct blocked - already processing');
+      return;
+    }
+    
+    // 檢查是否是重複處理同一個產品
+    const productKey = `${product._id}-${product.code}`;
+    if (lastProcessedProductRef.current === productKey) {
+      console.log('handleSelectProduct blocked - same product already processed:', productKey);
+      return;
+    }
+    
+    // 設置處理標誌
+    isProcessingProductRef.current = true;
+    lastProcessedProductRef.current = productKey;
+    
     console.log('handleSelectProduct called with:', product.name, product._id);
     
-    setCurrentSale(prevSale => {
-      console.log('Current sale items before update:', prevSale.items.length);
-      
-      // 確保使用嚴格比較並檢查產品代碼以避免影響其他產品
-      const existingItemIndex = prevSale.items.findIndex(item =>
-        item.product === product._id && item.code === product.code
-      );
-      
-      console.log('Existing item index:', existingItemIndex);
-      
-      let updatedItems;
-      if (existingItemIndex >= 0) {
-        // 只修改匹配的產品項目
-        updatedItems = [...prevSale.items];
-        updatedItems[existingItemIndex].quantity += 1;
-        updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
-        showSnackbar(`已增加 ${product.name} 的數量`, 'success');
-        console.log('Updated existing item quantity to:', updatedItems[existingItemIndex].quantity);
-      } else {
-        // 添加新項目，不影響其他項目
-        const newItem: SaleItem = {
-          product: product._id,
-          productDetails: product, // Keep details for reference if needed
-          name: product.name,
-          code: product.code,
-          price: product.sellingPrice ?? product.price ?? 0,
-          quantity: 1,
-          subtotal: product.sellingPrice ?? product.price ?? 0
-        };
-        updatedItems = [...prevSale.items, newItem];
-        setInputModes(prevModes => [...prevModes, 'price']); // Add mode for new item
-        showSnackbar(`已添加 ${product.name}`, 'success');
-        console.log('Added new item:', newItem.name);
-      }
-      
-      console.log('Final items count:', updatedItems.length);
-      return { ...prevSale, items: updatedItems };
-    });
+    try {
+      setCurrentSale(prevSale => {
+        console.log('Current sale items before update:', prevSale.items.length);
+        
+        // 確保使用嚴格比較並檢查產品代碼以避免影響其他產品
+        const existingItemIndex = prevSale.items.findIndex(item =>
+          item.product === product._id && item.code === product.code
+        );
+        
+        console.log('Existing item index:', existingItemIndex);
+        
+        let updatedItems;
+        if (existingItemIndex >= 0) {
+          // 只修改匹配的產品項目
+          updatedItems = [...prevSale.items];
+          updatedItems[existingItemIndex].quantity += 1;
+          updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
+          showSnackbar(`已增加 ${product.name} 的數量`, 'success');
+          console.log('Updated existing item quantity to:', updatedItems[existingItemIndex].quantity);
+        } else {
+          // 添加新項目，不影響其他項目
+          const newItem: SaleItem = {
+            product: product._id,
+            productDetails: product, // Keep details for reference if needed
+            name: product.name,
+            code: product.code,
+            price: product.sellingPrice ?? product.price ?? 0,
+            quantity: 1,
+            subtotal: product.sellingPrice ?? product.price ?? 0
+          };
+          updatedItems = [...prevSale.items, newItem];
+          setInputModes(prevModes => [...prevModes, 'price']); // Add mode for new item
+          showSnackbar(`已添加 ${product.name}`, 'success');
+          console.log('Added new item:', newItem.name);
+        }
+        
+        console.log('Final items count:', updatedItems.length);
+        return { ...prevSale, items: updatedItems };
+      });
+    } finally {
+      // 延遲重置處理標誌，防止立即重複調用
+      setTimeout(() => {
+        isProcessingProductRef.current = false;
+        lastProcessedProductRef.current = null;
+      }, 500);
+    }
   }, [showSnackbar]);
 
   // Handler for adding a package to the sale

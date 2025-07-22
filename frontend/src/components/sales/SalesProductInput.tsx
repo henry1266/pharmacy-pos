@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Box,
   TextField,
@@ -10,7 +10,6 @@ import {
   Chip
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { createFilterOptions } from '@mui/material/Autocomplete';
 import { Package } from '@pharmacy-pos/shared/types/package';
 
 // 定義產品的型別
@@ -47,28 +46,22 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
 }) => {
   const [barcode, setBarcode] = useState<string>('');
   const [filteredItems, setFilteredItems] = useState<SearchItem[]>([]);
+  const isProcessingRef = useRef<boolean>(false);
+  const lastSelectedItemRef = useRef<string | null>(null);
 
   // 判斷是否為套餐
   const isPackage = (item: SearchItem): item is Package => {
     return 'totalPrice' in item && 'items' in item;
   };
 
-  // Custom filter: enable multi-field search for both products and packages
-  const filterOptions = createFilterOptions({
-    stringify: (option: SearchItem) => {
-      if (isPackage(option)) {
-        return `${option.name} ${option.code} ${option.shortCode || ''}`;
-      } else {
-        return `${option.name} ${option.code} ${option.shortCode} ${option.barcode} ${option.healthInsuranceCode}`;
-      }
-    }
-  });
+  // 我們使用自定義的 filteredItems 狀態來控制選項，不需要 filterOptions
 
   // When user types, filter from both products and packages
   const handleBarcodeAutocompleteChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
     setBarcode(value);
     
+    // 每次輸入變化時都重新開始搜尋，清空之前的結果
     if (value.trim() !== '') {
       const searchTerm = value.trim().toLowerCase();
       
@@ -92,6 +85,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
       const allResults = [...packageResults, ...productResults].slice(0, 20);
       setFilteredItems(allResults);
     } else {
+      // 當輸入為空時，確保清空搜尋結果
       setFilteredItems([]);
     }
   };
@@ -161,6 +155,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
       showSnackbar('處理條碼失敗: ' + err.message, 'error');
     }
 
+    // 確保完全清空狀態
     setBarcode('');
     setFilteredItems([]);
     if (barcodeInputRef.current) {
@@ -220,24 +215,51 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
         getOptionLabel={(option) =>
           typeof option === 'string' ? option : option.name ?? ''
         }
-        filterOptions={filterOptions} // ✅ enable multi-field match
-        value={barcode}
+        filterOptions={(options) => options} // 不進行額外過濾，直接使用 filteredItems
+        value={null} // 不設置 value，讓 Autocomplete 自己管理選擇狀態
+        inputValue={barcode}
         onInputChange={(event, newValue, reason) => {
           if (reason === 'input') {
             setBarcode(newValue);
             handleBarcodeAutocompleteChange({ target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>);
+          } else if (reason === 'clear') {
+            // 當用戶清空輸入時，確保清空所有狀態
+            setBarcode('');
+            setFilteredItems([]);
+          } else if (reason === 'reset') {
+            // 當選擇項目後重置時，確保清空狀態
+            setBarcode('');
+            setFilteredItems([]);
           }
         }}
         onChange={(event, newValue) => {
-          // 防止重複觸發
-          if (event) {
-            event.preventDefault();
-            event.stopPropagation();
+          // 只處理有效的選擇項目
+          if (!newValue || typeof newValue === 'string') {
+            return;
           }
           
-          if (newValue && typeof newValue !== 'string') {
-            console.log('Autocomplete onChange triggered for:', newValue.name);
-            
+          // 防止重複觸發的嚴格檢查
+          if (isProcessingRef.current) {
+            console.log('onChange blocked - already processing');
+            return;
+          }
+          
+          const itemId = isPackage(newValue) ? newValue._id || newValue.id : newValue._id;
+          
+          // 檢查是否是重複選擇同一個項目
+          if (lastSelectedItemRef.current === itemId) {
+            console.log('onChange blocked - same item already selected:', itemId);
+            return;
+          }
+          
+          // 立即設置處理標誌和記錄選擇的項目
+          isProcessingRef.current = true;
+          lastSelectedItemRef.current = itemId;
+          
+          console.log('Processing selection:', newValue.name, 'ID:', itemId);
+          
+          try {
+            // 立即處理選擇，不使用 setTimeout
             if (isPackage(newValue)) {
               if (onSelectPackage) {
                 onSelectPackage(newValue);
@@ -247,9 +269,24 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             } else {
               onSelectProduct(newValue);
             }
+            
+            // 選擇商品後立即清空所有狀態
             setBarcode('');
             setFilteredItems([]);
-            barcodeInputRef.current?.focus();
+            
+            // 重新聚焦到輸入框
+            if (barcodeInputRef.current) {
+              barcodeInputRef.current.focus();
+            }
+          } catch (error) {
+            console.error('處理選擇項目時發生錯誤:', error);
+            showSnackbar('處理選擇項目時發生錯誤', 'error');
+          } finally {
+            // 延遲重置處理標誌，確保不會立即被重複觸發
+            setTimeout(() => {
+              isProcessingRef.current = false;
+              lastSelectedItemRef.current = null;
+            }, 300);
           }
         }}
         renderInput={(params) => (
