@@ -50,34 +50,6 @@ interface BalanceCalculationResult {
   totalAmount: number;
 }
 
-// 樣式常數
-const SECTION_STYLES = {
-  source: {
-    borderColor: '#1976d2',
-    bgColor: '#bbdefb',
-    iconColor: '#1976d2',
-    chipColor: 'primary' as const,
-    icon: '💰',
-    label: '來源'
-  },
-  current: {
-    borderColor: '#2e7d32',
-    bgColor: '#c8e6c9',
-    iconColor: '#2e7d32',
-    chipColor: 'success' as const,
-    icon: '🔄',
-    label: '當前交易'
-  },
-  flow: {
-    borderColor: '#f57c00',
-    bgColor: '#ffe0b2',
-    iconColor: '#f57c00',
-    chipColor: 'warning' as const,
-    icon: '📤',
-    label: '流向'
-  }
-};
-
 const CHIP_STYLES = {
   fontSize: '0.75rem',
   height: 24,
@@ -170,9 +142,10 @@ const FlowSection: React.FC<{
   count?: number;
   children: React.ReactNode;
   summary?: React.ReactNode;
-}> = ({ title, count, children, summary }) => {
+  statusChip?: React.ReactNode;
+}> = ({ title, count, children, summary, statusChip }) => {
   return (
-    <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+    <Box sx={{ mb: 2, p: 2, borderRadius: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
           {title}
@@ -183,6 +156,11 @@ const FlowSection: React.FC<{
             color="primary"
             size="small"
           />
+        )}
+        {statusChip && (
+          <Box sx={{ ml: 'auto' }}>
+            {statusChip}
+          </Box>
         )}
       </Box>
       
@@ -863,39 +841,36 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
             <FlowSection
               title="流向"
               count={transaction.referencedByInfo?.length}
+              statusChip={(() => {
+                const usedAmount = transaction.referencedByInfo
+                  ?.filter(ref => ref.status !== 'cancelled')
+                  .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
+                
+                if (usedAmount > 0 && usedAmount < transaction.totalAmount) {
+                  return (
+                    <Chip
+                      label="部分已使用"
+                      color="info"
+                      size="small"
+                    />
+                  );
+                } else if (usedAmount >= transaction.totalAmount) {
+                  return (
+                    <Chip
+                      label="已全部使用"
+                      color="error"
+                      size="small"
+                    />
+                  );
+                }
+                return null;
+              })()}
               summary={
                 <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#f57c00' }}>
                   剩餘餘額：{formatAmount(calculateRemainingAmount())}
                 </Typography>
               }
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                {(() => {
-                  const usedAmount = transaction.referencedByInfo
-                    ?.filter(ref => ref.status !== 'cancelled')
-                    .reduce((sum, ref) => sum + ref.totalAmount, 0) || 0;
-                  
-                  if (usedAmount > 0 && usedAmount < transaction.totalAmount) {
-                    return (
-                      <Chip
-                        label="部分已使用"
-                        color="info"
-                        size="small"
-                      />
-                    );
-                  } else if (usedAmount >= transaction.totalAmount) {
-                    return (
-                      <Chip
-                        label="已全部使用"
-                        color="error"
-                        size="small"
-                      />
-                    );
-                  }
-                  return null;
-                })()}
-              </Box>
-              
               {renderReferencedByInfo()}
             </FlowSection>
           </Grid>
