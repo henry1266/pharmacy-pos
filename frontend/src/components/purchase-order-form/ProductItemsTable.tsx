@@ -78,149 +78,192 @@ const ProductItemsTable: FC<ProductItemsTableProps> = ({
   }, [items.length]);
   
   return (
-    <TableContainer
-      component={Paper}
-      sx={{
-        height: '100%',
-        maxHeight: '100%',
-        overflow: 'auto'
-      }}
-      ref={tableContainerRef}
-    >
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell align="center" width="80px">序號</TableCell>
-            <TableCell>藥品代碼</TableCell>
-            <TableCell>藥品名稱</TableCell>
-            <TableCell align="right">數量</TableCell>
-            <TableCell align="right">總成本</TableCell>
-            <TableCell align="right">單價</TableCell>
-            <TableCell align="center">操作</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {items.map((item, index) => (
-            <TableRow key={`item-${item._id ?? index}-${index}`}>
-              {editingItemIndex === index && editingItem ? (
-                // 編輯模式
-                <>
-                  <TableCell align="center">
-                    <Typography variant="body2">{index + 1}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      value={editingItem.did}
-                      disabled
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      value={editingItem.dname}
-                      disabled
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <TextField
-                      fullWidth
-                      size="small"
-                      name="dquantity"
-                      type="number"
-                      value={editingItem.dquantity}
-                      onChange={handleEditingItemChange}
-                      inputProps={{ min: 0 }}
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <TextField
-                      fullWidth
-                      size="small"
-                      name="dtotalCost"
-                      type="number"
-                      value={editingItem.dtotalCost}
-                      onChange={handleEditingItemChange}
-                      inputProps={{ min: 0 }}
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    {Number(editingItem.dquantity) > 0 ? (Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2) : '0.00'}
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton color="primary" onClick={handleSaveEditItem}>
-                      <CheckIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={handleCancelEditItem}>
-                      <CloseIcon />
-                    </IconButton>
-                  </TableCell>
-                </>
-              ) : (
-                // 顯示模式
-                <>
-                  <TableCell align="center">
-                    <Typography variant="body2">{index + 1}</Typography>
-                  </TableCell>
-                  {/* @ts-ignore */}
-                  <TableCell><ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} /></TableCell> {/* MODIFIED LINE */}
-                  <TableCell>{item.dname}</TableCell>
-                  <TableCell align="right">{item.dquantity}</TableCell>
-                  <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
-                  <TableCell align="right">
-                    {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                      <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0}>
-                        <ArrowUpwardIcon fontSize="small" />
+    <Box sx={{ height: '100%', position: 'relative' }}>
+      {/* 固定的表格標題 */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          backgroundColor: 'white'
+        }}
+      >
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center" width="80px">序號</TableCell>
+                <TableCell>藥品代碼</TableCell>
+                <TableCell>藥品名稱</TableCell>
+                <TableCell align="right">數量</TableCell>
+                <TableCell align="right">總成本</TableCell>
+                <TableCell align="right">單價</TableCell>
+                <TableCell align="center">操作</TableCell>
+              </TableRow>
+            </TableHead>
+          </Table>
+        </TableContainer>
+      </Box>
+
+      {/* 可滾動的表格內容 */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '56px', // 標題高度
+          bottom: '56px', // 總計高度
+          left: 0,
+          right: 0,
+          overflow: 'auto'
+        }}
+      >
+        <TableContainer
+          component={Paper}
+          sx={{ height: '100%' }}
+          ref={tableContainerRef}
+        >
+          <Table>
+            <TableBody>
+            {items.map((item, index) => (
+              <TableRow key={`item-${item._id ?? index}-${index}`}>
+                {editingItemIndex === index && editingItem ? (
+                  // 編輯模式
+                  <>
+                    <TableCell align="center">
+                      <Typography variant="body2">{index + 1}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={editingItem.did}
+                        disabled
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={editingItem.dname}
+                        disabled
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <TextField
+                        fullWidth
+                        size="small"
+                        name="dquantity"
+                        type="number"
+                        value={editingItem.dquantity}
+                        onChange={handleEditingItemChange}
+                        inputProps={{ min: 0 }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <TextField
+                        fullWidth
+                        size="small"
+                        name="dtotalCost"
+                        type="number"
+                        value={editingItem.dtotalCost}
+                        onChange={handleEditingItemChange}
+                        inputProps={{ min: 0 }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      {Number(editingItem.dquantity) > 0 ? (Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2) : '0.00'}
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton color="primary" onClick={handleSaveEditItem}>
+                        <CheckIcon />
                       </IconButton>
-                      <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1}>
-                        <ArrowDownwardIcon fontSize="small" />
+                      <IconButton color="error" onClick={handleCancelEditItem}>
+                        <CloseIcon />
                       </IconButton>
-                      <IconButton size="small" onClick={() => handleEditItem(index)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => handleRemoveItem(index)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
-                </>
-              )}
-            </TableRow>
-          ))}
-          {items.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={7} align="center">
-                尚未添加藥品項目
-              </TableCell>
-            </TableRow>
-          )}
-          <TableRow
-            sx={{
-              position: 'sticky',
-              bottom: 0,
-              backgroundColor: 'white',
-              zIndex: 5,
-              borderTop: '2px solid #e0e0e0',
-              '& > *': { fontWeight: 'bold' }
-            }}
-          >
-            <TableCell></TableCell>
-            <TableCell colSpan={3} align="right">
-              <Typography variant="subtitle1">總計：</Typography>
-            </TableCell>
-            <TableCell align="right">
-              <Typography variant="subtitle1">{totalAmount.toLocaleString()}</Typography>
-            </TableCell>
-            <TableCell colSpan={2}></TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </TableContainer>
+                    </TableCell>
+                  </>
+                ) : (
+                  // 顯示模式
+                  <>
+                    <TableCell align="center">
+                      <Typography variant="body2">{index + 1}</Typography>
+                    </TableCell>
+                    {/* @ts-ignore */}
+                    <TableCell><ProductCodeLink product={{ _id: item._id ?? '', code: item.did }} /></TableCell> {/* MODIFIED LINE */}
+                    <TableCell>{item.dname}</TableCell>
+                    <TableCell align="right">{item.dquantity}</TableCell>
+                    <TableCell align="right">{Number(item.dtotalCost).toLocaleString()}</TableCell>
+                    <TableCell align="right">
+                      {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0}>
+                          <ArrowUpwardIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1}>
+                          <ArrowDownwardIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleEditItem(index)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleRemoveItem(index)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </>
+                )}
+              </TableRow>
+            ))}
+            {items.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  尚未添加藥品項目
+                </TableCell>
+              </TableRow>
+            )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+
+      {/* 固定的總計欄 */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          backgroundColor: 'white'
+        }}
+      >
+        <TableContainer component={Paper}>
+          <Table>
+            <TableBody>
+              <TableRow
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  borderTop: '2px solid #e0e0e0',
+                  '& > *': { fontWeight: 'bold' }
+                }}
+              >
+                <TableCell width="80px"></TableCell>
+                <TableCell colSpan={3} align="right">
+                  <Typography variant="subtitle1">總計：</Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="subtitle1">{totalAmount.toLocaleString()}</Typography>
+                </TableCell>
+                <TableCell colSpan={2}></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </Box>
   );
 };
 
