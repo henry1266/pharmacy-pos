@@ -32,8 +32,14 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import type { Sale } from '@pharmacy-pos/shared/types/entities';
 import WildcardSearchHelp from '../common/WildcardSearchHelp';
+
+// 支援兩種不同的 Sale 型別
+type SaleFromHook = import('../../hooks/useSalesListData').Sale;
+type SaleFromShared = import('@pharmacy-pos/shared/types/entities').Sale;
+
+// 創建一個聯合型別來支援兩種 Sale 型別
+type Sale = SaleFromHook | SaleFromShared;
 
 // 共用樣式常數
 const STYLES = {
@@ -267,7 +273,7 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
             </Typography>
           </Box>
           <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
-            {format(new Date(targetDate), 'yyyy年MM月dd日', { locale: zhTW })} - 僅顯示當天且編號前八碼相符的記錄
+            {format(new Date(targetDate), 'yyyy年MM月dd日', { locale: zhTW })} - 僅顯示當天記錄
           </Typography>
         </Box>
         
@@ -275,7 +281,7 @@ const DailySalesPanel: React.FC<DailySalesPanelProps> = ({
           <TextField
             fullWidth
             size="small"
-            placeholder={wildcardMode ? "萬用字元搜尋 (支援 * 和 ?)..." : "搜索銷售記錄..."}
+            placeholder={wildcardMode ? "萬用搜尋 (支援 * 和 ?)..." : "搜索銷售記錄..."}
             value={searchTerm}
             onChange={handleSearchChange}
             InputProps={{

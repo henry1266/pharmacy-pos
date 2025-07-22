@@ -274,12 +274,17 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
     
     {/* 固定在底部的總計欄位 */}
     <Paper sx={{
-      mt: 1,
+      mt: {
+        xs: 0.5,         // 小手機：減少上方間距
+        sm: 1,        // 平板：大幅減少上方間距
+        md: 1,         // 平板橫向：減少上方間距
+        lg: 1          // 桌面：減少上方間距
+      },
       p: {
         xs: 1.5,         // 小手機
         sm: 1,           // 平板：大幅減少內距
         md: 1.25,        // 平板橫向：大幅減少內距
-        lg: 2            // 桌面
+        lg: 1.5           // 桌面
       },
       backgroundColor: 'grey.50',
       borderTop: '2px solid',
@@ -294,7 +299,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
           xs: 1,           // 小手機
           sm: 1,           // 平板：減少間距
           md: 1.5,         // 平板橫向：減少間距
-          lg: 1            // 桌面
+          lg: 1.5            // 桌面
         }
       }}>
         <Typography

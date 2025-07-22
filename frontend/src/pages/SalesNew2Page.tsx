@@ -36,7 +36,7 @@ import CustomProductsDialog from '../components/sales/CustomProductsDialog';
 import SaleInfoCard from '../components/sales/SaleInfoCard';
 import SalesProductInput from '../components/sales/SalesProductInput';
 import SalesItemsTable from '../components/sales/SalesItemsTable';
-import SalesListPanel from '../components/sales/SalesListPanel';
+import DailySalesPanel from '../components/sales/DailySalesPanel';
 import CheckoutSuccessEffect from '../components/sales/CheckoutSuccessEffect';
 
 // Import types
@@ -444,18 +444,18 @@ const SalesNew2Page: FC = () => {
           display: 'flex',
           flexWrap: 'wrap',
           gap: {
-            xs: 1,           // 小手機：減少間距
-            sm: 1,           // 平板：減少間距
-            md: 1.5,         // 平板橫向：減少間距
-            lg: 2            // 桌面：減少間距
+            xs: 0.75,        // 小手機：進一步減少間距
+            sm: 0.75,        // 平板：進一步減少間距
+            md: 1,           // 平板橫向：減少間距
+            lg: 1.5          // 桌面：減少間距
           },
           alignItems: 'center',
           justifyContent: 'center',
           p: {
-            xs: 1,           // 小手機：減少內距
-            sm: 0.75,        // 平板：進一步減少內距
-            md: 1,           // 平板橫向：進一步減少內距
-            lg: 2            // 桌面：大幅減少內距
+            xs: 0.75,        // 小手機：進一步減少內距
+            sm: 0.5,         // 平板：大幅減少內距
+            md: 0.75,        // 平板橫向：大幅減少內距
+            lg: 1.5          // 桌面：大幅減少內距
           },
           position: 'relative',
           overflow: 'hidden',
@@ -545,11 +545,11 @@ const SalesNew2Page: FC = () => {
             height: '100%',
             flexShrink: 0,
           }}>
-            <SalesListPanel
+            <DailySalesPanel
               sales={sales}
               loading={salesLoading}
               error={salesError}
-              isTestMode={salesTestMode}
+              targetDate={new Date().toISOString()}
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
             />
@@ -728,22 +728,10 @@ const SalesNew2Page: FC = () => {
                       lg: 0            // 桌面：不擴展
                     },
                     mt: {
-                      xs: 'auto',      // 小手機：推到底部
+                      xs: 1,           // 小手機：稍微往下移
                       sm: 0,           // 平板：不推到底部
                       md: 0,           // 平板橫向：不推到底部
-                      lg: 'auto'       // 桌面：推到底部
-                    },
-                    pt: {
-                      xs: 2,           // 小手機
-                      sm: 0,           // 平板：無上邊距
-                      md: 0,           // 平板橫向：無上邊距
-                      lg: 3            // 桌面
-                    },
-                    pb: {
-                      xs: 0,           // 小手機
-                      sm: 8,           // 平板：預留浮動按鈕空間
-                      md: 8,           // 平板橫向：預留浮動按鈕空間
-                      lg: 0            // 桌面
+                      lg: 5           // 桌面：稍微往下移
                     },
                     flexShrink: 0    // 不縮小
                   }}>
@@ -907,11 +895,11 @@ const SalesNew2Page: FC = () => {
           
           {/* 銷售紀錄內容 */}
           <Box sx={{ flex: 1, overflow: 'hidden' }}>
-            <SalesListPanel
+            <DailySalesPanel
               sales={sales}
               loading={salesLoading}
               error={salesError}
-              isTestMode={salesTestMode}
+              targetDate={new Date().toISOString()}
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
             />

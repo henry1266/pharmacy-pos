@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
+import testModeDataService from '../testMode/services/TestModeDataService';
+import { getTestSales, type ExtendedSale } from '../testMode/data/TestModeData';
 
 // API 回應型別定義
 interface ApiResponse<T> {
@@ -35,77 +37,8 @@ interface Customer {
   name: string;
 }
 
-// 銷售記錄類型
-interface Sale {
-  _id: string;
-  saleNumber?: string;
-  date?: string | Date;
-  customer?: Customer | { name: string; _id?: string };
-  items: SaleItem[];
-  totalAmount?: number;
-  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'mobile_payment' | 'other';
-  paymentStatus: 'paid' | 'pending' | 'partial' | 'cancelled';
-  status?: 'completed' | 'pending' | 'cancelled';
-  user?: User;
-  notes?: string;
-  createdBy?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
-
-// Mock data for test mode - 使用當天日期格式
-const generateMockSalesData = (): Sale[] => {
-  const today = new Date();
-  const todayPrefix = format(today, 'yyyyMMdd');
-  
-  return [
-    {
-      _id: 'mockSale001',
-      saleNumber: `${todayPrefix}001`, // 當天日期前八碼 + 流水號
-      date: today.toISOString(),
-      customer: { _id: 'mockCust001', name: '測試客戶A' },
-      items: [
-        { product: { _id: 'mockProd001', name: '測試藥品X' }, name: '測試藥品X', quantity: 2, price: 150, unitPrice: 150, subtotal: 300 },
-        { product: { _id: 'mockProd002', name: '測試藥品Y' }, name: '測試藥品Y', quantity: 1, price: 250, unitPrice: 250, subtotal: 250 },
-      ],
-      totalAmount: 550,
-      paymentMethod: 'cash',
-      paymentStatus: 'paid',
-      user: { _id: 'mockUser001', name: '測試使用者' },
-      notes: '這是一筆測試銷售記錄。'
-    },
-    {
-      _id: 'mockSale002',
-      saleNumber: `${todayPrefix}002`, // 當天日期前八碼 + 流水號
-      date: today.toISOString(),
-      customer: { _id: 'mockCust002', name: '測試客戶B' },
-      items: [
-        { product: { _id: 'mockProd003', name: '測試保健品Z' }, name: '測試保健品Z', quantity: 3, price: 300, unitPrice: 300, subtotal: 900 },
-      ],
-      totalAmount: 900,
-      paymentMethod: 'credit_card',
-      paymentStatus: 'pending',
-      user: { _id: 'mockUser001', name: '測試使用者' },
-      notes: '這是另一筆測試銷售記錄，待付款。'
-    },
-    {
-      _id: 'mockSale003',
-      saleNumber: 'OLD20250101003', // 舊日期的記錄，應該被過濾掉
-      date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-      customer: { _id: 'mockCust003', name: '測試客戶C' },
-      items: [
-        { product: { _id: 'mockProd004', name: '過期測試商品' }, name: '過期測試商品', quantity: 1, price: 100, unitPrice: 100, subtotal: 100 },
-      ],
-      totalAmount: 100,
-      paymentMethod: 'cash',
-      paymentStatus: 'paid',
-      user: { _id: 'mockUser001', name: '測試使用者' },
-      notes: '這筆記錄應該被過濾掉（非當天）。'
-    },
-  ];
-};
-
-const mockSalesData: Sale[] = generateMockSalesData();
+// 銷售記錄類型 - 使用統一的 ExtendedSale 類型
+interface Sale extends ExtendedSale {}
 
 /**
  * 過濾銷售記錄：只顯示當天且前八碼相符的記錄
@@ -185,20 +118,23 @@ const useSalesListData = () => {
       await new Promise(resolve => setTimeout(resolve, 500));
       const response = await axios.get<ApiResponse<Sale[]>>('/api/sales');
       const salesData = response.data.data ?? [];
+      
       if (Array.isArray(salesData) && salesData.length > 0) {
-          // 過濾當天且前八碼相符的記錄
-          const filteredSales = filterTodaySalesWithMatchingPrefix(salesData);
-          setSales(filteredSales);
+        // 過濾當天且前八碼相符的記錄
+        const filteredSales = filterTodaySalesWithMatchingPrefix(salesData);
+        setSales(filteredSales);
       } else {
-          console.log("Test Mode: No actual sales data, using mock data.");
-          // 過濾模擬數據
-          const filteredMockSales = filterTodaySalesWithMatchingPrefix(mockSalesData);
-          setSales(filteredMockSales);
+        console.log("Test Mode: No actual sales data, using mock data.");
+        // 使用統一的測試模式數據服務
+        const testSalesData = testModeDataService.getSales(null, null);
+        const filteredMockSales = filterTodaySalesWithMatchingPrefix(testSalesData);
+        setSales(filteredMockSales);
       }
     } catch (err) {
       console.warn('Test Mode: Failed to fetch actual sales, using mock data.', err);
-      // 過濾模擬數據
-      const filteredMockSales = filterTodaySalesWithMatchingPrefix(mockSalesData);
+      // 使用統一的測試模式數據服務
+      const testSalesData = testModeDataService.getSales(null, null);
+      const filteredMockSales = filterTodaySalesWithMatchingPrefix(testSalesData);
       setSales(filteredMockSales);
     } finally {
       setLoading(false);

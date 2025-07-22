@@ -49,8 +49,6 @@ import type { Sale, AccountingRecord } from '@pharmacy-pos/shared/types/entities
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
 
-// Mock 數據已移至統一的測試數據模組
-
 /**
  * 將 DashboardSummary 轉換為 SummaryData 類型
  */
