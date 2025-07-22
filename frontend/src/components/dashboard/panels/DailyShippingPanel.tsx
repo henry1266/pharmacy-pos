@@ -33,8 +33,8 @@ import {
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import type { ShippingOrder } from '@pharmacy-pos/shared/types/entities';
-import { shippingOrderServiceV2 } from '../../services/shippingOrderServiceV2';
-import WildcardSearchHelp from '../common/WildcardSearchHelp';
+import { shippingOrderServiceV2 } from '../../../services/shippingOrderServiceV2';
+import WildcardSearchHelp from '../../common/WildcardSearchHelp';
 
 interface DailyShippingPanelProps {
   shippingOrders: ShippingOrder[];

@@ -16,14 +16,11 @@ import {
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { accountingServiceV2 } from '../services/accountingServiceV2';
-import type { ExtendedAccountingRecord } from '@pharmacy-pos/shared/types/accounting';
-import StatusChip from '../components/common/StatusChip';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import { shippingOrderServiceV2 } from '../services/shippingOrderServiceV2';
 import type { PurchaseOrder, ShippingOrder } from '@pharmacy-pos/shared/types/entities';
 import DailyPurchasePanel from '../components/dashboard/panels/DailyPurchasePanel';
-import DailyShippingPanel from '../components/shipping/DailyShippingPanel';
+import DailyShippingPanel from '../components/dashboard/panels/DailyShippingPanel';
 
 interface DailyStats {
   date: string;
