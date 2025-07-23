@@ -345,6 +345,7 @@ export interface PurchaseOrderItem {
   subtotal: number;
   dtotalCost?: number;
   receivedQuantity?: number;
+  batchNumber?: string; // 批號欄位
   notes?: string;
 }
 
