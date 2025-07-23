@@ -10,7 +10,7 @@ import {
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 
-interface OrganizationSelectorProps {
+interface AccountFormOrganizationSelectorProps {
   organizationId: string;
   organizations: Organization[];
   selectedOrganizationId?: string | null;
@@ -21,7 +21,7 @@ interface OrganizationSelectorProps {
  * 機構選擇器組件
  * 顯示所屬機構選擇器
  */
-export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
+export const AccountFormOrganizationSelector: React.FC<AccountFormOrganizationSelectorProps> = ({
   organizationId,
   organizations,
   selectedOrganizationId,
@@ -52,4 +52,4 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   );
 };
 
-export default OrganizationSelector;
+export default AccountFormOrganizationSelector;

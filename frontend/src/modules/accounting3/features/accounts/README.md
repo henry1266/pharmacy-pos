@@ -22,7 +22,15 @@ accounts/
 │   │   ├── AccountDashboardStatusDistribution.tsx   # 狀態分佈組件
 │   │   ├── AccountDashboardMonthlyTrend.tsx        # 月度趨勢組件
 │   │   └── index.ts                                 # 統一導出
-│   ├── AccountForm/              # 科目表單子組件
+│   ├── AccountForm/              # 科目表單 (扁平化重構)
+│   │   ├── AccountForm.tsx                           # 主表單組件
+│   │   ├── AccountFormBasicInfoFields.tsx           # 基本資訊欄位組件
+│   │   ├── AccountFormOrganizationSelector.tsx      # 機構選擇器組件
+│   │   ├── AccountFormAccountTypeFields.tsx         # 科目類型欄位組件
+│   │   ├── AccountFormBalanceAndCurrencyFields.tsx  # 餘額與幣別欄位組件
+│   │   ├── AccountFormParentAccountField.tsx        # 父科目欄位組件
+│   │   ├── AccountFormStatusAndDescription.tsx      # 狀態與描述組件
+│   │   └── index.ts                                 # 統一導出
 │   ├── AccountHierarchyManager/  # 階層管理子組件
 │   ├── AccountSelector/          # 科目選擇器子組件
 │   ├── AccountTransactionList/   # 交易列表 (扁平化重構)
@@ -49,7 +57,20 @@ accounts/
 
 ### AccountForm
 
-科目表單組件，提供新增和編輯科目的完整表單介面。
+科目表單組件，提供新增和編輯科目的完整表單介面。採用扁平化組件結構設計。
+
+**檔案結構 (扁平化重構後):**
+```
+components/AccountForm/
+├── AccountForm.tsx                           # 主表單組件
+├── AccountFormBasicInfoFields.tsx           # 基本資訊欄位組件
+├── AccountFormOrganizationSelector.tsx      # 機構選擇器組件
+├── AccountFormAccountTypeFields.tsx         # 科目類型欄位組件
+├── AccountFormBalanceAndCurrencyFields.tsx  # 餘額與幣別欄位組件
+├── AccountFormParentAccountField.tsx        # 父科目欄位組件
+├── AccountFormStatusAndDescription.tsx      # 狀態與描述組件
+└── index.ts                                 # 統一導出
+```
 
 **Props:**
 ```typescript
@@ -65,12 +86,58 @@ interface AccountFormProps {
 }
 ```
 
+**子組件說明:**
+
+#### AccountFormBasicInfoFields
+基本資訊欄位組件
+- 科目名稱輸入
+- 科目代號顯示與編輯
+- 必填欄位驗證
+- 即時格式檢查
+
+#### AccountFormOrganizationSelector
+機構選擇器組件
+- 機構下拉選單
+- 多機構支援
+- 權限過濾
+- 預設值設定
+
+#### AccountFormAccountTypeFields
+科目類型欄位組件
+- 科目類型選擇
+- 自動代號前綴
+- 類型相關驗證
+- 視覺化圖示
+
+#### AccountFormBalanceAndCurrencyFields
+餘額與幣別欄位組件
+- 期初餘額輸入
+- 幣別選擇
+- 數值格式化
+- 計算驗證
+
+#### AccountFormParentAccountField
+父科目欄位組件
+- 父科目選擇器
+- 階層關係驗證
+- 循環引用檢查
+- 樹狀結構顯示
+
+#### AccountFormStatusAndDescription
+狀態與描述組件
+- 啟用/停用狀態
+- 科目描述輸入
+- 備註欄位
+- 狀態指示器
+
 **功能特色:**
 - **智能代號生成**: 根據科目類型自動生成科目代號
 - **階層繼承**: 子科目自動繼承父科目的屬性
 - **表單驗證**: 完整的客戶端驗證機制
 - **機構關聯**: 支援多機構科目管理
 - **狀態管理**: 科目啟用/停用狀態控制
+- **模組化設計**: 子組件獨立管理各自功能
+- **響應式佈局**: 適配不同螢幕尺寸
 
 **使用範例:**
 ```typescript
@@ -108,6 +175,14 @@ const AccountManagement = () => {
 - **權益 (Equity)**: 代號前綴 3
 - **收入 (Revenue)**: 代號前綴 4
 - **費用 (Expense)**: 代號前綴 5
+
+**扁平化重構優勢:**
+- **減少路徑深度**: 從 7 層減少到 6 層
+- **消除命名重複**: 移除重複的 `components` 目錄
+- **清晰的命名**: 使用 `AccountForm` 前綴明確組件歸屬
+- **簡化 import**: 減少相對路徑複雜度
+- **便於維護**: 所有相關組件在同一層級
+- **提升開發效率**: 更直觀的檔案組織結構
 
 ### AccountSelector3
 

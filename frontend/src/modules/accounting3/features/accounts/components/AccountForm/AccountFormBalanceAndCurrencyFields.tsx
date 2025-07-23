@@ -4,7 +4,7 @@ import {
   TextField,
 } from '@mui/material';
 
-interface BalanceAndCurrencyFieldsProps {
+interface AccountFormBalanceAndCurrencyFieldsProps {
   initialBalance: number;
   currency: string;
   onInitialBalanceChange: (value: number) => void;
@@ -15,7 +15,7 @@ interface BalanceAndCurrencyFieldsProps {
  * 期初餘額和幣別欄位組件
  * 包含期初餘額和幣別輸入欄位
  */
-export const BalanceAndCurrencyFields: React.FC<BalanceAndCurrencyFieldsProps> = ({
+export const AccountFormBalanceAndCurrencyFields: React.FC<AccountFormBalanceAndCurrencyFieldsProps> = ({
   initialBalance,
   currency,
   onInitialBalanceChange,
@@ -50,4 +50,4 @@ export const BalanceAndCurrencyFields: React.FC<BalanceAndCurrencyFieldsProps> =
   );
 };
 
-export default BalanceAndCurrencyFields;
+export default AccountFormBalanceAndCurrencyFields;

@@ -4,7 +4,7 @@ import {
   TextField,
 } from '@mui/material';
 
-interface BasicInfoFieldsProps {
+interface AccountFormBasicInfoFieldsProps {
   code: string;
   name: string;
   onCodeChange: (value: string) => void;
@@ -16,7 +16,7 @@ interface BasicInfoFieldsProps {
  * 基本資訊欄位組件
  * 包含科目代號和科目名稱欄位
  */
-export const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
+export const AccountFormBasicInfoFields: React.FC<AccountFormBasicInfoFieldsProps> = ({
   code,
   name,
   onCodeChange,
@@ -54,4 +54,4 @@ export const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
   );
 };
 
-export default BasicInfoFields;
+export default AccountFormBasicInfoFields;

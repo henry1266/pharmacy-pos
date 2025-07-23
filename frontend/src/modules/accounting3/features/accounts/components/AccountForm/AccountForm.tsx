@@ -11,13 +11,13 @@ import {
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
 import {
-  BasicInfoFields,
-  OrganizationSelector,
-  AccountTypeFields,
-  BalanceAndCurrencyFields,
-  ParentAccountField,
-  FormStatusAndDescription
-} from './components';
+  AccountFormBasicInfoFields as BasicInfoFields,
+  AccountFormOrganizationSelector as OrganizationSelector,
+  AccountFormAccountTypeFields as AccountTypeFields,
+  AccountFormBalanceAndCurrencyFields as BalanceAndCurrencyFields,
+  AccountFormParentAccountField as ParentAccountField,
+  AccountFormStatusAndDescription as FormStatusAndDescription
+} from './';
 
 // 表單 Props 介面
 interface AccountFormProps {

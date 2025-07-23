@@ -26,7 +26,7 @@ const ACCOUNT_SUB_TYPES = [
   { value: 'other', label: '其他' }
 ];
 
-interface AccountTypeFieldsProps {
+interface AccountFormAccountTypeFieldsProps {
   accountType: string;
   type: string;
   onAccountTypeChange: (value: string) => void;
@@ -38,7 +38,7 @@ interface AccountTypeFieldsProps {
  * 科目類型欄位組件
  * 包含科目類型和帳戶類型選擇器
  */
-export const AccountTypeFields: React.FC<AccountTypeFieldsProps> = ({
+export const AccountFormAccountTypeFields: React.FC<AccountFormAccountTypeFieldsProps> = ({
   accountType,
   type,
   onAccountTypeChange,
@@ -94,4 +94,4 @@ export const AccountTypeFields: React.FC<AccountTypeFieldsProps> = ({
   );
 };
 
-export default AccountTypeFields;
+export default AccountFormAccountTypeFields;

@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 
-interface ParentAccountFieldProps {
+interface AccountFormParentAccountFieldProps {
   parentId: string;
   parentAccount?: Account3 | null;
   onParentIdChange: (value: string) => void;
@@ -15,7 +15,7 @@ interface ParentAccountFieldProps {
  * 上層科目欄位組件
  * 顯示上層科目資訊或允許輸入上層科目ID
  */
-export const ParentAccountField: React.FC<ParentAccountFieldProps> = ({
+export const AccountFormParentAccountField: React.FC<AccountFormParentAccountFieldProps> = ({
   parentId,
   parentAccount,
   onParentIdChange
@@ -46,4 +46,4 @@ export const ParentAccountField: React.FC<ParentAccountFieldProps> = ({
   );
 };
 
-export default ParentAccountField;
+export default AccountFormParentAccountField;

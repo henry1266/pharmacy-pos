@@ -6,7 +6,7 @@ import {
   Switch,
 } from '@mui/material';
 
-interface FormStatusAndDescriptionProps {
+interface AccountFormStatusAndDescriptionProps {
   isActive: boolean;
   description: string;
   onIsActiveChange: (value: boolean) => void;
@@ -17,7 +17,7 @@ interface FormStatusAndDescriptionProps {
  * 表單狀態和描述組件
  * 包含啟用狀態開關和描述欄位
  */
-export const FormStatusAndDescription: React.FC<FormStatusAndDescriptionProps> = ({
+export const AccountFormStatusAndDescription: React.FC<AccountFormStatusAndDescriptionProps> = ({
   isActive,
   description,
   onIsActiveChange,
@@ -55,4 +55,4 @@ export const FormStatusAndDescription: React.FC<FormStatusAndDescriptionProps> =
   );
 };
 
-export default FormStatusAndDescription;
+export default AccountFormStatusAndDescription;
