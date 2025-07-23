@@ -20,6 +20,7 @@ export interface IInventory {
   date: Date;
   lastUpdated: Date;
   notes?: string;
+  batchNumber?: string; // 批號欄位
   createdBy?: mongoose.Types.ObjectId; // 創建者ID
   // 新增「不扣庫存」毛利計算相關欄位
   costPrice?: number; // 進價（成本價）
@@ -96,6 +97,9 @@ const InventorySchema = new Schema<IInventoryDocument>({
     index: true // 為 lastUpdated 添加索引
   },
   notes: {
+    type: String
+  },
+  batchNumber: { // 批號欄位
     type: String
   },
   createdBy: { // 創建者ID

@@ -58,6 +58,7 @@ function convertToSharedInventory(inv: any): SharedInventory {
     date: invObj.date ?? inv.lastUpdated ?? new Date(),
     lastUpdated: invObj.lastUpdated ?? new Date(),
     notes: invObj.notes ?? '',
+    batchNumber: invObj.batchNumber ?? '', // 加入批號欄位
     createdBy: invObj.createdBy?.toString(),
     createdAt: invObj.createdAt ?? inv.createdAt ?? new Date(),
     updatedAt: invObj.updatedAt ?? inv.updatedAt ?? new Date()

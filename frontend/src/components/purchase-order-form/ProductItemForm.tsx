@@ -179,11 +179,18 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
               ...inv,
               type: 'sale',
               totalQuantity: inv.quantity,
-              totalAmount: inv.totalAmount ?? 0
+              totalAmount: inv.totalAmount ?? 0,
+              batchNumber: inv.batchNumber // 保留批號資訊
             };
           } else {
             saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity ?? 0) + inv.quantity;
             saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+            // 如果有多個批號，合併顯示
+            if (inv.batchNumber && saleGroups[inv.saleNumber].batchNumber !== inv.batchNumber) {
+              saleGroups[inv.saleNumber].batchNumber = saleGroups[inv.saleNumber].batchNumber
+                ? `${saleGroups[inv.saleNumber].batchNumber}, ${inv.batchNumber}`
+                : inv.batchNumber;
+            }
           }
         } else if (inv.purchaseOrderNumber) {
           if (!purchaseGroups[inv.purchaseOrderNumber]) {
@@ -191,11 +198,18 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
               ...inv,
               type: 'purchase',
               totalQuantity: inv.quantity,
-              totalAmount: inv.totalAmount ?? 0
+              totalAmount: inv.totalAmount ?? 0,
+              batchNumber: inv.batchNumber // 保留批號資訊
             };
           } else {
             purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity ?? 0) + inv.quantity;
             purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+            // 如果有多個批號，合併顯示
+            if (inv.batchNumber && purchaseGroups[inv.purchaseOrderNumber].batchNumber !== inv.batchNumber) {
+              purchaseGroups[inv.purchaseOrderNumber].batchNumber = purchaseGroups[inv.purchaseOrderNumber].batchNumber
+                ? `${purchaseGroups[inv.purchaseOrderNumber].batchNumber}, ${inv.batchNumber}`
+                : inv.batchNumber;
+            }
           }
         } else if (inv.shippingOrderNumber) {
           if (!shipGroups[inv.shippingOrderNumber]) {
@@ -203,11 +217,18 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
               ...inv,
               type: 'ship',
               totalQuantity: inv.quantity,
-              totalAmount: inv.totalAmount ?? 0
+              totalAmount: inv.totalAmount ?? 0,
+              batchNumber: inv.batchNumber // 保留批號資訊
             };
           } else {
             shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity ?? 0) + inv.quantity;
             shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
+            // 如果有多個批號，合併顯示
+            if (inv.batchNumber && shipGroups[inv.shippingOrderNumber].batchNumber !== inv.batchNumber) {
+              shipGroups[inv.shippingOrderNumber].batchNumber = shipGroups[inv.shippingOrderNumber].batchNumber
+                ? `${shipGroups[inv.shippingOrderNumber].batchNumber}, ${inv.batchNumber}`
+                : inv.batchNumber;
+            }
           }
         }
       });

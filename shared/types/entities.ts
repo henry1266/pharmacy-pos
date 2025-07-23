@@ -226,6 +226,7 @@ export interface Inventory {
   date: string | Date;
   lastUpdated?: string | Date;
   notes?: string;
+  batchNumber?: string; // 批號欄位
   createdBy?: string; // 創建者ID
   createdAt: string | Date;
   updatedAt: string | Date;

@@ -333,6 +333,7 @@ const PurchaseOrderFormPage: React.FC = () => {
               dname: productName,
               dquantity: String(item.dquantity || item.quantity || ''),
               dtotalCost: String(item.dtotalCost || item.subtotal || ''),
+              batchNumber: item.batchNumber || '', // 加入批號欄位
               product: productId
             };
           })

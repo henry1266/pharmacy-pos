@@ -53,6 +53,7 @@ interface InventoryRecord {
   totalQuantity?: number;
   currentStock?: number;
   product?: any;
+  batchNumber?: string; // 批號欄位
 }
 
 
@@ -311,6 +312,7 @@ const ChartModal: FC<ChartModalProps> = ({
         quantity,
         price,
         totalAmount: totalPrice,
+        batchNumber: inv.batchNumber || '-', // 批號欄位
         isSelected: orderNumber === selectedOrderNumber
       };
     });
@@ -399,6 +401,24 @@ const ChartModal: FC<ChartModalProps> = ({
       headerAlign: 'center',
       sortable: true,
       valueFormatter: (params) => `$${params.value.toFixed(2)}`
+    },
+    {
+      field: 'batchNumber',
+      headerName: '批號',
+      width: 120,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: true,
+      renderCell: (params: GridRenderCellParams) => (
+        <Typography
+          sx={{
+            fontSize: '0.875rem',
+            color: params.value === '-' ? 'text.disabled' : 'text.primary'
+          }}
+        >
+          {params.value}
+        </Typography>
+      )
     }
   ];
 

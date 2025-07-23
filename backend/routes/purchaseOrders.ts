@@ -729,7 +729,8 @@ async function updateInventory(purchaseOrder: IPurchaseOrderDocument): Promise<v
         quantity: parseInt(item.dquantity.toString()),
         totalAmount: Number(item.dtotalCost), // 添加totalAmount字段
         purchaseOrderId: purchaseOrder._id.toString(), // 保存進貨單ID
-        purchaseOrderNumber: purchaseOrder.orderNumber.toString() // 保存進貨單號
+        purchaseOrderNumber: purchaseOrder.orderNumber.toString(), // 保存進貨單號
+        batchNumber: item.batchNumber || undefined // 加入批號欄位
       });
       
       await inventory.save();
