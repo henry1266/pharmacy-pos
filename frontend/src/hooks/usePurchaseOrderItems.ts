@@ -12,6 +12,7 @@ interface CurrentItem {
   dquantity: string;
   dtotalCost: string;
   product: string | null; // 產品ID
+  batchNumber?: string; // 批號
   packageUnits?: ProductPackageUnit[];
 }
 
@@ -84,6 +85,7 @@ const usePurchaseOrderItems = ({
     dquantity: '',
     dtotalCost: '',
     product: null, // 產品ID
+    batchNumber: '', // 批號
     packageUnits: [], // 包裝單位數據
   });
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
@@ -107,7 +109,7 @@ const usePurchaseOrderItems = ({
         packageUnits: newValue.packageUnits || [], // 傳遞包裝單位數據
       }));
     } else {
-      setCurrentItem(prev => ({ ...prev, did: '', dname: '', product: null, packageUnits: [] }));
+      setCurrentItem(prev => ({ ...prev, did: '', dname: '', product: null, batchNumber: '', packageUnits: [] }));
     }
   }, []);
 
@@ -132,7 +134,7 @@ const usePurchaseOrderItems = ({
       }
     }
 
-    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null, packageUnits: [] });
+    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null, batchNumber: '', packageUnits: [] });
     if (productInputRef.current) {
         setTimeout(() => productInputRef.current?.focus(), 100);
     }

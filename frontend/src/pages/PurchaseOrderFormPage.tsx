@@ -53,6 +53,7 @@ interface CurrentItem {
   dname: string;
   dquantity: string;
   dtotalCost: string;
+  batchNumber?: string;
   product: string | null;
   [key: string]: any;
 }

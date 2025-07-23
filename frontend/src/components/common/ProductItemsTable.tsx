@@ -104,7 +104,7 @@ const checkHasProfitData = (items: ProductItem[], profitField: string, profitMar
 /**
  * 渲染表格標題行的輔助函數
  */
-const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: boolean, hasProfitData: boolean): React.ReactElement => (
+const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: boolean, hasProfitData: boolean, showBatchNumber: boolean): React.ReactElement => (
   <TableHead>
     <TableRow>
       <TableCell width="1%">#</TableCell>
@@ -113,6 +113,9 @@ const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: 
         <TableCell width="1%">健保代碼</TableCell>
       )}
       <TableCell width={showHealthInsuranceCode ? "20%" : "25%"}>名稱</TableCell>
+      {showBatchNumber && (
+        <TableCell width="8%">批號</TableCell>
+      )}
       <TableCell width="4%" align="right">數量</TableCell>
       <TableCell width="4%" align="right">單價</TableCell>
       <TableCell width="4%" align="right">小計</TableCell>
@@ -130,12 +133,14 @@ const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: 
  * 渲染表格內容的輔助函數
  */
 const renderTableRows = (
-  items: ProductItem[], 
-  productDetails: ProductDetailsMap, 
-  showHealthInsuranceCode: boolean, 
-  showProfitColumns: boolean, 
-  hasProfitData: boolean, 
-  fields: FieldsMap
+  items: ProductItem[],
+  productDetails: ProductDetailsMap,
+  showHealthInsuranceCode: boolean,
+  showProfitColumns: boolean,
+  hasProfitData: boolean,
+  showBatchNumber: boolean,
+  fields: FieldsMap,
+  batchNumberField: string
 ): React.ReactElement[] => {
   const { codeField, nameField, quantityField, priceField, totalCostField, profitField, profitMarginField } = fields;
   
@@ -167,6 +172,9 @@ const renderTableRows = (
           <TableCell>{healthInsuranceCode}</TableCell>
         )}
         <TableCell>{item[nameField] ?? productDetail.name ?? 'N/A'}</TableCell>
+        {showBatchNumber && (
+          <TableCell>{item[batchNumberField] || '-'}</TableCell>
+        )}
         <TableCell align="right">{item[quantityField] ?? 0}</TableCell>
         <TableCell align="right">{calculateUnitPrice(item, priceField, quantityField, totalCostField)}</TableCell>
         <TableCell align="right">{calculateItemSubtotal(item, totalCostField, quantityField, priceField)}</TableCell>
@@ -200,6 +208,8 @@ interface ProductItemsTableProps {
   defaultShowProfit?: boolean;
   profitField?: string;
   profitMarginField?: string;
+  batchNumberField?: string;
+  showBatchNumber?: boolean;
 }
 
 const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
@@ -215,7 +225,9 @@ const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
   isLoading = false,
   defaultShowProfit = true,
   profitField = 'profit',
-  profitMarginField = 'profitMargin'
+  profitMarginField = 'profitMargin',
+  batchNumberField = 'batchNumber',
+  showBatchNumber = false
 }) => {
   const [showProfitColumns, setShowProfitColumns] = useState<boolean>(defaultShowProfit);
 
@@ -230,6 +242,7 @@ const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
   // 計算 colspan 基數
   let colspanBase = 5;
   if (showHealthInsuranceCode) colspanBase++;
+  if (showBatchNumber) colspanBase++;
 
   return (
     <Card sx={{ maxWidth: 1000, margin: '0 auto' }}>
@@ -253,10 +266,10 @@ const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
         ) : (
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
-              {renderTableHeader(showHealthInsuranceCode, showProfitColumns, hasProfitData)}
+              {renderTableHeader(showHealthInsuranceCode, showProfitColumns, hasProfitData, showBatchNumber)}
               <TableBody>
                 {items && items.length > 0 ? (
-                  renderTableRows(items, productDetails, showHealthInsuranceCode, showProfitColumns, hasProfitData, fields)
+                  renderTableRows(items, productDetails, showHealthInsuranceCode, showProfitColumns, hasProfitData, showBatchNumber, fields, batchNumberField)
                 ) : (
                   <TableRow>
                     <TableCell colSpan={colspanBase + (showProfitColumns && hasProfitData ? 2 : 0)} align="center">

@@ -81,6 +81,8 @@ const usePurchaseOrderData = (
     if (!currentOrderId) return null;
     try {
       const data = await purchaseOrderServiceV2.getPurchaseOrderById(currentOrderId);
+      console.log('🔍 usePurchaseOrderData 獲取的原始資料:', data);
+      console.log('🔍 第一個項目的詳細資料:', data?.items?.[0]);
       setOrderData(data);
       setOrderDataLoaded(true);
       return data;

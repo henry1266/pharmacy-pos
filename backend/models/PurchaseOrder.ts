@@ -61,6 +61,10 @@ const PurchaseOrderItemSchema = new Schema<IPurchaseOrderItemDocument>({
     default: function(this: IPurchaseOrderItemDocument) {
       return this.dquantity > 0 ? this.dtotalCost / this.dquantity : 0;
     }
+  },
+  batchNumber: {
+    type: String,
+    required: false
   }
 });
 

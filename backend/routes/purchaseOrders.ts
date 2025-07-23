@@ -93,10 +93,15 @@ router.get('/:id', async (req: Request, res: Response) => {
       return;
     }
     
-    const response: ApiResponse<IPurchaseOrderDocument> = {
+    // 確保批號欄位被正確序列化
+    const serializedPurchaseOrder = purchaseOrder.toObject();
+    console.log('🔍 後端序列化後的進貨單資料:', JSON.stringify(serializedPurchaseOrder, null, 2));
+    console.log('🔍 第一個項目的批號:', serializedPurchaseOrder.items?.[0]?.batchNumber);
+    
+    const response: ApiResponse<any> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: purchaseOrder,
+      data: serializedPurchaseOrder,
       timestamp: new Date()
     };
     
@@ -254,6 +259,14 @@ router.post('/', [
       return;
     }
 
+    // 處理項目數據，確保批號欄位被正確處理
+    const processedItems = items.map((item: any) => ({
+      ...item,
+      product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
+      unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0),
+      batchNumber: item.batchNumber || undefined
+    }));
+
     // 嘗試查找供應商
     const supplierId = await findSupplierId(posupplier, supplier);
 
@@ -265,7 +278,7 @@ router.post('/', [
       pobilldate,
       posupplier: posupplier.toString(),
       supplier: supplierId,
-      items,
+      items: processedItems,
       notes: notes ? notes.toString() : '',
       status: status ? status.toString() : 'pending',
       paymentStatus: paymentStatus ? paymentStatus.toString() : '未付'
@@ -424,7 +437,8 @@ const processItemsUpdate = async (items: PurchaseOrderRequest['items']): Promise
   const processedItems = items.map((item: any) => ({
     ...item,
     product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
-    unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0)
+    unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0),
+    batchNumber: item.batchNumber || undefined
   })) as any;
 
   return { valid: true, processedItems };

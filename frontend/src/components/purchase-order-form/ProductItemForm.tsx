@@ -37,6 +37,7 @@ interface CurrentItem {
   dquantity?: string | number;
   packageQuantity?: string | number;
   boxQuantity?: string | number;
+  batchNumber?: string;
   [key: string]: any;
 }
 
@@ -461,7 +462,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
             </Grid>
 
             {/* 包裝單位輸入 */}
-            <Grid item xs={12} sm={3.5}>
+            <Grid item xs={12} sm={2.5}>
               {selectedProduct?.packageUnits && selectedProduct.packageUnits.length > 0 ? (
                 <PackageQuantityInput
                   packageUnits={selectedProduct.packageUnits}
@@ -471,7 +472,6 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   }}
                   disabled={mainQuantityDisabled}
                   variant="outlined"
-                  label="包裝單位輸入"
                 />
               ) : (
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -495,7 +495,6 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   {/* 數量 */}
                   <TextField
                     fullWidth
-                    label="數量"
                     name="boxQuantity"
                     type="number"
                     value={boxQuantityValue}
@@ -509,6 +508,19 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   />
                 </Box>
               )}
+            </Grid>
+
+            {/* 批號輸入 */}
+            <Grid item xs={12} sm={1.5}>
+              <TextField
+                fullWidth
+                label="批號 (選填)"
+                name="batchNumber"
+                value={currentItem.batchNumber || ''}
+                onChange={handleItemInputChange}
+                size="small"
+                placeholder="請輸入批號"
+              />
             </Grid>
           </Grid>
         </Grid>

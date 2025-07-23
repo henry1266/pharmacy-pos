@@ -30,6 +30,7 @@ interface Item {
   dname: string;
   dquantity: string | number;
   dtotalCost: string | number;
+  batchNumber?: string;
   packageUnits?: ProductPackageUnit[];
   [key: string]: any;
 }
@@ -109,7 +110,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+                gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
                 gap: 1,
                 alignItems: 'center',
                 minHeight: '40px',
@@ -121,6 +122,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
               <Typography variant="subtitle2" align="center">序號</Typography>
               <Typography variant="subtitle2" align="center">藥品代碼</Typography>
               <Typography variant="subtitle2" align="center">藥品名稱</Typography>
+              <Typography variant="subtitle2" align="center">批號</Typography>
               <Typography variant="subtitle2" align="center">數量</Typography>
               <Typography variant="subtitle2" align="center">總成本</Typography>
               <Typography variant="subtitle2" align="center">單價</Typography>
@@ -164,7 +166,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+                gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
                 gap: 1,
                 alignItems: 'center',
                 minHeight: '40px',
@@ -174,6 +176,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
               <Box></Box>
               <Box></Box>
               <Typography variant="subtitle1" align="center">總計：</Typography>
+              <Box></Box>
               <Box></Box>
               <Typography variant="subtitle1" align="center">
                 {totalAmount.toLocaleString()}
@@ -203,7 +206,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+              gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
               gap: 1,
               alignItems: 'center',
               minHeight: '40px',
@@ -215,6 +218,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
             <Typography variant="subtitle2" align="center">序號</Typography>
             <Typography variant="subtitle2" align="center">藥品代碼</Typography>
             <Typography variant="subtitle2" align="center">藥品名稱</Typography>
+            <Typography variant="subtitle2" align="center">批號</Typography>
             <Typography variant="subtitle2" align="center">數量</Typography>
             <Typography variant="subtitle2" align="center">總成本</Typography>
             <Typography variant="subtitle2" align="center">單價</Typography>
@@ -267,7 +271,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                           <Box
                             sx={{
                               display: 'grid',
-                              gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+                              gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
                               gap: 1,
                               alignItems: 'center',
                               minHeight: '40px',
@@ -301,6 +305,15 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                                   size="small"
                                   value={editingItem.dname}
                                   disabled
+                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
+                                />
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  name="batchNumber"
+                                  value={editingItem.batchNumber || ''}
+                                  onChange={handleEditingItemChange}
+                                  placeholder="批號"
                                   sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                                 />
                                 <TextField
@@ -349,6 +362,9 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                                 </Box>
                                 <Typography variant="body2" sx={{ fontSize: '1rem' }} align="center">
                                   {item.dname}
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontSize: '0.9rem' }} align="center">
+                                  {item.batchNumber || '-'}
                                 </Typography>
                                 <Box sx={{ textAlign: 'center' }}>
                                   {item.packageUnits && item.packageUnits.length > 0 ? (
@@ -415,7 +431,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: '80px 110px 1fr 70px 90px 70px 110px',
+              gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
               gap: 1,
               alignItems: 'center',
               minHeight: '40px',
@@ -425,6 +441,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
             <Box></Box>
             <Box></Box>
             <Typography variant="subtitle1" align="center">總計：</Typography>
+            <Box></Box>
             <Box></Box>
             <Typography variant="subtitle1" align="center">
               {totalAmount.toLocaleString()}

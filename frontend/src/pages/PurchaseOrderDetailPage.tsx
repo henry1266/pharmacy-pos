@@ -52,6 +52,7 @@ interface ExtendedPurchaseOrderItem extends PurchaseOrderItem {
   dquantity?: number;     // 數量
   dprice?: number;        // 單價
   dtotalCost?: number;    // 總成本
+  batchNumber?: string;   // 批號
 }
 
 // 定義狀態類型
@@ -219,6 +220,8 @@ const PurchaseOrderDetailPage: React.FC = () => {
               nameField="dname"
               quantityField="dquantity"
               totalCostField="dtotalCost"
+              batchNumberField="batchNumber"
+              showBatchNumber={true}
               totalAmount={currentPurchaseOrder.totalAmount ??
                           (currentPurchaseOrder.items ?? []).reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0)}
               title=""
@@ -257,11 +260,11 @@ const PurchaseOrderDetailPage: React.FC = () => {
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <InfoIcon fontSize="small" color="action"/>
-                <Typography variant="body2">狀態: <StatusChip status={currentPurchaseOrder.status} /></Typography>
+                <Typography variant="body2" component="div">狀態: <StatusChip status={currentPurchaseOrder.status} /></Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PaymentIcon fontSize="small" color="action"/>
-                <Typography variant="body2">付款狀態: <PaymentStatusChip status={currentPurchaseOrder.paymentStatus} /></Typography>
+                <Typography variant="body2" component="div">付款狀態: <PaymentStatusChip status={currentPurchaseOrder.paymentStatus} /></Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
