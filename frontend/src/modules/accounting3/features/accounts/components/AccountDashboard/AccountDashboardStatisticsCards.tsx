@@ -14,7 +14,7 @@ import {
   Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 
-interface StatisticsCardsProps {
+interface AccountDashboardStatisticsCardsProps {
   totalTransactions: number;
   totalDebitAmount: number;
   totalCreditAmount: number;
@@ -27,7 +27,7 @@ interface StatisticsCardsProps {
  * 統計卡片組件
  * 顯示主要的統計數據：交易筆數、借方總額、貸方總額、淨額
  */
-export const StatisticsCards: React.FC<StatisticsCardsProps> = ({
+export const AccountDashboardStatisticsCards: React.FC<AccountDashboardStatisticsCardsProps> = ({
   totalTransactions,
   totalDebitAmount,
   totalCreditAmount,
@@ -128,4 +128,4 @@ export const StatisticsCards: React.FC<StatisticsCardsProps> = ({
   );
 };
 
-export default StatisticsCards;
+export default AccountDashboardStatisticsCards;

@@ -20,7 +20,7 @@ interface MonthlyTrendData {
   transactionCount: number;
 }
 
-interface MonthlyTrendProps {
+interface AccountDashboardMonthlyTrendProps {
   monthlyTrend: MonthlyTrendData[];
   formatCurrency: (amount: number) => string;
 }
@@ -29,7 +29,7 @@ interface MonthlyTrendProps {
  * 月度趨勢組件
  * 顯示最近6個月的交易趨勢
  */
-export const MonthlyTrend: React.FC<MonthlyTrendProps> = ({
+export const AccountDashboardMonthlyTrend: React.FC<AccountDashboardMonthlyTrendProps> = ({
   monthlyTrend,
   formatCurrency
 }) => {
@@ -75,4 +75,4 @@ export const MonthlyTrend: React.FC<MonthlyTrendProps> = ({
   );
 };
 
-export default MonthlyTrend;
+export default AccountDashboardMonthlyTrend;

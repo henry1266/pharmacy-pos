@@ -12,7 +12,7 @@ import {
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
 
-interface StatusDistributionProps {
+interface AccountDashboardStatusDistributionProps {
   statusDistribution: {
     draft: number;
     confirmed: number;
@@ -25,7 +25,7 @@ interface StatusDistributionProps {
  * 狀態分佈組件
  * 顯示交易狀態的分佈情況
  */
-export const StatusDistribution: React.FC<StatusDistributionProps> = ({
+export const AccountDashboardStatusDistribution: React.FC<AccountDashboardStatusDistributionProps> = ({
   statusDistribution,
   totalTransactions
 }) => {
@@ -89,4 +89,4 @@ export const StatusDistribution: React.FC<StatusDistributionProps> = ({
   );
 };
 
-export default StatusDistribution;
+export default AccountDashboardStatusDistribution;

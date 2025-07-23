@@ -11,7 +11,7 @@ import {
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
 
-interface TransactionOverviewProps {
+interface AccountDashboardTransactionOverviewProps {
   averageTransactionAmount: number;
   lastTransactionDate: Date | null;
   firstTransactionDate: Date | null;
@@ -24,7 +24,7 @@ interface TransactionOverviewProps {
  * 交易概覽組件
  * 顯示交易的基本統計資訊
  */
-export const TransactionOverview: React.FC<TransactionOverviewProps> = ({
+export const AccountDashboardTransactionOverview: React.FC<AccountDashboardTransactionOverviewProps> = ({
   averageTransactionAmount,
   lastTransactionDate,
   firstTransactionDate,
@@ -93,4 +93,4 @@ export const TransactionOverview: React.FC<TransactionOverviewProps> = ({
   );
 };
 
-export default TransactionOverview;
+export default AccountDashboardTransactionOverview;

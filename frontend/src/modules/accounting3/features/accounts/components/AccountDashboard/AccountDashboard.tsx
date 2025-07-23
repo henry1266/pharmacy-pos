@@ -8,11 +8,11 @@ import {
 import { Account2, TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
 import { accounting3Service } from '../../../../services/accounting3Service';
 import {
-  StatisticsCards,
-  TransactionOverview,
-  StatusDistribution,
-  MonthlyTrend
-} from './components';
+  AccountDashboardStatisticsCards as StatisticsCards,
+  AccountDashboardTransactionOverview as TransactionOverview,
+  AccountDashboardStatusDistribution as StatusDistribution,
+  AccountDashboardMonthlyTrend as MonthlyTrend
+} from './';
 
 interface AccountDashboardProps {
   selectedAccount: Account2;
