@@ -27,7 +27,7 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
   }>;
 }
 
-interface TransactionFlowDisplayProps {
+interface AccountTransactionListFlowDisplayProps {
   transaction: ExtendedTransactionGroupWithEntries;
 }
 
@@ -79,7 +79,7 @@ const getAccountName = (account: any): string => {
  * 交易流向顯示組件
  * 顯示交易的借貸方向和科目流向
  */
-export const TransactionFlowDisplay: React.FC<TransactionFlowDisplayProps> = ({
+export const AccountTransactionListFlowDisplay: React.FC<AccountTransactionListFlowDisplayProps> = ({
   transaction
 }) => {
   // 渲染交易流向圖
@@ -123,4 +123,4 @@ export const TransactionFlowDisplay: React.FC<TransactionFlowDisplayProps> = ({
   return renderTransactionFlow();
 };
 
-export default TransactionFlowDisplay;
+export default AccountTransactionListFlowDisplay;

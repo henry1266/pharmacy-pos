@@ -29,7 +29,7 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
   }>;
 }
 
-interface FundingStatusDisplayProps {
+interface AccountTransactionListFundingStatusDisplayProps {
   transaction: ExtendedTransactionGroupWithEntries;
 }
 
@@ -103,7 +103,7 @@ const TooltipContent: React.FC<{
  * 資金狀態顯示組件
  * 顯示交易的資金來源和使用狀態
  */
-export const FundingStatusDisplay: React.FC<FundingStatusDisplayProps> = ({
+export const AccountTransactionListFundingStatusDisplay: React.FC<AccountTransactionListFundingStatusDisplayProps> = ({
   transaction
 }) => {
   // 計算剩餘可用金額（使用後端提供的精確資料）
@@ -291,4 +291,4 @@ export const FundingStatusDisplay: React.FC<FundingStatusDisplayProps> = ({
   return renderIntegratedFundingStatus();
 };
 
-export default FundingStatusDisplay;
+export default AccountTransactionListFundingStatusDisplay;

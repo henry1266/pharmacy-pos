@@ -35,7 +35,7 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
   }>;
 }
 
-interface TransactionActionMenuProps {
+interface AccountTransactionListActionMenuProps {
   anchorEl: HTMLElement | null;
   transaction: ExtendedTransactionGroupWithEntries | null;
   onClose: () => void;
@@ -51,7 +51,7 @@ interface TransactionActionMenuProps {
  * 交易操作選單組件
  * 提供交易的各種操作選項
  */
-export const TransactionActionMenu: React.FC<TransactionActionMenuProps> = ({
+export const AccountTransactionListActionMenu: React.FC<AccountTransactionListActionMenuProps> = ({
   anchorEl,
   transaction,
   onClose,
@@ -241,4 +241,4 @@ export const TransactionActionMenu: React.FC<TransactionActionMenuProps> = ({
   );
 };
 
-export default TransactionActionMenu;
+export default AccountTransactionListActionMenu;

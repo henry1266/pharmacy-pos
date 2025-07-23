@@ -40,7 +40,7 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
   }>;
 }
 
-interface TransactionDetailDialogProps {
+interface AccountTransactionListDetailDialogProps {
   open: boolean;
   transaction: ExtendedTransactionGroupWithEntries | null;
   onClose: () => void;
@@ -50,7 +50,7 @@ interface TransactionDetailDialogProps {
  * 交易詳情對話框組件
  * 顯示交易的詳細資訊，包括分錄明細
  */
-export const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
+export const AccountTransactionListDetailDialog: React.FC<AccountTransactionListDetailDialogProps> = ({
   open,
   transaction,
   onClose
@@ -189,4 +189,4 @@ export const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = (
   );
 };
 
-export default TransactionDetailDialog;
+export default AccountTransactionListDetailDialog;

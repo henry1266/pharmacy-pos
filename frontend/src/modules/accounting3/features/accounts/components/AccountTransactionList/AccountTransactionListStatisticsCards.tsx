@@ -22,7 +22,7 @@ interface TransactionStatistics {
   lastTransactionDate: Date | null;
 }
 
-interface TransactionStatisticsCardsProps {
+interface AccountTransactionListStatisticsCardsProps {
   statistics: TransactionStatistics;
 }
 
@@ -30,7 +30,7 @@ interface TransactionStatisticsCardsProps {
  * 交易統計卡片組件
  * 顯示科目的交易統計資訊
  */
-export const TransactionStatisticsCards: React.FC<TransactionStatisticsCardsProps> = ({
+export const AccountTransactionListStatisticsCards: React.FC<AccountTransactionListStatisticsCardsProps> = ({
   statistics
 }) => {
   // 格式化貨幣
@@ -114,4 +114,4 @@ export const TransactionStatisticsCards: React.FC<TransactionStatisticsCardsProp
   );
 };
 
-export default TransactionStatisticsCards;
+export default AccountTransactionListStatisticsCards;

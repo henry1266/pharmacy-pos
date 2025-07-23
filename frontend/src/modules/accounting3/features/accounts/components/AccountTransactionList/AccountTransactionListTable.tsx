@@ -22,8 +22,8 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { Account2, TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared/types/accounting2';
-import { TransactionFlowDisplay } from './TransactionFlowDisplay';
-import { FundingStatusDisplay } from './FundingStatusDisplay';
+import { AccountTransactionListFlowDisplay } from './AccountTransactionListFlowDisplay';
+import { AccountTransactionListFundingStatusDisplay } from './AccountTransactionListFundingStatusDisplay';
 
 // 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
 interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
@@ -48,7 +48,7 @@ interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntrie
   displayOrder?: number;
 }
 
-interface TransactionTableProps {
+interface AccountTransactionListTableProps {
   transactions: ExtendedTransactionGroupWithEntries[];
   selectedAccount: Account2;
   onRowClick: (event: React.MouseEvent<HTMLElement>, transaction: ExtendedTransactionGroupWithEntries) => void;
@@ -64,7 +64,7 @@ interface TransactionTableProps {
  * 交易表格組件
  * 顯示交易列表和相關操作
  */
-export const TransactionTable: React.FC<TransactionTableProps> = ({
+export const AccountTransactionListTable: React.FC<AccountTransactionListTableProps> = ({
   transactions,
   selectedAccount,
   onRowClick,
@@ -184,7 +184,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <TransactionFlowDisplay transaction={transaction} />
+                <AccountTransactionListFlowDisplay transaction={transaction} />
               </TableCell>
               <TableCell align="right">
                 <Typography
@@ -218,7 +218,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                 />
               </TableCell>
               <TableCell align="center">
-                <FundingStatusDisplay transaction={transaction} />
+                <AccountTransactionListFundingStatusDisplay transaction={transaction} />
               </TableCell>
               <TableCell align="center">
                 <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -323,4 +323,4 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   );
 };
 
-export default TransactionTable;
+export default AccountTransactionListTable;

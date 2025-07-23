@@ -10,12 +10,32 @@ accounts/
 ├── index.ts                      # 統一導出
 ├── AccountForm.tsx               # 科目表單組件
 ├── AccountSelector3.tsx          # 科目選擇器組件
-├── AccountDashboard.tsx          # 科目統計儀表板
 ├── AccountHierarchyManager.tsx   # 科目階層管理器
 ├── AccountTransactionList.tsx    # 科目交易列表
 ├── AccountTreeViewV3.tsx         # 科目樹狀檢視
 ├── AccountTypeManagement.tsx     # 科目類型管理
 ├── components/                   # 子組件目錄
+│   ├── AccountDashboard/         # 科目統計儀表板 (扁平化重構)
+│   │   ├── AccountDashboard.tsx                      # 主容器組件
+│   │   ├── AccountDashboardStatisticsCards.tsx      # 統計卡片組件
+│   │   ├── AccountDashboardTransactionOverview.tsx  # 交易概覽組件
+│   │   ├── AccountDashboardStatusDistribution.tsx   # 狀態分佈組件
+│   │   ├── AccountDashboardMonthlyTrend.tsx        # 月度趨勢組件
+│   │   └── index.ts                                 # 統一導出
+│   ├── AccountForm/              # 科目表單子組件
+│   ├── AccountHierarchyManager/  # 階層管理子組件
+│   ├── AccountSelector/          # 科目選擇器子組件
+│   ├── AccountTransactionList/   # 交易列表 (扁平化重構)
+│   │   ├── AccountTransactionList.tsx                          # 主容器組件
+│   │   ├── AccountTransactionListStatisticsCards.tsx          # 統計卡片組件
+│   │   ├── AccountTransactionListDetailDialog.tsx             # 詳情對話框組件
+│   │   ├── AccountTransactionListActionMenu.tsx               # 操作選單組件
+│   │   ├── AccountTransactionListFlowDisplay.tsx              # 流向顯示組件
+│   │   ├── AccountTransactionListFundingStatusDisplay.tsx     # 資金狀態組件
+│   │   ├── AccountTransactionListTable.tsx                    # 交易表格組件
+│   │   └── index.ts                                           # 統一導出
+│   ├── AccountTreeView/          # 樹狀檢視子組件
+│   └── AccountTypeManagement/    # 類型管理子組件
 ├── hooks/                       # 自定義 Hooks
 ├── types/                       # 類型定義
 └── utils/                       # 工具函數
@@ -143,7 +163,18 @@ const TransactionForm = () => {
 
 ### AccountDashboard
 
-科目統計儀表板，提供科目的詳細統計分析和趨勢圖表。
+科目統計儀表板，提供科目的詳細統計分析和趨勢圖表。採用扁平化組件結構設計。
+
+**檔案結構 (扁平化重構後):**
+```
+components/AccountDashboard/
+├── AccountDashboard.tsx                      # 主容器組件
+├── AccountDashboardStatisticsCards.tsx      # 統計卡片組件
+├── AccountDashboardTransactionOverview.tsx  # 交易概覽組件
+├── AccountDashboardStatusDistribution.tsx   # 狀態分佈組件
+├── AccountDashboardMonthlyTrend.tsx        # 月度趨勢組件
+└── index.ts                                 # 統一導出
+```
 
 **Props:**
 ```typescript
@@ -151,6 +182,36 @@ interface AccountDashboardProps {
   selectedAccount: Account2;        // 選中的科目
 }
 ```
+
+**子組件說明:**
+
+#### AccountDashboardStatisticsCards
+主要統計數據的卡片式展示組件
+- 交易筆數統計
+- 借方/貸方總額顯示
+- 淨額計算與趨勢指示
+- 響應式卡片佈局
+
+#### AccountDashboardTransactionOverview
+交易基本資訊概覽組件
+- 平均交易金額
+- 首次/最後交易日期
+- 活躍月份統計
+- 格式化顯示功能
+
+#### AccountDashboardStatusDistribution
+交易狀態分佈視覺化組件
+- 已確認/草稿/已取消狀態統計
+- 進度條視覺化顯示
+- 百分比計算
+- 顏色編碼區分
+
+#### AccountDashboardMonthlyTrend
+月度趨勢分析組件
+- 最近6個月趨勢顯示
+- 月度交易筆數統計
+- 淨額趨勢分析
+- 響應式圖表佈局
 
 **統計指標:**
 - **交易筆數**: 總交易數量統計
@@ -177,6 +238,13 @@ const AccountAnalysis = ({ accountId }) => {
 };
 ```
 
+**扁平化重構優勢:**
+- **減少路徑深度**: 從 7 層減少到 6 層
+- **消除命名重複**: 移除重複的 `components` 目錄
+- **清晰的命名**: 使用 `AccountDashboard` 前綴明確組件歸屬
+- **簡化 import**: 減少相對路徑複雜度
+- **便於維護**: 所有相關組件在同一層級
+
 **視覺化元素:**
 - **統計卡片**: 關鍵指標的卡片式展示
 - **趨勢圖表**: 月度趨勢的視覺化圖表
@@ -195,13 +263,120 @@ const AccountAnalysis = ({ accountId }) => {
 
 ### AccountTransactionList
 
-科目交易列表，顯示特定科目的所有相關交易。
+科目交易列表，顯示特定科目的所有相關交易。採用扁平化組件結構設計。
+
+**檔案結構 (扁平化重構後):**
+```
+components/AccountTransactionList/
+├── AccountTransactionList.tsx                          # 主容器組件
+├── AccountTransactionListStatisticsCards.tsx          # 統計卡片組件
+├── AccountTransactionListDetailDialog.tsx             # 詳情對話框組件
+├── AccountTransactionListActionMenu.tsx               # 操作選單組件
+├── AccountTransactionListFlowDisplay.tsx              # 流向顯示組件
+├── AccountTransactionListFundingStatusDisplay.tsx     # 資金狀態組件
+├── AccountTransactionListTable.tsx                    # 交易表格組件
+└── index.ts                                           # 統一導出
+```
+
+**Props:**
+```typescript
+interface AccountTransactionListProps {
+  selectedAccount: Account2 | null;
+  onTransactionView?: (transaction: ExtendedTransactionGroupWithEntries) => void;
+  onTransactionEdit?: (transaction: ExtendedTransactionGroupWithEntries) => void;
+  onTransactionConfirm?: (id: string) => void;
+  onTransactionUnlock?: (id: string) => void;
+  onTransactionDelete?: (id: string) => void;
+  onTransactionCopy?: (transaction: ExtendedTransactionGroupWithEntries) => void;
+  onAddTransaction?: (accountId: string) => void;
+}
+```
+
+**子組件說明:**
+
+#### AccountTransactionListStatisticsCards
+交易統計卡片展示組件
+- 交易筆數統計
+- 借方/貸方總額顯示
+- 淨額計算
+- 平均交易金額
+
+#### AccountTransactionListDetailDialog
+交易詳情對話框組件
+- 完整交易資訊顯示
+- 分錄明細表格
+- 狀態和金額資訊
+- 響應式對話框設計
+
+#### AccountTransactionListActionMenu
+交易操作選單組件
+- 查看、編輯、複製操作
+- 確認、解鎖、刪除功能
+- 狀態相關的條件顯示
+- 剪貼簿複製功能
+
+#### AccountTransactionListFlowDisplay
+交易流向顯示組件
+- 借貸方向視覺化
+- 科目間流向顯示
+- Chip 樣式設計
+- 箭頭流向指示
+
+#### AccountTransactionListFundingStatusDisplay
+資金狀態顯示組件
+- 資金來源追蹤
+- 被引用情況顯示
+- 剩餘可用金額計算
+- Tooltip 詳細資訊
+
+#### AccountTransactionListTable
+交易表格主體組件
+- 完整交易列表顯示
+- 累計餘額計算
+- 行內操作按鈕
+- 響應式表格設計
 
 **功能特色:**
-- **分頁載入**: 大量交易的分頁顯示
-- **篩選排序**: 多維度的篩選和排序
-- **詳情連結**: 快速跳轉到交易詳情
-- **匯出功能**: 交易資料的匯出功能
+- **即時統計**: 動態計算交易統計資訊
+- **累計餘額**: 按時間順序計算累計餘額
+- **資金追蹤**: 完整的資金來源和使用追蹤
+- **交易流向**: 視覺化的交易流向顯示
+- **多種操作**: 查看、編輯、確認、刪除等操作
+- **狀態管理**: 草稿、已確認、已取消狀態處理
+- **響應式設計**: 適配不同螢幕尺寸
+
+**使用範例:**
+```typescript
+import { AccountTransactionList } from './accounts';
+
+const TransactionManagement = ({ selectedAccount }) => {
+  const handleTransactionView = (transaction) => {
+    // 處理查看交易
+  };
+
+  const handleTransactionEdit = (transaction) => {
+    // 處理編輯交易
+  };
+
+  return (
+    <AccountTransactionList
+      selectedAccount={selectedAccount}
+      onTransactionView={handleTransactionView}
+      onTransactionEdit={handleTransactionEdit}
+      onTransactionConfirm={handleConfirm}
+      onTransactionDelete={handleDelete}
+      onAddTransaction={handleAddTransaction}
+    />
+  );
+};
+```
+
+**扁平化重構優勢:**
+- **減少路徑深度**: 從 7 層減少到 6 層
+- **消除命名重複**: 移除重複的 `components` 目錄
+- **清晰的命名**: 使用 `AccountTransactionList` 前綴明確組件歸屬
+- **簡化 import**: 減少相對路徑複雜度
+- **便於維護**: 所有相關組件在同一層級
 
 ### AccountTreeViewV3
 

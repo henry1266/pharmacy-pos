@@ -16,11 +16,11 @@ import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
 import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared/types/accounting2';
 import { accounting3Service } from '../../../../services/accounting3Service';
 import {
-  TransactionStatisticsCards,
-  TransactionDetailDialog,
-  TransactionActionMenu,
-  TransactionTable
-} from './components';
+  AccountTransactionListStatisticsCards as TransactionStatisticsCards,
+  AccountTransactionListDetailDialog as TransactionDetailDialog,
+  AccountTransactionListActionMenu as TransactionActionMenu,
+  AccountTransactionListTable as TransactionTable
+} from './';
 
 // 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
 interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
