@@ -499,13 +499,13 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 
                 {/* 大包裝顯示為主 */}
                 {packageUnits && packageUnits.length > 0 && currentStock > 0 ? (
-                  <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, flexWrap: 'wrap' }}>
                     {/* 主要包裝顯示 */}
                     <Typography
                       variant="h5"
                       fontWeight="bold"
                       color="primary.main"
-                      sx={{ mb: 1, lineHeight: 1.2 }}
+                      sx={{ lineHeight: 1.2 }}
                     >
                       {(() => {
                         const displayResult = convertToPackageDisplay(currentStock, packageUnits, productUnit || '個');
@@ -519,7 +519,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                       color="text.secondary"
                       sx={{ opacity: 0.8 }}
                     >
-                      總計：{currentStock} {productUnit || '個'}
+                      {currentStock} {productUnit || '個'}
                     </Typography>
                   </Box>
                 ) : (
