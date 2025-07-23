@@ -45,6 +45,7 @@ export interface PackageQuantityInputProps {
   value: number;
   onChange: (baseQuantity: number) => void;
   packageUnits: ProductPackageUnit[];
+  baseUnitName?: string; // 產品的基礎單位名稱
   label?: string;
   placeholder?: string;
   disabled?: boolean;

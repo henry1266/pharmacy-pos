@@ -41,6 +41,7 @@ import {
  */
 const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
   packageUnits,
+  baseUnitName,
   value = 0,
   onChange,
   label = '數量',
@@ -74,10 +75,8 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
     return [...packageUnits].sort((a, b) => b.unitValue - a.unitValue);
   }, [packageUnits]);
 
-  // 基礎單位
-  const baseUnit = useMemo(() => {
-    return packageUnits.find(u => u.unitValue === Math.min(...packageUnits.map(p => p.unitValue)));
-  }, [packageUnits]);
+  // 基礎單位名稱
+  const baseUnitDisplayName = baseUnitName || '個';
 
   // 快捷輸入選項
   const quickInputOptions = useMemo(() => {
@@ -152,7 +151,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
 
   // 初始化輸入值
   useEffect(() => {
-    const displayResult = convertToPackageDisplay(value, packageUnits);
+    const displayResult = convertToPackageDisplay(value, packageUnits, baseUnitName);
     const newInputValues = sortedPackageUnits.map(unit => {
       const breakdown = displayResult.packageBreakdown.find(b => b.unitName === unit.unitName);
       return {
@@ -162,7 +161,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
       };
     });
     setInputValues(newInputValues);
-  }, [value, packageUnits, sortedPackageUnits]);
+  }, [value, packageUnits, sortedPackageUnits, baseUnitName]);
 
   // 計算總基礎單位數量
   const calculateTotalBaseUnits = useCallback((inputs: PackageInputItem[]): number => {
@@ -285,7 +284,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
 
   // 快捷輸入處理
   const handleQuickInput = useCallback((baseUnits: number) => {
-    const displayResult = convertToPackageDisplay(baseUnits, packageUnits);
+    const displayResult = convertToPackageDisplay(baseUnits, packageUnits, baseUnitName);
     const newInputValues = sortedPackageUnits.map(unit => {
       const breakdown = displayResult.packageBreakdown.find(b => b.unitName === unit.unitName);
       return {
@@ -297,7 +296,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
     
     setInputValues(newInputValues);
     onChange(baseUnits);
-  }, [packageUnits, sortedPackageUnits, onChange]);
+  }, [packageUnits, sortedPackageUnits, baseUnitName, onChange]);
 
   // 清空輸入
   const handleClear = useCallback(() => {
@@ -325,8 +324,8 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
   // 當前總數顯示
   const currentTotal = useMemo(() => {
     const total = calculateTotalBaseUnits(inputValues);
-    return convertToPackageDisplay(total, packageUnits);
-  }, [inputValues, calculateTotalBaseUnits, packageUnits]);
+    return convertToPackageDisplay(total, packageUnits, baseUnitName);
+  }, [inputValues, calculateTotalBaseUnits, packageUnits, baseUnitName]);
 
   return (
     <Box>
@@ -388,7 +387,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                 <TextField
                   {...params}
                   type="number"
-                  label={`${label} (${baseUnit?.unitName || '個'})`}
+                  label={`${label} (${baseUnitDisplayName})`}
                   placeholder={placeholder}
                   disabled={disabled}
                   error={!!(error || inputError)}
@@ -629,7 +628,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
               mt: isMobile ? 0.25 : 0
             }}
           >
-            基礎單位：{calculateTotalBaseUnits(inputValues)} {baseUnit?.unitName || '個'}
+            基礎單位：{calculateTotalBaseUnits(inputValues)} {baseUnitDisplayName}
           </Typography>
         </Box>
 

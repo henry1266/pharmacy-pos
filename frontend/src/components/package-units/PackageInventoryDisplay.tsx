@@ -29,8 +29,8 @@ const PackageInventoryDisplay: React.FC<PackageInventoryDisplayProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const displayResult = useMemo(() => {
-    return convertToPackageDisplay(totalQuantity, packageUnits);
-  }, [totalQuantity, packageUnits]);
+    return convertToPackageDisplay(totalQuantity, packageUnits, baseUnitName);
+  }, [totalQuantity, packageUnits, baseUnitName]);
 
   // 使用傳入的基礎單位名稱，如果沒有則使用預設值
   const baseUnitDisplayName = baseUnitName || '個';

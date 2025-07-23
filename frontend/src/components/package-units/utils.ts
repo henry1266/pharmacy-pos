@@ -6,13 +6,16 @@ import { PackageDisplayResult, PackageInputResult, ValidationError } from './typ
  */
 export const convertToPackageDisplay = (
   baseQuantity: number,
-  packageUnits: ProductPackageUnit[]
+  packageUnits: ProductPackageUnit[],
+  baseUnitName?: string
 ): PackageDisplayResult => {
+  const defaultBaseUnit = baseUnitName || '個';
+  
   if (!packageUnits.length || baseQuantity <= 0) {
     return {
       baseQuantity,
       packageBreakdown: [],
-      displayText: `${baseQuantity} ${packageUnits.find(u => u.unitValue === Math.max(...packageUnits.map(p => p.unitValue)))?.unitName || '個'}`
+      displayText: `${baseQuantity} ${defaultBaseUnit}`
     };
   }
 
@@ -33,11 +36,10 @@ export const convertToPackageDisplay = (
     }
   }
 
-  // 如果還有剩餘，使用最小單位
+  // 如果還有剩餘，使用基礎單位
   if (remainingQuantity > 0) {
-    const smallestUnit = sortedUnits[sortedUnits.length - 1];
     breakdown.push({
-      unitName: smallestUnit.unitName,
+      unitName: baseUnitName || '個',
       quantity: remainingQuantity
     });
   }
@@ -50,7 +52,7 @@ export const convertToPackageDisplay = (
   return {
     baseQuantity,
     packageBreakdown: breakdown,
-    displayText: displayText || `0 ${sortedUnits[sortedUnits.length - 1]?.unitName || '個'}`
+    displayText: displayText || `0 ${defaultBaseUnit}`
   };
 };
 
