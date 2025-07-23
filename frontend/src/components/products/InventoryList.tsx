@@ -81,9 +81,10 @@ interface InventoryListProps {
   productId: string;
   productName?: string;
   packageUnits?: ProductPackageUnit[];
+  productUnit?: string;
 }
 
-const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, packageUnits }) => {
+const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, packageUnits, productUnit }) => {
   const [inventories, setInventories] = useState<InventoryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -508,6 +509,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                     <PackageInventoryDisplay
                       totalQuantity={currentStock}
                       packageUnits={packageUnits}
+                      baseUnitName={productUnit || '個'}
                       showBreakdown={true}
                       variant="compact"
                     />

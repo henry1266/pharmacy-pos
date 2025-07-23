@@ -355,6 +355,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                                     <PackageInventoryDisplay
                                       packageUnits={item.packageUnits}
                                       totalQuantity={Number(item.dquantity)}
+                                      baseUnitName={item.unit}
                                       variant="compact"
                                     />
                                   ) : (

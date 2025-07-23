@@ -36,15 +36,6 @@ const ProductPackageUnitSchema = new Schema<IProductPackageUnitDocument>({
       message: 'unitValue must be an integer'
     }
   },
-  priority: {
-    type: Number,
-    required: true,
-    min: 1,
-    validate: {
-      validator: Number.isInteger,
-      message: 'priority must be an integer'
-    }
-  },
   isBaseUnit: {
     type: Boolean,
     default: false,
@@ -82,12 +73,12 @@ ProductPackageUnitSchema.index(
   }
 );
 
-// 複合索引：確保同一產品的優先級唯一（在有效期內）
+// 複合索引：確保同一產品的 unitValue 唯一（在有效期內）
 ProductPackageUnitSchema.index(
-  { productId: 1, priority: 1, effectiveFrom: 1 }, 
-  { 
+  { productId: 1, unitValue: 1, effectiveFrom: 1 },
+  {
     unique: true,
-    name: 'productId_priority_effectiveFrom_unique'
+    name: 'productId_unitValue_effectiveFrom_unique'
   }
 );
 
@@ -123,27 +114,27 @@ ProductPackageUnitSchema.pre('save', function(next) {
   next();
 });
 
-// 靜態方法：根據產品ID查找包裝單位
+// 靜態方法：根據產品ID查找包裝單位（按 unitValue 從大到小排序）
 ProductPackageUnitSchema.statics.findByProductId = function(productId: string): Promise<IProductPackageUnitDocument[]> {
-  return this.find({ productId }).sort({ priority: -1 });
+  return this.find({ productId }).sort({ unitValue: -1 });
 };
 
-// 靜態方法：根據產品ID查找啟用的包裝單位
+// 靜態方法：根據產品ID查找啟用的包裝單位（按 unitValue 從大到小排序）
 ProductPackageUnitSchema.statics.findActiveByProductId = function(productId: string): Promise<IProductPackageUnitDocument[]> {
-  return this.find({ 
-    productId, 
+  return this.find({
+    productId,
     isActive: true,
     $or: [
       { effectiveTo: { $exists: false } },
       { effectiveTo: null },
       { effectiveTo: { $gte: new Date() } }
     ]
-  }).sort({ priority: -1 });
+  }).sort({ unitValue: -1 });
 };
 
-// 靜態方法：根據產品ID和指定日期查找包裝單位（支援歷史配置）
+// 靜態方法：根據產品ID和指定日期查找包裝單位（支援歷史配置，按 unitValue 從大到小排序）
 ProductPackageUnitSchema.statics.findByProductIdAtDate = function(
-  productId: string, 
+  productId: string,
   date: Date
 ): Promise<IProductPackageUnitDocument[]> {
   return this.find({
@@ -154,7 +145,7 @@ ProductPackageUnitSchema.statics.findByProductIdAtDate = function(
       { effectiveTo: null },
       { effectiveTo: { $gte: date } }
     ]
-  }).sort({ priority: -1 });
+  }).sort({ unitValue: -1 });
 };
 
 // 實例方法：檢查是否在指定日期有效

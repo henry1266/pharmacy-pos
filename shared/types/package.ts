@@ -90,13 +90,13 @@ export interface PackageStats {
 
 /**
  * 產品包裝單位配置
+ * 優先級由 unitValue 決定：數量越大優先級越高
  */
 export interface ProductPackageUnit {
   _id: string;
   productId: string;           // 關聯的產品ID
   unitName: string;            // 包裝單位名稱 (如: "盒", "排", "粒")
-  unitValue: number;           // 包裝單位數值 (如: 1000, 10, 1)
-  priority: number;            // 優先級 (數字越大優先級越高，從大包裝開始計算)
+  unitValue: number;           // 包裝單位數值 (如: 1000, 10, 1) - 數量越大優先級越高
   isBaseUnit: boolean;         // 是否為基礎單位 (最小單位，如"粒")
   isActive: boolean;           // 是否啟用
   effectiveFrom?: Date;        // 生效時間（支援歷史配置）

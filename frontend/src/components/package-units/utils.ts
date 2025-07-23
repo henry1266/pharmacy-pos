@@ -12,11 +12,11 @@ export const convertToPackageDisplay = (
     return {
       baseQuantity,
       packageBreakdown: [],
-      displayText: `${baseQuantity} ${packageUnits.find(u => u.priority === Math.max(...packageUnits.map(p => p.priority)))?.unitName || '個'}`
+      displayText: `${baseQuantity} ${packageUnits.find(u => u.unitValue === Math.max(...packageUnits.map(p => p.unitValue)))?.unitName || '個'}`
     };
   }
 
-  // 按照 unitValue 從大到小排序
+  // 按照 unitValue 從大到小排序（數量越大優先級越高）
   const sortedUnits = [...packageUnits].sort((a, b) => b.unitValue - a.unitValue);
   
   let remainingQuantity = baseQuantity;
@@ -172,13 +172,6 @@ export const validatePackageUnits = (packageUnits: ProductPackageUnit[]): Valida
       errors.push({
         field: `units[${index}].unitValue`,
         message: '包裝數量必須大於0'
-      });
-    }
-
-    if (unit.priority <= 0) {
-      errors.push({
-        field: `units[${index}].priority`,
-        message: '優先級必須大於0'
       });
     }
   });

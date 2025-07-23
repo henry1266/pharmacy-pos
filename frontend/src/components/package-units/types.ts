@@ -24,11 +24,13 @@ export interface PackageUnitsConfigProps {
   packageUnits: ProductPackageUnit[];
   onPackageUnitsChange: (units: ProductPackageUnit[]) => void;
   disabled?: boolean;
+  baseUnitName?: string; // 產品的基礎單位名稱
 }
 
 export interface PackageInventoryDisplayProps {
   totalQuantity: number;
   packageUnits: ProductPackageUnit[];
+  baseUnitName?: string; // 產品的基礎單位名稱
   showBreakdown?: boolean;
   variant?: 'default' | 'compact' | 'detailed';
 }

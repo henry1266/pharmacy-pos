@@ -21,6 +21,7 @@ import { convertToPackageDisplay, formatPackageDisplay } from './utils';
 const PackageInventoryDisplay: React.FC<PackageInventoryDisplayProps> = ({
   totalQuantity,
   packageUnits,
+  baseUnitName,
   showBreakdown = true,
   variant = 'default'
 }) => {
@@ -31,9 +32,8 @@ const PackageInventoryDisplay: React.FC<PackageInventoryDisplayProps> = ({
     return convertToPackageDisplay(totalQuantity, packageUnits);
   }, [totalQuantity, packageUnits]);
 
-  const baseUnit = useMemo(() => {
-    return packageUnits.find(u => u.unitValue === Math.min(...packageUnits.map(p => p.unitValue)));
-  }, [packageUnits]);
+  // 使用傳入的基礎單位名稱，如果沒有則使用預設值
+  const baseUnitDisplayName = baseUnitName || '個';
 
   // 緊湊模式
   if (variant === 'compact') {
@@ -55,7 +55,7 @@ const PackageInventoryDisplay: React.FC<PackageInventoryDisplayProps> = ({
           {displayResult.displayText}
         </Typography>
         {totalQuantity > 0 && (
-          <Tooltip title={`基礎單位：${totalQuantity} ${baseUnit?.unitName || '個'}`}>
+          <Tooltip title={`基礎單位：${totalQuantity} ${baseUnitDisplayName}`}>
             <Chip
               label={`${totalQuantity}`}
               size={isMobile ? "small" : "small"}
@@ -178,7 +178,7 @@ const PackageInventoryDisplay: React.FC<PackageInventoryDisplayProps> = ({
               mt: isMobile ? 0.5 : 0
             }}
           >
-            基礎單位：{totalQuantity} {baseUnit?.unitName || '個'}
+            基礎單位：{totalQuantity} {baseUnitDisplayName}
           </Typography>
         </CardContent>
       </Card>
@@ -258,7 +258,7 @@ const PackageInventoryDisplay: React.FC<PackageInventoryDisplayProps> = ({
           opacity: 0.8
         }}
       >
-        基礎單位：{totalQuantity} {baseUnit?.unitName || '個'}
+        基礎單位：{totalQuantity} {baseUnitDisplayName}
       </Typography>
     </Box>
   );

@@ -14,6 +14,7 @@ import {
 import { ProductType } from '@pharmacy-pos/shared/enums';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 import auth from '../middleware/auth';
+import { PackageUnitService } from '../services/PackageUnitService';
 const BaseProduct = require('../models/BaseProduct');
 const { Product, Medicine } = require('../models/BaseProduct');
 
@@ -114,11 +115,26 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       .populate('category', 'name')
       .populate('supplier', 'name')
       .sort(sortOptions);
+
+    // 為每個產品獲取包裝單位數據
+    const productsWithPackageUnits = await Promise.all(
+      products.map(async (product: IBaseProductDocument) => {
+        const productObj = product.toObject();
+        try {
+          const packageUnits = await PackageUnitService.getProductPackageUnits(product._id.toString());
+          productObj.packageUnits = packageUnits;
+        } catch (packageError) {
+          console.error(`獲取產品 ${product._id} 包裝單位失敗:`, packageError);
+          productObj.packageUnits = [];
+        }
+        return productObj;
+      })
+    );
     
     res.json({
       success: true,
       message: '產品列表獲取成功',
-      data: products,
+      data: productsWithPackageUnits,
       filters: {
         search,
         productType,
@@ -128,9 +144,9 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         stockStatus,
         sort: { by: sortBy, order: sortOrder }
       },
-      count: products.length,
+      count: productsWithPackageUnits.length,
       timestamp: new Date()
-    } as ApiResponse<IBaseProductDocument[]>);
+    } as ApiResponse<any[]>);
   } catch (err) {
     console.error('獲取產品列表錯誤:', err);
     res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
@@ -248,13 +264,23 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       } as ApiResponse);
       return;
     }
+
+    // 獲取包裝單位數據
+    let productWithPackageUnits = product.toObject();
+    try {
+      const packageUnits = await PackageUnitService.getProductPackageUnits(req.params.id);
+      productWithPackageUnits.packageUnits = packageUnits;
+    } catch (packageError) {
+      console.error('獲取包裝單位失敗:', packageError);
+      productWithPackageUnits.packageUnits = [];
+    }
     
     res.json({
       success: true,
       message: '產品獲取成功',
-      data: product,
+      data: productWithPackageUnits,
       timestamp: new Date()
-    } as ApiResponse<IBaseProductDocument>);
+    } as ApiResponse<any>);
   } catch (err) {
     console.error('獲取產品錯誤:', err);
     if (err instanceof Error && err.name === 'CastError') {
@@ -312,7 +338,8 @@ router.post(
         supplier,
         minStock,
         barcode,
-        excludeFromStock
+        excludeFromStock,
+        packageUnits
       } = req.body;
 
       // 檢查產品代碼是否已存在
@@ -348,6 +375,16 @@ router.post(
       });
 
       await product.save();
+
+      // 處理包裝單位數據
+      if (packageUnits && Array.isArray(packageUnits) && packageUnits.length > 0) {
+        try {
+          await PackageUnitService.createOrUpdatePackageUnits(product._id.toString(), packageUnits);
+        } catch (packageError) {
+          console.error('保存包裝單位失敗:', packageError);
+          // 不中斷產品創建流程，只記錄錯誤
+        }
+      }
 
       // 重新查詢以獲取完整的關聯資料
       const savedProduct = await Product.findById(product._id)
@@ -414,7 +451,8 @@ router.post(
         barcode,
         healthInsuranceCode,
         healthInsurancePrice,
-        excludeFromStock
+        excludeFromStock,
+        packageUnits
       } = req.body;
 
       if (await checkProductCodeExistence(code, res)) {
@@ -444,6 +482,16 @@ router.post(
       const savedMedicine = await saveAndPopulateMedicine(medicine, res);
       if (!savedMedicine) {
         return; // saveAndPopulateMedicine 已經處理了錯誤響應
+      }
+
+      // 處理包裝單位數據
+      if (packageUnits && Array.isArray(packageUnits) && packageUnits.length > 0) {
+        try {
+          await PackageUnitService.createOrUpdatePackageUnits(medicine._id.toString(), packageUnits);
+        } catch (packageError) {
+          console.error('保存包裝單位失敗:', packageError);
+          // 不中斷產品創建流程，只記錄錯誤
+        }
       }
 
       res.json({
@@ -548,10 +596,13 @@ router.put(
         updateData.shortCode = updateData.shortCode?.trim() ?? '';
       }
       
+      // 處理包裝單位數據
+      const { packageUnits, ...productUpdateData } = updateData;
+      
       // 更新產品
       const updatedProduct = await BaseProduct.findByIdAndUpdate(
         productId,
-        { $set: updateData },
+        { $set: productUpdateData },
         { new: true, runValidators: true }
       )
         .populate('category', 'name')
@@ -564,6 +615,21 @@ router.put(
           timestamp: new Date()
         } as ApiResponse);
         return;
+      }
+
+      // 處理包裝單位數據
+      if (packageUnits && Array.isArray(packageUnits)) {
+        try {
+          if (packageUnits.length > 0) {
+            await PackageUnitService.createOrUpdatePackageUnits(productId, packageUnits);
+          } else {
+            // 如果包裝單位數組為空，刪除現有的包裝單位
+            await PackageUnitService.deletePackageUnits(productId);
+          }
+        } catch (packageError) {
+          console.error('更新包裝單位失敗:', packageError);
+          // 不中斷產品更新流程，只記錄錯誤
+        }
       }
       
       res.json({

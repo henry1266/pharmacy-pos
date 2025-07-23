@@ -203,6 +203,7 @@ export const ExpandableRow: FC<ExpandableRowProps> = ({ item, formatCurrency: fo
               <PackageInventoryDisplay
                 totalQuantity={item.totalQuantity}
                 packageUnits={item.packageUnits}
+                baseUnitName={item.unit}
                 variant="compact"
               />
             )}
@@ -427,6 +428,7 @@ export const SummaryCards: FC<{
             <PackageInventoryDisplay
               totalQuantity={totalInventoryQuantity}
               packageUnits={sampleProductWithPackages.packageUnits}
+              baseUnitName={sampleProductWithPackages.unit}
               variant="compact"
             />
           </Box>

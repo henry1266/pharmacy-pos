@@ -28,43 +28,30 @@ export class PackageUnitService {
       return { isValid: false, errors, warnings };
     }
     
-    // 1. 檢查基礎單位
-    const baseUnits = units.filter(u => u.isBaseUnit);
-    if (baseUnits.length === 0) {
-      errors.push('必須有一個基礎單位');
-    } else if (baseUnits.length > 1) {
-      errors.push('只能有一個基礎單位');
-    } else if (baseUnits[0].unitValue !== 1) {
-      errors.push('基礎單位的數值必須為 1');
-    }
-    
-    // 2. 檢查單位名稱唯一性
+    // 1. 檢查單位名稱唯一性
     const unitNames = units.map(u => u.unitName);
     const duplicateNames = unitNames.filter((name, index) => unitNames.indexOf(name) !== index);
     if (duplicateNames.length > 0) {
       errors.push(`單位名稱重複: ${[...new Set(duplicateNames)].join(', ')}`);
     }
     
-    // 3. 檢查優先級唯一性
-    const priorities = units.map(u => u.priority);
-    const duplicatePriorities = priorities.filter((priority, index) => priorities.indexOf(priority) !== index);
-    if (duplicatePriorities.length > 0) {
-      errors.push(`優先級重複: ${[...new Set(duplicatePriorities)].join(', ')}`);
+    // 2. 檢查 unitValue 唯一性
+    const unitValues = units.map(u => u.unitValue);
+    const duplicateValues = unitValues.filter((value, index) => unitValues.indexOf(value) !== index);
+    if (duplicateValues.length > 0) {
+      errors.push(`包裝數量重複: ${[...new Set(duplicateValues)].join(', ')}`);
     }
     
-    // 4. 檢查數值合理性
+    // 3. 檢查數值合理性
     for (const unit of units) {
       if (!Number.isInteger(unit.unitValue) || unit.unitValue <= 0) {
         errors.push(`單位 "${unit.unitName}" 的數值必須為正整數`);
       }
-      if (!Number.isInteger(unit.priority) || unit.priority <= 0) {
-        errors.push(`單位 "${unit.unitName}" 的優先級必須為正整數`);
-      }
     }
     
-    // 5. 檢查整除關係（警告）
+    // 4. 檢查整除關係（警告）
     if (errors.length === 0) {
-      const sortedUnits = [...units].sort((a, b) => b.priority - a.priority);
+      const sortedUnits = [...units].sort((a, b) => b.unitValue - a.unitValue);
       for (let i = 0; i < sortedUnits.length - 1; i++) {
         const current = sortedUnits[i];
         const next = sortedUnits[i + 1];
@@ -101,10 +88,10 @@ export class PackageUnitService {
       };
     }
     
-    // 過濾啟用的包裝單位並按優先級降序排序
+    // 過濾啟用的包裝單位並按 unitValue 降序排序（數量越大優先級越高）
     const activeUnits = packageUnits
       .filter(unit => unit.isActive)
-      .sort((a, b) => b.priority - a.priority);
+      .sort((a, b) => b.unitValue - a.unitValue);
     
     if (activeUnits.length === 0) {
       return {
@@ -285,13 +272,16 @@ export class PackageUnitService {
         }
       );
       
-      // 創建新配置
-      const newUnits = units.map(unit => ({
-        ...unit,
-        productId,
-        effectiveFrom: new Date(),
-        version: 1
-      }));
+      // 創建新配置，移除前端的臨時 ID
+      const newUnits = units.map(unit => {
+        const { _id, createdAt, updatedAt, ...unitData } = unit as any;
+        return {
+          ...unitData,
+          productId,
+          effectiveFrom: new Date(),
+          version: 1
+        };
+      });
       
       const createdUnits = await ProductPackageUnit.insertMany(newUnits);
       

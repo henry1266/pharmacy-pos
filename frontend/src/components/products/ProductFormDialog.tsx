@@ -362,14 +362,6 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
           {/* 包裝單位配置區塊 */}
           <Grid item xs={12} {...({} as any)}>
             <Divider sx={{ my: 2 }} />
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ mb: 1, color: 'primary.main' }}>
-                包裝單位配置
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                設定商品的包裝單位，例如：1盒=10排，1排=10粒。系統將自動進行單位轉換和顯示。
-              </Typography>
-            </Box>
             
             {onPackageUnitsChange && (
               <PackageUnitsConfig
@@ -377,6 +369,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
                 packageUnits={currentProduct?.packageUnits || []}
                 onPackageUnitsChange={onPackageUnitsChange}
                 disabled={false}
+                baseUnitName={currentProduct?.unit || '個'}
               />
             )}
           </Grid>

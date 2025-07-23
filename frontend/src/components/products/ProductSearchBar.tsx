@@ -102,7 +102,7 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
       {/* 主搜尋區域 */}
       <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
         {/* 主搜尋框 */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={4}>
           <TextField
             fullWidth
             placeholder="搜尋產品名稱、代碼、簡碼、條碼或健保代碼..."

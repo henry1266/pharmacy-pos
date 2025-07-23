@@ -69,9 +69,9 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
   const [smartSuggestions, setSmartSuggestions] = useState<number[]>([]);
   const [showAutoComplete, setShowAutoComplete] = useState(false);
 
-  // 排序後的包裝單位（按優先級排序）
+  // 排序後的包裝單位（按 unitValue 從大到小排序）
   const sortedPackageUnits = useMemo(() => {
-    return [...packageUnits].sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    return [...packageUnits].sort((a, b) => b.unitValue - a.unitValue);
   }, [packageUnits]);
 
   // 基礎單位

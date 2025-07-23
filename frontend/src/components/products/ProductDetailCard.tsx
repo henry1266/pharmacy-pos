@@ -205,7 +205,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, flex: 1 }}>
                 {product.packageUnits
-                  .sort((a, b) => b.priority - a.priority)
+                  .sort((a, b) => b.unitValue - a.unitValue)
                   .map((unit, index) => (
                     <Chip
                       key={unit._id}
@@ -228,6 +228,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
                 <PackageInventoryDisplay
                   totalQuantity={product.stock}
                   packageUnits={product.packageUnits}
+                  baseUnitName={product.unit}
                   showBreakdown={true}
                   variant="detailed"
                 />
@@ -263,6 +264,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             productId={product.id}
             productName={product.name}
             packageUnits={product.packageUnits}
+            productUnit={product.unit}
           />
         </Paper>
       </CardContent>

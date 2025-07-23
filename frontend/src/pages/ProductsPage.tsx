@@ -23,6 +23,7 @@ import useInventoryData from '../hooks/useInventoryData';
 import useCsvImport from '../hooks/useCsvImport';
 import { createProductColumns, createMedicineColumns } from '../components/products/ProductTableColumns';
 import { ProductFilters } from '../services/productServiceV2';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 // 產品類型
 type ProductType = 'product' | 'medicine';
@@ -74,6 +75,7 @@ interface CurrentProduct {
   healthInsuranceCode: string;
   healthInsurancePrice: number;
   excludeFromStock?: boolean;
+  packageUnits?: ProductPackageUnit[];
 }
 
 const ProductsPage: React.FC = () => {
@@ -99,7 +101,8 @@ const ProductsPage: React.FC = () => {
     barcode: '',
     healthInsuranceCode: '',
     healthInsurancePrice: 0,
-    excludeFromStock: false
+    excludeFromStock: false,
+    packageUnits: []
   });
   const [editMode, setEditMode] = useState<boolean>(false);
   const [productType, setProductType] = useState<ProductType>('product');
@@ -245,7 +248,8 @@ const ProductsPage: React.FC = () => {
       barcode: '',
       healthInsuranceCode: '',
       healthInsurancePrice: 0,
-      excludeFromStock: false
+      excludeFromStock: false,
+      packageUnits: []
     });
     setOpenDialog(true);
   };
@@ -284,7 +288,8 @@ const ProductsPage: React.FC = () => {
         barcode: product.barcode ?? '',
         healthInsuranceCode: (product as { healthInsuranceCode?: string }).healthInsuranceCode ?? '',
         healthInsurancePrice: (product as { healthInsurancePrice?: number }).healthInsurancePrice ?? 0,
-        excludeFromStock: (product as { excludeFromStock?: boolean }).excludeFromStock ?? false
+        excludeFromStock: (product as { excludeFromStock?: boolean }).excludeFromStock ?? false,
+        packageUnits: (product as { packageUnits?: ProductPackageUnit[] }).packageUnits ?? []
       });
       setOpenDialog(true);
     }
@@ -310,6 +315,14 @@ const ProductsPage: React.FC = () => {
       }
     }
   };
+  
+  // 處理包裝單位變更
+  const handlePackageUnitsChange = useCallback((packageUnits: ProductPackageUnit[]): void => {
+    setCurrentProduct(prev => ({
+      ...prev,
+      packageUnits
+    }));
+  }, []);
   
   // 處理保存產品
   const handleSaveProduct = async (): Promise<void> => {
@@ -337,7 +350,8 @@ const ProductsPage: React.FC = () => {
         description: currentProduct.description?.trim() || '',
         supplier: currentProduct.supplier || '',
         minStock: Number(currentProduct.minStock) || 0,
-        excludeFromStock: Boolean(currentProduct.excludeFromStock)
+        excludeFromStock: Boolean(currentProduct.excludeFromStock),
+        packageUnits: currentProduct.packageUnits || []
       };
       
       // 根據產品類型添加特有屬性
@@ -389,9 +403,42 @@ const ProductsPage: React.FC = () => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        產品管理
-      </Typography>
+      {/* 頁面標題和操作按鈕 */}
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 3
+      }}>
+        <Typography variant="h4" component="h1">
+          產品管理
+        </Typography>
+        
+        {/* 操作按鈕移到右上角 */}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddProduct}
+          >
+            新增產品
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<PackageIcon />}
+            onClick={() => navigate('/products/packages')}
+          >
+            套餐管理
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<CloudUploadIcon />}
+            onClick={handleOpenCsvImport}
+          >
+            CSV 匯入
+          </Button>
+        </Box>
+      </Box>
       
       {/* 搜尋列 */}
       <Box sx={{ mb: 2 }}>
@@ -403,31 +450,6 @@ const ProductsPage: React.FC = () => {
           resultCount={displayProducts.length}
           totalCount={allProducts.length}
         />
-      </Box>
-      
-      {/* 操作按鈕 */}
-      <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddProduct}
-        >
-          新增產品
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<PackageIcon />}
-          onClick={() => navigate('/products/packages')}
-        >
-          套餐管理
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<CloudUploadIcon />}
-          onClick={handleOpenCsvImport}
-        >
-          CSV 匯入
-        </Button>
       </Box>
       
       <Grid container spacing={2}>
@@ -487,6 +509,7 @@ const ProductsPage: React.FC = () => {
         categories={categories}
         handleInputChange={handleInputChange}
         handleSave={handleSaveProduct}
+        onPackageUnitsChange={handlePackageUnitsChange}
       />
       
       <CsvImportDialog 

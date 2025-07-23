@@ -11,6 +11,7 @@ export interface UserShortcut {
 // 定義用戶設定類型
 export interface UserSettings {
   shortcuts?: UserShortcut[];
+  defaultUnit?: string; // 預設單位
 }
 
 /**
