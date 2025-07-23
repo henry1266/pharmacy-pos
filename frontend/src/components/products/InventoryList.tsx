@@ -27,6 +27,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { Product } from '@pharmacy-pos/shared/types/entities';
 import { PackageInventoryDisplay } from '../package-units';
+import { convertToPackageDisplay } from '../package-units/utils';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import ChartModal from './ChartModal';
 
@@ -489,31 +490,47 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
               }}
             >
               <CardContent sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <InventoryIcon color="primary" fontSize="medium" />
                   <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ ml: 1 }}>
-                    總庫存數量
+                    庫存數量
                   </Typography>
                 </Box>
-                <Typography
-                  variant="h5"
-                  fontWeight="bold"
-                  color="primary.main"
-                >
-                  {currentStock}
-                </Typography>
                 
-                {/* 包裝單位顯示 */}
-                {packageUnits && packageUnits.length > 0 && currentStock > 0 && (
-                  <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-                    <PackageInventoryDisplay
-                      totalQuantity={currentStock}
-                      packageUnits={packageUnits}
-                      baseUnitName={productUnit || '個'}
-                      showBreakdown={true}
-                      variant="compact"
-                    />
+                {/* 大包裝顯示為主 */}
+                {packageUnits && packageUnits.length > 0 && currentStock > 0 ? (
+                  <Box>
+                    {/* 主要包裝顯示 */}
+                    <Typography
+                      variant="h5"
+                      fontWeight="bold"
+                      color="primary.main"
+                      sx={{ mb: 1, lineHeight: 1.2 }}
+                    >
+                      {(() => {
+                        const displayResult = convertToPackageDisplay(currentStock, packageUnits, productUnit || '個');
+                        return displayResult.displayText;
+                      })()}
+                    </Typography>
+                    
+                    {/* 總數量為次要資訊 */}
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ opacity: 0.8 }}
+                    >
+                      總計：{currentStock} {productUnit || '個'}
+                    </Typography>
                   </Box>
+                ) : (
+                  /* 沒有包裝單位時的顯示 */
+                  <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    color="primary.main"
+                  >
+                    {currentStock} {productUnit || '個'}
+                  </Typography>
                 )}
               </CardContent>
             </Card>
@@ -562,7 +579,6 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
           startIcon={<BarChartIcon />}
           onClick={() => setChartModalOpen(true)}
           sx={{
-            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
             boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
             '&:hover': {
               background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
