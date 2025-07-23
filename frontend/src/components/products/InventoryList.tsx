@@ -601,6 +601,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
         inventoryData={inventories}
         currentStock={currentStock}
         profitLoss={profitLoss}
+        packageUnits={packageUnits}
+        productUnit={productUnit}
       />
     </Box>
   );

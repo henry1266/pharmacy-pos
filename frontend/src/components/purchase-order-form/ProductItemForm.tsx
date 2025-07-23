@@ -542,6 +542,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
           });
           return totalProfitLoss;
         })() : 0}
+        packageUnits={selectedProduct?.packageUnits}
+        productUnit={selectedProduct?.unit}
       />
     </Box>
   );

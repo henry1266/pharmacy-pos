@@ -124,6 +124,9 @@ const BaseProductModel = mongoose.model<IBaseProductDocument, IBaseProductModel>
 const ProductModel = BaseProductModel.discriminator<IProductDocument>(ProductType.PRODUCT, new Schema({
   barcode: {
     type: String
+  },
+  healthInsuranceCode: {
+    type: String
   }
 }));
 

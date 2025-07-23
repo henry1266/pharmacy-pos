@@ -354,13 +354,14 @@ const ProductsPage: React.FC = () => {
         packageUnits: currentProduct.packageUnits || []
       };
       
+      // 添加所有產品都支援的屬性
+      productData.barcode = currentProduct.barcode?.trim() || '';
+      productData.healthInsuranceCode = currentProduct.healthInsuranceCode?.trim() || '';
+      
       // 根據產品類型添加特有屬性
       if (productType === 'product') {
-        productData.barcode = currentProduct.barcode?.trim() || '';
         productData.productType = 'product';
       } else {
-        productData.barcode = currentProduct.barcode?.trim() || '';
-        productData.healthInsuranceCode = currentProduct.healthInsuranceCode?.trim() || '';
         productData.healthInsurancePrice = Number(currentProduct.healthInsurancePrice) || 0;
         productData.productType = 'medicine';
       }
@@ -403,7 +404,7 @@ const ProductsPage: React.FC = () => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {/* 頁面標題和操作按鈕 */}
+      {/* 頁面標題和頂部操作區域 */}
       <Box sx={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -414,42 +415,47 @@ const ProductsPage: React.FC = () => {
           產品管理
         </Typography>
         
-        {/* 操作按鈕移到右上角 */}
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddProduct}
-          >
-            新增產品
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<PackageIcon />}
-            onClick={() => navigate('/products/packages')}
-          >
-            套餐管理
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<CloudUploadIcon />}
-            onClick={handleOpenCsvImport}
-          >
-            CSV 匯入
-          </Button>
+        {/* 搜尋器和操作按鈕在同一行 */}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}>
+          {/* 搜尋列 */}
+          <ProductSearchBar
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            categories={categories}
+            suppliers={suppliers}
+            resultCount={displayProducts.length}
+            totalCount={allProducts.length}
+          />
+          
+          {/* 操作按鈕 */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddProduct}
+            >
+              新增產品
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<PackageIcon />}
+              onClick={() => navigate('/products/packages')}
+            >
+              套餐管理
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<CloudUploadIcon />}
+              onClick={handleOpenCsvImport}
+            >
+              CSV 匯入
+            </Button>
+          </Box>
         </Box>
-      </Box>
-      
-      {/* 搜尋列 */}
-      <Box sx={{ mb: 2 }}>
-        <ProductSearchBar
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          categories={categories}
-          suppliers={suppliers}
-          resultCount={displayProducts.length}
-          totalCount={allProducts.length}
-        />
       </Box>
       
       <Grid container spacing={2}>

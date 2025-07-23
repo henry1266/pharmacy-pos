@@ -13,27 +13,9 @@ import {
   LockOpen as UnlockIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared/types/accounting2';
-
-// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
-interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
-  referencedByInfo?: Array<{
-    _id: string;
-    groupNumber: string;
-    description: string;
-    transactionDate: Date | string;
-    totalAmount: number;
-    status: 'draft' | 'confirmed' | 'cancelled';
-  }>;
-  fundingSourceUsages?: Array<{
-    sourceTransactionId: string;
-    usedAmount: number;
-    sourceTransactionDescription?: string;
-    sourceTransactionGroupNumber?: string;
-    sourceTransactionDate?: Date | string;
-    sourceTransactionAmount?: number;
-  }>;
-}
+import { ExtendedTransactionGroupWithEntries } from './types';
+import { isBalanced, copyTransactionToClipboard } from './utils';
+import { ACTION_TOOLTIPS, TRANSACTION_STATUS } from './constants';
 
 interface AccountTransactionListActionMenuProps {
   anchorEl: HTMLElement | null;
@@ -62,13 +44,6 @@ export const AccountTransactionListActionMenu: React.FC<AccountTransactionListAc
   onUnlock,
   onDelete
 }) => {
-  // 檢查借貸平衡
-  const isBalanced = (entries: EmbeddedAccountingEntry[]) => {
-    const totalDebit = entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
-    const totalCredit = entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
-    return Math.abs(totalDebit - totalCredit) < 0.01; // 允許小數點誤差
-  };
-
   // 處理查看交易
   const handleView = () => {
     if (transaction && onView) {
@@ -92,50 +67,7 @@ export const AccountTransactionListActionMenu: React.FC<AccountTransactionListAc
         onCopy(transaction);
       } else {
         try {
-          // 格式化貨幣
-          const formatCurrency = (amount: number) => {
-            return new Intl.NumberFormat('zh-TW', {
-              style: 'currency',
-              currency: 'TWD'
-            }).format(amount);
-          };
-
-          // 格式化日期
-          const formatDate = (date: Date | string) => {
-            const d = new Date(date);
-            return d.toLocaleDateString('zh-TW');
-          };
-
-          // 取得狀態標籤
-          const getStatusLabel = (status: string) => {
-            switch (status) {
-              case 'confirmed': return '已確認';
-              case 'draft': return '草稿';
-              case 'cancelled': return '已取消';
-              default: return status;
-            }
-          };
-
-          // 計算交易群組總金額
-          const calculateTotalAmount = (entries: any[]) => {
-            return entries.reduce((total, entry) => total + (entry.debitAmount || 0), 0);
-          };
-
-          // 複製交易資料到剪貼簿
-          const transactionData = {
-            編號: (transaction as any).groupNumber || 'N/A',
-            描述: transaction.description,
-            日期: formatDate(transaction.transactionDate),
-            狀態: getStatusLabel(transaction.status),
-            金額: formatCurrency(calculateTotalAmount(transaction.entries || []))
-          };
-          
-          const textToCopy = Object.entries(transactionData)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join('\n');
-          
-          await navigator.clipboard.writeText(textToCopy);
-          console.log('交易資料已複製到剪貼簿');
+          await copyTransactionToClipboard(transaction);
         } catch (err) {
           console.error('複製失敗:', err);
         }
@@ -187,16 +119,16 @@ export const AccountTransactionListActionMenu: React.FC<AccountTransactionListAc
           <ListItemIcon>
             <VisibilityIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>查看詳情</ListItemText>
+          <ListItemText>{ACTION_TOOLTIPS.VIEW}</ListItemText>
         </MenuItem>
       )}
       
-      {onEdit && transaction?.status === 'draft' && (
+      {onEdit && transaction?.status === TRANSACTION_STATUS.DRAFT && (
         <MenuItem onClick={handleEdit}>
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>編輯交易</ListItemText>
+          <ListItemText>{ACTION_TOOLTIPS.EDIT}</ListItemText>
         </MenuItem>
       )}
 
@@ -204,37 +136,37 @@ export const AccountTransactionListActionMenu: React.FC<AccountTransactionListAc
         <ListItemIcon>
           <ContentCopyIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>複製交易</ListItemText>
+        <ListItemText>{ACTION_TOOLTIPS.COPY}</ListItemText>
       </MenuItem>
 
       {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
-      {onConfirm && transaction?.status === 'draft' &&
+      {onConfirm && transaction?.status === TRANSACTION_STATUS.DRAFT &&
        transaction.entries && isBalanced(transaction.entries) && (
         <MenuItem onClick={handleConfirm}>
           <ListItemIcon>
             <ConfirmIcon fontSize="small" color="success" />
           </ListItemIcon>
-          <ListItemText>確認交易</ListItemText>
+          <ListItemText>{ACTION_TOOLTIPS.CONFIRM}</ListItemText>
         </MenuItem>
       )}
 
       {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
-      {onUnlock && transaction?.status === 'confirmed' && (
+      {onUnlock && transaction?.status === TRANSACTION_STATUS.CONFIRMED && (
         <MenuItem onClick={handleUnlock}>
           <ListItemIcon>
             <UnlockIcon fontSize="small" color="warning" />
           </ListItemIcon>
-          <ListItemText>解鎖交易</ListItemText>
+          <ListItemText>{ACTION_TOOLTIPS.UNLOCK}</ListItemText>
         </MenuItem>
       )}
 
       {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
-      {onDelete && transaction?.status === 'draft' && (
+      {onDelete && transaction?.status === TRANSACTION_STATUS.DRAFT && (
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>刪除交易</ListItemText>
+          <ListItemText>{ACTION_TOOLTIPS.DELETE}</ListItemText>
         </MenuItem>
       )}
     </Menu>

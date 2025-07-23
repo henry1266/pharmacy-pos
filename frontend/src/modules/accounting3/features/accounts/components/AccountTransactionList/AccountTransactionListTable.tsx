@@ -21,32 +21,19 @@ import {
   LockOpen as UnlockIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import { Account2, TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-pos/shared/types/accounting2';
+import { Account2 } from '@pharmacy-pos/shared/types/accounting2';
+import { ExtendedTransactionGroupWithEntries } from './types';
+import {
+  formatDate,
+  formatCurrency,
+  getStatusColor,
+  getStatusLabel,
+  isBalanced,
+  copyTransactionToClipboard
+} from './utils';
+import { ACTION_TOOLTIPS, TRANSACTION_STATUS, TABLE_HEADERS } from './constants';
 import { AccountTransactionListFlowDisplay } from './AccountTransactionListFlowDisplay';
 import { AccountTransactionListFundingStatusDisplay } from './AccountTransactionListFundingStatusDisplay';
-
-// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
-interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
-  referencedByInfo?: Array<{
-    _id: string;
-    groupNumber: string;
-    description: string;
-    transactionDate: Date | string;
-    totalAmount: number;
-    status: 'draft' | 'confirmed' | 'cancelled';
-  }>;
-  fundingSourceUsages?: Array<{
-    sourceTransactionId: string;
-    usedAmount: number;
-    sourceTransactionDescription?: string;
-    sourceTransactionGroupNumber?: string;
-    sourceTransactionDate?: Date | string;
-    sourceTransactionAmount?: number;
-  }>;
-  accountAmount?: number;
-  runningBalance?: number;
-  displayOrder?: number;
-}
 
 interface AccountTransactionListTableProps {
   transactions: ExtendedTransactionGroupWithEntries[];
@@ -75,70 +62,10 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
   onTransactionUnlock,
   onTransactionDelete
 }) => {
-  // 格式化日期
-  const formatDate = (date: Date | string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('zh-TW');
-  };
-
-  // 格式化貨幣
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD'
-    }).format(amount);
-  };
-
-  // 取得狀態顏色
-  const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    switch (status) {
-      case 'confirmed': return 'success';
-      case 'draft': return 'warning';
-      case 'cancelled': return 'error';
-      default: return 'default';
-    }
-  };
-
-  // 取得狀態標籤
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'confirmed': return '已確認';
-      case 'draft': return '草稿';
-      case 'cancelled': return '已取消';
-      default: return status;
-    }
-  };
-
-  // 檢查借貸平衡
-  const isBalanced = (entries: EmbeddedAccountingEntry[]) => {
-    const totalDebit = entries.reduce((sum, entry) => sum + (entry.debitAmount || 0), 0);
-    const totalCredit = entries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
-    return Math.abs(totalDebit - totalCredit) < 0.01; // 允許小數點誤差
-  };
-
   // 處理複製交易的預設行為
   const handleDefaultCopy = async (transaction: ExtendedTransactionGroupWithEntries) => {
     try {
-      // 計算交易群組總金額
-      const calculateTotalAmount = (entries: any[]) => {
-        return entries.reduce((total, entry) => total + (entry.debitAmount || 0), 0);
-      };
-
-      // 複製交易資料到剪貼簿
-      const transactionData = {
-        編號: (transaction as any).groupNumber || 'N/A',
-        描述: transaction.description,
-        日期: formatDate(transaction.transactionDate),
-        狀態: getStatusLabel(transaction.status),
-        金額: formatCurrency(calculateTotalAmount(transaction.entries || []))
-      };
-      
-      const textToCopy = Object.entries(transactionData)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n');
-      
-      await navigator.clipboard.writeText(textToCopy);
-      console.log('交易資料已複製到剪貼簿');
+      await copyTransactionToClipboard(transaction);
     } catch (err) {
       console.error('複製失敗:', err);
     }
@@ -149,14 +76,14 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>交易日期</TableCell>
-            <TableCell>交易描述</TableCell>
-            <TableCell align="center">交易流向</TableCell>
-            <TableCell align="right">本科目金額</TableCell>
-            <TableCell align="right">累計餘額</TableCell>
-            <TableCell align="center">狀態</TableCell>
-            <TableCell align="center">資金狀態</TableCell>
-            <TableCell align="center">操作</TableCell>
+            <TableCell>{TABLE_HEADERS.TRANSACTION_DATE}</TableCell>
+            <TableCell>{TABLE_HEADERS.DESCRIPTION}</TableCell>
+            <TableCell align="center">{TABLE_HEADERS.FLOW}</TableCell>
+            <TableCell align="right">{TABLE_HEADERS.ACCOUNT_AMOUNT}</TableCell>
+            <TableCell align="right">{TABLE_HEADERS.RUNNING_BALANCE}</TableCell>
+            <TableCell align="center">{TABLE_HEADERS.STATUS}</TableCell>
+            <TableCell align="center">{TABLE_HEADERS.FUNDING_STATUS}</TableCell>
+            <TableCell align="center">{TABLE_HEADERS.ACTIONS}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -222,7 +149,7 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
               </TableCell>
               <TableCell align="center">
                 <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <Tooltip title="檢視">
+                  <Tooltip title={ACTION_TOOLTIPS.VIEW}>
                     <IconButton
                       size="small"
                       onClick={(e) => {
@@ -235,8 +162,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   </Tooltip>
                   
                   {/* 編輯按鈕 - 只有草稿狀態可以編輯 */}
-                  {transaction.status === 'draft' && onTransactionEdit && (
-                    <Tooltip title="編輯">
+                  {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionEdit && (
+                    <Tooltip title={ACTION_TOOLTIPS.EDIT}>
                       <IconButton
                         size="small"
                         onClick={(e) => {
@@ -249,7 +176,7 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                     </Tooltip>
                   )}
                   
-                  <Tooltip title="複製">
+                  <Tooltip title={ACTION_TOOLTIPS.COPY}>
                     <IconButton
                       size="small"
                       onClick={(e) => {
@@ -266,9 +193,9 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   </Tooltip>
                   
                   {/* 確認按鈕 - 只有草稿狀態且已平衡可以確認 */}
-                  {transaction.status === 'draft' && transaction.entries &&
+                  {transaction.status === TRANSACTION_STATUS.DRAFT && transaction.entries &&
                    isBalanced(transaction.entries) && onTransactionConfirm && (
-                    <Tooltip title="確認交易">
+                    <Tooltip title={ACTION_TOOLTIPS.CONFIRM}>
                       <IconButton
                         size="small"
                         color="success"
@@ -283,8 +210,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   )}
                   
                   {/* 解鎖按鈕 - 只有已確認狀態可以解鎖 */}
-                  {transaction.status === 'confirmed' && onTransactionUnlock && (
-                    <Tooltip title="解鎖交易">
+                  {transaction.status === TRANSACTION_STATUS.CONFIRMED && onTransactionUnlock && (
+                    <Tooltip title={ACTION_TOOLTIPS.UNLOCK}>
                       <IconButton
                         size="small"
                         color="warning"
@@ -299,8 +226,8 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
                   )}
                   
                   {/* 刪除按鈕 - 只有草稿狀態可以刪除 */}
-                  {transaction.status === 'draft' && onTransactionDelete && (
-                    <Tooltip title="刪除">
+                  {transaction.status === TRANSACTION_STATUS.DRAFT && onTransactionDelete && (
+                    <Tooltip title={ACTION_TOOLTIPS.DELETE}>
                       <IconButton
                         size="small"
                         color="error"

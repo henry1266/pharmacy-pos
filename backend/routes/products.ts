@@ -15,6 +15,7 @@ import { ProductType } from '@pharmacy-pos/shared/enums';
 import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 import auth from '../middleware/auth';
 import { PackageUnitService } from '../services/PackageUnitService';
+import { generateProductCodeByHealthInsurance } from '../utils/codeGenerator';
 const BaseProduct = require('../models/BaseProduct');
 const { Product, Medicine } = require('../models/BaseProduct');
 
@@ -338,6 +339,7 @@ router.post(
         supplier,
         minStock,
         barcode,
+        healthInsuranceCode,
         excludeFromStock,
         packageUnits
       } = req.body;
@@ -355,9 +357,13 @@ router.post(
         }
       }
 
+      // 根據是否有健保代碼生成產品代碼
+      const hasHealthInsurance = !!(healthInsuranceCode?.trim());
+      const generatedCode = code?.trim() || (await generateProductCodeByHealthInsurance(hasHealthInsurance)).code;
+
       // 創建商品
       const product = new Product({
-        code: code?.trim() ?? await generateNextProductCode(),
+        code: generatedCode,
         shortCode: req.body.shortCode?.trim() ?? '',
         name,
         subtitle,
@@ -369,6 +375,7 @@ router.post(
         supplier,
         minStock: minStock !== undefined ? parseInt(minStock) : 10,
         barcode,
+        healthInsuranceCode: healthInsuranceCode?.trim() || '',
         excludeFromStock: excludeFromStock === true || excludeFromStock === 'true',
         productType: ProductType.PRODUCT,
         isActive: true
@@ -459,8 +466,12 @@ router.post(
         return;
       }
 
+      // 根據是否有健保代碼生成產品代碼
+      const hasHealthInsurance = !!(healthInsuranceCode?.trim());
+      const generatedCode = code?.trim() || (await generateProductCodeByHealthInsurance(hasHealthInsurance)).code;
+
       const medicine = new Medicine({
-        code: code?.trim() ?? await generateNextMedicineCode(),
+        code: generatedCode,
         shortCode: req.body.shortCode?.trim() ?? '',
         name,
         subtitle,

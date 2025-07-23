@@ -10,14 +10,12 @@ import {
 } from '@mui/material';
 import { Account3, Account3FormData } from '@pharmacy-pos/shared/types/accounting3';
 import { Organization } from '@pharmacy-pos/shared/types/organization';
-import {
-  AccountFormBasicInfoFields as BasicInfoFields,
-  AccountFormOrganizationSelector as OrganizationSelector,
-  AccountFormAccountTypeFields as AccountTypeFields,
-  AccountFormBalanceAndCurrencyFields as BalanceAndCurrencyFields,
-  AccountFormParentAccountField as ParentAccountField,
-  AccountFormStatusAndDescription as FormStatusAndDescription
-} from './';
+import { AccountFormBasicInfoFields as BasicInfoFields } from './AccountFormBasicInfoFields';
+import { AccountFormOrganizationSelector as OrganizationSelector } from './AccountFormOrganizationSelector';
+import { AccountFormAccountTypeFields as AccountTypeFields } from './AccountFormAccountTypeFields';
+import { AccountFormBalanceAndCurrencyFields as BalanceAndCurrencyFields } from './AccountFormBalanceAndCurrencyFields';
+import { AccountFormParentAccountField as ParentAccountField } from './AccountFormParentAccountField';
+import { AccountFormStatusAndDescription as FormStatusAndDescription } from './AccountFormStatusAndDescription';
 
 // 表單 Props 介面
 interface AccountFormProps {

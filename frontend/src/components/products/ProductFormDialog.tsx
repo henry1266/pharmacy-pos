@@ -185,51 +185,39 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             />
           </Grid>
           
-          {productType === 'product' ? (
+          <Grid item xs={12} sm={6} {...({} as any)}>
+            <TextField
+              name="barcode"
+              label="國際條碼"
+              value={currentProduct?.barcode ?? ''}
+              onChange={handleInputChange}
+              fullWidth
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} {...({} as any)}>
+            <TextField
+              name="healthInsuranceCode"
+              label="健保碼"
+              value={currentProduct?.healthInsuranceCode ?? ''}
+              onChange={handleInputChange}
+              fullWidth
+              margin="dense"
+              helperText="有健保碼時產品編號以M開頭，否則以P開頭"
+            />
+          </Grid>
+          {productType === 'medicine' && (
             <Grid item xs={12} sm={6} {...({} as any)}>
               <TextField
-                name="barcode"
-                label="國際條碼"
-                value={currentProduct?.barcode ?? ''}
+                name="healthInsurancePrice"
+                label="健保價"
+                type="number"
+                value={currentProduct?.healthInsurancePrice ?? ''}
                 onChange={handleInputChange}
                 fullWidth
                 margin="dense"
               />
             </Grid>
-          ) : (
-            <>
-              <Grid item xs={12} sm={6} {...({} as any)}>
-                <TextField
-                  name="barcode"
-                  label="國際條碼"
-                  value={currentProduct?.barcode ?? ''}
-                  onChange={handleInputChange}
-                  fullWidth
-                  margin="dense"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} {...({} as any)}>
-                <TextField
-                  name="healthInsuranceCode"
-                  label="健保碼"
-                  value={currentProduct?.healthInsuranceCode ?? ''}
-                  onChange={handleInputChange}
-                  fullWidth
-                  margin="dense"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} {...({} as any)}>
-                <TextField
-                  name="healthInsurancePrice"
-                  label="健保價"
-                  type="number"
-                  value={currentProduct?.healthInsurancePrice ?? ''}
-                  onChange={handleInputChange}
-                  fullWidth
-                  margin="dense"
-                />
-              </Grid>
-            </>
           )}
           
           <Grid item xs={12} sm={6} {...({} as any)}>

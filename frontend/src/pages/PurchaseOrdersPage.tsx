@@ -398,7 +398,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h5" component="h5" gutterBottom>
         進貨單管理
       </Typography>
 

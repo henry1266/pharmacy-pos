@@ -13,7 +13,8 @@ import {
   Paper,
   Link,
   Card,
-  CardContent
+  CardContent,
+  Tooltip
 } from '@mui/material';
 import {
   Close as CloseIcon
@@ -22,6 +23,8 @@ import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { Link as RouterLink } from 'react-router-dom';
 import SingleProductProfitLossChart from '../reports/inventory/SingleProductProfitLossChart';
 import InventoryStockChart from './InventoryStockChart';
+import { convertToPackageDisplay } from '../package-units/utils';
+import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
 // 定義交易記錄的型別
 interface ChartTransaction {
@@ -61,6 +64,8 @@ interface ChartModalProps {
   inventoryData?: InventoryRecord[];
   currentStock?: number;
   profitLoss?: number;
+  packageUnits?: ProductPackageUnit[];
+  productUnit?: string;
 }
 
 const ChartModal: FC<ChartModalProps> = ({
@@ -70,7 +75,9 @@ const ChartModal: FC<ChartModalProps> = ({
   productName,
   inventoryData = [],
   currentStock = 0,
-  profitLoss = 0
+  profitLoss = 0,
+  packageUnits = [],
+  productUnit
 }) => {
   // 選取狀態管理
   const [selectedOrderNumber, setSelectedOrderNumber] = useState<string | null>(null);
@@ -461,31 +468,61 @@ const ChartModal: FC<ChartModalProps> = ({
                   {/* 第一行 */}
                   {/* 總庫存 */}
                   <Grid item xs={3}>
-                    <Card
-                      elevation={3}
-                      sx={{
-                        height: 90,
-                        borderRadius: 2,
-                        transition: 'all 0.3s ease',
-                        cursor: 'pointer',
-                        border: '2px solid',
-                        borderColor: 'primary.main',
-                        bgcolor: 'primary.light',
-                        '&:hover': {
-                          transform: 'translateY(-2px)',
-                          boxShadow: 6
-                        }
-                      }}
+                    <Tooltip
+                      title={
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                            庫存詳細資訊
+                          </Typography>
+                          <Typography variant="body2">
+                            總數量：{currentStock} {productUnit || '個'}
+                          </Typography>
+                          {packageUnits && packageUnits.length > 0 && currentStock > 0 && (
+                            <Typography variant="body2" sx={{ mt: 0.5 }}>
+                              包裝格式：{(() => {
+                                const displayResult = convertToPackageDisplay(currentStock, packageUnits, productUnit || '個');
+                                return displayResult.displayText;
+                              })()}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                      arrow
+                      placement="top"
                     >
-                      <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
-                          📦總庫存
-                        </Typography>
-                        <Typography variant="h5" color="primary.main" fontWeight="bold">
-                          {currentStock}
-                        </Typography>
-                      </CardContent>
-                    </Card>
+                      <Card
+                        elevation={3}
+                        sx={{
+                          height: 90,
+                          borderRadius: 2,
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer',
+                          border: '2px solid',
+                          borderColor: 'primary.main',
+                          bgcolor: 'primary.light',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: 6
+                          }
+                        }}
+                      >
+                        <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                          <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ fontSize: '1.1rem' }}>
+                            📦總庫存
+                          </Typography>
+                          <Typography variant="h5" color="primary.main" fontWeight="bold">
+                            {packageUnits && packageUnits.length > 0 && currentStock > 0 ? (
+                              (() => {
+                                const displayResult = convertToPackageDisplay(currentStock, packageUnits, productUnit || '個');
+                                return displayResult.displayText;
+                              })()
+                            ) : (
+                              `${currentStock} ${productUnit || '個'}`
+                            )}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Tooltip>
                   </Grid>
 
                   {/* 進貨數量 */}

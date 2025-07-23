@@ -7,48 +7,20 @@ import {
   Tooltip
 } from '@mui/material';
 import { Link as LinkIcon } from '@mui/icons-material';
-import { TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
-
-// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
-interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
-  referencedByInfo?: Array<{
-    _id: string;
-    groupNumber: string;
-    description: string;
-    transactionDate: Date | string;
-    totalAmount: number;
-    status: 'draft' | 'confirmed' | 'cancelled';
-  }>;
-  fundingSourceUsages?: Array<{
-    sourceTransactionId: string;
-    usedAmount: number;
-    sourceTransactionDescription?: string;
-    sourceTransactionGroupNumber?: string;
-    sourceTransactionDate?: Date | string;
-    sourceTransactionAmount?: number;
-  }>;
-}
+import { ExtendedTransactionGroupWithEntries } from './types';
+import {
+  formatDate,
+  formatCurrency,
+  calculateTotalAmount,
+  calculateAvailableAmount,
+  getAvailableAmountColor
+} from './utils';
+import { FUNDING_STATUS } from './constants';
 
 interface AccountTransactionListFundingStatusDisplayProps {
   transaction: ExtendedTransactionGroupWithEntries;
 }
 
-// 工具函數 - 提取到組件外部避免重複創建
-const formatDate = (date: Date | string) => {
-  const d = new Date(date);
-  return d.toLocaleDateString('zh-TW');
-};
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('zh-TW', {
-    style: 'currency',
-    currency: 'TWD'
-  }).format(amount);
-};
-
-const calculateTotalAmount = (entries: any[]) => {
-  return entries.reduce((total, entry) => total + (entry.debitAmount || 0), 0);
-};
 
 // 可重用的詳情項目組件
 const DetailItem: React.FC<{
@@ -106,47 +78,6 @@ const TooltipContent: React.FC<{
 export const AccountTransactionListFundingStatusDisplay: React.FC<AccountTransactionListFundingStatusDisplayProps> = ({
   transaction
 }) => {
-  // 計算剩餘可用金額（使用後端提供的精確資料）
-  const calculateAvailableAmount = (group: ExtendedTransactionGroupWithEntries) => {
-    const totalAmount = calculateTotalAmount(group.entries);
-    
-    if (!group.referencedByInfo || group.referencedByInfo.length === 0) {
-      return totalAmount; // 沒有被引用，全額可用
-    }
-    
-    // 🎯 使用後端提供的精確已使用金額資料
-    // 計算實際已使用金額（從 referencedByInfo 中獲取，排除已取消的交易）
-    const actualUsedAmount = group.referencedByInfo
-      .filter(ref => ref.status !== 'cancelled') // 排除已取消的交易
-      .reduce((sum, ref) => sum + (ref.totalAmount || 0), 0);
-    
-    // 剩餘可用金額 = 總金額 - 實際已使用金額
-    const availableAmount = totalAmount - actualUsedAmount;
-    
-    console.log(`💰 交易 ${(group as any).groupNumber} 剩餘可用金額計算:`, {
-      totalAmount,
-      actualUsedAmount,
-      availableAmount,
-      referencedByCount: group.referencedByInfo.length,
-      referencedBy: group.referencedByInfo.map(ref => ({
-        groupNumber: ref.groupNumber,
-        amount: ref.totalAmount,
-        status: ref.status
-      }))
-    });
-    
-    // 確保不會是負數
-    return Math.max(0, availableAmount);
-  };
-
-  // 取得剩餘可用狀態顏色
-  const getAvailableAmountColor = (availableAmount: number, totalAmount: number) => {
-    if (totalAmount === 0) return 'default';
-    const percentage = (availableAmount / totalAmount) * 100;
-    if (percentage >= 100) return 'success';
-    if (percentage >= 50) return 'warning';
-    return 'error';
-  };
 
   // 渲染資金來源詳情
   const renderFundingSourceDetails = (usages: NonNullable<ExtendedTransactionGroupWithEntries['fundingSourceUsages']>) => {
@@ -218,13 +149,13 @@ export const AccountTransactionListFundingStatusDisplay: React.FC<AccountTransac
       
       return (
         <TooltipWrapper
-          title="💰 資金來源追蹤"
+          title={`${FUNDING_STATUS.ICONS.FUNDING_SOURCE} ${FUNDING_STATUS.LABELS.FUNDING_SOURCE_TRACKING}`}
           count={transaction.fundingSourceUsages!.length}
           details={renderFundingSourceDetails(transaction.fundingSourceUsages!)}
-          summary={<SummaryItem label="總使用金額" value={formatCurrency(totalUsedAmount)} isBold />}
+          summary={<SummaryItem label={FUNDING_STATUS.LABELS.TOTAL_USED_AMOUNT} value={formatCurrency(totalUsedAmount)} isBold />}
         >
           <Chip
-            label={`💰 ${transaction.fundingSourceUsages!.length} 筆`}
+            label={`${FUNDING_STATUS.ICONS.FUNDING_SOURCE} ${transaction.fundingSourceUsages!.length} 筆`}
             size="small"
             variant="outlined"
             color="primary"
@@ -243,14 +174,14 @@ export const AccountTransactionListFundingStatusDisplay: React.FC<AccountTransac
       
       return (
         <TooltipWrapper
-          title="🔗 被引用情況"
+          title={`${FUNDING_STATUS.ICONS.REFERENCED} ${FUNDING_STATUS.LABELS.REFERENCED_SITUATION}`}
           count={transaction.referencedByInfo!.length}
           details={renderReferenceDetails(transaction.referencedByInfo!)}
           summary={
             <>
-              <SummaryItem label="總金額" value={formatCurrency(totalAmount)} />
-              <SummaryItem label="已使用" value={formatCurrency(totalAmount - availableAmount)} />
-              <SummaryItem label="剩餘可用" value={formatCurrency(availableAmount)} isBold />
+              <SummaryItem label={FUNDING_STATUS.LABELS.TOTAL_AMOUNT} value={formatCurrency(totalAmount)} />
+              <SummaryItem label={FUNDING_STATUS.LABELS.USED_AMOUNT} value={formatCurrency(totalAmount - availableAmount)} />
+              <SummaryItem label={FUNDING_STATUS.LABELS.AVAILABLE_AMOUNT} value={formatCurrency(availableAmount)} isBold />
             </>
           }
         >
@@ -276,14 +207,14 @@ export const AccountTransactionListFundingStatusDisplay: React.FC<AccountTransac
     if (totalAmount === 0) {
       return (
         <Typography variant="caption" color="text.secondary">
-          無金額交易
+          {FUNDING_STATUS.LABELS.NO_AMOUNT_TRANSACTION}
         </Typography>
       );
     }
     
     return (
       <Typography variant="body2" color="success.main" sx={{ textAlign: 'center' }}>
-        ✓
+        {FUNDING_STATUS.ICONS.SUCCESS}
       </Typography>
     );
   };

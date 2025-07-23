@@ -7,12 +7,10 @@ import {
 } from '@mui/material';
 import { Account2, TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
 import { accounting3Service } from '../../../../services/accounting3Service';
-import {
-  AccountDashboardStatisticsCards as StatisticsCards,
-  AccountDashboardTransactionOverview as TransactionOverview,
-  AccountDashboardStatusDistribution as StatusDistribution,
-  AccountDashboardMonthlyTrend as MonthlyTrend
-} from './';
+import { AccountDashboardStatisticsCards as StatisticsCards } from './AccountDashboardStatisticsCards';
+import { AccountDashboardTransactionOverview as TransactionOverview } from './AccountDashboardTransactionOverview';
+import { AccountDashboardStatusDistribution as StatusDistribution } from './AccountDashboardStatusDistribution';
+import { AccountDashboardMonthlyTrend as MonthlyTrend } from './AccountDashboardMonthlyTrend';
 
 interface AccountDashboardProps {
   selectedAccount: Account2;
