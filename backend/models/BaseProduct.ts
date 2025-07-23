@@ -17,16 +17,23 @@ type BaseProductDocumentFields = {
 // 使用類型別名替代聯合類型
 type IBaseProductDocument = Omit<IBaseProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'> & mongoose.Document & BaseProductDocumentFields & BaseProductWithPackageUnits & {
   excludeFromStock?: boolean;
+  barcode?: string;
+  healthInsuranceCode?: string;
 };
 
 interface IProductDocument extends Omit<IProduct, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
   category?: mongoose.Types.ObjectId;
   supplier?: mongoose.Types.ObjectId;
+  barcode?: string;
+  healthInsuranceCode?: string;
 }
 
 interface IMedicineDocument extends Omit<IMedicine, '_id' | 'category' | 'supplier' | 'createdAt' | 'updatedAt'>, mongoose.Document {
   category?: mongoose.Types.ObjectId;
   supplier?: mongoose.Types.ObjectId;
+  barcode?: string;
+  healthInsuranceCode?: string;
+  healthInsurancePrice?: number;
 }
 
 // 定義可能為空的產品文檔類型別名
@@ -98,6 +105,15 @@ const BaseProductSchema = new Schema<IBaseProductDocument>({
     type: Boolean,
     default: false
   },
+  // 通用欄位 - 所有產品類型都支援
+  barcode: {
+    type: String,
+    trim: true
+  },
+  healthInsuranceCode: {
+    type: String,
+    trim: true
+  },
   // 包裝單位相關欄位
   defaultDisplayUnit: {
     type: String,
@@ -120,21 +136,13 @@ BaseProductSchema.statics.findByCode = function(code: string): Promise<MaybeBase
 // 創建基礎模型
 const BaseProductModel = mongoose.model<IBaseProductDocument, IBaseProductModel>('baseproduct', BaseProductSchema);
 
-// 商品擴展模型
+// 商品擴展模型 - 移除重複欄位，因為已在基礎模型中定義
 const ProductModel = BaseProductModel.discriminator<IProductDocument>(ProductType.PRODUCT, new Schema({
-  barcode: {
-    type: String
-  },
-  healthInsuranceCode: {
-    type: String
-  }
+  // 商品特有欄位可以在這裡添加
 }));
 
 // 藥品擴展模型 - 使用 shared 類型結構
 const MedicineModel = BaseProductModel.discriminator<IMedicineDocument>(ProductType.MEDICINE, new Schema({
-  barcode: {
-    type: String
-  },
   medicineInfo: {
     licenseNumber: {
       type: String
@@ -164,10 +172,7 @@ const MedicineModel = BaseProductModel.discriminator<IMedicineDocument>(ProductT
       type: Date
     }
   },
-  // 保持向後兼容性的舊欄位
-  healthInsuranceCode: {
-    type: String
-  },
+  // 藥品特有欄位
   healthInsurancePrice: {
     type: Number,
     default: 0

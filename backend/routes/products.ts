@@ -607,6 +607,16 @@ router.put(
         updateData.shortCode = updateData.shortCode?.trim() ?? '';
       }
       
+      // 處理健保碼欄位
+      if (updateData.healthInsuranceCode !== undefined) {
+        updateData.healthInsuranceCode = updateData.healthInsuranceCode?.trim() ?? '';
+      }
+      
+      // 處理條碼欄位
+      if (updateData.barcode !== undefined) {
+        updateData.barcode = updateData.barcode?.trim() ?? '';
+      }
+      
       // 處理包裝單位數據
       const { packageUnits, ...productUpdateData } = updateData;
       
@@ -728,22 +738,58 @@ router.delete('/:id', auth, async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// 輔助函數：生成產品代碼
+// 輔助函數：生成產品代碼（已棄用，請使用 codeGenerator.ts 中的函數）
 async function generateNextProductCode(): Promise<string> {
   try {
-    const count = await Product.countDocuments();
-    return `P${String(count + 10001).padStart(5, '0')}`;
+    // 查詢所有以 P 開頭的商品編號
+    const products = await Product.find({ code: /^P\d+$/ })
+      .select('code')
+      .lean() as unknown as Array<{ code: string }>;
+    
+    if (products.length === 0) {
+      return 'P10001';
+    }
+    
+    // 提取所有數字部分並找到最大值
+    const numericParts = products
+      .map(product => parseInt(product.code.substring(1), 10))
+      .filter(num => !isNaN(num));
+    
+    if (numericParts.length === 0) {
+      return 'P10001';
+    }
+    
+    const maxNumericPart = Math.max(...numericParts);
+    return `P${maxNumericPart + 1}`;
   } catch (error) {
     console.error('生成產品代碼錯誤:', error);
     return `P${String(Date.now()).slice(-5)}`;
   }
 }
 
-// 輔助函數：生成藥品代碼
+// 輔助函數：生成藥品代碼（已棄用，請使用 codeGenerator.ts 中的函數）
 async function generateNextMedicineCode(): Promise<string> {
   try {
-    const count = await Medicine.countDocuments();
-    return `M${String(count + 10001).padStart(5, '0')}`;
+    // 查詢所有以 M 開頭的藥品編號
+    const medicines = await Medicine.find({ code: /^M\d+$/ })
+      .select('code')
+      .lean() as unknown as Array<{ code: string }>;
+    
+    if (medicines.length === 0) {
+      return 'M10001';
+    }
+    
+    // 提取所有數字部分並找到最大值
+    const numericParts = medicines
+      .map(medicine => parseInt(medicine.code.substring(1), 10))
+      .filter(num => !isNaN(num));
+    
+    if (numericParts.length === 0) {
+      return 'M10001';
+    }
+    
+    const maxNumericPart = Math.max(...numericParts);
+    return `M${maxNumericPart + 1}`;
   } catch (error) {
     console.error('生成藥品代碼錯誤:', error);
     return `M${String(Date.now()).slice(-5)}`;

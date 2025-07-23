@@ -76,17 +76,9 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
   const columns: GridColDef[] = [
     { field: 'poid', headerName: '進貨單號', flex: 1 },
     { field: 'pobill', headerName: '發票號碼', flex: 1 },
-    { 
-      field: 'pobilldate', 
-      headerName: '發票日期', 
-      flex: 1,
-      valueFormatter: (params) => {
-        return params.value ? format(new Date(params.value), 'yyyy-MM-dd') : '';
-      }
-    },
-    { 
-      field: 'posupplier', 
-      headerName: '供應商', 
+    {
+      field: 'posupplier',
+      headerName: '供應商',
       flex: 1,
       renderHeader: renderSupplierHeader
     },
@@ -175,11 +167,11 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
             animationDelay: `${index * 0.05}s`
           }}
         >
-          {[...Array(7)].map((_, colIndex) => (
+          {[...Array(6)].map((_, colIndex) => (
             <Skeleton
               key={colIndex}
               variant="rectangular"
-              width={`${100 / 7}%`}
+              width={`${100 / 6}%`}
               height={52}
               animation="wave"
               sx={{

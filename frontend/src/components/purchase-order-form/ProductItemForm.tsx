@@ -357,7 +357,13 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   <Autocomplete
                     id="product-select"
                     options={products ?? []}
-                    getOptionLabel={(option) => `${option.code ?? 'N/A'} - ${option.name}`}
+                    getOptionLabel={(option) => {
+                      const code = option.code ?? 'N/A';
+                      const name = option.name;
+                      const healthCode = option.healthInsuranceCode ? ` [健保:${option.healthInsuranceCode}]` : '';
+                      const barcode = option.barcode ? ` [條碼:${option.barcode}]` : '';
+                      return `${code} - ${name}${healthCode}${barcode}`;
+                    }}
                     value={products?.find(p => p._id === currentItem.product) ?? null}
                     onChange={handleProductChangeWithChart}
                     filterOptions={(options, state) => filterProducts(options, state.inputValue)}

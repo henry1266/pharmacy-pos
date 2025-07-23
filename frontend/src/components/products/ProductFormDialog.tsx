@@ -203,7 +203,6 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
               onChange={handleInputChange}
               fullWidth
               margin="dense"
-              helperText="有健保碼時產品編號以M開頭，否則以P開頭"
             />
           </Grid>
           {productType === 'medicine' && (

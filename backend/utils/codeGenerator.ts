@@ -17,8 +17,6 @@ export async function generateNextProductCode(): Promise<CodeGenerationResult> {
     // 查詢所有以 P 開頭的商品編號
     const products = await Product.find({ code: /^P\d+$/ })
       .select('code')
-      .sort({ code: -1 })
-      .limit(1)
       .lean() as unknown as Array<{ code: string }>;
     
     // 如果沒有符合格式的商品，從 P10001 開始
@@ -34,16 +32,28 @@ export async function generateNextProductCode(): Promise<CodeGenerationResult> {
       };
     }
     
-    // 取得最後一個商品編號並提取數字部分
-    if (!products[0]) {
-      throw new Error('無法獲取商品編號');
+    // 提取所有數字部分並找到最大值
+    const numericParts = products
+      .map(product => parseInt(product.code.substring(1), 10))
+      .filter(num => !isNaN(num));
+    
+    if (numericParts.length === 0) {
+      return {
+        success: true,
+        code: 'P10001',
+        metadata: {
+          length: 6,
+          charset: 'P + digits',
+          generatedAt: new Date()
+        }
+      };
     }
     
-    const lastCode = products[0].code;
-    const numericPart = parseInt(lastCode.substring(1), 10);
+    // 找到最大的數字部分
+    const maxNumericPart = Math.max(...numericParts);
     
     // 產生下一個編號
-    const nextNumericPart = numericPart + 1;
+    const nextNumericPart = maxNumericPart + 1;
     const code = `P${nextNumericPart}`;
     
     return {
@@ -83,8 +93,6 @@ export async function generateNextMedicineCode(): Promise<CodeGenerationResult> 
     // 查詢所有以 M 開頭的藥品編號
     const medicines = await Medicine.find({ code: /^M\d+$/ })
       .select('code')
-      .sort({ code: -1 })
-      .limit(1)
       .lean() as unknown as Array<{ code: string }>;
     
     // 如果沒有符合格式的藥品，從 M10001 開始
@@ -100,16 +108,28 @@ export async function generateNextMedicineCode(): Promise<CodeGenerationResult> 
       };
     }
     
-    // 取得最後一個藥品編號並提取數字部分
-    if (!medicines[0]) {
-      throw new Error('無法獲取藥品編號');
+    // 提取所有數字部分並找到最大值
+    const numericParts = medicines
+      .map(medicine => parseInt(medicine.code.substring(1), 10))
+      .filter(num => !isNaN(num));
+    
+    if (numericParts.length === 0) {
+      return {
+        success: true,
+        code: 'M10001',
+        metadata: {
+          length: 6,
+          charset: 'M + digits',
+          generatedAt: new Date()
+        }
+      };
     }
     
-    const lastCode = medicines[0].code;
-    const numericPart = parseInt(lastCode.substring(1), 10);
+    // 找到最大的數字部分
+    const maxNumericPart = Math.max(...numericParts);
     
     // 產生下一個編號
-    const nextNumericPart = numericPart + 1;
+    const nextNumericPart = maxNumericPart + 1;
     const code = `M${nextNumericPart}`;
     
     return {
@@ -160,18 +180,15 @@ export async function generateProductCodeByHealthInsurance(hasHealthInsuranceCod
     
     const [products, medicines] = await Promise.all([productQuery, medicineQuery]);
     
-    // 合併兩個結果並排序
-    const allCodes = [...products, ...medicines]
+    // 合併兩個結果並提取數字部分
+    const allNumericParts = [...products, ...medicines]
       .map(item => (item as any).code)
       .filter(code => code && code.startsWith(prefix))
-      .sort((a, b) => {
-        const numA = parseInt(a.substring(1), 10);
-        const numB = parseInt(b.substring(1), 10);
-        return numB - numA; // 降序排列
-      });
+      .map(code => parseInt(code.substring(1), 10))
+      .filter(num => !isNaN(num));
     
     // 如果沒有符合格式的產品，從 10001 開始
-    if (allCodes.length === 0) {
+    if (allNumericParts.length === 0) {
       const code = `${prefix}10001`;
       return {
         success: true,
@@ -184,12 +201,11 @@ export async function generateProductCodeByHealthInsurance(hasHealthInsuranceCod
       };
     }
     
-    // 取得最後一個編號並提取數字部分
-    const lastCode = allCodes[0];
-    const numericPart = parseInt(lastCode.substring(1), 10);
+    // 找到最大的數字部分
+    const maxNumericPart = Math.max(...allNumericParts);
     
     // 產生下一個編號
-    const nextNumericPart = numericPart + 1;
+    const nextNumericPart = maxNumericPart + 1;
     const code = `${prefix}${nextNumericPart}`;
     
     return {
