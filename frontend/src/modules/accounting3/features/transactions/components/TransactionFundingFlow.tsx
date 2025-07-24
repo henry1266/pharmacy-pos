@@ -185,6 +185,25 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
   const [linkedTransactionDetails, setLinkedTransactionDetails] = useState<{[key: string]: any}>({});
   const [loading, setLoading] = useState(false);
 
+  // 提取帳戶ID的工具函數
+  const extractAccountId = (accountId: string | any): string | null => {
+    if (typeof accountId === 'string') {
+      return accountId;
+    }
+    if (typeof accountId === 'object' && accountId?._id) {
+      return accountId._id;
+    }
+    return null;
+  };
+
+  // 處理帳戶點擊事件
+  const handleAccountClick = (accountId: string | any) => {
+    const cleanId = extractAccountId(accountId);
+    if (cleanId) {
+      navigate(`/accounting3/accounts/${cleanId}`);
+    }
+  };
+
   // 計算從特定來源使用的金額
   const calculateUsedAmount = useMemo(() => {
     return (sourceInfo: any, isMultipleSource: boolean): number => {
@@ -732,18 +751,30 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
   };
 
   // 交易流向 Chip 組件
-  const FlowChip: React.FC<{ label: string; color: 'primary' | 'secondary'; margin?: string }> = ({
+  const FlowChip: React.FC<{
+    label: string;
+    color: 'primary' | 'secondary';
+    margin?: string;
+    accountId?: string | any;
+  }> = ({
     label,
     color,
-    margin = '0'
+    margin = '0',
+    accountId
   }) => (
     <Chip
       label={label}
       size="small"
       color={color}
+      clickable={!!accountId}
+      onClick={accountId ? () => handleAccountClick(accountId) : undefined}
       sx={{
         ...CHIP_STYLES,
-        margin
+        margin,
+        cursor: accountId ? 'pointer' : 'default',
+        '&:hover': accountId ? {
+          backgroundColor: color === 'primary' ? 'primary.dark' : 'secondary.dark'
+        } : {}
       }}
     />
   );
@@ -772,9 +803,19 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, minWidth: 180 }}>
-        <FlowChip label={fromAccountName} color="secondary" margin="0 0.5rem 0 0" />
+        <FlowChip
+          label={fromAccountName}
+          color="secondary"
+          margin="0 0.5rem 0 0"
+          accountId={fromAccount.accountId}
+        />
         <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
-        <FlowChip label={toAccountName} color="primary" margin="0 0 0 0.5rem" />
+        <FlowChip
+          label={toAccountName}
+          color="primary"
+          margin="0 0 0 0.5rem"
+          accountId={toAccount.accountId}
+        />
       </Box>
     );
   };

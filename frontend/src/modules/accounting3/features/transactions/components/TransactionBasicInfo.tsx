@@ -18,6 +18,7 @@ import {
   Input as InputIcon,
   ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries3 } from '@pharmacy-pos/shared/types/accounting3';
 import { formatAmount, formatDate, getStatusInfo, getFundingTypeInfo } from '../utils';
 import { embeddedFundingTrackingService } from '../../../services/transactionGroupWithEntriesService';
@@ -32,12 +33,32 @@ interface TransactionBasicInfoProps {
 export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
   transaction
 }) => {
+  const navigate = useNavigate();
   const statusInfo = getStatusInfo(transaction.status);
   const fundingTypeInfo = getFundingTypeInfo(transaction.fundingType);
   
   // 資金流向狀態
   const [fundingFlow, setFundingFlow] = useState<any>(null);
   const [loadingFundingFlow, setLoadingFundingFlow] = useState(false);
+
+  // 提取帳戶ID的工具函數
+  const extractAccountId = (accountId: string | any): string | null => {
+    if (typeof accountId === 'string') {
+      return accountId;
+    }
+    if (typeof accountId === 'object' && accountId?._id) {
+      return accountId._id;
+    }
+    return null;
+  };
+
+  // 處理帳戶點擊事件
+  const handleAccountClick = (accountId: string | any) => {
+    const cleanId = extractAccountId(accountId);
+    if (cleanId) {
+      navigate(`/accounting3/accounts/${cleanId}`);
+    }
+  };
 
   // 獲取資金流向資訊
   useEffect(() => {
@@ -125,15 +146,21 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
           label={fromAccountName}
           size="small"
           color="secondary"
+          clickable
+          onClick={() => handleAccountClick(fromAccount.accountId)}
           sx={{
             fontSize: '0.75rem',
             height: 24,
             mr: 0.5,
             maxWidth: 80,
+            cursor: 'pointer',
             '& .MuiChip-label': {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               fontSize: '0.75rem'
+            },
+            '&:hover': {
+              backgroundColor: 'secondary.dark'
             }
           }}
         />
@@ -142,15 +169,21 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
           label={toAccountName}
           size="small"
           color="primary"
+          clickable
+          onClick={() => handleAccountClick(toAccount.accountId)}
           sx={{
             fontSize: '0.75rem',
             height: 24,
             ml: 0.5,
             maxWidth: 80,
+            cursor: 'pointer',
             '& .MuiChip-label': {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               fontSize: '0.75rem'
+            },
+            '&:hover': {
+              backgroundColor: 'primary.dark'
             }
           }}
         />

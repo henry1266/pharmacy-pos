@@ -110,6 +110,25 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   
   // 使用 Redux 狀態
   const { transactionGroups, loading, error, pagination } = useAppSelector(state => state.transactionGroupWithEntries);
+
+  // 提取帳戶ID的工具函數
+  const extractAccountId = (accountId: string | any): string | null => {
+    if (typeof accountId === 'string') {
+      return accountId;
+    }
+    if (typeof accountId === 'object' && accountId?._id) {
+      return accountId._id;
+    }
+    return null;
+  };
+
+  // 處理帳戶點擊事件
+  const handleAccountClick = (accountId: string | any) => {
+    const cleanId = extractAccountId(accountId);
+    if (cleanId) {
+      navigate(`/accounting3/accounts/${cleanId}`);
+    }
+  };
   
   // 本地狀態管理
   const [filter, setFilter] = useState<FilterOptions>({
@@ -450,15 +469,21 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           label={fromAccountName}
           size="medium"
           color="secondary"
+          clickable
+          onClick={() => handleAccountClick(fromAccount.accountId)}
           sx={{
             fontSize: '0.8rem',
             height: 28,
             mr: 0.5,
             maxWidth: 90,
+            cursor: 'pointer',
             '& .MuiChip-label': {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               fontSize: '0.8rem'
+            },
+            '&:hover': {
+              backgroundColor: 'secondary.dark'
             }
           }}
         />
@@ -467,15 +492,21 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           label={toAccountName}
           size="medium"
           color="primary"
+          clickable
+          onClick={() => handleAccountClick(toAccount.accountId)}
           sx={{
             fontSize: '0.8rem',
             height: 28,
             ml: 0.5,
             maxWidth: 90,
+            cursor: 'pointer',
             '& .MuiChip-label': {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               fontSize: '0.8rem'
+            },
+            '&:hover': {
+              backgroundColor: 'primary.dark'
             }
           }}
         />

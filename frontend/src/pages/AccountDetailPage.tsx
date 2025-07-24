@@ -166,15 +166,6 @@ export const AccountDetailPage: React.FC<AccountDetailPageProps> = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 1 }}>
-      {/* 頁面標題 */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <AccountBalanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            科目詳情
-          </Typography>
-        </Box>
-      </Box>
 
       {/* 麵包屑導航 */}
       <Box sx={{ mb: 3 }}>
