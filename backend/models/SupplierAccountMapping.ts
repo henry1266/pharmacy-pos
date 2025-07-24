@@ -29,7 +29,7 @@ export interface ISupplierAccountMapping extends Document {
 const SupplierAccountMappingSchema = new Schema<ISupplierAccountMapping>({
   supplierId: {
     type: Schema.Types.ObjectId,
-    ref: 'Supplier',
+    ref: 'supplier',
     required: true
   },
   supplierName: {
@@ -111,7 +111,7 @@ SupplierAccountMappingSchema.index({ 'accountMappings.accountId': 1 });
 SupplierAccountMappingSchema.pre('save', async function(this: ISupplierAccountMapping, next) {
   if (this.isNew || this.isModified('supplierId')) {
     try {
-      const Supplier = mongoose.model('Supplier');
+      const Supplier = mongoose.model('supplier');
       const supplier = await Supplier.findById(this.supplierId);
       if (supplier) {
         this.supplierName = supplier.name;

@@ -154,8 +154,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/', [
   check('supplierId', '供應商ID為必填項').notEmpty(),
-  check('accountIds', '會計科目ID為必填項').isArray().notEmpty(),
-  check('priority', '優先順序為必填項').isNumeric()
+  check('accountIds', '會計科目ID為必填項').isArray().notEmpty()
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -171,6 +170,8 @@ router.post('/', [
 
   try {
     const { supplierId, accountIds, priority, notes } = req.body;
+    console.log('POST 請求資料:', { supplierId, accountIds, priority, notes });
+    console.log('accountIds 類型:', typeof accountIds, 'isArray:', Array.isArray(accountIds));
 
     // 驗證供應商是否存在
     const supplier = await Supplier.findById(supplierId);
@@ -214,15 +215,33 @@ router.post('/', [
       return;
     }
 
-    // 補充科目資訊
-    const enrichedAccountMappings = accountIds.map((accountId: string) => {
-      const account = accounts.find(acc => acc._id.toString() === accountId);
+    // 補充科目資訊，每個科目自動分配不同的優先順序
+    const enrichedAccountMappings = accountIds.map((accountId: any, index: number) => {
+      // 處理不同格式的 accountId
+      let accountIdStr: string;
+      if (typeof accountId === 'string') {
+        accountIdStr = accountId;
+      } else if (typeof accountId === 'object' && accountId._id) {
+        accountIdStr = accountId._id;
+      } else if (typeof accountId === 'object' && accountId.id) {
+        accountIdStr = accountId.id;
+      } else {
+        accountIdStr = accountId.toString();
+      }
+      
+      console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
+      
+      const account = accounts.find(acc => acc._id.toString() === accountIdStr);
+      if (!account) {
+        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => a._id.toString()));
+        throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
+      }
       return {
-        accountId,
-        accountCode: account?.code || '',
-        accountName: account?.name || '',
-        priority: priority || 0,
-        isDefault: false
+        accountId: accountIdStr,
+        accountCode: account.code || `ACC-${accountIdStr.slice(-6)}`, // 如果沒有代碼，生成一個
+        accountName: account.name || `科目-${accountIdStr.slice(-6)}`, // 如果沒有名稱，生成一個
+        priority: index + 1, // 自動分配優先順序：1, 2, 3...
+        isDefault: index === 0 // 第一個科目設為預設
       };
     });
 
@@ -280,8 +299,7 @@ router.post('/', [
  * @access  Public
  */
 router.put('/:id', [
-  check('accountIds', '會計科目ID為必填項').isArray().notEmpty(),
-  check('priority', '優先順序為必填項').isNumeric()
+  check('accountIds', '會計科目ID為必填項').isArray().notEmpty()
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -296,7 +314,9 @@ router.put('/:id', [
   }
 
   try {
-    const { accountIds, priority, notes, isActive } = req.body;
+    const { accountIds, notes, isActive } = req.body;
+    console.log('PUT 請求資料:', { accountIds, notes, isActive });
+    console.log('accountIds 類型:', typeof accountIds, 'isArray:', Array.isArray(accountIds));
 
     const mapping = await SupplierAccountMapping.findById(req.params.id);
     if (!mapping) {
@@ -337,15 +357,33 @@ router.put('/:id', [
       return;
     }
 
-    // 補充科目資訊
-    const enrichedAccountMappings = accountIds.map((accountId: string) => {
-      const account = accounts.find(acc => acc._id.toString() === accountId);
+    // 補充科目資訊，每個科目自動分配不同的優先順序
+    const enrichedAccountMappings = accountIds.map((accountId: any, index: number) => {
+      // 處理不同格式的 accountId
+      let accountIdStr: string;
+      if (typeof accountId === 'string') {
+        accountIdStr = accountId;
+      } else if (typeof accountId === 'object' && accountId._id) {
+        accountIdStr = accountId._id;
+      } else if (typeof accountId === 'object' && accountId.id) {
+        accountIdStr = accountId.id;
+      } else {
+        accountIdStr = accountId.toString();
+      }
+      
+      console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
+      
+      const account = accounts.find(acc => acc._id.toString() === accountIdStr);
+      if (!account) {
+        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => a._id.toString()));
+        throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
+      }
       return {
-        accountId,
-        accountCode: account?.code || '',
-        accountName: account?.name || '',
-        priority: priority || 0,
-        isDefault: false
+        accountId: accountIdStr,
+        accountCode: account.code || `ACC-${accountIdStr.slice(-6)}`, // 如果沒有代碼，生成一個
+        accountName: account.name || `科目-${accountIdStr.slice(-6)}`, // 如果沒有名稱，生成一個
+        priority: index + 1, // 自動分配優先順序：1, 2, 3...
+        isDefault: index === 0 // 第一個科目設為預設
       };
     });
 
