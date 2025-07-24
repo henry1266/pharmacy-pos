@@ -670,7 +670,7 @@ const SuppliersPage: FC<{}> = () => {
           </Grid>
           
           {/* 會計科目配對區塊 - 只在編輯模式且有供應商ID時顯示 */}
-          {editMode && currentSupplierState.id && (
+          {editMode && currentSupplierState.id ? (
             <>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
@@ -687,7 +687,14 @@ const SuppliersPage: FC<{}> = () => {
                 />
               </Box>
             </>
-          )}
+          ) : editMode ? (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                請先保存供應商基本資料，然後重新編輯以設定會計科目配對。
+              </Typography>
+            </>
+          ) : null}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>取消</Button>
