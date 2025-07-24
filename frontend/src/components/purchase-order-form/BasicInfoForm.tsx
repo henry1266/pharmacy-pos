@@ -19,9 +19,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
 import SupplierSelect from '../common/SupplierSelect'; // 假設你有一個供應商選擇組件
-import OrganizationSelect from '../common/OrganizationSelect';
-import { useOrganizations } from '../../hooks/useOrganizations';
-import { Organization } from '@pharmacy-pos/shared/types/organization';
+import SupplierAccountSelect from './SupplierAccountSelect';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
@@ -44,6 +42,8 @@ interface FormData {
   notes?: string;
   multiplierMode?: string | number;
   status?: string;
+  supplier?: string; // 供應商ID
+  selectedAccountIds?: string[]; // 選中的會計科目ID
   [key: string]: any;
 }
 
@@ -53,10 +53,9 @@ interface BasicInfoFormProps {
   handleInputChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
   handleDateChange: (date: Date | null) => void;
   handleSupplierChange: (event: React.SyntheticEvent, supplier: Supplier | null) => void;
-  handleOrganizationChange?: (event: React.SyntheticEvent, organization: Organization | null) => void;
+  handleAccountChange?: (accountIds: string[]) => void;
   suppliers?: Supplier[];
   selectedSupplier?: Supplier | null;
-  selectedOrganization?: Organization | null;
   isEditMode?: boolean;
   isTestMode?: boolean;
   invoiceInputRef?: React.RefObject<HTMLInputElement>;
@@ -72,27 +71,13 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
   handleInputChange,
   handleDateChange,
   handleSupplierChange,
-  handleOrganizationChange,
+  handleAccountChange,
   suppliers,
   selectedSupplier,
-  selectedOrganization,
   isEditMode,
   isTestMode,
   invoiceInputRef
 }) => {
-  // 獲取組織資料
-  const { organizations, loading: organizationsLoading } = useOrganizations();
-
-  // 在編輯模式下，根據 formData.organizationId 設置選中的機構
-  React.useEffect(() => {
-    if (formData?.organizationId && organizations.length > 0 && !selectedOrganization) {
-      const foundOrganization = organizations.find(org => org._id === formData.organizationId);
-      if (foundOrganization && handleOrganizationChange) {
-        // 模擬一個事件來設置選中的機構
-        handleOrganizationChange({} as React.SyntheticEvent, foundOrganization);
-      }
-    }
-  }, [formData?.organizationId, organizations, selectedOrganization, handleOrganizationChange]);
 
   // 將巢狀三元運算子拆解為獨立陳述式
   const getPaymentStatusBackgroundColor = () => {
@@ -259,37 +244,20 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
       <Card>
         <CardContent sx={{ pb: 1, '&:last-child': { pb: 1 } }}>
           <Typography variant="h6" gutterBottom>
-            會計資訊
+            會計科目配對
           </Typography>
           
           <Grid container spacing={2}>
-            {/* 機構選擇 */}
+            {/* 供應商會計科目選擇 */}
             <Grid item xs={12}>
-              <OrganizationSelect
-                organizations={organizations}
-                selectedOrganization={selectedOrganization}
-                onChange={handleOrganizationChange || (() => {})}
-                label="機構"
+              <SupplierAccountSelect
+                supplierId={formData?.supplier || ''}
+                selectedAccountIds={formData?.selectedAccountIds || []}
+                onChange={handleAccountChange || (() => {})}
+                label="已配對的會計科目"
                 size="small"
-                disabled={organizationsLoading}
+                disabled={!formData?.supplier}
               />
-            </Grid>
-            
-            {/* 交易類型選擇 */}
-            <Grid item xs={12}>
-              <FormControl fullWidth size="small">
-                <InputLabel>交易類型</InputLabel>
-                <Select
-                  name="transactionType"
-                  value={formData?.transactionType ?? ''}
-                  onChange={handleInputChange}
-                  label="交易類型"
-                >
-                  <MenuItem value="">請選擇</MenuItem>
-                  <MenuItem value="進貨">進貨</MenuItem>
-                  <MenuItem value="支出">支出</MenuItem>
-                </Select>
-              </FormControl>
             </Grid>
           </Grid>
         </CardContent>
@@ -307,15 +275,16 @@ BasicInfoForm.propTypes = {
     paymentStatus: PropTypes.string,
     notes: PropTypes.string,
     multiplierMode: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    status: PropTypes.string
+    status: PropTypes.string,
+    supplier: PropTypes.string,
+    selectedAccountIds: PropTypes.array
   }).isRequired,
   handleInputChange: PropTypes.func.isRequired,
   handleDateChange: PropTypes.func.isRequired,
   handleSupplierChange: PropTypes.func.isRequired,
-  handleOrganizationChange: PropTypes.func,
+  handleAccountChange: PropTypes.func,
   suppliers: PropTypes.array,
   selectedSupplier: PropTypes.object,
-  selectedOrganization: PropTypes.object,
   isEditMode: PropTypes.bool,
   isTestMode: PropTypes.bool,
   invoiceInputRef: PropTypes.object

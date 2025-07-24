@@ -13,8 +13,8 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
-import { Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
-import { Organization } from '@pharmacy-pos/shared/types/organization';
+import { Product } from '@pharmacy-pos/shared/types/entities';
+import { PurchaseOrder } from '@pharmacy-pos/shared/types/purchase-order';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
@@ -68,6 +68,7 @@ interface IFormData {
   supplier: string; // Store supplier ID
   organizationId?: string; // 機構 ID
   transactionType?: string; // 交易類型：進貨/支出
+  selectedAccountIds?: string[]; // 選中的會計科目ID
   items: CurrentItem[];
   notes: string;
   status: string; // 使用字符串類型以適應所有可能的值
@@ -261,6 +262,7 @@ const PurchaseOrderFormPage: React.FC = () => {
     supplier: '', // Store supplier ID
     organizationId: '', // 機構 ID
     transactionType: '', // 交易類型
+    selectedAccountIds: [], // 選中的會計科目ID
     items: [],
     notes: '',
     status: 'pending',
@@ -298,7 +300,6 @@ const PurchaseOrderFormPage: React.FC = () => {
   // 移除未使用的變數賦值
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
-  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
 
   useEffect(() => {
     if (isEditMode && orderData) {
@@ -364,6 +365,11 @@ const PurchaseOrderFormPage: React.FC = () => {
         supplier: supplierId,
         organizationId: orderData.organizationId || '',
         transactionType: orderData.transactionType || '',
+        selectedAccountIds: (orderData as any).selectedAccountIds
+          ? (orderData as any).selectedAccountIds.map((account: any) =>
+              typeof account === 'string' ? account : account._id || account.id
+            )
+          : [],
         items: mappedItems,
         notes: orderData.notes ?? '',
         status: orderData.status ?? 'pending',
@@ -440,11 +446,11 @@ const PurchaseOrderFormPage: React.FC = () => {
     });
   };
 
-  const handleOrganizationChange = (_event: React.SyntheticEvent, organization: Organization | null) => {
-    setSelectedOrganization(organization);
+  const handleAccountChange = (accountIds: string[]) => {
+    console.log('🔍 前端 - handleAccountChange:', accountIds);
     setFormData({
       ...formData,
-      organizationId: organization ? organization._id : ''
+      selectedAccountIds: accountIds
     });
   };
 
@@ -494,6 +500,8 @@ const PurchaseOrderFormPage: React.FC = () => {
       })),
       status: status
     };
+    
+    console.log('🔍 前端 - 提交資料 selectedAccountIds:', submitData.selectedAccountIds);
 
     try {
       if (isEditMode && id) {
@@ -630,10 +638,9 @@ const PurchaseOrderFormPage: React.FC = () => {
               handleInputChange={handleFormInputChange}
               handleDateChange={handleDateChange}
               handleSupplierChange={handleSupplierChange}
-              handleOrganizationChange={handleOrganizationChange}
+              handleAccountChange={handleAccountChange}
               suppliers={suppliers || []}
               selectedSupplier={selectedSupplier}
-              selectedOrganization={selectedOrganization}
               isEditMode={isEditMode}
               isTestMode={isGlobalTestMode}
               invoiceInputRef={invoiceInputRef}

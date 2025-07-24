@@ -17,10 +17,11 @@ export interface IPurchaseOrderItemDocument extends IPurchaseOrderItem, Document
 }
 
 // 後端專用的進貨單介面
-export interface IPurchaseOrder extends Omit<SharedPurchaseOrder, '_id' | 'supplier' | 'items' | 'createdAt' | 'updatedAt'> {
+export interface IPurchaseOrder extends Omit<SharedPurchaseOrder, '_id' | 'supplier' | 'organizationId' | 'selectedAccountIds' | 'items' | 'createdAt' | 'updatedAt'> {
   supplier?: mongoose.Types.ObjectId; // 後端使用 ObjectId
   organizationId?: mongoose.Types.ObjectId; // 機構 ObjectId
   transactionType?: string; // 交易類型
+  selectedAccountIds?: mongoose.Types.ObjectId[]; // 選中的會計科目ID
   items: IPurchaseOrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -111,6 +112,11 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrderDocument>({
     enum: ['進貨', '支出'],
     required: false
   },
+  selectedAccountIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account2',
+    required: false
+  }],
   items: [PurchaseOrderItemSchema],
   totalAmount: {
     type: Number,

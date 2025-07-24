@@ -36,6 +36,9 @@ export interface PurchaseOrder {
   pobilldate?: string | Date; // 發票日期
   posupplier: string; // 供應商名稱
   supplier?: string; // 供應商ID
+  organizationId?: string; // 機構ID
+  transactionType?: string; // 交易類型
+  selectedAccountIds?: string[]; // 選中的會計科目ID
   orderDate?: string | Date; // 訂單日期（向後兼容）
   expectedDeliveryDate?: string | Date; // 預期交貨日期
   actualDeliveryDate?: string | Date; // 實際交貨日期
@@ -78,6 +81,7 @@ export interface PurchaseOrderRequest {
   supplier?: string;
   organizationId?: string;
   transactionType?: string;
+  selectedAccountIds?: string[]; // 選中的會計科目ID
   items: PurchaseOrderItem[];
   notes?: string;
   status?: PurchaseOrderStatus;

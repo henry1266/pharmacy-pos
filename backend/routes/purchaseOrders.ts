@@ -82,7 +82,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const purchaseOrder = await PurchaseOrder.findById(req.params.id)
       .populate('supplier', 'name code')
-      .populate('items.product', 'name code _id');
+      .populate('items.product', 'name code _id')
+      .populate('selectedAccountIds', 'code name accountType parentAccount organizationId');
     
     if (!purchaseOrder) {
       const errorResponse: ErrorResponse = {
@@ -227,7 +228,9 @@ router.post('/', [
   }
 
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType } = req.body as PurchaseOrderRequest;
+    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType, selectedAccountIds } = req.body as PurchaseOrderRequest;
+    
+    console.log('🔍 創建進貨單 - selectedAccountIds:', selectedAccountIds);
 
     // 如果進貨單號為空，自動生成
     let finalPoid: string;
@@ -281,6 +284,9 @@ router.post('/', [
       supplier: supplierId,
       organizationId: organizationId ? new Types.ObjectId(organizationId.toString()) : undefined,
       transactionType: transactionType ? transactionType.toString() : undefined,
+      selectedAccountIds: selectedAccountIds && selectedAccountIds.length > 0
+        ? selectedAccountIds.filter(id => id && Types.ObjectId.isValid(id.toString())).map(id => new Types.ObjectId(id.toString()))
+        : undefined,
       items: processedItems,
       notes: notes ? notes.toString() : '',
       status: status ? status.toString() : 'pending',
@@ -351,7 +357,7 @@ async function handlePurchaseOrderIdChange(
  * @returns {Object} - 更新數據
  */
 function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseOrderDocument): Partial<IPurchaseOrderDocument> {
-  const { poid, pobill, pobilldate, posupplier, supplier, organizationId, transactionType, notes, paymentStatus } = data;
+  const { poid, pobill, pobilldate, posupplier, supplier, organizationId, transactionType, selectedAccountIds, notes, paymentStatus } = data;
   
   const updateData: Partial<IPurchaseOrderDocument> = {};
   if (poid) updateData.poid = poid.toString();
@@ -362,6 +368,11 @@ function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseO
   if (supplier) updateData.supplier = new Types.ObjectId(supplier.toString());
   if (organizationId) updateData.organizationId = new Types.ObjectId(organizationId.toString());
   if (transactionType) updateData.transactionType = transactionType.toString();
+  if (selectedAccountIds !== undefined) {
+    updateData.selectedAccountIds = selectedAccountIds && selectedAccountIds.length > 0
+      ? selectedAccountIds.filter(id => id && Types.ObjectId.isValid(id.toString())).map(id => new Types.ObjectId(id.toString()))
+      : [];
+  }
   if (notes !== undefined) updateData.notes = notes ? notes.toString() : '';
   if (paymentStatus) updateData.paymentStatus = paymentStatus as ModelPaymentStatus;
   
@@ -461,6 +472,7 @@ const applyUpdatesToPurchaseOrder = (purchaseOrder: IPurchaseOrderDocument, upda
   if (updateData.supplier) purchaseOrder.supplier = updateData.supplier;
   if (updateData.organizationId) purchaseOrder.organizationId = updateData.organizationId;
   if (updateData.transactionType) purchaseOrder.transactionType = updateData.transactionType;
+  if (updateData.selectedAccountIds !== undefined) purchaseOrder.selectedAccountIds = updateData.selectedAccountIds;
   if (updateData.notes !== undefined) purchaseOrder.notes = updateData.notes;
   if (updateData.paymentStatus) purchaseOrder.paymentStatus = updateData.paymentStatus;
   if (updateData.status) purchaseOrder.status = updateData.status;
@@ -497,8 +509,10 @@ const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
 // @access  Public
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { poid, status, items } = req.body as PurchaseOrderRequest;
+    const { poid, status, items, selectedAccountIds } = req.body as PurchaseOrderRequest;
     const id = req.params.id;
+    
+    console.log('🔍 更新進貨單 - selectedAccountIds:', selectedAccountIds);
 
     // 驗證進貨單ID並獲取進貨單
     const validation = await validateAndGetPurchaseOrder(id);
