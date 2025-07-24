@@ -56,6 +56,9 @@ import { accountRoutes, transactionRoutes, fundingRoutes } from "./routes/accoun
 // 新增機構管理路由
 import organizationsRoutes from "./routes/organizations";
 
+// 新增供應商科目配對路由
+import supplierAccountMappingsRoutes from "./routes/supplierAccountMappings";
+
 // 連接資料庫
 connectDB();
 
@@ -122,6 +125,9 @@ app.use("/api/balances", accountBalancesRoutes);
 
 // 新增機構管理路由 - 支援多機構集團化管理
 app.use("/api/organizations", organizationsRoutes);
+
+// 新增供應商科目配對路由 - 支援供應商與會計科目的配對管理
+app.use("/api/supplier-account-mappings", supplierAccountMappingsRoutes);
 
 // 在生產環境中提供靜態資源
 if (process.env.NODE_ENV === "production") {

@@ -223,7 +223,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     },
     { text: '進貨單管理', icon: (location.pathname.startsWith('/purchase-orders')) ? <ReceiptOutlinedIcon /> : <ReceiptIcon />, path: '/purchase-orders', adminOnly: true },
     { text: '出貨單管理', icon: (location.pathname.startsWith('/shipping-orders')) ? <LocalShippingOutlinedIcon /> : <LocalShippingIcon />, path: '/shipping-orders', adminOnly: true },
-    { text: '供應商管理', icon: (location.pathname === '/suppliers') ? <FactoryOutlinedIcon /> : <FactoryIcon />, path: '/suppliers', adminOnly: true },
+    { text: '供應商管理', icon: (location.pathname.startsWith('/suppliers')) ? <FactoryOutlinedIcon /> : <FactoryIcon />, path: '/suppliers', adminOnly: true
+    },
     { text: '員工管理', icon: isEmployeePath(location.pathname) ? <BadgeOutlinedIcon /> : <BadgeIcon />, subItems: [
         { text: '基本資料', path: '/employees', icon: <PersonIcon fontSize="small" sx={{ ml: 1 }} />, adminOnly: true },
         { text: '排班系統', path: '/employees/scheduling', icon: <CalendarMonthIcon fontSize="small" sx={{ ml: 1 }} /> },

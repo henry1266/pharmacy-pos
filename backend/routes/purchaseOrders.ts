@@ -11,6 +11,7 @@ import BaseProduct from '../models/BaseProduct';
 import Inventory from '../models/Inventory';
 import Supplier from '../models/Supplier';
 import OrderNumberService from '../utils/OrderNumberService';
+import AccountingIntegrationService from '../services/AccountingIntegrationService';
 
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
@@ -755,6 +756,14 @@ async function updateInventory(purchaseOrder: IPurchaseOrderDocument): Promise<v
       console.error(`更新庫存時出錯: ${(err as Error).message}`);
       // 繼續處理其他項目
     }
+  }
+
+  // 庫存更新完成後，處理會計科目創建
+  try {
+    await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
+  } catch (err) {
+    console.error(`處理會計科目創建時出錯: ${(err as Error).message}`);
+    // 不拋出錯誤，避免影響庫存更新流程
   }
 }
 

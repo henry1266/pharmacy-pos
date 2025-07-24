@@ -443,3 +443,41 @@ export interface OvertimeRecord {
   createdAt: string | Date;
   updatedAt: string | Date;
 }
+/**
+ * 供應商科目配對相關型別
+ */
+export interface SupplierAccountMapping {
+  _id: string;
+  supplierId: string;
+  supplierName: string;
+  organizationId: string;
+  organizationName?: string;
+  accountMappings: {
+    accountId: string;
+    accountCode: string;
+    accountName: string;
+    isDefault: boolean;
+    priority: number;
+  }[];
+  isActive: boolean;
+  notes?: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface SupplierAccountMappingFormData {
+  supplierId: string;
+  accountIds: string[];
+  priority: number;
+  notes?: string;
+}
+
+export interface SelectedAccount {
+  _id: string;
+  name: string;
+  code: string;
+  accountType: string;
+  organizationId?: string;
+}
