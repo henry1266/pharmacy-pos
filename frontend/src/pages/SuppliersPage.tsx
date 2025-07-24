@@ -39,6 +39,7 @@ import useSupplierData from '../hooks/useSupplierData';
 import { TestModeConfig } from '../testMode';
 import testModeDataService from '../testMode/services/TestModeDataService';
 import SupplierAccountMappingForm from '../components/suppliers/SupplierAccountMappingForm';
+import SupplierAccountMappingDisplay from '../components/suppliers/SupplierAccountMappingDisplay';
 
 // 定義供應商資料介面
 interface SupplierData {
@@ -587,6 +588,15 @@ const SuppliersPage: FC<{}> = () => {
           )}
         </List>
         <Divider sx={{ my: 1.5 }} />
+        
+        {/* 會計科目配對顯示 */}
+        <SupplierAccountMappingDisplay
+          supplierId={selectedSupplier._id || selectedSupplier.id}
+          supplierName={selectedSupplier.name}
+          onEditClick={() => handleEditSupplier(selectedSupplier.id)}
+        />
+        
+        <Divider sx={{ my: 1.5 }} />
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
           <Button
             onClick={() => navigate(`/purchase-orders/supplier/${selectedSupplier.id}`)}
@@ -678,7 +688,7 @@ const SuppliersPage: FC<{}> = () => {
               </Typography>
               <Box sx={{ mt: 1 }}>
                 <SupplierAccountMappingForm
-                  supplierId={currentSupplierState.id}
+                  supplierId={currentSupplierState.id || ''}
                   supplierName={currentSupplierState.name}
                   onMappingChange={(mapping) => {
                     // 可以在這裡處理配對變更的回調

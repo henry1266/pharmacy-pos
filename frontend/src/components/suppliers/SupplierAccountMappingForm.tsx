@@ -50,8 +50,8 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
   }, [dispatch]);
 
   useEffect(() => {
-    // 載入現有的配對資料 - 只有在 supplierId 存在且不是臨時 ID 時才載入
-    if (supplierId && !supplierId.startsWith('mockSup') && supplierId !== 'new') {
+    // 載入現有的配對資料 - 只有在 supplierId 存在且不是 'new' 時才載入
+    if (supplierId && supplierId !== 'new') {
       fetchMapping();
     } else {
       // 清空現有資料
@@ -82,21 +82,29 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
       
       const mappingsArray = Array.isArray(apiResponse.data) ? apiResponse.data : [];
       console.log('配對資料陣列:', mappingsArray);
+      console.log('配對資料陣列長度:', mappingsArray.length);
       
       if (mappingsArray.length > 0) {
         const existingMapping = mappingsArray[0];
         console.log('找到現有配對:', existingMapping);
+        console.log('配對的科目數量:', existingMapping.accountMappings?.length || 0);
         setMapping(existingMapping);
         
         // 設置選中的會計科目
-        const accounts: SelectedAccount[] = (existingMapping.accountMappings || []).map((am: any) => ({
-          _id: am.accountId,
-          name: am.accountName,
-          code: am.accountCode,
-          accountType: '',
-          organizationId: existingMapping.organizationId
-        }));
-        setSelectedAccounts(accounts);
+        if (existingMapping.accountMappings && Array.isArray(existingMapping.accountMappings)) {
+          const accounts: SelectedAccount[] = existingMapping.accountMappings.map((am: any) => ({
+            _id: am.accountId,
+            name: am.accountName,
+            code: am.accountCode,
+            accountType: '',
+            organizationId: existingMapping.organizationId
+          }));
+          console.log('設置選中的會計科目:', accounts);
+          setSelectedAccounts(accounts);
+        } else {
+          console.log('配對資料中沒有有效的科目配對');
+          setSelectedAccounts([]);
+        }
       } else {
         console.log('未找到現有配對');
         setMapping(null);

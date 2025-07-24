@@ -22,11 +22,42 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     if (organizationId) query.organizationId = organizationId;
     if (supplierId) query.supplierId = supplierId;
     
+    console.log('GET /api/supplier-account-mappings 查詢參數:', { organizationId, supplierId });
+    console.log('MongoDB 查詢條件:', query);
+    
     const mappings = await SupplierAccountMapping.find(query)
       .populate('supplierId', 'name code')
       .populate('organizationId', 'name code')
-      .populate('accountMappings.accountId', 'code name accountType')
+      .populate({
+        path: 'accountMappings.accountId',
+        select: 'code name accountType organizationId parentId level',
+        populate: [
+          {
+            path: 'organizationId',
+            select: 'name code'
+          },
+          {
+            path: 'parentId',
+            select: 'code name accountType parentId',
+            populate: {
+              path: 'parentId',
+              select: 'code name accountType parentId',
+              populate: {
+                path: 'parentId',
+                select: 'code name accountType parentId',
+                populate: {
+                  path: 'parentId',
+                  select: 'code name accountType'
+                }
+              }
+            }
+          }
+        ]
+      })
       .sort({ supplierName: 1, 'accountMappings.priority': 1 });
+
+    console.log('查詢結果數量:', mappings.length);
+    console.log('查詢結果:', mappings);
 
     const response: ApiResponse<ISupplierAccountMapping[]> = {
       success: true,
@@ -57,25 +88,51 @@ router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response)
     const { supplierId } = req.params;
     const { organizationId } = req.query;
 
-    if (!organizationId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '機構ID為必填參數',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
+    console.log('GET /supplier/:supplierId/accounts 參數:', { supplierId, organizationId });
 
     const query: any = {
       supplierId: supplierId,
-      organizationId: organizationId,
       isActive: true
     };
     
+    // 如果提供了 organizationId，則加入查詢條件
+    if (organizationId) {
+      query.organizationId = organizationId;
+    }
+    
+    console.log('查詢條件:', query);
+    
     const mapping = await SupplierAccountMapping.findOne(query)
       .populate('supplierId', 'name code')
-      .populate('accountMappings.accountId', 'code name accountType');
+      .populate('organizationId', 'name code')
+      .populate({
+        path: 'accountMappings.accountId',
+        select: 'code name accountType organizationId parentId level',
+        populate: [
+          {
+            path: 'organizationId',
+            select: 'name code'
+          },
+          {
+            path: 'parentId',
+            select: 'code name accountType parentId',
+            populate: {
+              path: 'parentId',
+              select: 'code name accountType parentId',
+              populate: {
+                path: 'parentId',
+                select: 'code name accountType parentId',
+                populate: {
+                  path: 'parentId',
+                  select: 'code name accountType'
+                }
+              }
+            }
+          }
+        ]
+      });
+
+    console.log('查詢結果:', mapping);
 
     const response: ApiResponse<ISupplierAccountMapping | null> = {
       success: true,
@@ -200,20 +257,11 @@ router.post('/', [
       return;
     }
 
-    // 從第一個會計科目獲取機構ID（假設所有科目都屬於同一機構）
+    // 取得第一個會計科目的機構ID作為預設值，但允許混合不同機構的科目
     const organizationId = accounts[0].organizationId;
     
-    // 驗證所有科目都屬於同一機構
-    const differentOrgs = accounts.filter(acc => acc.organizationId?.toString() !== organizationId?.toString());
-    if (differentOrgs.length > 0) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '所選會計科目必須屬於同一機構',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
+    // 移除同機構限制 - 允許選擇不同機構的會計科目
+    console.log('允許混合不同機構的會計科目');
 
     // 補充科目資訊，每個科目自動分配不同的優先順序
     const enrichedAccountMappings = accountIds.map((accountId: any, index: number) => {
@@ -344,18 +392,11 @@ router.put('/:id', [
       return;
     }
 
-    // 驗證所有科目都屬於同一機構
+    // 取得第一個會計科目的機構ID作為預設值，但允許混合不同機構的科目
     const organizationId = accounts[0].organizationId;
-    const differentOrgs = accounts.filter(acc => acc.organizationId?.toString() !== organizationId?.toString());
-    if (differentOrgs.length > 0) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '所選會計科目必須屬於同一機構',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
+    
+    // 移除同機構限制 - 允許選擇不同機構的會計科目
+    console.log('PUT: 允許混合不同機構的會計科目');
 
     // 補充科目資訊，每個科目自動分配不同的優先順序
     const enrichedAccountMappings = accountIds.map((accountId: any, index: number) => {
