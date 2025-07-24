@@ -19,6 +19,7 @@ import { accounting3Service } from '../../services/accounting3Service';
 import { useTransactionForm3 } from '../../core/hooks/useTransactionForm3';
 import { BasicInfoSection } from '../../components/ui/BasicInfoSection';
 import { DoubleEntrySection3 } from '../../components/ui/DoubleEntrySection3';
+import { EnhancedDoubleEntrySection } from '../../components/ui/EnhancedDoubleEntrySection';
 import { FundingSourceSelector3 } from '../../components/ui/FundingSourceSelector3';
 
 interface TransactionGroupFormWithEntriesProps {
@@ -49,6 +50,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
   onStatusChange
 }) => {
   const { organizations } = useAppSelector(state => state.organization);
+  const { accounts } = useAppSelector(state => state.account2 || { accounts: [] });
 
   // 使用 accounting3 專用的 Hook
   const {
@@ -383,6 +385,11 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     };
   }, [formData.entries]);
 
+  // 過濾可用的會計科目
+  const availableAccounts = accounts.filter(account =>
+    account.isActive && (!formData.organizationId || account.organizationId === formData.organizationId)
+  );
+
   // 使用 shared 的狀態管理工具
   const statusInfo = TransactionStatusManager.getDisplayInfo(currentStatus);
   const permissions = TransactionStatusManager.getPermissions(currentStatus);
@@ -420,21 +427,22 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           onReceiptUpload={() => {}}
         />
 
-        {/* 借貸分錄區塊 */}
-        <DoubleEntrySection3
+        {/* 增強版借貸分錄區塊 - 支援簡易模式 */}
+        <EnhancedDoubleEntrySection
           entries={formData.entries}
-          errors={validation.errors}
-          balanceError={validation.balanceError}
-          permissions={permissions}
-          mode={mode}
+          onEntriesChange={handleEntriesChange}
           organizationId={formData.organizationId}
           isCopyMode={isCopyMode}
-          onEntriesChange={handleEntriesChange}
+          mode={mode}
+          permissions={permissions}
+          errors={validation.errors}
+          balanceError={validation.balanceError}
           onOpenTemplateDialog={() => setTemplateDialogOpen(true)}
           onOpenQuickStartDialog={() => setQuickStartOpen(true)}
           onSwapDebitCredit={swapDebitCredit}
           onQuickBalance={quickBalance}
           balanceInfo={balanceInfo}
+          availableAccounts={availableAccounts}
         />
 
         {/* 操作按鈕 */}
