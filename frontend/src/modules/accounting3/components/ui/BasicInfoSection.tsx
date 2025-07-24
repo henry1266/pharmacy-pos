@@ -202,9 +202,31 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
         }
       />
       <CardContent>
-        <Grid container spacing={3}>
-          {/* 交易描述 */}
-          <Grid item xs={12} md={6}>
+        {/* 基本資訊 - 四個項目在同一列 */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'flex-start' }}>
+          {/* 交易日期 - 占20%寬度 */}
+          <Box sx={{ flex: '0 0 20%' }}>
+            <DatePicker
+              label="交易日期"
+              value={formData.transactionDate}
+              onChange={(date) => onFormDataChange('transactionDate', date)}
+              disabled={!permissions.canEdit}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  fullWidth
+                  error={!!errors.transactionDate}
+                  helperText={errors.transactionDate}
+                  required
+                  disabled={!permissions.canEdit}
+                />
+              )}
+            />
+          </Box>
+          
+          
+          {/* 交易描述 - 占30%寬度 */}
+          <Box sx={{ flex: '0 0 30%' }}>
             <TextField
               fullWidth
               label="交易描述"
@@ -228,30 +250,12 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 'data-lpignore': 'true'
               }}
             />
-          </Grid>
+          </Box>
 
-          {/* 交易日期 */}
-          <Grid item xs={12} md={6}>
-            <DatePicker
-              label="交易日期"
-              value={formData.transactionDate}
-              onChange={(date) => onFormDataChange('transactionDate', date)}
-              disabled={!permissions.canEdit}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  error={!!errors.transactionDate}
-                  helperText={errors.transactionDate}
-                  required
-                  disabled={!permissions.canEdit}
-                />
-              )}
-            />
-          </Grid>
+          
 
-          {/* 機構選擇 */}
-          <Grid item xs={12} md={6}>
+          {/* 機構選擇 - 占25%寬度 */}
+          <Box sx={{ flex: '0 0 20%' }}>
             <FormControl fullWidth disabled={!permissions.canEdit}>
               <InputLabel>機構</InputLabel>
               <Select
@@ -270,10 +274,10 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 ))}
               </Select>
             </FormControl>
-          </Grid>
+          </Box>
 
-          {/* 發票號碼 */}
-          <Grid item xs={12} md={6}>
+          {/* 發票號碼 - 占20%寬度 */}
+          <Box sx={{ flex: '0 0 20%' }}>
             <TextField
               fullWidth
               label="發票號碼"
@@ -282,7 +286,10 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
               placeholder="例如：AB-12345678"
               disabled={!permissions.canEdit}
             />
-          </Grid>
+          </Box>
+        </Box>
+
+        <Grid container spacing={3}>
 
           {/* 資金來源追蹤開關 */}
           <Grid item xs={12}>
