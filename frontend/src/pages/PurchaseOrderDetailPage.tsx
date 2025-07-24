@@ -22,7 +22,8 @@ import {
   Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ReceiptLong as ReceiptLongIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  SwapHoriz as SwapHorizIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -46,6 +47,7 @@ interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {
   pobill?: string;         // 發票號碼
   pobilldate?: string | Date; // 發票日期
   posupplier?: string;     // 供應商名稱
+  transactionType?: string; // 交易類型
   discountAmount?: number; // 折扣金額
   items: ExtendedPurchaseOrderItem[]; // 擴展的項目 - 保持必需以符合基礎介面
 }
@@ -304,6 +306,10 @@ const PurchaseOrderDetailPage: React.FC = () => {
               <Stack direction="row" spacing={1} alignItems="center">
                 <BusinessIcon fontSize="small" color="action"/>
                 <Typography variant="body2">機構: {currentOrganization?.name || '未指定'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <SwapHorizIcon fontSize="small" color="action"/>
+                <Typography variant="body2">交易類型: {currentPurchaseOrder.transactionType || '未指定'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <InfoIcon fontSize="small" color="action"/>
