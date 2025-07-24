@@ -226,7 +226,7 @@ router.post('/', [
   }
 
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus } = req.body as PurchaseOrderRequest;
+    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType } = req.body as PurchaseOrderRequest;
 
     // 如果進貨單號為空，自動生成
     let finalPoid: string;
@@ -278,6 +278,8 @@ router.post('/', [
       pobilldate,
       posupplier: posupplier.toString(),
       supplier: supplierId,
+      organizationId: organizationId ? new Types.ObjectId(organizationId.toString()) : undefined,
+      transactionType: transactionType ? transactionType.toString() : undefined,
       items: processedItems,
       notes: notes ? notes.toString() : '',
       status: status ? status.toString() : 'pending',
@@ -348,7 +350,7 @@ async function handlePurchaseOrderIdChange(
  * @returns {Object} - 更新數據
  */
 function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseOrderDocument): Partial<IPurchaseOrderDocument> {
-  const { poid, pobill, pobilldate, posupplier, supplier, notes, paymentStatus } = data;
+  const { poid, pobill, pobilldate, posupplier, supplier, organizationId, transactionType, notes, paymentStatus } = data;
   
   const updateData: Partial<IPurchaseOrderDocument> = {};
   if (poid) updateData.poid = poid.toString();
@@ -357,6 +359,8 @@ function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseO
   if (pobilldate) updateData.pobilldate = pobilldate;
   if (posupplier) updateData.posupplier = posupplier.toString();
   if (supplier) updateData.supplier = new Types.ObjectId(supplier.toString());
+  if (organizationId) updateData.organizationId = new Types.ObjectId(organizationId.toString());
+  if (transactionType) updateData.transactionType = transactionType.toString();
   if (notes !== undefined) updateData.notes = notes ? notes.toString() : '';
   if (paymentStatus) updateData.paymentStatus = paymentStatus as ModelPaymentStatus;
   
@@ -454,6 +458,8 @@ const applyUpdatesToPurchaseOrder = (purchaseOrder: IPurchaseOrderDocument, upda
   if (updateData.pobilldate) purchaseOrder.pobilldate = updateData.pobilldate;
   if (updateData.posupplier) purchaseOrder.posupplier = updateData.posupplier;
   if (updateData.supplier) purchaseOrder.supplier = updateData.supplier;
+  if (updateData.organizationId) purchaseOrder.organizationId = updateData.organizationId;
+  if (updateData.transactionType) purchaseOrder.transactionType = updateData.transactionType;
   if (updateData.notes !== undefined) purchaseOrder.notes = updateData.notes;
   if (updateData.paymentStatus) purchaseOrder.paymentStatus = updateData.paymentStatus;
   if (updateData.status) purchaseOrder.status = updateData.status;

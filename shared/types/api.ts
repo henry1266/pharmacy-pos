@@ -272,6 +272,7 @@ export interface SaleResponse {
 export interface PurchaseOrderCreateRequest {
   orderNumber?: string;
   supplier: string;
+  organizationId?: string;
   orderDate?: string;
   expectedDeliveryDate?: string;
   items: Array<{
@@ -295,6 +296,7 @@ export interface PurchaseOrderResponse {
     _id: string;
     name: string;
   };
+  organizationId?: string;
   items: Array<{
     _id?: string;
     product: {

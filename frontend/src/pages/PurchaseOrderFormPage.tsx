@@ -14,6 +14,7 @@ import {
 import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
 import { Product, PurchaseOrder } from '@pharmacy-pos/shared/types/entities';
+import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
 import usePurchaseOrderItems from '../hooks/usePurchaseOrderItems';
@@ -65,6 +66,8 @@ interface IFormData {
   pobilldate: Date;
   posupplier: string; // supplier name
   supplier: string; // Store supplier ID
+  organizationId?: string; // 機構 ID
+  transactionType?: string; // 交易類型：進貨/支出
   items: CurrentItem[];
   notes: string;
   status: string; // 使用字符串類型以適應所有可能的值
@@ -256,6 +259,8 @@ const PurchaseOrderFormPage: React.FC = () => {
     pobilldate: new Date(),
     posupplier: '', // supplier name
     supplier: '', // Store supplier ID
+    organizationId: '', // 機構 ID
+    transactionType: '', // 交易類型
     items: [],
     notes: '',
     status: 'pending',
@@ -293,6 +298,7 @@ const PurchaseOrderFormPage: React.FC = () => {
   // 移除未使用的變數賦值
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplier | null>(null);
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
 
   useEffect(() => {
     if (isEditMode && orderData) {
@@ -356,6 +362,8 @@ const PurchaseOrderFormPage: React.FC = () => {
         posupplier: orderData.posupplier ||
                    (orderData.supplier && typeof orderData.supplier === 'object' ? orderData.supplier.name : ''),
         supplier: supplierId,
+        organizationId: orderData.organizationId || '',
+        transactionType: orderData.transactionType || '',
         items: mappedItems,
         notes: orderData.notes ?? '',
         status: orderData.status ?? 'pending',
@@ -376,6 +384,16 @@ const PurchaseOrderFormPage: React.FC = () => {
       }
     }
   }, [isEditMode, orderDataLoaded, suppliersLoaded, formData.supplier, formData.posupplier, suppliers]);
+
+  // 處理編輯模式下的機構資料載入
+  useEffect(() => {
+    if (isEditMode && orderDataLoaded && formData.organizationId) {
+      // 這裡我們需要從 organizations 中找到對應的機構
+      // 但由於 organizations 是在 BasicInfoForm 中載入的，我們需要另一種方式
+      // 暫時先設置一個空的 selectedOrganization，讓 BasicInfoForm 自己處理
+      console.log('編輯模式下的機構ID:', formData.organizationId);
+    }
+  }, [isEditMode, orderDataLoaded, formData.organizationId]);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout | undefined;
@@ -419,6 +437,14 @@ const PurchaseOrderFormPage: React.FC = () => {
       ...formData,
       posupplier: supplier ? supplier.name : '',
       supplier: supplier ? (supplier.id || supplier._id) : ''
+    });
+  };
+
+  const handleOrganizationChange = (_event: React.SyntheticEvent, organization: Organization | null) => {
+    setSelectedOrganization(organization);
+    setFormData({
+      ...formData,
+      organizationId: organization ? organization._id : ''
     });
   };
 
@@ -604,8 +630,10 @@ const PurchaseOrderFormPage: React.FC = () => {
               handleInputChange={handleFormInputChange}
               handleDateChange={handleDateChange}
               handleSupplierChange={handleSupplierChange}
+              handleOrganizationChange={handleOrganizationChange}
               suppliers={suppliers || []}
               selectedSupplier={selectedSupplier}
+              selectedOrganization={selectedOrganization}
               isEditMode={isEditMode}
               isTestMode={isGlobalTestMode}
               invoiceInputRef={invoiceInputRef}

@@ -21,7 +21,8 @@ import {
   Inventory as InventoryIcon,
   Percent as PercentIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
-  ReceiptLong as ReceiptLongIcon
+  ReceiptLong as ReceiptLongIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -33,8 +34,10 @@ import { productServiceV2 } from '../services/productServiceV2';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
 import { RootState } from '../types/store';
 import { Product, PurchaseOrder, PurchaseOrderItem } from '@pharmacy-pos/shared/types/entities';
+import { Organization } from '@pharmacy-pos/shared/types/organization';
 import { usePurchaseOrderActions } from '../components/purchase-orders/PurchaseOrderActions';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
+import { useOrganizations } from '../hooks/useOrganizations';
 
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
 interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {
@@ -117,12 +120,26 @@ const PurchaseOrderDetailPage: React.FC = () => {
   const [productDetailsLoading, setProductDetailsLoading] = useState<boolean>(false);
   const [productDetailsError, setProductDetailsError] = useState<string | null>(null);
   
+  // 機構資料
+  const { organizations } = useOrganizations();
+  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
+  
   // 獲取進貨單數據
   useEffect(() => {
     if (id) {
       dispatch(fetchPurchaseOrder(id));
     }
   }, [dispatch, id]);
+
+  // 根據進貨單的 organizationId 設置當前機構
+  useEffect(() => {
+    if (currentPurchaseOrder?.organizationId && organizations.length > 0) {
+      const foundOrganization = organizations.find(org => org._id === currentPurchaseOrder.organizationId);
+      setCurrentOrganization(foundOrganization || null);
+    } else {
+      setCurrentOrganization(null);
+    }
+  }, [currentPurchaseOrder?.organizationId, organizations]);
 
   // 處理編輯按鈕點擊事件
   const handleEditClick = () => {
@@ -283,6 +300,10 @@ const PurchaseOrderDetailPage: React.FC = () => {
               <Stack direction="row" spacing={1} alignItems="center">
                 <SupplierIcon fontSize="small" color="action"/>
                 <Typography variant="body2">供應商: {currentPurchaseOrder.posupplier || '未指定'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <BusinessIcon fontSize="small" color="action"/>
+                <Typography variant="body2">機構: {currentOrganization?.name || '未指定'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <InfoIcon fontSize="small" color="action"/>

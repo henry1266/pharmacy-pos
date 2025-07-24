@@ -320,6 +320,8 @@ export interface PurchaseOrder {
   pobilldate?: string | Date;
   posupplier?: string;
   supplier: string | Supplier; // 供應商ID或供應商對象
+  organizationId?: string; // 機構ID
+  transactionType?: string; // 交易類型：進貨/支出
   orderDate: string | Date;
   expectedDeliveryDate?: string | Date;
   actualDeliveryDate?: string | Date;

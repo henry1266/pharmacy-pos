@@ -76,6 +76,8 @@ export interface PurchaseOrderRequest {
   pobilldate?: Date | string;
   posupplier: string;
   supplier?: string;
+  organizationId?: string;
+  transactionType?: string;
   items: PurchaseOrderItem[];
   notes?: string;
   status?: PurchaseOrderStatus;
