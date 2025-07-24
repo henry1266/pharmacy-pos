@@ -244,155 +244,152 @@ export const SimpleTransactionFlow: React.FC<SimpleTransactionFlowProps> = ({
           </Alert>
         )}
 
-        {/* 交易流向選擇器 */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" gutterBottom color="text.secondary">
-            交易流向
-          </Typography>
-          
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2,
-            p: 2,
-            border: '2px solid',
-            borderColor: isValid ? 'success.light' : 'grey.300',
-            borderRadius: 2,
-            bgcolor: isValid ? 'success.50' : 'grey.50',
-            transition: 'all 0.3s ease'
-          }}>
-            {/* 來源科目（貸方） */}
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                從（貸方）
-              </Typography>
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<AccountIcon />}
-                onClick={() => handleAccountSelect('from')}
-                disabled={disabled}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textTransform: 'none',
-                  minHeight: 48,
-                  bgcolor: fromAccount ? 'secondary.50' : 'background.paper',
-                  borderColor: fromAccount ? 'secondary.main' : 'grey.300',
-                  color: fromAccount ? 'secondary.main' : 'text.secondary',
-                  '&:hover': {
-                    bgcolor: fromAccount ? 'secondary.100' : 'grey.50'
-                  }
-                }}
-              >
-                <Typography variant="body2" noWrap>
-                  {getAccountDisplayName(fromAccount)}
-                </Typography>
-              </Button>
-            </Box>
-
-            {/* 借貸對調按鈕 */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-              <Tooltip title="一鍵借貸對調">
-                <IconButton
-                  color="primary"
-                  onClick={handleSwapAccounts}
-                  disabled={disabled || !isValid}
+        {/* 輸入列 - 所有輸入控制項在同一列 */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
+          {/* 交易流向選擇器 - 占50%寬度 */}
+          <Box sx={{ flex: 1 }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              p: 1.5,
+              border: '2px solid',
+              borderColor: isValid ? 'success.light' : 'grey.300',
+              borderRadius: 2,
+              
+              transition: 'all 0.3s ease',
+              minHeight: 56 // 與 TextField 高度一致
+            }}>
+              {/* 來源科目 */}
+              <Box sx={{ flex: 1 }}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<AccountIcon />}
+                  onClick={() => handleAccountSelect('from')}
+                  disabled={disabled}
                   sx={{
-                    bgcolor: 'primary.50',
-                    border: '2px solid',
-                    borderColor: 'primary.main',
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    minHeight: 32,
+                    
+                    borderColor: fromAccount ? 'secondary.main' : 'grey.300',
+                    color: fromAccount ? 'secondary.main' : 'text.secondary',
+                    fontSize: '1rem',
                     '&:hover': {
-                      bgcolor: 'primary.100'
-                    },
-                    '&:disabled': {
-                      bgcolor: 'grey.100',
-                      borderColor: 'grey.300'
+                      bgcolor: fromAccount ? 'secondary.100' : 'grey.50'
                     }
                   }}
                 >
-                  <SwapIcon />
-                </IconButton>
-              </Tooltip>
-              <ArrowForwardIcon 
-                sx={{ 
-                  color: isValid ? 'success.main' : 'grey.400',
-                  fontSize: 20
-                }} 
-              />
-            </Box>
+                  <Typography variant="body2" noWrap sx={{ fontSize: '1rem' }}>
+                    {fromAccount ? fromAccount.name : '選擇來源'}
+                  </Typography>
+                </Button>
+              </Box>
 
-            {/* 目標科目（借方） */}
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                到（借方）
-              </Typography>
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<AccountIcon />}
-                onClick={() => handleAccountSelect('to')}
-                disabled={disabled}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textTransform: 'none',
-                  minHeight: 48,
-                  bgcolor: toAccount ? 'primary.50' : 'background.paper',
-                  borderColor: toAccount ? 'primary.main' : 'grey.300',
-                  color: toAccount ? 'primary.main' : 'text.secondary',
-                  '&:hover': {
-                    bgcolor: toAccount ? 'primary.100' : 'grey.50'
-                  }
-                }}
-              >
-                <Typography variant="body2" noWrap>
-                  {getAccountDisplayName(toAccount)}
-                </Typography>
-              </Button>
+              {/* 借貸對調按鈕 */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                <Tooltip title="一鍵借貸對調">
+                  <IconButton
+                    color="primary"
+                    onClick={handleSwapAccounts}
+                    disabled={disabled || !isValid}
+                    size="small"
+                    sx={{
+                      bgcolor: 'primary.50',
+                      border: '2px solid',
+                      borderColor: 'primary.main',
+                      width: 24,
+                      height: 24,
+                      '&:hover': {
+                        bgcolor: 'primary.100'
+                      },
+                      '&:disabled': {
+                        bgcolor: 'grey.100',
+                        borderColor: 'grey.300'
+                      }
+                    }}
+                  >
+                    <SwapIcon sx={{ fontSize: 13 }} />
+                  </IconButton>
+                </Tooltip>
+                <ArrowForwardIcon
+                  sx={{
+                    color: isValid ? 'success.main' : 'grey.400',
+                    fontSize: 13
+                  }}
+                />
+              </Box>
+
+              {/* 目標科目 */}
+              <Box sx={{ flex: 1 }}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<AccountIcon />}
+                  onClick={() => handleAccountSelect('to')}
+                  disabled={disabled}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    minHeight: 32,
+                    bgcolor: toAccount ? 'primary.50' : 'background.paper',
+                    borderColor: toAccount ? 'primary.main' : 'grey.300',
+                    color: toAccount ? 'primary.main' : 'text.secondary',
+                    fontSize: '1rem',
+                    '&:hover': {
+                      bgcolor: toAccount ? 'primary.100' : 'grey.50'
+                    }
+                  }}
+                >
+                  <Typography variant="body2" noWrap sx={{ fontSize: '1rem' }}>
+                    {toAccount ? toAccount.name : '選擇目標'}
+                  </Typography>
+                </Button>
+              </Box>
             </Box>
           </Box>
-        </Box>
 
-        {/* 金額輸入 */}
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            fullWidth
-            label="交易金額"
-            type="number"
-            value={amount || ''}
-            onChange={(e) => handleAmountChange(parseFloat(e.target.value) || 0)}
-            disabled={disabled}
-            error={!!errors.amount}
-            helperText={errors.amount || '此金額將同時套用到借方和貸方，確保平衡'}
-            InputProps={{
-              startAdornment: <Typography sx={{ mr: 1, color: 'text.secondary' }}>$</Typography>
-            }}
-            inputProps={{
-              min: 0,
-              step: 0.01
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                fontSize: '1.1rem',
-                fontWeight: 'medium'
-              }
-            }}
-          />
-        </Box>
+          {/* 金額輸入 - 占25%寬度 */}
+          <Box sx={{ width: '20%' }}>
+            <TextField
+              fullWidth
+              type="number"
+              value={amount || ''}
+              onChange={(e) => handleAmountChange(parseFloat(e.target.value) || 0)}
+              disabled={disabled}
+              error={!!errors.amount}
+              InputProps={{
+                startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary', fontSize: '1rem' }}>$</Typography>
+              }}
+              inputProps={{
+                min: 0,
+                step: 0.1
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: '1rem'
+                }
+              }}
+            />
+          </Box>
 
-        {/* 交易描述 */}
-        <Box sx={{ mb: 2 }}>
-          <TextField
-            fullWidth
-            label="交易描述"
-            value={description}
-            onChange={(e) => onDescriptionChange(e.target.value)}
-            disabled={disabled}
-            error={!!errors.description}
-            helperText={errors.description}
-            placeholder="例如：購買辦公用品"
-            multiline
-            rows={2}
-          />
+          {/* 交易描述 - 占25%寬度 */}
+          <Box sx={{ width: '25%' }}>
+            <TextField
+              fullWidth
+              value={description}
+              onChange={(e) => onDescriptionChange(e.target.value)}
+              disabled={disabled}
+              error={!!errors.description}
+              placeholder="交易描述"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: '0.875rem'
+                }
+              }}
+            />
+          </Box>
         </Box>
 
         {/* 狀態顯示 */}
@@ -412,15 +409,6 @@ export const SimpleTransactionFlow: React.FC<SimpleTransactionFlowProps> = ({
             </Typography>
           </Box>
         </Fade>
-
-        {/* 提示訊息 */}
-        {!isValid && (
-          <Alert severity="info" sx={{ mt: 2 }}>
-            <Typography variant="body2">
-              💡 簡易模式適用於一借一貸的交易。請選擇來源科目和目標科目，系統會自動處理借貸平衡。
-            </Typography>
-          </Alert>
-        )}
       </CardContent>
     </Card>
   );
