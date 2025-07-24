@@ -38,7 +38,6 @@ import { AccountTransactionListFundingStatusDisplay } from './AccountTransaction
 interface AccountTransactionListTableProps {
   transactions: ExtendedTransactionGroupWithEntries[];
   selectedAccount: Account2;
-  onRowClick: (event: React.MouseEvent<HTMLElement>, transaction: ExtendedTransactionGroupWithEntries) => void;
   onTransactionView?: (transaction: ExtendedTransactionGroupWithEntries) => void;
   onTransactionEdit?: (transaction: ExtendedTransactionGroupWithEntries) => void;
   onTransactionCopy?: (transaction: ExtendedTransactionGroupWithEntries) => void;
@@ -54,7 +53,6 @@ interface AccountTransactionListTableProps {
 export const AccountTransactionListTable: React.FC<AccountTransactionListTableProps> = ({
   transactions,
   selectedAccount,
-  onRowClick,
   onTransactionView,
   onTransactionEdit,
   onTransactionCopy,
@@ -90,14 +88,6 @@ export const AccountTransactionListTable: React.FC<AccountTransactionListTablePr
           {transactions.map((transaction) => (
             <TableRow
               key={transaction._id}
-              hover
-              onClick={(event) => onRowClick(event, transaction)}
-              sx={{
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: 'action.hover'
-                }
-              }}
             >
               <TableCell>
                 {formatDate(transaction.transactionDate)}

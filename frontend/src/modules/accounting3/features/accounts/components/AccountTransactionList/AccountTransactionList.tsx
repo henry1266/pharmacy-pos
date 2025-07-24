@@ -17,7 +17,6 @@ import { TransactionGroupWithEntries, EmbeddedAccountingEntry } from '@pharmacy-
 import { accounting3Service } from '../../../../services/accounting3Service';
 import { AccountTransactionListStatisticsCards as TransactionStatisticsCards } from './AccountTransactionListStatisticsCards';
 import { AccountTransactionListDetailDialog as TransactionDetailDialog } from './AccountTransactionListDetailDialog';
-import { AccountTransactionListActionMenu as TransactionActionMenu } from './AccountTransactionListActionMenu';
 import { AccountTransactionListTable as TransactionTable } from './AccountTransactionListTable';
 
 // 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
@@ -75,10 +74,6 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
   // 彈出式對話框狀態
   const [transactionDetailOpen, setTransactionDetailOpen] = useState(false);
   const [selectedTransactionForDetail, setSelectedTransactionForDetail] = useState<ExtendedTransactionGroupWithEntries | null>(null);
-  
-  // 操作選單狀態
-  const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(null);
-  const [selectedTransactionForAction, setSelectedTransactionForAction] = useState<ExtendedTransactionGroupWithEntries | null>(null);
 
   // 載入選中科目的交易
   useEffect(() => {
@@ -238,18 +233,6 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
     }));
   }, [selectedAccount, transactions]);
 
-  // 處理列點擊（彈出操作選單）
-  const handleRowClick = (event: React.MouseEvent<HTMLElement>, transaction: ExtendedTransactionGroupWithEntries) => {
-    event.preventDefault();
-    setActionMenuAnchor(event.currentTarget);
-    setSelectedTransactionForAction(transaction);
-  };
-
-  // 關閉操作選單
-  const handleActionMenuClose = () => {
-    setActionMenuAnchor(null);
-    setSelectedTransactionForAction(null);
-  };
 
   if (!selectedAccount) {
     return (
@@ -332,7 +315,6 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
             <TransactionTable
               transactions={transactionsWithRunningBalance}
               selectedAccount={selectedAccount}
-              onRowClick={handleRowClick}
               onTransactionView={onTransactionView}
               onTransactionEdit={onTransactionEdit}
               onTransactionCopy={onTransactionCopy}
@@ -349,19 +331,6 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
         open={transactionDetailOpen}
         transaction={selectedTransactionForDetail}
         onClose={() => setTransactionDetailOpen(false)}
-      />
-
-      {/* 操作選單 */}
-      <TransactionActionMenu
-        anchorEl={actionMenuAnchor}
-        transaction={selectedTransactionForAction}
-        onClose={handleActionMenuClose}
-        onView={onTransactionView}
-        onEdit={onTransactionEdit}
-        onCopy={onTransactionCopy}
-        onConfirm={onTransactionConfirm}
-        onUnlock={onTransactionUnlock}
-        onDelete={onTransactionDelete}
       />
     </Paper>
   );

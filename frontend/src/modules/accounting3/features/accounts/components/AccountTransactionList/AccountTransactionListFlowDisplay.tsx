@@ -5,6 +5,7 @@ import {
   Chip
 } from '@mui/material';
 import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
 
 // 共享型別定義 - 應該提取到共享文件中
