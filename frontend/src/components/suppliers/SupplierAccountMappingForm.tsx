@@ -44,7 +44,6 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
   const [error, setError] = useState<string>('');
   const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccount[]>([]);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
-  const [priority, setPriority] = useState<number>(1);
 
   const dispatch = useAppDispatch();
 
@@ -62,7 +61,6 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
       // 清空現有資料
       setMapping(null);
       setSelectedAccounts([]);
-      setPriority(1);
     }
   }, [supplierId]);
 
@@ -103,15 +101,10 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
           organizationId: existingMapping.organizationId
         }));
         setSelectedAccounts(accounts);
-        
-        if (existingMapping.accountMappings && existingMapping.accountMappings.length > 0) {
-          setPriority(existingMapping.accountMappings[0].priority);
-        }
       } else {
         console.log('未找到現有配對');
         setMapping(null);
         setSelectedAccounts([]);
-        setPriority(1);
       }
     } catch (error) {
       console.error('載入配對失敗:', error);
@@ -130,14 +123,12 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
     console.log('開始儲存供應商科目配對');
     console.log('供應商ID:', supplierId);
     console.log('選中的科目:', selectedAccounts);
-    console.log('優先順序:', priority);
 
     setLoading(true);
     try {
       const formData: SupplierAccountMappingFormData = {
         supplierId,
-        accountIds: selectedAccounts.map(a => a._id),
-        priority
+        accountIds: selectedAccounts.map(a => a._id)
       };
 
       console.log('發送的表單資料:', formData);
@@ -209,7 +200,6 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
 
       setMapping(null);
       setSelectedAccounts([]);
-      setPriority(1);
       
       if (onMappingChange) {
         onMappingChange(null);
@@ -281,23 +271,6 @@ const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
           >
             選擇會計科目
           </Button>
-          
-          {selectedAccounts.length > 0 && (
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>優先順序</InputLabel>
-              <Select
-                value={priority}
-                onChange={(e) => setPriority(Number(e.target.value))}
-                label="優先順序"
-              >
-                {[1, 2, 3, 4, 5].map((p) => (
-                  <MenuItem key={p} value={p}>
-                    {p}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>

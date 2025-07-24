@@ -72,7 +72,7 @@ SupplierSchema.methods.getSupplierSummary = function(): {
 };
 
 // 建立並匯出模型
-const Supplier: Model<ISupplierDocument> = mongoose.model<ISupplierDocument>('Supplier', SupplierSchema);
+const Supplier: Model<ISupplierDocument> = mongoose.model<ISupplierDocument>('supplier', SupplierSchema);
 
 // 雙重導出策略以確保兼容性
 export default Supplier;

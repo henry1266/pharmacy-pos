@@ -8,7 +8,6 @@ import PackagesPage from './pages/PackagesPage';
 import SuppliersPage from './pages/SuppliersPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import SuppliersReportPage from './pages/SuppliersReportPage';
-import SupplierAccountMappingPage from './pages/SupplierAccountMappingPage';
 import CustomersPage from './pages/CustomersPage';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 // 銷售管理頁面元件

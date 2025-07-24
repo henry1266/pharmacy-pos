@@ -470,7 +470,7 @@ export interface SupplierAccountMapping {
 export interface SupplierAccountMappingFormData {
   supplierId: string;
   accountIds: string[];
-  priority: number;
+  priority?: number;
   notes?: string;
 }
 

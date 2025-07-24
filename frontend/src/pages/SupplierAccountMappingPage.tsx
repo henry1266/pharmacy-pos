@@ -54,7 +54,7 @@ const SupplierAccountMappingPage: React.FC = () => {
   const [formData, setFormData] = useState<SupplierAccountMappingFormData>({
     supplierId: '',
     accountIds: [],
-    priority: 1
+    priority: 1 // 系統預設，不再顯示給用戶選擇
   });
   const [selectedAccounts, setSelectedAccounts] = useState<SelectedAccount[]>([]);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
@@ -247,7 +247,6 @@ const SupplierAccountMappingPage: React.FC = () => {
                 <TableCell>供應商</TableCell>
                 <TableCell>機構</TableCell>
                 <TableCell>會計科目</TableCell>
-                <TableCell>優先順序</TableCell>
                 <TableCell>狀態</TableCell>
                 <TableCell>操作</TableCell>
               </TableRow>
@@ -255,13 +254,13 @@ const SupplierAccountMappingPage: React.FC = () => {
             <TableBody>
               {loading && mappings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={6} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : mappings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={6} align="center">
                     <Typography color="textSecondary">
                       尚無配對資料
                     </Typography>
@@ -278,9 +277,6 @@ const SupplierAccountMappingPage: React.FC = () => {
                           <Chip key={index} label={`${am.accountCode} - ${am.accountName}`} size="small" />
                         ))}
                       </Box>
-                    </TableCell>
-                    <TableCell>
-                      {mapping.accountMappings.length > 0 ? mapping.accountMappings[0].priority : '-'}
                     </TableCell>
                     <TableCell>
                       <Chip 
@@ -321,7 +317,7 @@ const SupplierAccountMappingPage: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel>供應商</InputLabel>
                 <Select
@@ -340,22 +336,7 @@ const SupplierAccountMappingPage: React.FC = () => {
 
 
 
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>優先順序</InputLabel>
-                <Select
-                  value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
-                  label="優先順序"
-                >
-                  {[1, 2, 3, 4, 5].map((priority) => (
-                    <MenuItem key={priority} value={priority}>
-                      {priority}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+            {/* 優先順序功能已移除，系統自動設定 */}
 
             <Grid item xs={12}>
               <Box>

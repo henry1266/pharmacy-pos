@@ -103,7 +103,7 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrderDocument>({
   },
   organizationId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'organization',
+    ref: 'Organization',
     required: false
   },
   transactionType: {

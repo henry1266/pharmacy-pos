@@ -23,9 +23,7 @@ import {
   LinearProgress,
   Tooltip,
   Snackbar,
-  AlertProps,
-  Tabs,
-  Tab
+  AlertProps
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -141,7 +139,6 @@ const SuppliersPage: FC<{}> = () => {
   const [localSelectedSupplier, setLocalSelectedSupplier] = useState<SupplierData | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filteredSuppliers, setFilteredSuppliers] = useState<SupplierData[]>([]);
-  const [dialogTabValue, setDialogTabValue] = useState<number>(0);
 
   // 定義 showSnackbar 函數
   const showSnackbar = (message: string, severity: AlertProps['severity'] = 'success'): void => {
@@ -336,7 +333,6 @@ const SuppliersPage: FC<{}> = () => {
 
   const handleCloseDialog = (): void => {
     setOpenDialog(false);
-    setDialogTabValue(0);
   };
   const handleCloseImportDialog = (): void => { setOpenImportDialog(false); setCsvFile(null); setImportResult(null); };
   const handleRowClick = (params: { row: SupplierData }): void => selectSupplier(params.row.id);
@@ -642,53 +638,55 @@ const SuppliersPage: FC<{}> = () => {
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editMode ? '編輯供應商' : '添加供應商'} {isTestMode && "(模擬)"}</DialogTitle>
         <DialogContent>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tabs value={dialogTabValue} onChange={(e, newValue) => setDialogTabValue(newValue)}>
-              <Tab label="基本資料" />
-              <Tab label="會計科目配對" disabled={!editMode || !currentSupplierState.id} />
-            </Tabs>
-          </Box>
-          
-          {dialogTabValue === 0 && (
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-              <Grid item xs={12} sm={4}>
-                <TextField name="code" label="供應商編號" value={currentSupplierState.code} onChange={handleInputChange} fullWidth margin="dense" size="small" helperText={isTestMode ? "測試模式：可留空" : "留空將自動生成"} />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField name="shortCode" label="簡碼" value={currentSupplierState.shortCode} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
-              </Grid>
-              <Grid item xs={12}  sm={4}>
-                <TextField name="name" label="供應商名稱" value={currentSupplierState.name} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField name="contactPerson" label="聯絡人" value={currentSupplierState.contactPerson} onChange={handleInputChange} fullWidth margin="dense" size="small" />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField name="phone" label="電話" value={currentSupplierState.phone} onChange={handleInputChange} fullWidth margin="dense" size="small" />
-              </Grid>
-              <Grid item xs={12} sm={5}>
-                <TextField name="taxId" label="稅號" value={currentSupplierState.taxId} onChange={handleInputChange} fullWidth margin="dense" size="small" />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField name="paymentTerms" label="付款條件" value={currentSupplierState.paymentTerms} onChange={handleInputChange} fullWidth margin="dense" size="small" />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField name="notes" label="備註" value={currentSupplierState.notes} onChange={handleInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
-              </Grid>
+          {/* 基本資料區塊 */}
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            基本資料
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={4}>
+              <TextField name="code" label="供應商編號" value={currentSupplierState.code} onChange={handleInputChange} fullWidth margin="dense" size="small" helperText={isTestMode ? "測試模式：可留空" : "留空將自動生成"} />
             </Grid>
-          )}
+            <Grid item xs={12} sm={4}>
+              <TextField name="shortCode" label="簡碼" value={currentSupplierState.shortCode} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
+            </Grid>
+            <Grid item xs={12}  sm={4}>
+              <TextField name="name" label="供應商名稱" value={currentSupplierState.name} onChange={handleInputChange} fullWidth margin="dense" size="small" required />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField name="contactPerson" label="聯絡人" value={currentSupplierState.contactPerson} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField name="phone" label="電話" value={currentSupplierState.phone} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField name="taxId" label="稅號" value={currentSupplierState.taxId} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField name="paymentTerms" label="付款條件" value={currentSupplierState.paymentTerms} onChange={handleInputChange} fullWidth margin="dense" size="small" />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField name="notes" label="備註" value={currentSupplierState.notes} onChange={handleInputChange} fullWidth margin="dense" size="small" multiline rows={3} />
+            </Grid>
+          </Grid>
           
-          {dialogTabValue === 1 && editMode && currentSupplierState.id && (
-            <Box sx={{ mt: 1 }}>
-              <SupplierAccountMappingForm
-                supplierId={currentSupplierState.id}
-                supplierName={currentSupplierState.name}
-                onMappingChange={(mapping) => {
-                  // 可以在這裡處理配對變更的回調
-                  console.log('Mapping changed:', mapping);
-                }}
-              />
-            </Box>
+          {/* 會計科目配對區塊 - 只在編輯模式且有供應商ID時顯示 */}
+          {editMode && currentSupplierState.id && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                會計科目配對
+              </Typography>
+              <Box sx={{ mt: 1 }}>
+                <SupplierAccountMappingForm
+                  supplierId={currentSupplierState.id}
+                  supplierName={currentSupplierState.name}
+                  onMappingChange={(mapping) => {
+                    // 可以在這裡處理配對變更的回調
+                    console.log('Mapping changed:', mapping);
+                  }}
+                />
+              </Box>
+            </>
           )}
         </DialogContent>
         <DialogActions>
