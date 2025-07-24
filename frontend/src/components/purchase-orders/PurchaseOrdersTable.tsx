@@ -15,6 +15,7 @@ import { DataGrid, GridColDef, GridRenderCellParams, GridLocaleText } from '@mui
 import { format } from 'date-fns';
 import StatusChip from '../common/StatusChip';
 import PaymentStatusChip from '../common/PaymentStatusChip';
+import { ActionButtons } from './shared/components';
 
 // 定義進貨單的介面
 interface PurchaseOrder {
@@ -52,6 +53,7 @@ interface PurchaseOrdersTableProps {
   handlePreviewMouseEnter: (e: MouseEvent<HTMLButtonElement>, id: string) => void;
   handlePreviewMouseLeave: () => void;
   renderSupplierHeader: () => React.ReactNode;
+  handleUnlock?: (id: string) => void;
 }
 
 /**
@@ -70,7 +72,8 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
   handleDeleteClick,
   handlePreviewMouseEnter,
   handlePreviewMouseLeave,
-  renderSupplierHeader
+  renderSupplierHeader,
+  handleUnlock
 }) => {
   // 表格列定義
   const columns: GridColDef[] = [
@@ -102,33 +105,23 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
       flex: 1,
       renderCell: (params: GridRenderCellParams) => <PaymentStatusChip status={params.value} />
     },
-    { 
-      field: 'actions', 
-      headerName: '操作', 
+    {
+      field: 'actions',
+      headerName: '操作',
       flex: 1,
       sortable: false,
       filterable: false,
       renderCell: (params: GridRenderCellParams) => (
-        <Box>
-          <IconButton 
-            size="small" 
-            onClick={() => handleView(params.row._id)}
-            onMouseEnter={(e) => handlePreviewMouseEnter(e, params.row._id)}
-            onMouseLeave={handlePreviewMouseLeave}
-          >
-            <VisibilityIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" onClick={() => handleEdit(params.row._id)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton 
-            size="small" 
-            onClick={() => handleDeleteClick(params.row as PurchaseOrderRow)}
-            disabled={params.row.status === 'completed'}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
+        <ActionButtons
+          onView={() => handleView(params.row._id)}
+          onEdit={() => handleEdit(params.row._id)}
+          onDelete={() => handleDeleteClick(params.row as PurchaseOrderRow)}
+          onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e as any, params.row._id)}
+          onPreviewMouseLeave={handlePreviewMouseLeave}
+          isDeleteDisabled={params.row.status === 'completed'}
+          status={params.row.status}
+          onUnlock={() => handleUnlock && handleUnlock(params.row._id)}
+        />
       )
     }
   ];
@@ -356,7 +349,8 @@ PurchaseOrdersTable.propTypes = {
   handleDeleteClick: PropTypes.func.isRequired,
   handlePreviewMouseEnter: PropTypes.func.isRequired,
   handlePreviewMouseLeave: PropTypes.func.isRequired,
-  renderSupplierHeader: PropTypes.func.isRequired
+  renderSupplierHeader: PropTypes.func.isRequired,
+  handleUnlock: PropTypes.func
 };
 
 export default PurchaseOrdersTable;

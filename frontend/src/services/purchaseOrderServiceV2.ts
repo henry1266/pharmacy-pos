@@ -273,6 +273,36 @@ export class PurchaseOrderServiceV2 {
     }
   }
 
+  // ==================== 狀態管理操作 ====================
+
+  /**
+   * 解鎖採購訂單（將已完成狀態改為待處理）
+   * @param id 採購訂單ID
+   * @returns Promise<PurchaseOrder>
+   */
+  async unlockPurchaseOrder(id: string): Promise<PurchaseOrder> {
+    try {
+      return await this.apiClient.updatePurchaseOrder(id, { status: 'pending' });
+    } catch (error) {
+      console.error(`解鎖採購訂單 ${id} 失敗:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 完成採購訂單
+   * @param id 採購訂單ID
+   * @returns Promise<PurchaseOrder>
+   */
+  async completePurchaseOrder(id: string): Promise<PurchaseOrder> {
+    try {
+      return await this.apiClient.updatePurchaseOrder(id, { status: 'completed' });
+    } catch (error) {
+      console.error(`完成採購訂單 ${id} 失敗:`, error);
+      throw error;
+    }
+  }
+
   // ==================== 批次操作 ====================
 
   /**
@@ -282,7 +312,7 @@ export class PurchaseOrderServiceV2 {
    * @returns Promise<PurchaseOrder[]>
    */
   async batchUpdateStatus(
-    orderIds: string[], 
+    orderIds: string[],
     status: 'pending' | 'completed' | 'cancelled'
   ): Promise<PurchaseOrder[]> {
     try {

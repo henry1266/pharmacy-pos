@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '../hooks/redux';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Typography,
   Chip,
@@ -33,6 +33,8 @@ import { productServiceV2 } from '../services/productServiceV2';
 import CollapsibleAmountInfo from '../components/common/CollapsibleAmountInfo';
 import { RootState } from '../types/store';
 import { Product, PurchaseOrder, PurchaseOrderItem } from '@pharmacy-pos/shared/types/entities';
+import { usePurchaseOrderActions } from '../components/purchase-orders/PurchaseOrderActions';
+import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 
 // 擴展 PurchaseOrder 類型以包含實際使用的欄位
 interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {
@@ -101,6 +103,7 @@ interface CollapsibleDetail {
 // 主組件
 const PurchaseOrderDetailPage: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   
   const { currentPurchaseOrder, loading: orderLoading, error: orderError } = useSelector((state: RootState) => state.purchaseOrders) as {
@@ -120,6 +123,29 @@ const PurchaseOrderDetailPage: React.FC = () => {
       dispatch(fetchPurchaseOrder(id));
     }
   }, [dispatch, id]);
+
+  // 處理編輯按鈕點擊事件
+  const handleEditClick = () => {
+    if (id) {
+      navigate(`/purchase-orders/edit/${id}`);
+    }
+  };
+
+  // 處理解鎖按鈕點擊事件
+  const handleUnlock = useCallback(async (): Promise<void> => {
+    if (!id) return;
+    
+    try {
+      await purchaseOrderServiceV2.unlockPurchaseOrder(id);
+      // 重新載入進貨單資料
+      dispatch(fetchPurchaseOrder(id));
+      console.log('進貨單已解鎖並改為待處理狀態');
+    } catch (error: any) {
+      console.error('解鎖進貨單時發生錯誤:', error);
+      const errorMessage = error.response?.data?.message || error.message || '未知錯誤';
+      alert(`解鎖失敗: ${errorMessage}`);
+    }
+  }, [id, dispatch]);
 
   // 獲取產品詳情
   useEffect(() => {
@@ -293,13 +319,22 @@ const PurchaseOrderDetailPage: React.FC = () => {
   // 合併載入狀態
   const combinedLoading = orderLoading || productDetailsLoading;
 
+  // 使用 PurchaseOrderActions hook 生成操作按鈕
+  const additionalActions = usePurchaseOrderActions({
+    purchaseOrder: currentPurchaseOrder,
+    orderId: id,
+    orderLoading: orderLoading,
+    productDetailsLoading: productDetailsLoading,
+    fifoLoading: false, // 進貨單沒有 FIFO 功能
+    onEdit: handleEditClick,
+    onUnlock: handleUnlock
+  });
+
   return (
     <DetailLayout
       pageTitle="進貨單詳情"
       recordIdentifier={currentPurchaseOrder?.poid}
       listPageUrl="/purchase-orders"
-      editPageUrl={`/purchase-orders/edit/${id}`}
-      printPageUrl={null}
       mainContent={mainContent}
       sidebarContent={sidebarContent}
       isLoading={combinedLoading}
@@ -308,6 +343,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
             <Typography color="error" variant="h6">載入進貨單時發生錯誤: {orderError}</Typography>
           </Box>
         ) : null}
+      additionalActions={additionalActions}
     />
   );
 };
