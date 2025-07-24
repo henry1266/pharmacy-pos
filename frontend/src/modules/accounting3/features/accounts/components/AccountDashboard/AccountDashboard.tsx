@@ -139,18 +139,45 @@ export const AccountDashboard: React.FC<AccountDashboardProps> = ({
       }
     });
 
-    const netAmount = totalDebitAmount - totalCreditAmount;
+    // 根據科目類型計算淨額
+    let netAmount = 0;
+    const accountType = selectedAccount.accountType;
+    
+    // 對於資產、費用科目：借方為正，貸方為負
+    if (accountType === 'asset' || accountType === 'expense') {
+      netAmount = totalDebitAmount - totalCreditAmount;
+    }
+    // 對於負債、權益、收入科目：貸方為正，借方為負
+    else if (accountType === 'liability' || accountType === 'equity' || accountType === 'revenue') {
+      netAmount = totalCreditAmount - totalDebitAmount;
+    }
+    else {
+      // 預設處理（資產類科目的邏輯）
+      netAmount = totalDebitAmount - totalCreditAmount;
+    }
     const averageTransactionAmount = transactions.length > 0 ? Math.abs(netAmount) / transactions.length : 0;
 
     // 轉換月度資料為陣列並排序
     const monthlyTrend = Array.from(monthlyData.entries())
-      .map(([month, data]) => ({
-        month,
-        debitAmount: data.debitAmount,
-        creditAmount: data.creditAmount,
-        netAmount: data.debitAmount - data.creditAmount,
-        transactionCount: data.transactionCount
-      }))
+      .map(([month, data]) => {
+        // 根據科目類型計算月度淨額
+        let monthlyNetAmount = 0;
+        if (accountType === 'asset' || accountType === 'expense') {
+          monthlyNetAmount = data.debitAmount - data.creditAmount;
+        } else if (accountType === 'liability' || accountType === 'equity' || accountType === 'revenue') {
+          monthlyNetAmount = data.creditAmount - data.debitAmount;
+        } else {
+          monthlyNetAmount = data.debitAmount - data.creditAmount;
+        }
+        
+        return {
+          month,
+          debitAmount: data.debitAmount,
+          creditAmount: data.creditAmount,
+          netAmount: monthlyNetAmount,
+          transactionCount: data.transactionCount
+        };
+      })
       .sort((a, b) => a.month.localeCompare(b.month));
 
     return {

@@ -276,7 +276,7 @@ export const AccountsManagementPage: React.FC = () => {
           <AccountTransactionList
             selectedAccount={selectedAccount}
             onTransactionView={(transaction) => {
-              console.log('查看交易:', transaction);
+              //console.log('查看交易:', transaction);
               // 可以打開交易詳情對話框
             }}
             onTransactionEdit={(transaction) => {
@@ -300,7 +300,7 @@ export const AccountsManagementPage: React.FC = () => {
                 if (typeof idValue === 'object' && idValue !== null) {
                   // 優先檢查 $oid 屬性（這是 MongoDB 的標準格式）
                   if (idValue.$oid && typeof idValue.$oid === 'string') {
-                    console.log('✅ 找到 $oid 屬性:', idValue.$oid);
+                    //console.log('✅ 找到 $oid 屬性:', idValue.$oid);
                     return idValue.$oid;
                   }
                   
@@ -309,7 +309,7 @@ export const AccountsManagementPage: React.FC = () => {
                     try {
                       const stringValue = idValue.toString();
                       if (stringValue !== '[object Object]') {
-                        console.log('✅ 使用 toString():', stringValue);
+                        //console.log('✅ 使用 toString():', stringValue);
                         return stringValue;
                       }
                     } catch (e) {
@@ -321,7 +321,7 @@ export const AccountsManagementPage: React.FC = () => {
                   if (typeof idValue.toHexString === 'function') {
                     try {
                       const hexString = idValue.toHexString();
-                      console.log('✅ 使用 toHexString():', hexString);
+                      //console.log('✅ 使用 toHexString():', hexString);
                       return hexString;
                     } catch (e) {
                       console.warn('❌ toHexString() 失敗:', e);
@@ -332,7 +332,7 @@ export const AccountsManagementPage: React.FC = () => {
                 // 最後嘗試直接字串轉換
                 const stringValue = String(idValue);
                 if (stringValue !== '[object Object]') {
-                  console.log('✅ 使用 String() 轉換:', stringValue);
+                  //console.log('✅ 使用 String() 轉換:', stringValue);
                   return stringValue;
                 }
                 
@@ -341,7 +341,7 @@ export const AccountsManagementPage: React.FC = () => {
               };
               
               const transactionId = extractObjectId(transaction._id);
-              console.log('🎯 最終提取的交易 ID:', transactionId);
+              //console.log('🎯 最終提取的交易 ID:', transactionId);
               
               // 驗證 ID 是否有效（MongoDB ObjectId 應該是 24 個字符的十六進制字串）
               const isValidObjectId = (id: string): boolean => {

@@ -49,14 +49,22 @@ const FlowChip: React.FC<{
   label: string;
   color: 'primary' | 'secondary';
   position: 'from' | 'to';
-}> = ({ label, color, position }) => (
+  accountId?: string | any;
+  onClick?: (accountId: string | any) => void;
+}> = ({ label, color, position, accountId, onClick }) => (
   <Chip
     label={label}
     size="small"
     color={color}
+    clickable={!!accountId}
+    onClick={accountId && onClick ? () => onClick(accountId) : undefined}
     sx={{
       ...FLOW_CHIP_STYLES,
-      ...(position === 'from' ? { mr: 0.5 } : { ml: 0.5 })
+      ...(position === 'from' ? { mr: 0.5 } : { ml: 0.5 }),
+      cursor: accountId ? 'pointer' : 'default',
+      '&:hover': accountId ? {
+        backgroundColor: color === 'primary' ? 'primary.dark' : 'secondary.dark'
+      } : {}
     }}
   />
 );
@@ -83,6 +91,27 @@ const getAccountName = (account: any): string => {
 export const AccountTransactionListFlowDisplay: React.FC<AccountTransactionListFlowDisplayProps> = ({
   transaction
 }) => {
+  const navigate = useNavigate();
+
+  // 提取帳戶ID的工具函數
+  const extractAccountId = (accountId: string | any): string | null => {
+    if (typeof accountId === 'string') {
+      return accountId;
+    }
+    if (typeof accountId === 'object' && accountId?._id) {
+      return accountId._id;
+    }
+    return null;
+  };
+
+  // 處理帳戶點擊事件
+  const handleAccountClick = (accountId: string | any) => {
+    const cleanId = extractAccountId(accountId);
+    if (cleanId) {
+      navigate(`/accounting3/accounts/${cleanId}`);
+    }
+  };
+
   // 渲染交易流向圖
   const renderTransactionFlow = () => {
     // 早期返回 - 無效的分錄資料
@@ -110,12 +139,16 @@ export const AccountTransactionListFlowDisplay: React.FC<AccountTransactionListF
           label={fromAccountName}
           color="secondary"
           position="from"
+          accountId={fromAccount.accountId}
+          onClick={handleAccountClick}
         />
         <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
         <FlowChip
           label={toAccountName}
           color="primary"
           position="to"
+          accountId={toAccount.accountId}
+          onClick={handleAccountClick}
         />
       </Box>
     );

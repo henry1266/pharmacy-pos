@@ -7,6 +7,30 @@ import { accounting3Service } from '../services/accounting3Service';
 import { AccountHierarchyNode } from '../types';
 
 /**
+ * 根據科目類型計算正確的餘額
+ * @param totalDebit 借方總額
+ * @param totalCredit 貸方總額
+ * @param accountType 科目類型
+ * @returns 正確的餘額（考慮科目類型的正常餘額方向）
+ */
+function calculateBalanceByAccountType(
+  totalDebit: number,
+  totalCredit: number,
+  accountType: string
+): number {
+  // 對於資產、費用科目：借方為正，貸方為負
+  if (accountType === 'asset' || accountType === 'expense') {
+    return totalDebit - totalCredit;
+  }
+  // 對於負債、權益、收入科目：貸方為正，借方為負
+  else if (accountType === 'liability' || accountType === 'equity' || accountType === 'revenue') {
+    return totalCredit - totalDebit;
+  }
+  // 預設處理（資產類科目的邏輯）
+  return totalDebit - totalCredit;
+}
+
+/**
  * 科目統計計算服務類
  */
 export class AccountStatisticsService {
@@ -99,8 +123,8 @@ export class AccountStatisticsService {
           });
         });
         
-        // 計算淨額（借方 - 貸方）
-        const netAmount = totalDebit - totalCredit;
+        // 根據科目類型計算正確的餘額
+        const netAmount = calculateBalanceByAccountType(totalDebit, totalCredit, node.accountType);
         
         // 遞歸計算子科目統計
         if (node.children.length > 0) {
@@ -231,8 +255,8 @@ export class AccountStatisticsService {
          });
        });
        
-       // 計算淨額（借方 - 貸方）
-       const netAmount = totalDebit - totalCredit;
+       // 根據科目類型計算正確的餘額
+       const netAmount = calculateBalanceByAccountType(totalDebit, totalCredit, node.accountType);
        
        // 顯示科目統計日誌
        console.log(`🔍 科目 "${node.name}" 統計:`, {
@@ -348,13 +372,17 @@ export class AccountStatisticsService {
       const stat = statisticsMap.get(node._id);
       
       if (stat) {
-        // 直接使用聚合結果
+        // 根據科目類型重新計算正確的餘額
+        const totalDebit = stat.totalDebit || 0;
+        const totalCredit = stat.totalCredit || 0;
+        const correctBalance = calculateBalanceByAccountType(totalDebit, totalCredit, node.accountType);
+        
         node.statistics = {
           totalTransactions: stat.transactionCount || 0,
-          totalDebit: stat.totalDebit || 0,
-          totalCredit: stat.totalCredit || 0,
-          balance: stat.balance || 0,
-          totalBalance: stat.totalBalance || stat.balance || 0,
+          totalDebit,
+          totalCredit,
+          balance: correctBalance,
+          totalBalance: correctBalance, // 先設為自身餘額，後面會重新計算包含子科目的總額
           childCount: node.children.length,
           descendantCount: this.countDescendants(node.children),
           hasTransactions: stat.hasTransactions || false,

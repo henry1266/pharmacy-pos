@@ -128,9 +128,21 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
     const debitAmount = accountEntry.debitAmount || 0;
     const creditAmount = accountEntry.creditAmount || 0;
     
-    // 對於資產、費用科目：借方為正，貸方為負
-    // 對於負債、權益、收入科目：貸方為正，借方為負
-    // 這裡簡化處理，可以根據科目類型調整
+    // 根據選中科目的類型決定正負號顯示
+    if (selectedAccount) {
+      const accountType = selectedAccount.accountType;
+      
+      // 對於資產、費用科目：借方為正，貸方為負
+      if (accountType === 'asset' || accountType === 'expense') {
+        return debitAmount - creditAmount;
+      }
+      // 對於負債、權益、收入科目：貸方為正，借方為負
+      else if (accountType === 'liability' || accountType === 'equity' || accountType === 'revenue') {
+        return creditAmount - debitAmount;
+      }
+    }
+    
+    // 預設處理（資產類科目的邏輯）
     return debitAmount - creditAmount;
   };
 
@@ -169,7 +181,27 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
       }
     });
 
-    const netAmount = totalDebitAmount - totalCreditAmount;
+    // 根據科目類型計算淨額
+    let netAmount = 0;
+    if (selectedAccount) {
+      const accountType = selectedAccount.accountType;
+      
+      // 對於資產、費用科目：借方為正，貸方為負
+      if (accountType === 'asset' || accountType === 'expense') {
+        netAmount = totalDebitAmount - totalCreditAmount;
+      }
+      // 對於負債、權益、收入科目：貸方為正，借方為負
+      else if (accountType === 'liability' || accountType === 'equity' || accountType === 'revenue') {
+        netAmount = totalCreditAmount - totalDebitAmount;
+      }
+      else {
+        // 預設處理（資產類科目的邏輯）
+        netAmount = totalDebitAmount - totalCreditAmount;
+      }
+    } else {
+      netAmount = totalDebitAmount - totalCreditAmount;
+    }
+    
     const averageAmount = transactions.length > 0 ? Math.abs(netAmount) / transactions.length : 0;
 
     return {
