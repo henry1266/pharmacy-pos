@@ -294,6 +294,8 @@ router.post('/', [
     });
 
     await purchaseOrder.save();
+    
+    console.log('🔍 進貨單已儲存 - selectedAccountIds:', purchaseOrder.selectedAccountIds);
 
     // 如果狀態為已完成，則更新庫存
     if (purchaseOrder.status === 'completed') {
@@ -565,6 +567,8 @@ router.put('/:id', async (req: Request, res: Response) => {
     
     // 保存更新後的進貨單，這樣會觸發pre-save中間件
     await purchaseOrder.save();
+    
+    console.log('🔍 進貨單已更新 - selectedAccountIds:', purchaseOrder.selectedAccountIds);
 
     // 如果需要更新庫存
     if (statusResult.needUpdateInventory) {

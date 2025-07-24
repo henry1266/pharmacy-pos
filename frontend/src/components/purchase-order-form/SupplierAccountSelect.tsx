@@ -106,13 +106,19 @@ const SupplierAccountSelect: React.FC<SupplierAccountSelectProps> = ({
             const hierarchyPath = accountData ? buildAccountHierarchy(accountData) : 
               `${accountMapping.accountCode} - ${accountMapping.accountName}`;
             
-            options.push({
-              id: accountMapping.accountId,
-              hierarchyPath,
-              accountCode: accountMapping.accountCode,
-              accountName: accountMapping.accountName,
-              organizationName: accountData?.organizationId?.name
-            });
+            const accountId = typeof accountMapping.accountId === 'string'
+              ? accountMapping.accountId
+              : (accountMapping.accountId as any)?._id || (accountMapping.accountId as any)?.id;
+              
+            if (accountId) {
+              options.push({
+                id: accountId,
+                hierarchyPath,
+                accountCode: accountMapping.accountCode,
+                accountName: accountMapping.accountName,
+                organizationName: accountData?.organizationId?.name
+              });
+            }
           });
         }
       });
@@ -137,6 +143,8 @@ const SupplierAccountSelect: React.FC<SupplierAccountSelectProps> = ({
   const handleChange = (event: SelectChangeEvent<string[]>) => {
     const value = event.target.value;
     const accountIds = typeof value === 'string' ? value.split(',') : value;
+    console.log('🔍 SupplierAccountSelect - handleChange value:', value);
+    console.log('🔍 SupplierAccountSelect - accountIds:', accountIds);
     onChange(accountIds);
   };
 

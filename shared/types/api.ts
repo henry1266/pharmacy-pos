@@ -273,6 +273,8 @@ export interface PurchaseOrderCreateRequest {
   orderNumber?: string;
   supplier: string;
   organizationId?: string;
+  transactionType?: string;
+  selectedAccountIds?: string[];
   orderDate?: string;
   expectedDeliveryDate?: string;
   items: Array<{

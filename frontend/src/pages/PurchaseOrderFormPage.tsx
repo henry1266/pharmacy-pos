@@ -365,11 +365,21 @@ const PurchaseOrderFormPage: React.FC = () => {
         supplier: supplierId,
         organizationId: orderData.organizationId || '',
         transactionType: orderData.transactionType || '',
-        selectedAccountIds: (orderData as any).selectedAccountIds
-          ? (orderData as any).selectedAccountIds.map((account: any) =>
-              typeof account === 'string' ? account : account._id || account.id
-            )
-          : [],
+        selectedAccountIds: (() => {
+          const rawAccountIds = (orderData as any).selectedAccountIds;
+          console.log('🔍 編輯模式 - 原始 selectedAccountIds:', rawAccountIds);
+          
+          if (!rawAccountIds) return [];
+          
+          const processedIds = rawAccountIds.map((account: any) => {
+            const id = typeof account === 'string' ? account : account._id || account.id;
+            console.log('🔍 編輯模式 - 處理會計科目 ID:', { original: account, processed: id });
+            return id;
+          });
+          
+          console.log('🔍 編輯模式 - 最終 selectedAccountIds:', processedIds);
+          return processedIds;
+        })(),
         items: mappedItems,
         notes: orderData.notes ?? '',
         status: orderData.status ?? 'pending',
