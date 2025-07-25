@@ -119,12 +119,33 @@ export class AutoAccountingEntryService {
     entryType: 'expense-asset' | 'asset-liability'
   ): { debitAccount: IAccount2 | null; creditAccount: IAccount2 | null } {
     
+    // 詳細記錄所有科目資訊
+    console.log(`🔍 分析 ${accounts.length} 個會計科目：`);
+    accounts.forEach((account, index) => {
+      console.log(`  ${index + 1}. ${account.name} (類型: ${account.accountType}, ID: ${account._id})`);
+    });
+    
     if (entryType === 'expense-asset') {
       // 支出-資產格式：支出科目(借方) + 資產科目(貸方)
-      const expenseAccount = accounts.find(account => account.accountType === 'expense');
-      const assetAccount = accounts.find(account => account.accountType === 'asset');
+      // 支援更靈活的科目組合：
+      // 1. 標準：expense + asset
+      // 2. 替代：asset + liability (當沒有expense科目時，將asset作為借方，liability作為貸方)
       
-      console.log(`✅ 支出-資產格式：借方=${expenseAccount?.name}, 貸方=${assetAccount?.name}`);
+      let expenseAccount = accounts.find(account => account.accountType === 'expense');
+      let assetAccount = accounts.find(account => account.accountType === 'asset');
+      let liabilityAccount = accounts.find(account => account.accountType === 'liability');
+      
+      // 如果沒有找到expense科目，但有asset和liability科目，則使用asset-liability組合
+      if (!expenseAccount && assetAccount && liabilityAccount) {
+        console.log(`🔄 支出-資產格式：未找到支出科目，改用資產-負債組合`);
+        console.log(`✅ 支出-資產格式（替代）：借方=${assetAccount?.name}, 貸方=${liabilityAccount?.name}`);
+        return {
+          debitAccount: assetAccount,
+          creditAccount: liabilityAccount
+        };
+      }
+      
+      console.log(`✅ 支出-資產格式（標準）：借方=${expenseAccount?.name}, 貸方=${assetAccount?.name}`);
       return {
         debitAccount: expenseAccount || null,
         creditAccount: assetAccount || null

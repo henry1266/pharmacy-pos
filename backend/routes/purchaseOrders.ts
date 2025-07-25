@@ -233,7 +233,7 @@ router.post('/', [
   }
 
   try {
-    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType, selectedAccountIds } = req.body as PurchaseOrderRequest;
+    const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType, selectedAccountIds, accountingEntryType } = req.body as PurchaseOrderRequest;
     
     console.log('🔍 創建進貨單 - selectedAccountIds:', selectedAccountIds);
     console.log('🔍 創建進貨單 - items:', JSON.stringify(items, null, 2));
@@ -297,6 +297,7 @@ router.post('/', [
       selectedAccountIds: selectedAccountIds && selectedAccountIds.length > 0
         ? selectedAccountIds.filter(id => id && Types.ObjectId.isValid(id.toString())).map(id => new Types.ObjectId(id.toString()))
         : undefined,
+      accountingEntryType: accountingEntryType ? accountingEntryType.toString() as 'expense-asset' | 'asset-liability' : undefined,
       items: processedItems,
       notes: notes ? notes.toString() : '',
       status: status ? status.toString() : 'pending',
@@ -370,7 +371,7 @@ async function handlePurchaseOrderIdChange(
  * @returns {Object} - 更新數據
  */
 function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseOrderDocument): Partial<IPurchaseOrderDocument> {
-  const { poid, pobill, pobilldate, posupplier, supplier, organizationId, transactionType, selectedAccountIds, notes, paymentStatus } = data;
+  const { poid, pobill, pobilldate, posupplier, supplier, organizationId, transactionType, selectedAccountIds, accountingEntryType, notes, paymentStatus } = data;
   
   const updateData: Partial<IPurchaseOrderDocument> = {};
   if (poid) updateData.poid = poid.toString();
@@ -386,6 +387,7 @@ function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseO
       ? selectedAccountIds.filter(id => id && Types.ObjectId.isValid(id.toString())).map(id => new Types.ObjectId(id.toString()))
       : [];
   }
+  if (accountingEntryType) updateData.accountingEntryType = accountingEntryType.toString() as 'expense-asset' | 'asset-liability';
   if (notes !== undefined) updateData.notes = notes ? notes.toString() : '';
   if (paymentStatus) updateData.paymentStatus = paymentStatus as ModelPaymentStatus;
   
@@ -513,6 +515,7 @@ const applyUpdatesToPurchaseOrder = (purchaseOrder: IPurchaseOrderDocument, upda
   if (updateData.organizationId) purchaseOrder.organizationId = updateData.organizationId;
   if (updateData.transactionType) purchaseOrder.transactionType = updateData.transactionType;
   if (updateData.selectedAccountIds !== undefined) purchaseOrder.selectedAccountIds = updateData.selectedAccountIds;
+  if (updateData.accountingEntryType) purchaseOrder.accountingEntryType = updateData.accountingEntryType;
   if (updateData.notes !== undefined) purchaseOrder.notes = updateData.notes;
   if (updateData.paymentStatus) purchaseOrder.paymentStatus = updateData.paymentStatus;
   if (updateData.status) purchaseOrder.status = updateData.status;
@@ -549,7 +552,7 @@ const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
 // @access  Private
 router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { poid, status, items, selectedAccountIds } = req.body as PurchaseOrderRequest;
+    const { poid, status, items, selectedAccountIds, accountingEntryType } = req.body as PurchaseOrderRequest;
     const id = req.params.id;
     
     console.log('🔍 更新進貨單 - selectedAccountIds:', selectedAccountIds);
