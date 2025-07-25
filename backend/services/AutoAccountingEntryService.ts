@@ -183,7 +183,7 @@ export class AutoAccountingEntryService {
         accountId: assetAccount._id as mongoose.Types.ObjectId,
         debitAmount: 0,
         creditAmount: purchaseOrder.totalAmount,
-        description: `進貨單自動分錄 - ${assetAccount.name} (貸方)`,
+        description: `${assetAccount.name} (貸方)`,
         categoryId: null,
         sourceTransactionId: null,
         fundingPath: []
@@ -193,7 +193,7 @@ export class AutoAccountingEntryService {
         accountId: otherAccount._id as mongoose.Types.ObjectId,
         debitAmount: purchaseOrder.totalAmount,
         creditAmount: 0,
-        description: `進貨單自動分錄 - ${otherAccount.name} (借方)`,
+        description: `${otherAccount.name} (借方)`,
         categoryId: null,
         sourceTransactionId: null,
         fundingPath: []
@@ -201,7 +201,7 @@ export class AutoAccountingEntryService {
     ];
     
     const transactionGroup = new TransactionGroupWithEntries({
-      description: `進貨單自動分錄 - ${purchaseOrder.poid} (${purchaseOrder.posupplier})`,
+      description: `${purchaseOrder.poid} (${purchaseOrder.posupplier})`,
       transactionDate: transactionDate,
       organizationId: organizationId,
       invoiceNo: purchaseOrder.pobill,

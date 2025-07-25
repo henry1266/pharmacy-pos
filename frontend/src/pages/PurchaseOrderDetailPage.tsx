@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '../hooks/redux';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Typography,
   Chip,
@@ -23,7 +23,8 @@ import {
   AccountBalanceWallet as AccountBalanceWalletIcon,
   ReceiptLong as ReceiptLongIcon,
   Business as BusinessIcon,
-  SwapHoriz as SwapHorizIcon
+  SwapHoriz as SwapHorizIcon,
+  AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -49,6 +50,7 @@ interface ExtendedPurchaseOrder extends Omit<PurchaseOrder, 'paymentStatus'> {
   posupplier?: string;     // 供應商名稱
   transactionType?: string; // 交易類型
   discountAmount?: number; // 折扣金額
+  relatedTransactionGroupId?: string; // 關聯的交易群組ID
   items: ExtendedPurchaseOrderItem[]; // 擴展的項目 - 保持必需以符合基礎介面
 }
 
@@ -126,6 +128,10 @@ const PurchaseOrderDetailPage: React.FC = () => {
   const { organizations } = useOrganizations();
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
   
+  // 分錄資訊狀態
+  const [transactionGroupId, setTransactionGroupId] = useState<string | null>(null);
+  const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
+  
   // 獲取進貨單數據
   useEffect(() => {
     if (id) {
@@ -142,6 +148,29 @@ const PurchaseOrderDetailPage: React.FC = () => {
       setCurrentOrganization(null);
     }
   }, [currentPurchaseOrder?.organizationId, organizations]);
+
+  // 獲取關聯的分錄資訊
+  useEffect(() => {
+    const fetchTransactionInfo = async () => {
+      if (!currentPurchaseOrder?.relatedTransactionGroupId) {
+        setTransactionGroupId(null);
+        return;
+      }
+
+      setTransactionLoading(true);
+      try {
+        // 設置交易群組ID
+        setTransactionGroupId(currentPurchaseOrder.relatedTransactionGroupId.toString());
+      } catch (error) {
+        console.error('獲取分錄資訊時發生錯誤:', error);
+        setTransactionGroupId(null);
+      } finally {
+        setTransactionLoading(false);
+      }
+    };
+
+    fetchTransactionInfo();
+  }, [currentPurchaseOrder?.relatedTransactionGroupId]);
 
   // 處理編輯按鈕點擊事件
   const handleEditClick = () => {
@@ -303,14 +332,36 @@ const PurchaseOrderDetailPage: React.FC = () => {
                 <SupplierIcon fontSize="small" color="action"/>
                 <Typography variant="body2">供應商: {currentPurchaseOrder.posupplier || '未指定'}</Typography>
               </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <BusinessIcon fontSize="small" color="action"/>
-                <Typography variant="body2">機構: {currentOrganization?.name || '未指定'}</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <SwapHorizIcon fontSize="small" color="action"/>
-                <Typography variant="body2">交易類型: {currentPurchaseOrder.transactionType || '未指定'}</Typography>
-              </Stack>
+              {transactionGroupId && (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <AccountBalanceIcon fontSize="small" color="action"/>
+                  <Typography variant="body2">
+                    分錄:
+                    <Link
+                      to={`/accounting3/transaction/${transactionGroupId}`}
+                      style={{
+                        textDecoration: 'none',
+                        color: 'inherit',
+                        marginLeft: '4px'
+                      }}
+                    >
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        sx={{
+                          color: 'primary.main',
+                          textDecoration: 'underline',
+                          '&:hover': {
+                            color: 'primary.dark'
+                          }
+                        }}
+                      >
+                        {transactionGroupId}
+                      </Typography>
+                    </Link>
+                  </Typography>
+                </Stack>
+              )}
               <Stack direction="row" spacing={1} alignItems="center">
                 <InfoIcon fontSize="small" color="action"/>
                 <Typography variant="body2" component="div">狀態: <StatusChip status={currentPurchaseOrder.status} /></Typography>
@@ -344,7 +395,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
   );
 
   // 合併載入狀態
-  const combinedLoading = orderLoading || productDetailsLoading;
+  const combinedLoading = orderLoading || productDetailsLoading || transactionLoading;
 
   // 使用 PurchaseOrderActions hook 生成操作按鈕
   const additionalActions = usePurchaseOrderActions({
