@@ -232,22 +232,6 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
         </IconButton>
       )}
       
-      {/* 強制顯示會計分錄圖示用於測試 */}
-      {relatedTransactionGroupId && (
-        <IconButton
-          size="small"
-          onClick={() => console.log('測試會計分錄點擊:', relatedTransactionGroupId)}
-          color="error"
-          title="測試會計分錄圖示"
-          sx={{
-            border: '2px solid blue',
-            backgroundColor: 'rgba(0, 0, 255, 0.1)'
-          }}
-        >
-          <AccountBalanceIcon fontSize="small" />
-        </IconButton>
-      )}
-      
       {isCompleted ? (
         // 已完成狀態：只顯示鎖符號
         <IconButton

@@ -284,7 +284,8 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   // 會計分錄查看處理函數
   const handleViewAccountingEntry = (transactionGroupId: string) => {
     // 導航到會計模組的交易群組詳情頁面
-    navigate(`/accounting3/transactions/${transactionGroupId}`);
+    console.log('🔗 導航到會計分錄:', transactionGroupId);
+    navigate(`/accounting3/transaction/${transactionGroupId}`);
   };
 
   // 解鎖處理函數

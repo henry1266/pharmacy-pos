@@ -26,6 +26,10 @@ interface FilteredRow {
   totalAmount: number;
   status: string;
   paymentStatus: string;
+  // 會計分錄相關欄位
+  relatedTransactionGroupId?: string;
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+  selectedAccountIds?: string[];
 }
 
 /**
@@ -135,7 +139,11 @@ const usePurchaseOrdersData = (): PurchaseOrdersDataResult => {
         posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
         totalAmount: po.totalAmount ?? 0,
         status: po.status ?? '',
-        paymentStatus: po.paymentStatus ?? ''
+        paymentStatus: po.paymentStatus ?? '',
+        // 會計分錄相關欄位
+        relatedTransactionGroupId: (po as any).relatedTransactionGroupId,
+        accountingEntryType: (po as any).accountingEntryType,
+        selectedAccountIds: (po as any).selectedAccountIds
       }));
       
       setFilteredRows(formattedRows);
