@@ -24,6 +24,7 @@ export interface IPurchaseOrder extends Omit<SharedPurchaseOrder, '_id' | 'suppl
   organizationId?: mongoose.Types.ObjectId; // 機構 ObjectId
   transactionType?: string; // 交易類型
   selectedAccountIds?: mongoose.Types.ObjectId[]; // 選中的會計科目ID
+  accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
   relatedTransactionGroupId?: mongoose.Types.ObjectId; // 關聯的會計分錄群組ID
   items: IPurchaseOrderItem[];
   createdAt: Date;
@@ -128,6 +129,11 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrderDocument>({
     ref: 'Account2',
     required: false
   }],
+  accountingEntryType: {
+    type: String,
+    enum: ['expense-asset', 'asset-liability'],
+    required: false
+  },
   relatedTransactionGroupId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TransactionGroup',

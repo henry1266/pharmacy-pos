@@ -20,6 +20,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
 import SupplierSelect from '../common/SupplierSelect'; // 假設你有一個供應商選擇組件
 import SupplierAccountSelect from './SupplierAccountSelect';
+import AccountingEntrySelector from './AccountingEntrySelector';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
@@ -44,6 +45,8 @@ interface FormData {
   status?: string;
   supplier?: string; // 供應商ID
   selectedAccountIds?: string[]; // 選中的會計科目ID
+  organizationId?: string; // 機構ID
+  accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
   [key: string]: any;
 }
 
@@ -54,6 +57,7 @@ interface BasicInfoFormProps {
   handleDateChange: (date: Date | null) => void;
   handleSupplierChange: (event: React.SyntheticEvent, supplier: Supplier | null) => void;
   handleAccountChange?: (accountIds: string[]) => void;
+  handleAccountingEntryChange?: (accountIds: string[], entryType: 'expense-asset' | 'asset-liability') => void;
   suppliers?: Supplier[];
   selectedSupplier?: Supplier | null;
   isEditMode?: boolean;
@@ -72,6 +76,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
   handleDateChange,
   handleSupplierChange,
   handleAccountChange,
+  handleAccountingEntryChange,
   suppliers,
   selectedSupplier,
   isEditMode,
@@ -240,7 +245,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
         </CardContent>
       </Card>
 
-      {/* 會計資訊區塊 */}
+      {/* 會計科目配對區塊 */}
       <Card>
         <CardContent sx={{ pb: 1, '&:last-child': { pb: 1 } }}>
           <Typography variant="h6" gutterBottom>
@@ -248,16 +253,31 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
           </Typography>
           
           <Grid container spacing={2}>
-            {/* 供應商會計科目選擇 */}
+            {/* 新的記帳格式選擇 */}
             <Grid item xs={12}>
-              <SupplierAccountSelect
-                supplierId={formData?.supplier || ''}
+              <AccountingEntrySelector
+                organizationId={formData?.organizationId}
                 selectedAccountIds={formData?.selectedAccountIds || []}
-                onChange={handleAccountChange || (() => {})}
-                label="已配對的會計科目"
-                size="small"
+                onChange={handleAccountingEntryChange || (() => {})}
                 disabled={!formData?.supplier}
               />
+            </Grid>
+            
+            {/* 原有的供應商科目配對 */}
+            <Grid item xs={12}>
+              <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+                  或使用供應商預設科目配對
+                </Typography>
+                <SupplierAccountSelect
+                  supplierId={formData?.supplier || ''}
+                  selectedAccountIds={formData?.selectedAccountIds || []}
+                  onChange={handleAccountChange || (() => {})}
+                  label="已配對的會計科目"
+                  size="small"
+                  disabled={!formData?.supplier}
+                />
+              </Box>
             </Grid>
           </Grid>
         </CardContent>

@@ -28,12 +28,12 @@ export class AutoAccountingEntryService {
       // 獲取會計科目詳細資訊
       const accounts = await this.getAccountDetails(purchaseOrder.selectedAccountIds!);
       
-      // 檢查是否有資產類別科目
-      const assetAccount = accounts.find(account => account.accountType === 'asset');
-      const otherAccounts = accounts.filter(account => account.accountType !== 'asset');
+      // 根據會計分錄類型決定借貸方向
+      const entryType = purchaseOrder.accountingEntryType || 'expense-asset'; // 預設為支出-資產格式
+      const { debitAccount, creditAccount } = this.determineDebitCreditAccounts(accounts, entryType);
       
-      if (!assetAccount || otherAccounts.length === 0) {
-        console.log('❌ 沒有找到資產科目或其他科目，無法創建雙分錄');
+      if (!debitAccount || !creditAccount) {
+        console.log(`❌ 無法根據 ${entryType} 格式找到合適的借貸科目`);
         return null;
       }
 
@@ -48,8 +48,8 @@ export class AutoAccountingEntryService {
       const transactionGroup = await this.createTransactionGroupWithEntries(
         purchaseOrder,
         organizationId,
-        assetAccount,
-        otherAccounts[0],
+        debitAccount,
+        creditAccount,
         userId
       );
       
@@ -109,6 +109,44 @@ export class AutoAccountingEntryService {
   }
 
   /**
+   * 根據會計分錄類型決定借貸科目
+   * @param accounts 會計科目陣列
+   * @param entryType 分錄類型
+   * @returns 借方和貸方科目
+   */
+  private static determineDebitCreditAccounts(
+    accounts: IAccount2[],
+    entryType: 'expense-asset' | 'asset-liability'
+  ): { debitAccount: IAccount2 | null; creditAccount: IAccount2 | null } {
+    
+    if (entryType === 'expense-asset') {
+      // 支出-資產格式：支出科目(借方) + 資產科目(貸方)
+      const expenseAccount = accounts.find(account => account.accountType === 'expense');
+      const assetAccount = accounts.find(account => account.accountType === 'asset');
+      
+      console.log(`✅ 支出-資產格式：借方=${expenseAccount?.name}, 貸方=${assetAccount?.name}`);
+      return {
+        debitAccount: expenseAccount || null,
+        creditAccount: assetAccount || null
+      };
+      
+    } else if (entryType === 'asset-liability') {
+      // 資產-負債格式：資產科目(借方) + 負債科目(貸方)
+      const assetAccount = accounts.find(account => account.accountType === 'asset');
+      const liabilityAccount = accounts.find(account => account.accountType === 'liability');
+      
+      console.log(`✅ 資產-負債格式：借方=${assetAccount?.name}, 貸方=${liabilityAccount?.name}`);
+      return {
+        debitAccount: assetAccount || null,
+        creditAccount: liabilityAccount || null
+      };
+    }
+    
+    console.log(`❌ 不支援的分錄類型: ${entryType}`);
+    return { debitAccount: null, creditAccount: null };
+  }
+
+  /**
    * 獲取會計科目詳細資訊
    * @param accountIds 會計科目ID陣列
    * @returns 會計科目陣列
@@ -161,16 +199,16 @@ export class AutoAccountingEntryService {
    * 創建交易群組（使用嵌入式模型）
    * @param purchaseOrder 進貨單文檔
    * @param organizationId 機構ID（可選，如果未提供則使用進貨單的機構ID）
-   * @param assetAccount 資產科目
-   * @param otherAccount 其他科目
+   * @param debitAccount 借方科目
+   * @param creditAccount 貸方科目
    * @param userId 用戶ID
    * @returns 交易群組文檔
    */
   private static async createTransactionGroupWithEntries(
     purchaseOrder: IPurchaseOrderDocument,
     organizationId: mongoose.Types.ObjectId,
-    assetAccount: IAccount2,
-    otherAccount: IAccount2,
+    debitAccount: IAccount2,
+    creditAccount: IAccount2,
     userId?: string
   ): Promise<ITransactionGroupWithEntries> {
     // 從進貨單號前八碼數字轉換日期
@@ -180,20 +218,20 @@ export class AutoAccountingEntryService {
     const entries: IEmbeddedAccountingEntry[] = [
       {
         sequence: 1,
-        accountId: assetAccount._id as mongoose.Types.ObjectId,
-        debitAmount: 0,
-        creditAmount: purchaseOrder.totalAmount,
-        description: `${assetAccount.name} (貸方)`,
+        accountId: debitAccount._id as mongoose.Types.ObjectId,
+        debitAmount: purchaseOrder.totalAmount,
+        creditAmount: 0,
+        description: `${debitAccount.name} (借方)`,
         categoryId: null,
         sourceTransactionId: null,
         fundingPath: []
       },
       {
         sequence: 2,
-        accountId: otherAccount._id as mongoose.Types.ObjectId,
-        debitAmount: purchaseOrder.totalAmount,
-        creditAmount: 0,
-        description: `${otherAccount.name} (借方)`,
+        accountId: creditAccount._id as mongoose.Types.ObjectId,
+        debitAmount: 0,
+        creditAmount: purchaseOrder.totalAmount,
+        description: `${creditAccount.name} (貸方)`,
         categoryId: null,
         sourceTransactionId: null,
         fundingPath: []

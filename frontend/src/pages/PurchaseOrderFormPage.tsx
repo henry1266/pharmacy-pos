@@ -71,6 +71,7 @@ interface IFormData {
   organizationId?: string; // 機構 ID
   transactionType?: string; // 交易類型：進貨/支出
   selectedAccountIds?: string[]; // 選中的會計科目ID
+  accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
   items: CurrentItem[];
   notes: string;
   status: string; // 使用字符串類型以適應所有可能的值
@@ -265,6 +266,7 @@ const PurchaseOrderFormPage: React.FC = () => {
     organizationId: '', // 機構 ID
     transactionType: '', // 交易類型
     selectedAccountIds: [], // 選中的會計科目ID
+    accountingEntryType: undefined, // 會計分錄類型
     items: [],
     notes: '',
     status: 'pending',
@@ -468,6 +470,15 @@ const PurchaseOrderFormPage: React.FC = () => {
     });
   };
 
+  const handleAccountingEntryChange = (accountIds: string[], entryType: 'expense-asset' | 'asset-liability') => {
+    console.log('🔍 前端 - handleAccountingEntryChange:', { accountIds, entryType });
+    setFormData({
+      ...formData,
+      selectedAccountIds: accountIds,
+      accountingEntryType: entryType
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.posupplier || !formData.supplier) {
@@ -663,6 +674,7 @@ const PurchaseOrderFormPage: React.FC = () => {
               handleDateChange={handleDateChange}
               handleSupplierChange={handleSupplierChange}
               handleAccountChange={handleAccountChange}
+              handleAccountingEntryChange={handleAccountingEntryChange}
               suppliers={suppliers || []}
               selectedSupplier={selectedSupplier}
               isEditMode={isEditMode}

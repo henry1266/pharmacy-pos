@@ -180,7 +180,7 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
           <AccountBalanceIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
-          會計科目配對 {mapping.accountMappings.length}
+          會計科目配對 {mapping?.accountMappings?.length || 0}
         </Typography>
         {onEditClick && (
           <Button
@@ -219,9 +219,9 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
       ) : (
         <Box>
           <List dense sx={{ py: 0 }}>
-            {mapping.accountMappings
-              .sort((a, b) => a.priority - b.priority)
-              .map((accountMapping, index) => {
+            {mapping?.accountMappings
+              ?.sort((a, b) => a.priority - b.priority)
+              ?.map((accountMapping, index) => {
                 // 獲取完整的會計科目資料（包含階層資訊）
                 const accountData = (accountMapping as any).accountId;
                 const hierarchyPath = accountData ? buildAccountHierarchy(accountData) :
@@ -256,7 +256,7 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
                         }
                       />
                     </ListItem>
-                    {index < mapping.accountMappings.length - 1 && <Divider />}
+                    {index < (mapping?.accountMappings?.length || 0) - 1 && <Divider />}
                   </React.Fragment>
                 );
               })}
