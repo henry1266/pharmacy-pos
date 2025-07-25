@@ -21,6 +21,8 @@ export interface PurchaseOrderItem {
   unitPrice?: number; // 單價（自動計算或手動設置）
   receivedQuantity?: number; // 已收貨數量
   batchNumber?: string; // 批號（選填）
+  packageQuantity?: number; // 大包裝數量
+  boxQuantity?: number; // 盒裝數量
   notes?: string; // 備註
 }
 

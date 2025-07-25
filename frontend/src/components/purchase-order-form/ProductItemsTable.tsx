@@ -31,6 +31,8 @@ interface Item {
   dquantity: string | number;
   dtotalCost: string | number;
   batchNumber?: string;
+  packageQuantity?: string | number;
+  boxQuantity?: string | number;
   packageUnits?: ProductPackageUnit[];
   [key: string]: any;
 }

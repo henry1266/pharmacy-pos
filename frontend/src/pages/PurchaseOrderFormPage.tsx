@@ -55,6 +55,8 @@ interface CurrentItem {
   dquantity: string;
   dtotalCost: string;
   batchNumber?: string;
+  packageQuantity?: string;
+  boxQuantity?: string;
   product: string | null;
   [key: string]: any;
 }
@@ -341,6 +343,8 @@ const PurchaseOrderFormPage: React.FC = () => {
               dquantity: String(item.dquantity || item.quantity || ''),
               dtotalCost: String(item.dtotalCost || item.subtotal || ''),
               batchNumber: item.batchNumber || '', // 加入批號欄位
+              packageQuantity: (item as any).packageQuantity ? String((item as any).packageQuantity) : '', // 加入大包裝數量欄位
+              boxQuantity: (item as any).boxQuantity ? String((item as any).boxQuantity) : '', // 加入盒裝數量欄位
               product: productId
             };
           })
@@ -507,11 +511,14 @@ const PurchaseOrderFormPage: React.FC = () => {
         ...item,
         dquantity: Number(item.dquantity),
         dtotalCost: Number(item.dtotalCost),
+        packageQuantity: item.packageQuantity ? Number(item.packageQuantity) : undefined,
+        boxQuantity: item.boxQuantity ? Number(item.boxQuantity) : undefined,
       })),
       status: status
     };
     
     console.log('🔍 前端 - 提交資料 selectedAccountIds:', submitData.selectedAccountIds);
+    console.log('🔍 前端 - 提交資料 items:', JSON.stringify(submitData.items, null, 2));
 
     try {
       if (isEditMode && id) {

@@ -9,6 +9,8 @@ import {
 // 後端專用的 MongoDB 文檔介面
 export interface IPurchaseOrderItem extends Omit<SharedPurchaseOrderItem, 'product' | '_id'> {
   product: mongoose.Types.ObjectId; // 後端使用 ObjectId
+  packageQuantity?: number; // 大包裝數量
+  boxQuantity?: number; // 盒裝數量
 }
 
 // 進貨單項目文檔介面
@@ -68,6 +70,14 @@ const PurchaseOrderItemSchema = new Schema<IPurchaseOrderItemDocument>({
   },
   batchNumber: {
     type: String,
+    required: false
+  },
+  packageQuantity: {
+    type: Number,
+    required: false
+  },
+  boxQuantity: {
+    type: Number,
     required: false
   }
 });

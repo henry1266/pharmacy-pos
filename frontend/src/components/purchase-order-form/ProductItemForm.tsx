@@ -83,7 +83,11 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
     const boxQty = parseFloat(currentItem.boxQuantity as string) || 0;
     if (pkgQty >= 0 || boxQty >= 0) {
       const totalQty = pkgQty * boxQty;
+      // 暫時設置 activeInput 為 null，避免觸發清空大包裝數量的邏輯
+      const previousActiveInput = activeInput;
+      setActiveInput(null);
       handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
+      setActiveInput(previousActiveInput);
     } else if (activeInput !== 'dquantity') {
       // 修正 else 區塊中的 if 語句結構
       handleItemInputChange({ target: { name: 'dquantity', value: '' } });
@@ -93,7 +97,9 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   const handleMainQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     handleItemInputChange({ target: { name: 'dquantity', value } });
-    if (value !== '') {
+    // 只有當使用者主動輸入總數量時才清空大包裝數量
+    // 如果是透過大包裝計算得出的總數量，則不清空
+    if (value !== '' && activeInput === 'dquantity') {
       handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
       handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
     }

@@ -13,6 +13,8 @@ interface CurrentItem {
   dtotalCost: string;
   product: string | null; // 產品ID
   batchNumber?: string; // 批號
+  packageQuantity?: string; // 大包裝數量
+  boxQuantity?: string; // 盒裝數量
   packageUnits?: ProductPackageUnit[];
 }
 
@@ -86,6 +88,8 @@ const usePurchaseOrderItems = ({
     dtotalCost: '',
     product: null, // 產品ID
     batchNumber: '', // 批號
+    packageQuantity: '', // 大包裝數量
+    boxQuantity: '', // 盒裝數量
     packageUnits: [], // 包裝單位數據
   });
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
@@ -109,7 +113,16 @@ const usePurchaseOrderItems = ({
         packageUnits: newValue.packageUnits || [], // 傳遞包裝單位數據
       }));
     } else {
-      setCurrentItem(prev => ({ ...prev, did: '', dname: '', product: null, batchNumber: '', packageUnits: [] }));
+      setCurrentItem(prev => ({
+        ...prev,
+        did: '',
+        dname: '',
+        product: null,
+        batchNumber: '',
+        packageQuantity: '',
+        boxQuantity: '',
+        packageUnits: []
+      }));
     }
   }, []);
 
@@ -134,7 +147,17 @@ const usePurchaseOrderItems = ({
       }
     }
 
-    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null, batchNumber: '', packageUnits: [] });
+    setCurrentItem({
+      did: '',
+      dname: '',
+      dquantity: '',
+      dtotalCost: '',
+      product: null,
+      batchNumber: '',
+      packageQuantity: '',
+      boxQuantity: '',
+      packageUnits: []
+    });
     if (productInputRef.current) {
         setTimeout(() => productInputRef.current?.focus(), 100);
     }

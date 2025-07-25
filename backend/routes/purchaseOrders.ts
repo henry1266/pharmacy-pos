@@ -236,6 +236,7 @@ router.post('/', [
     const { poid, pobill, pobilldate, posupplier, supplier, items, notes, status, paymentStatus, organizationId, transactionType, selectedAccountIds } = req.body as PurchaseOrderRequest;
     
     console.log('🔍 創建進貨單 - selectedAccountIds:', selectedAccountIds);
+    console.log('🔍 創建進貨單 - items:', JSON.stringify(items, null, 2));
 
     // 如果進貨單號為空，自動生成
     let finalPoid: string;
@@ -268,13 +269,17 @@ router.post('/', [
       return;
     }
 
-    // 處理項目數據，確保批號欄位被正確處理
+    // 處理項目數據，確保批號欄位和大包裝數量欄位被正確處理
     const processedItems = items.map((item: any) => ({
       ...item,
       product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
       unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0),
-      batchNumber: item.batchNumber || undefined
+      batchNumber: item.batchNumber || undefined,
+      packageQuantity: item.packageQuantity || undefined,
+      boxQuantity: item.boxQuantity || undefined
     }));
+    
+    console.log('🔍 創建進貨單 - processedItems:', JSON.stringify(processedItems, null, 2));
 
     // 嘗試查找供應商
     const supplierId = await findSupplierId(posupplier, supplier);
@@ -487,7 +492,9 @@ const processItemsUpdate = async (items: PurchaseOrderRequest['items']): Promise
     ...item,
     product: item.product ? new Types.ObjectId(item.product.toString()) : new Types.ObjectId(),
     unitPrice: item.unitPrice ?? (item.dquantity > 0 ? item.dtotalCost / item.dquantity : 0),
-    batchNumber: item.batchNumber || undefined
+    batchNumber: item.batchNumber || undefined,
+    packageQuantity: item.packageQuantity || undefined,
+    boxQuantity: item.boxQuantity || undefined
   })) as any;
 
   return { valid: true, processedItems };
