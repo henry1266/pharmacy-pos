@@ -25,7 +25,10 @@ import {
   Close as CloseIcon,
   Visibility as VisibilityIcon,
   CloudUpload as CloudUploadIcon,
-  Lock as LockIcon
+  Lock as LockIcon,
+  AccountBalance as AccountBalanceIcon,
+  TrendingUp as TrendingUpIcon,
+  SwapHoriz as SwapHorizIcon
 } from '@mui/icons-material';
 import StatusChip from '../../common/StatusChip';
 import PaymentStatusChip from '../../common/PaymentStatusChip';
@@ -160,9 +163,51 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
   onPreviewMouseLeave,
   isDeleteDisabled = false,
   status,
-  onUnlock
+  onUnlock,
+  relatedTransactionGroupId,
+  accountingEntryType,
+  onViewAccountingEntry
 }) => {
   const isCompleted = status === 'completed';
+  const hasAccountingEntry = !!relatedTransactionGroupId;
+
+  // 調試日誌
+  console.log('🔍 ActionButtons props:', {
+    relatedTransactionGroupId,
+    accountingEntryType,
+    hasAccountingEntry,
+    onViewAccountingEntry: !!onViewAccountingEntry
+  });
+
+  // 根據記帳格式選擇圖示
+  const getAccountingIcon = () => {
+    if (accountingEntryType === 'expense-asset') {
+      return <TrendingUpIcon fontSize="small" />; // 支出-資產格式：上升趨勢圖示
+    } else if (accountingEntryType === 'asset-liability') {
+      return <SwapHorizIcon fontSize="small" />; // 資產-負債格式：交換圖示
+    }
+    return <AccountBalanceIcon fontSize="small" />; // 預設：會計圖示
+  };
+
+  // 根據記帳格式選擇顏色
+  const getAccountingColor = () => {
+    if (accountingEntryType === 'expense-asset') {
+      return 'primary'; // 支出-資產格式：藍色
+    } else if (accountingEntryType === 'asset-liability') {
+      return 'secondary'; // 資產-負債格式：紫色
+    }
+    return 'default';
+  };
+
+  // 根據記帳格式選擇提示文字
+  const getAccountingTooltip = () => {
+    if (accountingEntryType === 'expense-asset') {
+      return '查看會計分錄 (支出-資產格式)';
+    } else if (accountingEntryType === 'asset-liability') {
+      return '查看會計分錄 (資產-負債格式)';
+    }
+    return '查看會計分錄';
+  };
 
   return (
     <Box>
@@ -174,6 +219,34 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
       >
         <VisibilityIcon fontSize="small" />
       </IconButton>
+      
+      {/* 會計分錄圖示 - 只有在有分錄時才顯示 */}
+      {hasAccountingEntry && onViewAccountingEntry && (
+        <IconButton
+          size="small"
+          onClick={onViewAccountingEntry}
+          color={getAccountingColor()}
+          title={getAccountingTooltip()}
+        >
+          {getAccountingIcon()}
+        </IconButton>
+      )}
+      
+      {/* 強制顯示會計分錄圖示用於測試 */}
+      {relatedTransactionGroupId && (
+        <IconButton
+          size="small"
+          onClick={() => console.log('測試會計分錄點擊:', relatedTransactionGroupId)}
+          color="error"
+          title="測試會計分錄圖示"
+          sx={{
+            border: '2px solid blue',
+            backgroundColor: 'rgba(0, 0, 255, 0.1)'
+          }}
+        >
+          <AccountBalanceIcon fontSize="small" />
+        </IconButton>
+      )}
       
       {isCompleted ? (
         // 已完成狀態：只顯示鎖符號
@@ -342,7 +415,10 @@ ActionButtons.propTypes = {
   onPreviewMouseLeave: PropTypes.func.isRequired,
   isDeleteDisabled: PropTypes.bool,
   status: PropTypes.string,
-  onUnlock: PropTypes.func
+  onUnlock: PropTypes.func,
+  relatedTransactionGroupId: PropTypes.string,
+  accountingEntryType: PropTypes.oneOf(['expense-asset', 'asset-liability']),
+  onViewAccountingEntry: PropTypes.func
 } as any;
 
 FileUpload.propTypes = {

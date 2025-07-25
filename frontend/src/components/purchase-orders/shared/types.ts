@@ -31,6 +31,10 @@ export interface PurchaseOrder {
   totalAmount: number;
   status: string;
   paymentStatus: string;
+  // 會計分錄相關欄位
+  relatedTransactionGroupId?: string;
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+  selectedAccountIds?: string[];
   [key: string]: any;
 }
 
@@ -108,6 +112,10 @@ export interface ActionButtonsProps {
   isDeleteDisabled?: boolean;
   status?: string;
   onUnlock?: () => void;
+  // 會計分錄相關 props
+  relatedTransactionGroupId?: string;
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+  onViewAccountingEntry?: () => void;
 }
 
 // 檔案上傳 Props

@@ -27,6 +27,10 @@ interface PurchaseOrder {
   totalAmount: number;
   status: string;
   paymentStatus: string;
+  // 會計分錄相關欄位
+  relatedTransactionGroupId?: string;
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+  selectedAccountIds?: string[];
 }
 
 // 定義表格行數據的介面
@@ -54,6 +58,7 @@ interface PurchaseOrdersTableProps {
   handlePreviewMouseLeave: () => void;
   renderSupplierHeader: () => React.ReactNode;
   handleUnlock?: (id: string) => void;
+  handleViewAccountingEntry?: (transactionGroupId: string) => void;
 }
 
 /**
@@ -73,7 +78,8 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
   handlePreviewMouseEnter,
   handlePreviewMouseLeave,
   renderSupplierHeader,
-  handleUnlock
+  handleUnlock,
+  handleViewAccountingEntry
 }) => {
   // 表格列定義
   const columns: GridColDef[] = [
@@ -111,18 +117,35 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
       flex: 1,
       sortable: false,
       filterable: false,
-      renderCell: (params: GridRenderCellParams) => (
-        <ActionButtons
-          onView={() => handleView(params.row._id)}
-          onEdit={() => handleEdit(params.row._id)}
-          onDelete={() => handleDeleteClick(params.row as PurchaseOrderRow)}
-          onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e as any, params.row._id)}
-          onPreviewMouseLeave={handlePreviewMouseLeave}
-          isDeleteDisabled={params.row.status === 'completed'}
-          status={params.row.status}
-          onUnlock={() => handleUnlock && handleUnlock(params.row._id)}
-        />
-      )
+      renderCell: (params: GridRenderCellParams) => {
+        // 調試日誌
+        console.log('🔍 DataGrid row data:', {
+          poid: params.row.poid,
+          relatedTransactionGroupId: params.row.relatedTransactionGroupId,
+          accountingEntryType: params.row.accountingEntryType,
+          selectedAccountIds: params.row.selectedAccountIds
+        });
+        
+        return (
+          <ActionButtons
+            onView={() => handleView(params.row._id)}
+            onEdit={() => handleEdit(params.row._id)}
+            onDelete={() => handleDeleteClick(params.row as PurchaseOrderRow)}
+            onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e as any, params.row._id)}
+            onPreviewMouseLeave={handlePreviewMouseLeave}
+            isDeleteDisabled={params.row.status === 'completed'}
+            status={params.row.status}
+            onUnlock={() => handleUnlock && handleUnlock(params.row._id)}
+            relatedTransactionGroupId={params.row.relatedTransactionGroupId}
+            accountingEntryType={params.row.accountingEntryType}
+            onViewAccountingEntry={
+              params.row.relatedTransactionGroupId && handleViewAccountingEntry
+                ? () => handleViewAccountingEntry(params.row.relatedTransactionGroupId!)
+                : undefined
+            }
+          />
+        );
+      }
     }
   ];
   
@@ -136,7 +159,11 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
     posupplier: po.posupplier,
     totalAmount: po.totalAmount,
     status: po.status,
-    paymentStatus: po.paymentStatus
+    paymentStatus: po.paymentStatus,
+    // 會計分錄相關欄位
+    relatedTransactionGroupId: po.relatedTransactionGroupId,
+    accountingEntryType: po.accountingEntryType,
+    selectedAccountIds: po.selectedAccountIds
   }));
   
   // 創建骨架屏載入效果
@@ -334,7 +361,10 @@ PurchaseOrdersTable.propTypes = {
       posupplier: PropTypes.string,
       totalAmount: PropTypes.number,
       status: PropTypes.string,
-      paymentStatus: PropTypes.string
+      paymentStatus: PropTypes.string,
+      relatedTransactionGroupId: PropTypes.string,
+      accountingEntryType: PropTypes.oneOf(['expense-asset', 'asset-liability']),
+      selectedAccountIds: PropTypes.arrayOf(PropTypes.string)
     })
   ).isRequired,
   filteredRows: PropTypes.array.isRequired,
@@ -350,7 +380,8 @@ PurchaseOrdersTable.propTypes = {
   handlePreviewMouseEnter: PropTypes.func.isRequired,
   handlePreviewMouseLeave: PropTypes.func.isRequired,
   renderSupplierHeader: PropTypes.func.isRequired,
-  handleUnlock: PropTypes.func
+  handleUnlock: PropTypes.func,
+  handleViewAccountingEntry: PropTypes.func
 };
 
 export default PurchaseOrdersTable;

@@ -58,7 +58,8 @@ router.get('/', async (req: Request, res: Response) => {
     const purchaseOrders = await PurchaseOrder.find()
       .sort({ poid: -1 })
       .populate('supplier', 'name code')
-      .populate('items.product', 'name code');
+      .populate('items.product', 'name code')
+      .populate('selectedAccountIds', 'code name accountType');
     
     const response: ApiResponse<IPurchaseOrderDocument[]> = {
       success: true,

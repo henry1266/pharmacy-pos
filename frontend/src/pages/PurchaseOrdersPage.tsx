@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/redux';
+import axios from 'axios';
 
 // Import Hooks
 import usePurchaseOrdersData from '../hooks/usePurchaseOrdersData';
@@ -31,7 +32,7 @@ import usePurchaseOrdersData from '../hooks/usePurchaseOrdersData';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 
 // Import Redux Actions
-import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders } from '../redux/actions';
+import { deletePurchaseOrder, searchPurchaseOrders, fetchPurchaseOrders, API_BASE_URL } from '../redux/actions';
 
 // Import Components
 import PurchaseOrderPreview from '../components/purchase-orders/PurchaseOrderPreview';
@@ -67,6 +68,10 @@ interface PurchaseOrder {
   totalAmount: number;
   status: string;
   paymentStatus: string;
+  // 會計分錄相關欄位
+  relatedTransactionGroupId?: string;
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+  selectedAccountIds?: string[];
   items?: Array<{
     did: string;
     dname: string;
@@ -86,6 +91,10 @@ interface FilteredRow {
   totalAmount: number;
   status: string;
   paymentStatus: string;
+  // 會計分錄相關欄位
+  relatedTransactionGroupId?: string;
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+  selectedAccountIds?: string[];
 }
 
 interface Supplier {
@@ -185,7 +194,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   useEffect(() => {
     try {
       // 首先將 hook 中的 filteredRows 轉換為本地的 FilteredRow 類型
-      // 確保 pobilldate 是字符串類型
+      // 確保 pobilldate 是字符串類型，並包含會計分錄欄位
       const rows = hookFilteredRows.map(row => ({
         id: row.id,
         _id: row._id,
@@ -195,7 +204,11 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         posupplier: row.posupplier,
         totalAmount: row.totalAmount,
         status: row.status,
-        paymentStatus: row.paymentStatus
+        paymentStatus: row.paymentStatus,
+        // 會計分錄相關欄位
+        relatedTransactionGroupId: (row as any).relatedTransactionGroupId,
+        accountingEntryType: (row as any).accountingEntryType,
+        selectedAccountIds: (row as any).selectedAccountIds
       }));
       
       // 然後根據本地選擇的供應商進一步過濾
@@ -222,7 +235,11 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
           posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
           totalAmount: po.totalAmount ?? 0,
           status: po.status ?? '',
-          paymentStatus: (po as any).paymentStatus ?? ''
+          paymentStatus: (po as any).paymentStatus ?? '',
+          // 會計分錄相關欄位
+          relatedTransactionGroupId: (po as any).relatedTransactionGroupId,
+          accountingEntryType: (po as any).accountingEntryType,
+          selectedAccountIds: (po as any).selectedAccountIds
         }));
         setFilteredRows(formattedRows);
       }
@@ -263,6 +280,38 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
   const handleEdit = (id: string) => navigate(`/purchase-orders/edit/${id}`);
   const handleView = (id: string) => navigate(`/purchase-orders/${id}`);
   const handleSupplierFilterChange = (suppliers: string[]) => setSelectedSuppliers(suppliers);
+  
+  // 會計分錄查看處理函數
+  const handleViewAccountingEntry = (transactionGroupId: string) => {
+    // 導航到會計模組的交易群組詳情頁面
+    navigate(`/accounting3/transactions/${transactionGroupId}`);
+  };
+
+  // 解鎖處理函數
+  const handleUnlock = useCallback(async (id: string): Promise<void> => {
+    try {
+      console.log('🔓 開始解鎖進貨單:', id);
+      
+      // 直接使用 axios 調用 API，將狀態改為 pending
+      const response = await axios.put(`${API_BASE_URL}/purchase-orders/${id}`, {
+        status: 'pending'
+      });
+      
+      if (response.data.success) {
+        // 重新載入資料
+        dispatch(fetchPurchaseOrders());
+        
+        showSnackbar('進貨單已解鎖並改為待處理狀態', 'success');
+        console.log('✅ 進貨單解鎖成功:', response.data);
+      } else {
+        throw new Error(response.data.message || '更新失敗');
+      }
+    } catch (error: any) {
+      console.error('❌ 解鎖進貨單時發生錯誤:', error);
+      const errorMessage = error.response?.data?.message || error.message || '解鎖進貨單失敗，請稍後再試';
+      showSnackbar(errorMessage, 'error');
+    }
+  }, [dispatch, showSnackbar]);
 
   // Refactored: Use service function for preview
   const handlePreviewMouseEnter = async (event: React.MouseEvent<HTMLElement>, id: string) => {
@@ -472,6 +521,8 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
             handlePreviewMouseEnter={handlePreviewMouseEnter}
             handlePreviewMouseLeave={handlePreviewMouseLeave}
             renderSupplierHeader={renderSupplierHeader}
+            handleUnlock={handleUnlock}
+            handleViewAccountingEntry={handleViewAccountingEntry}
           />
         </CardContent>
       </Card>
