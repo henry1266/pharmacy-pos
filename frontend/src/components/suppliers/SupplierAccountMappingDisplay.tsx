@@ -180,7 +180,7 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
           <AccountBalanceIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
-          會計科目配對
+          會計科目配對 {mapping.accountMappings.length}
         </Typography>
         {onEditClick && (
           <Button
@@ -218,10 +218,6 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
         </Box>
       ) : (
         <Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            已配對 {mapping.accountMappings.length} 個會計科目：
-          </Typography>
-          
           <List dense sx={{ py: 0 }}>
             {mapping.accountMappings
               .sort((a, b) => a.priority - b.priority)
@@ -274,10 +270,6 @@ const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps
               </Typography>
             </Box>
           )}
-
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            最後更新：{new Date(mapping.updatedAt).toLocaleString('zh-TW')}
-          </Typography>
         </Box>
       )}
     </Box>
