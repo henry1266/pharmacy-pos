@@ -71,51 +71,11 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   );
 
   const dQuantityValue = currentItem.dquantity ?? '';
-  const packageQuantityValue = currentItem.packageQuantity ?? '';
-  const boxQuantityValue = currentItem.boxQuantity ?? '';
-
-  const subQuantitiesDisabled = dQuantityValue !== '' && parseFloat(dQuantityValue as string) > 0 && activeInput !== 'packageQuantity' && activeInput !== 'boxQuantity';
-  const mainQuantityDisabled = 
-    ((packageQuantityValue !== '' && parseFloat(packageQuantityValue as string) > 0) ||
-    (boxQuantityValue !== '' && parseFloat(boxQuantityValue as string) > 0)) && activeInput !== 'dquantity';
-
-  const calculateAndUpdateDQuantity = () => {
-    const pkgQty = parseFloat(currentItem.packageQuantity as string) || 0;
-    const boxQty = parseFloat(currentItem.boxQuantity as string) || 0;
-    if (pkgQty >= 0 || boxQty >= 0) {
-      const totalQty = pkgQty * boxQty;
-      // 暫時設置 activeInput 為 null，避免觸發清空大包裝數量的邏輯
-      const previousActiveInput = activeInput;
-      setActiveInput(null);
-      handleItemInputChange({ target: { name: 'dquantity', value: totalQty > 0 ? totalQty.toString() : '' } });
-      setActiveInput(previousActiveInput);
-    } else if (activeInput !== 'dquantity') {
-      // 修正 else 區塊中的 if 語句結構
-      handleItemInputChange({ target: { name: 'dquantity', value: '' } });
-    }
-  };
+  const mainQuantityDisabled = false; // 簡化邏輯，因為不再有舊的大包裝輸入欄位
 
   const handleMainQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     handleItemInputChange({ target: { name: 'dquantity', value } });
-    // 只有當使用者主動輸入總數量時才清空大包裝數量
-    // 如果是透過大包裝計算得出的總數量，則不清空
-    if (value !== '' && activeInput === 'dquantity') {
-      handleItemInputChange({ target: { name: 'packageQuantity', value: '' } });
-      handleItemInputChange({ target: { name: 'boxQuantity', value: '' } });
-    }
-  };
-
-  const handleSubQuantityChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    // Only update the specific sub-quantity field's value in currentItem
-    handleItemInputChange({ target: { name, value } });
-    // dquantity will be calculated onBlur of these fields
-  };
-
-  const handleSubQuantityBlur = () => {
-    calculateAndUpdateDQuantity();
-    // setActiveInput(null); // Consider if activeInput should be cleared on blur
   };
   
   const getProductPurchasePrice = (): number => {
@@ -443,7 +403,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
             </Grid>
 
             {/* 總數量 */}
-            <Grid item xs={12} sm={2.5}>
+            <Grid item xs={12} sm={1.5}>
               <TextField
                 fullWidth
                 label="總數量"
@@ -470,9 +430,21 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                 handleAddItem={handleAddItem}
               />
             </Grid>
-
+            {/* 批號輸入 */}
+            <Grid item xs={12} sm={1.5}>
+              <TextField
+                fullWidth
+                label="批號 (選填)"
+                name="batchNumber"
+                value={currentItem.batchNumber || ''}
+                onChange={handleItemInputChange}
+                size="small"
+                placeholder="請輸入批號"
+              />
+            </Grid>
+            
             {/* 新增按鈕 */}
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={1}>
               <Button
                 variant="contained"
                 onClick={handleAddItem}
@@ -530,55 +502,10 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                   disabled={mainQuantityDisabled}
                   variant="outlined"
                 />
-              ) : (
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                  {/* 大包裝 */}
-                  <TextField
-                    fullWidth
-                    label="大包裝"
-                    name="packageQuantity"
-                    type="number"
-                    value={packageQuantityValue}
-                    onChange={handleSubQuantityChange}
-                    onFocus={handleFocus}
-                    onBlur={handleSubQuantityBlur}
-                    onKeyDown={handleQuantityKeyDown}
-                    inputProps={{ min: "0" }}
-                    disabled={subQuantitiesDisabled}
-                    size="small"
-                  />
-                  {/* 乘號 */}
-                  <Typography variant="body2" sx={{ mx: 0.5 }}>×</Typography>
-                  {/* 數量 */}
-                  <TextField
-                    fullWidth
-                    name="boxQuantity"
-                    type="number"
-                    value={boxQuantityValue}
-                    onChange={handleSubQuantityChange}
-                    onFocus={handleFocus}
-                    onBlur={handleSubQuantityBlur}
-                    onKeyDown={handleQuantityKeyDown}
-                    inputProps={{ min: "0" }}
-                    disabled={subQuantitiesDisabled}
-                    size="small"
-                  />
-                </Box>
-              )}
+              ) : null}
             </Grid>
 
-            {/* 批號輸入 */}
-            <Grid item xs={12} sm={1.5}>
-              <TextField
-                fullWidth
-                label="批號 (選填)"
-                name="batchNumber"
-                value={currentItem.batchNumber || ''}
-                onChange={handleItemInputChange}
-                size="small"
-                placeholder="請輸入批號"
-              />
-            </Grid>
+
           </Grid>
         </Grid>
       </Grid>

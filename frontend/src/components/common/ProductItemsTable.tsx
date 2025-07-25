@@ -117,7 +117,7 @@ const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: 
         <TableCell width="8%">批號</TableCell>
       )}
       {showPackageQuantity && (
-        <TableCell width="6%" align="right">包裝數量</TableCell>
+        <TableCell width="10%" align="right">包裝數量</TableCell>
       )}
       <TableCell width="4%" align="right">數量</TableCell>
       <TableCell width="4%" align="right">單價</TableCell>
