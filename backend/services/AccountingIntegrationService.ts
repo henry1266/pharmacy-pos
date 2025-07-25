@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Account2, { IAccount2 } from '../models/Account2';
 import { IPurchaseOrderDocument } from '../models/PurchaseOrder';
+import AutoAccountingEntryService from './AutoAccountingEntryService';
 
 /**
  * 會計整合服務
@@ -11,16 +12,34 @@ export class AccountingIntegrationService {
   /**
    * 處理進貨單完成時的會計科目創建
    * @param purchaseOrder 進貨單文檔
+   * @param userId 用戶ID
+   * @returns 創建的交易群組ID（如果有的話）
    */
-  static async handlePurchaseOrderCompletion(purchaseOrder: IPurchaseOrderDocument): Promise<void> {
+  static async handlePurchaseOrderCompletion(purchaseOrder: IPurchaseOrderDocument, userId?: string): Promise<mongoose.Types.ObjectId | null> {
     try {
-      // 檢查是否有填寫交易類型和機構
-      if (!purchaseOrder.transactionType || !purchaseOrder.organizationId) {
-        console.log('進貨單缺少交易類型或機構資訊，跳過會計科目創建');
-        return;
+      console.log(`🔍 處理進貨單 ${purchaseOrder.poid} 的會計整合`);
+
+      // 優先處理自動會計分錄（新功能）
+      let transactionGroupId: mongoose.Types.ObjectId | null = null;
+      
+      // 檢查是否有選擇會計科目且滿足自動分錄條件
+      if (purchaseOrder.selectedAccountIds && purchaseOrder.selectedAccountIds.length >= 2) {
+        console.log('🎯 嘗試創建自動會計分錄');
+        transactionGroupId = await AutoAccountingEntryService.handlePurchaseOrderCompletion(purchaseOrder, userId);
+        
+        if (transactionGroupId) {
+          console.log(`✅ 成功創建自動會計分錄，交易群組ID: ${transactionGroupId}`);
+          return transactionGroupId;
+        }
       }
 
-      console.log(`處理進貨單 ${purchaseOrder.poid} 的會計科目創建，交易類型: ${purchaseOrder.transactionType}`);
+      // 如果沒有創建自動分錄，則執行原有的會計科目創建邏輯
+      if (!purchaseOrder.transactionType || !purchaseOrder.organizationId) {
+        console.log('⚠️ 進貨單缺少交易類型或機構資訊，跳過傳統會計科目創建');
+        return null;
+      }
+
+      console.log(`📝 執行傳統會計科目創建，交易類型: ${purchaseOrder.transactionType}`);
 
       // 根據交易類型處理
       switch (purchaseOrder.transactionType) {
@@ -31,10 +50,34 @@ export class AccountingIntegrationService {
           await this.handleExpenseTransaction(purchaseOrder);
           break;
         default:
-          console.log(`未知的交易類型: ${purchaseOrder.transactionType}`);
+          console.log(`❌ 未知的交易類型: ${purchaseOrder.transactionType}`);
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ 處理進貨單會計整合時發生錯誤:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 處理進貨單狀態解鎖時刪除會計分錄
+   * @param purchaseOrder 進貨單文檔
+   */
+  static async handlePurchaseOrderUnlock(purchaseOrder: IPurchaseOrderDocument): Promise<void> {
+    try {
+      console.log(`🔓 處理進貨單 ${purchaseOrder.poid} 的狀態解鎖`);
+
+      // 如果有關聯的交易群組ID，則刪除相關會計分錄
+      if (purchaseOrder.relatedTransactionGroupId) {
+        console.log(`🗑️ 刪除關聯的會計分錄，交易群組ID: ${purchaseOrder.relatedTransactionGroupId}`);
+        await AutoAccountingEntryService.deletePurchaseOrderEntries(purchaseOrder.relatedTransactionGroupId);
+        console.log(`✅ 成功刪除進貨單 ${purchaseOrder.poid} 的會計分錄`);
+      } else {
+        console.log(`ℹ️ 進貨單 ${purchaseOrder.poid} 沒有關聯的會計分錄`);
       }
     } catch (error) {
-      console.error('處理進貨單會計科目創建時發生錯誤:', error);
+      console.error('❌ 處理進貨單狀態解鎖時發生錯誤:', error);
       throw error;
     }
   }

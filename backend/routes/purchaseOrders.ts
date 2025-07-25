@@ -13,6 +13,10 @@ import Supplier from '../models/Supplier';
 import OrderNumberService from '../utils/OrderNumberService';
 import AccountingIntegrationService from '../services/AccountingIntegrationService';
 
+// 導入認證中間件和類型
+import auth from '../middleware/auth';
+import { AuthenticatedRequest } from '../src/types/express';
+
 // 使用 shared 架構的類型
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
@@ -210,11 +214,12 @@ async function findSupplierId(posupplier: string, supplier?: string): Promise<st
 
 // @route   POST api/purchase-orders
 // @desc    創建新進貨單
-// @access  Public
+// @access  Private
 router.post('/', [
+  auth,
   check('posupplier', '供應商為必填項').not().isEmpty(),
   check('items', '至少需要一個藥品項目').isArray().not().isEmpty()
-], async (req: Request, res: Response) => {
+], async (req: AuthenticatedRequest, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorResponse: ErrorResponse = {
@@ -299,7 +304,8 @@ router.post('/', [
 
     // 如果狀態為已完成，則更新庫存
     if (purchaseOrder.status === 'completed') {
-      await updateInventory(purchaseOrder);
+      const userId = req.user?.id;
+      await updateInventory(purchaseOrder, userId);
     }
 
     const response: ApiResponse<IPurchaseOrderDocument> = {
@@ -386,31 +392,56 @@ function prepareUpdateData(data: PurchaseOrderRequest, purchaseOrder: IPurchaseO
  * @param {string} newStatus - 新狀態
  * @param {string} oldStatus - 舊狀態
  * @param {string} purchaseOrderId - 進貨單ID
+ * @param {IPurchaseOrderDocument} purchaseOrder - 進貨單文檔
  * @returns {Promise<Object>} - 處理結果
  */
 async function handleStatusChange(
-  newStatus: PurchaseOrderStatus | undefined, 
-  oldStatus: string, 
-  purchaseOrderId: string
-): Promise<{ statusChanged: boolean; status?: string; inventoryDeleted?: boolean; needUpdateInventory?: boolean }> {
+  newStatus: PurchaseOrderStatus | undefined,
+  oldStatus: string,
+  purchaseOrderId: string,
+  purchaseOrder?: IPurchaseOrderDocument
+): Promise<{ statusChanged: boolean; status?: string; inventoryDeleted?: boolean; needUpdateInventory?: boolean; accountingEntriesDeleted?: boolean }> {
   if (!newStatus || newStatus === oldStatus) {
     return { statusChanged: false };
   }
   
-  const result: { 
+  const result: {
     statusChanged: boolean;
     status: string;
     inventoryDeleted?: boolean;
     needUpdateInventory?: boolean;
-  } = { 
+    accountingEntriesDeleted?: boolean;
+  } = {
     statusChanged: true,
     status: newStatus.toString()
   };
   
-  // 如果狀態從已完成改為其他狀態，刪除相關庫存記錄
+  // 如果狀態從已完成改為其他狀態，刪除相關庫存記錄和會計分錄
   if (oldStatus === 'completed' && newStatus !== 'completed') {
+    console.log(`🔓 進貨單 ${purchaseOrderId} 狀態從完成變為 ${newStatus}，執行解鎖操作`);
+    
+    // 刪除庫存記錄
     await deleteInventoryRecords(purchaseOrderId);
     result.inventoryDeleted = true;
+    
+    // 刪除會計分錄
+    if (purchaseOrder) {
+      try {
+        await AccountingIntegrationService.handlePurchaseOrderUnlock(purchaseOrder);
+        
+        // 清除進貨單的關聯交易群組ID
+        if (purchaseOrder.relatedTransactionGroupId) {
+          purchaseOrder.relatedTransactionGroupId = undefined;
+          await purchaseOrder.save();
+          console.log(`✅ 已清除進貨單 ${purchaseOrder.poid} 的關聯交易群組ID`);
+        }
+        
+        result.accountingEntriesDeleted = true;
+      } catch (err) {
+        console.error(`❌ 刪除會計分錄時出錯: ${(err as Error).message}`);
+        // 不拋出錯誤，避免影響其他操作
+      }
+    }
   }
   
   // 如果狀態從非完成變為完成，標記需要更新庫存
@@ -508,8 +539,8 @@ const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
 
 // @route   PUT api/purchase-orders/:id
 // @desc    更新進貨單
-// @access  Public
-router.put('/:id', async (req: Request, res: Response) => {
+// @access  Private
+router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { poid, status, items, selectedAccountIds } = req.body as PurchaseOrderRequest;
     const id = req.params.id;
@@ -540,7 +571,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     
     // 處理狀態變更
     const oldStatus = purchaseOrder.status;
-    const statusResult = await handleStatusChange(status, oldStatus, purchaseOrder._id.toString());
+    const statusResult = await handleStatusChange(status, oldStatus, purchaseOrder._id.toString(), purchaseOrder);
     if (statusResult.statusChanged) {
       updateData.status = statusResult.status as ModelPurchaseOrderStatus;
     }
@@ -572,7 +603,8 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     // 如果需要更新庫存
     if (statusResult.needUpdateInventory) {
-      await updateInventory(purchaseOrder);
+      const userId = req.user?.id;
+      await updateInventory(purchaseOrder, userId);
     }
 
     const response: ApiResponse<IPurchaseOrderDocument> = {
@@ -742,7 +774,7 @@ router.get('/recent/list', async (req: Request, res: Response) => {
 });
 
 // 更新庫存的輔助函數
-async function updateInventory(purchaseOrder: IPurchaseOrderDocument): Promise<void> {
+async function updateInventory(purchaseOrder: IPurchaseOrderDocument, userId?: string): Promise<void> {
   for (const item of purchaseOrder.items) {
     if (!item.product) continue;
     
@@ -776,11 +808,18 @@ async function updateInventory(purchaseOrder: IPurchaseOrderDocument): Promise<v
     }
   }
 
-  // 庫存更新完成後，處理會計科目創建
+  // 庫存更新完成後，處理會計整合（包含自動會計分錄）
   try {
-    await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder);
+    const transactionGroupId = await AccountingIntegrationService.handlePurchaseOrderCompletion(purchaseOrder, userId);
+    
+    // 如果創建了自動會計分錄，更新進貨單的關聯交易群組ID
+    if (transactionGroupId) {
+      purchaseOrder.relatedTransactionGroupId = transactionGroupId;
+      await purchaseOrder.save();
+      console.log(`✅ 進貨單 ${purchaseOrder.poid} 已關聯交易群組 ${transactionGroupId}`);
+    }
   } catch (err) {
-    console.error(`處理會計科目創建時出錯: ${(err as Error).message}`);
+    console.error(`❌ 處理會計整合時出錯: ${(err as Error).message}`);
     // 不拋出錯誤，避免影響庫存更新流程
   }
 }
