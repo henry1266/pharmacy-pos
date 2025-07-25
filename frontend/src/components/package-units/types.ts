@@ -41,9 +41,18 @@ export interface PackageInputItem {
   unitValue: number;
 }
 
+export interface PackageQuantityChangeData {
+  baseQuantity: number;
+  packageBreakdown: Array<{
+    unitName: string;
+    quantity: number;
+    unitValue: number;
+  }>;
+}
+
 export interface PackageQuantityInputProps {
   value: number;
-  onChange: (baseQuantity: number) => void;
+  onChange: (baseQuantity: number, packageData?: PackageQuantityChangeData) => void;
   packageUnits: ProductPackageUnit[];
   baseUnitName?: string; // 產品的基礎單位名稱
   label?: string;

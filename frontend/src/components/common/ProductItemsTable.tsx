@@ -104,7 +104,7 @@ const checkHasProfitData = (items: ProductItem[], profitField: string, profitMar
 /**
  * 渲染表格標題行的輔助函數
  */
-const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: boolean, hasProfitData: boolean, showBatchNumber: boolean): React.ReactElement => (
+const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: boolean, hasProfitData: boolean, showBatchNumber: boolean, showPackageQuantity: boolean): React.ReactElement => (
   <TableHead>
     <TableRow>
       <TableCell width="1%">#</TableCell>
@@ -115,6 +115,9 @@ const renderTableHeader = (showHealthInsuranceCode: boolean, showProfitColumns: 
       <TableCell width={showHealthInsuranceCode ? "20%" : "25%"}>名稱</TableCell>
       {showBatchNumber && (
         <TableCell width="8%">批號</TableCell>
+      )}
+      {showPackageQuantity && (
+        <TableCell width="6%" align="right">包裝數量</TableCell>
       )}
       <TableCell width="4%" align="right">數量</TableCell>
       <TableCell width="4%" align="right">單價</TableCell>
@@ -139,8 +142,11 @@ const renderTableRows = (
   showProfitColumns: boolean,
   hasProfitData: boolean,
   showBatchNumber: boolean,
+  showPackageQuantity: boolean,
   fields: FieldsMap,
-  batchNumberField: string
+  batchNumberField: string,
+  packageQuantityField: string,
+  boxQuantityField: string
 ): React.ReactElement[] => {
   const { codeField, nameField, quantityField, priceField, totalCostField, profitField, profitMarginField } = fields;
   
@@ -174,6 +180,14 @@ const renderTableRows = (
         <TableCell>{item[nameField] ?? productDetail.name ?? 'N/A'}</TableCell>
         {showBatchNumber && (
           <TableCell>{item[batchNumberField] || '-'}</TableCell>
+        )}
+        {showPackageQuantity && (
+          <TableCell align="right">
+            {item[packageQuantityField] && item[boxQuantityField]
+              ? `${item[packageQuantityField]} × ${item[boxQuantityField]}`
+              : '-'
+            }
+          </TableCell>
         )}
         <TableCell align="right">{item[quantityField] ?? 0}</TableCell>
         <TableCell align="right">{calculateUnitPrice(item, priceField, quantityField, totalCostField)}</TableCell>
@@ -210,6 +224,9 @@ interface ProductItemsTableProps {
   profitMarginField?: string;
   batchNumberField?: string;
   showBatchNumber?: boolean;
+  packageQuantityField?: string;
+  boxQuantityField?: string;
+  showPackageQuantity?: boolean;
 }
 
 const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
@@ -227,7 +244,10 @@ const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
   profitField = 'profit',
   profitMarginField = 'profitMargin',
   batchNumberField = 'batchNumber',
-  showBatchNumber = false
+  showBatchNumber = false,
+  packageQuantityField = 'packageQuantity',
+  boxQuantityField = 'boxQuantity',
+  showPackageQuantity = false
 }) => {
   const [showProfitColumns, setShowProfitColumns] = useState<boolean>(defaultShowProfit);
 
@@ -243,6 +263,7 @@ const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
   let colspanBase = 5;
   if (showHealthInsuranceCode) colspanBase++;
   if (showBatchNumber) colspanBase++;
+  if (showPackageQuantity) colspanBase++;
 
   return (
     <Card sx={{ maxWidth: 1000, margin: '0 auto' }}>
@@ -266,10 +287,10 @@ const ProductItemsTable: React.FC<ProductItemsTableProps> = ({
         ) : (
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
-              {renderTableHeader(showHealthInsuranceCode, showProfitColumns, hasProfitData, showBatchNumber)}
+              {renderTableHeader(showHealthInsuranceCode, showProfitColumns, hasProfitData, showBatchNumber, showPackageQuantity)}
               <TableBody>
                 {items && items.length > 0 ? (
-                  renderTableRows(items, productDetails, showHealthInsuranceCode, showProfitColumns, hasProfitData, showBatchNumber, fields, batchNumberField)
+                  renderTableRows(items, productDetails, showHealthInsuranceCode, showProfitColumns, hasProfitData, showBatchNumber, showPackageQuantity, fields, batchNumberField, packageQuantityField, boxQuantityField)
                 ) : (
                   <TableRow>
                     <TableCell colSpan={colspanBase + (showProfitColumns && hasProfitData ? 2 : 0)} align="center">

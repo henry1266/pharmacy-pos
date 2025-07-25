@@ -519,6 +519,13 @@ const PurchaseOrderFormPage: React.FC = () => {
     
     console.log('🔍 前端 - 提交資料 selectedAccountIds:', submitData.selectedAccountIds);
     console.log('🔍 前端 - 提交資料 items:', JSON.stringify(submitData.items, null, 2));
+    console.log('🔍 前端 - 包裝數量詳細資訊:', submitData.items.map(item => ({
+      did: item.did,
+      dname: item.dname,
+      packageQuantity: item.packageQuantity,
+      boxQuantity: item.boxQuantity,
+      dquantity: item.dquantity
+    })));
 
     try {
       if (isEditMode && id) {

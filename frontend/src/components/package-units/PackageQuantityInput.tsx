@@ -27,12 +27,12 @@ import {
   Calculate as CalculatorIcon
 } from '@mui/icons-material';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
-import { PackageQuantityInputProps, PackageInputItem } from './types';
-import { 
-  convertToBaseUnit, 
-  convertToPackageDisplay, 
+import { PackageQuantityInputProps, PackageInputItem, PackageQuantityChangeData } from './types';
+import {
+  convertToBaseUnit,
+  convertToPackageDisplay,
   generateQuickInputOptions,
-  formatPackageDisplay 
+  formatPackageDisplay
 } from './utils';
 
 /**
@@ -168,6 +168,20 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
     return inputs.reduce((total, item) => total + (item.quantity * item.unitValue), 0);
   }, []);
 
+  // 生成包裝數量變更資料
+  const generatePackageChangeData = useCallback((inputs: PackageInputItem[], totalBaseUnits: number): PackageQuantityChangeData => {
+    return {
+      baseQuantity: totalBaseUnits,
+      packageBreakdown: inputs
+        .filter(item => item.quantity > 0)
+        .map(item => ({
+          unitName: item.unitName,
+          quantity: item.quantity,
+          unitValue: item.unitValue
+        }))
+    };
+  }, []);
+
   // 為特定包裝單位生成建議
   const generateUnitSpecificSuggestions = useCallback((unit: ProductPackageUnit): number[] => {
     const suggestions = new Set<number>();
@@ -274,7 +288,10 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
     setInputWarning(warning);
     
     setInputValues(newInputValues);
-    onChange(totalBaseUnits);
+    
+    // 生成包裝數量變更資料
+    const packageChangeData = generatePackageChangeData(newInputValues, totalBaseUnits);
+    onChange(totalBaseUnits, packageChangeData);
     
     // 添加到歷史記錄
     if (totalBaseUnits > 0) {
@@ -295,7 +312,10 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
     });
     
     setInputValues(newInputValues);
-    onChange(baseUnits);
+    
+    // 生成包裝數量變更資料
+    const packageChangeData = generatePackageChangeData(newInputValues, baseUnits);
+    onChange(baseUnits, packageChangeData);
   }, [packageUnits, sortedPackageUnits, baseUnitName, onChange]);
 
   // 清空輸入
@@ -303,8 +323,11 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
     const clearedInputs = inputValues.map(item => ({ ...item, quantity: 0 }));
     setInputValues(clearedInputs);
     setInputError('');
-    onChange(0);
-  }, [inputValues, onChange]);
+    
+    // 生成空的包裝數量變更資料
+    const packageChangeData = generatePackageChangeData(clearedInputs, 0);
+    onChange(0, packageChangeData);
+  }, [inputValues, onChange, generatePackageChangeData]);
 
   // 增減按鈕處理
   const handleIncrement = useCallback((unitName: string, step: number = 1) => {
@@ -372,14 +395,42 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                 const warning = checkWarnings(numValue);
                 setInputWarning(warning);
                 
-                onChange(numValue);
+                // 為簡化模式生成包裝數量資料
+                const displayResult = convertToPackageDisplay(numValue, packageUnits, baseUnitName);
+                const packageChangeData: PackageQuantityChangeData = {
+                  baseQuantity: numValue,
+                  packageBreakdown: displayResult.packageBreakdown.map(breakdown => {
+                    const unit = packageUnits.find(u => u.unitName === breakdown.unitName);
+                    return {
+                      unitName: breakdown.unitName,
+                      quantity: breakdown.quantity,
+                      unitValue: unit?.unitValue || 1
+                    };
+                  })
+                };
+                
+                onChange(numValue, packageChangeData);
                 if (numValue > 0) {
                   addToHistory(numValue);
                 }
               }}
               onChange={(event, newValue) => {
                 if (typeof newValue === 'number') {
-                  onChange(newValue);
+                  // 為簡化模式生成包裝數量資料
+                  const displayResult = convertToPackageDisplay(newValue, packageUnits, baseUnitName);
+                  const packageChangeData: PackageQuantityChangeData = {
+                    baseQuantity: newValue,
+                    packageBreakdown: displayResult.packageBreakdown.map(breakdown => {
+                      const unit = packageUnits.find(u => u.unitName === breakdown.unitName);
+                      return {
+                        unitName: breakdown.unitName,
+                        quantity: breakdown.quantity,
+                        unitValue: unit?.unitValue || 1
+                      };
+                    })
+                  };
+                  
+                  onChange(newValue, packageChangeData);
                   addToHistory(newValue);
                 }
               }}

@@ -62,6 +62,8 @@ interface ExtendedPurchaseOrderItem extends PurchaseOrderItem {
   dprice?: number;        // 單價
   dtotalCost?: number;    // 總成本
   batchNumber?: string;   // 批號
+  packageQuantity?: number; // 大包裝數量
+  boxQuantity?: number;   // 盒裝數量
 }
 
 // 定義狀態類型
@@ -296,6 +298,9 @@ const PurchaseOrderDetailPage: React.FC = () => {
               totalCostField="dtotalCost"
               batchNumberField="batchNumber"
               showBatchNumber={true}
+              packageQuantityField="packageQuantity"
+              boxQuantityField="boxQuantity"
+              showPackageQuantity={true}
               totalAmount={currentPurchaseOrder.totalAmount ??
                           (currentPurchaseOrder.items ?? []).reduce((sum, item) => sum + Number(item.dtotalCost ?? 0), 0)}
               title=""

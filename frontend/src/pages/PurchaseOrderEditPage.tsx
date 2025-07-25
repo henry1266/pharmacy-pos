@@ -89,6 +89,9 @@ interface PurchaseOrderItem {
   dquantity: string | number;
   dtotalCost: string | number;
   product: string | null;
+  packageQuantity?: string | number;
+  boxQuantity?: string | number;
+  batchNumber?: string;
   [key: string]: any;
 }
 
@@ -129,7 +132,10 @@ const PurchaseOrderEditPage: React.FC = () => {
     dname: '', // Product name for display
     dquantity: '',
     dtotalCost: '',
-    product: null // Product ObjectId for submission
+    product: null, // Product ObjectId for submission
+    packageQuantity: '',
+    boxQuantity: '',
+    batchNumber: ''
   });
 
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
@@ -267,7 +273,10 @@ const PurchaseOrderEditPage: React.FC = () => {
       dname: newValue ? newValue.name : '',
       product: newValue ? (newValue._id || newValue.id || '') : null, // Store ObjectId
       dquantity: '',
-      dtotalCost: ''
+      dtotalCost: '',
+      packageQuantity: '',
+      boxQuantity: '',
+      batchNumber: ''
     }));
   };
 
@@ -281,9 +290,18 @@ const PurchaseOrderEditPage: React.FC = () => {
         setSnackbar({ open: true, message: '無效的藥品ID，請重新選擇藥品。', severity: 'error' });
         return;
     }
-    const newItem = { ...currentItem }; 
+    const newItem = { ...currentItem };
     setFormData(prev => ({ ...prev, items: [...prev.items, newItem] }));
-    setCurrentItem({ did: '', dname: '', dquantity: '', dtotalCost: '', product: null });
+    setCurrentItem({
+      did: '',
+      dname: '',
+      dquantity: '',
+      dtotalCost: '',
+      product: null,
+      packageQuantity: '',
+      boxQuantity: '',
+      batchNumber: ''
+    });
     setTimeout(() => {
       const productInput = document.querySelector('#product-select-input');
       if (productInput) (productInput as HTMLInputElement).focus();
