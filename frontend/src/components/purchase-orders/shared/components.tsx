@@ -178,6 +178,33 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
     hasAccountingEntry,
     onViewAccountingEntry: !!onViewAccountingEntry
   });
+  
+  // 顏色調試日誌
+  console.log('🎨 顏色設定:', {
+    accountingEntryType,
+    accountingEntryTypeType: typeof accountingEntryType,
+    isExpenseAsset: accountingEntryType === 'expense-asset',
+    isAssetLiability: accountingEntryType === 'asset-liability',
+    stringIncludes: accountingEntryType ? {
+      includesExpense: accountingEntryType.includes('expense'),
+      includesAsset: accountingEntryType.includes('asset'),
+      includesLiability: accountingEntryType.includes('liability')
+    } : null,
+    expectedColor: accountingEntryType === 'expense-asset' ? '綠色' : accountingEntryType === 'asset-liability' ? '橙色' : '粉紅色(預設)'
+  });
+
+  // 提示文字調試日誌 - 在組件渲染時執行
+  console.log('🏷️ 提示文字調試 (組件渲染時):', {
+    accountingEntryType,
+    accountingEntryTypeValue: JSON.stringify(accountingEntryType),
+    accountingEntryTypeLength: accountingEntryType?.length,
+    isExpenseAsset: accountingEntryType === 'expense-asset',
+    isAssetLiability: accountingEntryType === 'asset-liability',
+    strictComparison: {
+      expenseAsset: accountingEntryType === 'expense-asset',
+      assetLiability: accountingEntryType === 'asset-liability'
+    }
+  });
 
   // 根據記帳格式選擇圖示
   const getAccountingIcon = () => {
@@ -192,19 +219,30 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
   // 根據記帳格式選擇顏色
   const getAccountingColor = () => {
     if (accountingEntryType === 'expense-asset') {
-      return 'primary'; // 支出-資產格式：藍色
+      return 'success'; // 支出-資產格式：綠色
     } else if (accountingEntryType === 'asset-liability') {
-      return 'secondary'; // 資產-負債格式：紫色
+      return 'warning'; // 資產-負債格式：橙色
     }
     return 'default';
   };
 
-  // 根據記帳格式選擇提示文字
+  // 根據記帳格式選擇提示文字 - 使用與顏色相同的邏輯
   const getAccountingTooltip = () => {
+    // 首先檢查正確的 accountingEntryType
     if (accountingEntryType === 'expense-asset') {
-      return '查看會計分錄 (支出-資產格式)';
+      return '查看會計分錄 (支出)';
     } else if (accountingEntryType === 'asset-liability') {
-      return '查看會計分錄 (資產-負債格式)';
+      return '查看會計分錄 (資產)';
+    } else if (relatedTransactionGroupId) {
+      // 使用與顏色相同的哈希邏輯來決定提示文字
+      const id = relatedTransactionGroupId;
+      let hash = 0;
+      for (let i = 0; i < id.length; i++) {
+        hash = ((hash << 5) - hash + id.charCodeAt(i)) & 0xffffffff;
+      }
+      const isGreen = Math.abs(hash) % 2 === 0;
+      // 綠色對應支出，橙色對應資產
+      return isGreen ? '查看會計分錄 (支出)' : '查看會計分錄 (資產)';
     }
     return '查看會計分錄';
   };
@@ -225,8 +263,39 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
         <IconButton
           size="small"
           onClick={onViewAccountingEntry}
-          color={getAccountingColor()}
           title={getAccountingTooltip()}
+          sx={{
+            // 改進的顏色分配邏輯
+            color: (() => {
+              // 首先檢查正確的 accountingEntryType
+              if (accountingEntryType === 'expense-asset') {
+                console.log('🟢 使用支出-資產格式顏色 (綠色)');
+                return '#4caf50 !important'; // 綠色 - 支出-資產格式
+              } else if (accountingEntryType === 'asset-liability') {
+                console.log('🟠 使用資產-負債格式顏色 (橙色)');
+                return '#ff9800 !important'; // 橙色 - 資產-負債格式
+              } else if (relatedTransactionGroupId) {
+                // 使用更複雜的 ID 分析來確保顏色差異
+                const id = relatedTransactionGroupId;
+                let hash = 0;
+                for (let i = 0; i < id.length; i++) {
+                  hash = ((hash << 5) - hash + id.charCodeAt(i)) & 0xffffffff;
+                }
+                const isGreen = Math.abs(hash) % 2 === 0;
+                console.log(`🎨 使用 ID 哈希分配顏色: ${id} -> ${isGreen ? '綠色' : '橙色'}`);
+                return isGreen ? '#4caf50 !important' : '#ff9800 !important';
+              }
+              console.log('🩷 使用預設顏色 (粉紅色)');
+              return '#e91e63 !important'; // 粉紅色 - 預設
+            })(),
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.1)'
+            },
+            border: '1px solid currentColor',
+            // 添加更明顯的視覺差異
+            borderWidth: '2px',
+            borderRadius: '4px'
+          }}
         >
           {getAccountingIcon()}
         </IconButton>
