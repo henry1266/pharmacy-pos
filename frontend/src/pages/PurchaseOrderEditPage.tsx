@@ -380,7 +380,7 @@ const PurchaseOrderEditPage: React.FC = () => {
       pobilldate: format(new Date(formData.pobilldate), 'yyyy-MM-dd'),
       supplier: formData.supplier,
       items: itemsForSubmit,
-      posupplier: undefined,
+      posupplier: undefined as any,
     };
     
     if (!isEditMode && !submitData.poid) {

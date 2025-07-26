@@ -468,7 +468,7 @@ const ProductsPage: React.FC = () => {
               loading={loading}
               onRowClick={handleRowClick}
               disablePagination={false}
-              getRowId={(row) => row.id || row._id}
+              getRowId={(row: any) => row.id || row._id}
               initialState={{
                 pagination: {
                   pageSize: 100, // 增加每頁顯示數量

@@ -151,12 +151,12 @@ export class ThemeServiceV2 {
       throw new Error('找不到要複製的主題');
     }
 
-    const duplicatedTheme = {
+    const duplicatedTheme: Partial<UserTheme> = {
       ...originalTheme,
       themeName: newName,
-      _id: undefined, // 讓後端生成新的 ID
-      createdAt: undefined,
-      updatedAt: undefined
+      _id: undefined as any, // 讓後端生成新的 ID
+      createdAt: undefined as any,
+      updatedAt: undefined as any
     };
 
     return this.createTheme(duplicatedTheme);
@@ -172,12 +172,12 @@ export class ThemeServiceV2 {
     }
 
     // 移除不需要匯出的欄位
-    const exportData = {
+    const exportData: Partial<UserTheme> = {
       ...theme,
-      _id: undefined,
-      userId: undefined,
-      createdAt: undefined,
-      updatedAt: undefined
+      _id: undefined as any,
+      userId: undefined as any,
+      createdAt: undefined as any,
+      updatedAt: undefined as any
     };
 
     return JSON.stringify(exportData, null, 2);

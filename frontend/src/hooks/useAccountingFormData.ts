@@ -99,7 +99,7 @@ const useAccountingFormData = () => {
       const data = await accountingServiceV2.getUnaccountedSales(formattedDate);
       
       // 將服務返回的數據轉換為頁面需要的格式
-      const transformedData: UnaccountedSale[] = data.map(item => ({
+      const transformedData: UnaccountedSale[] = data.map((item: any) => ({
         _id: item._id,
         saleNumber: item.saleNumber,
         lastUpdated: item.lastUpdated ?? new Date().toISOString(),

@@ -118,7 +118,7 @@ const useProductData = () => {
         data = testModeDataService.getSuppliers(null, actualError);
       }
       
-      setSuppliers(data);
+      setSuppliers(data as unknown as Supplier[]);
     } catch (err: any) {
       console.error('獲取供應商失敗 (hook):', err);
       setError('獲取供應商失敗');

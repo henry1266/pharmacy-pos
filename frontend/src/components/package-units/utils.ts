@@ -229,7 +229,11 @@ export const generateQuickInputOptions = (packageUnits: ProductPackageUnit[]) =>
   // 按 unitValue 排序
   const sortedUnits = [...packageUnits].sort((a, b) => b.unitValue - a.unitValue);
   
-  const options = [];
+  const options: Array<{
+    label: string;
+    value: string;
+    baseQuantity: number;
+  }> = [];
 
   // 為每個包裝單位生成快捷選項
   sortedUnits.forEach(unit => {

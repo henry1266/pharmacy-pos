@@ -160,7 +160,7 @@ const DashboardPage: FC = () => {
       });
       
       setAccountingRecords(records);
-      setAccountingTotal(records.reduce((sum, record) => sum + (record.totalAmount || 0), 0));
+      setAccountingTotal(records.reduce((sum: number, record: any) => sum + (record.totalAmount || 0), 0));
     } catch (error) {
       console.warn('無法載入記帳記錄，使用模擬數據:', error);
       // 模擬記帳記錄

@@ -352,26 +352,9 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
 
 // Props 驗證
 PurchaseOrdersTable.propTypes = {
-  purchaseOrders: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      poid: PropTypes.string,
-      pobill: PropTypes.string,
-      pobilldate: PropTypes.string,
-      posupplier: PropTypes.string,
-      totalAmount: PropTypes.number,
-      status: PropTypes.string,
-      paymentStatus: PropTypes.string,
-      relatedTransactionGroupId: PropTypes.string,
-      accountingEntryType: PropTypes.oneOf(['expense-asset', 'asset-liability']),
-      selectedAccountIds: PropTypes.arrayOf(PropTypes.string)
-    })
-  ).isRequired,
+  purchaseOrders: PropTypes.array.isRequired,
   filteredRows: PropTypes.array.isRequired,
-  paginationModel: PropTypes.shape({
-    page: PropTypes.number.isRequired,
-    pageSize: PropTypes.number.isRequired
-  }).isRequired,
+  paginationModel: PropTypes.any.isRequired,
   setPaginationModel: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   handleView: PropTypes.func.isRequired,

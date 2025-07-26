@@ -130,7 +130,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         console.log(`獲取到 ${employeesResponse.employees.length} 名員工`);
         
         // 過濾掉主管，只保留一般員工
-        const filteredEmployees = employeesResponse.employees.filter(employee => {
+        const filteredEmployees = employeesResponse.employees.filter((employee: any) => {
           const position = employee.position?.toLowerCase() ?? '';
           return !position.includes('主管') &&
                  !position.includes('經理') &&

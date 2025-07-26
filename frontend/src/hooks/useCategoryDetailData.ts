@@ -70,7 +70,7 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
     console.log(`[calculateProductData] 產品 ${productId} excludeFromStock:`, isExcludeFromStock);
 
     // Filter records (same logic as original)
-    const filteredInventories = inventories.filter(inv => {
+    const filteredInventories = inventories.filter((inv: any) => {
       const hasSaleNumber = (inv as ExtendedInventory).saleNumber && (inv as ExtendedInventory).saleNumber.trim() !== '';
       const hasPurchaseOrderNumber = (inv as ExtendedInventory).purchaseOrderNumber && (inv as ExtendedInventory).purchaseOrderNumber.trim() !== '';
       const hasShippingOrderNumber = (inv as ExtendedInventory).shippingOrderNumber && (inv as ExtendedInventory).shippingOrderNumber.trim() !== '';

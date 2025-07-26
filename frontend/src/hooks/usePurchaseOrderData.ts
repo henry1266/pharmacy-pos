@@ -106,7 +106,7 @@ const usePurchaseOrderData = (
       const detailsMap: ProductDetailsMap = {};
       const promises = items.map(item =>
         productServiceV2.getProductByCode(item.did)
-          .then(productData => {
+          .then((productData: any) => {
             if (productData) {
               detailsMap[item.did] = {
                 ...productData,
@@ -114,7 +114,7 @@ const usePurchaseOrderData = (
               };
             }
           })
-          .catch(err => {
+          .catch((err: any) => {
             console.error(`獲取產品 ${item.did} 詳細資料失敗:`, err);
           })
       );

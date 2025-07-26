@@ -64,7 +64,7 @@ export const useSalesEditData = (saleId: string) => {
       // Ensure saleRes and saleRes.data are valid before accessing properties
       const saleData = saleRes; // salesService.getSaleById now returns data directly
       if (saleData?.items) {
-          const formattedItems: SaleItem[] = saleData.items.map(item => ({
+          const formattedItems: SaleItem[] = saleData.items.map((item: any) => ({
             product: typeof item.product === 'object' ? item.product._id : item.product,
             productDetails: typeof item.product === 'object' ? item.product : undefined,
             name: typeof item.product === 'object' ? item.product.name : 'Unknown',
