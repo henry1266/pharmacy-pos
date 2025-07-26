@@ -25,7 +25,6 @@
     
     /* 漸進式嚴格模式 - 適合轉型期 */
     "strict": false,
-    "noImplicitAny": true,
     "strictNullChecks": false,
     "strictFunctionTypes": false,
     "strictBindCallApply": true,

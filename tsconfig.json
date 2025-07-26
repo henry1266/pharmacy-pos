@@ -21,7 +21,7 @@
     
     /* 嚴格性檢查 - 漸進式啟用 */
     "strict": false,
-    "noImplicitAny": false,
+     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": false,
     "strictBindCallApply": false,
