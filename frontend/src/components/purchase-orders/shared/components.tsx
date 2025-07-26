@@ -41,6 +41,63 @@ import {
 } from './types';
 import { calculateUnitPrice, formatAmount } from './utils';
 
+// 常數定義
+const COLORS = {
+  EXPENSE_ASSET: '#4caf50',    // 綠色 - 支出-資產格式
+  ASSET_LIABILITY: '#ff9800',  // 橙色 - 資產-負債格式
+  DEFAULT: '#e91e63'           // 粉紅色 - 預設
+} as const;
+
+const TOOLTIPS = {
+  EXPENSE_ASSET: '查看會計分錄 (支出)',
+  ASSET_LIABILITY: '查看會計分錄 (資產)',
+  DEFAULT: '查看會計分錄'
+} as const;
+
+// 工具函數：計算哈希值
+const calculateHash = (id: string): number => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash + id.charCodeAt(i)) & 0xffffffff;
+  }
+  return hash;
+};
+
+// 工具函數：根據記帳格式獲取配置
+const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGroupId?: string) => {
+  if (accountingEntryType === 'expense-asset') {
+    return {
+      color: COLORS.EXPENSE_ASSET,
+      tooltip: TOOLTIPS.EXPENSE_ASSET,
+      icon: <TrendingUpIcon fontSize="small" />
+    };
+  }
+  
+  if (accountingEntryType === 'asset-liability') {
+    return {
+      color: COLORS.ASSET_LIABILITY,
+      tooltip: TOOLTIPS.ASSET_LIABILITY,
+      icon: <SwapHorizIcon fontSize="small" />
+    };
+  }
+  
+  if (relatedTransactionGroupId) {
+    const hash = calculateHash(relatedTransactionGroupId);
+    const isGreen = Math.abs(hash) % 2 === 0;
+    return {
+      color: isGreen ? COLORS.EXPENSE_ASSET : COLORS.ASSET_LIABILITY,
+      tooltip: isGreen ? TOOLTIPS.EXPENSE_ASSET : TOOLTIPS.ASSET_LIABILITY,
+      icon: <AccountBalanceIcon fontSize="small" />
+    };
+  }
+  
+  return {
+    color: COLORS.DEFAULT,
+    tooltip: TOOLTIPS.DEFAULT,
+    icon: <AccountBalanceIcon fontSize="small" />
+  };
+};
+
 // 可編輯行組件
 export const EditableRow: FC<EditableRowProps> = ({
   item,
@@ -170,82 +227,9 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
 }) => {
   const isCompleted = status === 'completed';
   const hasAccountingEntry = !!relatedTransactionGroupId;
-
-  // 調試日誌
-  console.log('🔍 ActionButtons props:', {
-    relatedTransactionGroupId,
-    accountingEntryType,
-    hasAccountingEntry,
-    onViewAccountingEntry: !!onViewAccountingEntry
-  });
   
-  // 顏色調試日誌
-  console.log('🎨 顏色設定:', {
-    accountingEntryType,
-    accountingEntryTypeType: typeof accountingEntryType,
-    isExpenseAsset: accountingEntryType === 'expense-asset',
-    isAssetLiability: accountingEntryType === 'asset-liability',
-    stringIncludes: accountingEntryType ? {
-      includesExpense: accountingEntryType.includes('expense'),
-      includesAsset: accountingEntryType.includes('asset'),
-      includesLiability: accountingEntryType.includes('liability')
-    } : null,
-    expectedColor: accountingEntryType === 'expense-asset' ? '綠色' : accountingEntryType === 'asset-liability' ? '橙色' : '粉紅色(預設)'
-  });
-
-  // 提示文字調試日誌 - 在組件渲染時執行
-  console.log('🏷️ 提示文字調試 (組件渲染時):', {
-    accountingEntryType,
-    accountingEntryTypeValue: JSON.stringify(accountingEntryType),
-    accountingEntryTypeLength: accountingEntryType?.length,
-    isExpenseAsset: accountingEntryType === 'expense-asset',
-    isAssetLiability: accountingEntryType === 'asset-liability',
-    strictComparison: {
-      expenseAsset: accountingEntryType === 'expense-asset',
-      assetLiability: accountingEntryType === 'asset-liability'
-    }
-  });
-
-  // 根據記帳格式選擇圖示
-  const getAccountingIcon = () => {
-    if (accountingEntryType === 'expense-asset') {
-      return <TrendingUpIcon fontSize="small" />; // 支出-資產格式：上升趨勢圖示
-    } else if (accountingEntryType === 'asset-liability') {
-      return <SwapHorizIcon fontSize="small" />; // 資產-負債格式：交換圖示
-    }
-    return <AccountBalanceIcon fontSize="small" />; // 預設：會計圖示
-  };
-
-  // 根據記帳格式選擇顏色
-  const getAccountingColor = () => {
-    if (accountingEntryType === 'expense-asset') {
-      return 'success'; // 支出-資產格式：綠色
-    } else if (accountingEntryType === 'asset-liability') {
-      return 'warning'; // 資產-負債格式：橙色
-    }
-    return 'default';
-  };
-
-  // 根據記帳格式選擇提示文字 - 使用與顏色相同的邏輯
-  const getAccountingTooltip = () => {
-    // 首先檢查正確的 accountingEntryType
-    if (accountingEntryType === 'expense-asset') {
-      return '查看會計分錄 (支出)';
-    } else if (accountingEntryType === 'asset-liability') {
-      return '查看會計分錄 (資產)';
-    } else if (relatedTransactionGroupId) {
-      // 使用與顏色相同的哈希邏輯來決定提示文字
-      const id = relatedTransactionGroupId;
-      let hash = 0;
-      for (let i = 0; i < id.length; i++) {
-        hash = ((hash << 5) - hash + id.charCodeAt(i)) & 0xffffffff;
-      }
-      const isGreen = Math.abs(hash) % 2 === 0;
-      // 綠色對應支出，橙色對應資產
-      return isGreen ? '查看會計分錄 (支出)' : '查看會計分錄 (資產)';
-    }
-    return '查看會計分錄';
-  };
+  // 使用統一的配置函數
+  const accountingConfig = getAccountingConfig(accountingEntryType, relatedTransactionGroupId);
 
   return (
     <Box>
@@ -263,41 +247,18 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
         <IconButton
           size="small"
           onClick={onViewAccountingEntry}
-          title={getAccountingTooltip()}
+          title={accountingConfig.tooltip}
           sx={{
-            // 改進的顏色分配邏輯
-            color: (() => {
-              // 首先檢查正確的 accountingEntryType
-              if (accountingEntryType === 'expense-asset') {
-                console.log('🟢 使用支出-資產格式顏色 (綠色)');
-                return '#4caf50 !important'; // 綠色 - 支出-資產格式
-              } else if (accountingEntryType === 'asset-liability') {
-                console.log('🟠 使用資產-負債格式顏色 (橙色)');
-                return '#ff9800 !important'; // 橙色 - 資產-負債格式
-              } else if (relatedTransactionGroupId) {
-                // 使用更複雜的 ID 分析來確保顏色差異
-                const id = relatedTransactionGroupId;
-                let hash = 0;
-                for (let i = 0; i < id.length; i++) {
-                  hash = ((hash << 5) - hash + id.charCodeAt(i)) & 0xffffffff;
-                }
-                const isGreen = Math.abs(hash) % 2 === 0;
-                console.log(`🎨 使用 ID 哈希分配顏色: ${id} -> ${isGreen ? '綠色' : '橙色'}`);
-                return isGreen ? '#4caf50 !important' : '#ff9800 !important';
-              }
-              console.log('🩷 使用預設顏色 (粉紅色)');
-              return '#e91e63 !important'; // 粉紅色 - 預設
-            })(),
+            color: `${accountingConfig.color} !important`,
             '&:hover': {
               backgroundColor: 'rgba(0, 0, 0, 0.1)'
             },
             border: '1px solid currentColor',
-            // 添加更明顯的視覺差異
             borderWidth: '2px',
             borderRadius: '4px'
           }}
         >
-          {getAccountingIcon()}
+          {accountingConfig.icon}
         </IconButton>
       )}
       
@@ -440,10 +401,38 @@ export const AmountRenderer: FC<{ value: number }> = ({ value }) => (
   <span>{value ? formatAmount(value) : ''}</span>
 );
 
-// PropTypes 驗證
-EditableRow.propTypes = {
+// 共用的 PropTypes 配置
+const commonPropTypes = {
+  // 基本類型
   item: PropTypes.object.isRequired,
   index: PropTypes.number.isRequired,
+  status: PropTypes.string,
+  loading: PropTypes.bool.isRequired,
+  disabled: PropTypes.bool,
+  children: PropTypes.node.isRequired,
+  
+  // 函數類型
+  onClick: PropTypes.func.isRequired,
+  onView: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onFileChange: PropTypes.func.isRequired,
+  
+  // 字串和數字
+  message: PropTypes.string.isRequired,
+  colSpan: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+  
+  // 可選類型
+  csvFile: PropTypes.object,
+  error: PropTypes.string,
+  success: PropTypes.bool.isRequired
+} as any;
+
+// PropTypes 驗證
+EditableRow.propTypes = {
+  item: commonPropTypes.item,
+  index: commonPropTypes.index,
   editingItem: PropTypes.object.isRequired,
   handleEditingItemChange: PropTypes.func.isRequired,
   handleSaveEditItem: PropTypes.func.isRequired,
@@ -451,8 +440,8 @@ EditableRow.propTypes = {
 } as any;
 
 DisplayRow.propTypes = {
-  item: PropTypes.object.isRequired,
-  index: PropTypes.number.isRequired,
+  item: commonPropTypes.item,
+  index: commonPropTypes.index,
   handleEditItem: PropTypes.func.isRequired,
   handleRemoveItem: PropTypes.func.isRequired,
   handleMoveItem: PropTypes.func.isRequired,
@@ -461,13 +450,13 @@ DisplayRow.propTypes = {
 } as any;
 
 ActionButtons.propTypes = {
-  onView: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
+  onView: commonPropTypes.onView,
+  onEdit: commonPropTypes.onEdit,
+  onDelete: commonPropTypes.onDelete,
   onPreviewMouseEnter: PropTypes.func.isRequired,
   onPreviewMouseLeave: PropTypes.func.isRequired,
   isDeleteDisabled: PropTypes.bool,
-  status: PropTypes.string,
+  status: commonPropTypes.status,
   onUnlock: PropTypes.func,
   relatedTransactionGroupId: PropTypes.string,
   accountingEntryType: PropTypes.oneOf(['expense-asset', 'asset-liability']),
@@ -475,26 +464,26 @@ ActionButtons.propTypes = {
 } as any;
 
 FileUpload.propTypes = {
-  csvFile: PropTypes.object,
-  onFileChange: PropTypes.func.isRequired,
-  loading: PropTypes.bool.isRequired
+  csvFile: commonPropTypes.csvFile,
+  onFileChange: commonPropTypes.onFileChange,
+  loading: commonPropTypes.loading
 } as any;
 
 StatusMessage.propTypes = {
-  error: PropTypes.string,
-  success: PropTypes.bool.isRequired
+  error: commonPropTypes.error,
+  success: commonPropTypes.success
 } as any;
 
 LoadingButton.propTypes = {
-  onClick: PropTypes.func.isRequired,
-  loading: PropTypes.bool.isRequired,
-  disabled: PropTypes.bool,
-  children: PropTypes.node.isRequired
+  onClick: commonPropTypes.onClick,
+  loading: commonPropTypes.loading,
+  disabled: commonPropTypes.disabled,
+  children: commonPropTypes.children
 } as any;
 
 EmptyState.propTypes = {
-  message: PropTypes.string.isRequired,
-  colSpan: PropTypes.number.isRequired
+  message: commonPropTypes.message,
+  colSpan: commonPropTypes.colSpan
 } as any;
 
 StatusChipRenderer.propTypes = {
@@ -506,5 +495,5 @@ PaymentStatusChipRenderer.propTypes = {
 } as any;
 
 AmountRenderer.propTypes = {
-  value: PropTypes.number.isRequired
+  value: commonPropTypes.value
 } as any;
