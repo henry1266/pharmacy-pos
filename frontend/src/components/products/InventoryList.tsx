@@ -3,16 +3,7 @@ import axios from 'axios';
 import {
   Box,
   Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Link,
   CircularProgress,
-  Divider,
   Button,
   Card,
   CardContent,
@@ -20,13 +11,10 @@ import {
 } from '@mui/material';
 import {
   BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon,
   Inventory as InventoryIcon,
   MonetizationOn as MonetizationOnIcon
 } from '@mui/icons-material';
-import { Link as RouterLink } from 'react-router-dom';
 import { Product } from '@pharmacy-pos/shared/types/entities';
-import { PackageInventoryDisplay } from '../package-units';
 import { convertToPackageDisplay } from '../package-units/utils';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import ChartModal from './ChartModal';

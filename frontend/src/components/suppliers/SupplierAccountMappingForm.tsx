@@ -8,8 +8,7 @@ import {
   CircularProgress,
   Dialog,
   DialogTitle,
-  DialogContent,
-  DialogActions
+  DialogContent
 } from '@mui/material';
 import {
   Add as AddIcon,

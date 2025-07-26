@@ -5,9 +5,7 @@ import {
   Grid,
   Paper,
   SelectChangeEvent,
-  Button,
-  Tabs,
-  Tab
+  Button
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';

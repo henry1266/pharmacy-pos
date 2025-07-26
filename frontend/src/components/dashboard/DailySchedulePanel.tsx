@@ -31,7 +31,7 @@ import { employeeService } from '../../modules/employees/core/employeeService';
 import TimeCalculationOvertimeDialog from '../../modules/employees/components/overtime/TimeCalculationOvertimeDialog';
 
 // Import types
-import type { EmployeeSchedule } from '../../modules/employees/types';
+import type { EmployeeSchedule, ShiftTimesMap, OvertimeRecord } from '../../modules/employees/types';
 import type { Employee } from '@pharmacy-pos/shared/types/entities';
 import { OvertimeStatus } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 
@@ -39,19 +39,55 @@ interface DailySchedulePanelProps {
   selectedDate: string;
 }
 
+// 定義擴展的加班記錄類型，與 useOvertimeManager 保持一致
+interface ExtendedOvertimeRecord extends Omit<OvertimeRecord, 'employeeId'> {
+  employeeId: string | {
+    _id: string;
+    name: string;
+    position?: string;
+    phone?: string;
+  };
+}
+
 interface ShiftSchedule {
   shift: 'morning' | 'afternoon' | 'evening' | 'overtime';
   shiftName: string;
   timeRange: string;
   employees: EmployeeSchedule[];
-  overtimeRecords?: any[];
+  overtimeRecords?: ExtendedOvertimeRecord[];
   color: string;
 }
+
+// 輔助函數：判斷是否為加班班次
+const isOvertimeShift = (shift: ShiftSchedule): boolean => {
+  return shift.shift === 'overtime';
+};
+
+// 輔助函數：獲取班次人員總數
+const getShiftPersonCount = (shift: ShiftSchedule): number => {
+  if (isOvertimeShift(shift)) {
+    return shift.overtimeRecords?.length || 0;
+  }
+  return shift.employees.length;
+};
+
+// 輔助函數：獲取班次顯示文字
+const getShiftDisplayText = (shift: ShiftSchedule): string => {
+  const count = getShiftPersonCount(shift);
+  if (isOvertimeShift(shift)) {
+    return `${count} 筆`;
+  }
+  return `${count} 人`;
+};
 
 const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   const { schedulesGroupedByDate, loading, error, fetchSchedulesByDate } = useEmployeeScheduling();
   const { shiftTimesMap, loading: shiftConfigLoading } = useShiftTimeConfig();
   
+  // 根據選定日期計算月份和年份
+  const selectedDateObj = new Date(selectedDate);
+  const selectedMonth = selectedDateObj.getMonth();
+  const selectedYear = selectedDateObj.getFullYear();
   
   const {
     overtimeRecords,
@@ -402,21 +438,21 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
     const daySchedules = schedulesGroupedByDate[selectedDate];
     const dailyOvertimeRecords = getDailyOvertimeRecords();
 
-    return Object.keys(shiftBaseConfig).map((shift) => {
+    return Object.keys(shiftBaseConfig).map((shift): ShiftSchedule => {
       const baseConfig = shiftBaseConfig[shift];
       
       if (shift === 'overtime') {
-        // 加班項目
+        // 加班項目 - 使用 OvertimeShiftSchedule 類型
         return {
-          shift: shift as 'overtime',
+          shift: 'overtime',
           shiftName: baseConfig.name,
-          timeRange: baseConfig.timeRange,
-          employees: [],
+          timeRange: '', // 加班沒有固定時間範圍
+          employees: [], // 加班班次不使用 employees，但為了符合介面需要提供空陣列
           overtimeRecords: dailyOvertimeRecords,
           color: baseConfig.color
         };
       } else {
-        // 正常班次
+        // 正常班次 - 使用 RegularShiftSchedule 類型
         const shiftEmployees = daySchedules ? (daySchedules[shift as keyof typeof daySchedules] || []) : [];
         
         return {
@@ -431,12 +467,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   }, [schedulesGroupedByDate, selectedDate, shiftBaseConfig, getDailyOvertimeRecords]);
 
   const totalEmployees = React.useMemo(() =>
-    shiftData.reduce((sum, shift) => {
-      if (shift.shift === 'overtime') {
-        return sum + (shift.overtimeRecords?.length || 0);
-      }
-      return sum + shift.employees.length;
-    }, 0),
+    shiftData.reduce((sum, shift) => sum + getShiftPersonCount(shift), 0),
     [shiftData]
   );
   
@@ -543,7 +574,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                   <Typography variant="subtitle2" fontWeight="medium">
                     {shift.shiftName}
                   </Typography>
-                  {shift.shift === 'overtime' ? (
+                  {isOvertimeShift(shift) ? (
                     <Button
                       size="small"
                       variant="outlined"
@@ -567,26 +598,37 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                   )}
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  {shift.shift === 'overtime'
-                    ? `${shift.overtimeRecords?.length || 0} 筆`
-                    : `${shift.employees.length} 人`
-                  }
+                  {getShiftDisplayText(shift)}
                 </Typography>
               </Box>
 
               {/* 員工頭像並排顯示或加班記錄顯示 */}
               <Box sx={{ pl: 1, pr: 1, pb: 1 }}>
-                {shift.shift === 'overtime' ? (
+                {isOvertimeShift(shift) ? (
                   /* 加班記錄顯示 */
                   shift.overtimeRecords && shift.overtimeRecords.length > 0 ? (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                       {shift.overtimeRecords.map((overtimeRecord) => {
-                        const employeeId = typeof overtimeRecord.employeeId === 'object' && overtimeRecord.employeeId && '_id' in overtimeRecord.employeeId
-                          ? (overtimeRecord.employeeId as any)._id
-                          : (overtimeRecord.employeeId as string) || '';
-                        const employeeName = typeof overtimeRecord.employeeId === 'object' && overtimeRecord.employeeId && 'name' in overtimeRecord.employeeId
-                          ? (overtimeRecord.employeeId as any).name
-                          : getEmployeeName(employeeId);
+                        // 優化的員工資訊提取邏輯
+                        const getEmployeeInfo = (employeeId: string | { _id: string; name: string; position?: string; phone?: string }) => {
+                          if (typeof employeeId === 'object' && employeeId) {
+                            return {
+                              id: employeeId._id,
+                              name: employeeId.name,
+                              position: employeeId.position,
+                              phone: employeeId.phone
+                            };
+                          }
+                          const id = employeeId as string || '';
+                          return {
+                            id,
+                            name: getEmployeeName(id),
+                            position: getEmployeePosition(id),
+                            phone: getEmployeePhone(id)
+                          };
+                        };
+                        
+                        const employeeInfo = getEmployeeInfo(overtimeRecord.employeeId);
                         
                         return (
                           <Tooltip
@@ -594,7 +636,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                             title={
                               <Box>
                                 <Typography variant="body2" fontWeight="medium">
-                                  {employeeName}
+                                  {employeeInfo.name}
                                 </Typography>
                                 <Typography variant="caption" color="inherit">
                                   加班時數: {(overtimeRecord.hours * 60)} 分鐘
@@ -619,7 +661,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                                   width: 40,
                                   height: 40,
                                   fontSize: '0.875rem',
-                                  bgcolor: getEmployeeAvatarColor(employeeId),
+                                  bgcolor: getEmployeeAvatarColor(employeeInfo.id),
                                   cursor: 'pointer',
                                   '&:hover': {
                                     transform: 'scale(1.1)',
@@ -627,7 +669,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
                                   }
                                 }}
                               >
-                                {employeeName.charAt(0)}
+                                {employeeInfo.name.charAt(0)}
                               </Avatar>
                               <Chip
                                 label={`${overtimeRecord.hours * 60}m`}

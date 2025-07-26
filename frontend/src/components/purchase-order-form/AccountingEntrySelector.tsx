@@ -12,18 +12,9 @@ import {
   Alert,
   Chip,
   SelectChangeEvent,
-  CircularProgress,
-  Divider,
-  Button
+  CircularProgress
 } from '@mui/material';
-import {
-  AccountBalance as AccountIcon,
-  SwapHoriz as SwapIcon,
-  CheckCircle as CheckIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
 import { accounting3Service } from '../../modules/accounting3/services/accounting3Service';
-import { Account3 } from '@pharmacy-pos/shared/types/accounting3';
 
 interface AccountingEntrySelectorProps {
   organizationId?: string;
