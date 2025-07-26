@@ -168,13 +168,14 @@ export class AccountingApiBridge {
    * 統一處理橋接過程中的錯誤
    */
   static errorHandlingBridge() {
-    return (error: any, req: Request, res: Response, next: NextFunction) => {
+    return (error: any, req: Request, res: Response, next: NextFunction): void => {
       if (error.name === 'AccountingBridgeError') {
-        return res.status(400).json({
+        res.status(400).json({
           error: '會計系統橋接錯誤',
           message: error.message,
           details: error.details || {}
         });
+        return;
       }
 
       next(error);

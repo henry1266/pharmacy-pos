@@ -33,9 +33,6 @@
     "alwaysStrict": true,
     
     /* 程式碼品質 */
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,
     
     /* 進階選項 */

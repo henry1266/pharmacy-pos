@@ -21,7 +21,7 @@
     
     /* 嚴格性檢查 - 漸進式啟用 */
     "strict": false,
-     "noImplicitAny": true,
+    "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": false,
     "strictBindCallApply": false,
@@ -47,7 +47,9 @@
     "noUncheckedIndexedAccess": false,
     "allowUnreachableCode": true,
     "allowUnusedLabels": true,
-    "noImplicitReturns": false
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true
   },
   "files": [],
   "references": [

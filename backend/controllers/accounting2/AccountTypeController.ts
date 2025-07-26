@@ -14,16 +14,17 @@ export class AccountTypeController {
   /**
    * 取得帳戶類型列表
    */
-  static async getAccountTypes(req: AuthenticatedRequest, res: Response) {
+  static async getAccountTypes(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { organizationId } = req.query;
       const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: '未授權的請求'
         });
+        return;
       }
 
       const accountTypes = await AccountType.getByOrganization(organizationId as string);
@@ -46,25 +47,27 @@ export class AccountTypeController {
   /**
    * 取得單一帳戶類型
    */
-  static async getAccountTypeById(req: AuthenticatedRequest, res: Response) {
+  static async getAccountTypeById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: '未授權的請求'
         });
+        return;
       }
 
       const accountType = await AccountType.findById(id);
 
       if (!accountType) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: '找不到指定的帳戶類型'
         });
+        return;
       }
 
       const response: ApiResponse = {
@@ -85,15 +88,16 @@ export class AccountTypeController {
   /**
    * 建立帳戶類型
    */
-  static async createAccountType(req: AuthenticatedRequest, res: Response) {
+  static async createAccountType(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: '未授權的請求'
         });
+        return;
       }
 
       const {
@@ -109,19 +113,21 @@ export class AccountTypeController {
 
       // 驗證必要欄位
       if (!code || !name || !label || !codePrefix || !normalBalance) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: '缺少必要欄位'
         });
+        return;
       }
 
       // 檢查代碼是否已存在
       const isCodeAvailable = await AccountType.isCodeAvailable(code, organizationId);
       if (!isCodeAvailable) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: '帳戶類型代碼已存在'
         });
+        return;
       }
 
       // 建立帳戶類型
@@ -160,33 +166,36 @@ export class AccountTypeController {
   /**
    * 更新帳戶類型
    */
-  static async updateAccountType(req: AuthenticatedRequest, res: Response) {
+  static async updateAccountType(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: '未授權的請求'
         });
+        return;
       }
 
       const accountType = await AccountType.findById(id);
 
       if (!accountType) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: '找不到指定的帳戶類型'
         });
+        return;
       }
 
       // 檢查是否可以編輯
       if (!accountType.canEdit()) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: '系統預設類型無法編輯'
         });
+        return;
       }
 
       const {
@@ -203,15 +212,16 @@ export class AccountTypeController {
       // 如果更改代碼，檢查是否已存在
       if (code && code !== accountType.code) {
         const isCodeAvailable = await AccountType.isCodeAvailable(
-          code, 
-          accountType.organizationId?.toString(), 
+          code,
+          accountType.organizationId?.toString(),
           id
         );
         if (!isCodeAvailable) {
-          return res.status(400).json({
+          res.status(400).json({
             success: false,
             message: '帳戶類型代碼已存在'
           });
+          return;
         }
       }
 
@@ -248,33 +258,36 @@ export class AccountTypeController {
   /**
    * 刪除帳戶類型
    */
-  static async deleteAccountType(req: AuthenticatedRequest, res: Response) {
+  static async deleteAccountType(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: '未授權的請求'
         });
+        return;
       }
 
       const accountType = await AccountType.findById(id);
 
       if (!accountType) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: '找不到指定的帳戶類型'
         });
+        return;
       }
 
       // 檢查是否可以刪除
       if (!accountType.canDelete()) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: '系統預設類型無法刪除'
         });
+        return;
       }
 
       // TODO: 檢查是否有相關的帳戶使用此類型
@@ -306,28 +319,30 @@ export class AccountTypeController {
   /**
    * 重新排序帳戶類型
    */
-  static async reorderAccountTypes(req: AuthenticatedRequest, res: Response) {
+  static async reorderAccountTypes(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: '未授權的請求'
         });
+        return;
       }
 
       const { items } = req.body; // [{ id: string, sortOrder: number }]
 
       if (!Array.isArray(items)) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: '無效的排序資料'
         });
+        return;
       }
 
       // 批次更新排序
-      const updatePromises = items.map(item => 
+      const updatePromises = items.map(item =>
         AccountType.findByIdAndUpdate(
           item.id,
           { sortOrder: item.sortOrder, updatedAt: new Date() },
@@ -355,15 +370,16 @@ export class AccountTypeController {
   /**
    * 初始化系統預設類型
    */
-  static async initializeSystemTypes(req: AuthenticatedRequest, res: Response) {
+  static async initializeSystemTypes(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: '未授權的請求'
         });
+        return;
       }
 
       await initializeSystemAccountTypes();

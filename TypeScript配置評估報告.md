@@ -27,14 +27,6 @@
    ```
    **建議**: 逐步啟用嚴格模式，提升程式碼品質
 
-2. **缺少重要的程式碼品質檢查**
-   ```json
-   "noUnusedLocals": true,
-   "noUnusedParameters": true,
-   "noImplicitReturns": true
-   ```
-   **建議**: 添加這些選項以提升程式碼品質
-
 ### 2. Backend tsconfig.json
 
 #### ✅ 優點
@@ -70,13 +62,6 @@
 - 豐富的路徑別名設定，支援模組化架構
 - 正確的 JSX 配置 (`jsx: "react-jsx"`)
 
-#### ⚠️ 需要改進的地方
-1. **目標版本過舊**
-   ```json
-   "target": "ES5"  // 現代瀏覽器可使用 ES2020+
-   ```
-   **建議**: 升級到 `ES2020` 或更新版本
-
 2. **完全關閉嚴格模式**
    ```json
    "strict": false,
@@ -97,7 +82,6 @@
    - 逐步遷移到完全嚴格模式
 
 2. **更新目標版本**
-   - Frontend: `ES5` → `ES2020`
    - Backend: 考慮升級到 `ES2022`
 
 3. **啟用程式碼品質檢查**
