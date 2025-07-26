@@ -15,11 +15,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   IconButton,
   Tooltip,
@@ -29,9 +24,7 @@ import {
   Divider
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
   AccountBalance as AccountBalanceIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,

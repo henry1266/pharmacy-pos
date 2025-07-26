@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 import config from 'config';
 import { check, validationResult } from 'express-validator';
 import auth from '../middleware/auth';
-// 移除未使用的導入
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import { UserTheme, DEFAULT_THEME_COLORS, DEFAULT_CUSTOM_SETTINGS } from '@pharmacy-pos/shared/types/theme';

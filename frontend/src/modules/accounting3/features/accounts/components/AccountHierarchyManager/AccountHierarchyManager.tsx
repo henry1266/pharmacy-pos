@@ -7,24 +7,18 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Paper,
-  Typography,
   Button,
   TextField,
   InputAdornment,
-  FormControlLabel,
-  Switch,
   Chip,
   Alert,
   CircularProgress,
-  Divider,
   Collapse
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
   Refresh as RefreshIcon,
-  Settings as SettingsIcon,
-  AccountTree as AccountTreeIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';

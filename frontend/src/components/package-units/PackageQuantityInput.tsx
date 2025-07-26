@@ -3,11 +3,9 @@ import {
   Box,
   TextField,
   Typography,
-  Chip,
   Button,
   Grid,
   Paper,
-  Divider,
   Alert,
   Collapse,
   IconButton,
@@ -22,17 +20,14 @@ import {
   Add as AddIcon,
   Remove as RemoveIcon,
   Clear as ClearIcon,
-  ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Calculate as CalculatorIcon
 } from '@mui/icons-material';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import { PackageQuantityInputProps, PackageInputItem, PackageQuantityChangeData } from './types';
 import {
-  convertToBaseUnit,
   convertToPackageDisplay,
-  generateQuickInputOptions,
-  formatPackageDisplay
+  generateQuickInputOptions
 } from './utils';
 
 /**
