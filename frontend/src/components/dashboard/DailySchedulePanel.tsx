@@ -31,7 +31,7 @@ import { employeeService } from '../../modules/employees/core/employeeService';
 import TimeCalculationOvertimeDialog from '../../modules/employees/components/overtime/TimeCalculationOvertimeDialog';
 
 // Import types
-import type { EmployeeSchedule, ShiftTimesMap, OvertimeRecord } from '../../modules/employees/types';
+import type { EmployeeSchedule } from '../../modules/employees/types';
 import type { Employee } from '@pharmacy-pos/shared/types/entities';
 import { OvertimeStatus } from '@pharmacy-pos/shared/utils/overtimeDataProcessor';
 
@@ -52,10 +52,6 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
   const { schedulesGroupedByDate, loading, error, fetchSchedulesByDate } = useEmployeeScheduling();
   const { shiftTimesMap, loading: shiftConfigLoading } = useShiftTimeConfig();
   
-  // 根據選定日期計算月份和年份
-  const selectedDateObj = new Date(selectedDate);
-  const selectedMonth = selectedDateObj.getMonth();
-  const selectedYear = selectedDateObj.getFullYear();
   
   const {
     overtimeRecords,

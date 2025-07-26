@@ -10,9 +10,8 @@ import {
   useMediaQuery
 } from '@mui/material';
 import { Inventory as InventoryIcon } from '@mui/icons-material';
-import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import { PackageInventoryDisplayProps } from './types';
-import { convertToPackageDisplay, formatPackageDisplay } from './utils';
+import { convertToPackageDisplay } from './utils';
 
 /**
  * 包裝庫存顯示組件

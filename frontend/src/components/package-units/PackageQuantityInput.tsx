@@ -53,17 +53,14 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('lg'));
   
   // 狀態管理
   const [inputValues, setInputValues] = useState<PackageInputItem[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [inputError, setInputError] = useState<string>('');
   const [inputWarning, setInputWarning] = useState<string>('');
-  const [quickInputExpanded, setQuickInputExpanded] = useState(false);
   const [historyInputs, setHistoryInputs] = useState<number[]>([]);
   const [smartSuggestions, setSmartSuggestions] = useState<number[]>([]);
-  const [showAutoComplete, setShowAutoComplete] = useState(false);
 
   // 排序後的包裝單位（按 unitValue 從大到小排序）
   const sortedPackageUnits = useMemo(() => {

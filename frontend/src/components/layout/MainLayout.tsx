@@ -38,7 +38,6 @@ import PersonIcon from '@mui/icons-material/Person';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import BusinessIcon from '@mui/icons-material/Business';
-import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
@@ -207,9 +206,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const isProductPath = (path: string): boolean => path.startsWith('/products') || path.startsWith('/product-categories');
   const isAccountingPath = (path: string): boolean => (path.startsWith('/accounting') && !path.startsWith('/accounting2') && !path.startsWith('/accounting3')) || path.startsWith('/settings/monitored-products');
-  const isAccounting2Path = (path: string): boolean => path.startsWith('/accounting2');
   const isAccounting3Path = (path: string): boolean => path.startsWith('/accounting3');
-  const isOrganizationPath = (path: string): boolean => path.startsWith('/accounting3/organizations');
   const isSettingPath = (path: string): boolean => /^\/settings(\/|$)/.test(path);
   const isEmployeePath = (path: string): boolean => path.startsWith('/employees');
 

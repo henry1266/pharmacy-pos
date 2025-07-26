@@ -11,7 +11,6 @@ import {
   ItemList,
   DetailLink,
   createDateFilter,
-  createSearchFieldsExtractor,
   getSupplierName,
   getProductName,
   formatDate,

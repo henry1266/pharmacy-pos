@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Chip } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { DAILY_PANEL_STYLES } from '../styles';
 
 export interface ItemSummaryProps {
