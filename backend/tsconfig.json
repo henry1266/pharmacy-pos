@@ -16,9 +16,6 @@
     /* Node.js 環境設定 */
     "allowJs": true,
     "checkJs": false,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
     "moduleResolution": "node",
     
     /* 漸進式嚴格模式 - 適合轉型期 */
@@ -27,14 +24,7 @@
     "strictFunctionTypes": false,
     "strictBindCallApply": true,
     "strictPropertyInitialization": false,
-    "noImplicitThis": true,
     "alwaysStrict": true,
-    
-    /* 進階選項 */
-    "isolatedModules": true,
-    "exactOptionalPropertyTypes": false,
-    "noImplicitOverride": false,
-    "noPropertyAccessFromIndexSignature": false,
     
     /* 裝飾器支援 (如使用 TypeORM 等) */
     "experimentalDecorators": true,

@@ -27,31 +27,21 @@
     "strictFunctionTypes": false,
     "strictBindCallApply": false,
     "strictPropertyInitialization": false,
-    "noImplicitThis": false,
     "alwaysStrict": false,
-    
+    "allowSyntheticDefaultImports": true,
+
     /* 模組解析 */
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    
-    /* 進階選項 */
-    "exactOptionalPropertyTypes": false,
-    "noImplicitOverride": false,
-    "noPropertyAccessFromIndexSignature": false,
-
-    "allowUnreachableCode": true,
-    "allowUnusedLabels": true,
-    
+    /* 程式碼品質與附加檢查 */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-
     /* 進階選項 */
     "useUnknownInCatchVariables": true,
     /* 開發階段 */
