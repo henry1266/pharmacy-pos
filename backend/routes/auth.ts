@@ -60,6 +60,16 @@ interface EmailUpdateResult {
 // @access  Private
 router.get('/', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!req.user?.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '未授權的請求',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+      return;
+    }
+
     // Find user by ID from token payload and exclude password
     const user = await User.findOne({ _id: req.user.id.toString() }).select('-password');
     if (!user) {
@@ -433,7 +443,47 @@ router.put(
         return;
       }
 
+      if (!req.user?.id) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '未授權的請求',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+        return;
+      }
+
       // 驗證用戶存在
+      if (!req.user?.id) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '未授權的請求',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+        return;
+      }
+  
+      if (!req.user?.id) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '未授權的請求',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+        return;
+      }
+  
+      if (!req.user?.id) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '未授權的請求',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+        return;
+      }
+  
       const userValidation = await validateUserExists(req.user.id);
       if (!userValidation.valid) {
         const errorResponse: ErrorResponse = {
@@ -444,7 +494,7 @@ router.put(
         res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
         return;
       }
-
+  
       const user = userValidation.user;
 
       // 更新設定
@@ -701,6 +751,26 @@ router.put('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Pr
     const { themeId } = req.params;
     const updateData = req.body;
 
+    if (!themeId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少主題ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+
+    if (!req.user?.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '未授權的請求',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+      return;
+    }
+
     const userValidation = await validateUserExists(req.user.id);
     if (!userValidation.valid) {
       const errorResponse: ErrorResponse = {
@@ -780,6 +850,26 @@ router.put('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Pr
 router.delete('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { themeId } = req.params;
+
+    if (!themeId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少主題ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+
+    if (!req.user?.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '未授權的請求',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+      return;
+    }
 
     const userValidation = await validateUserExists(req.user.id);
     if (!userValidation.valid) {

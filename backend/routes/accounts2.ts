@@ -89,9 +89,17 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
-    const account = await Account2.findOne({ 
-      _id: id, 
-      createdBy: userId 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少帳戶ID參數'
+      });
+      return;
+    }
+
+    const account = await Account2.findOne({
+      _id: id,
+      createdBy: userId
     });
 
     if (!account) {
@@ -467,6 +475,14 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少帳戶ID參數'
+      });
+      return;
+    }
+
     const { name, type, accountType, currency, description, isActive, parentId, code, initialBalance } = req.body;
 
     console.log('🔍 PUT /accounts2/:id - 接收到的更新資料:', {
@@ -636,6 +652,14 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
       return;
     }
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少帳戶ID參數'
+      });
+      return;
+    }
+
     console.log('🗑️ 開始刪除科目:', { id, userId });
 
     const account = await Account2.findOne({
@@ -760,6 +784,14 @@ router.get('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.
       return;
     }
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少帳戶ID參數'
+      });
+      return;
+    }
+
     const account = await Account2.findOne({ 
       _id: id, 
       createdBy: userId,
@@ -801,6 +833,14 @@ router.put('/:id/balance', auth, async (req: AuthenticatedRequest, res: express.
 
     if (!userId) {
       res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少帳戶ID參數'
+      });
       return;
     }
 

@@ -173,6 +173,11 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
 
     const { id } = req.params;
 
+    if (!id) {
+      sendErrorResponse(res, 400, '缺少交易群組ID參數');
+      return;
+    }
+
     const transactionGroup = await TransactionGroupWithEntries.findOne({
       _id: id,
       createdBy: userId
@@ -701,6 +706,14 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
 
     if (!userId) {
       res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少交易群組ID參數'
+      });
       return;
     }
 

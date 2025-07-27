@@ -254,6 +254,14 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少交易群組ID參數'
+      });
+      return;
+    }
+
     const transactionGroup = await TransactionGroup.findOne({
       _id: id,
       createdBy: userId
@@ -512,6 +520,14 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       return;
     }
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少交易群組ID參數'
+      });
+      return;
+    }
+
     const {
       description,
       transactionDate,
@@ -693,6 +709,14 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
       return;
     }
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少交易群組ID參數'
+      });
+      return;
+    }
+
     console.log('🔍 POST /transaction-groups/:id/confirm - 確認交易:', { id, userId });
 
     // 檢查交易群組是否存在
@@ -780,6 +804,14 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
 
     if (!userId) {
       res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少交易群組ID參數'
+      });
       return;
     }
 
@@ -929,6 +961,14 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
 
     if (!userId) {
       res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: '缺少交易群組ID參數'
+      });
       return;
     }
 

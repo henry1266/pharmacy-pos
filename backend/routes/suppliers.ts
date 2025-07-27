@@ -120,12 +120,19 @@ router.get('/', async (_req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    // 驗證 ID 參數
-    if (!validateRequestId(res, req.params.id)) {
+    const { id } = req.params;
+    
+    if (!id) {
+      sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       return;
     }
     
-    const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
+    // 驗證 ID 參數
+    if (!validateRequestId(res, id)) {
+      return;
+    }
+    
+    const supplier = await Supplier.findOne({ _id: id.toString() });
     
     if (!supplier) {
       sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
@@ -306,25 +313,27 @@ router.put('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
+    
     // 驗證 ID 參數存在性
-    if (!req.params.id) {
+    if (!id) {
       sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       return;
     }
 
     // 驗證 ID 參數
-    if (!validateRequestId(res, req.params.id)) {
+    if (!validateRequestId(res, id)) {
       return;
     }
     
-    const supplier = await Supplier.findOne({ _id: req.params.id.toString() });
+    const supplier = await Supplier.findOne({ _id: id.toString() });
     if (!supplier) {
       sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
       return;
     }
 
     // 刪除供應商
-    await Supplier.deleteOne({ _id: req.params.id.toString() });
+    await Supplier.deleteOne({ _id: id.toString() });
     
     sendSuccessResponse(res, '供應商已刪除', null);
   } catch (err: any) {

@@ -56,6 +56,17 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
+    if (!id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少類別ID參數',
+        error: '缺少必要的ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     if (!mongoose.Types.ObjectId.isValid(id)) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -184,6 +195,17 @@ router.put('/:id', auth, [
     const { id } = req.params;
     const { name, description, isActive, order }: AccountingCategoryRequest = req.body;
     
+    if (!id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少類別ID參數',
+        error: '缺少必要的ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     if (!mongoose.Types.ObjectId.isValid(id)) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -263,6 +285,17 @@ router.put('/:id', auth, [
 router.delete('/:id', auth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少類別ID參數',
+        error: '缺少必要的ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
       const errorResponse: ErrorResponse = {
