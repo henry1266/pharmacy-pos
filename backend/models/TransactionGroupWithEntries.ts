@@ -250,7 +250,7 @@ TransactionGroupWithEntriesSchema.pre('save', async function(this: ITransactionG
       let sequence = 1;
       if (lastGroup) {
         const parts = lastGroup.groupNumber.split('-');
-        if (parts.length === 3) {
+        if (parts.length === 3 && parts[2]) {
           const lastSequence = parseInt(parts[2]);
           if (!isNaN(lastSequence)) {
             sequence = lastSequence + 1;
@@ -284,6 +284,10 @@ TransactionGroupWithEntriesSchema.pre('save', function(this: ITransactionGroupWi
     // 驗證每筆分錄的借貸金額
     for (let i = 0; i < this.entries.length; i++) {
       const entry = this.entries[i];
+      
+      if (!entry) {
+        return next(new Error(`第 ${i + 1} 筆分錄：分錄資料不存在`));
+      }
       
       if (entry.debitAmount === 0 && entry.creditAmount === 0) {
         return next(new Error(`第 ${i + 1} 筆分錄：借方金額或貸方金額至少要有一個大於0`));

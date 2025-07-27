@@ -42,6 +42,12 @@ const router: express.Router = express.Router();
 // 生成出貨單PDF - 移除isAuthenticated中間件以解決undefined問題
 router.get('/pdf/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      res.status(404).json({ msg: '找不到出貨單' });
+      return;
+    }
+
     // 移除populate('customer')以解決schema錯誤
     const shippingOrder = await ShippingOrder.findById(req.params.id).lean() as ShippingOrderDocument;
     
@@ -134,7 +140,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     const tableTop = doc.y;
     const tableHeaders = ['序號', '健保代碼', '項目', '數量', '單價', '小計'];
     // 調整欄寬以避免數字重疊
-    const columnWidths = [30, 60, 220, 60, 60, 60];
+    const columnWidths: number[] = [30, 60, 220, 60, 60, 60];
     let currentY = tableTop;
     
     // 繪製表格標題
@@ -300,6 +306,12 @@ const formatCurrency = (value?: number | null): string => {
 // 生成出貨單PDF - 第二種排版（無健保代碼，副標題小字）
 router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      res.status(404).json({ msg: '找不到出貨單' });
+      return;
+    }
+
     // 移除populate('customer')以解決schema錯誤
     const shippingOrder = await ShippingOrder.findById(req.params.id).lean() as ShippingOrderDocument;
     
@@ -387,7 +399,7 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
     const tableTop = doc.y;
     const tableHeaders = ['序號', '項目', '數量', '單價', '小計'];
     // 調整欄寬：確保不超出頁面範圍 (A4寬度約530px可用)
-    const columnWidths = [40, 250, 60, 80, 80];
+    const columnWidths: number[] = [40, 250, 60, 80, 80];
     let currentY = tableTop;
     
     // 繪製表格標題

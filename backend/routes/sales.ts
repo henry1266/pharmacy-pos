@@ -421,6 +421,17 @@ router.get('/', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性和格式
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       const errorResponse: ErrorResponse = {
@@ -700,7 +711,7 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
   
   // 檢查客戶是否存在
   const customerCheck = await checkCustomerExists(customer);
-  if (!customerCheck.exists) {
+  if (!customerCheck.exists && customerCheck.error) {
     return customerCheck.error;
   }
   
@@ -745,7 +756,7 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
     saleNumber: finalSaleNumber,
     customer: requestBody.customer,
     items: requestBody.items,
-    totalAmount: requestBody.totalAmount,
+    totalAmount: requestBody.totalAmount || 0,
     discount: requestBody.discount,
     paymentMethod: requestBody.paymentMethod,
     paymentStatus: requestBody.paymentStatus,
@@ -960,6 +971,17 @@ async function updateCustomerPoints(sale: SaleDocument): Promise<void> {
 // @access  Public
 router.put('/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       const errorResponse: ErrorResponse = {
@@ -1010,6 +1032,16 @@ router.put('/:id', async (req: Request, res: Response) => {
       })
       .populate('cashier');
 
+    if (!populatedSale) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
     const response: ApiResponse<any> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.UPDATED,
@@ -1041,14 +1073,14 @@ async function validateSaleUpdateRequest(requestBody: SaleCreationRequest): Prom
   
   // 檢查客戶是否存在
   const customerCheck = await checkCustomerExists(customer);
-  if (!customerCheck.exists) {
+  if (!customerCheck.exists && customerCheck.error) {
     return customerCheck.error;
   }
   
   // 檢查所有產品是否存在
   for (const item of items) {
     const productCheck = await checkProductExists(item.product);
-    if (!productCheck.exists) {
+    if (!productCheck.exists && productCheck.error) {
       return productCheck.error;
     }
   }
@@ -1063,7 +1095,7 @@ async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest
     saleNumber: existingSale.saleNumber, // 保持原有銷貨單號
     customer: requestBody.customer,
     items: requestBody.items,
-    totalAmount: requestBody.totalAmount,
+    totalAmount: requestBody.totalAmount || 0,
     discount: requestBody.discount,
     paymentMethod: requestBody.paymentMethod,
     paymentStatus: requestBody.paymentStatus,
@@ -1118,6 +1150,17 @@ async function handleInventoryForUpdatedSale(originalSale: SaleDocument, updated
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       const errorResponse: ErrorResponse = {
@@ -1150,7 +1193,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const response: ApiResponse<{ id: string }> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.DELETED || '銷售記錄已刪除',
-      data: { id: req.params.id },
+      data: { id: req.params.id! },
       timestamp: new Date()
     };
 

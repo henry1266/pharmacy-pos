@@ -262,6 +262,12 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const requestBody = req.body as SupplierUpdateRequest;
     
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
+      return;
+    }
+
     // 驗證 ID 參數
     if (!validateRequestId(res, req.params.id)) {
       return;
@@ -300,6 +306,12 @@ router.put('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      sendNotFoundResponse(res, ERROR_MESSAGES.SUPPLIER.NOT_FOUND);
+      return;
+    }
+
     // 驗證 ID 參數
     if (!validateRequestId(res, req.params.id)) {
       return;
@@ -349,7 +361,7 @@ async function checkCodeDuplicate(code: string | undefined): Promise<{ isDuplica
   if (existingSupplier) {
     return {
       isDuplicate: true,
-      existingId: existingSupplier._id.toString()
+      existingId: (existingSupplier as any)._id.toString()
     };
   }
   

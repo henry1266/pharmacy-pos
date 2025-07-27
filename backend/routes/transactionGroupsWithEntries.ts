@@ -85,7 +85,7 @@ const generateGroupNumber = async (): Promise<string> => {
   let sequence = 1;
   if (lastGroup) {
     const parts = lastGroup.groupNumber.split('-');
-    if (parts.length === 3) {
+    if (parts.length === 3 && parts[2]) {
       const lastSequence = parseInt(parts[2]);
       if (!isNaN(lastSequence)) {
         sequence = lastSequence + 1;

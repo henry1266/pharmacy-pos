@@ -165,6 +165,17 @@ router.get('/with-accounts', auth, async (req: Request, res: Response) => {
 // @access  Private
 router.get('/:id', auth, async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的員工ID格式',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       const errorResponse: ErrorResponse = {
@@ -410,6 +421,17 @@ function convertToSharedEmployee(employee: any): SharedEmployee {
 // @access  Private
 router.put('/:id', auth, async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的員工ID格式',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       const errorResponse: ErrorResponse = {
@@ -493,6 +515,17 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
 // @access  Private
 router.delete('/:id', auth, async (req: Request, res: Response) => {
   try {
+    // 驗證 ID 參數存在性
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無效的員工ID格式',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       const errorResponse: ErrorResponse = {

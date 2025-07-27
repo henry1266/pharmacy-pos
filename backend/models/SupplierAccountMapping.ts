@@ -128,7 +128,10 @@ SupplierAccountMappingSchema.pre('save', async function(this: ISupplierAccountMa
     // 保留優先級最高的，其他設為非預設
     defaults.sort((a, b) => a.priority - b.priority);
     for (let i = 1; i < defaults.length; i++) {
-      defaults[i].isDefault = false;
+      const defaultItem = defaults[i];
+      if (defaultItem) {
+        defaultItem.isDefault = false;
+      }
     }
   }
   
