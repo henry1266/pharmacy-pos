@@ -348,8 +348,8 @@ export const Accounting3TransactionPage: React.FC = () => {
         showSnackbar('交易已成功更新', 'success');
         
         // 立即更新本地編輯狀態
-        if (updatedResult && updatedResult.payload) {
-          setEditingTransaction(updatedResult.payload);
+        if (updatedResult && (updatedResult as any).payload) {
+          setEditingTransaction((updatedResult as any).payload);
         }
         
         setDialogOpen(false);

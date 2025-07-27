@@ -1,5 +1,4 @@
 import React, { FC } from 'react';
-import PropTypes from 'prop-types';
 import { Box } from '@mui/material';
 import {
   InventoryFilterValues
@@ -75,15 +74,5 @@ const InventoryTable: FC<InventoryTableProps> = ({ filters }) => {
   );
 };
 
-// 添加 InventoryTable 的 PropTypes 驗證
-InventoryTable.propTypes = {
-  filters: PropTypes.shape({
-    supplier: PropTypes.string,
-    category: PropTypes.string,
-    productCode: PropTypes.string,
-    productName: PropTypes.string,
-    productType: PropTypes.string
-  }).isRequired
-};
 
 export default InventoryTable;

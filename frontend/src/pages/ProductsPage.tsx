@@ -141,7 +141,7 @@ const ProductsPage: React.FC = () => {
   } = useCsvImport(0, fetchProducts); // 使用固定值 0，因為不再使用 tabValue
   
   // 創建表格列定義 - 使用統一的產品列定義
-  const productColumns = createProductColumns(handleEditProduct, handleDeleteProduct, getTotalInventory, categories);
+  const productColumns = createProductColumns(handleEditProduct, handleDeleteProduct, getTotalInventory, categories || []);
   
   // 防抖的篩選處理函數
   const debouncedFilterProducts = useMemo(() => {
@@ -160,8 +160,8 @@ const ProductsPage: React.FC = () => {
             const searchLower = newFilters.search.toLowerCase();
             const localFiltered = allProducts.filter(item => {
               return (
-                item.code.toLowerCase().includes(searchLower) ||
-                item.name.toLowerCase().includes(searchLower) ||
+                item.code?.toLowerCase().includes(searchLower) ||
+                item.name?.toLowerCase().includes(searchLower) ||
                 ((item as any).healthInsuranceCode && (item as any).healthInsuranceCode.toLowerCase().includes(searchLower))
               );
             });
@@ -178,8 +178,8 @@ const ProductsPage: React.FC = () => {
             if (!newFilters.search) return true;
             const searchLower = newFilters.search.toLowerCase();
             return (
-              item.code.toLowerCase().includes(searchLower) ||
-              item.name.toLowerCase().includes(searchLower) ||
+              item.code?.toLowerCase().includes(searchLower) ||
+              item.name?.toLowerCase().includes(searchLower) ||
               ((item as any).healthInsuranceCode && (item as any).healthInsuranceCode.toLowerCase().includes(searchLower))
             );
           });

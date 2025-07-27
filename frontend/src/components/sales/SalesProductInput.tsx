@@ -261,7 +261,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
           
           // 立即設置處理標誌和記錄選擇的項目
           isProcessingRef.current = true;
-          lastSelectedItemRef.current = itemId;
+          lastSelectedItemRef.current = itemId || null;
           
           console.log('Processing selection:', newValue.name, 'ID:', itemId);
           
@@ -316,26 +316,28 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                     return;
                   }
                   
-                  const itemId = firstItem._id;
+                  const itemId = firstItem?._id;
                   if (lastSelectedItemRef.current === itemId) {
                     return;
                   }
                   
                   // 設置處理標誌
                   isProcessingRef.current = true;
-                  lastSelectedItemRef.current = itemId;
+                  lastSelectedItemRef.current = itemId || null;
                   
                   try {
-                    if (isPackage(firstItem)) {
-                      if (onSelectPackage) {
-                        onSelectPackage(firstItem);
-                        showSnackbar(`已選擇：${firstItem.name}`, 'success');
+                    if (firstItem) {
+                      if (isPackage(firstItem)) {
+                        if (onSelectPackage) {
+                          onSelectPackage(firstItem);
+                          showSnackbar(`已選擇：${firstItem.name}`, 'success');
+                        } else {
+                          showSnackbar('套餐選擇功能尚未實作', 'warning');
+                        }
                       } else {
-                        showSnackbar('套餐選擇功能尚未實作', 'warning');
+                        onSelectProduct(firstItem);
+                        showSnackbar(`已選擇：${firstItem.name}`, 'success');
                       }
-                    } else {
-                      onSelectProduct(firstItem);
-                      showSnackbar(`已選擇：${firstItem.name}`, 'success');
                     }
                     
                     // 清空狀態

@@ -90,7 +90,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
   // 驗證並修正 type 值
   const validateAccountType = (type: string | undefined): 'cash' | 'bank' | 'credit' | 'investment' | 'other' => {
     const validTypes = ['cash', 'bank', 'credit', 'investment', 'other'];
-    return validTypes.includes(type || '') ? type as any : 'other';
+    return validTypes.includes(type || '') ? (type as 'cash' | 'bank' | 'credit' | 'investment' | 'other') : 'other';
   };
 
   // 當 account 或 parentAccount 變化時更新表單資料
@@ -100,7 +100,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         code: account.code || '',
         name: account.name || '',
         accountType: account.accountType || (parentAccount?.accountType || 'asset'),
-        type: validateAccountType(account.type) || validateAccountType(parentAccount?.type),
+        type: validateAccountType(account.type) || validateAccountType(parentAccount?.type) || 'other',
         parentId: account.parentId || '',
         initialBalance: account.initialBalance || 0,
         currency: account.currency || 'TWD',

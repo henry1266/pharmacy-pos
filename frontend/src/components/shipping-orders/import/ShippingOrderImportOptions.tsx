@@ -1,5 +1,4 @@
 import React, { FC, ChangeEvent, SyntheticEvent } from 'react';
-import PropTypes from 'prop-types';
 import { Box, Typography, Divider } from '@mui/material';
 import MedicineCsvImportController from './medicine-csv/MedicineCsvImportController';
 import CsvImportDialog from './CsvImportDialog';
@@ -13,7 +12,7 @@ interface ShippingOrderImportOptionsProps {
   handleImportClose: () => void;
   handleTabChange: (event: SyntheticEvent, newValue: number) => void;
   tabValue: number;
-  csvFile?: File | null;
+  csvFile?: File | null | undefined;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleImport: () => void;
   loading?: boolean;
@@ -88,11 +87,11 @@ const ShippingOrderImportOptions: FC<ShippingOrderImportOptionsProps> = ({
       
       {/* 原有的CSV匯入對話框 */}
       <CsvImportDialog
-        open={openBasicImport ?? openItemsImport}
+        open={openBasicImport || openItemsImport}
         onClose={handleImportClose}
         tabValue={tabValue}
         onTabChange={handleTabChange}
-        csvFile={csvFile}
+        csvFile={csvFile || null}
         onFileChange={handleFileChange}
         onImport={handleImport}
         loading={loading ?? false}
@@ -101,31 +100,6 @@ const ShippingOrderImportOptions: FC<ShippingOrderImportOptionsProps> = ({
       />
     </Box>
   );
-};
-
-// PropTypes 驗證
-ShippingOrderImportOptions.propTypes = {
-  openBasicImport: PropTypes.bool.isRequired,
-  openItemsImport: PropTypes.bool.isRequired,
-  handleBasicImportOpen: PropTypes.func.isRequired,
-  handleItemsImportOpen: PropTypes.func.isRequired,
-  handleImportClose: PropTypes.func.isRequired,
-  handleTabChange: PropTypes.func.isRequired,
-  tabValue: PropTypes.number.isRequired,
-  csvFile: PropTypes.object,
-  handleFileChange: PropTypes.func.isRequired,
-  handleImport: PropTypes.func.isRequired,
-  loading: PropTypes.bool,
-  error: PropTypes.string,
-  success: PropTypes.bool
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
-
-// 預設值
-ShippingOrderImportOptions.defaultProps = {
-  csvFile: null,
-  loading: false,
-  error: undefined,
-  success: false
 };
 
 export default ShippingOrderImportOptions;

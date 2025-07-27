@@ -160,9 +160,9 @@ export const calculateCumulativeProfitLoss = (
   let result = 0;
   for (let i = 0; i <= endIndex; i++) {
     const transaction = transactions[i];
-    if (transaction.type === '進貨') {
+    if (transaction && transaction.type === '進貨') {
       result += profitLossCalculator(transaction);
-    } else if (transaction.type === '銷售' || transaction.type === '出貨') {
+    } else if (transaction && (transaction.type === '銷售' || transaction.type === '出貨')) {
       result -= profitLossCalculator(transaction);
     }
   }
@@ -209,10 +209,13 @@ export const processInventoryData = (data: TransactionItem[]): {
     }
     
     // 計算總數量和價值
-    groupedByProduct[productId].totalQuantity += item.quantity;
-    groupedByProduct[productId].totalInventoryValue += item.inventoryValue;
-    groupedByProduct[productId].totalPotentialRevenue += item.potentialRevenue;
-    groupedByProduct[productId].totalPotentialProfit += item.potentialProfit;
+    const productGroupForSummary = groupedByProduct[productId];
+    if (productGroupForSummary) {
+      productGroupForSummary.totalQuantity += item.quantity;
+      productGroupForSummary.totalInventoryValue += item.inventoryValue;
+      productGroupForSummary.totalPotentialRevenue += item.potentialRevenue;
+      productGroupForSummary.totalPotentialProfit += item.potentialProfit;
+    }
     
     // 確定交易類型
     const transactionType = determineTransactionType(item.type);
@@ -233,7 +236,10 @@ export const processInventoryData = (data: TransactionItem[]): {
       orderNumber: item.orderNumber || ''
     };
     
-    groupedByProduct[productId].transactions.push(transaction);
+    const productGroup = groupedByProduct[productId];
+    if (productGroup) {
+      productGroup.transactions.push(transaction);
+    }
     
     // 更新總計
     totalQuantity += item.quantity;
@@ -271,8 +277,8 @@ export const processInventoryData = (data: TransactionItem[]): {
         const latestTransaction = sortedByDescending[0];
         
         // 找到該交易在原始排序中的位置
-        const index = sortedTransactions.findIndex(t => 
-          getOrderNumber(t) === getOrderNumber(latestTransaction));
+        const index = sortedTransactions.findIndex(t =>
+          latestTransaction && getOrderNumber(t) === getOrderNumber(latestTransaction));
         
         if (index !== -1) {
           // 計算到該交易為止的累積損益

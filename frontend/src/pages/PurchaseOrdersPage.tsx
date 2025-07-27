@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, ChangeEvent } from 'react'; // 添加 TypeScript 類型
-import PropTypes from 'prop-types';
 import {
   Button,
   Box,
@@ -200,7 +199,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         _id: row._id,
         poid: row.poid,
         pobill: row.pobill,
-        pobilldate: typeof row.pobilldate === 'string' ? row.pobilldate : new Date(row.pobilldate).toISOString().split('T')[0],
+        pobilldate: typeof row.pobilldate === 'string' ? row.pobilldate : (row.pobilldate ? new Date(row.pobilldate).toISOString().split('T')[0] : ''),
         posupplier: row.posupplier,
         totalAmount: row.totalAmount,
         status: row.status,
@@ -209,13 +208,13 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         relatedTransactionGroupId: (row as any).relatedTransactionGroupId,
         accountingEntryType: (row as any).accountingEntryType,
         selectedAccountIds: (row as any).selectedAccountIds
-      }));
+      })) as FilteredRow[];
       
       // 然後根據本地選擇的供應商進一步過濾
       let filteredBySupplier = rows;
       if (selectedSuppliers.length > 0) {
         filteredBySupplier = rows.filter(row => {
-          return selectedSuppliers.includes(row.posupplier);
+          return selectedSuppliers.includes(row.posupplier || '');
         });
       }
       
@@ -227,12 +226,12 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         const formattedRows = purchaseOrders.map(po => ({
           id: po._id,
           _id: po._id,
-          poid: (po as any).poid ?? po.orderNumber ?? '',
+          poid: (po as any).poid ?? (po as any).orderNumber ?? '',
           pobill: (po as any).pobill ?? '',
-          pobilldate: typeof po.pobilldate === 'string' ? po.pobilldate :
-                     typeof po.orderDate === 'string' ? po.orderDate :
+          pobilldate: typeof (po as any).pobilldate === 'string' ? (po as any).pobilldate :
+                     typeof (po as any).orderDate === 'string' ? (po as any).orderDate :
                      new Date().toISOString().split('T')[0],
-          posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
+          posupplier: typeof po.supplier === 'string' ? po.supplier : (po.supplier as any)?.name ?? '',
           totalAmount: po.totalAmount ?? 0,
           status: po.status ?? '',
           paymentStatus: (po as any).paymentStatus ?? '',
@@ -268,7 +267,8 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
       hookHandleInputChange(e);
     } else {
       // 其他輸入框保持原有邏輯
-      setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
+      const { name, value } = e.target;
+      setSearchParams({ ...searchParams, [name]: value });
     }
   };
 
@@ -536,9 +536,9 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
           sx={{ zIndex: 1300 }}
         >
         <PurchaseOrderPreview
-          purchaseOrder={previewPurchaseOrder}
+          purchaseOrder={previewPurchaseOrder || undefined}
           loading={previewLoading}
-          error={previewError}
+          error={previewError || undefined}
         />
         </Popper>
       )}
@@ -586,7 +586,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         onFileChange={handleCsvFileChange}
         onImport={handleCsvImport}
         loading={csvImportLoading}
-        error={csvImportError}
+        error={csvImportError || undefined}
         success={csvImportSuccess}
       />
 
@@ -605,8 +605,3 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
 };
 
 export default PurchaseOrdersPage;
-
-// PropTypes 定義
-PurchaseOrdersPage.propTypes = {
-  initialSupplierId: PropTypes.string
-};

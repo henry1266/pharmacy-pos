@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { DataGrid, GridColumnMenu, useGridApiContext, GridColDef, GridRowParams, GridInitialState } from '@mui/x-data-grid';
 import { Paper, Box, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
@@ -108,7 +108,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const gridRef = useRef<HTMLDivElement | null>(null);
 
   // 處理鍵盤事件
-  const handleKeyDown = (event: KeyboardEvent) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!rows || rows.length === 0) return;
     
     // 只處理上下鍵
@@ -128,12 +128,13 @@ const DataTable: React.FC<DataTableProps> = ({
       // 如果索引變化了，觸發行點擊事件
       if (newIndex !== selectedIndex) {
         setSelectedIndex(newIndex);
-        if (onRowClick && rows[newIndex]) {
-          onRowClick({ row: rows[newIndex], id: rows[newIndex].id } as GridRowParams);
+        const selectedRow = rows[newIndex];
+        if (onRowClick && selectedRow) {
+          onRowClick({ row: selectedRow, id: selectedRow.id } as GridRowParams);
         }
       }
     }
-  };
+  }, [rows, selectedIndex, onRowClick]);
 
   // 處理行點擊，更新選中索引
   const handleRowClickInternal = (params: GridRowParams) => {
@@ -154,7 +155,7 @@ const DataTable: React.FC<DataTableProps> = ({
         gridElement.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [rows, selectedIndex]);
+  }, [handleKeyDown]);
 
   // 確保所有列都有最小寬度（移除 resizable 因為使用的是 MIT 版本）
   const columnsWithResizing = columns.map(column => ({

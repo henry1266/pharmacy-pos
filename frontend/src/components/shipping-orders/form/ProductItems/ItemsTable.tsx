@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, FC } from 'react';
-import PropTypes from 'prop-types';
 import {
   Table,
   TableBody,
@@ -42,7 +41,9 @@ const ItemsTable: FC<ItemsTableProps> = ({
       // 使用setTimeout確保在DOM更新後執行滾動
       setTimeout(() => {
         const scrollHeight = tableContainerRef.current?.scrollHeight ?? 0;
-        tableContainerRef.current.scrollTop = scrollHeight;
+        if (tableContainerRef.current) {
+          tableContainerRef.current.scrollTop = scrollHeight;
+        }
       }, 100);
     }
   }, [items.length]);
@@ -99,18 +100,5 @@ const ItemsTable: FC<ItemsTableProps> = ({
     </TableContainer>
   );
 };
-
-ItemsTable.propTypes = {
-  items: PropTypes.array.isRequired,
-  editingItemIndex: PropTypes.number,
-  editingItem: PropTypes.object,
-  handleEditItem: PropTypes.func.isRequired,
-  handleSaveEditItem: PropTypes.func.isRequired,
-  handleCancelEditItem: PropTypes.func.isRequired,
-  handleRemoveItem: PropTypes.func.isRequired,
-  handleMoveItem: PropTypes.func.isRequired,
-  handleEditingItemChange: PropTypes.func.isRequired,
-  totalAmount: PropTypes.number.isRequired
-} as any;
 
 export default ItemsTable;

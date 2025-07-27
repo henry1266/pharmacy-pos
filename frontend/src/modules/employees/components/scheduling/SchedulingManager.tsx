@@ -113,10 +113,10 @@ const SchedulingManager: React.FC<{ onConfigUpdate?: () => void }> = ({ onConfig
             <Grid item xs={4} key={shift}>
               <Typography variant="body2">
                 <strong>
-                  {shift === 'morning' ? '早班' : 
+                  {shift === 'morning' ? '早班' :
                    shift === 'afternoon' ? '中班' : '晚班'}:
                 </strong>{' '}
-                {config.start} - {config.end}
+                {config?.start} - {config?.end}
                 ({calculateShiftHours(shift as 'morning' | 'afternoon' | 'evening').toFixed(1)}小時)
               </Typography>
             </Grid>
@@ -143,7 +143,7 @@ const SchedulingManager: React.FC<{ onConfigUpdate?: () => void }> = ({ onConfig
           員工月度工時統計
         </Typography>
         
-        {calculateEmployeeMonthlyHours.length > 0 ? (
+        {calculateEmployeeMonthlyHours?.length > 0 ? (
           <Grid container spacing={1} sx={{ mt: 1 }}>
             <Grid item xs={3}>
               <Typography variant="body2" fontWeight="bold">員工姓名</Typography>
@@ -165,7 +165,7 @@ const SchedulingManager: React.FC<{ onConfigUpdate?: () => void }> = ({ onConfig
               <Divider sx={{ my: 1 }} />
             </Grid>
             
-            {calculateEmployeeMonthlyHours.map((employee) => (
+            {calculateEmployeeMonthlyHours?.map((employee) => (
               <React.Fragment key={employee.employeeId}>
                 <Grid item xs={3}>
                   <Typography variant="body2">{employee.name}</Typography>

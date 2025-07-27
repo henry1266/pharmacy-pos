@@ -244,9 +244,10 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
           description: simpleDescription
         };
         // 確保目標科目是借方
-        if (newEntries[1].accountId) {
+        if (newEntries[1]?.accountId) {
           newEntries[1] = {
             ...newEntries[1],
+            accountId: newEntries[1].accountId,
             debitAmount: simpleAmount,
             creditAmount: 0,
             description: simpleDescription
@@ -267,9 +268,10 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
           description: simpleDescription
         };
         // 確保來源科目是貸方
-        if (newEntries[0].accountId) {
+        if (newEntries[0]?.accountId) {
           newEntries[0] = {
             ...newEntries[0],
+            accountId: newEntries[0].accountId,
             creditAmount: simpleAmount,
             debitAmount: 0,
             description: simpleDescription
@@ -285,9 +287,10 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
           description: simpleDescription
         };
         // 確保來源科目是借方
-        if (newEntries[0].accountId) {
+        if (newEntries[0]?.accountId) {
           newEntries[0] = {
             ...newEntries[0],
+            accountId: newEntries[0].accountId,
             debitAmount: simpleAmount,
             creditAmount: 0,
             description: simpleDescription
@@ -315,9 +318,10 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
     const newEntries = [...entries];
     if (newEntries.length >= 2) {
       // 保持現有的借貸方向，只更新金額
-      if (newEntries[0].creditAmount > 0 || newEntries[0].debitAmount === 0) {
+      if ((newEntries[0]?.creditAmount || 0) > 0 || (newEntries[0]?.debitAmount || 0) === 0) {
         newEntries[0] = {
           ...newEntries[0],
+          accountId: newEntries[0]?.accountId || '',
           creditAmount: amount,
           debitAmount: 0,
           description: simpleDescription
@@ -325,15 +329,17 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
       } else {
         newEntries[0] = {
           ...newEntries[0],
+          accountId: newEntries[0]?.accountId || '',
           debitAmount: amount,
           creditAmount: 0,
           description: simpleDescription
         };
       }
       
-      if (newEntries[1].debitAmount > 0 || newEntries[1].creditAmount === 0) {
+      if ((newEntries[1]?.debitAmount || 0) > 0 || (newEntries[1]?.creditAmount || 0) === 0) {
         newEntries[1] = {
           ...newEntries[1],
+          accountId: newEntries[1]?.accountId || '',
           debitAmount: amount,
           creditAmount: 0,
           description: simpleDescription
@@ -341,6 +347,7 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
       } else {
         newEntries[1] = {
           ...newEntries[1],
+          accountId: newEntries[1]?.accountId || '',
           creditAmount: amount,
           debitAmount: 0,
           description: simpleDescription

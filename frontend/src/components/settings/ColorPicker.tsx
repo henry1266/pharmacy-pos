@@ -119,7 +119,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   // 隨機選擇顏色
   const handleRandomColor = useCallback(() => {
     const randomColor = presetColors[Math.floor(Math.random() * presetColors.length)];
-    handleColorChange(randomColor);
+    if (randomColor) {
+      handleColorChange(randomColor);
+    }
   }, [presetColors, handleColorChange]);
 
   return (

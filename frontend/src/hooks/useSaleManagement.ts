@@ -86,9 +86,12 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
       if (existingItemIndex >= 0) {
         // 只修改匹配的產品項目
         updatedItems = [...prevSale.items];
-        updatedItems[existingItemIndex].quantity += 1;
-        updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
-        showSnackbar(`已增加 ${product.name} 的數量`, 'success');
+        const existingItem = updatedItems[existingItemIndex];
+        if (existingItem) {
+          existingItem.quantity += 1;
+          existingItem.subtotal = existingItem.price * existingItem.quantity;
+          showSnackbar(`已增加 ${product.name} 的數量`, 'success');
+        }
       } else {
         // 添加新項目，不影響其他項目
         const newItem: SaleItem = {
@@ -113,8 +116,11 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
     if (newQuantity < 1) return;
     setCurrentSale(prevSale => {
       const updatedItems = [...prevSale.items];
-      updatedItems[index].quantity = newQuantity;
-      updatedItems[index].subtotal = updatedItems[index].price * newQuantity;
+      const currentItem = updatedItems[index];
+      if (currentItem) {
+        currentItem.quantity = newQuantity;
+        currentItem.subtotal = currentItem.price * newQuantity;
+      }
       return { ...prevSale, items: updatedItems };
     });
   }, []);
@@ -124,8 +130,11 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
     if (newPrice < 0) return;
     setCurrentSale(prevSale => {
       const updatedItems = [...prevSale.items];
-      updatedItems[index].price = newPrice;
-      updatedItems[index].subtotal = newPrice * updatedItems[index].quantity;
+      const currentItem = updatedItems[index];
+      if (currentItem) {
+        currentItem.price = newPrice;
+        currentItem.subtotal = newPrice * currentItem.quantity;
+      }
       return { ...prevSale, items: updatedItems };
     });
   }, []);
@@ -135,11 +144,14 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
     if (newSubtotal < 0) return;
     setCurrentSale(prevSale => {
       const updatedItems = [...prevSale.items];
-      updatedItems[index].subtotal = newSubtotal;
-      if (updatedItems[index].quantity > 0) {
-        updatedItems[index].price = newSubtotal / updatedItems[index].quantity;
-      } else {
-        updatedItems[index].price = 0;
+      const currentItem = updatedItems[index];
+      if (currentItem) {
+        currentItem.subtotal = newSubtotal;
+        if (currentItem.quantity > 0) {
+          currentItem.price = newSubtotal / currentItem.quantity;
+        } else {
+          currentItem.price = 0;
+        }
       }
       return { ...prevSale, items: updatedItems };
     });
@@ -163,7 +175,10 @@ const useSaleManagement = (showSnackbar: (message: string, severity: string) => 
   const toggleInputMode = useCallback((index: number) => {
     setInputModes(prevModes => {
       const updatedModes = [...prevModes];
-      updatedModes[index] = updatedModes[index] === 'price' ? 'subtotal' : 'price';
+      const currentMode = updatedModes[index];
+      if (currentMode) {
+        updatedModes[index] = currentMode === 'price' ? 'subtotal' : 'price';
+      }
       return updatedModes;
     });
   }, []);

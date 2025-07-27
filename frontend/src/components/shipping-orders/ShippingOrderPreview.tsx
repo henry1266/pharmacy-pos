@@ -69,7 +69,7 @@ const ShippingOrderPreview: FC<ShippingOrderPreviewProps> = ({ shippingOrder, lo
       getTotal={getTotal}
       emptyText="無藥品項目"
       variant="table"
-      notesKey={null} // 使用自定義備註
+      notesKey={undefined} // 使用自定義備註
       containerProps={{
         sx: { width: 550, maxHeight: 600 }
       }}

@@ -64,21 +64,25 @@ const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
   const updateSelectedCell = useCallback((newIndex: number): void => {
     setSelectedCell(newIndex);
     
-    if (calendarGrid[newIndex]?.isCurrentMonth && onCellSelect) {
-      onCellSelect(newIndex, calendarGrid[newIndex].date);
+    const cell = calendarGrid?.[newIndex];
+    if (cell?.isCurrentMonth && onCellSelect) {
+      onCellSelect(newIndex, cell.date);
     }
   }, [calendarGrid, onCellSelect]);
 
   // 處理 Enter 鍵選擇
   const handleEnterSelection = useCallback((): void => {
-    if (selectedCell !== null && calendarGrid[selectedCell]?.isCurrentMonth && onCellSelect) {
-      onCellSelect(selectedCell, calendarGrid[selectedCell].date);
+    if (selectedCell !== null) {
+      const cell = calendarGrid?.[selectedCell];
+      if (cell?.isCurrentMonth && onCellSelect) {
+        onCellSelect(selectedCell, cell.date);
+      }
     }
   }, [selectedCell, calendarGrid, onCellSelect]);
 
   // 處理方向鍵導航
   const handleArrowNavigation = useCallback((key: string): void => {
-    if (selectedCell === null || !calendarGrid.length) return;
+    if (selectedCell === null || !calendarGrid?.length) return;
 
     const DAYS_IN_WEEK = 7;
     const totalCells = calendarGrid.length;
@@ -91,7 +95,7 @@ const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
 
   // 處理鍵盤事件
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLElement> | KeyboardEvent): void => {
-    if (!isNavigationActive || selectedCell === null || !calendarGrid.length) return;
+    if (!isNavigationActive || selectedCell === null || !calendarGrid?.length) return;
 
     // 處理Enter鍵
     if (e.key === 'Enter') {

@@ -27,11 +27,11 @@ export const useProductDetails = (items?: ShippingOrderItem[]) => {
       const details: ProductDetails = {};
       
       // 避免使用 Set 的展開運算符，改用 Array.from
-      const productCodesSet = new Set(items.map(item => item.did).filter(Boolean));
+      const productCodesSet = new Set(items.map(item => item.did).filter(Boolean) as string[]);
       const productCodes = Array.from(productCodesSet);
 
       try {
-        const promises = productCodes.map(async (code) => {
+        const promises = productCodes.map(async (code: string) => {
           try {
             const productData = await productServiceV2.getProductByCode(code);
             if (productData) {

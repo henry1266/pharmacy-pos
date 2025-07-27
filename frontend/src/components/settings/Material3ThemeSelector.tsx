@@ -63,7 +63,7 @@ const ColorDisplay: React.FC<ColorDisplayProps> = ({ color, label, size = 'mediu
         sx={{
           width: sizeMap[size],
           height: sizeMap[size],
-          backgroundColor: color,
+          backgroundColor: color || '#transparent',
           borderRadius: 1,
           border: '1px solid',
           borderColor: 'divider',
@@ -391,10 +391,11 @@ export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
                       {Object.entries(palette).map(([tone, color]) => (
                         <Tooltip key={tone} title={`${tone}: ${color}`}>
                           <Box
+                            component="div"
                             sx={{
                               width: 24,
                               height: 24,
-                              backgroundColor: color,
+                              backgroundColor: color as string,
                               borderRadius: 0.5,
                               border: '1px solid',
                               borderColor: 'divider',

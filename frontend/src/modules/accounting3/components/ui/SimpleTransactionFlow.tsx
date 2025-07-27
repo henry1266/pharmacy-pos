@@ -180,8 +180,20 @@ export const SimpleTransactionFlow: React.FC<SimpleTransactionFlowProps> = ({
       const creditIndex = newEntries.findIndex(entry => (entry.creditAmount || 0) > 0);
       
       if (debitIndex >= 0 && creditIndex >= 0) {
-        newEntries[debitIndex].debitAmount = newAmount;
-        newEntries[creditIndex].creditAmount = newAmount;
+        newEntries[debitIndex] = {
+          ...newEntries[debitIndex],
+          accountId: newEntries[debitIndex]?.accountId || '',
+          debitAmount: newAmount,
+          creditAmount: newEntries[debitIndex]?.creditAmount || 0,
+          description: newEntries[debitIndex]?.description || ''
+        };
+        newEntries[creditIndex] = {
+          ...newEntries[creditIndex],
+          accountId: newEntries[creditIndex]?.accountId || '',
+          creditAmount: newAmount,
+          debitAmount: newEntries[creditIndex]?.debitAmount || 0,
+          description: newEntries[creditIndex]?.description || ''
+        };
         onEntriesChange(newEntries);
       }
     }

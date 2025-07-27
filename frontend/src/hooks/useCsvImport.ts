@@ -58,7 +58,7 @@ const useCsvImport = (tabValue: number, fetchProducts: () => void): CsvImportHoo
   const token = localStorage.getItem('token');
   const config: RequestConfig = {
     headers: {
-      'x-auth-token': token,
+      'x-auth-token': token || undefined,
       'Content-Type': 'multipart/form-data'
     }
   };
@@ -89,11 +89,11 @@ const useCsvImport = (tabValue: number, fetchProducts: () => void): CsvImportHoo
     if (typeof msg === 'string') {
       errorMessage = msg;
     }
-    }
-      setCsvImportError(errorMessage);
-      setCsvImportLoading(false);
-      return false;
-    }
+  }
+  setCsvImportError(errorMessage);
+  setCsvImportLoading(false);
+  return false;
+}
   };
 
   // 重置CSV匯入狀態

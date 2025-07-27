@@ -84,7 +84,7 @@ const ShippingOrderAmountInfo: React.FC<ShippingOrderAmountInfoProps> = ({
       }));
       
       // 總毛利
-      const totalProfit = fifoData.summary.totalProfit;
+      const totalProfit = fifoData.summary.totalProfit ?? 0;
       details.push(createDetailItem('總毛利', totalProfit, {
         icon: <TrendingUpIcon color={totalProfit >= 0 ? 'success' : 'error'} fontSize="small"/>,
         color: totalProfit >= 0 ? 'success.main' : 'error.main',
@@ -93,8 +93,9 @@ const ShippingOrderAmountInfo: React.FC<ShippingOrderAmountInfoProps> = ({
       }));
       
       // 毛利率
-      const profitMargin = parseFloat(fifoData.summary.totalProfitMargin);
-      details.push(createDetailItem('毛利率', fifoData.summary.totalProfitMargin, {
+      const profitMarginStr = fifoData.summary.totalProfitMargin ?? '0';
+      const profitMargin = parseFloat(profitMarginStr);
+      details.push(createDetailItem('毛利率', profitMarginStr, {
         icon: <PercentIcon color={profitMargin >= 0 ? 'success' : 'error'} fontSize="small"/>,
         color: profitMargin >= 0 ? 'success.main' : 'error.main',
         fontWeight: 'bold'

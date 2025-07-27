@@ -1,5 +1,4 @@
 import React, { FC } from 'react';
-import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
 import {
   Box,
   Typography,
@@ -76,6 +75,7 @@ interface CustomTooltipProps {
 const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
   if (active && payload?.length) {
     const data = payload[0]?.payload;
+    if (!data) return null;
     
     return (
       <Paper sx={{
@@ -117,12 +117,6 @@ const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
   return null;
 };
 
-// 添加 CustomTooltip 的 PropTypes 驗證 (Moved with CustomTooltip)
-CustomTooltip.propTypes = {
-  active: PropTypes.bool,
-  payload: PropTypes.array,
-  label: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 // SingleProductProfitLossChart props 型別
 interface SingleProductProfitLossChartProps {
@@ -322,18 +316,5 @@ const SingleProductProfitLossChart: FC<SingleProductProfitLossChartProps> = ({
   );
 };
 
-// 添加 SingleProductProfitLossChart 的 PropTypes 驗證
-SingleProductProfitLossChart.propTypes = {
-  transactions: PropTypes.arrayOf(
-    PropTypes.shape({
-      type: PropTypes.string,
-      quantity: PropTypes.number,
-      price: PropTypes.number,
-      purchaseOrderNumber: PropTypes.string,
-      shippingOrderNumber: PropTypes.string,
-      saleNumber: PropTypes.string
-    })
-  )
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 export default SingleProductProfitLossChart;

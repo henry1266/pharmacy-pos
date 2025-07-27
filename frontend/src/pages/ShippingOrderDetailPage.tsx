@@ -74,13 +74,13 @@ const ShippingOrderDetailPage: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const { currentShippingOrder, loading: orderLoading, error: orderError } = useSelector(
-    (state: RootState) => state.shippingOrders
+    (state: RootState) => state.shippingOrders || {}
   );
 
   // 使用自定義 hooks
-  const { fifoData, fifoLoading, fifoError, fetchFifoData } = useShippingOrderFifo(id);
+  const { fifoData, fifoLoading, fifoError, fetchFifoData } = useShippingOrderFifo(id || '');
   const { productDetails, productDetailsLoading, productDetailsError } = useProductDetails(
-    currentShippingOrder?.items
+    currentShippingOrder?.items || []
   );
 
   // 添加除錯日誌
@@ -135,7 +135,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       )}
       {currentShippingOrder && (
         <ShippingOrderItemsTable
-          items={currentShippingOrder.items}
+          items={currentShippingOrder.items || []}
           fifoData={fifoData}
           productDetails={productDetails}
           totalAmount={currentShippingOrder.totalAmount ?? 0}
@@ -157,7 +157,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   );
 
   const additionalActions = useShippingOrderActions({
-    shippingOrder: currentShippingOrder,
+    shippingOrder: currentShippingOrder || null,
     orderId: id,
     orderLoading: orderLoading ?? false,
     productDetailsLoading: productDetailsLoading,
@@ -169,7 +169,7 @@ const ShippingOrderDetailPage: React.FC = () => {
   return (
     <DetailLayout
       pageTitle="出貨單詳情"
-      recordIdentifier={currentShippingOrder?.soid ?? id}
+      recordIdentifier={currentShippingOrder?.soid ?? id ?? ''}
       listPageUrl="/shipping-orders"
       mainContent={mainContent}
       sidebarContent={sidebarContent}

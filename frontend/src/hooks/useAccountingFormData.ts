@@ -60,11 +60,14 @@ const useAccountingFormData = () => {
         setFormData(prevState => {
           const updatedItems = prevState.items.map((item, index) => {
             if (index < 2 && data[index] && !item.categoryId) { // Only pre-fill if not already set
-              return {
-                ...item,
-                category: data[index].name,
-                categoryId: data[index]._id
-              };
+              const categoryData = data[index];
+              if (categoryData) {
+                return {
+                  ...item,
+                  category: categoryData.name,
+                  categoryId: categoryData._id
+                };
+              }
             }
             return item;
           });
@@ -157,18 +160,24 @@ const useAccountingFormData = () => {
 
       // Handle '退押金' logic for category changes
       if (field === 'category' && value === '退押金') {
-        const currentAmount = updatedItems[index].amount;
-        if (typeof currentAmount === 'number' && currentAmount > 0) {
-          updatedItems[index].amount = -Math.abs(currentAmount);
+        const currentItem = updatedItems[index];
+        if (currentItem) {
+          const currentAmount = currentItem.amount;
+          if (typeof currentAmount === 'number' && currentAmount > 0) {
+            currentItem.amount = -Math.abs(currentAmount);
+          }
         }
       }
 
-      updatedItems[index][field] = newValue as never; // Type assertion needed due to complex logic
+      const currentItem = updatedItems[index];
+      if (currentItem) {
+        currentItem[field] = newValue as never; // Type assertion needed due to complex logic
 
-      // Update categoryId when category name changes
-      if (field === 'category' && categories.length > 0) {
-        const selectedCategory = categories.find(cat => cat.name === value);
-        updatedItems[index].categoryId = selectedCategory ? selectedCategory._id : '';
+        // Update categoryId when category name changes
+        if (field === 'category' && categories.length > 0) {
+          const selectedCategory = categories.find(cat => cat.name === value);
+          currentItem.categoryId = selectedCategory ? selectedCategory._id : '';
+        }
       }
 
       return { ...prevState, items: updatedItems };
@@ -183,11 +192,14 @@ const useAccountingFormData = () => {
         let numericValue = value === '' ? 0 : parseFloat(value) || 0;
         
         // Handle '退押金' logic for blur event
-        if (updatedItems[index].category === '退押金' && numericValue !== 0) {
-          numericValue = -Math.abs(numericValue);
+        const currentItem = updatedItems[index];
+        if (currentItem) {
+          if (currentItem.category === '退押金' && numericValue !== 0) {
+            numericValue = -Math.abs(numericValue);
+          }
+          
+          currentItem.amount = numericValue;
         }
-        
-        updatedItems[index].amount = numericValue;
         return { ...prevState, items: updatedItems };
       });
     }

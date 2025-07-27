@@ -182,8 +182,21 @@ const usePurchaseOrderItems = ({
   }, [formData.items, setFormData]);
 
   const handleEditItem = useCallback((index: number) => {
-    setEditingItemIndex(index);
-    setEditingItem({ ...formData.items[index] });
+    const itemToEdit = formData.items[index];
+    if (itemToEdit && itemToEdit.did && itemToEdit.dname && itemToEdit.dquantity !== undefined && itemToEdit.dtotalCost !== undefined) {
+      setEditingItemIndex(index);
+      setEditingItem({
+        did: itemToEdit.did,
+        dname: itemToEdit.dname,
+        dquantity: itemToEdit.dquantity,
+        dtotalCost: itemToEdit.dtotalCost,
+        product: itemToEdit.product || null,
+        batchNumber: itemToEdit.batchNumber || '',
+        packageQuantity: itemToEdit.packageQuantity || '',
+        boxQuantity: itemToEdit.boxQuantity || '',
+        packageUnits: itemToEdit.packageUnits || []
+      });
+    }
   }, [formData.items]);
 
   const handleSaveEditItem = useCallback(async () => {
@@ -192,6 +205,11 @@ const usePurchaseOrderItems = ({
       return;
     }
     const originalItem = formData.items[editingItemIndex];
+    if (!originalItem || !editingItem) {
+      showSnackbar('編輯項目資料不完整', 'error');
+      return;
+    }
+    
     const newItems = [...formData.items];
     newItems[editingItemIndex] = editingItem;
     setFormData(prev => ({ ...prev, items: newItems }));
@@ -221,8 +239,13 @@ const usePurchaseOrderItems = ({
     if ((direction === 'up' && index === 0) || (direction === 'down' && index === formData.items.length - 1)) return;
     const newItems = [...formData.items];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
-    setFormData(prev => ({ ...prev, items: newItems }));
+    const currentItem = newItems[index];
+    const targetItem = newItems[targetIndex];
+    
+    if (currentItem && targetItem) {
+      [newItems[index], newItems[targetIndex]] = [targetItem, currentItem];
+      setFormData(prev => ({ ...prev, items: newItems }));
+    }
   }, [formData.items, setFormData]);
 
   return {

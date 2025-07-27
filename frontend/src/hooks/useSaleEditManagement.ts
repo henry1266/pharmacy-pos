@@ -119,8 +119,11 @@ export const useSaleEditManagement = (
 
           if (existingItemIndex >= 0) {
             updatedItems = [...currentSale.items];
-            updatedItems[existingItemIndex].quantity += 1;
-            updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
+            const existingItem = updatedItems[existingItemIndex];
+            if (existingItem) {
+              existingItem.quantity += 1;
+              existingItem.subtotal = existingItem.price * existingItem.quantity;
+            }
             setSnackbar({ open: true, message: `已增加 ${product.name} 的數量`, severity: 'success' });
           } else {
             const newItem: SaleItem = {
@@ -148,36 +151,43 @@ export const useSaleEditManagement = (
   }, [barcode, products, currentSale.items]);
 
   const handleQuantityChange = useCallback((index: number, newQuantity: number | string) => {
+    const updatedItems = [...currentSale.items];
+    const currentItem = updatedItems[index];
+    
+    if (!currentItem) return;
+    
     if (typeof newQuantity === 'string') {
       // 處理字串輸入（暫時允許空字串）
-      const updatedItems = [...currentSale.items];
-      updatedItems[index].quantity = newQuantity === '' ? 0 : parseInt(newQuantity);
+      currentItem.quantity = newQuantity === '' ? 0 : parseInt(newQuantity);
       if (newQuantity !== '') {
-        updatedItems[index].subtotal = updatedItems[index].price * updatedItems[index].quantity;
+        currentItem.subtotal = currentItem.price * currentItem.quantity;
       }
       setCurrentSale(prev => ({ ...prev, items: updatedItems }));
       return;
     }
     
     if (newQuantity < 1) return;
-    const updatedItems = [...currentSale.items];
-    updatedItems[index].quantity = newQuantity;
-    updatedItems[index].subtotal = updatedItems[index].price * newQuantity;
+    currentItem.quantity = newQuantity;
+    currentItem.subtotal = currentItem.price * newQuantity;
     setCurrentSale(prev => ({ ...prev, items: updatedItems }));
   }, [currentSale.items]);
 
   const handlePriceChange = useCallback((index: number, newPriceStr: string) => {
     const updatedItems = [...currentSale.items];
+    const currentItem = updatedItems[index];
+    
+    if (!currentItem) return;
+    
     if (newPriceStr === '') {
-        updatedItems[index].price = 0; 
-        updatedItems[index].subtotal = 0;
+        currentItem.price = 0;
+        currentItem.subtotal = 0;
     } else {
         const newPrice = parseFloat(newPriceStr);
         if (!isNaN(newPrice) && newPrice >= 0) {
-            updatedItems[index].price = newPrice;
-            updatedItems[index].subtotal = newPrice * updatedItems[index].quantity;
+            currentItem.price = newPrice;
+            currentItem.subtotal = newPrice * currentItem.quantity;
         } else {
-            return; 
+            return;
         }
     }
     setCurrentSale(prev => ({ ...prev, items: updatedItems }));
@@ -185,8 +195,8 @@ export const useSaleEditManagement = (
 
   const handlePriceBlur = useCallback((index: number) => {
     const item = currentSale.items[index];
-    if (item.price === 0 || isNaN(parseFloat(item.price.toString()))) {
-        handlePriceChange(index, '0'); 
+    if (item && (item.price === 0 || isNaN(parseFloat(item.price.toString())))) {
+        handlePriceChange(index, '0');
     }
   }, [currentSale.items, handlePriceChange]);
 
@@ -194,11 +204,15 @@ export const useSaleEditManagement = (
   const handleSubtotalChange = useCallback((index: number, newSubtotal: number) => {
     if (newSubtotal < 0) return;
     const updatedItems = [...currentSale.items];
-    updatedItems[index].subtotal = newSubtotal;
-    if (updatedItems[index].quantity > 0) {
-      updatedItems[index].price = newSubtotal / updatedItems[index].quantity;
+    const currentItem = updatedItems[index];
+    
+    if (!currentItem) return;
+    
+    currentItem.subtotal = newSubtotal;
+    if (currentItem.quantity > 0) {
+      currentItem.price = newSubtotal / currentItem.quantity;
     } else {
-      updatedItems[index].price = 0;
+      currentItem.price = 0;
     }
     setCurrentSale(prev => ({ ...prev, items: updatedItems }));
   }, [currentSale.items]);
@@ -207,7 +221,10 @@ export const useSaleEditManagement = (
   const toggleInputMode = useCallback((index: number) => {
     setInputModes(prevModes => {
       const updatedModes = [...prevModes];
-      updatedModes[index] = updatedModes[index] === 'price' ? 'subtotal' : 'price';
+      const currentMode = updatedModes[index];
+      if (currentMode) {
+        updatedModes[index] = currentMode === 'price' ? 'subtotal' : 'price';
+      }
       return updatedModes;
     });
   }, []);

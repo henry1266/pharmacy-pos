@@ -20,7 +20,7 @@ import { ROLE_COLORS, ROLE_NAMES, STATUS_CONFIG, VALIDATION_RULES } from './cons
  * @returns 角色中文名稱
  */
 export const getRoleName = (role: Role): string => {
-  return ROLE_NAMES[role] ?? role;
+  return ROLE_NAMES[role] ?? (role as string);
 };
 
 /**
@@ -29,7 +29,7 @@ export const getRoleName = (role: Role): string => {
  * @returns 角色顏色
  */
 export const getRoleColor = (role: Role): "error" | "success" | "primary" | "default" => {
-  return ROLE_COLORS[role] ?? ROLE_COLORS.default;
+  return ROLE_COLORS[role] ?? (ROLE_COLORS as any).default;
 };
 
 /**
@@ -38,7 +38,7 @@ export const getRoleColor = (role: Role): "error" | "success" | "primary" | "def
  * @returns 狀態文字
  */
 export const getStatusText = (status: string): string => {
-  return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.text || status;
+  return (STATUS_CONFIG as any)[status]?.text || status;
 };
 
 /**
@@ -47,7 +47,7 @@ export const getStatusText = (status: string): string => {
  * @returns 狀態顏色
  */
 export const getStatusColor = (status: string): 'warning' | 'success' | 'error' | 'default' => {
-  return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.color || 'default';
+  return (STATUS_CONFIG as any)[status]?.color || 'default';
 };
 
 /**

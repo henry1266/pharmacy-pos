@@ -95,16 +95,16 @@ const usePurchaseOrdersData = (): PurchaseOrdersDataResult => {
         filtered = filtered.filter(po => {
           // 收集所有可搜尋欄位
           const searchableFields: string[] = [
-            typeof po.supplier === 'string' ? po.supplier : po.supplier?.name || '',
-            po.poid || '',
-            po.pobill || '',
+            typeof po.supplier === 'string' ? po.supplier : (po.supplier as any)?.name || '',
+            (po as any).poid || '',
+            (po as any).pobill || '',
             po._id || '',
             po.status || '',
-            po.paymentStatus || '',
-            typeof po.pobilldate === 'string' ? po.pobilldate :
-              po.pobilldate ? new Date(po.pobilldate).toISOString().split('T')[0] : '',
-            typeof po.orderDate === 'string' ? po.orderDate :
-              po.orderDate ? new Date(po.orderDate).toISOString().split('T')[0] : ''
+            (po as any).paymentStatus || '',
+            typeof (po as any).pobilldate === 'string' ? (po as any).pobilldate :
+              (po as any).pobilldate ? new Date((po as any).pobilldate).toISOString().split('T')[0] : '',
+            typeof (po as any).orderDate === 'string' ? (po as any).orderDate :
+              (po as any).orderDate ? new Date((po as any).orderDate).toISOString().split('T')[0] : ''
           ];
           
           // 只要任一欄位包含關鍵字即通過
@@ -113,7 +113,7 @@ const usePurchaseOrdersData = (): PurchaseOrdersDataResult => {
           );
           
           if (match) {
-            console.log('找到匹配:', po.poid || po._id);
+            console.log('找到匹配:', (po as any).poid || po._id);
           }
           
           return match;
@@ -133,13 +133,13 @@ const usePurchaseOrdersData = (): PurchaseOrdersDataResult => {
       const formattedRows = filtered.map(po => ({
         id: po._id,
         _id: po._id,
-        poid: po.poid ?? po.orderNumber ?? '',
-        pobill: po.pobill ?? '',
-        pobilldate: po.pobilldate ?? po.orderDate ?? '',
-        posupplier: typeof po.supplier === 'string' ? po.supplier : po.supplier?.name ?? '',
+        poid: (po as any).poid ?? (po as any).orderNumber ?? '',
+        pobill: (po as any).pobill ?? '',
+        pobilldate: (po as any).pobilldate ?? (po as any).orderDate ?? '',
+        posupplier: typeof po.supplier === 'string' ? po.supplier : (po.supplier as any)?.name ?? '',
         totalAmount: po.totalAmount ?? 0,
         status: po.status ?? '',
-        paymentStatus: po.paymentStatus ?? '',
+        paymentStatus: (po as any).paymentStatus ?? '',
         // 會計分錄相關欄位
         relatedTransactionGroupId: (po as any).relatedTransactionGroupId,
         accountingEntryType: (po as any).accountingEntryType,

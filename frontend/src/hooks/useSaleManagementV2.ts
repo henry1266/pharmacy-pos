@@ -120,10 +120,13 @@ const useSaleManagementV2 = (
         if (existingItemIndex >= 0) {
           // 只修改匹配的產品項目
           updatedItems = [...prevSale.items];
-          updatedItems[existingItemIndex].quantity += 1;
-          updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
-          showSnackbar(`已增加 ${product.name} 的數量`, 'success');
-          console.log('Updated existing item quantity to:', updatedItems[existingItemIndex].quantity);
+          const existingItem = updatedItems[existingItemIndex];
+          if (existingItem) {
+            existingItem.quantity += 1;
+            existingItem.subtotal = existingItem.price * existingItem.quantity;
+            showSnackbar(`已增加 ${product.name} 的數量`, 'success');
+            console.log('Updated existing item quantity to:', existingItem.quantity);
+          }
         } else {
           // 添加新項目，不影響其他項目
           const newItem: SaleItem = {
@@ -173,9 +176,12 @@ const useSaleManagementV2 = (
           if (existingItemIndex >= 0) {
             // 如果商品已存在，增加數量
             const updatedItems = [...prevSale.items];
-            updatedItems[existingItemIndex].quantity += packageItemDetail.quantity;
-            updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
-            return { ...prevSale, items: updatedItems };
+            const existingItem = updatedItems[existingItemIndex];
+            if (existingItem) {
+              existingItem.quantity += packageItemDetail.quantity;
+              existingItem.subtotal = existingItem.price * existingItem.quantity;
+              return { ...prevSale, items: updatedItems };
+            }
           } else {
             // 創建新的銷售項目
             const newItem: SaleItem = {
@@ -212,12 +218,15 @@ const useSaleManagementV2 = (
         let updatedItems;
         if (existingItemIndex >= 0) {
           updatedItems = [...prevSale.items];
-          updatedItems[existingItemIndex].quantity += 1;
-          updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
-          showSnackbar(`已增加套餐 ${packageItem.name} 的數量`, 'success');
+          const existingItem = updatedItems[existingItemIndex];
+          if (existingItem) {
+            existingItem.quantity += 1;
+            existingItem.subtotal = existingItem.price * existingItem.quantity;
+            showSnackbar(`已增加套餐 ${packageItem.name} 的數量`, 'success');
+          }
         } else {
           const newItem: SaleItem = {
-            product: packageItem._id,
+            product: packageItem._id || '',
             productDetails: undefined,
             name: `[套餐] ${packageItem.name}`,
             code: packageItem.code,
@@ -242,8 +251,11 @@ const useSaleManagementV2 = (
     if (isNaN(numQuantity) || numQuantity < 1) return;
     setCurrentSale(prevSale => {
       const updatedItems = [...prevSale.items];
-      updatedItems[index].quantity = numQuantity;
-      updatedItems[index].subtotal = updatedItems[index].price * numQuantity;
+      const currentItem = updatedItems[index];
+      if (currentItem) {
+        currentItem.quantity = numQuantity;
+        currentItem.subtotal = currentItem.price * numQuantity;
+      }
       return { ...prevSale, items: updatedItems };
     });
   }, []);
@@ -253,8 +265,11 @@ const useSaleManagementV2 = (
     if (newPrice < 0) return;
     setCurrentSale(prevSale => {
       const updatedItems = [...prevSale.items];
-      updatedItems[index].price = newPrice;
-      updatedItems[index].subtotal = newPrice * updatedItems[index].quantity;
+      const currentItem = updatedItems[index];
+      if (currentItem) {
+        currentItem.price = newPrice;
+        currentItem.subtotal = newPrice * currentItem.quantity;
+      }
       return { ...prevSale, items: updatedItems };
     });
   }, []);
@@ -264,11 +279,14 @@ const useSaleManagementV2 = (
     if (newSubtotal < 0) return;
     setCurrentSale(prevSale => {
       const updatedItems = [...prevSale.items];
-      updatedItems[index].subtotal = newSubtotal;
-      if (updatedItems[index].quantity > 0) {
-        updatedItems[index].price = newSubtotal / updatedItems[index].quantity;
-      } else {
-        updatedItems[index].price = 0;
+      const currentItem = updatedItems[index];
+      if (currentItem) {
+        currentItem.subtotal = newSubtotal;
+        if (currentItem.quantity > 0) {
+          currentItem.price = newSubtotal / currentItem.quantity;
+        } else {
+          currentItem.price = 0;
+        }
       }
       return { ...prevSale, items: updatedItems };
     });
@@ -292,7 +310,10 @@ const useSaleManagementV2 = (
   const toggleInputMode = useCallback((index: number) => {
     setInputModes(prevModes => {
       const updatedModes = [...prevModes];
-      updatedModes[index] = updatedModes[index] === 'price' ? 'subtotal' : 'price';
+      const currentMode = updatedModes[index];
+      if (currentMode) {
+        updatedModes[index] = currentMode === 'price' ? 'subtotal' : 'price';
+      }
       return updatedModes;
     });
   }, []);

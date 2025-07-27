@@ -244,11 +244,13 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
       
       // 如果沒有當前主題但有主題列表，使用第一個主題
       if (!themeToApply && themes.length > 0) {
-        themeToApply = themes[0];
+        themeToApply = themes[0] || null;
         console.log('使用第一個可用主題:', themeToApply);
         // 自動設定為當前主題
         try {
-          await themeServiceV2.setCurrentTheme(themes[0]._id!);
+          if (themes[0]?._id) {
+            await themeServiceV2.setCurrentTheme(themes[0]._id);
+          }
         } catch (error) {
           console.error('設定當前主題失敗:', error);
         }
@@ -313,7 +315,9 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
   const switchTheme = async (theme: UserTheme) => {
     try {
       // 設定為當前主題（後端）
-      await themeServiceV2.setCurrentTheme(theme._id);
+      if (theme._id) {
+        await themeServiceV2.setCurrentTheme(theme._id);
+      }
       
       // 更新本地狀態
       setCurrentTheme(theme);
@@ -416,7 +420,7 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
       
       // 如果刪除的是當前主題，切換到第一個可用主題
       if (currentTheme?._id === themeId) {
-        if (remainingThemes.length > 0) {
+        if (remainingThemes.length > 0 && remainingThemes[0]) {
           await switchTheme(remainingThemes[0]);
         } else {
           // 如果沒有剩餘主題，建立新的預設主題
@@ -481,9 +485,9 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
       
       let savedTheme: UserTheme;
       
-      if (existingTheme) {
+      if (existingTheme && existingTheme._id) {
         // 更新現有主題
-        savedTheme = await themeServiceV2.updateTheme(existingTheme._id!, {
+        savedTheme = await themeServiceV2.updateTheme(existingTheme._id, {
           primaryColor: previewedTheme.primaryColor,
           mode: previewedTheme.mode,
           customSettings: previewedTheme.customSettings,

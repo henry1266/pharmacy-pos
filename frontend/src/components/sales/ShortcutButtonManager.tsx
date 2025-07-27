@@ -205,7 +205,9 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && filteredProducts.length > 0) {
                     e.preventDefault();
-                    handleAddProduct(filteredProducts[0]._id);
+                    if (filteredProducts[0]) {
+                      handleAddProduct(filteredProducts[0]._id);
+                    }
                   }
                 }}
                 InputProps={{

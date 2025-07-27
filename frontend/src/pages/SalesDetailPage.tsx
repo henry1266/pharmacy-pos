@@ -238,11 +238,11 @@ const SalesItemRow: FC<SalesItemRowProps> = ({ item, fifoLoading, fifoData, show
       <TableCell align="right">{(item.price * item.quantity).toFixed(2)}</TableCell>
       {!fifoLoading && fifoData?.items && showSalesProfitColumns && (
         <>
-          <TableCell align="right">{fifoItem?.fifoProfit?.totalCost.toFixed(2) ?? 'N/A'}</TableCell>
+          <TableCell align="right">{fifoItem?.fifoProfit?.totalCost?.toFixed(2) ?? 'N/A'}</TableCell>
           {/* 型別斷言在此是必要的，因為可能存在兩個不同的 FifoProfit 介面定義 */}
           <GrossProfitCell fifoProfit={fifoItem?.fifoProfit as Record<string, any>} />
-          <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && parseFloat(fifoItem.fifoProfit.profitMargin) >= 0 ? 'success.main' : 'error.main' }}>
-            {fifoItem?.fifoProfit ? fifoItem.fifoProfit.profitMargin : 'N/A'}
+          <TableCell align="right" sx={{ color: fifoItem?.fifoProfit && parseFloat(fifoItem.fifoProfit.profitMargin || '0') >= 0 ? 'success.main' : 'error.main' }}>
+            {fifoItem?.fifoProfit?.profitMargin ?? 'N/A'}
           </TableCell>
         </>
       )}
@@ -432,7 +432,7 @@ const SalesDetailPage: FC = () => {
               product: {
                 _id: item.product._id ?? '',
                 name: item.product.name ?? '未知商品',
-                code: item.product.code ?? ''
+                code: (item.product as any).code ?? ''
               }
             };
           }

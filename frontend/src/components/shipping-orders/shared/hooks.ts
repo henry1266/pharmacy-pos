@@ -27,7 +27,10 @@ export const useItemsManagement = (initialItems: Item[] = []) => {
   // 開始編輯項目
   const handleEditItem = useCallback((index: number) => {
     setEditingItemIndex(index);
-    setEditingItem(deepClone(items[index]));
+    const item = items[index];
+    if (item) {
+      setEditingItem(deepClone(item));
+    }
   }, [items]);
 
   // 儲存編輯項目
@@ -215,8 +218,8 @@ export const useCsvImport = (options?: FileProcessingOptions) => {
       if (result.isValid) {
         setSuccess(true);
       } else {
-        const errorMessages = result.errors.map(err => err.message).join(', ');
-        setError(errorMessages ?? '導入失敗');
+        const errorMessages = result.errors?.map(err => err.message).join(', ');
+        setError(errorMessages || '導入失敗');
         setSuccess(false);
       }
     } catch (err) {

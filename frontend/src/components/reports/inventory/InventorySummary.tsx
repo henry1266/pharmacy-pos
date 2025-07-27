@@ -1,5 +1,4 @@
 import React, { FC } from 'react';
-import PropTypes from 'prop-types';
 import {
   Box,
   Card,
@@ -191,20 +190,5 @@ const InventorySummary: FC<InventorySummaryProps> = ({ filters }) => {
   );
 };
 
-// PropTypes 驗證
-InventorySummary.propTypes = {
-  filters: PropTypes.shape({
-    supplier: PropTypes.string,
-    category: PropTypes.string,
-    productCode: PropTypes.string,
-    productName: PropTypes.string,
-    productType: PropTypes.string
-  })
-};
-
-// 設定默認值
-InventorySummary.defaultProps = {
-  filters: {}
-};
 
 export default InventorySummary;

@@ -382,7 +382,7 @@ const ShippingOrdersPage: React.FC = () => {
           handleFileChange={handleCsvFileChange}
           handleImport={handleCsvImport}
           loading={csvImportLoading}
-          error={csvImportError}
+          error={csvImportError || undefined}
           success={csvImportSuccess}
         />
       )}
@@ -466,9 +466,9 @@ const ShippingOrdersPage: React.FC = () => {
         }}
       >
         <ShippingOrderPreview
-          shippingOrder={previewShippingOrder}
+          shippingOrder={previewShippingOrder || undefined}
           loading={previewLoading}
-          error={previewError}
+          error={previewError || undefined}
         />
       </Popover>
 
@@ -515,7 +515,7 @@ const ShippingOrdersPage: React.FC = () => {
         onFileChange={handleCsvFileChange}
         onImport={handleCsvImport}
         loading={csvImportLoading}
-        error={csvImportError}
+        error={csvImportError || undefined}
         success={csvImportSuccess}
       />
 

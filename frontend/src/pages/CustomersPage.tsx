@@ -434,7 +434,7 @@ const CustomersPage: FC = () => {
     { field: 'code', headerName: '會員編號', width: 100 },
     { field: 'name', headerName: '會員姓名', width: 120 },
     { field: 'idCardNumber', headerName: '身分證', width: 140 },
-    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params: any) => formatDateToYYYYMMDD(params.value) },
+    { field: 'birthdate', headerName: '出生年月日', width: 150, valueGetter: (params: any) => formatDateToYYYYMMDD(params?.value) },
     { field: 'phone', headerName: '電話', width: 140 },
     { field: 'level', headerName: '會員等級', width: 120 },
     {
@@ -449,7 +449,7 @@ const CustomersPage: FC = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="刪除">
-            <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); handleDelete(params.row.id); }}>
+            <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); handleDelete(params.row?.id); }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -467,8 +467,8 @@ const CustomersPage: FC = () => {
     setCurrentCustomerState({
       id: customer.id,
       code: customer.code,
-      name: customer.name,
-      phone: customer.phone,
+      name: customer.name || '',
+      phone: customer.phone || '',
       email: customer.email || '',
       address: customer.address || '',
       idCardNumber: customer.idCardNumber || "",
@@ -504,18 +504,18 @@ const CustomersPage: FC = () => {
   const handleSaveCustomer = useCallback(async () => {
     setFormError(null);
     const customerDataToSave = { // Renamed to avoid conflict with currentCustomerState fields like id/code
-      name: currentCustomerState.name,
-      phone: currentCustomerState.phone,
-      email: currentCustomerState.email,
-      address: currentCustomerState.address,
-      idCardNumber: currentCustomerState.idCardNumber,
+      name: currentCustomerState.name || '',
+      phone: currentCustomerState.phone || '',
+      email: currentCustomerState.email || '',
+      address: currentCustomerState.address || '',
+      idCardNumber: currentCustomerState.idCardNumber || '',
       birthdate: currentCustomerState.birthdate,
-      notes: currentCustomerState.notes,
-      membershipLevel: currentCustomerState.membershipLevel
+      notes: currentCustomerState.notes || '',
+      membershipLevel: currentCustomerState.membershipLevel || 'regular'
     };
 
     // Validate required fields
-    if (!customerDataToSave.name || !customerDataToSave.phone) {
+    if (!customerDataToSave.name.trim() || !customerDataToSave.phone.trim()) {
       setFormError('請填寫必填欄位：會員姓名和電話');
       return;
     }

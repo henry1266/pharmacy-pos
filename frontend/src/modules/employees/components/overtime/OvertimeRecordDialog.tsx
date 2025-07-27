@@ -236,8 +236,8 @@ const OvertimeRecordDialog: React.FC<OvertimeRecordDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }} {...({} as any)}>
-          <Grid item xs={12} {...({} as any)}>
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
             <FormControl fullWidth error={!!formErrors.employeeId}>
               <InputLabel id="employee-select-label">員工</InputLabel>
               <Select
@@ -266,7 +266,7 @@ const OvertimeRecordDialog: React.FC<OvertimeRecordDialogProps> = ({
             </FormControl>
           </Grid>
           
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid item xs={12} sm={6}>
             <TextField
               label="加班日期"
               name="date"
@@ -282,7 +282,7 @@ const OvertimeRecordDialog: React.FC<OvertimeRecordDialogProps> = ({
             />
           </Grid>
           
-          <Grid item xs={12} {...({} as any)}>
+          <Grid item xs={12}>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 加班時數輸入方式
@@ -401,7 +401,7 @@ const OvertimeRecordDialog: React.FC<OvertimeRecordDialogProps> = ({
             )}
           </Grid>
           
-          <Grid item xs={12} {...({} as any)}>
+          <Grid item xs={12}>
             <TextField
               label="加班原因/說明"
               name="description"
@@ -414,7 +414,7 @@ const OvertimeRecordDialog: React.FC<OvertimeRecordDialogProps> = ({
           </Grid>
           
           {isAdmin && (
-            <Grid item xs={12} {...({} as any)}>
+            <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel id="status-select-label">狀態</InputLabel>
                 <Select

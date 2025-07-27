@@ -71,9 +71,10 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
 
     // Filter records (same logic as original)
     const filteredInventories = inventories.filter((inv: any) => {
-      const hasSaleNumber = (inv as ExtendedInventory).saleNumber && (inv as ExtendedInventory).saleNumber.trim() !== '';
-      const hasPurchaseOrderNumber = (inv as ExtendedInventory).purchaseOrderNumber && (inv as ExtendedInventory).purchaseOrderNumber.trim() !== '';
-      const hasShippingOrderNumber = (inv as ExtendedInventory).shippingOrderNumber && (inv as ExtendedInventory).shippingOrderNumber.trim() !== '';
+      const extInv = inv as ExtendedInventory;
+      const hasSaleNumber = extInv.saleNumber && extInv.saleNumber.trim() !== '';
+      const hasPurchaseOrderNumber = extInv.purchaseOrderNumber && extInv.purchaseOrderNumber.trim() !== '';
+      const hasShippingOrderNumber = extInv.shippingOrderNumber && extInv.shippingOrderNumber.trim() !== '';
       return hasSaleNumber || hasPurchaseOrderNumber || hasShippingOrderNumber;
     }) as ExtendedInventory[];
 
@@ -86,39 +87,48 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
     filteredInventories.forEach(inv => {
       if (inv.saleNumber) {
         if (!saleGroups[inv.saleNumber]) {
-          saleGroups[inv.saleNumber] = { 
-            ...inv, 
-            type: 'sale', 
-            totalQuantity: inv.quantity, 
-            totalAmount: inv.totalAmount || 0 
+          saleGroups[inv.saleNumber] = {
+            ...inv,
+            type: 'sale',
+            totalQuantity: inv.quantity,
+            totalAmount: inv.totalAmount || 0
           };
         } else {
-          saleGroups[inv.saleNumber].totalQuantity += inv.quantity;
-          saleGroups[inv.saleNumber].totalAmount += (inv.totalAmount || 0);
+          const existingGroup = saleGroups[inv.saleNumber];
+          if (existingGroup) {
+            existingGroup.totalQuantity += inv.quantity;
+            existingGroup.totalAmount += (inv.totalAmount || 0);
+          }
         }
       } else if (inv.purchaseOrderNumber) {
         if (!purchaseGroups[inv.purchaseOrderNumber]) {
-          purchaseGroups[inv.purchaseOrderNumber] = { 
-            ...inv, 
-            type: 'purchase', 
-            totalQuantity: inv.quantity, 
-            totalAmount: inv.totalAmount || 0 
+          purchaseGroups[inv.purchaseOrderNumber] = {
+            ...inv,
+            type: 'purchase',
+            totalQuantity: inv.quantity,
+            totalAmount: inv.totalAmount || 0
           };
         } else {
-          purchaseGroups[inv.purchaseOrderNumber].totalQuantity += inv.quantity;
-          purchaseGroups[inv.purchaseOrderNumber].totalAmount += (inv.totalAmount || 0);
+          const existingGroup = purchaseGroups[inv.purchaseOrderNumber];
+          if (existingGroup) {
+            existingGroup.totalQuantity += inv.quantity;
+            existingGroup.totalAmount += (inv.totalAmount || 0);
+          }
         }
       } else if (inv.shippingOrderNumber) {
         if (!shipGroups[inv.shippingOrderNumber]) {
-          shipGroups[inv.shippingOrderNumber] = { 
-            ...inv, 
-            type: 'ship', 
-            totalQuantity: inv.quantity, 
-            totalAmount: inv.totalAmount || 0 
+          shipGroups[inv.shippingOrderNumber] = {
+            ...inv,
+            type: 'ship',
+            totalQuantity: inv.quantity,
+            totalAmount: inv.totalAmount || 0
           };
         } else {
-          shipGroups[inv.shippingOrderNumber].totalQuantity += inv.quantity;
-          shipGroups[inv.shippingOrderNumber].totalAmount += (inv.totalAmount || 0);
+          const existingGroup = shipGroups[inv.shippingOrderNumber];
+          if (existingGroup) {
+            existingGroup.totalQuantity += inv.quantity;
+            existingGroup.totalAmount += (inv.totalAmount || 0);
+          }
         }
       }
     });
@@ -126,17 +136,26 @@ const calculateProductData = async (productId: string): Promise<ProductCalculati
     // 使用相容性更好的方式遍歷物件值
     for (const key in saleGroups) {
       if (saleGroups.hasOwnProperty(key)) {
-        mergedInventories.push(saleGroups[key]);
+        const group = saleGroups[key];
+        if (group) {
+          mergedInventories.push(group);
+        }
       }
     }
     for (const key in purchaseGroups) {
       if (purchaseGroups.hasOwnProperty(key)) {
-        mergedInventories.push(purchaseGroups[key]);
+        const group = purchaseGroups[key];
+        if (group) {
+          mergedInventories.push(group);
+        }
       }
     }
     for (const key in shipGroups) {
       if (shipGroups.hasOwnProperty(key)) {
-        mergedInventories.push(shipGroups[key]);
+        const group = shipGroups[key];
+        if (group) {
+          mergedInventories.push(group);
+        }
       }
     }
 

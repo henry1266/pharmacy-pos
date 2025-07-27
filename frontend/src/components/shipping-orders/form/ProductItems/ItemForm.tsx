@@ -1,5 +1,4 @@
 import React, { FC, ChangeEvent, SyntheticEvent } from 'react';
-import PropTypes from 'prop-types';
 import { 
   Grid, 
   TextField, 
@@ -30,7 +29,7 @@ interface Product {
 
 // 定義當前項目介面
 interface CurrentItem {
-  product?: string;
+  product?: string | undefined;
   did?: string;
   dname?: string;
   dquantity?: string | number;
@@ -151,7 +150,7 @@ const ItemForm: FC<ItemFormProps> = ({
           onKeyDown={(event) => {
             if (['Enter', 'Tab'].includes(event.key)) {
               const filteredOptions = filterProducts(products, (event.target as HTMLInputElement).value);
-              if (filteredOptions.length > 0) {
+              if (filteredOptions.length > 0 && filteredOptions[0]) {
                 handleProductChange(event, filteredOptions[0]);
                 event.preventDefault();
                 const dquantityInput = document.querySelector('input[name="dquantity"]');
@@ -247,30 +246,3 @@ const ItemForm: FC<ItemFormProps> = ({
 };
 
 export default ItemForm;
-
-ItemForm.propTypes = {
-  currentItem: PropTypes.shape({
-    product: PropTypes.string,
-    did: PropTypes.string,
-    dname: PropTypes.string,
-    dquantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    dtotalCost: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-  }).isRequired,
-  handleItemInputChange: PropTypes.func.isRequired,
-  handleProductChange: PropTypes.func.isRequired,
-  handleAddItem: PropTypes.func.isRequired,
-  products: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string,
-      code: PropTypes.string,
-      name: PropTypes.string,
-      shortCode: PropTypes.string,
-      barcode: PropTypes.string,
-      healthInsuranceCode: PropTypes.string,
-      purchasePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-      healthInsurancePrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-      productType: PropTypes.string
-    })
-  ),
-  autoFocus: PropTypes.bool
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
