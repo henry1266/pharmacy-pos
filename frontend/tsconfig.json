@@ -1,8 +1,9 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     /* React 專用設定 */
-    "target": "ES2020",
-    "lib": ["DOM", "DOM.Iterable", "ES6"],
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "module": "ESNext",
     "moduleResolution": "node",
     "jsx": "react-jsx",
@@ -37,34 +38,27 @@
     
     /* React 開發設定 */
     "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noFallthroughCasesInSwitch": true,
+
     
     /* 保持寬鬆以利轉型 */
     "strict": false,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "strictNullChecks": false,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": false,
-    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables":false,
     "noImplicitThis": false,
-    "alwaysStrict": false
+    "strictBindCallApply":false,
+    "strictFunctionTypes": false,
+    "exactOptionalPropertyTypes": false,
+    "strictPropertyInitialization": false,
+    "noUncheckedIndexedAccess": false,
+
+    /* 程式碼品質與附加檢查 */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   
-      /*"noImplicitAny": true,
-    "strictNullChecks": true,
-    "useUnknownInCatchVariables": true,
-    "noImplicitThis": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "exactOptionalPropertyTypes": true,
-    "strictPropertyInitialization": true,
-    "noUncheckedIndexedAccess": true,*/
+
   
   
   "include": [

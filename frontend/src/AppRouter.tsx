@@ -50,7 +50,6 @@ import OrganizationFormPage from './modules/accounting3/pages/OrganizationFormPa
   import AccountsManagementPage from './modules/accounting3/pages/AccountsManagementPage';
   import AccountDetailPage from './pages/AccountDetailPage';
   import TransactionDetailPage from './pages/TransactionDetailPage';
-  import AccountingDetailPageWrapper from './pages/AccountingDetailPage';
 
 // AppRouter now only contains routes accessible *after* login
 const AppRouter: React.FC = () => {

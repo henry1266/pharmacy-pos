@@ -3,7 +3,7 @@
   "compilerOptions": {
     /* Node.js 後端專用設定 */
     "module": "CommonJS",
-    "lib": ["ES2020", "ESNext.AsyncIterable"],
+    "lib": ["ES2022"],
     
     /* 輸出設定 */
     "noEmit": false,
