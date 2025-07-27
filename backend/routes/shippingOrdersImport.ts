@@ -191,7 +191,7 @@ function convertToWesternDate(dateStr: string): string | null {
   try {
     const dateObj = new Date(dateStr);
     if (!isNaN(dateObj.getTime())) {
-      return dateObj.toISOString().split("T")[0]; // 返回YYYY-MM-DD格式
+      return dateObj.toISOString().split("T")[0] || null; // 返回YYYY-MM-DD格式
     }
   } catch (error) {
     console.error(`解析日期時出錯: ${dateStr}`, error);
@@ -247,7 +247,10 @@ async function findMaxOrderSequence(prefix: string, suffix: string): Promise<num
   let sequence = 1; // 默認從001開始
   
   if (existingOrders.length > 0) {
-    const lastOrderNumber = existingOrders[0].soid;
+    const lastOrderNumber = existingOrders[0]?.soid;
+    if (!lastOrderNumber) {
+      return sequence;
+    }
     // 提取序號部分 (去掉日期前綴和D後綴)
     const lastSequence = parseInt(lastOrderNumber.substring(prefix.length, lastOrderNumber.length - suffix.length), 10);
     sequence = lastSequence + 1;
@@ -335,10 +338,12 @@ function processCsvLine(data: Record<string, string>, lineIndex: number, result:
     return { ...result, failCount: result.failCount + 1 };
   }
   
-  const rawDate = data[keys[0]] || "";
-  const nhCode = data[keys[1]] || "";
-  const quantity = parseInt(data[keys[2]], 10) || 0;
-  const nhPrice = parseFloat(data[keys[3]]) || 0;
+  const rawDate = data[keys[0] || ''] || "";
+  const nhCode = data[keys[1] || ''] || "";
+  const quantityStr = data[keys[2] || ''] || "0";
+  const priceStr = data[keys[3] || ''] || "0";
+  const quantity = parseInt(quantityStr, 10) || 0;
+  const nhPrice = parseFloat(priceStr) || 0;
 
   // 轉換日期格式（支持民國年和西元年）
   const date = convertToWesternDate(rawDate);
@@ -408,9 +413,9 @@ function prepareOrderItems(
     const totalCost = item.quantity * item.nhPrice;
     
     items.push({
-      product: product._id.toString(),
-      did: product.code?.toString() || "",
-      dname: product.name?.toString() || "",
+      product: product._id,
+      did: product.code || "",
+      dname: product.name || "",
       dquantity: item.quantity,
       dtotalCost: totalCost,
       unitPrice: item.nhPrice
@@ -432,8 +437,8 @@ async function findOrSetSupplier(defaultSupplier?: any): Promise<SupplierResult>
   let supplierName = "預設供應商";
   
   if (defaultSupplier) {
-    supplierId = defaultSupplier._id?.toString();
-    supplierName = defaultSupplier.name?.toString() ?? supplierName;
+    supplierId = defaultSupplier._id ? defaultSupplier._id.toString() : null;
+    supplierName = defaultSupplier.name ? defaultSupplier.name.toString() : supplierName;
   } else {
     // 嘗試查找名為"調劑"的供應商
     const supplier = await Supplier.findOne({
@@ -441,7 +446,7 @@ async function findOrSetSupplier(defaultSupplier?: any): Promise<SupplierResult>
     });
     
     if (supplier) {
-      supplierId = supplier._id.toString();
+      supplierId = (supplier._id as any).toString();
       supplierName = supplier.name.toString();
     }
   }
@@ -460,7 +465,7 @@ router.get("/generate-number", async (_req: Request, res: Response) => {
     // 如果需要一個不依賴CSV日期的生成方式，需要另行處理
     // 暫時使用當前日期，但這可能與CSV匯入邏輯不一致
     const todayStr = new Date().toISOString().split("T")[0];
-    const orderNumber = await generateOrderNumberByDate(todayStr);
+    const orderNumber = await generateOrderNumberByDate(todayStr!);
     
     const response: ApiResponse<{ orderNumber: string }> = {
       success: true,
@@ -625,10 +630,10 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
 
     // 創建新出貨單
     const shippingOrder = new ShippingOrder({
-      soid: soid.toString(),
-      orderNumber: soid.toString(),
-      sosupplier: supplierName.toString(),
-      supplier: supplierId ? supplierId.toString() : null,
+      soid: soid,
+      orderNumber: soid,
+      sosupplier: supplierName,
+      supplier: supplierId,
       items,
       status: "completed", // 根據新需求設置為completed
       paymentStatus: "已收款", // 根據之前的需求設置為已收款
@@ -649,13 +654,13 @@ router.post("/import/medicine", upload.single("file"), async (req: Request, res:
       data: {
         shippingOrder: {
           _id: savedOrder._id.toString(),
-          soid: savedOrder.soid.toString(),
-          orderNumber: savedOrder.orderNumber.toString(),
-          supplier: supplierName.toString(),
+          soid: savedOrder.soid,
+          orderNumber: savedOrder.orderNumber,
+          supplier: supplierName,
           itemCount: items.length,
           totalAmount: savedOrder.totalAmount,
-          paymentStatus: savedOrder.paymentStatus.toString(),
-          status: savedOrder.status.toString()
+          paymentStatus: savedOrder.paymentStatus,
+          status: savedOrder.status
         },
         summary: {
           totalItems: result.totalItems,

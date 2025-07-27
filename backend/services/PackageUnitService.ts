@@ -55,7 +55,7 @@ export class PackageUnitService {
       for (let i = 0; i < sortedUnits.length - 1; i++) {
         const current = sortedUnits[i];
         const next = sortedUnits[i + 1];
-        if (current.unitValue % next.unitValue !== 0) {
+        if (current && next && current.unitValue % next.unitValue !== 0) {
           warnings.push(`${current.unitName}(${current.unitValue}) 無法被 ${next.unitName}(${next.unitValue}) 整除，可能導致顯示不準確`);
         }
       }
@@ -182,21 +182,31 @@ export class PackageUnitService {
     let hasValidMatch = false;
     
     while ((match = regex.exec(trimmedInput)) !== null) {
-      const quantity = parseInt(match[1]);
+      const quantityStr = match[1];
       const unitName = match[2];
       
-      if (unitMap.has(unitName)) {
-        const unitValue = unitMap.get(unitName)!;
-        totalBaseQuantity += quantity * unitValue;
-        parsedItems.push({ unitName, quantity });
-        hasValidMatch = true;
-      } else {
-        result.errors?.push(`未知的單位名稱: "${unitName}"`);
+      if (quantityStr && unitName) {
+        const quantity = parseInt(quantityStr);
+        
+        if (unitMap.has(unitName)) {
+          const unitValue = unitMap.get(unitName);
+          if (unitValue !== undefined) {
+            totalBaseQuantity += quantity * unitValue;
+            parsedItems.push({ unitName, quantity });
+            hasValidMatch = true;
+          }
+        } else {
+          if (result.errors) {
+            result.errors.push(`未知的單位名稱: "${unitName}"`);
+          }
+        }
       }
     }
     
-    if (!hasValidMatch && result.errors?.length === 0) {
-      result.errors?.push('無法解析輸入格式，請使用如 "1盒 5排 3粒" 的格式');
+    if (!hasValidMatch && (!result.errors || result.errors.length === 0)) {
+      if (result.errors) {
+        result.errors.push('無法解析輸入格式，請使用如 "1盒 5排 3粒" 的格式');
+      }
     }
     
     result.baseQuantity = totalBaseQuantity;

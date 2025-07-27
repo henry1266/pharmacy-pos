@@ -253,6 +253,15 @@ router.get('/code/:code', async (req: Request, res: Response): Promise<void> => 
 // @access  Public
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!req.params.id) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: '缺少產品ID參數',
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
+
     const product = await BaseProduct.findById(req.params.id)
       .populate('category', 'name')
       .populate('supplier', 'name');
@@ -685,6 +694,15 @@ router.put(
 router.delete('/:id', auth, async (req: Request, res: Response): Promise<void> => {
   try {
     const productId = req.params.id;
+    
+    if (!productId) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: '缺少產品ID參數',
+        timestamp: new Date()
+      } as ApiResponse);
+      return;
+    }
     
     // 檢查產品是否存在
     const existingProduct = await BaseProduct.findById(productId);

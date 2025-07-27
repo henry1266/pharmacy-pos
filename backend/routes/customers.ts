@@ -124,6 +124,12 @@ router.get('/', async (_req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    if (!req.params.id) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
+         .json(createErrorResponse('缺少客戶ID參數'));
+      return;
+    }
+
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
@@ -377,6 +383,12 @@ router.put('/:id', async (req: Request<{ id: string }, any, CustomerUpdateReques
     const customerId = req.params.id;
     const requestBody = req.body;
     
+    if (!customerId) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
+         .json(createErrorResponse('缺少客戶ID參數'));
+      return;
+    }
+    
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(customerId)) {
       res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)
@@ -424,6 +436,12 @@ router.put('/:id', async (req: Request<{ id: string }, any, CustomerUpdateReques
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    if (!req.params.id) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
+         .json(createErrorResponse('缺少客戶ID參數'));
+      return;
+    }
+
     // 驗證 ID 格式，防止 NoSQL 注入
     if (!isValidObjectId(req.params.id)) {
       res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND)

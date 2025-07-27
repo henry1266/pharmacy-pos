@@ -192,8 +192,8 @@ export class AutoAccountingEntryService {
       // 檢查所有科目是否屬於同一機構
       const organizationIds = accounts
         .map(account => account.organizationId)
-        .filter(orgId => orgId) // 過濾掉null/undefined
-        .map(orgId => orgId.toString());
+        .filter(orgId => orgId !== null && orgId !== undefined) // 過濾掉null/undefined
+        .map(orgId => orgId!.toString());
 
       if (organizationIds.length === 0) {
         console.log('❌ 所有會計科目都沒有關聯的機構');
@@ -243,8 +243,8 @@ export class AutoAccountingEntryService {
         debitAmount: purchaseOrder.totalAmount,
         creditAmount: 0,
         description: `${debitAccount.name} (借方)`,
-        categoryId: null,
-        sourceTransactionId: null,
+        categoryId: undefined,
+        sourceTransactionId: undefined,
         fundingPath: []
       },
       {
@@ -253,8 +253,8 @@ export class AutoAccountingEntryService {
         debitAmount: 0,
         creditAmount: purchaseOrder.totalAmount,
         description: `${creditAccount.name} (貸方)`,
-        categoryId: null,
-        sourceTransactionId: null,
+        categoryId: undefined,
+        sourceTransactionId: undefined,
         fundingPath: []
       }
     ];

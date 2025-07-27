@@ -25,6 +25,14 @@ router.get('/by-account/:accountId', auth, async (req: AuthenticatedRequest, res
       return;
     }
 
+    if (!accountId) {
+      res.status(400).json({
+        success: false,
+        message: '缺少科目ID參數'
+      });
+      return;
+    }
+
     if (!mongoose.Types.ObjectId.isValid(accountId)) {
       res.status(400).json({
         success: false,
@@ -186,6 +194,14 @@ router.get('/by-category/:categoryId', auth, async (req: AuthenticatedRequest, r
       return;
     }
 
+    if (!categoryId) {
+      res.status(400).json({
+        success: false,
+        message: '缺少類別ID參數'
+      });
+      return;
+    }
+
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       res.status(400).json({
         success: false,
@@ -326,6 +342,14 @@ router.get('/funding-sources/:sourceId', auth, async (req: AuthenticatedRequest,
     
     if (!userId) {
       res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    if (!sourceId) {
+      res.status(400).json({
+        success: false,
+        message: '缺少資金來源ID參數'
+      });
       return;
     }
 
@@ -502,6 +526,14 @@ router.get('/funding-path/:transactionId', auth, async (req: AuthenticatedReques
     
     if (!userId) {
       res.status(401).json({ message: '未授權的請求' });
+      return;
+    }
+
+    if (!transactionId) {
+      res.status(400).json({
+        success: false,
+        message: '缺少交易ID參數'
+      });
       return;
     }
 

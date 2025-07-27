@@ -439,14 +439,14 @@ export class FundingService {
       for (let i = 0; i < transaction.entries.length; i++) {
         const entry = transaction.entries[i];
         
-        if (entry.sourceTransactionId) {
+        if (entry && entry.sourceTransactionId) {
           try {
             const usage = await this.trackFundingUsage(
               entry.sourceTransactionId.toString(),
               userId
             );
 
-            const entryAmount = entry.debitAmount || entry.creditAmount || 0;
+            const entryAmount = (entry.debitAmount || 0) + (entry.creditAmount || 0);
             
             if (entryAmount > usage.remainingAmount) {
               issues.push(
@@ -462,9 +462,9 @@ export class FundingService {
           } catch (error) {
             issues.push(`分錄 ${i + 1} 的資金來源驗證失敗: ${error instanceof Error ? error.message : '未知錯誤'}`);
           }
-        } else {
+        } else if (entry) {
           // 沒有指定資金來源的分錄
-          const entryAmount = entry.debitAmount || entry.creditAmount || 0;
+          const entryAmount = (entry.debitAmount || 0) + (entry.creditAmount || 0);
           if (entryAmount > 0) {
             recommendations.push(
               `建議為分錄 ${i + 1} (金額: ${entryAmount}) 指定資金來源以便追蹤`

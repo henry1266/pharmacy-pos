@@ -75,7 +75,7 @@ router.get('/summary', auth, async (req: AuthenticatedRequest, res: Response): P
       }
 
       const accountSummary: AccountSummary = {
-        _id: account._id.toString(),
+        _id: (account._id as any).toString(),
         code: account.code,
         name: account.name,
         initialBalance: account.initialBalance,
@@ -83,9 +83,12 @@ router.get('/summary', auth, async (req: AuthenticatedRequest, res: Response): P
         entriesCount: entries.length
       };
 
-      summary[account.accountType].count++;
-      summary[account.accountType].totalBalance += actualBalance;
-      summary[account.accountType].accounts.push(accountSummary);
+      const accountType = account.accountType;
+      if (summary[accountType]) {
+        summary[accountType].count++;
+        summary[accountType].totalBalance += actualBalance;
+        summary[accountType].accounts.push(accountSummary);
+      }
     }
 
     console.log('✅ 科目餘額摘要計算完成');

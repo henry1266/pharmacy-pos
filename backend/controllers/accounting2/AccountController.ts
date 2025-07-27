@@ -180,6 +180,14 @@ export class AccountController {
         return;
       }
 
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少帳戶ID'
+        });
+        return;
+      }
+
       const account = await AccountService.getAccountById(id, userId);
       
       if (!account) {

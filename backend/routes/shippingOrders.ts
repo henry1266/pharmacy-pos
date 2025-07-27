@@ -180,6 +180,11 @@ router.get('/', async (_req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    if (!req.params.id) {
+      res.status(400).json(createErrorResponse('缺少出貨單ID參數'));
+      return;
+    }
+
     const shippingOrder = await ShippingOrder.findById(req.params.id)
       .populate('supplier', 'name')
       .populate('items.product', 'name code healthInsuranceCode');
@@ -286,7 +291,7 @@ async function validateProductsAndInventory(items: ShippingOrderItem[], allowNeg
       };
     }
     
-    item.product = product._id as Types.ObjectId;
+    item.product = product._id as any;
     
     // 檢查產品是否設定為「不扣庫存」
     const productDoc = product as any;
@@ -336,7 +341,7 @@ async function findSupplier(supplier?: Types.ObjectId | string, sosupplier?: str
   const sanitizedName = sosupplier.trim();
   
   const supplierDoc = await Supplier.findOne({ name: sanitizedName });
-  return supplierDoc ? supplierDoc._id.toString() : null;
+  return supplierDoc ? (supplierDoc._id as any).toString() : null;
 }
 
 // @route   POST api/shipping-orders
@@ -364,7 +369,7 @@ router.post('/', [
     soid = soidResult.soid;
 
     // 生成唯一訂單號
-    const orderNumber = await OrderNumberService.generateUniqueOrderNumber('shipping', soid);
+    const orderNumber = await OrderNumberService.generateUniqueOrderNumber('shipping', soid!);
 
     // 驗證產品並檢查庫存 - 允許負庫存
     const productsResult = await validateProductsAndInventory(items, true);
@@ -419,7 +424,7 @@ async function validateOrderItems(items: ShippingOrderItem[]): Promise<{ valid: 
     // 嘗試查找藥品
     const product = await BaseProduct.findOne({ code: item.did.toString() });
     if (product) {
-      item.product = product._id as Types.ObjectId;
+      item.product = product._id as any;
     }
   }
   
@@ -557,17 +562,19 @@ router.put('/:id', async (req: Request, res: Response) => {
       (shippingOrder as any)[key] = updateData[key];
     });
     
-    // 手動計算總金額以確保正確
-    shippingOrder.totalAmount = shippingOrder.items.reduce(
-      (total: number, item: ShippingOrderItem) => total + Number(item.dtotalCost), 0
-    );
-    
-    // 保存更新後的出貨單
-    await shippingOrder.save();
+    if (shippingOrder) {
+      // 手動計算總金額以確保正確
+      shippingOrder.totalAmount = shippingOrder.items.reduce(
+        (total: number, item: ShippingOrderItem) => total + Number(item.dtotalCost), 0
+      );
+      
+      // 保存更新後的出貨單
+      await shippingOrder.save();
 
-    // 如果需要創建庫存記錄
-    if (statusChangeResult.needCreateInventory) {
-      await createShippingInventoryRecords(shippingOrder);
+      // 如果需要創建庫存記錄
+      if (statusChangeResult.needCreateInventory) {
+        await createShippingInventoryRecords(shippingOrder);
+      }
     }
 
     res.json(createSuccessResponse(shippingOrder, SUCCESS_MESSAGES.GENERIC.UPDATED));
@@ -604,6 +611,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
   try {
+    if (!req.params.supplierId) {
+      res.status(400).json(createErrorResponse('缺少供應商ID參數'));
+      return;
+    }
+
     const shippingOrders = await ShippingOrder.find({ supplier: req.params.supplierId.toString() })
       .sort({ createdAt: -1 })
       .populate('supplier', 'name')
@@ -624,7 +636,12 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
 router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
     // 安全處理：驗證和清理productId
-    if (!req.params.productId || typeof req.params.productId !== 'string') {
+    if (!req.params.productId) {
+      res.status(400).json(createErrorResponse('缺少產品ID參數'));
+      return;
+    }
+    
+    if (typeof req.params.productId !== 'string') {
       res.status(400).json(createErrorResponse('無效的產品ID'));
       return;
     }

@@ -297,6 +297,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
+    if (!req.params.productId) {
+      sendInvalidRequestResponse(res, '缺少產品ID參數');
+      return;
+    }
+
     // 驗證產品 ID 參數
     if (!validateRequestId(res, req.params.productId, '無效的產品ID')) {
       return;
@@ -463,6 +468,11 @@ router.get('/stats', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/history/:productId', async (req: Request, res: Response) => {
   try {
+    if (!req.params.productId) {
+      sendInvalidRequestResponse(res, '缺少產品ID參數');
+      return;
+    }
+
     // 驗證產品 ID 參數
     if (!validateRequestId(res, req.params.productId, '無效的產品ID')) {
       return;

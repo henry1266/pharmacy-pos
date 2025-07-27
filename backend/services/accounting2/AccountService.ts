@@ -371,7 +371,7 @@ console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})
 
       const accountsData = accounts.map(account => ({
         ...account,
-        _id: account._id.toString(),
+        _id: (account._id as any).toString(),
         parentId: account.parentId?.toString() || null,
         organizationId: account.organizationId?.toString() || null
       })) as Account2Type[];
