@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import AccountType, { IAccountTypeDocument, IAccountTypeModel, initializeSystemAccountTypes } from '../../models/AccountType';
+import AccountType, { initializeSystemAccountTypes } from '../../models/AccountType';
 import { ApiResponse } from '@pharmacy-pos/shared/types/api';
 
 // 擴展 Request 介面以包含用戶資訊

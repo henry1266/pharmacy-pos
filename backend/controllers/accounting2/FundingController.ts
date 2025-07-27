@@ -31,7 +31,7 @@ export class FundingController {
         return;
       }
 
-      const { transactionId, fundingSourceId, amount, description } = req.body;
+      const { transactionId, fundingSourceId, amount } = req.body;
       
       // 驗證必要欄位
       if (!transactionId || !fundingSourceId || !amount) {
@@ -136,8 +136,7 @@ export class FundingController {
       const {
         organizationId,
         startDate,
-        endDate,
-        fundingSourceId
+        endDate
       } = req.query;
 
       const dateRange = startDate && endDate ? {
@@ -227,8 +226,7 @@ export class FundingController {
       const {
         organizationId,
         startDate,
-        endDate,
-        groupBy = 'source'
+        endDate
       } = req.query;
 
       const dateRange = startDate && endDate ? {
@@ -281,17 +279,6 @@ export class FundingController {
         });
         return;
       }
-
-      const {
-        includeUsageHistory = 'false',
-        startDate,
-        endDate
-      } = req.query;
-
-      const dateRange = startDate && endDate ? {
-        startDate: new Date(startDate as string),
-        endDate: new Date(endDate as string)
-      } : undefined;
 
       // FundingService 沒有 getFundingSourceDetails 方法，使用 trackFundingUsage
       const fundingSource = await FundingService.trackFundingUsage(

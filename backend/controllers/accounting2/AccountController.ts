@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { AccountService } from '../../services/accounting2/AccountService';
 import { ValidationService } from '../../services/accounting2/ValidationService';
-import { AccountingApiBridge } from '../../adapters/accountingBridge';
 import { IAccount2 } from '../../models/Account2';
 
 // 擴展 Request 介面以支援 user 屬性
@@ -268,7 +267,6 @@ export class AccountController {
    */
   static async getAccountStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
       const userId = req.user?.id || req.query.userId as string;
       
       if (!userId) {
@@ -278,17 +276,6 @@ export class AccountController {
         });
         return;
       }
-
-      const {
-        startDate,
-        endDate,
-        includeSubAccounts = 'false'
-      } = req.query;
-
-      const dateRange = startDate && endDate ? {
-        startDate: new Date(startDate as string),
-        endDate: new Date(endDate as string)
-      } : undefined;
 
       const statistics = await AccountService.getAccountTypeStatistics(
         userId,

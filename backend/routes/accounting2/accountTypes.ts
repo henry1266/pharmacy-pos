@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import AccountTypeController from '../../controllers/accounting2/AccountTypeController';
 
 const router: Router = Router();

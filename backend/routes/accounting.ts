@@ -25,18 +25,6 @@ interface AccountingItem {
   isAutoLinked?: boolean;
 }
 
-// 定義會計記錄介面
-interface IAccounting {
-  _id: Types.ObjectId;
-  date: Date;
-  status: AccountingStatus;
-  shift: ShiftType;
-  items: AccountingItem[];
-  totalAmount: number;
-  createdBy: Types.ObjectId | string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 // 定義會計記錄請求介面
 interface AccountingRequest {

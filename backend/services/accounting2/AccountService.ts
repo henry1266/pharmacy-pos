@@ -1,9 +1,8 @@
 import Account2, { IAccount2 } from '../../models/Account2';
 import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
-import { AccountManagementAdapter, AccountManagementDataProvider } from '../../../shared/adapters/accounting2to3';
+import { AccountManagementAdapter } from '../../../shared/adapters/accounting2to3';
 import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';
 import { Account2 as Account2Type, TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
-import { Types } from 'mongoose';
 
 /**
  * Accounting2 帳戶服務層
@@ -55,8 +54,6 @@ export class AccountService {
         parentId: savedAccount.parentId?.toString() || null,
         organizationId: savedAccount.organizationId?.toString() || null
       } as Account2Type;
-      const normalizedAccount = AccountManagementAdapter.normalizeAccount(savedAccountData);
-      
       console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})`);
       return savedAccount;
     } catch (error) {

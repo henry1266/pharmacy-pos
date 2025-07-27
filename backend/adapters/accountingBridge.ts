@@ -5,7 +5,6 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { Account2, TransactionGroupWithEntries } from '../../shared/types/accounting2';
-import { AccountManagementAdapter, AccountManagementDataProvider } from '../../shared/adapters/accounting2to3';
 import { Accounting3To2Adapter, AccountManagementFormatter } from '../../shared/adapters/accounting3to2';
 
 /**
