@@ -22,14 +22,27 @@ interface CurrentItem {
  * 產品詳情映射介面
  */
 interface ProductDetailsMap {
-  [productCode: string]: Product;
+  [productCode: string]: Product & { stock: number };
 }
 
 /**
  * 表單數據介面
  */
 interface FormData {
+  poid: string;
+  pobill: string;
+  pobilldate: Date;
+  posupplier: string;
+  supplier: string;
+  organizationId?: string;
+  transactionType?: string;
+  selectedAccountIds?: string[];
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
   items: CurrentItem[];
+  notes: string;
+  status: string;
+  paymentStatus: string;
+  multiplierMode: string | number;
   [key: string]: any; // 允許其他屬性
 }
 
@@ -56,8 +69,8 @@ interface PurchaseOrderItemsResult {
   editingItemIndex: number;
   editingItem: CurrentItem | null;
   setEditingItem: (item: CurrentItem | null | ((prev: CurrentItem | null) => CurrentItem | null)) => void;
-  handleItemInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  handleEditingItemChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  handleItemInputChange: (e: { target: { name: string; value: string } }) => void;
+  handleEditingItemChange: (e: { target: { name: string; value: string } }) => void;
   handleProductChange: (event: React.SyntheticEvent, newValue: Product | null) => void;
   handleAddItem: () => Promise<void>;
   handleRemoveItem: (index: number) => void;
@@ -95,11 +108,11 @@ const usePurchaseOrderItems = ({
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
   const [editingItem, setEditingItem] = useState<CurrentItem | null>(null);
 
-  const handleItemInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  const handleItemInputChange = useCallback((e: { target: { name: string; value: string } }) => {
     setCurrentItem(prev => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
 
-  const handleEditingItemChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  const handleEditingItemChange = useCallback((e: { target: { name: string; value: string } }) => {
     setEditingItem(prev => prev ? { ...prev, [e.target.name]: e.target.value } : null);
   }, []);
 
@@ -139,7 +152,7 @@ const usePurchaseOrderItems = ({
       try {
         const detail = await productServiceV2.getProductByCode(newItem.did);
         if (detail) {
-          setProductDetails(prev => ({ ...prev, [newItem.did]: detail }));
+          setProductDetails(prev => ({ ...prev, [newItem.did]: { ...detail, stock: detail.stock || 0 } }));
         }
       } catch (err: any) {
         console.error(`獲取產品 ${newItem.did} 詳細資料失敗:`, err);
@@ -187,7 +200,7 @@ const usePurchaseOrderItems = ({
       try {
         const detail = await productServiceV2.getProductByCode(editingItem.did);
         if (detail) {
-          setProductDetails(prev => ({ ...prev, [editingItem.did]: detail }));
+          setProductDetails(prev => ({ ...prev, [editingItem.did]: { ...detail, stock: detail.stock || 0 } }));
         }
       } catch (err: any) {
         console.error(`獲取產品 ${editingItem.did} 詳細資料失敗:`, err);

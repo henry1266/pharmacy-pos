@@ -24,27 +24,12 @@ import BasicInfoForm from '../components/purchase-order-form/BasicInfoForm';
 import ProductItemForm from '../components/purchase-order-form/ProductItemForm';
 import ProductItemsTable from '../components/purchase-order-form/ProductItemsTable';
 
-// 定義介面
-interface Supplier {
-  _id: string;
-  id?: string;
-  name: string;
-  shortCode?: string;
-  [key: string]: any;
-}
+// Import shared types
+import { Supplier as SharedSupplier, Product as SharedProduct } from '@pharmacy-pos/shared/types/entities';
 
-interface Product {
-  _id: string;
-  id?: string;
-  code: string;
-  name: string;
-  shortCode?: string;
-  productType?: string;
-  healthInsuranceCode?: string;
-  barcode?: string;
-  purchasePrice?: string | number;
-  [key: string]: any;
-}
+// 使用 shared 類型
+type Supplier = SharedSupplier;
+type Product = SharedProduct;
 
 interface FormData {
   poid: string;
@@ -226,7 +211,7 @@ const PurchaseOrderEditPage: React.FC = () => {
 
   useEffect(() => {
     if (orderDataLoaded && suppliersLoaded && formData.supplier) {
-      const supplierObj = suppliers.find(s => s._id === formData.supplier || s.id === formData.supplier);
+      const supplierObj = suppliers.find(s => s._id === formData.supplier);
       if (supplierObj) {
         setSelectedSupplier(supplierObj);
         if (formData.posupplier !== supplierObj.name) {
@@ -252,7 +237,7 @@ const PurchaseOrderEditPage: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       posupplier: supplier ? supplier.name : '',
-      supplier: supplier ? (supplier._id || supplier.id || '') : '' // Store ObjectId
+      supplier: supplier ? supplier._id : '' // Store ObjectId
     }));
   };
 
@@ -266,12 +251,12 @@ const PurchaseOrderEditPage: React.FC = () => {
     setEditingItem(prev => prev ? { ...prev, [name]: value } : null);
   };
 
-  const handleProductChange = (event: React.SyntheticEvent, newValue: Product | null): void => {
+  const handleProductChange = (event: React.SyntheticEvent, product: Product | null): void => {
     setCurrentItem(prev => ({
       ...prev,
-      did: newValue ? newValue.code : '',
-      dname: newValue ? newValue.name : '',
-      product: newValue ? (newValue._id || newValue.id || '') : null, // Store ObjectId
+      did: product ? product.code : '',
+      dname: product ? product.name : '',
+      product: product ? product._id : null, // Store ObjectId
       dquantity: '',
       dtotalCost: '',
       packageQuantity: '',

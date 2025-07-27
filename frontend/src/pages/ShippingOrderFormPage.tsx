@@ -24,6 +24,7 @@ import { RootState } from '../redux/store';
 
 // 導入共享型別
 import { ShippingOrderCreateRequest } from '@pharmacy-pos/shared/types/api';
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // 導入拆分後的組件
 import BasicInfoForm from '../components/shipping-orders/form/BasicInfo/index';
@@ -35,10 +36,9 @@ import GenericConfirmDialog from '../components/common/GenericConfirmDialog';
 // 1. 型別定義 (Type Definitions)
 // =================================================================
 
-// 供應商的型別
-interface ISupplier {
+// 供應商的型別 - 擴展 shared Supplier
+interface ISupplier extends Supplier {
   _id: string;
-  name: string;
   // ... 其他供應商屬性
 }
 
@@ -184,7 +184,7 @@ const ShippingOrderFormPage: React.FC = () => {
     }
   }, [error]);
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -200,7 +200,7 @@ const ShippingOrderFormPage: React.FC = () => {
     });
   };
   
-  const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleItemInputChange = (e: { target: { name: string; value: string } }) => {
     setCurrentItem({
       ...currentItem,
       [e.target.name]: e.target.value

@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { DropResult } from 'react-beautiful-dnd';
-import { Product } from '@pharmacy-pos/shared/types/entities';
+import { Product, Supplier } from '@pharmacy-pos/shared/types/entities';
 import { PurchaseOrder } from '@pharmacy-pos/shared/types/purchase-order';
 import { purchaseOrderServiceV2 } from '../services/purchaseOrderServiceV2';
 import usePurchaseOrderData from '../hooks/usePurchaseOrderData';
@@ -30,11 +30,9 @@ import testModeDataService from '../testMode/services/TestModeDataService';
 // 1. 型別定義 (Type Definitions)
 // =================================================================
 
-// 供應商的型別
-interface ISupplier {
-  _id: string;
+// 供應商的型別 - 擴展 shared Supplier
+interface ISupplier extends Supplier {
   id?: string;
-  name: string;
   [key: string]: any;
 }
 
@@ -45,7 +43,13 @@ interface ExtendedProduct extends Omit<Product, 'category' | 'supplier'> {
   dname?: string;
   category?: { name: string } | string;
   supplier?: { name: string } | string;
+  stock?: number; // 添加 stock 屬性
   [key: string]: any;
+}
+
+// 產品詳情映射介面 - 與 hook 中的定義保持一致
+interface ProductDetailsMap {
+  [productCode: string]: Product & { stock: number };
 }
 
 // 當前項目類型 (與 usePurchaseOrderItems hook 匹配)
@@ -445,7 +449,7 @@ const PurchaseOrderFormPage: React.FC = () => {
     };
   }, [dataLoading, isEditMode, orderDataLoaded]);
 
-  const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -695,7 +699,7 @@ const PurchaseOrderFormPage: React.FC = () => {
                     handleItemInputChange={handleItemInputChange}
                     handleProductChange={handleProductChange}
                     handleAddItem={handleAddItem}
-                    products={products || []}
+                    products={(products || []) as Product[]}
                     productInputRef={productInputRef}
                     isTestMode={isGlobalTestMode}
                   />

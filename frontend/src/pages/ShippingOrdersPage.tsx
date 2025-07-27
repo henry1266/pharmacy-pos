@@ -226,8 +226,8 @@ const ShippingOrdersPage: React.FC = () => {
   }, [dispatch]);
 
   // --- Preview Handlers ---
-  const handlePreviewMouseEnter = useCallback((event: React.MouseEvent<HTMLElement>, id: string): void => {
-    setPreviewAnchorEl(event.currentTarget);
+  const handlePreviewMouseEnter = useCallback((event: React.MouseEvent, id: string): void => {
+    setPreviewAnchorEl(event.currentTarget as HTMLElement);
     setPreviewOpen(true);
     fetchPreviewData(id);
   }, [fetchPreviewData]);

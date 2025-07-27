@@ -17,20 +17,17 @@ import { PackageQuantityInput } from '../package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 import { PackageQuantityChangeData } from '../package-units/types';
 import PropTypes from 'prop-types';
+import { Product } from '@pharmacy-pos/shared/types/entities';
 
-// 定義產品介面
-interface Product {
-  _id: string;
-  name: string;
-  code?: string;
+// 使用 shared Product 類型並添加類型斷言
+type ProductType = Product & {
   shortCode?: string;
-  productType?: string;
   healthInsuranceCode?: string;
   barcode?: string;
   purchasePrice?: string | number;
   packageUnits?: ProductPackageUnit[];
   [key: string]: any;
-}
+};
 
 // 定義當前項目介面
 interface CurrentItem {
@@ -98,8 +95,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
       option.name.toLowerCase().includes(filterValue) ||
       option.code?.toLowerCase().includes(filterValue) ||
       option.shortCode?.toLowerCase().includes(filterValue) ||
-      (option.productType === 'medicine' && option.healthInsuranceCode?.toLowerCase().includes(filterValue)) ||
-      (option.productType === 'product' && option.barcode?.toLowerCase().includes(filterValue))
+      (option.productType === 'medicine' && (option as any).healthInsuranceCode?.toLowerCase().includes(filterValue)) ||
+      (option.productType === 'product' && (option as any).barcode?.toLowerCase().includes(filterValue))
     );
   };
 
@@ -349,8 +346,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                     getOptionLabel={(option) => {
                       const code = option.code ?? 'N/A';
                       const name = option.name;
-                      const healthCode = option.healthInsuranceCode ? ` [健保:${option.healthInsuranceCode}]` : '';
-                      const barcode = option.barcode ? ` [條碼:${option.barcode}]` : '';
+                      const healthCode = (option as any).healthInsuranceCode ? ` [健保:${(option as any).healthInsuranceCode}]` : '';
+                      const barcode = (option as any).barcode ? ` [條碼:${(option as any).barcode}]` : '';
                       return `${code} - ${name}${healthCode}${barcode}`;
                     }}
                     value={products?.find(p => p._id === currentItem.product) ?? null}

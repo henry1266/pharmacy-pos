@@ -1,11 +1,11 @@
 import React, { FC, ChangeEvent } from 'react';
 import PropTypes from 'prop-types'; // 引入 PropTypes 進行 props 驗證
-import { 
+import {
   Box,
-  TextField, 
-  FormControl, 
-  InputLabel, 
-  Select, 
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
   MenuItem,
   Typography,
   Card,
@@ -18,14 +18,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { zhTW } from 'date-fns/locale';
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 import SupplierSelect from '../common/SupplierSelect'; // 假設你有一個供應商選擇組件
 import SupplierAccountSelect from './SupplierAccountSelect';
 import AccountingEntrySelector from './AccountingEntrySelector';
 
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
-
-import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // 定義表單數據介面
 interface FormData {
