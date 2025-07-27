@@ -34,14 +34,14 @@ interface MonthlyStatsParams {
   month?: string;
 }
 
-interface EmployeeOvertimeStats {
-  employeeId: string;
-  name: string;
-  overtimeHours: number;
-  independentRecordCount: number;
-  scheduleRecordCount: number;
-  totalRecordCount: number;
-}
+// interface EmployeeOvertimeStats {
+//   employeeId: string;
+//   name: string;
+//   overtimeHours: number;
+//   independentRecordCount: number;
+//   scheduleRecordCount: number;
+//   totalRecordCount: number;
+// }
 
 interface SummaryQueryParams {
   startDate?: string;

@@ -12,9 +12,9 @@ import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 const router: express.Router = express.Router();
 
 // 定義介面
-interface MonitoredProductRequest {
-  productCode: string;
-}
+// interface MonitoredProductRequest {
+//   productCode: string;
+// }
 
 interface MonitoredProductResponse {
   _id: string;

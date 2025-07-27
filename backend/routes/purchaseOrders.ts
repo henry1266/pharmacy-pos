@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import mongoose, { Types } from 'mongoose';
-import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
+// import multer from 'multer';
+// import fs from 'fs';
+// import path from 'path';
 
 // 使用 ES6 import 導入模型
 import PurchaseOrder, { IPurchaseOrderDocument, IPurchaseOrderItemDocument, PurchaseOrderStatus as ModelPurchaseOrderStatus, PaymentStatus as ModelPaymentStatus } from '../models/PurchaseOrder';
@@ -26,27 +26,27 @@ import {
 } from '@pharmacy-pos/shared/types/purchase-order';
 
 // 設置文件上傳
-const storage = multer.diskStorage({
-  destination: function (_req: Express.Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
-    const uploadDir = path.join(__dirname, '../uploads');
-    // 確保上傳目錄存在
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (_req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: function (_req: Express.Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
+//     const uploadDir = path.join(__dirname, '../uploads');
+//     // 確保上傳目錄存在
+//     if (!fs.existsSync(uploadDir)) {
+//       fs.mkdirSync(uploadDir, { recursive: true });
+//     }
+//     cb(null, uploadDir);
+//   },
+//   filename: function (_req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   }
+// });
 
 // 設置上傳限制為 8MB，符合安全編碼實踐建議
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 8000000 // 8MB 限制
-  }
-});
+// const upload = multer({
+//   storage: storage,
+//   limits: {
+//     fileSize: 8000000 // 8MB 限制
+//   }
+// });
 
 const router: express.Router = express.Router();
 
@@ -553,7 +553,7 @@ const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
 // @access  Private
 router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { poid, status, items, selectedAccountIds, accountingEntryType } = req.body as PurchaseOrderRequest;
+    const { poid, status, items, selectedAccountIds } = req.body as PurchaseOrderRequest;
     const id = req.params.id;
     
     console.log('🔍 更新進貨單 - selectedAccountIds:', selectedAccountIds);
@@ -853,39 +853,39 @@ async function deleteInventoryRecords(purchaseOrderId: string): Promise<mongoose
  * @param {number} rowIndex - 行索引
  * @returns {Object} - 驗證結果
  */
-function validateBasicInfoRow(row: Record<string, string | number | Date>, rowIndex: number): { valid: boolean; error?: string } {
-  if (!row['進貨單號'] || !row['廠商']) {
-    return {
-      valid: false,
-      error: `行 ${rowIndex + 1}: 進貨單號和廠商為必填項`
-    };
-  }
-  return { valid: true };
-}
+// function validateBasicInfoRow(row: Record<string, string | number | Date>, rowIndex: number): { valid: boolean; error?: string } {
+//   if (!row['進貨單號'] || !row['廠商']) {
+//     return {
+//       valid: false,
+//       error: `行 ${rowIndex + 1}: 進貨單號和廠商為必填項`
+//     };
+//   }
+//   return { valid: true };
+// }
 
 /**
  * 創建進貨單數據對象
  * @param {Object} row - CSV行數據
  * @returns {Object} - 進貨單數據
  */
-function createPurchaseOrderData(row: Record<string, string | number | Date>): {
-  poid: string;
-  pobill: string;
-  pobilldate: Date | null;
-  posupplier: string;
-  paymentStatus: string;
-  items: never[];
-  status: string;
-} {
-  return {
-    poid: row['進貨單號'].toString(),
-    pobill: row['發票號'] ? row['發票號'].toString() : '',
-    pobilldate: row['發票日期'] ? new Date(row['發票日期']) : null,
-    posupplier: row['廠商'].toString(),
-    paymentStatus: row['付款狀態'] ? row['付款狀態'].toString() : '未付',
-    items: [],
-    status: 'pending'
-  };
-}
+// function createPurchaseOrderData(row: Record<string, string | number | Date>): {
+//   poid: string;
+//   pobill: string;
+//   pobilldate: Date | null;
+//   posupplier: string;
+//   paymentStatus: string;
+//   items: never[];
+//   status: string;
+// } {
+//   return {
+//     poid: row['進貨單號'].toString(),
+//     pobill: row['發票號'] ? row['發票號'].toString() : '',
+//     pobilldate: row['發票日期'] ? new Date(row['發票日期']) : null,
+//     posupplier: row['廠商'].toString(),
+//     paymentStatus: row['付款狀態'] ? row['付款狀態'].toString() : '未付',
+//     items: [],
+//     status: 'pending'
+//   };
+// }
 
 export default router;

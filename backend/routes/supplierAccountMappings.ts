@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 import SupplierAccountMapping, { ISupplierAccountMapping } from '../models/SupplierAccountMapping';
 import Account2 from '../models/Account2';
 import Supplier from '../models/Supplier';

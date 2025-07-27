@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult, Result } from 'express-validator';
-import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
+// import multer from 'multer';
+// import fs from 'fs';
+// import path from 'path';
 import {
   ApiResponse
 } from '@pharmacy-pos/shared/types/api';
@@ -23,36 +23,36 @@ const router: express.Router = express.Router();
 
 
 // 配置 multer 存儲
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads');
-    // 確保上傳目錄存在
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (_req, _file, cb) => {
+//     const uploadDir = path.join(__dirname, '../uploads');
+//     // 確保上傳目錄存在
+//     if (!fs.existsSync(uploadDir)) {
+//       fs.mkdirSync(uploadDir, { recursive: true });
+//     }
+//     cb(null, uploadDir);
+//   },
+//   filename: (_req, file, cb) => {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   }
+// });
 
 // 文件過濾器
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  // 只接受 CSV 文件
-  if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
-    cb(null, true);
-  } else {
-    cb(new Error('只接受CSV文件'));
-  }
-};
+// const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+//   // 只接受 CSV 文件
+//   if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+//     cb(null, true);
+//   } else {
+//     cb(new Error('只接受CSV文件'));
+//   }
+// };
 
 // 配置上傳
-const upload = multer({ 
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 1024 * 1024 * 5 } // 限制 5MB
-});
+// const upload = multer({
+//   storage: storage,
+//   fileFilter: fileFilter,
+//   limits: { fileSize: 1024 * 1024 * 5 } // 限制 5MB
+// });
 
 // @route   GET api/products
 // @desc    獲取所有產品（支援篩選參數）
@@ -739,62 +739,62 @@ router.delete('/:id', auth, async (req: Request, res: Response): Promise<void> =
 });
 
 // 輔助函數：生成產品代碼（已棄用，請使用 codeGenerator.ts 中的函數）
-async function generateNextProductCode(): Promise<string> {
-  try {
-    // 查詢所有以 P 開頭的商品編號
-    const products = await Product.find({ code: /^P\d+$/ })
-      .select('code')
-      .lean() as unknown as Array<{ code: string }>;
+// async function generateNextProductCode(): Promise<string> {
+//   try {
+//     // 查詢所有以 P 開頭的商品編號
+//     const products = await Product.find({ code: /^P\d+$/ })
+//       .select('code')
+//       .lean() as unknown as Array<{ code: string }>;
     
-    if (products.length === 0) {
-      return 'P10001';
-    }
+//     if (products.length === 0) {
+//       return 'P10001';
+//     }
     
-    // 提取所有數字部分並找到最大值
-    const numericParts = products
-      .map(product => parseInt(product.code.substring(1), 10))
-      .filter(num => !isNaN(num));
+//     // 提取所有數字部分並找到最大值
+//     const numericParts = products
+//       .map(product => parseInt(product.code.substring(1), 10))
+//       .filter(num => !isNaN(num));
     
-    if (numericParts.length === 0) {
-      return 'P10001';
-    }
+//     if (numericParts.length === 0) {
+//       return 'P10001';
+//     }
     
-    const maxNumericPart = Math.max(...numericParts);
-    return `P${maxNumericPart + 1}`;
-  } catch (error) {
-    console.error('生成產品代碼錯誤:', error);
-    return `P${String(Date.now()).slice(-5)}`;
-  }
-}
+//     const maxNumericPart = Math.max(...numericParts);
+//     return `P${maxNumericPart + 1}`;
+//   } catch (error) {
+//     console.error('生成產品代碼錯誤:', error);
+//     return `P${String(Date.now()).slice(-5)}`;
+//   }
+// }
 
 // 輔助函數：生成藥品代碼（已棄用，請使用 codeGenerator.ts 中的函數）
-async function generateNextMedicineCode(): Promise<string> {
-  try {
-    // 查詢所有以 M 開頭的藥品編號
-    const medicines = await Medicine.find({ code: /^M\d+$/ })
-      .select('code')
-      .lean() as unknown as Array<{ code: string }>;
+// async function generateNextMedicineCode(): Promise<string> {
+//   try {
+//     // 查詢所有以 M 開頭的藥品編號
+//     const medicines = await Medicine.find({ code: /^M\d+$/ })
+//       .select('code')
+//       .lean() as unknown as Array<{ code: string }>;
     
-    if (medicines.length === 0) {
-      return 'M10001';
-    }
+//     if (medicines.length === 0) {
+//       return 'M10001';
+//     }
     
-    // 提取所有數字部分並找到最大值
-    const numericParts = medicines
-      .map(medicine => parseInt(medicine.code.substring(1), 10))
-      .filter(num => !isNaN(num));
+//     // 提取所有數字部分並找到最大值
+//     const numericParts = medicines
+//       .map(medicine => parseInt(medicine.code.substring(1), 10))
+//       .filter(num => !isNaN(num));
     
-    if (numericParts.length === 0) {
-      return 'M10001';
-    }
+//     if (numericParts.length === 0) {
+//       return 'M10001';
+//     }
     
-    const maxNumericPart = Math.max(...numericParts);
-    return `M${maxNumericPart + 1}`;
-  } catch (error) {
-    console.error('生成藥品代碼錯誤:', error);
-    return `M${String(Date.now()).slice(-5)}`;
-  }
-}
+//     const maxNumericPart = Math.max(...numericParts);
+//     return `M${maxNumericPart + 1}`;
+//   } catch (error) {
+//     console.error('生成藥品代碼錯誤:', error);
+//     return `M${String(Date.now()).slice(-5)}`;
+//   }
+// }
 
 /**
  * 處理驗證錯誤並發送響應

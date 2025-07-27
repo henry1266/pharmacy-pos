@@ -1,9 +1,7 @@
 import TransactionGroupWithEntries, { ITransactionGroupWithEntries } from '../../models/TransactionGroupWithEntries';
 import Account2 from '../../models/Account2';
 import { Accounting3To2Adapter } from '../../../shared/adapters/accounting3to2';
-import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';
-import { TransactionGroupWithEntries as TransactionGroupType, Account2 as Account2Type } from '../../../shared/types/accounting2';
-import { Types } from 'mongoose';
+import { TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
 
 /**
  * Accounting2 交易服務層

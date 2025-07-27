@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import PurchaseOrder from '../models/PurchaseOrder';
 import Supplier from '../models/Supplier';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';

@@ -1,13 +1,13 @@
 import express, { Request, Response } from 'express';
 import { Package } from '../models/Package';
 import { Product, Medicine } from '../models/BaseProduct';
-import { 
-  Package as IPackage, 
-  PackageFilters, 
-  PackageCreateRequest, 
+import {
+  // Package as IPackage,
+  PackageFilters,
+  PackageCreateRequest,
   PackageUpdateRequest,
-  PackageStats 
-} from '../../shared/types/package';
+  PackageStats
+} from '@pharmacy-pos/shared/types/package';
 
 const router: express.Router = express.Router();
 

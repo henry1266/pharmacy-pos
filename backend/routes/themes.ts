@@ -10,7 +10,6 @@ import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { API_CONSTANTS, ERROR_MESSAGES } from '@pharmacy-pos/shared/constants';
 import { UserTheme, DEFAULT_THEME_COLORS, DEFAULT_CUSTOM_SETTINGS } from '@pharmacy-pos/shared/types/theme';
 import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
-import { enhancePaletteWithMaterial3 } from '@pharmacy-pos/shared/utils';
 import User from '../models/User';
 
 const router: Router = express.Router();

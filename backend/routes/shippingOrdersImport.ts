@@ -45,10 +45,10 @@ interface ProductDocument {
   healthInsuranceCode?: string;
 }
 
-interface SupplierDocument {
-  _id: Types.ObjectId;
-  name: string;
-}
+// interface SupplierDocument {
+//   _id: Types.ObjectId;
+//   name: string;
+// }
 
 interface CsvItem {
   rawDate: string;

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import TransactionGroupWithEntries from '../models/TransactionGroupWithEntries';
+// import TransactionGroupWithEntries from '../models/TransactionGroupWithEntries';
 import { processFundingSourceUsages, getReferencedByInfo } from './fundingSourceHelpers';
 
 /**
@@ -64,7 +64,7 @@ export const formatTransactionGroupForList = async (
   const formattedEntries = formatEmbeddedEntries(groupObj.entries);
 
   // 計算借貸平衡
-  const { totalDebit, totalCredit, isBalanced } = calculateBalance(formattedEntries);
+  const { totalDebit, isBalanced } = calculateBalance(formattedEntries);
 
   // 處理資金來源使用明細
   const fundingSourceUsages = await processFundingSourceUsages(groupObj);

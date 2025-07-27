@@ -361,9 +361,9 @@ interface InventoryCheckResult {
 }
 
 // 定義錯誤型別
-interface MongooseError extends Error {
-  kind?: string;
-}
+// interface MongooseError extends Error {
+//   kind?: string;
+// }
 
 // @route   GET api/sales
 // @desc    Get all sales with optional wildcard search
@@ -669,11 +669,11 @@ async function checkProductInventory(product: mongoose.Document, quantity: numbe
 }
 
 // 計算總庫存量
-interface InventoryRecord {
-  _id: mongoose.Types.ObjectId | string;
-  quantity: number;
-  type?: string;
-}
+// interface InventoryRecord {
+//   _id: mongoose.Types.ObjectId | string;
+//   quantity: number;
+//   type?: string;
+// }
 
 function calculateTotalInventory(inventories: any[]): number {
   let totalQuantity = 0;

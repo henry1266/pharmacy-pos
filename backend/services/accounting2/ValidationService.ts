@@ -1,8 +1,6 @@
 import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
 import Account2 from '../../models/Account2';
 import { VersionCompatibilityManager } from '../../../shared/services/compatibilityService';
-import { AccountManagementAdapter } from '../../../shared/adapters/accounting2to3';
-import { Accounting3To2Adapter } from '../../../shared/adapters/accounting3to2';
 import { TransactionGroupWithEntries as TransactionGroupType, Account2 as Account2Type } from '../../../shared/types/accounting2';
 
 /**

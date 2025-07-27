@@ -374,7 +374,7 @@ export class TransactionController {
         organizationId,
         startDate,
         endDate,
-        groupBy = 'month'
+        // groupBy = 'month' // 暫時註解未使用的變數
       } = req.query;
 
       const dateRange = startDate && endDate ? {

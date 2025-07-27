@@ -4,8 +4,8 @@ import {
   PackageDisplayResult,
   PackageBreakdownItem,
   PackageUnitValidationResult,
-  PackageInputParseResult,
-  PackageUnitErrorCodes
+  PackageInputParseResult
+  // PackageUnitErrorCodes
 } from '@pharmacy-pos/shared/types/package';
 
 /**
@@ -283,7 +283,7 @@ export class PackageUnitService {
         };
       });
       
-      const createdUnits = await ProductPackageUnit.insertMany(newUnits);
+      await ProductPackageUnit.insertMany(newUnits);
       
       // 重新查詢以獲取完整的文檔（包含 timestamps）
       const fullUnits = await ProductPackageUnit.findActiveByProductId(productId);

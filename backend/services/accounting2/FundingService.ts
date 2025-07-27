@@ -1,7 +1,4 @@
 import TransactionGroupWithEntries from '../../models/TransactionGroupWithEntries';
-import Account2 from '../../models/Account2';
-import { TransactionGroupWithEntries as TransactionGroupType } from '../../../shared/types/accounting2';
-import { Types } from 'mongoose';
 
 /**
  * Accounting2 資金服務層

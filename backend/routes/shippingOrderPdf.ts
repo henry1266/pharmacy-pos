@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { Types } from 'mongoose';
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 
 // 使用 ES6 import 導入模型和PDFKit
 const PDFDocument = require('pdfkit');
@@ -286,10 +286,10 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
 });
 
 // 格式化日期
-const formatDate = (dateValue?: Date | string | null): string => {
-  if (!dateValue) return 'N/A';
-  return dayjs(dateValue).format('YYYY-MM-DD');
-};
+// const formatDate = (dateValue?: Date | string | null): string => {
+//   if (!dateValue) return 'N/A';
+//   return dayjs(dateValue).format('YYYY-MM-DD');
+// };
 
 // 格式化貨幣
 const formatCurrency = (value?: number | null): string => {

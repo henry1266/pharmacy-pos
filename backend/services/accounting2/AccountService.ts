@@ -46,15 +46,7 @@ export class AccountService {
       });
 
       const savedAccount = await account.save();
-
-      // 使用適配器確保與 Accounting3 相容性
-      const savedAccountData = {
-        ...savedAccount.toObject(),
-        _id: savedAccount._id.toString(),
-        parentId: savedAccount.parentId?.toString() || null,
-        organizationId: savedAccount.organizationId?.toString() || null
-      } as Account2Type;
-      console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})`);
+console.log(`✅ 帳戶建立成功: ${savedAccount.name} (${savedAccount.code})`);
       return savedAccount;
     } catch (error) {
       console.error('建立帳戶錯誤:', error);

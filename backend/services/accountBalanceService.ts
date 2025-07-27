@@ -1,6 +1,6 @@
 import AccountingEntry from '../models/AccountingEntry';
 import Account2 from '../models/Account2';
-import { IAccountingEntry } from '../models/AccountingEntry';
+// import { IAccountingEntry } from '../models/AccountingEntry';
 import { IAccount2 } from '../models/Account2';
 
 /**

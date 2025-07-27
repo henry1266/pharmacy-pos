@@ -11,13 +11,6 @@ import { generateThemePalette } from '@pharmacy-pos/shared/utils/colorUtils';
 
 import User from '../models/User';
 
-// 用戶相關介面
-interface IExtendedUser {
-  username: string;
-  email?: string;
-  role: string;
-  password: string;
-}
 
 const router: Router = express.Router();
 

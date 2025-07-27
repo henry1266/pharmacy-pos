@@ -328,7 +328,6 @@ export class FundingController {
         organizationId,
         startDate,
         endDate,
-        fundingSourceId,
         format = 'json'
       } = req.query;
 

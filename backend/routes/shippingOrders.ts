@@ -61,14 +61,14 @@ interface ShippingOrderRequest {
   customer?: Types.ObjectId;
 }
 
-interface SearchQuery {
-  soid?: string | { $regex: string, $options: string };
-  sosupplier?: string | { $regex: string, $options: string };
-  createdAt?: {
-    $gte?: Date;
-    $lte?: Date;
-  };
-}
+// interface SearchQuery {
+//   soid?: string | { $regex: string, $options: string };
+//   sosupplier?: string | { $regex: string, $options: string };
+//   createdAt?: {
+//     $gte?: Date;
+//     $lte?: Date;
+//   };
+// }
 
 // 設置文件上傳
 const storage = multer.diskStorage({
