@@ -1,4 +1,4 @@
-import express, { Response } from 'express';
+import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import EmployeeSchedule, { IEmployeeScheduleDocument } from '../models/EmployeeSchedule';
@@ -47,7 +47,7 @@ router.get('/', [
     }
     return true;
   })
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
   try {
     // Validate request parameters
     const errors = validationResult(req);
@@ -55,7 +55,7 @@ router.get('/', [
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        errors: errors.array(),
+        error: JSON.stringify(errors.array()),
         timestamp: new Date().toISOString()
       };
       res.status(400).json(errorResponse);
@@ -137,13 +137,14 @@ router.post(
     check('employeeId', '員工ID為必填欄位').not().isEmpty(),
     check('leaveType', '請假類型格式無效').optional().isIn(['sick', 'personal', 'overtime'])
   ],
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        errors: errors.array(),
+        error: JSON.stringify(errors.array()),
         timestamp: new Date().toISOString()
       };
       res.status(400).json(errorResponse);
@@ -195,6 +196,7 @@ router.post(
         const errorResponse: ErrorResponse = {
           success: false,
           message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+          error: '該員工在此日期和班次已有排班記錄',
           timestamp: new Date().toISOString()
         };
         res.status(400).json(errorResponse);
@@ -207,7 +209,7 @@ router.post(
         shift: req.body.shift,
         employeeId: req.body.employeeId,
         leaveType: req.body.leaveType ?? null,
-        createdBy: req.user.id
+        createdBy: authReq.user.id
       });
 
       const savedSchedule = await newSchedule.save();
@@ -229,6 +231,7 @@ router.post(
         const errorResponse: ErrorResponse = {
           success: false,
           message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+          error: '該員工在此日期和班次已有排班記錄',
           timestamp: new Date().toISOString()
         };
         res.status(400).json(errorResponse);
@@ -368,6 +371,7 @@ const handleScheduleUpdateError = (res: Response, error: any): void => {
     const errorResponse: ErrorResponse = {
       success: false,
       message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+      error: '該員工在此日期和班次已有排班記錄',
       timestamp: new Date().toISOString()
     };
     res.status(400).json(errorResponse);
@@ -386,7 +390,7 @@ const handleScheduleUpdateError = (res: Response, error: any): void => {
 // @route   PUT api/employee-schedules/:id
 // @desc    Update an employee schedule
 // @access  Private
-router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', auth, async (req: Request, res: Response) => {
   try {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
@@ -404,6 +408,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       const errorResponse: ErrorResponse = {
         success: false,
         message: scheduleValidation.error?.msg ?? '驗證失敗',
+        error: scheduleValidation.error?.msg ?? '驗證失敗',
         timestamp: new Date().toISOString()
       };
       res.status(scheduleValidation.error?.status ?? 400).json(errorResponse);
@@ -418,6 +423,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
         const errorResponse: ErrorResponse = {
           success: false,
           message: employeeValidation.error?.msg ?? '驗證失敗',
+          error: employeeValidation.error?.msg ?? '驗證失敗',
           timestamp: new Date().toISOString()
         };
         res.status(employeeValidation.error?.status ?? 400).json(errorResponse);
@@ -434,6 +440,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.ALREADY_EXISTS,
+        error: '該員工在此日期和班次已有排班記錄',
         timestamp: new Date().toISOString()
       };
       res.status(400).json(errorResponse);
@@ -461,7 +468,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
 // @route   DELETE api/employee-schedules/:id
 // @desc    Delete an employee schedule
 // @access  Private
-router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', auth, async (req: Request, res: Response) => {
   try {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
@@ -478,6 +485,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => 
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.INVALID_ID,
+        error: '無效的員工ID格式',
         timestamp: new Date().toISOString()
       };
       res.status(400).json(errorResponse);
@@ -489,6 +497,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => 
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
+        error: '找不到此員工資料',
         timestamp: new Date().toISOString()
       };
       res.status(404).json(errorResponse);
@@ -522,7 +531,7 @@ router.get('/by-date', [
   auth,
   check('startDate').isISO8601().withMessage('開始日期格式無效'),
   check('endDate').isISO8601().withMessage('結束日期格式無效')
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
   try {
     // Validate request parameters
     const errors = validationResult(req);
@@ -530,7 +539,7 @@ router.get('/by-date', [
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        errors: errors.array(),
+        error: JSON.stringify(errors.array()),
         timestamp: new Date().toISOString()
       };
       res.status(400).json(errorResponse);

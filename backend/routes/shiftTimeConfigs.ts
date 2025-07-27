@@ -1,4 +1,4 @@
-import express, { Response } from 'express';
+import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import ShiftTimeConfig, { IShiftTimeConfigDocument } from '../models/ShiftTimeConfig';
@@ -37,7 +37,7 @@ interface ShiftTimeConfigUpdateData {
 // @route   GET api/shift-time-configs
 // @desc    Get all shift time configurations
 // @access  Private
-router.get('/', auth, async (_req: AuthenticatedRequest, res: Response) => {
+router.get('/', auth, async (_req: Request, res: Response) => {
   try {
     const configs = await ShiftTimeConfig.find({ isActive: true })
       .sort({ shift: 1 })
@@ -68,7 +68,7 @@ router.get('/', auth, async (_req: AuthenticatedRequest, res: Response) => {
 router.get('/:shift', [
   auth,
   check('shift').isIn(['morning', 'afternoon', 'evening']).withMessage('無效的班次類型')
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -125,7 +125,8 @@ router.post('/', [
   check('startTime').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('開始時間格式無效 (HH:MM)'),
   check('endTime').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('結束時間格式無效 (HH:MM)'),
   check('description').optional().isLength({ max: 200 }).withMessage('描述不能超過200字元')
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -165,7 +166,7 @@ router.post('/', [
       existingConfig.startTime = startTime;
       existingConfig.endTime = endTime;
       existingConfig.description = description;
-      existingConfig.updatedBy = new mongoose.Types.ObjectId(req.user.id);
+      existingConfig.updatedBy = new mongoose.Types.ObjectId(authReq.user.id);
       existingConfig.isActive = true;
       
       config = await existingConfig.save();
@@ -176,7 +177,7 @@ router.post('/', [
         startTime,
         endTime,
         description,
-        createdBy: new mongoose.Types.ObjectId(req.user.id),
+        createdBy: new mongoose.Types.ObjectId(authReq.user.id),
         isActive: true
       });
       
@@ -212,7 +213,8 @@ router.put('/:shift', [
   check('endTime').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('結束時間格式無效 (HH:MM)'),
   check('isActive').optional().isBoolean().withMessage('isActive 必須為布林值'),
   check('description').optional().isLength({ max: 200 }).withMessage('描述不能超過200字元')
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -292,7 +294,7 @@ router.put('/:shift', [
     if (endTime !== undefined) config.endTime = endTime;
     if (isActive !== undefined) config.isActive = isActive;
     if (description !== undefined) config.description = description;
-    config.updatedBy = new mongoose.Types.ObjectId(req.user.id);
+    config.updatedBy = new mongoose.Types.ObjectId(authReq.user.id);
 
     const updatedConfig = await config.save();
 
@@ -321,7 +323,8 @@ router.put('/:shift', [
 router.delete('/:shift', [
   auth,
   check('shift').isIn(['morning', 'afternoon', 'evening']).withMessage('無效的班次類型')
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -349,7 +352,7 @@ router.delete('/:shift', [
 
     // 軟刪除 - 設為非活躍狀態
     config.isActive = false;
-    config.updatedBy = new mongoose.Types.ObjectId(req.user.id);
+    config.updatedBy = new mongoose.Types.ObjectId(authReq.user.id);
     await config.save();
 
     const response: ApiResponse<null> = {

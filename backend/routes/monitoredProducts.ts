@@ -1,4 +1,4 @@
-import express, { Response } from 'express';
+import express, { Request, Response } from 'express';
 import MonitoredProduct, { IMonitoredProductDocument } from '../models/MonitoredProduct';
 import BaseProduct from '../models/BaseProduct';
 import auth from '../middleware/auth';
@@ -26,7 +26,7 @@ interface MonitoredProductResponse {
 // @route   GET api/monitored-products
 // @desc    獲取所有監測產品編號（增強版：包含商品名稱）
 // @access  Private
-router.get('/', auth, async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.get('/', auth, async (_req: Request, res: Response): Promise<void> => {
   try {
     // 獲取所有監測產品
     const monitoredProducts = await MonitoredProduct.find().sort({ productCode: 1 }); // 按照產品編號排序
@@ -94,7 +94,8 @@ router.post(
     auth,
     check('productCode', '產品編號為必填欄位').not().isEmpty().trim(),
   ],
-  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthenticatedRequest;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       const errorResponse: ErrorResponse = {
@@ -152,7 +153,7 @@ router.post(
       // 3. 新增監測產品
       monitoredProduct = new MonitoredProduct({
         productCode: productCodeStr,
-        addedBy: req.user.id, // 記錄添加者
+        addedBy: authReq.user.id, // 記錄添加者
       });
       await monitoredProduct.save();
       
@@ -199,7 +200,7 @@ router.post(
 // @route   DELETE api/monitored-products/:id
 // @desc    刪除監測產品編號
 // @access  Private
-router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/:id', auth, async (req: Request, res: Response): Promise<void> => {
   try {
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
     if (!req.params.id) {

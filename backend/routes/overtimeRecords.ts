@@ -1,4 +1,4 @@
-import express, { Response } from "express";
+import express, { Request, Response } from "express";
 import { Types } from "mongoose";
 import auth from "../middleware/auth";
 import OvertimeRecord from "../models/OvertimeRecord";
@@ -53,7 +53,7 @@ interface SummaryQueryParams {
  * @desc    獲取所有加班記錄
  * @access  Private
  */
-router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/", auth, async (req: Request, res: Response) => {
   try {
     const { employeeId, startDate, endDate, status } = req.query as OvertimeQueryParams;
     
@@ -115,7 +115,7 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
  * @desc    獲取月度加班統計數據（包含獨立加班記錄和排班系統加班記錄）
  * @access  Private
  */
-router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/monthly-stats", auth, async (req: Request, res: Response) => {
   try {
     const { year, month } = req.query as MonthlyStatsParams;
     
@@ -294,7 +294,7 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
  * @desc    獲取指定ID的加班記錄
  * @access  Private
  */
-router.get("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:id", auth, async (req: Request, res: Response) => {
   try {
     const overtimeRecord = await OvertimeRecord.findById(req.params.id)
       .populate("employeeId", "name")
@@ -348,9 +348,10 @@ router.get("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
 router.post(
   "/",
   auth,
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     // 使用共享的表單驗證函數
-    const formErrors = validateOvertimeForm(req.body);
+    const formErrors = validateOvertimeForm(authReq.body);
     if (Object.keys(formErrors).length > 0) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -388,12 +389,12 @@ router.post(
         hours: req.body.hours,
         description: req.body.description,
         status: req.body.status ?? "pending",
-        createdBy: req.user?.id
+        createdBy: authReq.user?.id
       });
       
       // 如果狀態為已核准，則設置審核人員和審核日期
       if (newOvertimeRecord.status === "approved") {
-        newOvertimeRecord.approvedBy = new Types.ObjectId(req.user?.id);
+        newOvertimeRecord.approvedBy = new Types.ObjectId(authReq.user?.id);
         newOvertimeRecord.approvedAt = new Date();
         newOvertimeRecord.approvalNote = req.body.approvalNote;
       }
@@ -426,7 +427,8 @@ router.post(
  * @desc    更新加班記錄
  * @access  Private
  */
-router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.put("/:id", auth, async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   try {
     // 獲取加班記錄
     let overtimeRecord = await OvertimeRecord.findById(req.params.id);
@@ -454,7 +456,7 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
       overtimeRecord.status = status;
       
       if (status === "approved" && overtimeRecord.status !== "approved") {
-        overtimeRecord.approvedBy = new Types.ObjectId(req.user?.id);
+        overtimeRecord.approvedBy = new Types.ObjectId(authReq.user?.id);
         overtimeRecord.approvedAt = new Date();
       }
     }
@@ -500,7 +502,7 @@ router.put("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
  * @desc    刪除加班記錄
  * @access  Private
  */
-router.delete("/:id", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:id", auth, async (req: Request, res: Response) => {
   try {
     const overtimeRecord = await OvertimeRecord.findById(req.params.id);
     
@@ -550,7 +552,7 @@ router.delete("/:id", auth, async (req: AuthenticatedRequest, res: Response) => 
  * @desc    獲取指定員工的加班時數統計
  * @access  Private
  */
-router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/summary/employee/:employeeId", auth, async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query as SummaryQueryParams;
     
@@ -610,7 +612,7 @@ router.get("/summary/employee/:employeeId", auth, async (req: AuthenticatedReque
  * @desc    獲取所有員工的加班時數統計
  * @access  Private
  */
-router.get("/summary/all", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/summary/all", auth, async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query as SummaryQueryParams;
     

@@ -1,4 +1,4 @@
-import express, { Response } from "express";
+import express, { Request, Response } from "express";
 import auth from "../middleware/auth";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../src/types/express";
@@ -19,15 +19,16 @@ interface ValidationError extends Error {
 // @route   GET api/settings
 // @desc    Get current user's settings
 // @access  Private
-router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/", auth, async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   try {
-    console.log("Settings GET request from user ID:", req.user.id);
+    console.log("Settings GET request from user ID:", authReq.user.id);
     
-    // req.user.id is available from the auth middleware
-    const user = await User.findById(req.user.id);
+    // authReq.user.id is available from the auth middleware
+    const user = await User.findById(authReq.user.id);
     
     if (!user) {
-      console.error("User not found for ID:", req.user.id);
+      console.error("User not found for ID:", authReq.user.id);
       const errorResponse: ErrorResponse = {
         success: false,
         message: "找不到用戶",
@@ -73,8 +74,9 @@ router.get("/", auth, async (req: AuthenticatedRequest, res: Response) => {
 // @route   PUT api/settings
 // @desc    Update current user's settings
 // @access  Private
-router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
-  console.log("Settings PUT request from user ID:", req.user.id);
+router.put("/", auth, async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
+  console.log("Settings PUT request from user ID:", authReq.user.id);
   
   // We expect the entire settings object to be sent in the body
   const newSettings: UserSettings = req.body as UserSettings;
@@ -94,10 +96,10 @@ router.put("/", auth, async (req: AuthenticatedRequest, res: Response) => {
 
   try {
     // Find the user by ID from the token
-    let user = await User.findById(req.user.id);
+    let user = await User.findById(authReq.user.id);
 
     if (!user) {
-      console.error("User not found for ID:", req.user.id);
+      console.error("User not found for ID:", authReq.user.id);
       const errorResponse: ErrorResponse = {
         success: false,
         message: "找不到用戶",

@@ -114,9 +114,11 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
 // @route   POST api/accounting-categories
 // @desc    新增記帳名目類別
 // @access  Private
-router.post('/', auth, [
+router.post('/', [
+  auth,
   check('name', '名稱為必填欄位').not().isEmpty(),
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorResponse: ErrorResponse = {
@@ -126,11 +128,11 @@ router.post('/', auth, [
       timestamp: new Date()
     };
     res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
+    return;
   }
   
   try {
-    const { name, description }: AccountingCategoryRequest = req.body;
+    const { name, description }: AccountingCategoryRequest = authReq.body;
     
     // 檢查是否已存在相同名稱的類別
     const existingCategory = await AccountingCategory.findOne({ name: name.toString() });

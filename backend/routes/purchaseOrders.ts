@@ -230,7 +230,8 @@ router.post('/', [
   auth,
   check('posupplier', '供應商為必填項').not().isEmpty(),
   check('items', '至少需要一個藥品項目').isArray().not().isEmpty()
-], async (req: AuthenticatedRequest, res: Response) => {
+], async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorResponse: ErrorResponse = {
@@ -321,7 +322,7 @@ router.post('/', [
 
     // 如果狀態為已完成，則更新庫存
     if (purchaseOrder.status === 'completed') {
-      if (!req.user?.id) {
+      if (!authReq.user?.id) {
         const errorResponse: ErrorResponse = {
           success: false,
           message: '用戶認證失敗',
@@ -330,7 +331,7 @@ router.post('/', [
         res.status(401).json(errorResponse);
         return;
       }
-      const userId = req.user.id;
+      const userId = authReq.user.id;
       await updateInventory(purchaseOrder, userId);
     }
 
@@ -570,7 +571,8 @@ const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
 // @route   PUT api/purchase-orders/:id
 // @desc    更新進貨單
 // @access  Private
-router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', auth, async (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
   try {
     if (!req.params.id) {
       const errorResponse: ErrorResponse = {
@@ -649,7 +651,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
 
     // 如果需要更新庫存
     if (statusResult.needUpdateInventory) {
-      if (!req.user?.id) {
+      if (!authReq.user?.id) {
         const errorResponse: ErrorResponse = {
           success: false,
           message: '用戶認證失敗',
@@ -658,7 +660,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
         res.status(401).json(errorResponse);
         return;
       }
-      const userId = req.user.id;
+      const userId = authReq.user.id;
       await updateInventory(purchaseOrder, userId);
     }
 
