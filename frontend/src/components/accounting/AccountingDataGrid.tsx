@@ -50,7 +50,7 @@ const AccountingDataGrid: React.FC<AccountingDataGridProps> = ({
     id: record._id,
     date: new Date(record.date),
     shift: record.shift,
-    status: record.status,
+    status: record.status || 'pending',
     items: record.items,
     totalAmount: record.totalAmount,
     rawRecord: record // 保存原始記錄以便編輯時使用

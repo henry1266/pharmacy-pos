@@ -122,9 +122,9 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     // 處理類別變更為"退押金"的情況
     if (field === 'category' && value === '退押金') {
       // 如果當前金額為正數或為空，則將其轉為負數
-      const currentAmount = updatedItems[index].amount;
+      const currentAmount = updatedItems[index]?.amount;
       if (typeof currentAmount === 'number' && currentAmount > 0) {
-        updatedItems[index].amount = -Math.abs(currentAmount);
+        updatedItems[index]!.amount = -Math.abs(currentAmount);
       }
     }
     
@@ -132,7 +132,9 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     if (field === 'amount') {
       handleAmountChange(updatedItems, index, value as string);
     } else {
-      updatedItems[index][field] = value as string;
+      if (updatedItems[index]) {
+        updatedItems[index][field] = value as string;
+      }
     }
     
     // 處理類別變更，同時更新categoryId
@@ -148,30 +150,32 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
   
   // 處理金額變更的輔助函數
   const handleAmountChange = (items: AccountingItem[], index: number, value: string): void => {
+    if (!items[index]) return;
+    
     if (value === '') {
-      items[index].amount = 0;
+      items[index]!.amount = 0;
       return;
     }
     
     const parsedValue = parseFloat(value);
     if (isNaN(parsedValue)) {
-      items[index].amount = 0;
+      items[index]!.amount = 0;
       return;
     }
     
-    if (items[index].category === '退押金') {
-      items[index].amount = -Math.abs(parsedValue);
+    if (items[index]!.category === '退押金') {
+      items[index]!.amount = -Math.abs(parsedValue);
     } else {
-      items[index].amount = parsedValue;
+      items[index]!.amount = parsedValue;
     }
   };
   
   // 更新類別ID的輔助函數
   const updateCategoryId = (items: AccountingItem[], index: number, categoryName: string): void => {
-    if (categories.length > 0) {
+    if (categories.length > 0 && items[index]) {
       const selectedCategory = categories.find(cat => cat.name === categoryName);
       if (selectedCategory) {
-        items[index].categoryId = selectedCategory._id;
+        items[index]!.categoryId = selectedCategory._id;
       }
     }
   };
@@ -355,7 +359,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     const isRefundDeposit = item.category === '退押金';
     
     if (!isRefundDeposit) {
-      return {};
+      return undefined;
     }
     
     return {

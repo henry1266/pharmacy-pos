@@ -132,7 +132,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   
   // 正常模式的 JWT 驗證
   try {
-    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const tokenParts = token.split('.');
+    if (tokenParts.length !== 3 || !tokenParts[1]) {
+      throw new Error('Invalid JWT format');
+    }
+    const tokenData = JSON.parse(atob(tokenParts[1]));
     const expirationTime = tokenData.exp * 1000;
     const isValid = Date.now() < expirationTime;
     

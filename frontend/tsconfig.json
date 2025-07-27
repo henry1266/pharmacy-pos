@@ -41,7 +41,7 @@
     /* 保持寬鬆以利轉型 */
     "strict": false,
     "noImplicitAny": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "useUnknownInCatchVariables": true,
     "noImplicitThis": true,
     "strictBindCallApply": true,
@@ -53,7 +53,7 @@
     /* 程式碼品質與附加檢查 */
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noImplicitReturns": false,
+    "noImplicitReturns": false
   },
   
 
