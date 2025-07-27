@@ -383,7 +383,7 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
       hash += employeeId.charCodeAt(i);
     }
     
-    return colors[hash % colors.length];
+    return colors[hash % colors.length] || '#1976d2';
   }, []);
 
   /**
@@ -445,11 +445,11 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
         // 加班項目 - 使用 OvertimeShiftSchedule 類型
         return {
           shift: 'overtime',
-          shiftName: baseConfig.name,
+          shiftName: baseConfig?.name || '加班',
           timeRange: '', // 加班沒有固定時間範圍
           employees: [], // 加班班次不使用 employees，但為了符合介面需要提供空陣列
           overtimeRecords: dailyOvertimeRecords,
-          color: baseConfig.color
+          color: baseConfig?.color || '#E91E63'
         };
       } else {
         // 正常班次 - 使用 RegularShiftSchedule 類型
@@ -457,10 +457,10 @@ const DailySchedulePanel: FC<DailySchedulePanelProps> = ({ selectedDate }) => {
         
         return {
           shift: shift as 'morning' | 'afternoon' | 'evening',
-          shiftName: baseConfig.name,
-          timeRange: baseConfig.timeRange,
+          shiftName: baseConfig?.name || shift,
+          timeRange: baseConfig?.timeRange || '',
           employees: shiftEmployees,
-          color: baseConfig.color
+          color: baseConfig?.color || '#1976d2'
         };
       }
     });

@@ -99,8 +99,8 @@ const createSalesConfig = (onSaleClick?: (sale: Sale) => void): DailyPanelConfig
               sx={DAILY_PANEL_STYLES.chip.small}
             />
             <Chip
-              label={getPaymentStatusInfo(sale.paymentStatus).text}
-              color={getPaymentStatusInfo(sale.paymentStatus).color}
+              label={getPaymentStatusInfo(sale.paymentStatus || 'pending').text}
+              color={getPaymentStatusInfo(sale.paymentStatus || 'pending').color}
               size="small"
               sx={DAILY_PANEL_STYLES.chip.small}
             />

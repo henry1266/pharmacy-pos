@@ -112,7 +112,7 @@ class DateUtils {
       const date = new Date(dateStr);
       if (!isNaN(date.getTime())) {
         const formattedDate = date.toISOString().split("T")[0];
-        return { isValid: true, date, formattedDate };
+        return { isValid: true, date, formattedDate: formattedDate || null };
       }
     } catch (error) {
       console.error(`解析日期時出錯: ${dateStr}`, error);
@@ -233,14 +233,14 @@ class CsvParser {
     
     if (columns.length >= 4) {
       const rawDate = columns[0];
-      const validation = DateUtils.validateAndParseDate(rawDate);
+      const validation = DateUtils.validateAndParseDate(rawDate || '');
       
       return {
-        rawDate,
-        date: validation.formattedDate || rawDate,
-        nhCode: columns[1],
-        quantity: parseInt(columns[2], 10) || 0,
-        nhPrice: parseFloat(columns[3]) || 0
+        rawDate: rawDate || '',
+        date: validation.formattedDate || rawDate || '',
+        nhCode: columns[1] || '',
+        quantity: parseInt(columns[2] || '0', 10) || 0,
+        nhPrice: parseFloat(columns[3] || '0') || 0
       };
     }
     
@@ -262,7 +262,7 @@ class CsvParser {
           const lines = csvText.split('\n').filter(line => line.trim());
           
           // 跳過標題行（如果有）
-          const startIndex = lines.length > 0 && this.isHeaderLine(lines[0]) ? 1 : 0;
+          const startIndex = lines.length > 0 && this.isHeaderLine(lines[0] || '') ? 1 : 0;
           
           const previewData: MedicineCsvPreviewItem[] = [];
           
@@ -402,7 +402,7 @@ class MedicineCsvService {
     
     try {
       const previewData = await CsvParser.parseMedicineCsvForPreview(file);
-      if (previewData.length > 0) {
+      if (previewData.length > 0 && previewData[0]) {
         rawFirstDate = previewData[0].rawDate;
         firstDate = previewData[0].date;
         console.log(`CSV首行日期: ${rawFirstDate} -> ${firstDate}`);

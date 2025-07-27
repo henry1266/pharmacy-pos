@@ -340,9 +340,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
 
     // 過濾子選單項目
-    const filteredSubItems = item.subItems.filter(subItem => 
+    const filteredSubItems = item.subItems?.filter(subItem =>
       !subItem.adminOnly || (user && user.role === 'admin')
-    );
+    ) || [];
     
     // 如果過濾後沒有子選單項目，則不渲染
     if (filteredSubItems.length === 0) {
@@ -443,7 +443,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <ListItem
         key={item.text}
-        onClick={() => handleNavigation(item.path)}
+        onClick={() => item.path && handleNavigation(item.path)}
         sx={{
           borderLeft: isActive ? '3px solid var(--primary-color)' : '3px solid transparent',
           pl: 2.5,

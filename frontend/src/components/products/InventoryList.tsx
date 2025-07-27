@@ -117,14 +117,17 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 batchNumber: inv.batchNumber // 保留批號資訊
               };
             } else {
-              saleGroups[inv.saleNumber].totalQuantity = (saleGroups[inv.saleNumber].totalQuantity ?? 0) + inv.quantity;
-              // 累加總金額
-              saleGroups[inv.saleNumber].totalAmount = (saleGroups[inv.saleNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
-              // 如果有多個批號，合併顯示
-              if (inv.batchNumber && saleGroups[inv.saleNumber].batchNumber !== inv.batchNumber) {
-                saleGroups[inv.saleNumber].batchNumber = saleGroups[inv.saleNumber].batchNumber
-                  ? `${saleGroups[inv.saleNumber].batchNumber}, ${inv.batchNumber}`
-                  : inv.batchNumber;
+              const existingGroup = saleGroups[inv.saleNumber];
+              if (existingGroup) {
+                existingGroup.totalQuantity = (existingGroup.totalQuantity ?? 0) + inv.quantity;
+                // 累加總金額
+                existingGroup.totalAmount = (existingGroup.totalAmount ?? 0) + (inv.totalAmount ?? 0);
+                // 如果有多個批號，合併顯示
+                if (inv.batchNumber && existingGroup.batchNumber !== inv.batchNumber) {
+                  existingGroup.batchNumber = existingGroup.batchNumber
+                    ? `${existingGroup.batchNumber}, ${inv.batchNumber}`
+                    : inv.batchNumber;
+                }
               }
             }
           } else if (inv.purchaseOrderNumber) {
@@ -137,14 +140,17 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 batchNumber: inv.batchNumber // 保留批號資訊
               };
             } else {
-              purchaseGroups[inv.purchaseOrderNumber].totalQuantity = (purchaseGroups[inv.purchaseOrderNumber].totalQuantity ?? 0) + inv.quantity;
-              // 累加總金額，修復進貨合併顯示問題
-              purchaseGroups[inv.purchaseOrderNumber].totalAmount = (purchaseGroups[inv.purchaseOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
-              // 如果有多個批號，合併顯示
-              if (inv.batchNumber && purchaseGroups[inv.purchaseOrderNumber].batchNumber !== inv.batchNumber) {
-                purchaseGroups[inv.purchaseOrderNumber].batchNumber = purchaseGroups[inv.purchaseOrderNumber].batchNumber
-                  ? `${purchaseGroups[inv.purchaseOrderNumber].batchNumber}, ${inv.batchNumber}`
-                  : inv.batchNumber;
+              const existingGroup = purchaseGroups[inv.purchaseOrderNumber];
+              if (existingGroup) {
+                existingGroup.totalQuantity = (existingGroup.totalQuantity ?? 0) + inv.quantity;
+                // 累加總金額，修復進貨合併顯示問題
+                existingGroup.totalAmount = (existingGroup.totalAmount ?? 0) + (inv.totalAmount ?? 0);
+                // 如果有多個批號，合併顯示
+                if (inv.batchNumber && existingGroup.batchNumber !== inv.batchNumber) {
+                  existingGroup.batchNumber = existingGroup.batchNumber
+                    ? `${existingGroup.batchNumber}, ${inv.batchNumber}`
+                    : inv.batchNumber;
+                }
               }
             }
           } else if (inv.shippingOrderNumber) {
@@ -157,14 +163,17 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 batchNumber: inv.batchNumber // 保留批號資訊
               };
             } else {
-              shipGroups[inv.shippingOrderNumber].totalQuantity = (shipGroups[inv.shippingOrderNumber].totalQuantity ?? 0) + inv.quantity;
-              // 累加總金額
-              shipGroups[inv.shippingOrderNumber].totalAmount = (shipGroups[inv.shippingOrderNumber].totalAmount ?? 0) + (inv.totalAmount ?? 0);
-              // 如果有多個批號，合併顯示
-              if (inv.batchNumber && shipGroups[inv.shippingOrderNumber].batchNumber !== inv.batchNumber) {
-                shipGroups[inv.shippingOrderNumber].batchNumber = shipGroups[inv.shippingOrderNumber].batchNumber
-                  ? `${shipGroups[inv.shippingOrderNumber].batchNumber}, ${inv.batchNumber}`
-                  : inv.batchNumber;
+              const existingGroup = shipGroups[inv.shippingOrderNumber];
+              if (existingGroup) {
+                existingGroup.totalQuantity = (existingGroup.totalQuantity ?? 0) + inv.quantity;
+                // 累加總金額
+                existingGroup.totalAmount = (existingGroup.totalAmount ?? 0) + (inv.totalAmount ?? 0);
+                // 如果有多個批號，合併顯示
+                if (inv.batchNumber && existingGroup.batchNumber !== inv.batchNumber) {
+                  existingGroup.batchNumber = existingGroup.batchNumber
+                    ? `${existingGroup.batchNumber}, ${inv.batchNumber}`
+                    : inv.batchNumber;
+                }
               }
             }
           }

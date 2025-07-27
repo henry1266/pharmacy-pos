@@ -172,7 +172,7 @@ export const CalendarGrid: FC<CalendarGridProps> = ({
         {Array.from({ length: rows * 7 }).map((_, index) => {
           const dayOffset = index - firstDayOfMonth + 1;
           const isCurrentMonth = dayOffset > 0 && dayOffset <= daysInMonth;
-          const dayAmount = isCurrentMonth ? dailyData[selectedMonth][dayOffset] ?? 0 : 0;
+          const dayAmount = isCurrentMonth ? (dailyData[selectedMonth]?.[dayOffset] ?? 0) : 0;
           
           return (
             <CalendarCell

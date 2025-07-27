@@ -101,12 +101,12 @@ export const convertToBaseUnit = (
   let totalBaseQuantity = 0;
 
   while ((match = regex.exec(input)) !== null) {
-    const quantity = parseInt(match[1]);
-    const unitName = match[2];
+    const quantity = parseInt(match[1] || '0');
+    const unitName = match[2] || '';
     
     const unit = packageUnits.find(u => u.unitName === unitName);
     
-    if (unit) {
+    if (unit && unitName) {
       parsedInput.push({
         unitName,
         quantity
@@ -212,7 +212,7 @@ export const validatePackageInput = (
   
   while ((match = unitRegex.exec(input)) !== null) {
     const unitName = match[1];
-    if (!unitNames.includes(unitName)) {
+    if (unitName && !unitNames.includes(unitName)) {
       errors.push(`未知的包裝單位: ${unitName}`);
     }
   }
