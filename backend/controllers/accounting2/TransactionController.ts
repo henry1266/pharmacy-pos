@@ -78,6 +78,14 @@ export class TransactionController {
       const { id } = req.params;
       const userId = req.user?.id || req.body.userId;
       
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少交易ID'
+        });
+        return;
+      }
+      
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -122,6 +130,14 @@ export class TransactionController {
       const { id } = req.params;
       const userId = req.user?.id || req.body.userId;
       
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少交易ID'
+        });
+        return;
+      }
+      
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -165,6 +181,14 @@ export class TransactionController {
     try {
       const { id } = req.params;
       const userId = req.user?.id || req.query.userId as string;
+      
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少交易ID'
+        });
+        return;
+      }
       
       if (!userId) {
         res.status(401).json({
@@ -276,6 +300,14 @@ export class TransactionController {
       const { id } = req.params;
       const userId = req.user?.id || req.body.userId;
       
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少交易ID'
+        });
+        return;
+      }
+      
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -318,6 +350,14 @@ export class TransactionController {
     try {
       const { id } = req.params;
       const userId = req.user?.id || req.body.userId;
+      
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少交易ID'
+        });
+        return;
+      }
       
       if (!userId) {
         res.status(401).json({
@@ -616,6 +656,14 @@ export class TransactionController {
     try {
       const { id } = req.params;
       const userId = req.user?.id || req.query.userId as string;
+      
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少交易ID'
+        });
+        return;
+      }
       
       if (!userId) {
         res.status(401).json({

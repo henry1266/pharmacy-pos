@@ -272,6 +272,14 @@ export class FundingController {
       const { id } = req.params;
       const userId = req.user?.id || req.query.userId as string;
       
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少資金來源ID'
+        });
+        return;
+      }
+      
       if (!userId) {
         res.status(401).json({
           success: false,

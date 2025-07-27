@@ -70,6 +70,14 @@ export class AccountController {
       const { id } = req.params;
       const userId = req.user?.id || req.body.userId;
       
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少帳戶ID'
+        });
+        return;
+      }
+      
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -113,6 +121,14 @@ export class AccountController {
     try {
       const { id } = req.params;
       const userId = req.user?.id || req.body.userId;
+      
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: '缺少帳戶ID'
+        });
+        return;
+      }
       
       if (!userId) {
         res.status(401).json({
