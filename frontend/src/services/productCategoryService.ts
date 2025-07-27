@@ -26,7 +26,11 @@ export const addProductCategory = async (categoryData: Partial<Category>): Promi
   try {
     const res = await axios.post('/api/product-categories', categoryData);
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (res.data as ApiResponse<Category>)?.data;
+    const data = (res.data as ApiResponse<Category>)?.data;
+    if (!data) {
+      throw new Error('新增產品分類失敗：回傳資料為空');
+    }
+    return data;
   } catch (err: any) {
     console.error('新增產品分類失敗:', err);
     throw err;
@@ -43,7 +47,11 @@ export const updateProductCategory = async (id: string, categoryData: Partial<Ca
   try {
     const res = await axios.put(`/api/product-categories/${id}`, categoryData);
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (res.data as ApiResponse<Category>)?.data;
+    const data = (res.data as ApiResponse<Category>)?.data;
+    if (!data) {
+      throw new Error('更新產品分類失敗：回傳資料為空');
+    }
+    return data;
   } catch (err: any) {
     console.error('更新產品分類失敗:', err);
     throw err;
@@ -78,7 +86,11 @@ export const getProductCategory = async (id: string): Promise<Category> => {
   try {
     const res = await axios.get(`/api/product-categories/${id}`);
     // 後端返回的是 ApiResponse 格式，需要取 data 屬性
-    return (res.data as ApiResponse<Category>)?.data;
+    const data = (res.data as ApiResponse<Category>)?.data;
+    if (!data) {
+      throw new Error('獲取產品分類失敗：回傳資料為空');
+    }
+    return data;
   } catch (err: any) {
     console.error('獲取產品分類失敗:', err);
     throw err;

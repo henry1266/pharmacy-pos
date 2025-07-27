@@ -29,7 +29,7 @@ const createAxiosAdapter = (): HttpClient => {
   };
 
   const getApiBaseUrl = (): string => {
-    return process.env.REACT_APP_API_BASE_URL;
+    return process.env.REACT_APP_API_BASE_URL || '';
   };
 
   const buildFullUrl = (url: string): string => {
@@ -240,7 +240,11 @@ export const authService = {
       const tokenToUse = token || localStorage.getItem('token');
       if (!tokenToUse) return null;
 
-      const base64Url = tokenToUse.split('.')[1];
+      const tokenParts = tokenToUse.split('.');
+      if (tokenParts.length !== 3 || !tokenParts[1]) {
+        throw new Error('Invalid JWT format');
+      }
+      const base64Url = tokenParts[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
         atob(base64)

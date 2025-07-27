@@ -69,7 +69,7 @@ export const convertToWesternDate = (dateStr: string): string | null => {
   try {
     const dateObj = new Date(dateStr);
     if (!isNaN(dateObj.getTime())) {
-      return dateObj.toISOString().split("T")[0]; // 返回YYYY-MM-DD格式
+      return dateObj.toISOString().split("T")[0] || null; // 返回YYYY-MM-DD格式
     }
   } catch (error) {
     console.error(`解析日期時出錯: ${dateStr}`, error);
@@ -93,9 +93,9 @@ export const parseMedicineCsvForPreview = (file: File): Promise<MedicineCsvPrevi
         const lines = csvText.split('\n').filter(line => line.trim());
         
         // 跳過標題行（如果有）
-        const startIndex = lines[0].includes('日期') || 
-                          lines[0].includes('健保碼') || 
-                          lines[0].includes('數量') ? 1 : 0;
+        const startIndex = (lines[0] && (lines[0].includes('日期') ||
+                          lines[0].includes('健保碼') ||
+                          lines[0].includes('數量'))) ? 1 : 0;
         
         const previewData: MedicineCsvPreviewItem[] = [];
         
@@ -107,15 +107,15 @@ export const parseMedicineCsvForPreview = (file: File): Promise<MedicineCsvPrevi
           
           if (columns.length >= 4) {
             // 轉換日期格式（支持民國年和西元年）
-            const rawDate = columns[0];
+            const rawDate = columns[0] || '';
             const date = convertToWesternDate(rawDate) || rawDate;
             
             previewData.push({
               rawDate,
               date,
-              nhCode: columns[1],
-              quantity: parseInt(columns[2], 10) || 0,
-              nhPrice: parseFloat(columns[3]) || 0
+              nhCode: columns[1] || '',
+              quantity: parseInt(columns[2] || '0', 10) || 0,
+              nhPrice: parseFloat(columns[3] || '0') || 0
             });
           }
         }
@@ -246,7 +246,7 @@ export const importMedicineCsv = async (file: File): Promise<ImportMedicineCsvRe
     
     try {
       const previewData = await parseMedicineCsvForPreview(file);
-      if (previewData.length > 0) {
+      if (previewData.length > 0 && previewData[0]) {
         rawFirstDate = previewData[0].rawDate;
         firstDate = previewData[0].date;
         console.log(`CSV首行日期: ${rawFirstDate} -> ${firstDate}`);

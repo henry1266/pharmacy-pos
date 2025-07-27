@@ -92,18 +92,24 @@ export class ThemeServiceV2 {
   // 獲取用戶主題列表
   async getUserThemes(): Promise<UserTheme[]> {
     const response = await this.makeRequest<ApiResponse<UserTheme[]>>('GET', '/api/themes');
-    return response.data;
+    return response.data || [];
   }
 
   // 建立新主題
   async createTheme(themeData: Partial<UserTheme>): Promise<UserTheme> {
     const response = await this.makeRequest<ApiResponse<UserTheme>>('POST', '/api/themes', themeData);
+    if (!response.data) {
+      throw new Error('建立主題失敗：回傳資料為空');
+    }
     return response.data;
   }
 
   // 更新主題
   async updateTheme(themeId: string, themeData: Partial<UserTheme>): Promise<UserTheme> {
     const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/themes/${themeId}`, themeData);
+    if (!response.data) {
+      throw new Error('更新主題失敗：回傳資料為空');
+    }
     return response.data;
   }
 
@@ -115,12 +121,18 @@ export class ThemeServiceV2 {
   // 獲取預設顏色
   async getDefaultColors(): Promise<typeof DEFAULT_THEME_COLORS> {
     const response = await this.makeRequest<ApiResponse<typeof DEFAULT_THEME_COLORS>>('GET', '/api/themes/default-colors');
+    if (!response.data) {
+      throw new Error('獲取預設顏色失敗：回傳資料為空');
+    }
     return response.data;
   }
 
   // 設定當前主題
   async setCurrentTheme(themeId: string): Promise<UserTheme> {
     const response = await this.makeRequest<ApiResponse<UserTheme>>('PUT', `/api/themes/current/${themeId}`, {});
+    if (!response.data) {
+      throw new Error('設定當前主題失敗：回傳資料為空');
+    }
     return response.data;
   }
 
@@ -128,7 +140,7 @@ export class ThemeServiceV2 {
   async getCurrentTheme(): Promise<UserTheme | null> {
     try {
       const response = await this.makeRequest<ApiResponse<UserTheme | null>>('GET', '/api/themes/current');
-      return response.data;
+      return response.data ?? null;
     } catch (error) {
       console.error('獲取當前主題失敗:', error);
       return null;

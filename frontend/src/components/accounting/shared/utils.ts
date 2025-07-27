@@ -60,7 +60,9 @@ export const processMonthlyData = (
       const month = getMonth(date);
       record.items.forEach(item => {
         if (!categoryName || item.category === categoryName) {
-          totals[month] += item.amount;
+          if (totals[month] !== undefined) {
+            totals[month] += item.amount;
+          }
         }
       });
     }
@@ -85,7 +87,9 @@ export const processDailyData = (
         const daysInMonth = getDaysInMonth(new Date(currentYear, month));
         
         for (let day = 1; day <= daysInMonth; day++) {
-          totals[month][day] = 0;
+          if (totals[month]) {
+            totals[month]![day] = 0;
+          }
         }
       }
       return totals;
@@ -95,8 +99,8 @@ export const processDailyData = (
       const month = getMonth(date);
       const day = getDate(date);
       record.items.forEach(item => {
-        if ((!categoryName || item.category === categoryName) && totals[month]) {
-          totals[month][day] += item.amount;
+        if ((!categoryName || item.category === categoryName) && totals[month] && totals[month]![day] !== undefined) {
+          totals[month]![day] += item.amount;
         }
       });
     }
@@ -108,8 +112,8 @@ export const processDailyData = (
  */
 export const prepareChartData = (monthlyData: MonthlyData): ChartData[] => {
   return Object.keys(monthlyData).map(month => ({
-    name: MONTH_NAMES[parseInt(month)],
-    金額: monthlyData[parseInt(month)],
+    name: MONTH_NAMES[parseInt(month)] || `${parseInt(month) + 1}月`,
+    金額: monthlyData[parseInt(month)] || 0,
     月份: parseInt(month) + 1
   }));
 };
@@ -137,7 +141,7 @@ export const exportToCSV = (
   for (let month = 0; month < 12; month++) {
     rows.push([
       `${month + 1}月`,
-      monthlyData[month]
+      monthlyData[month] || 0
     ]);
   }
   

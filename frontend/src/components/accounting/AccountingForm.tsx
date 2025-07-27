@@ -133,7 +133,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
       handleAmountChange(updatedItems, index, value as string);
     } else {
       if (updatedItems[index]) {
-        updatedItems[index][field] = value as string;
+        (updatedItems[index] as any)[field] = value as string;
       }
     }
     

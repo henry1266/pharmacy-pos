@@ -259,10 +259,10 @@ export const mockSalesData: ExtendedSale[] = [
     _id: 'mockSale001',
     saleNumber: 'SALE001',
     date: new Date(),
-    customer: { name: mockCustomersData[0].name, _id: mockCustomersData[0].id },
+    customer: { name: mockCustomersData[0]?.name || '未知客戶', _id: mockCustomersData[0]?.id || 'unknown' },
     items: [
       {
-        product: { name: mockProductsData[0].name, _id: mockProductsData[0]._id },
+        product: { name: mockProductsData[0]?.name || '未知產品', _id: mockProductsData[0]?._id || 'unknown' },
         quantity: 2,
         unitPrice: 150,
         price: 150,
@@ -282,10 +282,10 @@ export const mockSalesData: ExtendedSale[] = [
     _id: 'mockSale002',
     saleNumber: 'SALE002',
     date: new Date(),
-    customer: { name: mockCustomersData[1].name, _id: mockCustomersData[1].id },
+    customer: { name: mockCustomersData[1]?.name || '未知客戶', _id: mockCustomersData[1]?.id || 'unknown' },
     items: [
       {
-        product: { name: mockProductsData[1].name, _id: mockProductsData[1]._id },
+        product: { name: mockProductsData[1]?.name || '未知產品', _id: mockProductsData[1]?._id || 'unknown' },
         quantity: 1,
         unitPrice: 250,
         price: 250,
@@ -305,17 +305,17 @@ export const mockSalesData: ExtendedSale[] = [
     _id: 'mockSale003',
     saleNumber: 'SALE003',
     date: new Date(),
-    customer: { name: mockCustomersData[2].name, _id: mockCustomersData[2].id },
+    customer: { name: mockCustomersData[2]?.name || '未知客戶', _id: mockCustomersData[2]?.id || 'unknown' },
     items: [
       {
-        product: { name: mockProductsData[2].name, _id: mockProductsData[2]._id },
+        product: { name: mockProductsData[2]?.name || '未知產品', _id: mockProductsData[2]?._id || 'unknown' },
         quantity: 3,
         unitPrice: 300,
         price: 300,
         subtotal: 900
       },
       {
-        product: { name: mockProductsData[3].name, _id: mockProductsData[3]._id },
+        product: { name: mockProductsData[3]?.name || '未知產品', _id: mockProductsData[3]?._id || 'unknown' },
         quantity: 1,
         unitPrice: 120,
         price: 120,

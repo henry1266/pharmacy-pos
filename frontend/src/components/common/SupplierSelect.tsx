@@ -63,7 +63,7 @@ const SupplierSelect: React.FC<SupplierSelectProps> = ({
           const filtered = filterSuppliers(suppliers, inputValue);
           
           // 如果有過濾結果，自動選擇第一個選項
-          if (filtered.length > 0) {
+          if (filtered.length > 0 && filtered[0]) {
             // 選擇第一個選項
             onChange(event, filtered[0]);
             event.preventDefault();

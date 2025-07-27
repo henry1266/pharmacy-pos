@@ -37,6 +37,9 @@ export const addMonitoredProduct = async (productCode: string): Promise<Monitore
   try {
     const response = await axios.post<ApiResponse<MonitoredProduct>>(API_URL, { productCode });
     // 後端回傳的是 ApiResponse 格式，實際資料在 data 欄位中
+    if (!response.data.data) {
+      throw new Error('新增監測產品失敗：回傳資料為空');
+    }
     return response.data.data;
   } catch (error: any) {
     console.error('新增監測產品失敗:', error.response?.data?.message ?? error.message);
