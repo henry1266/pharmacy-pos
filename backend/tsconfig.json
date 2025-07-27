@@ -12,18 +12,10 @@
     "rootDir": "./",
     "composite": true,
     
-    
     /* Node.js 環境設定 */
     "allowJs": true,
     "checkJs": false,
     "moduleResolution": "node",
-    
-    /* 漸進式嚴格模式 - 適合轉型期 */
-    "strict": false,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": false,
-    "alwaysStrict": true,
     
     /* 裝飾器支援 (如使用 TypeORM 等) */
     "experimentalDecorators": true,

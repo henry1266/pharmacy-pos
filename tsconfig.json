@@ -24,11 +24,11 @@
     "strict": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": false,
-    "strictPropertyInitialization": false,
-    "alwaysStrict": false,
-    "allowSyntheticDefaultImports": true,
+    "useUnknownInCatchVariables": true,
+    "noImplicitThis": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+
 
     /* 模組解析 */
     "esModuleInterop": true,
@@ -42,8 +42,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    /* 進階選項 */
-    "useUnknownInCatchVariables": true,
     /* 開發階段 */
     "noErrorTruncation": true
   },
