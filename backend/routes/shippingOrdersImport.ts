@@ -80,7 +80,7 @@ interface SupplierResult {
 
 // 設置文件上傳
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (_req, _file, cb) {
     const uploadDir = path.join(__dirname, "../uploads");
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
@@ -88,7 +88,7 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
+  filename: function (_req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
@@ -454,7 +454,7 @@ const router: express.Router = express.Router();
 // @route   GET api/shipping-orders/generate-number
 // @desc    生成新的出貨單號
 // @access  Public
-router.get("/generate-number", async (req: Request, res: Response) => {
+router.get("/generate-number", async (_req: Request, res: Response) => {
   try {
     // **注意：此API現在需要日期參數，否則會報錯**
     // 如果需要一個不依賴CSV日期的生成方式，需要另行處理

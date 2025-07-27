@@ -27,7 +27,7 @@ import {
 
 // 設置文件上傳
 const storage = multer.diskStorage({
-  destination: function (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
+  destination: function (_req: Express.Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
     const uploadDir = path.join(__dirname, '../uploads');
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
@@ -35,7 +35,7 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadDir);
   },
-  filename: function (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
+  filename: function (_req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
@@ -53,7 +53,7 @@ const router: express.Router = express.Router();
 // @route   GET api/purchase-orders
 // @desc    獲取所有進貨單
 // @access  Public
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const purchaseOrders = await PurchaseOrder.find()
       .sort({ poid: -1 })
@@ -757,7 +757,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
 // @route   GET api/purchase-orders/recent
 // @desc    獲取最近的進貨單
 // @access  Public
-router.get('/recent/list', async (req: Request, res: Response) => {
+router.get('/recent/list', async (_req: Request, res: Response) => {
   try {
     const purchaseOrders = await PurchaseOrder.find()
       .sort({ createdAt: -1 })

@@ -45,7 +45,7 @@ async function performWildcardSearch(wildcardSearch: string): Promise<any[]> {
   let classIndex = 0;
   
   // 暫時替換字元類別為佔位符
-  regexPattern = regexPattern.replace(characterClassRegex, (match, content) => {
+  regexPattern = regexPattern.replace(characterClassRegex, (_match, content) => {
     const placeholder = `__CHAR_CLASS_${classIndex}__`;
     characterClasses[classIndex] = `[${content}]`;
     classIndex++;

@@ -18,7 +18,7 @@ interface ProductCategoryRequest {
 // @route   GET api/product-categories
 // @desc    獲取所有產品分類
 // @access  Public
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const categories = await ProductCategory.find({ isActive: { $ne: false } })
       .sort({ order: 1, name: 1 });

@@ -7,12 +7,10 @@
     "lib": ["ES2020", "ESNext.AsyncIterable"],
     
     /* 輸出設定 */
+    "noEmit": false,
     "outDir": "./dist",
     "rootDir": "./",
     "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     
     
     /* Node.js 環境設定 */
@@ -33,13 +31,10 @@
     "alwaysStrict": true,
     
     /* 進階選項 */
-    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "noErrorTruncation": true,
     "exactOptionalPropertyTypes": false,
     "noImplicitOverride": false,
     "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": false,
     
     /* 裝飾器支援 (如使用 TypeORM 等) */
     "experimentalDecorators": true,

@@ -61,7 +61,7 @@ router.get('/', auth, async (req: AuthRequest, res: Response): Promise<void> => 
 // @route   GET /api/themes/default-colors
 // @desc    獲取預設顏色
 // @access  Private
-router.get('/default-colors', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/default-colors', auth, async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const response: ApiResponse<typeof DEFAULT_THEME_COLORS> = {
       success: true,

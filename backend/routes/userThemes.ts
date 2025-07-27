@@ -367,7 +367,7 @@ router.delete('/:id', auth, async (req: AuthRequest, res: Response): Promise<voi
 // @route   GET api/user-themes/colors/defaults
 // @desc    獲取預設顏色選項
 // @access  Private
-router.get('/colors/defaults', auth, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/colors/defaults', auth, async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const response: ApiResponse<typeof DEFAULT_THEME_COLORS> = {
       success: true,

@@ -24,7 +24,7 @@ const router: express.Router = express.Router();
 
 // 配置 multer 存儲
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_req, _file, cb) => {
     const uploadDir = path.join(__dirname, '../uploads');
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
@@ -32,13 +32,13 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadDir);
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 
 // 文件過濾器
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // 只接受 CSV 文件
   if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
     cb(null, true);
@@ -162,7 +162,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // @route   GET api/products/products
 // @desc    獲取所有商品（非藥品）
 // @access  Public
-router.get('/products', async (req: Request, res: Response): Promise<void> => {
+router.get('/products', async (_req: Request, res: Response): Promise<void> => {
   try {
     const products = await Product.find({ isActive: { $ne: false } })
       .populate('category', 'name')
@@ -189,7 +189,7 @@ router.get('/products', async (req: Request, res: Response): Promise<void> => {
 // @route   GET api/products/medicines
 // @desc    獲取所有藥品
 // @access  Public
-router.get('/medicines', async (req: Request, res: Response): Promise<void> => {
+router.get('/medicines', async (_req: Request, res: Response): Promise<void> => {
   try {
     const medicines = await Medicine.find({ isActive: { $ne: false } })
       .populate('category', 'name')
@@ -868,7 +868,7 @@ async function saveAndPopulateMedicine(medicine: IMedicineDocument, res: Respons
 
 
 // 臨時測試端點：創建測試數據（僅用於開發測試）
-router.post('/create-test-data', async (req: Request, res: Response): Promise<void> => {
+router.post('/create-test-data', async (_req: Request, res: Response): Promise<void> => {
   try {
     // 檢查是否已有數據
     const existingCount = await BaseProduct.countDocuments();

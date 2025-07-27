@@ -58,7 +58,7 @@ export const calculateBalance = (entries: any[]): {
 // 格式化單一交易群組（用於列表）
 export const formatTransactionGroupForList = async (
   groupObj: any,
-  userId: string
+  _userId: string
 ): Promise<any> => {
   // 格式化內嵌分錄
   const formattedEntries = formatEmbeddedEntries(groupObj.entries);

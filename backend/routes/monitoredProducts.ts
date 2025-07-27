@@ -26,7 +26,7 @@ interface MonitoredProductResponse {
 // @route   GET api/monitored-products
 // @desc    獲取所有監測產品編號（增強版：包含商品名稱）
 // @access  Private
-router.get('/', auth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.get('/', auth, async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     // 獲取所有監測產品
     const monitoredProducts = await MonitoredProduct.find().sort({ productCode: 1 }); // 按照產品編號排序

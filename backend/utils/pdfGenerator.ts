@@ -155,7 +155,7 @@ export const createShippingOrderPdf = async (
       
       // 繪製表格內容
       if (shippingOrder.items && shippingOrder.items.length > 0) {
-        shippingOrder.items.forEach((item, index) => {
+        shippingOrder.items.forEach((item, _index) => {
           // 檢查是否需要新頁
           if (currentY > doc.page.height - 100) {
             doc.addPage();

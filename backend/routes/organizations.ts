@@ -471,7 +471,7 @@ router.get('/:id/hierarchy', [
 });
 
 // 取得機構統計資料
-router.get('/stats/summary', auth, async (req: AuthenticatedRequest, res: express.Response) => {
+router.get('/stats/summary', auth, async (_req: AuthenticatedRequest, res: express.Response) => {
   try {
     const [totalCount, typeStats, statusStats] = await Promise.all([
       Organization.countDocuments(),

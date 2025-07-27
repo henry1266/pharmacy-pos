@@ -58,8 +58,8 @@ const PackageSchema = new Schema<IPackage & Document>({
   updatedBy: { type: String }
 }, {
   timestamps: true, // 自動添加 createdAt 和 updatedAt
-  toJSON: { 
-    transform: function(doc, ret) {
+  toJSON: {
+    transform: function(_doc, ret) {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;

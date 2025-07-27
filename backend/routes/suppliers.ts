@@ -70,7 +70,7 @@ function convertToSupplierType(supplier: any): SupplierType {
 
 // 設置文件上傳
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_req, _file, cb) => {
     const uploadDir = path.join(__dirname, '../uploads');
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
@@ -78,14 +78,14 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadDir);
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     cb(null, `suppliers-${Date.now()}-${file.originalname}`);
   }
 });
 
 const upload = multer({
   storage,
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     // 只接受CSV文件
     if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
       cb(null, true);
@@ -101,7 +101,7 @@ const upload = multer({
 // @route   GET api/suppliers
 // @desc    Get all suppliers
 // @access  Public
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const suppliers = await Supplier.find().sort({ name: 1 });
     
@@ -532,7 +532,7 @@ router.post('/import-csv', upload.single('file'), async (req: Request, res: Resp
 // @route   GET api/suppliers/template/csv
 // @desc    Get CSV template for supplier import
 // @access  Public
-router.get('/template/csv', (req: Request, res: Response) => {
+router.get('/template/csv', (_req: Request, res: Response) => {
   try {
     // 創建CSV模板內容
     const csvTemplate = 'code,shortCode,name,contactPerson,phone,email,address,taxId,paymentTerms,notes\n' +

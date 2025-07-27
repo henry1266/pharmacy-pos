@@ -24,7 +24,7 @@ const router: express.Router = express.Router();
 // @route   GET api/accounting-categories
 // @desc    獲取所有記帳名目類別
 // @access  Private
-router.get('/', auth, async (req: Request, res: Response) => {
+router.get('/', auth, async (_req: Request, res: Response) => {
   try {
     const categories = await AccountingCategory.find({ isActive: true })
       .sort({ order: 1, name: 1 });

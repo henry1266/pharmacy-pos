@@ -6,7 +6,8 @@
     "moduleResolution": "node",
     
     /* 輸出選項 */
-    "declaration": false,
+    "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "noEmit": true,
     
@@ -38,20 +39,23 @@
     "skipLibCheck": true,
     
     /* 進階選項 */
-    "noErrorTruncation": true,
     "exactOptionalPropertyTypes": false,
-    "noFallthroughCasesInSwitch": false,
     "noImplicitOverride": false,
     "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": false,
+
     "allowUnreachableCode": true,
     "allowUnusedLabels": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    
+    "noUnusedParameters": true,
     "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
 
     /* 進階選項 */
-    "useUnknownInCatchVariables": true
+    "useUnknownInCatchVariables": true,
+    /* 開發階段 */
+    "noErrorTruncation": true
   },
   "files": [],
   "references": [

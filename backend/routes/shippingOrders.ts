@@ -72,7 +72,7 @@ interface SearchQuery {
 
 // 設置文件上傳
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (_req, _file, cb) {
     const uploadDir = path.join(__dirname, '../uploads');
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
@@ -80,7 +80,7 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
+  filename: function (_req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
@@ -161,7 +161,7 @@ function handleDatabaseError(res: Response, err: Error, customMessage?: string):
 // @route   GET api/shipping-orders
 // @desc    獲取所有出貨單
 // @access  Public
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const shippingOrders = await ShippingOrder.find()
       .sort({ soid: -1 })
@@ -660,7 +660,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
 // @route   GET api/shipping-orders/recent
 // @desc    獲取最近的出貨單
 // @access  Public
-router.get('/recent/list', async (req: Request, res: Response) => {
+router.get('/recent/list', async (_req: Request, res: Response) => {
   try {
     const shippingOrders = await ShippingOrder.find()
       .sort({ createdAt: -1 })

@@ -253,7 +253,7 @@ function matchOutgoingWithIncoming(remaining: number, stockIn: StockInRecord[], 
  * @returns 銷售毛利計算結果
  */
 export const calculateProfitMargins = (usageLog: OutgoingUsage[], sales: SaleRecord[]): ProfitMarginResult[] => {
-  const results = usageLog.map((usage, index) => {
+  const results = usageLog.map((usage, _index) => {
     // 找到對應的銷售記錄
     const sale = sales.find(s => 
       s.drug_id === usage.drug_id && 
@@ -355,7 +355,7 @@ export const prepareInventoryForFIFO = (inventories: InventoryRecord[]): Prepare
   const stockIn: StockInRecord[] = [];
   const stockOut: StockOutRecord[] = [];
   
-  inventories.forEach((inv, index) => {
+  inventories.forEach((inv, _index) => {
     const timestamp = inv.lastUpdated || new Date();
     const quantity = Math.abs(inv.quantity);
     const unit_price = inv.totalAmount ? (inv.totalAmount / quantity) : 0;

@@ -126,7 +126,7 @@ export class AccountingApiBridge {
    * 確保轉換後的資料完整性
    */
   static dataValidationBridge() {
-    return async (req: Request, res: Response, next: NextFunction) => {
+    return async (_req: Request, res: Response, next: NextFunction) => {
       try {
         const originalJson = res.json.bind(res);
 
@@ -168,7 +168,7 @@ export class AccountingApiBridge {
    * 統一處理橋接過程中的錯誤
    */
   static errorHandlingBridge() {
-    return (error: any, req: Request, res: Response, next: NextFunction): void => {
+    return (error: any, _req: Request, res: Response, next: NextFunction): void => {
       if (error.name === 'AccountingBridgeError') {
         res.status(400).json({
           error: '會計系統橋接錯誤',

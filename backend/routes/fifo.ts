@@ -360,7 +360,7 @@ router.get('/shipping-order/:shippingOrderId', async (req: Request, res: Respons
 // @route   GET api/fifo/all
 // @desc    Calculate FIFO cost and profit margins for all products
 // @access  Public
-router.get('/all', async (req: Request, res: Response): Promise<void> => {
+router.get('/all', async (_req: Request, res: Response): Promise<void> => {
   try {
     const productIds = await Inventory.distinct('product');
     const results: any[] = [];

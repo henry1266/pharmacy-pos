@@ -108,7 +108,7 @@ interface CustomerUpdateRequest extends Partial<CustomerCreationRequest> {}
 // @route   GET api/customers
 // @desc    Get all customers
 // @access  Public
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const customers = await Customer.find().sort({ name: 1 });
     const transformedCustomers = customers.map(transformCustomerToResponse);

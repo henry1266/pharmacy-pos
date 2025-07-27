@@ -134,7 +134,7 @@ if (process.env.NODE_ENV === "production") {
   // 設置靜態資料夾
   app.use(express.static("frontend/build"));
 
-  app.get("*", (req: Request, res: Response) => {
+  app.get("*", (_req: Request, res: Response) => {
     res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"));
   });
 }

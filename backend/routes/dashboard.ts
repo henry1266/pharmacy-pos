@@ -128,7 +128,7 @@ const router: express.Router = express.Router();
 // @route   GET api/dashboard/summary
 // @desc    Get dashboard summary data
 // @access  Public
-router.get('/summary', async (req: Request, res: Response) => {
+router.get('/summary', async (_req: Request, res: Response) => {
   try {
     // 獲取總銷售額
     const sales: SaleRecord[] = await Sale.find();
@@ -277,7 +277,7 @@ router.get('/summary', async (req: Request, res: Response) => {
 // @route   GET api/dashboard/sales-trend
 // @desc    Get sales trend data for charts
 // @access  Public
-router.get('/sales-trend', async (req: Request, res: Response) => {
+router.get('/sales-trend', async (_req: Request, res: Response) => {
   try {
     // 獲取過去30天的銷售數據
     const thirtyDaysAgo = new Date();

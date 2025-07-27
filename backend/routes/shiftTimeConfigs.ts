@@ -37,7 +37,7 @@ interface ShiftTimeConfigUpdateData {
 // @route   GET api/shift-time-configs
 // @desc    Get all shift time configurations
 // @access  Private
-router.get('/', auth, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', auth, async (_req: AuthenticatedRequest, res: Response) => {
   try {
     const configs = await ShiftTimeConfig.find({ isActive: true })
       .sort({ shift: 1 })

@@ -66,7 +66,7 @@ interface FileUploadRequest extends Request {
 
 // 設置文件上傳
 const storage = multer.diskStorage({
-  destination: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
+  destination: function (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
     const uploadDir = path.join(__dirname, "../uploads");
     // 確保上傳目錄存在
     if (!fs.existsSync(uploadDir)) {
@@ -74,7 +74,7 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadDir);
   },
-  filename: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
+  filename: function (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });

@@ -68,7 +68,7 @@ function convertToSharedInventory(inv: any): SharedInventory {
 // @route   GET api/inventory
 // @desc    Get all inventory items
 // @access  Public
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const inventory = await Inventory.find()
       .populate('product')

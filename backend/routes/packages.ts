@@ -272,7 +272,7 @@ router.patch('/:id/toggle-active', async (req: Request, res: Response): Promise<
 });
 
 // 獲取套餐統計資訊
-router.get('/stats/summary', async (req: Request, res: Response): Promise<void> => {
+router.get('/stats/summary', async (_req: Request, res: Response): Promise<void> => {
   try {
     const [totalPackages, activePackages, inactivePackages] = await Promise.all([
       Package.countDocuments(),
@@ -302,7 +302,7 @@ router.get('/stats/summary', async (req: Request, res: Response): Promise<void> 
 });
 
 // 獲取所有套餐分類
-router.get('/categories/list', async (req: Request, res: Response): Promise<void> => {
+router.get('/categories/list', async (_req: Request, res: Response): Promise<void> => {
   try {
     const packages = await Package.find({
       category: { $exists: true, $ne: null },
@@ -321,7 +321,7 @@ router.get('/categories/list', async (req: Request, res: Response): Promise<void
 });
 
 // 獲取所有套餐標籤
-router.get('/tags/list', async (req: Request, res: Response): Promise<void> => {
+router.get('/tags/list', async (_req: Request, res: Response): Promise<void> => {
   try {
     const packages = await Package.find({
       tags: { $exists: true, $ne: [] }
