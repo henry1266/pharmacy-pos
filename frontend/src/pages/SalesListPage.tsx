@@ -333,16 +333,12 @@ const filteredSales = useMemo(() => {
   // 為DataGrid準備行數據
   return sales.map(sale => ({
     id: sale._id, // DataGrid需要唯一的id字段
-    _id: sale._id, // 保留原始_id用於操作
     saleNumber: sale.saleNumber ?? '無單號',
     // 保存原始日期值，讓 valueFormatter 處理格式化
     date: sale.date,
     customerName: sale.customer?.name ?? '一般客戶',
-    items: sale.items,
     totalAmount: sale.totalAmount ?? 0,
-    paymentMethod: sale.paymentMethod,
-    paymentStatus: sale.paymentStatus,
-    ...sale // 保留其他屬性
+    ...sale // 保留其他屬性，包括 _id, items, paymentMethod, paymentStatus
   }));
 }, [sales]);   // ← 依賴項
 
@@ -435,7 +431,7 @@ const totalAmount = useMemo(() => {
   
   const handleViewSale = (saleId: string): void => {
     navigate(`/sales/${saleId}`);
-  }
+  };
 
   // 表格列定義
   const columns: GridColDef[] = [
@@ -457,7 +453,7 @@ const totalAmount = useMemo(() => {
       field: 'date',
       headerName: '日期',
       flex: 1,
-      valueFormatter: (params) => {
+      valueFormatter: (params: { value: any }) => {
         if (!params.value) return '';
         
         try {
@@ -509,7 +505,7 @@ const totalAmount = useMemo(() => {
       minWidth: 120, // 確保金額欄位有足夠寬度
       align: 'right',
       headerAlign: 'right',
-      valueFormatter: (params) => {
+      valueFormatter: (params: { value: any }) => {
         return params.value ? params.value.toFixed(2) : '0.00';
       }
     },
@@ -520,7 +516,7 @@ const totalAmount = useMemo(() => {
       minWidth: 120, // 確保付款方式欄位有足夠寬度
       align: 'center',
       headerAlign: 'center',
-      valueFormatter: (params) => {
+      valueFormatter: (params: { value: any }) => {
         return getPaymentMethodText(params.value);
       }
     },

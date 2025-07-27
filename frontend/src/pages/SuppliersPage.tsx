@@ -389,7 +389,7 @@ const SuppliersPage: FC<{}> = () => {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+      if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
         setCsvFile(file);
         setImportResult(null);
       } else {

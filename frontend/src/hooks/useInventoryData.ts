@@ -87,7 +87,9 @@ const useInventoryData = (productId?: string) => {
       if (groupedByPO.has(poNumber)) {
         // 如果已有該進貨單號的記錄，加總數量
         const existingItem = groupedByPO.get(poNumber);
-        existingItem.quantity = (parseInt(existingItem.quantity.toString()) ?? 0) + (parseInt(item.quantity.toString()) ?? 0);
+        if (existingItem) {
+          existingItem.quantity = (parseInt(existingItem.quantity.toString()) || 0) + (parseInt(item.quantity.toString()) || 0);
+        }
       } else {
         // 如果是新的進貨單號，創建新記錄
         groupedByPO.set(poNumber, { ...item });
@@ -156,7 +158,7 @@ const useInventoryData = (productId?: string) => {
       });
     } else {
       // 一般產品：正常計算所有記錄
-      total = productInv.reduce((sum, item) => sum + (parseInt(item.quantity.toString()) ?? 0), 0);
+      total = productInv.reduce((sum, item) => sum + (parseInt(item.quantity.toString()) || 0), 0);
     }
     
     console.log(`[getTotalInventory] 產品 ${id} 最終庫存:`, total);

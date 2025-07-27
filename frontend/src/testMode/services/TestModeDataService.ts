@@ -32,7 +32,7 @@ class TestModeDataService {
    * 檢查是否應該使用測試數據
    * 當測試模式啟用時，總是使用測試數據
    */
-  private shouldUseTestData(actualData: any, actualError: any): boolean {
+  private shouldUseTestData(actualData: unknown, actualError: unknown): boolean {
     // 測試模式啟用時，總是使用測試數據
     return TestModeConfig.isEnabled();
   }
@@ -265,23 +265,23 @@ class TestModeDataService {
   ): T {
     switch (dataType) {
       case 'suppliers':
-        return this.getSuppliers(actualData as any, actualError) as T;
+        return this.getSuppliers(actualData as TestSupplierData[] | null, actualError as string | null) as T;
       case 'customers':
-        return this.getCustomers(actualData as any, actualError) as T;
+        return this.getCustomers(actualData as TestCustomerData[] | null, actualError as string | null) as T;
       case 'products':
-        return this.getProducts(actualData as any, actualError) as T;
+        return this.getProducts(actualData as Product[] | null, actualError as string | null) as T;
       case 'categories':
-        return this.getCategories(actualData as any, actualError) as T;
+        return this.getCategories(actualData as Category[] | null, actualError as string | null) as T;
       case 'sales':
-        return this.getSales(actualData as any, actualError) as T;
+        return this.getSales(actualData as ExtendedSale[] | null, actualError as string | null) as T;
       case 'employees':
-        return this.getEmployees(actualData as any, actualError) as T;
+        return this.getEmployees(actualData as TestEmployeeData[] | null, actualError as string | null) as T;
       case 'dashboard':
-        return this.getDashboardData(actualData as any, actualError) as T;
+        return this.getDashboardData(actualData as MockDashboardData | null, actualError as string | null) as T;
       case 'salesTrend':
-        return this.getSalesTrend(actualData as any, actualError) as T;
+        return this.getSalesTrend(actualData as SalesTrend[] | null, actualError as string | null) as T;
       case 'categorySales':
-        return this.getCategorySales(actualData as any, actualError) as T;
+        return this.getCategorySales(actualData as CategorySales[] | null, actualError as string | null) as T;
       default:
         return actualData || ([] as T);
     }

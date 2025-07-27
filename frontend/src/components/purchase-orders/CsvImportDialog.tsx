@@ -69,6 +69,8 @@ const CsvImportDialog: FC<CsvImportDialogProps> = ({
     if (tabValue !== index || index >= tabContents.length) return null;
     
     const content = tabContents[index];
+    if (!content) return null;
+    
     return (
       <Box>
         <Typography variant="subtitle1" gutterBottom>
@@ -169,12 +171,12 @@ CsvImportDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   tabValue: PropTypes.number.isRequired,
   onTabChange: PropTypes.func.isRequired,
-  csvFile: PropTypes.object,
+  csvFile: PropTypes.instanceOf(File),
   onFileChange: PropTypes.func.isRequired,
   onImport: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   error: PropTypes.string,
   success: PropTypes.bool.isRequired
-} as any; // 使用 any 類型來避免 TypeScript 錯誤
+};
 
 export default CsvImportDialog;

@@ -71,6 +71,8 @@ const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
   if (active && payload?.length) {
     const data = payload[0]?.payload;
     
+    if (!data) return null;
+    
     return (
       <Paper sx={{
         p: 2,

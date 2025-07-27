@@ -110,7 +110,7 @@ const SupplierAccountMappingPage: React.FC = () => {
     if (mapping) {
       setEditingMapping(mapping);
       const accountIds = mapping.accountMappings.map(am => am.accountId);
-      const priority = mapping.accountMappings.length > 0 ? mapping.accountMappings[0].priority : 1;
+      const priority = mapping.accountMappings.length > 0 ? mapping.accountMappings[0]?.priority || 1 : 1;
       
       setFormData({
         supplierId: mapping.supplierId,
@@ -206,12 +206,12 @@ const SupplierAccountMappingPage: React.FC = () => {
     }
   };
 
-  const getSupplierName = (supplierId: string) => {
+  const getSupplierName = (supplierId: string): string => {
     const supplier = suppliers.find(s => s._id === supplierId);
     return supplier?.name || '未知供應商';
   };
 
-  const getOrganizationName = (organizationId: string) => {
+  const getOrganizationName = (organizationId: string): string => {
     const organization = organizations.find(o => o._id === organizationId);
     return organization?.name || '未知機構';
   };

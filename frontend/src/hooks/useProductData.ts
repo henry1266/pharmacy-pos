@@ -64,7 +64,7 @@ const useProductData = () => {
       data.forEach(item => {
         // 將 item 轉換為 ExtendedProduct 型別
         const extendedItem = item;
-        const product = { ...extendedItem, id: item._id ?? (item as any).id }; // Map _id to id
+        const product = { ...extendedItem, id: item._id || (item as any).id }; // Map _id to id
         
         // 添加到統一列表
         unifiedList.push(product);

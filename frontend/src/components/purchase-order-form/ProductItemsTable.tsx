@@ -78,7 +78,9 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
     if (containerRef.current && items.length > 0) {
       setTimeout(() => {
         const scrollHeight = containerRef.current?.scrollHeight ?? 0;
-        containerRef.current.scrollTop = scrollHeight;
+        if (containerRef.current) {
+          containerRef.current.scrollTop = scrollHeight;
+        }
       }, 100);
     }
   }, [items.length]);

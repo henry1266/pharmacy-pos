@@ -143,14 +143,14 @@ const AccountingEntrySelector: React.FC<AccountingEntrySelectorProps> = ({
         // 檢查是否符合支出-資產格式
         if ((account1.accountType === 'expense' && account2.accountType === 'asset') ||
             (account1.accountType === 'asset' && account2.accountType === 'expense')) {
-          setSelectedFormat(ENTRY_FORMATS[0]);
+          setSelectedFormat(ENTRY_FORMATS[0] || null);
           setDebitAccountId(account1.accountType === 'expense' ? account1._id : account2._id);
           setCreditAccountId(account1.accountType === 'asset' ? account1._id : account2._id);
         }
         // 檢查是否符合資產-負債格式
         else if ((account1.accountType === 'asset' && account2.accountType === 'liability') ||
                  (account1.accountType === 'liability' && account2.accountType === 'asset')) {
-          setSelectedFormat(ENTRY_FORMATS[1]);
+          setSelectedFormat(ENTRY_FORMATS[1] || null);
           setDebitAccountId(account1.accountType === 'asset' ? account1._id : account2._id);
           setCreditAccountId(account1.accountType === 'liability' ? account1._id : account2._id);
         }

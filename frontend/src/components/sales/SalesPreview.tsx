@@ -52,8 +52,8 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
   const columns: TableColumn[] = [
     { key: 'name', label: '產品名稱', render: (item) => item.product?.name || item.name || '' },
     { key: 'quantity', label: '數量', align: 'right', render: (item) => item.quantity },
-    { key: 'price', label: '單價', align: 'right', render: (item) => item.price?.toFixed(2) || '0.00' },
-    { key: 'amount', label: '金額', align: 'right', render: (item) => (item.price * item.quantity)?.toFixed(2) || '0.00' }
+    { key: 'price', label: '單價', align: 'right', render: (item) => item.price ? item.price.toFixed(2) : '0.00' },
+    { key: 'amount', label: '金額', align: 'right', render: (item) => (item.price * item.quantity).toFixed(2) }
   ];
 
   // 計算總計的函數
@@ -64,7 +64,7 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
 
   // 獲取付款方式顯示文本
   const getPaymentMethodText = (method: string): string => {
-    const methodMap: { [key: string]: string } = {
+    const methodMap: Record<string, string> = {
       'cash': '現金',
       'credit_card': '信用卡',
       'debit_card': '金融卡',
@@ -76,7 +76,7 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
 
   // 獲取付款狀態顯示文本
   const getPaymentStatusText = (status: string): string => {
-    const statusMap: { [key: string]: string } = {
+    const statusMap: Record<string, string> = {
       'paid': '已付款',
       'pending': '待付款',
       'partial': '部分付款',

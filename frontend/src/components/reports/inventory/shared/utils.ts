@@ -304,7 +304,15 @@ export const processInventoryData = (data: TransactionItem[]): {
 /**
  * 構建查詢參數
  */
-export const buildQueryParams = (filters: any): URLSearchParams => {
+interface FilterParams {
+  supplier?: string;
+  category?: string;
+  productCode?: string;
+  productName?: string;
+  productType?: string;
+}
+
+export const buildQueryParams = (filters: FilterParams): URLSearchParams => {
   const params = new URLSearchParams();
   if (filters?.supplier) params.append('supplier', filters.supplier);
   if (filters?.category) params.append('category', filters.category);

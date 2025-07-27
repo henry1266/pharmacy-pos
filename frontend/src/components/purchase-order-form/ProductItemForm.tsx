@@ -357,7 +357,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                       if (event.key === 'Enter' || event.key === 'Tab') {
                         if ((event.target as HTMLInputElement).value) {
                           const filteredOptions = filterProducts(products ?? [], (event.target as HTMLInputElement).value);
-                          if (filteredOptions.length > 0) {
+                          if (filteredOptions.length > 0 && filteredOptions[0]) {
                             handleProductChangeWithChart(event, filteredOptions[0]);
                             event.preventDefault();
                             const dquantityInput = document.querySelector('input[name="dquantity"]');

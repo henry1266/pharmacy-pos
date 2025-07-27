@@ -26,10 +26,10 @@ export interface ProductFilters {
  * Axios 適配器 - 實現 HttpClient 介面
  */
 const axiosAdapter: HttpClient = {
-  get: axios.get,
-  post: axios.post,
-  put: axios.put,
-  delete: axios.delete,
+  get: axios.get.bind(axios),
+  post: axios.post.bind(axios),
+  put: axios.put.bind(axios),
+  delete: axios.delete.bind(axios),
 };
 
 /**
