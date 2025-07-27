@@ -55,6 +55,18 @@
     "noImplicitThis": false,
     "alwaysStrict": false
   },
+  
+      /*"noImplicitAny": true,
+    "strictNullChecks": true,
+    "useUnknownInCatchVariables": true,
+    "noImplicitThis": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "exactOptionalPropertyTypes": true,
+    "strictPropertyInitialization": true,
+    "noUncheckedIndexedAccess": true,*/
+  
+  
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",

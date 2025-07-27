@@ -2,7 +2,6 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     /* Node.js 後端專用設定 */
-    "target": "ES2020",
     "module": "CommonJS",
     "lib": ["ES2020", "ESNext.AsyncIterable"],
     
@@ -10,12 +9,10 @@
     "noEmit": false,
     "outDir": "./dist",
     "rootDir": "./",
-    "composite": true,
     
     /* Node.js 環境設定 */
     "allowJs": true,
     "checkJs": false,
-    "moduleResolution": "node",
     
     /* 裝飾器支援 (如使用 TypeORM 等) */
     "experimentalDecorators": true,

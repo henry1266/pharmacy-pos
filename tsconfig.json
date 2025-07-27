@@ -21,14 +21,7 @@
     },
     
     /* 嚴格性檢查 - 漸進式啟用 */
-    "strict": false,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "useUnknownInCatchVariables": true,
-    "noImplicitThis": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "exactOptionalPropertyTypes": true,
+    "strict": true,
 
     /* 模組解析 */
     "esModuleInterop": true,
@@ -41,7 +34,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
     /* 開發階段 */
     "noErrorTruncation": true
   },
