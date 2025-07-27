@@ -174,7 +174,9 @@ router.post('/', auth, [
 
     // 如果這是第一個主題，設為當前主題
     if (user.settings.theme.themes.length === 1) {
-      user.settings.theme.currentThemeId = newTheme._id;
+      if (!user.settings.theme.currentThemeId) {
+        (user.settings.theme as any).currentThemeId = newTheme._id;
+      }
     }
 
     // 標記嵌套物件已修改
@@ -232,7 +234,11 @@ router.put('/current/:themeId', auth, async (req: AuthRequest, res: Response): P
     }
 
     // 設定當前主題
-    user.settings.theme.currentThemeId = themeId;
+    if (!user.settings.theme.currentThemeId) {
+      (user.settings.theme as any).currentThemeId = themeId;
+    } else {
+      (user.settings.theme as any).currentThemeId = themeId;
+    }
     
     // 標記嵌套物件已修改
     user.markModified('settings');
@@ -308,10 +314,21 @@ router.put('/:themeId', auth, async (req: AuthRequest, res: Response): Promise<v
 
     console.log('主題已更新並保存到資料庫:', user.settings.theme.themes[themeIndex]);
 
+    const updatedTheme = user.settings.theme.themes[themeIndex];
+    if (!updatedTheme) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '主題更新失敗',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+      return;
+    }
+    
     const response: ApiResponse<UserTheme> = {
       success: true,
       message: '主題更新成功',
-      data: user.settings.theme.themes[themeIndex],
+      data: updatedTheme,
       timestamp: new Date()
     };
 
@@ -358,7 +375,7 @@ router.delete('/:themeId', auth, async (req: AuthRequest, res: Response): Promis
 
     // 如果刪除的是當前主題，清除當前主題 ID
     if (user.settings.theme.currentThemeId === themeId) {
-      user.settings.theme.currentThemeId = undefined;
+      (user.settings.theme as any).currentThemeId = undefined;
     }
 
     // 刪除主題

@@ -435,7 +435,7 @@ router.post(
       const salesItems: AccountingItem[] = unaccountedSales.map((sale: any) => ({
         amount: sale.totalAmount ?? 0,
         category: '其他自費', // *** 將名目設為 其他自費 ***
-        categoryId: null as Types.ObjectId | null, // Find the ID for '其他自費' category if needed
+        categoryId: null, // Find the ID for '其他自費' category if needed
         note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`, // *** 加入數量 ***
         isAutoLinked: true // Add a flag to differentiate if needed
       }));
@@ -610,7 +610,7 @@ router.put(
             const newSalesItems: AccountingItem[] = unaccountedSales.map((sale: any) => ({
               amount: sale.totalAmount ?? 0,
               category: '其他自費',
-              categoryId: null as Types.ObjectId | null,
+              categoryId: null,
               note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`,
               isAutoLinked: true
             }));
@@ -718,7 +718,7 @@ router.put(
         const newSalesItems: AccountingItem[] = currentUnaccountedSales.map((sale: any) => ({
           amount: sale.totalAmount ?? 0,
           category: '其他自費',
-          categoryId: null as Types.ObjectId | null,
+          categoryId: null,
           note: `${sale.saleNumber} - ${sale.product ? sale.product.name : '未知產品'}#${Math.abs(sale.quantity ?? 0)}`,
           isAutoLinked: true
         }));
@@ -732,10 +732,23 @@ router.put(
       // 3. Update the accounting record
       accounting.date = accountingDate;
       if (shift) accounting.shift = shift; // Only update shift if provided
-      accounting.items = finalItems.map(item => ({
-        ...item,
-        categoryId: item.categoryId || undefined
-      }));
+      accounting.items = finalItems.map(item => {
+        const accountingItem: any = {
+          amount: item.amount,
+          category: item.category,
+          isAutoLinked: item.isAutoLinked
+        };
+        
+        if (item.note) {
+          accountingItem.note = item.note;
+        }
+        
+        if (item.categoryId) {
+          accountingItem.categoryId = item.categoryId;
+        }
+        
+        return accountingItem;
+      });
       accounting.totalAmount = finalTotalAmount;
       if (status) accounting.status = status;
 

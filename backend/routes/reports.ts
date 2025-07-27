@@ -152,7 +152,12 @@ router.get('/suppliers/purchase-summary', async (req: Request, res: Response) =>
       data: {
         data: formattedData,
         summary,
-        filters: { startDate, endDate, supplierId, status }
+        filters: {
+          ...(startDate !== undefined && { startDate }),
+          ...(endDate !== undefined && { endDate }),
+          ...(supplierId !== undefined && { supplierId }),
+          ...(status !== undefined && { status })
+        }
       },
       timestamp: new Date()
     };

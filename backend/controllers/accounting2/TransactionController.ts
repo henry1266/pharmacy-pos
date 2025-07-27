@@ -263,14 +263,29 @@ export class TransactionController {
         sortOrder: sortOrder as 'asc' | 'desc'
       };
 
-      const result = await TransactionService.getTransactionGroups(userId, options.organizationId, {
-        status: options.status as 'draft' | 'confirmed' | 'cancelled',
-        startDate: options.dateRange?.startDate,
-        endDate: options.dateRange?.endDate,
-        search: undefined,
+      const queryOptions: {
+        status?: 'draft' | 'confirmed' | 'cancelled';
+        startDate?: Date;
+        endDate?: Date;
+        search?: string;
+        page?: number;
+        limit?: number;
+      } = {
         page: options.page,
         limit: options.limit
-      });
+      };
+
+      if (options.status) {
+        queryOptions.status = options.status as 'draft' | 'confirmed' | 'cancelled';
+      }
+      if (options.dateRange?.startDate) {
+        queryOptions.startDate = options.dateRange.startDate;
+      }
+      if (options.dateRange?.endDate) {
+        queryOptions.endDate = options.dateRange.endDate;
+      }
+
+      const result = await TransactionService.getTransactionGroups(userId, options.organizationId, queryOptions);
       
       res.json({
         success: true,
@@ -515,14 +530,29 @@ export class TransactionController {
         sortOrder: 'desc' as const
       };
 
-      const result = await TransactionService.getTransactionGroups(userId, options.organizationId, {
-        status: options.status as 'draft' | 'confirmed' | 'cancelled',
-        startDate: options.dateRange?.startDate,
-        endDate: options.dateRange?.endDate,
-        search: undefined,
+      const queryOptions: {
+        status?: 'draft' | 'confirmed' | 'cancelled';
+        startDate?: Date;
+        endDate?: Date;
+        search?: string;
+        page?: number;
+        limit?: number;
+      } = {
         page: 1,
         limit: 10000
-      });
+      };
+
+      if (options.status) {
+        queryOptions.status = options.status as 'draft' | 'confirmed' | 'cancelled';
+      }
+      if (options.dateRange?.startDate) {
+        queryOptions.startDate = options.dateRange.startDate;
+      }
+      if (options.dateRange?.endDate) {
+        queryOptions.endDate = options.dateRange.endDate;
+      }
+
+      const result = await TransactionService.getTransactionGroups(userId, options.organizationId, queryOptions);
       
       const transactions = result.transactions;
       

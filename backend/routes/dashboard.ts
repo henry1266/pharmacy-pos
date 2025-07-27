@@ -228,7 +228,7 @@ router.get('/summary', async (_req: Request, res: Response) => {
     
     const formattedRecentSales: RecentSale[] = recentSales.map(sale => ({
       id: sale._id,
-      saleNumber: sale.saleNumber,
+      saleNumber: sale.saleNumber || '',
       customerName: sale.customer && typeof sale.customer === 'object' && 'name' in sale.customer ? sale.customer.name : '一般客戶',
       totalAmount: sale.totalAmount,
       date: sale.date,

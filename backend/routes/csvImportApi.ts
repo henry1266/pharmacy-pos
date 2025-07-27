@@ -57,13 +57,6 @@ interface ImportSummary {
   errors: string[] | null;
 }
 
-interface FileUploadRequest extends Request {
-  file?: Express.Multer.File;
-  body: {
-    defaultSupplierId?: string;
-  };
-}
-
 // 設置文件上傳
 const storage = multer.diskStorage({
   destination: function (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
@@ -325,10 +318,11 @@ async function determineSupplier(defaultSupplierId?: string): Promise<SupplierIn
  * @apiError {String} msg 錯誤訊息
  * @apiError {String} error 詳細錯誤資訊
  */
-router.post("/shipping-orders", upload.single("file"), async (req: FileUploadRequest, res: Response) => {
+router.post("/shipping-orders", upload.single("file"), async (req: Request, res: Response) => {
   try {
     // 驗證請求
-    if (!req.file) {
+    const uploadedFile = req.file;
+    if (!uploadedFile) {
       res.status(400).json({
         success: false,
         msg: "請上傳CSV文件",
@@ -350,7 +344,7 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
 
     // 讀取並解析CSV文件
     await new Promise<void>((resolve, reject) => {
-      fs.createReadStream(req.file!.path)
+      fs.createReadStream(uploadedFile.path)
         .pipe(csv())
         .on("data", (data: any) => {
           // 檢查CSV格式是否符合要求
@@ -394,7 +388,7 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
     });
 
     // 刪除上傳的文件
-    fs.unlinkSync(req.file.path);
+    fs.unlinkSync(uploadedFile.path);
 
     // 驗證解析結果
     if (results.length === 0) {

@@ -58,12 +58,17 @@ function createSuccessResponse<T>(message: string, data: T): ApiResponse<T> {
  * 創建錯誤響應
  */
 function createErrorResponse(message: string, error?: string): ErrorResponse {
-  return {
+  const response: ErrorResponse = {
     success: false,
     message,
-    error,
     timestamp: new Date()
   };
+  
+  if (error !== undefined) {
+    response.error = error;
+  }
+  
+  return response;
 }
 
 /**

@@ -249,8 +249,7 @@ export class AccountController {
 
       const accounts = await AccountService.getAccounts(userId, options.organizationId, {
         accountType: options.accountType,
-        isActive: options.isActive,
-        search: undefined
+        isActive: options.isActive
       });
       
       // 手動實現分頁
@@ -397,8 +396,7 @@ export class AccountController {
 
       const accounts = await AccountService.getAccounts(userId, options.organizationId, {
         accountType: options.accountType,
-        isActive: options.isActive,
-        search: undefined
+        isActive: options.isActive
       });
       
       // 手動實現分頁

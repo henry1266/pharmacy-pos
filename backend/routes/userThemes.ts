@@ -191,7 +191,7 @@ router.post(
       const errorResponse: ErrorResponse = {
         success: false,
         message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-        error: JSON.stringify(errors.array()),
+        ...(errors.array().length > 0 && { error: JSON.stringify(errors.array()) }),
         timestamp: new Date()
       };
       res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
@@ -287,16 +287,17 @@ router.put('/:id', auth, async (req: AuthRequest, res: Response): Promise<void> 
     }
 
     // 更新主題
-    mockThemes[themeIndex] = {
+    const updatedTheme = {
       ...theme,
       ...finalUpdateData,
       updatedAt: new Date()
     };
+    mockThemes[themeIndex] = updatedTheme;
     
     const response: ApiResponse<UserTheme> = {
       success: true,
       message: '主題更新成功',
-      data: mockThemes[themeIndex],
+      data: updatedTheme,
       timestamp: new Date()
     };
     

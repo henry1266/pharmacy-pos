@@ -766,7 +766,17 @@ async function createSaleRecord(requestBody: SaleCreationRequest): Promise<SaleD
     cashier: requestBody.cashier
   };
   
-  const saleFields = buildSaleFields(saleData);
+  const saleFields = buildSaleFields({
+    saleNumber: saleData.saleNumber,
+    customer: saleData.customer || '',
+    items: saleData.items,
+    totalAmount: saleData.totalAmount,
+    discount: saleData.discount || 0,
+    paymentMethod: saleData.paymentMethod,
+    paymentStatus: saleData.paymentStatus || 'pending',
+    notes: saleData.notes || '',
+    cashier: saleData.cashier || ''
+  });
 
   const sale = new Sale(saleFields);
   await sale.save();
@@ -1105,7 +1115,17 @@ async function updateSaleRecord(saleId: string, requestBody: SaleCreationRequest
     cashier: requestBody.cashier
   };
   
-  const saleFields = buildSaleFields(saleData);
+  const saleFields = buildSaleFields({
+    saleNumber: saleData.saleNumber,
+    customer: saleData.customer || '',
+    items: saleData.items,
+    totalAmount: saleData.totalAmount,
+    discount: saleData.discount || 0,
+    paymentMethod: saleData.paymentMethod,
+    paymentStatus: saleData.paymentStatus || 'pending',
+    notes: saleData.notes || '',
+    cashier: saleData.cashier || ''
+  });
   
   // 更新銷售記錄
   const updatedSale = await Sale.findByIdAndUpdate(

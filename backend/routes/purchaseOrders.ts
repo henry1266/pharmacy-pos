@@ -459,7 +459,7 @@ async function handleStatusChange(
         
         // 清除進貨單的關聯交易群組ID
         if (purchaseOrder.relatedTransactionGroupId) {
-          purchaseOrder.relatedTransactionGroupId = undefined;
+          (purchaseOrder as any).relatedTransactionGroupId = undefined;
           await purchaseOrder.save();
           console.log(`✅ 已清除進貨單 ${purchaseOrder.poid} 的關聯交易群組ID`);
         }
@@ -507,7 +507,15 @@ const processItemsUpdate = async (items: PurchaseOrderRequest['items']): Promise
   // 驗證所有藥品ID是否存在
   const validationResult = await validateAndSetProductIds(items);
   if (!validationResult.valid) {
-    return { valid: false, error: validationResult.message };
+    const errorResponse = {
+      valid: false as const
+    } as { valid: false; error?: string };
+    
+    if (validationResult.message !== undefined) {
+      errorResponse.error = validationResult.message;
+    }
+    
+    return errorResponse;
   }
 
   // 正確處理 items 的型別轉換 - 使用 any 來避免 Document 型別衝突

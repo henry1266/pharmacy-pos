@@ -409,7 +409,9 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       updateData.linkedTransactionIds = linkedTransactionIds.map((id: string) => new mongoose.Types.ObjectId(id));
     }
     if (sourceTransactionId !== undefined) {
-      updateData.sourceTransactionId = sourceTransactionId ? new mongoose.Types.ObjectId(sourceTransactionId) : undefined;
+      if (sourceTransactionId) {
+        updateData.sourceTransactionId = new mongoose.Types.ObjectId(sourceTransactionId);
+      }
     }
 
     // 處理精確資金來源使用追蹤更新

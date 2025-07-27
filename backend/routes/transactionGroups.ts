@@ -597,7 +597,11 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         updateData.linkedTransactionIds = linkedTransactionIds.map((id: string) => new mongoose.Types.ObjectId(id));
       }
       if (sourceTransactionId !== undefined) {
-        updateData.sourceTransactionId = sourceTransactionId ? new mongoose.Types.ObjectId(sourceTransactionId) : undefined;
+        if (sourceTransactionId) {
+          updateData.sourceTransactionId = new mongoose.Types.ObjectId(sourceTransactionId);
+        } else {
+          (updateData as any).sourceTransactionId = undefined;
+        }
       }
 
       // 如果有分錄更新，重新計算總金額

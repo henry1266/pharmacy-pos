@@ -243,8 +243,6 @@ export class AutoAccountingEntryService {
         debitAmount: purchaseOrder.totalAmount,
         creditAmount: 0,
         description: `${debitAccount.name} (借方)`,
-        categoryId: undefined,
-        sourceTransactionId: undefined,
         fundingPath: []
       },
       {
@@ -253,8 +251,6 @@ export class AutoAccountingEntryService {
         debitAmount: 0,
         creditAmount: purchaseOrder.totalAmount,
         description: `${creditAccount.name} (貸方)`,
-        categoryId: undefined,
-        sourceTransactionId: undefined,
         fundingPath: []
       }
     ];

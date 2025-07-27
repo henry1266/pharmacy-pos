@@ -165,7 +165,9 @@ router.post('/', [
       // 更新現有配置
       existingConfig.startTime = startTime;
       existingConfig.endTime = endTime;
-      existingConfig.description = description;
+      if (description !== undefined) {
+        existingConfig.description = description;
+      }
       existingConfig.updatedBy = new mongoose.Types.ObjectId(authReq.user.id);
       existingConfig.isActive = true;
       

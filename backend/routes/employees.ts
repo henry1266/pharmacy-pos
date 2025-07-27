@@ -121,10 +121,10 @@ router.get('/with-accounts', auth, async (req: Request, res: Response) => {
           _id: user._id.toString(),
           employeeId: (emp._id as any).toString(),
           username: user.username,
-          email: user.email,
+          email: user.email || '',
           role: user.role,
           isActive: user.isActive,
-          lastLogin: user.lastLogin,
+          lastLogin: user.lastLogin || new Date(),
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         } : null

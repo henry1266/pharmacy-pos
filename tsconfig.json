@@ -28,7 +28,7 @@
     "noImplicitThis": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
-
+    "exactOptionalPropertyTypes": true,
 
     /* 模組解析 */
     "esModuleInterop": true,

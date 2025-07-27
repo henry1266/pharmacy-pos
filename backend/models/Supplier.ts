@@ -62,13 +62,23 @@ SupplierSchema.methods.getSupplierSummary = function(): {
   contactPerson?: string;
   totalOrders?: number;
 } {
-  return {
+  const summary: {
+    code: string;
+    name: string;
+    contactPerson?: string;
+    totalOrders?: number;
+  } = {
     code: this.code,
-    name: this.name,
-    contactPerson: this.contactPerson,
-    // totalOrders 需要透過其他查詢計算，這裡先設為 undefined
-    totalOrders: undefined
+    name: this.name
   };
+  
+  if (this.contactPerson) {
+    summary.contactPerson = this.contactPerson;
+  }
+  
+  // totalOrders 需要透過其他查詢計算，這裡不設定該屬性
+  
+  return summary;
 };
 
 // 建立並匯出模型
