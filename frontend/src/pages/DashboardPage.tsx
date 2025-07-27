@@ -324,7 +324,7 @@ const DashboardPage: FC = () => {
   const handleUnlockRecord = async (record: ExtendedAccountingRecord) => {
     if (window.confirm('確定要解鎖此記帳記錄並改為待處理狀態嗎？')) {
       try {
-        await accountingServiceV2.updateAccountingRecord(record._id, { status: 'pending' });
+        await accountingServiceV2.updateAccountingRecord(record._id, { status: 'pending' } as Partial<AccountingRecord>);
         // Refresh accounting records
         fetchAccountingRecords(selectedDate);
       } catch (error) {

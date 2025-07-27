@@ -171,7 +171,7 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
     if (window.confirm('確定要解鎖此記帳記錄並改為待處理狀態嗎？')) {
       setFormLoading(true);
       try {
-        await accountingServiceV2.updateAccountingRecord(record._id, { status: 'pending' });
+        await accountingServiceV2.updateAccountingRecord(record._id, { status: 'pending' } as Partial<AccountingRecord>);
         showSnackbar('記帳記錄已解鎖', 'success');
         fetchRecords(); // Refetch records after unlock
       } catch (err: any) {

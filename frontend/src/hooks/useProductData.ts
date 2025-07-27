@@ -113,7 +113,7 @@ const useProductData = () => {
       let data;
       try {
         const actualData = await getAllSuppliers();
-        data = testModeDataService.getSuppliers(actualData, null);
+        data = testModeDataService.getSuppliers(actualData as any, null);
       } catch (actualError) {
         data = testModeDataService.getSuppliers(null, actualError);
       }

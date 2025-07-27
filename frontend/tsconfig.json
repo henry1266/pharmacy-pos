@@ -43,11 +43,11 @@
     
     /* 保持寬鬆以利轉型 */
     "strict": false,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictNullChecks": false,
     "useUnknownInCatchVariables": false,
     "noImplicitThis": false,
-    "strictBindCallApply": false,
+    "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "exactOptionalPropertyTypes": false,
     "strictPropertyInitialization": false,

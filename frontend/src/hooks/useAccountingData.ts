@@ -75,7 +75,7 @@ const useAccountingData = () => {
   // Fetch data needed for editing a record
   const fetchEditData = useCallback(async (record: ExtendedAccountingRecord): Promise<OperationResult> => {
     try {
-      let unaccountedSales = [];
+      let unaccountedSales: any[] = [];
       let manualItems = record.items ? record.items.filter(item => item.category !== "其他自費") : [];
 
       if (record.status === 'pending') {
