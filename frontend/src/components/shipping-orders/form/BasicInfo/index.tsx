@@ -1,26 +1,19 @@
 import React, { FC, ChangeEvent } from 'react';
-import { 
-  TextField, 
-  Grid, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  Card, 
-  CardContent, 
+import {
+  TextField,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Card,
+  CardContent,
   Typography,
   SelectChangeEvent
 } from '@mui/material';
 import PropTypes from 'prop-types';
 import SupplierSelect from '../../../common/SupplierSelect'; // 假設你有一個供應商選擇組件
-
-// 定義供應商介面
-interface Supplier {
-  _id: string;
-  name: string;
-  shortCode?: string;
-  [key: string]: any;
-}
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // 定義表單數據介面
 interface FormData {

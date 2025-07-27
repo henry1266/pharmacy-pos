@@ -4,16 +4,7 @@ import {
   TextField
 } from '@mui/material';
 
-/**
- * 供應商介面
- */
-interface Supplier {
-  _id?: string;
-  name?: string;
-  code?: string;
-  shortCode?: string;
-  [key: string]: any;
-}
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 /**
  * 通用供應商選擇組件

@@ -149,7 +149,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
   }, [employeeId]);
 
   // 開啟編輯加班記錄對話框
-  const handleOpenEditDialog = useCallback((record: OvertimeRecord) => {
+  const handleOpenEditDialog = useCallback((record: any) => {
     setSelectedRecord(record);
     
     // 安全地獲取 employeeId
@@ -169,7 +169,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
       date: new Date(record.date).toISOString().split('T')[0],
       hours: record.hours,
       description: record.description || '',
-      status: record.status as OvertimeStatus,
+      status: (record.status as OvertimeStatus) || 'pending',
       inputMode: 'manual',
       currentTime: ''
     });
@@ -178,7 +178,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
   }, []);
 
   // 開啟刪除加班記錄對話框
-  const handleOpenDeleteDialog = useCallback((record: OvertimeRecord) => {
+  const handleOpenDeleteDialog = useCallback((record: any) => {
     setSelectedRecord(record);
     setDeleteDialogOpen(true);
   }, []);
@@ -274,20 +274,22 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
   }, [selectedRecord, deleteOvertimeRecord, handleCloseDialogs]);
 
   // 快速核准記錄
-  const handleApproveRecord = useCallback(async (record: OvertimeRecord) => {
+  const handleApproveRecord = useCallback(async (record: any) => {
     setSubmitting(true);
     try {
-      await updateOvertimeRecord(record._id, { status: 'approved' });
+      const recordId = record._id || record.id;
+      await updateOvertimeRecord(recordId, { status: 'approved' });
     } finally {
       setSubmitting(false);
     }
   }, [updateOvertimeRecord]);
 
   // 快速拒絕記錄
-  const handleRejectRecord = useCallback(async (record: OvertimeRecord) => {
+  const handleRejectRecord = useCallback(async (record: any) => {
     setSubmitting(true);
     try {
-      await updateOvertimeRecord(record._id, { status: 'rejected' });
+      const recordId = record._id || record.id;
+      await updateOvertimeRecord(recordId, { status: 'rejected' });
     } finally {
       setSubmitting(false);
     }

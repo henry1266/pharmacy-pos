@@ -862,9 +862,9 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   };
 
   // 格式化日期顯示
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-TW');
+  const formatDate = (date: string | Date): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('zh-TW');
   };
   
   // 格式化日期為 YYYY-MM-DD 格式，避免時區問題

@@ -11,27 +11,19 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { Package } from '@pharmacy-pos/shared/types/package';
+import { Product, Medicine } from '@pharmacy-pos/shared/types/entities';
 
-// 定義產品的型別
-interface Product {
-  _id: string;
-  name: string;
-  code?: string;
-  shortCode?: string;
-  barcode?: string;
-  healthInsuranceCode?: string;
-  price?: number;
-  sellingPrice?: number;
-}
+// 聯合類型以支持產品和藥品
+type ProductOrMedicine = Product | Medicine;
 
 // 統一的搜尋項目類型
-type SearchItem = Product | Package;
+type SearchItem = ProductOrMedicine | Package;
 
 interface SalesProductInputProps {
-  products: Product[];
+  products: ProductOrMedicine[];
   packages: Package[];
   barcodeInputRef: React.RefObject<HTMLInputElement>;
-  onSelectProduct: (product: Product) => void;
+  onSelectProduct: (product: ProductOrMedicine) => void;
   onSelectPackage: (packageItem: Package) => void;
   showSnackbar: (message: string, severity: 'success' | 'error' | 'warning' | 'info') => void;
 }
@@ -71,7 +63,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
         product.code?.toLowerCase().includes(searchTerm) ||
         product.shortCode?.toLowerCase().includes(searchTerm) ||
         product.barcode?.toLowerCase().includes(searchTerm) ||
-        product.healthInsuranceCode?.toLowerCase().includes(searchTerm)
+        ('healthInsuranceCode' in product && product.healthInsuranceCode?.toLowerCase().includes(searchTerm))
       );
 
       // 搜尋套餐
@@ -102,10 +94,10 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             return String(item.code) === barcode.trim() || 
                    String(item.shortCode) === barcode.trim();
           } else {
-            return String(item.code) === barcode.trim() || 
-                   String(item.barcode) === barcode.trim() || 
+            return String(item.code) === barcode.trim() ||
+                   String(item.barcode) === barcode.trim() ||
                    String(item.shortCode) === barcode.trim() ||
-                   String(item.healthInsuranceCode) === barcode.trim();
+                   ('healthInsuranceCode' in item && String(item.healthInsuranceCode) === barcode.trim());
           }
         });
         
@@ -142,10 +134,10 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
       } else {
         // 在所有產品和套餐中查找精確匹配
         const product = products.find(
-          p => String(p.barcode) === barcode.trim() || 
-               String(p.code) === barcode.trim() || 
+          p => String(p.barcode) === barcode.trim() ||
+               String(p.code) === barcode.trim() ||
                String(p.shortCode) === barcode.trim() ||
-               String(p.healthInsuranceCode) === barcode.trim()
+               ('healthInsuranceCode' in p && String(p.healthInsuranceCode) === barcode.trim())
         );
         
         const packageItem = packages.find(
@@ -208,7 +200,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             ) : (
               <>
                 <Typography variant="body2" sx={{ color: 'black' }}>
-                  代碼: {option.code || 'N/A'} | 健保碼: {(option as Product).healthInsuranceCode || 'N/A'}
+                  代碼: {option.code || 'N/A'} | 健保碼: {('healthInsuranceCode' in option ? option.healthInsuranceCode : 'N/A') || 'N/A'}
                 </Typography>
                 <Typography variant="body2" display="block" sx={{ color: 'black' }}>
                   價格: ${((option as Product).sellingPrice ?? (option as Product).price)?.toFixed(0) || 'N/A'}

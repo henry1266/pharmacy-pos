@@ -18,17 +18,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import useInventoryData from '../../hooks/useInventoryData';
-
-// 定義產品的型別
-interface Product {
-  _id: string;
-  name?: string;
-  code?: string;
-  barcode?: string;
-  healthInsuranceCode?: string;
-  price?: number;
-  sellingPrice?: number;
-}
+import { Product } from '@pharmacy-pos/shared/types/entities';
 
 interface CustomProductsDialogProps {
   open: boolean;
@@ -36,7 +26,7 @@ interface CustomProductsDialogProps {
   allProducts?: Product[];
   productIdsToShow?: string[];
   shortcutName?: string;
-  onSelectProduct?: (product: Product) => void;
+  onSelectProduct?: (product: Product | null) => void;
 }
 
 /**
@@ -95,7 +85,7 @@ const CustomProductsDialog: React.FC<CustomProductsDialogProps> = ({
           (product?.name ?? '').toLowerCase(),
           (product?.code ?? '').toLowerCase(),
           (product?.barcode ?? '').toLowerCase(),
-          (product?.healthInsuranceCode ?? '').toLowerCase()
+          (('healthInsuranceCode' in product ? product.healthInsuranceCode ?? '' : '') as string).toLowerCase()
         ].some(field => field.includes(lowerCaseSearchTerm));
       });
     }

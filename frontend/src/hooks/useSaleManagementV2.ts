@@ -56,8 +56,8 @@ const initialSaleState: SaleData = {
  * @returns {Object} - Contains current sale state, input modes, and handler functions.
  */
 const useSaleManagementV2 = (
-  showSnackbar: (message: string, severity: string) => void,
-  onSaleCompleted?: () => void
+  showSnackbar: (message: string, severity?: 'success' | 'info' | 'warning' | 'error') => void,
+  onSaleCompleted?: (saleData?: { totalAmount: number; saleNumber: string }) => void
 ) => {
   const [currentSale, setCurrentSale] = useState<SaleData>(initialSaleState);
   const [inputModes, setInputModes] = useState<InputMode[]>([]);
@@ -237,12 +237,13 @@ const useSaleManagementV2 = (
   }, [showSnackbar]);
 
   // Handler for changing item quantity
-  const handleQuantityChange = useCallback((index: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
+  const handleQuantityChange = useCallback((index: number, newQuantity: number | string) => {
+    const numQuantity = typeof newQuantity === 'string' ? parseInt(newQuantity, 10) : newQuantity;
+    if (isNaN(numQuantity) || numQuantity < 1) return;
     setCurrentSale(prevSale => {
       const updatedItems = [...prevSale.items];
-      updatedItems[index].quantity = newQuantity;
-      updatedItems[index].subtotal = updatedItems[index].price * newQuantity;
+      updatedItems[index].quantity = numQuantity;
+      updatedItems[index].subtotal = updatedItems[index].price * numQuantity;
       return { ...prevSale, items: updatedItems };
     });
   }, []);
@@ -356,7 +357,10 @@ const useSaleManagementV2 = (
       
       // Call the completion callback if provided
       if (onSaleCompleted) {
-        onSaleCompleted();
+        onSaleCompleted({
+          totalAmount: currentSale.totalAmount,
+          saleNumber: finalSaleNumber
+        });
       }
       
       return true;

@@ -278,9 +278,9 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
                       onCellSelect={handleCellSelect}
                       getBorderStyle={getBorderStyle}
                       getBorderColor={getBorderColor}
-                      getEmployeeAbbreviation={getEmployeeAbbreviation}
+                      getEmployeeAbbreviation={(employee) => getEmployeeAbbreviation(employee as any)}
                       getBorderColorByLeaveType={(schedule) => getBorderColorByLeaveType(schedule as { leaveType?: 'sick' | 'personal' | 'overtime' | null; employee: { _id: string; name: string; }; })}
-                      getLeaveTypeText={getLeaveTypeText}
+                      getLeaveTypeText={(leaveType) => getLeaveTypeText(leaveType as any)}
                       formatDateString={formatDateString}
                     />
                   </Grid>

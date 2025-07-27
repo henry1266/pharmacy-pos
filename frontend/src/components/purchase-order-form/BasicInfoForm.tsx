@@ -25,13 +25,7 @@ import AccountingEntrySelector from './AccountingEntrySelector';
 // 直接使用 MuiGrid
 const Grid = MuiGrid;
 
-// 定義供應商介面
-interface Supplier {
-  _id: string; // 修改為必需屬性
-  name: string;
-  shortCode?: string;
-  [key: string]: any;
-}
+import { Supplier } from '@pharmacy-pos/shared/types/entities';
 
 // 定義表單數據介面
 interface FormData {
@@ -55,7 +49,7 @@ interface BasicInfoFormProps {
   formData: FormData;
   handleInputChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
   handleDateChange: (date: Date | null) => void;
-  handleSupplierChange: (event: React.SyntheticEvent, supplier: Supplier | null) => void;
+  handleSupplierChange: (event: React.SyntheticEvent, value: Supplier | null) => void;
   handleAccountChange?: (accountIds: string[]) => void;
   handleAccountingEntryChange?: (accountIds: string[], entryType: 'expense-asset' | 'asset-liability') => void;
   suppliers?: Supplier[];

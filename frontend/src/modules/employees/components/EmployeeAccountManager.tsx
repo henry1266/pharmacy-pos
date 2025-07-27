@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
+import { SelectChangeEvent } from '@mui/material';
 import {
   Box,
   Typography,
@@ -105,7 +106,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
   }, [employeeId]);
 
   // 處理表單輸入變更
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent): void => {
     const { name, value } = e.target;
     setFormData({
       ...formData,

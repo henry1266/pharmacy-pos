@@ -253,9 +253,10 @@ const ProductsPage: React.FC = () => {
   };
   
   // 打開編輯產品對話框
-  function handleEditProduct(id: string, type: ProductType): void {
+  function handleEditProduct(id: string, type: string): void {
+    const productType = type as ProductType;
     setEditMode(true);
-    setProductType(type);
+    setProductType(productType);
     
     // 從統一列表中查找產品
     const product = allProducts.find(p => p.id === id);
