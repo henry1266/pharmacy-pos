@@ -32,15 +32,10 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     
-    /* 程式碼品質 */
-    "noFallthroughCasesInSwitch": false,
-    
     /* 進階選項 */
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "noErrorTruncation": true,
-    "useUnknownInCatchVariables": false,
     "exactOptionalPropertyTypes": false,
     "noImplicitOverride": false,
     "noPropertyAccessFromIndexSignature": false,

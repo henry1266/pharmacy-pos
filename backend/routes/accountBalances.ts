@@ -99,7 +99,10 @@ router.get('/summary', auth, async (req: AuthenticatedRequest, res: Response): P
 
   } catch (error) {
     console.error('❌ 取得科目餘額摘要失敗:', error);
-    res.status(500).json({ message: '取得科目餘額摘要失敗', error: error.message });
+    res.status(500).json({
+      message: '取得科目餘額摘要失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -171,7 +174,10 @@ router.get('/:accountId', auth, async (req: AuthenticatedRequest, res: Response)
 
   } catch (error) {
     console.error('❌ 計算科目餘額失敗:', error);
-    res.status(500).json({ message: '計算科目餘額失敗', error: error.message });
+    res.status(500).json({
+      message: '計算科目餘額失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -236,7 +242,10 @@ router.post('/batch', auth, async (req: AuthenticatedRequest, res: Response): Pr
         });
 
       } catch (error) {
-        console.error('❌ 計算單一科目餘額失敗:', { accountId, error: error.message });
+        console.error('❌ 計算單一科目餘額失敗:', {
+          accountId,
+          error: error instanceof Error ? error.message : '未知錯誤'
+        });
       }
     }
 
@@ -250,7 +259,10 @@ router.post('/batch', auth, async (req: AuthenticatedRequest, res: Response): Pr
 
   } catch (error) {
     console.error('❌ 批量計算科目餘額失敗:', error);
-    res.status(500).json({ message: '批量計算科目餘額失敗', error: error.message });
+    res.status(500).json({
+      message: '批量計算科目餘額失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 

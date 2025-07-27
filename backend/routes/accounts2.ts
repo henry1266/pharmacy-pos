@@ -237,7 +237,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
           filter.organizationId = objectId;
         } catch (objectIdError) {
           console.error('❌ ObjectId 轉換失敗:', objectIdError);
-          throw new Error(`機構ID轉換失敗: ${objectIdError.message}`);
+          throw new Error(`機構ID轉換失敗: ${objectIdError instanceof Error ? objectIdError.message : '未知錯誤'}`);
         }
       } else {
         console.log('⚠️ 沒有機構ID，查詢個人科目');
@@ -407,22 +407,23 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     });
   } catch (error) {
     console.error('❌ 建立會計科目時發生錯誤:', error);
-    console.error('❌ 錯誤堆疊:', error.stack);
+    console.error('❌ 錯誤堆疊:', error instanceof Error ? error.stack : '無堆疊資訊');
     console.error('❌ 請求資料:', req.body);
     
     // 檢查是否為 MongoDB 相關錯誤
-    if (error.name === 'ValidationError') {
-      console.error('❌ MongoDB 驗證錯誤:', error.errors);
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as any;
+      console.error('❌ MongoDB 驗證錯誤:', validationError.errors);
       res.status(400).json({
         success: false,
         message: '資料驗證失敗',
         error: error.message,
-        details: error.errors
+        details: validationError.errors
       });
       return;
     }
     
-    if (error.name === 'CastError') {
+    if (error instanceof Error && error.name === 'CastError') {
       console.error('❌ MongoDB 型別轉換錯誤:', error);
       res.status(400).json({
         success: false,
@@ -433,21 +434,24 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response):
     }
 
     // 檢查是否為重複鍵錯誤
-    if (error.name === 'MongoServerError' && error.code === 11000) {
-      console.error('❌ MongoDB 重複鍵錯誤:', error);
-      const duplicateField = error.message.match(/dup key: \{ (.+?) :/)?.[1] || 'unknown';
-      res.status(400).json({
-        success: false,
-        message: `${duplicateField === 'code' ? '會計科目代碼' : '資料'}已存在，請重新嘗試`,
-        error: '重複資料錯誤'
-      });
-      return;
+    if (error instanceof Error && error.name === 'MongoServerError') {
+      const mongoError = error as any;
+      if (mongoError.code === 11000) {
+        console.error('❌ MongoDB 重複鍵錯誤:', error);
+        const duplicateField = error.message.match(/dup key: \{ (.+?) :/)?.[1] || 'unknown';
+        res.status(400).json({
+          success: false,
+          message: `${duplicateField === 'code' ? '會計科目代碼' : '資料'}已存在，請重新嘗試`,
+          error: '重複資料錯誤'
+        });
+        return;
+      }
     }
     
     res.status(500).json({
       success: false,
       message: '建立帳戶失敗',
-      error: error.message
+      error: error instanceof Error ? error.message : '未知錯誤'
     });
   }
 });
@@ -587,22 +591,23 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     });
   } catch (error) {
     console.error('❌ 更新帳戶時發生錯誤:', error);
-    console.error('❌ 錯誤堆疊:', error.stack);
+    console.error('❌ 錯誤堆疊:', error instanceof Error ? error.stack : '無堆疊資訊');
     console.error('❌ 請求資料:', req.body);
     
     // 檢查是否為 MongoDB 相關錯誤
-    if (error.name === 'ValidationError') {
-      console.error('❌ MongoDB 驗證錯誤:', error.errors);
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as any;
+      console.error('❌ MongoDB 驗證錯誤:', validationError.errors);
       res.status(400).json({
         success: false,
         message: '資料驗證失敗',
         error: error.message,
-        details: error.errors
+        details: validationError.errors
       });
       return;
     }
     
-    if (error.name === 'CastError') {
+    if (error instanceof Error && error.name === 'CastError') {
       console.error('❌ MongoDB 型別轉換錯誤:', error);
       res.status(400).json({
         success: false,
@@ -615,7 +620,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     res.status(500).json({
       success: false,
       message: '更新帳戶失敗',
-      error: error.message
+      error: error instanceof Error ? error.message : '未知錯誤'
     });
   }
 });
@@ -723,10 +728,10 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     });
   } catch (error) {
     console.error('❌ 刪除帳戶錯誤:', error);
-    console.error('❌ 錯誤堆疊:', error.stack);
+    console.error('❌ 錯誤堆疊:', error instanceof Error ? error.stack : '無堆疊資訊');
     
     // 檢查是否為 MongoDB 相關錯誤
-    if (error.name === 'CastError') {
+    if (error instanceof Error && error.name === 'CastError') {
       console.error('❌ MongoDB 型別轉換錯誤:', error);
       res.status(400).json({
         success: false,
@@ -739,7 +744,7 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     res.status(500).json({
       success: false,
       message: '刪除帳戶失敗',
-      error: error.message
+      error: error instanceof Error ? error.message : '未知錯誤'
     });
   }
 });

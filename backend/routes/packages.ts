@@ -57,7 +57,10 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     res.json(packages);
   } catch (error) {
     console.error('獲取套餐列表錯誤:', error);
-    res.status(500).json({ message: '獲取套餐列表失敗', error: error.message });
+    res.status(500).json({
+      message: '獲取套餐列表失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -72,7 +75,10 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     res.json(packageDoc);
   } catch (error) {
     console.error('獲取套餐詳情錯誤:', error);
-    res.status(500).json({ message: '獲取套餐詳情失敗', error: error.message });
+    res.status(500).json({
+      message: '獲取套餐詳情失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -139,10 +145,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     res.status(201).json(savedPackage);
   } catch (error) {
     console.error('建立套餐錯誤:', error);
-    if (error.code === 11000) {
+    const mongoError = error as any;
+    if (mongoError.code === 11000) {
       res.status(400).json({ message: '套餐代碼已存在' });
     } else {
-      res.status(500).json({ message: '建立套餐失敗', error: error.message });
+      res.status(500).json({
+        message: '建立套餐失敗',
+        error: error instanceof Error ? error.message : '未知錯誤'
+      });
     }
   }
 });
@@ -213,7 +223,10 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
     res.json(updatedPackage);
   } catch (error) {
     console.error('更新套餐錯誤:', error);
-    res.status(500).json({ message: '更新套餐失敗', error: error.message });
+    res.status(500).json({
+      message: '更新套餐失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -228,7 +241,10 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     res.json({ message: '套餐已成功刪除', package: deletedPackage });
   } catch (error) {
     console.error('刪除套餐錯誤:', error);
-    res.status(500).json({ message: '刪除套餐失敗', error: error.message });
+    res.status(500).json({
+      message: '刪除套餐失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -248,7 +264,10 @@ router.patch('/:id/toggle-active', async (req: Request, res: Response): Promise<
     res.json(updatedPackage);
   } catch (error) {
     console.error('切換套餐狀態錯誤:', error);
-    res.status(500).json({ message: '切換套餐狀態失敗', error: error.message });
+    res.status(500).json({
+      message: '切換套餐狀態失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -275,7 +294,10 @@ router.get('/stats/summary', async (req: Request, res: Response): Promise<void> 
     res.json(stats);
   } catch (error) {
     console.error('獲取套餐統計錯誤:', error);
-    res.status(500).json({ message: '獲取套餐統計失敗', error: error.message });
+    res.status(500).json({
+      message: '獲取套餐統計失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -291,7 +313,10 @@ router.get('/categories/list', async (req: Request, res: Response): Promise<void
     res.json(categories.sort());
   } catch (error) {
     console.error('獲取套餐分類錯誤:', error);
-    res.status(500).json({ message: '獲取套餐分類失敗', error: error.message });
+    res.status(500).json({
+      message: '獲取套餐分類失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
@@ -307,7 +332,10 @@ router.get('/tags/list', async (req: Request, res: Response): Promise<void> => {
     res.json(uniqueTags.sort());
   } catch (error) {
     console.error('獲取套餐標籤錯誤:', error);
-    res.status(500).json({ message: '獲取套餐標籤失敗', error: error.message });
+    res.status(500).json({
+      message: '獲取套餐標籤失敗',
+      error: error instanceof Error ? error.message : '未知錯誤'
+    });
   }
 });
 
