@@ -246,8 +246,8 @@ router.get('/suppliers/purchase-details/:supplierId', async (req: Request, res: 
       message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
       data: {
         supplier: {
-          _id: supplier._id.toString(),
-          code: supplier.code,
+          _id: (supplier._id as any).toString(),
+          code: supplier.code || '',
           name: supplier.name
         },
         orders: purchaseOrders,

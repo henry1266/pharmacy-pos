@@ -20,7 +20,7 @@ type ShiftType = '早' | '中' | '晚';
 interface AccountingItem {
   amount: number;
   category: string;
-  categoryId?: Types.ObjectId | null;
+  categoryId?: Types.ObjectId | null | undefined;
   note?: string;
   isAutoLinked?: boolean;
 }
@@ -732,7 +732,10 @@ router.put(
       // 3. Update the accounting record
       accounting.date = accountingDate;
       if (shift) accounting.shift = shift; // Only update shift if provided
-      accounting.items = finalItems;
+      accounting.items = finalItems.map(item => ({
+        ...item,
+        categoryId: item.categoryId || undefined
+      }));
       accounting.totalAmount = finalTotalAmount;
       if (status) accounting.status = status;
 

@@ -85,6 +85,16 @@ router.get('/', async (_req: Request, res: Response) => {
 // @access  Public
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '進貨單ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     const purchaseOrder = await PurchaseOrder.findById(req.params.id)
       .populate('supplier', 'name code')
       .populate('items.product', 'name code _id')
@@ -185,7 +195,7 @@ async function validateAndSetProductIds(items: PurchaseOrderRequest['items']): P
     // 嘗試查找藥品
     const product = await BaseProduct.findOne({ code: item.did.toString() });
     if (product) {
-      item.product = product._id.toString();
+      item.product = (product._id as any).toString();
     }
   }
   
@@ -206,7 +216,7 @@ async function findSupplierId(posupplier: string, supplier?: string): Promise<st
   if (posupplier) {
     const supplierDoc = await Supplier.findOne({ name: posupplier.toString() });
     if (supplierDoc) {
-      return supplierDoc._id.toString();
+      return (supplierDoc._id as any).toString();
     }
   }
   
@@ -311,7 +321,16 @@ router.post('/', [
 
     // 如果狀態為已完成，則更新庫存
     if (purchaseOrder.status === 'completed') {
-      const userId = req.user?.id;
+      if (!req.user?.id) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '用戶認證失敗',
+          timestamp: new Date()
+        };
+        res.status(401).json(errorResponse);
+        return;
+      }
+      const userId = req.user.id;
       await updateInventory(purchaseOrder, userId);
     }
 
@@ -553,6 +572,16 @@ const handlePurchaseOrderUpdateError = (res: Response, err: Error): void => {
 // @access  Private
 router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '進貨單ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     const { poid, status, items, selectedAccountIds } = req.body as PurchaseOrderRequest;
     const id = req.params.id;
     
@@ -565,7 +594,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
       res.status(statusCode).json({ msg: validation.error });
       return;
     }
-    let purchaseOrder = validation.purchaseOrder;
+    let purchaseOrder = validation.purchaseOrder!;
 
     // 處理進貨單號變更
     const idChangeResult = await handlePurchaseOrderIdChange(poid, purchaseOrder);
@@ -598,11 +627,17 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // 重新獲取進貨單以確保最新狀態
-    purchaseOrder = await PurchaseOrder.findById(id);
-    if (!purchaseOrder) {
-      res.status(404).json({ msg: '找不到該進貨單' });
+    const updatedPurchaseOrder = await PurchaseOrder.findById(id);
+    if (!updatedPurchaseOrder) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '找不到該進貨單',
+        timestamp: new Date()
+      };
+      res.status(404).json(errorResponse);
       return;
     }
+    purchaseOrder = updatedPurchaseOrder;
     
     // 應用更新
     applyUpdatesToPurchaseOrder(purchaseOrder, updateData);
@@ -614,7 +649,16 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
 
     // 如果需要更新庫存
     if (statusResult.needUpdateInventory) {
-      const userId = req.user?.id;
+      if (!req.user?.id) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '用戶認證失敗',
+          timestamp: new Date()
+        };
+        res.status(401).json(errorResponse);
+        return;
+      }
+      const userId = req.user.id;
       await updateInventory(purchaseOrder, userId);
     }
 
@@ -636,11 +680,17 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
 // @access  Public
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const id = req.params.id;
-    if (!id) {
-      res.status(400).json({ msg: '進貨單ID為必填項' });
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '進貨單ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
       return;
     }
+
+    const id = req.params.id;
 
     const purchaseOrder = await PurchaseOrder.findById(id);
     if (!purchaseOrder) {
@@ -684,11 +734,17 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
   try {
-    const supplierId = req.params.supplierId;
-    if (!supplierId) {
-      res.status(400).json({ msg: '供應商ID為必填項' });
+    if (!req.params.supplierId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '供應商ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
       return;
     }
+
+    const supplierId = req.params.supplierId;
 
     const purchaseOrders = await PurchaseOrder.find({ supplier: new Types.ObjectId(supplierId) })
       .sort({ createdAt: -1 })
@@ -721,11 +777,17 @@ router.get('/supplier/:supplierId', async (req: Request, res: Response) => {
 // @access  Public
 router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
-    const productId = req.params.productId;
-    if (!productId) {
-      res.status(400).json({ msg: '產品ID為必填項' });
+    if (!req.params.productId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '產品ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
       return;
     }
+
+    const productId = req.params.productId;
 
     const purchaseOrders = await PurchaseOrder.find({
       'items.product': new Types.ObjectId(productId),

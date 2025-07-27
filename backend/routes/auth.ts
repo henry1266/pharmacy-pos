@@ -179,13 +179,35 @@ router.post(
       };
 
       // 簽發 JWT
-      // 使用 as any 來完全繞過 TypeScript 的型別檢查
+      const jwtSecret = config.get('jwtSecret');
+      const jwtExpiration = config.get('jwtExpiration');
+      
+      if (!jwtSecret) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: 'JWT配置錯誤',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+        return;
+      }
+      
       jwt.sign(
         payload,
-        config.get('jwtSecret'),
-        { expiresIn: config.get('jwtExpiration') },
+        jwtSecret as string,
+        { expiresIn: (jwtExpiration as string) || '1h' } as jwt.SignOptions,
         (err: Error | null, token?: string) => {
           if (err) throw err;
+          
+          if (!token) {
+            const errorResponse: ErrorResponse = {
+              success: false,
+              message: 'JWT 簽名失敗',
+              timestamp: new Date()
+            };
+            res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+            return;
+          }
           
           const response: ApiResponse<{
             token: string;
@@ -345,6 +367,16 @@ router.put(
     const { username, email, currentPassword, newPassword } = req.body;
 
     try {
+      if (!req.user?.id) {
+        const errorResponse: ErrorResponse = {
+          success: false,
+          message: '未授權的請求',
+          timestamp: new Date()
+        };
+        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+        return;
+      }
+
       // 驗證用戶存在
       const userValidation = await validateUserExists(req.user.id);
       if (!userValidation.valid) {
@@ -453,37 +485,6 @@ router.put(
         return;
       }
 
-      // 驗證用戶存在
-      if (!req.user?.id) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: '未授權的請求',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
-        return;
-      }
-  
-      if (!req.user?.id) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: '未授權的請求',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
-        return;
-      }
-  
-      if (!req.user?.id) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: '未授權的請求',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
-        return;
-      }
-  
       const userValidation = await validateUserExists(req.user.id);
       if (!userValidation.valid) {
         const errorResponse: ErrorResponse = {
@@ -529,6 +530,16 @@ router.put(
 // @access  Private
 router.get('/themes', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!req.user?.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '未授權的請求',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+      return;
+    }
+
     const userValidation = await validateUserExists(req.user.id);
     if (!userValidation.valid) {
       const errorResponse: ErrorResponse = {
@@ -583,6 +594,16 @@ router.post('/themes', auth, [
   }
 
   try {
+    if (!req.user?.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '未授權的請求',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+      return;
+    }
+
     const { themeName, primaryColor, mode, customSettings } = req.body;
 
     const userValidation = await validateUserExists(req.user.id);
@@ -679,6 +700,26 @@ router.get('/themes/default-colors', auth, async (_req: AuthRequest, res: Respon
 // @access  Private
 router.put('/themes/current/:themeId', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!req.params.themeId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '主題ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+
+    if (!req.user?.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '未授權的請求',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json(errorResponse);
+      return;
+    }
+
     const { themeId } = req.params;
 
     const userValidation = await validateUserExists(req.user.id);
@@ -748,18 +789,18 @@ router.put('/themes/current/:themeId', auth, async (req: AuthRequest, res: Respo
 // @access  Private
 router.put('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { themeId } = req.params;
-    const updateData = req.body;
-
-    if (!themeId) {
+    if (!req.params.themeId) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '缺少主題ID參數',
+        message: '主題ID為必填項',
         timestamp: new Date()
       };
       res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       return;
     }
+
+    const { themeId } = req.params;
+    const updateData = req.body;
 
     if (!req.user?.id) {
       const errorResponse: ErrorResponse = {
@@ -849,17 +890,17 @@ router.put('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Pr
 // @access  Private
 router.delete('/themes/:themeId', auth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { themeId } = req.params;
-
-    if (!themeId) {
+    if (!req.params.themeId) {
       const errorResponse: ErrorResponse = {
         success: false,
-        message: '缺少主題ID參數',
+        message: '主題ID為必填項',
         timestamp: new Date()
       };
       res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
       return;
     }
+
+    const { themeId } = req.params;
 
     if (!req.user?.id) {
       const errorResponse: ErrorResponse = {

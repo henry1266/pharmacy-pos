@@ -202,6 +202,16 @@ router.post(
 router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少監測產品ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     const monitoredProduct = await MonitoredProduct.findOne({ _id: req.params.id.toString() });
     if (!monitoredProduct) {
       const errorResponse: ErrorResponse = {
@@ -221,6 +231,16 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response): Pr
     // }
     
     // 修正：使用 findOneAndDelete 替代 findByIdAndDelete，並將 id 轉換為字串
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少監測產品ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     await MonitoredProduct.findOneAndDelete({ _id: req.params.id.toString() });
     
     const response: ApiResponse<null> = {

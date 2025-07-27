@@ -118,6 +118,16 @@ router.post('/', [auth, adminAuth, ...createAccountValidation], async (req: Requ
  */
 router.get('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
+    if (!req.params.employeeId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少員工ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     const user = await getEmployeeAccount(req.params.employeeId);
     const response: ApiResponse<EmployeeUser> = {
       success: true,
@@ -160,6 +170,16 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
 
     const { username, email, password, role } = req.body;
     
+    if (!req.params.employeeId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少員工ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     const updatedUser = await updateEmployeeAccount(req.params.employeeId, {
       username,
       email,
@@ -194,6 +214,16 @@ router.put('/:employeeId', [auth, adminAuth, ...updateAccountValidation], async 
  */
 router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
+    if (!req.params.employeeId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少員工ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     await deleteEmployeeAccount(req.params.employeeId);
     
     const response: ApiResponse<null> = {
@@ -223,6 +253,16 @@ router.delete('/:employeeId', [auth, adminAuth], async (req: Request, res: Respo
  */
 router.put('/:employeeId/unbind', [auth, adminAuth], async (req: Request, res: Response) => {
   try {
+    if (!req.params.employeeId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '缺少員工ID參數',
+        timestamp: new Date()
+      };
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      return;
+    }
+    
     const result = await unbindEmployeeAccount(req.params.employeeId);
     
     const message = result.user 

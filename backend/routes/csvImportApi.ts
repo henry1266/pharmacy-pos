@@ -176,7 +176,9 @@ function convertToWesternDate(dateStr: string): string | null {
   try {
     const dateObj = new Date(dateStr);
     if (!isNaN(dateObj.getTime())) {
-      return dateObj.toISOString().split("T")[0]; // 返回YYYY-MM-DD格式
+      const isoString = dateObj.toISOString();
+      const datePart = isoString.split("T")[0];
+      return datePart || null; // 返回YYYY-MM-DD格式
     }
   } catch (error) {
     console.error(`解析日期時出錯: ${dateStr}`, error);
@@ -263,7 +265,7 @@ function processShippingItems(results: CSVItem[], productMap: { [key: string]: a
     const totalCost = item.quantity * item.nhPrice;
     
     items.push({
-      product: product._id.toString(),
+      product: (product._id as any).toString(),
       did: product.code ?? "",
       dname: product.name ?? "",
       dquantity: item.quantity,
@@ -290,14 +292,14 @@ async function determineSupplier(defaultSupplierId?: string): Promise<SupplierIn
     // 嘗試查找指定的供應商
     const supplier = await Supplier.findById(defaultSupplierId);
     if (supplier) {
-      supplierId = supplier._id.toString();
+      supplierId = (supplier._id as any).toString();
       supplierName = supplier.name;
     }
   } else {
     // 嘗試查找名為"調劑"的供應商
     const supplier = await Supplier.findOne({ name: "調劑" });
     if (supplier) {
-      supplierId = supplier._id.toString();
+      supplierId = (supplier._id as any).toString();
       supplierName = supplier.name;
     }
   }
@@ -355,10 +357,10 @@ router.post("/shipping-orders", upload.single("file"), async (req: FileUploadReq
           const keys = Object.keys(data);
           // 如果CSV沒有標題行，則使用索引位置
           if (keys.length >= 4) {
-            const rawDate = data[keys[0]] ?? "";
-            const nhCode = data[keys[1]] ?? "";
-            const quantity = parseInt(data[keys[2]], 10) ?? 0;
-            const nhPrice = parseFloat(data[keys[3]]) ?? 0;
+            const rawDate = data[keys[0] || ''] ?? "";
+            const nhCode = data[keys[1] || ''] ?? "";
+            const quantity = parseInt(data[keys[2] || ''], 10) || 0;
+            const nhPrice = parseFloat(data[keys[3] || '']) || 0;
 
             // 轉換日期格式（支持民國年和西元年）
             const date = convertToWesternDate(rawDate);

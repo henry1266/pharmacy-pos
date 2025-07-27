@@ -215,7 +215,7 @@ router.get("/monthly-stats", auth, async (req: AuthenticatedRequest, res: Respon
       const scheduleRecordCount = scheduleOvertimeByEmployee[employeeId]?.length || 0;
       
       // 查找對應的員工資料
-      const employee = employees.find(emp => emp._id.toString() === employeeId);
+      const employee = employees.find(emp => (emp._id as any).toString() === employeeId);
       
       return {
         employeeId,
@@ -358,7 +358,7 @@ router.post(
         errors: Object.entries(formErrors).map(([field, message]) => ({
           type: 'field',
           value: req.body[field],
-          msg: message,
+          msg: message || '驗證失敗',
           path: field,
           location: 'body'
         })),

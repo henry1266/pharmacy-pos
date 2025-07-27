@@ -433,7 +433,7 @@ router.get('/:id/hierarchy', [
 
     // 取得階層路徑 - 暫時實作簡單版本
     const hierarchyPath = [];
-    let currentOrg = organization;
+    let currentOrg: any = organization;
     
     while (currentOrg) {
       hierarchyPath.unshift({
@@ -444,7 +444,12 @@ router.get('/:id/hierarchy', [
       });
       
       if (currentOrg.parentId) {
-        currentOrg = await Organization.findById(currentOrg.parentId);
+        const parentOrg = await Organization.findById(currentOrg.parentId);
+        if (parentOrg) {
+          currentOrg = parentOrg;
+        } else {
+          break;
+        }
       } else {
         break;
       }

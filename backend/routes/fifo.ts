@@ -306,8 +306,8 @@ router.get('/shipping-order/:shippingOrderId', async (req: Request, res: Respons
       }
       
       const fifoResult = calculateProductFIFO(inventories);
-      const profitRecord = fifoResult.profitMargins.find((p: any) => 
-        (p.orderType === 'shipping' || p.orderType === 'ship') && 
+      const profitRecord = fifoResult.profitMargins?.find((p: any) =>
+        (p.orderType === 'shipping' || p.orderType === 'ship') &&
         p.orderId === req.params.shippingOrderId
       );
       
@@ -428,6 +428,7 @@ function processInventoryRecords(allInventories: any[]): ProcessedInventory {
     let remaining = out.quantity;
     while (remaining > 0 && inIndex < processedStockIn.length) {
       const batch = processedStockIn[inIndex];
+      if (!batch) break;
       if (!batch.remainingQty) batch.remainingQty = batch.quantity;
       if (batch.remainingQty > 0) {
         const used = Math.min(batch.remainingQty, remaining);
@@ -486,9 +487,17 @@ function calculateFifoCost(fifoMatches: FIFOMatch[]): {
   }
   
   const match = fifoMatches[0];
+  if (!match) {
+    return {
+      totalCost: 0,
+      hasNegativeInventory: false,
+      remainingNegativeQuantity: 0
+    };
+  }
+  
   return {
-    totalCost: match.costParts.reduce((sum, part) => sum + (part.unit_price * part.quantity), 0),
-    hasNegativeInventory: match.hasNegativeInventory,
+    totalCost: match.costParts?.reduce((sum, part) => sum + (part.unit_price * part.quantity), 0) || 0,
+    hasNegativeInventory: match.hasNegativeInventory || false,
     remainingNegativeQuantity: match.remainingNegativeQuantity ?? 0
   };
 }

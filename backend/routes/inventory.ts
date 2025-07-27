@@ -94,6 +94,11 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
     
     // 修正：使用 findOne 替代 findById，並將 id 轉換為字串
+    if (!req.params.id) {
+      sendInvalidRequestResponse(res, '缺少庫存記錄ID參數');
+      return;
+    }
+    
     const inventory = await Inventory.findOne({ _id: req.params.id.toString() })
       .populate('product')
       .populate('purchaseOrderId', 'poid orderNumber pobill');
@@ -238,6 +243,11 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
     
     // 查找庫存記錄
+    if (!req.params.id) {
+      sendInvalidRequestResponse(res, '缺少庫存記錄ID參數');
+      return;
+    }
+    
     let inventory = await Inventory.findOne({ _id: req.params.id.toString() });
     if (!inventory) {
       sendNotFoundResponse(res, '庫存記錄不存在');
@@ -278,6 +288,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
     
     // 查找庫存記錄
+    if (!req.params.id) {
+      sendInvalidRequestResponse(res, '缺少庫存記錄ID參數');
+      return;
+    }
+    
     const inventory = await Inventory.findOne({ _id: req.params.id.toString() });
     if (!inventory) {
       sendNotFoundResponse(res, '庫存記錄不存在');

@@ -119,7 +119,7 @@ router.get('/with-accounts', auth, async (req: Request, res: Response) => {
         ...employeeData,
         account: user ? {
           _id: user._id.toString(),
-          employeeId: emp._id.toString(),
+          employeeId: (emp._id as any).toString(),
           username: user.username,
           email: user.email,
           role: user.role,
@@ -356,7 +356,7 @@ async function validateIdNumber(idNumber: string, currentEmployeeId: string): Pr
   // 檢查是否與其他員工重複
   const idNumberToCheck = String(idNumber).trim();
   const existingEmployee = await Employee.findOne({ idNumber: idNumberToCheck });
-  if (existingEmployee && existingEmployee._id.toString() !== currentEmployeeId) {
+  if (existingEmployee && (existingEmployee._id as any).toString() !== currentEmployeeId) {
     return { valid: false, message: '此身分證號碼已存在' };
   }
   

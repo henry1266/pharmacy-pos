@@ -410,7 +410,7 @@ export class TransactionService {
     });
 
     if (accounts.length !== accountIds.length) {
-      const existingAccountIds = accounts.map(a => a._id.toString());
+      const existingAccountIds = accounts.map(a => (a._id as any).toString());
       const missingAccountIds = accountIds.filter(id => !existingAccountIds.includes(id));
       throw new Error(`以下會計科目不存在或無權限存取: ${missingAccountIds.join(', ')}`);
     }

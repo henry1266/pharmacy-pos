@@ -388,6 +388,16 @@ const handleScheduleUpdateError = (res: Response, error: any): void => {
 // @access  Private
 router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '排班ID為必填項',
+        timestamp: new Date().toISOString()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     // 驗證排班ID
     const scheduleValidation = await validateScheduleId(req.params.id);
     if (!scheduleValidation.valid) {
@@ -419,7 +429,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
     const updatedFields = prepareScheduleUpdateFields(req.body);
 
     // 檢查更新後是否會與現有排班衝突
-    const hasConflict = await checkScheduleUpdateConflict(req.params.id, updatedFields, schedule);
+    const hasConflict = await checkScheduleUpdateConflict(req.params.id, updatedFields, schedule!);
     if (hasConflict) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -453,6 +463,16 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
 // @access  Private
 router.delete('/:id', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '排班ID為必填項',
+        timestamp: new Date().toISOString()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     // 驗證ID格式是否為有效的ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       const errorResponse: ErrorResponse = {
@@ -583,16 +603,21 @@ router.get('/by-date', [
     schedules.forEach(schedule => {
       const dateStr = schedule.date.toISOString().split('T')[0];
       
-      if (!groupedSchedules[dateStr]) {
-        groupedSchedules[dateStr] = {
-          morning: [],
-          afternoon: [],
-          evening: []
-        };
+      if (!dateStr || !groupedSchedules[dateStr]) {
+        if (dateStr) {
+          groupedSchedules[dateStr] = {
+            morning: [],
+            afternoon: [],
+            evening: []
+          };
+        }
       }
       
       // 修正資料結構，讓它符合前端期望的 EmployeeSchedule 介面
-      groupedSchedules[dateStr][schedule.shift as keyof typeof groupedSchedules[string]].push({
+      if (dateStr && groupedSchedules[dateStr]) {
+        const shiftKey = schedule.shift as keyof typeof groupedSchedules[string];
+        if (groupedSchedules[dateStr][shiftKey]) {
+          groupedSchedules[dateStr][shiftKey].push({
         _id: schedule._id,
         date: dateStr,
         shift: schedule.shift,
@@ -605,10 +630,12 @@ router.get('/by-date', [
           department: string;
           position: string;
         },
-        leaveType: schedule.leaveType,
+        leaveType: schedule.leaveType || null,
         createdAt: schedule.createdAt,
         updatedAt: schedule.updatedAt
-      });
+          });
+        }
+      }
     });
     
     const response: ApiResponse<typeof groupedSchedules> = {

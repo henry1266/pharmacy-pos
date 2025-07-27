@@ -85,6 +85,16 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!req.params.supplierId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '供應商ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     const { supplierId } = req.params;
     const { organizationId } = req.query;
 
@@ -160,6 +170,16 @@ router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response)
  */
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '配對ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     const mapping = await SupplierAccountMapping.findById(req.params.id)
       .populate('supplierId', 'name code')
       .populate('organizationId', 'name code')
@@ -258,7 +278,16 @@ router.post('/', [
     }
 
     // 取得第一個會計科目的機構ID作為預設值，但允許混合不同機構的科目
-    const organizationId = accounts[0].organizationId;
+    const organizationId = accounts[0]?.organizationId;
+    if (!organizationId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無法獲取會計科目的機構ID',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
     
     // 移除同機構限制 - 允許選擇不同機構的會計科目
     console.log('允許混合不同機構的會計科目');
@@ -279,9 +308,9 @@ router.post('/', [
       
       console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
       
-      const account = accounts.find(acc => acc._id.toString() === accountIdStr);
+      const account = accounts.find(acc => (acc._id as any).toString() === accountIdStr);
       if (!account) {
-        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => a._id.toString()));
+        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => (a._id as any).toString()));
         throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
       }
       return {
@@ -362,6 +391,16 @@ router.put('/:id', [
   }
 
   try {
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '配對ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     const { accountIds, notes, isActive } = req.body;
     console.log('PUT 請求資料:', { accountIds, notes, isActive });
     console.log('accountIds 類型:', typeof accountIds, 'isArray:', Array.isArray(accountIds));
@@ -393,7 +432,16 @@ router.put('/:id', [
     }
 
     // 取得第一個會計科目的機構ID作為預設值，但允許混合不同機構的科目
-    const organizationId = accounts[0].organizationId;
+    const organizationId = accounts[0]?.organizationId;
+    if (!organizationId) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '無法獲取會計科目的機構ID',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
     
     // 移除同機構限制 - 允許選擇不同機構的會計科目
     console.log('PUT: 允許混合不同機構的會計科目');
@@ -414,9 +462,9 @@ router.put('/:id', [
       
       console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
       
-      const account = accounts.find(acc => acc._id.toString() === accountIdStr);
+      const account = accounts.find(acc => (acc._id as any).toString() === accountIdStr);
       if (!account) {
-        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => a._id.toString()));
+        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => (a._id as any).toString()));
         throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
       }
       return {
@@ -430,7 +478,9 @@ router.put('/:id', [
 
     // 更新配對
     mapping.accountMappings = enrichedAccountMappings;
-    mapping.organizationId = organizationId; // 更新機構ID
+    if (organizationId) {
+      mapping.organizationId = organizationId; // 更新機構ID
+    }
     if (notes !== undefined) mapping.notes = notes;
     if (isActive !== undefined) mapping.isActive = isActive;
     mapping.updatedBy = 'system';
@@ -473,6 +523,16 @@ router.put('/:id', [
  */
 router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!req.params.id) {
+      const errorResponse: ErrorResponse = {
+        success: false,
+        message: '配對ID為必填項',
+        timestamp: new Date()
+      };
+      res.status(400).json(errorResponse);
+      return;
+    }
+
     const mapping = await SupplierAccountMapping.findById(req.params.id);
     if (!mapping) {
       const errorResponse: ErrorResponse = {

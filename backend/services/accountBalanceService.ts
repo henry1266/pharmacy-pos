@@ -76,8 +76,8 @@ export class AccountBalanceService {
         totalCredit,
         balance,
         entryCount: confirmedEntries.length,
-        lastTransactionDate: confirmedEntries.length > 0 
-          ? confirmedEntries[confirmedEntries.length - 1].createdAt 
+        lastTransactionDate: confirmedEntries.length > 0
+          ? (confirmedEntries[confirmedEntries.length - 1]?.createdAt || null)
           : null
       };
     } catch (error) {
@@ -145,7 +145,7 @@ export class AccountBalanceService {
       // 計算每個科目的餘額
       const accountBalances = await Promise.all(
         accounts.map(account => 
-          this.calculateAccountBalance(account._id.toString(), endDate, organizationId)
+          this.calculateAccountBalance((account._id as any).toString(), endDate, organizationId)
         )
       );
 

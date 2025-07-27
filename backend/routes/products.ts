@@ -651,9 +651,15 @@ router.put(
       if (packageUnits && Array.isArray(packageUnits)) {
         try {
           if (packageUnits.length > 0) {
+            if (!productId) {
+              throw new Error('產品ID不能為空');
+            }
             await PackageUnitService.createOrUpdatePackageUnits(productId, packageUnits);
           } else {
             // 如果包裝單位數組為空，刪除現有的包裝單位
+            if (!productId) {
+              throw new Error('產品ID不能為空');
+            }
             await PackageUnitService.deletePackageUnits(productId);
           }
         } catch (packageError) {

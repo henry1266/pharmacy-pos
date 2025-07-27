@@ -155,8 +155,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
     // 繪製表格標題
     tableHeaders.forEach((header, i) => {
       const align = 'center';
-      doc.text(header, currentX, currentY, { width: columnWidths[i], align: align } as PDFTextOptions);
-      currentX += columnWidths[i];
+      doc.text(header, currentX, currentY, { width: columnWidths[i] || 50, align: align } as PDFTextOptions);
+      currentX += (columnWidths[i] || 50);
       
       // 繪製垂直分隔線（除了最後一列）
       if (i < tableHeaders.length - 1) {
@@ -188,7 +188,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
           tableHeaders.forEach((header, i) => {
             const align = 'center';
             doc.text(header, currentX, currentY, { width: columnWidths[i], align: align } as PDFTextOptions);
-            currentX += columnWidths[i];
+            currentX += (columnWidths[i] || 50);
             
             // 繪製垂直分隔線（除了最後一列）
             if (i < tableHeaders.length - 1) {
@@ -212,7 +212,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         
         // 序號
         doc.text((index + 1).toString(), currentX, currentY, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[0];
+        currentX += (columnWidths[0] || 30);
         
         // 繪製第一條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -222,7 +222,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         // 健保代碼
         // 從 item.healthInsuranceCode 取得健保代碼
         doc.text(item.healthInsuranceCode ?? 'N/A', currentX, currentY, { width: columnWidths[1], align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[1];
+        currentX += (columnWidths[1] || 60);
         
         // 繪製第二條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -231,7 +231,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         
         // 項目名稱
         doc.text(item.dname ?? 'N/A', currentX, currentY, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[2];
+        currentX += (columnWidths[2] || 220);
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -240,7 +240,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         
         // 數量置中對齊
         doc.text(item.dquantity?.toString() ?? '0', currentX, currentY, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[3];
+        currentX += (columnWidths[3] || 60);
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -249,8 +249,8 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         
         // 單價靠右對齊，但保留右側空間
         const dprice = (item.dtotalCost ?? 0) / (item.dquantity ?? 1);
-        doc.text(formatCurrency(dprice), currentX, currentY, { width: columnWidths[3] , align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[3];
+        doc.text(formatCurrency(dprice), currentX, currentY, { width: (columnWidths[3] || 60), align: 'center' } as PDFTextOptions);
+        currentX += (columnWidths[3] || 60);
         
         // 繪製第四條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -259,7 +259,7 @@ router.get('/pdf/:id', async (req: Request, res: Response) => {
         
         // 小計靠右對齊，但保留右側空間
         const subtotal = (item.dtotalCost ?? 0) ;
-        doc.text(formatCurrency(subtotal), currentX, currentY, { width: columnWidths[4] - 1, align: 'center' } as PDFTextOptions);
+        doc.text(formatCurrency(subtotal), currentX, currentY, { width: (columnWidths[4] || 60) - 1, align: 'center' } as PDFTextOptions);
         
         currentY += 20;
       });
@@ -414,8 +414,8 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
     // 繪製表格標題
     tableHeaders.forEach((header, i) => {
       const align = 'center';
-      doc.text(header, currentX, currentY, { width: columnWidths[i], align: align } as PDFTextOptions);
-      currentX += columnWidths[i];
+      doc.text(header, currentX, currentY, { width: columnWidths[i] || 50, align: align } as PDFTextOptions);
+      currentX += (columnWidths[i] || 50);
       
       // 繪製垂直分隔線（除了最後一列）
       if (i < tableHeaders.length - 1) {
@@ -447,7 +447,7 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
           tableHeaders.forEach((header, i) => {
             const align = 'center';
             doc.text(header, currentX, currentY, { width: columnWidths[i], align: align } as PDFTextOptions);
-            currentX += columnWidths[i];
+            currentX += (columnWidths[i] || 50);
             
             // 繪製垂直分隔線（除了最後一列）
             if (i < tableHeaders.length - 1) {
@@ -475,7 +475,7 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
         
         // 序號
         doc.text((index + 1).toString(), currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[0], align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[0];
+        currentX += (columnWidths[0] || 40);
         
         // 繪製第一條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -485,18 +485,18 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
         // 項目名稱（主標題 + 副標題）
         const itemStartY = currentY + 2;
         doc.fontSize(10);
-        doc.text(item.dname ?? 'N/A', currentX + 2, itemStartY, { width: columnWidths[1] - 4, align: 'left' } as PDFTextOptions);
+        doc.text(item.dname ?? 'N/A', currentX + 2, itemStartY, { width: (columnWidths[1] || 250) - 4, align: 'left' } as PDFTextOptions);
         
         // 如果有副標題，以小字顯示在下方
         if (hasSubtitle) {
           doc.fontSize(8);
           doc.fillColor('#525252');
-          doc.text(item.productInfo.subtitle, currentX + 2, itemStartY + 12, { width: columnWidths[1] - 4, align: 'left' } as PDFTextOptions);
+          doc.text(item.productInfo.subtitle, currentX + 2, itemStartY + 12, { width: (columnWidths[1] || 250) - 4, align: 'left' } as PDFTextOptions);
           doc.fillColor('#000000'); // 恢復黑色
           doc.fontSize(10);
         }
         
-        currentX += columnWidths[1];
+        currentX += (columnWidths[1] || 250);
         
         // 繪製第二條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -505,7 +505,7 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
         
         // 數量置中對齊
         doc.text(item.dquantity?.toString() ?? '0', currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[2], align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[2];
+        currentX += (columnWidths[2] || 60);
         
         // 繪製第三條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -514,8 +514,8 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
         
         // 單價置中對齊
         const dprice = (item.dtotalCost ?? 0) / (item.dquantity ?? 1);
-        doc.text(formatCurrency(dprice), currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[3], align: 'center' } as PDFTextOptions);
-        currentX += columnWidths[3];
+        doc.text(formatCurrency(dprice), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[3] || 80), align: 'center' } as PDFTextOptions);
+        currentX += (columnWidths[3] || 80);
         
         // 繪製第四條垂直分隔線
         doc.moveTo(currentX, currentY)
@@ -524,7 +524,7 @@ router.get('/pdf-v2/:id', async (req: Request, res: Response) => {
         
         // 小計置中對齊
         const subtotal = (item.dtotalCost ?? 0);
-        doc.text(formatCurrency(subtotal), currentX, currentY + (rowHeight - 10) / 2, { width: columnWidths[4] - 1, align: 'center' } as PDFTextOptions);
+        doc.text(formatCurrency(subtotal), currentX, currentY + (rowHeight - 10) / 2, { width: (columnWidths[4] || 80) - 1, align: 'center' } as PDFTextOptions);
         
         currentY += rowHeight;
       });

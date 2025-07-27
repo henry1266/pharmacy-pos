@@ -592,6 +592,14 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       { new: true, runValidators: true }
     );
 
+    if (!updatedAccount) {
+      res.status(500).json({
+        success: false,
+        message: '更新帳戶失敗'
+      });
+      return;
+    }
+
     console.log('✅ 帳戶更新成功:', {
       id: updatedAccount._id,
       code: updatedAccount.code,
@@ -731,6 +739,14 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
       },
       { new: true }
     );
+
+    if (!updatedAccount) {
+      res.status(500).json({
+        success: false,
+        message: '刪除帳戶失敗'
+      });
+      return;
+    }
 
     console.log('✅ 科目刪除成功:', {
       id: updatedAccount._id,
@@ -949,7 +965,7 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
         })
         .map(account => {
           const accountObj = account.toObject();
-          const childNodes = buildTree(accounts, account._id.toString());
+          const childNodes = buildTree(accounts, (account._id as any).toString());
           
           // 計算統計金額：自身金額 + 所有子科目金額總和
           const calculateTotalBalance = (node: any, children: any[]): number => {
@@ -967,7 +983,7 @@ router.get('/tree/hierarchy', auth, async (req: AuthenticatedRequest, res: expre
           }, 0);
           
           console.log(`🌳 建立樹狀節點 "${account.name}":`, {
-            ID: account._id.toString(),
+            ID: (account._id as any).toString(),
             parentId: account.parentId?.toString() || null,
             子節點數: childNodes.length,
             子節點名稱: childNodes.map(child => child.name),

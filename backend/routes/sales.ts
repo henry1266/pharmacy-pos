@@ -546,7 +546,7 @@ router.post(
         message: SUCCESS_MESSAGES.GENERIC.CREATED,
         data: {
           ...sale.toObject(),
-          _id: sale._id.toString(),
+          _id: (sale._id as any).toString(),
           createdAt: sale.createdAt,
           updatedAt: sale.updatedAt
         },
@@ -631,7 +631,7 @@ async function checkProductExists(productId: string): Promise<ProductCheckResult
 async function checkProductInventory(product: mongoose.Document, quantity: number): Promise<InventoryCheckResult> {
   try {
     // 確保 _id 是有效的 ObjectId
-    if (!isValidObjectId(product._id.toString())) {
+    if (!isValidObjectId((product._id as any).toString())) {
       return {
         success: false,
         error: {
@@ -719,7 +719,7 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
   for (const item of items) {
     // 檢查產品是否存在
     const productCheck = await checkProductExists(item.product);
-    if (!productCheck.exists) {
+    if (!productCheck.exists && productCheck.error) {
       return productCheck.error;
     }
     
@@ -731,9 +731,11 @@ async function validateSaleCreationRequest(requestBody: SaleCreationRequest): Pr
     console.log(`檢查產品ID: ${item.product}, 名稱: ${productName}`);
     
     // 檢查產品庫存
-    const inventoryCheck = await checkProductInventory(productCheck.product, item.quantity);
-    if (!inventoryCheck.success) {
-      return inventoryCheck.error;
+    if (productCheck.product) {
+      const inventoryCheck = await checkProductInventory(productCheck.product, item.quantity);
+      if (!inventoryCheck.success && inventoryCheck.error) {
+        return inventoryCheck.error;
+      }
     }
   }
   
@@ -1193,7 +1195,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const response: ApiResponse<{ id: string }> = {
       success: true,
       message: SUCCESS_MESSAGES.GENERIC.DELETED || '銷售記錄已刪除',
-      data: { id: req.params.id! },
+      data: { id: req.params.id },
       timestamp: new Date()
     };
 

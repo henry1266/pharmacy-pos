@@ -37,8 +37,8 @@ function transformCustomerToResponse(customer: any): CustomerType {
     totalPurchases: customer.totalPurchases,
     lastPurchaseDate: customer.lastPurchaseDate,
     date: customer.date,
-    createdAt: (customer as unknown as { createdAt?: Date }).createdAt,
-    updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt
+    createdAt: (customer as unknown as { createdAt?: Date }).createdAt || new Date(),
+    updatedAt: (customer as unknown as { updatedAt?: Date }).updatedAt || new Date()
   };
 }
 
@@ -405,10 +405,10 @@ router.put('/:id', async (req: Request<{ id: string }, any, CustomerUpdateReques
     }
 
     // 驗證會員編號唯一性
-    const codeValidationResult = await validateCustomerCodeUpdate(requestBody.code, existingCustomer.code);
+    const codeValidationResult = await validateCustomerCodeUpdate(requestBody.code, existingCustomer.code || '');
     if (!codeValidationResult.isValid) {
       res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST)
-         .json(createErrorResponse(codeValidationResult.errorMessage));
+         .json(createErrorResponse(codeValidationResult.errorMessage || '會員編號驗證失敗'));
       return;
     }
 

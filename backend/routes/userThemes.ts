@@ -145,7 +145,7 @@ router.get('/:id', auth, async (req: AuthRequest, res: Response): Promise<void> 
     }
     
     // 檢查權限
-    if (req.user?.id !== theme.userId) {
+    if (req.user?.id !== (theme && theme.userId)) {
       const errorResponse: ErrorResponse = {
         success: false,
         message: '無權限存取此主題',
@@ -270,7 +270,7 @@ router.put('/:id', auth, async (req: AuthRequest, res: Response): Promise<void> 
     const theme = mockThemes[themeIndex];
     
     // 檢查權限
-    if (req.user?.id !== theme.userId) {
+    if (req.user?.id !== (theme && theme.userId)) {
       const errorResponse: ErrorResponse = {
         success: false,
         message: '無權限修改此主題',
@@ -334,7 +334,7 @@ router.delete('/:id', auth, async (req: AuthRequest, res: Response): Promise<voi
     const theme = mockThemes[themeIndex];
     
     // 檢查權限
-    if (req.user?.id !== theme.userId) {
+    if (!theme || req.user?.id !== theme.userId) {
       const errorResponse: ErrorResponse = {
         success: false,
         message: '無權限刪除此主題',
