@@ -2,9 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     /* React 專用設定 */
-    "target": "ES2022",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "module": "ESNext",
     "moduleResolution": "node",
     "jsx": "react-jsx",
     
@@ -40,13 +38,12 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
 
-    
     /* 保持寬鬆以利轉型 */
     "strict": false,
     "noImplicitAny": true,
     "strictNullChecks": false,
-    "useUnknownInCatchVariables": false,
-    "noImplicitThis": false,
+    "useUnknownInCatchVariables": true,
+    "noImplicitThis": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "exactOptionalPropertyTypes": false,

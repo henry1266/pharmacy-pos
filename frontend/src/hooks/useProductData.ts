@@ -52,7 +52,8 @@ const useProductData = () => {
           data = testModeDataService.getProducts(actualData, null);
         }
       } catch (actualError) {
-        data = testModeDataService.getProducts(null, actualError);
+        const errorMessage = actualError instanceof Error ? actualError.message : String(actualError);
+        data = testModeDataService.getProducts(null, errorMessage);
       }
 
       // Separate products and medicines
@@ -115,7 +116,8 @@ const useProductData = () => {
         const actualData = await getAllSuppliers();
         data = testModeDataService.getSuppliers(actualData as any, null);
       } catch (actualError) {
-        data = testModeDataService.getSuppliers(null, actualError);
+        const errorMessage = actualError instanceof Error ? actualError.message : String(actualError);
+        data = testModeDataService.getSuppliers(null, errorMessage);
       }
       
       setSuppliers(data as unknown as Supplier[]);
@@ -136,7 +138,8 @@ const useProductData = () => {
         const actualData = await getProductCategories(); // Using dedicated category service
         data = testModeDataService.getCategories(actualData, null);
       } catch (actualError) {
-        data = testModeDataService.getCategories(null, actualError);
+        const errorMessage = actualError instanceof Error ? actualError.message : String(actualError);
+        data = testModeDataService.getCategories(null, errorMessage);
       }
       
       setCategories(data);
