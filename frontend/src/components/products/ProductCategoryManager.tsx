@@ -108,7 +108,7 @@ const ProductCategoryManager: React.FC = () => {
       for (const item of updatedItems) {
         await updateProductCategory(item._id, {
           name: item.name,
-          description: item.description,
+          description: item.description || '',
           ...(item.order !== undefined && { order: item.order }),
           ...(item.isActive !== undefined && { isActive: item.isActive })
         });

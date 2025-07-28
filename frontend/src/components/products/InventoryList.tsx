@@ -40,7 +40,7 @@ interface InventoryRecord {
   type?: 'sale' | 'purchase' | 'ship';
   totalQuantity?: number;
   currentStock?: number;
-  batchNumber?: string; // 批號欄位
+  batchNumber: string; // 批號欄位
 }
 
 // 定義圖表數據的型別
@@ -137,7 +137,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 type: 'purchase',
                 totalQuantity: inv.quantity,
                 totalAmount: inv.totalAmount ?? 0,
-                batchNumber: inv.batchNumber // 保留批號資訊
+                batchNumber: inv.batchNumber || '' // 保留批號資訊
               };
             } else {
               const existingGroup = purchaseGroups[inv.purchaseOrderNumber];
@@ -160,7 +160,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
                 type: 'ship',
                 totalQuantity: inv.quantity,
                 totalAmount: inv.totalAmount ?? 0,
-                batchNumber: inv.batchNumber // 保留批號資訊
+                batchNumber: inv.batchNumber || '' // 保留批號資訊
               };
             } else {
               const existingGroup = shipGroups[inv.shippingOrderNumber];
@@ -616,12 +616,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
         open={chartModalOpen}
         onClose={() => setChartModalOpen(false)}
         chartData={chartData}
-        productName={productName}
+        productName={productName || ''}
         inventoryData={inventories}
         currentStock={currentStock}
         profitLoss={profitLoss}
-        packageUnits={packageUnits}
-        productUnit={productUnit}
+        packageUnits={packageUnits || []}
+        productUnit={productUnit || ''}
       />
     </Box>
   );

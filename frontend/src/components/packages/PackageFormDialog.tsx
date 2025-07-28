@@ -386,14 +386,25 @@ const PackageFormDialog: React.FC<PackageFormDialogProps> = ({
                           getOptionLabel={(option) => `${option.name} (${option.code})`}
                           value={allProducts.find(p => (p.id || p._id) === item.productId) || null}
                           onChange={(_, value) => handleSelectProduct(index, value)}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              error={!!errors[`item_${index}_product`]}
-                              helperText={errors[`item_${index}_product`]}
-                              placeholder="選擇產品"
-                            />
-                          )}
+                          renderInput={(params) => {
+                            const { size, InputLabelProps, ...restParams } = params;
+                            const cleanInputLabelProps = InputLabelProps ? {
+                              ...InputLabelProps,
+                              className: InputLabelProps.className || '',
+                              style: InputLabelProps.style || {}
+                            } : {};
+                            
+                            return (
+                              <TextField
+                                {...restParams}
+                                error={!!errors[`item_${index}_product`]}
+                                helperText={errors[`item_${index}_product`]}
+                                placeholder="選擇產品"
+                                size="small"
+                                InputLabelProps={cleanInputLabelProps}
+                              />
+                            );
+                          }}
                           sx={{ minWidth: 200 }}
                         />
                       </TableCell>
