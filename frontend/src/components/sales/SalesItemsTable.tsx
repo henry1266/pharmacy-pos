@@ -204,7 +204,7 @@ const SalesItemsTable: React.FC<SalesItemsTableProps> = ({
                           }, 50); // 短暫延遲確保狀態更新
                         }
                       }}
-                      onBlur={(e) => {
+                      onBlur={(_e) => {
                         // 失去焦點時確保數量有效
                         if (item.quantity === '' || isNaN(parseInt(String(item.quantity))) || parseInt(String(item.quantity)) < 1) {
                           onQuantityChange(index, 1); // 無效時重置為 1

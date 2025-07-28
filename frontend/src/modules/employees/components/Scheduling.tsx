@@ -118,7 +118,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
   });
 
   // 處理格子選擇的回調函數
-  const handleCellSelect = (index: number, date: Date): void => {
+  const handleCellSelect = (_index: number, date: Date): void => {
     setSelectedDate(date);
     setQuickSelectDialogOpen(true);
   };
@@ -246,7 +246,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
                   {/* 日曆部分 */}
                   <Grid container spacing={0.3}>
                 {/* 星期標題 */}
-                {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
+                {['日', '一', '二', '三', '四', '五', '六'].map((day, _index) => (
                   <Grid item xs={12/7} key={`weekday-${day}`}>
                     <Box sx={{
                       p: 0.5,

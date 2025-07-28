@@ -32,7 +32,7 @@ class TestModeDataService {
    * 檢查是否應該使用測試數據
    * 當測試模式啟用時，總是使用測試數據
    */
-  private shouldUseTestData(actualData: unknown, actualError: unknown): boolean {
+  private shouldUseTestData(_actualData: unknown, _actualError: unknown): boolean {
     // 測試模式啟用時，總是使用測試數據
     return TestModeConfig.isEnabled();
   }

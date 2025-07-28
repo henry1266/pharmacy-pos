@@ -67,7 +67,7 @@ interface CustomTooltipProps {
 }
 
 // 自定義Tooltip
-const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
+const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label: _label }) => {
   if (active && payload?.length) {
     const data = payload[0]?.payload;
     

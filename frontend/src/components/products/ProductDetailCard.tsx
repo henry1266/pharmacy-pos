@@ -189,7 +189,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
                   </Typography>
                   {product.packageUnits
                     .sort((a, b) => b.unitValue - a.unitValue)
-                    .map((unit, index) => (
+                    .map((unit, _index) => (
                       <Chip
                         key={unit._id}
                         label={`${unit.unitName}: ${unit.unitValue}${unit.isBaseUnit ? ' (基礎)' : ''}`}

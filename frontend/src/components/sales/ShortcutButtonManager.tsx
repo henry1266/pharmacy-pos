@@ -189,12 +189,12 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             filterOptions={(x) => x}
             value={null}
             inputValue={searchTerm}
-            onChange={(event, newValue) => {
+            onChange={(_event, newValue) => {
               if (newValue && typeof newValue !== 'string' && newValue._id) {
                 handleAddProduct(newValue._id);
               }
             }}
-            onInputChange={(event, newInputValue) => {
+            onInputChange={(_event, newInputValue) => {
               setSearchTerm(newInputValue);
             }}
             renderInput={(params) => {
@@ -245,7 +245,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             {selectedProductIds.length === 0 ? (
               <ListItem><ListItemText primary="尚未加入任何藥品" /></ListItem>
             ) : (
-              selectedProductIds.map(productId => {
+              selectedProductIds.map((productId, _index) => {
                 const product = getProductDetails(productId);
                 return (
                   <ListItem
@@ -285,7 +285,7 @@ interface ShortcutButtonManagerProps {
 const ShortcutButtonManager: React.FC<ShortcutButtonManagerProps> = ({
   onShortcutSelect,
   allProducts,
-  isTestMode = false
+  isTestMode: _isTestMode = false
 }) => {
   // 使用用戶設定 hook
   const {

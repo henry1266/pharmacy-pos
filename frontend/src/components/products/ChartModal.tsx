@@ -76,7 +76,7 @@ const ChartModal: FC<ChartModalProps> = ({
   productName,
   inventoryData = [],
   currentStock = 0,
-  profitLoss = 0,
+  profitLoss: _profitLoss = 0,
   packageUnits = [],
   productUnit
 }) => {

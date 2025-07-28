@@ -303,7 +303,7 @@ const AccountingChart: FC = () => {
   };
 
   // 處理視圖標籤變更
-  const handleViewTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleViewTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setViewTab(newValue);
   };
 

@@ -91,8 +91,8 @@ const usePurchaseOrderItems = ({
   setFormData,
   productDetails,
   setProductDetails,
-  initialItems = [],
-  productsData = []
+  initialItems: _initialItems = [],
+  productsData: _productsData = []
 }: PurchaseOrderItemsProps): PurchaseOrderItemsResult => {
   const [currentItem, setCurrentItem] = useState<CurrentItem>({
     did: '', // 產品代碼
@@ -154,8 +154,8 @@ const usePurchaseOrderItems = ({
         if (detail) {
           setProductDetails(prev => ({ ...prev, [newItem.did]: { ...detail, stock: detail.stock || 0 } }));
         }
-      } catch (err: unknown) {
-        console.error(`獲取產品 ${newItem.did} 詳細資料失敗:`, err);
+      } catch (_err: unknown) {
+        console.error(`獲取產品 ${newItem.did} 詳細資料失敗:`, _err);
         showSnackbar(`無法獲取 ${newItem.dname} 的詳細資料`, 'warning');
       }
     }
@@ -220,8 +220,8 @@ const usePurchaseOrderItems = ({
         if (detail) {
           setProductDetails(prev => ({ ...prev, [editingItem.did]: { ...detail, stock: detail.stock || 0 } }));
         }
-      } catch (err: unknown) {
-        console.error(`獲取產品 ${editingItem.did} 詳細資料失敗:`, err);
+      } catch (_err: unknown) {
+        console.error(`獲取產品 ${editingItem.did} 詳細資料失敗:`, _err);
         showSnackbar(`無法獲取 ${editingItem.dname} 的詳細資料`, 'warning');
       }
     }

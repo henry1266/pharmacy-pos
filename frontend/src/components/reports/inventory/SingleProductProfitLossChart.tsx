@@ -72,7 +72,7 @@ interface CustomTooltipProps {
 }
 
 // 自定義Tooltip (Moved out of SingleProductProfitLossChart)
-const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload, label }) => {
+const CustomTooltip: FC<CustomTooltipProps> = ({ active, payload }) => {
   if (active && payload?.length) {
     const data = payload[0]?.payload;
     if (!data) return null;

@@ -124,7 +124,7 @@ export const usePagination = (initialRowsPerPage = 10) => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(initialRowsPerPage);
 
   // 處理頁碼變更
-  const handleChangePage = useCallback((event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+  const handleChangePage = useCallback((_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
   }, []);
 
@@ -155,8 +155,8 @@ export const useChartType = (initialType: 'area' | 'line' = 'area') => {
   const [chartType, setChartType] = useState<'area' | 'line'>(initialType);
 
   // 處理圖表類型變更
-  const handleChartTypeChange = useCallback((event: any) => {
-    setChartType(event.target.value as 'area' | 'line');
+  const handleChartTypeChange = useCallback((_event: any) => {
+    setChartType(_event.target.value as 'area' | 'line');
   }, []);
 
   return {

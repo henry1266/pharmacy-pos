@@ -232,7 +232,7 @@ const PurchaseOrderEditPage: React.FC = () => {
     setFormData(prev => ({ ...prev, pobilldate: date || new Date() }));
   };
 
-  const handleSupplierChange = (event: React.SyntheticEvent, supplier: Supplier | null): void => {
+  const handleSupplierChange = (_event: React.SyntheticEvent, supplier: Supplier | null): void => {
     setSelectedSupplier(supplier);
     setFormData(prev => ({
       ...prev,
@@ -251,7 +251,7 @@ const PurchaseOrderEditPage: React.FC = () => {
     setEditingItem(prev => prev ? { ...prev, [name]: value } : null);
   };
 
-  const handleProductChange = (event: React.SyntheticEvent, product: Product | null): void => {
+  const handleProductChange = (_event: React.SyntheticEvent, product: Product | null): void => {
     setCurrentItem(prev => ({
       ...prev,
       did: product ? product.code : '',
@@ -450,7 +450,7 @@ const PurchaseOrderEditPage: React.FC = () => {
     }
   };
 
-  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string): void => {
+  const handleSnackbarClose = (_event?: React.SyntheticEvent | Event, reason?: string): void => {
     if (reason === 'clickaway') return;
     setSnackbar({ ...snackbar, open: false });
   };

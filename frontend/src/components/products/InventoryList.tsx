@@ -423,7 +423,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ productId, productName, p
   };
 
   // 輔助函數：獲取訂單號和訂單連結
-  const getOrderInfo = (inv: InventoryRecord, index: number): OrderInfo => {
+  const getOrderInfo = (inv: InventoryRecord, _index: number): OrderInfo => {
     let orderNumber = '';
     let orderLink = '';
     

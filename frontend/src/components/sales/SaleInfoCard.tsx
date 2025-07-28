@@ -38,7 +38,6 @@ interface SaleInfoCardProps {
 const SaleInfoCard: React.FC<SaleInfoCardProps> = ({
   saleData,
   customers,
-  isMobile,
   expanded,
   onExpandToggle,
   onInputChange

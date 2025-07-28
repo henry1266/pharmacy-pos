@@ -70,7 +70,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
   handleEditingItemChange,
   handleDragEnd,
   totalAmount,
-  codeField
+  codeField: _codeField
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   

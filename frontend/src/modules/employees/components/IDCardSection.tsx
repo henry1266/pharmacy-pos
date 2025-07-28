@@ -19,7 +19,7 @@ interface IDCardSectionProps {
  * 身分證影像區塊
  * 處理身分證正反面上傳與預覽
  */
-const IDCardSection: React.FC<IDCardSectionProps> = ({ formData, errors, onFileChange }) => {
+const IDCardSection: React.FC<IDCardSectionProps> = ({ onFileChange }) => {
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
   const [backPreview, setBackPreview] = useState<string | null>(null);
 
@@ -57,9 +57,9 @@ const IDCardSection: React.FC<IDCardSectionProps> = ({ formData, errors, onFileC
   };
 
   return (
-    <Grid container spacing={3} {...({} as any)}>
+    <Grid container spacing={3}>
       {/* 身分證正面 */}
-      <Grid item xs={12} sm={6} {...({} as any)}>
+      <Grid item xs={12} sm={6}>
         <Typography variant="subtitle1" gutterBottom>
           身分證正面
         </Typography>
@@ -122,7 +122,7 @@ const IDCardSection: React.FC<IDCardSectionProps> = ({ formData, errors, onFileC
       </Grid>
       
       {/* 身分證反面 */}
-      <Grid item xs={12} sm={6} {...({} as any)}>
+      <Grid item xs={12} sm={6}>
         <Typography variant="subtitle1" gutterBottom>
           身分證反面
         </Typography>

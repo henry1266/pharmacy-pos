@@ -57,7 +57,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
   handleAddItem,
   products,
   productInputRef,
-  isTestMode
+  isTestMode: _isTestMode
 }) => {
   const [activeInput, setActiveInput] = useState<string | null>(null);
   const [chartModalOpen, setChartModalOpen] = useState<boolean>(false);

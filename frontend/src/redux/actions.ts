@@ -517,7 +517,7 @@ export const deletePurchaseOrder = (id: string): AppThunk => async (
 
 // 搜索進貨單 - 已棄用，使用 usePurchaseOrdersData hook 中的前端過濾功能替代
 // @deprecated 此函數已棄用，請使用 usePurchaseOrdersData hook 中的前端過濾功能
-export const searchPurchaseOrders = (searchParams: Record<string, string>): AppThunk => async (
+export const searchPurchaseOrders = (_searchParams: Record<string, string>): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   console.warn('searchPurchaseOrders 已棄用，請使用 usePurchaseOrdersData hook 中的前端過濾功能');
@@ -678,7 +678,7 @@ export const deleteShippingOrder = (id: string): AppThunk => async (
 
 // 搜索出貨單 - 已棄用，使用 useShippingOrdersData hook 中的前端過濾功能替代
 // @deprecated 此函數已棄用，請使用 useShippingOrdersData hook 中的前端過濾功能
-export const searchShippingOrders = (searchParams: Record<string, string>): AppThunk => async (
+export const searchShippingOrders = (_searchParams: Record<string, string>): AppThunk => async (
   dispatch: ThunkDispatch<RootState, unknown, Action>
 ) => {
   console.warn('searchShippingOrders 已棄用，請使用 useShippingOrdersData hook 中的前端過濾功能');

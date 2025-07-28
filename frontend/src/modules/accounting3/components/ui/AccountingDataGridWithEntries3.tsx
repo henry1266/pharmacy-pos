@@ -103,7 +103,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   onView,
   onConfirm,
   onUnlock,
-  onToggleFilters
+  onToggleFilters: _onToggleFilters
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -213,7 +213,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   };
 
   // 處理分頁變更
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     handleFilterChange('page', value);
   };
 

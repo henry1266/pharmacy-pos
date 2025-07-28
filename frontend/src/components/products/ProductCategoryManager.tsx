@@ -273,7 +273,7 @@ const ProductCategoryManager: React.FC = () => {
   };
   
   // 渲染單個分類項目
-  const renderCategoryItem = (category: ExtendedCategory, index: number, provided: any): JSX.Element => {
+  const renderCategoryItem = (category: ExtendedCategory, _index: number, provided: any): JSX.Element => {
     return (
       <ListItem
         ref={provided.innerRef}

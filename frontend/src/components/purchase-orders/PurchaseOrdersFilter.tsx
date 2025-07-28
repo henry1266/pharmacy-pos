@@ -50,7 +50,7 @@ const PurchaseOrdersFilter: FC<PurchaseOrdersFilterProps> = ({
   handleDateChange,
   handleSearch,
   handleClearSearch,
-  suppliers
+  suppliers: _suppliers
 }) => {
   return (
     <Grid container spacing={2} sx={{ mb: 2 }}>
