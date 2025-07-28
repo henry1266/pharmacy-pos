@@ -43,8 +43,8 @@ import { calculateUnitPrice, formatAmount } from './utils';
 
 // 常數定義
 const COLORS = {
-  EXPENSE_ASSET: '#dbc231ff',    // 綠色 - 支出-資產格式
-  ASSET_LIABILITY: '#1ca1aaff',  // 橙色 - 資產-負債格式
+  EXPENSE_ASSET: '#e49227ff',    // 綠色 - 支出-資產格式
+  ASSET_LIABILITY: '#10ad5fff',  // 橙色 - 資產-負債格式
   DEFAULT: '#e91e63'           // 粉紅色 - 預設
 } as const;
 
