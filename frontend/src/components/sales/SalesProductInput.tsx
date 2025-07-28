@@ -296,14 +296,16 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             }, 300);
           }
         }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            {...(barcodeInputRef && { inputRef: barcodeInputRef })}
-            label="掃描條碼 / 輸入產品名稱、代碼、健保碼或套餐"
-            variant="outlined"
-            size="small"
-            onKeyDown={(e) => {
+        renderInput={(params) => {
+          const { InputLabelProps, ...restParams } = params;
+          return (
+            <TextField
+              {...restParams}
+              {...(barcodeInputRef && { inputRef: barcodeInputRef })}
+              label="掃描條碼 / 輸入產品名稱、代碼、健保碼或套餐"
+              variant="outlined"
+              size="small"
+              onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 
@@ -361,8 +363,9 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
                 }
               }
             }}
-          />
-        )}
+            />
+          );
+        }}
         renderOption={renderOption}
         ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
         sx={{ flexGrow: 1, mr: 1 }}

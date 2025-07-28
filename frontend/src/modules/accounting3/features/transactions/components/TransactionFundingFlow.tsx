@@ -884,7 +884,7 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
           <Grid item xs={12} md={6}>
             <FlowSection
               title="流向"
-              count={transaction.referencedByInfo?.length}
+              {...(transaction.referencedByInfo?.length && { count: transaction.referencedByInfo.length })}
               statusChip={(() => {
                 const usedAmount = transaction.referencedByInfo
                   ?.filter(ref => ref.status !== 'cancelled')

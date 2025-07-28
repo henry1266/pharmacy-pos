@@ -171,7 +171,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
       // 添加 isActive 狀態到提交資料
       const submitData = {
         ...formData,
-        parentId: processedParentId,
+        parentId: processedParentId || '',
         isActive
       };
       
@@ -248,8 +248,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             <OrganizationSelector
               organizationId={formData.organizationId || ''}
               organizations={organizations}
-              selectedOrganizationId={selectedOrganizationId}
-              parentAccount={parentAccount}
+              selectedOrganizationId={selectedOrganizationId || null}
+              parentAccount={parentAccount || null}
             />
 
             {/* 科目類型 */}
@@ -272,7 +272,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             {/* 上層科目 */}
             <ParentAccountField
               parentId={formData.parentId || ''}
-              parentAccount={parentAccount}
+              parentAccount={parentAccount || null}
               onParentIdChange={(value) => handleInputChange('parentId', value)}
             />
 

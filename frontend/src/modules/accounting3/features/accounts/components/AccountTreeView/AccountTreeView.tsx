@@ -445,9 +445,9 @@ const TreeNode: React.FC<{
             onNodeDelete={onNodeDelete}
             onNodeAdd={onNodeAdd}
             onNodeVisibilityToggle={onNodeVisibilityToggle}
-            onDragStart={onDragStart}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
+            {...(onDragStart && { onDragStart })}
+            {...(onDragOver && { onDragOver })}
+            {...(onDrop && { onDrop })}
           />
         ))}
       </Collapse>

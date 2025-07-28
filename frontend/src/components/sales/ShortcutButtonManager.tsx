@@ -197,28 +197,31 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             onInputChange={(event, newInputValue) => {
               setSearchTerm(newInputValue);
             }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="搜尋藥品 (名稱/代碼/條碼)"
-                placeholder="輸入關鍵字搜尋..."
-                size="small"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && filteredProducts.length > 0) {
-                    e.preventDefault();
-                    if (filteredProducts[0]?._id) {
-                      handleAddProduct(filteredProducts[0]._id);
+            renderInput={(params) => {
+              const { InputLabelProps, ...restParams } = params;
+              return (
+                <TextField
+                  {...restParams}
+                  label="搜尋藥品 (名稱/代碼/條碼)"
+                  placeholder="輸入關鍵字搜尋..."
+                  size="small"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && filteredProducts.length > 0) {
+                      e.preventDefault();
+                      if (filteredProducts[0]?._id) {
+                        handleAddProduct(filteredProducts[0]._id);
+                      }
                     }
-                  }
-                }}
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <SearchIcon color="action" sx={{ mr: 1 }} />
-                  ),
-                }}
-              />
-            )}
+                  }}
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <SearchIcon color="action" sx={{ mr: 1 }} />
+                    ),
+                  }}
+                />
+              );
+            }}
             renderOption={(props, option) => (
               <li {...props} key={option?._id}>
                 <Typography variant="body2">

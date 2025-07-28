@@ -372,16 +372,19 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                         }
                       }
                     }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        {...(productInputRef && { inputRef: productInputRef })}
-                        id="product-select-input"
-                        label="選擇藥品"
-                        fullWidth
-                        size="small"
-                      />
-                    )}
+                    renderInput={(params) => {
+                      const { InputLabelProps, ...restParams } = params;
+                      return (
+                        <TextField
+                          {...restParams}
+                          {...(productInputRef && { inputRef: productInputRef })}
+                          id="product-select-input"
+                          label="選擇藥品"
+                          fullWidth
+                          size="small"
+                        />
+                      );
+                    }}
                   />
                 </Box>
                 <IconButton

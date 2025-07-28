@@ -134,6 +134,10 @@ export class AccountStatisticsService {
           const childrenNetAmount = this.calculateChildrenNetAmount(node.children);
           const totalNetAmount = netAmount + childrenNetAmount;
           
+          const lastTransactionDate = transactions.length > 0
+            ? new Date(Math.max(...transactions.map((t: any) => new Date(t.date).getTime())))
+            : undefined;
+            
           node.statistics = {
             totalTransactions: transactions.length,
             totalDebit,
@@ -143,12 +147,14 @@ export class AccountStatisticsService {
             childCount: node.children.length,
             descendantCount: this.countDescendants(node.children),
             hasTransactions: transactions.length > 0,
-            lastTransactionDate: transactions.length > 0
-              ? new Date(Math.max(...transactions.map((t: any) => new Date(t.date).getTime())))
-              : undefined
+            ...(lastTransactionDate && { lastTransactionDate })
           };
         } else {
           // 葉節點
+          const lastTransactionDate = transactions.length > 0
+            ? new Date(Math.max(...transactions.map((t: any) => new Date(t.date).getTime())))
+            : undefined;
+            
           node.statistics = {
             totalTransactions: transactions.length,
             totalDebit,
@@ -158,9 +164,7 @@ export class AccountStatisticsService {
             childCount: 0,
             descendantCount: 0,
             hasTransactions: transactions.length > 0,
-            lastTransactionDate: transactions.length > 0
-              ? new Date(Math.max(...transactions.map((t: any) => new Date(t.date).getTime())))
-              : undefined
+            ...(lastTransactionDate && { lastTransactionDate })
           };
         }
       } catch (error) {
@@ -276,6 +280,10 @@ export class AccountStatisticsService {
           const childrenNetAmount = this.calculateChildrenNetAmount(node.children);
           const totalNetAmount = netAmount + childrenNetAmount;
           
+          const lastTransactionDate = nodeTransactions.length > 0
+            ? new Date(Math.max(...nodeTransactions.map((t: any) => new Date(t.date).getTime())))
+            : undefined;
+            
           node.statistics = {
             totalTransactions: nodeTransactions.length,
             totalDebit,
@@ -285,12 +293,14 @@ export class AccountStatisticsService {
             childCount: node.children.length,
             descendantCount: this.countDescendants(node.children),
             hasTransactions: nodeTransactions.length > 0,
-            lastTransactionDate: nodeTransactions.length > 0
-              ? new Date(Math.max(...nodeTransactions.map((t: any) => new Date(t.date).getTime())))
-              : undefined
+            ...(lastTransactionDate && { lastTransactionDate })
           };
         } else {
           // 葉節點
+          const lastTransactionDate = nodeTransactions.length > 0
+            ? new Date(Math.max(...nodeTransactions.map((t: any) => new Date(t.date).getTime())))
+            : undefined;
+            
           node.statistics = {
             totalTransactions: nodeTransactions.length,
             totalDebit,
@@ -300,9 +310,7 @@ export class AccountStatisticsService {
             childCount: 0,
             descendantCount: 0,
             hasTransactions: nodeTransactions.length > 0,
-            lastTransactionDate: nodeTransactions.length > 0
-              ? new Date(Math.max(...nodeTransactions.map((t: any) => new Date(t.date).getTime())))
-              : undefined
+            ...(lastTransactionDate && { lastTransactionDate })
           };
         }
       } catch (error) {
@@ -377,6 +385,8 @@ export class AccountStatisticsService {
         const totalCredit = stat.totalCredit || 0;
         const correctBalance = calculateBalanceByAccountType(totalDebit, totalCredit, node.accountType);
         
+        const lastTransactionDate = stat.lastTransactionDate ? new Date(stat.lastTransactionDate) : undefined;
+        
         node.statistics = {
           totalTransactions: stat.transactionCount || 0,
           totalDebit,
@@ -386,7 +396,7 @@ export class AccountStatisticsService {
           childCount: node.children.length,
           descendantCount: this.countDescendants(node.children),
           hasTransactions: stat.hasTransactions || false,
-          lastTransactionDate: stat.lastTransactionDate ? new Date(stat.lastTransactionDate) : undefined
+          ...(lastTransactionDate && { lastTransactionDate })
         };
         
         console.log(`📈 科目 "${node.name}" 聚合統計:`, {
@@ -419,7 +429,9 @@ export class AccountStatisticsService {
         // 重新計算包含子科目的總淨額
         const childrenNetAmount = this.calculateChildrenNetAmount(node.children);
         const selfBalance = node.statistics?.balance || 0;
-        node.statistics.totalBalance = selfBalance + childrenNetAmount;
+        if (node.statistics) {
+          node.statistics.totalBalance = selfBalance + childrenNetAmount;
+        }
         
         console.log(`🌳 科目 "${node.name}" 包含子科目統計:`, {
           自身淨額: selfBalance,

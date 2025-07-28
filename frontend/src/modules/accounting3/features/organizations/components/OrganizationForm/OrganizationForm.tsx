@@ -61,7 +61,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
       language: 'zh-TW'
     },
     notes: '',
-    parentId: undefined
+    parentId: ''
   });
 
   // UI 狀態
@@ -136,7 +136,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
         },
         settings: org.settings,
         notes: org.notes || '',
-        parentId: org.parentId
+        parentId: org.parentId || ''
       });
     } catch (err: any) {
       setError(err.message);
@@ -363,13 +363,17 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
                       value={parentOrganizations.find(org => org._id === formData.parentId) || null}
                       onChange={(_, value) => handleInputChange('parentId', value?._id)}
                       loading={loadingParents}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="上級機構"
-                          helperText="選擇此機構的上級機構（可選）"
-                        />
-                      )}
+                      renderInput={(params) => {
+                        const { InputLabelProps, ...restParams } = params;
+                        return (
+                          <TextField
+                            {...restParams}
+                            label="上級機構"
+                            helperText="選擇此機構的上級機構（可選）"
+                            size="small"
+                          />
+                        );
+                      }}
                       renderOption={(props, option) => (
                         <Box component="li" {...props}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

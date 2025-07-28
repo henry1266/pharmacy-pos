@@ -159,15 +159,19 @@ const ItemForm: FC<ItemFormProps> = ({
               }
             }
           }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              id="product-select-input"
-              label="選擇藥品"
-              fullWidth
-              autoFocus={autoFocus || false}
-            />
-          )}
+          renderInput={(params) => {
+            const { InputLabelProps, ...restParams } = params;
+            return (
+              <TextField
+                {...restParams}
+                id="product-select-input"
+                label="選擇藥品"
+                fullWidth
+                autoFocus={autoFocus || false}
+                size="small"
+              />
+            );
+          }}
           renderOption={(props, option) => (
             <Box component="li" {...props} key={option._id ?? option.code}>
               <Grid container direction="column">

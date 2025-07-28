@@ -162,9 +162,9 @@ export class AccountHierarchyService {
     return {
       ...operation,
       isValid: errors.length === 0,
-      validationErrors: errors.length > 0 ? errors : undefined,
+      ...(errors.length > 0 && { validationErrors: errors }),
       preview: {
-        newParentId,
+        newParentId: newParentId || '',
         newLevel,
         affectedChildren: [] // 需要根據實際資料計算
       }
@@ -220,8 +220,8 @@ export class AccountHierarchyService {
       success: response.success,
       operation: 'create',
       affectedNodes: response.success ? [response.data._id] : [],
-      message: response.success ? '科目建立成功' : undefined,
-      error: !response.success ? '科目建立失敗' : undefined
+      ...(response.success && { message: '科目建立成功' }),
+      ...(!response.success && { error: '科目建立失敗' })
     };
   }
 
@@ -235,8 +235,8 @@ export class AccountHierarchyService {
       success: response.success,
       operation: 'update',
       affectedNodes: response.success ? [nodeId] : [],
-      message: response.success ? '科目更新成功' : undefined,
-      error: !response.success ? '科目更新失敗' : undefined
+      ...(response.success && { message: '科目更新成功' }),
+      ...(!response.success && { error: '科目更新失敗' })
     };
   }
 
@@ -250,8 +250,8 @@ export class AccountHierarchyService {
       success: response.success,
       operation: 'delete',
       affectedNodes: response.success ? [nodeId] : [],
-      message: response.success ? '科目刪除成功' : undefined,
-      error: !response.success ? response.message : undefined
+      ...(response.success && { message: '科目刪除成功' }),
+      ...(!response.success && response.message && { error: response.message })
     };
   }
 
@@ -260,7 +260,9 @@ export class AccountHierarchyService {
    */
   private async moveNode(nodeId: string, data: Partial<Account3>): Promise<HierarchyOperationResult> {
     // 移動操作通常是更新父節點ID
-    return this.updateNode(nodeId, { parentId: data.parentId });
+    return this.updateNode(nodeId, {
+      ...(data.parentId && { parentId: data.parentId })
+    });
   }
 }
 
