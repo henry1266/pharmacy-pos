@@ -10,27 +10,94 @@ import { ERROR_MESSAGES, API_CONSTANTS } from '@pharmacy-pos/shared/constants';
 
 const router: express.Router = express.Router();
 
+// 共用工具函數
+const createErrorResponse = (message: string, error?: string): ErrorResponse => {
+  const response: ErrorResponse = {
+    success: false,
+    message,
+    timestamp: new Date()
+  };
+  
+  if (error) {
+    response.error = error;
+  }
+  
+  return response;
+};
+
+const createSuccessResponse = <T>(data: T, message: string): ApiResponse<T> => ({
+  success: true,
+  message,
+  data,
+  timestamp: new Date()
+});
+
+const validateObjectId = (id: string): { valid: boolean; errorResponse?: ErrorResponse } => {
+  if (!id) {
+    return {
+      valid: false,
+      errorResponse: createErrorResponse('無效的員工ID格式')
+    };
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return {
+      valid: false,
+      errorResponse: createErrorResponse('無效的員工ID格式')
+    };
+  }
+
+  return { valid: true };
+};
+
+const findEmployeeById = async (id: string) => {
+  return await Employee.findOne({ _id: id.toString() });
+};
+
+const buildSearchQuery = (search: string) => {
+  return search
+    ? {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { department: { $regex: search, $options: 'i' } },
+          { position: { $regex: search, $options: 'i' } }
+        ]
+      }
+    : {};
+};
+
+const parsePaginationParams = (query: any) => {
+  return {
+    page: parseInt(query.page as string) || 0,
+    limit: parseInt(query.limit as string) || 10,
+    search: (query.search as string) || '',
+    sortField: (query.sortField as string) || 'name',
+    sortOrder: query.sortOrder === 'desc' ? -1 as const : 1 as const
+  };
+};
+
+const handleErrorResponse = (res: Response, error: any) => {
+  console.error(error instanceof Error ? error.message : 'Unknown error');
+  
+  if (error instanceof Error && error.name === 'CastError') {
+    res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(
+      createErrorResponse('找不到此員工資料')
+    );
+    return;
+  }
+  
+  res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
+    createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR)
+  );
+};
+
 // @route   GET api/employees
 // @desc    Get all employees with pagination and search
 // @access  Private
 router.get('/', auth, async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 0;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const search = (req.query.search as string) || '';
-    const sortField = (req.query.sortField as string) || 'name';
-    const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
-
-    // 建立搜尋條件
-    const searchQuery = search
-      ? {
-          $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { department: { $regex: search, $options: 'i' } },
-            { position: { $regex: search, $options: 'i' } }
-          ]
-        }
-      : {};
+    const { page, limit, search, sortField, sortOrder } = parsePaginationParams(req.query);
+    const searchQuery = buildSearchQuery(search);
 
     // 計算總筆數
     const totalCount = await Employee.countDocuments(searchQuery);
@@ -46,32 +113,16 @@ router.get('/', auth, async (req: Request, res: Response) => {
       convertToSharedEmployee(emp)
     );
 
-    const response: ApiResponse<{
-      employees: SharedEmployee[];
-      totalCount: number;
-      page: number;
-      limit: number;
-    }> = {
-      success: true,
-      message: '員工列表獲取成功',
-      data: {
-        employees: employeeList,
-        totalCount,
-        page,
-        limit
-      },
-      timestamp: new Date()
-    };
+    const response = createSuccessResponse({
+      employees: employeeList,
+      totalCount,
+      page,
+      limit
+    }, '員工列表獲取成功');
 
     res.json(response);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleErrorResponse(res, err);
   }
 });
 
@@ -80,22 +131,8 @@ router.get('/', auth, async (req: Request, res: Response) => {
 // @access  Private
 router.get('/with-accounts', auth, async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 0;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const search = (req.query.search as string) || '';
-    const sortField = (req.query.sortField as string) || 'name';
-    const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
-
-    // 建立搜尋條件
-    const searchQuery = search
-      ? {
-          $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { department: { $regex: search, $options: 'i' } },
-            { position: { $regex: search, $options: 'i' } }
-          ]
-        }
-      : {};
+    const { page, limit, search, sortField, sortOrder } = parsePaginationParams(req.query);
+    const searchQuery = buildSearchQuery(search);
 
     // 計算總筆數
     const totalCount = await Employee.countDocuments(searchQuery);
@@ -131,32 +168,16 @@ router.get('/with-accounts', auth, async (req: Request, res: Response) => {
       };
     });
 
-    const response: ApiResponse<{
-      employees: EmployeeWithAccount[];
-      totalCount: number;
-      page: number;
-      limit: number;
-    }> = {
-      success: true,
-      message: '員工帳號狀態列表獲取成功',
-      data: {
-        employees: employeesWithAccounts,
-        totalCount,
-        page,
-        limit
-      },
-      timestamp: new Date()
-    };
+    const response = createSuccessResponse({
+      employees: employeesWithAccounts,
+      totalCount,
+      page,
+      limit
+    }, '員工帳號狀態列表獲取成功');
 
     res.json(response);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleErrorResponse(res, err);
   }
 });
 
@@ -165,68 +186,29 @@ router.get('/with-accounts', auth, async (req: Request, res: Response) => {
 // @access  Private
 router.get('/:id', auth, async (req: Request, res: Response) => {
   try {
-    // 驗證 ID 參數存在性
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的員工ID格式',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    const validation = validateObjectId(req.params.id);
+    if (!validation.valid) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(validation.errorResponse);
       return;
     }
 
-    // 驗證ID格式是否為有效的ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的員工ID格式',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
-    }
-
-    const employee = await Employee.findOne({ _id: req.params.id.toString() });
+    const employee = await findEmployeeById(req.params.id);
 
     if (!employee) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到此員工資料',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(
+        createErrorResponse('找不到此員工資料')
+      );
       return;
     }
 
     // 轉換 Mongoose Document 到 shared 類型
     const employeeData = convertToSharedEmployee(employee);
 
-    const response: ApiResponse<SharedEmployee> = {
-      success: true,
-      message: '員工資料獲取成功',
-      data: employeeData,
-      timestamp: new Date()
-    };
+    const response = createSuccessResponse(employeeData, '員工資料獲取成功');
 
     res.json(response);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到此員工資料',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleErrorResponse(res, err);
   }
 });
 
@@ -249,13 +231,9 @@ router.post(
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '驗證失敗',
-        error: JSON.stringify(errors.array()),
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(
+        createErrorResponse('驗證失敗', JSON.stringify(errors.array()))
+      );
       return;
     }
 
@@ -263,13 +241,10 @@ router.post(
       // 檢查身分證號碼是否已存在
       let employee = await Employee.findOne({ idNumber: req.body.idNumber.toString() });
       if (employee) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: '此身分證號碼已存在',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(
+          createErrorResponse('此身分證號碼已存在')
+        );
+        return;
       }
 
       // 建立新員工資料
@@ -326,22 +301,11 @@ router.post(
       // 轉換 Mongoose Document 到 shared 類型
       const employeeData = convertToSharedEmployee(savedEmployee);
 
-      const response: ApiResponse<SharedEmployee> = {
-        success: true,
-        message: '員工創建成功',
-        data: employeeData,
-        timestamp: new Date()
-      };
+      const response = createSuccessResponse(employeeData, '員工創建成功');
 
       res.json(response);
     } catch (err) {
-      console.error(err instanceof Error ? err.message : 'Unknown error');
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+      handleErrorResponse(res, err);
     }
   }
 );
@@ -421,37 +385,18 @@ function convertToSharedEmployee(employee: any): SharedEmployee {
 // @access  Private
 router.put('/:id', auth, async (req: Request, res: Response) => {
   try {
-    // 驗證 ID 參數存在性
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的員工ID格式',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    const validation = validateObjectId(req.params.id);
+    if (!validation.valid) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(validation.errorResponse);
       return;
     }
 
-    // 驗證ID格式是否為有效的ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的員工ID格式',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
-    }
-
-    const employee = await Employee.findOne({ _id: req.params.id.toString() });
+    const employee = await findEmployeeById(req.params.id);
 
     if (!employee) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到此員工資料',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(
+        createErrorResponse('找不到此員工資料')
+      );
       return;
     }
 
@@ -459,12 +404,9 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     if (req.body.idNumber && req.body.idNumber !== employee.idNumber) {
       const idValidation = await validateIdNumber(req.body.idNumber, req.params.id);
       if (!idValidation.valid) {
-        const errorResponse: ErrorResponse = {
-          success: false,
-          message: idValidation.message ?? '驗證失敗',
-          timestamp: new Date()
-        };
-        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+        res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(
+          createErrorResponse(idValidation.message ?? '驗證失敗')
+        );
         return;
       }
     }
@@ -482,31 +424,11 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     // 轉換 Mongoose Document 到 shared 類型
     const employeeData = convertToSharedEmployee(updatedEmployee);
 
-    const response: ApiResponse<SharedEmployee> = {
-      success: true,
-      message: '員工資料更新成功',
-      data: employeeData,
-      timestamp: new Date()
-    };
+    const response = createSuccessResponse(employeeData, '員工資料更新成功');
 
     res.json(response);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到此員工資料',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleErrorResponse(res, err);
   }
 });
 
@@ -515,67 +437,28 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
 // @access  Private
 router.delete('/:id', auth, async (req: Request, res: Response) => {
   try {
-    // 驗證 ID 參數存在性
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的員工ID格式',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
+    const validation = validateObjectId(req.params.id);
+    if (!validation.valid) {
+      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(validation.errorResponse);
       return;
     }
 
-    // 驗證ID格式是否為有效的ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無效的員工ID格式',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json(errorResponse);
-      return;
-    }
-
-    const employee = await Employee.findOne({ _id: req.params.id.toString() });
+    const employee = await findEmployeeById(req.params.id);
 
     if (!employee) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到此員工資料',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
+      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(
+        createErrorResponse('找不到此員工資料')
+      );
       return;
     }
 
     await Employee.findOneAndDelete({ _id: req.params.id.toString() });
     
-    const response: ApiResponse<null> = {
-      success: true,
-      message: '員工資料已刪除',
-      data: null,
-      timestamp: new Date()
-    };
+    const response = createSuccessResponse(null, '員工資料已刪除');
     
     res.json(response);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : 'Unknown error');
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '找不到此員工資料',
-        timestamp: new Date()
-      };
-      res.status(API_CONSTANTS.HTTP_STATUS.NOT_FOUND).json(errorResponse);
-      return;
-    }
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(API_CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json(errorResponse);
+    handleErrorResponse(res, err);
   }
 });
 
