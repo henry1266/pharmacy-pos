@@ -631,7 +631,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.password}
           onChange={handleInputChange}
           error={!!formErrors.password}
-          helperText={formErrors.password}
+          helperText={formErrors.password || ''}
           required
         />
         <FormField
@@ -641,7 +641,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.confirmPassword}
           onChange={handleInputChange}
           error={!!formErrors.confirmPassword}
-          helperText={formErrors.confirmPassword}
+          helperText={formErrors.confirmPassword || ''}
           required
         />
       </AccountDialog>

@@ -535,11 +535,13 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
           placement="right-start"
           sx={{ zIndex: 1300 }}
         >
-        <PurchaseOrderPreview
-          purchaseOrder={previewPurchaseOrder || undefined}
-          loading={previewLoading}
-          error={previewError || undefined}
-        />
+        {previewPurchaseOrder && (
+          <PurchaseOrderPreview
+            purchaseOrder={previewPurchaseOrder}
+            loading={previewLoading}
+            error={previewError || ''}
+          />
+        )}
         </Popper>
       )}
 
@@ -586,7 +588,7 @@ const PurchaseOrdersPage: React.FC<PurchaseOrdersPageProps> = ({ initialSupplier
         onFileChange={handleCsvFileChange}
         onImport={handleCsvImport}
         loading={csvImportLoading}
-        error={csvImportError || undefined}
+        error={csvImportError || ''}
         success={csvImportSuccess}
       />
 

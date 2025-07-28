@@ -858,7 +858,7 @@ const totalAmount = useMemo(() => {
         <SalesPreview
           sale={selectedSale as ExtendedSale}
           loading={previewLoading}
-          error={previewError}
+          error={previewError || ''}
         />
       </Popover>
       

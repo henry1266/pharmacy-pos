@@ -28,14 +28,13 @@ const Checkbox: React.FC<CustomCheckboxProps> = ({
         control={
           <MuiCheckbox
             checked={checked || false}
-            onChange={onChange}
+            {...(onChange && { onChange })}
             {...(name && { name })}
             disabled={disabled}
             color="primary"
-            {...rest}
           />
         }
-        label={label ?? ''}
+        label={label || ''}
       />
       {error && <FormHelperText>{error}</FormHelperText>}
     </FormControl>

@@ -675,7 +675,10 @@ const PurchaseOrderFormPage: React.FC = () => {
           {/* 左側：基本資訊 */}
           <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column' }}>
             <BasicInfoForm
-              formData={formData}
+              formData={{
+                ...formData,
+                accountingEntryType: formData.accountingEntryType || undefined
+              }}
               handleInputChange={handleFormInputChange}
               handleDateChange={handleDateChange}
               handleSupplierChange={handleSupplierChange}

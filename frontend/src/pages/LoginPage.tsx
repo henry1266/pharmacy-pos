@@ -142,9 +142,9 @@ const LoginPage = () => {
       
       // 根據登入類型設置用戶名或電子郵件
       if (credentials.loginType === 'username') {
-        loginData.username = credentials.username;
+        loginData.username = credentials.username || '';
       } else {
-        loginData.email = credentials.email;
+        loginData.email = credentials.email || '';
       }
       
       // 使用 authService 進行登入

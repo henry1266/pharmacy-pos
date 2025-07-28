@@ -1119,7 +1119,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                         {/* 詳細記錄 (可收折) */}
                         <TableRow>
                           <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-                            <Collapse in={expandedEmployees[employeeId]} timeout="auto" unmountOnExit>
+                            <Collapse in={!!expandedEmployees[employeeId]} timeout="auto" unmountOnExit>
                               <Box sx={{ margin: 1, mb: 3 }}>
                                 {/* 合併的加班記錄詳細列表 */}
                                 <Table size="small" aria-label="加班記錄明細">

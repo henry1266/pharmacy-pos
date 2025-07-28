@@ -18,7 +18,7 @@ const PurchaseOrdersSupplierFilterPage: React.FC = () => {
     }
   }, [id, navigate]);
 
-  return <PurchaseOrdersPage initialSupplierId={id} />;
+  return <PurchaseOrdersPage initialSupplierId={id || null} />;
 };
 
 export default PurchaseOrdersSupplierFilterPage;

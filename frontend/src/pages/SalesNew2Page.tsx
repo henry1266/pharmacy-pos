@@ -911,8 +911,8 @@ const SalesNew2Page: FC = () => {
       <CheckoutSuccessEffect
         show={showCheckoutEffect}
         onComplete={() => setShowCheckoutEffect(false)}
-        totalAmount={lastSaleData?.totalAmount}
-        saleNumber={lastSaleData?.saleNumber}
+        totalAmount={lastSaleData?.totalAmount || 0}
+        saleNumber={lastSaleData?.saleNumber || ''}
       />
 
       <Snackbar

@@ -55,7 +55,7 @@ const OrganizationSelect: React.FC<OrganizationSelectProps> = ({
       id="organization-select"
       options={organizations}
       getOptionLabel={(option) => (option as Organization)?.name ?? ''}
-      value={selectedOrganization}
+      value={selectedOrganization || null}
       onChange={(event, value) => onChange(event, value as Organization | null)}
       disabled={disabled}
       filterOptions={(options, state) => filterOrganizations(options as Organization[], state.inputValue)}

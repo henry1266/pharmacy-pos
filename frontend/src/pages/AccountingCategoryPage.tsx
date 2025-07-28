@@ -143,7 +143,7 @@ const AccountingCategoryPage: React.FC = () => {
         const updateData: CategoryUpdateData = {
           name: item.name,
           description: item.description ?? '',
-          order: item.order
+          order: item.order ?? 0
         };
         await accountingServiceV2.updateAccountingCategory(item._id, updateData);
       }

@@ -205,7 +205,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
   return (
     <Container maxWidth={false} sx={{...globalStyles, px: { xs: 1, sm: 2, md: 3 }}}>
       <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
-        <SchedulingHeader isAdmin={isAdmin} error={error} />
+        <SchedulingHeader isAdmin={isAdmin} error={error || ''} />
         
         {/* 標籤頁導航 */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>

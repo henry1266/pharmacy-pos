@@ -278,7 +278,7 @@ export const deleteOvertimeRecord = async (id: string): Promise<{ success: boole
     
     // 檢查 API 響應格式
     if (response.data.success) {
-      return { success: true, message: response.data.message };
+      return { success: true, message: response.data.message || '' };
     } else {
       throw new Error('刪除加班記錄失敗');
     }
