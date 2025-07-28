@@ -1,13 +1,120 @@
 import express, { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
-// import mongoose from 'mongoose';
-import SupplierAccountMapping, { ISupplierAccountMapping } from '../models/SupplierAccountMapping';
+import mongoose from 'mongoose';
+import SupplierAccountMapping from '../models/SupplierAccountMapping';
 import Account2 from '../models/Account2';
 import Supplier from '../models/Supplier';
 import { ApiResponse, ErrorResponse } from '@pharmacy-pos/shared/types/api';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@pharmacy-pos/shared/constants';
 
 const router: express.Router = express.Router();
+
+// 共用工具函數
+const createErrorResponse = (message: string, errors?: any[]): ErrorResponse => ({
+  success: false,
+  message,
+  ...(errors && { errors }),
+  timestamp: new Date()
+});
+
+const createSuccessResponse = <T>(data: T, message: string = SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS): ApiResponse<T> => ({
+  success: true,
+  message,
+  data,
+  timestamp: new Date()
+});
+
+// 共用的 Populate 配置
+const POPULATE_CONFIG = {
+  supplier: 'name code',
+  organization: 'name code',
+  account: {
+    path: 'accountMappings.accountId',
+    select: 'code name accountType organizationId parentId level',
+    populate: [
+      {
+        path: 'organizationId',
+        select: 'name code'
+      },
+      {
+        path: 'parentId',
+        select: 'code name accountType parentId',
+        populate: {
+          path: 'parentId',
+          select: 'code name accountType parentId',
+          populate: {
+            path: 'parentId',
+            select: 'code name accountType parentId',
+            populate: {
+              path: 'parentId',
+              select: 'code name accountType'
+            }
+          }
+        }
+      }
+    ]
+  },
+  accountSimple: 'code name accountType'
+};
+
+// AccountId 處理工具函數
+const processAccountId = (accountId: any): string => {
+  if (typeof accountId === 'string') {
+    return accountId;
+  } else if (typeof accountId === 'object' && accountId._id) {
+    return accountId._id;
+  } else if (typeof accountId === 'object' && accountId.id) {
+    return accountId.id;
+  } else {
+    return accountId.toString();
+  }
+};
+
+const enrichAccountMappings = (accountIds: any[], accounts: any[]) => {
+  return accountIds.map((accountId: any, index: number) => {
+    const accountIdStr = processAccountId(accountId);
+    console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
+    
+    const account = accounts.find(acc => (acc._id as any).toString() === accountIdStr);
+    if (!account) {
+      console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => (a._id as any).toString()));
+      throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
+    }
+    
+    return {
+      accountId: new mongoose.Types.ObjectId(accountIdStr),
+      accountCode: account.code || `ACC-${accountIdStr.slice(-6)}`,
+      accountName: account.name || `科目-${accountIdStr.slice(-6)}`,
+      priority: index + 1,
+      isDefault: index === 0
+    };
+  });
+};
+
+// 參數驗證工具函數
+const validateRequiredParam = (res: Response, param: any, paramName: string): boolean => {
+  if (!param) {
+    res.status(400).json(createErrorResponse(`${paramName}為必填項`));
+    return false;
+  }
+  return true;
+};
+
+// 共用錯誤處理函數
+const handleCastError = (res: Response, err: any) => {
+  if (err instanceof Error && err.name === 'CastError') {
+    res.status(404).json(createErrorResponse(ERROR_MESSAGES.GENERIC.NOT_FOUND));
+    return true;
+  }
+  return false;
+};
+
+const handleServerError = (res: Response, err: any, operation: string) => {
+  console.error(`${operation}失敗:`, err);
+  if (!handleCastError(res, err)) {
+    res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
+  }
+};
 
 /**
  * @route   GET /api/supplier-account-mappings
@@ -26,55 +133,18 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     console.log('MongoDB 查詢條件:', query);
     
     const mappings = await SupplierAccountMapping.find(query)
-      .populate('supplierId', 'name code')
-      .populate('organizationId', 'name code')
-      .populate({
-        path: 'accountMappings.accountId',
-        select: 'code name accountType organizationId parentId level',
-        populate: [
-          {
-            path: 'organizationId',
-            select: 'name code'
-          },
-          {
-            path: 'parentId',
-            select: 'code name accountType parentId',
-            populate: {
-              path: 'parentId',
-              select: 'code name accountType parentId',
-              populate: {
-                path: 'parentId',
-                select: 'code name accountType parentId',
-                populate: {
-                  path: 'parentId',
-                  select: 'code name accountType'
-                }
-              }
-            }
-          }
-        ]
-      })
+      .populate('supplierId', POPULATE_CONFIG.supplier)
+      .populate('organizationId', POPULATE_CONFIG.organization)
+      .populate(POPULATE_CONFIG.account)
       .sort({ supplierName: 1, 'accountMappings.priority': 1 });
 
     console.log('查詢結果數量:', mappings.length);
     console.log('查詢結果:', mappings);
 
-    const response: ApiResponse<ISupplierAccountMapping[]> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: mappings,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse(mappings));
   } catch (err) {
     console.error('獲取供應商科目配對失敗:', err);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
   }
 });
 
@@ -85,15 +155,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!req.params.supplierId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '供應商ID為必填項',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
+    if (!validateRequiredParam(res, req.params.supplierId, '供應商ID')) return;
 
     const { supplierId } = req.params;
     const { organizationId } = req.query;
@@ -105,7 +167,6 @@ router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response)
       isActive: true
     };
     
-    // 如果提供了 organizationId，則加入查詢條件
     if (organizationId) {
       query.organizationId = organizationId;
     }
@@ -113,53 +174,16 @@ router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response)
     console.log('查詢條件:', query);
     
     const mapping = await SupplierAccountMapping.findOne(query)
-      .populate('supplierId', 'name code')
-      .populate('organizationId', 'name code')
-      .populate({
-        path: 'accountMappings.accountId',
-        select: 'code name accountType organizationId parentId level',
-        populate: [
-          {
-            path: 'organizationId',
-            select: 'name code'
-          },
-          {
-            path: 'parentId',
-            select: 'code name accountType parentId',
-            populate: {
-              path: 'parentId',
-              select: 'code name accountType parentId',
-              populate: {
-                path: 'parentId',
-                select: 'code name accountType parentId',
-                populate: {
-                  path: 'parentId',
-                  select: 'code name accountType'
-                }
-              }
-            }
-          }
-        ]
-      });
+      .populate('supplierId', POPULATE_CONFIG.supplier)
+      .populate('organizationId', POPULATE_CONFIG.organization)
+      .populate(POPULATE_CONFIG.account);
 
     console.log('查詢結果:', mapping);
 
-    const response: ApiResponse<ISupplierAccountMapping | null> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: mapping,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse(mapping));
   } catch (err) {
     console.error('獲取供應商科目配對失敗:', err);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    res.status(500).json(createErrorResponse(ERROR_MESSAGES.GENERIC.SERVER_ERROR));
   }
 });
 
@@ -170,59 +194,47 @@ router.get('/supplier/:supplierId/accounts', async (req: Request, res: Response)
  */
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '配對ID為必填項',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
+    if (!validateRequiredParam(res, req.params.id, '配對ID')) return;
 
     const mapping = await SupplierAccountMapping.findById(req.params.id)
-      .populate('supplierId', 'name code')
-      .populate('organizationId', 'name code')
-      .populate('accountMappings.accountId', 'code name accountType');
+      .populate('supplierId', POPULATE_CONFIG.supplier)
+      .populate('organizationId', POPULATE_CONFIG.organization)
+      .populate('accountMappings.accountId', POPULATE_CONFIG.accountSimple);
 
     if (!mapping) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
+      res.status(404).json(createErrorResponse(ERROR_MESSAGES.GENERIC.NOT_FOUND));
       return;
     }
 
-    const response: ApiResponse<ISupplierAccountMapping> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.OPERATION_SUCCESS,
-      data: mapping,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse(mapping));
   } catch (err) {
-    console.error('獲取供應商科目配對失敗:', err);
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleServerError(res, err, '獲取供應商科目配對');
   }
 });
+
+// 共用驗證函數
+const validateSupplierAndAccounts = async (supplierId: string, accountIds: any[]) => {
+  // 驗證供應商是否存在
+  const supplier = await Supplier.findById(supplierId);
+  if (!supplier) {
+    throw new Error('供應商不存在');
+  }
+
+  // 驗證會計科目是否存在
+  const accounts = await Account2.find({ _id: { $in: accountIds } });
+  if (accounts.length !== accountIds.length) {
+    throw new Error('部分會計科目不存在');
+  }
+
+  // 取得第一個會計科目的機構ID
+  const organizationId = accounts[0]?.organizationId;
+  if (!organizationId) {
+    throw new Error('無法獲取會計科目的機構ID');
+  }
+
+  console.log('允許混合不同機構的會計科目');
+  return { supplier, accounts, organizationId };
+};
 
 /**
  * @route   POST /api/supplier-account-mappings
@@ -235,13 +247,7 @@ router.post('/', [
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      errors: errors.array(),
-      timestamp: new Date()
-    };
-    res.status(400).json(errorResponse);
+    res.status(400).json(createErrorResponse(ERROR_MESSAGES.GENERIC.VALIDATION_FAILED, errors.array()));
     return;
   }
 
@@ -250,77 +256,7 @@ router.post('/', [
     console.log('POST 請求資料:', { supplierId, accountIds, priority, notes });
     console.log('accountIds 類型:', typeof accountIds, 'isArray:', Array.isArray(accountIds));
 
-    // 驗證供應商是否存在
-    const supplier = await Supplier.findById(supplierId);
-    if (!supplier) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '供應商不存在',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
-
-    // 驗證會計科目是否存在並獲取機構ID
-    const accounts = await Account2.find({
-      _id: { $in: accountIds }
-    });
-    
-    if (accounts.length !== accountIds.length) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '部分會計科目不存在',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
-
-    // 取得第一個會計科目的機構ID作為預設值，但允許混合不同機構的科目
-    const organizationId = accounts[0]?.organizationId;
-    if (!organizationId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無法獲取會計科目的機構ID',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
-    
-    // 移除同機構限制 - 允許選擇不同機構的會計科目
-    console.log('允許混合不同機構的會計科目');
-
-    // 補充科目資訊，每個科目自動分配不同的優先順序
-    const enrichedAccountMappings = accountIds.map((accountId: any, index: number) => {
-      // 處理不同格式的 accountId
-      let accountIdStr: string;
-      if (typeof accountId === 'string') {
-        accountIdStr = accountId;
-      } else if (typeof accountId === 'object' && accountId._id) {
-        accountIdStr = accountId._id;
-      } else if (typeof accountId === 'object' && accountId.id) {
-        accountIdStr = accountId.id;
-      } else {
-        accountIdStr = accountId.toString();
-      }
-      
-      console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
-      
-      const account = accounts.find(acc => (acc._id as any).toString() === accountIdStr);
-      if (!account) {
-        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => (a._id as any).toString()));
-        throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
-      }
-      return {
-        accountId: accountIdStr,
-        accountCode: account.code || `ACC-${accountIdStr.slice(-6)}`, // 如果沒有代碼，生成一個
-        accountName: account.name || `科目-${accountIdStr.slice(-6)}`, // 如果沒有名稱，生成一個
-        priority: index + 1, // 自動分配優先順序：1, 2, 3...
-        isDefault: index === 0 // 第一個科目設為預設
-      };
-    });
+    const { supplier, accounts, organizationId } = await validateSupplierAndAccounts(supplierId, accountIds);
 
     // 檢查是否已存在配對
     const existingMapping = await SupplierAccountMapping.findOne({
@@ -329,14 +265,12 @@ router.post('/', [
     });
 
     if (existingMapping) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '該供應商在此機構已存在科目配對',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse('該供應商在此機構已存在科目配對'));
       return;
     }
+
+    // 使用共用函數處理科目映射
+    const enrichedAccountMappings = enrichAccountMappings(accountIds, accounts);
 
     // 創建新配對
     const mapping = new SupplierAccountMapping({
@@ -345,28 +279,19 @@ router.post('/', [
       organizationId,
       accountMappings: enrichedAccountMappings,
       notes,
-      createdBy: 'system', // 暫時使用系統作為創建者
+      createdBy: 'system',
       updatedBy: 'system'
     });
 
     await mapping.save();
 
-    const response: ApiResponse<ISupplierAccountMapping> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.CREATED,
-      data: mapping,
-      timestamp: new Date()
-    };
-
-    res.status(201).json(response);
+    res.status(201).json(createSuccessResponse(mapping, SUCCESS_MESSAGES.GENERIC.CREATED));
   } catch (err) {
-    console.error('創建供應商科目配對失敗:', err);
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    if (err instanceof Error) {
+      res.status(400).json(createErrorResponse(err.message));
+    } else {
+      handleServerError(res, err, '創建供應商科目配對');
+    }
   }
 });
 
@@ -380,26 +305,12 @@ router.put('/:id', [
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.VALIDATION_FAILED,
-      errors: errors.array(),
-      timestamp: new Date()
-    };
-    res.status(400).json(errorResponse);
+    res.status(400).json(createErrorResponse(ERROR_MESSAGES.GENERIC.VALIDATION_FAILED, errors.array()));
     return;
   }
 
   try {
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '配對ID為必填項',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
+    if (!validateRequiredParam(res, req.params.id, '配對ID')) return;
 
     const { accountIds, notes, isActive } = req.body;
     console.log('PUT 請求資料:', { accountIds, notes, isActive });
@@ -407,112 +318,44 @@ router.put('/:id', [
 
     const mapping = await SupplierAccountMapping.findById(req.params.id);
     if (!mapping) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
+      res.status(404).json(createErrorResponse(ERROR_MESSAGES.GENERIC.NOT_FOUND));
       return;
     }
 
-    // 驗證會計科目是否存在
-    const accounts = await Account2.find({
-      _id: { $in: accountIds }
-    });
-    
+    // 驗證會計科目
+    const accounts = await Account2.find({ _id: { $in: accountIds } });
     if (accounts.length !== accountIds.length) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '部分會計科目不存在',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse('部分會計科目不存在'));
       return;
     }
 
-    // 取得第一個會計科目的機構ID作為預設值，但允許混合不同機構的科目
     const organizationId = accounts[0]?.organizationId;
     if (!organizationId) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '無法獲取會計科目的機構ID',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
+      res.status(400).json(createErrorResponse('無法獲取會計科目的機構ID'));
       return;
     }
     
-    // 移除同機構限制 - 允許選擇不同機構的會計科目
     console.log('PUT: 允許混合不同機構的會計科目');
 
-    // 補充科目資訊，每個科目自動分配不同的優先順序
-    const enrichedAccountMappings = accountIds.map((accountId: any, index: number) => {
-      // 處理不同格式的 accountId
-      let accountIdStr: string;
-      if (typeof accountId === 'string') {
-        accountIdStr = accountId;
-      } else if (typeof accountId === 'object' && accountId._id) {
-        accountIdStr = accountId._id;
-      } else if (typeof accountId === 'object' && accountId.id) {
-        accountIdStr = accountId.id;
-      } else {
-        accountIdStr = accountId.toString();
-      }
-      
-      console.log(`處理會計科目 ID: ${accountIdStr}, 原始類型: ${typeof accountId}, 原始值:`, accountId);
-      
-      const account = accounts.find(acc => (acc._id as any).toString() === accountIdStr);
-      if (!account) {
-        console.error(`找不到會計科目，ID: ${accountIdStr}, 可用科目:`, accounts.map(a => (a._id as any).toString()));
-        throw new Error(`找不到會計科目 ID: ${accountIdStr}`);
-      }
-      return {
-        accountId: accountIdStr,
-        accountCode: account.code || `ACC-${accountIdStr.slice(-6)}`, // 如果沒有代碼，生成一個
-        accountName: account.name || `科目-${accountIdStr.slice(-6)}`, // 如果沒有名稱，生成一個
-        priority: index + 1, // 自動分配優先順序：1, 2, 3...
-        isDefault: index === 0 // 第一個科目設為預設
-      };
-    });
+    // 使用共用函數處理科目映射
+    const enrichedAccountMappings = enrichAccountMappings(accountIds, accounts);
 
     // 更新配對
     mapping.accountMappings = enrichedAccountMappings;
-    if (organizationId) {
-      mapping.organizationId = organizationId; // 更新機構ID
-    }
+    if (organizationId) mapping.organizationId = organizationId;
     if (notes !== undefined) mapping.notes = notes;
     if (isActive !== undefined) mapping.isActive = isActive;
     mapping.updatedBy = 'system';
 
     await mapping.save();
 
-    const response: ApiResponse<ISupplierAccountMapping> = {
-      success: true,
-      message: SUCCESS_MESSAGES.GENERIC.UPDATED,
-      data: mapping,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse(mapping, SUCCESS_MESSAGES.GENERIC.UPDATED));
   } catch (err) {
-    console.error('更新供應商科目配對失敗:', err);
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
-      return;
+    if (err instanceof Error) {
+      res.status(400).json(createErrorResponse(err.message));
+    } else {
+      handleServerError(res, err, '更新供應商科目配對');
     }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
   }
 });
 
@@ -523,55 +366,19 @@ router.put('/:id', [
  */
 router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!req.params.id) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: '配對ID為必填項',
-        timestamp: new Date()
-      };
-      res.status(400).json(errorResponse);
-      return;
-    }
+    if (!validateRequiredParam(res, req.params.id, '配對ID')) return;
 
     const mapping = await SupplierAccountMapping.findById(req.params.id);
     if (!mapping) {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
+      res.status(404).json(createErrorResponse(ERROR_MESSAGES.GENERIC.NOT_FOUND));
       return;
     }
 
     await mapping.deleteOne();
 
-    const response: ApiResponse<null> = {
-      success: true,
-      message: '供應商科目配對已刪除',
-      data: null,
-      timestamp: new Date()
-    };
-
-    res.json(response);
+    res.json(createSuccessResponse(null, '供應商科目配對已刪除'));
   } catch (err) {
-    console.error('刪除供應商科目配對失敗:', err);
-    if (err instanceof Error && err.name === 'CastError') {
-      const errorResponse: ErrorResponse = {
-        success: false,
-        message: ERROR_MESSAGES.GENERIC.NOT_FOUND,
-        timestamp: new Date()
-      };
-      res.status(404).json(errorResponse);
-      return;
-    }
-    
-    const errorResponse: ErrorResponse = {
-      success: false,
-      message: ERROR_MESSAGES.GENERIC.SERVER_ERROR,
-      timestamp: new Date()
-    };
-    res.status(500).json(errorResponse);
+    handleServerError(res, err, '刪除供應商科目配對');
   }
 });
 
