@@ -309,7 +309,15 @@ const PackagesPage: React.FC = () => {
               <InputLabel>分類</InputLabel>
               <Select
                 value={filters.category || ''}
-                onChange={(e) => handleFilterChange({ category: e.target.value || undefined })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value) {
+                    handleFilterChange({ category: value });
+                  } else {
+                    const { category, ...rest } = filters;
+                    setFilters(rest);
+                  }
+                }}
               >
                 <MenuItem value="">全部分類</MenuItem>
                 {categories.map(category => (
@@ -327,9 +335,14 @@ const PackagesPage: React.FC = () => {
                 value={filters.isActive === undefined ? '' : filters.isActive.toString()}
                 onChange={(e) => {
                   const value = e.target.value;
-                  handleFilterChange({ 
-                    isActive: value === '' ? undefined : value === 'true' 
-                  });
+                  if (value === '') {
+                    const { isActive, ...rest } = filters;
+                    setFilters(rest);
+                  } else {
+                    handleFilterChange({
+                      isActive: value === 'true'
+                    });
+                  }
                 }}
               >
                 <MenuItem value="">全部狀態</MenuItem>
@@ -345,18 +358,30 @@ const PackagesPage: React.FC = () => {
                 type="number"
                 size="small"
                 value={filters.minPrice || ''}
-                onChange={(e) => handleFilterChange({ 
-                  minPrice: e.target.value ? Number(e.target.value) : undefined 
-                })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value) {
+                    handleFilterChange({ minPrice: Number(value) });
+                  } else {
+                    const { minPrice, ...rest } = filters;
+                    setFilters(rest);
+                  }
+                }}
               />
               <TextField
                 label="最高價格"
                 type="number"
                 size="small"
                 value={filters.maxPrice || ''}
-                onChange={(e) => handleFilterChange({ 
-                  maxPrice: e.target.value ? Number(e.target.value) : undefined 
-                })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value) {
+                    handleFilterChange({ maxPrice: Number(value) });
+                  } else {
+                    const { maxPrice, ...rest } = filters;
+                    setFilters(rest);
+                  }
+                }}
               />
             </Box>
           </Grid>

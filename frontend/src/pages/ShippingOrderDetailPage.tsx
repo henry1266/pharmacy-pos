@@ -130,7 +130,7 @@ const ShippingOrderDetailPage: React.FC = () => {
           fifoData={fifoData}
           fifoLoading={fifoLoading}
           fifoError={fifoError}
-          orderLoading={orderLoading}
+          orderLoading={orderLoading ?? false}
         />
       )}
       {currentShippingOrder && (
@@ -158,7 +158,7 @@ const ShippingOrderDetailPage: React.FC = () => {
 
   const additionalActions = useShippingOrderActions({
     shippingOrder: currentShippingOrder || null,
-    orderId: id,
+    orderId: id || '',
     orderLoading: orderLoading ?? false,
     productDetailsLoading: productDetailsLoading,
     fifoLoading: fifoLoading,
@@ -173,7 +173,7 @@ const ShippingOrderDetailPage: React.FC = () => {
       listPageUrl="/shipping-orders"
       mainContent={mainContent}
       sidebarContent={sidebarContent}
-      isLoading={orderLoading}
+      isLoading={orderLoading ?? false}
       errorContent={orderError ? (
         <Typography color="error" variant="h6">
           載入出貨單時發生錯誤: {orderError}

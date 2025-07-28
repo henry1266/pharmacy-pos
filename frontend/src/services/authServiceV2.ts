@@ -396,21 +396,29 @@ export const authService = {
           const currentUser = authService.getStoredUser();
           if (currentUser) {
             // 轉換 EmployeeAccount 到 LoginResponse.user 格式
-            const userForStorage = {
+            const userForStorage: any = {
               id: currentUser._id,
               username: currentUser.username,
-              email: currentUser.email,
               role: currentUser.role,
               isAdmin: currentUser.role === 'admin',
               createdAt: currentUser.createdAt?.toString(),
               updatedAt: currentUser.updatedAt?.toString()
             };
             
-            authService.storeAuthData({
+            if (currentUser.email) {
+              userForStorage.email = currentUser.email;
+            }
+            
+            const authData: any = {
               token: response.token,
-              user: userForStorage,
-              expiresIn: response.expiresIn
-            });
+              user: userForStorage
+            };
+            
+            if (response.expiresIn) {
+              authData.expiresIn = response.expiresIn;
+            }
+            
+            authService.storeAuthData(authData);
           }
           return true;
         }

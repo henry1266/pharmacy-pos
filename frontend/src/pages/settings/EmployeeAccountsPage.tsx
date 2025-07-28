@@ -213,7 +213,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.username}
           onChange={handleInputChange as any}
           error={!!formErrors.username}
-          helperText={formErrors.username}
+          helperText={formErrors.username || ''}
           required
         />
         <FormField
@@ -223,7 +223,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.email}
           onChange={handleInputChange as any}
           error={!!formErrors.email}
-          helperText={formErrors.email}
+          helperText={formErrors.email || ''}
         />
         <FormField
           type="password"
@@ -232,7 +232,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.password}
           onChange={handleInputChange as any}
           error={!!formErrors.password}
-          helperText={formErrors.password}
+          helperText={formErrors.password || ''}
           required
         />
         <FormField
@@ -242,7 +242,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.confirmPassword}
           onChange={handleInputChange as any}
           error={!!formErrors.confirmPassword}
-          helperText={formErrors.confirmPassword}
+          helperText={formErrors.confirmPassword || ''}
           required
         />
         <FormField
@@ -252,7 +252,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.role}
           onChange={handleInputChange as any}
           error={!!formErrors.role}
-          helperText={formErrors.role}
+          helperText={formErrors.role || ''}
           options={roleOptions}
         />
       </AccountDialog>
@@ -273,7 +273,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.username}
           onChange={handleInputChange as any}
           error={!!formErrors.username}
-          helperText={formErrors.username}
+          helperText={formErrors.username || ''}
           required
         />
         <FormField
@@ -283,7 +283,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.email}
           onChange={handleInputChange as any}
           error={!!formErrors.email}
-          helperText={formErrors.email}
+          helperText={formErrors.email || ''}
         />
         <FormField
           type="select"
@@ -292,7 +292,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.role}
           onChange={handleInputChange as any}
           error={!!formErrors.role}
-          helperText={formErrors.role}
+          helperText={formErrors.role || ''}
           options={roleOptions}
         />
       </AccountDialog>
@@ -315,7 +315,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.password}
           onChange={handleInputChange as any}
           error={!!formErrors.password}
-          helperText={formErrors.password}
+          helperText={formErrors.password || ''}
           required
         />
         <FormField
@@ -325,7 +325,7 @@ const EmployeeAccountsPage: React.FC = () => {
           value={formData.confirmPassword}
           onChange={handleInputChange as any}
           error={!!formErrors.confirmPassword}
-          helperText={formErrors.confirmPassword}
+          helperText={formErrors.confirmPassword || ''}
           required
         />
       </AccountDialog>

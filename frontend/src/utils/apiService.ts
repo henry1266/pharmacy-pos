@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // 創建axios實例
 const apiService = axios.create({
-  baseURL: API_BASE_URL
+  baseURL: API_BASE_URL || ''
 });
 
 // 添加請求攔截器，附加token

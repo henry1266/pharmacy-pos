@@ -56,7 +56,11 @@ export const deleteMonitoredProduct = async (id: string): Promise<{ success: boo
   try {
     const response = await axios.delete<ApiResponse<null>>(`${API_URL}/${id}`);
     // 後端回傳的是 ApiResponse 格式
-    return { success: response.data.success, message: response.data.message };
+    const result: { success: boolean; message?: string } = { success: response.data.success };
+    if (response.data.message) {
+      result.message = response.data.message;
+    }
+    return result;
   } catch (error: any) {
     console.error('刪除監測產品失敗:', error.response?.data?.message ?? error.message);
     throw error;

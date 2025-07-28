@@ -359,7 +359,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
     const isRefundDeposit = item.category === '退押金';
     
     if (!isRefundDeposit) {
-      return undefined;
+      return {};
     }
     
     return {

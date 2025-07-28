@@ -31,7 +31,7 @@ interface CommonListPageLayoutProps {
   columns: Column[];
   rows: any[];
   loading: boolean;
-  error?: string | null;
+  error?: string;
   onRowClick?: (params: any) => void;
   detailPanel?: React.ReactNode;
   tableGridWidth?: number;
@@ -86,7 +86,7 @@ const CommonListPageLayout: React.FC<CommonListPageLayoutProps> = ({
                 title={title}
                 pageSize={10}
                 checkboxSelection={false}
-                onRowClick={onRowClick}
+                {...(onRowClick && { onRowClick })}
                 {...dataTableProps} // Spread any additional DataTable props including sorting if needed
               />
             )}

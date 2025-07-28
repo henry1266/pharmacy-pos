@@ -279,7 +279,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
           collapsibleDetails={getCollapsibleDetails()}
           initialOpenState={true}
           isLoading={orderLoading}
-          error={orderError ? "金額資訊載入失敗" : null}
+          error={orderError ? "金額資訊載入失敗" : ''}
           noDetailsText="無金額明細"
         />
       )}
@@ -375,7 +375,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PaymentIcon fontSize="small" color="action"/>
-                <Typography variant="body2" component="div">付款狀態: <PaymentStatusChip status={currentPurchaseOrder.paymentStatus} /></Typography>
+                <Typography variant="body2" component="div">付款狀態: <PaymentStatusChip status={currentPurchaseOrder.paymentStatus || ''} /></Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarTodayIcon fontSize="small" color="action"/>
@@ -407,7 +407,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
   // 使用 PurchaseOrderActions hook 生成操作按鈕
   const additionalActions = usePurchaseOrderActions({
     purchaseOrder: currentPurchaseOrder,
-    orderId: id,
+    orderId: id || '',
     orderLoading: orderLoading,
     productDetailsLoading: productDetailsLoading,
     fifoLoading: false, // 進貨單沒有 FIFO 功能
@@ -418,7 +418,7 @@ const PurchaseOrderDetailPage: React.FC = () => {
   return (
     <DetailLayout
       pageTitle="進貨單詳情"
-      recordIdentifier={currentPurchaseOrder?.poid}
+      recordIdentifier={currentPurchaseOrder?.poid || ''}
       listPageUrl="/purchase-orders"
       mainContent={mainContent}
       sidebarContent={sidebarContent}

@@ -230,7 +230,7 @@ const SalesItemRow: FC<SalesItemRowProps> = ({ item, fifoLoading, fifoData, show
   return (
     <TableRow hover>
       <TableCell>
-        <ProductCodeLink product={item.product} />
+        <ProductCodeLink product={item.product || null} />
       </TableCell>
       <TableCell>{item.product?.name ?? item.name ?? 'N/A'}</TableCell>
       <TableCell align="right">{item.price.toFixed(2)}</TableCell>
@@ -317,7 +317,7 @@ const SaleInfoSidebar: FC<SaleInfoSidebarProps> = ({ sale }) => (
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center">
           {getPaymentStatusInfo(sale.paymentStatus).icon}
-          <Typography variant="body2">付款狀態: <Chip label={getPaymentStatusInfo(sale.paymentStatus).text} color={getPaymentStatusInfo(sale.paymentStatus).color} size="small" /></Typography>
+          <Typography variant="body2">付款狀態: <Chip label={getPaymentStatusInfo(sale.paymentStatus).text} color={getPaymentStatusInfo(sale.paymentStatus).color || 'default'} size="small" /></Typography>
         </Stack>
         <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>備註:</Typography>
         <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{sale.note ?? '無'}</Typography>
@@ -552,7 +552,7 @@ const SalesDetailPage: FC = () => {
   return (
     <DetailLayout
       pageTitle="銷售單詳情"
-      recordIdentifier={sale?.saleNumber}
+      recordIdentifier={sale?.saleNumber || ''}
       listPageUrl="/sales"
       editPageUrl={`/sales/edit/${id}`}
       printPageUrl={`/sales/print/${id}`}

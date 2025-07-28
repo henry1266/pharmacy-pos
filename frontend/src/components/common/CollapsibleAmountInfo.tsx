@@ -148,7 +148,7 @@ interface CollapsibleAmountInfoProps {
   initialOpenState?: boolean;
   isLoading?: boolean;
   loadingText?: string;
-  error?: string | null;
+  error?: string;
   noDetailsText?: string;
 }
 

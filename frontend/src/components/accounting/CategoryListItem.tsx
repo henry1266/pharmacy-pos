@@ -36,6 +36,7 @@ const CategoryListItem: React.FC<CategoryListItemProps> = ({
     <ListItem
       ref={provided.innerRef}
       {...provided.draggableProps}
+      style={provided.draggableProps.style || {}}
       secondaryAction={
         <Box>
           <IconButton

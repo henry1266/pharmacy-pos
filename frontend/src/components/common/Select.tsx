@@ -20,7 +20,7 @@ interface CustomSelectProps {
   options?: SelectOption[];
   fullWidth?: boolean;
   required?: boolean;
-  error?: string | null;
+  error?: string;
   disabled?: boolean;
 }
 

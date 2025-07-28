@@ -46,7 +46,7 @@
     "noImplicitThis": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
-    "exactOptionalPropertyTypes": false,
+    "exactOptionalPropertyTypes": true,
     "strictPropertyInitialization": false,
     "noUncheckedIndexedAccess": true,
 
@@ -57,8 +57,6 @@
   },
   
 
-  
-  
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",

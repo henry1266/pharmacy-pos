@@ -320,7 +320,7 @@ const ShippingOrderFormPage: React.FC = () => {
         dname: item.dname,
         dquantity: Number(item.dquantity),
         dtotalCost: Number(item.dtotalCost),
-        product: item.product ?? undefined,
+        ...(item.product && { product: item.product }),
         unitPrice: Number(item.dtotalCost) / Number(item.dquantity),
         notes: item.notes ?? ''
       })),

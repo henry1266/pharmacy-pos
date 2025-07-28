@@ -10,7 +10,7 @@ interface CustomCheckboxProps extends Omit<MuiCheckboxProps, 'onChange'> {
   checked?: boolean;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void;
   disabled?: boolean;
-  error?: string | null;
+  error?: string;
 }
 
 const Checkbox: React.FC<CustomCheckboxProps> = ({
@@ -19,7 +19,7 @@ const Checkbox: React.FC<CustomCheckboxProps> = ({
   checked,
   onChange,
   disabled = false,
-  error = null,
+  error,
   ...rest
 }) => {
   return (
@@ -27,9 +27,9 @@ const Checkbox: React.FC<CustomCheckboxProps> = ({
       <FormControlLabel
         control={
           <MuiCheckbox
-            checked={checked}
+            checked={checked || false}
             onChange={onChange}
-            name={name}
+            {...(name && { name })}
             disabled={disabled}
             color="primary"
             {...rest}

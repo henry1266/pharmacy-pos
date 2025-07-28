@@ -41,7 +41,7 @@ interface TableColumn {
 interface SalesPreviewProps {
   sale?: ExtendedSale | null;
   loading?: boolean;
-  error?: string | null;
+  error?: string;
 }
 
 /**

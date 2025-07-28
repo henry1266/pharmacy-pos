@@ -54,11 +54,11 @@ const OrganizationSelect: React.FC<OrganizationSelectProps> = ({
     <Autocomplete
       id="organization-select"
       options={organizations}
-      getOptionLabel={(option) => option?.name ?? ''}
+      getOptionLabel={(option) => (option as Organization)?.name ?? ''}
       value={selectedOrganization}
-      onChange={onChange}
+      onChange={(event, value) => onChange(event, value as Organization | null)}
       disabled={disabled}
-      filterOptions={(options, state) => filterOrganizations(options, state.inputValue)}
+      filterOptions={(options, state) => filterOrganizations(options as Organization[], state.inputValue)}
       onKeyDown={(event) => {
         if (['Enter', 'Tab'].includes(event.key)) {
           const target = event.target as HTMLInputElement;
@@ -101,21 +101,23 @@ const OrganizationSelect: React.FC<OrganizationSelectProps> = ({
           autoFocus={autoFocus}
         />
       )}
-      renderOption={showCode ? (props, option) => (
-        <li {...props}>
-          {option.name} 
-          {option.code && (
-            <span style={{color: 'gray', marginLeft: '8px'}}>
-              ({option.code})
-            </span>
-          )}
-          {option.type && (
-            <span style={{color: 'blue', marginLeft: '4px', fontSize: '0.8em'}}>
-              [{getOrganizationTypeLabel(option.type)}]
-            </span>
-          )}
-        </li>
-      ) : undefined}
+      {...(showCode && {
+        renderOption: (props, option) => (
+          <li {...props}>
+            {(option as Organization).name}
+            {(option as Organization).code && (
+              <span style={{color: 'gray', marginLeft: '8px'}}>
+                ({(option as Organization).code})
+              </span>
+            )}
+            {(option as Organization).type && (
+              <span style={{color: 'blue', marginLeft: '4px', fontSize: '0.8em'}}>
+                [{getOrganizationTypeLabel((option as Organization).type)}]
+              </span>
+            )}
+          </li>
+        )
+      })}
     />
   );
 };

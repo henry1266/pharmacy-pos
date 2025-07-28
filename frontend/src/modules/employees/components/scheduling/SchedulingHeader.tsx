@@ -8,7 +8,7 @@ import {
 // 定義元件 Props 介面
 interface SchedulingHeaderProps {
   isAdmin?: boolean;
-  error?: string | null;
+  error?: string;
   title?: string;
 }
 

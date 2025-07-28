@@ -628,7 +628,7 @@ const SuppliersPage: FC<{}> = () => {
         columns={columns}
         rows={suppliers}
         loading={loading}
-        error={null} 
+        {...(error && { error })}
         onRowClick={handleRowClick}
         detailPanel={detailPanel}
         tableGridWidth={9}
@@ -782,7 +782,7 @@ const SuppliersPage: FC<{}> = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity || 'info'} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -12,7 +12,7 @@ interface TextFieldProps extends Omit<MuiTextFieldProps, 'error'> {
   type?: string;
   fullWidth?: boolean;
   required?: boolean;
-  error?: string | null;
+  error?: string;
   disabled?: boolean;
 }
 

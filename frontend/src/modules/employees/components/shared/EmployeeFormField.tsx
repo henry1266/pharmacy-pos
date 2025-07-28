@@ -45,7 +45,7 @@ interface EmployeeFormFieldProps extends Omit<TextFieldProps, 'error'> {
   value?: string | number;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   error?: boolean;
-  helperText?: string | null;
+  helperText?: string;
   required?: boolean;
   gridSize?: GridSizeType;
   options?: OptionType[];
@@ -107,7 +107,7 @@ const EmployeeFormField: React.FC<EmployeeFormFieldProps> = ({
           value={value}
           onChange={onChange}
           error={!!error}
-          helperText={helperText}
+          helperText={helperText || undefined}
           margin="normal"
           {...props}
         >
@@ -131,9 +131,9 @@ const EmployeeFormField: React.FC<EmployeeFormFieldProps> = ({
         value={value}
         onChange={onChange}
         error={!!error}
-        helperText={helperText}
+        helperText={helperText || undefined}
         margin="normal"
-        InputLabelProps={type === 'date' ? { shrink: true } : undefined}
+        {...(type === 'date' && { InputLabelProps: { shrink: true } })}
         {...props}
       />
     );
