@@ -321,7 +321,7 @@ export const authReducer = (state: AuthState = initialAuthState, action: Action)
 };
 
 // 創建兼容的初始狀態
-const createInitialCompatState = <T>(entityName: string): any => ({
+const createInitialCompatState = (entityName: string): any => ({
   data: [],
   [entityName]: [],
   loading: false,
@@ -329,7 +329,7 @@ const createInitialCompatState = <T>(entityName: string): any => ({
 });
 
 // 使用工廠函數創建各模組的 reducer
-export const productsReducer = (state: ProductsState = createInitialCompatState<Product>('products'), action: Action): ProductsState => {
+export const productsReducer = (state: ProductsState = createInitialCompatState('products'), action: Action): ProductsState => {
   switch (action.type) {
     case ActionTypes.FETCH_PRODUCTS_REQUEST:
     case ActionTypes.ADD_PRODUCT_REQUEST:
@@ -367,7 +367,7 @@ export const productsReducer = (state: ProductsState = createInitialCompatState<
   }
 };
 
-export const suppliersReducer = (state: SuppliersState = createInitialCompatState<Supplier>('suppliers'), action: Action): SuppliersState => {
+export const suppliersReducer = (state: SuppliersState = createInitialCompatState('suppliers'), action: Action): SuppliersState => {
   switch (action.type) {
     case ActionTypes.FETCH_SUPPLIERS_REQUEST:
       return { ...state, loading: true, error: null };
@@ -380,7 +380,7 @@ export const suppliersReducer = (state: SuppliersState = createInitialCompatStat
   }
 };
 
-export const customersReducer = (state: CustomersState = createInitialCompatState<Customer>('customers'), action: Action): CustomersState => {
+export const customersReducer = (state: CustomersState = createInitialCompatState('customers'), action: Action): CustomersState => {
   switch (action.type) {
     case ActionTypes.FETCH_CUSTOMERS_REQUEST:
       return { ...state, loading: true, error: null };
@@ -393,7 +393,7 @@ export const customersReducer = (state: CustomersState = createInitialCompatStat
   }
 };
 
-export const inventoryReducer = (state: InventoryState = createInitialCompatState<Inventory>('inventory'), action: Action): InventoryState => {
+export const inventoryReducer = (state: InventoryState = createInitialCompatState('inventory'), action: Action): InventoryState => {
   switch (action.type) {
     case ActionTypes.FETCH_INVENTORY_REQUEST:
       return { ...state, loading: true, error: null };
@@ -406,7 +406,7 @@ export const inventoryReducer = (state: InventoryState = createInitialCompatStat
   }
 };
 
-export const salesReducer = (state: SalesState = createInitialCompatState<Sale>('sales'), action: Action): SalesState => {
+export const salesReducer = (state: SalesState = createInitialCompatState('sales'), action: Action): SalesState => {
   switch (action.type) {
     case ActionTypes.FETCH_SALES_REQUEST:
       return { ...state, loading: true, error: null };

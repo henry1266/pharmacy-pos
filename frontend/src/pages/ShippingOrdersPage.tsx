@@ -289,7 +289,7 @@ const ShippingOrdersPage: React.FC = () => {
     setCsvImportDialogOpen(false);
   }, []);
 
-  const handleCsvTabChange = useCallback((event: React.SyntheticEvent, newValue: number): void => {
+  const handleCsvTabChange = useCallback((_event: React.SyntheticEvent, newValue: number): void => {
     setCsvTabValue(newValue);
     setCsvType(newValue === 0 ? 'basic' : 'items');
     setCsvFile(null);

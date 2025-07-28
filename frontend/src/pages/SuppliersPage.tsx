@@ -146,7 +146,7 @@ const SuppliersPage: FC<{}> = () => {
     setSnackbar({ open: true, message, severity });
   };
 
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string): void => {
+  const handleCloseSnackbar = (_event?: React.SyntheticEvent | Event, reason?: string): void => {
     if (reason === 'clickaway') {
       return;
     }

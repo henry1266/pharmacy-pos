@@ -215,7 +215,7 @@ export const useOvertimeManagement = (employeeId?: string | null) => {
   }, []);
 
   // 創建加班記錄
-  const createOvertimeRecord = useCallback(async (data: any) => {
+  const createOvertimeRecord = useCallback(async (_data: any) => {
     // 這裡應該調用實際的 API
     // try {
     //   await overtimeRecordService.createOvertimeRecord(data);

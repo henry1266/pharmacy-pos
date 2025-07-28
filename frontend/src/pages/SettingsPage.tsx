@@ -54,7 +54,7 @@ const SettingsPage: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const { currentTheme } = useTheme();
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 

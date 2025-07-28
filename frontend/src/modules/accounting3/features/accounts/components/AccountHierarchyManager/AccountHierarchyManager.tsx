@@ -72,7 +72,6 @@ export const AccountHierarchyManager: React.FC<AccountHierarchyManagerProps> = (
   initialConfig,
   showToolbar = true,
   showSearch = true,
-  showSettings,
   height = 600,
   maxHeight = 800
 }) => {

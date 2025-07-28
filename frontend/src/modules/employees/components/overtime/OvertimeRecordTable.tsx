@@ -400,7 +400,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {renderRecordDetails(group, employeeId)}
+                          {renderRecordDetails(group)}
                         </TableBody>
                       </Table>
                     </Box>
