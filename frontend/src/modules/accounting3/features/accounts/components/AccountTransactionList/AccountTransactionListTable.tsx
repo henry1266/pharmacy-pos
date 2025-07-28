@@ -38,12 +38,12 @@ import { AccountTransactionListFundingStatusDisplay } from './AccountTransaction
 interface AccountTransactionListTableProps {
   transactions: ExtendedTransactionGroupWithEntries[];
   selectedAccount: Account2;
-  onTransactionView?: (transaction: ExtendedTransactionGroupWithEntries) => void;
-  onTransactionEdit?: (transaction: ExtendedTransactionGroupWithEntries) => void;
-  onTransactionCopy?: (transaction: ExtendedTransactionGroupWithEntries) => void;
-  onTransactionConfirm?: (id: string) => void;
-  onTransactionUnlock?: (id: string) => void;
-  onTransactionDelete?: (id: string) => void;
+  onTransactionView?: ((transaction: ExtendedTransactionGroupWithEntries) => void) | undefined;
+  onTransactionEdit?: ((transaction: ExtendedTransactionGroupWithEntries) => void) | undefined;
+  onTransactionCopy?: ((transaction: ExtendedTransactionGroupWithEntries) => void) | undefined;
+  onTransactionConfirm?: ((id: string) => void) | undefined;
+  onTransactionUnlock?: ((id: string) => void) | undefined;
+  onTransactionDelete?: ((id: string) => void) | undefined;
 }
 
 /**

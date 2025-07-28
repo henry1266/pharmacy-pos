@@ -28,8 +28,7 @@
 
     /* 開發階段放寬檢查 */
     "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "exactOptionalPropertyTypes": false
+    "noUnusedParameters": false
   },
 
   "include": [

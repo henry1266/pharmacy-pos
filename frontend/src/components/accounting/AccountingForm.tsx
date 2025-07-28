@@ -474,7 +474,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
                     onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
                     fullWidth
                     required
-                    sx={getItemFieldStyle(item)}
+                    sx={getItemFieldStyle(item) as any}
                   />
                 </Grid>
                 <Grid item xs={12} sm={3}>

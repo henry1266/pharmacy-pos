@@ -150,14 +150,14 @@ const TreeNode: React.FC<{
   selectionState: HierarchySelectionState;
   dragState: DragState;
   onNodeToggle: (nodeId: string) => void;
-  onNodeSelect: (nodeId: string) => void;
+  onNodeSelect: (nodeId: string, multiSelect?: boolean) => void;
   onNodeEdit: (nodeId: string) => void;
   onNodeDelete: (nodeId: string) => void;
   onNodeAdd: (parentNodeId: string) => void;
   onNodeVisibilityToggle: (nodeId: string) => void;
-  onDragStart?: (nodeId: string, event: React.DragEvent) => void;
-  onDragOver?: (nodeId: string, event: React.DragEvent) => void;
-  onDrop?: (targetNodeId: string, draggedNodeId: string, event: React.DragEvent) => void;
+  onDragStart?: ((nodeId: string, event: React.DragEvent) => void) | undefined;
+  onDragOver?: ((nodeId: string, event: React.DragEvent) => void) | undefined;
+  onDrop?: ((targetNodeId: string, draggedNodeId: string, event: React.DragEvent) => void) | undefined;
 }> = memo(({
   node,
   level,
@@ -429,9 +429,9 @@ const TreeNode: React.FC<{
       </Box>
       
       <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-        {node.children?.map((childNode) => (
+        {node.children?.map((childNode, index) => (
           <TreeNode
-            key={childNode._id}
+            key={childNode._id || `child-${level}-${index}`}
             node={childNode}
             level={level + 1}
             config={config}
@@ -445,9 +445,9 @@ const TreeNode: React.FC<{
             onNodeDelete={onNodeDelete}
             onNodeAdd={onNodeAdd}
             onNodeVisibilityToggle={onNodeVisibilityToggle}
-            onDragStart={onDragStart}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
+            onDragStart={onDragStart || undefined}
+            onDragOver={onDragOver || undefined}
+            onDrop={onDrop || undefined}
           />
         ))}
       </Collapse>

@@ -18,29 +18,7 @@ import { accounting3Service } from '../../../../services/accounting3Service';
 import { AccountTransactionListStatisticsCards as TransactionStatisticsCards } from './AccountTransactionListStatisticsCards';
 import { AccountTransactionListDetailDialog as TransactionDetailDialog } from './AccountTransactionListDetailDialog';
 import { AccountTransactionListTable as TransactionTable } from './AccountTransactionListTable';
-
-// 臨時型別擴展，確保 referencedByInfo 和 fundingSourceUsages 屬性可用
-interface ExtendedTransactionGroupWithEntries extends TransactionGroupWithEntries {
-  referencedByInfo?: Array<{
-    _id: string;
-    groupNumber: string;
-    description: string;
-    transactionDate: Date | string;
-    totalAmount: number;
-    status: 'draft' | 'confirmed' | 'cancelled';
-  }>;
-  fundingSourceUsages?: Array<{
-    sourceTransactionId: string;
-    usedAmount: number;
-    sourceTransactionDescription?: string;
-    sourceTransactionGroupNumber?: string;
-    sourceTransactionDate?: Date | string;
-    sourceTransactionAmount?: number;
-  }>;
-  accountAmount?: number;
-  runningBalance?: number;
-  displayOrder?: number;
-}
+import { ExtendedTransactionGroupWithEntries } from './types';
 
 interface AccountTransactionListProps {
   selectedAccount: Account2 | null;
@@ -347,12 +325,12 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
             <TransactionTable
               transactions={transactionsWithRunningBalance}
               selectedAccount={selectedAccount}
-              onTransactionView={onTransactionView}
-              onTransactionEdit={onTransactionEdit}
-              onTransactionCopy={onTransactionCopy}
-              onTransactionConfirm={onTransactionConfirm}
-              onTransactionUnlock={onTransactionUnlock}
-              onTransactionDelete={onTransactionDelete}
+              onTransactionView={onTransactionView || undefined}
+              onTransactionEdit={onTransactionEdit || undefined}
+              onTransactionCopy={onTransactionCopy || undefined}
+              onTransactionConfirm={onTransactionConfirm || undefined}
+              onTransactionUnlock={onTransactionUnlock || undefined}
+              onTransactionDelete={onTransactionDelete || undefined}
             />
           </Box>
         )}
