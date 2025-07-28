@@ -179,7 +179,7 @@ const AccountingNewPage: React.FC = () => {
   const getAmountDisplayValue = (index: number, item: any): string => {
     // Use local state if available, otherwise use form data
     if (localAmounts[index] !== undefined) {
-      return localAmounts[index];
+      return localAmounts[index] || '';
     }
     return item.amount?.toString() || '';
   };
@@ -439,7 +439,7 @@ const AccountingNewPage: React.FC = () => {
                 <DatePicker
                   label="日期"
                   value={formData.date}
-                  onChange={handleDateChange}
+                  onChange={(date) => handleDateChange(date ?? new Date())}
                   disabled={submitting}
                   renderInput={(params) => (
                     <TextField {...params} fullWidth required inputRef={datePickerRef} />

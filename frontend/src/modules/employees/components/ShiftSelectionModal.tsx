@@ -313,7 +313,17 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
         
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            {shifts[tabValue] ? shiftLabels[shifts[tabValue]] : ''} ({shifts[tabValue] && shiftTimes[shifts[tabValue]] ? `${shiftTimes[shifts[tabValue]]?.start || ''}-${shiftTimes[shifts[tabValue]]?.end || ''}` : ''}) 排班人員
+            {(() => {
+              const currentShift = shifts[tabValue];
+              if (!currentShift) return '';
+              
+              const shiftLabel = currentShift in shiftLabels ? shiftLabels[currentShift] : currentShift;
+              const timeInfo = currentShift in shiftTimes
+                ? `${shiftTimes[currentShift]?.start || ''}-${shiftTimes[currentShift]?.end || ''}`
+                : '';
+              
+              return `${shiftLabel || ''} (${timeInfo}) 排班人員`;
+            })()}
           </Typography>
           
           {loading ? (
@@ -435,7 +445,11 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary" align="center">
-                    尚未安排{shifts[tabValue] ? shiftLabels[shifts[tabValue]] : ''}人員
+                    尚未安排{(() => {
+                      const currentShift = shifts[tabValue];
+                      if (!currentShift) return '';
+                      return currentShift in shiftLabels ? (shiftLabels[currentShift] || '') : currentShift;
+                    })()}人員
                   </Typography>
                 )}
               </List>

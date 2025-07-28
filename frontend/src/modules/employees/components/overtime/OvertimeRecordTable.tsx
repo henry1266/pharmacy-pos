@@ -145,22 +145,22 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
       })),
       // 排班系統加班記錄
       ...group.scheduleRecords.map(record => {
-        const hours = {
+        const hours = record.shift ? {
           'morning': 3.5,
           'afternoon': 3,
           'evening': 1.5
-        }[record.shift] || 0;
+        }[record.shift] || 0 : 0;
 
-        const shiftName = {
+        const shiftName = record.shift ? {
           'morning': '早班 (08:30-12:00)',
           'afternoon': '中班 (15:00-18:00)',
           'evening': '晚班 (19:00-20:30)'
-        }[record.shift] || `${record.shift || '未知班次'}`;
+        }[record.shift] || `${record.shift}` : '未知班次';
 
         return {
           id: `schedule-${record._id}`,
           type: 'schedule' as OvertimeRecordType,
-          date: new Date(record.date),
+          date: new Date(record.date || new Date()),
           originalRecord: record,
           hours: hours,
           description: shiftName,

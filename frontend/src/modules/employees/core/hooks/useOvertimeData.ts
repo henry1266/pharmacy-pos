@@ -286,7 +286,10 @@ const useOvertimeData = (
         };
       } else {
         // 如果員工組已存在，確保排班記錄被添加
-        initialGroups[empId].scheduleRecords = scheduleOvertimeRecords[empId] || [];
+        const existingGroup = initialGroups[empId];
+        if (existingGroup) {
+          existingGroup.scheduleRecords = scheduleOvertimeRecords[empId] || [];
+        }
       }
       
       // 計算排班加班時數
@@ -300,7 +303,10 @@ const useOvertimeData = (
           default: scheduleHours += 0;
         }
       });
-      initialGroups[empId].scheduleHours = scheduleHours;
+      const targetGroup = initialGroups[empId];
+      if (targetGroup) {
+        targetGroup.scheduleHours = scheduleHours;
+      }
     });
   }, [scheduleOvertimeRecords, findEmployeeInfo, employees, summaryData, overtimeRecords, selectedMonth]);
 
@@ -397,7 +403,7 @@ const useOvertimeData = (
     
     try {
       if (Array.isArray(scheduleOvertimeRecords?.[employeeId])) {
-        scheduleRecords = scheduleOvertimeRecords[employeeId].map(record => {
+        scheduleRecords = (scheduleOvertimeRecords[employeeId] || []).map(record => {
           try {
             // 計算加班時數
             let hours: number;

@@ -123,10 +123,10 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           });
           
           const fundingSources = await Promise.all(fundingSourcePromises);
-          const validFundingSources = fundingSources.filter(source => source !== null);
+          const validFundingSources = fundingSources.filter((source): source is NonNullable<typeof source> => source !== null);
           
           console.log('✅ [Accounting3] 載入的資金來源:', validFundingSources);
-          setSelectedFundingSources(validFundingSources.filter(source => source !== null));
+          setSelectedFundingSources(validFundingSources);
           
         } catch (error) {
           console.error('❌ [Accounting3] 載入資金來源失敗:', error);

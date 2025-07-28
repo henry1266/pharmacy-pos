@@ -183,11 +183,11 @@ export const validateAccountForm = (
   let errors: Array<{ field: string; message: string; value?: any }> = [];
 
   if (!isEdit) {
-    errors = errors.concat(validateUsername(formData.username));
+    errors = errors.concat(validateUsername(formData.username || ''));
   }
 
   if (!isEdit || isPasswordReset) {
-    errors = errors.concat(validatePasswordFields(formData.password, formData.confirmPassword));
+    errors = errors.concat(validatePasswordFields(formData.password || '', formData.confirmPassword || ''));
   }
 
   if (!isPasswordReset && !isEdit) {

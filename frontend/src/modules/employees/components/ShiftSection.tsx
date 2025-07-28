@@ -88,7 +88,7 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
   // 檢查員工是否已被排班在指定班次
   const isEmployeeScheduled = (employeeId: string): boolean => {
     return (schedules[shift] ?? []).some(
-      schedule => schedule.employee._id === employeeId
+      schedule => schedule.employee?._id === employeeId
     );
   };
 
@@ -96,8 +96,8 @@ const ShiftSection: React.FC<ShiftSectionProps> = ({ shift, shiftLabel, employee
   const handleQuickPanelEmployeeToggle = async (employee: Employee) => {
     if (isEmployeeScheduled(employee._id)) {
       // 找到要刪除的排班記錄
-      const scheduleToRemove = schedules[shift].find(
-        schedule => schedule.employee._id === employee._id
+      const scheduleToRemove = schedules[shift]?.find(
+        schedule => schedule.employee?._id === employee._id
       );
       
       if (scheduleToRemove) {

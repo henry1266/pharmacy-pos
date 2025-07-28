@@ -218,8 +218,8 @@ const ShiftTimeConfigManager: React.FC<{ onConfigUpdate?: () => void }> = ({ onC
     const [startHour, startMinute] = startTime.split(':').map(Number);
     const [endHour, endMinute] = endTime.split(':').map(Number);
     
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const endTimeInMinutes = endHour * 60 + endMinute;
+    const startTimeInMinutes = (startHour || 0) * 60 + (startMinute || 0);
+    const endTimeInMinutes = (endHour || 0) * 60 + (endMinute || 0);
     
     const hours = (endTimeInMinutes - startTimeInMinutes) / 60;
     return hours > 0 ? `${hours.toFixed(1)} 小時` : '--';

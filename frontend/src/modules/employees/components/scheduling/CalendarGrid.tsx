@@ -100,8 +100,8 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
               p: 0.5,
               height: '115px',
               bgcolor: dateObj.isCurrentMonth ? 'background.paper' : 'action.hover',
-              border: getBorderStyle(dateObj.date, isNavigationActive, selectedCell, index),
-              borderColor: getBorderColor(dateObj.date, isNavigationActive, selectedCell, index),
+              border: getBorderStyle(dateObj.date, isNavigationActive, selectedCell ?? null, index),
+              borderColor: getBorderColor(dateObj.date, isNavigationActive, selectedCell ?? null, index),
               opacity: dateObj.isCurrentMonth ? 1 : 0.5,
               cursor: 'pointer',
               '&:hover': {
