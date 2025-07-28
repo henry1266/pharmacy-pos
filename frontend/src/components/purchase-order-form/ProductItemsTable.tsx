@@ -23,6 +23,128 @@ import ProductCodeLink from '../common/ProductCodeLink';
 import { PackageInventoryDisplay } from '../package-units';
 import { ProductPackageUnit } from '@pharmacy-pos/shared/types/package';
 
+// 共用樣式常數
+const GRID_TEMPLATE = '80px 110px 1fr 100px 70px 90px 70px 110px';
+const HEADER_HEIGHT = '56px';
+const FOOTER_HEIGHT = '56px';
+
+const COMMON_STYLES = {
+  gridContainer: {
+    display: 'grid',
+    gridTemplateColumns: GRID_TEMPLATE,
+    gap: 1,
+    alignItems: 'center',
+    minHeight: '40px'
+  },
+  headerStyle: {
+    fontWeight: 'bold',
+    fontSize: '1.1rem',
+    pb: 1
+  },
+  footerStyle: {
+    fontWeight: 'bold'
+  },
+  fixedPosition: {
+    position: 'absolute' as const,
+    left: 0,
+    right: 0,
+    zIndex: 10
+  },
+  textFieldStyle: {
+    '& .MuiInputBase-root': {
+      height: '32px',
+      textAlign: 'center'
+    }
+  },
+  iconButtonStyle: {
+    padding: '2px'
+  }
+} as const;
+
+// 表格標題列
+const TABLE_HEADERS = [
+  '序號', '藥品代碼', '藥品名稱', '批號',
+  '數量', '總成本', '單價', '操作'
+] as const;
+
+// 共用組件：表格標題
+const TableHeader: FC = () => (
+  <Box sx={{ ...COMMON_STYLES.fixedPosition, top: 0 }}>
+    <Paper sx={{ p: 1 }}>
+      <Box sx={{ ...COMMON_STYLES.gridContainer, ...COMMON_STYLES.headerStyle }}>
+        {TABLE_HEADERS.map((header) => (
+          <Typography key={header} variant="subtitle2" align="center">
+            {header}
+          </Typography>
+        ))}
+      </Box>
+    </Paper>
+  </Box>
+);
+
+// 共用組件：總計欄
+const TotalFooter: FC<{ totalAmount: number }> = ({ totalAmount }) => (
+  <Box sx={{ ...COMMON_STYLES.fixedPosition, bottom: 0, backgroundColor: 'white' }}>
+    <Paper sx={{ p: 1 }}>
+      <Divider sx={{ mb: 1 }} />
+      <Box sx={{ ...COMMON_STYLES.gridContainer, ...COMMON_STYLES.footerStyle }}>
+        <Box></Box>
+        <Box></Box>
+        <Typography variant="subtitle1" align="center">總計：</Typography>
+        <Box></Box>
+        <Box></Box>
+        <Typography variant="subtitle1" align="center">
+          {totalAmount.toLocaleString()}
+        </Typography>
+        <Box></Box>
+        <Box></Box>
+      </Box>
+    </Paper>
+  </Box>
+);
+
+// 共用組件：編輯用 TextField
+const EditTextField: FC<{
+  name?: string;
+  value: string | number;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  disabled?: boolean;
+  placeholder?: string;
+  inputProps?: any;
+}> = ({ name, value, onChange, type = "text", disabled = false, placeholder, inputProps }) => (
+  <TextField
+    fullWidth
+    size="small"
+    {...(name && { name })}
+    type={type}
+    value={value}
+    {...(onChange && { onChange })}
+    disabled={disabled}
+    {...(placeholder && { placeholder })}
+    {...(inputProps && { inputProps })}
+    sx={COMMON_STYLES.textFieldStyle}
+  />
+);
+
+// 共用組件：操作按鈕
+const ActionButton: FC<{
+  icon: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  color?: 'primary' | 'error' | 'default';
+}> = ({ icon, onClick, disabled = false, color = 'default' }) => (
+  <IconButton
+    size="small"
+    onClick={onClick}
+    disabled={disabled}
+    color={color}
+    sx={COMMON_STYLES.iconButtonStyle}
+  >
+    {icon}
+  </IconButton>
+);
+
 // 定義項目介面
 interface Item {
   _id?: string;
@@ -100,47 +222,14 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
   if (!items || items.length === 0) {
     return (
       <Box sx={{ height: '100%', position: 'relative' }}>
-        {/* 固定的表格標題 */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10
-          }}
-        >
-          <Paper sx={{ p: 1 }}>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
-                gap: 1,
-                alignItems: 'center',
-                minHeight: '40px',
-                fontWeight: 'bold',
-                fontSize: '1.1rem',
-                pb: 1
-              }}
-            >
-              <Typography variant="subtitle2" align="center">序號</Typography>
-              <Typography variant="subtitle2" align="center">藥品代碼</Typography>
-              <Typography variant="subtitle2" align="center">藥品名稱</Typography>
-              <Typography variant="subtitle2" align="center">批號</Typography>
-              <Typography variant="subtitle2" align="center">數量</Typography>
-              <Typography variant="subtitle2" align="center">總成本</Typography>
-              <Typography variant="subtitle2" align="center">單價</Typography>
-              <Typography variant="subtitle2" align="center">操作</Typography>
-            </Box>
-          </Paper>
-        </Box>
-
+        <TableHeader />
+        
         {/* 空狀態內容 */}
         <Box
           sx={{
             position: 'absolute',
-            top: '56px',
-            bottom: '56px',
+            top: HEADER_HEIGHT,
+            bottom: FOOTER_HEIGHT,
             left: 0,
             right: 0,
             display: 'flex',
@@ -155,88 +244,21 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
           </Paper>
         </Box>
 
-        {/* 固定的總計欄 */}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10
-          }}
-        >
-          <Paper sx={{ p: 1 }}>
-            <Divider sx={{ mb: 1 }} />
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
-                gap: 1,
-                alignItems: 'center',
-                minHeight: '40px',
-                fontWeight: 'bold'
-              }}
-            >
-              <Box></Box>
-              <Box></Box>
-              <Typography variant="subtitle1" align="center">總計：</Typography>
-              <Box></Box>
-              <Box></Box>
-              <Typography variant="subtitle1" align="center">
-                {totalAmount.toLocaleString()}
-              </Typography>
-              <Box></Box>
-              <Box></Box>
-            </Box>
-          </Paper>
-        </Box>
+        <TotalFooter totalAmount={totalAmount} />
       </Box>
     );
   }
 
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>
-      {/* 固定的表格標題 */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10
-        }}
-      >
-        <Paper sx={{ p: 1 }}>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
-              gap: 1,
-              alignItems: 'center',
-              minHeight: '40px',
-              fontWeight: 'bold',
-              fontSize: '1.1rem',
-              pb: 1
-            }}
-          >
-            <Typography variant="subtitle2" align="center">序號</Typography>
-            <Typography variant="subtitle2" align="center">藥品代碼</Typography>
-            <Typography variant="subtitle2" align="center">藥品名稱</Typography>
-            <Typography variant="subtitle2" align="center">批號</Typography>
-            <Typography variant="subtitle2" align="center">數量</Typography>
-            <Typography variant="subtitle2" align="center">總成本</Typography>
-            <Typography variant="subtitle2" align="center">單價</Typography>
-            <Typography variant="subtitle2" align="center">操作</Typography>
-          </Box>
-        </Paper>
-      </Box>
+      <TableHeader />
 
       {/* 可滾動的表格內容 */}
       <Box
         sx={{
           position: 'absolute',
-          top: '56px', // 標題高度
-          bottom: '56px', // 總計高度
+          top: HEADER_HEIGHT,
+          bottom: FOOTER_HEIGHT,
           left: 0,
           right: 0,
           overflow: 'auto'
@@ -297,59 +319,42 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                                   </Box>
                                   <Typography variant="caption">{index + 1}</Typography>
                                 </Box>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  value={editingItem.did}
-                                  disabled
-                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
-                                />
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  value={editingItem.dname}
-                                  disabled
-                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
-                                />
-                                <TextField
-                                  fullWidth
-                                  size="small"
+                                <EditTextField value={editingItem.did} disabled />
+                                <EditTextField value={editingItem.dname} disabled />
+                                <EditTextField
                                   name="batchNumber"
                                   value={editingItem.batchNumber || ''}
                                   onChange={handleEditingItemChange}
                                   placeholder="批號"
-                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                                 />
-                                <TextField
-                                  fullWidth
-                                  size="small"
+                                <EditTextField
                                   name="dquantity"
                                   type="number"
                                   value={editingItem.dquantity}
                                   onChange={handleEditingItemChange}
                                   inputProps={{ min: 0 }}
-                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                                 />
-                                <TextField
-                                  fullWidth
-                                  size="small"
+                                <EditTextField
                                   name="dtotalCost"
                                   type="number"
                                   value={editingItem.dtotalCost}
                                   onChange={handleEditingItemChange}
                                   inputProps={{ min: 0 }}
-                                  sx={{ '& .MuiInputBase-root': { height: '32px', textAlign: 'center' } }}
                                 />
                                 <Typography variant="caption" align="center">
                                   {Number(editingItem.dquantity) > 0 ? (Number(editingItem.dtotalCost) / Number(editingItem.dquantity)).toFixed(2) : '0.00'}
                                 </Typography>
                                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
-                                  <IconButton size="small" color="primary" onClick={handleSaveEditItem}>
-                                    <CheckIcon fontSize="small" />
-                                  </IconButton>
-                                  <IconButton size="small" color="error" onClick={handleCancelEditItem}>
-                                    <CloseIcon fontSize="small" />
-                                  </IconButton>
+                                  <ActionButton
+                                    icon={<CheckIcon fontSize="small" />}
+                                    onClick={handleSaveEditItem}
+                                    color="primary"
+                                  />
+                                  <ActionButton
+                                    icon={<CloseIcon fontSize="small" />}
+                                    onClick={handleCancelEditItem}
+                                    color="error"
+                                  />
                                 </Box>
                               </>
                             ) : (
@@ -391,18 +396,24 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
                                   {Number(item.dquantity) > 0 ? (Number(item.dtotalCost) / Number(item.dquantity)).toFixed(2) : '0.00'}
                                 </Typography>
                                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
-                                  <IconButton size="small" onClick={() => handleMoveItem(index, 'up')} disabled={index === 0} sx={{ padding: '2px' }}>
-                                    <ArrowUpwardIcon fontSize="small" />
-                                  </IconButton>
-                                  <IconButton size="small" onClick={() => handleMoveItem(index, 'down')} disabled={index === items.length - 1} sx={{ padding: '2px' }}>
-                                    <ArrowDownwardIcon fontSize="small" />
-                                  </IconButton>
-                                  <IconButton size="small" onClick={() => handleEditItem(index)} sx={{ padding: '2px' }}>
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                  <IconButton size="small" onClick={() => handleRemoveItem(index)} sx={{ padding: '2px' }}>
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
+                                  <ActionButton
+                                    icon={<ArrowUpwardIcon fontSize="small" />}
+                                    onClick={() => handleMoveItem(index, 'up')}
+                                    disabled={index === 0}
+                                  />
+                                  <ActionButton
+                                    icon={<ArrowDownwardIcon fontSize="small" />}
+                                    onClick={() => handleMoveItem(index, 'down')}
+                                    disabled={index === items.length - 1}
+                                  />
+                                  <ActionButton
+                                    icon={<EditIcon fontSize="small" />}
+                                    onClick={() => handleEditItem(index)}
+                                  />
+                                  <ActionButton
+                                    icon={<DeleteIcon fontSize="small" />}
+                                    onClick={() => handleRemoveItem(index)}
+                                  />
                                 </Box>
                               </>
                             )}
@@ -419,42 +430,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
         </DragDropContext>
       </Box>
 
-      {/* 固定的總計欄 */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          backgroundColor: 'white'
-        }}
-      >
-        <Paper sx={{ p: 1 }}>
-          <Divider sx={{ mb: 1 }} />
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: '80px 110px 1fr 100px 70px 90px 70px 110px',
-              gap: 1,
-              alignItems: 'center',
-              minHeight: '40px',
-              fontWeight: 'bold'
-            }}
-          >
-            <Box></Box>
-            <Box></Box>
-            <Typography variant="subtitle1" align="center">總計：</Typography>
-            <Box></Box>
-            <Box></Box>
-            <Typography variant="subtitle1" align="center">
-              {totalAmount.toLocaleString()}
-            </Typography>
-            <Box></Box>
-            <Box></Box>
-          </Box>
-        </Paper>
-      </Box>
+      <TotalFooter totalAmount={totalAmount} />
     </Box>
   );
 });
