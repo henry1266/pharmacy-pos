@@ -15,6 +15,8 @@ interface AuthenticatedRequest extends express.Request {
 
 const router: Router = express.Router();
 
+// ===== 共用工具函數 =====
+
 // 輔助函數：驗證和轉換 ObjectId
 const validateObjectId = (id: string, fieldName: string): mongoose.Types.ObjectId => {
   if (!id || typeof id !== 'string' || id.trim() === '') {
@@ -31,6 +33,54 @@ const safeObjectId = (id?: string): mongoose.Types.ObjectId | undefined => {
   if (!id || id === 'null' || id === 'undefined' || id.trim() === '') return undefined;
   if (!mongoose.Types.ObjectId.isValid(id)) return undefined;
   return new mongoose.Types.ObjectId(id);
+};
+
+// 輔助函數：驗證用戶授權
+const validateAuth = (req: AuthenticatedRequest): string => {
+  const userId = req.user?.id || req.user?.userId;
+  if (!userId) {
+    throw new Error('未授權的請求');
+  }
+  return userId;
+};
+
+// 輔助函數：建立錯誤回應
+const createErrorResponse = (message: string, statusCode: number = 500) => ({
+  success: false,
+  message,
+  statusCode
+});
+
+// 輔助函數：建立成功回應
+const createSuccessResponse = (data: any, message?: string) => ({
+  success: true,
+  data,
+  ...(message && { message })
+});
+
+// 輔助函數：建立查詢過濾條件
+const buildQueryFilter = (userId: string, organizationId?: string): any => {
+  const filter: any = { createdBy: userId };
+  
+  if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
+    filter.organizationId = new mongoose.Types.ObjectId(organizationId);
+  }
+  
+  return filter;
+};
+
+// 輔助函數：處理錯誤回應
+const handleErrorResponse = (res: express.Response, error: any, defaultMessage: string, statusCode: number = 500): void => {
+  console.error(`❌ ${defaultMessage}:`, error);
+  
+  if (error.message === '未授權的請求') {
+    res.status(401).json(createErrorResponse(error.message));
+    return;
+  }
+  
+  res.status(statusCode).json(createErrorResponse(
+    error instanceof Error ? error.message : defaultMessage
+  ));
 };
 
 // 輔助函數：生成交易群組編號
@@ -92,12 +142,7 @@ const validateEntryData = (entry: any, index: number): void => {
 // 獲取所有交易群組
 router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
+    const userId = validateAuth(req);
     const {
       organizationId,
       status,
@@ -108,27 +153,11 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     } = req.query;
 
     console.log('🔍 GET /transaction-groups - 查詢參數:', {
-      organizationId,
-      status,
-      startDate,
-      endDate,
-      page,
-      limit,
-      userId
+      organizationId, status, startDate, endDate, page, limit, userId
     });
 
     // 建立查詢條件
-    const filter: any = {
-      createdBy: userId
-    };
-
-    // 機構過濾
-    if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
-      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
-      console.log('🏢 查詢機構交易群組:', organizationId);
-    } else {
-      console.log('👤 查詢所有交易群組（包含個人和機構）');
-    }
+    const filter = buildQueryFilter(userId, organizationId as string);
 
     // 狀態過濾
     if (status && ['draft', 'confirmed', 'cancelled'].includes(status as string)) {
@@ -138,12 +167,8 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
     // 日期範圍過濾
     if (startDate || endDate) {
       filter.transactionDate = {};
-      if (startDate) {
-        filter.transactionDate.$gte = new Date(startDate as string);
-      }
-      if (endDate) {
-        filter.transactionDate.$lte = new Date(endDate as string);
-      }
+      if (startDate) filter.transactionDate.$gte = new Date(startDate as string);
+      if (endDate) filter.transactionDate.$lte = new Date(endDate as string);
     }
 
     const pageNum = parseInt(page as string);
@@ -222,43 +247,28 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: express.Response) =
       })
     );
 
-    res.json({
-      success: true,
-      data: {
-        transactionGroups: transactionGroupsWithEntries,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total,
-          pages: Math.ceil(total / limitNum)
-        }
+    res.json(createSuccessResponse({
+      transactionGroups: transactionGroupsWithEntries,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
       }
-    });
+    }));
   } catch (error) {
-    console.error('獲取交易群組列表錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取交易群組列表失敗'
-    });
+    handleErrorResponse(res, error, '獲取交易群組列表失敗');
   }
 });
 
 // 獲取單一交易群組（包含分錄）
 router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = validateAuth(req);
     const { id } = req.params;
 
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
     if (!id) {
-      res.status(400).json({
-        success: false,
-        message: '缺少交易群組ID參數'
-      });
+      res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
 
@@ -268,10 +278,7 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     });
 
     if (!transactionGroup) {
-      res.status(404).json({
-        success: false,
-        message: '找不到指定的交易群組'
-      });
+      res.status(404).json(createErrorResponse('找不到指定的交易群組', 404));
       return;
     }
 
@@ -280,31 +287,19 @@ router.get('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
       transactionGroupId: id
     }).sort({ sequence: 1 });
 
-    res.json({
-      success: true,
-      data: {
-        transactionGroup,
-        entries
-      }
-    });
+    res.json(createSuccessResponse({
+      transactionGroup,
+      entries
+    }));
   } catch (error) {
-    console.error('獲取交易群組詳情錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取交易群組詳情失敗'
-    });
+    handleErrorResponse(res, error, '獲取交易群組詳情失敗');
   }
 });
 
 // 建立交易群組
 router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
+    const userId = validateAuth(req);
     const {
       description,
       transactionDate,
@@ -318,30 +313,19 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
     } = req.body;
 
     console.log('🔍 POST /transaction-groups - 建立交易群組:', {
-      description,
-      transactionDate,
-      organizationId,
-      receiptUrl,
-      invoiceNo,
-      entriesCount: entries?.length,
-      userId
+      description, transactionDate, organizationId, receiptUrl, invoiceNo,
+      entriesCount: entries?.length, userId
     });
 
     // 驗證必填欄位
     if (!description || !transactionDate || !entries || !Array.isArray(entries) || entries.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: '請填寫所有必填欄位，並至少提供一筆分錄'
-      });
+      res.status(400).json(createErrorResponse('請填寫所有必填欄位，並至少提供一筆分錄', 400));
       return;
     }
 
     // 驗證分錄數量
     if (entries.length < 2) {
-      res.status(400).json({
-        success: false,
-        message: '複式記帳至少需要兩筆分錄'
-      });
+      res.status(400).json(createErrorResponse('複式記帳至少需要兩筆分錄', 400));
       return;
     }
 
@@ -351,20 +335,16 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
         validateEntryData(entry, index);
       });
     } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error instanceof Error ? error.message : '分錄資料驗證失敗'
-      });
+      res.status(400).json(createErrorResponse(
+        error instanceof Error ? error.message : '分錄資料驗證失敗', 400
+      ));
       return;
     }
 
     // 驗證借貸平衡
     const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
     if (!balanceValidation.isBalanced) {
-      res.status(400).json({
-        success: false,
-        message: balanceValidation.message
-      });
+      res.status(400).json(createErrorResponse(balanceValidation.message, 400));
       return;
     }
 
@@ -396,10 +376,7 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       }
     } catch (error) {
       console.error('❌ organizationId 處理錯誤:', organizationId, error);
-      res.status(400).json({
-        success: false,
-        message: '機構ID格式錯誤'
-      });
+      res.status(400).json(createErrorResponse('機構ID格式錯誤', 400));
       return;
     }
 
@@ -467,14 +444,10 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       const savedEntries = await Promise.all(entryPromises);
       console.log('✅ 所有分錄建立成功，數量:', savedEntries.length);
 
-      res.status(201).json({
-        success: true,
-        data: {
-          transactionGroup: savedTransactionGroup,
-          entries: savedEntries
-        },
-        message: '交易群組建立成功'
-      });
+      res.status(201).json(createSuccessResponse({
+        transactionGroup: savedTransactionGroup,
+        entries: savedEntries
+      }, '交易群組建立成功'));
     } catch (error) {
       // 如果分錄建立失敗，嘗試清理已建立的交易群組
       if (savedTransactionGroup) {
@@ -498,33 +471,25 @@ router.post('/', auth, async (req: AuthenticatedRequest, res: express.Response) 
       keyValue: (error as any)?.keyValue
     });
     
-    res.status(500).json({
-      success: false,
-      message: '建立交易群組失敗',
-      error: process.env.NODE_ENV === 'development' ? {
+    const errorResponse = createErrorResponse('建立交易群組失敗');
+    if (process.env.NODE_ENV === 'development') {
+      (errorResponse as any).error = {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
-      } : undefined
-    });
+      };
+    }
+    res.status(500).json(errorResponse);
   }
 });
 
 // 更新交易群組
 router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = validateAuth(req);
     const { id } = req.params;
 
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
     if (!id) {
-      res.status(400).json({
-        success: false,
-        message: '缺少交易群組ID參數'
-      });
+      res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
 
@@ -540,13 +505,8 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     } = req.body;
 
     console.log('🔍 PUT /transaction-groups/:id - 更新交易群組:', {
-      id,
-      description,
-      transactionDate,
-      receiptUrl,
-      invoiceNo,
-      entriesCount: entries?.length,
-      userId
+      id, description, transactionDate, receiptUrl, invoiceNo,
+      entriesCount: entries?.length, userId
     });
 
     // 檢查交易群組是否存在
@@ -556,19 +516,13 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     });
 
     if (!transactionGroup) {
-      res.status(404).json({
-        success: false,
-        message: '找不到指定的交易群組'
-      });
+      res.status(404).json(createErrorResponse('找不到指定的交易群組', 404));
       return;
     }
 
     // 檢查是否已確認（已確認的交易不能修改）
     if (transactionGroup.status === 'confirmed') {
-      res.status(400).json({
-        success: false,
-        message: '已確認的交易不能修改'
-      });
+      res.status(400).json(createErrorResponse('已確認的交易不能修改', 400));
       return;
     }
 
@@ -576,10 +530,7 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
     if (entries && Array.isArray(entries) && entries.length > 0) {
       const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
       if (!balanceValidation.isBalanced) {
-        res.status(400).json({
-          success: false,
-          message: balanceValidation.message
-        });
+        res.status(400).json(createErrorResponse(balanceValidation.message, 400));
         return;
       }
     }
@@ -682,42 +633,26 @@ router.put('/:id', auth, async (req: AuthenticatedRequest, res: express.Response
         console.log('ℹ️ 未提供分錄或分錄為空，僅更新交易群組基本資訊');
       }
 
-      res.json({
-        success: true,
-        data: {
-          transactionGroup: updatedTransactionGroup,
-          entries: updatedEntries
-        },
-        message: '交易群組更新成功'
-      });
+      res.json(createSuccessResponse({
+        transactionGroup: updatedTransactionGroup,
+        entries: updatedEntries
+      }, '交易群組更新成功'));
     } catch (error) {
       throw error;
     }
   } catch (error) {
-    console.error('更新交易群組錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '更新交易群組失敗'
-    });
+    handleErrorResponse(res, error, '更新交易群組失敗');
   }
 });
 
 // 確認交易
 router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = validateAuth(req);
     const { id } = req.params;
 
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
     if (!id) {
-      res.status(400).json({
-        success: false,
-        message: '缺少交易群組ID參數'
-      });
+      res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
 
@@ -730,28 +665,19 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
     });
 
     if (!transactionGroup) {
-      res.status(404).json({
-        success: false,
-        message: '找不到指定的交易群組'
-      });
+      res.status(404).json(createErrorResponse('找不到指定的交易群組', 404));
       return;
     }
 
     // 檢查是否已確認
     if (transactionGroup.status === 'confirmed') {
-      res.status(400).json({
-        success: false,
-        message: '交易已經確認過了'
-      });
+      res.status(400).json(createErrorResponse('交易已經確認過了', 400));
       return;
     }
 
     // 檢查是否已取消
     if (transactionGroup.status === 'cancelled') {
-      res.status(400).json({
-        success: false,
-        message: '已取消的交易不能確認'
-      });
+      res.status(400).json(createErrorResponse('已取消的交易不能確認', 400));
       return;
     }
 
@@ -761,19 +687,13 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
     });
 
     if (entries.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: '交易群組沒有分錄，無法確認'
-      });
+      res.status(400).json(createErrorResponse('交易群組沒有分錄，無法確認', 400));
       return;
     }
 
     const balanceValidation = DoubleEntryValidator.validateDebitCreditBalance(entries);
     if (!balanceValidation.isBalanced) {
-      res.status(400).json({
-        success: false,
-        message: balanceValidation.message
-      });
+      res.status(400).json(createErrorResponse(balanceValidation.message, 400));
       return;
     }
 
@@ -786,36 +706,20 @@ router.post('/:id/confirm', auth, async (req: AuthenticatedRequest, res: express
 
     console.log('✅ 交易確認成功:', confirmedTransactionGroup?._id);
 
-    res.json({
-      success: true,
-      data: confirmedTransactionGroup,
-      message: '交易確認成功'
-    });
+    res.json(createSuccessResponse(confirmedTransactionGroup, '交易確認成功'));
   } catch (error) {
-    console.error('確認交易錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '確認交易失敗'
-    });
+    handleErrorResponse(res, error, '確認交易失敗');
   }
 });
 
 // 刪除交易群組
 router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = validateAuth(req);
     const { id } = req.params;
 
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
     if (!id) {
-      res.status(400).json({
-        success: false,
-        message: '缺少交易群組ID參數'
-      });
+      res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
 
@@ -828,19 +732,13 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
     });
 
     if (!transactionGroup) {
-      res.status(404).json({
-        success: false,
-        message: '找不到指定的交易群組'
-      });
+      res.status(404).json(createErrorResponse('找不到指定的交易群組', 404));
       return;
     }
 
     // 檢查是否已確認（已確認的交易不能刪除）
     if (transactionGroup.status === 'confirmed') {
-      res.status(400).json({
-        success: false,
-        message: '已確認的交易不能刪除'
-      });
+      res.status(400).json(createErrorResponse('已確認的交易不能刪除', 400));
       return;
     }
 
@@ -858,51 +756,30 @@ router.delete('/:id', auth, async (req: AuthenticatedRequest, res: express.Respo
 
       console.log('🗑️ 交易群組已刪除');
 
-      res.json({
-        success: true,
-        message: '交易群組刪除成功'
-      });
+      res.json(createSuccessResponse(null, '交易群組刪除成功'));
     } catch (error) {
       throw error;
     }
   } catch (error) {
-    console.error('刪除交易群組錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '刪除交易群組失敗'
-    });
+    handleErrorResponse(res, error, '刪除交易群組失敗');
   }
 });
 
 // 獲取可用的資金來源
 router.get('/funding-sources/available', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
+    const userId = validateAuth(req);
     const { organizationId, minAmount = 0 } = req.query;
 
     console.log('🔍 GET /transaction-groups/funding-sources/available - 查詢可用資金來源:', {
-      organizationId,
-      minAmount,
-      userId
+      organizationId, minAmount, userId
     });
 
     // 建立查詢條件
-    const filter: any = {
-      createdBy: userId,
-      status: 'confirmed', // 只有已確認的交易才能作為資金來源
-      fundingType: { $in: ['original', 'extended'] }, // 原始資金或延伸使用的資金
-      totalAmount: { $gt: parseFloat(minAmount as string) } // 金額大於最小要求
-    };
-
-    // 機構過濾
-    if (organizationId && organizationId !== 'undefined' && organizationId !== '') {
-      filter.organizationId = new mongoose.Types.ObjectId(organizationId as string);
-    }
+    const filter = buildQueryFilter(userId, organizationId as string);
+    filter.status = 'confirmed'; // 只有已確認的交易才能作為資金來源
+    filter.fundingType = { $in: ['original', 'extended'] }; // 原始資金或延伸使用的資金
+    filter.totalAmount = { $gt: parseFloat(minAmount as string) }; // 金額大於最小要求
 
     // 查詢可用的資金來源
     const fundingSources = await TransactionGroup.find(filter)
@@ -941,38 +818,23 @@ router.get('/funding-sources/available', auth, async (req: AuthenticatedRequest,
     // 只返回有可用金額的資金來源
     const availableSources = sourcesWithUsage.filter(source => source.isAvailable);
 
-    res.json({
-      success: true,
-      data: {
-        fundingSources: availableSources,
-        total: availableSources.length
-      }
-    });
+    res.json(createSuccessResponse({
+      fundingSources: availableSources,
+      total: availableSources.length
+    }));
   } catch (error) {
-    console.error('獲取可用資金來源錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取可用資金來源失敗'
-    });
+    handleErrorResponse(res, error, '獲取可用資金來源失敗');
   }
 });
 
 // 獲取資金流向追蹤
 router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = validateAuth(req);
     const { id } = req.params;
 
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
     if (!id) {
-      res.status(400).json({
-        success: false,
-        message: '缺少交易群組ID參數'
-      });
+      res.status(400).json(createErrorResponse('缺少交易群組ID參數', 400));
       return;
     }
 
@@ -985,10 +847,7 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
     });
 
     if (!transactionGroup) {
-      res.status(404).json({
-        success: false,
-        message: '找不到指定的交易群組'
-      });
+      res.status(404).json(createErrorResponse('找不到指定的交易群組', 404));
       return;
     }
 
@@ -1054,41 +913,24 @@ router.get('/:id/funding-flow', auth, async (req: AuthenticatedRequest, res: exp
     // 計算剩餘可用金額
     fundingFlow.availableAmount = (transactionGroup.totalAmount || 0) - fundingFlow.totalUsedAmount;
 
-    res.json({
-      success: true,
-      data: fundingFlow
-    });
+    res.json(createSuccessResponse(fundingFlow));
   } catch (error) {
-    console.error('獲取資金流向錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '獲取資金流向失敗'
-    });
+    handleErrorResponse(res, error, '獲取資金流向失敗');
   }
 });
 
 // 驗證資金來源可用性
 router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest, res: express.Response) => {
   try {
-    const userId = req.user?.id || req.user?.userId;
-    if (!userId) {
-      res.status(401).json({ message: '未授權的請求' });
-      return;
-    }
-
+    const userId = validateAuth(req);
     const { sourceTransactionIds, requiredAmount } = req.body;
 
     console.log('🔍 POST /transaction-groups/funding-sources/validate - 驗證資金來源:', {
-      sourceTransactionIds,
-      requiredAmount,
-      userId
+      sourceTransactionIds, requiredAmount, userId
     });
 
     if (!sourceTransactionIds || !Array.isArray(sourceTransactionIds) || sourceTransactionIds.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: '請提供有效的資金來源ID列表'
-      });
+      res.status(400).json(createErrorResponse('請提供有效的資金來源ID列表', 400));
       return;
     }
 
@@ -1150,26 +992,19 @@ router.post('/funding-sources/validate', auth, async (req: AuthenticatedRequest,
 
     const isSufficient = totalAvailableAmount >= (requiredAmount || 0);
 
-    res.json({
-      success: true,
-      data: {
-        validationResults,
-        totalAvailableAmount,
-        requiredAmount: requiredAmount || 0,
-        isSufficient,
-        summary: {
-          validSources: validationResults.filter(r => r.isValid).length,
-          invalidSources: validationResults.filter(r => !r.isValid).length,
-          totalSources: validationResults.length
-        }
+    res.json(createSuccessResponse({
+      validationResults,
+      totalAvailableAmount,
+      requiredAmount: requiredAmount || 0,
+      isSufficient,
+      summary: {
+        validSources: validationResults.filter(r => r.isValid).length,
+        invalidSources: validationResults.filter(r => !r.isValid).length,
+        totalSources: validationResults.length
       }
-    });
+    }));
   } catch (error) {
-    console.error('驗證資金來源錯誤:', error);
-    res.status(500).json({
-      success: false,
-      message: '驗證資金來源失敗'
-    });
+    handleErrorResponse(res, error, '驗證資金來源失敗');
   }
 });
 
