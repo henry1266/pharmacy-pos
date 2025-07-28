@@ -80,7 +80,7 @@ export const DailyPanel = <T extends { _id: string }>({
   onSearchChange,
   wildcardMode = false,
   onWildcardModeChange,
-  onItemClick: _onItemClick,
+  onItemClick,
   config
 }: DailyPanelProps<T>) => {
   const {

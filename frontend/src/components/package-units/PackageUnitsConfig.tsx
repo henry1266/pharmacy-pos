@@ -115,7 +115,7 @@ const PackageUnitsConfig: React.FC<PackageUnitsConfigProps> = ({
 
 
   // 單位行組件
-  const UnitRow: React.FC<{ unit: ProductPackageUnit; index: number }> = ({ unit, index: _index }) => {
+  const UnitRow: React.FC<{ unit: ProductPackageUnit; index: number }> = ({ unit }) => {
     const isEditing = editingUnit?.unitName === unit.unitName;
     const canDelete = packageUnits.length > 1;
 

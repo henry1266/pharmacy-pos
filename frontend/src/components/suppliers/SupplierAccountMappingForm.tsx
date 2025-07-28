@@ -31,7 +31,6 @@ interface SupplierAccountMappingFormProps {
 
 const SupplierAccountMappingForm: React.FC<SupplierAccountMappingFormProps> = ({
   supplierId,
-  supplierName,
   onMappingChange
 }) => {
   const [mapping, setMapping] = useState<SupplierAccountMapping | null>(null);

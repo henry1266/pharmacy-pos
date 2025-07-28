@@ -40,7 +40,6 @@ import { calculateUnitPrice, formatAmount } from './utils';
 
 // 可編輯行組件
 export const EditableRow: FC<EditableRowProps> = ({
-  item,
   index,
   editingItem,
   handleEditingItemChange,

@@ -115,7 +115,7 @@ const useSupplierData = () => {
   }, [fetchSuppliers, selectedSupplier]);
 
   // Import suppliers CSV
-  const importCsv = useCallback(async (file: File): Promise<ImportResult> => {
+  const importCsv = useCallback(async (_file: File): Promise<ImportResult> => {
     try {
       // Note: CSV import not available in V2 yet, need to implement or use fallback
       throw new Error('CSV import not implemented in V2 service');

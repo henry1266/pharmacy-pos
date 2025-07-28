@@ -77,7 +77,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             <SupplierSelect
               suppliers={suppliers ?? []}
               selectedSupplier={selectedSupplier || null}
-              onChange={(event, supplier) => handleSupplierChange(supplier as Supplier)}
+              onChange={(_event, supplier) => handleSupplierChange(supplier as Supplier)}
               label="供應商 (可用名稱或簡碼搜索)"
               required={true}
               showCode={true}

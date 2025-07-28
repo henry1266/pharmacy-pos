@@ -64,8 +64,8 @@ export const DoubleEntrySection3: React.FC<DoubleEntrySection3Props> = ({
   permissions,
   errors,
   balanceError,
-  onOpenTemplateDialog: _onOpenTemplateDialog,
-  onOpenQuickStartDialog: _onOpenQuickStartDialog,
+  onOpenTemplateDialog,
+  onOpenQuickStartDialog,
   onSwapDebitCredit,
   onQuickBalance,
   balanceInfo

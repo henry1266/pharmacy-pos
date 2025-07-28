@@ -225,7 +225,8 @@ const ProductsPage: React.FC = () => {
       
       return () => clearTimeout(timer);
     }
-    return () => {}; // 返回空的清理函數
+    // 返回空的清理函數
+    return () => {};
   }, [location.state, allProducts]);
   
   // 打開新增產品對話框

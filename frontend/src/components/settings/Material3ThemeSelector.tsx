@@ -80,7 +80,7 @@ const ColorDisplay: React.FC<ColorDisplayProps> = ({ color, label, size = 'mediu
 export const Material3ThemeSelector: React.FC<Material3ThemeSelectorProps> = ({
   primaryColor: initialPrimaryColor,
   onThemeChange,
-  onSave
+  onSave: _onSave
 }) => {
   const [selectedScheme, setSelectedScheme] = useState<Material3SchemeType>('tonalSpot');
   const [previewPalette, setPreviewPalette] = useState<EnhancedGeneratedPalette | null>(null);

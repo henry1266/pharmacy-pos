@@ -180,7 +180,7 @@ export const useDialogManagement = () => {
 /**
  * 加班記錄管理 Hook
  */
-export const useOvertimeManagement = (_employeeId?: string | null) => {
+export const useOvertimeManagement = (employeeId?: string | null) => {
   const [overtimeRecords] = useState<OvertimeRecord[]>([]);
   const [employees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -189,18 +189,19 @@ export const useOvertimeManagement = (_employeeId?: string | null) => {
   const [selectedRecord, setSelectedRecord] = useState<OvertimeRecord | null>(null);
 
   // 獲取加班記錄
-  const fetchOvertimeRecords = useCallback(async (_params?: Record<string, any>) => {
+  const fetchOvertimeRecords = useCallback(async (params?: Record<string, any>) => {
     setLoading(true);
     try {
       // 這裡應該調用實際的 API
       // const records = await overtimeRecordService.getOvertimeRecords(params);
       // setOvertimeRecords(records);
+      console.log('Fetching overtime records with params:', params, 'for employee:', employeeId);
     } catch (err: any) {
       setError(handleApiError(err));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [employeeId]);
 
   // 獲取員工列表
   const fetchEmployees = useCallback(async () => {
@@ -229,7 +230,7 @@ export const useOvertimeManagement = (_employeeId?: string | null) => {
   }, []);
 
   // 更新加班記錄
-  const updateOvertimeRecord = useCallback(async (_id: string, _data: any) => {
+  const updateOvertimeRecord = useCallback(async (id: string, data: any) => {
     // 這裡應該調用實際的 API
     // try {
     //   await overtimeRecordService.updateOvertimeRecord(id, data);
@@ -239,12 +240,13 @@ export const useOvertimeManagement = (_employeeId?: string | null) => {
     //   return false;
     // }
     
+    console.log('Updating overtime record:', id, 'with data:', data);
     // 暫時返回 true，等待實際 API 實現
     return true;
   }, []);
 
   // 刪除加班記錄
-  const deleteOvertimeRecord = useCallback(async (_id: string) => {
+  const deleteOvertimeRecord = useCallback(async (id: string) => {
     // 這裡應該調用實際的 API
     // try {
     //   await overtimeRecordService.deleteOvertimeRecord(id);
@@ -254,6 +256,7 @@ export const useOvertimeManagement = (_employeeId?: string | null) => {
     //   return false;
     // }
     
+    console.log('Deleting overtime record:', id);
     // 暫時返回 true，等待實際 API 實現
     return true;
   }, []);

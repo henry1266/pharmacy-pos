@@ -103,7 +103,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
   onView,
   onConfirm,
   onUnlock,
-  onToggleFilters: _onToggleFilters
+  onToggleFilters
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

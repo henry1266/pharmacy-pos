@@ -25,7 +25,6 @@ interface SupplierAccountMappingDisplayProps {
 
 const SupplierAccountMappingDisplay: React.FC<SupplierAccountMappingDisplayProps> = ({
   supplierId,
-  supplierName,
   onEditClick
 }) => {
   const [mapping, setMapping] = useState<SupplierAccountMapping | null>(null);

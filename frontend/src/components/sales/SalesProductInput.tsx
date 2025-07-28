@@ -239,7 +239,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
             setFilteredItems([]);
           }
         }}
-        onChange={(event, newValue) => {
+        onChange={(_event, newValue) => {
           // 只處理有效的選擇項目
           if (!newValue || typeof newValue === 'string') {
             return;

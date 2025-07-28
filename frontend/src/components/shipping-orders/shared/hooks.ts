@@ -330,7 +330,7 @@ export const useTableSelection = <T extends { id: string }>() => {
 /**
  * 表格篩選 Hook
  */
-export const useTableFilter = <T>() => {
+export const useTableFilter = () => {
   const [filterModel, setFilterModel] = useState<any>({
     items: []
   });

@@ -186,8 +186,7 @@ const useProductData = () => {
   // Handle saving (add/update) a product (using service)
   const handleSaveProduct = useCallback(async (
     productData: any,
-    editMode: boolean,
-    productType?: ProductType
+    editMode: boolean
   ): Promise<ProductWithId> => {
     try {
       setLoading(true);
