@@ -38,18 +38,6 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
 
-    /* 保持寬鬆以利轉型 */
-    "strict": false,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "useUnknownInCatchVariables": true,
-    "noImplicitThis": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "exactOptionalPropertyTypes": true,
-    "strictPropertyInitialization": false,
-    "noUncheckedIndexedAccess": true,
-
     /* 程式碼品質與附加檢查 */
     "noUnusedLocals": false,
     "noUnusedParameters": false,

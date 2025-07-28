@@ -347,12 +347,12 @@ export const AccountTransactionList: React.FC<AccountTransactionListProps> = ({
             <TransactionTable
               transactions={transactionsWithRunningBalance}
               selectedAccount={selectedAccount}
-              {...(onTransactionView && { onTransactionView })}
-              {...(onTransactionEdit && { onTransactionEdit })}
-              {...(onTransactionCopy && { onTransactionCopy })}
-              {...(onTransactionConfirm && { onTransactionConfirm })}
-              {...(onTransactionUnlock && { onTransactionUnlock })}
-              {...(onTransactionDelete && { onTransactionDelete })}
+              onTransactionView={onTransactionView}
+              onTransactionEdit={onTransactionEdit}
+              onTransactionCopy={onTransactionCopy}
+              onTransactionConfirm={onTransactionConfirm}
+              onTransactionUnlock={onTransactionUnlock}
+              onTransactionDelete={onTransactionDelete}
             />
           </Box>
         )}

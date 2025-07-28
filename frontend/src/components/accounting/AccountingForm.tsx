@@ -355,7 +355,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
   );
 
   // 渲染表單項目的樣式
-  const getItemFieldStyle = (item: AccountingItem) => {
+  const getItemFieldStyle = (item: AccountingItem): React.CSSProperties | object => {
     const isRefundDeposit = item.category === '退押金';
     
     if (!isRefundDeposit) {
@@ -378,7 +378,7 @@ const AccountingForm: React.FC<AccountingFormProps> = ({
       '& .MuiInputBase-input': {
         color: 'red'
       }
-    };
+    } as const;
   };
 
   // 渲染類別選單項目

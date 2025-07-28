@@ -169,7 +169,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
         formData.parentId;
 
       // 添加 isActive 狀態到提交資料
-      const submitData = {
+      const submitData: Account3FormData & { isActive: boolean } = {
         ...formData,
         parentId: processedParentId || '',
         isActive
