@@ -98,7 +98,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ formData,
           value={formData.signDate}
           onChange={onChange}
           error={!!errors.signDate}
-          helperText={errors.signDate ?? "已確認以上資料無誤，於此日期親自填寫"}
+          helperText={errors.signDate || "已確認以上資料無誤，於此日期親自填寫"}
           margin="normal"
           InputLabelProps={{
             shrink: true,

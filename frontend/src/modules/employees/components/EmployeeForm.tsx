@@ -108,7 +108,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSubmit, initialData = nul
     idCardBack: null,
     
     // 簽署資訊
-    signDate: new Date().toISOString().split('T')[0],
+    signDate: new Date().toISOString().split('T')[0] || '',
   };
 
   // 表單狀態
@@ -121,16 +121,16 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSubmit, initialData = nul
       // 處理日期格式
       const formattedData = { ...initialData };
       if (formattedData.birthDate) {
-        formattedData.birthDate = new Date(formattedData.birthDate).toISOString().split('T')[0];
+        formattedData.birthDate = new Date(formattedData.birthDate).toISOString().split('T')[0] || '';
       }
       if (formattedData.hireDate) {
-        formattedData.hireDate = new Date(formattedData.hireDate).toISOString().split('T')[0];
+        formattedData.hireDate = new Date(formattedData.hireDate).toISOString().split('T')[0] || '';
       }
       if (formattedData.insuranceDate) {
-        formattedData.insuranceDate = new Date(formattedData.insuranceDate).toISOString().split('T')[0];
+        formattedData.insuranceDate = new Date(formattedData.insuranceDate).toISOString().split('T')[0] || '';
       }
       if (formattedData.signDate) {
-        formattedData.signDate = new Date(formattedData.signDate).toISOString().split('T')[0];
+        formattedData.signDate = new Date(formattedData.signDate).toISOString().split('T')[0] || '';
       }
       
       setFormData(formattedData);

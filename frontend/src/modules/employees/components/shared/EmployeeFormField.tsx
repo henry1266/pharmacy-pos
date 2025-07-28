@@ -45,7 +45,7 @@ interface EmployeeFormFieldProps extends Omit<TextFieldProps, 'error'> {
   value?: string | number;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   error?: boolean;
-  helperText?: string;
+  helperText?: string | null;
   required?: boolean;
   gridSize?: GridSizeType;
   options?: OptionType[];

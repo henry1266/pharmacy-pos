@@ -72,7 +72,7 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
       const response = await axios.get<EmployeesApiResponse>('/api/employees', config);
       // 過濾掉主管，只保留一般員工
       const filteredEmployees = response.data.employees.filter((employee: Employee) => {
-        const department = employee.department.toLowerCase();
+        const department = employee.department?.toLowerCase() || '';
         return !department.includes('主管') &&
                !department.includes('經理') &&
                !department.includes('supervisor') &&
@@ -91,7 +91,7 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
   // 檢查員工是否已被排班在指定班次
   const isEmployeeScheduled = (employeeId: string, shift: string, schedules: Schedules): boolean => {
     return (schedules[shift] ?? []).some(
-      schedule => schedule.employee._id === employeeId
+      schedule => schedule.employee?._id === employeeId
     );
   };
 
@@ -133,8 +133,8 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
   // 解析日期字符串
   const parseDateString = (dateStr: string): { year: number, month: number } => {
     const dateParts = dateStr.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]) - 1; // 月份從0開始
+    const year = parseInt(dateParts[0] || '0');
+    const month = parseInt(dateParts[1] || '1') - 1; // 月份從0開始
     
     console.log(`日期解析: 年=${year}, 月=${month + 1}`);
     return { year, month };
@@ -331,7 +331,7 @@ const QuickSelectPanel: React.FC<QuickSelectPanelProps> = ({ date, schedules, on
             <ShiftSection
               key={shift}
               shift={shift}
-              shiftLabel={shiftLabels[shift]}
+              shiftLabel={shiftLabels[shift] || shift}
               employees={employees}
               schedules={schedules}
               date={date}

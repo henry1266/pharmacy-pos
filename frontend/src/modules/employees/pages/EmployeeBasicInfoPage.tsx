@@ -287,7 +287,7 @@ const EmployeeBasicInfoPage: React.FC = () => {
           {isEditMode ? '編輯員工資料' : '新增員工'}
         </Typography>
         <EmployeeForm
-          onSubmit={handleSubmit as any}
+          onSubmit={handleSubmit}
           initialData={employee as any}
           isSubmitting={submitting}
         />

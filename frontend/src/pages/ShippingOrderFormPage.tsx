@@ -216,7 +216,7 @@ const ShippingOrderFormPage: React.FC = () => {
     }
   };
   
-  const handleProductChange = (_event: React.SyntheticEvent, newValue: IProduct | null) => {
+  const handleProductChange = (_event: React.SyntheticEvent<Element, Event>, newValue: IProduct | null) => {
     setCurrentItem({
       ...currentItem,
       did: newValue ? newValue.code : '',
@@ -249,7 +249,7 @@ const ShippingOrderFormPage: React.FC = () => {
   
   const handleEditItem = (index: number) => {
     setEditingItemIndex(index);
-    setEditingItem({ ...formData.items[index] });
+    setEditingItem({ ...formData.items[index] } as IOrderItem);
   };
   
   const handleSaveEditItem = () => {
@@ -278,7 +278,12 @@ const ShippingOrderFormPage: React.FC = () => {
     
     const newItems = [...formData.items];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
+    const itemAtIndex = newItems[index];
+    const itemAtTargetIndex = newItems[targetIndex];
+    if (itemAtIndex && itemAtTargetIndex) {
+      newItems[index] = itemAtTargetIndex;
+      newItems[targetIndex] = itemAtIndex;
+    }
     
     setFormData({ ...formData, items: newItems });
   };
@@ -387,7 +392,7 @@ const ShippingOrderFormPage: React.FC = () => {
             
             <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
               <ProductItemForm 
-                currentItem={currentItem}
+                currentItem={currentItem as any}
                 handleItemInputChange={handleItemInputChange}
                 handleProductChange={handleProductChange}
                 handleAddItem={handleAddItem}

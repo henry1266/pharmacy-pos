@@ -61,7 +61,7 @@ interface CurrentItem {
   batchNumber?: string;
   packageQuantity?: string;
   boxQuantity?: string;
-  product: string | null;
+  product: string | null | undefined;
   [key: string]: any;
 }
 
@@ -75,7 +75,7 @@ interface IFormData {
   organizationId?: string; // 機構 ID
   transactionType?: string; // 交易類型：進貨/支出
   selectedAccountIds?: string[]; // 選中的會計科目ID
-  accountingEntryType?: 'expense-asset' | 'asset-liability'; // 會計分錄類型
+  accountingEntryType?: 'expense-asset' | 'asset-liability' | undefined; // 會計分錄類型
   items: CurrentItem[];
   notes: string;
   status: string; // 使用字符串類型以適應所有可能的值
@@ -130,7 +130,7 @@ const adjustPurchaseOrderItems = (items: CurrentItem[], multiplier: number): Cur
 
   if (roundingDifference !== 0 && adjustedItems.length > 0) {
     const maxCostItemIndex = adjustedItems.reduce((maxIndex, item, currentIndex, arr) => {
-      return Number(item.dtotalCost) > Number(arr[maxIndex].dtotalCost) ? currentIndex : maxIndex;
+      return Number(item.dtotalCost) > Number(arr[maxIndex]?.dtotalCost || 0) ? currentIndex : maxIndex;
     }, 0);
 
     adjustedItems = adjustedItems.map((item, index) => {
@@ -228,7 +228,7 @@ const PurchaseOrderFormPage: React.FC = () => {
     orderDataLoaded,
     suppliersLoaded: initialSuppliersLoaded,
     productsLoaded: initialProductsLoaded,
-  } = usePurchaseOrderData(isEditMode, id, showSnackbar);
+  } = usePurchaseOrderData(isEditMode, id || null, showSnackbar);
 
   // Create mutable versions of data for test mode modification
   let dataLoading = initialDataLoading;
@@ -270,7 +270,7 @@ const PurchaseOrderFormPage: React.FC = () => {
     organizationId: '', // 機構 ID
     transactionType: '', // 交易類型
     selectedAccountIds: [], // 選中的會計科目ID
-    accountingEntryType: undefined, // 會計分錄類型
+    accountingEntryType: undefined as 'expense-asset' | 'asset-liability' | undefined, // 會計分錄類型
     items: [],
     notes: '',
     status: 'pending',
@@ -295,12 +295,12 @@ const PurchaseOrderFormPage: React.FC = () => {
     handleCancelEditItem,
     handleMoveItem,
   } = usePurchaseOrderItems({
-    initialItems: formData.items,
+    initialItems: formData.items as any,
     productsData: products as Product[],
     showSnackbar,
     productInputRef,
-    formData,
-    setFormData,
+    formData: formData as any,
+    setFormData: setFormData as any,
     productDetails,
     setProductDetails
   });
@@ -594,7 +594,9 @@ const PurchaseOrderFormPage: React.FC = () => {
 
     const newItems = Array.from(formData.items);
     const [reorderedItem] = newItems.splice(sourceIndex, 1);
-    newItems.splice(destinationIndex, 0, reorderedItem);
+    if (reorderedItem) {
+      newItems.splice(destinationIndex, 0, reorderedItem);
+    }
 
     setFormData(prev => ({ ...prev, items: newItems }));
   };
@@ -695,7 +697,7 @@ const PurchaseOrderFormPage: React.FC = () => {
                 
                 <Box sx={{ position: 'sticky', top: 0, zIndex: 10, pb: 1, borderBottom: '1px solid #e0e0e0' }}>
                   <ProductItemForm
-                    currentItem={currentItem}
+                    currentItem={currentItem as any}
                     handleItemInputChange={handleItemInputChange}
                     handleProductChange={handleProductChange}
                     handleAddItem={handleAddItem}

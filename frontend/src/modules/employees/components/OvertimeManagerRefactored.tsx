@@ -107,7 +107,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
   // 表單狀態
   const [formData, setFormData] = useState<OvertimeRefactoredFormData>({
     employeeId: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0] || '',
     hours: '',
     description: '',
     status: 'pending',
@@ -137,7 +137,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
   const handleOpenCreateDialog = useCallback(() => {
     setFormData({
       employeeId: employeeId ?? '',
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0] || '',
       hours: '',
       description: '',
       status: 'pending',
@@ -166,7 +166,7 @@ const OvertimeManagerRefactored: React.FC<OvertimeManagerRefactoredProps> = ({ i
     
     setFormData({
       employeeId: empId,
-      date: new Date(record.date).toISOString().split('T')[0],
+      date: new Date(record.date).toISOString().split('T')[0] || '',
       hours: record.hours,
       description: record.description || '',
       status: (record.status as OvertimeStatus) || 'pending',

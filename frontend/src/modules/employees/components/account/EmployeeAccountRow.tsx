@@ -61,7 +61,7 @@ const EmployeeAccountRow: React.FC<EmployeeAccountRowProps> = ({
               <IconButton
                 size="small"
                 color="primary"
-                onClick={() => onEdit(employee, employee.account)}
+                onClick={() => employee.account && onEdit(employee, employee.account)}
               >
                 <EditIcon fontSize="small" />
               </IconButton>
