@@ -116,7 +116,7 @@ export const extractObjectId = (idValue: any): string => {
  * 驗證 ID 是否有效（MongoDB ObjectId 應該是 24 個字符的十六進制字串）
  */
 export const isValidObjectId = (id: string): boolean => {
-  return id && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+  return Boolean(id && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id));
 };
 
 /**

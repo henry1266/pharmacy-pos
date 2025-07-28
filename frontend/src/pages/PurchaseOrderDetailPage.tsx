@@ -214,9 +214,11 @@ const PurchaseOrderDetailPage: React.FC = () => {
       try {
         const promises = productCodes.map(async (code) => {
           try {
-            const productData = await productServiceV2.getProductByCode(code);
-            if (productData) {
-              details[code] = productData;
+            if (code) {
+              const productData = await productServiceV2.getProductByCode(code);
+              if (productData) {
+                details[code] = productData;
+              }
             }
           } catch (err) {
             console.error(`獲取產品 ${code} 詳情失敗:`, err);

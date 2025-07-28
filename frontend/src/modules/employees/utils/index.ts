@@ -193,7 +193,7 @@ export const calculateWorkingDaysInMonth = (year: number, month: number): number
  * @returns 格式化後的日期字串
  */
 export const formatDateString = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0] || '';
 };
 
 /**

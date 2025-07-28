@@ -85,7 +85,9 @@ const AccountingPage: React.FC<AccountingPageProps> = ({ openAddDialog = false }
     setCurrentId(record._id);
     const result = await fetchEditData(record);
     if (result.success) {
-      setFormData(result.data);
+      if (result.data) {
+        setFormData(result.data);
+      }
       setOpenDialog(true);
     } else {
       showSnackbar(result.error ?? '載入編輯資料失敗', 'error');

@@ -207,7 +207,7 @@ export const getShiftTimesMap = async (): Promise<ShiftTimesMap> => {
     };
 
     configs.forEach(config => {
-      if (config.isActive) {
+      if (config?.isActive) {
         timesMap[config.shift] = {
           start: config.startTime,
           end: config.endTime
@@ -237,8 +237,8 @@ export const calculateShiftHours = (startTime: string, endTime: string): number 
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
   
-  const startTimeInMinutes = startHour * 60 + startMinute;
-  const endTimeInMinutes = endHour * 60 + endMinute;
+  const startTimeInMinutes = (startHour || 0) * 60 + (startMinute || 0);
+  const endTimeInMinutes = (endHour || 0) * 60 + (endMinute || 0);
   
   return (endTimeInMinutes - startTimeInMinutes) / 60;
 };
@@ -266,8 +266,8 @@ export const isValidTimeRange = (startTime: string, endTime: string): boolean =>
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
   
-  const startTimeInMinutes = startHour * 60 + startMinute;
-  const endTimeInMinutes = endHour * 60 + endMinute;
+  const startTimeInMinutes = (startHour || 0) * 60 + (startMinute || 0);
+  const endTimeInMinutes = (endHour || 0) * 60 + (endMinute || 0);
   
   return startTimeInMinutes < endTimeInMinutes;
 };

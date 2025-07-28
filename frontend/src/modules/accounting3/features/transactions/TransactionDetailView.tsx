@@ -43,7 +43,7 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
   // 使用自定義 Hook
   const { transaction, accounts, loading, error } = useTransactionDetail(transactionId);
   const { handleEdit, handleCopy, handleDelete, handleBackToList } = useTransactionActions({
-    transaction: transaction || undefined,
+    transaction: transaction || null,
     onEdit,
     onDelete,
     onCopy

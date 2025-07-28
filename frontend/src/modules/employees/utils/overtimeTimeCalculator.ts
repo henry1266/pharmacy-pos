@@ -29,7 +29,7 @@ export interface OvertimeCalculationResult {
  */
 const timeToMinutes = (timeString: string): number => {
   const [hours, minutes] = timeString.split(':').map(Number);
-  return hours * 60 + minutes;
+  return (hours || 0) * 60 + (minutes || 0);
 };
 
 /**
@@ -64,7 +64,7 @@ const findNearestShiftEndTime = (
 
   // 找到最接近且小於等於當前時間的班次結束時間
   let nearestShift = shiftEndTimes[0];
-  let minDifference = Math.abs(currentMinutes - shiftEndTimes[0].minutes);
+  let minDifference = Math.abs(currentMinutes - (shiftEndTimes[0]?.minutes || 0));
 
   for (const shift of shiftEndTimes) {
     const difference = Math.abs(currentMinutes - shift.minutes);
@@ -75,7 +75,7 @@ const findNearestShiftEndTime = (
       minDifference = difference;
     }
     // 如果沒有找到在結束時間之後的班次，選擇最接近的
-    else if (minDifference === Math.abs(currentMinutes - shiftEndTimes[0].minutes) && difference < minDifference) {
+    else if (minDifference === Math.abs(currentMinutes - (shiftEndTimes[0]?.minutes || 0)) && difference < minDifference) {
       nearestShift = shift;
       minDifference = difference;
     }
@@ -91,8 +91,8 @@ const findNearestShiftEndTime = (
   }
 
   return {
-    shift: nearestShift.shift,
-    endTime: nearestShift.endTime
+    shift: nearestShift?.shift || 'morning',
+    endTime: nearestShift?.endTime || '12:00'
   };
 };
 

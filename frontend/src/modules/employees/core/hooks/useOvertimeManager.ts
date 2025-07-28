@@ -194,7 +194,7 @@ export const useOvertimeManager = ({ isAdmin = false, employeeId = null }: Overt
       
       const token = localStorage.getItem('token');
       const config = {
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token || '' }
       };
       
       const response = await fetch('/api/overtime-records/monthly-stats?' + new URLSearchParams(statsParams), {
@@ -230,7 +230,7 @@ export const useOvertimeManager = ({ isAdmin = false, employeeId = null }: Overt
       const url = `/api/employee-schedules?startDate=${startDate}&endDate=${endDate}`;
       
       const response = await fetch(url, {
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token || '' }
       });
       
       if (!response.ok) {
@@ -259,7 +259,7 @@ export const useOvertimeManager = ({ isAdmin = false, employeeId = null }: Overt
         if (!groups[employeeIdValue]) {
           groups[employeeIdValue] = [];
         }
-        groups[employeeIdValue].push(record);
+        groups[employeeIdValue]?.push(record);
         
         return groups;
       }, {});

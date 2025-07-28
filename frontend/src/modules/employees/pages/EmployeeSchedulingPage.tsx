@@ -93,7 +93,7 @@ const EmployeeSchedulingPage: React.FC = () => {
         </Breadcrumbs>
       </Box>
       
-      <Scheduling isAdmin={isAdmin} />
+      <Scheduling isAdmin={isAdmin || undefined} />
     </Container>
   );
 };

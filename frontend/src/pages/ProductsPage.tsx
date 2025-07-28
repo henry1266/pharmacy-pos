@@ -253,7 +253,7 @@ const ProductsPage: React.FC = () => {
   };
   
   // 打開編輯產品對話框
-  function handleEditProduct(id: string, type: string): void {
+  function handleEditProduct(id: string, type?: string): void {
     const productType = type as ProductType;
     setEditMode(true);
     setProductType(productType);

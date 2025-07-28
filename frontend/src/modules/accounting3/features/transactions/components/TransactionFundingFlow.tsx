@@ -807,14 +807,14 @@ export const TransactionFundingFlow: React.FC<TransactionFundingFlowProps> = ({
           label={fromAccountName}
           color="secondary"
           margin="0 0.5rem 0 0"
-          accountId={fromAccount.accountId}
+          accountId={fromAccount?.accountId || ''}
         />
         <ArrowForwardIcon sx={{ fontSize: 16, color: 'primary.main', mx: 0.25 }} />
         <FlowChip
           label={toAccountName}
           color="primary"
           margin="0 0 0 0.5rem"
-          accountId={toAccount.accountId}
+          accountId={toAccount?.accountId || ''}
         />
       </Box>
     );

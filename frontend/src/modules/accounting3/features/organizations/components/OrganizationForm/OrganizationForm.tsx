@@ -52,7 +52,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
       taxId: ''
     },
     business: {
-      establishedDate: new Date().toISOString().split('T')[0],
+      establishedDate: new Date().toISOString().split('T')[0] || '',
       licenseNumber: ''
     },
     settings: {
@@ -132,7 +132,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
         contact: org.contact,
         business: {
           ...org.business,
-          establishedDate: new Date(org.business.establishedDate).toISOString().split('T')[0]
+          establishedDate: new Date(org.business.establishedDate).toISOString().split('T')[0] || ''
         },
         settings: org.settings,
         notes: org.notes || '',
@@ -241,9 +241,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ organizationId, mod
         const [parentKey, childKey] = keys;
         return {
           ...prev,
-          [parentKey]: {
+          [parentKey as string]: {
             ...(prev[parentKey as keyof OrganizationFormData] as any),
-            [childKey]: value
+            [childKey as string]: value
           }
         };
       }

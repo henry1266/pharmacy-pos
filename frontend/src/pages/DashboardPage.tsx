@@ -242,11 +242,11 @@ const DashboardPage: FC = () => {
     setEditMode(true);
     setCurrentId(record._id);
     const result = await fetchEditData(record);
-    if (result.success) {
+    if (result.success && result.data) {
       setFormData(result.data);
       setOpenEditDialog(true);
     } else {
-      showSnackbar(result.error ?? '載入編輯資料失敗', 'error');
+      showSnackbar(result.error || '載入編輯資料失敗', 'error');
       // Reset state if fetch fails
       setEditMode(false);
       setCurrentId(null);
@@ -445,7 +445,7 @@ const DashboardPage: FC = () => {
                     
                     return (
                       <Paper key={shift} elevation={1} sx={{ p: 1.5, mb: 1.5 }}>
-                        {shiftRecords.length > 0 ? (
+                        {shiftRecords.length > 0 && shiftRecords[0] ? (
                           <Accordion sx={{ '&:before': { display: 'none' }, boxShadow: 'none' }}>
                             <AccordionSummary
                               expandIcon={<ExpandMoreIcon />}
@@ -467,20 +467,22 @@ const DashboardPage: FC = () => {
                                   <Typography variant="subtitle1" fontWeight="medium">
                                     {shift}班
                                   </Typography>
-                                  <StatusChip status={shiftRecords[0].status} />
+                                  <StatusChip status={shiftRecords[0].status || 'pending'} />
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <Typography variant="subtitle1" color="primary.main" fontWeight="bold">
                                     {formatCurrency(shiftTotal)}
                                   </Typography>
                                   <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                    {shiftRecords[0].status === 'completed' ? (
+                                    {shiftRecords[0]?.status === 'completed' ? (
                                       <IconButton
                                         size="small"
                                         color="primary"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleUnlockRecord(shiftRecords[0]);
+                                          if (shiftRecords[0]) {
+                                            handleUnlockRecord(shiftRecords[0]);
+                                          }
                                         }}
                                         title="解鎖並改為待處理"
                                       >
@@ -493,7 +495,9 @@ const DashboardPage: FC = () => {
                                           color="primary"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleEditRecord(shiftRecords[0]);
+                                            if (shiftRecords[0]) {
+                                              handleEditRecord(shiftRecords[0]);
+                                            }
                                           }}
                                           title="編輯"
                                         >
@@ -504,7 +508,9 @@ const DashboardPage: FC = () => {
                                           color="error"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDeleteRecord(shiftRecords[0]._id);
+                                            if (shiftRecords[0]) {
+                                              handleDeleteRecord(shiftRecords[0]._id);
+                                            }
                                           }}
                                           title="刪除"
                                         >

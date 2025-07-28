@@ -114,7 +114,7 @@ export const AccountSelector3: React.FC<AccountSelector3Props> = ({
     const accountsByOrg = availableAccounts.reduce((acc, account) => {
       const orgId = account.organizationId || 'personal';
       if (!acc[orgId]) acc[orgId] = [];
-      acc[orgId].push(account);
+      acc[orgId]?.push(account);
       return acc;
     }, {} as Record<string, AccountOption[]>);
 
@@ -126,7 +126,7 @@ export const AccountSelector3: React.FC<AccountSelector3Props> = ({
       // 按會計科目類型分組
       const accountsByType = orgAccounts.reduce((acc, account) => {
         if (!acc[account.accountType]) acc[account.accountType] = [];
-        acc[account.accountType].push(account);
+        acc[account.accountType]?.push(account);
         return acc;
       }, {} as Record<string, AccountOption[]>);
 
@@ -216,12 +216,12 @@ export const AccountSelector3: React.FC<AccountSelector3Props> = ({
       if (!groups[account.accountType]) {
         groups[account.accountType] = [];
       }
-      groups[account.accountType].push(account);
+      groups[account.accountType]?.push(account);
     });
 
     // 對每個組內的科目排序
     Object.keys(groups).forEach(type => {
-      groups[type].sort((a, b) => a.code.localeCompare(b.code));
+      groups[type]?.sort((a, b) => a.code.localeCompare(b.code));
     });
 
     return groups;

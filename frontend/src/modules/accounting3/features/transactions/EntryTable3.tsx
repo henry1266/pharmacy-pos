@@ -109,8 +109,8 @@ export const EntryTable3: React.FC<EntryTable3Props> = ({
     const toAccount = debitEntries[0];
 
     // 獲取科目名稱
-    const fromAccountName = getAccountName(fromAccount.accountId).replace(' (請選擇科目)', '').split(' (')[0] || '未選擇';
-    const toAccountName = getAccountName(toAccount.accountId).replace(' (請選擇科目)', '').split(' (')[0] || '未選擇';
+    const fromAccountName = getAccountName(fromAccount?.accountId || '').replace(' (請選擇科目)', '').split(' (')[0] || '未選擇';
+    const toAccountName = getAccountName(toAccount?.accountId || '').replace(' (請選擇科目)', '').split(' (')[0] || '未選擇';
 
     // 如果科目未選擇，顯示提示
     if (fromAccountName === '請選擇科目' || toAccountName === '請選擇科目') {

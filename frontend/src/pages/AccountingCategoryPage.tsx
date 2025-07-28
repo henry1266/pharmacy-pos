@@ -122,7 +122,9 @@ const AccountingCategoryPage: React.FC = () => {
     
     const items = Array.from(categories);
     const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    if (reorderedItem) {
+      items.splice(result.destination.index, 0, reorderedItem);
+    }
     
     // 更新本地狀態
     setCategories(items);

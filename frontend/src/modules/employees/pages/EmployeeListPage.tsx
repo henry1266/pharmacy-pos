@@ -277,7 +277,7 @@ const EmployeeListPage: React.FC = () => {
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split('T')[0] || '';
   };
 
   // 如果正在載入，顯示載入中訊息

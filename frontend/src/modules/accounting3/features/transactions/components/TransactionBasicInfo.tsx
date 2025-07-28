@@ -147,7 +147,7 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
           size="small"
           color="secondary"
           clickable
-          onClick={() => handleAccountClick(fromAccount.accountId)}
+          onClick={() => fromAccount && handleAccountClick(fromAccount.accountId)}
           sx={{
             fontSize: '0.75rem',
             height: 24,
@@ -170,7 +170,7 @@ export const TransactionBasicInfo: React.FC<TransactionBasicInfoProps> = ({
           size="small"
           color="primary"
           clickable
-          onClick={() => handleAccountClick(toAccount.accountId)}
+          onClick={() => toAccount && handleAccountClick(toAccount.accountId)}
           sx={{
             fontSize: '0.75rem',
             height: 24,

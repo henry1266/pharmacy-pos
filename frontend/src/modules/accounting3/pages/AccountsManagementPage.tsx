@@ -99,7 +99,7 @@ export const AccountsManagementPage: React.FC = () => {
   };
 
   // 處理新增子科目
-  const handleAccountCreateChild = (parentAccountInfo: Account3) => {
+  const handleAccountCreateChild = (parentAccountInfo?: Account3) => {
     if (!parentAccountInfo) {
       console.error('新增子科目失敗：父科目資訊為空');
       showSnackbar('新增子科目失敗：父科目資訊不完整', 'error');

@@ -126,7 +126,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           const validFundingSources = fundingSources.filter(source => source !== null);
           
           console.log('✅ [Accounting3] 載入的資金來源:', validFundingSources);
-          setSelectedFundingSources(validFundingSources);
+          setSelectedFundingSources(validFundingSources.filter(source => source !== null));
           
         } catch (error) {
           console.error('❌ [Accounting3] 載入資金來源失敗:', error);
@@ -350,9 +350,11 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     const totalCredit = newEntries.reduce((sum, entry) => sum + (entry.creditAmount || 0), 0);
     
     if (totalDebit > totalCredit) {
-      lastEntry.creditAmount = totalDebit - (totalCredit - (lastEntry.creditAmount || 0));
-      lastEntry.debitAmount = 0;
-    } else if (totalCredit > totalDebit) {
+      if (lastEntry) {
+        lastEntry.creditAmount = totalDebit - (totalCredit - (lastEntry.creditAmount || 0));
+        lastEntry.debitAmount = 0;
+      }
+    } else if (totalCredit > totalDebit && lastEntry) {
       lastEntry.debitAmount = totalCredit - (totalDebit - (lastEntry.debitAmount || 0));
       lastEntry.creditAmount = 0;
     }

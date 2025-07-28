@@ -167,7 +167,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear()); // 當前年份
   const [manualFormData, setManualFormData] = useState<ManualFormData>({
     employeeId: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0] || '',
     hours: '',
     description: '',
     status: 'pending'
@@ -175,7 +175,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   
   const [timeCalculationFormData, setTimeCalculationFormData] = useState<TimeCalculationFormData>({
     employeeId: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0] || '',
     hours: '',
     description: '',
     status: 'pending',
@@ -531,7 +531,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
             if (!groups[employeeIdValue]) {
               groups[employeeIdValue] = [];
             }
-            groups[employeeIdValue].push(record);
+            groups[employeeIdValue]?.push(record);
           } catch (err) {
             console.error(`處理記錄 ${record._id ?? '未知ID'} 時發生錯誤:`, err);
           }
@@ -595,7 +595,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
     });
 
     // 清除對應欄位的錯誤訊息
-    if (formErrors[name]) {
+    if (name && formErrors[name]) {
       setFormErrors({
         ...formErrors,
         [name]: ''
@@ -612,7 +612,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
     });
 
     // 清除對應欄位的錯誤訊息
-    if (formErrors[name]) {
+    if (name && formErrors[name]) {
       setFormErrors({
         ...formErrors,
         [name]: ''
@@ -668,7 +668,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   const handleOpenManualDialog = (): void => {
     setManualFormData({
       employeeId: employeeId ?? '',
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0] || '',
       hours: '',
       description: '',
       status: 'pending'
@@ -681,7 +681,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   const handleOpenTimeCalculationDialog = (): void => {
     setTimeCalculationFormData({
       employeeId: employeeId ?? '',
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0] || '',
       hours: '',
       description: '',
       status: 'pending',
@@ -697,7 +697,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
     const empId = record.employee && typeof record.employee === 'object' ? record.employee._id : record.employeeId;
     setManualFormData({
       employeeId: typeof empId === 'string' ? empId : '',
-      date: new Date(record.date).toISOString().split('T')[0],
+      date: new Date(record.date).toISOString().split('T')[0] || '',
       hours: record.hours,
       description: record.description || '',
       status: record.status
@@ -997,7 +997,7 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                         let count = 0;
                         for (const key in scheduleOvertimeRecords) {
                           if (scheduleOvertimeRecords.hasOwnProperty(key)) {
-                            count += scheduleOvertimeRecords[key].length;
+                            count += scheduleOvertimeRecords[key]?.length || 0;
                           }
                         }
                         return count;
@@ -1031,8 +1031,8 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
                   (() => {
                     const entries: Array<[string, ProcessedOvertimeGroup]> = [];
                     for (const key in processedOvertimeData) {
-                      if (processedOvertimeData.hasOwnProperty(key)) {
-                        entries.push([key, processedOvertimeData[key]]);
+                      if (processedOvertimeData.hasOwnProperty(key) && processedOvertimeData[key]) {
+                        entries.push([key, processedOvertimeData[key]!]);
                       }
                     }
                     return entries;
