@@ -149,12 +149,15 @@ const DataTable: React.FC<DataTableProps> = ({
   useEffect(() => {
     const gridElement = gridRef.current;
     if (gridElement) {
-      gridElement.addEventListener('keydown', handleKeyDown);
+      gridElement.addEventListener('keydown', handleKeyDown as EventListener);
       
       return () => {
-        gridElement.removeEventListener('keydown', handleKeyDown);
+        gridElement.removeEventListener('keydown', handleKeyDown as EventListener);
       };
     }
+    
+    // 如果沒有 gridElement，返回空的清理函數
+    return () => {};
   }, [handleKeyDown]);
 
   // 確保所有列都有最小寬度（移除 resizable 因為使用的是 MIT 版本）

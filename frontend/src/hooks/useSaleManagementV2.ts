@@ -149,10 +149,13 @@ const useSaleManagementV2 = (
       });
     } finally {
       // 延遲重置處理標誌，防止立即重複調用
-      setTimeout(() => {
+      const timeoutId: NodeJS.Timeout = setTimeout(() => {
         isProcessingProductRef.current = false;
         lastProcessedProductRef.current = null;
       }, 500);
+      
+      // 清理函數中清除timeout（雖然在這個情況下不太可能需要）
+      return () => clearTimeout(timeoutId);
     }
   }, [showSnackbar]);
 
@@ -166,7 +169,7 @@ const useSaleManagementV2 = (
       const newModes: InputMode[] = [];
       
       if (packageItem.items && packageItem.items.length > 0) {
-        packageItem.items.forEach(packageItemDetail => {
+        for (const packageItemDetail of packageItem.items) {
           // 檢查是否已存在相同的商品
           const existingItemIndex = prevSale.items.findIndex(item =>
             item.product === packageItemDetail.productId &&
@@ -200,7 +203,7 @@ const useSaleManagementV2 = (
             const inputMode: InputMode = packageItemDetail.priceMode === 'unit' ? 'price' : 'subtotal';
             newModes.push(inputMode);
           }
-        });
+        }
         
         if (newItems.length > 0) {
           const updatedItems = [...prevSale.items, ...newItems];

@@ -33,9 +33,9 @@ const CheckoutSuccessEffect: React.FC<CheckoutSuccessEffectProps> = ({
       setStage('appearing');
       
       // 階段性動畫時序
-      const timer1 = setTimeout(() => setStage('celebrating'), 400);
-      const timer2 = setTimeout(() => setStage('fading'), 800);
-      const timer3 = setTimeout(() => {
+      const timer1: NodeJS.Timeout = setTimeout(() => setStage('celebrating'), 400);
+      const timer2: NodeJS.Timeout = setTimeout(() => setStage('fading'), 800);
+      const timer3: NodeJS.Timeout = setTimeout(() => {
         setStage('hidden');
         onComplete();
       }, 1200);
@@ -46,6 +46,9 @@ const CheckoutSuccessEffect: React.FC<CheckoutSuccessEffectProps> = ({
         clearTimeout(timer3);
       };
     }
+    
+    // 如果 show 為 false，返回空的清理函數
+    return () => {};
   }, [show, onComplete]);
 
   if (!show && stage === 'hidden') return null;

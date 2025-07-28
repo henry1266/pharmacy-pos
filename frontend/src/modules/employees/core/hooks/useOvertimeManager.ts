@@ -373,9 +373,10 @@ export const useOvertimeManager = ({ isAdmin = false, employeeId = null }: Overt
   // 自動清除訊息
   useEffect(() => {
     if (successMessage || error) {
-      const timer = setTimeout(clearMessages, 5000);
+      const timer: NodeJS.Timeout = setTimeout(clearMessages, 5000);
       return () => clearTimeout(timer);
     }
+    return () => {}; // 返回空的清理函數
   }, [successMessage, error, clearMessages]);
 
   return {

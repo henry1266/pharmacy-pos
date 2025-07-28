@@ -152,7 +152,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     if (testModeActive) {
       console.log('🧪 測試模式，跳過 JWT 過期檢查');
       setTimeLeft(' (測試模式 - 無過期時間)');
-      return;
+      return () => {}; // 返回空的清理函數
     }
 
     if (token && loginTimeStr) {
@@ -160,7 +160,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       const jwtAuthExpiration = 604800; // 7 days in seconds, from default.json
       const expiryTimestamp = loginTimestamp + jwtAuthExpiration;
 
-      const updateDisplayAndCheckExpiry = () => {
+      const updateDisplayAndCheckExpiry = (): boolean => {
         const now = Math.floor(Date.now() / 1000);
         const remainingSeconds = expiryTimestamp - now;
 
@@ -189,7 +189,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       // Initial check and display update
       if (updateDisplayAndCheckExpiry()) {
-        return;
+        return () => {}; // 返回空的清理函數
       }
 
       const intervalId = setInterval(() => {
@@ -201,6 +201,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       return () => clearInterval(intervalId);
     } else {
       setTimeLeft('');
+      return () => {}; // 返回空的清理函數
     }
   }, [location.pathname, handleLogout, isTestMode]);
 

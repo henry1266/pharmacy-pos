@@ -377,20 +377,22 @@ export const useEmployeeAccounts = () => {
   // 清除訊息的 useEffect
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => {
+      const timer: NodeJS.Timeout = setTimeout(() => {
         setSuccessMessage('');
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return () => {}; // 返回空的清理函數
   }, [successMessage]);
 
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => {
+      const timer: NodeJS.Timeout = setTimeout(() => {
         setError(null);
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return () => {}; // 返回空的清理函數
   }, [error]);
 
   return {

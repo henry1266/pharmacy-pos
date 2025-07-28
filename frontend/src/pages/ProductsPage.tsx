@@ -217,7 +217,7 @@ const ProductsPage: React.FC = () => {
     const state = location.state as any;
     if (state?.shouldOpenEditDialog && state?.editProductId && state?.productType) {
       // 等待產品數據載入後再觸發編輯
-      const timer = setTimeout(() => {
+      const timer: NodeJS.Timeout = setTimeout(() => {
         handleEditProduct(state.editProductId, state.productType);
         // 清除 location state 避免重複觸發
         window.history.replaceState({}, document.title);
@@ -225,6 +225,7 @@ const ProductsPage: React.FC = () => {
       
       return () => clearTimeout(timer);
     }
+    return () => {}; // 返回空的清理函數
   }, [location.state, allProducts]);
   
   // 打開新增產品對話框

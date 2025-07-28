@@ -107,11 +107,12 @@ const AccountingNewPage: React.FC = () => {
   useEffect(() => {
     if (submitSuccess) {
       showSnackbar('記帳記錄已新增', 'success');
-      const timer = setTimeout(() => {
+      const timer: NodeJS.Timeout = setTimeout(() => {
         navigate('/accounting');
       }, 1500);
       return () => clearTimeout(timer); // Cleanup timer on unmount
-    } 
+    }
+    return () => {}; // 返回空的清理函數
   }, [submitSuccess, navigate]);
 
   useEffect(() => {

@@ -816,21 +816,23 @@ const OvertimeManager: React.FC<OvertimeManagerProps> = ({ isAdmin = false, empl
   // 清除成功訊息
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => {
+      const timer: NodeJS.Timeout = setTimeout(() => {
         setSuccessMessage('');
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return () => {}; // 返回空的清理函數
   }, [successMessage]);
 
   // 清除錯誤訊息
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => {
+      const timer: NodeJS.Timeout = setTimeout(() => {
         setError(null);
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return () => {}; // 返回空的清理函數
   }, [error]);
 
   // 獲取狀態顯示文字
