@@ -23,7 +23,7 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ formData, errors, onC
         value={formData.position}
         onChange={onChange}
         error={!!errors.position}
-        helperText={errors.position}
+        helperText={errors.position || ''}
         required
       />
       
@@ -34,7 +34,7 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ formData, errors, onC
         value={formData.department}
         onChange={onChange}
         error={!!errors.department}
-        helperText={errors.department}
+        helperText={errors.department || ''}
         required
         options={[
           { value: '主管', label: '主管' },
@@ -49,7 +49,7 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ formData, errors, onC
         value={formData.hireDate}
         onChange={onChange}
         error={!!errors.hireDate}
-        helperText={errors.hireDate}
+        helperText={errors.hireDate || ''}
         required
       />
       
@@ -60,7 +60,7 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ formData, errors, onC
         value={formData.salary}
         onChange={onChange}
         error={!!errors.salary}
-        helperText={errors.salary}
+        helperText={errors.salary || ''}
         InputProps={{
           startAdornment: <span style={{ marginRight: 8 }}>NT$</span>,
         }}
@@ -73,7 +73,7 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ formData, errors, onC
         value={formData.insuranceDate}
         onChange={onChange}
         error={!!errors.insuranceDate}
-        helperText={errors.insuranceDate}
+        helperText={errors.insuranceDate || ''}
       />
     </Grid>
   );

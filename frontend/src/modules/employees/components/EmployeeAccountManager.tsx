@@ -508,7 +508,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.username}
           onChange={handleInputChange}
           error={!!formErrors.username}
-          helperText={formErrors.username}
+          helperText={formErrors.username || ''}
           required
         />
         <FormField
@@ -518,7 +518,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.email}
           onChange={handleInputChange}
           error={!!formErrors.email}
-          helperText={formErrors.email}
+          helperText={formErrors.email || ''}
         />
         <FormField
           name="password"
@@ -527,7 +527,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.password}
           onChange={handleInputChange}
           error={!!formErrors.password}
-          helperText={formErrors.password}
+          helperText={formErrors.password || ''}
           required
         />
         <FormField
@@ -537,7 +537,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.confirmPassword}
           onChange={handleInputChange}
           error={!!formErrors.confirmPassword}
-          helperText={formErrors.confirmPassword}
+          helperText={formErrors.confirmPassword || ''}
           required
         />
         <FormField
@@ -547,7 +547,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.role}
           onChange={handleInputChange}
           error={!!formErrors.role}
-          helperText={formErrors.role}
+          helperText={formErrors.role || ''}
           options={roleOptions}
         />
       </AccountDialog>
@@ -568,7 +568,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.username}
           onChange={handleInputChange}
           error={!!formErrors.username}
-          helperText={formErrors.username}
+          helperText={formErrors.username || ''}
           required
         />
         <FormField
@@ -578,7 +578,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.email}
           onChange={handleInputChange}
           error={!!formErrors.email}
-          helperText={formErrors.email}
+          helperText={formErrors.email || ''}
         />
         <FormField
           name="password"
@@ -587,7 +587,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.password}
           onChange={handleInputChange}
           error={!!formErrors.password}
-          helperText={formErrors.password}
+          helperText={formErrors.password || ''}
         />
         {formData.password && (
           <FormField
@@ -597,7 +597,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
             value={formData.confirmPassword}
             onChange={handleInputChange}
             error={!!formErrors.confirmPassword}
-            helperText={formErrors.confirmPassword}
+            helperText={formErrors.confirmPassword || ''}
             required
           />
         )}
@@ -608,7 +608,7 @@ const EmployeeAccountManager: React.FC<EmployeeAccountManagerProps> = ({ employe
           value={formData.role}
           onChange={handleInputChange}
           error={!!formErrors.role}
-          helperText={formErrors.role}
+          helperText={formErrors.role || ''}
           options={roleOptions}
         />
       </AccountDialog>

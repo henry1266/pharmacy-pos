@@ -538,7 +538,7 @@ const CustomersPage: FC = () => {
       await handleSaveCustomerActual({
         customerData: customerDataToSave,
         editMode,
-        currentCustomerId: currentCustomerState.id,
+        currentCustomerId: currentCustomerState.id || '',
         actualAddCustomer,
         actualUpdateCustomer,
         showSnackbarCallback: showSnackbar,
@@ -572,7 +572,7 @@ const CustomersPage: FC = () => {
           </MuiButton>
         }
         loading={isLoading}
-        error={pageError}
+        error={pageError || ''}
         columns={columns}
         rows={customersToDisplay}
         onRowClick={(params: any) => setLocalSelectedCustomer(params.row)}
@@ -589,7 +589,7 @@ const CustomersPage: FC = () => {
         currentCustomerState={currentCustomerState}
         onInputChange={handleInputChange}
         onSave={handleSaveCustomer}
-        formError={formError ?? undefined}
+        formError={formError || ''}
         isTestMode={isTestMode}
         loading={isLoading}
       />

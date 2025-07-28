@@ -54,18 +54,24 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
 
   // 處理分類變化
   const handleCategoryChange = useCallback((_: any, value: Category | null) => {
-    onFiltersChange({
-      ...filters,
-      category: value?._id || undefined
-    });
+    const newFilters = { ...filters };
+    if (value?._id) {
+      newFilters.category = value._id;
+    } else {
+      delete newFilters.category;
+    }
+    onFiltersChange(newFilters);
   }, [filters, onFiltersChange]);
 
   // 處理供應商變化
   const handleSupplierChange = useCallback((_: any, value: Supplier | null) => {
-    onFiltersChange({
-      ...filters,
-      supplier: value?._id || undefined
-    });
+    const newFilters = { ...filters };
+    if (value?._id) {
+      newFilters.supplier = value._id;
+    } else {
+      delete newFilters.supplier;
+    }
+    onFiltersChange(newFilters);
   }, [filters, onFiltersChange]);
 
   // 清除搜尋
@@ -139,7 +145,16 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
                   value={selectedCategory || null}
                   onChange={handleCategoryChange}
                   renderInput={(params) => (
-                    <TextField {...params} label="分類" size="small" />
+                    <TextField
+                      {...params}
+                      label="分類"
+                      size="small"
+                      InputLabelProps={{
+                        ...params.InputLabelProps,
+                        className: params.InputLabelProps?.className || '',
+                        style: params.InputLabelProps?.style || {}
+                      }}
+                    />
                   )}
                 />
               </Grid>
@@ -150,7 +165,16 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
                   value={selectedSupplier || null}
                   onChange={handleSupplierChange}
                   renderInput={(params) => (
-                    <TextField {...params} label="供應商" size="small" />
+                    <TextField
+                      {...params}
+                      label="供應商"
+                      size="small"
+                      InputLabelProps={{
+                        ...params.InputLabelProps,
+                        className: params.InputLabelProps?.className || '',
+                        style: params.InputLabelProps?.style || {}
+                      }}
+                    />
                   )}
                 />
               </Grid>
@@ -186,7 +210,11 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
             {selectedCategory && (
               <Chip
                 label={`分類: ${selectedCategory.name}`}
-                onDelete={() => onFiltersChange({ ...filters, category: undefined })}
+                onDelete={() => {
+                  const newFilters = { ...filters };
+                  delete newFilters.category;
+                  onFiltersChange(newFilters);
+                }}
                 size="small"
                 variant="outlined"
               />
@@ -194,7 +222,11 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
             {selectedSupplier && (
               <Chip
                 label={`供應商: ${selectedSupplier.name}`}
-                onDelete={() => onFiltersChange({ ...filters, supplier: undefined })}
+                onDelete={() => {
+                  const newFilters = { ...filters };
+                  delete newFilters.supplier;
+                  onFiltersChange(newFilters);
+                }}
                 size="small"
                 variant="outlined"
               />

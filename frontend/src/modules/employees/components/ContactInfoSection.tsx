@@ -23,7 +23,7 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({ formData, error
         value={formData.address}
         onChange={onChange}
         error={!!errors.address}
-        helperText={errors.address}
+        helperText={errors.address || ''}
         required
         gridSize={{ xs: 12, sm: 8 }}
       />
@@ -35,7 +35,7 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({ formData, error
         value={formData.phone}
         onChange={onChange}
         error={!!errors.phone}
-        helperText={errors.phone}
+        helperText={errors.phone || ''}
         gridSize={{ xs: 12, sm: 4 }}
       />
     </Grid>

@@ -23,7 +23,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ formData, err
         value={formData.name}
         onChange={onChange}
         error={!!errors.name}
-        helperText={errors.name}
+        helperText={errors.name || ''}
         required
       />
       
@@ -34,7 +34,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ formData, err
         value={formData.gender}
         onChange={onChange}
         error={!!errors.gender}
-        helperText={errors.gender}
+        helperText={errors.gender || ''}
         required
         options={[
           { value: 'male', label: '男' },
@@ -49,7 +49,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ formData, err
         value={formData.birthDate}
         onChange={onChange}
         error={!!errors.birthDate}
-        helperText={errors.birthDate}
+        helperText={errors.birthDate || ''}
         required
       />
       
@@ -59,7 +59,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ formData, err
         value={formData.idNumber}
         onChange={onChange}
         error={!!errors.idNumber}
-        helperText={errors.idNumber}
+        helperText={errors.idNumber || ''}
         required
       />
       
@@ -69,7 +69,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ formData, err
         value={formData.education}
         onChange={onChange}
         error={!!errors.education}
-        helperText={errors.education}
+        helperText={errors.education || ''}
       />
       
       <EmployeeFormField
@@ -78,7 +78,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ formData, err
         value={formData.nativePlace}
         onChange={onChange}
         error={!!errors.nativePlace}
-        helperText={errors.nativePlace}
+        helperText={errors.nativePlace || ''}
       />
     </Grid>
   );

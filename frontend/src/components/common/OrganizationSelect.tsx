@@ -99,6 +99,11 @@ const OrganizationSelect: React.FC<OrganizationSelectProps> = ({
           helperText={helperText}
           size={size}
           autoFocus={autoFocus}
+          InputLabelProps={{
+            ...params.InputLabelProps,
+            className: params.InputLabelProps?.className || '',
+            style: params.InputLabelProps?.style || {}
+          }}
         />
       )}
       {...(showCode && {
