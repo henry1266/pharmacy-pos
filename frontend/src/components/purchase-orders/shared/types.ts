@@ -4,10 +4,41 @@
 
 import { ChangeEvent, SyntheticEvent, ReactNode } from 'react';
 
+// 共用事件類型
+export type InputChangeEvent = ChangeEvent<HTMLInputElement>;
+export type TabChangeEvent = SyntheticEvent;
+export type MouseEvent = React.MouseEvent;
+
 // GridPaginationModel 在 MUI v5.17.26 中不存在，使用自定義型別
 interface GridPaginationModel {
   page: number;
   pageSize: number;
+}
+
+// 共用的會計分錄相關屬性
+export interface AccountingEntryProps {
+  relatedTransactionGroupId?: string;
+  accountingEntryType?: 'expense-asset' | 'asset-liability';
+}
+
+// 共用的基礎項目操作函數類型
+export interface ItemHandlers {
+  handleEditItem: (index: number) => void;
+  handleRemoveItem: (index: number) => void;
+  handleMoveItem: (index: number, direction: 'up' | 'down') => void;
+}
+
+// 共用的編輯操作函數類型
+export interface EditHandlers {
+  handleEditingItemChange: (event: InputChangeEvent) => void;
+  handleSaveEditItem: () => void;
+  handleCancelEditItem: () => void;
+}
+
+// 共用的基礎屬性
+export interface BaseItemProps {
+  item: Item;
+  index: number;
 }
 
 // 基本項目介面
@@ -21,7 +52,7 @@ export interface Item {
 }
 
 // 進貨單介面
-export interface PurchaseOrder {
+export interface PurchaseOrder extends AccountingEntryProps {
   id: string;
   _id: string;
   poid: string;
@@ -31,24 +62,15 @@ export interface PurchaseOrder {
   totalAmount: number;
   status: string;
   paymentStatus: string;
-  // 會計分錄相關欄位
-  relatedTransactionGroupId?: string;
-  accountingEntryType?: 'expense-asset' | 'asset-liability';
   selectedAccountIds?: string[];
   [key: string]: any;
 }
 
 // 項目表格 Props
-export interface ItemsTableProps {
+export interface ItemsTableProps extends ItemHandlers, EditHandlers {
   items: Item[];
   editingItemIndex: number | null;
   editingItem: Item | null;
-  handleEditItem: (index: number) => void;
-  handleSaveEditItem: () => void;
-  handleCancelEditItem: () => void;
-  handleRemoveItem: (index: number) => void;
-  handleMoveItem: (index: number, direction: 'up' | 'down') => void;
-  handleEditingItemChange: (event: ChangeEvent<HTMLInputElement>) => void;
   totalAmount: number;
 }
 
@@ -57,9 +79,9 @@ export interface CsvImportDialogProps {
   open: boolean;
   onClose: () => void;
   tabValue: number;
-  onTabChange: (event: SyntheticEvent, newValue: number) => void;
+  onTabChange: (event: TabChangeEvent, newValue: number) => void;
   csvFile: File | null;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (event: InputChangeEvent) => void;
   onImport: () => void;
   loading: boolean;
   error?: string;
@@ -75,53 +97,40 @@ export interface PurchaseOrdersTableProps {
   handleView: (id: string) => void;
   handleEdit: (id: string) => void;
   handleDeleteClick: (row: PurchaseOrder) => void;
-  handlePreviewMouseEnter: (e: React.MouseEvent, id: string) => void;
+  handlePreviewMouseEnter: (e: MouseEvent, id: string) => void;
   handlePreviewMouseLeave: () => void;
   renderSupplierHeader: () => ReactNode;
   handleUnlock?: (id: string) => void;
 }
 
 // 表格行編輯 Props
-export interface EditableRowProps {
-  item: Item;
-  index: number;
+export interface EditableRowProps extends BaseItemProps, EditHandlers {
   editingItem: Item;
-  handleEditingItemChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  handleSaveEditItem: () => void;
-  handleCancelEditItem: () => void;
 }
 
 // 表格行顯示 Props
-export interface DisplayRowProps {
-  item: Item;
-  index: number;
-  handleEditItem: (index: number) => void;
-  handleRemoveItem: (index: number) => void;
-  handleMoveItem: (index: number, direction: 'up' | 'down') => void;
+export interface DisplayRowProps extends BaseItemProps, ItemHandlers {
   isFirst: boolean;
   isLast: boolean;
 }
 
 // 操作按鈕組 Props
-export interface ActionButtonsProps {
+export interface ActionButtonsProps extends AccountingEntryProps {
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onPreviewMouseEnter: (e: React.MouseEvent) => void;
+  onPreviewMouseEnter: (e: MouseEvent) => void;
   onPreviewMouseLeave: () => void;
   isDeleteDisabled?: boolean;
   status?: string;
   onUnlock?: () => void;
-  // 會計分錄相關 props
-  relatedTransactionGroupId?: string;
-  accountingEntryType?: 'expense-asset' | 'asset-liability';
   onViewAccountingEntry?: () => void;
 }
 
 // 檔案上傳 Props
 export interface FileUploadProps {
   csvFile: File | null;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (event: InputChangeEvent) => void;
   loading: boolean;
 }
 
