@@ -97,8 +97,6 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
   permissions,
   errors,
   balanceError,
-  onOpenTemplateDialog,
-  onOpenQuickStartDialog,
   onSwapDebitCredit,
   onQuickBalance,
   balanceInfo,

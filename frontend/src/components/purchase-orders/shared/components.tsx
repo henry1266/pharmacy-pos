@@ -100,7 +100,6 @@ const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGro
 
 // 可編輯行組件
 export const EditableRow: FC<EditableRowProps> = ({
-  item,
   index,
   editingItem,
   handleEditingItemChange,

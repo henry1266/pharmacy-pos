@@ -76,7 +76,6 @@ const OvertimeDialogs: React.FC<OvertimeDialogsProps> = ({
   formData,
   formErrors,
   employees,
-  selectedRecord,
   
   // 狀態
   submitting,

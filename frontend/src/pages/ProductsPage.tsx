@@ -374,7 +374,7 @@ const ProductsPage: React.FC = () => {
       console.log('發送的產品資料:', productData); // 除錯用
       
       // 使用從Hook中獲取的saveProduct函數
-      const result = await saveProduct(productData, editMode, productType);
+      const result = await saveProduct(productData, editMode);
       
       if (result) {
         // 重新獲取產品列表

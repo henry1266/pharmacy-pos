@@ -52,7 +52,6 @@ interface AccountTransactionListTableProps {
  */
 export const AccountTransactionListTable: React.FC<AccountTransactionListTableProps> = ({
   transactions,
-  selectedAccount,
   onTransactionView,
   onTransactionEdit,
   onTransactionCopy,

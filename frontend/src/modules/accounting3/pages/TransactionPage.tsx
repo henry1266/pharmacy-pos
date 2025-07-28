@@ -802,7 +802,7 @@ export const Accounting3TransactionPage: React.FC = () => {
                   fundingType: viewingTransaction.fundingType || 'original'
                 };
               })()}
-              onSubmit={async (data: TransactionGroupWithEntriesFormData) => {}} // 檢視模式不需要提交
+              onSubmit={async (_data: TransactionGroupWithEntriesFormData) => {}} // 檢視模式不需要提交
               onCancel={handleCloseDetailDialog}
             />
           )}

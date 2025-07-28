@@ -138,7 +138,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSubmit, initialData = nul
   }, [initialData]);
 
   // 處理表單欄位變更
-  const handleChange = (section: string) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (_section: string) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,

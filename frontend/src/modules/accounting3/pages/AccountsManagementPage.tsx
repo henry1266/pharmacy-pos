@@ -275,7 +275,7 @@ export const AccountsManagementPage: React.FC = () => {
         <Box sx={{ width: '73%', minWidth: 500 }}>
           <AccountTransactionList
             selectedAccount={selectedAccount}
-            onTransactionView={(transaction) => {
+            onTransactionView={(_transaction) => {
               //console.log('查看交易:', transaction);
               // 可以打開交易詳情對話框
             }}

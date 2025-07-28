@@ -49,7 +49,7 @@ export const AccountDashboardMonthlyTrend: React.FC<AccountDashboardMonthlyTrend
           
           <Box sx={{ overflowX: 'auto' }}>
             <Grid container spacing={1} sx={{ minWidth: 600 }}>
-              {monthlyTrend.slice(-6).map((monthData, index) => (
+              {monthlyTrend.slice(-6).map((monthData) => (
                 <Grid item xs={2} key={monthData.month}>
                   <Paper sx={{ p: 1, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">

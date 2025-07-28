@@ -86,7 +86,7 @@ const convertBackendDataToFormData = (data: any): TransactionGroupWithEntriesFor
 };
 
 // 驗證表單
-const validateTransactionForm = (formData: TransactionGroupWithEntriesFormData, mode: string): ValidationResult => {
+const validateTransactionForm = (formData: TransactionGroupWithEntriesFormData): ValidationResult => {
   const errors: Record<string, string> = {};
   let balanceError = '';
 
@@ -256,10 +256,10 @@ export const useTransactionForm3 = ({
 
   // 驗證表單
   const validateFormData = useCallback((): boolean => {
-    const result = validateTransactionForm(formData, mode);
+    const result = validateTransactionForm(formData);
     setValidation(result);
     return result.isValid;
-  }, [formData, mode]);
+  }, [formData]);
 
   // 處理基本資訊變更
   const handleBasicInfoChange = useCallback((field: keyof TransactionGroupWithEntriesFormData, value: any) => {

@@ -459,7 +459,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {referencedByInfo.map((referencedTx, index) => (
+                      {referencedByInfo.map((referencedTx) => (
                         <TableRow
                           key={referencedTx._id}
                           sx={{
