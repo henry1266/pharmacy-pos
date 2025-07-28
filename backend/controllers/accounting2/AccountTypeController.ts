@@ -290,15 +290,6 @@ export class AccountTypeController {
         return;
       }
 
-      // TODO: 檢查是否有相關的帳戶使用此類型
-      // const accountsUsingType = await Account.countDocuments({ accountType: accountType.code });
-      // if (accountsUsingType > 0) {
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: '此帳戶類型正在使用中，無法刪除'
-      //   });
-      // }
-
       await AccountType.findByIdAndDelete(id);
 
       const response: ApiResponse = {
