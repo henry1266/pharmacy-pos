@@ -20,7 +20,7 @@ import {
   type TestPurchaseOrderSupplier,
   type ExtendedSale
 } from '../data/TestModeData';
-import type { Product, Customer, Sale, Category } from '@pharmacy-pos/shared/types/entities';
+import type { Product, Category } from '@pharmacy-pos/shared/types/entities';
 import type { SalesTrend, CategorySales } from '../../services/dashboardService';
 
 /**

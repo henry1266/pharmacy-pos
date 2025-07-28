@@ -28,6 +28,7 @@
 
     /* 開發階段放寬檢查 */
     "noUnusedLocals": false
+    
   },
 
   "include": [
