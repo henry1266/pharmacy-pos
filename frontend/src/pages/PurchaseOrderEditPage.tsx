@@ -300,12 +300,16 @@ const PurchaseOrderEditPage: React.FC = () => {
   const handleEditItem = (index: number): void => {
     setEditingItemIndex(index);
     const itemToEdit = formData.items[index];
+    if (!itemToEdit) {
+      setSnackbar({ open: true, message: '無法找到要編輯的項目', severity: 'error' });
+      return;
+    }
     // Ensure product ID is valid if not in test mode
     if (!isTestMode() && itemToEdit.product && !isValidObjectId(itemToEdit.product as string)){
         setSnackbar({ open: true, message: `項目 ${itemToEdit.dname} 的藥品ID無效，請修正。`, severity: 'error' });
         // Potentially clear the product or handle differently
     }
-    setEditingItem({ ...itemToEdit }); 
+    setEditingItem({ ...itemToEdit });
   };
 
   // 將複雜的 handleSubmit 函數拆分為多個較小的函數
@@ -360,16 +364,17 @@ const PurchaseOrderEditPage: React.FC = () => {
   };
 
   const prepareSubmitData = (itemsForSubmit: PurchaseOrderItem[]): any => {
-    const submitData = {
+    const submitData: any = {
       ...formData,
       pobilldate: format(new Date(formData.pobilldate), 'yyyy-MM-dd'),
       supplier: formData.supplier,
       items: itemsForSubmit,
-      posupplier: undefined as any,
+      posupplier: undefined,
     };
     
     if (!isEditMode && !submitData.poid) {
-      delete submitData.poid;
+      const { poid, ...dataWithoutPoid } = submitData;
+      return dataWithoutPoid;
     }
     
     return submitData;
@@ -437,8 +442,12 @@ const PurchaseOrderEditPage: React.FC = () => {
     if ((direction === 'up' && index === 0) || (direction === 'down' && index === formData.items.length - 1)) return;
     const newItems = [...formData.items];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
-    setFormData(prev => ({ ...prev, items: newItems }));
+    const currentItem = newItems[index];
+    const targetItem = newItems[targetIndex];
+    if (currentItem && targetItem) {
+      [newItems[index], newItems[targetIndex]] = [targetItem, currentItem];
+      setFormData(prev => ({ ...prev, items: newItems }));
+    }
   };
 
   const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string): void => {
@@ -462,7 +471,9 @@ const PurchaseOrderEditPage: React.FC = () => {
 
     const newItems = Array.from(formData.items);
     const [reorderedItem] = newItems.splice(sourceIndex, 1);
-    newItems.splice(destinationIndex, 0, reorderedItem);
+    if (reorderedItem) {
+      newItems.splice(destinationIndex, 0, reorderedItem);
+    }
 
     setFormData(prev => ({ ...prev, items: newItems }));
   };
@@ -503,7 +514,7 @@ const PurchaseOrderEditPage: React.FC = () => {
           <CardContent>
             <Typography variant="h6" gutterBottom>藥品項目</Typography>
             <ProductItemForm
-              currentItem={currentItem}
+              currentItem={currentItem as any}
               handleItemInputChange={handleItemInputChange}
               handleProductChange={handleProductChange}
               handleAddItem={handleAddItem}

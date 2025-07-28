@@ -64,8 +64,10 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
     shiftHours: number,
     employeeHoursData: EmployeeHoursData
   ): void => {
-    const employeeId = schedule.employee._id;
-    const employeeName = schedule.employee.name;
+    const employeeId = schedule.employee?._id;
+    const employeeName = schedule.employee?.name;
+    
+    if (!employeeId || !employeeName) return;
     
     // 初始化員工工時記錄
     if (!employeeHoursData.hours[employeeId]) {
@@ -78,14 +80,14 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
     
     // 根據 leaveType 進行分類
     if (schedule.leaveType === 'overtime') {
-      employeeHoursData.overtimeHours[employeeId] += shiftHours;
+      employeeHoursData.overtimeHours[employeeId] = (employeeHoursData.overtimeHours[employeeId] || 0) + shiftHours;
     } else if (schedule.leaveType === 'personal') {
-      employeeHoursData.personalLeaveHours[employeeId] += shiftHours;
+      employeeHoursData.personalLeaveHours[employeeId] = (employeeHoursData.personalLeaveHours[employeeId] || 0) + shiftHours;
     } else if (schedule.leaveType === 'sick') {
-      employeeHoursData.sickLeaveHours[employeeId] += shiftHours;
+      employeeHoursData.sickLeaveHours[employeeId] = (employeeHoursData.sickLeaveHours[employeeId] || 0) + shiftHours;
       employeeHoursData.sickLeaveCount++;
     } else {
-      employeeHoursData.hours[employeeId] += shiftHours;
+      employeeHoursData.hours[employeeId] = (employeeHoursData.hours[employeeId] || 0) + shiftHours;
     }
     
     employeeHoursData.totalSchedules++;
@@ -98,10 +100,11 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
     employeeHoursData: EmployeeHoursData
   ): void => {
     ['morning', 'afternoon', 'evening'].forEach(shift => {
-      if (schedules[shift] && schedules[shift].length > 0) {
+      const shiftSchedules = schedules[shift];
+      if (shiftSchedules && shiftSchedules.length > 0) {
         const shiftHours = calculateShiftHours(shift);
         
-        schedules[shift].forEach(schedule => {
+        shiftSchedules.forEach(schedule => {
           processScheduleHours(schedule, dateStr, shift, shiftHours, employeeHoursData);
         });
       }
@@ -123,7 +126,10 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
     
     // 遍歷所有排班記錄
     Object.keys(schedulesGroupedByDate).forEach(dateStr => {
-      processDateSchedules(dateStr, schedulesGroupedByDate[dateStr], employeeHoursData);
+      const schedules = schedulesGroupedByDate[dateStr];
+      if (schedules) {
+        processDateSchedules(dateStr, schedules, employeeHoursData);
+      }
     });
     
     // 將結果轉換為數組格式
@@ -135,7 +141,7 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
       
       return {
         employeeId,
-        name: employeeHoursData.names[employeeId],
+        name: employeeHoursData.names[employeeId] || '',
         hours: hours.toFixed(1),
         overtimeHours: overtimeHours.toFixed(1),
         personalLeaveHours: personalLeaveHours.toFixed(1),
@@ -169,7 +175,7 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
     } else if (schedule.leaveType === 'personal') {
       return 'warning.main';
     } else {
-      return getEmployeeColor(schedule.employee._id);
+      return getEmployeeColor(schedule.employee?._id || '');
     }
   };
 

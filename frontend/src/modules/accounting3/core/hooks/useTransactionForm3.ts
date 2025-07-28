@@ -270,13 +270,14 @@ export const useTransactionForm3 = ({
 
     // 清除對應的錯誤
     if (validation.errors[field]) {
-      setValidation(prev => ({
-        ...prev,
-        errors: {
-          ...prev.errors,
-          [field]: undefined
-        }
-      }));
+      setValidation(prev => {
+        const newErrors = { ...prev.errors };
+        delete newErrors[field];
+        return {
+          ...prev,
+          errors: newErrors
+        };
+      });
     }
   }, [validation.errors]);
 
@@ -289,14 +290,15 @@ export const useTransactionForm3 = ({
 
     // 清除分錄錯誤
     if (validation.errors.entries) {
-      setValidation(prev => ({
-        ...prev,
-        errors: {
-          ...prev.errors,
-          entries: undefined
-        },
-        balanceError: ''
-      }));
+      setValidation(prev => {
+        const newErrors = { ...prev.errors };
+        delete newErrors.entries;
+        return {
+          ...prev,
+          errors: newErrors,
+          balanceError: ''
+        };
+      });
     }
   }, [validation.errors.entries]);
 

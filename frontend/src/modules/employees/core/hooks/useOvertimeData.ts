@@ -339,19 +339,24 @@ const useOvertimeData = (
       }
       
       // 添加獨立加班記錄到現有組或新組
-      initialGroups[employeeId].records.push(record);
-      initialGroups[employeeId].independentHours += record.hours;
-      
-      const recordDate = new Date(record.date);
-      if (recordDate > initialGroups[employeeId].latestDate) {
-        initialGroups[employeeId].latestDate = recordDate;
+      const group = initialGroups[employeeId];
+      if (group) {
+        group.records.push(record);
+        group.independentHours += record.hours;
+        
+        const recordDate = new Date(record.date);
+        if (recordDate > group.latestDate) {
+          group.latestDate = recordDate;
+        }
       }
     });
     
     // 重新計算總時數（獨立 + 排班）
     Object.keys(initialGroups).forEach(employeeId => {
       const group = initialGroups[employeeId];
-      group.totalHours = group.independentHours + group.scheduleHours;
+      if (group) {
+        group.totalHours = group.independentHours + group.scheduleHours;
+      }
     });
   }, [overtimeRecords, employees]);
 
@@ -413,7 +418,7 @@ const useOvertimeData = (
             // 確保日期是有效的
             let recordDate: Date;
             recordDate = new Date(record.date);
-            if (isNaN(recordDate?.getTime())) {
+            if (isNaN(recordDate.getTime())) {
               recordDate = new Date();
               console.warn(`無效的日期格式: ${record.date}，使用當前日期作為替代`);
             }

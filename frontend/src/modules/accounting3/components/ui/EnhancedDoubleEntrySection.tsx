@@ -226,9 +226,10 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
           description: simpleDescription
         };
         // 確保目標科目是借方
-        if (newEntries[1].accountId) {
+        if (newEntries[1]?.accountId) {
           newEntries[1] = {
             ...newEntries[1],
+            accountId: newEntries[1].accountId,
             debitAmount: simpleAmount,
             creditAmount: 0,
             description: simpleDescription

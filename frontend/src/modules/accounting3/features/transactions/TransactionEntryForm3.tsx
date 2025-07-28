@@ -163,10 +163,10 @@ export const TransactionEntryForm3: React.FC<TransactionEntryForm3Props> = ({
 
     // 如果是金額欄位，確保另一個金額為 0
     if (field === 'debitAmount' && value > 0) {
-      newEntries[index].creditAmount = 0;
+      newEntries[index]!.creditAmount = 0;
       console.log('💰 設定借方金額，清除貸方金額:', { debitAmount: value });
     } else if (field === 'creditAmount' && value > 0) {
-      newEntries[index].debitAmount = 0;
+      newEntries[index]!.debitAmount = 0;
       console.log('💰 設定貸方金額，清除借方金額:', { creditAmount: value });
     }
 
@@ -248,6 +248,8 @@ export const TransactionEntryForm3: React.FC<TransactionEntryForm3Props> = ({
 
     const newEntries = [...entries];
     const lastEntry = newEntries[newEntries.length - 1];
+    
+    if (!lastEntry) return;
     
     if (balanceInfo.totalDebit > balanceInfo.totalCredit) {
       lastEntry.creditAmount = balanceInfo.totalDebit - (balanceInfo.totalCredit - lastEntry.creditAmount);

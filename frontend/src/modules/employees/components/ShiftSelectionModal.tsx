@@ -179,6 +179,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
     if (!selectedEmployee) return;
 
     const currentShift = shifts[tabValue];
+    if (!currentShift) return;
     
     try {
       // 創建排班數據對象
@@ -215,6 +216,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 獲取當前標籤對應的班次排班資料
   const getCurrentShiftSchedules = (): Schedule[] => {
     const currentShift = shifts[tabValue];
+    if (!currentShift) return [];
     return schedules[currentShift] ?? [];
   };
 
@@ -263,8 +265,9 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   // 檢查員工是否已被排班在當前班次
   const isEmployeeScheduled = (employeeId: string): boolean => {
     const currentShift = shifts[tabValue];
+    if (!currentShift) return false;
     return (schedules[currentShift] ?? []).some(
-      schedule => schedule.employee._id === employeeId
+      (schedule: any) => schedule.employee?._id === employeeId
     );
   };
 
@@ -303,14 +306,14 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
           textColor="primary"
           sx={{ mb: 2 }}
         >
-          <Tab label={`早班 (${shiftTimes.morning.start}-${shiftTimes.morning.end})`} />
-          <Tab label={`中班 (${shiftTimes.afternoon.start}-${shiftTimes.afternoon.end})`} />
-          <Tab label={`晚班 (${shiftTimes.evening.start}-${shiftTimes.evening.end})`} />
+          <Tab label={`早班 (${shiftTimes.morning?.start || '08:30'}-${shiftTimes.morning?.end || '12:00'})`} />
+          <Tab label={`中班 (${shiftTimes.afternoon?.start || '15:00'}-${shiftTimes.afternoon?.end || '18:00'})`} />
+          <Tab label={`晚班 (${shiftTimes.evening?.start || '19:00'}-${shiftTimes.evening?.end || '20:30'})`} />
         </Tabs>
         
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>
-            {shiftLabels[shifts[tabValue]]} ({shiftTimes[shifts[tabValue]].start}-{shiftTimes[shifts[tabValue]].end}) 排班人員
+            {shifts[tabValue] ? shiftLabels[shifts[tabValue]] : ''} ({shifts[tabValue] && shiftTimes[shifts[tabValue]] ? `${shiftTimes[shifts[tabValue]]?.start || ''}-${shiftTimes[shifts[tabValue]]?.end || ''}` : ''}) 排班人員
           </Typography>
           
           {loading ? (
@@ -406,7 +409,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                       <ListItemText
                         primary={
                           <>
-                            {schedule.employee.name}
+                            {schedule.employee?.name || '未知員工'}
                             {schedule.leaveType && (
                               <Box component="span" sx={{
                                 ml: 1,
@@ -422,7 +425,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                             )}
                           </>
                         }
-                        secondary={`${schedule.employee.department ?? ''} - ${schedule.employee.position ?? ''}`}
+                        secondary={`${schedule.employee?.department ?? ''} - ${schedule.employee?.position ?? ''}`}
                         primaryTypographyProps={{
                           color: 'text.primary',
                           fontWeight: 'medium'
@@ -432,7 +435,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary" align="center">
-                    尚未安排{shiftLabels[shifts[tabValue]]}人員
+                    尚未安排{shifts[tabValue] ? shiftLabels[shifts[tabValue]] : ''}人員
                   </Typography>
                 )}
               </List>

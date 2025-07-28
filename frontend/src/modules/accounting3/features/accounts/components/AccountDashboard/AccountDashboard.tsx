@@ -214,7 +214,7 @@ export const AccountDashboard: React.FC<AccountDashboardProps> = ({
     const lastMonth = statistics.monthlyTrend[statistics.monthlyTrend.length - 1];
     const previousMonth = statistics.monthlyTrend[statistics.monthlyTrend.length - 2];
     
-    if (previousMonth.netAmount === 0) return null;
+    if (!previousMonth || !lastMonth || previousMonth.netAmount === 0) return null;
     
     const percentage = ((lastMonth.netAmount - previousMonth.netAmount) / Math.abs(previousMonth.netAmount)) * 100;
     return percentage;

@@ -470,7 +470,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           size="medium"
           color="secondary"
           clickable
-          onClick={() => handleAccountClick(fromAccount.accountId)}
+          onClick={() => fromAccount?.accountId && handleAccountClick(fromAccount.accountId)}
           sx={{
             fontSize: '0.8rem',
             height: 28,
@@ -493,7 +493,7 @@ export const AccountingDataGridWithEntries3: React.FC<AccountingDataGridWithEntr
           size="medium"
           color="primary"
           clickable
-          onClick={() => handleAccountClick(toAccount.accountId)}
+          onClick={() => toAccount?.accountId && handleAccountClick(toAccount?.accountId)}
           sx={{
             fontSize: '0.8rem',
             height: 28,

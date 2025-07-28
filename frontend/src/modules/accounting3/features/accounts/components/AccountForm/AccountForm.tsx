@@ -246,7 +246,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
             {/* 機構選擇 */}
             <OrganizationSelector
-              organizationId={formData.organizationId}
+              organizationId={formData.organizationId || ''}
               organizations={organizations}
               selectedOrganizationId={selectedOrganizationId}
               parentAccount={parentAccount}
@@ -271,7 +271,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
 
             {/* 上層科目 */}
             <ParentAccountField
-              parentId={formData.parentId}
+              parentId={formData.parentId || ''}
               parentAccount={parentAccount}
               onParentIdChange={(value) => handleInputChange('parentId', value)}
             />
@@ -279,7 +279,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({
             {/* 狀態開關和描述 */}
             <FormStatusAndDescription
               isActive={isActive}
-              description={formData.description}
+              description={formData.description || ''}
               onIsActiveChange={setIsActive}
               onDescriptionChange={(value) => handleInputChange('description', value)}
             />

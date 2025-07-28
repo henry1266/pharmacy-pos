@@ -96,8 +96,9 @@ const processDateSchedules = (
   employeeHoursData: EmployeeHoursData
 ): void => {
   SHIFT_NAMES.forEach(shift => {
-    if (schedules[shift]?.length > 0) {
-      schedules[shift].forEach(schedule =>
+    const shiftSchedules = schedules[shift];
+    if (shiftSchedules && shiftSchedules.length > 0) {
+      shiftSchedules.forEach(schedule =>
         processScheduleHours(schedule, shift, employeeHoursData)
       );
     }
