@@ -18,8 +18,7 @@ const AccountingSchema = new Schema<IAccountingDocument>({
   shift: {
     type: String,
     required: true,
-    enum: ["早", "中", "晚"],
-    index: true
+    enum: ["早", "中", "晚"]
   },
   items: [{
     amount: {

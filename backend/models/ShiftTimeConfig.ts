@@ -23,8 +23,7 @@ const ShiftTimeConfigSchema = new Schema({
   shift: {
     type: String,
     enum: ['morning', 'afternoon', 'evening'],
-    required: true,
-    unique: true
+    required: true
   },
   startTime: {
     type: String,

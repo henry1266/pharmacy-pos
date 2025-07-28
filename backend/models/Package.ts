@@ -23,7 +23,6 @@ const PackageSchema = new Schema<IPackage & Document>({
   code: {
     type: String,
     required: true,
-    unique: true,
     match: /^T\d{5}$/ // T10001 格式驗證
   },
   shortCode: { type: String, trim: true }, // 套餐簡碼，用戶自定義
@@ -69,7 +68,7 @@ const PackageSchema = new Schema<IPackage & Document>({
 });
 
 // 索引設置
-PackageSchema.index({ code: 1 });
+PackageSchema.index({ code: 1 }, { unique: true });
 PackageSchema.index({ name: 1 });
 PackageSchema.index({ isActive: 1 });
 PackageSchema.index({ category: 1 });

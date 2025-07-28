@@ -24,7 +24,6 @@ const TransactionGroupSchema: Schema = new Schema({
   groupNumber: {
     type: String,
     required: false,  // 改為可選，因為在路由中手動設定
-    unique: true,
     trim: true,
     maxlength: 50
   },
