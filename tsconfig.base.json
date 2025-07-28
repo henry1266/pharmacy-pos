@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+    /* 基本選項 */
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+
+    /* 輸出選項 */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    
+    /* 嚴格性檢查 - 共享模組應保持高標準 */
+    "strict": true,
+    
+    /* 嚴格性檢查 
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    */
+
+    /* 模組解析 */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    }
+    
+}

@@ -12,8 +12,7 @@
     
     /* Node.js 環境設定 */
     "allowJs": true,
-    "checkJs": false,
-    
+
     /* 裝飾器支援 (如使用 TypeORM 等) */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true

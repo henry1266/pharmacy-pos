@@ -19,19 +19,7 @@
       "@utils/*": ["./utils/*"],
       "@types/*": ["./types/*"],
       "@redux/*": ["./redux/*"],
-      "@accounting2/*": ["./modules/accounting2/*"],
-      "@accounting2/components/*": ["./modules/accounting2/components/*"],
-      "@accounting2/pages/*": ["./modules/accounting2/pages/*"],
-      "@accounting2/features/*": ["./modules/accounting2/features/*"],
-      "@accounting2/ui/*": ["./modules/accounting2/components/ui/*"],
-      "@accounting2/core/*": ["./modules/accounting2/core/*"],
-      "@accounting2/types/*": ["./modules/accounting2/types/*"],
-      "@accounting2/utils/*": ["./modules/accounting2/utils/*"],
-      "@accounting3/*": ["./modules/accounting3/*"],
-      "@accounting3/components/*": ["./modules/accounting3/components/*"],
-      "@accounting3/features/*": ["./modules/accounting3/features/*"],
-      "@accounting3/core/*": ["./modules/accounting3/core/*"],
-      "@accounting3/types/*": ["./modules/accounting3/types/*"]
+      "@accounting3/*": ["./modules/accounting3/*"]
     },
 
     /* 程式碼品質與附加檢查 */
@@ -42,9 +30,7 @@
 
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.js",
-    "src/**/*.jsx"
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
