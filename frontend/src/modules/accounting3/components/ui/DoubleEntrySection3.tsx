@@ -158,7 +158,7 @@ export const DoubleEntrySection3: React.FC<DoubleEntrySection3Props> = ({
         <DoubleEntryFormWithEntries3
           entries={entries}
           onChange={onEntriesChange}
-          organizationId={organizationId}
+          organizationId={organizationId || ''}
           isCopyMode={isCopyMode}
           disabled={!permissions.canEdit}
         />

@@ -44,9 +44,9 @@ export const TransactionDetailView: React.FC<TransactionDetailViewProps> = ({
   const { transaction, accounts, loading, error } = useTransactionDetail(transactionId);
   const { handleEdit, handleCopy, handleDelete, handleBackToList } = useTransactionActions({
     transaction: transaction || null,
-    onEdit,
-    onDelete,
-    onCopy
+    ...(onEdit && { onEdit }),
+    ...(onDelete && { onDelete }),
+    ...(onCopy && { onCopy })
   });
 
   if (loading) {

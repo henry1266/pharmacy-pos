@@ -185,7 +185,11 @@ class OrganizationService {
    */
   async searchOrganizations(search: string, type?: OrganizationType): Promise<Organization[]> {
     try {
-      const response = await this.getOrganizations({ search, type, limit: 50 });
+      const params: OrganizationListParams = { search, limit: 50 };
+      if (type) {
+        params.type = type;
+      }
+      const response = await this.getOrganizations(params);
       return response.data;
     } catch (error: any) {
       console.error('搜尋機構失敗:', error);

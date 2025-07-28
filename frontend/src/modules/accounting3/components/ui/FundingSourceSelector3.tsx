@@ -128,7 +128,7 @@ export const FundingSourceSelector3: React.FC<FundingSourceSelector3Props> = ({
       if (statusFilter === 'confirmed' || statusFilter === 'all') {
         // 載入已確認的交易（可用作資金來源）
         const response = await fundingTrackingService.getAvailableFundingSources({
-          organizationId: organizationId || undefined,
+          organizationId: organizationId || '',
           minAmount: 0
         });
         
@@ -159,7 +159,7 @@ export const FundingSourceSelector3: React.FC<FundingSourceSelector3Props> = ({
       if (statusFilter === 'draft' || statusFilter === 'all') {
         // 載入草稿狀態的交易（需要確認才能作為資金來源）
         const response = await transactionGroupService.getAll({
-          organizationId: organizationId || undefined,
+          organizationId: organizationId || '',
           status: 'draft'
         });
         
@@ -176,8 +176,8 @@ export const FundingSourceSelector3: React.FC<FundingSourceSelector3Props> = ({
               usedAmount: 0, // 草稿狀態的交易還沒有被使用
               availableAmount: tx.totalAmount || 0,
               fundingType: tx.fundingType || 'original',
-              receiptUrl: tx.receiptUrl || undefined,
-              invoiceNo: tx.invoiceNo || undefined,
+              receiptUrl: tx.receiptUrl || '',
+              invoiceNo: tx.invoiceNo || '',
               isAvailable: true,
               status: tx.status,
               linkedTransactionIds: tx.linkedTransactionIds || [],

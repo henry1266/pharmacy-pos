@@ -13,7 +13,7 @@ const OrganizationFormPage: React.FC = () => {
 
   return (
     <OrganizationForm
-      organizationId={id}
+      organizationId={id || ''}
       mode={mode}
     />
   );

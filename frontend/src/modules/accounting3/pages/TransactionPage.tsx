@@ -333,12 +333,12 @@ export const Accounting3TransactionPage: React.FC = () => {
         const updateData: Partial<TransactionGroupWithEntries> = {
           description: apiData.description,
           transactionDate: apiData.transactionDate,
-          organizationId: apiData.organizationId,
-          receiptUrl: apiData.receiptUrl,
-          invoiceNo: apiData.invoiceNo,
+          organizationId: apiData.organizationId || '',
+          receiptUrl: apiData.receiptUrl || '',
+          invoiceNo: apiData.invoiceNo || '',
           entries: apiData.entries,
           linkedTransactionIds: apiData.linkedTransactionIds,
-          sourceTransactionId: apiData.sourceTransactionId,
+          sourceTransactionId: apiData.sourceTransactionId || '',
           fundingType: apiData.fundingType
         };
         
@@ -535,8 +535,8 @@ export const Accounting3TransactionPage: React.FC = () => {
         <Paper sx={{ width: '100%', p: 3 }}>
           <TransactionGroupFormWithEntries
             mode="create"
-            defaultAccountId={defaultAccountId || undefined}
-            defaultOrganizationId={defaultOrganizationId || undefined}
+            defaultAccountId={defaultAccountId || ''}
+            defaultOrganizationId={defaultOrganizationId || ''}
             onSubmit={async (formData) => {
               await handleFormSubmit(formData);
               navigate('/accounting3/transaction');
@@ -697,11 +697,11 @@ export const Accounting3TransactionPage: React.FC = () => {
         <DialogContent>
           <TransactionGroupFormWithEntries
             mode={editingTransaction ? 'edit' : 'create'}
-            defaultAccountId={defaultAccountId || undefined}
-            defaultOrganizationId={defaultOrganizationId || undefined}
+            defaultAccountId={defaultAccountId || ''}
+            defaultOrganizationId={defaultOrganizationId || ''}
             isCopyMode={!!copyingTransaction}
-            transactionId={editingTransaction?._id}
-            currentStatus={editingTransaction?.status}
+            {...(editingTransaction?._id && { transactionId: editingTransaction._id })}
+            {...(editingTransaction?.status && { currentStatus: editingTransaction.status })}
             onStatusChange={(newStatus) => {
               console.log('🔄 狀態變更:', { transactionId: editingTransaction?._id, newStatus });
               if (editingTransaction) {
@@ -711,7 +711,7 @@ export const Accounting3TransactionPage: React.FC = () => {
                 });
               }
             }}
-            initialData={(() => {
+            {...(() => {
               const convertEntries = (entries: EmbeddedAccountingEntry[]): EmbeddedAccountingEntryFormData[] => {
                 return Array.isArray(entries) ? entries.map(entry => ({
                   _id: entry._id,
@@ -720,32 +720,34 @@ export const Accounting3TransactionPage: React.FC = () => {
                   debitAmount: entry.debitAmount || 0,
                   creditAmount: entry.creditAmount || 0,
                   description: entry.description || '',
-                  sourceTransactionId: entry.sourceTransactionId,
-                  fundingPath: entry.fundingPath
+                  sourceTransactionId: entry.sourceTransactionId || '',
+                  fundingPath: entry.fundingPath || []
                 })) : [];
               };
 
-              return editingTransaction ? {
+              const initialData = editingTransaction ? {
                 description: editingTransaction.description,
                 transactionDate: safeDateConvert(editingTransaction.transactionDate),
-                organizationId: editingTransaction.organizationId,
+                organizationId: editingTransaction.organizationId || '',
                 receiptUrl: editingTransaction.receiptUrl || '',
                 invoiceNo: editingTransaction.invoiceNo || '',
                 entries: convertEntries(editingTransaction.entries || []),
                 linkedTransactionIds: editingTransaction.linkedTransactionIds,
-                sourceTransactionId: editingTransaction.sourceTransactionId,
+                sourceTransactionId: editingTransaction.sourceTransactionId || '',
                 fundingType: editingTransaction.fundingType || 'original'
               } : copyingTransaction ? {
                 description: '',
                 transactionDate: new Date(),
-                organizationId: copyingTransaction.organizationId,
+                organizationId: copyingTransaction.organizationId || '',
                 receiptUrl: '',
                 invoiceNo: '',
                 entries: convertEntries(copyingTransaction.entries || []),
-                linkedTransactionIds: undefined,
-                sourceTransactionId: undefined,
-                fundingType: 'original'
-              } : undefined;
+                linkedTransactionIds: [],
+                sourceTransactionId: '',
+                fundingType: 'original' as const
+              } : null;
+
+              return initialData ? { initialData } : {};
             })()}
             onSubmit={handleFormSubmit}
             onCancel={handleCloseDialog}
@@ -783,20 +785,20 @@ export const Accounting3TransactionPage: React.FC = () => {
                     debitAmount: entry.debitAmount || 0,
                     creditAmount: entry.creditAmount || 0,
                     description: entry.description || '',
-                    sourceTransactionId: entry.sourceTransactionId,
-                    fundingPath: entry.fundingPath
+                    sourceTransactionId: entry.sourceTransactionId || '',
+                    fundingPath: entry.fundingPath || []
                   })) : [];
                 };
-
+  
                 return {
                   description: viewingTransaction.description,
                   transactionDate: safeDateConvert(viewingTransaction.transactionDate),
-                  organizationId: viewingTransaction.organizationId,
+                  organizationId: viewingTransaction.organizationId || '',
                   receiptUrl: viewingTransaction.receiptUrl || '',
                   invoiceNo: viewingTransaction.invoiceNo || '',
                   entries: convertEntries(viewingTransaction.entries || []),
                   linkedTransactionIds: viewingTransaction.linkedTransactionIds,
-                  sourceTransactionId: viewingTransaction.sourceTransactionId,
+                  sourceTransactionId: viewingTransaction.sourceTransactionId || '',
                   fundingType: viewingTransaction.fundingType || 'original'
                 };
               })()}

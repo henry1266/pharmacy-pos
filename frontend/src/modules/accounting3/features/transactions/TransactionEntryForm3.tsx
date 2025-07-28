@@ -342,8 +342,8 @@ export const TransactionEntryForm3: React.FC<TransactionEntryForm3Props> = ({
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <AccountSelector3
-            selectedAccountId={currentEditingIndex >= 0 ? entries[currentEditingIndex]?.accountId : undefined}
-            organizationId={organizationId}
+            selectedAccountId={currentEditingIndex >= 0 ? entries[currentEditingIndex]?.accountId || '' : ''}
+            organizationId={organizationId || ''}
             onAccountSelect={handleAccountSelect}
             onCancel={handleCloseAccountSelector}
           />
@@ -355,7 +355,7 @@ export const TransactionEntryForm3: React.FC<TransactionEntryForm3Props> = ({
         open={entryFundingSourceOpen}
         onClose={handleCloseEntryFundingSource}
         onSelect={handleEntryFundingSourceSelect}
-        organizationId={organizationId}
+        organizationId={organizationId || ''}
         excludeTransactionIds={[]}
       />
     </Box>

@@ -61,9 +61,9 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
     validateForm,
     resetForm
   } = useTransactionForm3({
-    initialData,
-    defaultAccountId,
-    defaultOrganizationId,
+    initialData: initialData || {},
+    defaultAccountId: defaultAccountId || '',
+    defaultOrganizationId: defaultOrganizationId || '',
     isCopyMode,
     mode
   });
@@ -433,7 +433,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
         <EnhancedDoubleEntrySection
           entries={formData.entries}
           onEntriesChange={handleEntriesChange}
-          organizationId={formData.organizationId}
+          organizationId={formData.organizationId || ''}
           isCopyMode={isCopyMode}
           mode={mode}
           permissions={permissions}
@@ -528,7 +528,7 @@ export const TransactionGroupFormWithEntries: React.FC<TransactionGroupFormWithE
           onSelect={handleFundingSourceSelect}
           onSelectWithSync={handleFundingSourceSelectWithSync}
           showSyncOption={true}
-          organizationId={formData.organizationId}
+          organizationId={formData.organizationId || ''}
           excludeTransactionIds={transactionId ? [transactionId] : []}
         />
 
