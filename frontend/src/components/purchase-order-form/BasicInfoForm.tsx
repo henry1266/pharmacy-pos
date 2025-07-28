@@ -127,7 +127,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 onChange={handleInputChange}
                 variant="outlined"
                 size="small"
-                disabled={isEditMode}
+                disabled={isEditMode || false}
                 helperText="留空將自動生成"
               />
             </Grid>
@@ -153,7 +153,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
                 onChange={handleInputChange}
                 variant="outlined"
                 size="small"
-                inputRef={invoiceInputRef}
+                {...(invoiceInputRef && { inputRef: invoiceInputRef })}
               />
             </Grid>
 <Grid item xs={6}>
@@ -169,7 +169,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             <Grid item xs={12}>
               <SupplierSelect
                 suppliers={suppliers ?? []}
-                selectedSupplier={selectedSupplier}
+                selectedSupplier={selectedSupplier || null}
                 onChange={handleSupplierChange}
                 label={isEditMode ? "進貨商 (僅供查看)" : "進貨商 (可用名稱或簡碼)"}
               />
@@ -249,7 +249,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             {/* 新的記帳格式選擇 */}
             <Grid item xs={12}>
               <AccountingEntrySelector
-                organizationId={formData?.organizationId}
+                organizationId={formData?.organizationId || ''}
                 selectedAccountIds={formData?.selectedAccountIds || []}
                 onChange={handleAccountingEntryChange || (() => {})}
                 disabled={!formData?.supplier}

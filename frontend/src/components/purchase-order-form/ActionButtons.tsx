@@ -39,7 +39,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({
         type="submit"
         variant="contained"
         startIcon={<SaveIcon />}
-        disabled={loading}
+        disabled={loading || false}
         tabIndex={-1}
         size="small"
       >

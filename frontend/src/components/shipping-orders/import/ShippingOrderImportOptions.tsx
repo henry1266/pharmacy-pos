@@ -95,7 +95,7 @@ const ShippingOrderImportOptions: FC<ShippingOrderImportOptionsProps> = ({
         onFileChange={handleFileChange}
         onImport={handleImport}
         loading={loading ?? false}
-        error={error}
+        {...(error && { error })}
         success={success ?? false}
       />
     </Box>

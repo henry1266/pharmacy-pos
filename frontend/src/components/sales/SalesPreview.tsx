@@ -109,11 +109,15 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
     return notes;
   };
 
+  if (!sale && !loading && !error) {
+    return null;
+  }
+
   return (
     <ItemPreview
-      data={sale ?? undefined}
-      loading={loading}
-      error={error ?? undefined}
+      data={sale || {} as ExtendedSale}
+      loading={loading || false}
+      {...(error && { error })}
       title="銷售訂單詳情"
       columns={columns}
       itemsKey="items"
@@ -121,7 +125,6 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
       emptyText="沒有產品項目"
       variant="table"
       notes={sale ? getNotes(sale) : ''}
-      notesKey={undefined} // 使用自定義備註
       containerProps={{
         sx: { width: 550, maxHeight: 600 }
       }}

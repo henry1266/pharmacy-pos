@@ -299,7 +299,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
         renderInput={(params) => (
           <TextField
             {...params}
-            inputRef={barcodeInputRef}
+            {...(barcodeInputRef && { inputRef: barcodeInputRef })}
             label="掃描條碼 / 輸入產品名稱、代碼、健保碼或套餐"
             variant="outlined"
             size="small"

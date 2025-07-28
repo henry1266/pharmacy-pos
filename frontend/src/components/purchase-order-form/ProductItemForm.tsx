@@ -375,7 +375,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        inputRef={productInputRef}
+                        {...(productInputRef && { inputRef: productInputRef })}
                         id="product-select-input"
                         label="選擇藥品"
                         fullWidth
@@ -512,7 +512,7 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
         open={chartModalOpen}
         onClose={() => setChartModalOpen(false)}
         chartData={chartData}
-        productName={selectedProduct?.name}
+        productName={selectedProduct?.name || ''}
         inventoryData={inventoryData}
         currentStock={inventoryData.length > 0 ? inventoryData[0].currentStock || 0 : 0}
         profitLoss={inventoryData.length > 0 ? (() => {
@@ -541,8 +541,8 @@ const ProductItemForm: FC<ProductItemFormProps> = ({
           });
           return totalProfitLoss;
         })() : 0}
-        packageUnits={selectedProduct?.packageUnits}
-        productUnit={selectedProduct?.unit}
+        packageUnits={selectedProduct?.packageUnits || []}
+        productUnit={selectedProduct?.unit || ''}
       />
     </Box>
   );

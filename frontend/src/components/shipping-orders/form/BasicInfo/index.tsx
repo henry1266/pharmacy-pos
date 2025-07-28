@@ -66,7 +66,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
               name="soid"
               value={formData.soid}
               onChange={handleInputChange}
-              disabled={isEditMode}
+              disabled={isEditMode || false}
               variant="outlined"
               size="small"
               helperText={!isEditMode ? "留空將自動生成" : ""}
@@ -76,12 +76,12 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
           <Grid item xs={12} sm={6} md={3}>
             <SupplierSelect
               suppliers={suppliers ?? []}
-              selectedSupplier={selectedSupplier}
+              selectedSupplier={selectedSupplier || null}
               onChange={(event, supplier) => handleSupplierChange(supplier as Supplier)}
               label="供應商 (可用名稱或簡碼搜索)"
               required={true}
               showCode={true}
-              autoFocus={autoFocus}
+              autoFocus={autoFocus || false}
             />
           </Grid>
           

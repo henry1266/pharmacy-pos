@@ -186,9 +186,8 @@ const useSaleManagementV2 = (
             // 創建新的銷售項目
             const newItem: SaleItem = {
               product: packageItemDetail.productId,
-              productDetails: undefined, // 可以後續從產品列表中查找
               name: packageItemDetail.productName,
-              code: packageItemDetail.productCode || packageItem.code,
+              code: packageItemDetail.productCode || packageItem.code || '',
               price: packageItemDetail.unitPrice || (packageItemDetail.subtotal / packageItemDetail.quantity),
               quantity: packageItemDetail.quantity,
               subtotal: packageItemDetail.subtotal,
@@ -227,7 +226,6 @@ const useSaleManagementV2 = (
         } else {
           const newItem: SaleItem = {
             product: packageItem._id || '',
-            productDetails: undefined,
             name: `[套餐] ${packageItem.name}`,
             code: packageItem.code,
             price: packageItem.totalPrice,
@@ -351,7 +349,7 @@ const useSaleManagementV2 = (
       discount: currentSale.discount,
       paymentMethod: currentSale.paymentMethod,
       paymentStatus: currentSale.paymentStatus,
-      note: currentSale.note,
+      note: currentSale.note || '',
     };
   }, [currentSale]);
 

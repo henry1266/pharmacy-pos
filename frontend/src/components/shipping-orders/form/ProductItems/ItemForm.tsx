@@ -165,7 +165,7 @@ const ItemForm: FC<ItemFormProps> = ({
               id="product-select-input"
               label="選擇藥品"
               fullWidth
-              autoFocus={autoFocus}
+              autoFocus={autoFocus || false}
             />
           )}
           renderOption={(props, option) => (
@@ -197,7 +197,7 @@ const ItemForm: FC<ItemFormProps> = ({
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
         <PriceTooltip
-          currentItem={currentItem}
+          currentItem={{...currentItem, product: currentItem.product || ''}}
           handleItemInputChange={handleItemInputChange}
           getProductPurchasePrice={getProductPurchasePrice}
           calculateTotalCost={calculateTotalCost}

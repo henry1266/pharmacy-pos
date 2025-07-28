@@ -58,18 +58,21 @@ const ShippingOrderPreview: FC<ShippingOrderPreviewProps> = ({ shippingOrder, lo
       (data.items?.reduce((sum, item) => sum + Number(item.dtotalCost || item.totalCost || 0), 0) || 0);
   };
 
+  if (!shippingOrder && !loading && !error) {
+    return null;
+  }
+
   return (
     <ItemPreview
-      data={shippingOrder}
-      loading={loading}
-      error={error}
+      data={shippingOrder || {} as ShippingOrder}
+      loading={loading || false}
+      {...(error && { error })}
       title="出貨單預覽"
       columns={columns}
       itemsKey="items"
       getTotal={getTotal}
       emptyText="無藥品項目"
       variant="table"
-      notesKey={undefined} // 使用自定義備註
       containerProps={{
         sx: { width: 550, maxHeight: 600 }
       }}

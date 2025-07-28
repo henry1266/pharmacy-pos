@@ -93,8 +93,8 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
         <DataTable
           rows={products}
           columns={productColumns}
-          loading={loading}
-          onRowClick={onRowClick}
+          loading={loading || false}
+          {...(onRowClick && { onRowClick: (params) => onRowClick(params.row) })}
         />
       </TabPanel>
       
@@ -102,8 +102,8 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
         <DataTable
           rows={medicines}
           columns={medicineColumns}
-          loading={loading}
-          onRowClick={onRowClick}
+          loading={loading || false}
+          {...(onRowClick && { onRowClick: (params) => onRowClick(params.row) })}
         />
       </TabPanel>
     </>

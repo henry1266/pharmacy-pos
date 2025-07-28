@@ -131,18 +131,16 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
             onView={() => handleView(params.row._id)}
             onEdit={() => handleEdit(params.row._id)}
             onDelete={() => handleDeleteClick(params.row as PurchaseOrderRow)}
-            onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e, params.row._id)}
+            onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e as MouseEvent<HTMLButtonElement>, params.row._id)}
             onPreviewMouseLeave={handlePreviewMouseLeave}
             isDeleteDisabled={params.row.status === 'completed'}
             status={params.row.status}
-            onUnlock={handleUnlock ? () => handleUnlock(params.row._id) : undefined}
+            {...(handleUnlock && { onUnlock: () => handleUnlock(params.row._id) })}
             relatedTransactionGroupId={params.row.relatedTransactionGroupId}
             accountingEntryType={params.row.accountingEntryType}
-            onViewAccountingEntry={
-              params.row.relatedTransactionGroupId && handleViewAccountingEntry
-                ? () => handleViewAccountingEntry(params.row.relatedTransactionGroupId!)
-                : undefined
-            }
+            {...(params.row.relatedTransactionGroupId && handleViewAccountingEntry && {
+              onViewAccountingEntry: () => handleViewAccountingEntry(params.row.relatedTransactionGroupId!)
+            })}
           />
         );
       }
@@ -161,9 +159,9 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
     status: po.status,
     paymentStatus: po.paymentStatus,
     // 會計分錄相關欄位
-    relatedTransactionGroupId: po.relatedTransactionGroupId,
-    accountingEntryType: po.accountingEntryType,
-    selectedAccountIds: po.selectedAccountIds
+    relatedTransactionGroupId: po.relatedTransactionGroupId || '',
+    accountingEntryType: po.accountingEntryType || 'expense-asset',
+    selectedAccountIds: po.selectedAccountIds || []
   }));
   
   // 創建骨架屏載入效果

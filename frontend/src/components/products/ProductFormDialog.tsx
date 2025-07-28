@@ -352,7 +352,7 @@ const ProductFormDialog: React.FC<ProductFormDialogProps> = ({
             
             {onPackageUnitsChange && (
               <PackageUnitsConfig
-                productId={currentProduct?.id}
+                productId={currentProduct?.id || ''}
                 packageUnits={currentProduct?.packageUnits || []}
                 onPackageUnitsChange={onPackageUnitsChange}
                 disabled={false}
