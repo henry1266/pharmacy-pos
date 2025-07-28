@@ -43,8 +43,8 @@ import { calculateUnitPrice, formatAmount } from './utils';
 
 // 常數定義
 const COLORS = {
-  EXPENSE_ASSET: '#4caf50',    // 綠色 - 支出-資產格式
-  ASSET_LIABILITY: '#ff9800',  // 橙色 - 資產-負債格式
+  EXPENSE_ASSET: '#dbc231ff',    // 綠色 - 支出-資產格式
+  ASSET_LIABILITY: '#1ca1aaff',  // 橙色 - 資產-負債格式
   DEFAULT: '#e91e63'           // 粉紅色 - 預設
 } as const;
 
@@ -52,6 +52,22 @@ const TOOLTIPS = {
   EXPENSE_ASSET: '查看會計分錄 (支出)',
   ASSET_LIABILITY: '查看會計分錄 (資產)',
   DEFAULT: '查看會計分錄'
+} as const;
+
+// 共用樣式常數
+const COMMON_STYLES = {
+  hoverBackground: 'rgba(0, 0, 0, 0.04)',
+  hoverBackgroundDark: 'rgba(0, 0, 0, 0.1)',
+  flexCenter: { display: 'flex', justifyContent: 'center' },
+  accountingButton: {
+    border: '1px solid currentColor',
+    borderWidth: '2px',
+    borderRadius: '4px'
+  },
+  spacing: {
+    mt2mb2: { mt: 2, mb: 2 },
+    mt1: { mt: 1 }
+  }
 } as const;
 
 // 工具函數：計算哈希值
@@ -98,6 +114,55 @@ const getAccountingConfig = (accountingEntryType?: string, relatedTransactionGro
   };
 };
 
+// 共用組件：序號欄位
+const IndexCell: FC<{ index: number }> = ({ index }) => (
+  <TableCell align="center">
+    <Typography variant="body2">{index + 1}</Typography>
+  </TableCell>
+);
+
+// 共用組件：可編輯文字欄位
+const EditableTextField: FC<{
+  name?: string;
+  value: string | number;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  type?: string;
+  disabled?: boolean;
+  inputProps?: any;
+}> = ({ name, value, onChange, type = "text", disabled = false, inputProps }) => (
+  <TextField
+    fullWidth
+    size="small"
+    {...(name && { name })}
+    type={type}
+    value={value}
+    {...(onChange && { onChange })}
+    disabled={disabled}
+    inputProps={inputProps}
+  />
+);
+
+// 共用組件：操作按鈕組
+const ActionIconButton: FC<{
+  icon: React.ReactNode;
+  onClick: () => void;
+  color?: 'primary' | 'error' | 'default';
+  disabled?: boolean;
+  title?: string;
+  sx?: any;
+}> = ({ icon, onClick, color = 'default', disabled = false, title, sx }) => (
+  <IconButton
+    size="small"
+    onClick={onClick}
+    color={color}
+    disabled={disabled}
+    title={title}
+    sx={sx}
+  >
+    {icon}
+  </IconButton>
+);
+
 // 可編輯行組件
 export const EditableRow: FC<EditableRowProps> = ({
   index,
@@ -107,44 +172,28 @@ export const EditableRow: FC<EditableRowProps> = ({
   handleCancelEditItem
 }) => (
   <>
-    <TableCell align="center">
-      <Typography variant="body2">{index + 1}</Typography>
+    <IndexCell index={index} />
+    <TableCell>
+      <EditableTextField value={editingItem.did} disabled />
     </TableCell>
     <TableCell>
-      <TextField
-        fullWidth
-        size="small"
-        value={editingItem.did}
-        disabled
-      />
-    </TableCell>
-    <TableCell>
-      <TextField
-        fullWidth
-        size="small"
-        value={editingItem.dname}
-        disabled
-      />
+      <EditableTextField value={editingItem.dname} disabled />
     </TableCell>
     <TableCell align="right">
-      <TextField
-        fullWidth
-        size="small"
+      <EditableTextField
         name="dquantity"
         type="number"
         value={editingItem.dquantity}
-        onChange={handleEditingItemChange}
+        onChange={handleEditingItemChange as (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void}
         inputProps={{ min: 1 }}
       />
     </TableCell>
     <TableCell align="right">
-      <TextField
-        fullWidth
-        size="small"
+      <EditableTextField
         name="dtotalCost"
         type="number"
         value={editingItem.dtotalCost}
-        onChange={handleEditingItemChange}
+        onChange={handleEditingItemChange as (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void}
         inputProps={{ min: 0 }}
       />
     </TableCell>
@@ -152,12 +201,16 @@ export const EditableRow: FC<EditableRowProps> = ({
       {calculateUnitPrice(editingItem.dtotalCost, editingItem.dquantity)}
     </TableCell>
     <TableCell align="center">
-      <IconButton color="primary" onClick={handleSaveEditItem}>
-        <CheckIcon />
-      </IconButton>
-      <IconButton color="error" onClick={handleCancelEditItem}>
-        <CloseIcon />
-      </IconButton>
+      <ActionIconButton
+        icon={<CheckIcon />}
+        onClick={handleSaveEditItem}
+        color="primary"
+      />
+      <ActionIconButton
+        icon={<CloseIcon />}
+        onClick={handleCancelEditItem}
+        color="error"
+      />
     </TableCell>
   </>
 );
@@ -173,9 +226,7 @@ export const DisplayRow: FC<DisplayRowProps> = ({
   isLast
 }) => (
   <>
-    <TableCell align="center">
-      <Typography variant="body2">{index + 1}</Typography>
-    </TableCell>
+    <IndexCell index={index} />
     <TableCell>{item.did}</TableCell>
     <TableCell>{item.dname}</TableCell>
     <TableCell align="right">{item.dquantity}</TableCell>
@@ -184,27 +235,25 @@ export const DisplayRow: FC<DisplayRowProps> = ({
       {calculateUnitPrice(item.dtotalCost, item.dquantity)}
     </TableCell>
     <TableCell align="center">
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <IconButton 
-          size="small" 
-          onClick={() => handleMoveItem(index, 'up')} 
+      <Box sx={COMMON_STYLES.flexCenter}>
+        <ActionIconButton
+          icon={<ArrowUpwardIcon fontSize="small" />}
+          onClick={() => handleMoveItem(index, 'up')}
           disabled={isFirst}
-        >
-          <ArrowUpwardIcon fontSize="small" />
-        </IconButton>
-        <IconButton 
-          size="small" 
-          onClick={() => handleMoveItem(index, 'down')} 
+        />
+        <ActionIconButton
+          icon={<ArrowDownwardIcon fontSize="small" />}
+          onClick={() => handleMoveItem(index, 'down')}
           disabled={isLast}
-        >
-          <ArrowDownwardIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" onClick={() => handleEditItem(index)}>
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" onClick={() => handleRemoveItem(index)}>
-          <DeleteIcon fontSize="small" />
-        </IconButton>
+        />
+        <ActionIconButton
+          icon={<EditIcon fontSize="small" />}
+          onClick={() => handleEditItem(index)}
+        />
+        <ActionIconButton
+          icon={<DeleteIcon fontSize="small" />}
+          onClick={() => handleRemoveItem(index)}
+        />
       </Box>
     </TableCell>
   </>
@@ -237,54 +286,46 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
         onClick={onView}
         onMouseEnter={onPreviewMouseEnter}
         onMouseLeave={onPreviewMouseLeave}
+        sx={{ '&:hover': { backgroundColor: COMMON_STYLES.hoverBackground } }}
       >
         <VisibilityIcon fontSize="small" />
       </IconButton>
       
       {/* 會計分錄圖示 - 只有在有分錄時才顯示 */}
       {hasAccountingEntry && onViewAccountingEntry && (
-        <IconButton
-          size="small"
+        <ActionIconButton
+          icon={accountingConfig.icon}
           onClick={onViewAccountingEntry}
           title={accountingConfig.tooltip}
           sx={{
             color: `${accountingConfig.color} !important`,
-            '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.1)'
-            },
-            border: '1px solid currentColor',
-            borderWidth: '2px',
-            borderRadius: '4px'
+            '&:hover': { backgroundColor: COMMON_STYLES.hoverBackgroundDark },
+            ...COMMON_STYLES.accountingButton
           }}
-        >
-          {accountingConfig.icon}
-        </IconButton>
+        />
       )}
       
-      {isCompleted ? (
+      {isCompleted && onUnlock ? (
         // 已完成狀態：只顯示鎖符號
-        <IconButton
-          size="small"
+        <ActionIconButton
+          icon={<LockIcon fontSize="small" />}
           onClick={onUnlock}
           title="點擊解鎖並改為待處理"
-        >
-          <LockIcon fontSize="small" />
-        </IconButton>
-      ) : (
+        />
+      ) : !isCompleted ? (
         // 待處理或其他狀態：顯示編輯和刪除按鈕
         <>
-          <IconButton size="small" onClick={onEdit}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
+          <ActionIconButton
+            icon={<EditIcon fontSize="small" />}
+            onClick={onEdit}
+          />
+          <ActionIconButton
+            icon={<DeleteIcon fontSize="small" />}
             onClick={onDelete}
             disabled={isDeleteDisabled}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
+          />
         </>
-      )}
+      ) : null}
     </Box>
   );
 };
@@ -295,7 +336,7 @@ export const FileUpload: FC<FileUploadProps> = ({
   onFileChange,
   loading
 }) => (
-  <Box sx={{ mt: 2, mb: 2 }}>
+  <Box sx={COMMON_STYLES.spacing.mt2mb2}>
     <Input
       type="file"
       inputProps={{ accept: '.csv' }}
@@ -316,7 +357,7 @@ export const FileUpload: FC<FileUploadProps> = ({
     </label>
     
     {csvFile && (
-      <Typography variant="body2" sx={{ mt: 1 }}>
+      <Typography variant="body2" sx={COMMON_STYLES.spacing.mt1}>
         已選擇: {csvFile.name}
       </Typography>
     )}
@@ -330,13 +371,13 @@ export const StatusMessage: FC<StatusMessageProps> = ({
 }) => (
   <>
     {error && (
-      <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+      <Alert severity="error" sx={COMMON_STYLES.spacing.mt2mb2}>
         {error}
       </Alert>
     )}
     
     {success && (
-      <Alert severity="success" sx={{ mt: 2, mb: 2 }}>
+      <Alert severity="success" sx={COMMON_STYLES.spacing.mt2mb2}>
         CSV導入成功！
       </Alert>
     )}
@@ -400,99 +441,72 @@ export const AmountRenderer: FC<{ value: number }> = ({ value }) => (
   <span>{value ? formatAmount(value) : ''}</span>
 );
 
-// 共用的 PropTypes 配置
-const commonPropTypes = {
-  // 基本類型
-  item: PropTypes.object.isRequired,
-  index: PropTypes.number.isRequired,
-  status: PropTypes.string,
-  loading: PropTypes.bool.isRequired,
-  disabled: PropTypes.bool,
-  children: PropTypes.node.isRequired,
-  
-  // 函數類型
-  onClick: PropTypes.func.isRequired,
-  onView: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  onFileChange: PropTypes.func.isRequired,
-  
-  // 字串和數字
-  message: PropTypes.string.isRequired,
-  colSpan: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-  
-  // 可選類型
-  csvFile: PropTypes.object,
-  error: PropTypes.string,
-  success: PropTypes.bool.isRequired
-} as any;
+// PropTypes 驗證 - 使用簡化的定義方式
+const createPropTypes = (specificProps: Record<string, any>) => specificProps as any;
 
-// PropTypes 驗證
-EditableRow.propTypes = {
-  item: commonPropTypes.item,
-  index: commonPropTypes.index,
+EditableRow.propTypes = createPropTypes({
+  index: PropTypes.number.isRequired,
   editingItem: PropTypes.object.isRequired,
   handleEditingItemChange: PropTypes.func.isRequired,
   handleSaveEditItem: PropTypes.func.isRequired,
   handleCancelEditItem: PropTypes.func.isRequired
-} as any;
+});
 
-DisplayRow.propTypes = {
-  item: commonPropTypes.item,
-  index: commonPropTypes.index,
+DisplayRow.propTypes = createPropTypes({
+  item: PropTypes.object.isRequired,
+  index: PropTypes.number.isRequired,
   handleEditItem: PropTypes.func.isRequired,
   handleRemoveItem: PropTypes.func.isRequired,
   handleMoveItem: PropTypes.func.isRequired,
   isFirst: PropTypes.bool.isRequired,
   isLast: PropTypes.bool.isRequired
-} as any;
+});
 
-ActionButtons.propTypes = {
-  onView: commonPropTypes.onView,
-  onEdit: commonPropTypes.onEdit,
-  onDelete: commonPropTypes.onDelete,
+ActionButtons.propTypes = createPropTypes({
+  onView: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
   onPreviewMouseEnter: PropTypes.func.isRequired,
   onPreviewMouseLeave: PropTypes.func.isRequired,
   isDeleteDisabled: PropTypes.bool,
-  status: commonPropTypes.status,
+  status: PropTypes.string,
   onUnlock: PropTypes.func,
   relatedTransactionGroupId: PropTypes.string,
   accountingEntryType: PropTypes.oneOf(['expense-asset', 'asset-liability']),
   onViewAccountingEntry: PropTypes.func
-} as any;
+});
 
-FileUpload.propTypes = {
-  csvFile: commonPropTypes.csvFile,
-  onFileChange: commonPropTypes.onFileChange,
-  loading: commonPropTypes.loading
-} as any;
+FileUpload.propTypes = createPropTypes({
+  csvFile: PropTypes.object,
+  onFileChange: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired
+});
 
-StatusMessage.propTypes = {
-  error: commonPropTypes.error,
-  success: commonPropTypes.success
-} as any;
+StatusMessage.propTypes = createPropTypes({
+  error: PropTypes.string,
+  success: PropTypes.bool.isRequired
+});
 
-LoadingButton.propTypes = {
-  onClick: commonPropTypes.onClick,
-  loading: commonPropTypes.loading,
-  disabled: commonPropTypes.disabled,
-  children: commonPropTypes.children
-} as any;
+LoadingButton.propTypes = createPropTypes({
+  onClick: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  disabled: PropTypes.bool,
+  children: PropTypes.node.isRequired
+});
 
-EmptyState.propTypes = {
-  message: commonPropTypes.message,
-  colSpan: commonPropTypes.colSpan
-} as any;
+EmptyState.propTypes = createPropTypes({
+  message: PropTypes.string.isRequired,
+  colSpan: PropTypes.number.isRequired
+});
 
-StatusChipRenderer.propTypes = {
+StatusChipRenderer.propTypes = createPropTypes({
   status: PropTypes.string.isRequired
-} as any;
+});
 
-PaymentStatusChipRenderer.propTypes = {
+PaymentStatusChipRenderer.propTypes = createPropTypes({
   status: PropTypes.string.isRequired
-} as any;
+});
 
-AmountRenderer.propTypes = {
-  value: commonPropTypes.value
-} as any;
+AmountRenderer.propTypes = createPropTypes({
+  value: PropTypes.number.isRequired
+});
