@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
 import { Tooltip, AppBar, Toolbar, Typography, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Avatar, Collapse, Popover, Button, useTheme, useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import SellIcon from '@mui/icons-material/Sell';
@@ -41,6 +43,8 @@ import BusinessIcon from '@mui/icons-material/Business';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../assets/css/dashui-theme.css';
+import ProductSearchDialog from '../common/ProductSearchDialog';
+import useProductData from '../../hooks/useProductData';
 
 interface NavIconButtonProps {
   to: string;
@@ -106,11 +110,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [settingSubMenuOpen, setSettingSubMenuOpen] = useState<boolean>(false);
   const [employeeSubMenuOpen, setEmployeeSubMenuOpen] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [searchDialogOpen, setSearchDialogOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>('');
+
+  // 獲取產品數據用於搜尋
+  const { allProducts, loading: productsLoading } = useProductData();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -265,6 +273,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const handleProductClick = () => setProductSubMenuOpen(!productSubMenuOpen);
   const handleEmployeeClick = () => setEmployeeSubMenuOpen(!employeeSubMenuOpen);
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+
+  // 搜尋對話框處理函數
+  const handleSearchClick = () => setSearchDialogOpen(true);
+  const handleSearchClose = () => setSearchDialogOpen(false);
+  
+  // 處理產品選擇
+  const handleProductSelect = (product: any) => {
+    // 導航到產品詳情頁面或執行其他操作
+    navigate(`/products/${product._id}`);
+  };
+
+  // 處理套餐選擇
+  const handlePackageSelect = (packageItem: any) => {
+    // 導航到套餐詳情頁面或執行其他操作
+    console.log('選擇套餐:', packageItem);
+  };
 
   const openPopover = Boolean(anchorEl);
   const popoverId = openPopover ? 'user-popover' : undefined;
@@ -487,6 +511,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             {timeLeft && <Typography component="span" sx={{ fontSize: '0.7em', color: 'lightcoral', marginLeft: 1 }}>{timeLeft}</Typography>}
           </Typography>
 
+          <Tooltip title="搜尋產品">
+            <IconButton color="inherit" onClick={handleSearchClick} sx={{ mx: 0.5 }}>
+              <SearchOutlinedIcon />
+            </IconButton>
+          </Tooltip>
           <NavIconButton to="/shipping-orders/new" tooltip="出貨" activeIcon={<LocalShippingIcon />} inactiveIcon={<LocalShippingOutlinedIcon />} adminOnly={true} userRole={user?.role || ''} />
           <NavIconButton to="/purchase-orders/new" tooltip="進貨" activeIcon={<AssignmentIcon />} inactiveIcon={<AssignmentOutlinedIcon />} adminOnly={true} userRole={user?.role || ''} />
           <NavIconButton to="/sales/new2" tooltip="銷售" activeIcon={<PointOfSaleIcon />} inactiveIcon={<PointOfSaleOutlinedIcon />} />
@@ -632,6 +661,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <Toolbar /> {/* For spacing below AppBar */}
         {children}
       </Box>
+
+      {/* 搜尋產品對話框 */}
+      <ProductSearchDialog
+        open={searchDialogOpen}
+        onClose={handleSearchClose}
+        products={allProducts}
+        onSelectProduct={handleProductSelect}
+        onSelectPackage={handlePackageSelect}
+        title="搜尋產品"
+        placeholder="輸入產品名稱、代碼、條碼或健保碼..."
+      />
     </Box>
   );
 };
