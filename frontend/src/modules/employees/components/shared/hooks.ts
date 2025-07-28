@@ -189,13 +189,13 @@ export const useOvertimeManagement = (employeeId?: string | null) => {
   const [selectedRecord, setSelectedRecord] = useState<OvertimeRecord | null>(null);
 
   // 獲取加班記錄
-  const fetchOvertimeRecords = useCallback(async (params?: Record<string, any>) => {
+  const fetchOvertimeRecords = useCallback(async (_params?: Record<string, any>) => {
     setLoading(true);
     try {
       // 這裡應該調用實際的 API
       // const records = await overtimeRecordService.getOvertimeRecords(params);
       // setOvertimeRecords(records);
-      console.log('Fetching overtime records with params:', params, 'for employee:', employeeId);
+      console.log('Fetching overtime records with params:', _params, 'for employee:', employeeId);
     } catch (err: any) {
       setError(handleApiError(err));
     } finally {

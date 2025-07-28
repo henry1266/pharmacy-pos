@@ -72,7 +72,7 @@ interface OvertimeManagerProps {
  * 加班管理業務邏輯 Hook
  * 提供加班記錄的完整管理功能
  */
-export const useOvertimeManager = ({ isAdmin = false, employeeId = null }: OvertimeManagerProps) => {
+export const useOvertimeManager = ({ employeeId = null }: OvertimeManagerProps) => {
   // 基本狀態
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

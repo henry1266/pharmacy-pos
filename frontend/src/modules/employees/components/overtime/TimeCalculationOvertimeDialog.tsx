@@ -73,7 +73,6 @@ const TimeCalculationOvertimeDialog: React.FC<TimeCalculationOvertimeDialogProps
   formErrors,
   employees = [],
   employeeId,
-  isAdmin,
   submitting,
   onInputChange,
   onSubmit,

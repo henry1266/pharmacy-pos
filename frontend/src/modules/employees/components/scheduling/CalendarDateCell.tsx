@@ -68,8 +68,7 @@ const CalendarDateCell: React.FC<CalendarDateCellProps> = ({
   getBorderColor,
   getEmployeeAbbreviation,
   getBorderColorByLeaveType,
-  getLeaveTypeText,
-  formatDateString
+  getLeaveTypeText
 }) => {
   return (
     <Paper

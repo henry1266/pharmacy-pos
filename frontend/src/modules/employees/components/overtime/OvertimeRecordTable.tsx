@@ -131,7 +131,7 @@ const OvertimeRecordTable: React.FC<OvertimeRecordTableProps> = ({
   };
 
   // 渲染記錄詳細列表
-  const renderRecordDetails = (group: EmployeeOvertimeGroup, employeeId: string) => {
+  const renderRecordDetails = (group: EmployeeOvertimeGroup) => {
     const allRecords: OvertimeRecord[] = [
       // 獨立加班記錄
       ...group.records.map(record => ({

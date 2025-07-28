@@ -158,7 +158,7 @@ const ShiftSelectionModal: React.FC<ShiftSelectionModalProps> = ({
   }, [open]);
 
   // 處理標籤變更
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     setSelectedEmployee('');
     setSelectedLeaveType(null);

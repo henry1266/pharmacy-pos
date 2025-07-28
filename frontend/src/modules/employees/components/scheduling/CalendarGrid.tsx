@@ -75,7 +75,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
   return (
     <Grid container spacing={0.3} {...({} as any)}>
       {/* 星期標題 */}
-      {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
+      {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
         <Grid item xs={12/7} key={`weekday-${day}`} {...({} as any)}>
           <Box sx={{
             p: 0.5,

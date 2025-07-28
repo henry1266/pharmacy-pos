@@ -425,7 +425,7 @@ const CustomersPage: FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
 
-  const handleCloseSnackbar = useCallback((event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleCloseSnackbar = useCallback((_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
     setSnackbar(s => ({ ...s, open: false })); // Use functional update for snackbar
   }, []);

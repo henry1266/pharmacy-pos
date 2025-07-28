@@ -62,7 +62,7 @@ const SchedulingManager: React.FC<{ onConfigUpdate?: () => void }> = ({ onConfig
     fetchConfigs();
   }, [currentDate, fetchSchedulesByDate, fetchConfigs]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
 

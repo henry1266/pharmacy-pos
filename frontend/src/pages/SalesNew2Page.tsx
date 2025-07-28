@@ -115,7 +115,7 @@ const SalesNew2Page: FC = () => {
     setSnackbar({ open: true, message, severity });
   }, []);
   
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleCloseSnackbar = (_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
     }
