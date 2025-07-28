@@ -20,8 +20,6 @@ import {
  */
 const ShippingOrdersTable: FC<ShippingOrdersTableProps> = ({
   filteredRows,
-  paginationModel,
-  setPaginationModel,
   loading,
   handleView,
   handleEdit,

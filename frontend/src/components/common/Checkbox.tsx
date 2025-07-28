@@ -32,6 +32,7 @@ const Checkbox: React.FC<CustomCheckboxProps> = ({
             {...(name && { name })}
             disabled={disabled}
             color="primary"
+            {...rest}
           />
         }
         label={label || ''}

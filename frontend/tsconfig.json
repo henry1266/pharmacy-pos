@@ -27,8 +27,7 @@
     },
 
     /* 開發階段放寬檢查 */
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedLocals": false
   },
 
   "include": [

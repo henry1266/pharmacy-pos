@@ -225,7 +225,7 @@ const SalesProductInput: React.FC<SalesProductInputProps> = ({
         filterOptions={(options) => options} // 不進行額外過濾，直接使用 filteredItems
         value={null} // 不設置 value，讓 Autocomplete 自己管理選擇狀態
         inputValue={barcode}
-        onInputChange={(event, newValue, reason) => {
+        onInputChange={(_event, newValue, reason) => {
           if (reason === 'input') {
             setBarcode(newValue);
             handleBarcodeAutocompleteChange({ target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>);

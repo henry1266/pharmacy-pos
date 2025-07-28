@@ -59,8 +59,8 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
   // 處理單個排班記錄的工時計算
   const processScheduleHours = (
     schedule: EmployeeSchedule,
-    dateStr: string,
-    shift: string,
+    _dateStr: string,
+    _shift: string,
     shiftHours: number,
     employeeHoursData: EmployeeHoursData
   ): void => {
@@ -95,7 +95,7 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
 
   // 處理特定日期的所有班次排班
   const processDateSchedules = (
-    dateStr: string,
+    _dateStr: string,
     schedules: { [shift: string]: EmployeeSchedule[] },
     employeeHoursData: EmployeeHoursData
   ): void => {
@@ -105,7 +105,7 @@ const useScheduleCalculations = (schedulesGroupedByDate: SchedulesByDate) => {
         const shiftHours = calculateShiftHours(shift);
         
         shiftSchedules.forEach(schedule => {
-          processScheduleHours(schedule, dateStr, shift, shiftHours, employeeHoursData);
+          processScheduleHours(schedule, '', shift, shiftHours, employeeHoursData);
         });
       }
     });

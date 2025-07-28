@@ -69,8 +69,6 @@ interface PurchaseOrdersTableProps {
 const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
   purchaseOrders,
   filteredRows,
-  paginationModel,
-  setPaginationModel,
   loading,
   handleView,
   handleEdit,

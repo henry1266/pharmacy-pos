@@ -199,6 +199,12 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
             }}
             renderInput={(params) => {
               const { InputLabelProps, ...restParams } = params;
+              const cleanInputLabelProps = InputLabelProps ? {
+                ...InputLabelProps,
+                className: InputLabelProps.className || '',
+                style: InputLabelProps.style || {}
+              } : {};
+              
               return (
                 <TextField
                   {...restParams}
@@ -219,6 +225,7 @@ const EditShortcutItemsDialog: React.FC<EditShortcutItemsDialogProps> = ({
                       <SearchIcon color="action" sx={{ mr: 1 }} />
                     ),
                   }}
+                  InputLabelProps={cleanInputLabelProps}
                 />
               );
             }}

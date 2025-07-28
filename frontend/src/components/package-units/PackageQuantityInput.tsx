@@ -44,7 +44,6 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
   disabled = false,
   error,
   helperText,
-  showQuickInput = true,
   showCalculator = true,
   allowNegative = false,
   maxValue,
@@ -371,7 +370,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
               getOptionLabel={(option) => typeof option === 'string' ? option : option.toString()}
               value={value}
               inputValue={value.toString()}
-              onInputChange={(event, newValue) => {
+              onInputChange={(_event, newValue) => {
                 const numValue = Math.max(0, parseInt(newValue) || 0);
                 
                 // 驗證輸入
@@ -406,7 +405,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                   addToHistory(numValue);
                 }
               }}
-              onChange={(event, newValue) => {
+              onChange={(_event, newValue) => {
                 if (typeof newValue === 'number') {
                   // 為簡化模式生成包裝數量資料
                   const displayResult = convertToPackageDisplay(newValue, packageUnits, baseUnitName);
@@ -427,7 +426,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                 }
               }}
               renderInput={(params) => {
-                const { size, InputLabelProps, ...restParams } = params;
+                const { InputLabelProps, ...restParams } = params;
                 const cleanInputLabelProps = InputLabelProps ? {
                   ...InputLabelProps,
                   className: InputLabelProps.className || '',
@@ -444,7 +443,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                     error={!!(error || inputError)}
                     helperText={error || inputError || helperText}
                     variant={variant}
-                    size={size || "medium" as const}
+                    size="medium"
                     InputLabelProps={cleanInputLabelProps}
                     InputProps={{
                       ...params.InputProps,
@@ -467,26 +466,23 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                   />
                 );
               }}
-              renderOption={(props, option) => {
-                const { autoFocus, className, style, ...restProps } = props;
-                return (
-                  <ListItem
-                    {...restProps}
-                    autoFocus={!!autoFocus}
-                    className={className || ''}
-                    style={style || {}}
-                  >
-                    <ListItemText
-                      primary={option.toString()}
-                      secondary={
-                        historyInputs.includes(option as number)
-                          ? '歷史記錄'
-                          : '智能建議'
-                      }
-                    />
-                  </ListItem>
-                );
-              }}
+              renderOption={(props, option) => (
+                <ListItem
+                  {...props}
+                  autoFocus={!!props.autoFocus}
+                  className={props.className || ''}
+                  style={props.style || {}}
+                >
+                  <ListItemText
+                    primary={option.toString()}
+                    secondary={
+                      historyInputs.includes(option as number)
+                        ? '歷史記錄'
+                        : '智能建議'
+                    }
+                  />
+                </ListItem>
+              )}
             />
           </Box>
         )}
@@ -496,7 +492,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
           <Box>
             {/* 包裝單位輸入 */}
             <Grid container spacing={2}>
-              {sortedPackageUnits.map((unit, index) => {
+              {sortedPackageUnits.map((unit) => {
                 const unitSuggestions = generateUnitSpecificSuggestions(unit);
                 const currentValue = inputValues.find(i => i.unitName === unit.unitName)?.quantity || 0;
                 
@@ -529,11 +525,11 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                         getOptionLabel={(option) => typeof option === 'string' ? option : option.toString()}
                         value={currentValue}
                         inputValue={currentValue.toString()}
-                        onInputChange={(event, newValue) => {
+                        onInputChange={(_event, newValue) => {
                           const numValue = Math.max(0, parseInt(newValue) || 0);
                           handleInputChange(unit.unitName, numValue);
                         }}
-                        onChange={(event, newValue) => {
+                        onChange={(_event, newValue) => {
                           if (typeof newValue === 'number') {
                             handleInputChange(unit.unitName, newValue);
                           }

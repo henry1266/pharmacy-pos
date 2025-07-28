@@ -76,9 +76,7 @@ interface ProductDetailCardProps {
 const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
   product,
   suppliers,
-  categories,
-  handleEditProduct,
-  handleDeleteProduct
+  categories
 }) => {
   if (!product) {
     return (

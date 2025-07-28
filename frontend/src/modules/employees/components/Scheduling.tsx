@@ -191,7 +191,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
   };
 
   // 處理標籤頁切換
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
 
@@ -240,14 +240,14 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
             ) : (
               <Grid container spacing={0.5}>
                 {/* 日曆區域 */}
-                <Grid item xs={12} {...({} as any)}>
+                <Grid item xs={12}>
                   {/* 編輯模式下不再顯示內嵌的快速選擇面板，改為彈出框 */}
                   
                   {/* 日曆部分 */}
                   <Grid container spacing={0.3}>
                 {/* 星期標題 */}
                 {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
-                  <Grid item xs={12/7} key={`weekday-${day}`} {...({} as any)}>
+                  <Grid item xs={12/7} key={`weekday-${day}`}>
                     <Box sx={{
                       p: 0.5,
                       textAlign: 'center',
@@ -264,7 +264,7 @@ const Scheduling: React.FC<SchedulingProps> = ({ isAdmin = false }) => {
                 
                 {/* 日期格子 */}
                 {calendarGrid.map((dateObj: DateObject, index: number) => (
-                  <Grid item xs={12/7} key={`date-${formatDateString(dateObj.date)}-${dateObj.isCurrentMonth}`} {...({} as any)}>
+                  <Grid item xs={12/7} key={`date-${formatDateString(dateObj.date)}-${dateObj.isCurrentMonth}`}>
                     <CalendarDateCell
                       dateObj={dateObj}
                       index={index}

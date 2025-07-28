@@ -244,7 +244,7 @@ const ProductItemsTable: FC<ProductItemsTableProps> = memo(({
       >
         <DragDropContext onDragEnd={onDragEnd}>
           <StrictModeDroppable droppableId="product-items-list">
-            {(provided, snapshot) => (
+            {(provided) => (
               <Paper
                 sx={{
                   height: '100%',

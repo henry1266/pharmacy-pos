@@ -116,7 +116,7 @@ const usePurchaseOrderItems = ({
     setEditingItem(prev => prev ? { ...prev, [e.target.name]: e.target.value } : null);
   }, []);
 
-  const handleProductChange = useCallback((event: React.SyntheticEvent, newValue: Product | null) => {
+  const handleProductChange = useCallback((_event: React.SyntheticEvent, newValue: Product | null) => {
     if (newValue) {
       setCurrentItem(prev => ({
         ...prev,
@@ -154,7 +154,7 @@ const usePurchaseOrderItems = ({
         if (detail) {
           setProductDetails(prev => ({ ...prev, [newItem.did]: { ...detail, stock: detail.stock || 0 } }));
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(`獲取產品 ${newItem.did} 詳細資料失敗:`, err);
         showSnackbar(`無法獲取 ${newItem.dname} 的詳細資料`, 'warning');
       }
@@ -220,7 +220,7 @@ const usePurchaseOrderItems = ({
         if (detail) {
           setProductDetails(prev => ({ ...prev, [editingItem.did]: { ...detail, stock: detail.stock || 0 } }));
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(`獲取產品 ${editingItem.did} 詳細資料失敗:`, err);
         showSnackbar(`無法獲取 ${editingItem.dname} 的詳細資料`, 'warning');
       }

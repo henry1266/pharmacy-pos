@@ -373,7 +373,7 @@ const PurchaseOrderEditPage: React.FC = () => {
     };
     
     if (!isEditMode && !submitData.poid) {
-      const { poid, ...dataWithoutPoid } = submitData;
+      const { poid: _poid, ...dataWithoutPoid } = submitData;
       return dataWithoutPoid;
     }
     
