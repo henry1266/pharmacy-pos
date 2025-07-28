@@ -1,13 +1,15 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     /* React 專用設定 */
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "moduleResolution": "node",
     "jsx": "react-jsx",
     
     /* 輸出設定 - React 開發模式 */
     "noEmit": true,
+    
+    /* React 需要的模組隔離 */
+    "isolatedModules": true,
     
     /* 路徑解析 - 針對 frontend */
     "baseUrl": "./src",
@@ -19,14 +21,16 @@
       "@utils/*": ["./utils/*"],
       "@types/*": ["./types/*"],
       "@redux/*": ["./redux/*"],
-      "@accounting3/*": ["./modules/accounting3/*"]
+      "@accounting3/*": ["./modules/accounting3/*"],
+      "@shared/*": ["../shared/*"],
+      "@shared": ["../shared"]
     },
 
-    /* 程式碼品質與附加檢查 */
+    /* 開發階段放寬檢查 */
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false
   },
-  
 
   "include": [
     "src/**/*.ts",

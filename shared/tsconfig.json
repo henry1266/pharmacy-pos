@@ -1,28 +1,18 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    /* 輸出設定 */
+    /* 共享模組特定設定 */
     "outDir": "./dist",
     "rootDir": "./",
     "composite": true,
-    
-    /* 程式碼品質檢查 */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true,
-    
-    "allowSyntheticDefaultImports": true,
+    "noEmit": false,
+
+    /* 共享模組不需要模組隔離 - 允許類型重新導出 */
+    "isolatedModules": false,
 
     /* 裝飾器支援 */
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    
-    /* 進階選項 */
-    "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": false
+    "emitDecoratorMetadata": true
   },
   "include": [
     "./**/*.ts"

@@ -1,41 +1,13 @@
 {
   "compilerOptions": {
-    /* 基本選項 */
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    
-    /* 輸出選項 */
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "noEmit": true,
-    
-    /* 路徑解析 */
+    /* 全域路徑解析 - 跨項目引用 */
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["./shared/*"],
       "@shared": ["./shared"],
       "@frontend/*": ["./frontend/src/*"],
       "@backend/*": ["./backend/src/*"]
-    },
-    
-    /* 嚴格性檢查 - 漸進式啟用 */
-    "strict": true,
-
-    /* 模組解析 */
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    /* 程式碼品質與附加檢查 */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    /* 開發階段 */
-    "noErrorTruncation": true
+    }
   },
   "files": [],
   "references": [

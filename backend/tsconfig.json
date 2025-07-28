@@ -1,9 +1,8 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     /* Node.js 後端專用設定 */
     "module": "CommonJS",
-    "lib": ["ES2022"],
     
     /* 輸出設定 */
     "noEmit": false,
@@ -12,6 +11,13 @@
     
     /* Node.js 環境設定 */
     "allowJs": true,
+
+    /* 路徑解析 - 後端需要訪問 shared */
+    "baseUrl": "../",
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@shared": ["./shared"]
+    },
 
     /* 裝飾器支援 (如使用 TypeORM 等) */
     "experimentalDecorators": true,
