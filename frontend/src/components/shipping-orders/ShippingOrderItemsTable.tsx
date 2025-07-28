@@ -60,7 +60,7 @@ const ShippingOrderItemsTable: React.FC<ShippingOrderItemsTableProps> = ({
   fifoLoading,
   productDetailsError
 }) => {
-  const processedItems = useMemo<ShippingOrderItem[]>(() => {
+  const processedItems = useMemo(() => {
     if (!items) {
       return [];
     }

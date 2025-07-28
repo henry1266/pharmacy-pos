@@ -357,7 +357,7 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
         sx={{
           p: isMobile ? 1.5 : 2,
           borderRadius: isMobile ? 1 : 2,
-          border: error || inputError ? `1px solid ${theme.palette.error.main}` : undefined,
+          ...((error || inputError) && { border: `1px solid ${theme.palette.error.main}` }),
           mx: isMobile ? -0.5 : 0
         }}
       >
@@ -426,48 +426,67 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                   addToHistory(newValue);
                 }
               }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  type="number"
-                  label={`${label} (${baseUnitDisplayName})`}
-                  placeholder={placeholder}
-                  disabled={disabled}
-                  error={!!(error || inputError)}
-                  helperText={error || inputError || helperText}
-                  variant={variant}
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {params.InputProps.endAdornment}
-                        {showCalculator && (
-                          <Tooltip title="切換到高級輸入模式">
-                            <IconButton
-                              onClick={() => setShowAdvanced(true)}
-                              size="small"
-                            >
-                              <CalculatorIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    )
-                  }}
-                />
-              )}
-              renderOption={(props, option) => (
-                <ListItem {...props}>
-                  <ListItemText
-                    primary={option.toString()}
-                    secondary={
-                      historyInputs.includes(option as number)
-                        ? '歷史記錄'
-                        : '智能建議'
-                    }
+              renderInput={(params) => {
+                const { size, InputLabelProps, ...restParams } = params;
+                const cleanInputLabelProps = InputLabelProps ? {
+                  ...InputLabelProps,
+                  className: InputLabelProps.className || '',
+                  style: InputLabelProps.style || {}
+                } : {};
+                
+                return (
+                  <TextField
+                    {...restParams}
+                    type="number"
+                    label={`${label} (${baseUnitDisplayName})`}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    error={!!(error || inputError)}
+                    helperText={error || inputError || helperText}
+                    variant={variant}
+                    size={size || "medium" as const}
+                    InputLabelProps={cleanInputLabelProps}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          {params.InputProps.endAdornment}
+                          {showCalculator && (
+                            <Tooltip title="切換到高級輸入模式">
+                              <IconButton
+                                onClick={() => setShowAdvanced(true)}
+                                size="small"
+                              >
+                                <CalculatorIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      )
+                    }}
                   />
-                </ListItem>
-              )}
+                );
+              }}
+              renderOption={(props, option) => {
+                const { autoFocus, className, style, ...restProps } = props;
+                return (
+                  <ListItem
+                    {...restProps}
+                    autoFocus={!!autoFocus}
+                    className={className || ''}
+                    style={style || {}}
+                  >
+                    <ListItemText
+                      primary={option.toString()}
+                      secondary={
+                        historyInputs.includes(option as number)
+                          ? '歷史記錄'
+                          : '智能建議'
+                      }
+                    />
+                  </ListItem>
+                );
+              }}
             />
           </Box>
         )}
@@ -524,46 +543,62 @@ const PackageQuantityInput: React.FC<PackageQuantityInputProps> = ({
                           minWidth: isMobile ? '100%' : '80px',
                           width: isMobile && packageUnits.length > 3 ? '100%' : 'auto'
                         }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            type="number"
-                            label={unit.unitName}
-                            disabled={disabled}
-                            inputProps={{
-                              ...params.inputProps,
-                              min: 0,
-                              style: {
-                                fontSize: isMobile ? '16px' : '14px', // 防止 iOS 縮放
-                                ...params.inputProps.style
-                              }
-                            }}
-                            InputProps={{
-                              ...params.InputProps,
-                              endAdornment: isMobile && packageUnits.length > 3 ? (
-                                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                  {params.InputProps.endAdornment}
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleDecrement(unit.unitName)}
-                                    disabled={disabled}
-                                  >
-                                    <RemoveIcon />
-                                  </IconButton>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleIncrement(unit.unitName)}
-                                    disabled={disabled}
-                                  >
-                                    <AddIcon />
-                                  </IconButton>
-                                </Box>
-                              ) : params.InputProps.endAdornment
-                            }}
-                          />
-                        )}
+                        renderInput={(params) => {
+                          const { size: paramSize, InputLabelProps, ...restParams } = params;
+                          const cleanInputLabelProps = InputLabelProps ? {
+                            ...InputLabelProps,
+                            className: InputLabelProps.className || '',
+                            style: InputLabelProps.style || {}
+                          } : {};
+                          
+                          return (
+                            <TextField
+                              {...restParams}
+                              type="number"
+                              label={unit.unitName}
+                              disabled={disabled}
+                              size={isMobile ? "medium" : "small"}
+                              inputProps={{
+                                ...params.inputProps,
+                                min: 0,
+                                style: {
+                                  fontSize: isMobile ? '16px' : '14px', // 防止 iOS 縮放
+                                  ...(params.inputProps?.style || {})
+                                }
+                              }}
+                              InputProps={{
+                                ...params.InputProps,
+                                endAdornment: isMobile && packageUnits.length > 3 ? (
+                                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                    {params.InputProps.endAdornment}
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleDecrement(unit.unitName)}
+                                      disabled={disabled}
+                                    >
+                                      <RemoveIcon />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleIncrement(unit.unitName)}
+                                      disabled={disabled}
+                                    >
+                                      <AddIcon />
+                                    </IconButton>
+                                  </Box>
+                                ) : params.InputProps.endAdornment
+                              }}
+                              InputLabelProps={cleanInputLabelProps}
+                            />
+                          );
+                        }}
                         renderOption={(props, option) => (
-                          <ListItem {...props}>
+                          <ListItem
+                            {...props}
+                            autoFocus={!!props.autoFocus}
+                            className={props.className || ''}
+                            style={props.style || {}}
+                          >
                             <ListItemText
                               primary={option.toString()}
                               secondary="建議值"

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
+import {
   TransactionGroupWithEntriesFormData,
-  EmbeddedAccountingEntryFormData 
-} from '@pharmacy-pos/shared';
+  EmbeddedAccountingEntryFormData
+} from '@pharmacy-pos/shared/types/accounting2';
 
 interface UseTransactionForm3Props {
   initialData?: Partial<TransactionGroupWithEntriesFormData>;
@@ -163,7 +163,7 @@ export const useTransactionForm3 = ({
           return {
             description: '',
             transactionDate: new Date(),
-            organizationId: defaultOrganizationId,
+            organizationId: defaultOrganizationId || '',
             receiptUrl: '',
             invoiceNo: '',
             entries: createDefaultEntries(defaultAccountId)
@@ -180,13 +180,13 @@ export const useTransactionForm3 = ({
         const initialFormData: TransactionGroupWithEntriesFormData = {
           description,
           transactionDate,
-          organizationId: convertedData.organizationId,
+          organizationId: convertedData.organizationId || '',
           receiptUrl: convertedData.receiptUrl || '',
           invoiceNo: convertedData.invoiceNo || '',
           entries,
           // 資金來源追蹤欄位 - 複製模式下清空
-          linkedTransactionIds: isCopyMode ? undefined : convertedData.linkedTransactionIds,
-          sourceTransactionId: isCopyMode ? undefined : convertedData.sourceTransactionId,
+          linkedTransactionIds: isCopyMode ? [] : (convertedData.linkedTransactionIds || []),
+          sourceTransactionId: isCopyMode ? '' : (convertedData.sourceTransactionId || ''),
           fundingType: isCopyMode ? 'original' : (convertedData.fundingType || 'original')
         };
         
@@ -199,7 +199,7 @@ export const useTransactionForm3 = ({
         return {
           description: '',
           transactionDate: new Date(),
-          organizationId: defaultOrganizationId,
+          organizationId: defaultOrganizationId || '',
           receiptUrl: '',
           invoiceNo: '',
           entries: createDefaultEntries(defaultAccountId)
@@ -212,7 +212,7 @@ export const useTransactionForm3 = ({
     return {
       description: '',
       transactionDate: new Date(),
-      organizationId: defaultOrganizationId,
+      organizationId: defaultOrganizationId || '',
       receiptUrl: '',
       invoiceNo: '',
       entries: createDefaultEntries(defaultAccountId)

@@ -59,7 +59,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
         
         
         <Grid container spacing={2}>
-          {/* @ts-ignore */}
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -74,9 +73,7 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             />
           </Grid>
           
-          {/* @ts-ignore */}
           <Grid item xs={12} sm={6} md={3}>
-            {/* @ts-ignore */}
             <SupplierSelect
               suppliers={suppliers ?? []}
               selectedSupplier={selectedSupplier}
@@ -88,7 +85,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             />
           </Grid>
           
-          {/* @ts-ignore */}
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
               <InputLabel id="payment-status-select-label">付款狀態</InputLabel>
@@ -107,7 +103,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
             </FormControl>
           </Grid>
 
-          {/* @ts-ignore */}
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
               <InputLabel id="status-select-label">狀態</InputLabel>
@@ -127,7 +122,6 @@ const BasicInfoForm: FC<BasicInfoFormProps> = ({
           </Grid>          
           
           
-          {/* @ts-ignore */}
           <Grid item xs={12}>
             <TextField
               fullWidth

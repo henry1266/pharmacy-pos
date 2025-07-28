@@ -138,24 +138,18 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, flex: 1 }}>
               <Typography variant="body2">
                 <strong>供應商:</strong> {
-                  (() => {
-                    if (!product.supplier) return '無';
-                    if (typeof product.supplier === 'string') {
-                      return suppliers.find(s => s._id === product.supplier)?.name ?? product.supplier;
-                    }
-                    return product.supplier?.name ?? '無';
-                  })()
+                  !product.supplier ? '無' :
+                  typeof product.supplier === 'string' ?
+                    (suppliers.find(s => s._id === product.supplier)?.name ?? product.supplier) :
+                    (product.supplier?.name ?? '無')
                 }
               </Typography>
               <Typography variant="body2">
                 <strong>分類:</strong> {
-                  (() => {
-                    if (!product.category) return '無';
-                    if (typeof product.category === 'string') {
-                      return categories.find(c => c._id === product.category)?.name ?? product.category;
-                    }
-                    return product.category?.name ?? '無';
-                  })()
+                  !product.category ? '無' :
+                  typeof product.category === 'string' ?
+                    (categories.find(c => c._id === product.category)?.name ?? product.category) :
+                    (product.category?.name ?? '無')
                 }
               </Typography>
               <Typography variant="body2">
@@ -221,7 +215,7 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
               <PackageInventoryDisplay
                 totalQuantity={product.stock}
                 packageUnits={product.packageUnits}
-                baseUnitName={product.unit}
+                baseUnitName={product.unit || '個'}
                 showBreakdown={true}
                 variant="detailed"
               />
@@ -255,8 +249,8 @@ const ProductDetailCard: React.FC<ProductDetailCardProps> = ({
           <InventoryList
             productId={product.id}
             productName={product.name}
-            packageUnits={product.packageUnits}
-            productUnit={product.unit}
+            packageUnits={product.packageUnits || []}
+            productUnit={product.unit || '個'}
           />
         </Paper>
       </CardContent>

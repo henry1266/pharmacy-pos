@@ -49,7 +49,7 @@ const ShippingOrderPreview: FC<ShippingOrderPreviewProps> = ({ shippingOrder, lo
     { key: 'dname', label: '藥品名稱', render: (item) => item.dname || item.name },
     { key: 'did', label: '藥品代碼', render: (item) => item.did || item.id },
     { key: 'dquantity', label: '數量', align: 'right', render: (item) => item.dquantity || item.quantity },
-    { key: 'dtotalCost', label: '金額', align: 'right', render: (item) => (item.dtotalCost || item.totalCost || 0).toLocaleString() }
+    { key: 'dtotalCost', label: '金額', align: 'right', render: (item) => Number(item.dtotalCost || item.totalCost || 0).toLocaleString() }
   ];
 
   // 計算總計的函數

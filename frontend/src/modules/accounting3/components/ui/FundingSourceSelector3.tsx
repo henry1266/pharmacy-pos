@@ -41,7 +41,7 @@ import {
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { fundingTrackingService, transactionGroupService } from '../../services/transactionGroupService';
-import { TransactionGroup, FundingSource, TransactionGroupWithEntries } from '@pharmacy-pos/shared';
+import { TransactionGroup, FundingSource, TransactionGroupWithEntries } from '@pharmacy-pos/shared/types/accounting2';
 
 interface FundingSourceSelector3Props {
   open: boolean;
@@ -128,7 +128,7 @@ export const FundingSourceSelector3: React.FC<FundingSourceSelector3Props> = ({
       if (statusFilter === 'confirmed' || statusFilter === 'all') {
         // 載入已確認的交易（可用作資金來源）
         const response = await fundingTrackingService.getAvailableFundingSources({
-          organizationId,
+          organizationId: organizationId || undefined,
           minAmount: 0
         });
         
@@ -159,7 +159,7 @@ export const FundingSourceSelector3: React.FC<FundingSourceSelector3Props> = ({
       if (statusFilter === 'draft' || statusFilter === 'all') {
         // 載入草稿狀態的交易（需要確認才能作為資金來源）
         const response = await transactionGroupService.getAll({
-          organizationId,
+          organizationId: organizationId || undefined,
           status: 'draft'
         });
         
@@ -176,8 +176,8 @@ export const FundingSourceSelector3: React.FC<FundingSourceSelector3Props> = ({
               usedAmount: 0, // 草稿狀態的交易還沒有被使用
               availableAmount: tx.totalAmount || 0,
               fundingType: tx.fundingType || 'original',
-              receiptUrl: tx.receiptUrl,
-              invoiceNo: tx.invoiceNo,
+              receiptUrl: tx.receiptUrl || undefined,
+              invoiceNo: tx.invoiceNo || undefined,
               isAvailable: true,
               status: tx.status,
               linkedTransactionIds: tx.linkedTransactionIds || [],
@@ -257,12 +257,12 @@ export const FundingSourceSelector3: React.FC<FundingSourceSelector3Props> = ({
       description: fundingSource.description,
       transactionDate: fundingSource.transactionDate,
       organizationId: organizationId || '', // 使用傳入的 organizationId
-      receiptUrl: fundingSource.receiptUrl,
-      invoiceNo: fundingSource.invoiceNo,
+      receiptUrl: fundingSource.receiptUrl || '',
+      invoiceNo: fundingSource.invoiceNo || '',
       totalAmount: fundingSource.totalAmount,
       status: fundingSource.status,
       linkedTransactionIds: fundingSource.linkedTransactionIds,
-      sourceTransactionId: undefined, // 這個資訊在 FundingSource 中沒有
+      sourceTransactionId: '', // 這個資訊在 FundingSource 中沒有
       fundingType: fundingSource.fundingType,
       createdBy: fundingSource.createdBy,
       createdAt: fundingSource.createdAt,

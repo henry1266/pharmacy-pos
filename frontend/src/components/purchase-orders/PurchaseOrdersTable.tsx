@@ -131,11 +131,11 @@ const PurchaseOrdersTable: FC<PurchaseOrdersTableProps> = ({
             onView={() => handleView(params.row._id)}
             onEdit={() => handleEdit(params.row._id)}
             onDelete={() => handleDeleteClick(params.row as PurchaseOrderRow)}
-            onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e as any, params.row._id)}
+            onPreviewMouseEnter={(e) => handlePreviewMouseEnter(e, params.row._id)}
             onPreviewMouseLeave={handlePreviewMouseLeave}
             isDeleteDisabled={params.row.status === 'completed'}
             status={params.row.status}
-            onUnlock={() => handleUnlock && handleUnlock(params.row._id)}
+            onUnlock={handleUnlock ? () => handleUnlock(params.row._id) : undefined}
             relatedTransactionGroupId={params.row.relatedTransactionGroupId}
             accountingEntryType={params.row.accountingEntryType}
             onViewAccountingEntry={

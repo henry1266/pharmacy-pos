@@ -340,7 +340,7 @@ const useSaleManagementV2 = (
   const prepareSaleData = useCallback((finalSaleNumber: string) => {
     return {
       saleNumber: finalSaleNumber,
-      customer: currentSale.customer ?? null,
+      customer: currentSale.customer || '',
       items: currentSale.items.map(item => ({
         product: item.product,
         quantity: item.quantity,
@@ -369,7 +369,7 @@ const useSaleManagementV2 = (
     }
 
     try {
-      const finalSaleNumber = currentSale.saleNumber ?? await generateSaleNumber();
+      const finalSaleNumber = currentSale.saleNumber || await generateSaleNumber();
       const saleData = prepareSaleData(finalSaleNumber);
       
       await createSale(saleData);

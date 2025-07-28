@@ -77,7 +77,7 @@ const CsvImportDialog: FC<CsvImportDialogProps> = ({
           
           <StatusMessage
             error={error}
-            success={success}
+            success={success ?? false}
           />
         </Box>
       </DialogContent>

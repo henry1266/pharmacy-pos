@@ -138,7 +138,6 @@ const ItemForm: FC<ItemFormProps> = ({
 
   return (
     <Grid container spacing={2} sx={{ mb: 1 }}>
-      {/* @ts-ignore */}
       <Grid item xs={12} sm={6} md={4}>
         <Autocomplete
           id="product-select"
@@ -172,7 +171,6 @@ const ItemForm: FC<ItemFormProps> = ({
           renderOption={(props, option) => (
             <Box component="li" {...props} key={option._id ?? option.code}>
               <Grid container direction="column">
-                {/* @ts-ignore */}
                 <Grid item>
                   <Typography variant="body1">{`${option.code} - ${option.name}`}</Typography>
                 </Grid>
@@ -181,7 +179,6 @@ const ItemForm: FC<ItemFormProps> = ({
           )}
         />
       </Grid>
-      {/* @ts-ignore */}
       <Grid item xs={12} sm={6} md={2}>
         <Tooltip title={`當前庫存: ${getInventoryQuantity()}`}>
           <TextField
@@ -198,10 +195,8 @@ const ItemForm: FC<ItemFormProps> = ({
           />
         </Tooltip>
       </Grid>
-      {/* @ts-ignore */}
       <Grid item xs={12} sm={6} md={3}>
-        {/* @ts-ignore */}
-        <PriceTooltip 
+        <PriceTooltip
           currentItem={currentItem}
           handleItemInputChange={handleItemInputChange}
           getProductPurchasePrice={getProductPurchasePrice}
@@ -212,7 +207,6 @@ const ItemForm: FC<ItemFormProps> = ({
           handleAddItem={handleAddItem}
         />
       </Grid>
-      {/* @ts-ignore */}
       <Grid item xs={12} sm={6} md={3}>
         <Button
           variant="contained"
@@ -234,7 +228,6 @@ const ItemForm: FC<ItemFormProps> = ({
       
       {/* 移除冗餘的 boolean literal */}
       {currentItem.dquantity && !isInventorySufficient() && (
-        /* @ts-ignore */
         <Grid item xs={12}>
           <Alert severity="error">
             庫存不足！當前庫存: {getInventoryQuantity()}, 需要: {currentItem.dquantity}

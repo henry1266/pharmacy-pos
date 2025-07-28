@@ -20,7 +20,7 @@ import {
   Balance as BalanceIcon,
   AccountBalance as AccountIcon
 } from '@mui/icons-material';
-import { EmbeddedAccountingEntry3FormData } from '@pharmacy-pos/shared/types/accounting3';
+import { EmbeddedAccountingEntryFormData } from '@pharmacy-pos/shared/types/accounting2';
 import { AccountSelector3 } from '../../features/accounts/components/AccountSelector/AccountSelector';
 import { DoubleEntryFormWithEntries3 } from '../../features/transactions/DoubleEntryFormWithEntries3';
 import { SimpleTransactionFlow } from './SimpleTransactionFlow';
@@ -49,8 +49,8 @@ interface BalanceInfo {
 
 export interface EnhancedDoubleEntrySectionProps {
   // 分錄資料
-  entries: EmbeddedAccountingEntry3FormData[];
-  onEntriesChange: (entries: EmbeddedAccountingEntry3FormData[]) => void;
+  entries: EmbeddedAccountingEntryFormData[];
+  onEntriesChange: (entries: EmbeddedAccountingEntryFormData[]) => void;
   
   // 表單設定
   organizationId?: string;
@@ -146,7 +146,7 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
   // 初始化分錄（如果為空）
   useEffect(() => {
     if (entries.length === 0) {
-      const defaultEntries: EmbeddedAccountingEntry3FormData[] = [
+      const defaultEntries: EmbeddedAccountingEntryFormData[] = [
         {
           accountId: '',
           debitAmount: 0,
@@ -168,7 +168,7 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
   const handleSwitchToSimple = () => {
     if (!isSimpleModeCompatible) {
       // 如果當前不相容，重置為基本的一借一貸結構
-      const defaultEntries: EmbeddedAccountingEntry3FormData[] = [
+      const defaultEntries: EmbeddedAccountingEntryFormData[] = [
         {
           accountId: '',
           debitAmount: 0,
@@ -535,7 +535,7 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
             <DoubleEntryFormWithEntries3
               entries={entries}
               onChange={onEntriesChange}
-              organizationId={organizationId}
+              organizationId={organizationId || ''}
               isCopyMode={isCopyMode}
               disabled={!permissions.canEdit}
             />
@@ -564,7 +564,7 @@ export const EnhancedDoubleEntrySection: React.FC<EnhancedDoubleEntrySectionProp
         <DialogContent sx={{ p: 0 }}>
           <AccountSelector3
             selectedAccountId=""
-            organizationId={organizationId}
+            organizationId={organizationId || ''}
             onAccountSelect={handleAccountSelectConfirm}
             onCancel={() => setAccountSelectorOpen(false)}
           />

@@ -111,9 +111,9 @@ const SalesPreview: React.FC<SalesPreviewProps> = ({ sale, loading, error }) => 
 
   return (
     <ItemPreview
-      data={sale || undefined}
+      data={sale ?? undefined}
       loading={loading}
-      error={error || undefined}
+      error={error ?? undefined}
       title="銷售訂單詳情"
       columns={columns}
       itemsKey="items"

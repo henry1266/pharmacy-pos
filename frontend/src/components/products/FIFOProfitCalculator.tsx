@@ -109,17 +109,10 @@ interface SummaryItemProps {
 
 const SummaryItem: React.FC<SummaryItemProps> = ({ label, value, isMonetary = true, isProfit = false, icon }) => {
   // 解決巢狀三元運算式問題
-  let isPositive = true;
-  if (isProfit) {
-    isPositive = parseFloat(value.toString()) >= 0;
-  }
+  const isPositive = isProfit ? parseFloat(value.toString()) >= 0 : true;
   
   // 解決另一個巢狀三元運算式問題
-  let textColor = 'inherit';
-  if (isProfit) {
-    // 使用更鮮明的顏色
-    textColor = isPositive ? '#00C853' : '#FF1744';
-  }
+  const textColor = isProfit ? (isPositive ? '#00C853' : '#FF1744') : 'inherit';
   
   return (
     <Card
@@ -172,7 +165,9 @@ const SortableHeaderCell: React.FC<SortableHeaderCellProps> = ({
   const cellStyle = {
     fontWeight: 'bold',
     cursor: sortable ? 'pointer' : 'default',
-    '&:hover': sortable ? { backgroundColor: 'action.selected' } : {}
+    ...(sortable && {
+      '&:hover': { backgroundColor: 'action.selected' }
+    })
   };
   
   return (
@@ -386,9 +381,9 @@ const SortIcon: React.FC<SortIconProps> = ({ sortConfig, columnKey }) => {
 
 // 提取訂單連結元件，降低主元件複雜度
 interface OrderLinkProps {
-  orderType?: string;
-  orderId?: string | number;
-  orderNumber?: string;
+  orderType: string | undefined;
+  orderId: string | number | undefined;
+  orderNumber: string | undefined;
 }
 
 const OrderLink: React.FC<OrderLinkProps> = ({ orderType, orderId, orderNumber }) => {
@@ -463,10 +458,10 @@ const FifoDetailTable: React.FC<FifoDetailTableProps> = ({ fifoMatches, saleTime
                 <TableRow key={uniqueKey}>
                   <TableCell>
                     {part.orderNumber ? (
-                      <OrderLink 
-                        orderType={part.orderType}
-                        orderId={part.orderId}
-                        orderNumber={part.orderNumber}
+                      <OrderLink
+                        orderType={part.orderType || undefined}
+                        orderId={part.orderId || undefined}
+                        orderNumber={part.orderNumber || undefined}
                       />
                     ) : (
                       new Date(part.batchTime).toLocaleDateString()

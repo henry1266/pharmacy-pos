@@ -52,7 +52,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({
 // 添加 ActionButtons 的 PropTypes 驗證
 ActionButtons.propTypes = {
   loading: PropTypes.bool,
-  onCancel: PropTypes.func.isRequired // 添加缺失的 onCancel 驗證
+  onCancel: PropTypes.func.isRequired
 } as any; // 使用 any 類型來避免 TypeScript 錯誤
 
 export default ActionButtons;

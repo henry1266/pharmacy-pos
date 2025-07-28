@@ -72,7 +72,7 @@ const ShippingOrderBasicInfo: React.FC<ShippingOrderBasicInfoProps> = ({ shippin
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center">
             <CurrencyExchangeIcon fontSize="small" color="action"/>
-            <Typography variant="body2">付款狀態: <PaymentStatusChip status={shippingOrder.paymentStatus} /></Typography>
+            <Typography variant="body2">付款狀態: <PaymentStatusChip status={shippingOrder.paymentStatus ?? ''} /></Typography>
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center">
             <CalendarTodayIcon fontSize="small" color="action"/>
